@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: sc.fiji:SPIM_Registration:5.0.19">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/sc/fiji/SPIM_Registration/5.0.19/SPIM_Registration-5.0.19.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/sc/fiji/SPIM_Registration/5.0.19/SPIM_Registration-5.0.19-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/sc/fiji/SPIM_Registration/5.0.19/SPIM_Registration-5.0.19-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
