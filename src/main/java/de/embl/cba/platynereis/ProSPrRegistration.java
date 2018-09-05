@@ -9,6 +9,9 @@ import net.imglib2.realtransform.AffineTransform3D;
 
 public class ProSPrRegistration
 {
+
+    private static AffineTransform3D emToProsprInMicrometerUnits;
+
     public static AffineTransform3D getTransformJRotation( )
     {
         AffineTransform3D transformJTransform = new AffineTransform3D();
@@ -89,27 +92,9 @@ public class ProSPrRegistration
     }
 
 
-    public static AffineTransform3D setEmSimilarityTransform( ProSPrDataSource source )
+    public static void setEmSimilarityTransform( ProSPrDataSource source )
     {
-        AffineTransform3D emToProsprInMicrometerUnites = getTransformationFromEmToProsprInMicrometerUnites( );
 
-        AffineTransform3D finalTransform = adaptViewRegistration( source, emToProsprInMicrometerUnites );
-
-        return finalTransform;
-
-    }
-
-    public static AffineTransform3D getTransformationFromEmToProsprInMicrometerUnites( )
-    {
-        AffineTransform3D transformJRotation = getTransformJRotation( );
-
-        AffineTransform3D elastixSimilarityTransform = getElastixSimilarityTransform( );
-
-        return getCombinedTransform( transformJRotation, elastixSimilarityTransform );
-    }
-
-    public static AffineTransform3D adaptViewRegistration( ProSPrDataSource source, AffineTransform3D additionalTransform )
-    {
         ViewRegistration viewRegistration;
 
         // the ViewRegistration in the file contains the scaling relative to 1 micrometer
@@ -122,18 +107,39 @@ public class ProSPrRegistration
             viewRegistration = source.spimDataMinimal.getViewRegistrations().getViewRegistrationsOrdered( ).get( 0 );
         }
 
+
+        final AffineTransform3D viewRegistrationAffineTransform = viewRegistration.getModel();
+
         /*
         The conventional meaning for concatenating transformations is the following:
         Let ba = b.concatenate(a).
         Applying ba to x is equivalent to first applying a to x and then applying b to the result.
+
+        Let ab = b.preConcatenate(a).
+        Applying ab to x is equivalent to first applying b to x and then applying a to the result.
+
          */
 
-        final AffineTransform3D viewRegistrationAffineTransform = viewRegistration.getModel();
+        viewRegistrationAffineTransform.preConcatenate( getTransformationFromEmToProsprInMicrometerUnits() );
 
-		viewRegistrationAffineTransform.preConcatenate( additionalTransform );
 
-        return viewRegistrationAffineTransform;
     }
+
+    public static AffineTransform3D getTransformationFromEmToProsprInMicrometerUnits( )
+    {
+        if ( emToProsprInMicrometerUnits == null )
+        {
+            AffineTransform3D transformJRotation = getTransformJRotation();
+
+            AffineTransform3D elastixSimilarityTransform = getElastixSimilarityTransform();
+
+            emToProsprInMicrometerUnits = getCombinedTransform( transformJRotation, elastixSimilarityTransform );
+        }
+
+        return emToProsprInMicrometerUnits;
+    }
+
+
 
     public static AffineTransform3D getElastixSimilarityTransform( )
     {

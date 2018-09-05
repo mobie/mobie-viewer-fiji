@@ -51,9 +51,11 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
     private static final String EM_RAW_FILE_ID = "em-raw-"; //"em-raw-100nm"; //"em-raw-10nm-10nm-25nm"; //"em-raw-100nm"; //
     private static final String EM_SEGMENTED_FILE_ID = "em-segmented";
     private static final String SELECTION_UI = "Data sources";
+    private static final String POSITION_UI = "Move to position";
     private static final Color DEFAULT_GENE_COLOR = new Color( 255, 0, 255, 255 );
     private static final Color DEFAULT_EM_RAW_COLOR = new Color(255, 255, 255, 255 );
     private static final Color DEFAULT_EM_SEGMENTATION_COLOR = new Color(255, 0, 0, 255 );
+    public static final double ZOOM_REGION_SIZE = 50.0;
 
     @Parameter
     public LogService logService;
@@ -85,9 +87,13 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
 
         initBdvWithEmRawData( );
 
-        createSourceSelectionUI( );
+        addActionButton( "Add to viewer", "showDataSourceInBdv" );
 
-        addActionButtons();
+        createSourceSelectionComboBox( );
+
+        addActionButton( "Move to position [micrometer]", "moveToPositionInBdv" );
+
+        createPositionSelectionTextField();
 
         addBehaviors();
 
@@ -128,14 +134,9 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
         bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( posInBdvInMicrometer );
 
         final RealPoint posInverse = new RealPoint( 3 );
-        emRawDataTransform.inverse().apply( posInBdvInMicrometer, posInverse  );
+        ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().inverse().apply( posInBdvInMicrometer, posInverse  );
 
-        double[] posInRawDataInMicrometer = new double[ 3 ];
-        posInRawDataInMicrometer[ 0 ] = posInverse.getDoublePosition( 0) / 10.0;  // from 100 nm to 1 um
-        posInRawDataInMicrometer[ 1 ] = posInverse.getDoublePosition( 1) / 10.0;  // from 100 nm to 1 um
-        posInRawDataInMicrometer[ 2 ] = posInverse.getDoublePosition( 2) / 10.0;  // from 100 nm to 1 um
-
-        IJ.log("coordinates in raw em data set [micrometer] : " + Util.printCoordinates( new RealPoint( posInRawDataInMicrometer ) ) );
+        IJ.log("coordinates in raw em data set [micrometer] : " + Util.printCoordinates( new RealPoint( posInverse ) ) );
 
     }
 
@@ -144,11 +145,27 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
 
     }
 
-    private void addActionButtons()
+    private void moveToPositionInBdv()
     {
-        addActionButton( "Show", "showDataSourceInBdv" );
-    }
+        final double[] position = Utils.delimitedStringToDoubleArray( ( String ) this.getInput( POSITION_UI ), "," );
 
+        double[] position2 = new double[ 3 ];
+
+        ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().apply( position, position2 );
+
+        Utils.centerBdvViewToPosition( position2, bdv );
+
+//        double[] min = new double[ 3 ];
+//        double[] max = new double[ min.length ];
+//
+//        for ( int d = 0; d < min.length; ++d )
+//        {
+//            min[ d ] = position[ d ] - ZOOM_REGION_SIZE / 2.0;
+//            max[ d ] = position[ d ] + ZOOM_REGION_SIZE / 2.0;
+//        }
+//
+//        Utils.zoomToInterval( new FinalRealInterval( min, max ), bdv );
+    }
 
     private void addActionButton( String buttonName, String callback)
     {
@@ -383,7 +400,7 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
         spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().set( 0, basicViewSetup);
     }
 
-    private void createSourceSelectionUI( )
+    private void createSourceSelectionComboBox( )
     {
         final MutableModuleItem< String > typeItem = addInput( SELECTION_UI, String.class );
         typeItem.setPersisted( false );
@@ -392,6 +409,14 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
         List< String > genes = new ArrayList<>(  );
         genes.addAll( dataSourcesMap.keySet() );
         typeItem.setChoices( genes );
+    }
+
+    private void createPositionSelectionTextField( )
+    {
+        final MutableModuleItem< String > typeItem = addInput( POSITION_UI, String.class );
+        typeItem.setPersisted( false );
+        typeItem.setLabel( POSITION_UI );
+        typeItem.setDefaultValue( "1490,1393,721" );
     }
 
     private void initDataSources( File directory )
@@ -424,16 +449,10 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
                         source.isSpimDataMinimal = true;
                     }
 
-                    AffineTransform3D affineTransform3D = ProSPrRegistration.setEmSimilarityTransform( source );
-
                     if ( file.getName().contains( EM_RAW_FILE_DEFAULT_ID ) )
                     {
                         emRawDataID = dataSourceName;
-                        emRawDataTransform = affineTransform3D;
-                    }
-
-                    if ( file.getName().contains( EM_RAW_FILE_DEFAULT_ID ) )
-                    {
+                        ProSPrRegistration.setEmSimilarityTransform( source );
                         source.name = EM_RAW_FILE_DEFAULT_ID;
                     }
 
