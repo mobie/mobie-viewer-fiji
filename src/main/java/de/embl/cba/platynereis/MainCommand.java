@@ -77,6 +77,8 @@ public class MainCommand extends DynamicCommand implements Interactive
 
         //File directory = new File( "/Volumes/arendt/EM_6dpf_segmentation/bigdataviewer" );
 
+        System.setProperty( "apple.laf.useScreenMenuBar", "true" );
+
         String dir = IJ.getDirectory( "Please choose Platynereis directory" );
 
         File directory = new File( dir );
@@ -217,7 +219,6 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     private void loadAndShowSourceInBdv( String dataSourceName )
     {
-
         PlatynereisDataSource source = dataSourcesMap.get( dataSourceName );
 
         if ( source.isSpimDataMinimal )
@@ -252,7 +253,10 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     private void setName( String name, PlatynereisDataSource source )
     {
-        source.spimData.getSequenceDescription().getViewSetupsOrdered().get( 0 ).getChannel().setName( name );
+        if ( source.spimData != null )
+        {
+            source.spimData.getSequenceDescription().getViewSetupsOrdered().get( 0 ).getChannel().setName( name );
+        }
     }
 
     private void addSourceFromTiffFile( String gene )
@@ -280,8 +284,6 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     private void initBdvWithEmRawData(  )
     {
-        System.setProperty( "apple.laf.useScreenMenuBar", "true" );
-
         loadAndShowSourceInBdv( emRawDataID );
 
         bdv.getBdvHandle().getViewerPanel().setInterpolation( Interpolation.NLINEAR );

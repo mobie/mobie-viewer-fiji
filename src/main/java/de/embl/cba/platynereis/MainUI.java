@@ -28,13 +28,15 @@ public class MainUI extends JPanel
 		launchUI();
 	}
 
-	private void addSourceSelectionUI(JPanel panel )
+	private void addSourceSelectionUI( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
 		horizontalLayoutPanel.add( new JLabel( "Add source to viewer: " ) );
 
 		final JComboBox dataSources = new JComboBox();
+
+		horizontalLayoutPanel.add( dataSources );
 
 		for ( String name : mainCommand.dataSourcesMap.keySet() )
 		{
@@ -49,6 +51,8 @@ public class MainUI extends JPanel
 				mainCommand.addDataSourceToBdv( (String) dataSources.getSelectedItem() );
 			}
 		} );
+
+		panel.add( horizontalLayoutPanel );
 	}
 
 	private void addPositionUI( JPanel panel )

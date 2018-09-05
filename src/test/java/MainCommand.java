@@ -1,7 +1,6 @@
-import de.embl.cba.platynereis.MainCommand;
 import net.imagej.ImageJ;
 
-public class PlatynereisCommand
+public class MainCommand
 {
 
 	public static void main(final String... args) throws Exception
@@ -10,7 +9,7 @@ public class PlatynereisCommand
 		ij.ui().showUI();
 
 		// invoke the plugin
-		ij.command().run( MainCommand.class, true );
+		ij.command().run( de.embl.cba.platynereis.MainCommand.class, true );
 	}
 
 }
