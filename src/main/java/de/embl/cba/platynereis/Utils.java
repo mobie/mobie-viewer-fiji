@@ -64,7 +64,7 @@ public class Utils
 		return affineTransform3D;
 	}
 
-	public static void centerBdvViewToPosition( double[] position, Bdv bdv )
+	public static void centerBdvViewToPosition( double[] position, double scale, Bdv bdv )
 	{
 		final AffineTransform3D viewerTransform = new AffineTransform3D();
 
@@ -80,11 +80,24 @@ public class Utils
 		for( int d = 0; d < 3; ++d )
 		{
 //			final double center = ( interval.realMin( d ) + interval.realMax( d ) ) / 2.0;
-			translation[ d ] = - position[ d ] + bdvWindowDimensions[ d ] / 2.0;
+			translation[ d ] = - position[ d ];
 		}
 
-		viewerTransform.scale( 10.0 );
 		viewerTransform.setTranslation( translation );
+		viewerTransform.scale( scale );
+
+		double[] translation2 = new double[ 3 ];
+
+		for( int d = 0; d < 3; ++d )
+		{
+//			final double center = ( interval.realMin( d ) + interval.realMax( d ) ) / 2.0;
+			translation2[ d ] = + bdvWindowDimensions[ d ] / 2.0;
+		}
+
+		viewerTransform.translate( translation2 );
+
+
+
 
 		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( viewerTransform );
 

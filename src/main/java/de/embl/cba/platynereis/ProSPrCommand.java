@@ -153,7 +153,7 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
 
         ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().apply( position, position2 );
 
-        Utils.centerBdvViewToPosition( position2, bdv );
+        Utils.centerBdvViewToPosition( position2, 10.0, bdv );
 
 //        double[] min = new double[ 3 ];
 //        double[] max = new double[ min.length ];
