@@ -7,7 +7,7 @@ import mpicbg.spim.data.SpimData;
 import java.awt.*;
 import java.io.File;
 
-public class ProSPrDataSource
+public class PlatynereisDataSource
 {
     public SpimData spimData;
     public SpimDataMinimal spimDataMinimal;

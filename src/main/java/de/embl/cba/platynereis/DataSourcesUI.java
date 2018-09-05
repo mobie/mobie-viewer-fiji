@@ -9,7 +9,7 @@ import java.awt.event.ActionListener;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class ProSPrLegend extends JPanel implements ActionListener
+public class DataSourcesUI extends JPanel implements ActionListener
 {
     public static final String CHANGE_COLOR = "Change color";
     public static final String ADAPT_BRIGHTNESS = "Adapt brightness";
@@ -20,17 +20,17 @@ public class ProSPrLegend extends JPanel implements ActionListener
     public static final String REMOVE_ACTION = "X___";
     protected Map< String, JPanel > panels;
     JFrame frame;
-    final ProSPrCommand prospr;
+    final MainCommand mainCommand;
 
-    public ProSPrLegend( ProSPrCommand prospr )
+    public DataSourcesUI( MainCommand mainCommand )
     {
-        this.prospr = prospr;
+        this.mainCommand = mainCommand;
         panels = new LinkedHashMap<>(  );
         createGUI();
     }
 
 
-    public void addSource( ProSPrDataSource dataSource )
+    public void addSource( PlatynereisDataSource dataSource )
     {
 
         if( ! panels.containsKey( dataSource.name ) )
@@ -117,12 +117,12 @@ public class ProSPrLegend extends JPanel implements ActionListener
         else if ( name.contains( BRIGHTNESS_ACTION ) )
         {
             String dataSourceName = name.replace( BRIGHTNESS_ACTION, "" );
-            prospr.setBrightness( dataSourceName );
+            mainCommand.setBrightness( dataSourceName );
         }
         else if( name.contains( REMOVE_ACTION ) )
         {
             String dataSourceName = name.replace( REMOVE_ACTION, "" );
-            prospr.hideDataSource( dataSourceName );
+            mainCommand.hideDataSource( dataSourceName );
             removeSource( dataSourceName );
         }
     }
@@ -134,14 +134,14 @@ public class ProSPrLegend extends JPanel implements ActionListener
         switch ( action )
         {
             case REMOVE:
-                prospr.hideDataSource( dataSourceName );
+                mainCommand.hideDataSource( dataSourceName );
                 removeSource( dataSourceName );
                 break;
             case CHANGE_COLOR:
                 changeColorViaUI( dataSourceName );
                 break;
             case ADAPT_BRIGHTNESS:
-                prospr.setBrightness( dataSourceName );
+                mainCommand.setBrightness( dataSourceName );
                 break;
             case CANCELLED:
                 break;
@@ -174,7 +174,7 @@ public class ProSPrLegend extends JPanel implements ActionListener
 
         if ( color != null )
         {
-            prospr.setDataSourceColor( name, color );
+            mainCommand.setDataSourceColor( name, color );
             panels.get( name ).setBackground( color );
         }
 

@@ -36,13 +36,11 @@ import org.scijava.widget.Button;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-@Plugin(type = Command.class, menuPath = "Plugins>Registration>EMBL>ProSPr", initializer = "init")
-public class ProSPrCommand extends DynamicCommand implements Interactive
+@Plugin(type = Command.class, menuPath = "Plugins>Registration>EMBL>Platynereis", initializer = "init")
+public class MainCommand extends DynamicCommand implements Interactive
 {
     private static final String BDV_XML_SUFFIX = ".xml";
     private static final String IMARIS_SUFFIX = ".ims";
@@ -53,8 +51,8 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
     private static final String SELECTION_UI = "Data sources";
     private static final String POSITION_UI = "Move to position";
     private static final Color DEFAULT_GENE_COLOR = new Color( 255, 0, 255, 255 );
-    private static final Color DEFAULT_EM_RAW_COLOR = new Color(255, 255, 255, 255 );
-    private static final Color DEFAULT_EM_SEGMENTATION_COLOR = new Color(255, 0, 0, 255 );
+    private static final Color DEFAULT_EM_RAW_COLOR = new Color( 255, 255, 255, 255 );
+    private static final Color DEFAULT_EM_SEGMENTATION_COLOR = new Color( 255, 0, 0, 255 );
     public static final double ZOOM_REGION_SIZE = 50.0;
 
     @Parameter
@@ -62,16 +60,16 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
 
     Bdv bdv;
 
-    Map< String, ProSPrDataSource > dataSourcesMap;
+    Map< String, PlatynereisDataSource > dataSourcesMap;
 
     String emRawDataID;
     AffineTransform3D emRawDataTransform;
-    ProSPrLegend legend;
+    DataSourcesUI legend;
 
 
     public void init()
     {
-        //File directory = new File( IJ.getDirectory( "Select ProSPr directory" ) );
+        //File directory = new File( IJ.getDirectory( "Select Platynereis directory" ) );
 
         //File directory = new File( "/Users/tischer/Documents/detlev-arendt-clem-registration--data" );
 
@@ -79,31 +77,25 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
 
         //File directory = new File( "/Volumes/arendt/EM_6dpf_segmentation/bigdataviewer" );
 
-        String dir = IJ.getDirectory( "Please choose ProSPr directory" );
+        String dir = IJ.getDirectory( "Please choose Platynereis directory" );
 
         File directory = new File( dir );
 
         initDataSources( directory );
 
-        initBdvWithEmRawData( );
-
-        addActionButton( "Add to viewer", "showDataSourceInBdv" );
-
-        createSourceSelectionComboBox( );
-
-        addActionButton( "Move to position [micrometer]", "moveToPositionInBdv" );
-
-        createPositionSelectionTextField();
+        initBdvWithEmRawData();
 
         addBehaviors();
 
         createLegend();
 
+        new MainUI( bdv, this );
+
     }
 
     private void createLegend()
     {
-        legend = new ProSPrLegend( this );
+        legend = new DataSourcesUI( this );
         legend.addSource( dataSourcesMap.get( emRawDataID ) );
     }
 
@@ -122,61 +114,27 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
         behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "my-new-behaviours" );
 
         behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-            printCoordinates( );
+            printCoordinates();
         }, "print global pos", "P" );
 
     }
 
-    private void printCoordinates( )
+    private void printCoordinates()
     {
 
         final RealPoint posInBdvInMicrometer = new RealPoint( 3 );
         bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( posInBdvInMicrometer );
 
         final RealPoint posInverse = new RealPoint( 3 );
-        ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().inverse().apply( posInBdvInMicrometer, posInverse  );
+        ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().inverse().apply( posInBdvInMicrometer, posInverse );
 
-        IJ.log("coordinates in raw em data set [micrometer] : " + Util.printCoordinates( new RealPoint( posInverse ) ) );
+        IJ.log( "coordinates in raw em data set [micrometer] : " + Util.printCoordinates( new RealPoint( posInverse ) ) );
 
     }
 
     public void run()
     {
 
-    }
-
-    private void moveToPositionInBdv()
-    {
-        final double[] position = Utils.delimitedStringToDoubleArray( ( String ) this.getInput( POSITION_UI ), "," );
-
-        double[] position2 = new double[ 3 ];
-
-        ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().apply( position, position2 );
-
-        Utils.centerBdvViewToPosition( position2, 10.0, bdv );
-
-//        double[] min = new double[ 3 ];
-//        double[] max = new double[ min.length ];
-//
-//        for ( int d = 0; d < min.length; ++d )
-//        {
-//            min[ d ] = position[ d ] - ZOOM_REGION_SIZE / 2.0;
-//            max[ d ] = position[ d ] + ZOOM_REGION_SIZE / 2.0;
-//        }
-//
-//        Utils.zoomToInterval( new FinalRealInterval( min, max ), bdv );
-    }
-
-    private void addActionButton( String buttonName, String callback)
-    {
-        final MutableModuleItem< Button > button = addInput( buttonName, Button.class );
-        button.setCallback(callback );
-        button.setRequired( false );
-    }
-
-    private void showDataSourceInBdv() throws SpimDataException
-    {
-        showDataSourceInBdv( ( String ) this.getInput( SELECTION_UI ) );
     }
 
     private void print( String text )
@@ -199,19 +157,19 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
         }
     }
 
-    private void showDataSourceInBdv( String dataSourceName ) throws SpimDataException
+    public void addDataSourceToBdv( String name )
     {
-        ProSPrDataSource dataSource = dataSourcesMap.get( dataSourceName );
+        PlatynereisDataSource dataSource = dataSourcesMap.get( name );
 
         if ( dataSource.bdvSource == null )
         {
             switch ( BDV_XML_SUFFIX )
             {
                 case ".tif":
-                    addSourceFromTiffFile( dataSourceName );
+                    addSourceFromTiffFile( name );
                     break;
                 case ".xml":
-                    loadAndShowSourceInBdv( dataSourceName );
+                    loadAndShowSourceInBdv( name );
                     break;
                 default:
                     logService.error( "Unsupported format: " + BDV_XML_SUFFIX );
@@ -219,18 +177,16 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
         }
 
         dataSource.bdvSource.setActive( true );
-        dataSource.isActive =  true ;
+        dataSource.isActive = true;
         dataSource.bdvSource.setColor( asArgbType( dataSource.color ) );
-        dataSource.name = dataSourceName;
+        dataSource.name = name;
 
         legend.addSource( dataSource );
-
-
     }
 
     public void hideDataSource( String dataSourceName )
     {
-        if ( dataSourcesMap.get( dataSourceName ).bdvSource != null  )
+        if ( dataSourcesMap.get( dataSourceName ).bdvSource != null )
         {
             dataSourcesMap.get( dataSourceName ).bdvSource.setActive( false );
             dataSourcesMap.get( dataSourceName ).isActive = false;
@@ -247,14 +203,14 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
 
     public void setBrightness( String sourceName )
     {
-        GenericDialog gd = new GenericDialog("LUT max value");
-        gd.addNumericField("LUT max value: ", dataSourcesMap.get( sourceName ).maxLutValue, 0 );
+        GenericDialog gd = new GenericDialog( "LUT max value" );
+        gd.addNumericField( "LUT max value: ", dataSourcesMap.get( sourceName ).maxLutValue, 0 );
         gd.showDialog();
-        if (gd.wasCanceled()) return;
+        if ( gd.wasCanceled() ) return;
 
-        int max  = (int) gd.getNextNumber();
+        int max = ( int ) gd.getNextNumber();
 
-        dataSourcesMap.get( sourceName ).bdvSource.setDisplayRange( 0.0, max  );
+        dataSourcesMap.get( sourceName ).bdvSource.setDisplayRange( 0.0, max );
         dataSourcesMap.get( sourceName ).maxLutValue = max;
     }
 
@@ -262,11 +218,11 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
     private void loadAndShowSourceInBdv( String dataSourceName )
     {
 
-        ProSPrDataSource source = dataSourcesMap.get( dataSourceName );
+        PlatynereisDataSource source = dataSourcesMap.get( dataSourceName );
 
         if ( source.isSpimDataMinimal )
         {
-            setNames( dataSourceName, source );
+            setName( dataSourceName, source );
 
             source.bdvSource = BdvFunctions.show( source.spimDataMinimal, BdvOptions.options().addTo( bdv ) ).get( 0 );
             source.bdvSource.setColor( asArgbType( source.color ) );
@@ -282,7 +238,7 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
                 source.spimData = openSpimData( source.file );
             }
 
-            setNames( dataSourceName, source );
+            setName( dataSourceName, source );
 
             source.bdvSource = BdvFunctions.show( source.spimData, BdvOptions.options().addTo( bdv ) ).get( 0 );
 
@@ -294,28 +250,10 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
 
     }
 
-    private void setNames( String name, ProSPrDataSource source )
+    private void setName( String name, PlatynereisDataSource source )
     {
-
-        if ( source.isSpimDataMinimal )
-        {
-//            source.spimDataMinimal.getSequenceDescription()
-//                    .getViewSetupsOrdered( ).get( 0 )..setName( name );
-        }
-        else
-        {
-            source.spimData.getSequenceDescription().getViewSetupsOrdered( ).get( 0 ).getChannel().setName( name );
-        }
-
-//        source.spimData.getSequenceDescription()
-//                .getViewDescription( 0,0  )
-//                .getViewSetup().getChannel().setName( name );
-//
-//        source.spimData.getSequenceDescription()
-//                .getViewSetups().get(  0  )
-//                .getChannel().setName( name );
+        source.spimData.getSequenceDescription().getViewSetupsOrdered().get( 0 ).getChannel().setName( name );
     }
-
 
     private void addSourceFromTiffFile( String gene )
     {
@@ -400,25 +338,6 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
         spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().set( 0, basicViewSetup);
     }
 
-    private void createSourceSelectionComboBox( )
-    {
-        final MutableModuleItem< String > typeItem = addInput( SELECTION_UI, String.class );
-        typeItem.setPersisted( false );
-        typeItem.setLabel( SELECTION_UI );
-
-        List< String > genes = new ArrayList<>(  );
-        genes.addAll( dataSourcesMap.keySet() );
-        typeItem.setChoices( genes );
-    }
-
-    private void createPositionSelectionTextField( )
-    {
-        final MutableModuleItem< String > typeItem = addInput( POSITION_UI, String.class );
-        typeItem.setPersisted( false );
-        typeItem.setLabel( POSITION_UI );
-        typeItem.setDefaultValue( "164,153,103" );
-    }
-
     private void initDataSources( File directory )
     {
 
@@ -432,7 +351,7 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
             {
                 String dataSourceName = getDataSourceName( file );
 
-                ProSPrDataSource source = new ProSPrDataSource();
+                PlatynereisDataSource source = new PlatynereisDataSource();
                 source.file = file;
                 source.maxLutValue = 255;
 
@@ -466,7 +385,7 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
                         source.color = DEFAULT_EM_SEGMENTATION_COLOR;
                     }
                 }
-                else // prospr gene
+                else // mainCommand gene
                 {
                     source.color = DEFAULT_GENE_COLOR;
                 }
@@ -499,7 +418,7 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
     {
         final ImageJ ij = new ImageJ();
         ij.ui().showUI();
-        ij.command().run( ProSPrCommand.class, true );
+        ij.command().run( MainCommand.class, true );
     }
 
 
