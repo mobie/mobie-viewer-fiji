@@ -416,7 +416,7 @@ public class ProSPrCommand extends DynamicCommand implements Interactive
         final MutableModuleItem< String > typeItem = addInput( POSITION_UI, String.class );
         typeItem.setPersisted( false );
         typeItem.setLabel( POSITION_UI );
-        typeItem.setDefaultValue( "1490,1393,721" );
+        typeItem.setDefaultValue( "164,153,103" );
     }
 
     private void initDataSources( File directory )

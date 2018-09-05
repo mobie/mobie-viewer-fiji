@@ -68,23 +68,23 @@ public class Utils
 	{
 		final AffineTransform3D viewerTransform = new AffineTransform3D();
 
-		bdv.getBdvHandle().getViewerPanel().getState().getViewerTransform( viewerTransform );
+//		bdv.getBdvHandle().getViewerPanel().getState().getViewerTransform( viewerTransform );
 
-		double[] centerPosition = new double[ 3 ];
 
-//		for( int d = 0; d < 3; ++d )
-//		{
+		int[] bdvWindowDimensions = new int[ 3 ];
+		bdvWindowDimensions[ 0 ] = bdv.getBdvHandle().getViewerPanel().getWidth();
+		bdvWindowDimensions[ 1 ] = bdv.getBdvHandle().getViewerPanel().getHeight();
+
+
+		double[] translation = new double[ 3 ];
+		for( int d = 0; d < 3; ++d )
+		{
 //			final double center = ( interval.realMin( d ) + interval.realMax( d ) ) / 2.0;
-//			centerPosition[ d ] = - center;
-//		}
+			translation[ d ] = - position[ d ] + bdvWindowDimensions[ d ] / 2.0;
+		}
 
-//		int[] bdvWindowDimensions = new int[ 2 ];
-//		bdvWindowDimensions[ 0 ] = bdv.getBdvHandle().getViewerPanel().getWidth();
-//		bdvWindowDimensions[ 1 ] = bdv.getBdvHandle().getViewerPanel().getHeight();
-
-		final double[] translation = viewerTransform.getTranslation();
-
-		viewerTransform.setTranslation( position );
+		viewerTransform.scale( 10.0 );
+		viewerTransform.setTranslation( translation );
 
 		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( viewerTransform );
 
