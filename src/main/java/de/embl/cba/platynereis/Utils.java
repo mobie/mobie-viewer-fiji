@@ -3,10 +3,19 @@ package de.embl.cba.platynereis;
 import bdv.BigDataViewer;
 import bdv.util.Bdv;
 import bdv.util.BdvHandle;
-import net.imglib2.FinalInterval;
-import net.imglib2.FinalRealInterval;
-import net.imglib2.RealInterval;
+import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.XmlIoSpimData;
+import net.imagej.ops.Ops;
+import net.imglib2.*;
+import net.imglib2.algorithm.neighborhood.HyperSphereShape;
+import net.imglib2.algorithm.neighborhood.Neighborhood;
+import net.imglib2.algorithm.neighborhood.Shape;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
+
+import java.io.File;
 
 public class Utils
 {
@@ -96,10 +105,66 @@ public class Utils
 
 		viewerTransform.translate( translation2 );
 
-
-
-
 		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( viewerTransform );
 
+	}
+
+
+	public static long[] asLongs( double[] doubles )
+	{
+		final long[] longs = new long[ doubles.length ];
+
+		for ( int i = 0; i < doubles.length; ++i )
+		{
+			longs[ i ] = (long) doubles[ i ];
+		}
+
+		return longs;
+	}
+
+
+	public static < T extends RealType< T > &  NativeType< T > >
+	double getLocalMaximum( RandomAccessibleInterval< T > rai, double[] position, double radius, double calibration )
+	{
+		Shape shape = new HyperSphereShape( (int) Math.ceil( radius / calibration ) );
+		final RandomAccessible< Neighborhood< T > > nra = shape.neighborhoodsRandomAccessible( rai );
+		final RandomAccess< Neighborhood< T > > neighborhoodRandomAccess = nra.randomAccess();
+
+		for ( int d = 0; d < position.length; ++d )
+		{
+			position[ d ] /= calibration;
+		}
+
+		neighborhoodRandomAccess.setPosition( Utils.asLongs( position )  );
+
+		final Neighborhood< T > neighborhood = neighborhoodRandomAccess.get();
+		double max = - Double.MAX_VALUE;
+
+		final Cursor< T > cursor = neighborhood.cursor();
+		while( cursor.hasNext() )
+		{
+			if ( cursor.next().getRealDouble() > max )
+			{
+				max = cursor.get().getRealDouble();
+			}
+		}
+
+		return max;
+	}
+
+	public static SpimData openSpimData( File file )
+	{
+
+		try
+		{
+			SpimData spimData = new XmlIoSpimData().load( file.toString() );
+
+			return spimData;
+		}
+		catch ( SpimDataException e )
+		{
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

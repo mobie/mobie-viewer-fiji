@@ -9,7 +9,7 @@ import java.awt.event.ActionListener;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DataSourcesUI extends JPanel implements ActionListener
+public class LegendUI extends JPanel implements ActionListener
 {
     public static final String CHANGE_COLOR = "Change color";
     public static final String ADAPT_BRIGHTNESS = "Adapt brightness";
@@ -22,7 +22,7 @@ public class DataSourcesUI extends JPanel implements ActionListener
     JFrame frame;
     final MainCommand mainCommand;
 
-    public DataSourcesUI( MainCommand mainCommand )
+    public LegendUI( MainCommand mainCommand )
     {
         this.mainCommand = mainCommand;
         panels = new LinkedHashMap<>(  );

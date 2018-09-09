@@ -7,31 +7,22 @@ import bdv.viewer.Interpolation;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
-import mpicbg.spim.data.SpimData;
-import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.XmlIoSpimData;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewTransformAffine;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imagej.ImageJ;
-import net.imglib2.RealPoint;
+import net.imagej.ops.Ops;
 import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale;
 import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.util.Util;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
 import org.scijava.log.LogService;
-import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.ui.behaviour.ClickBehaviour;
-import org.scijava.ui.behaviour.io.InputTriggerConfig;
-import org.scijava.ui.behaviour.util.Behaviours;
-import org.scijava.widget.Button;
 
 import java.awt.*;
 import java.io.File;
@@ -64,7 +55,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     String emRawDataID;
     AffineTransform3D emRawDataTransform;
-    DataSourcesUI legend;
+    LegendUI legend;
 
 
     public void init()
@@ -81,13 +72,15 @@ public class MainCommand extends DynamicCommand implements Interactive
 
         String dir = IJ.getDirectory( "Please choose Platynereis directory" );
 
-        File directory = new File( dir );
+        File[] files = new File( dir ).listFiles();
 
-        initDataSources( directory );
+        dataSourcesMap = new TreeMap<>(  );
+
+        initDataSources( files );
+
+        loadProSPrDataSourcesInSeparateThread( files );
 
         initBdvWithEmRawData();
-
-        addBehaviors();
 
         createLegend();
 
@@ -95,9 +88,18 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     }
 
+    private void loadProSPrDataSourcesInSeparateThread( File[] files )
+    {
+        (new Thread(new Runnable(){
+            public void run(){
+                loadProSPrDataSources( files );
+            }
+        })).start();
+    }
+
     private void createLegend()
     {
-        legend = new DataSourcesUI( this );
+        legend = new LegendUI( this );
         legend.addSource( dataSourcesMap.get( emRawDataID ) );
     }
 
@@ -108,30 +110,6 @@ public class MainCommand extends DynamicCommand implements Interactive
         //bdv.getViewerFrame().setVisible( true );
         //bdv.getViewer().requestRepaint();
         //https://github.com/PreibischLab/BigStitcher/blob/master/src/main/java/net/preibisch/stitcher/gui/overlay/LinkOverlay.java
-    }
-
-    private void addBehaviors()
-    {
-        Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
-        behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "my-new-behaviours" );
-
-        behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-            printCoordinates();
-        }, "print global pos", "P" );
-
-    }
-
-    private void printCoordinates()
-    {
-
-        final RealPoint posInBdvInMicrometer = new RealPoint( 3 );
-        bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( posInBdvInMicrometer );
-
-        final RealPoint posInverse = new RealPoint( 3 );
-        ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().inverse().apply( posInBdvInMicrometer, posInverse );
-
-        IJ.log( "coordinates in raw em data set [micrometer] : " + Util.printCoordinates( new RealPoint( posInverse ) ) );
-
     }
 
     public void run()
@@ -161,9 +139,9 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     public void addDataSourceToBdv( String name )
     {
-        PlatynereisDataSource dataSource = dataSourcesMap.get( name );
+        PlatynereisDataSource source = dataSourcesMap.get( name );
 
-        if ( dataSource.bdvSource == null )
+        if ( source.bdvSource == null )
         {
             switch ( BDV_XML_SUFFIX )
             {
@@ -171,19 +149,23 @@ public class MainCommand extends DynamicCommand implements Interactive
                     addSourceFromTiffFile( name );
                     break;
                 case ".xml":
-                    loadAndShowSourceInBdv( name );
+                    if ( source.spimData == null )
+                    {
+                        source.spimData = Utils.openSpimData( source.file );
+                    }
+                    showSourceInBdv( name );
                     break;
                 default:
                     logService.error( "Unsupported format: " + BDV_XML_SUFFIX );
             }
         }
 
-        dataSource.bdvSource.setActive( true );
-        dataSource.isActive = true;
-        dataSource.bdvSource.setColor( asArgbType( dataSource.color ) );
-        dataSource.name = name;
+        source.bdvSource.setActive( true );
+        source.isActive = true;
+        source.bdvSource.setColor( asArgbType( source.color ) );
+        source.name = name;
 
-        legend.addSource( dataSource );
+        legend.addSource( source );
     }
 
     public void hideDataSource( String dataSourceName )
@@ -217,7 +199,7 @@ public class MainCommand extends DynamicCommand implements Interactive
     }
 
 
-    private void loadAndShowSourceInBdv( String dataSourceName )
+    private void showSourceInBdv( String dataSourceName )
     {
         PlatynereisDataSource source = dataSourcesMap.get( dataSourceName );
 
@@ -233,12 +215,6 @@ public class MainCommand extends DynamicCommand implements Interactive
         }
         else
         {
-            if ( source.spimData == null )
-            {
-                // spimData can be null for the fluorescence data, which is only initialized on demand
-                source.spimData = openSpimData( source.file );
-            }
-
             setName( dataSourceName, source );
 
             source.bdvSource = BdvFunctions.show( source.spimData, BdvOptions.options().addTo( bdv ) ).get( 0 );
@@ -268,11 +244,8 @@ public class MainCommand extends DynamicCommand implements Interactive
         prosprScaling.scale( PROSPR_SCALING_IN_MICROMETER );
 
         final BdvSource source = BdvFunctions.show( img, gene, Bdv.options().addTo( bdv ).sourceTransform( prosprScaling ) );
-
         source.setColor( asArgbType( DEFAULT_GENE_COLOR ) );
-
         dataSourcesMap.get( gene ).color = DEFAULT_GENE_COLOR;
-
         dataSourcesMap.get( gene ).bdvSource = source;
 
     }
@@ -284,26 +257,11 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     private void initBdvWithEmRawData(  )
     {
-        loadAndShowSourceInBdv( emRawDataID );
+        showSourceInBdv( emRawDataID );
 
         bdv.getBdvHandle().getViewerPanel().setInterpolation( Interpolation.NLINEAR );
 
         //bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( new AffineTransform3D() );
-    }
-
-    private SpimData openSpimData( File file )
-    {
-
-        try
-        {
-            SpimData spimData = new XmlIoSpimData().load( file.toString() );
-            return spimData;
-        }
-        catch ( SpimDataException e )
-        {
-            e.printStackTrace();
-            return null;
-        }
     }
 
     private SpimDataMinimal openImaris( File file, double[] calibration )
@@ -340,13 +298,8 @@ public class MainCommand extends DynamicCommand implements Interactive
         spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().set( 0, basicViewSetup);
     }
 
-    private void initDataSources( File directory )
+    private void initDataSources( File[] files )
     {
-
-        dataSourcesMap = new TreeMap<>(  );
-
-        File[] files = directory.listFiles();
-
         for ( File file : files )
         {
             if ( file.getName().endsWith( BDV_XML_SUFFIX ) || file.getName().endsWith( IMARIS_SUFFIX )  )
@@ -361,7 +314,7 @@ public class MainCommand extends DynamicCommand implements Interactive
                 {
                     if ( file.getName().endsWith( BDV_XML_SUFFIX ) )
                     {
-                        source.spimData = openSpimData( file );
+                        source.spimData = Utils.openSpimData( file );
                     }
                     else if ( file.getName().contains( IMARIS_SUFFIX ) )
                     {
@@ -387,7 +340,7 @@ public class MainCommand extends DynamicCommand implements Interactive
                         source.color = DEFAULT_EM_SEGMENTATION_COLOR;
                     }
                 }
-                else // mainCommand gene
+                else // gene
                 {
                     source.color = DEFAULT_GENE_COLOR;
                 }
@@ -398,6 +351,64 @@ public class MainCommand extends DynamicCommand implements Interactive
         }
 
     }
+
+
+    private void loadProSPrDataSources( File[] files )
+    {
+        for ( File file : files )
+        {
+            // TODO ...
+
+//            if ( file.getName().endsWith( BDV_XML_SUFFIX ) || file.getName().endsWith( IMARIS_SUFFIX )  )
+//            {
+//                String dataSourceName = getDataSourceName( file );
+//
+//                PlatynereisDataSource source = new PlatynereisDataSource();
+//                source.file = file;
+//                source.maxLutValue = 255;
+//
+//                if ( file.getName().contains( EM_RAW_FILE_ID ) || file.getName().contains( EM_SEGMENTED_FILE_ID ) )
+//                {
+//                    if ( file.getName().endsWith( BDV_XML_SUFFIX ) )
+//                    {
+//                        source.spimData = Utils.openSpimData( file );
+//                    }
+//                    else if ( file.getName().contains( IMARIS_SUFFIX ) )
+//                    {
+//                        double[] calibration = new double[] { 0.01, 0.01, 0.025 };
+//                        source.spimDataMinimal = openImaris( file, calibration );
+//                        source.isSpimDataMinimal = true;
+//                    }
+//
+//                    if ( file.getName().contains( EM_RAW_FILE_DEFAULT_ID ) )
+//                    {
+//                        emRawDataID = dataSourceName;
+//                        ProSPrRegistration.setEmSimilarityTransform( source );
+//                        source.name = EM_RAW_FILE_DEFAULT_ID;
+//                    }
+//
+//                    if ( file.getName().contains( EM_RAW_FILE_ID )  )
+//                    {
+//                        source.color = DEFAULT_EM_RAW_COLOR;
+//                    }
+//
+//                    if ( file.getName().contains( EM_SEGMENTED_FILE_ID ) )
+//                    {
+//                        source.color = DEFAULT_EM_SEGMENTATION_COLOR;
+//                    }
+//                }
+//                else // gene
+//                {
+//                    source.color = DEFAULT_GENE_COLOR;
+//                }
+//
+//                dataSourcesMap.put( dataSourceName, source );
+//
+//            }
+        }
+
+    }
+
 
     private String getDataSourceName( File file )
     {
