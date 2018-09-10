@@ -4,6 +4,7 @@ import bdv.img.imaris.Imaris;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
+import com.sun.source.tree.SynchronizedTree;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -11,7 +12,6 @@ import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewTransformAffine;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imagej.ImageJ;
-import net.imagej.ops.Ops;
 import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -27,32 +27,19 @@ import org.scijava.plugin.Plugin;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Plugin(type = Command.class, menuPath = "Plugins>Registration>EMBL>Platynereis", initializer = "init")
 public class MainCommand extends DynamicCommand implements Interactive
 {
-    private static final String BDV_XML_SUFFIX = ".xml";
-    private static final String IMARIS_SUFFIX = ".ims";
-    private static final double PROSPR_SCALING_IN_MICROMETER = 0.5;
-    private static final String EM_RAW_FILE_DEFAULT_ID = "em-raw-10nm-10nm-25nm"; //"em-raw-100nm"; //"em-raw-10nm-10nm-25nm"; //"em-raw-100nm"; //
-    private static final String EM_RAW_FILE_ID = "em-raw-"; //"em-raw-100nm"; //"em-raw-10nm-10nm-25nm"; //"em-raw-100nm"; //
-    private static final String EM_SEGMENTED_FILE_ID = "em-segmented";
-    private static final String SELECTION_UI = "Data sources";
-    private static final String POSITION_UI = "Move to position";
-    private static final Color DEFAULT_GENE_COLOR = new Color( 255, 0, 255, 255 );
-    private static final Color DEFAULT_EM_RAW_COLOR = new Color( 255, 255, 255, 255 );
-    private static final Color DEFAULT_EM_SEGMENTATION_COLOR = new Color( 255, 0, 0, 255 );
-    public static final double ZOOM_REGION_SIZE = 50.0;
 
     @Parameter
     public LogService logService;
 
     Bdv bdv;
 
-    Map< String, PlatynereisDataSource > dataSourcesMap;
+    public Map< String, PlatynereisDataSource > dataSourcesMap;
 
     String emRawDataID;
     AffineTransform3D emRawDataTransform;
@@ -61,21 +48,14 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     public void init()
     {
-        //File directory = new File( IJ.getDirectory( "Select Platynereis directory" ) );
-
-        //File directory = new File( "/Users/tischer/Documents/detlev-arendt-clem-registration--data" );
-
-        //File directory = new File( "/Volumes/cba/tischer/projects/detlev-arendt-clem-registration--data/data/em-raw/bdv" );
-
-        //File directory = new File( "/Volumes/arendt/EM_6dpf_segmentation/bigdataviewer" );
-
         System.setProperty( "apple.laf.useScreenMenuBar", "true" );
 
         String dir = IJ.getDirectory( "Please choose Platynereis directory" );
 
         File[] files = new File( dir ).listFiles();
+        Arrays.sort( files );
 
-        dataSourcesMap = new TreeMap<>(  );
+        dataSourcesMap = Collections.synchronizedMap( new LinkedHashMap() );
 
         initDataSources( files );
 
@@ -86,7 +66,6 @@ public class MainCommand extends DynamicCommand implements Interactive
         createLegend();
 
         new MainUI( bdv, this );
-
     }
 
     private void loadProSPrDataSourcesInSeparateThread( )
@@ -143,7 +122,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
         if ( source.bdvSource == null )
         {
-            switch ( BDV_XML_SUFFIX ) // TODO: makes no sense...
+            switch ( Constants.BDV_XML_SUFFIX ) // TODO: makes no sense...
             {
                 case ".tif":
                     addSourceFromTiffFile( name );
@@ -156,7 +135,7 @@ public class MainCommand extends DynamicCommand implements Interactive
                     showSourceInBdv( name );
                     break;
                 default:
-                    logService.error( "Unsupported format: " + BDV_XML_SUFFIX );
+                    logService.error( "Unsupported format: " + Constants.BDV_XML_SUFFIX );
             }
         }
 
@@ -241,11 +220,11 @@ public class MainCommand extends DynamicCommand implements Interactive
         Img img = ImageJFunctions.wrap( imp );
 
         AffineTransform3D prosprScaling = new AffineTransform3D();
-        prosprScaling.scale( PROSPR_SCALING_IN_MICROMETER );
+        prosprScaling.scale( Constants.PROSPR_SCALING_IN_MICROMETER );
 
         final BdvSource source = BdvFunctions.show( img, gene, Bdv.options().addTo( bdv ).sourceTransform( prosprScaling ) );
-        source.setColor( asArgbType( DEFAULT_GENE_COLOR ) );
-        dataSourcesMap.get( gene ).color = DEFAULT_GENE_COLOR;
+        source.setColor( asArgbType( Constants.DEFAULT_GENE_COLOR ) );
+        dataSourcesMap.get( gene ).color = Constants.DEFAULT_GENE_COLOR;
         dataSourcesMap.get( gene ).bdvSource = source;
 
     }
@@ -302,7 +281,7 @@ public class MainCommand extends DynamicCommand implements Interactive
     {
         for ( File file : files )
         {
-            if ( file.getName().endsWith( BDV_XML_SUFFIX ) || file.getName().endsWith( IMARIS_SUFFIX )  )
+            if ( file.getName().endsWith( Constants.BDV_XML_SUFFIX ) || file.getName().endsWith( Constants.IMARIS_SUFFIX )  )
             {
                 String dataSourceName = getDataSourceName( file );
 
@@ -311,46 +290,42 @@ public class MainCommand extends DynamicCommand implements Interactive
                 source.file = file;
                 source.maxLutValue = 255;
 
-                if ( file.getName().contains( EM_RAW_FILE_ID ) || file.getName().contains( EM_SEGMENTED_FILE_ID ) )
+                if ( file.getName().contains( Constants.EM_RAW_FILE_ID ) || file.getName().contains( Constants.EM_SEGMENTED_FILE_ID ) )
                 {
-                    if ( file.getName().endsWith( BDV_XML_SUFFIX ) )
+                    if ( file.getName().endsWith( Constants.BDV_XML_SUFFIX ) )
                     {
                         source.spimData = Utils.openSpimData( file );
                     }
-                    else if ( file.getName().contains( IMARIS_SUFFIX ) )
+                    else if ( file.getName().contains( Constants.IMARIS_SUFFIX ) )
                     {
                         double[] calibration = new double[] { 0.01, 0.01, 0.025 };
                         source.spimDataMinimal = openImaris( file, calibration );
                         source.isSpimDataMinimal = true;
                     }
 
-                    if ( file.getName().contains( EM_RAW_FILE_DEFAULT_ID ) )
+                    if ( file.getName().contains( Constants.EM_RAW_FILE_DEFAULT_ID ) )
                     {
                         emRawDataID = dataSourceName;
                         ProSPrRegistration.setEmSimilarityTransform( source );
-                        source.name = EM_RAW_FILE_DEFAULT_ID;
+                        source.name = Constants.EM_RAW_FILE_DEFAULT_ID;
                     }
 
-                    if ( file.getName().contains( EM_RAW_FILE_ID )  )
+                    if ( file.getName().contains( Constants.EM_RAW_FILE_ID )  )
                     {
-                        source.color = DEFAULT_EM_RAW_COLOR;
+                        source.color = Constants.DEFAULT_EM_RAW_COLOR;
                     }
 
-                    if ( file.getName().contains( EM_SEGMENTED_FILE_ID ) )
+                    if ( file.getName().contains( Constants.EM_SEGMENTED_FILE_ID ) )
                     {
-                        source.color = DEFAULT_EM_SEGMENTATION_COLOR;
+                        source.color = Constants.DEFAULT_EM_SEGMENTATION_COLOR;
                     }
                 }
                 else // gene
                 {
-                    source.color = DEFAULT_GENE_COLOR;
+                    source.color = Constants.DEFAULT_GENE_COLOR;
                 }
-
-
-
             }
         }
-
     }
 
 
@@ -362,11 +337,12 @@ public class MainCommand extends DynamicCommand implements Interactive
         {
             PlatynereisDataSource source = dataSourcesMap.get( name );
 
-            if ( source.file.getName().contains( EM_RAW_FILE_ID ) ) continue;
+            if ( source.file.getName().contains( Constants.EM_FILE_ID ) ) continue;
 
-            if ( source.file.getName().endsWith( BDV_XML_SUFFIX ) )
+            if ( source.file.getName().endsWith( Constants.BDV_XML_SUFFIX ) )
             {
                 source.spimData = Utils.openSpimData( source.file );
+                Utils.log( "Added: " + name );
             }
         }
     }
@@ -376,13 +352,13 @@ public class MainCommand extends DynamicCommand implements Interactive
     {
         String dataSourceName = null;
 
-        if ( file.getName().endsWith( BDV_XML_SUFFIX ) )
+        if ( file.getName().endsWith( Constants.BDV_XML_SUFFIX ) )
 		{
-			dataSourceName = file.getName().replaceAll( BDV_XML_SUFFIX, "" );
+			dataSourceName = file.getName().replaceAll( Constants.BDV_XML_SUFFIX, "" );
 		}
-		else if ( file.getName().endsWith( IMARIS_SUFFIX ) )
+		else if ( file.getName().endsWith( Constants.IMARIS_SUFFIX ) )
 		{
-			dataSourceName = file.getName().replaceAll( IMARIS_SUFFIX, "" );
+			dataSourceName = file.getName().replaceAll( Constants.IMARIS_SUFFIX, "" );
 		}
 
         return dataSourceName;

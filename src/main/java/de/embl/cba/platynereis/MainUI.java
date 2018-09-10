@@ -7,12 +7,15 @@ import ij.IJ;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Util;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -22,13 +25,16 @@ import java.util.Set;
 
 import static de.embl.cba.platynereis.Utils.openSpimData;
 
-public class MainUI extends JPanel
+public class MainUI < T extends RealType< T > & NativeType< T > > extends JPanel
 {
 	final Bdv bdv;
 	JFrame frame;
 	private double zoom;
 	MainCommand mainCommand;
 	private Behaviours behaviours;
+	private int geneSearchMipMapLevel;
+	private double geneSearchVoxelSize;
+	private ArrayList< Double > geneSearchRadii;
 
 	public MainUI( Bdv bdv, MainCommand mainCommand )
 	{
@@ -37,10 +43,12 @@ public class MainUI extends JPanel
 		zoom = 10.0;
 		behaviours = new Behaviours( new InputTriggerConfig() );
 
+		this.setLayout( new FlowLayout( FlowLayout.LEFT, 3, 3 ) );
+
 		addSourceSelectionUI( this );
 		addPositionZoomUI( this );
 		addPositionPrintUI();
-		addShowMostAbundantGenesUI();
+		addLocalGeneSearchUI();
 
 		launchUI();
 	}
@@ -57,32 +65,40 @@ public class MainUI extends JPanel
 		}, "print pos", "P" );
 	}
 
-	private void addShowMostAbundantGenesUI()
+	private void addLocalGeneSearchUI()
 	{
 		final JPanel panel = horizontalLayoutPanel();
-		panel.add( new JLabel( "[X] Show nearby genes" ) );
 
-		panel.add( new JLabel( "Radius: " ) );
+		panel.add( new JLabel( "[X] Show nearby genes; search radius: " ) );
 
-		final JTextField geneAbundanceRadius = new JTextField( "5.0" );
+		setGeneSearchRadii();
+
+		final JComboBox radiiComboBox = new JComboBox( );
+		for ( double radius : geneSearchRadii )
+		{
+			radiiComboBox.addItem( "" + radius );
+		}
+
+		panel.add( radiiComboBox );
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-			showMostAbundantGenes( Double.parseDouble(  geneAbundanceRadius.getText() ) );
+			searchNearbyGenes( Double.parseDouble(  (String) radiiComboBox.getSelectedItem() ) );
 		}, "show genes", "X" );
 
+		add( panel );
 
 	}
 
-	private void showMostAbundantGenes( double micrometerRadius )
+	private void setGeneSearchRadii( )
 	{
-		double[] micrometerMousePosition = new double[ 3 ];
-		getMicrometerMousePosition().setPosition( micrometerMousePosition );
-
 		final Set< String > sources = mainCommand.dataSourcesMap.keySet();
-		Map< String, Double > localMaxima = new LinkedHashMap<>(  );
+
+		geneSearchRadii = new ArrayList<>();
 
 		for ( String name : sources )
 		{
+			if ( name.contains( Constants.EM_FILE_ID ) ) continue;
+
 			final PlatynereisDataSource source = mainCommand.dataSourcesMap.get( name );
 
 			if ( source.spimData == null )
@@ -94,30 +110,71 @@ public class MainUI extends JPanel
 			final ViewerSetupImgLoader< ?, ? > setupImgLoader = imgLoader.getSetupImgLoader( 0 );
 			final AffineTransform3D viewRegistration = source.spimData.getViewRegistrations().getViewRegistration( 0, 0 ).getModel();
 
-			double scale = viewRegistration.get( 0,0 );
+			double scale = viewRegistration.get( 0, 0 );
 			final double[][] resolutions = setupImgLoader.getMipmapResolutions();
 
-			int appropriateLevel = getAppropriateLevel( micrometerRadius, scale, resolutions );
+			geneSearchMipMapLevel = resolutions.length - 1;
+			geneSearchVoxelSize = scale * resolutions[ geneSearchMipMapLevel ][ 0 ];
+			geneSearchRadii.add( 2 * geneSearchVoxelSize );
 
-			double micrometerVoxelSize = scale * resolutions[ appropriateLevel ][ 0 ];
+			break;
+		}
+
+		geneSearchRadii.add( 4 * geneSearchVoxelSize );
+		geneSearchRadii.add( 8 * geneSearchVoxelSize );
+	}
+
+
+
+	private void searchNearbyGenes( double micrometerRadius )
+	{
+		Utils.log( "Searching genes..." );
+
+		double[] micrometerMousePosition = new double[ 3 ];
+		getMicrometerMousePosition().localize( micrometerMousePosition  );
+
+		final Set< String > sources = mainCommand.dataSourcesMap.keySet();
+		Map< String, Double > localMaxima = new LinkedHashMap<>(  );
+
+		int n = sources.size();
+		int i = 1;
+		for ( String name : sources )
+		{
+
+			if ( name.contains( Constants.EM_FILE_ID ) ) continue;
+
+			final PlatynereisDataSource source = mainCommand.dataSourcesMap.get( name );
+
+			if ( source.spimData == null )
+			{
+				source.spimData = openSpimData( source.file );
+			}
+
+			final ViewerImgLoader imgLoader = ( ViewerImgLoader ) source.spimData.getSequenceDescription().getImgLoader();
+			final ViewerSetupImgLoader< ?, ? > setupImgLoader = imgLoader.getSetupImgLoader( 0 );
+			final RandomAccessibleInterval< T > image = (RandomAccessibleInterval<T>) setupImgLoader.getImage( 0, 2 );
 
 			final double localMaximum = Utils.getLocalMaximum(
-					( RandomAccessibleInterval< T > ) setupImgLoader.getVolatileImage( 0, appropriateLevel ),
+					image,
 					micrometerMousePosition,
 					micrometerRadius,
-					micrometerVoxelSize );
+					geneSearchVoxelSize,
+					name );
 
 			localMaxima.put( name, localMaximum );
 
+			//Utils.log( "" + i++ + "/" + n + ";" + name + ": " + localMaximum );
+
 		}
 
-		localMaxima = Utils.sortByValue( localMaxima );
-		final ArrayList sortedNames = new ArrayList( localMaxima.keySet() );
+		final Map< String, Double > sortedMaxima = Utils.sortByValue( localMaxima );
+		final ArrayList sortedNames = new ArrayList( sortedMaxima.keySet() );
 
-		for ( int i = localMaxima.size() - 1; i >= localMaxima.size() - 10; --i )
+		Utils.log( "## Nearby gene list " );
+		for ( i = 0; i < sortedMaxima.size(); ++i )
 		{
 			String name = ( String ) sortedNames.get( i );
-			Utils.log( name + ": " + localMaxima.get( name ) );
+			Utils.log( name + ": " + sortedMaxima.get( name ) );
 		}
 
 //		mainCommand.addSourceToBdv(  );
@@ -160,7 +217,7 @@ public class MainUI extends JPanel
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		horizontalLayoutPanel.add( new JLabel( "Add source to viewer: " ) );
+		horizontalLayoutPanel.add( new JLabel( "Add to viewer: " ) );
 
 		final JComboBox dataSources = new JComboBox();
 

@@ -1,6 +1,7 @@
 package de.embl.cba.platynereis;
 
 import bdv.BigDataViewer;
+import bdv.img.cache.VolatileCachedCellImg;
 import bdv.util.Bdv;
 import bdv.util.BdvHandle;
 import ij.IJ;
@@ -12,9 +13,11 @@ import net.imglib2.*;
 import net.imglib2.algorithm.neighborhood.HyperSphereShape;
 import net.imglib2.algorithm.neighborhood.Neighborhood;
 import net.imglib2.algorithm.neighborhood.Shape;
+import net.imglib2.img.basictypeaccess.ShortAccess;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.view.Views;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -145,32 +148,39 @@ public class Utils
 	}
 
 	public static < T extends RealType< T > &  NativeType< T > >
-	double getLocalMaximum( RandomAccessibleInterval< T > rai, double[] position, double radius, double calibration )
+	double getLocalMaximum( final RandomAccessibleInterval< T > rai, double[] position, double radius, double calibration, String name )
 	{
+		// TODO: add out-of-bounds strategy
 		Shape shape = new HyperSphereShape( (int) Math.ceil( radius / calibration ) );
 		final RandomAccessible< Neighborhood< T > > nra = shape.neighborhoodsRandomAccessible( rai );
 		final RandomAccess< Neighborhood< T > > neighborhoodRandomAccess = nra.randomAccess();
-
-		for ( int d = 0; d < position.length; ++d )
-		{
-			position[ d ] /= calibration;
-		}
-
-		neighborhoodRandomAccess.setPosition( Utils.asLongs( position )  );
+		neighborhoodRandomAccess.setPosition( getPixelPosition( position, calibration ) );
 
 		final Neighborhood< T > neighborhood = neighborhoodRandomAccess.get();
-		double max = - Double.MAX_VALUE;
 
 		final Cursor< T > cursor = neighborhood.cursor();
+		double max = - Double.MAX_VALUE;
+		double value;
 		while( cursor.hasNext() )
 		{
-			if ( cursor.next().getRealDouble() > max )
+			value = cursor.next().getRealDouble();
+			if ( value > max )
 			{
-				max = cursor.get().getRealDouble();
+				max = value;
 			}
 		}
 
 		return max;
+	}
+
+	private static long[] getPixelPosition( double[] position, double calibration )
+	{
+		long[] pixelPosition = new long[ position.length ];
+		for ( int d = 0; d < position.length; ++d )
+		{
+			pixelPosition[ d ] = (long) ( position[ d ] / calibration );
+		}
+		return pixelPosition;
 	}
 
 	public static SpimData openSpimData( File file )
