@@ -3,6 +3,7 @@ package de.embl.cba.platynereis;
 import bdv.BigDataViewer;
 import bdv.util.Bdv;
 import bdv.util.BdvHandle;
+import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
@@ -16,6 +17,10 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Utils
 {
@@ -122,6 +127,22 @@ public class Utils
 		return longs;
 	}
 
+	public static void log( String text )
+	{
+		IJ.log( text );
+	}
+
+	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {
+		List<Map.Entry<K, V> > list = new ArrayList<>(map.entrySet());
+		list.sort( Map.Entry.comparingByValue() );
+
+		Map<K, V> result = new LinkedHashMap<>();
+		for (Map.Entry<K, V> entry : list) {
+			result.put(entry.getKey(), entry.getValue());
+		}
+
+		return result;
+	}
 
 	public static < T extends RealType< T > &  NativeType< T > >
 	double getLocalMaximum( RandomAccessibleInterval< T > rai, double[] position, double radius, double calibration )

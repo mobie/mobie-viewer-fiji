@@ -15,6 +15,9 @@ import org.scijava.ui.behaviour.util.Behaviours;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 import static de.embl.cba.platynereis.Utils.openSpimData;
@@ -70,12 +73,13 @@ public class MainUI extends JPanel
 
 	}
 
-	private void showMostAbundantGenes( double radius )
+	private void showMostAbundantGenes( double micrometerRadius )
 	{
 		double[] micrometerMousePosition = new double[ 3 ];
 		getMicrometerMousePosition().setPosition( micrometerMousePosition );
 
 		final Set< String > sources = mainCommand.dataSourcesMap.keySet();
+		Map< String, Double > localMaxima = new LinkedHashMap<>(  );
 
 		for ( String name : sources )
 		{
@@ -88,21 +92,35 @@ public class MainUI extends JPanel
 
 			final ViewerImgLoader imgLoader = ( ViewerImgLoader ) source.spimData.getSequenceDescription().getImgLoader();
 			final ViewerSetupImgLoader< ?, ? > setupImgLoader = imgLoader.getSetupImgLoader( 0 );
-
 			final AffineTransform3D viewRegistration = source.spimData.getViewRegistrations().getViewRegistration( 0, 0 ).getModel();
+
 			double scale = viewRegistration.get( 0,0 );
-
 			final double[][] resolutions = setupImgLoader.getMipmapResolutions();
-			
-			int appropriateLevel = getAppropriateLevel( radius, scale, resolutions );
 
-			Utils.getLocalMaximum(
-					(RandomAccessibleInterval<T>) setupImgLoader.getVolatileImage( 0, appropriateLevel),
+			int appropriateLevel = getAppropriateLevel( micrometerRadius, scale, resolutions );
+
+			double micrometerVoxelSize = scale * resolutions[ appropriateLevel ][ 0 ];
+
+			final double localMaximum = Utils.getLocalMaximum(
+					( RandomAccessibleInterval< T > ) setupImgLoader.getVolatileImage( 0, appropriateLevel ),
 					micrometerMousePosition,
-					radius,
-					scale * resolutions[ appropriateLevel ][ 0 ] );
+					micrometerRadius,
+					micrometerVoxelSize );
+
+			localMaxima.put( name, localMaximum );
 
 		}
+
+		localMaxima = Utils.sortByValue( localMaxima );
+		final ArrayList sortedNames = new ArrayList( localMaxima.keySet() );
+
+		for ( int i = localMaxima.size() - 1; i >= localMaxima.size() - 10; --i )
+		{
+			String name = ( String ) sortedNames.get( i );
+			Utils.log( name + ": " + localMaxima.get( name ) );
+		}
+
+//		mainCommand.addSourceToBdv(  );
 	}
 
 	private int getAppropriateLevel( double radius, double scale, double[][] resolutions )
@@ -158,7 +176,7 @@ public class MainUI extends JPanel
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				mainCommand.addDataSourceToBdv( (String) dataSources.getSelectedItem() );
+				mainCommand.addSourceToBdv( (String) dataSources.getSelectedItem() );
 			}
 		} );
 

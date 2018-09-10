@@ -28,6 +28,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 @Plugin(type = Command.class, menuPath = "Plugins>Registration>EMBL>Platynereis", initializer = "init")
@@ -78,7 +79,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
         initDataSources( files );
 
-        loadProSPrDataSourcesInSeparateThread( files );
+        loadProSPrDataSourcesInSeparateThread();
 
         initBdvWithEmRawData();
 
@@ -88,11 +89,11 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     }
 
-    private void loadProSPrDataSourcesInSeparateThread( File[] files )
+    private void loadProSPrDataSourcesInSeparateThread( )
     {
         (new Thread(new Runnable(){
             public void run(){
-                loadProSPrDataSources( files );
+                loadProSPrDataSources( );
             }
         })).start();
     }
@@ -119,8 +120,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     private void print( String text )
     {
-        logService.info( text );
-        IJ.log( text );
+        Utils.log( text );
     }
 
     private void printLegend()
@@ -137,13 +137,13 @@ public class MainCommand extends DynamicCommand implements Interactive
         }
     }
 
-    public void addDataSourceToBdv( String name )
+    public void addSourceToBdv( String name )
     {
         PlatynereisDataSource source = dataSourcesMap.get( name );
 
         if ( source.bdvSource == null )
         {
-            switch ( BDV_XML_SUFFIX )
+            switch ( BDV_XML_SUFFIX ) // TODO: makes no sense...
             {
                 case ".tif":
                     addSourceFromTiffFile( name );
@@ -307,6 +307,7 @@ public class MainCommand extends DynamicCommand implements Interactive
                 String dataSourceName = getDataSourceName( file );
 
                 PlatynereisDataSource source = new PlatynereisDataSource();
+                dataSourcesMap.put( dataSourceName, source );
                 source.file = file;
                 source.maxLutValue = 255;
 
@@ -345,7 +346,7 @@ public class MainCommand extends DynamicCommand implements Interactive
                     source.color = DEFAULT_GENE_COLOR;
                 }
 
-                dataSourcesMap.put( dataSourceName, source );
+
 
             }
         }
@@ -353,60 +354,21 @@ public class MainCommand extends DynamicCommand implements Interactive
     }
 
 
-    private void loadProSPrDataSources( File[] files )
+    private void loadProSPrDataSources( )
     {
-        for ( File file : files )
+        Set< String > names = dataSourcesMap.keySet();
+
+        for (  String name : names )
         {
-            // TODO ...
+            PlatynereisDataSource source = dataSourcesMap.get( name );
 
-//            if ( file.getName().endsWith( BDV_XML_SUFFIX ) || file.getName().endsWith( IMARIS_SUFFIX )  )
-//            {
-//                String dataSourceName = getDataSourceName( file );
-//
-//                PlatynereisDataSource source = new PlatynereisDataSource();
-//                source.file = file;
-//                source.maxLutValue = 255;
-//
-//                if ( file.getName().contains( EM_RAW_FILE_ID ) || file.getName().contains( EM_SEGMENTED_FILE_ID ) )
-//                {
-//                    if ( file.getName().endsWith( BDV_XML_SUFFIX ) )
-//                    {
-//                        source.spimData = Utils.openSpimData( file );
-//                    }
-//                    else if ( file.getName().contains( IMARIS_SUFFIX ) )
-//                    {
-//                        double[] calibration = new double[] { 0.01, 0.01, 0.025 };
-//                        source.spimDataMinimal = openImaris( file, calibration );
-//                        source.isSpimDataMinimal = true;
-//                    }
-//
-//                    if ( file.getName().contains( EM_RAW_FILE_DEFAULT_ID ) )
-//                    {
-//                        emRawDataID = dataSourceName;
-//                        ProSPrRegistration.setEmSimilarityTransform( source );
-//                        source.name = EM_RAW_FILE_DEFAULT_ID;
-//                    }
-//
-//                    if ( file.getName().contains( EM_RAW_FILE_ID )  )
-//                    {
-//                        source.color = DEFAULT_EM_RAW_COLOR;
-//                    }
-//
-//                    if ( file.getName().contains( EM_SEGMENTED_FILE_ID ) )
-//                    {
-//                        source.color = DEFAULT_EM_SEGMENTATION_COLOR;
-//                    }
-//                }
-//                else // gene
-//                {
-//                    source.color = DEFAULT_GENE_COLOR;
-//                }
-//
-//                dataSourcesMap.put( dataSourceName, source );
-//
-//            }
+            if ( source.file.getName().contains( EM_RAW_FILE_ID ) ) continue;
+
+            if ( source.file.getName().endsWith( BDV_XML_SUFFIX ) )
+            {
+                source.spimData = Utils.openSpimData( source.file );
+            }
         }
-
     }
 
 

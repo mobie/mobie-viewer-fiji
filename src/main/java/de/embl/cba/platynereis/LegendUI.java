@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -18,6 +19,9 @@ public class LegendUI extends JPanel implements ActionListener
     public static final String COLOR_ACTION = "Color___";
     public static final String BRIGHTNESS_ACTION = "B___";
     public static final String REMOVE_ACTION = "X___";
+
+    public final ArrayList< Color > colors;
+
     protected Map< String, JPanel > panels;
     JFrame frame;
     final MainCommand mainCommand;
@@ -26,7 +30,21 @@ public class LegendUI extends JPanel implements ActionListener
     {
         this.mainCommand = mainCommand;
         panels = new LinkedHashMap<>(  );
+        colors = getColors();
         createGUI();
+    }
+
+    private ArrayList<Color> getColors()
+    {
+        ArrayList< Color > colors = new ArrayList<>(  );
+
+        colors.add( Color.MAGENTA );
+        colors.add( Color.GREEN );
+        colors.add( Color.ORANGE );
+        colors.add( Color.CYAN );
+        colors.add( Color.YELLOW );
+
+        return colors;
     }
 
 
