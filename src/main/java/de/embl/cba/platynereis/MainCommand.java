@@ -4,7 +4,9 @@ import bdv.img.imaris.Imaris;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
-import com.sun.source.tree.SynchronizedTree;
+import de.embl.cba.platynereis.ui.ActionPanel;
+import de.embl.cba.platynereis.ui.LegendPanel;
+import de.embl.cba.platynereis.ui.MainFrame;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -28,7 +30,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Plugin(type = Command.class, menuPath = "Plugins>Registration>EMBL>Platynereis", initializer = "init")
 public class MainCommand extends DynamicCommand implements Interactive
@@ -43,7 +44,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     String emRawDataID;
     AffineTransform3D emRawDataTransform;
-    LegendUI legend;
+    LegendPanel legend;
 
 
     public void init()
@@ -63,9 +64,10 @@ public class MainCommand extends DynamicCommand implements Interactive
 
         initBdvWithEmRawData();
 
-        createLegend();
+        MainFrame mainFrame = new MainFrame( bdv, this );
 
-        new MainUI( bdv, this );
+        legend = mainFrame.getLegendPanel();
+
     }
 
     private void loadProSPrDataSourcesInSeparateThread( )
@@ -75,12 +77,6 @@ public class MainCommand extends DynamicCommand implements Interactive
                 loadProSPrDataSources( );
             }
         })).start();
-    }
-
-    private void createLegend()
-    {
-        legend = new LegendUI( this );
-        legend.addSource( dataSourcesMap.get( emRawDataID ) );
     }
 
     private void addOverlay()
@@ -102,19 +98,6 @@ public class MainCommand extends DynamicCommand implements Interactive
         Utils.log( text );
     }
 
-    private void printLegend()
-    {
-        print( "Currently shown genes: " );
-
-        for ( String gene : dataSourcesMap.keySet() )
-        {
-            if ( dataSourcesMap.get( gene ).isActive )
-            {
-                String color = dataSourcesMap.get( gene ).color.toString();
-                print( gene + ", color " + color );
-            }
-        }
-    }
 
     public void addSourceToBdv( String name )
     {
@@ -342,7 +325,6 @@ public class MainCommand extends DynamicCommand implements Interactive
             if ( source.file.getName().endsWith( Constants.BDV_XML_SUFFIX ) )
             {
                 source.spimData = Utils.openSpimData( source.file );
-                Utils.log( "Added: " + name );
             }
         }
     }
@@ -373,4 +355,10 @@ public class MainCommand extends DynamicCommand implements Interactive
     }
 
 
+    public void toggleVisibility( String dataSourceName )
+    {
+        boolean isActive = dataSourcesMap.get( dataSourceName ).isActive;
+        dataSourcesMap.get( dataSourceName ).isActive = !isActive ;
+        dataSourcesMap.get( dataSourceName ).bdvSource.setActive( !isActive );
+    }
 }

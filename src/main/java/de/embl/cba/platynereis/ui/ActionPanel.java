@@ -1,8 +1,9 @@
-package de.embl.cba.platynereis;
+package de.embl.cba.platynereis.ui;
 
 import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
 import bdv.util.Bdv;
+import de.embl.cba.platynereis.*;
 import ij.IJ;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
@@ -25,7 +26,7 @@ import java.util.Set;
 
 import static de.embl.cba.platynereis.Utils.openSpimData;
 
-public class MainUI < T extends RealType< T > & NativeType< T > > extends JPanel
+public class ActionPanel< T extends RealType< T > & NativeType< T > > extends JPanel
 {
 	final Bdv bdv;
 	JFrame frame;
@@ -36,21 +37,24 @@ public class MainUI < T extends RealType< T > & NativeType< T > > extends JPanel
 	private double geneSearchVoxelSize;
 	private ArrayList< Double > geneSearchRadii;
 
-	public MainUI( Bdv bdv, MainCommand mainCommand )
+	public ActionPanel( Bdv bdv, MainCommand mainCommand )
 	{
 		this.bdv = bdv;
 		this.mainCommand = mainCommand;
 		zoom = 10.0;
 		behaviours = new Behaviours( new InputTriggerConfig() );
 
-		this.setLayout( new FlowLayout( FlowLayout.LEFT, 3, 3 ) );
+		this.setLayout( new GridLayout() );
 
 		addSourceSelectionUI( this );
 		addPositionZoomUI( this );
 		addPositionPrintUI();
 		addLocalGeneSearchUI();
+	}
 
-		launchUI();
+	public JPanel getPanel()
+	{
+		return this;
 	}
 
 	public void addPositionPrintUI()
@@ -63,13 +67,14 @@ public class MainUI < T extends RealType< T > & NativeType< T > > extends JPanel
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			printCoordinates();
 		}, "print pos", "P" );
+
 	}
 
 	private void addLocalGeneSearchUI()
 	{
 		final JPanel panel = horizontalLayoutPanel();
 
-		panel.add( new JLabel( "[X] Show nearby genes; search radius: " ) );
+		panel.add( new JLabel( "[X] Search genes within radius: " ) );
 
 		setGeneSearchRadii();
 
@@ -88,6 +93,7 @@ public class MainUI < T extends RealType< T > & NativeType< T > > extends JPanel
 		add( panel );
 
 	}
+
 
 	private void setGeneSearchRadii( )
 	{
@@ -244,13 +250,13 @@ public class MainUI < T extends RealType< T > & NativeType< T > > extends JPanel
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		horizontalLayoutPanel.add( new JLabel( "Move to position [x,y,z]: " ) );
+		horizontalLayoutPanel.add( new JLabel( "Move to [x,y,z]: " ) );
 
 		final JTextField position = new JTextField( "100.0,100.0,100.0" );
 
 		horizontalLayoutPanel.add( position );
 
-		horizontalLayoutPanel.add( new JLabel( "Zoom level: " ) );
+		horizontalLayoutPanel.add( new JLabel( "  Zoom level: " ) );
 
 		final JTextField zoom = new JTextField( "1.0" );
 
@@ -283,9 +289,10 @@ public class MainUI < T extends RealType< T > & NativeType< T > > extends JPanel
 	private JPanel horizontalLayoutPanel()
 	{
 		JPanel panel = new JPanel();
-		panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
+		panel.setLayout( new BoxLayout( panel, BoxLayout.LINE_AXIS ) );
 		panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 10, 10) );
 		panel.add( Box.createHorizontalGlue() );
+
 		return panel;
 	}
 

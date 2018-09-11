@@ -1,5 +1,8 @@
-package de.embl.cba.platynereis;
+package de.embl.cba.platynereis.ui;
 
+import de.embl.cba.platynereis.Constants;
+import de.embl.cba.platynereis.MainCommand;
+import de.embl.cba.platynereis.PlatynereisDataSource;
 import ij.gui.GenericDialog;
 
 import javax.swing.*;
@@ -10,43 +13,63 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class LegendUI extends JPanel implements ActionListener
+public class LegendPanel extends JPanel implements ActionListener
 {
     public static final String CHANGE_COLOR = "Change color";
     public static final String ADAPT_BRIGHTNESS = "Adapt brightness";
     public static final String REMOVE = "Remove";
     public static final String CANCELLED = "Cancelled";
-    public static final String COLOR_ACTION = "Color___";
+    public static final String COLOR_ACTION = "C___";
     public static final String BRIGHTNESS_ACTION = "B___";
+    public static final String TOGGLE_ACTION = "T___";
     public static final String REMOVE_ACTION = "X___";
 
-    public final ArrayList< Color > colors;
+    public ArrayList< Color > colors;
 
     protected Map< String, JPanel > panels;
     JFrame frame;
     final MainCommand mainCommand;
 
-    public LegendUI( MainCommand mainCommand )
+    public LegendPanel( MainCommand mainCommand )
     {
         this.mainCommand = mainCommand;
         panels = new LinkedHashMap<>(  );
-        colors = getColors();
-        createGUI();
+        initColors();
     }
 
-    private ArrayList<Color> getColors()
+    public JPanel getPanel()
     {
-        ArrayList< Color > colors = new ArrayList<>(  );
-
-        colors.add( Color.MAGENTA );
-        colors.add( Color.GREEN );
-        colors.add( Color.ORANGE );
-        colors.add( Color.CYAN );
-        colors.add( Color.YELLOW );
-
-        return colors;
+        return this;
     }
 
+    private void initColors()
+    {
+        colors = new ArrayList<>(  );
+
+        colors.add( Color.PINK );
+        colors.add( Color.GREEN );
+        colors.add( Color.CYAN );
+        colors.add( Color.BLUE );
+        colors.add( Color.YELLOW );
+        colors.add( Color.ORANGE );
+    }
+
+    private Color getColor( PlatynereisDataSource dataSource )
+    {
+        if ( dataSource.name.contains( Constants.EM_FILE_ID ) )
+        {
+            return Color.WHITE;
+        }
+        else if ( panels.size() <= colors.size() )
+        {
+            return colors.get( panels.size() - 1 );
+
+        }
+        else
+        {
+            return colors.get( 0 );
+        }
+    }
 
     public void addSource( PlatynereisDataSource dataSource )
     {
@@ -61,6 +84,7 @@ public class LegendUI extends JPanel implements ActionListener
             panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
             panel.add(Box.createHorizontalGlue());
             panel.setOpaque( true );
+            dataSource.color = getColor( dataSource );
             panel.setBackground( dataSource.color );
 
             JLabel jLabel = new JLabel( dataSource.name );
@@ -76,6 +100,11 @@ public class LegendUI extends JPanel implements ActionListener
             brightness.setPreferredSize( new Dimension( buttonDimensions[ 0 ],buttonDimensions[ 1 ] ) );
             brightness.setName( BRIGHTNESS_ACTION + dataSource.name );
 
+            JButton toggle = new JButton( "T" );
+            toggle.addActionListener( this );
+            toggle.setPreferredSize( new Dimension( buttonDimensions[ 0 ],buttonDimensions[ 1 ] ) );
+            toggle.setName( TOGGLE_ACTION + dataSource.name );
+
             JButton remove = new JButton( "X" );
             remove.addActionListener( this );
             remove.setPreferredSize( new Dimension( buttonDimensions[ 0 ],buttonDimensions[ 1 ] ) );
@@ -84,6 +113,7 @@ public class LegendUI extends JPanel implements ActionListener
             panel.add( jLabel );
             panel.add( color );
             panel.add( brightness );
+            panel.add( toggle );
             panel.add( remove );
 
             //Font font = Font.createFont(Font.TRUETYPE_FONT, new FileInputStream("font.ttf"));
@@ -108,6 +138,7 @@ public class LegendUI extends JPanel implements ActionListener
 
     private void removeSource( String name )
     {
+        mainCommand.hideDataSource( name );
         remove( panels.get( name ) );
         panels.remove( name );
         refreshGui();
@@ -137,35 +168,18 @@ public class LegendUI extends JPanel implements ActionListener
             String dataSourceName = name.replace( BRIGHTNESS_ACTION, "" );
             mainCommand.setBrightness( dataSourceName );
         }
+        else if( name.contains( TOGGLE_ACTION ) )
+        {
+            String dataSourceName = name.replace( TOGGLE_ACTION, "" );
+            mainCommand.toggleVisibility( dataSourceName );
+        }
         else if( name.contains( REMOVE_ACTION ) )
         {
             String dataSourceName = name.replace( REMOVE_ACTION, "" );
-            mainCommand.hideDataSource( dataSourceName );
             removeSource( dataSourceName );
         }
     }
 
-    public void  showActionUI( String dataSourceName )
-    {
-        String action = getActionFromUI();
-
-        switch ( action )
-        {
-            case REMOVE:
-                mainCommand.hideDataSource( dataSourceName );
-                removeSource( dataSourceName );
-                break;
-            case CHANGE_COLOR:
-                changeColorViaUI( dataSourceName );
-                break;
-            case ADAPT_BRIGHTNESS:
-                mainCommand.setBrightness( dataSourceName );
-                break;
-            case CANCELLED:
-                break;
-        }
-
-    }
 
     private String getActionFromUI()
     {
@@ -216,6 +230,8 @@ public class LegendUI extends JPanel implements ActionListener
         setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
 
         frame.setContentPane( this );
+
+
 
         //Display the window.
         frame.pack();
