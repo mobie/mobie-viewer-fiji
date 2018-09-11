@@ -22,20 +22,26 @@ public class MainFrame extends JFrame
 		legendPanel = new LegendPanel( mainCommand );
 
 		JSplitPane splitPane = new JSplitPane();
-		splitPane.setOrientation( JSplitPane.HORIZONTAL_SPLIT );  // we want it to split the window verticaly
+		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );  // we want it to split the window verticaly
 		splitPane.setDividerLocation( 200);                    // the initial position of the divider is 200 (our window is 400 pixels high)
-		splitPane.setLeftComponent( actionPanel );                  // at the top we want our "topPanel"
-		splitPane.setRightComponent( legendPanel );
+		splitPane.setTopComponent( actionPanel );                  // at the top we want our "topPanel"
+		splitPane.setBottomComponent( legendPanel );
+
+		setPreferredSize( new Dimension(400, 400));     // let's open the window with a default size of 400x400 pixels
+		// the contentPane is the container that holds all our components
+		getContentPane().setLayout( new GridLayout() );  // the default GridLayout is like a grid with 1 column and 1 row,
+		// we only add one element to the window itself
+		getContentPane().add( splitPane );               // due to the GridLayout, our splitPane will now fill the whole window
+
 
 		this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 //		setOpaque( true ); //content panes must be opaque
-		this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
-		this.setContentPane( splitPane );
 		//Display the window.
 		this.pack();
 		this.setVisible( true );
 
 	}
+
 
 	public ActionPanel getActionPanel()
 	{

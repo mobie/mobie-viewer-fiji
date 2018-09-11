@@ -4,7 +4,6 @@ import bdv.img.imaris.Imaris;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
-import de.embl.cba.platynereis.ui.ActionPanel;
 import de.embl.cba.platynereis.ui.LegendPanel;
 import de.embl.cba.platynereis.ui.MainFrame;
 import ij.IJ;
@@ -41,8 +40,7 @@ public class MainCommand extends DynamicCommand implements Interactive
     Bdv bdv;
 
     public Map< String, PlatynereisDataSource > dataSourcesMap;
-
-    String emRawDataID;
+    String emRawDataName;
     AffineTransform3D emRawDataTransform;
     LegendPanel legend;
 
@@ -69,6 +67,13 @@ public class MainCommand extends DynamicCommand implements Interactive
         legend = mainFrame.getLegendPanel();
 
     }
+
+
+    public String getEmRawDataName()
+    {
+        return emRawDataName;
+    }
+
 
     private void loadProSPrDataSourcesInSeparateThread( )
     {
@@ -219,7 +224,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     private void initBdvWithEmRawData(  )
     {
-        showSourceInBdv( emRawDataID );
+        showSourceInBdv( emRawDataName );
 
         bdv.getBdvHandle().getViewerPanel().setInterpolation( Interpolation.NLINEAR );
 
@@ -288,7 +293,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
                     if ( file.getName().contains( Constants.EM_RAW_FILE_DEFAULT_ID ) )
                     {
-                        emRawDataID = dataSourceName;
+                        emRawDataName = dataSourceName;
                         ProSPrRegistration.setEmSimilarityTransform( source );
                         source.name = Constants.EM_RAW_FILE_DEFAULT_ID;
                     }

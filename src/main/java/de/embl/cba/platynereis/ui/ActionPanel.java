@@ -14,6 +14,7 @@ import net.imglib2.util.Util;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
+import sun.tools.jps.Jps;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,13 +44,15 @@ public class ActionPanel< T extends RealType< T > & NativeType< T > > extends JP
 		this.mainCommand = mainCommand;
 		zoom = 10.0;
 		behaviours = new Behaviours( new InputTriggerConfig() );
-
-		this.setLayout( new GridLayout() );
-
+		this.setLayout( new FlowLayout( FlowLayout.LEFT ) );
 		addSourceSelectionUI( this );
-		addPositionZoomUI( this );
-		addPositionPrintUI();
-		addLocalGeneSearchUI();
+		addPositionZoomUI( this  );
+		addPositionPrintUI( this );
+		addLocalGeneSearchUI( this);
+
+		this.revalidate();
+		this.repaint();
+
 	}
 
 	public JPanel getPanel()
@@ -57,24 +60,27 @@ public class ActionPanel< T extends RealType< T > & NativeType< T > > extends JP
 		return this;
 	}
 
-	public void addPositionPrintUI()
+	public void addPositionPrintUI( JPanel panel )
 	{
+		JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
 
-		add( new JLabel( "[P] Print position" ) );
-		add( new JLabel( " " ) );
+		horizontalLayoutPanel.add( new JLabel( "[P] Print position" ) );
+		horizontalLayoutPanel.add( new JLabel( " " ) );
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			printCoordinates();
 		}, "print pos", "P" );
 
+		panel.add( horizontalLayoutPanel );
+
 	}
 
-	private void addLocalGeneSearchUI()
+	private void addLocalGeneSearchUI( JPanel panel )
 	{
-		final JPanel panel = horizontalLayoutPanel();
+		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		panel.add( new JLabel( "[X] Search genes within radius: " ) );
+		horizontalLayoutPanel.add( new JLabel( "[X] Search genes within radius: " ) );
 
 		setGeneSearchRadii();
 
@@ -84,13 +90,13 @@ public class ActionPanel< T extends RealType< T > & NativeType< T > > extends JP
 			radiiComboBox.addItem( "" + radius );
 		}
 
-		panel.add( radiiComboBox );
+		horizontalLayoutPanel.add( radiiComboBox );
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			searchNearbyGenes( Double.parseDouble(  (String) radiiComboBox.getSelectedItem() ) );
 		}, "show genes", "X" );
 
-		add( panel );
+		panel.add( horizontalLayoutPanel );
 
 	}
 
@@ -273,6 +279,17 @@ public class ActionPanel< T extends RealType< T > & NativeType< T > > extends JP
 			}
 		} );
 
+		zoom.addActionListener( new ActionListener()
+		{
+			@Override
+			public void actionPerformed( ActionEvent e )
+			{
+				moveToPosition( Utils.delimitedStringToDoubleArray( position.getText(), ","),
+						Double.parseDouble( zoom.getText() )
+				);
+			}
+		} );
+
 
 		panel.add( horizontalLayoutPanel );
 	}
@@ -292,47 +309,10 @@ public class ActionPanel< T extends RealType< T > & NativeType< T > > extends JP
 		panel.setLayout( new BoxLayout( panel, BoxLayout.LINE_AXIS ) );
 		panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 10, 10) );
 		panel.add( Box.createHorizontalGlue() );
+		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 		return panel;
 	}
 
-	private void launchUI()
-	{
-		(new Thread(new Runnable(){
-			public void run(){
-				createAndShowUI();
-			}
-		})).start();
-	}
-
-	/**
-	 * Create the GUI and show it.  For thread safety,
-	 * this method should be invoked from the
-	 * event-dispatching thread.
-	 */
-	private void createAndShowUI( )
-	{
-
-		//Create and set up the window.
-		frame = new JFrame( "Platynereis Viewer" );
-		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-
-		//Create and set up the content pane.
-		setOpaque( true ); //content panes must be opaque
-		setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
-
-		frame.setContentPane( this );
-
-		//Display the window.
-		frame.pack();
-		frame.setVisible( true );
-	}
-
-	private void refreshUI()
-	{
-		this.revalidate();
-		this.repaint();
-		frame.pack();
-	}
 
 }
