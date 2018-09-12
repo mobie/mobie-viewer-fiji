@@ -55,12 +55,14 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
     {
         colors = new ArrayList<>(  );
 
-        colors.add( Color.PINK );
-        colors.add( Color.GREEN );
+        colors.add( Color.YELLOW );
+        colors.add( Color.MAGENTA );
         colors.add( Color.CYAN );
         colors.add( Color.BLUE );
-        colors.add( Color.YELLOW );
         colors.add( Color.ORANGE );
+        colors.add( Color.GREEN );
+        colors.add( Color.PINK );
+
     }
 
     private Color getColor( PlatynereisDataSource dataSource )
@@ -114,7 +116,8 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
         source.bdvSource.setActive( true );
         source.isActive = true;
-        source.bdvSource.setColor( asArgbType( source.color ) );
+        source.color = getColor( source );
+        source.bdvSource.setColor(  asArgbType( source.color ) );
     }
 
     public void addSourceToPanel( PlatynereisDataSource dataSource )
@@ -234,7 +237,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         else if( name.contains( TOGGLE_ACTION ) )
         {
             String dataSourceName = name.replace( TOGGLE_ACTION, "" );
-            mainCommand.toggleVisibility( dataSourceName );
+            toggleVisibility( dataSourceName );
         }
         else if( name.contains( REMOVE_ACTION ) )
         {
@@ -243,6 +246,13 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         }
     }
 
+
+    public void toggleVisibility( String dataSourceName )
+    {
+        boolean isActive = dataSources.get( dataSourceName ).isActive;
+        dataSources.get( dataSourceName ).isActive = !isActive ;
+        dataSources.get( dataSourceName ).bdvSource.setActive( !isActive );
+    }
 
     private String getActionFromUI()
     {

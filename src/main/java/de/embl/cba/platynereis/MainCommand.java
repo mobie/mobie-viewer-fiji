@@ -172,11 +172,10 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     private void initBdvWithEmRawData(  )
     {
-        Utils.showSourceInBdv( dataSources.get( emRawDataName ), bdv );
+        bdv = Utils.showSourceInBdv( dataSources.get( emRawDataName ), bdv );
 
         bdv.getBdvHandle().getViewerPanel().setInterpolation( Interpolation.NLINEAR );
 
-        //bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( new AffineTransform3D() );
     }
 
     private SpimDataMinimal openImaris( File file, double[] calibration )
@@ -309,10 +308,4 @@ public class MainCommand extends DynamicCommand implements Interactive
     }
 
 
-    public void toggleVisibility( String dataSourceName )
-    {
-        boolean isActive = dataSources.get( dataSourceName ).isActive;
-        dataSources.get( dataSourceName ).isActive = !isActive ;
-        dataSources.get( dataSourceName ).bdvSource.setActive( !isActive );
-    }
 }

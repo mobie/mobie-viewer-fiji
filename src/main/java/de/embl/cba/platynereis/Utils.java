@@ -223,7 +223,7 @@ public class Utils
 		dataSource.bdvSource = bdvSource;
 	}
 
-	public static void showSourceInBdv( PlatynereisDataSource source, Bdv bdv )
+	public static Bdv showSourceInBdv( PlatynereisDataSource source, Bdv bdv )
 	{
 		if ( source.isSpimDataMinimal )
 		{
@@ -241,8 +241,9 @@ public class Utils
 			source.bdvSource = BdvFunctions.show( source.spimData, BdvOptions.options().addTo( bdv ) ).get( 0 );
 			source.bdvSource.setColor( asArgbType( source.color ) );
 			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
-
 		}
+
+		return source.bdvSource.getBdvHandle();
 
 	}
 }

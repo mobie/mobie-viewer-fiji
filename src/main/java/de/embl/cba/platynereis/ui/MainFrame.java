@@ -23,11 +23,11 @@ public class MainFrame extends JFrame
 
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );  // we want it to split the window verticaly
-		splitPane.setDividerLocation( 200);                    // the initial position of the divider is 200 (our window is 400 pixels high)
+		splitPane.setDividerLocation( 175 );                    // the initial position of the divider is 200 (our window is 400 pixels high)
 		splitPane.setTopComponent( actionPanel );                  // at the top we want our "topPanel"
 		splitPane.setBottomComponent( bdvSourcesPanel );
 
-		setPreferredSize( new Dimension(400, 400));     // let's open the window with a default size of 400x400 pixels
+		setPreferredSize( new Dimension(400, 800));     // let's open the window with a default size of 400x400 pixels
 		// the contentPane is the container that holds all our components
 		getContentPane().setLayout( new GridLayout() );  // the default GridLayout is like a grid with 1 column and 1 row,
 		// we only add one element to the window itself

@@ -31,7 +31,14 @@ public class BdvTextOverlay extends BdvOverlay
 
 	public void removeFromBdv()
 	{
-		overlay.removeFromBdv();
+		try
+		{
+			overlay.removeFromBdv();
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public void setText( String text )
