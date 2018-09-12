@@ -39,7 +39,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     Bdv bdv;
 
-    public Map< String, PlatynereisDataSource > dataSourcesMap;
+    public Map< String, PlatynereisDataSource > dataSources;
     String emRawDataName;
     AffineTransform3D emRawDataTransform;
     LegendPanel legend;
@@ -54,7 +54,7 @@ public class MainCommand extends DynamicCommand implements Interactive
         File[] files = new File( dir ).listFiles();
         Arrays.sort( files );
 
-        dataSourcesMap = Collections.synchronizedMap( new LinkedHashMap() );
+        dataSources = Collections.synchronizedMap( new LinkedHashMap() );
 
         initDataSources( files );
 
@@ -106,7 +106,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     public void addSourceToBdv( String name )
     {
-        PlatynereisDataSource source = dataSourcesMap.get( name );
+        PlatynereisDataSource source = dataSources.get( name );
 
         if ( source.bdvSource == null )
         {
@@ -137,38 +137,38 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     public void hideDataSource( String dataSourceName )
     {
-        if ( dataSourcesMap.get( dataSourceName ).bdvSource != null )
+        if ( dataSources.get( dataSourceName ).bdvSource != null )
         {
-            dataSourcesMap.get( dataSourceName ).bdvSource.setActive( false );
-            dataSourcesMap.get( dataSourceName ).isActive = false;
+            dataSources.get( dataSourceName ).bdvSource.setActive( false );
+            dataSources.get( dataSourceName ).isActive = false;
         }
     }
 
 
     public void setDataSourceColor( String sourceName, Color color )
     {
-        dataSourcesMap.get( sourceName ).bdvSource.setColor( asArgbType( color ) );
-        dataSourcesMap.get( sourceName ).color = color;
+        dataSources.get( sourceName ).bdvSource.setColor( asArgbType( color ) );
+        dataSources.get( sourceName ).color = color;
     }
 
 
     public void setBrightness( String sourceName )
     {
         GenericDialog gd = new GenericDialog( "LUT max value" );
-        gd.addNumericField( "LUT max value: ", dataSourcesMap.get( sourceName ).maxLutValue, 0 );
+        gd.addNumericField( "LUT max value: ", dataSources.get( sourceName ).maxLutValue, 0 );
         gd.showDialog();
         if ( gd.wasCanceled() ) return;
 
         int max = ( int ) gd.getNextNumber();
 
-        dataSourcesMap.get( sourceName ).bdvSource.setDisplayRange( 0.0, max );
-        dataSourcesMap.get( sourceName ).maxLutValue = max;
+        dataSources.get( sourceName ).bdvSource.setDisplayRange( 0.0, max );
+        dataSources.get( sourceName ).maxLutValue = max;
     }
 
 
     private void showSourceInBdv( String dataSourceName )
     {
-        PlatynereisDataSource source = dataSourcesMap.get( dataSourceName );
+        PlatynereisDataSource source = dataSources.get( dataSourceName );
 
         if ( source.isSpimDataMinimal )
         {
@@ -204,7 +204,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     private void addSourceFromTiffFile( String gene )
     {
-        ImagePlus imp = IJ.openImage( dataSourcesMap.get( gene ).file.toString() );
+        ImagePlus imp = IJ.openImage( dataSources.get( gene ).file.toString() );
         Img img = ImageJFunctions.wrap( imp );
 
         AffineTransform3D prosprScaling = new AffineTransform3D();
@@ -212,8 +212,8 @@ public class MainCommand extends DynamicCommand implements Interactive
 
         final BdvSource source = BdvFunctions.show( img, gene, Bdv.options().addTo( bdv ).sourceTransform( prosprScaling ) );
         source.setColor( asArgbType( Constants.DEFAULT_GENE_COLOR ) );
-        dataSourcesMap.get( gene ).color = Constants.DEFAULT_GENE_COLOR;
-        dataSourcesMap.get( gene ).bdvSource = source;
+        dataSources.get( gene ).color = Constants.DEFAULT_GENE_COLOR;
+        dataSources.get( gene ).bdvSource = source;
 
     }
 
@@ -274,7 +274,7 @@ public class MainCommand extends DynamicCommand implements Interactive
                 String dataSourceName = getDataSourceName( file );
 
                 PlatynereisDataSource source = new PlatynereisDataSource();
-                dataSourcesMap.put( dataSourceName, source );
+                dataSources.put( dataSourceName, source );
                 source.file = file;
                 source.maxLutValue = 255;
 
@@ -319,11 +319,11 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     private void loadProSPrDataSources( )
     {
-        Set< String > names = dataSourcesMap.keySet();
+        Set< String > names = dataSources.keySet();
 
         for (  String name : names )
         {
-            PlatynereisDataSource source = dataSourcesMap.get( name );
+            PlatynereisDataSource source = dataSources.get( name );
 
             if ( source.file.getName().contains( Constants.EM_FILE_ID ) ) continue;
 
@@ -362,8 +362,8 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     public void toggleVisibility( String dataSourceName )
     {
-        boolean isActive = dataSourcesMap.get( dataSourceName ).isActive;
-        dataSourcesMap.get( dataSourceName ).isActive = !isActive ;
-        dataSourcesMap.get( dataSourceName ).bdvSource.setActive( !isActive );
+        boolean isActive = dataSources.get( dataSourceName ).isActive;
+        dataSources.get( dataSourceName ).isActive = !isActive ;
+        dataSources.get( dataSourceName ).bdvSource.setActive( !isActive );
     }
 }

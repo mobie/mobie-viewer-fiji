@@ -5,7 +5,6 @@ import bdv.ViewerSetupImgLoader;
 import bdv.util.Bdv;
 import de.embl.cba.platynereis.*;
 import ij.IJ;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
@@ -14,24 +13,19 @@ import net.imglib2.util.Util;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
-import sun.tools.jps.Jps;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Set;
 
 import static de.embl.cba.platynereis.Utils.openSpimData;
 
-public class ActionPanel< T extends RealType< T > & NativeType< T > > extends JPanel
+public class ActionPanel < T extends RealType< T > & NativeType< T > > extends JPanel
 {
 	final Bdv bdv;
-	JFrame frame;
-	private double zoom;
 	MainCommand mainCommand;
 	private Behaviours behaviours;
 	private int geneSearchMipMapLevel;
@@ -42,7 +36,6 @@ public class ActionPanel< T extends RealType< T > & NativeType< T > > extends JP
 	{
 		this.bdv = bdv;
 		this.mainCommand = mainCommand;
-		zoom = 10.0;
 		behaviours = new Behaviours( new InputTriggerConfig() );
 		this.setLayout( new FlowLayout( FlowLayout.LEFT ) );
 		addSourceSelectionUI( this );
@@ -93,17 +86,37 @@ public class ActionPanel< T extends RealType< T > & NativeType< T > > extends JP
 		horizontalLayoutPanel.add( radiiComboBox );
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-			searchNearbyGenes( Double.parseDouble(  (String) radiiComboBox.getSelectedItem() ) );
-		}, "show genes", "X" );
+
+			double[] micrometerPosition = new double[ 3 ];
+			getMicrometerMousePosition().localize( micrometerPosition );
+			double micrometerRadius = Double.parseDouble( ( String ) radiiComboBox.getSelectedItem() );
+
+			searchNearbyGenes( micrometerPosition, micrometerRadius );
+
+		}, "search genes", "X" );
 
 		panel.add( horizontalLayoutPanel );
+
+	}
+
+	private void searchNearbyGenes( double[] micrometerPosition, double micrometerRadius )
+	{
+
+		GeneSearch geneSearch = new GeneSearch( micrometerRadius,
+				micrometerPosition,
+				mainCommand.dataSources,
+				bdv,
+				geneSearchMipMapLevel,
+				geneSearchVoxelSize );
+
+		geneSearch.run();
 
 	}
 
 
 	private void setGeneSearchRadii( )
 	{
-		final Set< String > sources = mainCommand.dataSourcesMap.keySet();
+		final Set< String > sources = mainCommand.dataSources.keySet();
 
 		geneSearchRadii = new ArrayList<>();
 
@@ -111,7 +124,7 @@ public class ActionPanel< T extends RealType< T > & NativeType< T > > extends JP
 		{
 			if ( name.contains( Constants.EM_FILE_ID ) ) continue;
 
-			final PlatynereisDataSource source = mainCommand.dataSourcesMap.get( name );
+			final PlatynereisDataSource source = mainCommand.dataSources.get( name );
 
 			if ( source.spimData == null )
 			{
@@ -136,61 +149,6 @@ public class ActionPanel< T extends RealType< T > & NativeType< T > > extends JP
 		geneSearchRadii.add( 8 * geneSearchVoxelSize );
 	}
 
-
-
-	private void searchNearbyGenes( double micrometerRadius )
-	{
-		Utils.log( "Searching genes..." );
-
-		double[] micrometerMousePosition = new double[ 3 ];
-		getMicrometerMousePosition().localize( micrometerMousePosition  );
-
-		final Set< String > sources = mainCommand.dataSourcesMap.keySet();
-		Map< String, Double > localMaxima = new LinkedHashMap<>(  );
-
-		int n = sources.size();
-		int i = 1;
-		for ( String name : sources )
-		{
-
-			if ( name.contains( Constants.EM_FILE_ID ) ) continue;
-
-			final PlatynereisDataSource source = mainCommand.dataSourcesMap.get( name );
-
-			if ( source.spimData == null )
-			{
-				source.spimData = openSpimData( source.file );
-			}
-
-			final ViewerImgLoader imgLoader = ( ViewerImgLoader ) source.spimData.getSequenceDescription().getImgLoader();
-			final ViewerSetupImgLoader< ?, ? > setupImgLoader = imgLoader.getSetupImgLoader( 0 );
-			final RandomAccessibleInterval< T > image = (RandomAccessibleInterval<T>) setupImgLoader.getImage( 0, 2 );
-
-			final double localMaximum = Utils.getLocalMaximum(
-					image,
-					micrometerMousePosition,
-					micrometerRadius,
-					geneSearchVoxelSize,
-					name );
-
-			localMaxima.put( name, localMaximum );
-
-			//Utils.log( "" + i++ + "/" + n + ";" + name + ": " + localMaximum );
-
-		}
-
-		final Map< String, Double > sortedMaxima = Utils.sortByValue( localMaxima );
-		final ArrayList sortedNames = new ArrayList( sortedMaxima.keySet() );
-
-		Utils.log( "## Nearby gene list " );
-		for ( i = 0; i < sortedMaxima.size(); ++i )
-		{
-			String name = ( String ) sortedNames.get( i );
-			Utils.log( name + ": " + sortedMaxima.get( name ) );
-		}
-
-//		mainCommand.addSourceToBdv(  );
-	}
 
 	private int getAppropriateLevel( double radius, double scale, double[][] resolutions )
 	{
@@ -235,7 +193,7 @@ public class ActionPanel< T extends RealType< T > & NativeType< T > > extends JP
 
 		horizontalLayoutPanel.add( dataSources );
 
-		for ( String name : mainCommand.dataSourcesMap.keySet() )
+		for ( String name : mainCommand.dataSources.keySet() )
 		{
 			dataSources.addItem( name );
 		}

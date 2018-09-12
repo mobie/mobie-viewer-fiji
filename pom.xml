@@ -5,11 +5,11 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>22.3.0</version>
+		<version>23.1.1</version>
 	</parent>
 
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
-	<version>0.1.00</version>
+	<version>0.2.00</version>
 
 	<name>Fiji Plugin Platynereis Viewer</name>
 	<description>TODO</description>

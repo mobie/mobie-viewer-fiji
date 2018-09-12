@@ -36,7 +36,7 @@ public class LegendPanel extends JPanel implements ActionListener
         this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
         this.setAlignmentX(Component.LEFT_ALIGNMENT);
         panels = new LinkedHashMap<>(  );
-        this.addSource( mainCommand.dataSourcesMap.get( mainCommand.getEmRawDataName() ) );
+        this.addSource( mainCommand.dataSources.get( mainCommand.getEmRawDataName() ) );
         initColors();
     }
 
