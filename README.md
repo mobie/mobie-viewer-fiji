@@ -1,1 +1,1 @@
-# fiji-plugin-yaml-metadata
+# fiji-plugin-platynereisViewer
