@@ -1,0 +1,17 @@
+**/.classpath
+**/.project
+**/.settings
+**/target
+.DS_Store
+.classpath
+.project
+.settings
+.factorypath
+.idea
+target
+*.iml
+*.class
+*~
+*.orig
+# For Fiji #
+*.jar
