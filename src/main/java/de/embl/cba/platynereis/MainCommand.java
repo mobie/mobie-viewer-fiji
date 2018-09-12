@@ -4,20 +4,16 @@ import bdv.img.imaris.Imaris;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
-import de.embl.cba.platynereis.ui.LegendPanel;
+import de.embl.cba.platynereis.ui.BdvSourcesPanel;
 import de.embl.cba.platynereis.ui.MainFrame;
 import ij.IJ;
-import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewTransformAffine;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imagej.ImageJ;
-import net.imglib2.img.Img;
-import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale;
-import net.imglib2.type.numeric.ARGBType;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
@@ -42,7 +38,7 @@ public class MainCommand extends DynamicCommand implements Interactive
     public Map< String, PlatynereisDataSource > dataSources;
     String emRawDataName;
     AffineTransform3D emRawDataTransform;
-    LegendPanel legend;
+    BdvSourcesPanel legend;
 
 
     public void init()
@@ -64,7 +60,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
         MainFrame mainFrame = new MainFrame( bdv, this );
 
-        legend = mainFrame.getLegendPanel();
+        legend = mainFrame.getBdvSourcesPanel();
 
     }
 
@@ -113,14 +109,14 @@ public class MainCommand extends DynamicCommand implements Interactive
             switch ( Constants.BDV_XML_SUFFIX ) // TODO: makes no sense...
             {
                 case ".tif":
-                    addSourceFromTiffFile( name );
+                    Utils.loadAndShowSourceFromTiffFile( source, bdv );
                     break;
                 case ".xml":
                     if ( source.spimData == null )
                     {
                         source.spimData = Utils.openSpimData( source.file );
                     }
-                    showSourceInBdv( name );
+                    Utils.showSourceInBdv( source, bdv );
                     break;
                 default:
                     logService.error( "Unsupported format: " + Constants.BDV_XML_SUFFIX );
@@ -129,10 +125,10 @@ public class MainCommand extends DynamicCommand implements Interactive
 
         source.bdvSource.setActive( true );
         source.isActive = true;
-        source.bdvSource.setColor( asArgbType( source.color ) );
+        source.bdvSource.setColor( Utils.asArgbType( source.color ) );
         source.name = name;
 
-        legend.addSource( source );
+        legend.addSourceToPanel( source );
     }
 
     public void hideDataSource( String dataSourceName )
@@ -147,7 +143,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     public void setDataSourceColor( String sourceName, Color color )
     {
-        dataSources.get( sourceName ).bdvSource.setColor( asArgbType( color ) );
+        dataSources.get( sourceName ).bdvSource.setColor( Utils.asArgbType( color ) );
         dataSources.get( sourceName ).color = color;
     }
 
@@ -166,34 +162,6 @@ public class MainCommand extends DynamicCommand implements Interactive
     }
 
 
-    private void showSourceInBdv( String dataSourceName )
-    {
-        PlatynereisDataSource source = dataSources.get( dataSourceName );
-
-        if ( source.isSpimDataMinimal )
-        {
-            setName( dataSourceName, source );
-
-            source.bdvSource = BdvFunctions.show( source.spimDataMinimal, BdvOptions.options().addTo( bdv ) ).get( 0 );
-            source.bdvSource.setColor( asArgbType( source.color ) );
-            source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
-
-            bdv = source.bdvSource.getBdvHandle();
-        }
-        else
-        {
-            setName( dataSourceName, source );
-
-            source.bdvSource = BdvFunctions.show( source.spimData, BdvOptions.options().addTo( bdv ) ).get( 0 );
-
-            source.bdvSource.setColor( asArgbType( source.color ) );
-            source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
-
-            bdv = source.bdvSource.getBdvHandle();
-        }
-
-    }
-
     private void setName( String name, PlatynereisDataSource source )
     {
         if ( source.spimData != null )
@@ -202,29 +170,9 @@ public class MainCommand extends DynamicCommand implements Interactive
         }
     }
 
-    private void addSourceFromTiffFile( String gene )
-    {
-        ImagePlus imp = IJ.openImage( dataSources.get( gene ).file.toString() );
-        Img img = ImageJFunctions.wrap( imp );
-
-        AffineTransform3D prosprScaling = new AffineTransform3D();
-        prosprScaling.scale( Constants.PROSPR_SCALING_IN_MICROMETER );
-
-        final BdvSource source = BdvFunctions.show( img, gene, Bdv.options().addTo( bdv ).sourceTransform( prosprScaling ) );
-        source.setColor( asArgbType( Constants.DEFAULT_GENE_COLOR ) );
-        dataSources.get( gene ).color = Constants.DEFAULT_GENE_COLOR;
-        dataSources.get( gene ).bdvSource = source;
-
-    }
-
-    private ARGBType asArgbType( Color color )
-    {
-        return new ARGBType( ARGBType.rgba( color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha() ) );
-    }
-
     private void initBdvWithEmRawData(  )
     {
-        showSourceInBdv( emRawDataName );
+        Utils.showSourceInBdv( dataSources.get( emRawDataName ), bdv );
 
         bdv.getBdvHandle().getViewerPanel().setInterpolation( Interpolation.NLINEAR );
 
@@ -277,6 +225,7 @@ public class MainCommand extends DynamicCommand implements Interactive
                 dataSources.put( dataSourceName, source );
                 source.file = file;
                 source.maxLutValue = 255;
+                source.name = dataSourceName;
 
                 if ( file.getName().contains( Constants.EM_RAW_FILE_ID ) || file.getName().contains( Constants.EM_SEGMENTED_FILE_ID ) )
                 {

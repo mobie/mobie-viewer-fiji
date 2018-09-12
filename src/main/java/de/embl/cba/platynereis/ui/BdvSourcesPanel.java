@@ -1,8 +1,10 @@
 package de.embl.cba.platynereis.ui;
 
+import bdv.util.Bdv;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.MainCommand;
 import de.embl.cba.platynereis.PlatynereisDataSource;
+import de.embl.cba.platynereis.Utils;
 import ij.gui.GenericDialog;
 
 import javax.swing.*;
@@ -13,7 +15,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class LegendPanel extends JPanel implements ActionListener
+import static de.embl.cba.platynereis.Utils.asArgbType;
+
+public class BdvSourcesPanel extends JPanel implements ActionListener
 {
     public static final String CHANGE_COLOR = "Change color";
     public static final String ADAPT_BRIGHTNESS = "Adapt brightness";
@@ -28,21 +32,23 @@ public class LegendPanel extends JPanel implements ActionListener
 
     protected Map< String, JPanel > panels;
     JFrame frame;
+    final MainFrame mainFrame;
     final MainCommand mainCommand;
+    final Bdv bdv;
+    private final Map< String, PlatynereisDataSource > dataSources;
 
-    public LegendPanel( MainCommand mainCommand )
+
+    public BdvSourcesPanel( MainFrame mainFrame, Bdv bdv, MainCommand mainCommand )
     {
+        this.mainFrame = mainFrame;
+        this.bdv = bdv;
         this.mainCommand = mainCommand;
+        this.dataSources = mainCommand.dataSources;
         this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
         this.setAlignmentX(Component.LEFT_ALIGNMENT);
         panels = new LinkedHashMap<>(  );
-        this.addSource( mainCommand.dataSources.get( mainCommand.getEmRawDataName() ) );
+        this.addSource( dataSources.get( mainCommand.getEmRawDataName() ).name );
         initColors();
-    }
-
-    public JPanel getPanel()
-    {
-        return this;
     }
 
     private void initColors()
@@ -74,7 +80,44 @@ public class LegendPanel extends JPanel implements ActionListener
         }
     }
 
-    public void addSource( PlatynereisDataSource dataSource )
+    public void addSource( String name )
+    {
+        PlatynereisDataSource source = dataSources.get( name );
+
+        addSourceToViewer( source );
+
+        addSourceToPanel( source );
+    }
+
+    private void addSourceToViewer( PlatynereisDataSource source )
+    {
+        if ( source.bdvSource == null )
+        {
+            switch ( Constants.BDV_XML_SUFFIX ) // TODO: makes no sense...
+            {
+                case ".tif":
+                    Utils.loadAndShowSourceFromTiffFile( source, bdv  );
+                    break;
+
+                case ".xml":
+                    if ( source.spimData == null )
+                    {
+                        source.spimData = Utils.openSpimData( source.file );
+                    }
+                    Utils.showSourceInBdv( source, bdv  );
+                    break;
+
+                default:
+                    Utils.log( "Unsupported format: " + Constants.BDV_XML_SUFFIX );
+            }
+        }
+
+        source.bdvSource.setActive( true );
+        source.isActive = true;
+        source.bdvSource.setColor( asArgbType( source.color ) );
+    }
+
+    public void addSourceToPanel( PlatynereisDataSource dataSource )
     {
 
         if( ! panels.containsKey( dataSource.name ) )
@@ -138,6 +181,24 @@ public class LegendPanel extends JPanel implements ActionListener
         //return String.format("%20s", string);
     }
 
+
+    private ArrayList< String > getCurrentSourceNames()
+    {
+        return new ArrayList<>( panels.keySet() );
+    }
+
+    public void removeAllProSPrSources()
+    {
+        final ArrayList< String > names = getCurrentSourceNames();
+
+        for ( String name : names )
+        {
+            if ( ! name.contains( Constants.EM_FILE_ID ) )
+            {
+                removeSource( name );
+            }
+        }
+    }
 
     private void removeSource( String name )
     {

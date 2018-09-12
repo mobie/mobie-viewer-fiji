@@ -25,15 +25,17 @@ import static de.embl.cba.platynereis.Utils.openSpimData;
 
 public class ActionPanel < T extends RealType< T > & NativeType< T > > extends JPanel
 {
-	final Bdv bdv;
-	MainCommand mainCommand;
+	private final Bdv bdv;
+	private final MainCommand mainCommand;
+	private final MainFrame mainFrame;
 	private Behaviours behaviours;
 	private int geneSearchMipMapLevel;
 	private double geneSearchVoxelSize;
 	private ArrayList< Double > geneSearchRadii;
 
-	public ActionPanel( Bdv bdv, MainCommand mainCommand )
+	public ActionPanel( MainFrame mainFrame, Bdv bdv, MainCommand mainCommand )
 	{
+		this.mainFrame = mainFrame;
 		this.bdv = bdv;
 		this.mainCommand = mainCommand;
 		behaviours = new Behaviours( new InputTriggerConfig() );
@@ -46,11 +48,6 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		this.revalidate();
 		this.repaint();
 
-	}
-
-	public JPanel getPanel()
-	{
-		return this;
 	}
 
 	public void addPositionPrintUI( JPanel panel )
@@ -89,9 +86,15 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 			double[] micrometerPosition = new double[ 3 ];
 			getMicrometerMousePosition().localize( micrometerPosition );
+
 			double micrometerRadius = Double.parseDouble( ( String ) radiiComboBox.getSelectedItem() );
 
-			searchNearbyGenes( micrometerPosition, micrometerRadius );
+			(new Thread(new Runnable(){
+				public void run(){
+					searchNearbyGenes( micrometerPosition, micrometerRadius );
+				}
+			})).start();
+
 
 		}, "search genes", "X" );
 
@@ -102,7 +105,8 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	private void searchNearbyGenes( double[] micrometerPosition, double micrometerRadius )
 	{
 
-		GeneSearch geneSearch = new GeneSearch( micrometerRadius,
+		GeneSearch geneSearch = new GeneSearch(
+				micrometerRadius,
 				micrometerPosition,
 				mainCommand.dataSources,
 				bdv,
@@ -111,6 +115,38 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		geneSearch.run();
 
+		// TODO: this is overly complicated, but this logic into gene search itself
+		while( ! geneSearch.isDone() )
+		{
+			wait100ms();
+		}
+
+		final ArrayList< String > genes = new ArrayList( geneSearch.getSortedGenes().keySet() );
+
+		if ( genes.size() > 0 )
+		{
+
+			mainFrame.getBdvSourcesPanel().removeAllProSPrSources();
+
+			for ( int i = genes.size() - 1; i > genes.size() - 5; --i )
+			{
+				mainFrame.getBdvSourcesPanel().addSourceToPanel( genes.get( i ) );
+			}
+
+			// TODO: add more but only make the first ones visible
+		}
+	}
+
+	private void wait100ms()
+	{
+		try
+		{
+			Thread.sleep( 100 );
+		}
+		catch ( InterruptedException e )
+		{
+			e.printStackTrace();
+		}
 	}
 
 

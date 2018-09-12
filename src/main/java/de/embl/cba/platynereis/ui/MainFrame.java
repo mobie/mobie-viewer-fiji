@@ -11,21 +11,21 @@ public class MainFrame extends JFrame
 	final Bdv bdv;
 	final MainCommand mainCommand;
 	private final ActionPanel actionPanel;
-	private final LegendPanel legendPanel;
+	private final BdvSourcesPanel bdvSourcesPanel;
 
 	public MainFrame( Bdv bdv, MainCommand mainCommand ) throws HeadlessException
 	{
 		this.bdv = bdv;
 		this.mainCommand = mainCommand;
 
-		actionPanel = new ActionPanel( bdv, mainCommand );
-		legendPanel = new LegendPanel( mainCommand );
+		actionPanel = new ActionPanel( this, bdv, mainCommand );
+		bdvSourcesPanel = new BdvSourcesPanel( this, bdv, mainCommand );
 
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );  // we want it to split the window verticaly
 		splitPane.setDividerLocation( 200);                    // the initial position of the divider is 200 (our window is 400 pixels high)
 		splitPane.setTopComponent( actionPanel );                  // at the top we want our "topPanel"
-		splitPane.setBottomComponent( legendPanel );
+		splitPane.setBottomComponent( bdvSourcesPanel );
 
 		setPreferredSize( new Dimension(400, 400));     // let's open the window with a default size of 400x400 pixels
 		// the contentPane is the container that holds all our components
@@ -48,9 +48,9 @@ public class MainFrame extends JFrame
 		return actionPanel;
 	}
 
-	public LegendPanel getLegendPanel()
+	public BdvSourcesPanel getBdvSourcesPanel()
 	{
-		return legendPanel;
+		return bdvSourcesPanel;
 	}
 
 

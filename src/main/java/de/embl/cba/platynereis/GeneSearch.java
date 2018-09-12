@@ -4,15 +4,11 @@ import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
 import bdv.util.Bdv;
 import de.embl.cba.platynereis.ui.BdvTextOverlay;
-import ij.IJ;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static de.embl.cba.platynereis.Utils.openSpimData;
 
@@ -25,6 +21,10 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 	private final Bdv bdv;
 	private final int mipMapLevel;
 	private final double micrometerVoxelSize;
+	private BdvTextOverlay bdvTextOverlay;
+	private boolean searchFinished;
+	private ArrayList sortedNames;
+	private Map< String, Double > sortedGenes;
 
 
 	public GeneSearch( double micrometerRadius,
@@ -40,19 +40,35 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 		this.bdv = bdv;
 		this.mipMapLevel = mipMapLevel;
 		this.micrometerVoxelSize = micrometerVoxelSize;
+		this.searchFinished = false;
 	}
 
 	public void run( )
 	{
 
-		BdvTextOverlay bdvTextOverlay = new BdvTextOverlay( this.bdv, "Searching genes...", micrometerPosition );
+		bdvTextOverlay = new BdvTextOverlay( bdv, "Searching genes; please wait...", micrometerPosition );
 
-		IJ.wait( 2000 );
+		(new Thread(new Runnable(){
+			public void run(){
+				runSearch();
+			}
+		})).start();
 
-		bdvTextOverlay.removeFromBdv();
 	}
 
-	private void search( )
+
+	public Map< String, Double > getSortedGenes()
+	{
+		return sortedGenes;
+	}
+
+
+	public boolean isDone()
+	{
+		return searchFinished;
+	}
+
+	private void runSearch( )
 	{
 
 		final Set< String > sources = dataSources.keySet();
@@ -60,7 +76,6 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 		for ( String name : sources )
 		{
-
 			if ( name.contains( Constants.EM_FILE_ID ) ) continue;
 
 			final PlatynereisDataSource source = dataSources.get( name );
@@ -83,19 +98,29 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 			localMaxima.put( name, localMaximum );
 
+
+			(new Thread(new Runnable(){
+				public void run(){
+					Utils.log( "Examining " + name );
+				}
+			})).start();
+
 		}
 
-		final Map< String, Double > sortedMaxima = Utils.sortByValue( localMaxima );
-		final ArrayList sortedNames = new ArrayList( sortedMaxima.keySet() );
+		sortedGenes = Utils.sortByValue( localMaxima );
+		sortedNames = new ArrayList( sortedGenes.keySet() );
 
-		Utils.log( "## Nearby gene list " );
-		for ( int i = 0; i < sortedMaxima.size(); ++i )
+		Utils.log( "## Sorted gene list " );
+		for ( int i = 0; i < sortedGenes.size(); ++i )
 		{
 			String name = ( String ) sortedNames.get( i );
-			Utils.log( name + ": " + sortedMaxima.get( name ) );
+			Utils.log( name + ": " + sortedGenes.get( name ) );
 		}
 
-//		mainCommand.addSourceToBdv(  );
+		searchFinished = true;
+
+		bdvTextOverlay.removeFromBdv();
 	}
+
 
 }

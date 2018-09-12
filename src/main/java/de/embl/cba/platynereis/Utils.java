@@ -2,23 +2,28 @@ package de.embl.cba.platynereis;
 
 import bdv.BigDataViewer;
 import bdv.img.cache.VolatileCachedCellImg;
-import bdv.util.Bdv;
-import bdv.util.BdvHandle;
+import bdv.util.*;
 import ij.IJ;
+import ij.ImagePlus;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 import net.imagej.ops.Ops;
 import net.imglib2.*;
+import net.imglib2.Cursor;
 import net.imglib2.algorithm.neighborhood.HyperSphereShape;
 import net.imglib2.algorithm.neighborhood.Neighborhood;
 import net.imglib2.algorithm.neighborhood.Shape;
+import net.imglib2.img.Img;
 import net.imglib2.img.basictypeaccess.ShortAccess;
+import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 
+import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -197,5 +202,47 @@ public class Utils
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	public static ARGBType asArgbType( Color color )
+	{
+		return new ARGBType( ARGBType.rgba( color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha() ) );
+	}
+
+	public static void loadAndShowSourceFromTiffFile( PlatynereisDataSource dataSource, Bdv bdv )
+	{
+		ImagePlus imp = IJ.openImage( dataSource.file.toString() );
+		Img img = ImageJFunctions.wrap( imp );
+
+		AffineTransform3D prosprScaling = new AffineTransform3D();
+		prosprScaling.scale( Constants.PROSPR_SCALING_IN_MICROMETER );
+
+		final BdvSource bdvSource = BdvFunctions.show( img, dataSource.name, Bdv.options().addTo( bdv ).sourceTransform( prosprScaling ) );
+		bdvSource.setColor( asArgbType( Constants.DEFAULT_GENE_COLOR ) );
+		dataSource.color = Constants.DEFAULT_GENE_COLOR;
+		dataSource.bdvSource = bdvSource;
+	}
+
+	public static void showSourceInBdv( PlatynereisDataSource source, Bdv bdv )
+	{
+		if ( source.isSpimDataMinimal )
+		{
+//            setName( source.name, source );
+//
+			source.bdvSource = BdvFunctions.show( source.spimDataMinimal, BdvOptions.options().addTo( bdv ) ).get( 0 );
+			source.bdvSource.setColor( asArgbType( source.color ) );
+			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
+
+		}
+		else
+		{
+//            setName( dataSourceName, source );
+//
+			source.bdvSource = BdvFunctions.show( source.spimData, BdvOptions.options().addTo( bdv ) ).get( 0 );
+			source.bdvSource.setColor( asArgbType( source.color ) );
+			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
+
+		}
+
 	}
 }

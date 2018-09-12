@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class BdvTextOverlay extends BdvOverlay
 {
 
-	final String text;
+	String text;
 	final double[] position;
 	final int textSize;
 	final Bdv bdv;
@@ -23,7 +23,7 @@ public class BdvTextOverlay extends BdvOverlay
 		this.position = position;
 		this.bdv = bdv;
 		this.numDimensions = position.length;
-		this.textSize = 200;
+		this.textSize = 20;
 
 		overlay = BdvFunctions.showOverlay( this, "overlay", BdvOptions.options().addTo( bdv ) );
 
@@ -32,6 +32,11 @@ public class BdvTextOverlay extends BdvOverlay
 	public void removeFromBdv()
 	{
 		overlay.removeFromBdv();
+	}
+
+	public void setText( String text )
+	{
+		this.text = text;
 	}
 
 	@Override
@@ -61,10 +66,14 @@ public class BdvTextOverlay extends BdvOverlay
 	{
 		int[] stringSize = getStringSize( name, fontMetrics );
 
+		int[] bdvWindowCentre = new int[ 2 ];
+		bdvWindowCentre[ 0 ] = ( int ) ( bdv.getBdvHandle().getViewerPanel().getWidth() / 2.0 );
+		bdvWindowCentre[ 1 ] = ( int ) ( bdv.getBdvHandle().getViewerPanel().getHeight() / 2.0 );
+
 		int[] stringPosition = new int[ numDimensions ];
-		for ( int d = 0; d < numDimensions; ++d )
+		for ( int d = 0; d < 2; ++d )
 		{
-			stringPosition[ d ] = ( int ) ( center[ d ] - 0.5 * stringSize[ d ] );
+			stringPosition[ d ] = ( int ) ( bdvWindowCentre[ d ] - 0.5 * stringSize[ d ] );
 		}
 		return stringPosition;
 	}
