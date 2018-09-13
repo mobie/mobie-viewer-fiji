@@ -47,7 +47,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 	{
 
 		// TODO: throws exeception when removing
-		bdvTextOverlay = new BdvTextOverlay( bdv, "Searching genes; please wait...", micrometerPosition );
+		bdvTextOverlay = new BdvTextOverlay( bdv, "Searching expressed genes; please wait...", micrometerPosition );
 
 		(new Thread(new Runnable(){
 			public void run(){

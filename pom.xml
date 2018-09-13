@@ -5,11 +5,12 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>23.1.1</version>
+		<version>23.2.0</version>
 	</parent>
 
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
 	<version>0.2.00</version>
+	<url>https://github.com/tischi/fiji-plugin-platynereisViewer</url>
 
 	<name>Fiji Plugin Platynereis Viewer</name>
 	<description>TODO</description>
@@ -72,7 +73,6 @@
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<imagej.app.directory>/Applications/Fiji.app/</imagej.app.directory>
-		<enforcer.skip>true</enforcer.skip>
 	</properties>
 
 

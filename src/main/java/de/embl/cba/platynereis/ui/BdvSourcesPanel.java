@@ -47,7 +47,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
         this.setAlignmentX(Component.LEFT_ALIGNMENT);
         panels = new LinkedHashMap<>(  );
-        this.addSource( dataSources.get( mainCommand.getEmRawDataName() ).name );
+        this.addSourceToPanelAndViewer( dataSources.get( mainCommand.getEmRawDataName() ).name );
         initColors();
     }
 
@@ -71,10 +71,9 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         {
             return Color.WHITE;
         }
-        else if ( panels.size() <= colors.size() )
+        else if ( panels.size() <= colors.size()  & panels.size() > 0 )
         {
             return colors.get( panels.size() - 1 );
-
         }
         else
         {
@@ -82,13 +81,14 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         }
     }
 
-    public void addSource( String name )
+    public void addSourceToPanelAndViewer( String name )
     {
         PlatynereisDataSource source = dataSources.get( name );
 
+        addSourceToPanel( source );
+
         addSourceToViewer( source );
 
-        addSourceToPanel( source );
     }
 
     private void addSourceToViewer( PlatynereisDataSource source )
@@ -116,8 +116,12 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
         source.bdvSource.setActive( true );
         source.isActive = true;
-        source.color = getColor( source );
         source.bdvSource.setColor(  asArgbType( source.color ) );
+    }
+
+    public void addSourceToPanel( String name )
+    {
+        addSourceToPanel ( dataSources.get( name ) );
     }
 
     public void addSourceToPanel( PlatynereisDataSource dataSource )
@@ -125,6 +129,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
         if( ! panels.containsKey( dataSource.name ) )
         {
+            dataSource.color = getColor( dataSource );
 
             int[] buttonDimensions = new int[]{ 40, 40 };
 
@@ -133,7 +138,6 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
             panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
             panel.add(Box.createHorizontalGlue());
             panel.setOpaque( true );
-            dataSource.color = getColor( dataSource );
             panel.setBackground( dataSource.color );
 
             JLabel jLabel = new JLabel( dataSource.name );
@@ -247,11 +251,22 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
     }
 
 
-    public void toggleVisibility( String dataSourceName )
+    public void toggleVisibility( String name )
     {
-        boolean isActive = dataSources.get( dataSourceName ).isActive;
-        dataSources.get( dataSourceName ).isActive = !isActive ;
-        dataSources.get( dataSourceName ).bdvSource.setActive( !isActive );
+        final PlatynereisDataSource source = dataSources.get( name );
+
+        if ( source.bdvSource == null )
+        {
+            addSourceToViewer( source );
+        }
+        else
+        {
+            boolean isActive = source.isActive;
+            source.isActive = !isActive;
+            source.bdvSource.setActive( !isActive );
+        }
+
+
     }
 
     private String getActionFromUI()

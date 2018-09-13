@@ -125,14 +125,13 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		if ( genes.size() > 0 )
 		{
-
 			mainFrame.getBdvSourcesPanel().removeAllProSPrSources();
 
 			for ( int i = genes.size() - 1; i > genes.size() - 10; --i )
 			{
-				mainFrame.getBdvSourcesPanel().addSource( genes.get( i ) );
+				mainFrame.getBdvSourcesPanel().addSourceToPanel( genes.get( i ) );
 
-					if ( i != genes.size() - 1 )
+				if ( i == genes.size() - 1 )
 				{
 					mainFrame.getBdvSourcesPanel().toggleVisibility( genes.get( i ) );
 				}
@@ -243,7 +242,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				mainFrame.getBdvSourcesPanel().addSource( (String) dataSources.getSelectedItem() );
+				mainFrame.getBdvSourcesPanel().addSourceToPanelAndViewer( (String) dataSources.getSelectedItem() );
 			}
 		} );
 
@@ -256,13 +255,13 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		horizontalLayoutPanel.add( new JLabel( "Move to [x,y,z]: " ) );
 
-		final JTextField position = new JTextField( "100.0,100.0,100.0" );
+		final JTextField position = new JTextField( "  177, 218,  67  " );
 
 		horizontalLayoutPanel.add( position );
 
 		horizontalLayoutPanel.add( new JLabel( "  Zoom level: " ) );
 
-		final JTextField zoom = new JTextField( "20.00" );
+		final JTextField zoom = new JTextField( " 15 " );
 
 		horizontalLayoutPanel.add( zoom );
 		

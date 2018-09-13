@@ -3,6 +3,7 @@ package de.embl.cba.platynereis;
 import bdv.BigDataViewer;
 import bdv.img.cache.VolatileCachedCellImg;
 import bdv.util.*;
+import bdv.viewer.animate.SimilarityTransformAnimator;
 import ij.IJ;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimData;
@@ -88,7 +89,25 @@ public class Utils
 
 	public static void centerBdvViewToPosition( double[] position, double scale, Bdv bdv )
 	{
-		final AffineTransform3D viewerTransform = new AffineTransform3D();
+		final AffineTransform3D newViewerTransform = getNewViewerTransform( position, scale, bdv, null );
+
+		final double cX = 0; //- bdv.getBdvHandle().getViewerPanel().getDisplay().getWidth() / 2.0;
+		final double cY = 0; //- bdv.getBdvHandle().getViewerPanel().getDisplay().getHeight() / 2.0;
+
+		final AffineTransform3D currentViewerTransform = new AffineTransform3D();
+		bdv.getBdvHandle().getViewerPanel().getState().getViewerTransform( currentViewerTransform );
+
+		final SimilarityTransformAnimator similarityTransformAnimator =
+				new SimilarityTransformAnimator( currentViewerTransform, newViewerTransform, cX ,cY, 3000 );
+
+		bdv.getBdvHandle().getViewerPanel().setTransformAnimator( similarityTransformAnimator );
+
+		bdv.getBdvHandle().getViewerPanel().transformChanged( currentViewerTransform );
+	}
+
+	private static AffineTransform3D getNewViewerTransform( double[] position, double scale, Bdv bdv, AffineTransform3D currentViewerTransform )
+	{
+		final AffineTransform3D newViewerTransform = new AffineTransform3D();
 
 //		bdv.getBdvHandle().getViewerPanel().getState().getViewerTransform( viewerTransform );
 
@@ -97,7 +116,6 @@ public class Utils
 		bdvWindowDimensions[ 0 ] = bdv.getBdvHandle().getViewerPanel().getWidth();
 		bdvWindowDimensions[ 1 ] = bdv.getBdvHandle().getViewerPanel().getHeight();
 
-
 		double[] translation = new double[ 3 ];
 		for( int d = 0; d < 3; ++d )
 		{
@@ -105,8 +123,8 @@ public class Utils
 			translation[ d ] = - position[ d ];
 		}
 
-		viewerTransform.setTranslation( translation );
-		viewerTransform.scale( scale );
+		newViewerTransform.setTranslation( translation );
+		newViewerTransform.scale( scale );
 
 		double[] translation2 = new double[ 3 ];
 
@@ -116,10 +134,9 @@ public class Utils
 			translation2[ d ] = + bdvWindowDimensions[ d ] / 2.0;
 		}
 
-		viewerTransform.translate( translation2 );
+		newViewerTransform.translate( translation2 );
 
-		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( viewerTransform );
-
+		return newViewerTransform;
 	}
 
 
