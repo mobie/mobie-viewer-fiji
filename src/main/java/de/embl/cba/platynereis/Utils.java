@@ -244,8 +244,7 @@ public class Utils
 	{
 		if ( source.isSpimDataMinimal )
 		{
-//            setName( source.name, source );
-//
+			// setName( source.name, source );
 			source.bdvSource = BdvFunctions.show( source.spimDataMinimal, BdvOptions.options().addTo( bdv ) ).get( 0 );
 			source.bdvSource.setColor( asArgbType( source.color ) );
 			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
@@ -253,8 +252,7 @@ public class Utils
 		}
 		else
 		{
-//            setName( dataSourceName, source );
-//
+			// setName( dataSourceName, source );
 			source.bdvSource = BdvFunctions.show( source.spimData, BdvOptions.options().addTo( bdv ) ).get( 0 );
 			source.bdvSource.setColor( asArgbType( source.color ) );
 			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );

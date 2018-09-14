@@ -59,7 +59,7 @@ public class BdvTextOverlay extends BdvOverlay
 
 		t.apply( position, center );
 
-		g.setColor( Color.MAGENTA );
+		g.setColor( Color.GREEN );
 
 		final FontMetrics fontMetrics = setFont( g, textSize );
 
