@@ -1,11 +1,7 @@
 package de.embl.cba.platynereis.ui;
 
 import bdv.util.Bdv;
-import de.embl.cba.platynereis.Constants;
-import de.embl.cba.platynereis.MainCommand;
-import de.embl.cba.platynereis.PlatynereisDataSource;
-import de.embl.cba.platynereis.Utils;
-import ij.gui.GenericDialog;
+import de.embl.cba.platynereis.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -105,6 +101,12 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
                     if ( source.spimData == null )
                     {
                         source.spimData = Utils.openSpimData( source.file );
+
+//                        if ( source.file.getName().contains( Constants.NEW_PROSPR ) )
+//                        {
+//                            ProSPrRegistration.setEmSimilarityTransform( source );
+//                        }
+
                     }
                     Utils.showSourceInBdv( source, bdv  );
                     break;
@@ -131,12 +133,12 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         {
             dataSource.color = getColor( dataSource );
 
-            int[] buttonDimensions = new int[]{ 40, 40 };
+            int[] buttonDimensions = new int[]{ 50, 30 };
 
             JPanel panel = new JPanel();
-            panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-            panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-            panel.add(Box.createHorizontalGlue());
+            panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
+            panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 0, 10 ) );
+            panel.add( Box.createHorizontalGlue() );
             panel.setOpaque( true );
             panel.setBackground( dataSource.color );
 
@@ -145,22 +147,22 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
             JButton color = new JButton( "C" );
             color.addActionListener( this );
-            color.setPreferredSize( new Dimension( buttonDimensions[ 0 ],buttonDimensions[ 1 ] ) );
+            color.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
             color.setName( COLOR_ACTION + dataSource.name );
 
             JButton brightness = new JButton( "B" );
             brightness.addActionListener( this );
-            brightness.setPreferredSize( new Dimension( buttonDimensions[ 0 ],buttonDimensions[ 1 ] ) );
+            brightness.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
             brightness.setName( BRIGHTNESS_ACTION + dataSource.name );
 
             JButton toggle = new JButton( "T" );
             toggle.addActionListener( this );
-            toggle.setPreferredSize( new Dimension( buttonDimensions[ 0 ],buttonDimensions[ 1 ] ) );
+            toggle.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
             toggle.setName( TOGGLE_ACTION + dataSource.name );
 
             JButton remove = new JButton( "X" );
             remove.addActionListener( this );
-            remove.setPreferredSize( new Dimension( buttonDimensions[ 0 ],buttonDimensions[ 1 ] ) );
+            remove.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
             remove.setName( REMOVE_ACTION + dataSource.name );
 
             panel.add( jLabel );
@@ -209,7 +211,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
     private void removeSource( String name )
     {
-        mainCommand.hideDataSource( name );
+        mainCommand.removeDataSource( name );
         remove( panels.get( name ) );
         panels.remove( name );
         refreshGui();
@@ -266,26 +268,6 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
             source.bdvSource.setActive( !isActive );
         }
 
-
-    }
-
-    private String getActionFromUI()
-    {
-        GenericDialog genericDialog = new GenericDialog( "Choose action " );
-
-        genericDialog.addChoice( "Action", new String[]
-                {
-                        CHANGE_COLOR,
-                        ADAPT_BRIGHTNESS,
-                        REMOVE
-                },
-                CHANGE_COLOR);
-
-        genericDialog.showDialog();
-
-        if ( genericDialog.wasCanceled() ) return CANCELLED;
-
-        return genericDialog.getNextChoice();
     }
 
     public void changeColorViaUI( String name )

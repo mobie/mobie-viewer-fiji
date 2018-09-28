@@ -54,7 +54,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
         initDataSources( files );
 
-        loadProSPrDataSourcesInSeparateThread();
+        preFetchProsprDataSourcesInSeparateThread();
 
         initBdvWithEmRawData();
 
@@ -71,11 +71,11 @@ public class MainCommand extends DynamicCommand implements Interactive
     }
 
 
-    private void loadProSPrDataSourcesInSeparateThread( )
+    private void preFetchProsprDataSourcesInSeparateThread( )
     {
         (new Thread(new Runnable(){
             public void run(){
-                loadProSPrDataSources( );
+                preFetchProsprDataSources( );
             }
         })).start();
     }
@@ -140,6 +140,13 @@ public class MainCommand extends DynamicCommand implements Interactive
         }
     }
 
+    public void removeDataSource( String dataSourceName )
+    {
+        if ( dataSources.get( dataSourceName ).bdvSource != null )
+        {
+            dataSources.get( dataSourceName ).bdvSource.removeFromBdv();
+        }
+    }
 
     public void setDataSourceColor( String sourceName, Color color )
     {
@@ -192,13 +199,13 @@ public class MainCommand extends DynamicCommand implements Interactive
             return null;
         }
 
-        setScale( calibration, spimDataMinimal );
+        setScale( spimDataMinimal, calibration );
 
         return spimDataMinimal;
 
     }
 
-    private void setScale( double[] calibration, SpimDataMinimal spimDataMinimal )
+    private void setScale( SpimDataMinimal spimDataMinimal, double[] calibration )
     {
         final AffineTransform3D affineTransform3D = new AffineTransform3D();
         final Scale scale = new Scale( calibration );
@@ -216,56 +223,78 @@ public class MainCommand extends DynamicCommand implements Interactive
     {
         for ( File file : files )
         {
-            if ( file.getName().endsWith( Constants.BDV_XML_SUFFIX ) || file.getName().endsWith( Constants.IMARIS_SUFFIX )  )
+            final String fileName = file.getName();
+
+            if ( ! fileName.endsWith( Constants.BDV_XML_SUFFIX )
+                    && ! fileName.endsWith( Constants.IMARIS_SUFFIX ) ) continue;
+
+            if ( ! fileName.contains( Constants.EM_FILE_ID )
+                    &&  ! fileName.contains( Constants.NEW_PROSPR ) ) continue;
+
+            if ( fileName.contains( "AcTub" ) ) continue;
+
+            String dataSourceName = getDataSourceName( file );
+            PlatynereisDataSource source = new PlatynereisDataSource();
+
+            dataSources.put( dataSourceName, source );
+            source.file = file;
+
+            if ( fileName.contains( Constants.EM_FILE_ID ) )
             {
-                String dataSourceName = getDataSourceName( file );
-
-                PlatynereisDataSource source = new PlatynereisDataSource();
-                dataSources.put( dataSourceName, source );
-                source.file = file;
                 source.maxLutValue = 255;
-                source.name = dataSourceName;
+            }
+            else
+            {
+                source.maxLutValue = 1000; // to render the binary prospr more transparent
+            }
 
-                if ( file.getName().contains( Constants.EM_RAW_FILE_ID ) || file.getName().contains( Constants.EM_SEGMENTED_FILE_ID ) )
+            source.name = dataSourceName;
+
+            if ( fileName.contains( Constants.EM_FILE_ID ) )
+            {
+                if ( fileName.endsWith( Constants.BDV_XML_SUFFIX ) )
                 {
-                    if ( file.getName().endsWith( Constants.BDV_XML_SUFFIX ) )
-                    {
-                        source.spimData = Utils.openSpimData( file );
-                    }
-                    else if ( file.getName().contains( Constants.IMARIS_SUFFIX ) )
-                    {
-                        double[] calibration = new double[] { 0.01, 0.01, 0.025 };
-                        source.spimDataMinimal = openImaris( file, calibration );
-                        source.isSpimDataMinimal = true;
-                    }
-
-                    if ( file.getName().contains( Constants.EM_RAW_FILE_DEFAULT_ID ) )
-                    {
-                        emRawDataName = dataSourceName;
-                        ProSPrRegistration.setEmSimilarityTransform( source );
-                        source.name = Constants.EM_RAW_FILE_DEFAULT_ID;
-                    }
-
-                    if ( file.getName().contains( Constants.EM_RAW_FILE_ID )  )
-                    {
-                        source.color = Constants.DEFAULT_EM_RAW_COLOR;
-                    }
-
-                    if ( file.getName().contains( Constants.EM_SEGMENTED_FILE_ID ) )
-                    {
-                        source.color = Constants.DEFAULT_EM_SEGMENTATION_COLOR;
-                    }
+                    source.spimData = Utils.openSpimData( file );
                 }
-                else // gene
+                else if ( fileName.contains( Constants.IMARIS_SUFFIX ) )
                 {
-                    source.color = Constants.DEFAULT_GENE_COLOR;
+                    double[] calibration = new double[] { 0.01, 0.01, 0.025 };
+                    source.spimDataMinimal = openImaris( file, calibration );
+                    source.isSpimDataMinimal = true;
+                }
+
+                if ( fileName.contains( Constants.EM_FILE_ID ) )
+                {
+                    // TODO: this can be removed once everything is migrated
+                    // ProSPrRegistration.setEmSimilarityTransform( source );
+                }
+
+                if ( fileName.contains( Constants.EM_RAW_FILE_DEFAULT_ID ) )
+                {
+                    emRawDataName = dataSourceName;
+                    source.name = Constants.EM_RAW_FILE_DEFAULT_ID;
+                }
+
+                if ( fileName.contains( Constants.EM_RAW_FILE_ID )  )
+                {
+                    source.color = Constants.DEFAULT_EM_RAW_COLOR;
+                }
+
+                if ( fileName.contains( Constants.EM_SEGMENTED_FILE_ID ) )
+                {
+                    source.color = Constants.DEFAULT_EM_SEGMENTATION_COLOR;
                 }
             }
+            else // gene
+            {
+                source.color = Constants.DEFAULT_GENE_COLOR;
+            }
         }
+
     }
 
 
-    private void loadProSPrDataSources( )
+    private void preFetchProsprDataSources( )
     {
         Set< String > names = dataSources.keySet();
 
@@ -277,7 +306,15 @@ public class MainCommand extends DynamicCommand implements Interactive
 
             if ( source.file.getName().endsWith( Constants.BDV_XML_SUFFIX ) )
             {
-                source.spimData = Utils.openSpimData( source.file );
+                if ( source.spimData == null )
+                {
+                    source.spimData = Utils.openSpimData( source.file );
+
+//                    if ( source.file.getName().contains( Constants.NEW_PROSPR ) )
+//                    {
+//                        ProSPrRegistration.setEmSimilarityTransform( source );
+//                    }
+                }
             }
         }
     }
@@ -295,6 +332,11 @@ public class MainCommand extends DynamicCommand implements Interactive
 		{
 			dataSourceName = file.getName().replaceAll( Constants.IMARIS_SUFFIX, "" );
 		}
+
+		if ( file.getName().contains( Constants.NEW_PROSPR ) )
+        {
+            dataSourceName = dataSourceName.replace(  Constants.NEW_PROSPR, "" );
+        }
 
         return dataSourceName;
     }

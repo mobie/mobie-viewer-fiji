@@ -170,9 +170,9 @@ public class Utils
 	}
 
 	public static < T extends RealType< T > &  NativeType< T > >
-	double getLocalMaximum( final RandomAccessibleInterval< T > rai, double[] position, double radius, double calibration, String name )
+	double getLocalMaximum( final RandomAccessibleInterval< T > rai, double[] position, double radius, double calibration )
 	{
-		// TODO: add out-of-bounds strategy
+		// TODO: add out-of-bounds strategy or is this handled by the Neighborhood?
 		Shape shape = new HyperSphereShape( (int) Math.ceil( radius / calibration ) );
 		final RandomAccessible< Neighborhood< T > > nra = shape.neighborhoodsRandomAccessible( rai );
 		final RandomAccess< Neighborhood< T > > neighborhoodRandomAccess = nra.randomAccess();
@@ -245,7 +245,8 @@ public class Utils
 		if ( source.isSpimDataMinimal )
 		{
 			// setName( source.name, source );
-			source.bdvSource = BdvFunctions.show( source.spimDataMinimal, BdvOptions.options().addTo( bdv ) ).get( 0 );
+			source.bdvSource = BdvFunctions.show( source.spimDataMinimal,
+					BdvOptions.options().addTo( bdv ) ).get( 0 );
 			source.bdvSource.setColor( asArgbType( source.color ) );
 			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
 

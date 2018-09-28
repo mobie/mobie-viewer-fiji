@@ -94,8 +94,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 					image,
 					micrometerPosition,
 					micrometerRadius,
-					micrometerVoxelSize,
-					name );
+					micrometerVoxelSize );
 
 			localMaxima.put( name, localMaximum );
 

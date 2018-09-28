@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
-	<version>0.2.01</version>
+	<version>0.3.00</version>
 	<url>https://github.com/tischi/fiji-plugin-platynereisViewer</url>
 
 	<name>Fiji Plugin Platynereis Viewer</name>
@@ -62,7 +62,7 @@
 	</scm>
 	<issueManagement>
 		<system>GitHub</system>
-		<url>https://github.com/imglib/fiji-plugin-platynereisViewer/issues</url>
+		<url>https://github.com/tischi/fiji-plugin-platynereisViewer/issues</url>
 	</issueManagement>
 	<ciManagement>
 		<system>None</system>

@@ -39,7 +39,8 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		this.bdv = bdv;
 		this.mainCommand = mainCommand;
 		behaviours = new Behaviours( new InputTriggerConfig() );
-		this.setLayout( new FlowLayout( FlowLayout.LEFT ) );
+		this.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
+
 		addSourceSelectionUI( this );
 		addPositionZoomUI( this  );
 		addPositionPrintUI( this );
@@ -91,6 +92,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 			(new Thread(new Runnable(){
 				public void run(){
+
 					searchNearbyGenes( micrometerPosition, micrometerRadius );
 				}
 			})).start();
@@ -115,7 +117,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		geneSearch.run();
 
-		// TODO: this is overly complicated, but this logic into gene search itself
+		// TODO: this is overly complicated, put the thread logic into gene search itself
 		while( ! geneSearch.isDone() )
 		{
 			wait100ms();
@@ -177,15 +179,17 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 			double scale = viewRegistration.get( 0, 0 );
 			final double[][] resolutions = setupImgLoader.getMipmapResolutions();
 
-			geneSearchMipMapLevel = resolutions.length - 1;
+			geneSearchMipMapLevel = 0; // highest resolution
 			geneSearchVoxelSize = scale * resolutions[ geneSearchMipMapLevel ][ 0 ];
-			geneSearchRadii.add( 2 * geneSearchVoxelSize );
 
 			break;
 		}
 
-		geneSearchRadii.add( 4 * geneSearchVoxelSize );
-		geneSearchRadii.add( 8 * geneSearchVoxelSize );
+		for ( int i = 0; i < 8; ++i )
+		{
+			geneSearchRadii.add( Math.pow( 2, i ) * geneSearchVoxelSize );
+		}
+
 	}
 
 
@@ -208,10 +212,11 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	{
 		final RealPoint micrometerMousePosition = getMicrometerMousePosition();
 
-		final RealPoint posInverse = new RealPoint( 3 );
-		ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().inverse().apply( micrometerMousePosition, posInverse );
+		//final RealPoint posInverse = new RealPoint( 3 );
+		//ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().inverse().apply( micrometerMousePosition, posInverse );
+		//IJ.log( "coordinates in raw em data set [micrometer] : " + Util.printCoordinates( new RealPoint( posInverse ) ) );
 
-		IJ.log( "coordinates in raw em data set [micrometer] : " + Util.printCoordinates( new RealPoint( posInverse ) ) );
+		IJ.log( "coordinates in raw em data set [micrometer] : " + Util.printCoordinates( micrometerMousePosition ) );
 
 	}
 
@@ -293,11 +298,10 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 	private void moveToPosition( double[] position, double zoom )
 	{
-		double[] positionInViewer = new double[ 3 ];
-
-		ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().apply( position, positionInViewer );
-
-		Utils.centerBdvViewToPosition( positionInViewer, zoom, bdv );
+		//double[] positionInViewer = new double[ 3 ];
+		//ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().apply( position, positionInViewer );
+		//Utils.centerBdvViewToPosition( positionInViewer, zoom, bdv );
+		Utils.centerBdvViewToPosition( position, zoom, bdv );
 	}
 
 	private JPanel horizontalLayoutPanel()
@@ -306,7 +310,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		panel.setLayout( new BoxLayout( panel, BoxLayout.LINE_AXIS ) );
 		panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 10, 10) );
 		panel.add( Box.createHorizontalGlue() );
-		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
 		return panel;
 	}
