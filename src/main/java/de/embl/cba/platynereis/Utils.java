@@ -195,6 +195,27 @@ public class Utils
 		return max;
 	}
 
+	public static < T extends RealType< T > &  NativeType< T > >
+	double getLocalSum( final RandomAccessibleInterval< T > rai, double[] position, double radius, double calibration )
+	{
+		// TODO: add out-of-bounds strategy or is this handled by the Neighborhood?
+		Shape shape = new HyperSphereShape( (int) Math.ceil( radius / calibration ) );
+		final RandomAccessible< Neighborhood< T > > nra = shape.neighborhoodsRandomAccessible( rai );
+		final RandomAccess< Neighborhood< T > > neighborhoodRandomAccess = nra.randomAccess();
+		neighborhoodRandomAccess.setPosition( getPixelPosition( position, calibration ) );
+
+		final Neighborhood< T > neighborhood = neighborhoodRandomAccess.get();
+
+		final Cursor< T > cursor = neighborhood.cursor();
+		double sum = 0.0;
+		while( cursor.hasNext() )
+		{
+			sum += cursor.next().getRealDouble();
+		}
+
+		return sum;
+	}
+
 	private static long[] getPixelPosition( double[] position, double calibration )
 	{
 		long[] pixelPosition = new long[ position.length ];

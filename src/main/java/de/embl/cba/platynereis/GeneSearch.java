@@ -73,7 +73,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 	{
 
 		final Set< String > sources = dataSources.keySet();
-		Map< String, Double > localMaxima = new LinkedHashMap<>(  );
+		Map< String, Double > localSums = new LinkedHashMap<>(  );
 
 		for ( String name : sources )
 		{
@@ -90,13 +90,13 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 			final ViewerSetupImgLoader< ?, ? > setupImgLoader = imgLoader.getSetupImgLoader( 0 );
 			final RandomAccessibleInterval< T > image = (RandomAccessibleInterval<T>) setupImgLoader.getImage( 0, mipMapLevel );
 
-			final double localMaximum = Utils.getLocalMaximum(
+			final double localMaximum = Utils.getLocalSum(
 					image,
 					micrometerPosition,
 					micrometerRadius,
 					micrometerVoxelSize );
 
-			localMaxima.put( name, localMaximum );
+			localSums.put( name, localMaximum );
 
 
 			(new Thread(new Runnable(){
@@ -107,7 +107,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 		}
 
-		sortedGenes = Utils.sortByValue( localMaxima );
+		sortedGenes = Utils.sortByValue( localSums );
 		sortedNames = new ArrayList( sortedGenes.keySet() );
 
 		Utils.log( "## Sorted gene list " );
