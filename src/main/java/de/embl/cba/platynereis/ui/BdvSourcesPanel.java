@@ -89,7 +89,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
     private void addSourceToViewer( PlatynereisDataSource source )
     {
-        if ( source.bdvSource == null )
+        if ( source.bdvSource == null || source.bdvSource.getBdvHandle() == null )
         {
             switch ( Constants.BDV_XML_SUFFIX ) // TODO: makes no sense...
             {
@@ -108,7 +108,9 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 //                        }
 
                     }
+
                     Utils.showSourceInBdv( source, bdv  );
+
                     break;
 
                 default:
@@ -257,7 +259,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
     {
         final PlatynereisDataSource source = dataSources.get( name );
 
-        if ( source.bdvSource == null )
+        if ( source.bdvSource == null || source.bdvSource.getBdvHandle() == null )
         {
             addSourceToViewer( source );
         }

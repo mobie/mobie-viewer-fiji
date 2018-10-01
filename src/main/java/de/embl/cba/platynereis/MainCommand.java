@@ -142,7 +142,8 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     public void removeDataSource( String dataSourceName )
     {
-        if ( dataSources.get( dataSourceName ).bdvSource != null )
+        if ( dataSources.get( dataSourceName ).bdvSource != null
+				&& dataSources.get( dataSourceName ).bdvSource.getBdvHandle() != null )
         {
             dataSources.get( dataSourceName ).bdvSource.removeFromBdv();
         }
