@@ -4,6 +4,8 @@ import bdv.img.imaris.Imaris;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
+import bdv.viewer.Source;
+import de.embl.cba.platynereis.labels.ARGBConvertedIntTypeLabelsSource;
 import de.embl.cba.platynereis.ui.BdvSourcesPanel;
 import de.embl.cba.platynereis.ui.MainFrame;
 import ij.IJ;
@@ -14,6 +16,7 @@ import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale;
+import net.imglib2.type.volatiles.VolatileARGBType;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
@@ -80,65 +83,11 @@ public class MainCommand extends DynamicCommand implements Interactive
         })).start();
     }
 
-    private void addOverlay()
-    {
-        //bdv.getViewer().addTransformListener( lo );
-        //bdv.getViewer().getDisplay().addOverlayRenderer( lo );
-        //bdv.getViewerFrame().setVisible( true );
-        //bdv.getViewer().requestRepaint();
-        //https://github.com/PreibischLab/BigStitcher/blob/master/src/main/java/net/preibisch/stitcher/gui/overlay/LinkOverlay.java
-    }
-
     public void run()
     {
 
     }
 
-    private void print( String text )
-    {
-        Utils.log( text );
-    }
-
-
-    public void addSourceToBdv( String name )
-    {
-        PlatynereisDataSource source = dataSources.get( name );
-
-        if ( source.bdvSource == null )
-        {
-            switch ( Constants.BDV_XML_SUFFIX ) // TODO: makes no sense...
-            {
-                case ".tif":
-                    Utils.loadAndShowSourceFromTiffFile( source, bdv );
-                    break;
-                case ".xml":
-                    if ( source.spimData == null )
-                    {
-                        source.spimData = Utils.openSpimData( source.file );
-                    }
-                    Utils.showSourceInBdv( source, bdv );
-                    break;
-                default:
-                    logService.error( "Unsupported format: " + Constants.BDV_XML_SUFFIX );
-            }
-        }
-
-        source.bdvSource.setActive( true );
-        source.isActive = true;
-        source.bdvSource.setColor( Utils.asArgbType( source.color ) );
-        source.name = name;
-
-        legend.addSourceToPanel( source );
-    }
-
-    public void hideDataSource( String dataSourceName )
-    {
-        if ( dataSources.get( dataSourceName ).bdvSource != null )
-        {
-            dataSources.get( dataSourceName ).bdvSource.setActive( false );
-            dataSources.get( dataSourceName ).isActive = false;
-        }
-    }
 
     public void removeDataSource( String dataSourceName )
     {
@@ -264,12 +213,6 @@ public class MainCommand extends DynamicCommand implements Interactive
                     source.isSpimDataMinimal = true;
                 }
 
-                if ( fileName.contains( Constants.EM_FILE_ID ) )
-                {
-                    // TODO: this can be removed once everything is migrated
-                    // ProSPrRegistration.setEmSimilarityTransform( source );
-                }
-
                 if ( fileName.contains( Constants.EM_RAW_FILE_DEFAULT_ID ) )
                 {
                     emRawDataName = dataSourceName;
@@ -285,6 +228,16 @@ public class MainCommand extends DynamicCommand implements Interactive
                 {
                     source.color = Constants.DEFAULT_EM_SEGMENTATION_COLOR;
                 }
+
+                if ( fileName.contains( Constants.EM_LABELS_ID ) )
+                {
+                    final Source< VolatileARGBType > labelSource = new ARGBConvertedIntTypeLabelsSource( source.spimData, 0 );
+                    source.labelSource = labelSource;
+                    source.isLabelSource = true;
+                    source.spimData = null;
+                    source.maxLutValue = 255;
+                }
+
             }
             else // gene
             {
@@ -311,9 +264,9 @@ public class MainCommand extends DynamicCommand implements Interactive
                 {
                     source.spimData = Utils.openSpimData( source.file );
 
-//                    if ( source.file.getName().contains( Constants.NEW_PROSPR ) )
+//                    if ( labelSource.file.getName().contains( Constants.NEW_PROSPR ) )
 //                    {
-//                        ProSPrRegistration.setEmSimilarityTransform( source );
+//                        ProSPrRegistration.setEmSimilarityTransform( labelSource );
 //                    }
                 }
             }

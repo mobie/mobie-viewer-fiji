@@ -2,6 +2,7 @@ package de.embl.cba.platynereis;
 
 import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
+import bdv.bigcat.ui.AbstractARGBConvertedLabelsSource;
 import bdv.util.Bdv;
 import de.embl.cba.platynereis.ui.BdvTextOverlay;
 import net.imglib2.RandomAccessibleInterval;

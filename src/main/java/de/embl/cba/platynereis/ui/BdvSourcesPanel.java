@@ -98,15 +98,10 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
                     break;
 
                 case ".xml":
-                    if ( source.spimData == null )
+
+                    if ( source.spimData == null && ! source.isLabelSource )
                     {
                         source.spimData = Utils.openSpimData( source.file );
-
-//                        if ( source.file.getName().contains( Constants.NEW_PROSPR ) )
-//                        {
-//                            ProSPrRegistration.setEmSimilarityTransform( source );
-//                        }
-
                     }
 
                     Utils.showSourceInBdv( source, bdv  );
@@ -118,7 +113,10 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
             }
         }
 
-        source.bdvSource.setColor( asArgbType( source.color ) );
+        if ( ! source.isLabelSource )
+        {
+            source.bdvSource.setColor( asArgbType( source.color ) );
+        }
         source.bdvSource.setActive( true );
         source.isActive = true;
     }

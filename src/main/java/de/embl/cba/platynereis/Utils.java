@@ -1,7 +1,5 @@
 package de.embl.cba.platynereis;
 
-import bdv.BigDataViewer;
-import bdv.img.cache.VolatileCachedCellImg;
 import bdv.util.*;
 import bdv.viewer.animate.SimilarityTransformAnimator;
 import ij.IJ;
@@ -9,20 +7,17 @@ import ij.ImagePlus;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
-import net.imagej.ops.Ops;
 import net.imglib2.*;
 import net.imglib2.Cursor;
 import net.imglib2.algorithm.neighborhood.HyperSphereShape;
 import net.imglib2.algorithm.neighborhood.Neighborhood;
 import net.imglib2.algorithm.neighborhood.Shape;
 import net.imglib2.img.Img;
-import net.imglib2.img.basictypeaccess.ShortAccess;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.view.Views;
 
 import java.awt.*;
 import java.io.File;
@@ -228,10 +223,11 @@ public class Utils
 
 	public static SpimData openSpimData( File file )
 	{
-
 		try
 		{
 			SpimData spimData = new XmlIoSpimData().load( file.toString() );
+
+			spimData.getSequenceDescription().getImgLoader().getSetupImgLoader( 0 ).getImage( 0 );
 
 			return spimData;
 		}
@@ -265,18 +261,23 @@ public class Utils
 	{
 		if ( source.isSpimDataMinimal )
 		{
-			// setName( source.name, source );
+			// setName( labelSource.name, labelSource );
 			source.bdvSource = BdvFunctions.show( source.spimDataMinimal,
 					BdvOptions.options().addTo( bdv ) ).get( 0 );
 			source.bdvSource.setColor( asArgbType( source.color ) );
 			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
 
 		}
-		else
+		else if ( source.spimData != null)
 		{
-			// setName( dataSourceName, source );
+			// setName( dataSourceName, labelSource );
 			source.bdvSource = BdvFunctions.show( source.spimData, BdvOptions.options().addTo( bdv ) ).get( 0 );
 			source.bdvSource.setColor( asArgbType( source.color ) );
+			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
+		}
+		else if ( source.labelSource != null )
+		{
+			source.bdvSource = BdvFunctions.show( source.labelSource, BdvOptions.options().addTo( bdv ) );
 			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
 		}
 

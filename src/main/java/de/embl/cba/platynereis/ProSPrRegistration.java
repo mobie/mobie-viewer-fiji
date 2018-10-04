@@ -21,7 +21,7 @@ public class ProSPrRegistration
                 0.0, 0.0, 1.0, 0.0,
                 0.7660444431,  0.6427876097,  0.0, 0.0 );
 
-//        FinalRealInterval boundingIntervalAfterTransformation = getBoundsAfterRotation( source, transformJTransform );
+//        FinalRealInterval boundingIntervalAfterTransformation = getBoundsAfterRotation( labelSource, transformJTransform );
 
 //        double[] transformJTranslation = new double[]{
 //                - boundingIntervalAfterTransformation.realMin( 0 ),
@@ -152,7 +152,7 @@ public class ProSPrRegistration
 
         double[] translationInMicrometer = new double[]{ 76.46363039, -78.88425459, 233.36234024 };
 
-//        double[] translationInPixels = getTranslationInPixels( source, translationInMicrometer );
+//        double[] translationInPixels = getTranslationInPixels( labelSource, translationInMicrometer );
 
         elastixFixedToMoving.translate( translationInMicrometer );
 
