@@ -229,7 +229,7 @@ public class MainCommand extends DynamicCommand implements Interactive
                     source.color = Constants.DEFAULT_EM_SEGMENTATION_COLOR;
                 }
 
-                if ( fileName.contains( Constants.EM_LABELS_ID ) )
+                if ( fileName.contains( Constants.LABELS_ID ) )
                 {
                     final Source< VolatileARGBType > labelSource = new ARGBConvertedIntTypeLabelsSource( source.spimData, 0 );
                     source.labelSource = labelSource;

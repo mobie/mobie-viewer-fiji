@@ -117,6 +117,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         {
             source.bdvSource.setColor( asArgbType( source.color ) );
         }
+
         source.bdvSource.setActive( true );
         source.isActive = true;
     }

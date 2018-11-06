@@ -45,6 +45,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		addPositionZoomUI( this  );
 		addPositionPrintUI( this );
 		addLocalGeneSearchUI( this);
+		addLeveling( this );
 
 		this.revalidate();
 		this.repaint();
@@ -254,6 +255,29 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		panel.add( horizontalLayoutPanel );
 	}
 
+	private void addLeveling( JPanel panel )
+	{
+		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+
+		final JButton level = new JButton( "Level" );
+		horizontalLayoutPanel.add( level );
+
+		final JTextField normalVectorTextField = new JTextField( "1,1,1" );
+		horizontalLayoutPanel.add( normalVectorTextField );
+
+		level.addActionListener( new ActionListener()
+		{
+			@Override
+			public void actionPerformed( ActionEvent e )
+			{
+				double[] normalVector = Utils.getCSVasDoubles( normalVectorTextField.getText() );
+				Utils.level( bdv, normalVector );
+			}
+		} );
+
+		panel.add( horizontalLayoutPanel );
+	}
+
 	private void addPositionZoomUI( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
@@ -275,9 +299,10 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				moveToPosition( Utils.delimitedStringToDoubleArray( position.getText(), ","),
-						Double.parseDouble( zoom.getText() )
-						);
+				Utils.centerBdvViewToPosition(
+						Utils.delimitedStringToDoubleArray( position.getText(), ","),
+						Double.parseDouble( zoom.getText() ),
+						bdv );
 			}
 		} );
 
@@ -286,9 +311,10 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				moveToPosition( Utils.delimitedStringToDoubleArray( position.getText(), ","),
-						Double.parseDouble( zoom.getText() )
-				);
+				Utils.centerBdvViewToPosition(
+						Utils.delimitedStringToDoubleArray( position.getText(), ","),
+						Double.parseDouble( zoom.getText() ),
+						bdv );
 			}
 		} );
 
@@ -296,13 +322,6 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private void moveToPosition( double[] position, double zoom )
-	{
-		//double[] positionInViewer = new double[ 3 ];
-		//ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().apply( position, positionInViewer );
-		//Utils.centerBdvViewToPosition( positionInViewer, zoom, bdv );
-		Utils.centerBdvViewToPosition( position, zoom, bdv );
-	}
 
 	private JPanel horizontalLayoutPanel()
 	{

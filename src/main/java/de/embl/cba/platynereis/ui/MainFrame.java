@@ -23,7 +23,7 @@ public class MainFrame extends JFrame
 
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );  // we want it to split the window verticaly
-		splitPane.setDividerLocation( 150 );                    // the initial position of the divider is 200 (our window is 400 pixels high)
+		splitPane.setDividerLocation( 200 );                    // the initial position of the divider is 200 (our window is 400 pixels high)
 		splitPane.setTopComponent( actionPanel );                  // at the top we want our "topPanel"
 		splitPane.setBottomComponent( bdvSourcesPanel );
 

@@ -18,5 +18,5 @@ public class Constants
 	public static final Color DEFAULT_EM_SEGMENTATION_COLOR = new Color( 255, 0, 0, 255 );
 	public static final double ZOOM_REGION_SIZE = 50.0;
 	public static final String NEW_PROSPR = "-new";
-	public static final String EM_LABELS_ID = "-labels" ;
+	public static final String LABELS_ID = "-labels" ;
 }

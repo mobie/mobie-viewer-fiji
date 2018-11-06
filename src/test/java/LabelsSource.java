@@ -4,6 +4,6 @@ public class LabelsSource
 {
 	public static void main( String[] args )
 	{
-		new ARGBConvertedLabelsSource();
+		//new ARGBConvertedLabelsSource();
 	}
 }

@@ -2,11 +2,13 @@ package de.embl.cba.platynereis;
 
 import bdv.util.*;
 import bdv.viewer.animate.SimilarityTransformAnimator;
+import com.sun.jna.Library;
 import ij.IJ;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
+import net.imagej.ops.Ops;
 import net.imglib2.*;
 import net.imglib2.Cursor;
 import net.imglib2.algorithm.neighborhood.HyperSphereShape;
@@ -18,6 +20,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.util.LinAlgHelpers;
 
 import java.awt.*;
 import java.io.File;
@@ -84,7 +87,7 @@ public class Utils
 
 	public static void centerBdvViewToPosition( double[] position, double scale, Bdv bdv )
 	{
-		final AffineTransform3D newViewerTransform = getNewViewerTransform( position, scale, bdv, null );
+		final AffineTransform3D newViewerTransform = getNewViewerTransform( position, scale, bdv );
 
 		final double cX = 0; //- bdv.getBdvHandle().getViewerPanel().getDisplay().getWidth() / 2.0;
 		final double cY = 0; //- bdv.getBdvHandle().getViewerPanel().getDisplay().getHeight() / 2.0;
@@ -100,12 +103,10 @@ public class Utils
 		bdv.getBdvHandle().getViewerPanel().transformChanged( currentViewerTransform );
 	}
 
-	private static AffineTransform3D getNewViewerTransform( double[] position, double scale, Bdv bdv, AffineTransform3D currentViewerTransform )
+
+	private static AffineTransform3D getNewViewerTransform( double[] position, double scale, Bdv bdv )
 	{
 		final AffineTransform3D newViewerTransform = new AffineTransform3D();
-
-//		bdv.getBdvHandle().getViewerPanel().getState().getViewerTransform( viewerTransform );
-
 
 		int[] bdvWindowDimensions = new int[ 3 ];
 		bdvWindowDimensions[ 0 ] = bdv.getBdvHandle().getViewerPanel().getWidth();
@@ -114,22 +115,19 @@ public class Utils
 		double[] translation = new double[ 3 ];
 		for( int d = 0; d < 3; ++d )
 		{
-//			final double center = ( interval.realMin( d ) + interval.realMax( d ) ) / 2.0;
 			translation[ d ] = - position[ d ];
 		}
 
 		newViewerTransform.setTranslation( translation );
 		newViewerTransform.scale( scale );
 
-		double[] translation2 = new double[ 3 ];
-
+		double[] centerBdvWindowTranslation = new double[ 3 ];
 		for( int d = 0; d < 3; ++d )
 		{
-//			final double center = ( interval.realMin( d ) + interval.realMax( d ) ) / 2.0;
-			translation2[ d ] = + bdvWindowDimensions[ d ] / 2.0;
+			centerBdvWindowTranslation[ d ] = + bdvWindowDimensions[ d ] / 2.0;
 		}
 
-		newViewerTransform.translate( translation2 );
+		newViewerTransform.translate( centerBdvWindowTranslation );
 
 		return newViewerTransform;
 	}
@@ -283,5 +281,97 @@ public class Utils
 
 		return source.bdvSource.getBdvHandle();
 
+	}
+
+	public static void level( Bdv bdv, double[] targetNormalVector )
+	{
+		final AffineTransform3D currentViewerTransform = new AffineTransform3D();
+		bdv.getBdvHandle().getViewerPanel().getState().getViewerTransform( currentViewerTransform );
+
+		final double[] currentNormalVector = getCurrentNormalVector( currentViewerTransform );
+
+		logVector( "Current normal vector", currentNormalVector );
+
+		LinAlgHelpers.normalize( targetNormalVector ); // just to be sure.
+
+		double[] axis = new double[ 3 ];
+		LinAlgHelpers.cross( currentNormalVector, targetNormalVector, axis );
+
+		double angle = Math.acos( LinAlgHelpers.dot( currentNormalVector, targetNormalVector ) );
+
+		Utils.log( "Angle to target normal vector: " + angle );
+		logVector( "Rotation axis", axis );
+
+		double[] q = new double[ 4 ];
+		LinAlgHelpers.quaternionFromAngleAxis( axis, angle, q );
+
+		double[][] rotationMatrix = new double[ 3 ][ 3 ];
+		LinAlgHelpers.quaternionToR( q, rotationMatrix );
+
+		final AffineTransform3D rotation = new AffineTransform3D();
+		// rotation.set(  0, 3 ); // TODO: determine rotation center
+		for ( int row = 0; row < 3; ++row )
+			for ( int col = 0; col < 3; ++ col)
+				rotation.set( rotationMatrix[ row ][ col ], row, col);
+
+		final AffineTransform3D newViewerTransform = currentViewerTransform.copy().preConcatenate( rotation );
+
+
+		final SimilarityTransformAnimator similarityTransformAnimator =
+				new SimilarityTransformAnimator( currentViewerTransform, newViewerTransform, 0 ,0, 3000 );
+
+		bdv.getBdvHandle().getViewerPanel().setTransformAnimator( similarityTransformAnimator );
+		bdv.getBdvHandle().getViewerPanel().transformChanged( currentViewerTransform );
+
+		//		private void rotate(int axis, double d) {
+		// 		this.affine.set(this.affine.get(0, 3) - (double)this.centerX, 0, 3);
+//		this.affine.set(this.affine.get(1, 3) - (double)this.centerY, 1, 3);
+//		this.affine.rotate(axis, d);
+//		this.affine.set(this.affine.get(0, 3) + (double)this.centerX, 0, 3);
+//		this.affine.set(this.affine.get(1, 3) + (double)this.centerY, 1, 3);
+
+	}
+
+	public static void logVector( String preText, double[] currentNormalVector )
+	{
+		Utils.log( preText + ": (" + currentNormalVector[ 0 ] + ", " + currentNormalVector[ 1 ] + ", " + currentNormalVector[ 2 ] + ")" );
+	}
+
+	private static double[] getCurrentNormalVector( AffineTransform3D currentViewerTransform )
+	{
+		final double[] viewerC = new double[]{ 0, 0, 0 };
+		final double[] viewerX = new double[]{ 1, 0, 0 };
+		final double[] viewerY = new double[]{ 0, 1, 0 };
+
+		final double[] dataC = new double[ 3 ];
+		final double[] dataX = new double[ 3 ];
+		final double[] dataY = new double[ 3 ];
+
+		final double[] dataV1 = new double[ 3 ];
+		final double[] dataV2 = new double[ 3 ];
+		final double[] currentNormalVector = new double[ 3 ];
+
+		currentViewerTransform.inverse().apply( viewerC, dataC );
+		currentViewerTransform.inverse().apply( viewerX, dataX );
+		currentViewerTransform.inverse().apply( viewerY, dataY );
+
+		LinAlgHelpers.subtract( dataX, dataC, dataV1 );
+		LinAlgHelpers.subtract( dataY, dataC, dataV2 );
+
+		LinAlgHelpers.cross( dataV1, dataV2, currentNormalVector );
+
+		LinAlgHelpers.normalize( currentNormalVector );
+		return currentNormalVector;
+	}
+
+	public static double[] getCSVasDoubles( String csv )
+	{
+		final String[] split = csv.split( "," );
+		double[] normalVector = new double[ split.length ];
+		for ( int i = 0; i < split.length; ++i )
+		{
+			normalVector[ i ] = Double.parseDouble( split[ i ] );
+		}
+		return normalVector;
 	}
 }

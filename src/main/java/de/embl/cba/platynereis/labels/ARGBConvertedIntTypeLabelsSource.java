@@ -5,6 +5,7 @@ import bdv.ViewerSetupImgLoader;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.registration.ViewTransform;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
@@ -19,6 +20,7 @@ import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.Views;
 
 import java.lang.invoke.WrongMethodTypeException;
+import java.util.List;
 
 public class ARGBConvertedIntTypeLabelsSource implements Source<VolatileARGBType> {
     private long setupId;
@@ -26,6 +28,9 @@ public class ARGBConvertedIntTypeLabelsSource implements Source<VolatileARGBType
     private ViewerSetupImgLoader<?, ?> setupImgLoader;
 
     final private InterpolatorFactory<VolatileARGBType, RandomAccessible<VolatileARGBType>>[] interpolatorFactories;
+    private AffineTransform3D viewRegistration;
+    private AffineTransform3D[] mipmapTransforms;
+
     {
         interpolatorFactories = new InterpolatorFactory[]{
                 new NearestNeighborInterpolatorFactory<VolatileARGBType>(),
@@ -37,8 +42,11 @@ public class ARGBConvertedIntTypeLabelsSource implements Source<VolatileARGBType
     {
         this.setupId = setupId;
         this.spimData = spimdata;
-        ViewerImgLoader imgLoader = (ViewerImgLoader) this.spimData.getSequenceDescription().getImgLoader();
-        this.setupImgLoader = imgLoader.getSetupImgLoader(setupId);
+        this.viewRegistration = spimData.getViewRegistrations().getViewRegistration( 0, 0 ).getModel();
+        ViewerImgLoader imgLoader = ( ViewerImgLoader ) this.spimData.getSequenceDescription().getImgLoader();
+        this.setupImgLoader = imgLoader.getSetupImgLoader( setupId );
+        this.mipmapTransforms = this.setupImgLoader.getMipmapTransforms();
+
         try
         {
             AbstractVolatileNativeRealType type = (AbstractVolatileNativeRealType) setupImgLoader.getVolatileImageType();
@@ -80,8 +88,10 @@ public class ARGBConvertedIntTypeLabelsSource implements Source<VolatileARGBType
     }
 
     @Override
-    public void getSourceTransform(int t, int level, AffineTransform3D transform) {
-        transform.set(this.setupImgLoader.getMipmapTransforms()[level]);
+    public void getSourceTransform(int t, int level, AffineTransform3D transform)
+    {
+        final AffineTransform3D sourceTransform = viewRegistration.copy().preConcatenate( mipmapTransforms[ level ] );
+        transform.set( sourceTransform );
     }
 
     @Override
