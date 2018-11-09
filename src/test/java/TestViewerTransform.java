@@ -1,9 +1,9 @@
 import bdv.bigcat.ui.ARGBConvertedLabelsSource;
 
-public class LabelsSource
+public class TestViewerTransform
 {
 	public static void main( String[] args )
 	{
-		//new ARGBConvertedLabelsSource();
+
 	}
 }

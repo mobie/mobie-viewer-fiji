@@ -259,10 +259,12 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		final JButton level = new JButton( "Level" );
+		final JButton level = new JButton( "Level current view" );
 		horizontalLayoutPanel.add( level );
 
-		final JTextField normalVectorTextField = new JTextField( "1,1,1" );
+		horizontalLayoutPanel.add( new JLabel( "Target normal vector: " ) );
+
+		final JTextField normalVectorTextField = new JTextField( "0.7041,0.5650,0.43007" );
 		horizontalLayoutPanel.add( normalVectorTextField );
 
 		level.addActionListener( new ActionListener()
@@ -288,7 +290,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		horizontalLayoutPanel.add( position );
 
-		horizontalLayoutPanel.add( new JLabel( "  Zoom level: " ) );
+		horizontalLayoutPanel.add( new JLabel( "  Zoom factor: " ) );
 
 		final JTextField zoom = new JTextField( " 15 " );
 

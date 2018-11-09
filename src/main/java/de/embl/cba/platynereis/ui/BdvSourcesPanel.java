@@ -96,18 +96,13 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
                 case ".tif":
                     Utils.loadAndShowSourceFromTiffFile( source, bdv  );
                     break;
-
                 case ".xml":
-
                     if ( source.spimData == null && ! source.isLabelSource )
                     {
                         source.spimData = Utils.openSpimData( source.file );
                     }
-
                     Utils.showSourceInBdv( source, bdv  );
-
                     break;
-
                 default:
                     Utils.log( "Unsupported format: " + Constants.BDV_XML_SUFFIX );
             }
