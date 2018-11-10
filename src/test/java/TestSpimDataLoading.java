@@ -1,3 +1,4 @@
+import bdv.util.BdvFunctions;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
@@ -22,8 +23,7 @@ public class TestSpimDataLoading
 			e.printStackTrace();
 		}
 
-		final SetupImgLoader< ? > setupImgLoader = spimData.getSequenceDescription().getImgLoader().getSetupImgLoader( 0 );
-
+		BdvFunctions.show( spimData );
 
 		// Notes
 		// Loader class autodiscovery happens here:

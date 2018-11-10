@@ -1,11 +1,10 @@
-package de.embl.cba.platynereis.labels;
+package de.embl.cba.platynereis.labels.luts;
 
 import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.SpimData;
-import mpicbg.spim.data.registration.ViewTransform;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
@@ -18,9 +17,6 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.volatiles.*;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.Views;
-
-import java.lang.invoke.WrongMethodTypeException;
-import java.util.List;
 
 public class ARGBConvertedIntTypeLabelsSource implements Source<VolatileARGBType> {
     private long setupId;

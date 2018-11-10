@@ -1,4 +1,4 @@
-package de.embl.cba.platynereis.labels;
+package de.embl.cba.platynereis.labels.loaders;
 
 import static bdv.img.hdf5.Util.getResolutionsPath;
 import static bdv.img.hdf5.Util.getSubdivisionsPath;
@@ -47,16 +47,16 @@ import net.imglib2.img.ImgFactory;
 import net.imglib2.img.NativeImg;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.array.ArrayImgs;
-import net.imglib2.img.basictypeaccess.array.ShortArray;
+import net.imglib2.img.basictypeaccess.array.LongArray;
 import net.imglib2.img.cell.Cell;
 import net.imglib2.img.cell.CellGrid;
 import net.imglib2.img.cell.CellImg;
 import net.imglib2.img.cell.CellImgFactory;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.integer.UnsignedLongType;
 import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.type.volatiles.VolatileUnsignedShortType;
+import net.imglib2.type.volatiles.VolatileUnsignedLongType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
 
@@ -197,7 +197,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 
 	/**
 	 * Clear the cache and close the hdf5 file. Images that were obtained from
-	 * this loader before {@link #close()} will stop working. Requesting images
+	 * this loaders before {@link #close()} will stop working. Requesting images
 	 * after {@link #close()} will cause the hdf5 file to be reopened (with a
 	 * new cache).
 	 */
@@ -365,7 +365,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 		return setupImgLoaders.get( setupId );
 	}
 
-	public class SetupImgLoader extends AbstractViewerSetupImgLoader< UnsignedShortType, VolatileUnsignedShortType > implements MultiResolutionSetupImgLoader< UnsignedShortType >
+	public class SetupImgLoader extends AbstractViewerSetupImgLoader< UnsignedLongType, VolatileUnsignedLongType > implements MultiResolutionSetupImgLoader< UnsignedLongType >
 	{
 		private final int setupId;
 
@@ -378,12 +378,12 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 
 		protected SetupImgLoader( final int setupId, final MipmapInfo mipmapInfo  )
 		{
-			super( new UnsignedShortType(), new VolatileUnsignedShortType() );
+			super( new UnsignedLongType(), new VolatileUnsignedLongType() );
 			this.setupId = setupId;
 			this.mipmapInfo = mipmapInfo;
 		}
 
-		private RandomAccessibleInterval< UnsignedShortType > loadImageCompletely( final int timepointId, final int level )
+		private RandomAccessibleInterval< UnsignedLongType > loadImageCompletely( final int timepointId, final int level )
 		{
 			open();
 
@@ -396,7 +396,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 				return getMissingDataImage( id, type );
 			}
 
-			Img< UnsignedShortType > img = null;
+			Img< UnsignedLongType > img = null;
 			final DimsAndExistence dimsAndExistence = getDimsAndExistence( new ViewLevelId( timepointId, setupId, level ) );
 			final long[] dimsLong = dimsAndExistence.exists() ? dimsAndExistence.getDimensions() : null;
 			final int n = dimsLong.length;
@@ -407,33 +407,33 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 				// use ArrayImg
 				for ( int d = 0; d < dimsInt.length; ++d )
 					dimsInt[ d ] = ( int ) dimsLong[ d ];
-				short[] data = null;
+				long[] data = null;
 				try
 				{
 					data = hdf5Access.readLongMDArrayBlockWithOffset( timepointId, setupId, level, dimsInt, min );
 				}
 				catch ( final InterruptedException e )
 				{}
-				img = ArrayImgs.unsignedShorts( data, dimsLong );
+				img = ArrayImgs.unsignedLongs( data, dimsLong );
 			}
 			else
 			{
 				final int[] cellDimensions = computeCellDimensions(
 						dimsLong,
 						mipmapInfo.getSubdivisions()[ level ] );
-				final CellImgFactory< UnsignedShortType > factory = new CellImgFactory<>( type, cellDimensions );
+				final CellImgFactory< UnsignedLongType > factory = new CellImgFactory<>( type, cellDimensions );
 				@SuppressWarnings( "unchecked" )
-				final CellImg< UnsignedShortType, ShortArray > cellImg = ( CellImg< UnsignedShortType, ShortArray > ) factory.create( dimsLong );
-				final Cursor< Cell< ShortArray > > cursor = cellImg.getCells().cursor();
+				final CellImg< UnsignedLongType, LongArray > cellImg = ( CellImg< UnsignedLongType, LongArray > ) factory.create( dimsLong );
+				final Cursor< Cell< LongArray > > cursor = cellImg.getCells().cursor();
 				while ( cursor.hasNext() )
 				{
-					final Cell< ShortArray > cell = cursor.next();
-					final short[] dataBlock = cell.getData().getCurrentStorageArray();
+					final Cell< LongArray > cell = cursor.next();
+					final long[] dataBlock = cell.getData().getCurrentStorageArray();
 					cell.dimensions( dimsInt );
 					cell.min( min );
 					try
 					{
-						hdf5Access.readShortMDArrayBlockWithOffset( timepointId, setupId, level, dimsInt, min, dataBlock );
+						hdf5Access.readLongMDArrayBlockWithOffset( timepointId, setupId, level, dimsInt, min, dataBlock );
 					}
 					catch ( final InterruptedException e )
 					{}
@@ -475,7 +475,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 		}
 
 		@Override
-		public RandomAccessibleInterval< UnsignedShortType > getImage( final int timepointId, final int level, final ImgLoaderHint... hints )
+		public RandomAccessibleInterval< UnsignedLongType > getImage( final int timepointId, final int level, final ImgLoaderHint... hints )
 		{
 			if ( Arrays.asList( hints ).contains( ImgLoaderHints.LOAD_COMPLETELY ) )
 				return loadImageCompletely( timepointId, level );
@@ -484,7 +484,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 		}
 
 		@Override
-		public RandomAccessibleInterval< VolatileUnsignedShortType > getVolatileImage( final int timepointId, final int level, final ImgLoaderHint... hints )
+		public RandomAccessibleInterval< VolatileUnsignedLongType > getVolatileImage( final int timepointId, final int level, final ImgLoaderHint... hints )
 		{
 			return prepareCachedImage( timepointId, level, LoadingStrategy.BUDGETED, volatileType );
 		}
@@ -492,7 +492,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 		/**
 		 * (Almost) create a {@link CellImg} backed by the cache.
 		 * The created image needs a {@link NativeImg#setLinkedType(net.imglib2.type.Type) linked type} before it can be used.
-		 * The type should be either {@link UnsignedShortType} and {@link VolatileUnsignedShortType}.
+		 * The type should be either {@link UnsignedLongType} and {@link VolatileUnsignedLongType}.
 		 */
 		protected < T extends NativeType< T > > RandomAccessibleInterval< T > prepareCachedImage( final int timepointId, final int level, final LoadingStrategy loadingStrategy, final T type )
 		{
@@ -538,27 +538,27 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 		@Override
 		public RandomAccessibleInterval< FloatType > getFloatImage( final int timepointId, final int level, final boolean normalize, final ImgLoaderHint... hints )
 		{
-			final RandomAccessibleInterval< UnsignedShortType > ushortImg = getImage( timepointId, level, hints );
+			final RandomAccessibleInterval< UnsignedLongType > ulongImg = getImage( timepointId, level, hints );
 
-			// copy unsigned short img to float img
+			// copy unsigned long img to float img
 
 			// create float img
 			final FloatType f = new FloatType();
 			final ImgFactory< FloatType > imgFactory;
-			if ( Intervals.numElements( ushortImg ) <= Integer.MAX_VALUE )
+			if ( Intervals.numElements( ulongImg ) <= Integer.MAX_VALUE )
 			{
 				imgFactory = new ArrayImgFactory<>( f );
 			}
 			else
 			{
-				final long[] dimsLong = new long[ ushortImg.numDimensions() ];
-				ushortImg.dimensions( dimsLong );
+				final long[] dimsLong = new long[ ulongImg.numDimensions() ];
+				ulongImg.dimensions( dimsLong );
 				final int[] cellDimensions = computeCellDimensions(
 						dimsLong,
 						mipmapInfo.getSubdivisions()[ level ] );
 				imgFactory = new CellImgFactory<>( f, cellDimensions );
 			}
-			final Img< FloatType > floatImg = imgFactory.create( ushortImg );
+			final Img< FloatType > floatImg = imgFactory.create( ulongImg );
 
 			// set up executor service
 			final int numProcessors = Runtime.getRuntime().availableProcessors();
@@ -578,14 +578,14 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 				// the last thread may has to run longer if the number of pixels cannot be divided by the number of threads
 				final long loopSize = ( portionID == numPortions - 1 ) ? threadChunkSize + threadChunkMod : threadChunkSize;
 
-				if ( Views.iterable( ushortImg ).iterationOrder().equals( floatImg.iterationOrder() ) )
+				if ( Views.iterable( ulongImg ).iterationOrder().equals( floatImg.iterationOrder() ) )
 				{
 					tasks.add( new Callable< Void >()
 					{
 						@Override
 						public Void call() throws Exception
 						{
-							final Cursor< UnsignedShortType > in = Views.iterable( ushortImg ).cursor();
+							final Cursor< UnsignedLongType > in = Views.iterable( ulongImg ).cursor();
 							final Cursor< FloatType > out = floatImg.cursor();
 
 							in.jumpFwd( startPosition );
@@ -605,14 +605,14 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 						@Override
 						public Void call() throws Exception
 						{
-							final Cursor< UnsignedShortType > in = Views.iterable( ushortImg ).localizingCursor();
+							final Cursor< UnsignedLongType > in = Views.iterable( ulongImg ).localizingCursor();
 							final RandomAccess< FloatType > out = floatImg.randomAccess();
 
 							in.jumpFwd( startPosition );
 
 							for ( long j = 0; j < loopSize; ++j )
 							{
-								final UnsignedShortType vin = in.next();
+								final UnsignedLongType vin = in.next();
 								out.setPosition( in );
 								out.get().set( vin.getRealFloat() );
 							}

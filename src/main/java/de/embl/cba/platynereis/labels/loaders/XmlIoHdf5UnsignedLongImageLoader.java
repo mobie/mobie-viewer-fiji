@@ -1,4 +1,4 @@
-package de.embl.cba.platynereis.labels;
+package de.embl.cba.platynereis.labels.loaders;
 
 import static mpicbg.spim.data.XmlHelpers.loadPath;
 import static mpicbg.spim.data.XmlKeys.IMGLOADER_FORMAT_ATTRIBUTE_NAME;

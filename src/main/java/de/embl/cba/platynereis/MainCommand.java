@@ -5,7 +5,7 @@ import bdv.spimdata.SpimDataMinimal;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import de.embl.cba.platynereis.labels.ARGBConvertedIntTypeLabelsSource;
+import de.embl.cba.platynereis.labels.luts.ARGBConvertedIntTypeLabelsSource;
 import de.embl.cba.platynereis.ui.BdvSourcesPanel;
 import de.embl.cba.platynereis.ui.MainFrame;
 import ij.IJ;

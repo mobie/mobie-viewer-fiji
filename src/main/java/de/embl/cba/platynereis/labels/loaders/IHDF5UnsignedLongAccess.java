@@ -1,8 +1,7 @@
-package de.embl.cba.platynereis.labels;
+package de.embl.cba.platynereis.labels.loaders;
 
 import bdv.img.hdf5.DimsAndExistence;
 import bdv.img.hdf5.ViewLevelId;
-import bdv.img.imaris.IHDF5Access;
 
 public interface IHDF5UnsignedLongAccess
 {

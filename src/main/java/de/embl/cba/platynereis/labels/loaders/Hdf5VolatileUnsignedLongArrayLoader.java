@@ -1,9 +1,7 @@
-package de.embl.cba.platynereis.labels;
+package de.embl.cba.platynereis.labels.loaders;
 
 import bdv.img.cache.CacheArrayLoader;
 import net.imglib2.img.basictypeaccess.volatiles.array.VolatileLongArray;
-import net.imglib2.img.basictypeaccess.volatiles.array.VolatileShortArray;
-import net.imglib2.type.volatiles.VolatileUnsignedLongType;
 
 public class Hdf5VolatileUnsignedLongArrayLoader implements CacheArrayLoader< VolatileLongArray >
 {
