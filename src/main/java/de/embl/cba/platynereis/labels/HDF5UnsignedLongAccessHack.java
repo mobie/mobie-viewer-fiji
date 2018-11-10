@@ -24,7 +24,7 @@ import bdv.img.hdf5.Util;
 import bdv.img.hdf5.ViewLevelId;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
 
-public class HDF5LongAccessHack implements IHDF5LongAccess
+public class HDF5UnsignedLongAccessHack implements IHDF5UnsignedLongAccess
 {
 
 	private final IHDF5Reader hdf5Reader;
@@ -93,7 +93,7 @@ public class HDF5LongAccessHack implements IHDF5LongAccess
 
 	private final OpenDataSetCache openDataSetCache;
 
-	public HDF5LongAccessHack( final IHDF5Reader hdf5Reader ) throws ClassNotFoundException, SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException
+	public HDF5UnsignedLongAccessHack( final IHDF5Reader hdf5Reader ) throws ClassNotFoundException, SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException
 	{
 		this.hdf5Reader = hdf5Reader;
 
@@ -188,7 +188,7 @@ public class HDF5LongAccessHack implements IHDF5LongAccess
 		H5Dread( dataset.dataSetId, H5T_NATIVE_FLOAT, memorySpaceId, dataset.fileSpaceId, numericConversionXferPropertyListID, dataBlock );
 		H5Sclose( memorySpaceId );
 
-		HDF5LongAccessHack.unsignedLong( dataBlock );
+		HDF5UnsignedLongAccessHack.unsignedLong( dataBlock );
 
 		return dataBlock;
 	}

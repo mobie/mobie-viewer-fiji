@@ -74,13 +74,13 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 	 */
 	protected IHDF5Reader existingHdf5Reader;
 
-	protected IHDF5LongAccess hdf5Access;
+	protected IHDF5UnsignedLongAccess hdf5Access;
 
 	protected VolatileGlobalCellCache cache;
 
 	protected FetcherThreads fetchers;
 
-	protected Hdf5VolatileLongArrayLoader longLoader;
+	protected Hdf5VolatileUnsignedLongArrayLoader longLoader;
 
 	/**
 	 * Maps setup id to {@link SetupImgLoader}.
@@ -174,7 +174,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 
 				try
 				{
-					hdf5Access = new HDF5LongAccessHack( hdf5Reader );
+					hdf5Access = new HDF5UnsignedLongAccessHack( hdf5Reader );
 				}
 				catch ( final Exception e )
 				{
@@ -185,7 +185,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 				}
 
 
-				longLoader = new Hdf5VolatileLongArrayLoader( hdf5Access );
+				longLoader = new Hdf5VolatileUnsignedLongArrayLoader( hdf5Access );
 
 
 				final BlockingFetchQueues< Callable< ? > > queue = new BlockingFetchQueues<>( maxNumLevels );
@@ -269,7 +269,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 		return cache;
 	}
 
-	public Hdf5VolatileLongArrayLoader getLongArrayLoader()
+	public Hdf5VolatileUnsignedLongArrayLoader getLongArrayLoader()
 	{
 		open();
 		return longLoader;
