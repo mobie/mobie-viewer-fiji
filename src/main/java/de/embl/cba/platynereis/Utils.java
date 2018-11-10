@@ -8,6 +8,7 @@ import ij.ImagePlus;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
+import mpicbg.spim.data.sequence.SetupImgLoader;
 import net.imglib2.*;
 import net.imglib2.Cursor;
 import net.imglib2.algorithm.neighborhood.HyperSphereShape;
@@ -233,8 +234,6 @@ public class Utils
 		{
 			SpimData spimData = new XmlIoSpimData().load( file.toString() );
 
-			spimData.getSequenceDescription().getImgLoader().getSetupImgLoader( 0 ).getImage( 0 );
-
 			return spimData;
 		}
 		catch ( SpimDataException e )
@@ -302,28 +301,16 @@ public class Utils
 		double[] currentNormalVector = getCurrentNormalVector( currentViewerTransform.copy() );
 		Utils.log("");
 		logVector( "Current normal vector", currentNormalVector );
-//
-//		double[] currentRotation = new double[ 4 ];
-//		double[] currentRotationInv = new double[ 4 ];
-//		//double[] targetRotation = new double[ 4 ];
-//		double[] targetRotationInv = new double[ 4 ];
-//		double[] rotationDiff = new double[ 4 ];
-//		Affine3DHelpers.extractRotation( currentViewerTransform, currentRotation );
-//		logVector( "Current rotation quaternion", currentRotation );
-//		LinAlgHelpers.quaternionInvert( currentRotation, currentRotationInv );
-//		LinAlgHelpers.quaternionInvert( targetRotation, targetRotationInv );
-//		LinAlgHelpers.quaternionMultiply( currentRotationInv, targetRotationInv, rotationDiff );
-//		if ( rotationDiff[ 0 ] < 0 )
-//			LinAlgHelpers.scale( rotationDiff, -1, rotationDiff );
 
 		LinAlgHelpers.normalize( targetNormalVector ); // just to be sure.
 
+		// determine rotation axis
 		double[] rotationAxis = new double[ 3 ];
 		LinAlgHelpers.cross( currentNormalVector, targetNormalVector, rotationAxis );
 		if ( LinAlgHelpers.length( rotationAxis ) > 0 ) LinAlgHelpers.normalize( rotationAxis );
 		logVector( "Rotation axis (data CS)", rotationAxis );
 
-		// The rotation axis is in the coordinate system of the original data set, maybe it has to be transformed?
+		// The rotation axis is in the coordinate system of the original data set => transform to viewer coordinate system
 		double[] qCurrentRotation = new double[ 4 ];
 		Affine3DHelpers.extractRotation( currentViewerTransform, qCurrentRotation );
 		final AffineTransform3D currentRotation = quaternionToAffineTransform3D( qCurrentRotation );
@@ -332,28 +319,23 @@ public class Utils
 		currentRotation.apply( rotationAxis, rotationAxisInViewerSystem );
 		logVector( "Rotation axis (viewer CS)", rotationAxisInViewerSystem );
 
+		// determine rotation angle
 		double angle = - Math.acos( LinAlgHelpers.dot( currentNormalVector, targetNormalVector ) );
 		Utils.log( "Angle to target normal vector: " + 180.0 / Math.PI * angle );
 
+		// construct rotation of angle around axis
 		double[] rotationQuaternion = new double[ 4 ];
 		LinAlgHelpers.quaternionFromAngleAxis( rotationAxisInViewerSystem, angle, rotationQuaternion );
-
 		final AffineTransform3D rotation = quaternionToAffineTransform3D( rotationQuaternion );
 
+		// apply transformation (rotating around current viewer centre position)
 		final AffineTransform3D translateCenterToOrigin = new AffineTransform3D();
 		translateCenterToOrigin.translate( DoubleStream.of( Utils.getBdvWindowCenter( bdv )).map( x -> -x ).toArray() );
 
 		final AffineTransform3D translateCenterBack = new AffineTransform3D();
 		translateCenterBack.translate( Utils.getBdvWindowCenter( bdv ) );
-		
-		ArrayList< AffineTransform3D > viewerTransforms = new ArrayList<>(  );
 
-//		viewerTransforms.add( currentViewerTransform.copy()
-//				.preConcatenate( translateCenterToOrigin ) );
-//
-//		viewerTransforms.add( currentViewerTransform.copy()
-//				.preConcatenate( translateCenterToOrigin )
-//				.preConcatenate( rotation )	);
+		ArrayList< AffineTransform3D > viewerTransforms = new ArrayList<>(  );
 
 		viewerTransforms.add( currentViewerTransform.copy()
 				.preConcatenate( translateCenterToOrigin )
