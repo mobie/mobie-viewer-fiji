@@ -9,7 +9,7 @@ import net.imglib2.type.volatiles.VolatileARGBType;
 
 import java.io.File;
 
-public class TestSpimDataLoading
+public class TestSpimDataUsignedLongLabelsLoading
 {
 
 	public static void main( String[] args )
