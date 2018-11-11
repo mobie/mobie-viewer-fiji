@@ -51,44 +51,52 @@ public class VolatileIntTypeLabelsARGBConverter implements Converter< VolatileIn
 	@Override
 	public void convert( final VolatileIntType input, final VolatileARGBType output )
 	{
-
-        double x = input.getRealDouble();
-		long lx = (long) x;
-
-        if(x != 0)
+		if ( input.isValid() )
 		{
-			if ( lut.containsKey( lx ) )
+			double x = input.getRealDouble();
+			long lx = ( long ) x;
+
+			if ( x != 0 )
 			{
-				output.setValid( true );
-				output.set( lut.get( lx ) );
+				if ( lut.containsKey( lx ) )
+				{
+					output.setValid( true );
+					output.set( lut.get( lx ) );
+				}
+				else
+				{
+					x = ( x * seed ) * goldenRatio;
+					x = x - ( long ) Math.floor( x );
+					x *= 6.0;
+					final int k = ( int ) x;
+					final int l = k + 1;
+					final double u = x - k;
+					final double v = 1.0 - u;
+					final int red = interpolate( rs, k, l, u, v );
+					final int green = interpolate( gs, k, l, u, v );
+					final int blue = interpolate( bs, k, l, u, v );
+					int argb = calculateARGB( red, green, blue, alpha );
+					final double alpha = ARGBType.alpha( argb );
+					final int aInt = Math.min( 255, ( int ) ( alpha ) );
+					final int rInt = Math.min( 255, ARGBType.red( argb ) );
+					final int gInt = Math.min( 255, ARGBType.green( argb ) );
+					final int bInt = Math.min( 255, ARGBType.blue( argb ) );
+					final int color = ( ( ( ( ( aInt << 8 ) | rInt ) << 8 ) | gInt ) << 8 ) | bInt;
+
+					output.set( color );
+					output.setValid( true );
+
+					lut.put( lx, color );
+				}
 			}
 			else
 			{
-				x = ( x * seed ) * goldenRatio;
-				x = x - ( long ) Math.floor( x );
-				x *= 6.0;
-				final int k = ( int ) x;
-				final int l = k + 1;
-				final double u = x - k;
-				final double v = 1.0 - u;
-				final int red = interpolate( rs, k, l, u, v );
-				final int green = interpolate( gs, k, l, u, v );
-				final int blue = interpolate( bs, k, l, u, v );
-				int argb = calculateARGB( red, green, blue, alpha );
-				final double alpha = ARGBType.alpha( argb );
-				final int aInt = Math.min( 255, ( int ) ( alpha ) );
-				final int rInt = Math.min( 255, ARGBType.red( argb ) );
-				final int gInt = Math.min( 255, ARGBType.green( argb ) );
-				final int bInt = Math.min( 255, ARGBType.blue( argb ) );
-				output.setValid( true );
-				final int color = ( ( ( ( ( aInt << 8 ) | rInt ) << 8 ) | gInt ) << 8 ) | bInt;
-				output.set( color );
-				lut.put( lx, color );
+				output.set( 0 );
 			}
-        }
-        else
+		}
+		else
 		{
-            output.set(0);
-        }
+			output.setValid( false );
+		}
 	}
 }
