@@ -43,19 +43,20 @@ public class ARGBConvertedIntTypeLabelsSource implements Source<VolatileARGBType
         this.setupImgLoader = imgLoader.getSetupImgLoader( setupId );
         this.mipmapTransforms = this.setupImgLoader.getMipmapTransforms();
 
-        try
-        {
-            AbstractVolatileNativeRealType type = (AbstractVolatileNativeRealType) setupImgLoader.getVolatileImageType();
-            if (! ( type instanceof VolatileUnsignedShortType
-                    || type instanceof VolatileUnsignedByteType
-                    || type instanceof VolatileLongType )) {
-                throw new Exception("Data type not matching.");
-            }
-        }
-        catch ( Exception e)
-        {
-            e.printStackTrace();
-        }
+//        try
+//        {
+//            AbstractVolatileNativeRealType type = (AbstractVolatileNativeRealType) setupImgLoader.getVolatileImageType();
+//            if (! ( type instanceof VolatileUnsignedByteType
+//					|| type instanceof VolatileUnsignedShortType
+//                    || type instanceof VolatileUnsignedLongType )) {
+//                throw new Exception("Data type not matching.");
+//            }
+//        }
+//        catch ( Exception e)
+//        {
+//            e.printStackTrace();
+//        }
+
     }
 
     @Override
