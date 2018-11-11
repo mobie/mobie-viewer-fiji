@@ -1,5 +1,6 @@
 package de.embl.cba.platynereis.labels.luts;
 
+import bdv.AbstractViewerSetupImgLoader;
 import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
 import bdv.viewer.Interpolation;
@@ -14,23 +15,25 @@ import net.imglib2.interpolation.InterpolatorFactory;
 import net.imglib2.interpolation.randomaccess.ClampingNLinearInterpolatorFactory;
 import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.volatiles.*;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.Views;
 
-public class ARGBConvertedIntTypeLabelsSource implements Source<VolatileARGBType> {
+public class ARGBConvertedIntTypeLabelsSource implements Source< VolatileARGBType > {
     private long setupId;
     private SpimData spimData;
-    private ViewerSetupImgLoader<?, ?> setupImgLoader;
+    private AbstractViewerSetupImgLoader< IntType, VolatileIntType > setupImgLoader;
 
-    final private InterpolatorFactory<VolatileARGBType, RandomAccessible<VolatileARGBType>>[] interpolatorFactories;
+    final private InterpolatorFactory< VolatileARGBType, RandomAccessible< VolatileARGBType > >[] interpolatorFactories;
     private AffineTransform3D viewRegistration;
     private AffineTransform3D[] mipmapTransforms;
+    private VolatileIntTypeLabelsARGBConverter volatileIntTypeLabelsARGBConverter;
 
     {
         interpolatorFactories = new InterpolatorFactory[]{
-                new NearestNeighborInterpolatorFactory<VolatileARGBType>(),
-                new ClampingNLinearInterpolatorFactory<VolatileARGBType>()
+                new NearestNeighborInterpolatorFactory< VolatileARGBType >(),
+                new ClampingNLinearInterpolatorFactory< VolatileARGBType >()
         };
     }
 
@@ -40,36 +43,41 @@ public class ARGBConvertedIntTypeLabelsSource implements Source<VolatileARGBType
         this.spimData = spimdata;
         this.viewRegistration = spimData.getViewRegistrations().getViewRegistration( 0, 0 ).getModel();
         ViewerImgLoader imgLoader = ( ViewerImgLoader ) this.spimData.getSequenceDescription().getImgLoader();
-        this.setupImgLoader = imgLoader.getSetupImgLoader( setupId );
+        this.setupImgLoader = ( AbstractViewerSetupImgLoader ) imgLoader.getSetupImgLoader( setupId );
         this.mipmapTransforms = this.setupImgLoader.getMipmapTransforms();
 
-//        try
-//        {
-//            AbstractVolatileNativeRealType type = (AbstractVolatileNativeRealType) setupImgLoader.getVolatileImageType();
-//            if (! ( type instanceof VolatileUnsignedByteType
-//					|| type instanceof VolatileUnsignedShortType
-//                    || type instanceof VolatileUnsignedLongType )) {
-//                throw new Exception("Data type not matching.");
-//            }
-//        }
-//        catch ( Exception e)
-//        {
-//            e.printStackTrace();
-//        }
+        volatileIntTypeLabelsARGBConverter = new VolatileIntTypeLabelsARGBConverter();
+
+        try
+        {
+            AbstractVolatileNativeRealType type = setupImgLoader.getVolatileImageType();
+            if (! ( type instanceof VolatileUnsignedByteType
+					|| type instanceof VolatileUnsignedShortType
+                    || type instanceof VolatileUnsignedLongType )) {
+                throw new Exception("Data type not supported for label LUTs: " + type.toString() );
+            }
+        }
+        catch ( Exception e)
+        {
+            e.printStackTrace();
+        }
 
     }
 
     @Override
-    public boolean isPresent(final int t) {
+    public boolean isPresent( final int t )
+    {
         boolean flag = t >= 0 && t < this.spimData.getSequenceDescription().getTimePoints().size();
         return flag;
     }
 
     @Override
-    public RandomAccessibleInterval<VolatileARGBType> getSource(final int t, final int mipMapLevel) {
-        RandomAccessibleInterval image = setupImgLoader.getImage(t, mipMapLevel);
-        RandomAccessibleInterval<VolatileARGBType> output = Converters.convert( image, new VolatileIntTypeLabelsARGBConverter(), new VolatileARGBType() );
-        return output;
+    public RandomAccessibleInterval< VolatileARGBType > getSource( final int t, final int mipMapLevel )
+    {
+        return Converters.convert(
+                        setupImgLoader.getVolatileImage( t, mipMapLevel ),
+                        volatileIntTypeLabelsARGBConverter,
+                        new VolatileARGBType() );
     }
 
     @Override
@@ -98,7 +106,7 @@ public class ARGBConvertedIntTypeLabelsSource implements Source<VolatileARGBType
 
     @Override
     public String getName() {
-        return setupId + "";
+        return "labels";
     }
 
     @Override

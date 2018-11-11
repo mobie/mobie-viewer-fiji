@@ -187,7 +187,6 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 
 				longLoader = new Hdf5VolatileUnsignedLongArrayLoader( hdf5Access );
 
-
 				final BlockingFetchQueues< Callable< ? > > queue = new BlockingFetchQueues<>( maxNumLevels );
 				fetchers = new FetcherThreads( queue, 1 );
 				cache = new VolatileGlobalCellCache( queue );
