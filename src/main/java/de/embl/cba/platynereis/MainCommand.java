@@ -2,14 +2,15 @@ package de.embl.cba.platynereis;
 
 import bdv.img.imaris.Imaris;
 import bdv.spimdata.SpimDataMinimal;
+import bdv.tools.brightness.ConverterSetup;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import de.embl.cba.platynereis.labels.luts.ARGBConvertedIntTypeLabelsSource;
+import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.labels.luts.*;
 import de.embl.cba.platynereis.ui.BdvSourcesPanel;
 import de.embl.cba.platynereis.ui.MainFrame;
 import ij.IJ;
-import ij.gui.GenericDialog;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewTransformAffine;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
@@ -28,6 +29,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+
+import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.showBrightnessDialog;
 
 @Plugin(type = Command.class, menuPath = "Plugins>Registration>EMBL>Platynereis", initializer = "init")
 public class MainCommand extends DynamicCommand implements Interactive
@@ -107,15 +110,22 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     public void setBrightness( String sourceName )
     {
-        GenericDialog gd = new GenericDialog( "LUT max value" );
-        gd.addNumericField( "LUT max value: ", dataSources.get( sourceName ).maxLutValue, 0 );
-        gd.showDialog();
-        if ( gd.wasCanceled() ) return;
 
-        int max = ( int ) gd.getNextNumber();
+        final int sourceId = BdvUtils.getSourceId( bdv, sourceName );
+        final ConverterSetup converterSetup = bdv.getBdvHandle().getSetupAssignments().getConverterSetups().get( sourceId );
 
-        dataSources.get( sourceName ).bdvSource.setDisplayRange( 0.0, max );
-        dataSources.get( sourceName ).maxLutValue = max;
+		showBrightnessDialog( sourceName, converterSetup );
+
+//		GenericDialog gd = new GenericDialog( "LUT max value" );
+//        gd.addNumericField( "LUT max value: ", dataSources.get( sourceName ).maxLutValue, 0 );
+//        gd.showDialog();
+//        if ( gd.wasCanceled() ) return;
+//
+//        int max = ( int ) gd.getNextNumber();
+//
+//        dataSources.get( sourceName ).bdvSource.setDisplayRange( 0.0, max );
+//        dataSources.get( sourceName ).maxLutValue = max;
+
     }
 
 
@@ -176,10 +186,16 @@ public class MainCommand extends DynamicCommand implements Interactive
             final String fileName = file.getName();
 
             if ( ! fileName.endsWith( Constants.BDV_XML_SUFFIX )
-                    && ! fileName.endsWith( Constants.IMARIS_SUFFIX ) ) continue;
+                    && ! fileName.endsWith( Constants.IMARIS_SUFFIX ) )
+            {
+                continue;
+            }
 
-            if ( ! fileName.contains( Constants.EM_FILE_ID )
-                    &&  ! fileName.contains( Constants.NEW_PROSPR ) ) continue;
+            if ( ! fileName.contains( Constants.EM_FILE_ID ) &&
+                    ! ( fileName.contains( Constants.NEW_PROSPR ) || fileName.contains( Constants.AVG_PROSPR ) ) )
+            {
+                continue;
+            }
 
             if ( fileName.contains( "AcTub" ) ) continue;
 
@@ -231,7 +247,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
                 if ( fileName.contains( Constants.LABELS_ID ) )
                 {
-                    final Source< VolatileARGBType > labelSource = new ARGBConvertedIntTypeLabelsSource( source.spimData, 0 );
+                    final Source< VolatileARGBType > labelSource = new ARGBConvertedUnsignedLongTypeLabelsSource( source.spimData, 0 );
                     source.labelSource = labelSource;
                     source.isLabelSource = true;
                     source.spimData = null;

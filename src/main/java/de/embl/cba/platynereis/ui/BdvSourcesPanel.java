@@ -1,6 +1,9 @@
 package de.embl.cba.platynereis.ui;
 
+import bdv.tools.brightness.ConverterSetup;
 import bdv.util.Bdv;
+import de.embl.cba.bdv.utils.BdvUserInterfaceUtils;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.*;
 
 import javax.swing.*;
@@ -11,6 +14,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.*;
+import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.addSourcesDisplaySettingsUI;
+import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.createColorButton;
 import static de.embl.cba.platynereis.Utils.asArgbType;
 
 public class BdvSourcesPanel extends JPanel implements ActionListener
@@ -81,14 +87,15 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
     {
         PlatynereisDataSource source = dataSources.get( name );
 
-        addSourceToPanel( source );
-
         addSourceToViewer( source );
+
+        addSourceToPanel( source );
 
     }
 
     private void addSourceToViewer( PlatynereisDataSource source )
     {
+
         if ( source.bdvSource == null || source.bdvSource.getBdvHandle() == null )
         {
             switch ( Constants.BDV_XML_SUFFIX ) // TODO: makes no sense...
@@ -110,6 +117,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
         if ( ! source.isLabelSource )
         {
+            source.color = getColor( source );
             source.bdvSource.setColor( asArgbType( source.color ) );
         }
 
@@ -121,6 +129,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
     {
         addSourceToPanel ( dataSources.get( name ) );
     }
+
 
     public void addSourceToPanel( PlatynereisDataSource dataSource )
     {
@@ -141,30 +150,26 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
             JLabel jLabel = new JLabel( dataSource.name );
             jLabel.setHorizontalAlignment( SwingConstants.CENTER );
 
-            JButton color = new JButton( "C" );
-            color.addActionListener( this );
-            color.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
-            color.setName( COLOR_ACTION + dataSource.name );
+            final JButton colorButton = createColorButton( panel, buttonDimensions, dataSource.bdvSource );
 
-            JButton brightness = new JButton( "B" );
-            brightness.addActionListener( this );
-            brightness.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
-            brightness.setName( BRIGHTNESS_ACTION + dataSource.name );
+            final JButton brightnessButton = createBrightnessButton( buttonDimensions, dataSource.name, dataSource.bdvSource  );
 
-            JButton toggle = new JButton( "T" );
-            toggle.addActionListener( this );
-            toggle.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
-            toggle.setName( TOGGLE_ACTION + dataSource.name );
+			final JButton toggleButton = createToggleButton( buttonDimensions, dataSource.bdvSource );
 
             JButton remove = new JButton( "X" );
-            remove.addActionListener( this );
-            remove.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
-            remove.setName( REMOVE_ACTION + dataSource.name );
+            remove.addActionListener( new ActionListener()
+            {
+                @Override
+                public void actionPerformed( ActionEvent e )
+                {
+                    removeSource( dataSource.name );
+                }
+            } );
 
             panel.add( jLabel );
-            panel.add( color );
-            panel.add( brightness );
-            panel.add( toggle );
+            panel.add( colorButton );
+            panel.add( brightnessButton );
+            panel.add( toggleButton );
             panel.add( remove );
 
             //Font font = Font.createFont(Font.TRUETYPE_FONT, new FileInputStream("font.ttf"));
@@ -223,25 +228,12 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
     public void actionPerformed( ActionEvent e )
     {
 
+        // TODO: do this with inline action listeners.
+
         JButton button = (JButton) e.getSource();
         String name = button.getName().trim();
 
-        if ( name.contains( COLOR_ACTION ))
-        {
-            String dataSourceName = name.replace( COLOR_ACTION, "" );
-            changeColorViaUI( dataSourceName );
-        }
-        else if ( name.contains( BRIGHTNESS_ACTION ) )
-        {
-            String dataSourceName = name.replace( BRIGHTNESS_ACTION, "" );
-            mainCommand.setBrightness( dataSourceName );
-        }
-        else if( name.contains( TOGGLE_ACTION ) )
-        {
-            String dataSourceName = name.replace( TOGGLE_ACTION, "" );
-            toggleVisibility( dataSourceName );
-        }
-        else if( name.contains( REMOVE_ACTION ) )
+        if( name.contains( REMOVE_ACTION ) )
         {
             String dataSourceName = name.replace( REMOVE_ACTION, "" );
             removeSource( dataSourceName );
