@@ -21,4 +21,5 @@ public class Constants
 	public static final String AVG_PROSPR = "-avg";
 
 	public static final String LABELS_ID = "-labels" ;
+	public static final String CELLULAR_MODELS = "cellular-models";
 }

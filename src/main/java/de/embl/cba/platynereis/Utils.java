@@ -3,6 +3,7 @@ package de.embl.cba.platynereis;
 import bdv.util.*;
 import bdv.viewer.animate.AbstractTransformAnimator;
 import bdv.viewer.animate.SimilarityTransformAnimator;
+import de.embl.cba.bdv.utils.transformhandlers.BehaviourTransformEventHandler3DGoogleMouse;
 import ij.IJ;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimData;
@@ -266,29 +267,36 @@ public class Utils
 	{
 		if ( source.isSpimDataMinimal )
 		{
-			// setName( labelSource.name, labelSource );
-			source.bdvSource = BdvFunctions.show( source.spimDataMinimal, BdvOptions.options().addTo( bdv ) ).get( 0 );
+			source.bdvSource = BdvFunctions.show( source.spimDataMinimal,
+					BdvOptions.options()
+							.addTo( bdv )
+							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() ))
+					.get( 0 );
+
 			source.bdvSource.setColor( asArgbType( source.color ) );
 			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
-			long nx = source.spimDataMinimal.getSequenceDescription().getImgLoader().getSetupImgLoader( 0 ).getImage( 0 ).dimension( 0 );
-			long ny = source.spimDataMinimal.getSequenceDescription().getImgLoader().getSetupImgLoader( 0 ).getImage( 0 ).dimension( 1 );
-			int wx = source.bdvSource.getBdvHandle().getViewerPanel().getWidth();
-			int wy = source.bdvSource.getBdvHandle().getViewerPanel().getHeight();
-			int a = 1;
 		}
 		else if ( source.spimData != null)
 		{
-			// setName( dataSourceName, labelSource );
-			source.bdvSource = BdvFunctions.show( source.spimData, BdvOptions.options().addTo( bdv ) ).get( 0 );
+			source.bdvSource = BdvFunctions.show( source.spimData,
+					BdvOptions.options()
+							.addTo( bdv )
+							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() ) )
+					.get( 0 );
+
 			source.bdvSource.setColor( asArgbType( source.color ) );
 			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
 		}
 		else if ( source.labelSource != null )
 		{
-			source.bdvSource = BdvFunctions.show( source.labelSource, BdvOptions.options().addTo( bdv ) );
-			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
+			source.bdvSource = BdvFunctions.show( source.labelSource,
+					BdvOptions.options()
+							.addTo( bdv )
+							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() ) );
 		}
 
+
+		BdvOptions.options().addTo( bdv ).transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() );
 		return source.bdvSource.getBdvHandle();
 
 	}

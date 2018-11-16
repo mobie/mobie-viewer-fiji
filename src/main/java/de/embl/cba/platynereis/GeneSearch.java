@@ -74,11 +74,19 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 	{
 
 		final Set< String > sources = dataSources.keySet();
+
 		Map< String, Double > localSums = new LinkedHashMap<>(  );
 
 		for ( String name : sources )
 		{
 			if ( name.contains( Constants.EM_FILE_ID ) ) continue;
+			if ( ! name.contains( Constants.NEW_PROSPR ) ) continue;
+
+			(new Thread(new Runnable(){
+				public void run(){
+					Utils.log( "Examining " + name );
+				}
+			})).start();
 
 			final PlatynereisDataSource source = dataSources.get( name );
 
@@ -99,13 +107,6 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 			localSums.put( name, localMaximum );
 
-
-			(new Thread(new Runnable(){
-				public void run(){
-					Utils.log( "Examining " + name );
-				}
-			})).start();
-
 		}
 
 		sortedGenes = Utils.sortByValue( localSums );
@@ -121,7 +122,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 		searchFinished = true;
 
 		bdvTextOverlay.setText( "" );
-		//bdvTextOverlay.removeFromBdv();
+		//bdvTextOverlay.removeFromBdv(); // TODO: throws error
 	}
 
 

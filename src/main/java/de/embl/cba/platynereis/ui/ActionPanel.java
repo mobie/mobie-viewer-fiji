@@ -58,8 +58,9 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
 
-		horizontalLayoutPanel.add( new JLabel( "[P] Print position" ) );
+		horizontalLayoutPanel.add( new JLabel( "[ P ] Select " ) );
 		horizontalLayoutPanel.add( new JLabel( " " ) );
+
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			printCoordinates();
 		}, "print pos", "P" );
@@ -72,7 +73,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		horizontalLayoutPanel.add( new JLabel( "[X] Search genes within radius: " ) );
+		horizontalLayoutPanel.add( new JLabel( "[ D ] Discover genes within radius: " ) );
 
 		setGeneSearchRadii();
 
@@ -99,7 +100,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 			})).start();
 
 
-		}, "search genes", "X" );
+		}, "search genes", "D" );
 
 		panel.add( horizontalLayoutPanel );
 
@@ -118,7 +119,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		geneSearch.run();
 
-		// TODO: this is overly complicated, put the thread logic into gene search itself
+		// TODO: this seems overly complicated, put the thread logic into gene search itself?!
 		while( ! geneSearch.isDone() )
 		{
 			wait100ms();
@@ -132,14 +133,13 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 			for ( int i = genes.size() - 1; i > genes.size() - 10; --i )
 			{
-				mainFrame.getBdvSourcesPanel().addSourceToPanel( genes.get( i ) );
+				mainFrame.getBdvSourcesPanel().addSourceToViewerAndPanel( genes.get( i ) );
 
-				if ( i == genes.size() - 1 )
-				{
-					mainFrame.getBdvSourcesPanel().toggleVisibility( genes.get( i ) );
-				}
+//				if ( i == genes.size() - 1 )
+//				{
+//					mainFrame.getBdvSourcesPanel().toggleVisibility( genes.get( i ) );
+//				}
 			}
-
 		}
 	}
 
@@ -248,7 +248,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				mainFrame.getBdvSourcesPanel().addSourceToPanelAndViewer( (String) dataSources.getSelectedItem() );
+				mainFrame.getBdvSourcesPanel().addSourceToViewerAndPanel( (String) dataSources.getSelectedItem() );
 			}
 		} );
 

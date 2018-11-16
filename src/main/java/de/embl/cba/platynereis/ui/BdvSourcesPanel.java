@@ -1,9 +1,10 @@
 package de.embl.cba.platynereis.ui;
 
-import bdv.tools.brightness.ConverterSetup;
 import bdv.util.Bdv;
-import de.embl.cba.bdv.utils.BdvUserInterfaceUtils;
-import de.embl.cba.bdv.utils.BdvUtils;
+import bdv.util.BdvStackSource;
+import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
+import de.embl.cba.bdv.utils.labels.luts.LabelsSource;
 import de.embl.cba.platynereis.*;
 
 import javax.swing.*;
@@ -47,9 +48,9 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         this.mainCommand = mainCommand;
         this.dataSources = mainCommand.dataSources;
         this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
-        this.setAlignmentX(Component.LEFT_ALIGNMENT);
+        this.setAlignmentX( Component.LEFT_ALIGNMENT );
         panels = new LinkedHashMap<>(  );
-        this.addSourceToPanelAndViewer( dataSources.get( mainCommand.getEmRawDataName() ).name );
+        this.addSourceToViewerAndPanel( dataSources.get( mainCommand.getEmRawDataName() ).name );
         initColors();
     }
 
@@ -83,14 +84,13 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         }
     }
 
-    public void addSourceToPanelAndViewer( String name )
+    public void addSourceToViewerAndPanel( String name )
     {
         PlatynereisDataSource source = dataSources.get( name );
 
         addSourceToViewer( source );
 
         addSourceToPanel( source );
-
     }
 
     private void addSourceToViewer( PlatynereisDataSource source )
@@ -125,11 +125,6 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         source.isActive = true;
     }
 
-    public void addSourceToPanel( String name )
-    {
-        addSourceToPanel ( dataSources.get( name ) );
-    }
-
 
     public void addSourceToPanel( PlatynereisDataSource dataSource )
     {
@@ -137,8 +132,6 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         if( ! panels.containsKey( dataSource.name ) )
         {
             dataSource.color = getColor( dataSource );
-
-            int[] buttonDimensions = new int[]{ 50, 30 };
 
             JPanel panel = new JPanel();
             panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
@@ -150,27 +143,18 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
             JLabel jLabel = new JLabel( dataSource.name );
             jLabel.setHorizontalAlignment( SwingConstants.CENTER );
 
+            int[] buttonDimensions = new int[]{ 50, 30 };
+
             final JButton colorButton = createColorButton( panel, buttonDimensions, dataSource.bdvSource );
-
             final JButton brightnessButton = createBrightnessButton( buttonDimensions, dataSource.name, dataSource.bdvSource  );
-
-			final JButton toggleButton = createToggleButton( buttonDimensions, dataSource.bdvSource );
-
-            JButton remove = new JButton( "X" );
-            remove.addActionListener( new ActionListener()
-            {
-                @Override
-                public void actionPerformed( ActionEvent e )
-                {
-                    removeSource( dataSource.name );
-                }
-            } );
+            final JButton toggleButton = createToggleButton( buttonDimensions, dataSource.bdvSource );
+			final JButton removeButton = createRemoveButton( dataSource, buttonDimensions );
 
             panel.add( jLabel );
             panel.add( colorButton );
             panel.add( brightnessButton );
             panel.add( toggleButton );
-            panel.add( remove );
+            panel.add( removeButton );
 
             //Font font = Font.createFont(Font.TRUETYPE_FONT, new FileInputStream("font.ttf"));
             //button.setFont( new Font.createFont( Font.TRUETYPE_FONT ) );
@@ -182,6 +166,21 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
         }
 
+    }
+
+    private JButton createRemoveButton( PlatynereisDataSource dataSource, int[] buttonDimensions )
+    {
+        JButton removeButton = new JButton( "X" );
+        removeButton.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
+        removeButton.addActionListener( new ActionListener()
+		{
+			@Override
+			public void actionPerformed( ActionEvent e )
+			{
+				removeSource( dataSource.name );
+			}
+		} );
+        return removeButton;
     }
 
 

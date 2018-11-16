@@ -91,11 +91,10 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     }
 
-
     public void removeDataSource( String dataSourceName )
     {
-        if ( dataSources.get( dataSourceName ).bdvSource != null
-				&& dataSources.get( dataSourceName ).bdvSource.getBdvHandle() != null )
+        // TODO: extra class for dataSources ?
+        if ( dataSources.get( dataSourceName ).bdvSource != null && dataSources.get( dataSourceName ).bdvSource.getBdvHandle() != null )
         {
             dataSources.get( dataSourceName ).bdvSource.removeFromBdv();
         }
@@ -103,6 +102,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     public void setDataSourceColor( String sourceName, Color color )
     {
+        // TODO: extra class for dataSources ?
         dataSources.get( sourceName ).bdvSource.setColor( Utils.asArgbType( color ) );
         dataSources.get( sourceName ).color = color;
     }
@@ -111,7 +111,7 @@ public class MainCommand extends DynamicCommand implements Interactive
     public void setBrightness( String sourceName )
     {
 
-        final int sourceId = BdvUtils.getSourceId( bdv, sourceName );
+        final int sourceId = BdvUtils.getSourceIndex( bdv, sourceName );
         final ConverterSetup converterSetup = bdv.getBdvHandle().getSetupAssignments().getConverterSetups().get( sourceId );
 
 		showBrightnessDialog( sourceName, converterSetup );
@@ -141,7 +141,7 @@ public class MainCommand extends DynamicCommand implements Interactive
     {
         bdv = Utils.showSourceInBdv( dataSources.get( emRawDataName ), bdv );
 
-        bdv.getBdvHandle().getViewerPanel().setInterpolation( Interpolation.NLINEAR );
+        // bdv.getBdvHandle().getViewerPanel().setInterpolation( Interpolation.NLINEAR );
 
     }
 
@@ -185,17 +185,15 @@ public class MainCommand extends DynamicCommand implements Interactive
         {
             final String fileName = file.getName();
 
-            if ( ! fileName.endsWith( Constants.BDV_XML_SUFFIX )
-                    && ! fileName.endsWith( Constants.IMARIS_SUFFIX ) )
+            if ( ! fileName.endsWith( Constants.BDV_XML_SUFFIX ) && ! fileName.endsWith( Constants.IMARIS_SUFFIX ) )
             {
                 continue;
             }
 
-            if ( ! fileName.contains( Constants.EM_FILE_ID ) &&
-                    ! ( fileName.contains( Constants.NEW_PROSPR ) || fileName.contains( Constants.AVG_PROSPR ) ) )
-            {
-                continue;
-            }
+//            if ( ! fileName.contains( Constants.EM_FILE_ID ) && ! ( fileName.contains( Constants.NEW_PROSPR ) || fileName.contains( Constants.AVG_PROSPR ) ) )
+//            {
+//                continue;
+//            }
 
             if ( fileName.contains( "AcTub" ) ) continue;
 
@@ -245,20 +243,32 @@ public class MainCommand extends DynamicCommand implements Interactive
                     source.color = Constants.DEFAULT_EM_SEGMENTATION_COLOR;
                 }
 
-                if ( fileName.contains( Constants.LABELS_ID ) )
+                if ( fileName.contains( Constants.LABELS_ID ) ) // labels
                 {
-                    final Source< VolatileARGBType > labelSource = new ARGBConvertedUnsignedLongTypeLabelsSource( source.spimData, 0 );
-                    source.labelSource = labelSource;
-                    source.isLabelSource = true;
-                    source.spimData = null;
-                    source.maxLutValue = 255;
-                }
+                    Source< VolatileARGBType > labelSource = null;
 
+                    if ( fileName.contains( Constants.CELLULAR_MODELS ))
+                    {
+                        source.labelSource = new ARGBConvertedUnsignedShortTypeLabelsSource( source.spimData, 0 );
+                        source.isLabelSource = true;
+                        source.spimData = null;
+                        source.maxLutValue = 255;
+                    }
+                    else
+                    {
+                        source.labelSource = new ARGBConvertedUnsignedLongTypeLabelsSource( source.spimData, 0 );
+                        source.isLabelSource = true;
+                        source.spimData = null;
+                        source.maxLutValue = 255;
+                    }
+
+                }
             }
             else // gene
             {
                 source.color = Constants.DEFAULT_GENE_COLOR;
             }
+
         }
 
     }
@@ -282,7 +292,12 @@ public class MainCommand extends DynamicCommand implements Interactive
 
 //                    if ( labelSource.file.getName().contains( Constants.NEW_PROSPR ) )
 //                    {
-//                        ProSPrRegistration.setEmSimilarityTransform( labelSource );
+                    if ( ! source.file.getName().contains( Constants.NEW_PROSPR )
+                            && ! source.file.getName().contains( Constants.AVG_PROSPR ) )
+                    {
+                        ProSPrRegistration.setInverseEmSimilarityTransform( source );
+                    }
+
 //                    }
                 }
             }
@@ -303,10 +318,10 @@ public class MainCommand extends DynamicCommand implements Interactive
 			dataSourceName = file.getName().replaceAll( Constants.IMARIS_SUFFIX, "" );
 		}
 
-		if ( file.getName().contains( Constants.NEW_PROSPR ) )
-        {
-            dataSourceName = dataSourceName.replace(  Constants.NEW_PROSPR, "" );
-        }
+//		if ( file.getName().contains( Constants.NEW_PROSPR ) )
+//        {
+//            dataSourceName = dataSourceName.replace(  Constants.NEW_PROSPR, "" );
+//        }
 
         return dataSourceName;
     }

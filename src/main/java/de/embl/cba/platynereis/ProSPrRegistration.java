@@ -122,6 +122,38 @@ public class ProSPrRegistration
 
         viewRegistrationAffineTransform.preConcatenate( getTransformationFromEmToProsprInMicrometerUnits() );
 
+    }
+
+
+    public static void setInverseEmSimilarityTransform( PlatynereisDataSource source )
+    {
+
+        ViewRegistration viewRegistration;
+
+        // the ViewRegistration in the file contains the scaling relative to 1 micrometer
+        if ( source.spimData != null )
+        {
+            viewRegistration = source.spimData.getViewRegistrations().getViewRegistrationsOrdered( ).get( 0 );
+        }
+        else
+        {
+            viewRegistration = source.spimDataMinimal.getViewRegistrations().getViewRegistrationsOrdered( ).get( 0 );
+        }
+
+
+        final AffineTransform3D viewRegistrationAffineTransform = viewRegistration.getModel();
+
+        /*
+        The conventional meaning for concatenating transformations is the following:
+        Let ba = b.concatenate(a).
+        Applying ba to x is equivalent to first applying a to x and then applying b to the result.
+
+        Let ab = b.preConcatenate(a).
+        Applying ab to x is equivalent to first applying b to x and then applying a to the result.
+
+         */
+
+        viewRegistrationAffineTransform.preConcatenate( getTransformationFromEmToProsprInMicrometerUnits().inverse() );
 
     }
 
