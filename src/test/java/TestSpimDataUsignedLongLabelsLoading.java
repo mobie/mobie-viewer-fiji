@@ -13,6 +13,9 @@ import loci.poi.hssf.record.LabelSSTRecord;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
+import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.volatiles.VolatileARGBType;
 
 import java.io.File;
@@ -54,6 +57,15 @@ public class TestSpimDataUsignedLongLabelsLoading
 //				IJ.wait( 5000 );
 //				((LabelsSource)wrappedSource).incrementSeed();
 //				bdvStackSource.getBdvHandle().getViewerPanel().requestRepaint();
+
+				final RandomAccessibleInterval< IntegerType > indexImg = ( ( LabelsSource ) wrappedSource ).getIndexImg( 0, 0 );
+
+				final RandomAccess< IntegerType > access = indexImg.randomAccess();
+
+				final long integerLong = access.get().getIntegerLong();
+
+				int a = 1;
+
 			}
 		}
 		else

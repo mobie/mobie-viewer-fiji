@@ -4,7 +4,6 @@ import bdv.img.imaris.Imaris;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.util.*;
-import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.labels.luts.*;
@@ -94,16 +93,16 @@ public class MainCommand extends DynamicCommand implements Interactive
     public void removeDataSource( String dataSourceName )
     {
         // TODO: extra class for dataSources ?
-        if ( dataSources.get( dataSourceName ).bdvSource != null && dataSources.get( dataSourceName ).bdvSource.getBdvHandle() != null )
+        if ( dataSources.get( dataSourceName ).bdvStackSource != null && dataSources.get( dataSourceName ).bdvStackSource.getBdvHandle() != null )
         {
-            dataSources.get( dataSourceName ).bdvSource.removeFromBdv();
+            dataSources.get( dataSourceName ).bdvStackSource.removeFromBdv();
         }
     }
 
     public void setDataSourceColor( String sourceName, Color color )
     {
         // TODO: extra class for dataSources ?
-        dataSources.get( sourceName ).bdvSource.setColor( Utils.asArgbType( color ) );
+        dataSources.get( sourceName ).bdvStackSource.setColor( Utils.asArgbType( color ) );
         dataSources.get( sourceName ).color = color;
     }
 
@@ -123,7 +122,7 @@ public class MainCommand extends DynamicCommand implements Interactive
 //
 //        int max = ( int ) gd.getNextNumber();
 //
-//        dataSources.get( sourceName ).bdvSource.setDisplayRange( 0.0, max );
+//        dataSources.get( sourceName ).bdvStackSource.setDisplayRange( 0.0, max );
 //        dataSources.get( sourceName ).maxLutValue = max;
 
     }

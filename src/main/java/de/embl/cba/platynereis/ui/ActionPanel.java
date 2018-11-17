@@ -3,11 +3,16 @@ package de.embl.cba.platynereis.ui;
 import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
 import bdv.util.Bdv;
+import bdv.util.BdvSource;
+import bdv.util.BdvStackSource;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.*;
 import ij.IJ;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Util;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -43,7 +48,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		addSourceSelectionUI( this );
 		addPositionZoomUI( this  );
-		addPositionPrintUI( this );
+		addSelectionUI( this );
 		addLocalGeneSearchUI( this);
 		addLeveling( this );
 
@@ -52,11 +57,12 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 	}
 
-	public void addPositionPrintUI( JPanel panel )
+	public void addSelectionUI( JPanel panel )
 	{
 		JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
+
 
 		horizontalLayoutPanel.add( new JLabel( "[ P ] Select " ) );
 		horizontalLayoutPanel.add( new JLabel( " " ) );
@@ -219,6 +225,30 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		IJ.log( "coordinates in raw em data set [micrometer] : " + Util.printCoordinates( micrometerMousePosition ) );
 
+	}
+
+
+	public void selectObject()
+	{
+		final RealPoint micrometerMousePosition = getMicrometerMousePosition();
+
+		final ArrayList< String > currentSourceNames = mainFrame.getBdvSourcesPanel().getCurrentSourceNames();
+
+		for ( String name : currentSourceNames )
+		{
+			final BdvStackSource bdvStackSource = mainCommand.dataSources.get( name ).bdvStackSource;
+
+			if ( bdvStackSource == null || ! BdvUtils.isLabelsSource( bdvStackSource ) )
+			{
+				continue;
+			}
+
+			final RandomAccessibleInterval< IntegerType > indexImg = BdvUtils.getIndexImg( bdvStackSource, 0, 0 );
+
+			final AffineTransform3D sourceTransform = BdvUtils.getSourceTransform( bdvStackSource, 0, 0, 0 );
+
+			// sourceTransform.apply(  );
+		}
 	}
 
 	private RealPoint getMicrometerMousePosition()

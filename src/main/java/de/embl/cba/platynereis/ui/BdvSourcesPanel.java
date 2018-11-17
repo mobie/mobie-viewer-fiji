@@ -1,10 +1,6 @@
 package de.embl.cba.platynereis.ui;
 
 import bdv.util.Bdv;
-import bdv.util.BdvStackSource;
-import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
-import de.embl.cba.bdv.utils.labels.luts.LabelsSource;
 import de.embl.cba.platynereis.*;
 
 import javax.swing.*;
@@ -96,7 +92,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
     private void addSourceToViewer( PlatynereisDataSource source )
     {
 
-        if ( source.bdvSource == null || source.bdvSource.getBdvHandle() == null )
+        if ( source.bdvStackSource == null || source.bdvStackSource.getBdvHandle() == null )
         {
             switch ( Constants.BDV_XML_SUFFIX ) // TODO: makes no sense...
             {
@@ -118,10 +114,10 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         if ( ! source.isLabelSource )
         {
             source.color = getColor( source );
-            source.bdvSource.setColor( asArgbType( source.color ) );
+            source.bdvStackSource.setColor( asArgbType( source.color ) );
         }
 
-        source.bdvSource.setActive( true );
+        source.bdvStackSource.setActive( true );
         source.isActive = true;
     }
 
@@ -145,9 +141,9 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
             int[] buttonDimensions = new int[]{ 50, 30 };
 
-            final JButton colorButton = createColorButton( panel, buttonDimensions, dataSource.bdvSource );
-            final JButton brightnessButton = createBrightnessButton( buttonDimensions, dataSource.name, dataSource.bdvSource  );
-            final JButton toggleButton = createToggleButton( buttonDimensions, dataSource.bdvSource );
+            final JButton colorButton = createColorButton( panel, buttonDimensions, dataSource.bdvStackSource );
+            final JButton brightnessButton = createBrightnessButton( buttonDimensions, dataSource.name, dataSource.bdvStackSource );
+            final JButton toggleButton = createToggleButton( buttonDimensions, dataSource.bdvStackSource );
 			final JButton removeButton = createRemoveButton( dataSource, buttonDimensions );
 
             panel.add( jLabel );
@@ -191,7 +187,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
     }
 
 
-    private ArrayList< String > getCurrentSourceNames()
+    public ArrayList< String > getCurrentSourceNames()
     {
         return new ArrayList<>( panels.keySet() );
     }
@@ -244,7 +240,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
     {
         final PlatynereisDataSource source = dataSources.get( name );
 
-        if ( source.bdvSource == null || source.bdvSource.getBdvHandle() == null )
+        if ( source.bdvStackSource == null || source.bdvStackSource.getBdvHandle() == null )
         {
             addSourceToViewer( source );
         }
@@ -252,7 +248,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         {
             boolean isActive = source.isActive;
             source.isActive = !isActive;
-            source.bdvSource.setActive( !isActive );
+            source.bdvStackSource.setActive( !isActive );
         }
 
     }

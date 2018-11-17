@@ -9,7 +9,6 @@ import ij.ImagePlus;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
-import mpicbg.spim.data.sequence.SetupImgLoader;
 import net.imglib2.*;
 import net.imglib2.Cursor;
 import net.imglib2.algorithm.neighborhood.HyperSphereShape;
@@ -257,39 +256,39 @@ public class Utils
 		AffineTransform3D prosprScaling = new AffineTransform3D();
 		prosprScaling.scale( Constants.PROSPR_SCALING_IN_MICROMETER );
 
-		final BdvSource bdvSource = BdvFunctions.show( img, dataSource.name, Bdv.options().addTo( bdv ).sourceTransform( prosprScaling ) );
-		bdvSource.setColor( asArgbType( Constants.DEFAULT_GENE_COLOR ) );
+		final BdvStackSource bdvStackSource = BdvFunctions.show( img, dataSource.name, Bdv.options().addTo( bdv ).sourceTransform( prosprScaling ) );
+		bdvStackSource.setColor( asArgbType( Constants.DEFAULT_GENE_COLOR ) );
 		dataSource.color = Constants.DEFAULT_GENE_COLOR;
-		dataSource.bdvSource = bdvSource;
+		dataSource.bdvStackSource = bdvStackSource;
 	}
 
 	public static Bdv showSourceInBdv( PlatynereisDataSource source, Bdv bdv )
 	{
 		if ( source.isSpimDataMinimal )
 		{
-			source.bdvSource = BdvFunctions.show( source.spimDataMinimal,
+			source.bdvStackSource = BdvFunctions.show( source.spimDataMinimal,
 					BdvOptions.options()
 							.addTo( bdv )
 							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() ))
 					.get( 0 );
 
-			source.bdvSource.setColor( asArgbType( source.color ) );
-			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
+			source.bdvStackSource.setColor( asArgbType( source.color ) );
+			source.bdvStackSource.setDisplayRange( 0.0, source.maxLutValue );
 		}
 		else if ( source.spimData != null)
 		{
-			source.bdvSource = BdvFunctions.show( source.spimData,
+			source.bdvStackSource = BdvFunctions.show( source.spimData,
 					BdvOptions.options()
 							.addTo( bdv )
 							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() ) )
 					.get( 0 );
 
-			source.bdvSource.setColor( asArgbType( source.color ) );
-			source.bdvSource.setDisplayRange( 0.0, source.maxLutValue );
+			source.bdvStackSource.setColor( asArgbType( source.color ) );
+			source.bdvStackSource.setDisplayRange( 0.0, source.maxLutValue );
 		}
 		else if ( source.labelSource != null )
 		{
-			source.bdvSource = BdvFunctions.show( source.labelSource,
+			source.bdvStackSource = BdvFunctions.show( source.labelSource,
 					BdvOptions.options()
 							.addTo( bdv )
 							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() ) );
@@ -297,7 +296,7 @@ public class Utils
 
 
 		BdvOptions.options().addTo( bdv ).transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() );
-		return source.bdvSource.getBdvHandle();
+		return source.bdvStackSource.getBdvHandle();
 
 	}
 
