@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static de.embl.cba.platynereis.Utils.openSpimData;
@@ -65,14 +66,25 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
 
-		horizontalLayoutPanel.add( new JLabel( "[ O ] Select object " ) );
+		horizontalLayoutPanel.add( new JLabel( "[ Q ] Select object " ) );
+		horizontalLayoutPanel.add( new JLabel( "[ W ] Select none " ) );
 		horizontalLayoutPanel.add( new JLabel( " " ) );
 
+		final Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
+		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
-			BdvUtils.selectObjectsInActiveLabelSources( bdv, globalMouseCoordinates );
-		}, "select object", "O" );
+			final Map< Integer, Long > integerLongMap = BdvUtils.selectObjectsInActiveLabelSources( bdv, globalMouseCoordinates );
+			for ( int sourceIndex : integerLongMap.keySet())
+			{
+				Utils.log( "Label " + integerLongMap.get( sourceIndex ) + " selected in source #" + sourceIndex );
+			};
+		}, "select object", "Q"  ) ;
 
+		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
+			BdvUtils.deselectAllObjectsInActiveLabelSources( bdv );
+		}, "select none", "W" );
 		panel.add( horizontalLayoutPanel );
 
 	}

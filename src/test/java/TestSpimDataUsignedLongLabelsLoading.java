@@ -18,11 +18,13 @@ import net.imglib2.RealPoint;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.volatiles.VolatileARGBType;
 import org.scijava.ui.behaviour.ClickBehaviour;
+import org.scijava.ui.behaviour.InputTrigger;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.Map;
 
 public class TestSpimDataUsignedLongLabelsLoading
 {
@@ -35,7 +37,7 @@ public class TestSpimDataUsignedLongLabelsLoading
 
 		//final File file = new File( "/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr/em-segmented-cells-parapodium-labels-test.xml" );
 
-		final File file = new File( "/Users/tischer/Desktop/bdv_test_data/bdv_mipmap-labels.xml" );
+		final File file = new File( "/Users/tischer/Desktop/bdv_test_data/test.xml" );
 
 		SpimData spimData = new XmlIoSpimData().load( file.toString() );
 
@@ -52,8 +54,13 @@ public class TestSpimDataUsignedLongLabelsLoading
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
-			BdvUtils.selectObjectsInActiveLabelSources( bdv, globalMouseCoordinates );
-		}, "select object", "Q" );
+			final Map< Integer, Long > integerLongMap = BdvUtils.selectObjectsInActiveLabelSources( bdv, globalMouseCoordinates );
+			for ( int sourceIndex : integerLongMap.keySet())
+			{
+				System.out.println( "Label " + integerLongMap.get( sourceIndex ) + " selected in source #" + sourceIndex );
+			};
+		}, "select object", "Q"  ) ;
+
 
 
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );

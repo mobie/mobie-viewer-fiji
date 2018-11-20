@@ -11,6 +11,7 @@ import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 import net.imglib2.*;
 import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
 import net.imglib2.algorithm.neighborhood.HyperSphereShape;
 import net.imglib2.algorithm.neighborhood.Neighborhood;
 import net.imglib2.algorithm.neighborhood.Shape;
@@ -24,10 +25,8 @@ import net.imglib2.util.LinAlgHelpers;
 
 import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.DoubleStream;
 
 public class Utils
@@ -217,6 +216,9 @@ public class Utils
 
 		return sum;
 	}
+
+
+
 
 	private static long[] getPixelPosition( double[] position, double calibration )
 	{

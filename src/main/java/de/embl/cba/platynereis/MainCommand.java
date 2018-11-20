@@ -52,8 +52,9 @@ public class MainCommand extends DynamicCommand implements Interactive
 
         String dir = IJ.getDirectory( "Please choose Platynereis directory" );
 
-        File[] files = new File( dir ).listFiles();
-        Arrays.sort( files );
+        ArrayList< File > files = new ArrayList< File >(Arrays.asList( new File( dir ).listFiles() ) );
+
+        Collections.sort( files, new SortFilesIgnoreCase());
 
         dataSources = Collections.synchronizedMap( new LinkedHashMap() );
 
@@ -69,6 +70,15 @@ public class MainCommand extends DynamicCommand implements Interactive
 
     }
 
+
+    public class SortFilesIgnoreCase implements Comparator<File>
+    {
+        public int compare( File o1, File o2 ) {
+            String s1 = o1.getName();
+            String s2 = o2.getName();
+            return s1.toLowerCase().compareTo(s2.toLowerCase());
+        }
+    }
 
     public String getEmRawDataName()
     {
@@ -178,7 +188,7 @@ public class MainCommand extends DynamicCommand implements Interactive
         spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().set( 0, basicViewSetup);
     }
 
-    private void initDataSources( File[] files )
+    private void initDataSources( ArrayList< File > files )
     {
         for ( File file : files )
         {

@@ -143,14 +143,14 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
             final JButton colorButton = createColorButton( panel, buttonDimensions, dataSource.bdvStackSource );
             final JButton brightnessButton = createBrightnessButton( buttonDimensions, dataSource.name, dataSource.bdvStackSource );
-            final JButton toggleButton = createToggleButton( buttonDimensions, dataSource.bdvStackSource );
-			final JButton removeButton = createRemoveButton( dataSource, buttonDimensions );
+            final JButton removeButton = createRemoveButton( dataSource, buttonDimensions );
+            final JCheckBox visibilityCheckbox = createVisibilityCheckbox( buttonDimensions, dataSource.bdvStackSource, true );
 
             panel.add( jLabel );
             panel.add( colorButton );
             panel.add( brightnessButton );
-            panel.add( toggleButton );
             panel.add( removeButton );
+            panel.add( visibilityCheckbox );
 
             //Font font = Font.createFont(Font.TRUETYPE_FONT, new FileInputStream("font.ttf"));
             //button.setFont( new Font.createFont( Font.TRUETYPE_FONT ) );
