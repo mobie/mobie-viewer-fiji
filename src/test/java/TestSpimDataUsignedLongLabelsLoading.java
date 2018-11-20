@@ -1,9 +1,8 @@
 import bdv.tools.transformation.TransformedSource;
-import bdv.util.BdvFunctions;
-import bdv.util.BdvOptions;
-import bdv.util.BdvStackSource;
+import bdv.util.*;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.labels.luts.ARGBConvertedUnsignedLongTypeLabelsSource;
 import de.embl.cba.bdv.utils.labels.luts.LabelsSource;
 import de.embl.cba.bdv.utils.transformhandlers.BehaviourTransformEventHandler3DGoogleMouse;
@@ -15,9 +14,14 @@ import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealPoint;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.volatiles.VolatileARGBType;
+import org.scijava.ui.behaviour.ClickBehaviour;
+import org.scijava.ui.behaviour.io.InputTriggerConfig;
+import org.scijava.ui.behaviour.util.Behaviours;
 
+import javax.swing.*;
 import java.io.File;
 
 public class TestSpimDataUsignedLongLabelsLoading
@@ -41,6 +45,23 @@ public class TestSpimDataUsignedLongLabelsLoading
 				BdvFunctions.show( labelSource,
 						BdvOptions.options().transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() ) );
 
+
+		final Bdv bdv = bdvStackSource.getBdvHandle();
+
+		final Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
+		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
+			final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
+			BdvUtils.selectObjectsInActiveLabelSources( bdv, globalMouseCoordinates );
+		}, "select object", "Q" );
+
+
+		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
+			BdvUtils.deselectAllObjectsInActiveLabelSources( bdv );
+		}, "select none", "W" );
+
+
 		final SourceAndConverter< VolatileARGBType > sourceAndConverter = bdvStackSource.getSources().get( 0 );
 
 		final Source< VolatileARGBType > spimSource = sourceAndConverter.getSpimSource();
@@ -58,13 +79,13 @@ public class TestSpimDataUsignedLongLabelsLoading
 //				((LabelsSource)wrappedSource).incrementSeed();
 //				bdvStackSource.getBdvHandle().getViewerPanel().requestRepaint();
 
-				final RandomAccessibleInterval< IntegerType > indexImg = ( ( LabelsSource ) wrappedSource ).getIndexImg( 0, 0 );
-
-				final RandomAccess< IntegerType > access = indexImg.randomAccess();
-
-				final long integerLong = access.get().getIntegerLong();
-
-				int a = 1;
+//				final RandomAccessibleInterval< IntegerType > indexImg = ( ( LabelsSource ) wrappedSource ).getIndexImg( 0, 0 );
+//
+//				final RandomAccess< IntegerType > access = indexImg.randomAccess();
+//
+//				final long integerLong = access.get().getIntegerLong();
+//
+//				int a = 1;
 
 			}
 		}
@@ -72,6 +93,7 @@ public class TestSpimDataUsignedLongLabelsLoading
 		{
 			int b = 2;
 		}
+
 
 
 	}

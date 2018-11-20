@@ -3,11 +3,12 @@ package de.embl.cba.platynereis.ui;
 import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
 import bdv.util.Bdv;
-import bdv.util.BdvSource;
 import bdv.util.BdvStackSource;
+import bdv.viewer.state.SourceState;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.*;
 import ij.IJ;
+import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -24,6 +25,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static de.embl.cba.platynereis.Utils.openSpimData;
@@ -63,13 +65,13 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
 
-
-		horizontalLayoutPanel.add( new JLabel( "[ P ] Select " ) );
+		horizontalLayoutPanel.add( new JLabel( "[ O ] Select object " ) );
 		horizontalLayoutPanel.add( new JLabel( " " ) );
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-			printCoordinates();
-		}, "print pos", "P" );
+			final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
+			BdvUtils.selectObjectsInActiveLabelSources( bdv, globalMouseCoordinates );
+		}, "select object", "O" );
 
 		panel.add( horizontalLayoutPanel );
 
@@ -94,7 +96,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 
 			double[] micrometerPosition = new double[ 3 ];
-			getMicrometerMousePosition().localize( micrometerPosition );
+			BdvUtils.getGlobalMouseCoordinates( bdv ).localize( micrometerPosition );
 
 			double micrometerRadius = Double.parseDouble( ( String ) radiiComboBox.getSelectedItem() );
 
@@ -217,46 +219,15 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 	public void printCoordinates()
 	{
-		final RealPoint micrometerMousePosition = getMicrometerMousePosition();
 
 		//final RealPoint posInverse = new RealPoint( 3 );
 		//ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().inverse().apply( micrometerMousePosition, posInverse );
 		//IJ.log( "coordinates in raw em data set [micrometer] : " + Util.printCoordinates( new RealPoint( posInverse ) ) );
 
-		IJ.log( "coordinates in raw em data set [micrometer] : " + Util.printCoordinates( micrometerMousePosition ) );
+		IJ.log( "coordinates in raw em data set [micrometer] : " + Util.printCoordinates( BdvUtils.getGlobalMouseCoordinates( bdv ) ) );
 
 	}
 
-
-	public void selectObject()
-	{
-		final RealPoint micrometerMousePosition = getMicrometerMousePosition();
-
-		final ArrayList< String > currentSourceNames = mainFrame.getBdvSourcesPanel().getCurrentSourceNames();
-
-		for ( String name : currentSourceNames )
-		{
-			final BdvStackSource bdvStackSource = mainCommand.dataSources.get( name ).bdvStackSource;
-
-			if ( bdvStackSource == null || ! BdvUtils.isLabelsSource( bdvStackSource ) )
-			{
-				continue;
-			}
-
-			final RandomAccessibleInterval< IntegerType > indexImg = BdvUtils.getIndexImg( bdvStackSource, 0, 0 );
-
-			final AffineTransform3D sourceTransform = BdvUtils.getSourceTransform( bdvStackSource, 0, 0, 0 );
-
-			// sourceTransform.apply(  );
-		}
-	}
-
-	private RealPoint getMicrometerMousePosition()
-	{
-		final RealPoint posInBdvInMicrometer = new RealPoint( 3 );
-		bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( posInBdvInMicrometer );
-		return posInBdvInMicrometer;
-	}
 
 	private void addSourceSelectionUI( JPanel panel )
 	{
