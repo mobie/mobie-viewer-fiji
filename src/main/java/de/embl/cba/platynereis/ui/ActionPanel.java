@@ -3,17 +3,12 @@ package de.embl.cba.platynereis.ui;
 import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
 import bdv.util.Bdv;
-import bdv.util.BdvStackSource;
-import bdv.viewer.state.SourceState;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.*;
 import ij.IJ;
-import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Util;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -25,7 +20,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,6 +35,8 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	private int geneSearchMipMapLevel;
 	private double geneSearchVoxelSize;
 	private ArrayList< Double > geneSearchRadii;
+	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
+	private double[] targetNormalVector;
 
 	public ActionPanel( MainFrame mainFrame, Bdv bdv, MainCommand mainCommand )
 	{
@@ -48,6 +45,8 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		this.mainCommand = mainCommand;
 		behaviours = new Behaviours( new InputTriggerConfig() );
 		this.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
+
+		this.targetNormalVector = Arrays.copyOf(defaultTargetNormalVector, 3);
 
 		addSourceSelectionUI( this );
 		addPositionZoomUI( this  );
@@ -272,23 +271,47 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		final JButton level = new JButton( "Level current view" );
-		horizontalLayoutPanel.add( level );
+		final JButton levelCurrentView = new JButton( "Level" );
+		horizontalLayoutPanel.add( levelCurrentView );
 
-		horizontalLayoutPanel.add( new JLabel( "Target normal vector: " ) );
+		final JButton changeReference = new JButton( "Set new" );
+		horizontalLayoutPanel.add( changeReference );
 
-		final JTextField normalVectorTextField = new JTextField( "0.7041,0.5650,0.43007" );
-		horizontalLayoutPanel.add( normalVectorTextField );
+		final JButton defaultReference = new JButton( "Set default" );
+		horizontalLayoutPanel.add( defaultReference );
 
-		level.addActionListener( new ActionListener()
+
+		levelCurrentView.addActionListener( new ActionListener()
 		{
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				double[] normalVector = Utils.getCSVasDoubles( normalVectorTextField.getText() );
-				Utils.level( bdv, normalVector );
+				BdvUtils.levelView( bdv, targetNormalVector );
 			}
 		} );
+
+		changeReference.addActionListener( new ActionListener()
+		{
+			@Override
+			public void actionPerformed( ActionEvent e )
+			{
+				targetNormalVector = BdvUtils.getCurrentViewNormalVector( bdv );
+				Utils.logVector( "New reference normal vector: ", targetNormalVector );
+			}
+		} );
+
+
+		defaultReference.addActionListener( new ActionListener()
+		{
+			@Override
+			public void actionPerformed( ActionEvent e )
+			{
+				targetNormalVector =  Arrays.copyOf(defaultTargetNormalVector, 3);
+				Utils.logVector( "New reference normal vector (default): ", defaultTargetNormalVector );
+
+			}
+		} );
+
 
 		panel.add( horizontalLayoutPanel );
 	}
@@ -314,10 +337,10 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				Utils.centerBdvViewToPosition(
+				BdvUtils.centerBdvViewToPosition(
+						bdv,
 						Utils.delimitedStringToDoubleArray( position.getText(), ","),
-						Double.parseDouble( zoom.getText() ),
-						bdv );
+						Double.parseDouble( zoom.getText() ) );
 			}
 		} );
 
@@ -326,10 +349,10 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				Utils.centerBdvViewToPosition(
+				BdvUtils.centerBdvViewToPosition(
+						bdv,
 						Utils.delimitedStringToDoubleArray( position.getText(), ","),
-						Double.parseDouble( zoom.getText() ),
-						bdv );
+						Double.parseDouble( zoom.getText() ) );
 			}
 		} );
 

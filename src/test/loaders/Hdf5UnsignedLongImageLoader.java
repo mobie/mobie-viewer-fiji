@@ -95,7 +95,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 	protected int maxNumLevels;
 
 	/**
-	 * Maps {@link ViewLevelId} (timepoint, setup, level) to
+	 * Maps {@link ViewLevelId} (timepoint, setup, levelView) to
 	 * {@link DimsAndExistence}. Every entry is either null or the existence and
 	 * dimensions of one image. This is filled in when an image is loaded for
 	 * the first time.
@@ -325,7 +325,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 				final int[] res = subdiv[ level ];
 				System.out.println( "    " + level + ": " + net.imglib2.util.Util.printCoordinates( res ) );
 			}
-			System.out.println( "    level sizes:" );
+			System.out.println( "    levelView sizes:" );
 			final int timepointId = sequenceDescription.getTimePoints().getTimePointsOrdered().get( 0 ).getId();
 			for ( int level = 0; level < numLevels; ++level )
 			{
@@ -370,7 +370,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 
 		/**
 		 * Description of available mipmap levels for the setup. Contains for
-		 * each mipmap level, the subsampling factors and subdivision block
+		 * each mipmap levelView, the subsampling factors and subdivision block
 		 * sizes.
 		 */
 		private final MipmapInfo mipmapInfo;
@@ -390,7 +390,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 			if ( ! existsImageData( id ) )
 			{
 				System.err.println(	String.format(
-						"image data for timepoint %d setup %d level %d could not be found. Partition file missing?",
+						"image data for timepoint %d setup %d levelView %d could not be found. Partition file missing?",
 						id.getTimePointId(), id.getViewSetupId(), id.getLevel() ) );
 				return getMissingDataImage( id, type );
 			}
@@ -501,7 +501,7 @@ public class Hdf5UnsignedLongImageLoader implements ViewerImgLoader, MultiResolu
 			if ( ! existsImageData( id ) )
 			{
 				System.err.println(	String.format(
-						"image data for timepoint %d setup %d level %d could not be found. Partition file missing?",
+						"image data for timepoint %d setup %d levelView %d could not be found. Partition file missing?",
 						id.getTimePointId(), id.getViewSetupId(), id.getLevel() ) );
 				return getMissingDataImage( id, type );
 			}
