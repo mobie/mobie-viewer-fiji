@@ -22,4 +22,7 @@ public class Constants
 
 	public static final String LABELS_ID = "-labels" ;
 	public static final String CELLULAR_MODELS = "cellular-models";
+	public static final CharSequence MEDS = "-MEDs" ;
+	public static final CharSequence SPMS = "-SPMs";
+	public static final String OLD = "-OLD";
 }

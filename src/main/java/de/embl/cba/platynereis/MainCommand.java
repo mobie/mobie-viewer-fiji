@@ -221,7 +221,9 @@ public class MainCommand extends DynamicCommand implements Interactive
                 source.maxLutValue = 1000; // to render the binary prospr more transparent
             }
 
-            source.name = dataSourceName;
+
+			source.name = dataSourceName;
+
 
             if ( fileName.contains( Constants.EM_FILE_ID ) )
             {
@@ -327,10 +329,18 @@ public class MainCommand extends DynamicCommand implements Interactive
 			dataSourceName = file.getName().replaceAll( Constants.IMARIS_SUFFIX, "" );
 		}
 
-//		if ( file.getName().contains( Constants.NEW_PROSPR ) )
-//        {
-//            dataSourceName = dataSourceName.replace(  Constants.NEW_PROSPR, "" );
-//        }
+		if ( dataSourceName.contains( Constants.NEW_PROSPR ) )
+		{
+			dataSourceName= dataSourceName.replace( Constants.NEW_PROSPR, Constants.MEDS );
+		}
+		else if ( dataSourceName.contains( Constants.AVG_PROSPR ) )
+		{
+			dataSourceName = dataSourceName.replace( Constants.AVG_PROSPR, Constants.SPMS );
+		}
+		else if ( ! dataSourceName.contains( Constants.EM_FILE_ID ) )
+		{
+			dataSourceName = dataSourceName + Constants.OLD;
+		}
 
         return dataSourceName;
     }
