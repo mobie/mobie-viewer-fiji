@@ -8,6 +8,7 @@ import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
 import bdv.viewer.ViewerOptions;
 import de.embl.cba.platynereis.remote.RemoteUtils;
+import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
 
 import java.io.File;
@@ -31,5 +32,6 @@ public class TestBigDataServer
 
 			bdv = BdvFunctions.show( spimData, BdvOptions.options().addTo( bdv ) ).get( 0 ).getBdvHandle();
 		}
+
 	}
 }

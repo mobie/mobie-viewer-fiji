@@ -6,14 +6,20 @@ import bdv.util.Bdv;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.*;
 import ij.IJ;
+import ij.ImagePlus;
+import ij3d.Content;
+import ij3d.Image3DUniverse;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Util;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
+import org.scijava.vecmath.Color3f;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,7 +49,10 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		this.mainFrame = mainFrame;
 		this.bdv = bdv;
 		this.mainCommand = mainCommand;
+
 		behaviours = new Behaviours( new InputTriggerConfig() );
+		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
+
 		this.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
 
 		this.targetNormalVector = Arrays.copyOf(defaultTargetNormalVector, 3);
@@ -63,29 +72,67 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	{
 		JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
-
-		horizontalLayoutPanel.add( new JLabel( "[ Q ] Select object " ) );
-		horizontalLayoutPanel.add( new JLabel( "[ W ] Select none " ) );
+		horizontalLayoutPanel.add( new JLabel( "[ Shift click ] Select object" ) );
+		horizontalLayoutPanel.add( new JLabel( "[ Double click ] 3D object view" ) );
+		horizontalLayoutPanel.add( new JLabel( "[ Q ] Select none " ) );
 		horizontalLayoutPanel.add( new JLabel( " " ) );
 
-		final Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
+		addObjectSelection( behaviours );
+
+		add3DObjectView( behaviours );
+
+		addSelectNone( behaviours );
+
+		panel.add( horizontalLayoutPanel );
+
+	}
+
+	private void addSelectNone( Behaviours behaviours )
+	{
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
+			BdvUtils.deselectAllObjectsInActiveLabelSources( bdv );
+		}, "select none", "Q" );
+	}
+
+	private void add3DObjectView( Behaviours behaviours )
+	{
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
+
 			final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
+
+			// TODO: Also get calibrations back
+			final ArrayList< RandomAccessibleInterval< BitType > > masks = BdvUtils.extractSelectedObject( bdv, globalMouseCoordinates, 3 );
+
+			final ImagePlus mask = Utils.asImagePlus( masks.get( 0 ) );
+
+			final ImagePlus duplicate = mask.duplicate();
+
+			duplicate.show();
+
+//			Image3DUniverse univ = new Image3DUniverse( );
+//			univ.show( );
+//			final Content content = univ.addMesh( duplicate, null, "object", 250, new boolean[]{ true, true, true }, 2 );
+//			content.setColor( new Color3f(1.0f, 1.0f, 1.0f ) );
+
+
+		}, "3d object view", "button1 double-click"  ) ;
+	}
+
+	private void addObjectSelection( Behaviours behaviours )
+	{
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
+
+			final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
+
 			final Map< Integer, Long > integerLongMap = BdvUtils.selectObjectsInActiveLabelSources( bdv, globalMouseCoordinates );
+
 			for ( int sourceIndex : integerLongMap.keySet())
 			{
 				Utils.log( "Label " + integerLongMap.get( sourceIndex ) + " selected in source #" + sourceIndex );
 			};
-		}, "select object", "Q"  ) ;
 
-		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-			BdvUtils.deselectAllObjectsInActiveLabelSources( bdv );
-		}, "select none", "W" );
-		panel.add( horizontalLayoutPanel );
-
+		}, "select object", "shift button1"  ) ;
 	}
 
 	private void addLocalGeneSearchUI( JPanel panel )

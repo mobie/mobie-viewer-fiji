@@ -6,7 +6,7 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.util.*;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.labels.luts.*;
+import de.embl.cba.bdv.utils.labels.*;
 import de.embl.cba.platynereis.ui.BdvSourcesPanel;
 import de.embl.cba.platynereis.ui.MainFrame;
 import ij.IJ;
@@ -256,23 +256,20 @@ public class MainCommand extends DynamicCommand implements Interactive
 
                 if ( fileName.contains( Constants.LABELS_ID ) ) // labels
                 {
-                    Source< VolatileARGBType > labelSource = null;
-
                     if ( fileName.contains( Constants.CELLULAR_MODELS ))
                     {
-                        source.labelSource = new ARGBConvertedUnsignedShortTypeLabelsSource( source.spimData, 0 );
+                        source.labelSource = new ARGBConvertedRealTypeLabelsSource( source.spimData, 0 );
                         source.isLabelSource = true;
                         source.spimData = null;
-                        source.maxLutValue = 255;
+                        source.maxLutValue = 600;
                     }
                     else
                     {
-                        source.labelSource = new ARGBConvertedUnsignedLongTypeLabelsSource( source.spimData, 0 );
+                        source.labelSource = new ARGBConvertedRealTypeLabelsSource( source.spimData, 0 );
                         source.isLabelSource = true;
                         source.spimData = null;
-                        source.maxLutValue = 255;
+                        source.maxLutValue = 600;
                     }
-
                 }
             }
             else // gene

@@ -20,9 +20,11 @@ import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.LinAlgHelpers;
+import net.imglib2.view.Views;
 
 import java.awt.*;
 import java.io.File;
@@ -142,11 +144,11 @@ public class Utils
 		try
 		{
 			SpimData spimData = new XmlIoSpimData().load( file.toString() );
-
 			return spimData;
 		}
 		catch ( SpimDataException e )
 		{
+			System.out.println( file.toString() );
 			e.printStackTrace();
 			return null;
 		}
@@ -201,6 +203,7 @@ public class Utils
 					BdvOptions.options()
 							.addTo( bdv )
 							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() ) );
+			source.bdvStackSource.setDisplayRange( 0.0, source.maxLutValue );
 		}
 
 
@@ -234,5 +237,12 @@ public class Utils
 			normalVector[ i ] = Double.parseDouble( split[ i ] );
 		}
 		return normalVector;
+	}
+
+	public static ImagePlus asImagePlus( RandomAccessibleInterval< BitType > mask )
+	{
+		RandomAccessibleInterval rai = Views.addDimension( mask, 0, 0 );
+		rai = Views.permute( rai, 2,3 );
+		return ImageJFunctions.wrap( rai, "Object" );
 	}
 }
