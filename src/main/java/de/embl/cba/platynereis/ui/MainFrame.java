@@ -1,7 +1,7 @@
 package de.embl.cba.platynereis.ui;
 
 import bdv.util.Bdv;
-import de.embl.cba.platynereis.MainCommand;
+import de.embl.cba.platynereis.PlatyBrowser;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,17 +9,17 @@ import java.awt.*;
 public class MainFrame extends JFrame
 {
 	final Bdv bdv;
-	final MainCommand mainCommand;
+	final PlatyBrowser platyBrowser;
 	private final ActionPanel actionPanel;
 	private final BdvSourcesPanel bdvSourcesPanel;
 
-	public MainFrame( Bdv bdv, MainCommand mainCommand ) throws HeadlessException
+	public MainFrame( Bdv bdv, PlatyBrowser platyBrowser ) throws HeadlessException
 	{
 		this.bdv = bdv;
-		this.mainCommand = mainCommand;
+		this.platyBrowser = platyBrowser;
 
-		actionPanel = new ActionPanel( this, bdv, mainCommand );
-		bdvSourcesPanel = new BdvSourcesPanel( this, bdv, mainCommand );
+		actionPanel = new ActionPanel( this, bdv, platyBrowser );
+		bdvSourcesPanel = new BdvSourcesPanel( this, bdv, platyBrowser );
 
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );  // we want it to split the window verticaly

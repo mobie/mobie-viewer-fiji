@@ -4,7 +4,6 @@ import bdv.img.imaris.Imaris;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.util.*;
-import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.labels.*;
 import de.embl.cba.platynereis.ui.BdvSourcesPanel;
@@ -16,7 +15,6 @@ import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale;
-import net.imglib2.type.volatiles.VolatileARGBType;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
@@ -31,28 +29,18 @@ import java.util.*;
 
 import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.showBrightnessDialog;
 
-@Plugin(type = Command.class, menuPath = "Plugins>Registration>EMBL>Platynereis", initializer = "init")
-public class MainCommand extends DynamicCommand implements Interactive
+public class PlatyBrowser
 {
-
-    @Parameter
-    public LogService logService;
-
     Bdv bdv;
-
     public Map< String, PlatynereisDataSource > dataSources;
     String emRawDataName;
     AffineTransform3D emRawDataTransform;
     BdvSourcesPanel legend;
+    private final MainFrame mainFrame;
 
-
-    public void init()
+    public PlatyBrowser( String directory )
     {
-        System.setProperty( "apple.laf.useScreenMenuBar", "true" );
-
-        String dir = IJ.getDirectory( "Please choose Platynereis directory" );
-
-        ArrayList< File > files = new ArrayList< File >(Arrays.asList( new File( dir ).listFiles() ) );
+        ArrayList< File > files = new ArrayList< File >(Arrays.asList( new File( directory ).listFiles() ) );
 
         Collections.sort( files, new SortFilesIgnoreCase());
 
@@ -64,12 +52,20 @@ public class MainCommand extends DynamicCommand implements Interactive
 
         initBdvWithEmRawData();
 
-        MainFrame mainFrame = new MainFrame( bdv, this );
+        mainFrame = new MainFrame( bdv, this );
 
         legend = mainFrame.getBdvSourcesPanel();
-
     }
 
+    public MainFrame getMainFrame()
+    {
+        return mainFrame;
+    }
+
+    public Bdv getBdv()
+    {
+        return bdv;
+    }
 
     public class SortFilesIgnoreCase implements Comparator<File>
     {
@@ -341,14 +337,5 @@ public class MainCommand extends DynamicCommand implements Interactive
 
         return dataSourceName;
     }
-
-
-    public static void main( String... args )
-    {
-        final ImageJ ij = new ImageJ();
-        ij.ui().showUI();
-        ij.command().run( MainCommand.class, true );
-    }
-
 
 }

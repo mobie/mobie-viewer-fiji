@@ -35,7 +35,7 @@ import static de.embl.cba.platynereis.Utils.openSpimData;
 public class ActionPanel < T extends RealType< T > & NativeType< T > > extends JPanel
 {
 	private final Bdv bdv;
-	private final MainCommand mainCommand;
+	private final PlatyBrowser platyBrowser;
 	private final MainFrame mainFrame;
 	private Behaviours behaviours;
 	private int geneSearchMipMapLevel;
@@ -44,11 +44,11 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	private double[] targetNormalVector;
 
-	public ActionPanel( MainFrame mainFrame, Bdv bdv, MainCommand mainCommand )
+	public ActionPanel( MainFrame mainFrame, Bdv bdv, PlatyBrowser platyBrowser )
 	{
 		this.mainFrame = mainFrame;
 		this.bdv = bdv;
-		this.mainCommand = mainCommand;
+		this.platyBrowser = platyBrowser;
 
 		behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
@@ -99,22 +99,32 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	{
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 
-			final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
+			(new Thread(new Runnable(){
+				public void run(){
+					final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
 
-			// TODO: Also get calibrations back
-			final ArrayList< RandomAccessibleInterval< BitType > > masks = BdvUtils.extractSelectedObject( bdv, globalMouseCoordinates, 3 );
+					final ArrayList< RandomAccessibleInterval< BitType > > masks = new ArrayList<>();
+					final ArrayList< double[] > calibrations = new ArrayList<>();
 
-			final ImagePlus mask = Utils.asImagePlus( masks.get( 0 ) );
+					Utils.log( "Extracting object..." );
+					BdvUtils.extractSelectedObject( bdv, globalMouseCoordinates, 2, masks, calibrations );
 
-			final ImagePlus duplicate = mask.duplicate();
+					final ImagePlus mask = Utils.asImagePlus( masks.get( 0 ), calibrations.get( 0 ) );
+					final ImagePlus duplicate = mask.duplicate();
 
-			duplicate.show();
-
-//			Image3DUniverse univ = new Image3DUniverse( );
-//			univ.show( );
-//			final Content content = univ.addMesh( duplicate, null, "object", 250, new boolean[]{ true, true, true }, 2 );
-//			content.setColor( new Color3f(1.0f, 1.0f, 1.0f ) );
-
+					(new Thread(new Runnable()
+					{
+						public void run()
+						{
+							Utils.log( "Show object in 3d viewer..." );
+							Image3DUniverse univ = new Image3DUniverse();
+							univ.show();
+							final Content content = univ.addMesh( duplicate, null, "object", 250, new boolean[]{ true, true, true }, 1 );
+							content.setColor( new Color3f( 1.0f, 1.0f, 1.0f ) );
+						}
+					})).start();
+				}
+			})).start();
 
 		}, "3d object view", "button1 double-click"  ) ;
 	}
@@ -178,7 +188,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		GeneSearch geneSearch = new GeneSearch(
 				micrometerRadius,
 				micrometerPosition,
-				mainCommand.dataSources,
+				platyBrowser.dataSources,
 				bdv,
 				geneSearchMipMapLevel,
 				geneSearchVoxelSize );
@@ -224,7 +234,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 	private void setGeneSearchRadii( )
 	{
-		final Set< String > sources = mainCommand.dataSources.keySet();
+		final Set< String > sources = platyBrowser.dataSources.keySet();
 
 		geneSearchRadii = new ArrayList<>();
 
@@ -232,7 +242,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		{
 			if ( name.contains( Constants.EM_FILE_ID ) ) continue;
 
-			final PlatynereisDataSource source = mainCommand.dataSources.get( name );
+			final PlatynereisDataSource source = platyBrowser.dataSources.get( name );
 
 			if ( source.spimData == null )
 			{
@@ -297,7 +307,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		horizontalLayoutPanel.add( dataSources );
 
-		for ( String name : mainCommand.dataSources.keySet() )
+		for ( String name : platyBrowser.dataSources.keySet() )
 		{
 			dataSources.addItem( name );
 		}

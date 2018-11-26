@@ -7,6 +7,7 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.transformhandlers.BehaviourTransformEventHandler3DGoogleMouse;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.measure.Calibration;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
@@ -239,10 +240,18 @@ public class Utils
 		return normalVector;
 	}
 
-	public static ImagePlus asImagePlus( RandomAccessibleInterval< BitType > mask )
+	public static ImagePlus asImagePlus( RandomAccessibleInterval< BitType > mask, double[] voxelSize )
 	{
 		RandomAccessibleInterval rai = Views.addDimension( mask, 0, 0 );
 		rai = Views.permute( rai, 2,3 );
-		return ImageJFunctions.wrap( rai, "Object" );
+		final ImagePlus imp = ImageJFunctions.wrap( rai, "" );
+
+		final Calibration calibration = new Calibration();
+		calibration.pixelWidth = voxelSize[ 0 ];
+		calibration.pixelHeight = voxelSize[ 1 ];
+		calibration.pixelDepth = voxelSize[ 2 ];
+		imp.setCalibration( calibration );
+
+		return imp;
 	}
 }

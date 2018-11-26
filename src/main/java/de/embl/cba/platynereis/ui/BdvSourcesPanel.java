@@ -32,21 +32,21 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
     protected Map< String, JPanel > panels;
     JFrame frame;
     final MainFrame mainFrame;
-    final MainCommand mainCommand;
+    final PlatyBrowser platyBrowser;
     final Bdv bdv;
     private final Map< String, PlatynereisDataSource > dataSources;
 
 
-    public BdvSourcesPanel( MainFrame mainFrame, Bdv bdv, MainCommand mainCommand )
+    public BdvSourcesPanel( MainFrame mainFrame, Bdv bdv, PlatyBrowser platyBrowser )
     {
         this.mainFrame = mainFrame;
         this.bdv = bdv;
-        this.mainCommand = mainCommand;
-        this.dataSources = mainCommand.dataSources;
+        this.platyBrowser = platyBrowser;
+        this.dataSources = platyBrowser.dataSources;
         this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
         this.setAlignmentX( Component.LEFT_ALIGNMENT );
         panels = new LinkedHashMap<>(  );
-        this.addSourceToViewerAndPanel( dataSources.get( mainCommand.getEmRawDataName() ).name );
+        this.addSourceToViewerAndPanel( dataSources.get( platyBrowser.getEmRawDataName() ).name );
         initColors();
     }
 
@@ -207,7 +207,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
     private void removeSource( String name )
     {
-        mainCommand.removeDataSource( name );
+        platyBrowser.removeDataSource( name );
         remove( panels.get( name ) );
         panels.remove( name );
         refreshGui();
@@ -259,7 +259,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
         if ( color != null )
         {
-            mainCommand.setDataSourceColor( name, color );
+            platyBrowser.setDataSourceColor( name, color );
             panels.get( name ).setBackground( color );
         }
 
