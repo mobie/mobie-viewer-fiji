@@ -133,6 +133,7 @@
             <version>0.1.22-SNAPSHOT</version>
         </dependency>
 
+
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-math3</artifactId>

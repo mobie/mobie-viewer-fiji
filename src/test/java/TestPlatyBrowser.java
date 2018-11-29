@@ -1,3 +1,5 @@
+import bdv.util.Bdv;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.PlatyBrowser;
 
 public class TestPlatyBrowser
@@ -8,5 +10,11 @@ public class TestPlatyBrowser
 
 		platyBrowser.getMainFrame().getBdvSourcesPanel().addSourceToViewerAndPanel( "em-segmented-cells-gut-labels" );
 
+		Bdv bdv = platyBrowser.getBdv();
+
+//		BdvUtils.centerBdvViewToPosition(
+//				bdv,
+//				new double[]{222,157,57},
+//				10 );
 	}
 }
