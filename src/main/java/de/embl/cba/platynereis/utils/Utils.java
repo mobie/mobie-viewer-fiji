@@ -1,10 +1,9 @@
-package de.embl.cba.platynereis;
+package de.embl.cba.platynereis.utils;
 
 import bdv.util.*;
-import bdv.viewer.animate.AbstractTransformAnimator;
-import bdv.viewer.animate.SimilarityTransformAnimator;
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.transformhandlers.BehaviourTransformEventHandler3DGoogleMouse;
+import de.embl.cba.platynereis.Constants;
+import de.embl.cba.platynereis.PlatynereisDataSource;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.measure.Calibration;
@@ -24,14 +23,12 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.util.LinAlgHelpers;
 import net.imglib2.view.Views;
 
 import java.awt.*;
 import java.io.File;
 import java.util.*;
 import java.util.List;
-import java.util.stream.DoubleStream;
 
 public class Utils
 {

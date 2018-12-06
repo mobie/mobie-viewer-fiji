@@ -4,23 +4,17 @@ import bdv.img.imaris.Imaris;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.util.*;
+import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.labels.*;
 import de.embl.cba.platynereis.ui.BdvSourcesPanel;
 import de.embl.cba.platynereis.ui.MainFrame;
-import ij.IJ;
+import de.embl.cba.platynereis.utils.Utils;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewTransformAffine;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
-import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale;
-import org.scijava.command.Command;
-import org.scijava.command.DynamicCommand;
-import org.scijava.command.Interactive;
-import org.scijava.log.LogService;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
 
 import java.awt.*;
 import java.io.File;
@@ -146,7 +140,7 @@ public class PlatyBrowser
     {
         bdv = Utils.showSourceInBdv( dataSources.get( emRawDataName ), bdv );
 
-        // bdv.getBdvHandle().getViewerPanel().setInterpolation( Interpolation.NLINEAR );
+        bdv.getBdvHandle().getViewerPanel().setInterpolation( Interpolation.NLINEAR );
 
     }
 

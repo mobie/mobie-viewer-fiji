@@ -2,6 +2,7 @@ package de.embl.cba.platynereis.ui;
 
 import bdv.util.Bdv;
 import de.embl.cba.platynereis.*;
+import de.embl.cba.platynereis.utils.Utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,7 +15,7 @@ import java.util.Map;
 import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.*;
 import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.addSourcesDisplaySettingsUI;
 import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.createColorButton;
-import static de.embl.cba.platynereis.Utils.asArgbType;
+import static de.embl.cba.platynereis.utils.Utils.asArgbType;
 
 public class BdvSourcesPanel extends JPanel implements ActionListener
 {

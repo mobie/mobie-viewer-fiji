@@ -27,7 +27,7 @@ public class MainFrame extends JFrame
 		splitPane.setTopComponent( actionPanel );                  // at the top we want our "topPanel"
 		splitPane.setBottomComponent( bdvSourcesPanel );
 
-		setPreferredSize( new Dimension(500, 800));     // let's open the window with a default size of 400x400 pixels
+		setPreferredSize( new Dimension(700, 800));     // let's open the window with a default size of 400x400 pixels
 		// the contentPane is the container that holds all our components
 		getContentPane().setLayout( new GridLayout() );  // the default GridLayout is like a grid with 1 column and 1 row,
 		// we only add one element to the window itself

@@ -4,16 +4,16 @@ import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
 import bdv.util.Bdv;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.objects.BdvObjectExtractor;
 import de.embl.cba.platynereis.*;
+import de.embl.cba.platynereis.utils.Utils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij3d.Content;
 import ij3d.Image3DUniverse;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
-import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Util;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-import static de.embl.cba.platynereis.Utils.openSpimData;
+import static de.embl.cba.platynereis.utils.Utils.openSpimData;
 
 public class ActionPanel < T extends RealType< T > & NativeType< T > > extends JPanel
 {
@@ -72,8 +72,8 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	{
 		JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		horizontalLayoutPanel.add( new JLabel( "[ Shift click ] Select object" ) );
-		horizontalLayoutPanel.add( new JLabel( "[ Double click ] 3D object view" ) );
+		horizontalLayoutPanel.add( new JLabel( "[ Shift click ] Select object " ) );
+		horizontalLayoutPanel.add( new JLabel( "[ Double click ] 3D object view " ) );
 		horizontalLayoutPanel.add( new JLabel( "[ Q ] Select none " ) );
 		horizontalLayoutPanel.add( new JLabel( " " ) );
 
@@ -101,32 +101,67 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 			(new Thread(new Runnable(){
 				public void run(){
+
 					final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
 
-					final ArrayList< RandomAccessibleInterval< BitType > > masks = new ArrayList<>();
-					final ArrayList< double[] > calibrations = new ArrayList<>();
+					showObjectIn3D( globalMouseCoordinates );
 
-					Utils.log( "Extracting object..." );
-					BdvUtils.extractSelectedObject( bdv, globalMouseCoordinates, 2, masks, calibrations );
-
-					final ImagePlus mask = Utils.asImagePlus( masks.get( 0 ), calibrations.get( 0 ) );
-					final ImagePlus duplicate = mask.duplicate();
-
-					(new Thread(new Runnable()
-					{
-						public void run()
-						{
-							Utils.log( "Show object in 3d viewer..." );
-							Image3DUniverse univ = new Image3DUniverse();
-							univ.show();
-							final Content content = univ.addMesh( duplicate, null, "object", 250, new boolean[]{ true, true, true }, 1 );
-							content.setColor( new Color3f( 1.0f, 1.0f, 1.0f ) );
-						}
-					})).start();
 				}
 			})).start();
 
 		}, "3d object view", "button1 double-click"  ) ;
+	}
+
+	public void showObjectIn3D( RealPoint globalMouseCoordinates )
+	{
+
+		final BdvObjectExtractor bdvObjectExtractor = new BdvObjectExtractor( bdv, globalMouseCoordinates, 0 );
+
+		(new Thread(new Runnable()
+		{
+			public void run()
+			{
+				bdvObjectExtractor.run();
+			}
+		})).start();
+
+		final Image3DUniverse univ = new Image3DUniverse();
+		univ.show();
+
+
+		int level = 0;
+
+		while( ! bdvObjectExtractor.isDone() )
+		{
+			while( ! bdvObjectExtractor.isLevelAvailable( level ) )
+			{
+				wait100ms();
+
+				if ( bdvObjectExtractor.isDone() ) break;
+			}
+
+			final ImagePlus objectMask = Utils.asImagePlus(
+					bdvObjectExtractor.getObjectMask( level ),
+					bdvObjectExtractor.getCalibration( level ) ).duplicate(); // duplicate ImagePlus to copy into RAM
+
+			level++;
+
+			objectMask.show();
+//
+//			(new Thread(new Runnable()
+//			{
+//				public void run()
+//				{
+//					univ.removeAllContents();
+//					final Content content = univ.addMesh( objectMask, null, "object", 250, new boolean[]{ true, true, true }, 1 );
+//					content.setColor( new Color3f( 1.0f, 1.0f, 1.0f ) );
+//				}
+//			})).start();
+
+			break;
+		}
+
+		int a = 1;
 	}
 
 	private void addObjectSelection( Behaviours behaviours )
@@ -170,7 +205,6 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 			(new Thread(new Runnable(){
 				public void run(){
-
 					searchNearbyGenes( micrometerPosition, micrometerRadius );
 				}
 			})).start();
@@ -207,8 +241,9 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		{
 			mainFrame.getBdvSourcesPanel().removeAllProSPrSources();
 
-			for ( int i = genes.size() - 1; i > genes.size() - 10; --i )
+			for ( int i = genes.size() - 1; i > genes.size() - 10 && i > 0 ; --i )
 			{
+
 				mainFrame.getBdvSourcesPanel().addSourceToViewerAndPanel( genes.get( i ) );
 
 //				if ( i == genes.size() - 1 )

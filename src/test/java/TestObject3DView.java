@@ -1,18 +1,7 @@
 import bdv.util.Bdv;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.PlatyBrowser;
-import de.embl.cba.platynereis.Utils;
-import ij.IJ;
 import ij.ImageJ;
-import ij.ImagePlus;
-import ij3d.Content;
-import ij3d.Image3DUniverse;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealPoint;
-import net.imglib2.type.logic.BitType;
-import org.scijava.vecmath.Color3f;
-
-import java.util.ArrayList;
 
 public class TestObject3DView
 {

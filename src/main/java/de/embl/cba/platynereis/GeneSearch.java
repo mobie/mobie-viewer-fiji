@@ -2,16 +2,16 @@ package de.embl.cba.platynereis;
 
 import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
-import bdv.bigcat.ui.AbstractARGBConvertedLabelsSource;
 import bdv.util.Bdv;
 import de.embl.cba.platynereis.ui.BdvTextOverlay;
+import de.embl.cba.platynereis.utils.Utils;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 import java.util.*;
 
-import static de.embl.cba.platynereis.Utils.openSpimData;
+import static de.embl.cba.platynereis.utils.Utils.openSpimData;
 
 public class GeneSearch < T extends RealType< T > & NativeType< T > >
 {
@@ -24,7 +24,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 	private final double micrometerVoxelSize;
 	private BdvTextOverlay bdvTextOverlay;
 	private boolean searchFinished;
-	private ArrayList sortedNames;
+	private ArrayList< String > sortedNames;
 	private Map< String, Double > sortedGenes;
 
 
@@ -58,12 +58,10 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 	}
 
-
 	public Map< String, Double > getSortedGenes()
 	{
 		return sortedGenes;
 	}
-
 
 	public boolean isDone()
 	{
@@ -80,7 +78,8 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 		for ( String name : sources )
 		{
 			if ( name.contains( Constants.EM_FILE_ID ) ) continue;
-			if ( ! name.contains( Constants.NEW_PROSPR ) ) continue;
+			if ( ! name.contains( Constants.MEDS ) ) continue;
+			if ( name.contains( Constants.OLD ) ) continue;
 
 			(new Thread(new Runnable(){
 				public void run(){
@@ -112,17 +111,39 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 		sortedGenes = Utils.sortByValue( localSums );
 		sortedNames = new ArrayList( sortedGenes.keySet() );
 
-		Utils.log( "## Sorted gene list " );
-		for ( int i = 0; i < sortedGenes.size(); ++i )
-		{
-			String name = ( String ) sortedNames.get( i );
-			Utils.log( name + ": " + sortedGenes.get( name ) );
-		}
+		removeGenesWithZeroExpression();
+		logResult( );
 
 		searchFinished = true;
 
 		bdvTextOverlay.setText( "" );
 		//bdvTextOverlay.removeFromBdv(); // TODO: throws error
+	}
+
+	private void logResult()
+	{
+		Utils.log( "## Sorted gene list " );
+		sortedNames = new ArrayList( sortedGenes.keySet() );
+		for ( int i = 0; i < sortedGenes.size(); ++i )
+		{
+			String name = sortedNames.get( i );
+			Utils.log( name + ": " + sortedGenes.get( name ) );
+		}
+	}
+
+	private void removeGenesWithZeroExpression()
+	{
+		// remove entries with zero expression
+		for ( int i = sortedNames.size() - 1; i >= 0; --i )
+		{
+			String name = sortedNames.get( i );
+			double value = sortedGenes.get( name ).doubleValue();
+
+			if ( value == 0.0 )
+			{
+				sortedGenes.remove( name );
+			}
+		}
 	}
 
 
