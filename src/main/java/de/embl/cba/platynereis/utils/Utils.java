@@ -1,12 +1,17 @@
 package de.embl.cba.platynereis.utils;
 
 import bdv.util.*;
+import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.objects.BdvObjectExtractor;
 import de.embl.cba.bdv.utils.transformhandlers.BehaviourTransformEventHandler3DGoogleMouse;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.PlatynereisDataSource;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.measure.Calibration;
+import ij3d.Content;
+import ij3d.Image3DUniverse;
+import ij3d.UniverseListener;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
@@ -24,6 +29,8 @@ import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
+import org.scijava.java3d.View;
+import org.scijava.vecmath.Color3f;
 
 import java.awt.*;
 import java.io.File;
@@ -33,7 +40,9 @@ import java.util.List;
 public class Utils
 {
 
-	public static double[] delimitedStringToDoubleArray(String s, String delimiter) {
+
+
+	public static double[] delimitedStringToDoubleArray( String s, String delimiter) {
 
 		String[] sA = s.split(delimiter);
 		double[] nums = new double[sA.length];
@@ -125,7 +134,54 @@ public class Utils
 	}
 
 
+	public static < T extends RealType< T > &  NativeType< T > >
+	double getFractionOfNonZeroVoxels( final RandomAccessibleInterval< T > rai, double[] position, double radius, double calibration )
+	{
+		// TODO: add out-of-bounds strategy or is this handled by the Neighborhood?
+		Shape shape = new HyperSphereShape( (int) Math.ceil( radius / calibration ) );
+		final RandomAccessible< Neighborhood< T > > nra = shape.neighborhoodsRandomAccessible( rai );
+		final RandomAccess< Neighborhood< T > > neighborhoodRandomAccess = nra.randomAccess();
+		neighborhoodRandomAccess.setPosition( getPixelPosition( position, calibration ) );
 
+		final Neighborhood< T > neighborhood = neighborhoodRandomAccess.get();
+
+		final Cursor< T > neighborhoodCursor = neighborhood.cursor();
+
+		long numberOfNonZeroVoxels = 0;
+		long numberOfVoxels = 0;
+
+		while( neighborhoodCursor.hasNext() )
+		{
+			numberOfVoxels++;
+
+			final double realDouble = neighborhoodCursor.next().getRealDouble();
+
+			if ( realDouble != 0)
+			{
+				numberOfNonZeroVoxels++;
+			}
+		}
+
+		return 1.0 * numberOfNonZeroVoxels / numberOfVoxels;
+	}
+
+
+	public static String[] combine(String[] a, String[] b){
+		int length = a.length + b.length;
+		String[] result = new String[length];
+		System.arraycopy(a, 0, result, 0, a.length);
+		System.arraycopy(b, 0, result, a.length, b.length);
+		return result;
+	}
+
+
+	public static Object[] combine(Object[] a, Object[] b){
+		int length = a.length + b.length;
+		Object[] result = new Object[length];
+		System.arraycopy(a, 0, result, 0, a.length);
+		System.arraycopy(b, 0, result, a.length, b.length);
+		return result;
+	}
 
 	private static long[] getPixelPosition( double[] position, double calibration )
 	{
@@ -250,5 +306,20 @@ public class Utils
 		imp.setCalibration( calibration );
 
 		return imp;
+	}
+
+
+
+
+	public static void wait100ms()
+	{
+		try
+		{
+			Thread.sleep( 100 );
+		}
+		catch ( InterruptedException e )
+		{
+			e.printStackTrace();
+		}
 	}
 }

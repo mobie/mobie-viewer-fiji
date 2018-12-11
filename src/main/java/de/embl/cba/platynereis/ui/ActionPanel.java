@@ -4,22 +4,16 @@ import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
 import bdv.util.Bdv;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.objects.BdvObjectExtractor;
 import de.embl.cba.platynereis.*;
 import de.embl.cba.platynereis.utils.Utils;
-import ij.IJ;
-import ij.ImagePlus;
-import ij3d.Content;
-import ij3d.Image3DUniverse;
+import de.embl.cba.tables.InteractiveTablePanel;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.util.Util;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
-import org.scijava.vecmath.Color3f;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,6 +24,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
+import static de.embl.cba.platynereis.objects.ObjectViewer3D.showSelectedObjectIn3D;
+import static de.embl.cba.platynereis.utils.Utils.combine;
 import static de.embl.cba.platynereis.utils.Utils.openSpimData;
 
 public class ActionPanel < T extends RealType< T > & NativeType< T > > extends JPanel
@@ -43,6 +39,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	private ArrayList< Double > geneSearchRadii;
 	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	private double[] targetNormalVector;
+	private InteractiveTablePanel interactiveGeneExpressionTablePanel;
 
 	public ActionPanel( MainFrame mainFrame, Bdv bdv, PlatyBrowser platyBrowser )
 	{
@@ -59,6 +56,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		addSourceSelectionUI( this );
 		addPositionZoomUI( this  );
+		addPositionPrintUI( this );
 		addSelectionUI( this );
 		addLocalGeneSearchUI( this);
 		addLeveling( this );
@@ -87,6 +85,35 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 	}
 
+	public ArrayList< Double > getGeneSearchRadii()
+	{
+		return geneSearchRadii;
+	}
+
+
+	private void addPositionPrintUI( JPanel panel )
+	{
+
+		JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+
+		horizontalLayoutPanel.add( new JLabel( "[ P ] Print current position " ) );
+
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
+
+			(new Thread(new Runnable(){
+				public void run()
+				{
+					final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
+					Utils.log( "Position: " + globalMouseCoordinates.toString() );
+				}
+			})).start();
+
+		}, "Print position", "P"  ) ;
+
+		panel.add( horizontalLayoutPanel );
+	}
+
+
 	private void addSelectNone( Behaviours behaviours )
 	{
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
@@ -100,69 +127,15 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 
 			(new Thread(new Runnable(){
-				public void run(){
-
-					final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
-
-					showObjectIn3D( globalMouseCoordinates );
-
+				public void run()
+				{
+					showSelectedObjectIn3D( bdv, BdvUtils.getGlobalMouseCoordinates( bdv ), 0.1 );
 				}
 			})).start();
 
 		}, "3d object view", "button1 double-click"  ) ;
 	}
 
-	public void showObjectIn3D( RealPoint globalMouseCoordinates )
-	{
-
-		final BdvObjectExtractor bdvObjectExtractor = new BdvObjectExtractor( bdv, globalMouseCoordinates, 0 );
-
-		(new Thread(new Runnable()
-		{
-			public void run()
-			{
-				bdvObjectExtractor.run();
-			}
-		})).start();
-
-		final Image3DUniverse univ = new Image3DUniverse();
-		univ.show();
-
-
-		int level = 0;
-
-		while( ! bdvObjectExtractor.isDone() )
-		{
-			while( ! bdvObjectExtractor.isLevelAvailable( level ) )
-			{
-				wait100ms();
-
-				if ( bdvObjectExtractor.isDone() ) break;
-			}
-
-			final ImagePlus objectMask = Utils.asImagePlus(
-					bdvObjectExtractor.getObjectMask( level ),
-					bdvObjectExtractor.getCalibration( level ) ).duplicate(); // duplicate ImagePlus to copy into RAM
-
-			level++;
-
-			objectMask.show();
-//
-//			(new Thread(new Runnable()
-//			{
-//				public void run()
-//				{
-//					univ.removeAllContents();
-//					final Content content = univ.addMesh( objectMask, null, "object", 250, new boolean[]{ true, true, true }, 1 );
-//					content.setColor( new Color3f( 1.0f, 1.0f, 1.0f ) );
-//				}
-//			})).start();
-
-			break;
-		}
-
-		int a = 1;
-	}
 
 	private void addObjectSelection( Behaviours behaviours )
 	{
@@ -203,22 +176,24 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 			double micrometerRadius = Double.parseDouble( ( String ) radiiComboBox.getSelectedItem() );
 
+			final BdvTextOverlay bdvTextOverlay = new BdvTextOverlay( bdv, "Searching expressed genes; please wait...", micrometerPosition );
+
 			(new Thread(new Runnable(){
 				public void run(){
-					searchNearbyGenes( micrometerPosition, micrometerRadius );
+					searchGenes( micrometerPosition, micrometerRadius );
+					bdvTextOverlay.setText( "" );
 				}
 			})).start();
 
 
-		}, "search genes", "D" );
+		}, "discover genes", "D" );
 
 		panel.add( horizontalLayoutPanel );
 
 	}
 
-	private void searchNearbyGenes( double[] micrometerPosition, double micrometerRadius )
+	public void searchGenes( double[] micrometerPosition, double micrometerRadius )
 	{
-
 		GeneSearch geneSearch = new GeneSearch(
 				micrometerRadius,
 				micrometerPosition,
@@ -227,45 +202,64 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 				geneSearchMipMapLevel,
 				geneSearchVoxelSize );
 
-		geneSearch.run();
+		final Map< String, Double > geneExpressionLevels = geneSearch.runSearchAndGetLocalExpression();
+		final Map< String, Double > sortedGeneExpressionLevels = geneSearch.getSortedExpressionLevels();
 
-		// TODO: this seems overly complicated, put the thread logic into gene search itself?!
-		while( ! geneSearch.isDone() )
+		addSortedGenesToViewerPanel( sortedGeneExpressionLevels, 15 );
+		addRowToExpressionLevelsTable( micrometerPosition, micrometerRadius, geneExpressionLevels );
+		logGeneExpression( micrometerPosition, micrometerRadius, sortedGeneExpressionLevels );
+
+	}
+
+	public void logGeneExpression( double[] micrometerPosition, double micrometerRadius, Map< String, Double > sortedGeneExpressionLevels )
+	{
+		Utils.log( "\n# Expression levels [fraction of search volume]" );
+		Utils.logVector( "Center position [um]" , micrometerPosition );
+		Utils.log( "Radius [um]: " + micrometerRadius );
+		for ( String gene : sortedGeneExpressionLevels.keySet() )
 		{
-			wait100ms();
+			Utils.log( gene  + ": " + sortedGeneExpressionLevels.get( gene ) );
+		}
+	}
+
+	public void addRowToExpressionLevelsTable( double[] micrometerPosition, double micrometerRadius, Map< String, Double > geneExpressionLevels )
+	{
+		if ( interactiveGeneExpressionTablePanel == null )
+		{
+			initGeneExpressionTable( geneExpressionLevels );
 		}
 
-		final ArrayList< String > genes = new ArrayList( geneSearch.getSortedGenes().keySet() );
+		final Double[] position = { micrometerPosition [ 0 ], micrometerPosition[ 1 ], micrometerPosition[ 2 ], 0.0 };
+		final Double[] parameters = { micrometerRadius };
+		final Double[] expressionLevels = geneExpressionLevels.values().toArray( new Double[ geneExpressionLevels.size() ] );
+		interactiveGeneExpressionTablePanel.addRow( combine( combine( position, parameters ), expressionLevels ) );
+	}
 
-		if ( genes.size() > 0 )
+	public void initGeneExpressionTable( Map< String, Double > geneExpressionLevels )
+	{
+		final String[] position = { "X", "Y", "Z", "T" };
+		final String[] searchParameters = { "SearchRadius_um" };
+		final String[] genes = geneExpressionLevels.keySet().toArray( new String[ geneExpressionLevels.keySet().size() ] );
+
+		interactiveGeneExpressionTablePanel = new InteractiveTablePanel( combine( combine( position, searchParameters ), genes ) );
+		interactiveGeneExpressionTablePanel.setCoordinateColumns( new int[]{ 0, 1, 2, 3 }  );
+		interactiveGeneExpressionTablePanel.setBdv( bdv );
+	}
+
+	public void addSortedGenesToViewerPanel( Map sortedExpressionLevels, int maxNumGenes )
+	{
+		final ArrayList< String > sortedGenes = new ArrayList( sortedExpressionLevels.keySet() );
+
+		if ( sortedGenes.size() > 0 )
 		{
 			mainFrame.getBdvSourcesPanel().removeAllProSPrSources();
 
-			for ( int i = genes.size() - 1; i > genes.size() - 10 && i > 0 ; --i )
+			for ( int i = sortedGenes.size()-1; i > sortedGenes.size()- maxNumGenes && i >= 0; --i )
 			{
-
-				mainFrame.getBdvSourcesPanel().addSourceToViewerAndPanel( genes.get( i ) );
-
-//				if ( i == genes.size() - 1 )
-//				{
-//					mainFrame.getBdvSourcesPanel().toggleVisibility( genes.get( i ) );
-//				}
+				mainFrame.getBdvSourcesPanel().addSourceToViewerAndPanel( sortedGenes.get( i ) );
 			}
 		}
 	}
-
-	private void wait100ms()
-	{
-		try
-		{
-			Thread.sleep( 100 );
-		}
-		catch ( InterruptedException e )
-		{
-			e.printStackTrace();
-		}
-	}
-
 
 	private void setGeneSearchRadii( )
 	{
@@ -319,18 +313,6 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		}
 		return appropriateLevel;
 	}
-
-	public void printCoordinates()
-	{
-
-		//final RealPoint posInverse = new RealPoint( 3 );
-		//ProSPrRegistration.getTransformationFromEmToProsprInMicrometerUnits().inverse().apply( micrometerMousePosition, posInverse );
-		//IJ.log( "coordinates in raw em data set [micrometer] : " + Util.printCoordinates( new RealPoint( posInverse ) ) );
-
-		IJ.log( "coordinates in raw em data set [micrometer] : " + Util.printCoordinates( BdvUtils.getGlobalMouseCoordinates( bdv ) ) );
-
-	}
-
 
 	private void addSourceSelectionUI( JPanel panel )
 	{
@@ -429,10 +411,10 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				BdvUtils.centerBdvViewToPosition(
+				BdvUtils.zoomToPosition(
 						bdv,
 						Utils.delimitedStringToDoubleArray( position.getText(), ","),
-						Double.parseDouble( zoom.getText() ) );
+						Double.parseDouble( zoom.getText() ), 1000 );
 			}
 		} );
 
@@ -441,10 +423,11 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				BdvUtils.centerBdvViewToPosition(
+				BdvUtils.zoomToPosition(
 						bdv,
 						Utils.delimitedStringToDoubleArray( position.getText(), ","),
-						Double.parseDouble( zoom.getText() ) );
+						Double.parseDouble( zoom.getText() ),
+						1000 );
 			}
 		} );
 

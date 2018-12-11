@@ -1,6 +1,7 @@
 package de.embl.cba.platynereis.ui;
 
 import bdv.util.Bdv;
+import bdv.viewer.Source;
 import de.embl.cba.platynereis.*;
 import de.embl.cba.platynereis.utils.Utils;
 
@@ -119,6 +120,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         }
 
         source.bdvStackSource.setActive( true );
+
         source.isActive = true;
     }
 

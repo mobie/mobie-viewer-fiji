@@ -11,6 +11,7 @@ import net.imglib2.type.numeric.RealType;
 
 import java.util.*;
 
+import static de.embl.cba.platynereis.utils.Utils.logVector;
 import static de.embl.cba.platynereis.utils.Utils.openSpimData;
 
 public class GeneSearch < T extends RealType< T > & NativeType< T > >
@@ -22,11 +23,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 	private final Bdv bdv;
 	private final int mipMapLevel;
 	private final double micrometerVoxelSize;
-	private BdvTextOverlay bdvTextOverlay;
-	private boolean searchFinished;
-	private ArrayList< String > sortedNames;
-	private Map< String, Double > sortedGenes;
-
+	private Map< String, Double > localExpression;
 
 	public GeneSearch( double micrometerRadius,
 					   double[] micrometerPosition,
@@ -41,39 +38,21 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 		this.bdv = bdv;
 		this.mipMapLevel = mipMapLevel;
 		this.micrometerVoxelSize = micrometerVoxelSize;
-		this.searchFinished = false;
 	}
 
-	public void run( )
+
+	public Map< String, Double > getSortedExpressionLevels()
 	{
-
-		// TODO: throws exeception when removing
-		bdvTextOverlay = new BdvTextOverlay( bdv, "Searching expressed genes; please wait...", micrometerPosition );
-
-		(new Thread(new Runnable(){
-			public void run(){
-				runSearch();
-			}
-		})).start();
-
+		Map< String, Double > localSortedExpression = Utils.sortByValue( localExpression );
+		removeGenesWithZeroExpression( localSortedExpression );
+		return localSortedExpression;
 	}
 
-	public Map< String, Double > getSortedGenes()
+	public Map< String, Double > runSearchAndGetLocalExpression()
 	{
-		return sortedGenes;
-	}
-
-	public boolean isDone()
-	{
-		return searchFinished;
-	}
-
-	private void runSearch( )
-	{
-
 		final Set< String > sources = dataSources.keySet();
 
-		Map< String, Double > localSums = new LinkedHashMap<>(  );
+		localExpression = new LinkedHashMap<>(  );
 
 		for ( String name : sources )
 		{
@@ -98,50 +77,46 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 			final ViewerSetupImgLoader< ?, ? > setupImgLoader = imgLoader.getSetupImgLoader( 0 );
 			final RandomAccessibleInterval< T > image = (RandomAccessibleInterval<T>) setupImgLoader.getImage( 0, mipMapLevel );
 
-			final double localMaximum = Utils.getLocalSum(
+			final double fractionOfNonZeroVoxels = Utils.getFractionOfNonZeroVoxels(
 					image,
 					micrometerPosition,
 					micrometerRadius,
 					micrometerVoxelSize );
 
-			localSums.put( name, localMaximum );
+			localExpression.put( name, fractionOfNonZeroVoxels );
 
 		}
 
-		sortedGenes = Utils.sortByValue( localSums );
-		sortedNames = new ArrayList( sortedGenes.keySet() );
+		return localExpression;
 
-		removeGenesWithZeroExpression();
-		logResult( );
-
-		searchFinished = true;
-
-		bdvTextOverlay.setText( "" );
-		//bdvTextOverlay.removeFromBdv(); // TODO: throws error
 	}
 
-	private void logResult()
-	{
-		Utils.log( "## Sorted gene list " );
-		sortedNames = new ArrayList( sortedGenes.keySet() );
-		for ( int i = 0; i < sortedGenes.size(); ++i )
-		{
-			String name = sortedNames.get( i );
-			Utils.log( name + ": " + sortedGenes.get( name ) );
-		}
-	}
 
-	private void removeGenesWithZeroExpression()
+
+//	private void logResult()
+//	{
+//		Utils.log( "## Sorted gene list " );
+//		sortedNames = new ArrayList( localSortedExpression.keySet() );
+//		for ( int i = 0; i < localSortedExpression.size(); ++i )
+//		{
+//			String name = sortedNames.get( i );
+//			Utils.log( name + ": " + localSortedExpression.get( name ) );
+//		}
+//	}
+
+	private void removeGenesWithZeroExpression( Map< String, Double > localSortedExpression)
 	{
+		ArrayList< String > sortedNames = new ArrayList( localSortedExpression.keySet() );
+
 		// remove entries with zero expression
 		for ( int i = sortedNames.size() - 1; i >= 0; --i )
 		{
 			String name = sortedNames.get( i );
-			double value = sortedGenes.get( name ).doubleValue();
+			double value = localSortedExpression.get( name ).doubleValue();
 
 			if ( value == 0.0 )
 			{
-				sortedGenes.remove( name );
+				localSortedExpression.remove( name );
 			}
 		}
 	}

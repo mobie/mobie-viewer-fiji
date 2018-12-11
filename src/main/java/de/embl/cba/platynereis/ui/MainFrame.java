@@ -1,10 +1,14 @@
 package de.embl.cba.platynereis.ui;
 
+import bdv.tools.HelpDialog;
 import bdv.util.Bdv;
 import de.embl.cba.platynereis.PlatyBrowser;
+import net.imagej.ops.Ops;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 public class MainFrame extends JFrame
 {
@@ -12,6 +16,7 @@ public class MainFrame extends JFrame
 	final PlatyBrowser platyBrowser;
 	private final ActionPanel actionPanel;
 	private final BdvSourcesPanel bdvSourcesPanel;
+	private HelpDialog helpDialog;
 
 	public MainFrame( Bdv bdv, PlatyBrowser platyBrowser ) throws HeadlessException
 	{
@@ -40,6 +45,37 @@ public class MainFrame extends JFrame
 		this.pack();
 		this.setVisible( true );
 
+		initHelpDialog();
+
+	}
+
+	public void initHelpDialog()
+	{
+		helpDialog = new HelpDialog( this, MainFrame.class.getResource( "Help.html" ) );
+
+		this.addKeyListener( new KeyListener()
+		{
+			@Override
+			public void keyTyped( KeyEvent e )
+			{
+
+			}
+
+			@Override
+			public void keyPressed( KeyEvent e )
+			{
+
+			}
+
+			@Override
+			public void keyReleased( KeyEvent e )
+			{
+				if (e.getKeyCode()==KeyEvent.VK_F1)
+				{
+					helpDialog.setVisible( !helpDialog.isVisible() );
+				}
+			}
+		} );
 	}
 
 
