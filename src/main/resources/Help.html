@@ -35,137 +35,30 @@ body
 }
 </style>
 <body>
-<h2>Sources and display modes</h2>
+<h2>Actions</h2>
 <p>
-The viewer can display files containing multiple sources.
-For example, in a multi-angle SPIM sequence, each angle is a source.
-</p>
-<p>
-The viewer has two display modes, <i>single-source</i> and <i>fused</i>.
-In <i>single-source</i> mode, only the <i>current</i> source is shown
-(there is exactly one current source at any given time.)
-In <i>fused</i> mode, all <i>active</i> sources are shown overlaid.
+...
 </p>
 
 <table border="1">
 <tr>
-  <td class="a"><b>F</b></td>
-  <td>Switch between <i>single-source</i> and <i>fused</i> mode.</td>
+  <td class="a"><b>P</b></td>
+  <td>Print 3D position of mouse cursor in micrometer units.</td>
 </tr><tr>
-  <td class="a"><b>1</b> / <b>2</b> / &hellip; / <b>0</b></td>
-  <td>Make source 1/2/&hellip;/0 the current source.</td>
+  <td class="a"><b>D</b></td>
+  <td>Discover genes that are expressed at current position.</td>
 </tr><tr>
-  <td class="a"><b>Shift&nbsp;1</b> / <b>Shift&nbsp;2</b> / &hellip; / <b>Shift&nbsp;0</b></td>
-  <td>Make source 1/2/&hellip;/0 active or inactive. (Toggle visibility in fused mode.)</td>
+  <td class="a"><b>Shift + Left-click</b></td>
+  <td>Toggle selection of an object.</td>
 </tr><tr>
-  <td class="a"><b>I</b></td>
-  <td>Switch between tri-linear and nearest-neighbor interpolation.</td>
+  <td class="a"><b>Q</b></td>
+  <td>Unselect all objects.</td>
 </tr><tr>
-  <td class="a"><b>S</b></td>
-  <td>Show Brightness &amp; Color dialog.</td>
-</tr>
-</tr><tr>
-  <td class="a"><b>F6</b></td>
-  <td>Show Visibility &amp; Grouping dialog.</td>
-</tr><tr>
-  <td class="a"><b>G</b></td>
-  <td>Toggle source <i>grouping</i>.</td>
+  <td class="a"><b>Double-click</b></td>
+  <td>View object in 3D.</td>
 </tr>
 </table>
 <br/>
-
-<h2>Navigation</h2>
-<p>
-Using the mouse:
-</p>
-<table border="1">
-<tr>
-  <td class="a"><b>Left-drag</b></td>
-  <td>Rotate (pan and tilt) around the point where the mouse was clicked.</td>
-</tr><tr>
-  <td class="a"><b>Right-drag</b> or<br/><b>Middle-drag</b></td>
-  <td>Move in the xy-plane.</td>
-</tr><tr>
-  <td class="a"><b>Scroll</b></td>
-  <td>Move along the z-axis.</td>
-</tr><tr>
-  <td class="a"><b>Meta&nbsp;Scroll</b> or<br/><b>Ctrl&nbsp;Shift&nbsp;Scroll</b></td>
-  <td>Zoom in and out.</td>
-</tr>
-</table>
-<p>
-Using the keyboard:
-</p>
-<table border="1">
-<tr>
-  <td class="a"><b>X</b> / <b>Y</b> / <b>Z</b></td>
-  <td>Select rotation axis.</td>
-</tr><tr>
-  <td class="a"><b>&larr;</b> / <b>&rarr;</b></td>
-  <td>Rotate clockwise / counter-clockwise around the choosen rotation axis.</td>
-</tr><tr>
-  <td class="a"><b>&uarr;</b> / <b>&darr;</b></td>
-  <td>Zoom in / out.</td>
-</tr><tr>
-  <td class="a"><b>,</b> / <b>.</b></td>
-  <td>Move forward / backward along the z-axis.</td>
-</tr><tr>
-  <td class="a"><b>Shift&nbsp;X</b></td>
-  <td>Rotate to the zy-plane of the current source. (Look along the x-axis of the current source.)</td>
-</tr><tr>
-  <td class="a"><b>Shift&nbsp;Y</b> or <b>Shift&nbsp;A</b></td>
-  <td>Rotate to the xz-plane of the current source. (Look along the y-axis of the current source.)</td>
-</tr><tr>
-  <td class="a"><b>Shift&nbsp;Z</b></td>
-  <td>Rotate to the xy-plane of the current source. (Look along the z-axis of the current source.)</td>
-</tr><tr>
-  <td class="a"><b>[</b> or <b>n</b></td>
-  <td>Move to previous timepoint.</td>
-</tr><tr>
-  <td class="a"><b>]</b> or <b>m</b></td>
-  <td>Move to next timepoint.</td>
-</tr>
-</table>
-<p>
-Hold <b>Shift</b> to rotate and browse 10x faster.<br/>
-Hold <b>Ctrl</b> to rotate and browse 10x slower.
-</p>
-
-<h2>Bookmarks</h2>
-<br/>
-<table border="1">
-<tr>
-  <td class="a"><b>Shift&nbsp;B&nbsp;<i>key</i></b></td>
-  <td>Set bookmark with label <i>key</i>.</td>
-</tr><tr>
-  <td class="a"><b>B&nbsp;<i>key</i></b></td>
-  <td>Go to bookmark with label <i>key</i>.</td>
-</tr><tr>
-  <td class="a"><b>O&nbsp;<i>key</i></b></td>
-  <td>Set current rotation to that of bookmark with label <i>key</i>.</td>
-</tr>
-</table>
-<br/>
-
-<h2>Miscellaneous</h2>
-<br/>
-<table border="1">
-<tr>
-  <td class="a"><b>T</b></td>
-  <td>Start manual transformation. Only the current source (respectively group) is transformed.
-  Press <b>T</b> again to fix the transformation relative to the other sources.
-  Press <b>ESC</b> to abort.</td>
-</tr><tr>
-  <td class="a"><b>F10</b></td>
-  <td>Show Record Movie dialog.</td>
-</tr><tr>
-  <td class="a"><b>F11</b></td>
-  <td>Save settings file (brightness, colors, groups, bookmarks, etc.)</td>
-</tr><tr>
-  <td class="a"><b>F12</b></td>
-  <td>Load settings file.</td>
-</tr>
-</table>
 
 </body>
 </html>

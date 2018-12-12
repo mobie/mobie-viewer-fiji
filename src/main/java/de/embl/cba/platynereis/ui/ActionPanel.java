@@ -30,6 +30,7 @@ import static de.embl.cba.platynereis.utils.Utils.openSpimData;
 
 public class ActionPanel < T extends RealType< T > & NativeType< T > > extends JPanel
 {
+	public static final int TEXT_FIELD_HEIGHT = 20;
 	private final Bdv bdv;
 	private final PlatyBrowser platyBrowser;
 	private final MainFrame mainFrame;
@@ -70,10 +71,10 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	{
 		JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		horizontalLayoutPanel.add( new JLabel( "[ Shift click ] Select object " ) );
-		horizontalLayoutPanel.add( new JLabel( "[ Double click ] 3D object view " ) );
-		horizontalLayoutPanel.add( new JLabel( "[ Q ] Select none " ) );
-		horizontalLayoutPanel.add( new JLabel( " " ) );
+//		horizontalLayoutPanel.add( new JLabel( "[ Shift click ] Select object " ) );
+//		horizontalLayoutPanel.add( new JLabel( "[ Double click ] 3D object view " ) );
+//		horizontalLayoutPanel.add( new JLabel( "[ Q ] Select none " ) );
+//		horizontalLayoutPanel.add( new JLabel( " " ) );
 
 		addObjectSelection( behaviours );
 
@@ -96,7 +97,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		horizontalLayoutPanel.add( new JLabel( "[ P ] Print current position " ) );
+		//horizontalLayoutPanel.add( new JLabel( "[ P ] Print current position " ) );
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 
@@ -157,7 +158,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		horizontalLayoutPanel.add( new JLabel( "[ D ] Discover genes within radius: " ) );
+		horizontalLayoutPanel.add( new JLabel( "Gene discovery radius: " ) );
 
 		setGeneSearchRadii();
 
@@ -397,12 +398,14 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		horizontalLayoutPanel.add( new JLabel( "Move to [x,y,z]: " ) );
 
 		final JTextField position = new JTextField( "  177, 218,  67  " );
+		position.setMaximumSize( new Dimension( 10, TEXT_FIELD_HEIGHT ) );
 
 		horizontalLayoutPanel.add( position );
 
 		horizontalLayoutPanel.add( new JLabel( "  Zoom factor: " ) );
 
 		final JTextField zoom = new JTextField( " 15 " );
+		zoom.setMaximumSize( new Dimension( 10, TEXT_FIELD_HEIGHT ) );
 
 		horizontalLayoutPanel.add( zoom );
 		

@@ -3,12 +3,11 @@ package de.embl.cba.platynereis.ui;
 import bdv.tools.HelpDialog;
 import bdv.util.Bdv;
 import de.embl.cba.platynereis.PlatyBrowser;
-import net.imagej.ops.Ops;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 
 public class MainFrame extends JFrame
 {
@@ -17,6 +16,8 @@ public class MainFrame extends JFrame
 	private final ActionPanel actionPanel;
 	private final BdvSourcesPanel bdvSourcesPanel;
 	private HelpDialog helpDialog;
+	private final JSplitPane splitPane;
+	private AbstractAction help;
 
 	public MainFrame( Bdv bdv, PlatyBrowser platyBrowser ) throws HeadlessException
 	{
@@ -26,7 +27,7 @@ public class MainFrame extends JFrame
 		actionPanel = new ActionPanel( this, bdv, platyBrowser );
 		bdvSourcesPanel = new BdvSourcesPanel( this, bdv, platyBrowser );
 
-		JSplitPane splitPane = new JSplitPane();
+		splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );  // we want it to split the window verticaly
 		splitPane.setDividerLocation( 200 );                    // the initial position of the divider is 200 (our window is 400 pixels high)
 		splitPane.setTopComponent( actionPanel );                  // at the top we want our "topPanel"
@@ -51,31 +52,23 @@ public class MainFrame extends JFrame
 
 	public void initHelpDialog()
 	{
-		helpDialog = new HelpDialog( this, MainFrame.class.getResource( "Help.html" ) );
+		helpDialog = new HelpDialog( this, MainFrame.class.getResource( "/Help.html" ) );
 
-		this.addKeyListener( new KeyListener()
+		this.setFocusable( true );
+		this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+				.put( KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help" );
+
+		help = new AbstractAction()
 		{
 			@Override
-			public void keyTyped( KeyEvent e )
+			public void actionPerformed(ActionEvent e)
 			{
-
+				System.out.println( "aaa ");
+				helpDialog.setVisible( ! helpDialog.isVisible() );
 			}
+		};
 
-			@Override
-			public void keyPressed( KeyEvent e )
-			{
-
-			}
-
-			@Override
-			public void keyReleased( KeyEvent e )
-			{
-				if (e.getKeyCode()==KeyEvent.VK_F1)
-				{
-					helpDialog.setVisible( !helpDialog.isVisible() );
-				}
-			}
-		} );
+		this.getRootPane().getActionMap().put("help", help );
 	}
 
 
