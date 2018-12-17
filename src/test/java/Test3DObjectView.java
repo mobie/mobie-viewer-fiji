@@ -21,7 +21,7 @@ public class Test3DObjectView
 //				10 );
 
 
-		ObjectViewer3D.showSelectedObjectIn3D( platyBrowser.getBdv(), new RealPoint( 164, 91, 142 ), 0.1 );
+		new ObjectViewer3D().showSelectedObjectIn3D( platyBrowser.getBdv(), new RealPoint( 164, 91, 142 ), 0.1 );
 
 	}
 }

@@ -267,7 +267,10 @@ public class Utils
 	}
 
 
-
+	public static void wait(int msecs) {
+		try {Thread.sleep(msecs);}
+		catch (InterruptedException e) { }
+	}
 
 	public static void logVector( String preText, double[] vector )
 	{

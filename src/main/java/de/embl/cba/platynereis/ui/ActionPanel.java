@@ -5,6 +5,7 @@ import bdv.ViewerSetupImgLoader;
 import bdv.util.Bdv;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.*;
+import de.embl.cba.platynereis.objects.ObjectViewer3D;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.InteractiveTablePanel;
 import net.imglib2.RealPoint;
@@ -24,7 +25,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-import static de.embl.cba.platynereis.objects.ObjectViewer3D.showSelectedObjectIn3D;
 import static de.embl.cba.platynereis.utils.Utils.combine;
 import static de.embl.cba.platynereis.utils.Utils.openSpimData;
 
@@ -38,6 +38,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	private int geneSearchMipMapLevel;
 	private double geneSearchVoxelSize;
 	private ArrayList< Double > geneSearchRadii;
+
 	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	private double[] targetNormalVector;
 	private InteractiveTablePanel interactiveGeneExpressionTablePanel;
@@ -58,33 +59,18 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		addSourceSelectionUI( this );
 		addPositionZoomUI( this  );
 		addPositionPrintUI( this );
-		addSelectionUI( this );
 		addLocalGeneSearchUI( this);
 		addLeveling( this );
+		addObjectSelection();
+		addSelectNone( );
+		add3DObjectView( this );
 
 		this.revalidate();
 		this.repaint();
 
 	}
 
-	public void addSelectionUI( JPanel panel )
-	{
-		JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-//		horizontalLayoutPanel.add( new JLabel( "[ Shift click ] Select object " ) );
-//		horizontalLayoutPanel.add( new JLabel( "[ Double click ] 3D object view " ) );
-//		horizontalLayoutPanel.add( new JLabel( "[ Q ] Select none " ) );
-//		horizontalLayoutPanel.add( new JLabel( " " ) );
-
-		addObjectSelection( behaviours );
-
-		add3DObjectView( behaviours );
-
-		addSelectNone( behaviours );
-
-		panel.add( horizontalLayoutPanel );
-
-	}
 
 	public ArrayList< Double > getGeneSearchRadii()
 	{
@@ -115,7 +101,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	}
 
 
-	private void addSelectNone( Behaviours behaviours )
+	private void addSelectNone( )
 	{
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
@@ -123,22 +109,57 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		}, "select none", "Q" );
 	}
 
-	private void add3DObjectView( Behaviours behaviours )
+	private void add3DObjectView( JPanel panel )
 	{
+
+		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+
+		horizontalLayoutPanel.add( new JLabel( "3D object view resolution [um]: " ) );
+
+		final JComboBox resolutionComboBox = getResolutionComboBox();
+
+		horizontalLayoutPanel.add( resolutionComboBox );
+
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 
 			(new Thread(new Runnable(){
 				public void run()
 				{
-					showSelectedObjectIn3D( bdv, BdvUtils.getGlobalMouseCoordinates( bdv ), 0.1 );
+					new ObjectViewer3D().showSelectedObjectIn3D(
+							bdv,
+							BdvUtils.getGlobalMouseCoordinates( bdv ),
+							Double.parseDouble( (String) resolutionComboBox.getSelectedItem() ) );
 				}
 			})).start();
 
 		}, "3d object view", "button1 double-click"  ) ;
+
+		panel.add( horizontalLayoutPanel );
+	}
+
+	private JComboBox getResolutionComboBox()
+	{
+		final JComboBox resolutionComboBox = new JComboBox( );
+
+		final ArrayList< Double > resolutions = new ArrayList<>();
+		resolutions.add( 2.0 );
+		resolutions.add( 1.0 );
+		resolutions.add( 0.5 );
+		resolutions.add( 0.25 );
+		resolutions.add( 0.10 );
+		resolutions.add( 0.05 );
+		resolutions.add( 0.01 );
+
+		for ( double resolution : resolutions )
+		{
+			resolutionComboBox.addItem( "" + resolution );
+		}
+		resolutionComboBox.setSelectedItem( 0.5 );
+		return resolutionComboBox;
 	}
 
 
-	private void addObjectSelection( Behaviours behaviours )
+	private void addObjectSelection( )
 	{
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 
@@ -346,13 +367,13 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		final JButton levelCurrentView = new JButton( "Level" );
+		final JButton levelCurrentView = new JButton( "Level current view" );
 		horizontalLayoutPanel.add( levelCurrentView );
 
-		final JButton changeReference = new JButton( "Set new" );
+		final JButton changeReference = new JButton( "Set new level vector" );
 		horizontalLayoutPanel.add( changeReference );
 
-		final JButton defaultReference = new JButton( "Set default" );
+		final JButton defaultReference = new JButton( "Set default level vector" );
 		horizontalLayoutPanel.add( defaultReference );
 
 

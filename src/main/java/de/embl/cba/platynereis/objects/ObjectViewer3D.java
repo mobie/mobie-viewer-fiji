@@ -3,6 +3,7 @@ package de.embl.cba.platynereis.objects;
 import bdv.util.Bdv;
 import de.embl.cba.bdv.utils.objects.BdvObjectExtractor;
 import de.embl.cba.platynereis.utils.Utils;
+import ij.IJ;
 import ij.ImagePlus;
 import ij3d.Content;
 import ij3d.Image3DUniverse;
@@ -12,18 +13,50 @@ import org.scijava.vecmath.Color3f;
 
 import java.util.ArrayList;
 
-import static de.embl.cba.platynereis.utils.Utils.log;
-import static de.embl.cba.platynereis.utils.Utils.wait100ms;
-
 public class ObjectViewer3D
 {
+
+	private boolean isUniverseCreated;
+	private Image3DUniverse universe;
+	private double objectLabel;
+	private ImagePlus objectMask;
+
 	public ObjectViewer3D()
 	{
+
 	}
 
-	public static void showSelectedObjectIn3D( Bdv bdv, RealPoint coordinate, double voxelSize )
+	public void showSelectedObjectIn3D( Bdv bdv, RealPoint coordinate, double voxelSize )
 	{
+		createUniverse();
 
+		objectMask = extractObject( bdv, coordinate, voxelSize );
+
+		createMeshAndDisplay( objectMask );
+	}
+
+	public void createMeshAndDisplay( ImagePlus objectMask )
+	{
+		(new Thread(new Runnable()
+		{
+			public void run()
+			{
+				while ( !isUniverseCreated )
+				{
+					Utils.wait( 100 );
+				}
+
+				//univ.addUniverseListener( new UniverseListener( bdvObjectExtractor ) );
+
+				long start = System.currentTimeMillis();
+				final Content content = universe.addMesh( objectMask, new Color3f( 1.0f, 1.0f, 1.0f ), "object", 250, new boolean[]{ true, true, true }, 1 );
+				Utils.log( "Computed mesh and created 3D display in [ms]: " + (System.currentTimeMillis() - start) );
+			}
+		})).start();
+	}
+
+	public ImagePlus extractObject( Bdv bdv, RealPoint coordinate, double voxelSize )
+	{
 		final BdvObjectExtractor bdvObjectExtractor = new BdvObjectExtractor( bdv, coordinate, 0 );
 
 		final ArrayList< double[] > calibrations = bdvObjectExtractor.getCalibrations();
@@ -35,31 +68,35 @@ public class ObjectViewer3D
 			if ( calibrations.get( level )[ 0 ] > voxelSize ) break;
 		}
 
+		final int selectedLevel = level;
+
 		final ImagePlus objectMask = Utils.asImagePlus(
-				bdvObjectExtractor.extractObjectMask( level ),
-				calibrations.get( level ) ).duplicate(); // duplicate ImagePlus to copy into RAM
+				bdvObjectExtractor.extractObjectMask( selectedLevel ),
+				calibrations.get( selectedLevel ) ).duplicate(); // duplicate ImagePlus into RAM
+
+		objectLabel = bdvObjectExtractor.getObjectLabel();
 
 		final long executionTimeMillis = bdvObjectExtractor.getExecutionTimeMillis( );
 		Utils.log( "Extracted object at resolution " + calibrations.get( level )[ 0 ]
 				+ " in " + executionTimeMillis + " ms" );
+		return objectMask;
+	}
 
-		//objectMask.show();
-
-		final int ll = level;
+	public void createUniverse()
+	{
+		isUniverseCreated = false;
 
 		(new Thread(new Runnable()
 		{
 			public void run()
 			{
 				final long start = System.currentTimeMillis();
-				final Image3DUniverse univ = new Image3DUniverse();
-				univ.show();
-				//univ.addUniverseListener( new UniverseListener( bdvObjectExtractor ) );
-				final Content content = univ.addMesh( objectMask, new Color3f( 1.0f, 1.0f, 1.0f ), "object at level " + ll, 250, new boolean[]{ true, true, true }, 1 );
-				Utils.log( "Computed mesh and created 3D display in " + (System.currentTimeMillis() - start) + " ms" );
+				universe = new Image3DUniverse();
+				universe.show();
+				isUniverseCreated = true;
+				Utils.log( "Universe created in [ms]: " + (System.currentTimeMillis() - start) );
 			}
 		})).start();
-
 	}
 
 	public static class UniverseListener implements ij3d.UniverseListener
