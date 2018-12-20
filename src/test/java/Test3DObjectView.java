@@ -13,7 +13,7 @@ public class Test3DObjectView
 
 		final PlatyBrowser platyBrowser = new PlatyBrowser( "/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr" );
 
-		platyBrowser.getMainFrame().getBdvSourcesPanel().addSourceToViewerAndPanel( "em-segmented-cells-parapod-fib-labels-aligned" );
+		platyBrowser.getMainFrame().getBdvSourcesPanel().addSourceToViewerAndPanel( "em-segmented-cells-labels" );
 
 //		BdvUtils.zoomToPosition(
 //				platyBrowser.getBdv(),

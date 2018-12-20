@@ -77,7 +77,7 @@ public class ObjectViewer3D
 		objectLabel = bdvObjectExtractor.getObjectLabel();
 
 		final long executionTimeMillis = bdvObjectExtractor.getExecutionTimeMillis( );
-		Utils.log( "Extracted object at resolution " + calibrations.get( level )[ 0 ]
+		Utils.log( "Extracted object at resolution [um] " + calibrations.get( level )[ 0 ]
 				+ " in " + executionTimeMillis + " ms" );
 		return objectMask;
 	}

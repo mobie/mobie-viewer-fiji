@@ -4,6 +4,7 @@ import bdv.spimdata.SpimDataMinimal;
 import bdv.util.BdvSource;
 import bdv.util.BdvStackSource;
 import bdv.viewer.Source;
+import de.embl.cba.bdv.utils.labels.VolatileRealToRandomARGBConverter;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.type.volatiles.VolatileARGBType;
 
@@ -31,4 +32,6 @@ public class PlatynereisDataSource
     public Color color;
     public String name;
 
+    public VolatileRealToRandomARGBConverter labelSourceConverter;
+    public File attributeFile;
 }

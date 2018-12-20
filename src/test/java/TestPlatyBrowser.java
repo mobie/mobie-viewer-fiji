@@ -12,8 +12,6 @@ public class TestPlatyBrowser
 
 		final PlatyBrowser platyBrowser = new PlatyBrowser( "/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr" );
 
-		platyBrowser.getMainFrame().getBdvSourcesPanel().addSourceToViewerAndPanel( "em-segmented-cells-gut-labels" );
-
 		Bdv bdv = platyBrowser.getBdv();
 
 //		BdvUtils.centerBdvViewToPosition(

@@ -6,16 +6,21 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.labels.*;
+import de.embl.cba.bdv.utils.labels.ARGBConvertedRealSource;
+import de.embl.cba.bdv.utils.labels.LUTs;
+import de.embl.cba.bdv.utils.labels.VolatileRealToRandomARGBConverter;
 import de.embl.cba.platynereis.ui.BdvSourcesPanel;
 import de.embl.cba.platynereis.ui.MainFrame;
 import de.embl.cba.platynereis.utils.Utils;
+import de.embl.cba.tables.InteractiveTablePanel;
+import de.embl.cba.tables.TableUtils;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewTransformAffine;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +30,7 @@ import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.showBrightnessDialog;
 
 public class PlatyBrowser
 {
+    public static final String LABEL_ATTRIBUTES_FOLDER = "label-attributes";
     Bdv bdv;
     public Map< String, PlatynereisDataSource > dataSources;
     String emRawDataName;
@@ -34,13 +40,14 @@ public class PlatyBrowser
 
     public PlatyBrowser( String directory )
     {
-        ArrayList< File > files = new ArrayList< File >(Arrays.asList( new File( directory ).listFiles() ) );
+        ArrayList< File > imageFiles = new ArrayList< File >(Arrays.asList( new File( directory ).listFiles() ) );
+        ArrayList< File > attributeFiles = new ArrayList< File >(Arrays.asList( new File( directory + File.separator + LABEL_ATTRIBUTES_FOLDER ).listFiles() ) );
 
-        Collections.sort( files, new SortFilesIgnoreCase());
+        Collections.sort( imageFiles, new SortFilesIgnoreCase());
 
         dataSources = Collections.synchronizedMap( new LinkedHashMap() );
 
-        initDataSources( files );
+        initDataSources( imageFiles, attributeFiles );
 
         preFetchProsprDataSourcesInSeparateThread();
 
@@ -83,6 +90,40 @@ public class PlatyBrowser
                 preFetchProsprDataSources( );
             }
         })).start();
+    }
+
+
+    private void loadAttributeTablesInSeparateThread( )
+    {
+        (new Thread(new Runnable(){
+            public void run(){
+                loadAttributeTables( );
+            }
+        })).start();
+    }
+
+    private void loadAttributeTables()
+    {
+        Set< String > names = dataSources.keySet();
+
+        for (  String name : names )
+        {
+            PlatynereisDataSource source = dataSources.get( name );
+
+            if ( source.attributeFile != null )
+            {
+                try
+                {
+                    final JTable jTable = TableUtils.loadTable( source.attributeFile, "\t" );
+                    new InteractiveTablePanel( jTable );
+                }
+                catch ( IOException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+
     }
 
     public void run()
@@ -178,9 +219,9 @@ public class PlatyBrowser
         spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().set( 0, basicViewSetup);
     }
 
-    private void initDataSources( ArrayList< File > files )
+    private void initDataSources( ArrayList< File > imageFiles, ArrayList< File > attributeFiles )
     {
-        for ( File file : files )
+        for ( File file : imageFiles )
         {
             final String fileName = file.getName();
 
@@ -246,19 +287,19 @@ public class PlatyBrowser
 
                 if ( fileName.contains( Constants.LABELS_ID ) ) // labels
                 {
-                    if ( fileName.contains( Constants.CELLULAR_MODELS ))
+                    source.labelSourceConverter = new VolatileRealToRandomARGBConverter( LUTs.GLASBEY_LUT );
+                    source.labelSource = new ARGBConvertedRealSource( source.spimData, 0, source.labelSourceConverter );
+                    source.isLabelSource = true;
+                    source.spimData = null;
+                    source.maxLutValue = 600;
+
+                    for ( File attributeFile : attributeFiles )
                     {
-                        source.labelSource = new ARGBConvertedRealTypeLabelsSource( source.spimData, 0 );
-                        source.isLabelSource = true;
-                        source.spimData = null;
-                        source.maxLutValue = 600;
-                    }
-                    else
-                    {
-                        source.labelSource = new ARGBConvertedRealTypeLabelsSource( source.spimData, 0 );
-                        source.isLabelSource = true;
-                        source.spimData = null;
-                        source.maxLutValue = 600;
+                        if ( attributeFile.toString().contains( source.name ) )
+                        {
+                            // doing like this (i.e. without a break) should take the latest version
+                            source.attributeFile = attributeFile;
+                        }
                     }
                 }
             }

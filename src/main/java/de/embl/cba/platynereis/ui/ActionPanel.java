@@ -132,7 +132,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 				}
 			})).start();
 
-		}, "3d object view", "button1 double-click"  ) ;
+		}, "3d object view", "ctrl button1"  ) ;
 
 		panel.add( horizontalLayoutPanel );
 	}
@@ -142,9 +142,9 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		final JComboBox resolutionComboBox = new JComboBox( );
 
 		final ArrayList< Double > resolutions = new ArrayList<>();
-		resolutions.add( 2.0 );
-		resolutions.add( 1.0 );
-		resolutions.add( 0.5 );
+//		resolutions.add( 2.0 );
+//		resolutions.add( 1.0 );
+//		resolutions.add( 0.5 );
 		resolutions.add( 0.25 );
 		resolutions.add( 0.10 );
 		resolutions.add( 0.05 );
@@ -154,7 +154,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		{
 			resolutionComboBox.addItem( "" + resolution );
 		}
-		resolutionComboBox.setSelectedItem( 0.5 );
+		resolutionComboBox.setSelectedIndex( 0 );
 		return resolutionComboBox;
 	}
 
