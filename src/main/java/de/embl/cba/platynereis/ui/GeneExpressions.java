@@ -36,7 +36,7 @@ public class GeneExpressions
 		final Double[] position = { micrometerPosition [ 0 ], micrometerPosition[ 1 ], micrometerPosition[ 2 ], 0.0 };
 		final Double[] parameters = { micrometerRadius };
 		final Double[] expressionLevels = geneExpressionLevels.values().toArray( new Double[ geneExpressionLevels.size() ] );
-		geneExpressionTablePanel.getTableModel().addRow( combine( combine( position, parameters ), expressionLevels ) );
+		((DefaultTableModel)geneExpressionTablePanel.getTable().getModel()).addRow( combine( combine( position, parameters ), expressionLevels ) );
 	}
 
 	public static void initGeneExpressionTable( Map< String, Double > geneExpressionLevels )

@@ -36,7 +36,7 @@ public class PlatyBrowser
     public static final String LABEL_ATTRIBUTES_FOLDER = "label_attributes";
     Bdv bdv;
     public Map< String, PlatynereisDataSource > dataSources;
-    String emRawDataName;
+    String defaultSource;
     AffineTransform3D emRawDataTransform;
     BdvSourcesPanel legend;
     private final MainFrame mainFrame;
@@ -50,6 +50,8 @@ public class PlatyBrowser
         Collections.sort( imageFiles, new SortFilesIgnoreCase());
 
         dataSources = Collections.synchronizedMap( new LinkedHashMap() );
+
+        initDefaultSourceAndBdv( imageFiles );
 
         initDataSources( imageFiles, attributeFiles );
 
@@ -65,15 +67,12 @@ public class PlatyBrowser
             }
         }).start();
 
-
-        initBdvWithEmRawData();
-
         mainFrame = new MainFrame( bdv, this );
 
         legend = mainFrame.getBdvSourcesPanel();
     }
 
-    public MainFrame getMainFrame()
+    public MainFrame getMainUI()
     {
         return mainFrame;
     }
@@ -92,9 +91,9 @@ public class PlatyBrowser
         }
     }
 
-    public String getEmRawDataName()
+    public String getDefaultSourceName()
     {
-        return emRawDataName;
+        return defaultSource;
     }
 
     private void configureObjectSources()
@@ -105,13 +104,17 @@ public class PlatyBrowser
         {
             PlatynereisDataSource source = dataSources.get( name );
 
-            if ( source.attributeFile != null )
+            if ( source.isLabelSource && source.attributeFile != null )
             {
                 try
                 {
                     final JTable jTable = TableUtils.loadTable( source.attributeFile, "\t" );
                     final ObjectTablePanel objectTablePanel = new ObjectTablePanel( jTable );
-                    objectTablePanel.setCoordinateColumn( ObjectCoordinate.Label, "Label" );
+                    objectTablePanel.setCoordinateColumn( ObjectCoordinate.Label, "label_id" );
+                    objectTablePanel.setCoordinateColumn( ObjectCoordinate.X, "com_x_microns" );
+                    objectTablePanel.setCoordinateColumn( ObjectCoordinate.Y, "com_y_microns" );
+                    objectTablePanel.setCoordinateColumn( ObjectCoordinate.Z, "com_z_microns" );
+
                     objectTablePanel.showPanel();
 
                     // set up mutual interaction between table and bdv-source
@@ -177,14 +180,6 @@ public class PlatyBrowser
         }
     }
 
-    private void initBdvWithEmRawData(  )
-    {
-        bdv = Utils.showSourceInBdv( dataSources.get( emRawDataName ), bdv );
-
-        bdv.getBdvHandle().getViewerPanel().setInterpolation( Interpolation.NLINEAR );
-
-    }
-
     private SpimDataMinimal openImaris( File file, double[] calibration )
     {
         SpimDataMinimal spimDataMinimal;
@@ -219,21 +214,57 @@ public class PlatyBrowser
         spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().set( 0, basicViewSetup);
     }
 
+    private void initDefaultSourceAndBdv( ArrayList< File > imageFiles )
+    {
+        for ( File file : imageFiles )
+        {
+            final String fileName = file.getName();
+
+            if (  fileName.contains( Constants.DEFAULT_EM_RAW_FILE_ID ) && fileName.endsWith( Constants.BDV_XML_SUFFIX ) )
+            {
+                PlatynereisDataSource source = new PlatynereisDataSource();
+
+                source.name = Constants.DEFAULT_EM_RAW_FILE_ID;
+
+                dataSources.put( source.name, source );
+                defaultSource = source.name;
+
+                source.color = Constants.DEFAULT_EM_RAW_COLOR;
+                source.maxLutValue = 255;
+                source.spimData = Utils.openSpimData( file );
+
+                bdv = Utils.showSourceInBdv( dataSources.get( defaultSource ), bdv );
+                bdv.getBdvHandle().getViewerPanel().setInterpolation( Interpolation.NLINEAR );
+
+                break;
+            }
+
+        }
+
+    }
+
     private void initDataSources( ArrayList< File > imageFiles, ArrayList< File > attributeFiles )
     {
         for ( File file : imageFiles )
         {
             final String fileName = file.getName();
 
+            if ( fileName.contains( Constants.DEFAULT_EM_RAW_FILE_ID ) )
+            {
+               continue; // has been already initialised before
+            }
+
             if ( ! fileName.endsWith( Constants.BDV_XML_SUFFIX ) && ! fileName.endsWith( Constants.IMARIS_SUFFIX ) )
             {
                 continue;
             }
 
-            String dataSourceName = getDataSourceName( file );
             PlatynereisDataSource source = new PlatynereisDataSource();
 
-            dataSources.put( dataSourceName, source );
+            source.name = getDataSourceName( file );
+
+            dataSources.put( source.name, source );
+
             source.file = file;
 
             if ( fileName.contains( Constants.EM_FILE_ID ) )
@@ -245,8 +276,6 @@ public class PlatyBrowser
                 source.maxLutValue = 1000; // to render the binary prospr more transparent
             }
 
-
-			source.name = dataSourceName;
 
             if ( fileName.contains( Constants.EM_FILE_ID ) )
             {
@@ -261,11 +290,6 @@ public class PlatyBrowser
                     source.isSpimDataMinimal = true;
                 }
 
-                if ( fileName.contains( Constants.EM_RAW_FILE_DEFAULT_ID ) )
-                {
-                    emRawDataName = dataSourceName;
-                    source.name = Constants.EM_RAW_FILE_DEFAULT_ID;
-                }
 
                 if ( fileName.contains( Constants.EM_RAW_FILE_ID )  )
                 {
@@ -277,7 +301,7 @@ public class PlatyBrowser
                     source.color = Constants.DEFAULT_EM_SEGMENTATION_COLOR;
                 }
 
-                if ( fileName.contains( Constants.LABELS_ID ) ) // labels
+                if ( fileName.contains( Constants.DEFAULT_LABELS_FILE_ID ) )
                 {
                     final VolatileSpimSource volatileSpimSource = new VolatileSpimSource( source.spimData, 0, source.name );
 

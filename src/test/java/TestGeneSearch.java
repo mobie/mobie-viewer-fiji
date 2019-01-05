@@ -11,9 +11,9 @@ public class TestGeneSearch
 
 		final PlatyBrowser platyBrowser = new PlatyBrowser( "/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr" );
 
-		final ArrayList< Double > geneSearchRadii = platyBrowser.getMainFrame().getActionPanel().getGeneSearchRadii();
+		final ArrayList< Double > geneSearchRadii = platyBrowser.getMainUI().getActionPanel().getGeneSearchRadii();
 
-		platyBrowser.getMainFrame().getActionPanel().searchGenes(
+		platyBrowser.getMainUI().getActionPanel().searchGenes(
 				new double[]{126,132,142},
 				geneSearchRadii.get( 0 ) );
 

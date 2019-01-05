@@ -4,8 +4,10 @@ import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
 import bdv.util.Bdv;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.platynereis.*;
-import de.embl.cba.platynereis.objects.ObjectViewer3D;
+import de.embl.cba.platynereis.Constants;
+import de.embl.cba.platynereis.GeneSearch;
+import de.embl.cba.platynereis.PlatyBrowser;
+import de.embl.cba.platynereis.PlatynereisDataSource;
 import de.embl.cba.platynereis.utils.Utils;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -24,7 +26,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-import static de.embl.cba.platynereis.utils.Utils.combine;
 import static de.embl.cba.platynereis.utils.Utils.openSpimData;
 
 public class ActionPanel < T extends RealType< T > & NativeType< T > > extends JPanel
@@ -59,7 +60,6 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		addPositionPrintUI( this );
 		addLocalGeneSearchUI( this);
 		addLeveling( this );
-		add3DObjectView( this );
 
 		this.revalidate();
 		this.repaint();

@@ -10,7 +10,7 @@ public class TestParapodium
 
 		final PlatyBrowser platyBrowser = new PlatyBrowser( "/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr" );
 
-		platyBrowser.getMainFrame().getBdvSourcesPanel().addSourceToViewerAndPanel( "em-raw-parapod-fib.xml-aligned" );
+		platyBrowser.getMainUI().getBdvSourcesPanel().addSourceToViewerAndPanel( "em-raw-parapod-fib.xml-aligned" );
 
 
 	}

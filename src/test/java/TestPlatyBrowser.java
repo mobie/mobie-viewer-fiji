@@ -1,5 +1,4 @@
 import bdv.util.Bdv;
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.PlatyBrowser;
 import ij.ImageJ;
 
@@ -11,6 +10,8 @@ public class TestPlatyBrowser
 		new ImageJ();
 
 		final PlatyBrowser platyBrowser = new PlatyBrowser( "/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr" );
+
+		platyBrowser.getMainUI().getBdvSourcesPanel().addSourceToViewerAndPanel( "em-segmented-cells-labels" );
 
 		Bdv bdv = platyBrowser.getBdv();
 

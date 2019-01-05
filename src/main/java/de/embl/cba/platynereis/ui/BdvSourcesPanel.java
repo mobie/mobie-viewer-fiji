@@ -1,7 +1,6 @@
 package de.embl.cba.platynereis.ui;
 
 import bdv.util.Bdv;
-import bdv.viewer.Source;
 import de.embl.cba.platynereis.*;
 import de.embl.cba.platynereis.utils.Utils;
 
@@ -48,7 +47,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
         this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
         this.setAlignmentX( Component.LEFT_ALIGNMENT );
         panels = new LinkedHashMap<>(  );
-        this.addSourceToViewerAndPanel( dataSources.get( platyBrowser.getEmRawDataName() ).name );
+        this.addSourceToViewerAndPanel( dataSources.get( platyBrowser.getDefaultSourceName() ).name );
         initColors();
     }
 
