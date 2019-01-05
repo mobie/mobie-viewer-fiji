@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
-	<version>0.3.34</version>
+	<version>0.3.35</version>
 	<url>https://github.com/tischi/fiji-plugin-platynereisViewer</url>
 
 	<name>Fiji Plugin Platynereis Viewer</name>
@@ -140,7 +140,7 @@
 		<dependency>
             <groupId>org.scijava</groupId>
             <artifactId>bdv-utils</artifactId>
-            <version>0.1.24</version>
+            <version>0.1.26</version>
         </dependency>
 
 		<dependency>
@@ -152,7 +152,7 @@
 		<dependency>
 			<groupId>org.scijava</groupId>
 			<artifactId>table-utils</artifactId>
-			<version>0.1.02</version>
+			<version>0.1.05</version>
 		</dependency>
 
 

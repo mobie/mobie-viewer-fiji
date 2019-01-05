@@ -1,17 +1,12 @@
 package de.embl.cba.platynereis.utils;
 
 import bdv.util.*;
-import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.objects.BdvObjectExtractor;
-import de.embl.cba.bdv.utils.transformhandlers.BehaviourTransformEventHandler3DGoogleMouse;
+import de.embl.cba.bdv.utils.behaviour.BehaviourTransformEventHandler3DLeftMouseDrag;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.PlatynereisDataSource;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.measure.Calibration;
-import ij3d.Content;
-import ij3d.Image3DUniverse;
-import ij3d.UniverseListener;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
@@ -29,8 +24,6 @@ import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
-import org.scijava.java3d.View;
-import org.scijava.vecmath.Color3f;
 
 import java.awt.*;
 import java.io.File;
@@ -234,7 +227,7 @@ public class Utils
 			source.bdvStackSource = BdvFunctions.show( source.spimDataMinimal,
 					BdvOptions.options()
 							.addTo( bdv )
-							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() ))
+							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DLeftMouseDrag.BehaviourTransformEventHandler3DFactory() ))
 					.get( 0 );
 
 			source.bdvStackSource.setColor( asArgbType( source.color ) );
@@ -245,7 +238,7 @@ public class Utils
 			source.bdvStackSource = BdvFunctions.show( source.spimData,
 					BdvOptions.options()
 							.addTo( bdv )
-							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() ) )
+							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DLeftMouseDrag.BehaviourTransformEventHandler3DFactory() ) )
 					.get( 0 );
 
 			source.bdvStackSource.setColor( asArgbType( source.color ) );
@@ -256,12 +249,12 @@ public class Utils
 			source.bdvStackSource = BdvFunctions.show( source.labelSource,
 					BdvOptions.options()
 							.addTo( bdv )
-							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() ) );
+							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DLeftMouseDrag.BehaviourTransformEventHandler3DFactory() ) );
 			source.bdvStackSource.setDisplayRange( 0.0, source.maxLutValue );
 		}
 
 
-		BdvOptions.options().addTo( bdv ).transformEventHandlerFactory( new BehaviourTransformEventHandler3DGoogleMouse.BehaviourTransformEventHandler3DFactory() );
+		BdvOptions.options().addTo( bdv ).transformEventHandlerFactory( new BehaviourTransformEventHandler3DLeftMouseDrag.BehaviourTransformEventHandler3DFactory() );
 		return source.bdvStackSource.getBdvHandle();
 
 	}
@@ -296,20 +289,6 @@ public class Utils
 		return normalVector;
 	}
 
-	public static ImagePlus asImagePlus( RandomAccessibleInterval< BitType > mask, double[] voxelSize )
-	{
-		RandomAccessibleInterval rai = Views.addDimension( mask, 0, 0 );
-		rai = Views.permute( rai, 2,3 );
-		final ImagePlus imp = ImageJFunctions.wrap( rai, "" );
-
-		final Calibration calibration = new Calibration();
-		calibration.pixelWidth = voxelSize[ 0 ];
-		calibration.pixelHeight = voxelSize[ 1 ];
-		calibration.pixelDepth = voxelSize[ 2 ];
-		imp.setCalibration( calibration );
-
-		return imp;
-	}
 
 
 

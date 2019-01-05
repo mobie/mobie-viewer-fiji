@@ -7,7 +7,6 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.*;
 import de.embl.cba.platynereis.objects.ObjectViewer3D;
 import de.embl.cba.platynereis.utils.Utils;
-import de.embl.cba.tables.InteractiveTablePanel;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
@@ -41,7 +40,6 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	private double[] targetNormalVector;
-	private InteractiveTablePanel interactiveGeneExpressionTablePanel;
 
 	public ActionPanel( MainFrame mainFrame, Bdv bdv, PlatyBrowser platyBrowser )
 	{
@@ -61,8 +59,6 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		addPositionPrintUI( this );
 		addLocalGeneSearchUI( this);
 		addLeveling( this );
-		addObjectSelection();
-		addSelectNone( );
 		add3DObjectView( this );
 
 		this.revalidate();
@@ -70,18 +66,15 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 	}
 
-
-
 	public ArrayList< Double > getGeneSearchRadii()
 	{
 		return geneSearchRadii;
 	}
 
-
 	private void addPositionPrintUI( JPanel panel )
 	{
 
-		JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+		JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		//horizontalLayoutPanel.add( new JLabel( "[ P ] Print current position " ) );
 
@@ -100,42 +93,34 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		panel.add( horizontalLayoutPanel );
 	}
 
-
-	private void addSelectNone( )
-	{
-		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-			BdvUtils.deselectAllObjectsInActiveLabelSources( bdv );
-		}, "select none", "Q" );
-	}
-
-	private void add3DObjectView( JPanel panel )
-	{
-
-		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
-
-		horizontalLayoutPanel.add( new JLabel( "3D object view resolution [um]: " ) );
-
-		final JComboBox resolutionComboBox = getResolutionComboBox();
-
-		horizontalLayoutPanel.add( resolutionComboBox );
-
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-
-			(new Thread(new Runnable(){
-				public void run()
-				{
-					new ObjectViewer3D().showSelectedObjectIn3D(
-							bdv,
-							BdvUtils.getGlobalMouseCoordinates( bdv ),
-							Double.parseDouble( (String) resolutionComboBox.getSelectedItem() ) );
-				}
-			})).start();
-
-		}, "3d object view", "ctrl button1"  ) ;
-
-		panel.add( horizontalLayoutPanel );
-	}
+	// TODO: move to bdvSelectionEventHandler
+//	private void add3DObjectView( JPanel panel )
+//	{
+//
+//		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+//
+//		horizontalLayoutPanel.add( new JLabel( "3D object view resolution [um]: " ) );
+//
+//		final JComboBox resolutionComboBox = getResolutionComboBox();
+//
+//		horizontalLayoutPanel.add( resolutionComboBox );
+//
+//		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
+//
+//			(new Thread(new Runnable(){
+//				public void run()
+//				{
+//					new ObjectViewer3D( source ).showSelectedObjectIn3D(
+//							bdv,
+//							BdvUtils.getGlobalMouseCoordinates( bdv ),
+//							Double.parseDouble( (String) resolutionComboBox.getSelectedItem() ) );
+//				}
+//			})).start();
+//
+//		}, "3d object view", "ctrl button1"  ) ;
+//
+//		panel.add( horizontalLayoutPanel );
+//	}
 
 	private JComboBox getResolutionComboBox()
 	{
@@ -158,26 +143,9 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		return resolutionComboBox;
 	}
 
-
-	private void addObjectSelection( )
-	{
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-
-			final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
-
-			final Map< Integer, Long > integerLongMap = BdvUtils.selectObjectsInActiveLabelSources( bdv, globalMouseCoordinates );
-
-			for ( int sourceIndex : integerLongMap.keySet())
-			{
-				Utils.log( "Label " + integerLongMap.get( sourceIndex ) + " selected in source #" + sourceIndex );
-			};
-
-		}, "select object", "shift button1"  ) ;
-	}
-
 	private void addLocalGeneSearchUI( JPanel panel )
 	{
-		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		horizontalLayoutPanel.add( new JLabel( "Gene discovery radius: " ) );
 
@@ -228,44 +196,10 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		final Map< String, Double > sortedGeneExpressionLevels = geneSearch.getSortedExpressionLevels();
 
 		addSortedGenesToViewerPanel( sortedGeneExpressionLevels, 15 );
-		addRowToExpressionLevelsTable( micrometerPosition, micrometerRadius, geneExpressionLevels );
-		logGeneExpression( micrometerPosition, micrometerRadius, sortedGeneExpressionLevels );
 
-	}
+		GeneExpressions.addRowToGeneExpressionTable( micrometerPosition, micrometerRadius, geneExpressionLevels );
+		GeneExpressions.logGeneExpression( micrometerPosition, micrometerRadius, sortedGeneExpressionLevels );
 
-	public void logGeneExpression( double[] micrometerPosition, double micrometerRadius, Map< String, Double > sortedGeneExpressionLevels )
-	{
-		Utils.log( "\n# Expression levels [fraction of search volume]" );
-		Utils.logVector( "Center position [um]" , micrometerPosition );
-		Utils.log( "Radius [um]: " + micrometerRadius );
-		for ( String gene : sortedGeneExpressionLevels.keySet() )
-		{
-			Utils.log( gene  + ": " + sortedGeneExpressionLevels.get( gene ) );
-		}
-	}
-
-	public void addRowToExpressionLevelsTable( double[] micrometerPosition, double micrometerRadius, Map< String, Double > geneExpressionLevels )
-	{
-		if ( interactiveGeneExpressionTablePanel == null )
-		{
-			initGeneExpressionTable( geneExpressionLevels );
-		}
-
-		final Double[] position = { micrometerPosition [ 0 ], micrometerPosition[ 1 ], micrometerPosition[ 2 ], 0.0 };
-		final Double[] parameters = { micrometerRadius };
-		final Double[] expressionLevels = geneExpressionLevels.values().toArray( new Double[ geneExpressionLevels.size() ] );
-		interactiveGeneExpressionTablePanel.addRow( combine( combine( position, parameters ), expressionLevels ) );
-	}
-
-	public void initGeneExpressionTable( Map< String, Double > geneExpressionLevels )
-	{
-		final String[] position = { "X", "Y", "Z", "T" };
-		final String[] searchParameters = { "SearchRadius_um" };
-		final String[] genes = geneExpressionLevels.keySet().toArray( new String[ geneExpressionLevels.keySet().size() ] );
-
-		interactiveGeneExpressionTablePanel = new InteractiveTablePanel( combine( combine( position, searchParameters ), genes ) );
-		interactiveGeneExpressionTablePanel.setCoordinateColumns( new int[]{ 0, 1, 2, 3 }  );
-		interactiveGeneExpressionTablePanel.setBdv( bdv );
 	}
 
 	public void addSortedGenesToViewerPanel( Map sortedExpressionLevels, int maxNumGenes )
@@ -338,7 +272,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 	private void addSourceSelectionUI( JPanel panel )
 	{
-		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		horizontalLayoutPanel.add( new JLabel( "Add to viewer: " ) );
 
@@ -365,7 +299,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 	private void addLeveling( JPanel panel )
 	{
-		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		final JButton levelCurrentView = new JButton( "Level current view" );
 		horizontalLayoutPanel.add( levelCurrentView );
@@ -382,7 +316,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				BdvUtils.levelView( bdv, targetNormalVector );
+				BdvUtils.levelCurrentView( bdv, targetNormalVector );
 			}
 		} );
 
@@ -414,7 +348,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 	private void addPositionZoomUI( JPanel panel )
 	{
-		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		horizontalLayoutPanel.add( new JLabel( "Move to [x,y,z]: " ) );
 
@@ -457,18 +391,6 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 
 		panel.add( horizontalLayoutPanel );
-	}
-
-
-	private JPanel horizontalLayoutPanel()
-	{
-		JPanel panel = new JPanel();
-		panel.setLayout( new BoxLayout( panel, BoxLayout.LINE_AXIS ) );
-		panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 10, 10) );
-		panel.add( Box.createHorizontalGlue() );
-		panel.setAlignmentX( Component.LEFT_ALIGNMENT );
-
-		return panel;
 	}
 
 

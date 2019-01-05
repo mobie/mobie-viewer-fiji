@@ -1,19 +1,22 @@
 package de.embl.cba.platynereis;
 
+import bdv.VolatileSpimSource;
 import bdv.img.imaris.Imaris;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.tools.brightness.ConverterSetup;
-import bdv.util.*;
+import bdv.util.Bdv;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.labels.ARGBConvertedRealSource;
-import de.embl.cba.bdv.utils.labels.LUTs;
-import de.embl.cba.bdv.utils.labels.VolatileRealToRandomARGBConverter;
+import de.embl.cba.bdv.utils.behaviour.BdvSelectionEventHandler;
+import de.embl.cba.bdv.utils.converters.argb.SelectableVolatileARGBConverter;
+import de.embl.cba.bdv.utils.converters.argb.VolatileARGBConvertedRealSource;
 import de.embl.cba.platynereis.ui.BdvSourcesPanel;
 import de.embl.cba.platynereis.ui.MainFrame;
 import de.embl.cba.platynereis.utils.Utils;
-import de.embl.cba.tables.InteractiveTablePanel;
+import de.embl.cba.tables.TableBdvConnector;
 import de.embl.cba.tables.TableUtils;
+import de.embl.cba.tables.objects.ObjectCoordinate;
+import de.embl.cba.tables.objects.ObjectTablePanel;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewTransformAffine;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
@@ -30,7 +33,7 @@ import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.showBrightnessDialog;
 
 public class PlatyBrowser
 {
-    public static final String LABEL_ATTRIBUTES_FOLDER = "label-attributes";
+    public static final String LABEL_ATTRIBUTES_FOLDER = "label_attributes";
     Bdv bdv;
     public Map< String, PlatynereisDataSource > dataSources;
     String emRawDataName;
@@ -41,6 +44,7 @@ public class PlatyBrowser
     public PlatyBrowser( String directory )
     {
         ArrayList< File > imageFiles = new ArrayList< File >(Arrays.asList( new File( directory ).listFiles() ) );
+
         ArrayList< File > attributeFiles = new ArrayList< File >(Arrays.asList( new File( directory + File.separator + LABEL_ATTRIBUTES_FOLDER ).listFiles() ) );
 
         Collections.sort( imageFiles, new SortFilesIgnoreCase());
@@ -49,7 +53,18 @@ public class PlatyBrowser
 
         initDataSources( imageFiles, attributeFiles );
 
-        preFetchProsprDataSourcesInSeparateThread();
+        new Thread(new Runnable(){
+            public void run(){
+                configureObjectSources( );
+            }
+        }).start();
+
+        new Thread(new Runnable(){
+            public void run(){
+                fetchProsprSources( );
+            }
+        }).start();
+
 
         initBdvWithEmRawData();
 
@@ -82,27 +97,7 @@ public class PlatyBrowser
         return emRawDataName;
     }
 
-
-    private void preFetchProsprDataSourcesInSeparateThread( )
-    {
-        (new Thread(new Runnable(){
-            public void run(){
-                preFetchProsprDataSources( );
-            }
-        })).start();
-    }
-
-
-    private void loadAttributeTablesInSeparateThread( )
-    {
-        (new Thread(new Runnable(){
-            public void run(){
-                loadAttributeTables( );
-            }
-        })).start();
-    }
-
-    private void loadAttributeTables()
+    private void configureObjectSources()
     {
         Set< String > names = dataSources.keySet();
 
@@ -115,15 +110,20 @@ public class PlatyBrowser
                 try
                 {
                     final JTable jTable = TableUtils.loadTable( source.attributeFile, "\t" );
-                    new InteractiveTablePanel( jTable );
-                }
+                    final ObjectTablePanel objectTablePanel = new ObjectTablePanel( jTable );
+                    objectTablePanel.setCoordinateColumn( ObjectCoordinate.Label, "Label" );
+                    objectTablePanel.showPanel();
+
+                    // set up mutual interaction between table and bdv-source
+					//
+					new TableBdvConnector( objectTablePanel, source.bdvSelectionEventHandler  );
+				}
                 catch ( IOException e )
                 {
                     e.printStackTrace();
                 }
             }
         }
-
     }
 
     public void run()
@@ -230,13 +230,6 @@ public class PlatyBrowser
                 continue;
             }
 
-//            if ( ! fileName.contains( Constants.EM_FILE_ID ) && ! ( fileName.contains( Constants.NEW_PROSPR ) || fileName.contains( Constants.AVG_PROSPR ) ) )
-//            {
-//                continue;
-//            }
-
-            if ( fileName.contains( "AcTub" ) ) continue;
-
             String dataSourceName = getDataSourceName( file );
             PlatynereisDataSource source = new PlatynereisDataSource();
 
@@ -254,7 +247,6 @@ public class PlatyBrowser
 
 
 			source.name = dataSourceName;
-
 
             if ( fileName.contains( Constants.EM_FILE_ID ) )
             {
@@ -287,11 +279,20 @@ public class PlatyBrowser
 
                 if ( fileName.contains( Constants.LABELS_ID ) ) // labels
                 {
-                    source.labelSourceConverter = new VolatileRealToRandomARGBConverter( LUTs.GLASBEY_LUT );
-                    source.labelSource = new ARGBConvertedRealSource( source.spimData, 0, source.labelSourceConverter );
-                    source.isLabelSource = true;
-                    source.spimData = null;
-                    source.maxLutValue = 600;
+                    final VolatileSpimSource volatileSpimSource = new VolatileSpimSource( source.spimData, 0, source.name );
+
+                    source.labelSource = new VolatileARGBConvertedRealSource( volatileSpimSource, new SelectableVolatileARGBConverter() );
+
+					source.bdvSelectionEventHandler = new BdvSelectionEventHandler(
+							bdv,
+							source.labelSource,
+							( SelectableVolatileARGBConverter ) source.labelSource.getConverter() );
+
+					source.isLabelSource = true;
+
+					source.spimData = null;
+
+					source.maxLutValue = 600;
 
                     for ( File attributeFile : attributeFiles )
                     {
@@ -313,7 +314,7 @@ public class PlatyBrowser
     }
 
 
-    private void preFetchProsprDataSources( )
+    private void fetchProsprSources( )
     {
         Set< String > names = dataSources.keySet();
 

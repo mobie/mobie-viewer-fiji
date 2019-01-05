@@ -1,4 +1,3 @@
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.PlatyBrowser;
 import de.embl.cba.platynereis.objects.ObjectViewer3D;
 import ij.ImageJ;
@@ -21,7 +20,7 @@ public class Test3DObjectView
 //				10 );
 
 
-		new ObjectViewer3D().showSelectedObjectIn3D( platyBrowser.getBdv(), new RealPoint( 164, 91, 142 ), 0.1 );
+		new ObjectViewer3D( source ).showSelectedObjectIn3D( platyBrowser.getBdv(), new RealPoint( 164, 91, 142 ), 0.1 );
 
 	}
 }
