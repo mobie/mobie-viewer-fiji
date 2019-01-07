@@ -7,11 +7,11 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.util.Bdv;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.behaviour.BdvSelectionEventHandler;
-import de.embl.cba.bdv.utils.converters.argb.SelectableVolatileARGBConverter;
-import de.embl.cba.bdv.utils.converters.argb.VolatileARGBConvertedRealSource;
+import de.embl.cba.bdv.utils.converters.SelectableVolatileARGBConverter;
+import de.embl.cba.bdv.utils.selection.BdvSelectionEventHandler;
+import de.embl.cba.bdv.utils.sources.SelectableVolatileARGBConvertedRealSource;
 import de.embl.cba.platynereis.ui.BdvSourcesPanel;
-import de.embl.cba.platynereis.ui.MainFrame;
+import de.embl.cba.platynereis.ui.MainUI;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.TableBdvConnector;
 import de.embl.cba.tables.TableUtils;
@@ -39,7 +39,7 @@ public class PlatyBrowser
     String defaultSource;
     AffineTransform3D emRawDataTransform;
     BdvSourcesPanel legend;
-    private final MainFrame mainFrame;
+    private final MainUI mainUI;
 
     public PlatyBrowser( String directory )
     {
@@ -67,14 +67,14 @@ public class PlatyBrowser
             }
         }).start();
 
-        mainFrame = new MainFrame( bdv, this );
+        mainUI = new MainUI( bdv, this );
 
-        legend = mainFrame.getBdvSourcesPanel();
+        legend = mainUI.getBdvSourcesPanel();
     }
 
-    public MainFrame getMainUI()
+    public MainUI getMainUI()
     {
-        return mainFrame;
+        return mainUI;
     }
 
     public Bdv getBdv()
@@ -303,14 +303,15 @@ public class PlatyBrowser
 
                 if ( fileName.contains( Constants.DEFAULT_LABELS_FILE_ID ) )
                 {
-                    final VolatileSpimSource volatileSpimSource = new VolatileSpimSource( source.spimData, 0, source.name );
-
-                    source.labelSource = new VolatileARGBConvertedRealSource( volatileSpimSource, new SelectableVolatileARGBConverter() );
+                	source.labelSource = new SelectableVolatileARGBConvertedRealSource(
+							new VolatileSpimSource(
+									source.spimData,
+									0,
+									source.name ) );
 
 					source.bdvSelectionEventHandler = new BdvSelectionEventHandler(
 							bdv,
-							source.labelSource,
-							( SelectableVolatileARGBConverter ) source.labelSource.getConverter() );
+							source.labelSource );
 
 					source.isLabelSource = true;
 

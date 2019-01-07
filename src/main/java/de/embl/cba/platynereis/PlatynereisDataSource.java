@@ -2,8 +2,8 @@ package de.embl.cba.platynereis;
 
 import bdv.spimdata.SpimDataMinimal;
 import bdv.util.BdvStackSource;
-import de.embl.cba.bdv.utils.behaviour.BdvSelectionEventHandler;
-import de.embl.cba.bdv.utils.converters.argb.VolatileARGBConvertedRealSource;
+import de.embl.cba.bdv.utils.selection.BdvSelectionEventHandler;
+import de.embl.cba.bdv.utils.sources.SelectableVolatileARGBConvertedRealSource;
 import mpicbg.spim.data.SpimData;
 
 import java.awt.*;
@@ -16,7 +16,7 @@ public class PlatynereisDataSource
     public SpimDataMinimal spimDataMinimal;
     public boolean isSpimDataMinimal = false;
 
-    public VolatileARGBConvertedRealSource labelSource;
+    public SelectableVolatileARGBConvertedRealSource labelSource;
     public BdvSelectionEventHandler bdvSelectionEventHandler;
     public boolean isLabelSource = false;
 

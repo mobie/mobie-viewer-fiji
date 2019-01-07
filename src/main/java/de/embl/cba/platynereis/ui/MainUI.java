@@ -9,7 +9,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
-public class MainFrame extends JFrame
+public class MainUI extends JFrame
 {
 	final Bdv bdv;
 	final PlatyBrowser platyBrowser;
@@ -19,7 +19,7 @@ public class MainFrame extends JFrame
 	private final JSplitPane splitPane;
 	private AbstractAction help;
 
-	public MainFrame( Bdv bdv, PlatyBrowser platyBrowser ) throws HeadlessException
+	public MainUI( Bdv bdv, PlatyBrowser platyBrowser ) throws HeadlessException
 	{
 		this.bdv = bdv;
 		this.platyBrowser = platyBrowser;
@@ -52,7 +52,7 @@ public class MainFrame extends JFrame
 
 	public void initHelpDialog()
 	{
-		helpDialog = new HelpDialog( this, MainFrame.class.getResource( "/Help.html" ) );
+		helpDialog = new HelpDialog( this, MainUI.class.getResource( "/Help.html" ) );
 
 		this.setFocusable( true );
 		this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)

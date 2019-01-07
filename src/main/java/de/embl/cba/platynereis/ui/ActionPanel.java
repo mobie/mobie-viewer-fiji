@@ -33,7 +33,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	public static final int TEXT_FIELD_HEIGHT = 20;
 	private final Bdv bdv;
 	private final PlatyBrowser platyBrowser;
-	private final MainFrame mainFrame;
+	private final MainUI mainUI;
 	private Behaviours behaviours;
 	private int geneSearchMipMapLevel;
 	private double geneSearchVoxelSize;
@@ -42,9 +42,9 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	private double[] targetNormalVector;
 
-	public ActionPanel( MainFrame mainFrame, Bdv bdv, PlatyBrowser platyBrowser )
+	public ActionPanel( MainUI mainUI, Bdv bdv, PlatyBrowser platyBrowser )
 	{
-		this.mainFrame = mainFrame;
+		this.mainUI = mainUI;
 		this.bdv = bdv;
 		this.platyBrowser = platyBrowser;
 
@@ -208,11 +208,11 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		if ( sortedGenes.size() > 0 )
 		{
-			mainFrame.getBdvSourcesPanel().removeAllProSPrSources();
+			mainUI.getBdvSourcesPanel().removeAllProSPrSources();
 
 			for ( int i = sortedGenes.size()-1; i > sortedGenes.size()- maxNumGenes && i >= 0; --i )
 			{
-				mainFrame.getBdvSourcesPanel().addSourceToViewerAndPanel( sortedGenes.get( i ) );
+				mainUI.getBdvSourcesPanel().addSourceToViewerAndPanel( sortedGenes.get( i ) );
 			}
 		}
 	}
@@ -290,7 +290,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				mainFrame.getBdvSourcesPanel().addSourceToViewerAndPanel( (String) dataSources.getSelectedItem() );
+				mainUI.getBdvSourcesPanel().addSourceToViewerAndPanel( (String) dataSources.getSelectedItem() );
 			}
 		} );
 

@@ -32,15 +32,15 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
     protected Map< String, JPanel > panels;
     JFrame frame;
-    final MainFrame mainFrame;
+    final MainUI mainUI;
     final PlatyBrowser platyBrowser;
     final Bdv bdv;
     private final Map< String, PlatynereisDataSource > dataSources;
 
 
-    public BdvSourcesPanel( MainFrame mainFrame, Bdv bdv, PlatyBrowser platyBrowser )
+    public BdvSourcesPanel( MainUI mainUI, Bdv bdv, PlatyBrowser platyBrowser )
     {
-        this.mainFrame = mainFrame;
+        this.mainUI = mainUI;
         this.bdv = bdv;
         this.platyBrowser = platyBrowser;
         this.dataSources = platyBrowser.dataSources;

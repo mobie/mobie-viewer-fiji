@@ -8,7 +8,7 @@ import org.scijava.plugin.Plugin;
 
 import java.io.File;
 
-@Plugin(type = Command.class, menuPath = "Plugins>Registration>EMBL>Platynereis" )
+@Plugin(type = Command.class, menuPath = "Plugins>EMBL>PlatyBrowser" )
 public class PlatyBrowserCommand implements Command
 {
 
