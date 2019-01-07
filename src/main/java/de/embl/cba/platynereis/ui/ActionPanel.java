@@ -7,7 +7,7 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.GeneSearch;
 import de.embl.cba.platynereis.PlatyBrowser;
-import de.embl.cba.platynereis.PlatynereisDataSource;
+import de.embl.cba.platynereis.PlatySource;
 import de.embl.cba.platynereis.utils.Utils;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -58,7 +58,8 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		addSourceSelectionUI( this );
 		addPositionZoomUI( this  );
 		addPositionPrintUI( this );
-		addLocalGeneSearchUI( this);
+		addLocalGeneSearchRadiusUI( this);
+		add3DObjectViewResolutionUI( this );
 		addLeveling( this );
 
 		this.revalidate();
@@ -93,36 +94,38 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		panel.add( horizontalLayoutPanel );
 	}
 
-	// TODO: move to bdvSelectionEventHandler
-//	private void add3DObjectView( JPanel panel )
-//	{
-//
-//		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-//
-//		horizontalLayoutPanel.add( new JLabel( "3D object view resolution [um]: " ) );
-//
-//		final JComboBox resolutionComboBox = getResolutionComboBox();
-//
-//		horizontalLayoutPanel.add( resolutionComboBox );
-//
-//		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-//
-//			(new Thread(new Runnable(){
-//				public void run()
-//				{
-//					new ObjectViewer3D( source ).showSelectedObjectIn3D(
-//							bdv,
-//							BdvUtils.getGlobalMouseCoordinates( bdv ),
-//							Double.parseDouble( (String) resolutionComboBox.getSelectedItem() ) );
-//				}
-//			})).start();
-//
-//		}, "3d object view", "ctrl button1"  ) ;
-//
-//		panel.add( horizontalLayoutPanel );
-//	}
+	private void add3DObjectViewResolutionUI( JPanel panel )
+	{
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-	private JComboBox getResolutionComboBox()
+		horizontalLayoutPanel.add( new JLabel( "3D object view resolution [micrometer]: " ) );
+
+		final JComboBox resolutionComboBox = createResolutionComboBox();
+
+		resolutionComboBox.addActionListener( new ActionListener()
+		{
+			@Override
+			public void actionPerformed( ActionEvent e )
+			{
+				final ArrayList< PlatySource > activePlatySources = platyBrowser.getPlatySources( mainUI.getBdvSourcesPanel().getCurrentSourceNames() );
+
+				for ( PlatySource source : activePlatySources )
+				{
+					if ( source.bdvSelectionEventHandler != null )
+					{
+						source.bdvSelectionEventHandler.set3DObjectViewResolution(
+								 (double) resolutionComboBox.getSelectedItem() );
+					}
+				}
+			}
+		} );
+
+		horizontalLayoutPanel.add( resolutionComboBox );
+
+		panel.add( horizontalLayoutPanel );
+	}
+
+	private JComboBox createResolutionComboBox()
 	{
 		final JComboBox resolutionComboBox = new JComboBox( );
 
@@ -137,17 +140,19 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		for ( double resolution : resolutions )
 		{
-			resolutionComboBox.addItem( "" + resolution );
+			resolutionComboBox.addItem( resolution );
 		}
+
 		resolutionComboBox.setSelectedIndex( 0 );
+
 		return resolutionComboBox;
 	}
 
-	private void addLocalGeneSearchUI( JPanel panel )
+	private void addLocalGeneSearchRadiusUI( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		horizontalLayoutPanel.add( new JLabel( "Gene discovery radius: " ) );
+		horizontalLayoutPanel.add( new JLabel( "Gene discovery radius [micrometer]: " ) );
 
 		setGeneSearchRadii();
 
@@ -227,7 +232,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		{
 			if ( name.contains( Constants.EM_FILE_ID ) ) continue;
 
-			final PlatynereisDataSource source = platyBrowser.dataSources.get( name );
+			final PlatySource source = platyBrowser.dataSources.get( name );
 
 			if ( source.spimData == null )
 			{

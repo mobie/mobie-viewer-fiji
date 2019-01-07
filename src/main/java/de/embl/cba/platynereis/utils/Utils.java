@@ -3,10 +3,9 @@ package de.embl.cba.platynereis.utils;
 import bdv.util.*;
 import de.embl.cba.bdv.utils.behaviour.BehaviourTransformEventHandler3DLeftMouseDrag;
 import de.embl.cba.platynereis.Constants;
-import de.embl.cba.platynereis.PlatynereisDataSource;
+import de.embl.cba.platynereis.PlatySource;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.measure.Calibration;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
@@ -20,10 +19,8 @@ import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
-import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.view.Views;
 
 import java.awt.*;
 import java.io.File;
@@ -206,7 +203,7 @@ public class Utils
 		return new ARGBType( ARGBType.rgba( color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha() ) );
 	}
 
-	public static void loadAndShowSourceFromTiffFile( PlatynereisDataSource dataSource, Bdv bdv )
+	public static void loadAndShowSourceFromTiffFile( PlatySource dataSource, Bdv bdv )
 	{
 		ImagePlus imp = IJ.openImage( dataSource.file.toString() );
 		Img img = ImageJFunctions.wrap( imp );
@@ -220,7 +217,7 @@ public class Utils
 		dataSource.bdvStackSource = bdvStackSource;
 	}
 
-	public static Bdv showSourceInBdv( PlatynereisDataSource source, Bdv bdv )
+	public static Bdv showSourceInBdv( PlatySource source, Bdv bdv )
 	{
 		if ( source.isSpimDataMinimal )
 		{

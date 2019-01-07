@@ -7,7 +7,8 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.util.Bdv;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.converters.SelectableVolatileARGBConverter;
+import de.embl.cba.bdv.utils.behaviour.BehaviourRandomColorShufflingEventHandler;
+import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.selection.BdvSelectionEventHandler;
 import de.embl.cba.bdv.utils.sources.SelectableVolatileARGBConvertedRealSource;
 import de.embl.cba.platynereis.ui.BdvSourcesPanel;
@@ -35,7 +36,7 @@ public class PlatyBrowser
 {
     public static final String LABEL_ATTRIBUTES_FOLDER = "label_attributes";
     Bdv bdv;
-    public Map< String, PlatynereisDataSource > dataSources;
+    public Map< String, PlatySource > dataSources;
     String defaultSource;
     AffineTransform3D emRawDataTransform;
     BdvSourcesPanel legend;
@@ -43,17 +44,15 @@ public class PlatyBrowser
 
     public PlatyBrowser( String directory )
     {
-        ArrayList< File > imageFiles = new ArrayList< File >(Arrays.asList( new File( directory ).listFiles() ) );
-
-        ArrayList< File > attributeFiles = new ArrayList< File >(Arrays.asList( new File( directory + File.separator + LABEL_ATTRIBUTES_FOLDER ).listFiles() ) );
-
-        Collections.sort( imageFiles, new SortFilesIgnoreCase());
-
         dataSources = Collections.synchronizedMap( new LinkedHashMap() );
 
-        initDefaultSourceAndBdv( imageFiles );
+        ArrayList< File > imageFiles = getImageFiles( directory );
 
-        initDataSources( imageFiles, attributeFiles );
+        ArrayList< File > attributeFiles = getAttributeFiles( directory );
+
+        bdv = initDefaultSourceAndBdv( imageFiles );
+
+        initDataSources( imageFiles, attributeFiles, bdv );
 
         new Thread(new Runnable(){
             public void run(){
@@ -67,9 +66,36 @@ public class PlatyBrowser
             }
         }).start();
 
-        mainUI = new MainUI( bdv, this );
+        mainUI = new MainUI( this.bdv, this );
 
         legend = mainUI.getBdvSourcesPanel();
+    }
+
+    public ArrayList< PlatySource > getPlatySources( ArrayList< String > selectedSourceNames )
+	{
+		final ArrayList< PlatySource > selectedPlatySources = new ArrayList<>();
+
+		for ( String sourceName : dataSources.keySet() )
+		{
+			if ( selectedSourceNames.contains( sourceName ) )
+			{
+				selectedPlatySources.add( dataSources.get( sourceName ));
+			}
+		}
+		return selectedPlatySources;
+	}
+
+    public ArrayList< File > getAttributeFiles( String directory )
+    {
+        return new ArrayList< File >( Arrays.asList( new File( directory + File.separator + LABEL_ATTRIBUTES_FOLDER ).listFiles() ) );
+    }
+
+    public ArrayList< File > getImageFiles( String directory )
+    {
+        ArrayList< File > imageFiles = new ArrayList< File >( Arrays.asList( new File( directory ).listFiles() ) );
+
+        Collections.sort( imageFiles, new SortFilesIgnoreCase());
+        return imageFiles;
     }
 
     public MainUI getMainUI()
@@ -102,7 +128,7 @@ public class PlatyBrowser
 
         for (  String name : names )
         {
-            PlatynereisDataSource source = dataSources.get( name );
+            PlatySource source = dataSources.get( name );
 
             if ( source.isLabelSource && source.attributeFile != null )
             {
@@ -172,7 +198,7 @@ public class PlatyBrowser
     }
 
 
-    private void setName( String name, PlatynereisDataSource source )
+    private void setName( String name, PlatySource source )
     {
         if ( source.spimData != null )
         {
@@ -214,7 +240,7 @@ public class PlatyBrowser
         spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().set( 0, basicViewSetup);
     }
 
-    private void initDefaultSourceAndBdv( ArrayList< File > imageFiles )
+    private Bdv initDefaultSourceAndBdv( ArrayList< File > imageFiles )
     {
         for ( File file : imageFiles )
         {
@@ -222,9 +248,10 @@ public class PlatyBrowser
 
             if (  fileName.contains( Constants.DEFAULT_EM_RAW_FILE_ID ) && fileName.endsWith( Constants.BDV_XML_SUFFIX ) )
             {
-                PlatynereisDataSource source = new PlatynereisDataSource();
+                PlatySource source = new PlatySource();
 
                 source.name = Constants.DEFAULT_EM_RAW_FILE_ID;
+                source.file = file;
 
                 dataSources.put( source.name, source );
                 defaultSource = source.name;
@@ -236,14 +263,16 @@ public class PlatyBrowser
                 bdv = Utils.showSourceInBdv( dataSources.get( defaultSource ), bdv );
                 bdv.getBdvHandle().getViewerPanel().setInterpolation( Interpolation.NLINEAR );
 
-                break;
+                return bdv;
             }
 
         }
 
+        return null;
+
     }
 
-    private void initDataSources( ArrayList< File > imageFiles, ArrayList< File > attributeFiles )
+    private void initDataSources( ArrayList< File > imageFiles, ArrayList< File > attributeFiles, Bdv bdv )
     {
         for ( File file : imageFiles )
         {
@@ -259,7 +288,7 @@ public class PlatyBrowser
                 continue;
             }
 
-            PlatynereisDataSource source = new PlatynereisDataSource();
+            PlatySource source = new PlatySource();
 
             source.name = getDataSourceName( file );
 
@@ -310,8 +339,13 @@ public class PlatyBrowser
 									source.name ) );
 
 					source.bdvSelectionEventHandler = new BdvSelectionEventHandler(
-							bdv,
+                            bdv,
 							source.labelSource );
+
+					new BehaviourRandomColorShufflingEventHandler(
+					        bdv,
+                            ( RandomARGBConverter ) source.labelSource.getSelectableVolatileARGBConverter().getWrappedConverter(),
+                            source.name );
 
 					source.isLabelSource = true;
 
@@ -345,7 +379,7 @@ public class PlatyBrowser
 
         for (  String name : names )
         {
-            PlatynereisDataSource source = dataSources.get( name );
+            PlatySource source = dataSources.get( name );
 
             if ( source.file.getName().contains( Constants.EM_FILE_ID ) ) continue;
 

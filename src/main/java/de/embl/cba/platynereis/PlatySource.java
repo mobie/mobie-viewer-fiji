@@ -9,7 +9,7 @@ import mpicbg.spim.data.SpimData;
 import java.awt.*;
 import java.io.File;
 
-public class PlatynereisDataSource
+public class PlatySource
 {
     public SpimData spimData;
 

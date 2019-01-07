@@ -42,7 +42,7 @@ public class ProSPrRegistration
         return combinedTransform;
     }
 
-    public static FinalRealInterval getBoundsAfterRotation( PlatynereisDataSource source, AffineTransform3D transformJTransform )
+    public static FinalRealInterval getBoundsAfterRotation( PlatySource source, AffineTransform3D transformJTransform )
     {
         RandomAccessibleInterval< ? > image;
 
@@ -58,7 +58,7 @@ public class ProSPrRegistration
         return transformJTransform.estimateBounds( image );
     }
 
-    public static double[] getTranslationInPixels( PlatynereisDataSource source, double[] translationInMicrometer )
+    public static double[] getTranslationInPixels( PlatySource source, double[] translationInMicrometer )
     {
         VoxelDimensions voxelDimensions = getVoxelDimensions( source );
 
@@ -72,7 +72,7 @@ public class ProSPrRegistration
         return translationInPixels;
     }
 
-    public static VoxelDimensions getVoxelDimensions( PlatynereisDataSource source )
+    public static VoxelDimensions getVoxelDimensions( PlatySource source )
     {
 
         if ( source.spimData != null )
@@ -92,7 +92,7 @@ public class ProSPrRegistration
     }
 
 
-    public static void setEmSimilarityTransform( PlatynereisDataSource source )
+    public static void setEmSimilarityTransform( PlatySource source )
     {
 
         ViewRegistration viewRegistration;
@@ -125,7 +125,7 @@ public class ProSPrRegistration
     }
 
 
-    public static void setInverseEmSimilarityTransform( PlatynereisDataSource source )
+    public static void setInverseEmSimilarityTransform( PlatySource source )
     {
 
         ViewRegistration viewRegistration;

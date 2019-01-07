@@ -3,7 +3,6 @@ package de.embl.cba.platynereis;
 import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
 import bdv.util.Bdv;
-import de.embl.cba.platynereis.ui.BdvTextOverlay;
 import de.embl.cba.platynereis.utils.Utils;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
@@ -11,7 +10,6 @@ import net.imglib2.type.numeric.RealType;
 
 import java.util.*;
 
-import static de.embl.cba.platynereis.utils.Utils.logVector;
 import static de.embl.cba.platynereis.utils.Utils.openSpimData;
 
 public class GeneSearch < T extends RealType< T > & NativeType< T > >
@@ -19,7 +17,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 	private final double micrometerRadius;
 	private final double[] micrometerPosition;
-	private final Map< String, PlatynereisDataSource > dataSources;
+	private final Map< String, PlatySource > dataSources;
 	private final Bdv bdv;
 	private final int mipMapLevel;
 	private final double micrometerVoxelSize;
@@ -27,7 +25,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 	public GeneSearch( double micrometerRadius,
 					   double[] micrometerPosition,
-					   Map< String, PlatynereisDataSource > dataSources,
+					   Map< String, PlatySource > dataSources,
 					   Bdv bdv,
 					   int mipMapLevel,
 					   double micrometerVoxelSize )
@@ -66,7 +64,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 				}
 			})).start();
 
-			final PlatynereisDataSource source = dataSources.get( name );
+			final PlatySource source = dataSources.get( name );
 
 			if ( source.spimData == null )
 			{

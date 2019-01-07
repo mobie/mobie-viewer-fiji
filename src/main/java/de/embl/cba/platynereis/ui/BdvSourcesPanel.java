@@ -35,7 +35,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
     final MainUI mainUI;
     final PlatyBrowser platyBrowser;
     final Bdv bdv;
-    private final Map< String, PlatynereisDataSource > dataSources;
+    private final Map< String, PlatySource > dataSources;
 
 
     public BdvSourcesPanel( MainUI mainUI, Bdv bdv, PlatyBrowser platyBrowser )
@@ -65,7 +65,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
     }
 
-    private Color getColor( PlatynereisDataSource dataSource )
+    private Color getColor( PlatySource dataSource )
     {
         if ( dataSource.name.contains( Constants.EM_FILE_ID ) )
         {
@@ -83,14 +83,14 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
     public void addSourceToViewerAndPanel( String name )
     {
-        PlatynereisDataSource source = dataSources.get( name );
+        PlatySource source = dataSources.get( name );
 
         addSourceToViewer( source );
 
         addSourceToPanel( source );
     }
 
-    private void addSourceToViewer( PlatynereisDataSource source )
+    private void addSourceToViewer( PlatySource source )
     {
 
         if ( source.bdvStackSource == null || source.bdvStackSource.getBdvHandle() == null )
@@ -124,7 +124,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
     }
 
 
-    public void addSourceToPanel( PlatynereisDataSource dataSource )
+    public void addSourceToPanel( PlatySource dataSource )
     {
 
         if( ! panels.containsKey( dataSource.name ) )
@@ -166,7 +166,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
     }
 
-    private JButton createRemoveButton( PlatynereisDataSource dataSource, int[] buttonDimensions )
+    private JButton createRemoveButton( PlatySource dataSource, int[] buttonDimensions )
     {
         JButton removeButton = new JButton( "X" );
         removeButton.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
@@ -240,7 +240,7 @@ public class BdvSourcesPanel extends JPanel implements ActionListener
 
     public void toggleVisibility( String name )
     {
-        final PlatynereisDataSource source = dataSources.get( name );
+        final PlatySource source = dataSources.get( name );
 
         if ( source.bdvStackSource == null || source.bdvStackSource.getBdvHandle() == null )
         {
