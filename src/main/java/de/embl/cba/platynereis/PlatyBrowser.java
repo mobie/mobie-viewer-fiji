@@ -9,6 +9,7 @@ import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.behaviour.BehaviourRandomColorShufflingEventHandler;
 import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
+import de.embl.cba.bdv.utils.converters.SelectableVolatileARGBConverter;
 import de.embl.cba.bdv.utils.selection.BdvSelectionEventHandler;
 import de.embl.cba.bdv.utils.sources.SelectableVolatileARGBConvertedRealSource;
 import de.embl.cba.platynereis.ui.BdvSourcesPanel;
@@ -140,13 +141,11 @@ public class PlatyBrowser
                     objectTablePanel.setCoordinateColumn( ObjectCoordinate.X, "com_x_microns" );
                     objectTablePanel.setCoordinateColumn( ObjectCoordinate.Y, "com_y_microns" );
                     objectTablePanel.setCoordinateColumn( ObjectCoordinate.Z, "com_z_microns" );
-
                     objectTablePanel.showPanel();
 
-                    // set up mutual interaction between table and bdv-source
-					//
-					new TableBdvConnector( objectTablePanel, source.bdvSelectionEventHandler  );
-				}
+                    final TableBdvConnector tableBdvConnector = new TableBdvConnector( objectTablePanel, source.bdvSelectionEventHandler );
+                    tableBdvConnector.setSelectionByAttribute( true );
+                }
                 catch ( IOException e )
                 {
                     e.printStackTrace();
@@ -342,9 +341,13 @@ public class PlatyBrowser
                             bdv,
 							source.labelSource );
 
-					new BehaviourRandomColorShufflingEventHandler(
+                    final SelectableVolatileARGBConverter selectableVolatileARGBConverter = source.labelSource.getSelectableConverter();
+
+                    final RandomARGBConverter wrappedConverter = ( RandomARGBConverter ) selectableVolatileARGBConverter.getWrappedConverter();
+
+                    new BehaviourRandomColorShufflingEventHandler(
 					        bdv,
-                            ( RandomARGBConverter ) source.labelSource.getSelectableVolatileARGBConverter().getWrappedConverter(),
+                            wrappedConverter,
                             source.name );
 
 					source.isLabelSource = true;
