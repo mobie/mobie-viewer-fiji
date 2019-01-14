@@ -63,7 +63,6 @@ public class MainUI extends JFrame
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				System.out.println( "aaa ");
 				helpDialog.setVisible( ! helpDialog.isVisible() );
 			}
 		};

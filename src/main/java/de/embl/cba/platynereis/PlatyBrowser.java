@@ -11,7 +11,7 @@ import de.embl.cba.bdv.utils.behaviour.BehaviourRandomColorShufflingEventHandler
 import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.converters.SelectableVolatileARGBConverter;
 import de.embl.cba.bdv.utils.selection.BdvSelectionEventHandler;
-import de.embl.cba.bdv.utils.sources.SelectableVolatileARGBConvertedRealSource;
+import de.embl.cba.bdv.utils.sources.SelectableARGBConvertedRealSource;
 import de.embl.cba.platynereis.ui.BdvSourcesPanel;
 import de.embl.cba.platynereis.ui.MainUI;
 import de.embl.cba.platynereis.utils.Utils;
@@ -331,7 +331,7 @@ public class PlatyBrowser
 
                 if ( fileName.contains( Constants.DEFAULT_LABELS_FILE_ID ) )
                 {
-                	source.labelSource = new SelectableVolatileARGBConvertedRealSource(
+                	source.labelSource = new SelectableARGBConvertedRealSource(
 							new VolatileSpimSource(
 									source.spimData,
 									0,
@@ -340,15 +340,6 @@ public class PlatyBrowser
 					source.bdvSelectionEventHandler = new BdvSelectionEventHandler(
                             bdv,
 							source.labelSource );
-
-                    final SelectableVolatileARGBConverter selectableVolatileARGBConverter = source.labelSource.getSelectableConverter();
-
-                    final RandomARGBConverter wrappedConverter = ( RandomARGBConverter ) selectableVolatileARGBConverter.getWrappedConverter();
-
-                    new BehaviourRandomColorShufflingEventHandler(
-					        bdv,
-                            wrappedConverter,
-                            source.name );
 
 					source.isLabelSource = true;
 
