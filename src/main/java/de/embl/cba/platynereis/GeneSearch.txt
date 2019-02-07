@@ -4,6 +4,7 @@ import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
 import bdv.util.Bdv;
 import de.embl.cba.platynereis.utils.Utils;
+import de.embl.cba.tables.modelview.images.ImageSourcesModel;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -17,7 +18,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 	private final double micrometerRadius;
 	private final double[] micrometerPosition;
-	private final Map< String, PlatySource > dataSources;
+	private final ImageSourcesModel imageSourcesModel;
 	private final Bdv bdv;
 	private final int mipMapLevel;
 	private final double micrometerVoxelSize;
@@ -25,14 +26,14 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 	public GeneSearch( double micrometerRadius,
 					   double[] micrometerPosition,
-					   Map< String, PlatySource > dataSources,
+					   ImageSourcesModel imageSourcesModel,
 					   Bdv bdv,
 					   int mipMapLevel,
 					   double micrometerVoxelSize )
 	{
 		this.micrometerRadius = micrometerRadius;
 		this.micrometerPosition = micrometerPosition;
-		this.dataSources = dataSources;
+		this.imageSourcesModel = imageSourcesModel;
 		this.bdv = bdv;
 		this.mipMapLevel = mipMapLevel;
 		this.micrometerVoxelSize = micrometerVoxelSize;
@@ -48,11 +49,11 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 	public Map< String, Double > runSearchAndGetLocalExpression()
 	{
-		final Set< String > sources = dataSources.keySet();
+		final Set< String > sourceNames = imageSourcesModel.sources().keySet();
 
 		localExpression = new LinkedHashMap<>(  );
 
-		for ( String name : sources )
+		for ( String name : sourceNames )
 		{
 			if ( name.contains( Constants.EM_FILE_ID ) ) continue;
 			if ( ! name.contains( Constants.MEDS ) ) continue;

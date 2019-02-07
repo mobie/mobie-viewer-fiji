@@ -2,8 +2,6 @@ package de.embl.cba.platynereis.platybrowser;
 
 import bdv.util.Bdv;
 import bdv.util.BdvStackSource;
-import de.embl.cba.platynereis.PlatyBrowser;
-import de.embl.cba.platynereis.PlatySource;
 import de.embl.cba.tables.modelview.images.Metadata;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
 import de.embl.cba.tables.modelview.views.bdv.ImageSegmentsBdvView;
@@ -20,26 +18,11 @@ import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.*;
 
 public class PlatyBrowserSourcesPanel extends JPanel implements ActionListener
 {
-    public static final String CHANGE_COLOR = "Change color";
-    public static final String ADAPT_BRIGHTNESS = "Adapt brightness";
-    public static final String REMOVE = "Remove";
-    public static final String CANCELLED = "Cancelled";
-    public static final String COLOR_ACTION = "C___";
-    public static final String BRIGHTNESS_ACTION = "B___";
-    public static final String TOGGLE_ACTION = "T___";
-    public static final String REMOVE_ACTION = "X___";
+    private final PlatyBrowserMainFrame platyBrowserMainFrame;
+    private final ImageSegmentsBdvView bdvView;
 
     public ArrayList< Color > colors;
-
     protected Map< String, JPanel > sourceNameToPanel;
-
-    JFrame frame;
-    final PlatyBrowserMainFrame platyBrowserMainFrame;
-    private final ImageSegmentsBdvView bdvView;
-    final PlatyBrowser platyBrowser;
-    final Bdv bdv;
-    private final Map< String, PlatySource > dataSources;
-
 
     public PlatyBrowserSourcesPanel(
             PlatyBrowserMainFrame platyBrowserMainFrame,

@@ -3,7 +3,6 @@ package de.embl.cba.platynereis.utils;
 import bdv.util.*;
 import de.embl.cba.bdv.utils.behaviour.BehaviourTransformEventHandler3DLeftMouseDrag;
 import de.embl.cba.platynereis.Constants;
-import de.embl.cba.platynereis.PlatySource;
 import ij.IJ;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimData;
@@ -203,61 +202,9 @@ public class Utils
 		return new ARGBType( ARGBType.rgba( color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha() ) );
 	}
 
-	public static void loadAndShowSourceFromTiffFile( PlatySource dataSource, Bdv bdv )
+
+	public static void wait(int msecs)
 	{
-		ImagePlus imp = IJ.openImage( dataSource.file.toString() );
-		Img img = ImageJFunctions.wrap( imp );
-
-		AffineTransform3D prosprScaling = new AffineTransform3D();
-		prosprScaling.scale( Constants.PROSPR_SCALING_IN_MICROMETER );
-
-		final BdvStackSource bdvStackSource = BdvFunctions.show( img, dataSource.name, Bdv.options().addTo( bdv ).sourceTransform( prosprScaling ) );
-		bdvStackSource.setColor( asArgbType( Constants.DEFAULT_GENE_COLOR ) );
-		dataSource.color = Constants.DEFAULT_GENE_COLOR;
-		dataSource.bdvStackSource = bdvStackSource;
-	}
-
-	public static Bdv showSourceInBdv( PlatySource source, Bdv bdv )
-	{
-		if ( source.isSpimDataMinimal )
-		{
-			source.bdvStackSource = BdvFunctions.show( source.spimDataMinimal,
-					BdvOptions.options()
-							.addTo( bdv )
-							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DLeftMouseDrag.BehaviourTransformEventHandler3DFactory() ))
-					.get( 0 );
-
-			source.bdvStackSource.setColor( asArgbType( source.color ) );
-			source.bdvStackSource.setDisplayRange( 0.0, source.maxLutValue );
-		}
-		else if ( source.spimData != null)
-		{
-			source.bdvStackSource = BdvFunctions.show( source.spimData,
-					BdvOptions.options()
-							.addTo( bdv )
-							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DLeftMouseDrag.BehaviourTransformEventHandler3DFactory() ) )
-					.get( 0 );
-
-			source.bdvStackSource.setColor( asArgbType( source.color ) );
-			source.bdvStackSource.setDisplayRange( 0.0, source.maxLutValue );
-		}
-		else if ( source.labelSource != null )
-		{
-			source.bdvStackSource = BdvFunctions.show( source.labelSource,
-					BdvOptions.options()
-							.addTo( bdv )
-							.transformEventHandlerFactory( new BehaviourTransformEventHandler3DLeftMouseDrag.BehaviourTransformEventHandler3DFactory() ) );
-			source.bdvStackSource.setDisplayRange( 0.0, source.maxLutValue );
-		}
-
-
-		BdvOptions.options().addTo( bdv ).transformEventHandlerFactory( new BehaviourTransformEventHandler3DLeftMouseDrag.BehaviourTransformEventHandler3DFactory() );
-		return source.bdvStackSource.getBdvHandle();
-
-	}
-
-
-	public static void wait(int msecs) {
 		try {Thread.sleep(msecs);}
 		catch (InterruptedException e) { }
 	}
