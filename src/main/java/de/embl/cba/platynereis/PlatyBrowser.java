@@ -7,13 +7,11 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.util.Bdv;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.behaviour.BehaviourRandomColorShufflingEventHandler;
-import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
-import de.embl.cba.bdv.utils.converters.SelectableVolatileARGBConverter;
 import de.embl.cba.bdv.utils.selection.BdvSelectionEventHandler;
 import de.embl.cba.bdv.utils.sources.SelectableARGBConvertedRealSource;
 import de.embl.cba.platynereis.ui.BdvSourcesPanel;
 import de.embl.cba.platynereis.ui.MainUI;
+import de.embl.cba.platynereis.utils.FileUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.TableBdvConnector;
 import de.embl.cba.tables.TableUtils;
@@ -91,10 +89,18 @@ public class PlatyBrowser
         return new ArrayList< File >( Arrays.asList( new File( directory + File.separator + LABEL_ATTRIBUTES_FOLDER ).listFiles() ) );
     }
 
+
+    public static ArrayList< File > getFiles( String inputDirectory, String filePattern )
+    {
+        Utils.log( "Fetching files..." );
+        final ArrayList< File > fileList = FileUtils.getFileList( new File( inputDirectory ), filePattern );
+        Utils.log( "Number of files: " +  fileList.size() );
+        return fileList;
+    }
+
     public ArrayList< File > getImageFiles( String directory )
     {
         ArrayList< File > imageFiles = new ArrayList< File >( Arrays.asList( new File( directory ).listFiles() ) );
-
         Collections.sort( imageFiles, new SortFilesIgnoreCase());
         return imageFiles;
     }
@@ -197,13 +203,13 @@ public class PlatyBrowser
     }
 
 
-    private void setName( String name, PlatySource source )
-    {
-        if ( source.spimData != null )
-        {
-            source.spimData.getSequenceDescription().getViewSetupsOrdered().get( 0 ).getChannel().setName( name );
-        }
-    }
+//    private void setName( String name, PlatySource source )
+//    {
+//        if ( source.spimData != null )
+//        {
+//            source.spimData.getSequenceDescription().getViewSetupsOrdered().get( 0 ).getChannel().setName( name );
+//        }
+//    }
 
     private SpimDataMinimal openImaris( File file, double[] calibration )
     {
@@ -262,6 +268,7 @@ public class PlatyBrowser
                 bdv = Utils.showSourceInBdv( dataSources.get( defaultSource ), bdv );
                 bdv.getBdvHandle().getViewerPanel().setInterpolation( Interpolation.NLINEAR );
 
+
                 return bdv;
             }
 
@@ -289,7 +296,7 @@ public class PlatyBrowser
 
             PlatySource source = new PlatySource();
 
-            source.name = getDataSourceName( file );
+            source.name = getSourceName( file );
 
             dataSources.put( source.name, source );
 
@@ -329,7 +336,7 @@ public class PlatyBrowser
                     source.color = Constants.DEFAULT_EM_SEGMENTATION_COLOR;
                 }
 
-                if ( fileName.contains( Constants.DEFAULT_LABELS_FILE_ID ) )
+                if ( fileName.contains( Constants.LABELS_FILE_ID ) )
                 {
                 	source.labelSource = new SelectableARGBConvertedRealSource(
 							new VolatileSpimSource(
@@ -398,7 +405,7 @@ public class PlatyBrowser
     }
 
 
-    private String getDataSourceName( File file )
+    private static String getSourceName( File file )
     {
         String dataSourceName = null;
 
@@ -410,7 +417,6 @@ public class PlatyBrowser
 		{
 			dataSourceName = file.getName().replaceAll( Constants.IMARIS_SUFFIX, "" );
 		}
-
 		if ( dataSourceName.contains( Constants.NEW_PROSPR ) )
 		{
 			dataSourceName= dataSourceName.replace( Constants.NEW_PROSPR, Constants.MEDS );

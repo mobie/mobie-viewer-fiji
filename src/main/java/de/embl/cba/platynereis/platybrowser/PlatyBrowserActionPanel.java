@@ -1,14 +1,13 @@
-package de.embl.cba.platynereis.ui;
+package de.embl.cba.platynereis.platybrowser;
 
 import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
-import bdv.util.Bdv;
+import bdv.util.BdvStackSource;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.platynereis.Constants;
-import de.embl.cba.platynereis.GeneSearch;
-import de.embl.cba.platynereis.PlatyBrowser;
-import de.embl.cba.platynereis.PlatySource;
-import de.embl.cba.platynereis.utils.Utils;
+import de.embl.cba.tables.SwingUtils;
+import de.embl.cba.tables.modelview.images.ImageSourcesModel;
+import de.embl.cba.tables.modelview.images.SourceAndMetadata;
+import de.embl.cba.tables.modelview.views.bdv.ImageSegmentsBdvView;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
@@ -26,14 +25,12 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-import static de.embl.cba.platynereis.utils.Utils.openSpimData;
-
-public class ActionPanel < T extends RealType< T > & NativeType< T > > extends JPanel
+public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > > extends JPanel
 {
 	public static final int TEXT_FIELD_HEIGHT = 20;
-	private final Bdv bdv;
-	private final PlatyBrowser platyBrowser;
-	private final MainUI mainUI;
+
+	private final PlatyBrowserMainFrame mainFrame;
+	private final ImageSegmentsBdvView bdvView;
 	private Behaviours behaviours;
 	private int geneSearchMipMapLevel;
 	private double geneSearchVoxelSize;
@@ -41,12 +38,15 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	private double[] targetNormalVector;
+	private ImageSourcesModel imageSourcesModel;
 
-	public ActionPanel( MainUI mainUI, Bdv bdv, PlatyBrowser platyBrowser )
+	public PlatyBrowserActionPanel(
+			PlatyBrowserMainFrame mainFrame,
+			ImageSegmentsBdvView bdvView )
 	{
-		this.mainUI = mainUI;
-		this.bdv = bdv;
-		this.platyBrowser = platyBrowser;
+		this.mainFrame = mainFrame;
+		this.bdvView = bdvView;
+		this.imageSourcesModel = bdvView.getImageSourcesModel();
 
 		behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
@@ -57,14 +57,13 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		addSourceSelectionUI( this );
 		addPositionZoomUI( this  );
-		addPositionPrintUI( this );
-		addLocalGeneSearchRadiusUI( this);
+		addPositionPrintBehaviour( this );
+		addLocalGeneSearchBehaviourAndUI( this);
 		add3DObjectViewResolutionUI( this );
 		addLeveling( this );
 
 		this.revalidate();
 		this.repaint();
-
 	}
 
 	public ArrayList< Double > getGeneSearchRadii()
@@ -72,12 +71,9 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		return geneSearchRadii;
 	}
 
-	private void addPositionPrintUI( JPanel panel )
+	private void addPositionPrintBehaviour( JPanel panel )
 	{
-
 		JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-
-		//horizontalLayoutPanel.add( new JLabel( "[ P ] Print current position " ) );
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 
@@ -148,7 +144,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 		return resolutionComboBox;
 	}
 
-	private void addLocalGeneSearchRadiusUI( JPanel panel )
+	private void addLocalGeneSearchBehaviourAndUI( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
@@ -285,7 +281,7 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 
 		horizontalLayoutPanel.add( dataSources );
 
-		for ( String name : platyBrowser.dataSources.keySet() )
+		for ( String name : imageSourcesModel.sources().keySet() )
 		{
 			dataSources.addItem( name );
 		}
@@ -295,7 +291,10 @@ public class ActionPanel < T extends RealType< T > & NativeType< T > > extends J
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				mainUI.getBdvSourcesPanel().addSourceToViewerAndPanel( (String) dataSources.getSelectedItem() );
+				final String selectedItem = ( String ) dataSources.getSelectedItem();
+				final SourceAndMetadata sourceAndMetadata = imageSourcesModel.sources().get( selectedItem );
+				final BdvStackSource bdvStackSource = bdvView.showSingleSource( sourceAndMetadata );
+				mainFrame.getSourcesPanel().addSourceToPanel( sourceAndMetadata, bdvStackSource );
 			}
 		} );
 

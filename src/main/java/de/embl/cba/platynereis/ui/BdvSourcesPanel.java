@@ -3,6 +3,7 @@ package de.embl.cba.platynereis.ui;
 import bdv.util.Bdv;
 import de.embl.cba.platynereis.*;
 import de.embl.cba.platynereis.utils.Utils;
+import mpicbg.spim.data.SpimData;
 
 import javax.swing.*;
 import java.awt.*;

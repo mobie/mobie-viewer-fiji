@@ -6,6 +6,7 @@ public class Constants
 {
 	public static final String DEFAULT_EM_RAW_FILE_ID = "em-raw-full-res"; //"em-raw-100nm"; //"em-raw-10nm-10nm-25nm"; //"em-raw-100nm"; //
 	public static final String DEFAULT_LABELS_FILE_ID = "em-segmented-cells-labels" ;
+	public static final String LABELS_FILE_ID = "-labels" ;
 
 	public static final String BDV_XML_SUFFIX = ".xml";
 	public static final String IMARIS_SUFFIX = ".ims";

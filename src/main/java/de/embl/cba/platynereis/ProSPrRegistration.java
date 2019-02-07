@@ -1,11 +1,16 @@
 package de.embl.cba.platynereis;
 
+import bdv.BigDataViewer;
 import bdv.spimdata.SpimDataMinimal;
+import bdv.tools.brightness.ConverterSetup;
+import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.registration.ViewRegistration;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
+
+import java.util.ArrayList;
 
 public class ProSPrRegistration
 {

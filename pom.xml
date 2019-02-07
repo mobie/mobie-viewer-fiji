@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
-	<version>0.3.35</version>
+	<version>0.4.00</version>
 	<url>https://github.com/tischi/fiji-plugin-platynereisViewer</url>
 
 	<name>Fiji Plugin Platynereis Viewer</name>
@@ -138,21 +138,21 @@
 		</dependency>
 
 		<dependency>
-            <groupId>org.scijava</groupId>
-            <artifactId>bdv-utils</artifactId>
-            <version>0.1.26</version>
-        </dependency>
-
-		<dependency>
 			<groupId>org.scijava</groupId>
 			<artifactId>transforms-utils</artifactId>
 			<version>0.1.01</version>
 		</dependency>
 
 		<dependency>
-			<groupId>org.scijava</groupId>
+			<groupId>de.embl.cba</groupId>
 			<artifactId>table-utils</artifactId>
-			<version>0.1.05</version>
+			<version>0.2.00</version>
+		</dependency>
+
+		<dependency>
+			<groupId>de.embl.cba</groupId>
+			<artifactId>bdv-utils</artifactId>
+			<version>0.2.00</version>
 		</dependency>
 
 
