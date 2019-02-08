@@ -1,6 +1,5 @@
 package de.embl.cba.platynereis.platybrowser;
 
-import bdv.util.Bdv;
 import bdv.util.BdvStackSource;
 import de.embl.cba.tables.modelview.images.Metadata;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
@@ -12,23 +11,20 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.*;
 
 public class PlatyBrowserSourcesPanel extends JPanel
 {
-    private final PlatyBrowserMainFrame platyBrowserMainFrame;
     private final ImageSegmentsBdvView bdvView;
 
-    public ArrayList< Color > colors;
+    public List< Color > colors;
     protected Map< String, JPanel > sourceNameToPanel;
 
-    public PlatyBrowserSourcesPanel(
-            PlatyBrowserMainFrame platyBrowserMainFrame,
-            ImageSegmentsBdvView bdvView )
+    public PlatyBrowserSourcesPanel( ImageSegmentsBdvView bdvView )
     {
-        this.platyBrowserMainFrame = platyBrowserMainFrame;
         this.bdvView = bdvView;
         this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
         this.setAlignmentX( Component.LEFT_ALIGNMENT );
@@ -52,9 +48,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     private Color getColor( Metadata metadata )
     {
-        if ( metadata.getMap().containsKey( Metadata.COLOR ) )
+        if ( metadata.containsKey( Metadata.COLOR ) )
         {
-            return ( Color ) metadata.getMap().get( Metadata.COLOR );
+            return ( Color ) metadata.get( Metadata.COLOR );
         }
         else
         {
@@ -73,7 +69,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     public void addSourceToPanel( SourceAndMetadata sourceAndMetadata, BdvStackSource bdvStackSource )
     {
         final Metadata metadata = sourceAndMetadata.metadata();
-        final String sourceName = ( String ) metadata.getMap().get( Metadata.DISPLAY_NAME );
+        final String sourceName = ( String ) metadata.get( Metadata.DISPLAY_NAME );
 
         if( ! sourceNameToPanel.containsKey( sourceName ) )
         {
@@ -120,7 +116,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				removeSource( ( String ) sourceAndMetadata.metadata().getMap().get( Metadata.DISPLAY_NAME ), bdvStackSource );
+				removeSource( ( String ) sourceAndMetadata.metadata().get( Metadata.DISPLAY_NAME ), bdvStackSource );
 			}
 		} );
 

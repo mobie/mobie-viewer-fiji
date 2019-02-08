@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 public class FileUtils
 {
-	public static ArrayList< File > getFileList( File directory, String fileNameRegExp )
+	public static List< File > getFileList( File directory, String fileNameRegExp )
 	{
 		final ArrayList< File > files = new ArrayList<>();
 		populateFileList( directory, fileNameRegExp,files );

@@ -1,5 +1,6 @@
 package de.embl.cba.platynereis.platybrowser;
 
+import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableUtils;
 import de.embl.cba.tables.modelview.images.PlatynereisImageSourcesModel;
 import de.embl.cba.tables.modelview.images.PlatynereisImageSourcesModelFactory;
@@ -11,9 +12,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.*;
 
 
 @Plugin(type = Command.class, menuPath = "Plugins>EMBL>Explore>Platynereis Atlas" )
@@ -24,7 +23,7 @@ public class ExplorePlatynereisAtlasCommand implements Command
 
 	private static final String COLUMN_NAME_LABEL_IMAGE_ID = "label_image_id";
 
-	private LinkedHashMap< String, ArrayList< Object > > columns;
+	private LinkedHashMap< String, List< Object > > columns;
 
 	@Override
 	public void run()
@@ -32,7 +31,7 @@ public class ExplorePlatynereisAtlasCommand implements Command
 		final File segmentsTableFile =
 				new File( dataFolder + "/label_attributes/em-segmented-cells-labels-morphology-v2.csv" );
 
-		final ArrayList< ColumnBasedTableRowImageSegment > tableRowImageSegments
+		final List< ColumnBasedTableRowImageSegment > tableRowImageSegments
 				= createAnnotatedImageSegmentsFromTableFile( segmentsTableFile );
 
 		final PlatynereisImageSourcesModel imageSourcesModel
@@ -46,41 +45,29 @@ public class ExplorePlatynereisAtlasCommand implements Command
 
 	}
 
-	private ArrayList< ColumnBasedTableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
+	private List< ColumnBasedTableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
 			File tableFile )
 	{
-		columns = TableUtils.columnsFromTableFile( tableFile, null );
+		columns = TableColumns.columnsFromTableFile( tableFile, null );
 
-		columns = addLabelImageIdColumn();
+		TableColumns.addLabelImageIdColumn(
+				columns,
+				COLUMN_NAME_LABEL_IMAGE_ID,
+				"em-segmented-cells-labels" );
 
-		final HashMap< ImageSegmentCoordinate, ArrayList< Object > > imageSegmentCoordinateToColumn
+		final Map< ImageSegmentCoordinate, List< Object > > imageSegmentCoordinateToColumn
 				= createImageSegmentCoordinateToColumn();
 
-		final ArrayList< ColumnBasedTableRowImageSegment > segments
+		final List< ColumnBasedTableRowImageSegment > segments
 				= SegmentUtils.tableRowImageSegmentsFromColumns(
 						columns, imageSegmentCoordinateToColumn );
 
 		return segments;
 	}
 
-	private LinkedHashMap< String, ArrayList< Object > > addLabelImageIdColumn()
+	private Map< ImageSegmentCoordinate, List< Object > > createImageSegmentCoordinateToColumn()
 	{
-		final int numRows = columns.values().iterator().next().size();
-
-		final ArrayList< Object > labelImageIdColumn = new ArrayList<>();
-		for ( int row = 0; row < numRows; row++ )
-		{
-			labelImageIdColumn.add( "em-segmented-cells-labels" );
-		}
-
-		columns.put( COLUMN_NAME_LABEL_IMAGE_ID, labelImageIdColumn );
-
-		return columns;
-	}
-
-	private HashMap< ImageSegmentCoordinate, ArrayList< Object > > createImageSegmentCoordinateToColumn()
-	{
-		final HashMap< ImageSegmentCoordinate, ArrayList< Object > > imageSegmentCoordinateToColumn
+		final HashMap< ImageSegmentCoordinate, List< Object > > imageSegmentCoordinateToColumn
 				= new HashMap<>();
 
 		imageSegmentCoordinateToColumn.put(

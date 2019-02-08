@@ -47,7 +47,7 @@ public class BatchApplyAmiraTransformationsToBdvXml
 	{
 
 		System.out.println( "Fetching files....");
-		final ArrayList< File > files = FileUtils.getFileList( new File( directory ), filePattern );
+		final List< File > files = FileUtils.getFileList( new File( directory ), filePattern );
 
 		for ( File file : files )
 		{

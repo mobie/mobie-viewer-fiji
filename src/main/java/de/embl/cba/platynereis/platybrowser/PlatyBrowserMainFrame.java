@@ -23,7 +23,7 @@ public class PlatyBrowserMainFrame extends JFrame
 		this.bdvView = bdvView;
 
 		actionPanel = new PlatyBrowserActionPanel( this, bdvView );
-		sourcesPanel = new PlatyBrowserSourcesPanel( this, bdvView );
+		sourcesPanel = new PlatyBrowserSourcesPanel( bdvView );
 
 		splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );

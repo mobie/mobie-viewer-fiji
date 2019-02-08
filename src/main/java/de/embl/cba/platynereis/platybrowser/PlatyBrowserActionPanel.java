@@ -5,7 +5,9 @@ import bdv.util.BdvStackSource;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.GeneSearch;
+import de.embl.cba.platynereis.GeneSearchResults;
 import de.embl.cba.platynereis.utils.Utils;
+import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.modelview.images.ImageSourcesModel;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
@@ -35,9 +37,8 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 	private final ImageSegmentsBdvView bdvView;
 	private final BdvHandle bdv;
 	private Behaviours behaviours;
-	private int geneSearchMipMapLevel;
 	private double geneSearchVoxelSize;
-	private ArrayList< Double > geneSearchRadii;
+	private java.util.List< Double > geneSearchRadii;
 
 	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	private double[] targetNormalVector;
@@ -70,7 +71,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		this.repaint();
 	}
 
-	public ArrayList< Double > getGeneSearchRadii()
+	public java.util.List< Double > getGeneSearchRadii()
 	{
 		return geneSearchRadii;
 	}
@@ -182,8 +183,6 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 				micrometerRadius,
 				micrometerPosition,
 				imageSourcesModel,
-				bdv,
-				geneSearchMipMapLevel,
 				geneSearchVoxelSize );
 
 		final Map< String, Double > geneExpressionLevels = geneSearch.runSearchAndGetLocalExpression();
@@ -191,8 +190,8 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 
 		addSortedGenesToViewerPanel( sortedGeneExpressionLevels, 15 );
 
-		GeneExpressions.addRowToGeneExpressionTable( micrometerPosition, micrometerRadius, geneExpressionLevels );
-		GeneExpressions.logGeneExpression( micrometerPosition, micrometerRadius, sortedGeneExpressionLevels );
+		GeneSearchResults.addRowToGeneExpressionTable( micrometerPosition, micrometerRadius, geneExpressionLevels );
+		GeneSearchResults.logGeneExpression( micrometerPosition, micrometerRadius, sortedGeneExpressionLevels );
 
 	}
 
