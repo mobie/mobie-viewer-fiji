@@ -1,10 +1,9 @@
-package de.embl.cba.platynereis.ui;
+package de.embl.cba.platynereis.utils.ui;
 
 import bdv.util.*;
 import net.imglib2.realtransform.AffineTransform2D;
 
 import java.awt.*;
-import java.util.ArrayList;
 
 public class BdvTextOverlay extends BdvOverlay
 {

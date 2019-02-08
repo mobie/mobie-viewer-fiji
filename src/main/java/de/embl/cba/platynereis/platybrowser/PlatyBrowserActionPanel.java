@@ -1,15 +1,17 @@
 package de.embl.cba.platynereis.platybrowser;
 
-import bdv.ViewerImgLoader;
-import bdv.ViewerSetupImgLoader;
+import bdv.util.BdvHandle;
 import bdv.util.BdvStackSource;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.platynereis.Constants;
+import de.embl.cba.platynereis.GeneSearch;
+import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.modelview.images.ImageSourcesModel;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
 import de.embl.cba.tables.modelview.views.bdv.ImageSegmentsBdvView;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RealPoint;
-import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -31,6 +33,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 
 	private final PlatyBrowserMainFrame mainFrame;
 	private final ImageSegmentsBdvView bdvView;
+	private final BdvHandle bdv;
 	private Behaviours behaviours;
 	private int geneSearchMipMapLevel;
 	private double geneSearchVoxelSize;
@@ -46,6 +49,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 	{
 		this.mainFrame = mainFrame;
 		this.bdvView = bdvView;
+		this.bdv = bdvView.getBdv();
 		this.imageSourcesModel = bdvView.getImageSourcesModel();
 
 		behaviours = new Behaviours( new InputTriggerConfig() );
@@ -60,7 +64,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		addPositionPrintBehaviour( this );
 		addLocalGeneSearchBehaviourAndUI( this);
 		add3DObjectViewResolutionUI( this );
-		addLeveling( this );
+		addLevelingUI( this );
 
 		this.revalidate();
 		this.repaint();
@@ -96,23 +100,14 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 
 		horizontalLayoutPanel.add( new JLabel( "3D object view resolution [micrometer]: " ) );
 
-		final JComboBox resolutionComboBox = createResolutionComboBox();
+		final JComboBox< Double > resolutionComboBox = createResolutionComboBox();
 
 		resolutionComboBox.addActionListener( new ActionListener()
 		{
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				final ArrayList< PlatySource > activePlatySources = platyBrowser.getPlatySources( mainUI.getBdvSourcesPanel().getCurrentSourceNames() );
-
-				for ( PlatySource source : activePlatySources )
-				{
-					if ( source.bdvSelectionEventHandler != null )
-					{
-						source.bdvSelectionEventHandler.set3DObjectViewResolution(
-								 (double) resolutionComboBox.getSelectedItem() );
-					}
-				}
+				bdvView.setVoxelSpacing3DView( ( Double ) resolutionComboBox.getSelectedItem() );
 			}
 		} );
 
@@ -121,14 +116,11 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private JComboBox createResolutionComboBox()
+	private JComboBox< Double > createResolutionComboBox()
 	{
-		final JComboBox resolutionComboBox = new JComboBox( );
+		final JComboBox< Double > resolutionComboBox = new JComboBox( );
 
 		final ArrayList< Double > resolutions = new ArrayList<>();
-//		resolutions.add( 2.0 );
-//		resolutions.add( 1.0 );
-//		resolutions.add( 0.5 );
 		resolutions.add( 0.25 );
 		resolutions.add( 0.10 );
 		resolutions.add( 0.05 );
@@ -170,7 +162,8 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 			final BdvTextOverlay bdvTextOverlay = new BdvTextOverlay( bdv, "Searching expressed genes; please wait...", micrometerPosition );
 
 			(new Thread(new Runnable(){
-				public void run(){
+				public void run()
+				{
 					searchGenes( micrometerPosition, micrometerRadius );
 					bdvTextOverlay.setText( "" );
 				}
@@ -188,7 +181,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		GeneSearch geneSearch = new GeneSearch(
 				micrometerRadius,
 				micrometerPosition,
-				platyBrowser.dataSources,
+				imageSourcesModel,
 				bdv,
 				geneSearchMipMapLevel,
 				geneSearchVoxelSize );
@@ -209,41 +202,31 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 
 		if ( sortedGenes.size() > 0 )
 		{
-			mainUI.getBdvSourcesPanel().removeAllProSPrSources();
-
-			for ( int i = sortedGenes.size()-1; i > sortedGenes.size()- maxNumGenes && i >= 0; --i )
-			{
-				mainUI.getBdvSourcesPanel().addSourceToViewerAndPanel( sortedGenes.get( i ) );
-			}
+			// TODO
+//			mainUI.getBdvSourcesPanel().removeAllProSPrSources();
+//
+//			for ( int i = sortedGenes.size()-1; i > sortedGenes.size()- maxNumGenes && i >= 0; --i )
+//			{
+//				mainUI.getBdvSourcesPanel().addSourceToViewerAndPanel( sortedGenes.get( i ) );
+//			}
 		}
 	}
 
 	private void setGeneSearchRadii( )
 	{
-		final Set< String > sources = platyBrowser.dataSources.keySet();
+		final Set< String > sourceNames = imageSourcesModel.sources().keySet();
 
 		geneSearchRadii = new ArrayList<>();
 
-		for ( String name : sources )
+		for ( String sourceName : sourceNames )
 		{
-			if ( name.contains( Constants.EM_FILE_ID ) ) continue;
+			if ( sourceName.contains( Constants.EM_FILE_ID ) ) continue;
 
-			final PlatySource source = platyBrowser.dataSources.get( name );
+			final SourceAndMetadata sourceAndMetadata = imageSourcesModel.sources().get( sourceName );
 
-			if ( source.spimData == null )
-			{
-				source.spimData = openSpimData( source.file );
-			}
+			final VoxelDimensions voxelDimensions = sourceAndMetadata.source().getVoxelDimensions();
 
-			final ViewerImgLoader imgLoader = ( ViewerImgLoader ) source.spimData.getSequenceDescription().getImgLoader();
-			final ViewerSetupImgLoader< ?, ? > setupImgLoader = imgLoader.getSetupImgLoader( 0 );
-			final AffineTransform3D viewRegistration = source.spimData.getViewRegistrations().getViewRegistration( 0, 0 ).getModel();
-
-			double scale = viewRegistration.get( 0, 0 );
-			final double[][] resolutions = setupImgLoader.getMipmapResolutions();
-
-			geneSearchMipMapLevel = 0; // highest resolution
-			geneSearchVoxelSize = scale * resolutions[ geneSearchMipMapLevel ][ 0 ];
+			geneSearchVoxelSize = voxelDimensions.dimension( 0 );
 
 			break;
 		}
@@ -252,7 +235,6 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		{
 			geneSearchRadii.add( Math.pow( 2, i ) * geneSearchVoxelSize );
 		}
-
 	}
 
 
@@ -301,7 +283,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private void addLeveling( JPanel panel )
+	private void addLevelingUI( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
@@ -314,38 +296,17 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		final JButton defaultReference = new JButton( "Set default level vector" );
 		horizontalLayoutPanel.add( defaultReference );
 
-
-		levelCurrentView.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				BdvUtils.levelCurrentView( bdv, targetNormalVector );
-			}
+		changeReference.addActionListener( e -> {
+			targetNormalVector = BdvUtils.getCurrentViewNormalVector( bdv );
+			Utils.logVector( "New reference normal vector: ", targetNormalVector );
 		} );
 
-		changeReference.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				targetNormalVector = BdvUtils.getCurrentViewNormalVector( bdv );
-				Utils.logVector( "New reference normal vector: ", targetNormalVector );
-			}
+		defaultReference.addActionListener( e -> {
+			targetNormalVector = Arrays.copyOf( defaultTargetNormalVector, 3);
+			Utils.logVector( "New reference normal vector (default): ", defaultTargetNormalVector );
 		} );
 
-
-		defaultReference.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				targetNormalVector =  Arrays.copyOf(defaultTargetNormalVector, 3);
-				Utils.logVector( "New reference normal vector (default): ", defaultTargetNormalVector );
-
-			}
-		} );
-
+		levelCurrentView.addActionListener( e -> BdvUtils.levelCurrentView( bdv, targetNormalVector ) );
 
 		panel.add( horizontalLayoutPanel );
 	}

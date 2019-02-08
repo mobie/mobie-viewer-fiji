@@ -1,4 +1,4 @@
-package de.embl.cba.platynereis.ui;
+package de.embl.cba.platynereis.utils.ui;
 
 import javax.swing.*;
 import java.awt.*;

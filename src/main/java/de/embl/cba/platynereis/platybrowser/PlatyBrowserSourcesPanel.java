@@ -16,7 +16,7 @@ import java.util.Map;
 
 import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.*;
 
-public class PlatyBrowserSourcesPanel extends JPanel implements ActionListener
+public class PlatyBrowserSourcesPanel extends JPanel
 {
     private final PlatyBrowserMainFrame platyBrowserMainFrame;
     private final ImageSegmentsBdvView bdvView;
@@ -54,7 +54,7 @@ public class PlatyBrowserSourcesPanel extends JPanel implements ActionListener
     {
         if ( metadata.getMap().containsKey( Metadata.COLOR ) )
         {
-            return metadata.getMap().get( Metadata.COLOR );
+            return ( Color ) metadata.getMap().get( Metadata.COLOR );
         }
         else
         {
@@ -77,16 +77,14 @@ public class PlatyBrowserSourcesPanel extends JPanel implements ActionListener
 
         if( ! sourceNameToPanel.containsKey( sourceName ) )
         {
+            JPanel panel = new JPanel();
             sourceNameToPanel.put( sourceName, panel );
 
-            final Color color = getColor( metadata );
-
-            JPanel panel = new JPanel();
             panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
             panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 0, 10 ) );
             panel.add( Box.createHorizontalGlue() );
             panel.setOpaque( true );
-            panel.setBackground( color );
+            panel.setBackground( getColor( metadata ) );
 
             JLabel jLabel = new JLabel( sourceName );
             jLabel.setHorizontalAlignment( SwingConstants.CENTER );
@@ -122,7 +120,7 @@ public class PlatyBrowserSourcesPanel extends JPanel implements ActionListener
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				removeSource( sourceAndMetadata, bdvStackSource );
+				removeSource( ( String ) sourceAndMetadata.metadata().getMap().get( Metadata.DISPLAY_NAME ), bdvStackSource );
 			}
 		} );
 
@@ -147,11 +145,11 @@ public class PlatyBrowserSourcesPanel extends JPanel implements ActionListener
 //        }
 //    }
 
-    private void removeSource( SourceAndMetadata sourceAndMetadata, BdvStackSource bdvStackSource )
+    private void removeSource( String sourceName, BdvStackSource bdvStackSource )
     {
         bdvView.removeSingleSource( bdvStackSource );
-        remove( sourceNameToPanel.get( name ) );
-        sourceNameToPanel.remove( name );
+        remove( sourceNameToPanel.get( sourceName ) );
+        sourceNameToPanel.remove( sourceName );
         refreshGui();
     }
 

@@ -3,8 +3,10 @@ package de.embl.cba.platynereis;
 import bdv.ViewerImgLoader;
 import bdv.ViewerSetupImgLoader;
 import bdv.util.Bdv;
+import bdv.viewer.Source;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.modelview.images.ImageSourcesModel;
+import de.embl.cba.tables.modelview.images.SourceAndMetadata;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -53,43 +55,39 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 		localExpression = new LinkedHashMap<>(  );
 
-		for ( String name : sourceNames )
+		for ( String sourceName : sourceNames )
 		{
-			if ( name.contains( Constants.EM_FILE_ID ) ) continue;
-			if ( ! name.contains( Constants.MEDS ) ) continue;
-			if ( name.contains( Constants.OLD ) ) continue;
+			if ( sourceName.contains( Constants.EM_FILE_ID ) ) continue;
+			if ( ! sourceName.contains( Constants.MEDS ) ) continue;
+			if ( sourceName.contains( Constants.OLD ) ) continue;
 
-			(new Thread(new Runnable(){
-				public void run(){
-					Utils.log( "Examining " + name );
-				}
-			})).start();
+			logProgress( sourceName );
 
-			final PlatySource source = dataSources.get( name );
-
-			if ( source.spimData == null )
-			{
-				source.spimData = openSpimData( source.file );
-			}
-
-			final ViewerImgLoader imgLoader = ( ViewerImgLoader ) source.spimData.getSequenceDescription().getImgLoader();
-			final ViewerSetupImgLoader< ?, ? > setupImgLoader = imgLoader.getSetupImgLoader( 0 );
-			final RandomAccessibleInterval< T > image = (RandomAccessibleInterval<T>) setupImgLoader.getImage( 0, mipMapLevel );
+			final SourceAndMetadata sourceAndMetadata = imageSourcesModel.sources().get( sourceName );
+			final Source< ? > source = sourceAndMetadata.source();
+			final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
 
 			final double fractionOfNonZeroVoxels = Utils.getFractionOfNonZeroVoxels(
-					image,
+					rai,
 					micrometerPosition,
 					micrometerRadius,
 					micrometerVoxelSize );
 
-			localExpression.put( name, fractionOfNonZeroVoxels );
-
+			localExpression.put( sourceName, fractionOfNonZeroVoxels );
 		}
 
 		return localExpression;
 
 	}
 
+	public void logProgress( String sourceName )
+	{
+		(new Thread(new Runnable(){
+			public void run(){
+				Utils.log( "Examining " + sourceName );
+			}
+		})).start();
+	}
 
 
 //	private void logResult()

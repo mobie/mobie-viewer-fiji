@@ -154,7 +154,6 @@ public class Utils
 		return 1.0 * numberOfNonZeroVoxels / numberOfVoxels;
 	}
 
-
 	public static String[] combine(String[] a, String[] b){
 		int length = a.length + b.length;
 		String[] result = new String[length];
@@ -162,7 +161,6 @@ public class Utils
 		System.arraycopy(b, 0, result, a.length, b.length);
 		return result;
 	}
-
 
 	public static Object[] combine(Object[] a, Object[] b){
 		int length = a.length + b.length;
@@ -232,10 +230,6 @@ public class Utils
 		}
 		return normalVector;
 	}
-
-
-
-
 
 	public static void wait100ms()
 	{
