@@ -1,9 +1,8 @@
 package de.embl.cba.platynereis.platybrowser;
 
+import de.embl.cba.platynereis.PlatynereisImageSourcesModel;
+import de.embl.cba.platynereis.PlatynereisImageSourcesModelFactory;
 import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.TableUtils;
-import de.embl.cba.tables.modelview.images.PlatynereisImageSourcesModel;
-import de.embl.cba.tables.modelview.images.PlatynereisImageSourcesModelFactory;
 import de.embl.cba.tables.modelview.segments.*;
 import de.embl.cba.tables.modelview.views.DefaultBdvAndTableView;
 import de.embl.cba.tables.modelview.views.bdv.ImageSegmentsBdvView;
@@ -18,7 +17,7 @@ import java.util.*;
 @Plugin(type = Command.class, menuPath = "Plugins>EMBL>Explore>Platynereis Atlas" )
 public class ExplorePlatynereisAtlasCommand implements Command
 {
-	@Parameter ( label = "Platynereis Atlas Folder" )
+	@Parameter ( label = "Platynereis Atlas Folder", style = "directory")
 	public File dataFolder;
 
 	private static final String COLUMN_NAME_LABEL_IMAGE_ID = "label_image_id";
