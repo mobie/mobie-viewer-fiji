@@ -5,6 +5,7 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.modelview.images.ImageSourcesModel;
 import de.embl.cba.tables.modelview.images.Metadata;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
@@ -18,16 +19,12 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static de.embl.cba.tables.modelview.images.Metadata.*;
 
 public class PlatynereisImageSourcesModel implements ImageSourcesModel
 {
-
 	public static final String DEFAULT_EM_RAW_FILE_ID = "em-raw-full-res";
 	public static final String DEFAULT_LABELS_FILE_ID = "em-segmented-cells-labels" ;
 	public static final String LABELS_FILE_ID = "-labels" ;
@@ -44,9 +41,17 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 
 	private final Map< String, SourceAndMetadata > nameToSourceAndMetadata;
 
-	public PlatynereisImageSourcesModel( )
+	public PlatynereisImageSourcesModel( File directory )
 	{
 		nameToSourceAndMetadata = new HashMap<>();
+
+		List< File > imageFiles = getImageFiles( directory, ".*.xml" );
+
+		for ( File imageFile : imageFiles )
+		{
+			addSource( imageFile );
+		}
+
 	}
 
 	@Override
@@ -55,8 +60,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		return nameToSourceAndMetadata;
 	}
 
-
-	public static Metadata metadataFromSpimData( File file )
+	private static Metadata metadataFromSpimData( File file )
 	{
 		final Metadata metadata = new Metadata();
 
@@ -122,7 +126,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		return dataSourceName;
 	}
 
-	public static SpimData openSpimData( File file )
+	private SpimData openSpimData( File file )
 	{
 		try
 		{
@@ -222,6 +226,24 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		final Metadata metadata = metadataFromSpimData( file );
 
 		nameToSourceAndMetadata.put( imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
+	}
+
+	private List< File > getImageFiles( File inputDirectory, String filePattern )
+	{
+		final List< File > fileList = FileUtils.getFileList( inputDirectory, filePattern );
+		Collections.sort( fileList, new PlatynereisImageSourcesModel().SortFilesIgnoreCase() );
+		return fileList;
+	}
+
+
+	private class SortFilesIgnoreCase implements Comparator<File>
+	{
+		public int compare( File o1, File o2 )
+		{
+			String s1 = o1.getName();
+			String s2 = o2.getName();
+			return s1.toLowerCase().compareTo(s2.toLowerCase());
+		}
 	}
 
 }

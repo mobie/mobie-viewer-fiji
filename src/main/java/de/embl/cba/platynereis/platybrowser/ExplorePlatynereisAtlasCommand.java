@@ -1,7 +1,6 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import de.embl.cba.platynereis.PlatynereisImageSourcesModel;
-import de.embl.cba.platynereis.PlatynereisImageSourcesModelFactory;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.modelview.segments.*;
 import de.embl.cba.tables.modelview.views.DefaultBdvAndTableView;
@@ -34,7 +33,7 @@ public class ExplorePlatynereisAtlasCommand implements Command
 				= createAnnotatedImageSegmentsFromTableFile( segmentsTableFile );
 
 		final PlatynereisImageSourcesModel imageSourcesModel
-				= new PlatynereisImageSourcesModelFactory( dataFolder ).getModel();
+				= new PlatynereisImageSourcesModel( dataFolder );
 
 		final DefaultBdvAndTableView view = new DefaultBdvAndTableView( tableRowImageSegments, imageSourcesModel );
 
