@@ -1,35 +1,38 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import bdv.util.BdvStackSource;
-import de.embl.cba.tables.modelview.images.Metadata;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
-import de.embl.cba.tables.modelview.views.bdv.ImageSegmentsBdvView;
+import de.embl.cba.tables.modelview.images.SourceMetadata;
+import de.embl.cba.tables.modelview.views.ImageSegmentsBdvView;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.*;
 
 public class PlatyBrowserSourcesPanel extends JPanel
 {
-    private final ImageSegmentsBdvView bdvView;
+    private final ImageSegmentsBdvView< ? > bdvView;
 
     public List< Color > colors;
     protected Map< String, JPanel > sourceNameToPanel;
 
-    public PlatyBrowserSourcesPanel( ImageSegmentsBdvView bdvView )
+    public PlatyBrowserSourcesPanel( ImageSegmentsBdvView< ? > bdvView )
     {
         this.bdvView = bdvView;
         this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
         this.setAlignmentX( Component.LEFT_ALIGNMENT );
         sourceNameToPanel = new LinkedHashMap<>(  );
         initColors();
+
+        for ( SourceAndMetadata< ? > sourceAndMetadata : bdvView.getCurrentSources() )
+        {
+            addSourceToPanel( sourceAndMetadata );
+        }
+
+        this.bdvView.getCurrentSources();
     }
 
     private void initColors()
@@ -46,16 +49,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     }
 
-    private Color getColor( Metadata metadata )
+    private Color getColor( SourceMetadata metadata )
     {
-        if ( metadata.containsKey( Metadata.COLOR ) )
-        {
-            return ( Color ) metadata.get( Metadata.COLOR );
-        }
-        else
-        {
-            return Color.WHITE;
-        }
+        return metadata.displayColor;
 //        else if ( sourceNameToPanel.size() <= colors.size()  & sourceNameToPanel.size() > 0 )
 //        {
 //            return colors.get( sourceNameToPanel.size() - 1 );
@@ -66,10 +62,11 @@ public class PlatyBrowserSourcesPanel extends JPanel
 //        }
     }
 
-    public void addSourceToPanel( SourceAndMetadata sourceAndMetadata, BdvStackSource bdvStackSource )
+    public void addSourceToPanel( SourceAndMetadata< ? > sourceAndMetadata )
     {
-        final Metadata metadata = sourceAndMetadata.metadata();
-        final String sourceName = ( String ) metadata.get( Metadata.DISPLAY_NAME );
+        final SourceMetadata metadata = sourceAndMetadata.metadata();
+        final String sourceName = metadata.displayName;
+        final BdvStackSource bdvStackSource = metadata.bdvStackSource;
 
         if( ! sourceNameToPanel.containsKey( sourceName ) )
         {
@@ -111,14 +108,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         JButton removeButton = new JButton( "X" );
         removeButton.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
 
-        removeButton.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				removeSource( ( String ) sourceAndMetadata.metadata().get( Metadata.DISPLAY_NAME ), bdvStackSource );
-			}
-		} );
+        removeButton.addActionListener( e -> removeSource( sourceAndMetadata.metadata().displayName, bdvStackSource ) );
 
         return removeButton;
     }
@@ -143,7 +133,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     private void removeSource( String sourceName, BdvStackSource bdvStackSource )
     {
-        bdvView.removeSingleSource( bdvStackSource );
+        bdvView.removeSource( bdvStackSource );
         remove( sourceNameToPanel.get( sourceName ) );
         sourceNameToPanel.remove( sourceName );
         refreshGui();

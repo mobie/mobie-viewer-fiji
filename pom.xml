@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>24.0.0</version>
+		<version>25.0.0</version>
 	</parent>
 
 	<groupId>de.embl.cba</groupId>
@@ -115,6 +115,7 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-vistools</artifactId>
+			<version>1.0.0-beta-12</version>
 		</dependency>
 
 		<dependency>
@@ -133,9 +134,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.scijava</groupId>
+			<groupId>de.embl.cba</groupId>
 			<artifactId>transforms-utils</artifactId>
-			<version>0.1.01</version>
+			<version>0.2.00</version>
 		</dependency>
 
 		<dependency>

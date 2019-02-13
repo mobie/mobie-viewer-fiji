@@ -5,10 +5,9 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.modelview.images.ImageSourcesModel;
-import de.embl.cba.tables.modelview.images.Metadata;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
+import de.embl.cba.tables.modelview.images.SourceMetadata;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
@@ -20,8 +19,6 @@ import net.imglib2.type.numeric.NumericType;
 
 import java.io.File;
 import java.util.*;
-
-import static de.embl.cba.tables.modelview.images.Metadata.*;
 
 public class PlatynereisImageSourcesModel implements ImageSourcesModel
 {
@@ -45,7 +42,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	{
 		nameToSourceAndMetadata = new HashMap<>();
 
-		List< File > imageFiles = getImageFiles( directory, ".*.xml" );
+		List< File > imageFiles = de.embl.cba.platynereis.utils.FileUtils.getFiles( directory, ".*.xml" );
 
 		for ( File imageFile : imageFiles )
 		{
@@ -60,44 +57,49 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		return nameToSourceAndMetadata;
 	}
 
-	private static Metadata metadataFromSpimData( File file )
+	@Override
+	public boolean is2D()
 	{
-		final Metadata metadata = new Metadata();
+		return false;
+	}
 
-		metadata.put( DISPLAY_RANGE_MIN, 0.0D );
-		metadata.put( DISPLAY_RANGE_MAX, 1000.0D );
+	private static SourceMetadata metadataFromSpimData( File file )
+	{
+		final SourceMetadata metadata = new SourceMetadata( sourceName( file ) );
+
+		metadata.displayRangeMin = 0.0D;
+		metadata.displayRangeMax = 1000.0D;
 
 		if ( file.toString().contains( LABELS_FILE_ID ) )
 		{
-			metadata.put( FLAVOUR, Flavour.LabelSource );
+			metadata.flavour = SourceMetadata.Flavour.LabelSource;
 		}
 		else
 		{
-			metadata.put( FLAVOUR, Flavour.IntensitySource );
+			metadata.flavour = SourceMetadata.Flavour.IntensitySource;
 		}
 
 		if ( file.toString().contains( DEFAULT_EM_RAW_FILE_ID ) )
 		{
-			metadata.put( SHOW_INITIALLY, true );
+			metadata.showInitially = true;
 		}
 
 		if ( file.toString().contains( DEFAULT_LABELS_FILE_ID ) )
 		{
-			metadata.put( SHOW_INITIALLY, true );
+			metadata.showInitially = true;
 		}
 
 		if ( file.toString().contains( EM_RAW_FILE_ID ) )
 		{
-			metadata.put( DISPLAY_RANGE_MIN, 0.0D );
-			metadata.put( DISPLAY_RANGE_MAX, 255.0D );
+			metadata.displayRangeMin = 0.0D;
+			metadata.displayRangeMax = 255.0D;
 		}
 
-		metadata.put( NUM_SPATIAL_DIMENSIONS, 3 );
-		metadata.put( DISPLAY_NAME, sourceName( file ) );
+		metadata.numSpatialDimensions = 3;
+		metadata.displayName = sourceName( file );
 
 		return metadata;
 	}
-
 
 
 	private static String sourceName( File file )
@@ -113,7 +115,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	{
 		if ( dataSourceName.contains( NEW_PROSPR ) )
 		{
-			dataSourceName= dataSourceName.replace( NEW_PROSPR, MEDS );
+			dataSourceName = dataSourceName.replace( NEW_PROSPR, MEDS );
 		}
 		else if ( dataSourceName.contains( AVG_PROSPR ) )
 		{
@@ -171,7 +173,8 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		@Override
 		public boolean isPresent( int t )
 		{
-			return true;
+			if ( t == 0 ) return true;
+			return false;
 		}
 
 		@Override
@@ -223,27 +226,10 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 
 		final LazySpimSource lazySpimSource = new LazySpimSource( imageId, file );
 
-		final Metadata metadata = metadataFromSpimData( file );
+		final SourceMetadata metadata = metadataFromSpimData( file );
 
 		nameToSourceAndMetadata.put( imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
 	}
 
-	private List< File > getImageFiles( File inputDirectory, String filePattern )
-	{
-		final List< File > fileList = FileUtils.getFileList( inputDirectory, filePattern );
-		Collections.sort( fileList, new PlatynereisImageSourcesModel().SortFilesIgnoreCase() );
-		return fileList;
-	}
-
-
-	private class SortFilesIgnoreCase implements Comparator<File>
-	{
-		public int compare( File o1, File o2 )
-		{
-			String s1 = o1.getName();
-			String s2 = o2.getName();
-			return s1.toLowerCase().compareTo(s2.toLowerCase());
-		}
-	}
 
 }

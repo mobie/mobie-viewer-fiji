@@ -11,7 +11,7 @@ import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.modelview.images.ImageSourcesModel;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
-import de.embl.cba.tables.modelview.views.bdv.ImageSegmentsBdvView;
+import de.embl.cba.tables.modelview.views.ImageSegmentsBdvView;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RealPoint;
 import net.imglib2.type.NativeType;
@@ -33,7 +33,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 {
 	public static final int TEXT_FIELD_HEIGHT = 20;
 
-	private final PlatyBrowserMainFrame mainFrame;
+	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private final ImageSegmentsBdvView bdvView;
 	private final BdvHandle bdv;
 	private Behaviours behaviours;
@@ -45,10 +45,10 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 	private ImageSourcesModel imageSourcesModel;
 
 	public PlatyBrowserActionPanel(
-			PlatyBrowserMainFrame mainFrame,
+			PlatyBrowserSourcesPanel sourcesPanel,
 			ImageSegmentsBdvView bdvView )
 	{
-		this.mainFrame = mainFrame;
+		this.sourcesPanel = sourcesPanel;
 		this.bdvView = bdvView;
 		this.bdv = bdvView.getBdv();
 		this.imageSourcesModel = bdvView.getImageSourcesModel();
@@ -274,8 +274,8 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 			{
 				final String selectedItem = ( String ) dataSources.getSelectedItem();
 				final SourceAndMetadata sourceAndMetadata = imageSourcesModel.sources().get( selectedItem );
-				final BdvStackSource bdvStackSource = bdvView.showSingleSource( sourceAndMetadata );
-				mainFrame.getSourcesPanel().addSourceToPanel( sourceAndMetadata, bdvStackSource );
+				final BdvStackSource bdvStackSource = bdvView.showSource( sourceAndMetadata );
+				sourcesPanel.addSourceToPanel( sourceAndMetadata );
 			}
 		} );
 
