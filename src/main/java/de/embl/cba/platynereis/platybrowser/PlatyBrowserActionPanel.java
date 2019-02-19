@@ -328,30 +328,16 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 
 		horizontalLayoutPanel.add( zoom );
 		
-		position.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				BdvUtils.zoomToPosition(
-						bdv,
-						Utils.delimitedStringToDoubleArray( position.getText(), ","),
-						Double.parseDouble( zoom.getText() ), 1000 );
-			}
-		} );
+		position.addActionListener( e -> BdvUtils.zoomToPosition(
+				bdv,
+				Utils.delimitedStringToDoubleArray( position.getText(), ","),
+				Double.parseDouble( zoom.getText() ), 1000 ) );
 
-		zoom.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				BdvUtils.zoomToPosition(
-						bdv,
-						Utils.delimitedStringToDoubleArray( position.getText(), ","),
-						Double.parseDouble( zoom.getText() ),
-						1000 );
-			}
-		} );
+		zoom.addActionListener( e -> BdvUtils.zoomToPosition(
+				bdv,
+				Utils.delimitedStringToDoubleArray( position.getText(), ","),
+				Double.parseDouble( zoom.getText() ),
+				1000 ) );
 
 
 		panel.add( horizontalLayoutPanel );

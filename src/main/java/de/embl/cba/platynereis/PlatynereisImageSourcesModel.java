@@ -32,8 +32,8 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	public static final String NEW_PROSPR = "-new";
 	public static final String AVG_PROSPR = "-avg";
 
-	public static final String MEDS = "-MEDs" ;
-	public static final String SPMS = "-SPMs";
+	public static final String MED = "-MEDs" ;
+	public static final String SPM = "-SPMs";
 	public static final String OLD = "-OLD";
 
 	private final Map< String, SourceAndMetadata > nameToSourceAndMetadata;
@@ -113,18 +113,18 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 
 	private static String getProSPrName( String dataSourceName )
 	{
-		if ( dataSourceName.contains( NEW_PROSPR ) )
-		{
-			dataSourceName = dataSourceName.replace( NEW_PROSPR, MEDS );
-		}
-		else if ( dataSourceName.contains( AVG_PROSPR ) )
-		{
-			dataSourceName = dataSourceName.replace( AVG_PROSPR, SPMS );
-		}
-		else if ( ! dataSourceName.contains( EM_FILE_ID ) )
-		{
-			dataSourceName = dataSourceName + OLD;
-		}
+//		if ( dataSourceName.contains( NEW_PROSPR ) )
+//		{
+//			dataSourceName = dataSourceName.replace( NEW_PROSPR, MED );
+//		}
+//		else if ( dataSourceName.contains( AVG_PROSPR ) )
+//		{
+//			dataSourceName = dataSourceName.replace( AVG_PROSPR, SPM );
+//		}
+//		else if ( ! dataSourceName.contains( EM_FILE_ID ) )
+//		{
+//			dataSourceName = dataSourceName + OLD;
+//		}
 		return dataSourceName;
 	}
 
