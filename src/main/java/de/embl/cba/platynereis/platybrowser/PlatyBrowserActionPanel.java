@@ -6,6 +6,9 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.GeneSearch;
 import de.embl.cba.platynereis.GeneSearchResults;
+import de.embl.cba.platynereis.utils.FileUtils;
+import de.embl.cba.platynereis.utils.SortIgnoreCase;
+import de.embl.cba.platynereis.utils.SortStringsIgnoreCase;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
@@ -24,10 +27,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > > extends JPanel
 {
@@ -262,24 +262,30 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 
 		horizontalLayoutPanel.add( dataSources );
 
-		for ( String name : imageSourcesModel.sources().keySet() )
+		final ArrayList< String > sourceNames = getSortedSourceNames();
+
+		for ( String sourceName : sourceNames )
 		{
-			dataSources.addItem( name );
+			dataSources.addItem( sourceName );
 		}
 
-		dataSources.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				final String selectedItem = ( String ) dataSources.getSelectedItem();
-				final SourceAndMetadata sourceAndMetadata = imageSourcesModel.sources().get( selectedItem );
-				final BdvStackSource bdvStackSource = bdvView.showSource( sourceAndMetadata );
-				sourcesPanel.addSourceToPanel( sourceAndMetadata );
-			}
+		dataSources.addActionListener( e -> {
+			final String selectedItem = ( String ) dataSources.getSelectedItem();
+			final SourceAndMetadata sourceAndMetadata = imageSourcesModel.sources().get( selectedItem );
+			final BdvStackSource bdvStackSource = bdvView.showSource( sourceAndMetadata );
+			sourcesPanel.addSourceToPanel( sourceAndMetadata );
 		} );
 
 		panel.add( horizontalLayoutPanel );
+	}
+
+	private ArrayList< String > getSortedSourceNames()
+	{
+		final ArrayList< String > sourceNames =
+				new ArrayList<>( imageSourcesModel.sources().keySet() );
+
+		Collections.sort( sourceNames, new SortIgnoreCase() );
+		return sourceNames;
 	}
 
 	private void addLevelingUI( JPanel panel )
