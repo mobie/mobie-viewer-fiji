@@ -13,7 +13,10 @@ public class GeneSearchResults
 	private static JTable table;
 	private static DefaultTableModel model;
 
-	public static void logGeneExpression( double[] micrometerPosition, double micrometerRadius, Map< String, Double > sortedGeneExpressionLevels )
+	public static void logGeneExpression(
+			double[] micrometerPosition,
+			double micrometerRadius,
+			Map< String, Double > sortedGeneExpressionLevels )
 	{
 		Utils.log( "\n# Expression levels [fraction of search volume]" );
 		Utils.logVector( "Center position [um]" , micrometerPosition );

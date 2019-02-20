@@ -24,7 +24,7 @@ public class Constants
 	public static final String AVG_PROSPR = "-avg";
 
 	public static final String CELLULAR_MODELS = "cellular-models";
-	public static final CharSequence MEDS = "-MEDs" ;
-	public static final CharSequence SPMS = "-SPMs";
+	public static final CharSequence MED = "-MED" ;
+	public static final CharSequence SPM = "-SPM";
 	public static final String OLD = "-OLD";
 }

@@ -6,9 +6,7 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.GeneSearch;
 import de.embl.cba.platynereis.GeneSearchResults;
-import de.embl.cba.platynereis.utils.FileUtils;
 import de.embl.cba.platynereis.utils.SortIgnoreCase;
-import de.embl.cba.platynereis.utils.SortStringsIgnoreCase;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
@@ -185,13 +183,17 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 				imageSourcesModel,
 				geneSearchVoxelSize );
 
-		final Map< String, Double > geneExpressionLevels = geneSearch.runSearchAndGetLocalExpression();
-		final Map< String, Double > sortedGeneExpressionLevels = geneSearch.getSortedExpressionLevels();
+		final Map< String, Double > geneExpressionLevels =
+				geneSearch.runSearchAndGetLocalExpression();
+		final Map< String, Double > sortedGeneExpressionLevels =
+				geneSearch.getSortedExpressionLevels();
 
 		addSortedGenesToViewerPanel( sortedGeneExpressionLevels, 15 );
 
-		GeneSearchResults.addRowToGeneExpressionTable( micrometerPosition, micrometerRadius, geneExpressionLevels );
-		GeneSearchResults.logGeneExpression( micrometerPosition, micrometerRadius, sortedGeneExpressionLevels );
+		GeneSearchResults.addRowToGeneExpressionTable(
+				micrometerPosition, micrometerRadius, geneExpressionLevels );
+		GeneSearchResults.logGeneExpression(
+				micrometerPosition, micrometerRadius, sortedGeneExpressionLevels );
 
 	}
 

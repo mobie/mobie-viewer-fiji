@@ -1,6 +1,5 @@
 package de.embl.cba.platynereis;
 
-import bdv.util.Bdv;
 import bdv.viewer.Source;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.modelview.images.ImageSourcesModel;
@@ -51,12 +50,12 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 		for ( String sourceName : sourceNames )
 		{
 			if ( sourceName.contains( Constants.EM_FILE_ID ) ) continue;
-			if ( ! sourceName.contains( Constants.MEDS ) ) continue;
-			if ( sourceName.contains( Constants.OLD ) ) continue;
+			if ( ! sourceName.contains( Constants.MED ) ) continue;
 
 			logProgress( sourceName );
 
-			final SourceAndMetadata sourceAndMetadata = imageSourcesModel.sources().get( sourceName );
+			final SourceAndMetadata sourceAndMetadata =
+					imageSourcesModel.sources().get( sourceName );
 			final Source< ? > source = sourceAndMetadata.source();
 			final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
 
