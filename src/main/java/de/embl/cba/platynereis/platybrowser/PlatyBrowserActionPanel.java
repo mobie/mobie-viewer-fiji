@@ -192,6 +192,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 
 		GeneSearchResults.addRowToGeneExpressionTable(
 				micrometerPosition, micrometerRadius, geneExpressionLevels );
+
 		GeneSearchResults.logGeneExpression(
 				micrometerPosition, micrometerRadius, sortedGeneExpressionLevels );
 

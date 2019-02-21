@@ -142,7 +142,7 @@
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>table-utils</artifactId>
-			<version>0.2.00</version>
+			<version>0.2.01</version>
 		</dependency>
 
 		<dependency>

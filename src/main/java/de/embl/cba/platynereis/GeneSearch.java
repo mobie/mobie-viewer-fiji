@@ -8,6 +8,7 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -74,11 +75,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 	public void logProgress( String sourceName )
 	{
-		(new Thread(new Runnable(){
-			public void run(){
-				Utils.log( "Examining " + sourceName );
-			}
-		})).start();
+		// SwingUtilities.invokeLater( () -> Utils.log( "Examining " + sourceName ) );
 	}
 
 	private void removeGenesWithZeroExpression( Map< String, Double > localSortedExpression)

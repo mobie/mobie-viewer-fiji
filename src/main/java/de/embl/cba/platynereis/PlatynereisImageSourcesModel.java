@@ -23,18 +23,11 @@ import java.util.*;
 public class PlatynereisImageSourcesModel implements ImageSourcesModel
 {
 	public static final String DEFAULT_EM_RAW_FILE_ID = "em-raw-full-res";
-	public static final String DEFAULT_LABELS_FILE_ID = "em-segmented-cells-labels" ;
+	public static final String CELL_LABELS_FILE_ID = "em-segmented-cells-labels" ;
 	public static final String LABELS_FILE_ID = "-labels" ;
 
 	public static final String BDV_XML_SUFFIX = ".xml";
 	public static final String EM_RAW_FILE_ID = "em-raw-";
-	public static final String EM_FILE_ID = "em-";
-	public static final String NEW_PROSPR = "-new";
-	public static final String AVG_PROSPR = "-avg";
-
-	public static final String MED = "-MEDs" ;
-	public static final String SPM = "-SPMs";
-	public static final String OLD = "-OLD";
 
 	private final Map< String, SourceAndMetadata > nameToSourceAndMetadata;
 
@@ -70,9 +63,13 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		metadata.displayRangeMin = 0.0D;
 		metadata.displayRangeMax = 1000.0D;
 
-		if ( file.toString().contains( LABELS_FILE_ID ) )
+		if ( file.toString().contains( CELL_LABELS_FILE_ID ) )
 		{
 			metadata.flavour = SourceMetadata.Flavour.LabelSource;
+		}
+		else if ( file.toString().contains( LABELS_FILE_ID ) )
+		{
+			metadata.flavour = SourceMetadata.Flavour.LabelSourceWithoutAnnotations;
 		}
 		else
 		{
@@ -84,7 +81,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 			metadata.showInitially = true;
 		}
 
-		if ( file.toString().contains( DEFAULT_LABELS_FILE_ID ) )
+		if ( file.toString().contains( CELL_LABELS_FILE_ID ) )
 		{
 			metadata.showInitially = true;
 		}
