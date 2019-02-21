@@ -26,7 +26,10 @@ public class GeneExpressions
 		}
 	}
 
-	public static synchronized void addRowToGeneExpressionTable( double[] micrometerPosition, double micrometerRadius, Map< String, Double > geneExpressionLevels )
+	public static synchronized void addRowToGeneExpressionTable(
+			double[] micrometerPosition,
+			double micrometerRadius,
+			Map< String, Double > geneExpressionLevels )
 	{
 		if ( geneExpressionTablePanel == null )
 		{
