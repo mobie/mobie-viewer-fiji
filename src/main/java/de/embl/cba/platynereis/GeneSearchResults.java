@@ -1,6 +1,7 @@
 package de.embl.cba.platynereis;
 
 import de.embl.cba.platynereis.utils.Utils;
+import de.embl.cba.tables.TableUtils;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -51,6 +52,13 @@ public class GeneSearchResults
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
+
+
+		final JMenuBar jMenuBar = new JMenuBar();
+		final JMenuItem saveAs = new JMenuItem( "Save as..." );
+		saveAs.addActionListener( e -> {
+
+			TableUtils.saveTable( table );} );
 
 		JScrollPane tableContainer = new JScrollPane(
 				table,
