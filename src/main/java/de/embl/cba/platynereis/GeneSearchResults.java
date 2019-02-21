@@ -1,11 +1,14 @@
 package de.embl.cba.platynereis;
 
 import de.embl.cba.platynereis.utils.Utils;
+import de.embl.cba.tables.TableUIs;
 import de.embl.cba.tables.TableUtils;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Map;
 
 import static de.embl.cba.platynereis.utils.Utils.combine;
@@ -53,17 +56,18 @@ public class GeneSearchResults
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 
-
 		final JMenuBar jMenuBar = new JMenuBar();
+		final JMenu menu = new JMenu( "File" );
 		final JMenuItem saveAs = new JMenuItem( "Save as..." );
-		saveAs.addActionListener( e -> {
-
-			TableUtils.saveTable( table );} );
+		saveAs.addActionListener( e -> SwingUtilities.invokeLater( () -> TableUIs.saveTableUI( table ) ) );
+		menu.add( saveAs );
+		jMenuBar.add( menu );
+		frame.setJMenuBar( jMenuBar );
 
 		JScrollPane tableContainer = new JScrollPane(
 				table,
 				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED );
 
 		table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 

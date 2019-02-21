@@ -185,6 +185,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 
 		final Map< String, Double > geneExpressionLevels =
 				geneSearch.runSearchAndGetLocalExpression();
+
 		final Map< String, Double > sortedGeneExpressionLevels =
 				geneSearch.getSortedExpressionLevels();
 

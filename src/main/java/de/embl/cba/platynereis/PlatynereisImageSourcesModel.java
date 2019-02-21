@@ -152,7 +152,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 			this.file = file;
 		}
 
-		private Source< T > wrappedSource()
+		public Source< T > wrappedSource()
 		{
 			if ( source == null )
 			{
