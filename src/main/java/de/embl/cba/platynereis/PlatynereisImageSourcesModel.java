@@ -29,7 +29,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	public static final String BDV_XML_SUFFIX = ".xml";
 	public static final String EM_RAW_FILE_ID = "em-raw-";
 
-	private final Map< String, SourceAndMetadata > nameToSourceAndMetadata;
+	private final Map< String, SourceAndMetadata< ? > > nameToSourceAndMetadata;
 
 	public PlatynereisImageSourcesModel( File directory )
 	{
@@ -45,7 +45,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	}
 
 	@Override
-	public Map< String, SourceAndMetadata > sources()
+	public Map< String, SourceAndMetadata< ? > > sources()
 	{
 		return nameToSourceAndMetadata;
 	}
@@ -110,18 +110,6 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 
 	private static String getProSPrName( String dataSourceName )
 	{
-//		if ( dataSourceName.contains( NEW_PROSPR ) )
-//		{
-//			dataSourceName = dataSourceName.replace( NEW_PROSPR, MED );
-//		}
-//		else if ( dataSourceName.contains( AVG_PROSPR ) )
-//		{
-//			dataSourceName = dataSourceName.replace( AVG_PROSPR, SPM );
-//		}
-//		else if ( ! dataSourceName.contains( EM_FILE_ID ) )
-//		{
-//			dataSourceName = dataSourceName + OLD;
-//		}
 		return dataSourceName;
 	}
 

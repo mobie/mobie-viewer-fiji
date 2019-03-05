@@ -14,12 +14,12 @@ import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.*;
 
 public class PlatyBrowserSourcesPanel extends JPanel
 {
-    private final ImageSegmentsBdvView< ? > bdvView;
+    private final ImageSegmentsBdvView< ?, ? > bdvView;
 
     public List< Color > colors;
     protected Map< String, JPanel > sourceNameToPanel;
 
-    public PlatyBrowserSourcesPanel( ImageSegmentsBdvView< ? > bdvView )
+    public PlatyBrowserSourcesPanel( ImageSegmentsBdvView< ?, ? > bdvView )
     {
         this.bdvView = bdvView;
         this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );

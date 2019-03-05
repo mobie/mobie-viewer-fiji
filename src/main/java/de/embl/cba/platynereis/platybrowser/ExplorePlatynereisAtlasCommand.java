@@ -70,11 +70,11 @@ public class ExplorePlatynereisAtlasCommand implements Command
 				= new HashMap<>();
 
 		imageSegmentCoordinateToColumn.put(
-				ImageSegmentCoordinate.ImageId,
+				ImageSegmentCoordinate.LabelImage,
 				columns.get( COLUMN_NAME_LABEL_IMAGE_ID ));
 
 		imageSegmentCoordinateToColumn.put(
-				ImageSegmentCoordinate.LabelId,
+				ImageSegmentCoordinate.ObjectLabel,
 				columns.get( "label_id" ) );
 
 		imageSegmentCoordinateToColumn.put(
