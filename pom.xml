@@ -142,13 +142,13 @@
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>table-utils</artifactId>
-			<version>0.2.04</version>
+			<version>0.2.06</version>
 		</dependency>
 
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>bdv-utils</artifactId>
-			<version>0.2.07</version>
+			<version>0.2.08</version>
 		</dependency>
 
 	</dependencies>

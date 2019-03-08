@@ -2,8 +2,8 @@ package de.embl.cba.platynereis;
 
 import bdv.VolatileSpimSource;
 import bdv.tools.transformation.TransformedSource;
-import bdv.viewer.Source;
-import de.embl.cba.bdv.utils.BdvUtils;
+
+import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.modelview.images.ImageSourcesModel;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
@@ -11,7 +11,6 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -78,12 +77,10 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 	public RandomAccessibleInterval< ? > getRandomAccessibleInterval( SourceAndMetadata sourceAndMetadata )
 	{
-		final PlatynereisImageSourcesModel.LazySpimSource lazySpimSource =
-				( PlatynereisImageSourcesModel.LazySpimSource ) sourceAndMetadata.source();
+		final LazySpimSource lazySpimSource = ( LazySpimSource ) sourceAndMetadata.source();
 		final TransformedSource transformedSource = (TransformedSource) lazySpimSource.wrappedSource();
 		final VolatileSpimSource wrappedSource = ( VolatileSpimSource ) transformedSource.getWrappedSource();
 		final RandomAccessibleInterval< ? > rai = wrappedSource.nonVolatile().getSource( 0, 0 );
-
 		return rai;
 	}
 
