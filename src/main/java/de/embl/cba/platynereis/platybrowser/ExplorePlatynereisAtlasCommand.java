@@ -39,6 +39,8 @@ public class ExplorePlatynereisAtlasCommand implements Command
 				tableRowImageSegments,
 				imageSourcesModel );
 
+		view.getTableRowsTableView().categoricalColumnNames().add( "label_id" );
+
 		final ImageSegmentsBdvView bdvView = view.getImageSegmentsBdvView();
 
 		new PlatyBrowserMainFrame( bdvView );
