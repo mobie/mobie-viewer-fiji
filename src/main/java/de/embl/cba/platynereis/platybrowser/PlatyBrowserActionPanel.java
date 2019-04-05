@@ -23,8 +23,7 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.util.*;
 
 public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > > extends JPanel
@@ -260,7 +259,10 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		horizontalLayoutPanel.add( new JLabel( "Add to viewer: " ) );
+
+		final JButton addToViewer = new JButton( "Add to viewer" );
+
+		horizontalLayoutPanel.add( addToViewer );
 
 		final JComboBox dataSources = new JComboBox();
 
@@ -273,14 +275,20 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 			dataSources.addItem( sourceName );
 		}
 
-		dataSources.addActionListener( e -> {
+		addToViewer.addActionListener( e -> {
 			final String selectedItem = ( String ) dataSources.getSelectedItem();
 			final SourceAndMetadata sourceAndMetadata = imageSourcesModel.sources().get( selectedItem );
-			final BdvStackSource bdvStackSource = bdvView.showSource( sourceAndMetadata );
-			sourcesPanel.addSourceToPanel( sourceAndMetadata );
+			addSourceToPanelAndViewer( sourceAndMetadata );
 		} );
 
 		panel.add( horizontalLayoutPanel );
+	}
+
+	public void addSourceToPanelAndViewer( SourceAndMetadata sourceAndMetadata )
+	{
+		if ( sourcesPanel.sourceNameToPanel.containsKey( sourceAndMetadata.metadata().displayName ) ) return;
+		bdvView.showSource( sourceAndMetadata );
+		sourcesPanel.addSourceToPanel( sourceAndMetadata );
 	}
 
 	private ArrayList< String > getSortedSourceNames()

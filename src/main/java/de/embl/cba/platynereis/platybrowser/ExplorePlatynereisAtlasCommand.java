@@ -21,7 +21,7 @@ public class ExplorePlatynereisAtlasCommand implements Command
 
 	private static final String COLUMN_NAME_LABEL_IMAGE_ID = "label_image_id";
 
-	private LinkedHashMap< String, List< ? > > columns;
+
 
 	@Override
 	public void run()
@@ -29,8 +29,10 @@ public class ExplorePlatynereisAtlasCommand implements Command
 		final File segmentsTableFile =
 				new File( dataFolder + "/label_attributes/em-segmented-cells-labels_main_20190212.csv" );
 
+		final LinkedHashMap< String, List< ? > > columns = new LinkedHashMap<>();
+
 		final List< TableRowImageSegment > tableRowImageSegments
-				= createAnnotatedImageSegmentsFromTableFile( segmentsTableFile );
+				= createAnnotatedImageSegmentsFromTableFile( segmentsTableFile, columns );
 
 		final PlatynereisImageSourcesModel imageSourcesModel
 				= new PlatynereisImageSourcesModel( dataFolder );
@@ -47,8 +49,8 @@ public class ExplorePlatynereisAtlasCommand implements Command
 
 	}
 
-	private List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
-			File tableFile )
+	public static List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
+			File tableFile, LinkedHashMap< String, List< ? > > columns )
 	{
 		columns = TableColumns.asTypedColumns( TableColumns.stringColumnsFromTableFile( tableFile ) );
 
@@ -58,7 +60,7 @@ public class ExplorePlatynereisAtlasCommand implements Command
 				"em-segmented-cells-labels" );
 
 		final Map< ImageSegmentCoordinate, List< ? > > imageSegmentCoordinateToColumn
-				= createImageSegmentCoordinateToColumn();
+				= createImageSegmentCoordinateToColumn( columns );
 
 		final List< TableRowImageSegment > segments
 				= SegmentUtils.tableRowImageSegmentsFromColumns( columns, imageSegmentCoordinateToColumn, false );
@@ -66,7 +68,7 @@ public class ExplorePlatynereisAtlasCommand implements Command
 		return segments;
 	}
 
-	private Map< ImageSegmentCoordinate, List< ? > > createImageSegmentCoordinateToColumn()
+	public static Map< ImageSegmentCoordinate, List< ? > > createImageSegmentCoordinateToColumn( LinkedHashMap< String, List< ? > > columns )
 	{
 		final HashMap< ImageSegmentCoordinate, List< ? > > imageSegmentCoordinateToColumn
 				= new HashMap<>();

@@ -68,36 +68,37 @@ public class PlatyBrowserSourcesPanel extends JPanel
         final String sourceName = metadata.displayName;
         final BdvStackSource bdvStackSource = metadata.bdvStackSource;
 
-        if( ! sourceNameToPanel.containsKey( sourceName ) )
-        {
-            JPanel panel = new JPanel();
-            sourceNameToPanel.put( sourceName, panel );
+        JPanel panel = new JPanel();
+        sourceNameToPanel.put( sourceName, panel );
 
-            panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
-            panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 0, 10 ) );
-            panel.add( Box.createHorizontalGlue() );
-            panel.setOpaque( true );
-            panel.setBackground( getColor( metadata ) );
+        panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
+        panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 0, 10 ) );
+        panel.add( Box.createHorizontalGlue() );
+        panel.setOpaque( true );
+        panel.setBackground( getColor( metadata ) );
 
-            JLabel jLabel = new JLabel( sourceName );
-            jLabel.setHorizontalAlignment( SwingConstants.CENTER );
+        JLabel jLabel = new JLabel( sourceName );
+        jLabel.setHorizontalAlignment( SwingConstants.CENTER );
 
-            int[] buttonDimensions = new int[]{ 50, 30 };
+        int[] buttonDimensions = new int[]{ 50, 30 };
 
-            final JButton colorButton = createColorButton( panel, buttonDimensions, bdvStackSource );
-            final JButton brightnessButton = createBrightnessButton( buttonDimensions, sourceName, bdvStackSource );
-            final JButton removeButton = createRemoveButton( sourceAndMetadata, bdvStackSource, buttonDimensions );
-            final JCheckBox visibilityCheckbox = createVisibilityCheckbox( buttonDimensions, bdvStackSource, true );
+        final JButton colorButton =
+                createColorButton( panel, buttonDimensions, bdvStackSource );
+        final JButton brightnessButton =
+                createBrightnessButton( buttonDimensions, sourceName, bdvStackSource );
+        final JButton removeButton =
+                createRemoveButton( sourceAndMetadata, bdvStackSource, buttonDimensions );
+        final JCheckBox visibilityCheckbox =
+                createVisibilityCheckbox( buttonDimensions, bdvStackSource, true );
 
-            panel.add( jLabel );
-            panel.add( colorButton );
-            panel.add( brightnessButton );
-            panel.add( removeButton );
-            panel.add( visibilityCheckbox );
+        panel.add( jLabel );
+        panel.add( colorButton );
+        panel.add( brightnessButton );
+        panel.add( removeButton );
+        panel.add( visibilityCheckbox );
 
-            add( panel );
-            refreshGui();
-        }
+        add( panel );
+        refreshGui();
     }
 
     private JButton createRemoveButton(
@@ -108,7 +109,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
         JButton removeButton = new JButton( "X" );
         removeButton.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
 
-        removeButton.addActionListener( e -> removeSource( sourceAndMetadata.metadata().displayName, bdvStackSource ) );
+        removeButton.addActionListener(
+                e -> removeSource( sourceAndMetadata.metadata().displayName, bdvStackSource ) );
 
         return removeButton;
     }

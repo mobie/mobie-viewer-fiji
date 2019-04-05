@@ -11,10 +11,13 @@ import java.awt.event.KeyEvent;
 public class PlatyBrowserMainFrame extends JFrame
 {
 
+	private final PlatyBrowserSourcesPanel sourcesPanel;
+	private final PlatyBrowserActionPanel actionPanel;
+
 	public PlatyBrowserMainFrame( ImageSegmentsBdvView bdvView ) throws HeadlessException
 	{
-		PlatyBrowserSourcesPanel sourcesPanel = new PlatyBrowserSourcesPanel( bdvView );
-		PlatyBrowserActionPanel actionPanel = new PlatyBrowserActionPanel( sourcesPanel, bdvView );
+		sourcesPanel = new PlatyBrowserSourcesPanel( bdvView );
+		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, bdvView );
 
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
@@ -32,6 +35,16 @@ public class PlatyBrowserMainFrame extends JFrame
 
 		initHelpDialog();
 
+	}
+
+	public PlatyBrowserSourcesPanel getSourcesPanel()
+	{
+		return sourcesPanel;
+	}
+
+	public PlatyBrowserActionPanel getActionPanel()
+	{
+		return actionPanel;
 	}
 
 	public void initHelpDialog()
