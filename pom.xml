@@ -10,7 +10,7 @@
 
 	<groupId>de.embl.cba</groupId>
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
-	<version>0.4.04</version>
+	<version>0.4.06</version>
 	<url>https://github.com/tischi/fiji-plugin-platynereisViewer</url>
 
 	<name>Fiji Plugin Platynereis Viewer</name>

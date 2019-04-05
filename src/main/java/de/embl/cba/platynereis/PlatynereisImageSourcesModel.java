@@ -14,7 +14,7 @@ import java.util.*;
 public class PlatynereisImageSourcesModel implements ImageSourcesModel
 {
 	public static final String DEFAULT_EM_RAW_FILE_ID = "em-raw-full-res";
-	public static final String CELL_LABELS_FILE_ID = "em-segmented-cells-labels" ;
+	public static final String CELL_LABELS_FILE_ID = "em-segmented-cells-labels.xml" ;
 	public static final String LABELS_FILE_ID = "-labels" ;
 
 	public static final String BDV_XML_SUFFIX = ".xml";
