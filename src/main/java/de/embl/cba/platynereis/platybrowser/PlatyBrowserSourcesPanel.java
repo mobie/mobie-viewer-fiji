@@ -1,11 +1,7 @@
 package de.embl.cba.platynereis.platybrowser;
 
-import bdv.util.Bdv;
-import bdv.util.BdvHandle;
-import bdv.util.BdvStackSource;
-import bdv.viewer.Source;
+import bdv.util.*;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.PlatynereisImageSourcesModel;
 import de.embl.cba.tables.modelview.images.DefaultImageSourcesModel;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
@@ -20,7 +16,6 @@ import java.util.*;
 import java.util.List;
 
 import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.*;
-import static de.embl.cba.platynereis.Constants.CELLS_LABELS_IMAGE;
 import static de.embl.cba.platynereis.platybrowser.ExplorePlatynereisAtlasCommand.createAnnotatedImageSegmentsFromTableFile;
 
 public class PlatyBrowserSourcesPanel extends JPanel
@@ -73,91 +68,67 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     public void addSourceToPanelAndViewer( SourceAndMetadata< ? > sourceAndMetadata )
     {
-        if ( sourceNameToPanel.containsKey( sourceAndMetadata.metadata().displayName ) )
-            return;
-
         final SourceMetadata metadata = sourceAndMetadata.metadata();
-        Source< ? > source = sourceAndMetadata.source();
+
+        if ( sourceNameToPanel.containsKey( metadata.displayName ) )
+            return;
 
         if ( metadata.flavour == SourceMetadata.Flavour.LabelSource )
         {
             if ( metadata.segmentsTable != null )
             {
-                final LinkedHashMap< String, List< ? > > columns = new LinkedHashMap<>();
-
-                final List< TableRowImageSegment > tableRowImageSegments
-                        = createAnnotatedImageSegmentsFromTableFile(
-                                metadata.segmentsTable, columns );
-
-                final DefaultImageSourcesModel imageSourcesModel
-                        = new DefaultImageSourcesModel( false );
-
-                imageSourcesModel.addSourceAndMetadata( metadata.imageId, sourceAndMetadata );
-
-                final DefaultTableAndBdvViews view = new DefaultTableAndBdvViews(
-                        tableRowImageSegments,
-                        imageSourcesModel,
-                        bdv );
+                metadata.bdvStackSource = showAnnotatedLabelsSource( sourceAndMetadata );
             }
         }
-
-
-        if ( metadata.displayName.equals( CELLS_LABELS_IMAGE ) )
+        else
         {
-            final File segmentsTableFile =
-                    new File( dataFolder + Constants.CELLS_LABELS_TABLE );
+            final BdvStackSource bdvStackSource = BdvFunctions.show(
+                    sourceAndMetadata.source(),
+                    1,
+                    BdvOptions.options().sourceTransform(
+                            metadata.sourceTransform ).addTo( bdv ) );
 
-            final LinkedHashMap< String, List< ? > > columns = new LinkedHashMap<>();
+            bdvStackSource.setActive( true );
 
-            final List< TableRowImageSegment > tableRowImageSegments
-                    = createAnnotatedImageSegmentsFromTableFile( metadata.segmentsTable, columns );
+            bdvStackSource.setDisplayRange( metadata.displayRangeMin, metadata.displayRangeMax );
 
+            bdv = bdvStackSource.getBdvHandle();
 
-            final DefaultTableAndBdvViews view = new DefaultTableAndBdvViews(
-                    tableRowImageSegments,
-                    imageSourcesModel );
+            metadata.bdvStackSource = bdvStackSource;
         }
-
-
-
-        if ( metadata.flavour == SourceMetadata.Flavour.LabelSource
-                || metadata.flavour == SourceMetadata.Flavour.LabelSourceWithoutAnnotations )
-        {
-
-            source = asLabelSource( sourceAndMetadata );
-        }
-
-
-        // TODO: add source to viewer
-
-        // if bdv == null...
-
-//
-//        bdvOptions = bdvOptions.sourceTransform( metadata.sourceTransform );
-//
-//        int numTimePoints = getNumTimePoints( source );
-//
-//        final BdvStackSource bdvStackSource = BdvFunctions.show(
-//                source,
-//                numTimePoints,
-//                bdvOptions );
-//
-//        bdvStackSource.setActive( true );
-//
-//        bdvStackSource.setDisplayRange( metadata.displayRangeMin, metadata.displayRangeMax );
-//
-//        bdv = bdvStackSource.getBdvHandle();
-//
-//        updateBdvTimePointListeners();
-//
-//        bdvOptions = bdvOptions.addTo( bdv );
-//
-//        metadata.bdvStackSource = bdvStackSource;
-//
-//        currentSources.add( sourceAndMetadata );
-
 
         addSourceToPanel( sourceAndMetadata );
+    }
+
+    public BdvStackSource showAnnotatedLabelsSource( SourceAndMetadata< ? > sourceAndMetadata )
+    {
+        final SourceMetadata metadata = sourceAndMetadata.metadata();
+
+        final LinkedHashMap< String, List< ? > > columns = new LinkedHashMap<>();
+
+        final List< TableRowImageSegment > tableRowImageSegments
+                = createAnnotatedImageSegmentsFromTableFile(
+                        metadata.segmentsTable, columns );
+
+        final DefaultImageSourcesModel imageSourcesModel
+                = new DefaultImageSourcesModel( false );
+
+        imageSourcesModel.addSourceAndMetadata(
+                metadata.imageId, sourceAndMetadata );
+
+        final DefaultTableAndBdvViews view = new DefaultTableAndBdvViews(
+                tableRowImageSegments,
+                imageSourcesModel,
+                bdv );
+
+        bdv = view.getImageSegmentsBdvView().getBdv();
+
+        final BdvStackSource bdvStackSource = view
+                        .getImageSegmentsBdvView()
+                        .getCurrentSources().get( 0 )
+                        .metadata().bdvStackSource;
+
+        return bdvStackSource;
     }
 
     private void addSourceToPanel( SourceAndMetadata< ? > sourceAndMetadata )
@@ -209,7 +180,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
 
         removeButton.addActionListener(
-                e -> removeSourceFromPanelAndViewer( sourceAndMetadata.metadata().displayName, bdvStackSource ) );
+                e -> removeSourceFromPanelAndViewer(
+                        sourceAndMetadata.metadata().displayName, bdvStackSource ) );
 
         return removeButton;
     }
