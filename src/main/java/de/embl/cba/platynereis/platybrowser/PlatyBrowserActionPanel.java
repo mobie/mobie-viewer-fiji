@@ -1,7 +1,6 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import bdv.util.BdvHandle;
-import bdv.util.BdvStackSource;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.GeneSearch;
@@ -48,6 +47,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		this.sourcesPanel = sourcesPanel;
 		this.bdvView = bdvView;
 		this.bdv = bdvView.getBdv();
+		// TODO:
 		this.imageSourcesModel = bdvView.getImageSourcesModel();
 
 		behaviours = new Behaviours( new InputTriggerConfig() );
@@ -259,7 +259,6 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-
 		final JButton addToViewer = new JButton( "Add to viewer" );
 
 		horizontalLayoutPanel.add( addToViewer );
@@ -276,23 +275,22 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		}
 
 		addToViewer.addActionListener( e -> {
+
 			final String selectedItem = ( String ) dataSources.getSelectedItem();
-			final SourceAndMetadata sourceAndMetadata = imageSourcesModel.sources().get( selectedItem );
-			addSourceToPanelAndViewer( sourceAndMetadata );
+
+			final SourceAndMetadata sourceAndMetadata
+					= imageSourcesModel.sources().get( selectedItem );
+
+			sourcesPanel.addSourceToPanelAndViewer( sourceAndMetadata );
+
 		} );
 
 		panel.add( horizontalLayoutPanel );
 	}
 
-	public void addSourceToPanelAndViewer( SourceAndMetadata sourceAndMetadata )
-	{
-		if ( sourcesPanel.sourceNameToPanel.containsKey( sourceAndMetadata.metadata().displayName ) ) return;
-		bdvView.showSource( sourceAndMetadata );
-		sourcesPanel.addSourceToPanel( sourceAndMetadata );
-	}
-
 	private ArrayList< String > getSortedSourceNames()
 	{
+		// TODO: get sourceNames from sourcesPanel
 		final ArrayList< String > sourceNames =
 				new ArrayList<>( imageSourcesModel.sources().keySet() );
 

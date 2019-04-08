@@ -11,6 +11,8 @@ import mpicbg.spim.data.XmlIoSpimData;
 import java.io.File;
 import java.util.*;
 
+import static de.embl.cba.platynereis.utils.FileUtils.getFiles;
+
 public class PlatynereisImageSourcesModel implements ImageSourcesModel
 {
 	public static final String DEFAULT_EM_RAW_FILE_ID = "em-raw-full-res";
@@ -21,12 +23,15 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	public static final String EM_RAW_FILE_ID = "em-raw-";
 
 	private final Map< String, SourceAndMetadata< ? > > nameToSourceAndMetadata;
+	private final File dataFolder;
 
-	public PlatynereisImageSourcesModel( File directory )
+	public PlatynereisImageSourcesModel( File dataFolder )
 	{
+		this.dataFolder = dataFolder;
+
 		nameToSourceAndMetadata = new HashMap<>();
 
-		List< File > imageFiles = de.embl.cba.platynereis.utils.FileUtils.getFiles( directory, ".*.xml" );
+		List< File > imageFiles = getFiles( dataFolder, ".*.xml" );
 
 		for ( File imageFile : imageFiles )
 		{
@@ -47,7 +52,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		return false;
 	}
 
-	private static SourceMetadata metadataFromSpimData( File file )
+	private SourceMetadata metadataFromSpimData( File file )
 	{
 		final SourceMetadata metadata = new SourceMetadata( sourceName( file ) );
 
@@ -57,6 +62,8 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		if ( file.toString().contains( CELL_LABELS_FILE_ID ) )
 		{
 			metadata.flavour = SourceMetadata.Flavour.LabelSource;
+			metadata.segmentsTable
+					= new File( dataFolder + Constants.CELLS_LABELS_TABLE );
 		}
 		else if ( file.toString().contains( LABELS_FILE_ID ) )
 		{

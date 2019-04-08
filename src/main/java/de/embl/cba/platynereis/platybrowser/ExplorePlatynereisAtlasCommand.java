@@ -45,7 +45,7 @@ public class ExplorePlatynereisAtlasCommand implements Command
 
 		final ImageSegmentsBdvView bdvView = view.getImageSegmentsBdvView();
 
-		new PlatyBrowserMainFrame( bdvView );
+		new PlatyBrowserMainFrame( dataFolder );
 
 	}
 

@@ -1,24 +1,39 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import bdv.tools.HelpDialog;
-import de.embl.cba.tables.modelview.views.ImageSegmentsBdvView;
+import de.embl.cba.tables.modelview.images.SourceAndMetadata;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.io.File;
 
 public class PlatyBrowserMainFrame extends JFrame
 {
-
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private final PlatyBrowserActionPanel actionPanel;
 
-	public PlatyBrowserMainFrame( ImageSegmentsBdvView bdvView ) throws HeadlessException
+	public PlatyBrowserMainFrame( File dataFolder ) throws HeadlessException
 	{
-		sourcesPanel = new PlatyBrowserSourcesPanel( bdvView );
+		sourcesPanel = new PlatyBrowserSourcesPanel( dataFolder );
+
+		// TODO: add initial sources to sources panel
+
+		for ( SourceAndMetadata< ? > sourceAndMetadata : bdvView.getCurrentSources() )
+		{
+			sourcesPanel.addSourceToPanelAndViewer( sourceAndMetadata );
+		}
+
 		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, bdvView );
 
+		showFrame();
+
+		initHelpDialog();
+	}
+
+	public void showFrame()
+	{
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
 		splitPane.setDividerLocation( 200 );
@@ -32,9 +47,6 @@ public class PlatyBrowserMainFrame extends JFrame
 		this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 		this.pack();
 		this.setVisible( true );
-
-		initHelpDialog();
-
 	}
 
 	public PlatyBrowserSourcesPanel getSourcesPanel()

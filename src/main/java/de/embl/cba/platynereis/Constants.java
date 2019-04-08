@@ -5,7 +5,7 @@ import java.awt.*;
 public class Constants
 {
 	public static final String DEFAULT_EM_RAW_FILE_ID = "em-raw-full-res"; //"em-raw-100nm"; //"em-raw-10nm-10nm-25nm"; //"em-raw-100nm"; //
-	public static final String DEFAULT_LABELS_FILE_ID = "em-segmented-cells-labels" ;
+	public static final String CELLS_LABELS_IMAGE = "em-segmented-cells-labels" ;
 	public static final String LABELS_FILE_ID = "-labels" ;
 
 	public static final String BDV_XML_SUFFIX = ".xml";
@@ -27,4 +27,5 @@ public class Constants
 	public static final CharSequence MED = "-MED" ;
 	public static final CharSequence SPM = "-SPM";
 	public static final String OLD = "-OLD";
+	public static final String CELLS_LABELS_TABLE = "/label_attributes/em-segmented-cells-labels_main_20190212.csv";
 }

@@ -20,30 +20,32 @@ public class OpenPlatyBrowser
 
 		File dataFolder = new File( "/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr" );
 
-		final File segmentsTableFile =
-				new File( dataFolder + "/label_attributes/em-segmented-cells-labels_main_20190212.csv" );
+//		final File segmentsTableFile =
+//				new File( dataFolder + "/label_attributes/em-segmented-cells-labels_main_20190212.csv" );
+//
+//		final LinkedHashMap< String, List< ? > > columns = new LinkedHashMap<>();
+//
+//		final List< TableRowImageSegment > tableRowImageSegments
+//				= createAnnotatedImageSegmentsFromTableFile( segmentsTableFile, columns );
+//
+//		final PlatynereisImageSourcesModel imageSourcesModel
+//				= new PlatynereisImageSourcesModel( dataFolder );
+//
+//		final DefaultTableAndBdvViews view = new DefaultTableAndBdvViews(
+//				tableRowImageSegments,
+//				imageSourcesModel );
+//
+//		view.getTableRowsTableView().categoricalColumnNames().add( "label_id" );
+//
+//		final ImageSegmentsBdvView bdvView = view.getImageSegmentsBdvView();
+//
+//		final Map< String, SourceAndMetadata< ? > > sources = imageSourcesModel.sources();
 
-		final LinkedHashMap< String, List< ? > > columns = new LinkedHashMap<>();
+		final PlatyBrowserMainFrame platyBrowserMainFrame =
+				new PlatyBrowserMainFrame( dataFolder );
 
-		final List< TableRowImageSegment > tableRowImageSegments
-				= createAnnotatedImageSegmentsFromTableFile( segmentsTableFile, columns );
-
-		final PlatynereisImageSourcesModel imageSourcesModel
-				= new PlatynereisImageSourcesModel( dataFolder );
-
-		final DefaultTableAndBdvViews view = new DefaultTableAndBdvViews(
-				tableRowImageSegments,
-				imageSourcesModel );
-
-		view.getTableRowsTableView().categoricalColumnNames().add( "label_id" );
-
-		final ImageSegmentsBdvView bdvView = view.getImageSegmentsBdvView();
-
-		final Map< String, SourceAndMetadata< ? > > sources = imageSourcesModel.sources();
-
-		final PlatyBrowserMainFrame platyBrowserMainFrame = new PlatyBrowserMainFrame( bdvView );
-
-		platyBrowserMainFrame.getActionPanel().addSourceToPanelAndViewer( sources.get( "em-raw-parapod-fib-affine_g" ) );
+//		platyBrowserMainFrame.getSourcesPanel().addSourceToPanelAndViewer(
+//				sources.get( "em-raw-parapod-fib-affine_g" ) );
 
 	}
 }
