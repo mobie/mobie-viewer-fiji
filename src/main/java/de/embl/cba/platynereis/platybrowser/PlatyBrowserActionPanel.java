@@ -9,21 +9,21 @@ import de.embl.cba.platynereis.utils.SortIgnoreCase;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
-import de.embl.cba.tables.modelview.images.ImageSourcesModel;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RealPoint;
-import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.RealType;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
-public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > > extends JPanel
+public class PlatyBrowserActionPanel extends JPanel
 {
 	public static final int TEXT_FIELD_HEIGHT = 20;
 
@@ -166,7 +166,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		GeneSearch geneSearch = new GeneSearch(
 				micrometerRadius,
 				micrometerPosition,
-				sourcesPanel.getPlatySourcesModel(),
+				sourcesPanel.getImageSourcesModel(),
 				geneSearchVoxelSize );
 
 		final Map< String, Double > geneExpressionLevels =

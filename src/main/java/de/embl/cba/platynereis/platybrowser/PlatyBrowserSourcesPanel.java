@@ -6,11 +6,11 @@ import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.platynereis.PlatynereisImageSourcesModel;
 import de.embl.cba.tables.modelview.coloring.LazyLabelsARGBConverter;
 import de.embl.cba.tables.modelview.images.DefaultImageSourcesModel;
+import de.embl.cba.tables.modelview.images.ImageSourcesModel;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
 import de.embl.cba.tables.modelview.images.SourceMetadata;
 import de.embl.cba.tables.modelview.segments.TableRowImageSegment;
 import de.embl.cba.tables.modelview.views.DefaultTableAndBdvViews;
-import ij.IJ;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,11 +26,11 @@ public class PlatyBrowserSourcesPanel extends JPanel
 //    public List< Color > colors;
     protected Map< String, JPanel > sourceNameToPanel;
     private BdvHandle bdv;
-    private final PlatynereisImageSourcesModel platySourcesModel;
+    private final ImageSourcesModel imageSourcesModel;
 
     public PlatyBrowserSourcesPanel( File dataFolder )
     {
-        platySourcesModel = new PlatynereisImageSourcesModel( dataFolder );
+        imageSourcesModel = new PlatynereisImageSourcesModel( dataFolder );
         sourceNameToPanel = new LinkedHashMap<>(  );
         configPanel();
 //        initColors();
@@ -43,17 +43,17 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     public SourceAndMetadata< ? > getSourceAndMetadata( String sourceName )
     {
-        return platySourcesModel.sources().get( sourceName );
+        return imageSourcesModel.sources().get( sourceName );
     }
 
     public ArrayList< String > getSourceNames()
     {
-        return new ArrayList<>( platySourcesModel.sources().keySet() );
+        return new ArrayList<>( imageSourcesModel.sources().keySet() );
     }
 
-    public PlatynereisImageSourcesModel getPlatySourcesModel()
+    public ImageSourcesModel getImageSourcesModel()
     {
-        return platySourcesModel;
+        return imageSourcesModel;
     }
 
     private void configPanel()
@@ -111,12 +111,16 @@ public class PlatyBrowserSourcesPanel extends JPanel
         }
         else
         {
-            metadata.bdvStackSource = showIntensitySource( sourceAndMetadata, metadata );;
+            metadata.bdvStackSource = showIntensitySource( sourceAndMetadata );;
         }
     }
 
-    private BdvStackSource showIntensitySource( SourceAndMetadata< ? > sourceAndMetadata, SourceMetadata metadata )
+    private BdvStackSource showIntensitySource(
+            SourceAndMetadata< ? > sourceAndMetadata )
     {
+
+        final SourceMetadata metadata = sourceAndMetadata.metadata();
+
         final BdvStackSource bdvStackSource = BdvFunctions.show(
                 sourceAndMetadata.source(),
                 1,
