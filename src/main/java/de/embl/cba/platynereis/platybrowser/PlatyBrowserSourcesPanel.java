@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.List;
 
 import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.*;
-import static de.embl.cba.platynereis.platybrowser.ExplorePlatynereisAtlasCommand.createAnnotatedImageSegmentsFromTableFile;
+import static de.embl.cba.platynereis.platybrowser.PlatyBrowserUtils.createAnnotatedImageSegmentsFromTableFile;
 
 public class PlatyBrowserSourcesPanel extends JPanel
 {
@@ -38,6 +38,12 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     public void addSourceToPanelAndViewer( String sourceName )
     {
+        if ( ! getSourceNames().contains( sourceName ) )
+        {
+            System.err.println( "Source not present: " + sourceName );
+            return;
+        }
+
         addSourceToPanelAndViewer( getSourceAndMetadata( sourceName ) );
     }
 
@@ -129,7 +135,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         bdvStackSource.setActive( true );
 
-        bdvStackSource.setDisplayRange( metadata.displayRangeMin, metadata.displayRangeMax );
+        bdvStackSource.setDisplayRange(
+                metadata.displayRangeMin,
+                metadata.displayRangeMax );
 
         bdv = bdvStackSource.getBdvHandle();
         return bdvStackSource;
@@ -147,7 +155,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
                         .sourceTransform( sourceAndMetadata.metadata().sourceTransform ) );
     }
 
-    private BdvStackSource showAnnotatedLabelsSource( SourceAndMetadata< ? > sourceAndMetadata )
+    private BdvStackSource showAnnotatedLabelsSource(
+            SourceAndMetadata< ? > sourceAndMetadata )
     {
         final SourceMetadata metadata = sourceAndMetadata.metadata();
 
@@ -188,7 +197,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         sourceNameToPanel.put( sourceName, panel );
 
         panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
-        panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 0, 10 ) );
+        panel.setBorder( BorderFactory.createEmptyBorder( 0, 10, 0, 10 ) );
         panel.add( Box.createHorizontalGlue() );
         panel.setOpaque( true );
         panel.setBackground( getColor( metadata ) );

@@ -1,4 +1,4 @@
-import de.embl.cba.platynereis.platybrowser.ExplorePlatynereisAtlasCommand;
+import de.embl.cba.platynereis.platybrowser.ExplorePlatyAtlasCommand;
 import net.imagej.ImageJ;
 
 public class RunExplorePlatynereisAtlasCommand
@@ -9,7 +9,7 @@ public class RunExplorePlatynereisAtlasCommand
 		final ImageJ ij = new ImageJ();
 		ij.ui().showUI();
 
-		ij.command().run( ExplorePlatynereisAtlasCommand.class, true );
+		ij.command().run( ExplorePlatyAtlasCommand.class, true );
 	}
 
 }

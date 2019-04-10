@@ -20,7 +20,8 @@ public class TestBigDataServer
 {
 	public static void main( String[] args ) throws IOException, SpimDataException
 	{
-		final Map< String, String > datasetUrlMap = RemoteUtils.getDatasetUrlMap( "http://10.11.4.195:8000" );
+		final Map< String, String > datasetUrlMap
+				= RemoteUtils.getDatasetUrlMap( "http://10.11.4.195:8000" );
 
 		Bdv bdv = null;
 
