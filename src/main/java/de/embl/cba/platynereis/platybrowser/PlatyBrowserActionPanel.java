@@ -11,7 +11,6 @@ import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.modelview.images.ImageSourcesModel;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
-import de.embl.cba.tables.modelview.views.ImageSegmentsBdvView;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RealPoint;
 import net.imglib2.type.NativeType;
@@ -30,8 +29,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 	public static final int TEXT_FIELD_HEIGHT = 20;
 
 	private final PlatyBrowserSourcesPanel sourcesPanel;
-	private final ImageSegmentsBdvView bdvView;
-	private final BdvHandle bdv;
+	private BdvHandle bdv;
 	private Behaviours behaviours;
 	private double geneSearchVoxelSize;
 	private java.util.List< Double > geneSearchRadii;
@@ -40,30 +38,29 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 	private double[] targetNormalVector;
 	private ImageSourcesModel imageSourcesModel;
 
-	public PlatyBrowserActionPanel(
-			PlatyBrowserSourcesPanel sourcesPanel,
-			ImageSegmentsBdvView bdvView )
+	public PlatyBrowserActionPanel( PlatyBrowserSourcesPanel sourcesPanel )
 	{
 		this.sourcesPanel = sourcesPanel;
-		this.bdvView = bdvView;
-		this.bdv = bdvView.getBdv();
-		// TODO:
-		this.imageSourcesModel = bdvView.getImageSourcesModel();
-
-		behaviours = new Behaviours( new InputTriggerConfig() );
-		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
-
-		this.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
-
-		this.targetNormalVector = Arrays.copyOf( defaultTargetNormalVector, 3 );
-
+		configBdv( sourcesPanel );
 		addSourceSelectionUI( this );
 		addPositionZoomUI( this  );
 		addPositionPrintBehaviour( this );
 		addLocalGeneSearchBehaviourAndUI( this);
-		add3DObjectViewResolutionUI( this );
+		//add3DObjectViewResolutionUI( this );
 		addLevelingUI( this );
+		configPanel();
+	}
 
+	public void configBdv( PlatyBrowserSourcesPanel sourcesPanel )
+	{
+		bdv = sourcesPanel.getBdv();
+		behaviours = new Behaviours( new InputTriggerConfig() );
+		behaviours.install( this.bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
+	}
+
+	public void configPanel()
+	{
+		this.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
 		this.revalidate();
 		this.repaint();
 	}
@@ -79,13 +76,10 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 
-			(new Thread(new Runnable(){
-				public void run()
-				{
-					final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
-					Utils.log( "Position: " + globalMouseCoordinates.toString() );
-				}
-			})).start();
+			(new Thread( () -> {
+				final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
+				Utils.log( "Position: " + globalMouseCoordinates.toString() );
+			} )).start();
 
 		}, "Print position", "P"  ) ;
 
@@ -94,24 +88,25 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 
 	private void add3DObjectViewResolutionUI( JPanel panel )
 	{
-		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-
-		horizontalLayoutPanel.add( new JLabel( "3D object view resolution [micrometer]: " ) );
-
-		final JComboBox< Double > resolutionComboBox = createResolutionComboBox();
-
-		resolutionComboBox.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				bdvView.setVoxelSpacing3DView( ( Double ) resolutionComboBox.getSelectedItem() );
-			}
-		} );
-
-		horizontalLayoutPanel.add( resolutionComboBox );
-
-		panel.add( horizontalLayoutPanel );
+		// TODO
+//		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+//
+//		horizontalLayoutPanel.add( new JLabel( "3D object view resolution [micrometer]: " ) );
+//
+//		final JComboBox< Double > resolutionComboBox = createResolutionComboBox();
+//
+//		resolutionComboBox.addActionListener( new ActionListener()
+//		{
+//			@Override
+//			public void actionPerformed( ActionEvent e )
+//			{
+//				bdvView.setVoxelSpacing3DView( ( Double ) resolutionComboBox.getSelectedItem() );
+//			}
+//		} );
+//
+//		horizontalLayoutPanel.add( resolutionComboBox );
+//
+//		panel.add( horizontalLayoutPanel );
 	}
 
 	private JComboBox< Double > createResolutionComboBox()
@@ -151,10 +146,8 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		horizontalLayoutPanel.add( radiiComboBox );
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-
 			double[] micrometerPosition = new double[ 3 ];
 			BdvUtils.getGlobalMouseCoordinates( bdv ).localize( micrometerPosition );
-
 			double micrometerRadius = Double.parseDouble( ( String ) radiiComboBox.getSelectedItem() );
 
 			final BdvTextOverlay bdvTextOverlay = new BdvTextOverlay( bdv, "Searching expressed genes; please wait...", micrometerPosition );
@@ -259,47 +252,34 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
+		// ComboBox
+		final JComboBox sourcesComboBox = new JComboBox();
+		final ArrayList< String > sourceNames = getSortedSourceNames();
+		for ( String sourceName : sourceNames )
+			sourcesComboBox.addItem( sourceName );
+
+		// Button
 		final JButton addToViewer = new JButton( "Add to viewer" );
+		addToViewer.addActionListener( e ->
+				sourcesPanel.addSourceToPanelAndViewer(
+						( String ) sourcesComboBox.getSelectedItem() ) );
 
 		horizontalLayoutPanel.add( addToViewer );
-
-		final JComboBox dataSources = new JComboBox();
-
-		horizontalLayoutPanel.add( dataSources );
-
-		final ArrayList< String > sourceNames = getSortedSourceNames();
-
-		for ( String sourceName : sourceNames )
-		{
-			dataSources.addItem( sourceName );
-		}
-
-		addToViewer.addActionListener( e -> {
-
-			final String selectedItem = ( String ) dataSources.getSelectedItem();
-
-			final SourceAndMetadata sourceAndMetadata
-					= imageSourcesModel.sources().get( selectedItem );
-
-			sourcesPanel.addSourceToPanelAndViewer( sourceAndMetadata );
-
-		} );
-
+		horizontalLayoutPanel.add( sourcesComboBox );
 		panel.add( horizontalLayoutPanel );
 	}
 
 	private ArrayList< String > getSortedSourceNames()
 	{
-		// TODO: get sourceNames from sourcesPanel
-		final ArrayList< String > sourceNames =
-				new ArrayList<>( imageSourcesModel.sources().keySet() );
-
+		final ArrayList< String > sourceNames = new ArrayList<>( sourcesPanel.getSourceNames() );
 		Collections.sort( sourceNames, new SortIgnoreCase() );
 		return sourceNames;
 	}
 
 	private void addLevelingUI( JPanel panel )
 	{
+		this.targetNormalVector = Arrays.copyOf( defaultTargetNormalVector, 3 );
+
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		final JButton levelCurrentView = new JButton( "Level current view" );

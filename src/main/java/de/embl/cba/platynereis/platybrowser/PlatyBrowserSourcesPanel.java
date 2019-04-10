@@ -33,7 +33,17 @@ public class PlatyBrowserSourcesPanel extends JPanel
         initColors();
     }
 
-    public void configPanel()
+    public void addSourceToPanelAndViewer( String sourceName )
+    {
+        addSourceToPanelAndViewer( platySourcesModel.sources().get( sourceName ) );
+    }
+
+    public ArrayList< String > getSourceNames()
+    {
+        return new ArrayList<>( platySourcesModel.sources().keySet() );
+    }
+
+    private void configPanel()
     {
         this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
         this.setAlignmentX( Component.LEFT_ALIGNMENT );
@@ -66,7 +76,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
 //        }
     }
 
-    public void addSourceToPanelAndViewer( SourceAndMetadata< ? > sourceAndMetadata )
+
+
+    private void addSourceToPanelAndViewer( SourceAndMetadata< ? > sourceAndMetadata )
     {
         final SourceMetadata metadata = sourceAndMetadata.metadata();
 
@@ -100,7 +112,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         addSourceToPanel( sourceAndMetadata );
     }
 
-    public BdvStackSource showAnnotatedLabelsSource( SourceAndMetadata< ? > sourceAndMetadata )
+    private BdvStackSource showAnnotatedLabelsSource( SourceAndMetadata< ? > sourceAndMetadata )
     {
         final SourceMetadata metadata = sourceAndMetadata.metadata();
 
@@ -186,24 +198,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
         return removeButton;
     }
 
-//    public ArrayList< String > getCurrentSourceNames()
-//    {
-//        return new ArrayList<>( sourceNameToPanel.keySet() );
-//    }
-
-//    public void removeAllProSPrSources()
-//    {
-//        final ArrayList< String > names = getCurrentSourceNames();
-//
-//        for ( String name : names )
-//        {
-//            if ( ! name.contains( Constants.EM_FILE_ID ) )
-//            {
-//                removeSourceFromPanelAndViewer( name );
-//            }
-//        }
-//    }
-
     private void removeSourceFromPanelAndViewer(
             String sourceName,
             BdvStackSource bdvStackSource )
@@ -220,4 +214,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
         this.repaint();
     }
 
+    public BdvHandle getBdv()
+    {
+        return bdv;
+    }
 }

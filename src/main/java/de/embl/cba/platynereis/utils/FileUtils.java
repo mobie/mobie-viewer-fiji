@@ -45,7 +45,9 @@ public class FileUtils
 
 	public static List< File > getFiles( File inputDirectory, String filePattern )
 	{
-		final List< File > fileList = de.embl.cba.tables.FileUtils.getFileList( inputDirectory, filePattern, false );
+		final List< File > fileList =
+				de.embl.cba.tables.FileUtils.getFileList(
+						inputDirectory, filePattern, false );
 		Collections.sort( fileList, new FileUtils.SortFilesIgnoreCase() );
 		return fileList;
 	}

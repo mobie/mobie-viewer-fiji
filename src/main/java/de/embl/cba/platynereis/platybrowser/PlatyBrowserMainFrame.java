@@ -1,7 +1,7 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import bdv.tools.HelpDialog;
-import de.embl.cba.tables.modelview.images.SourceAndMetadata;
+import de.embl.cba.platynereis.Constants;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,14 +18,9 @@ public class PlatyBrowserMainFrame extends JFrame
 	{
 		sourcesPanel = new PlatyBrowserSourcesPanel( dataFolder );
 
-		// TODO: add initial sources to sources panel
+		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 
-		for ( SourceAndMetadata< ? > sourceAndMetadata : bdvView.getCurrentSources() )
-		{
-			sourcesPanel.addSourceToPanelAndViewer( sourceAndMetadata );
-		}
-
-		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, bdvView );
+		actionPanel = new PlatyBrowserActionPanel( sourcesPanel );
 
 		showFrame();
 

@@ -15,12 +15,10 @@ import static de.embl.cba.platynereis.utils.FileUtils.getFiles;
 
 public class PlatynereisImageSourcesModel implements ImageSourcesModel
 {
-	public static final String DEFAULT_EM_RAW_FILE_ID = "em-raw-full-res";
-	public static final String CELL_LABELS_FILE_ID = "em-segmented-cells-labels.xml" ;
 	public static final String LABELS_FILE_ID = "-labels" ;
-
 	public static final String BDV_XML_SUFFIX = ".xml";
 	public static final String EM_RAW_FILE_ID = "em-raw-";
+	public static final String tablesFolder = "tables";
 
 	private final Map< String, SourceAndMetadata< ? > > nameToSourceAndMetadata;
 	private final File dataFolder;
@@ -32,11 +30,8 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		nameToSourceAndMetadata = new HashMap<>();
 
 		List< File > imageFiles = getFiles( dataFolder, ".*.xml" );
-
 		for ( File imageFile : imageFiles )
-		{
 			addSource( imageFile );
-		}
 
 	}
 
@@ -52,50 +47,42 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		return false;
 	}
 
-	private SourceMetadata metadataFromSpimData( File file )
+	private SourceMetadata metadataFromSpimData( File imageSourceFile )
 	{
-		final SourceMetadata metadata = new SourceMetadata( sourceName( file ) );
-
+		final String imageId = sourceName( imageSourceFile );
+		final SourceMetadata metadata = new SourceMetadata( imageId );
 		metadata.displayRangeMin = 0.0D;
 		metadata.displayRangeMax = 1000.0D;
+		metadata.numSpatialDimensions = 3;
+		metadata.displayName = imageId;
 
-		if ( file.toString().contains( CELL_LABELS_FILE_ID ) )
+		if ( imageId.contains( EM_RAW_FILE_ID ) )
+		{
+			metadata.displayRangeMin = 0.0D;
+			metadata.displayRangeMax = 255.0D;
+		}
+
+		if ( imageId.contains( LABELS_FILE_ID ) )
 		{
 			metadata.flavour = SourceMetadata.Flavour.LabelSource;
-			metadata.segmentsTable
-					= new File( dataFolder + Constants.CELLS_LABELS_TABLE );
-		}
-		else if ( file.toString().contains( LABELS_FILE_ID ) )
-		{
-			metadata.flavour = SourceMetadata.Flavour.LabelSourceWithoutAnnotations;
+
+			final File tableFile = new File( getTablePath( imageId ) );
+
+			if ( tableFile.exists() )
+				metadata.segmentsTable = tableFile;
 		}
 		else
 		{
 			metadata.flavour = SourceMetadata.Flavour.IntensitySource;
 		}
 
-		if ( file.toString().contains( DEFAULT_EM_RAW_FILE_ID ) )
-		{
-			metadata.showInitially = true;
-		}
-
-		if ( file.toString().contains( CELL_LABELS_FILE_ID ) )
-		{
-			metadata.showInitially = true;
-		}
-
-		if ( file.toString().contains( EM_RAW_FILE_ID ) )
-		{
-			metadata.displayRangeMin = 0.0D;
-			metadata.displayRangeMax = 255.0D;
-		}
-
-		metadata.numSpatialDimensions = 3;
-		metadata.displayName = sourceName( file );
-
 		return metadata;
 	}
 
+	private String getTablePath( String sourceName )
+	{
+		return dataFolder + File.separator + tablesFolder + File.separator + sourceName + ".csv";
+	}
 
 	private static String sourceName( File file )
 	{
