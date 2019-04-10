@@ -38,12 +38,22 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     public void addSourceToPanelAndViewer( String sourceName )
     {
-        addSourceToPanelAndViewer( platySourcesModel.sources().get( sourceName ) );
+        addSourceToPanelAndViewer( getSourceAndMetadata( sourceName ) );
+    }
+
+    public SourceAndMetadata< ? > getSourceAndMetadata( String sourceName )
+    {
+        return platySourcesModel.sources().get( sourceName );
     }
 
     public ArrayList< String > getSourceNames()
     {
         return new ArrayList<>( platySourcesModel.sources().keySet() );
+    }
+
+    public PlatynereisImageSourcesModel getPlatySourcesModel()
+    {
+        return platySourcesModel;
     }
 
     private void configPanel()

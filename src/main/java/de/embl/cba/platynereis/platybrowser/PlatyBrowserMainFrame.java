@@ -54,7 +54,8 @@ public class PlatyBrowserMainFrame extends JFrame
 
 	public void initHelpDialog()
 	{
-		HelpDialog helpDialog = new HelpDialog( this, PlatyBrowserMainFrame.class.getResource( "/Help.html" ) );
+		HelpDialog helpDialog = new HelpDialog( this,
+				PlatyBrowserMainFrame.class.getResource( "/Help.html" ) );
 
 		this.setFocusable( true );
 		this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)

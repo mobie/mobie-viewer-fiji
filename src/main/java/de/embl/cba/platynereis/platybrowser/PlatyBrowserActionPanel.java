@@ -35,11 +35,11 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 
 	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	private double[] targetNormalVector;
-	private ImageSourcesModel imageSourcesModel;
 
 	public PlatyBrowserActionPanel( PlatyBrowserSourcesPanel sourcesPanel )
 	{
 		this.sourcesPanel = sourcesPanel;
+		bdv = sourcesPanel.getBdv();
 		installBdvBehaviours();
 		addSourceSelectionUI( this );
 		addPositionZoomUI( this  );
@@ -53,7 +53,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 	public void installBdvBehaviours()
 	{
 		behaviours = new Behaviours( new InputTriggerConfig() );
-		behaviours.install( sourcesPanel.getBdv().getTriggerbindings(), "behaviours" );
+		behaviours.install( bdv.getTriggerbindings(), "behaviours" );
 	}
 
 	public void configPanel()
@@ -166,7 +166,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		GeneSearch geneSearch = new GeneSearch(
 				micrometerRadius,
 				micrometerPosition,
-				imageSourcesModel,
+				sourcesPanel.getPlatySourcesModel(),
 				geneSearchVoxelSize );
 
 		final Map< String, Double > geneExpressionLevels =
@@ -203,15 +203,16 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 
 	private void setGeneSearchRadii( )
 	{
-		final Set< String > sourceNames = imageSourcesModel.sources().keySet();
 
 		geneSearchRadii = new ArrayList<>();
+
+		final ArrayList< String > sourceNames = sourcesPanel.getSourceNames();
 
 		for ( String sourceName : sourceNames )
 		{
 			if ( sourceName.contains( Constants.EM_FILE_ID ) ) continue;
 
-			final SourceAndMetadata sourceAndMetadata = imageSourcesModel.sources().get( sourceName );
+			final SourceAndMetadata sourceAndMetadata = sourcesPanel.getSourceAndMetadata( sourceName );
 
 			final VoxelDimensions voxelDimensions = sourceAndMetadata.source().getVoxelDimensions();
 
