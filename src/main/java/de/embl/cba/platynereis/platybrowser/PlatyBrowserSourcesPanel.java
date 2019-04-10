@@ -23,7 +23,8 @@ import static de.embl.cba.platynereis.platybrowser.PlatyBrowserUtils.createAnnot
 
 public class PlatyBrowserSourcesPanel extends JPanel
 {
-//    public List< Color > colors;
+    private final Map< String, DefaultTableAndBdvViews > sourceNameToViews;
+    //    public List< Color > colors;
     protected Map< String, JPanel > sourceNameToPanel;
     private BdvHandle bdv;
     private final ImageSourcesModel imageSourcesModel;
@@ -31,7 +32,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
     public PlatyBrowserSourcesPanel( File dataFolder )
     {
         imageSourcesModel = new PlatynereisImageSourcesModel( dataFolder );
-        sourceNameToPanel = new LinkedHashMap<>(  );
+        sourceNameToPanel = new LinkedHashMap<>();
+        sourceNameToViews = new LinkedHashMap<>();
+
         configPanel();
 //        initColors();
     }
@@ -98,7 +101,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private void addSourceToPanelAndViewer( SourceAndMetadata< ? > sourceAndMetadata )
     {
         if ( sourceNameToPanel.containsKey(  sourceAndMetadata.metadata().displayName ) )
+        {
+            // source is already shown, don't add again
             return;
+        }
 
         addSourceToViewer( sourceAndMetadata );
         addSourceToPanel( sourceAndMetadata );
@@ -111,20 +117,18 @@ public class PlatyBrowserSourcesPanel extends JPanel
         if ( metadata.flavour == SourceMetadata.Flavour.LabelSource )
         {
             if ( metadata.segmentsTable != null )
-                metadata.bdvStackSource = showAnnotatedLabelsSource( sourceAndMetadata );
+                showAnnotatedLabelsSource( sourceAndMetadata );
             else
-                metadata.bdvStackSource = showLabelsSource( sourceAndMetadata );
+                showLabelsSource( sourceAndMetadata );
         }
         else
         {
-            metadata.bdvStackSource = showIntensitySource( sourceAndMetadata );;
+            showIntensitySource( sourceAndMetadata );
         }
     }
 
-    private BdvStackSource showIntensitySource(
-            SourceAndMetadata< ? > sourceAndMetadata )
+    private void showIntensitySource( SourceAndMetadata< ? > sourceAndMetadata )
     {
-
         final SourceMetadata metadata = sourceAndMetadata.metadata();
 
         final BdvStackSource bdvStackSource = BdvFunctions.show(
@@ -140,23 +144,23 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 metadata.displayRangeMax );
 
         bdv = bdvStackSource.getBdvHandle();
-        return bdvStackSource;
+
+        metadata.bdvStackSource = bdvStackSource;
     }
 
-    private BdvStackSource showLabelsSource( SourceAndMetadata< ? > sourceAndMetadata )
+    private void showLabelsSource( SourceAndMetadata< ? > sourceAndMetadata )
     {
         final ARGBConvertedRealSource source =
                 new ARGBConvertedRealSource( sourceAndMetadata.source(),
                 new LazyLabelsARGBConverter() );
 
-        return BdvFunctions.show( source,
+        sourceAndMetadata.metadata().bdvStackSource = BdvFunctions.show( source,
                 BdvOptions.options()
                         .addTo( bdv )
                         .sourceTransform( sourceAndMetadata.metadata().sourceTransform ) );
     }
 
-    private BdvStackSource showAnnotatedLabelsSource(
-            SourceAndMetadata< ? > sourceAndMetadata )
+    private void showAnnotatedLabelsSource( SourceAndMetadata< ? > sourceAndMetadata )
     {
         final SourceMetadata metadata = sourceAndMetadata.metadata();
 
@@ -184,7 +188,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
                         .getCurrentSources().get( 0 )
                         .metadata().bdvStackSource;
 
-        return bdvStackSource;
+        metadata.bdvStackSource = bdvStackSource;
+
+        sourceNameToViews.put( metadata.displayName, view );
     }
 
     private void addSourceToPanel( SourceAndMetadata< ? > sourceAndMetadata )
@@ -194,7 +200,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
         final BdvStackSource bdvStackSource = metadata.bdvStackSource;
 
         JPanel panel = new JPanel();
-        sourceNameToPanel.put( sourceName, panel );
 
         panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
         panel.setBorder( BorderFactory.createEmptyBorder( 0, 10, 0, 10 ) );
@@ -202,8 +207,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
         panel.setOpaque( true );
         panel.setBackground( getColor( metadata ) );
 
-        JLabel jLabel = new JLabel( sourceName );
-        jLabel.setHorizontalAlignment( SwingConstants.CENTER );
+        JLabel sourceNameLabel = new JLabel( sourceName );
+        sourceNameLabel.setHorizontalAlignment( SwingConstants.CENTER );
 
         int[] buttonDimensions = new int[]{ 50, 30 };
 
@@ -216,14 +221,17 @@ public class PlatyBrowserSourcesPanel extends JPanel
         final JCheckBox visibilityCheckbox =
                 createVisibilityCheckbox( buttonDimensions, bdvStackSource, true );
 
-        panel.add( jLabel );
+        panel.add( sourceNameLabel );
         panel.add( colorButton );
         panel.add( brightnessButton );
         panel.add( removeButton );
         panel.add( visibilityCheckbox );
+        // TODO: add an active source button or similar
 
         add( panel );
         refreshGui();
+
+        sourceNameToPanel.put( sourceName, panel );
     }
 
     private JButton createRemoveButton(
@@ -248,7 +256,20 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         remove( sourceNameToPanel.get( sourceName ) );
         sourceNameToPanel.remove( sourceName );
+
+        if ( sourceNameToViews.keySet().contains( sourceName ) )
+        {
+            final DefaultTableAndBdvViews views = sourceNameToViews.get( sourceName );
+            // TODO: implement proper closing methods
+            // views.getTableRowsTableView().close();
+            // views.getImageSegmentsBdvView().close();
+        }
+
         BdvUtils.removeSource( bdv, bdvStackSource );
+
+
+
+
         refreshGui();
     }
 
