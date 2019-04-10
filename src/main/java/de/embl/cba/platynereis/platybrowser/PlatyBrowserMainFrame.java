@@ -17,13 +17,11 @@ public class PlatyBrowserMainFrame extends JFrame
 	public PlatyBrowserMainFrame( File dataFolder ) throws HeadlessException
 	{
 		sourcesPanel = new PlatyBrowserSourcesPanel( dataFolder );
-
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 
 		actionPanel = new PlatyBrowserActionPanel( sourcesPanel );
 
 		showFrame();
-
 		initHelpDialog();
 	}
 

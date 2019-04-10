@@ -21,7 +21,6 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.util.*;
 
 public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > > extends JPanel
@@ -41,7 +40,7 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 	public PlatyBrowserActionPanel( PlatyBrowserSourcesPanel sourcesPanel )
 	{
 		this.sourcesPanel = sourcesPanel;
-		configBdv( sourcesPanel );
+		installBdvBehaviours();
 		addSourceSelectionUI( this );
 		addPositionZoomUI( this  );
 		addPositionPrintBehaviour( this );
@@ -51,11 +50,10 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		configPanel();
 	}
 
-	public void configBdv( PlatyBrowserSourcesPanel sourcesPanel )
+	public void installBdvBehaviours()
 	{
-		bdv = sourcesPanel.getBdv();
 		behaviours = new Behaviours( new InputTriggerConfig() );
-		behaviours.install( this.bdv.getBdvHandle().getTriggerbindings(), "behaviours" );
+		behaviours.install( sourcesPanel.getBdv().getTriggerbindings(), "behaviours" );
 	}
 
 	public void configPanel()
@@ -65,10 +63,10 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		this.repaint();
 	}
 
-	public java.util.List< Double > getGeneSearchRadii()
-	{
-		return geneSearchRadii;
-	}
+//	public java.util.List< Double > getGeneSearchRadii()
+//	{
+//		return geneSearchRadii;
+//	}
 
 	private void addPositionPrintBehaviour( JPanel panel )
 	{
@@ -109,25 +107,25 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 //		panel.add( horizontalLayoutPanel );
 	}
 
-	private JComboBox< Double > createResolutionComboBox()
-	{
-		final JComboBox< Double > resolutionComboBox = new JComboBox( );
-
-		final ArrayList< Double > resolutions = new ArrayList<>();
-		resolutions.add( 0.25 );
-		resolutions.add( 0.10 );
-		resolutions.add( 0.05 );
-		resolutions.add( 0.01 );
-
-		for ( double resolution : resolutions )
-		{
-			resolutionComboBox.addItem( resolution );
-		}
-
-		resolutionComboBox.setSelectedIndex( 0 );
-
-		return resolutionComboBox;
-	}
+//	private JComboBox< Double > createResolutionComboBox()
+//	{
+//		final JComboBox< Double > resolutionComboBox = new JComboBox( );
+//
+//		final ArrayList< Double > resolutions = new ArrayList<>();
+//		resolutions.add( 0.25 );
+//		resolutions.add( 0.10 );
+//		resolutions.add( 0.05 );
+//		resolutions.add( 0.01 );
+//
+//		for ( double resolution : resolutions )
+//		{
+//			resolutionComboBox.addItem( resolution );
+//		}
+//
+//		resolutionComboBox.setSelectedIndex( 0 );
+//
+//		return resolutionComboBox;
+//	}
 
 	private void addLocalGeneSearchBehaviourAndUI( JPanel panel )
 	{
@@ -148,19 +146,15 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			double[] micrometerPosition = new double[ 3 ];
 			BdvUtils.getGlobalMouseCoordinates( bdv ).localize( micrometerPosition );
-			double micrometerRadius = Double.parseDouble( ( String ) radiiComboBox.getSelectedItem() );
-
-			final BdvTextOverlay bdvTextOverlay = new BdvTextOverlay( bdv, "Searching expressed genes; please wait...", micrometerPosition );
-
-			(new Thread(new Runnable(){
-				public void run()
-				{
-					searchGenes( micrometerPosition, micrometerRadius );
-					bdvTextOverlay.setText( "" );
-				}
-			})).start();
-
-
+			double micrometerRadius = Double.parseDouble(
+					( String ) radiiComboBox.getSelectedItem() );
+			final BdvTextOverlay bdvTextOverlay
+					= new BdvTextOverlay( bdv,
+					"Searching expressed genes; please wait...", micrometerPosition );
+			(new Thread( () -> {
+				searchGenes( micrometerPosition, micrometerRadius );
+				bdvTextOverlay.setText( "" );
+			} )).start();
 		}, "discover genes", "D" );
 
 		panel.add( horizontalLayoutPanel );
@@ -233,20 +227,20 @@ public class PlatyBrowserActionPanel< T extends RealType< T > & NativeType< T > 
 	}
 
 
-	private int getAppropriateLevel( double radius, double scale, double[][] resolutions )
-	{
-		int appropriateLevel = 0;
-		for( int level = 0; level < resolutions.length; ++level )
-		{
-			double levelBinning = resolutions[ level ][ 0 ];
-			if ( levelBinning * scale > radius )
-			{
-				appropriateLevel = level - 1;
-				break;
-			}
-		}
-		return appropriateLevel;
-	}
+//	private int getAppropriateLevel( double radius, double scale, double[][] resolutions )
+//	{
+//		int appropriateLevel = 0;
+//		for( int level = 0; level < resolutions.length; ++level )
+//		{
+//			double levelBinning = resolutions[ level ][ 0 ];
+//			if ( levelBinning * scale > radius )
+//			{
+//				appropriateLevel = level - 1;
+//				break;
+//			}
+//		}
+//		return appropriateLevel;
+//	}
 
 	private void addSourceSelectionUI( JPanel panel )
 	{

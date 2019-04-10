@@ -2,12 +2,15 @@ package de.embl.cba.platynereis.platybrowser;
 
 import bdv.util.*;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.platynereis.PlatynereisImageSourcesModel;
+import de.embl.cba.tables.modelview.coloring.LazyLabelsARGBConverter;
 import de.embl.cba.tables.modelview.images.DefaultImageSourcesModel;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
 import de.embl.cba.tables.modelview.images.SourceMetadata;
 import de.embl.cba.tables.modelview.segments.TableRowImageSegment;
 import de.embl.cba.tables.modelview.views.DefaultTableAndBdvViews;
+import ij.IJ;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,7 +23,7 @@ import static de.embl.cba.platynereis.platybrowser.ExplorePlatynereisAtlasComman
 
 public class PlatyBrowserSourcesPanel extends JPanel
 {
-    public List< Color > colors;
+//    public List< Color > colors;
     protected Map< String, JPanel > sourceNameToPanel;
     private BdvHandle bdv;
     private final PlatynereisImageSourcesModel platySourcesModel;
@@ -28,9 +31,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
     public PlatyBrowserSourcesPanel( File dataFolder )
     {
         platySourcesModel = new PlatynereisImageSourcesModel( dataFolder );
-        this.sourceNameToPanel = new LinkedHashMap<>(  );
+        sourceNameToPanel = new LinkedHashMap<>(  );
         configPanel();
-        initColors();
+//        initColors();
     }
 
     public void addSourceToPanelAndViewer( String sourceName )
@@ -49,19 +52,17 @@ public class PlatyBrowserSourcesPanel extends JPanel
         this.setAlignmentX( Component.LEFT_ALIGNMENT );
     }
 
-    private void initColors()
-    {
-        colors = new ArrayList<>(  );
-
-        colors.add( Color.YELLOW );
-        colors.add( Color.MAGENTA );
-        colors.add( Color.CYAN );
-        colors.add( Color.BLUE );
-        colors.add( Color.ORANGE );
-        colors.add( Color.GREEN );
-        colors.add( Color.PINK );
-
-    }
+//    private void initColors()
+//    {
+//        colors = new ArrayList<>(  );
+//        colors.add( Color.YELLOW );
+//        colors.add( Color.MAGENTA );
+//        colors.add( Color.CYAN );
+//        colors.add( Color.BLUE );
+//        colors.add( Color.ORANGE );
+//        colors.add( Color.GREEN );
+//        colors.add( Color.PINK );
+//    }
 
     private Color getColor( SourceMetadata metadata )
     {
@@ -80,36 +81,56 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     private void addSourceToPanelAndViewer( SourceAndMetadata< ? > sourceAndMetadata )
     {
-        final SourceMetadata metadata = sourceAndMetadata.metadata();
-
-        if ( sourceNameToPanel.containsKey( metadata.displayName ) )
+        if ( sourceNameToPanel.containsKey(  sourceAndMetadata.metadata().displayName ) )
             return;
+
+        addSourceToViewer( sourceAndMetadata );
+        addSourceToPanel( sourceAndMetadata );
+    }
+
+    private void addSourceToViewer( SourceAndMetadata< ? > sourceAndMetadata )
+    {
+        final SourceMetadata metadata = sourceAndMetadata.metadata();
 
         if ( metadata.flavour == SourceMetadata.Flavour.LabelSource )
         {
             if ( metadata.segmentsTable != null )
-            {
                 metadata.bdvStackSource = showAnnotatedLabelsSource( sourceAndMetadata );
-            }
+            else
+                metadata.bdvStackSource = showLabelsSource( sourceAndMetadata );
         }
         else
         {
-            final BdvStackSource bdvStackSource = BdvFunctions.show(
-                    sourceAndMetadata.source(),
-                    1,
-                    BdvOptions.options().sourceTransform(
-                            metadata.sourceTransform ).addTo( bdv ) );
-
-            bdvStackSource.setActive( true );
-
-            bdvStackSource.setDisplayRange( metadata.displayRangeMin, metadata.displayRangeMax );
-
-            bdv = bdvStackSource.getBdvHandle();
-
-            metadata.bdvStackSource = bdvStackSource;
+            metadata.bdvStackSource = showIntensitySource( sourceAndMetadata, metadata );;
         }
+    }
 
-        addSourceToPanel( sourceAndMetadata );
+    private BdvStackSource showIntensitySource( SourceAndMetadata< ? > sourceAndMetadata, SourceMetadata metadata )
+    {
+        final BdvStackSource bdvStackSource = BdvFunctions.show(
+                sourceAndMetadata.source(),
+                1,
+                BdvOptions.options().sourceTransform(
+                        metadata.sourceTransform ).addTo( bdv ) );
+
+        bdvStackSource.setActive( true );
+
+        bdvStackSource.setDisplayRange( metadata.displayRangeMin, metadata.displayRangeMax );
+
+        bdv = bdvStackSource.getBdvHandle();
+        return bdvStackSource;
+    }
+
+    private BdvStackSource showLabelsSource( SourceAndMetadata< ? > sourceAndMetadata )
+    {
+        final ARGBConvertedRealSource source =
+                new ARGBConvertedRealSource( sourceAndMetadata.source(),
+                new LazyLabelsARGBConverter() );
+
+        return BdvFunctions.show( source,
+                BdvOptions.options()
+                        .addTo( bdv )
+                        .sourceTransform( sourceAndMetadata.metadata().sourceTransform ) );
     }
 
     private BdvStackSource showAnnotatedLabelsSource( SourceAndMetadata< ? > sourceAndMetadata )
