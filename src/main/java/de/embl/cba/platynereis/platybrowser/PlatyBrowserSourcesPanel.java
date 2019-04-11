@@ -164,11 +164,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         final SourceMetadata metadata = sourceAndMetadata.metadata();
 
-        final LinkedHashMap< String, List< ? > > columns = new LinkedHashMap<>();
-
         final List< TableRowImageSegment > tableRowImageSegments
                 = createAnnotatedImageSegmentsFromTableFile(
-                        metadata.segmentsTable, columns );
+                        metadata.segmentsTable, metadata.imageId);
 
         final DefaultImageSourcesModel imageSourcesModel
                 = new DefaultImageSourcesModel( false );
@@ -179,6 +177,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         final DefaultTableAndBdvViews view = new DefaultTableAndBdvViews(
                 tableRowImageSegments,
                 imageSourcesModel,
+                metadata.imageId,
                 bdv );
 
         bdv = view.getImageSegmentsBdvView().getBdv();
@@ -266,9 +265,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
         }
 
         BdvUtils.removeSource( bdv, bdvStackSource );
-
-
-
 
         refreshGui();
     }

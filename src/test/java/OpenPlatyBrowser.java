@@ -15,7 +15,7 @@ public class OpenPlatyBrowser
 		final PlatyBrowserSourcesPanel sourcesPanel = mainFrame.getSourcesPanel();
 
 		final ArrayList< String > sourceNames = sourcesPanel.getSourceNames();
-		sourcesPanel.addSourceToPanelAndViewer( "em-segmented-cells-labels" );
-		sourcesPanel.addSourceToPanelAndViewer( "em-raw-parapod-fib-affine_g" );
+		sourcesPanel.addSourceToPanelAndViewer( "em-segmented-cells-labels-new-uint16" );
+		//sourcesPanel.addSourceToPanelAndViewer( "em-raw-parapod-fib-affine_g" );
 	}
 }

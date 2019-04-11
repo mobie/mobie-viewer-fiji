@@ -15,15 +15,14 @@ public class PlatyBrowserUtils
 {
 	public static final String COLUMN_NAME_LABEL_IMAGE_ID = "label_image_id";
 
-	public static List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
-			File tableFile, LinkedHashMap< String, List< ? > > columns )
+	public static List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile( File tableFile, String imageId )
 	{
-		columns = TableColumns.asTypedColumns( TableColumns.stringColumnsFromTableFile( tableFile ) );
+		LinkedHashMap< String, List< ? > > columns = TableColumns.asTypedColumns( TableColumns.stringColumnsFromTableFile( tableFile ) );
 
 		TableColumns.addLabelImageIdColumn(
 				columns,
 				COLUMN_NAME_LABEL_IMAGE_ID,
-				"em-segmented-cells-labels" );
+				imageId );
 
 		final Map< ImageSegmentCoordinate, List< ? > > imageSegmentCoordinateToColumn
 				= createImageSegmentCoordinateToColumn( columns );
@@ -50,15 +49,15 @@ public class PlatyBrowserUtils
 
 		imageSegmentCoordinateToColumn.put(
 				ImageSegmentCoordinate.X,
-				columns.get( "com_x_microns" ) );
+				columns.get( "anchor_x" ) );
 
 		imageSegmentCoordinateToColumn.put(
 				ImageSegmentCoordinate.Y,
-				columns.get( "com_y_microns" ) );
+				columns.get( "anchor_y" ) );
 
 		imageSegmentCoordinateToColumn.put(
 				ImageSegmentCoordinate.Z,
-				columns.get( "com_z_microns" ) );
+				columns.get( "anchor_z" ) );
 
 		return imageSegmentCoordinateToColumn;
 	}
