@@ -9,12 +9,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 
-public class PlatyBrowserMainFrame extends JFrame
+public class PlatyBrowser extends JFrame
 {
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private final PlatyBrowserActionPanel actionPanel;
 
-	public PlatyBrowserMainFrame( File dataFolder ) throws HeadlessException
+	public PlatyBrowser( File dataFolder ) throws HeadlessException
 	{
 		sourcesPanel = new PlatyBrowserSourcesPanel( dataFolder );
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
@@ -55,7 +55,7 @@ public class PlatyBrowserMainFrame extends JFrame
 	public void initHelpDialog()
 	{
 		HelpDialog helpDialog = new HelpDialog( this,
-				PlatyBrowserMainFrame.class.getResource( "/Help.html" ) );
+				PlatyBrowser.class.getResource( "/Help.html" ) );
 
 		this.setFocusable( true );
 		this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
