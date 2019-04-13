@@ -1,3 +1,5 @@
+package commands;
+
 import de.embl.cba.platynereis.platybrowser.PlatyBrowserCommand;
 import net.imagej.ImageJ;
 

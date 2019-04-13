@@ -1,7 +1,7 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.modelview.segments.ImageSegmentCoordinate;
+import de.embl.cba.tables.modelview.segments.SegmentProperty;
 import de.embl.cba.tables.modelview.segments.SegmentUtils;
 import de.embl.cba.tables.modelview.segments.TableRowImageSegment;
 
@@ -15,50 +15,56 @@ public class PlatyBrowserUtils
 {
 	public static final String COLUMN_NAME_LABEL_IMAGE_ID = "label_image_id";
 
-	public static List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile( File tableFile, String imageId )
+	public static List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
+			File tableFile, String imageId )
 	{
-		LinkedHashMap< String, List< ? > > columns = TableColumns.asTypedColumns( TableColumns.stringColumnsFromTableFile( tableFile ) );
+		LinkedHashMap< String, List< ? > > columns =
+				TableColumns.asTypedColumns(
+						TableColumns.stringColumnsFromTableFile( tableFile ) );
 
 		TableColumns.addLabelImageIdColumn(
 				columns,
 				COLUMN_NAME_LABEL_IMAGE_ID,
 				imageId );
 
-		final Map< ImageSegmentCoordinate, List< ? > > imageSegmentCoordinateToColumn
-				= createImageSegmentCoordinateToColumn( columns );
+		final Map< SegmentProperty, List< ? > > segmentPropertyToColumn
+				= createSegmentPropertyToColumn( columns );
 
 		final List< TableRowImageSegment > segments
-				= SegmentUtils.tableRowImageSegmentsFromColumns( columns, imageSegmentCoordinateToColumn, false );
+				= SegmentUtils.tableRowImageSegmentsFromColumns(
+						columns, segmentPropertyToColumn, false );
 
 		return segments;
 	}
 
-	public static Map< ImageSegmentCoordinate, List< ? > > createImageSegmentCoordinateToColumn(
+	public static Map< SegmentProperty, List< ? > > createSegmentPropertyToColumn(
 			LinkedHashMap< String, List< ? > > columns )
 	{
-		final HashMap< ImageSegmentCoordinate, List< ? > > imageSegmentCoordinateToColumn
+		final HashMap< SegmentProperty, List< ? > > segmentPropertyToColumn
 				= new HashMap<>();
 
-		imageSegmentCoordinateToColumn.put(
-				ImageSegmentCoordinate.LabelImage,
+		segmentPropertyToColumn.put(
+				SegmentProperty.LabelImage,
 				columns.get( COLUMN_NAME_LABEL_IMAGE_ID ));
 
-		imageSegmentCoordinateToColumn.put(
-				ImageSegmentCoordinate.ObjectLabel,
+		segmentPropertyToColumn.put(
+				SegmentProperty.ObjectLabel,
 				columns.get( "label_id" ) );
 
-		imageSegmentCoordinateToColumn.put(
-				ImageSegmentCoordinate.X,
+		segmentPropertyToColumn.put(
+				SegmentProperty.X,
 				columns.get( "anchor_x" ) );
 
-		imageSegmentCoordinateToColumn.put(
-				ImageSegmentCoordinate.Y,
+		segmentPropertyToColumn.put(
+				SegmentProperty.Y,
 				columns.get( "anchor_y" ) );
 
-		imageSegmentCoordinateToColumn.put(
-				ImageSegmentCoordinate.Z,
+		segmentPropertyToColumn.put(
+				SegmentProperty.Z,
 				columns.get( "anchor_z" ) );
 
-		return imageSegmentCoordinateToColumn;
+		SegmentUtils.putDefaultBoundingBoxMapping( segmentPropertyToColumn, columns );
+
+		return segmentPropertyToColumn;
 	}
 }

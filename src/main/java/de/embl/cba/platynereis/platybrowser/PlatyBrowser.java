@@ -1,6 +1,7 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import bdv.tools.HelpDialog;
+import bdv.util.Prefs;
 import de.embl.cba.platynereis.Constants;
 
 import javax.swing.*;
@@ -16,6 +17,7 @@ public class PlatyBrowser extends JFrame
 
 	public PlatyBrowser( File dataFolder ) throws HeadlessException
 	{
+
 		sourcesPanel = new PlatyBrowserSourcesPanel( dataFolder );
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 

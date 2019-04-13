@@ -1,3 +1,5 @@
+package playground;
+
 import bdv.BigDataViewer;
 import bdv.ij.util.ProgressWriterIJ;
 import bdv.spimdata.SpimDataMinimal;
