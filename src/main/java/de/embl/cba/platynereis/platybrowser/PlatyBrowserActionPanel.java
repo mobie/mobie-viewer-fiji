@@ -291,10 +291,10 @@ public class PlatyBrowserActionPanel extends JPanel
 		horizontalLayoutPanel.add( levelCurrentView );
 
 		final JButton changeReference = new JButton( "Set new level vector" );
-		horizontalLayoutPanel.add( changeReference );
+//		horizontalLayoutPanel.add( changeReference );
 
 		final JButton defaultReference = new JButton( "Set default level vector" );
-		horizontalLayoutPanel.add( defaultReference );
+//		horizontalLayoutPanel.add( defaultReference );
 
 		changeReference.addActionListener( e -> {
 			targetNormalVector = BdvUtils.getCurrentViewNormalVector( bdv );
@@ -317,12 +317,15 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		final JButton moveToButton = new JButton( "Move to" );
 
-		final String[] positionsAndViews = { PlatyViews.LEFT_EYE_POSITION };
+		final String[] positionsAndViews = {
+				"type here (position or view)......                                                           ",
+				PlatyViews.LEFT_EYE_POSITION  };
 		final JComboBox< String > viewsChoices = new JComboBox<>( positionsAndViews );
 		viewsChoices.setEditable( true );
-		viewsChoices.setMaximumSize( new Dimension( 10, TEXT_FIELD_HEIGHT ) );
+		viewsChoices.setMaximumSize( new Dimension( 200, TEXT_FIELD_HEIGHT ) );
+		viewsChoices.setMinimumSize( new Dimension(  200, TEXT_FIELD_HEIGHT ) );
 
-		moveToButton.addActionListener( e -> BdvViewChanger.moveToView( (String) viewsChoices.getSelectedItem()) );
+		moveToButton.addActionListener( e -> BdvViewChanger.moveToView( bdv, (String) viewsChoices.getSelectedItem()) );
 
 		horizontalLayoutPanel.add( moveToButton );
 		horizontalLayoutPanel.add( viewsChoices );

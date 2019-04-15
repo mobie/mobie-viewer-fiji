@@ -3,6 +3,7 @@ package de.embl.cba.platynereis;
 import bdv.VolatileSpimSource;
 import bdv.tools.transformation.TransformedSource;
 
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.modelview.images.ImageSourcesModel;
@@ -55,12 +56,11 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 			if ( sourceName.contains( Constants.EM_FILE_ID ) ) continue;
 			if ( ! sourceName.contains( Constants.MED ) ) continue;
 
-			logProgress( sourceName );
-
 			final SourceAndMetadata sourceAndMetadata =
 					imageSourcesModel.sources().get( sourceName );
 
-			final RandomAccessibleInterval< ? > rai = getRandomAccessibleInterval( sourceAndMetadata );
+			final RandomAccessibleInterval< ? > rai =
+					BdvUtils.getRealTypeNonVolatileRandomAccessibleInterval( sourceAndMetadata.source(), 0, 0 );
 
 			final double fractionOfNonZeroVoxels = Utils.getFractionOfNonZeroVoxels(
 					( RandomAccessibleInterval ) rai,
@@ -73,20 +73,6 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 		return localExpression;
 
-	}
-
-	public RandomAccessibleInterval< ? > getRandomAccessibleInterval( SourceAndMetadata sourceAndMetadata )
-	{
-		final LazySpimSource lazySpimSource = ( LazySpimSource ) sourceAndMetadata.source();
-		final TransformedSource transformedSource = (TransformedSource) lazySpimSource.wrappedSource();
-		final VolatileSpimSource wrappedSource = ( VolatileSpimSource ) transformedSource.getWrappedSource();
-		final RandomAccessibleInterval< ? > rai = wrappedSource.nonVolatile().getSource( 0, 0 );
-		return rai;
-	}
-
-	public void logProgress( String sourceName )
-	{
-		// SwingUtilities.invokeLater( () -> Utils.log( "Examining " + sourceName ) );
 	}
 
 	private void removeGenesWithZeroExpression( Map< String, Double > localSortedExpression)

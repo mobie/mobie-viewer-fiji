@@ -2,13 +2,10 @@ package de.embl.cba.platynereis;
 
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.TableUIs;
-import de.embl.cba.tables.TableUtils;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Map;
 
 import static de.embl.cba.platynereis.utils.Utils.combine;

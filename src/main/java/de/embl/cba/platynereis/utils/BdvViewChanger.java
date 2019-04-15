@@ -5,6 +5,8 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.platybrowser.PlatyViews;
 import net.imglib2.realtransform.AffineTransform3D;
 
+import java.util.concurrent.ExecutionException;
+
 
 /**
  * TODO: probably move to bdv-utils
@@ -27,17 +29,15 @@ public abstract class BdvViewChanger
 	{
 		if ( doubles.length == 3 )
 		{
-			final double[] position4D = new double[ 4 ];
-			for ( int d = 0; d < 4; d++ )
-				position4D[ d ] = doubles[ d ];
-			BdvUtils.zoomToPosition( bdv, position4D, 15, 1000 );
-			return;
+			BdvUtils.zoomToPosition( bdv, asPosition4D( doubles ), 15D, 1000 );
+		}
+		else if ( doubles.length == 4 )
+		{
+			BdvUtils.zoomToPosition( bdv, doubles, 15D, 1000 );
 		}
 		else if ( doubles.length == 12 )
 		{
-			final AffineTransform3D view = new AffineTransform3D();
-			view.set( Utils.delimitedStringToDoubleArray( view, "," ) );
-			BdvUtils.changeBdvViewerTransform( bdv, view, 1000  );
+			BdvUtils.changeBdvViewerTransform( bdv, asView( doubles ), 1000  );
 		}
 		else
 		{
@@ -45,25 +45,51 @@ public abstract class BdvViewChanger
 		}
 	}
 
+	public static AffineTransform3D asView( double[] doubles )
+	{
+		final AffineTransform3D view = new AffineTransform3D( );
+		view.set( doubles );
+		return view;
+	}
+
+	public static double[] asPosition4D( double[] doubles )
+	{
+		final double[] position4D = new double[ 4 ];
+		for ( int d = 0; d < 3; d++ )
+			position4D[ d ] = doubles[ d ];
+		return position4D;
+	}
+
 	public static double[] getDoubles( String view )
 	{
-		double[] doubles;
+
 		if ( views.views().containsKey( view ) )
 		{
-			doubles = views.views().get( view );
+			return views.views().get( view );
 		}
 		else if ( view.contains( "View" ) )
 		{
 			view = view.replace( "View: (", "" );
 			view = view.replace( ")", "" );
-			doubles = Utils.delimitedStringToDoubleArray( view, "," );
+			return Utils.delimitedStringToDoubleArray( view, "," );
 		}
 		else if ( view.contains( "Position" ) )
 		{
 			view = view.replace( "Position: (", "" );
 			view = view.replace( ")", "" );
-			doubles = Utils.delimitedStringToDoubleArray( view, "," );
+			return Utils.delimitedStringToDoubleArray( view, "," );
 		}
-		return doubles;
+		else
+		{
+			try
+			{
+				return Utils.delimitedStringToDoubleArray( view, "," );
+			} catch ( Exception e )
+			{
+				Utils.log( "Cannot parse view string :-(" );
+				return null;
+			}
+		}
+
 	}
 }

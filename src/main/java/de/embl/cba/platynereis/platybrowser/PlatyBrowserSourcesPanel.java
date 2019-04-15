@@ -11,6 +11,7 @@ import de.embl.cba.tables.modelview.images.SourceAndMetadata;
 import de.embl.cba.tables.modelview.images.SourceMetadata;
 import de.embl.cba.tables.modelview.segments.TableRowImageSegment;
 import de.embl.cba.tables.modelview.views.combined.SegmentsTableBdvAnd3dViews;
+import ij3d.Image3DUniverse;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,12 +31,15 @@ public class PlatyBrowserSourcesPanel extends JPanel
     protected Map< String, JPanel > sourceNameToPanel;
     private BdvHandle bdv;
     private final ImageSourcesModel imageSourcesModel;
+    private final Image3DUniverse universe;
 
     public PlatyBrowserSourcesPanel( File dataFolder )
     {
         imageSourcesModel = new PlatynereisImageSourcesModel( dataFolder );
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelsViews = new LinkedHashMap<>();
+
+        universe = new Image3DUniverse();
 
         configPanel();
 //        initColors();
@@ -171,23 +175,33 @@ public class PlatyBrowserSourcesPanel extends JPanel
                         sam.metadata().segmentsTable,
                         sam.metadata().imageId );
 
-        final SegmentsTableBdvAnd3dViews view =
+        final SegmentsTableBdvAnd3dViews views =
                 new SegmentsTableBdvAnd3dViews(
                         segments,
                         createLabelsSourceModel( sam ),
                         sam.metadata().imageId,
-                        bdv );
+                        bdv,
+                        universe );
+
+        if ( sam.metadata().imageId.contains( "nuclei" ) )
+            views.getSegments3dView().setTransparency( 0.0 );
+
+        if ( sam.metadata().imageId.contains( "cells" ) )
+            views.getSegments3dView().setTransparency( 0.6 );
+
+        views.getSegments3dView().setVoxelSpacing3DView( 0.05 );
+        views.getSegments3dView().setMeshSmoothingIterations( 5 );
 
         // update bdv in case this is was first source to be shown.
-        bdv = view.getSegmentsBdvView().getBdv();
+        bdv = views.getSegmentsBdvView().getBdv();
 
         // set bdvStackSource field, for changing its color, visibility, a.s.o.
-        sam.metadata().bdvStackSource = view
+        sam.metadata().bdvStackSource = views
                         .getSegmentsBdvView()
                         .getCurrentSources().get( 0 )
                         .metadata().bdvStackSource;;
 
-        sourceNameToLabelsViews.put( sam.metadata().displayName, view );
+        sourceNameToLabelsViews.put( sam.metadata().displayName, views );
     }
 
     private DefaultImageSourcesModel createLabelsSourceModel(
