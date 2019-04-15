@@ -5,6 +5,7 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.GeneSearch;
 import de.embl.cba.platynereis.GeneSearchResults;
+import de.embl.cba.platynereis.utils.BdvViewChanger;
 import de.embl.cba.platynereis.utils.SortIgnoreCase;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
@@ -12,6 +13,7 @@ import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.modelview.images.SourceAndMetadata;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RealPoint;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -26,6 +28,7 @@ import java.util.Map;
 public class PlatyBrowserActionPanel extends JPanel
 {
 	public static final int TEXT_FIELD_HEIGHT = 20;
+	public static final String LEFT_EYE = "Left eye";
 
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private BdvHandle bdv;
@@ -42,8 +45,8 @@ public class PlatyBrowserActionPanel extends JPanel
 		bdv = sourcesPanel.getBdv();
 		installBdvBehaviours();
 		addSourceSelectionUI( this );
-		addPositionZoomUI( this  );
-		addPositionPrintBehaviour( this );
+		addMoveToViewUI( this  );
+		addPositionAndViewLoggingBehaviour( this );
 		addLocalGeneSearchBehaviourAndUI( this);
 		//add3DObjectViewResolutionUI( this );
 		addLevelingUI( this );
@@ -68,20 +71,28 @@ public class PlatyBrowserActionPanel extends JPanel
 //		return geneSearchRadii;
 //	}
 
-	private void addPositionPrintBehaviour( JPanel panel )
+	private void addPositionAndViewLoggingBehaviour( JPanel panel )
 	{
 		JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 
 			(new Thread( () -> {
-				final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
-				Utils.log( "Position: " + globalMouseCoordinates.toString() );
+				logPositionAndView();
 			} )).start();
 
-		}, "Print position", "P"  ) ;
+		}, "Print position and view", "P"  ) ;
 
 		panel.add( horizontalLayoutPanel );
+	}
+
+	private void logPositionAndView()
+	{
+		final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
+		Utils.log( "Position: " + globalMouseCoordinates.toString() );
+		final AffineTransform3D view = new AffineTransform3D();
+		bdv.getViewerPanel().getState().getViewerTransform( view );
+		Utils.log( view.toString().replace( "3d-affine", "View" )  );
 	}
 
 	private void add3DObjectViewResolutionUI( JPanel panel )
@@ -301,36 +312,21 @@ public class PlatyBrowserActionPanel extends JPanel
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private void addPositionZoomUI( JPanel panel )
+	private void addMoveToViewUI( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		horizontalLayoutPanel.add( new JLabel( "Move to [x,y,z]: " ) );
+		final JButton moveToButton = new JButton( "Move to" );
 
-		final JTextField position = new JTextField( "  177, 218,  67  " );
-		position.setMaximumSize( new Dimension( 10, TEXT_FIELD_HEIGHT ) );
+		final String[] positionsAndViews = { LEFT_EYE };
+		final JComboBox< String > viewsChoices = new JComboBox<>( positionsAndViews );
+		viewsChoices.setEditable( true );
+		viewsChoices.setMaximumSize( new Dimension( 10, TEXT_FIELD_HEIGHT ) );
 
-		horizontalLayoutPanel.add( position );
+		moveToButton.addActionListener( e -> BdvViewChanger.moveToView( (String) viewsChoices.getSelectedItem()) );
 
-		horizontalLayoutPanel.add( new JLabel( "  Zoom factor: " ) );
-
-		final JTextField zoom = new JTextField( " 15 " );
-		zoom.setMaximumSize( new Dimension( 10, TEXT_FIELD_HEIGHT ) );
-
-		horizontalLayoutPanel.add( zoom );
-		
-		position.addActionListener( e -> BdvUtils.zoomToPosition(
-				bdv,
-				Utils.delimitedStringToDoubleArray( position.getText(), ","),
-				Double.parseDouble( zoom.getText() ), 1000 ) );
-
-		zoom.addActionListener( e -> BdvUtils.zoomToPosition(
-				bdv,
-				Utils.delimitedStringToDoubleArray( position.getText(), ","),
-				Double.parseDouble( zoom.getText() ),
-				1000 ) );
-
-
+		horizontalLayoutPanel.add( moveToButton );
+		horizontalLayoutPanel.add( viewsChoices );
 		panel.add( horizontalLayoutPanel );
 	}
 
