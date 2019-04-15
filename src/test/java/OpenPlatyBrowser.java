@@ -16,9 +16,9 @@ public class OpenPlatyBrowser
 
 		final ArrayList< String > sourceNames = sourcesPanel.getSourceNames();
 
-		sourcesPanel.addSourceToPanelAndViewer( "em-segmented-cells-labels-new-uint16" );
+//		sourcesPanel.addSourceToPanelAndViewer( "em-segmented-cells-labels-new-uint16" );
 
-		sourcesPanel.addSourceToPanelAndViewer( "em-segmented-new-nuclei-uint16-labels" );
+//		sourcesPanel.addSourceToPanelAndViewer( "em-segmented-new-nuclei-uint16-labels" );
 
 	}
 }

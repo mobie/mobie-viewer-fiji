@@ -37,28 +37,39 @@ public class PlatyBrowserActionPanel extends JPanel
 
 	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	private double[] targetNormalVector;
+	private double geneSearchRadiusInMicrometer;
 
 	public PlatyBrowserActionPanel( PlatyBrowserSourcesPanel sourcesPanel )
 	{
 		this.sourcesPanel = sourcesPanel;
 		bdv = sourcesPanel.getBdv();
 		installBdvBehaviours();
+
 		addSourceSelectionUI( this );
 		addMoveToViewUI( this  );
-		addPositionAndViewLoggingBehaviour( this );
-		addLocalGeneSearchBehaviourAndUI( this);
-		//add3DObjectViewResolutionUI( this );
 		addLevelingUI( this );
 		configPanel();
 	}
 
-	public void installBdvBehaviours()
+	public double getGeneSearchRadiusInMicrometer()
+	{
+		return geneSearchRadiusInMicrometer;
+	}
+
+	public void setGeneSearchRadiusInMicrometer( double geneSearchRadiusInMicrometer )
+	{
+		this.geneSearchRadiusInMicrometer = geneSearchRadiusInMicrometer;
+	}
+
+	private void installBdvBehaviours()
 	{
 		behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( bdv.getTriggerbindings(), "behaviours" );
+		addPositionAndViewLoggingBehaviour( this );
+		addLocalGeneSearchBehaviour();
 	}
 
-	public void configPanel()
+	private void configPanel()
 	{
 		this.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
 		this.revalidate();
@@ -137,37 +148,27 @@ public class PlatyBrowserActionPanel extends JPanel
 //		return resolutionComboBox;
 //	}
 
-	private void addLocalGeneSearchBehaviourAndUI( JPanel panel )
+	private void addLocalGeneSearchBehaviour()
 	{
-		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+		geneSearchRadiusInMicrometer = 3;
 
-		horizontalLayoutPanel.add( new JLabel( "Gene discovery radius [micrometer]: " ) );
-
-		setGeneSearchRadii();
-
-		final JComboBox radiiComboBox = new JComboBox( );
-		for ( double radius : geneSearchRadii )
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) ->
 		{
-			radiiComboBox.addItem( "" + radius );
-		}
-
-		horizontalLayoutPanel.add( radiiComboBox );
-
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			double[] micrometerPosition = new double[ 3 ];
 			BdvUtils.getGlobalMouseCoordinates( bdv ).localize( micrometerPosition );
-			double micrometerRadius = Double.parseDouble(
-					( String ) radiiComboBox.getSelectedItem() );
+
 			final BdvTextOverlay bdvTextOverlay
 					= new BdvTextOverlay( bdv,
 					"Searching expressed genes; please wait...", micrometerPosition );
-			(new Thread( () -> {
-				searchGenes( micrometerPosition, micrometerRadius );
-				bdvTextOverlay.setText( "" );
-			} )).start();
-		}, "discover genes", "D" );
 
-		panel.add( horizontalLayoutPanel );
+			(new Thread( () ->
+			{
+				searchGenes( micrometerPosition, geneSearchRadiusInMicrometer );
+				bdvTextOverlay.setText( "" );
+			}
+			)).start();
+
+		}, "discover genes", "D" );
 
 	}
 
@@ -318,7 +319,7 @@ public class PlatyBrowserActionPanel extends JPanel
 		final JButton moveToButton = new JButton( "Move to" );
 
 		final String[] positionsAndViews = {
-				"type here (position or view)......                                                           ",
+				"...type here...                                                           ",
 				PlatyViews.LEFT_EYE_POSITION  };
 		final JComboBox< String > viewsChoices = new JComboBox<>( positionsAndViews );
 		viewsChoices.setEditable( true );

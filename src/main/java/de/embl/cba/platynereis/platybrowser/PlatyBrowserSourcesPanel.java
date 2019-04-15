@@ -32,17 +32,40 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private BdvHandle bdv;
     private final ImageSourcesModel imageSourcesModel;
     private final Image3DUniverse universe;
+    private int meshSmoothingIterations;
+    private double voxelSpacing3DView;
 
     public PlatyBrowserSourcesPanel( File dataFolder )
     {
         imageSourcesModel = new PlatynereisImageSourcesModel( dataFolder );
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelsViews = new LinkedHashMap<>();
-
+        voxelSpacing3DView = 0.05;
+        meshSmoothingIterations = 5;
         universe = new Image3DUniverse();
 
         configPanel();
 //        initColors();
+    }
+
+    public int getMeshSmoothingIterations()
+    {
+        return meshSmoothingIterations;
+    }
+
+    public void setMeshSmoothingIterations( int meshSmoothingIterations )
+    {
+        this.meshSmoothingIterations = meshSmoothingIterations;
+    }
+
+    public double getVoxelSpacing3DView()
+    {
+        return voxelSpacing3DView;
+    }
+
+    public void setVoxelSpacing3DView( double voxelSpacing3DView )
+    {
+        this.voxelSpacing3DView = voxelSpacing3DView;
     }
 
     public void addSourceToPanelAndViewer( String sourceName )
@@ -189,8 +212,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
         if ( sam.metadata().imageId.contains( "cells" ) )
             views.getSegments3dView().setTransparency( 0.6 );
 
-        views.getSegments3dView().setVoxelSpacing3DView( 0.05 );
-        views.getSegments3dView().setMeshSmoothingIterations( 5 );
+        views.getSegments3dView().setVoxelSpacing3DView( voxelSpacing3DView );
+        views.getSegments3dView().setMeshSmoothingIterations( meshSmoothingIterations );
 
         // update bdv in case this is was first source to be shown.
         bdv = views.getSegmentsBdvView().getBdv();
@@ -199,7 +222,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         sam.metadata().bdvStackSource = views
                         .getSegmentsBdvView()
                         .getCurrentSources().get( 0 )
-                        .metadata().bdvStackSource;;
+                        .metadata().bdvStackSource;
 
         sourceNameToLabelsViews.put( sam.metadata().displayName, views );
     }
