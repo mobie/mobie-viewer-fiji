@@ -2,7 +2,7 @@ package de.embl.cba.platynereis.utils;
 
 import bdv.util.Bdv;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.platynereis.platybrowser.PlatyBrowserActionPanel;
+import de.embl.cba.platynereis.platybrowser.PlatyViews;
 import net.imglib2.realtransform.AffineTransform3D;
 
 
@@ -13,28 +13,18 @@ import net.imglib2.realtransform.AffineTransform3D;
  */
 public abstract class BdvViewChanger
 {
+
+	public static PlatyViews views = new PlatyViews();
+
 	public static void moveToView( Bdv bdv, String view )
 	{
-		if ( view.contains( "View" ) )
-		{
-			view = view.replace( "View: (", "" );
-			view = view.replace( ")", "" );
-		}
-		else if ( view.contains( "Position" ) )
-		{
-			view = view.replace( "Position: (", "" );
-			view = view.replace( ")", "" );
-		}
+		double[] doubles = getDoubles( view );
 
-		if ( view.equals( PlatyBrowserActionPanel.LEFT_EYE ) )
-		{
-			BdvUtils.zoomToPosition(
-					bdv, new double[]{ 177, 218,  67, 0 }, 15.0, 1000 );
-			return;
-		}
+		moveToDoubles( bdv, doubles );
+	}
 
-		final double[] doubles = Utils.delimitedStringToDoubleArray( view, "," );
-
+	public static void moveToDoubles( Bdv bdv, double[] doubles )
+	{
 		if ( doubles.length == 3 )
 		{
 			final double[] position4D = new double[ 4 ];
@@ -53,7 +43,27 @@ public abstract class BdvViewChanger
 		{
 			Utils.log( "Cannot parse view string :-("  );
 		}
+	}
 
-
+	public static double[] getDoubles( String view )
+	{
+		double[] doubles;
+		if ( views.views().containsKey( view ) )
+		{
+			doubles = views.views().get( view );
+		}
+		else if ( view.contains( "View" ) )
+		{
+			view = view.replace( "View: (", "" );
+			view = view.replace( ")", "" );
+			doubles = Utils.delimitedStringToDoubleArray( view, "," );
+		}
+		else if ( view.contains( "Position" ) )
+		{
+			view = view.replace( "Position: (", "" );
+			view = view.replace( ")", "" );
+			doubles = Utils.delimitedStringToDoubleArray( view, "," );
+		}
+		return doubles;
 	}
 }

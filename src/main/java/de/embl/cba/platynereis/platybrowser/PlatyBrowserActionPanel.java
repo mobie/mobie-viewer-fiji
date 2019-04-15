@@ -28,7 +28,6 @@ import java.util.Map;
 public class PlatyBrowserActionPanel extends JPanel
 {
 	public static final int TEXT_FIELD_HEIGHT = 20;
-	public static final String LEFT_EYE = "Left eye";
 
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private BdvHandle bdv;
@@ -318,7 +317,7 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		final JButton moveToButton = new JButton( "Move to" );
 
-		final String[] positionsAndViews = { LEFT_EYE };
+		final String[] positionsAndViews = { PlatyViews.LEFT_EYE_POSITION };
 		final JComboBox< String > viewsChoices = new JComboBox<>( positionsAndViews );
 		viewsChoices.setEditable( true );
 		viewsChoices.setMaximumSize( new Dimension( 10, TEXT_FIELD_HEIGHT ) );
