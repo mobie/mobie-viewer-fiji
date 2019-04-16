@@ -10,7 +10,7 @@ import de.embl.cba.platynereis.utils.SortIgnoreCase;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
-import de.embl.cba.tables.modelview.images.SourceAndMetadata;
+import de.embl.cba.tables.image.SourceAndMetadata;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;

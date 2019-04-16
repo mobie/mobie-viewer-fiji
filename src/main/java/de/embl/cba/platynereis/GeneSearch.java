@@ -1,13 +1,9 @@
 package de.embl.cba.platynereis;
 
-import bdv.VolatileSpimSource;
-import bdv.tools.transformation.TransformedSource;
-
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.platynereis.utils.Utils;
-import de.embl.cba.tables.modelview.images.ImageSourcesModel;
-import de.embl.cba.tables.modelview.images.SourceAndMetadata;
+import de.embl.cba.tables.image.ImageSourcesModel;
+import de.embl.cba.tables.image.SourceAndMetadata;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;

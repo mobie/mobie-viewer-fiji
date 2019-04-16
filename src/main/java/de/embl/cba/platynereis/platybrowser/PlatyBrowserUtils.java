@@ -1,9 +1,9 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.modelview.segments.SegmentProperty;
-import de.embl.cba.tables.modelview.segments.SegmentUtils;
-import de.embl.cba.tables.modelview.segments.TableRowImageSegment;
+import de.embl.cba.tables.imagesegment.SegmentProperty;
+import de.embl.cba.tables.imagesegment.SegmentUtils;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 
 import java.io.File;
 import java.util.HashMap;

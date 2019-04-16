@@ -1,15 +1,17 @@
 package de.embl.cba.platynereis;
 
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
-import de.embl.cba.tables.modelview.images.ImageSourcesModel;
-import de.embl.cba.tables.modelview.images.SourceAndMetadata;
-import de.embl.cba.tables.modelview.images.SourceMetadata;
+import de.embl.cba.tables.image.ImageSourcesModel;
+import de.embl.cba.tables.image.SourceAndMetadata;
+import de.embl.cba.tables.image.SourceMetadata;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static de.embl.cba.platynereis.utils.FileUtils.getFiles;
 
