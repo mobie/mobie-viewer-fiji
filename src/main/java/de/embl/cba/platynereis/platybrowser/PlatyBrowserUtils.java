@@ -18,16 +18,15 @@ public class PlatyBrowserUtils
 	public static List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
 			File tableFile, String imageId )
 	{
-		LinkedHashMap< String, List< ? > > columns =
-				TableColumns.asTypedColumns(
-						TableColumns.stringColumnsFromTableFile( tableFile ) );
+		Map< String, List< String > > columns =
+						TableColumns.stringColumnsFromTableFile( tableFile );
 
 		TableColumns.addLabelImageIdColumn(
 				columns,
 				COLUMN_NAME_LABEL_IMAGE_ID,
 				imageId );
 
-		final Map< SegmentProperty, List< ? > > segmentPropertyToColumn
+		final Map< SegmentProperty, List< String > > segmentPropertyToColumn
 				= createSegmentPropertyToColumn( columns );
 
 		final List< TableRowImageSegment > segments
@@ -37,10 +36,10 @@ public class PlatyBrowserUtils
 		return segments;
 	}
 
-	public static Map< SegmentProperty, List< ? > > createSegmentPropertyToColumn(
-			LinkedHashMap< String, List< ? > > columns )
+	public static Map< SegmentProperty, List< String > > createSegmentPropertyToColumn(
+			Map< String, List< String > > columns )
 	{
-		final HashMap< SegmentProperty, List< ? > > segmentPropertyToColumn
+		final HashMap< SegmentProperty, List< String > > segmentPropertyToColumn
 				= new HashMap<>();
 
 		segmentPropertyToColumn.put(

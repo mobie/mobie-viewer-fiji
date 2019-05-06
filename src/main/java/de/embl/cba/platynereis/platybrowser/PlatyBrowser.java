@@ -31,18 +31,14 @@ public class PlatyBrowser extends JFrame
 	private JMenuBar createMenuBar()
 	{
 		JMenuBar menuBar = new JMenuBar();
-
 		menuBar.add( createMainMenu() );
-
 		return menuBar;
 	}
 
 	private JMenu createMainMenu()
 	{
 		final JMenu main = new JMenu( "Main" );
-
 		main.add( createPreferencesMenuItem() );
-
 		return main;
 	}
 
@@ -71,6 +67,7 @@ public class PlatyBrowser extends JFrame
 			sourcesPanel.setVoxelSpacing3DView( gd.getNextNumber() );
 			sourcesPanel.setMeshSmoothingIterations( ( int ) gd.getNextNumber() );
 			actionPanel.setGeneSearchRadiusInMicrometer( gd.getNextNumber() );
+
 		} ).start();
 	}
 

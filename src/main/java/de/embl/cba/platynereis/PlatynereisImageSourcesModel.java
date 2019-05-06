@@ -2,12 +2,13 @@ package de.embl.cba.platynereis;
 
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.tables.image.ImageSourcesModel;
+import de.embl.cba.tables.image.Metadata;
 import de.embl.cba.tables.image.SourceAndMetadata;
-import de.embl.cba.tables.image.SourceMetadata;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 
+import javax.print.attribute.standard.Media;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -52,10 +53,10 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 			addSource( imageFile );
 	}
 
-	private SourceMetadata getMetadata( File imageSourceFile )
+	private Metadata getMetadata( File imageSourceFile )
 	{
 		final String imageId = imageId( imageSourceFile );
-		final SourceMetadata metadata = new SourceMetadata( imageId );
+		final Metadata metadata = new Metadata( imageId );
 		metadata.numSpatialDimensions = 3;
 		metadata.displayName = imageId;
 		setDisplayRange( imageId, metadata );
@@ -63,11 +64,11 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		return metadata;
 	}
 
-	private void setFlavour( String imageId, SourceMetadata metadata )
+	private void setFlavour( String imageId, Metadata metadata )
 	{
 		if ( imageId.contains( LABELS_FILE_ID ) )
 		{
-			metadata.flavour = SourceMetadata.Flavour.LabelSource;
+			metadata.flavour = Metadata.Flavour.LabelSource;
 
 			final File table = new File( getTablePath( imageId ) );
 			if ( table.exists() )
@@ -75,11 +76,11 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		}
 		else
 		{
-			metadata.flavour = SourceMetadata.Flavour.IntensitySource;
+			metadata.flavour = Metadata.Flavour.IntensitySource;
 		}
 	}
 
-	private void setDisplayRange( String imageId, SourceMetadata metadata )
+	private void setDisplayRange( String imageId, Metadata metadata )
 	{
 		if ( imageId.contains( EM_RAW_FILE_ID ) )
 		{
@@ -131,7 +132,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	{
 		final String imageId = imageId( file );
 		final LazySpimSource lazySpimSource = new LazySpimSource( imageId, file );
-		final SourceMetadata metadata = getMetadata( file );
+		final Metadata metadata = getMetadata( file );
 		imageIdToSourceAndMetadata.put( imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
 	}
 
