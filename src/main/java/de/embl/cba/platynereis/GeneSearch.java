@@ -2,8 +2,10 @@ package de.embl.cba.platynereis;
 
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.utils.Utils;
+import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.SourceAndMetadata;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -19,18 +21,15 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 	private final double micrometerRadius;
 	private final double[] micrometerPosition;
 	private final ImageSourcesModel imageSourcesModel;
-	private final double micrometerVoxelSize;
 	private Map< String, Double > localExpression;
 
 	public GeneSearch( double micrometerRadius,
 					   double[] micrometerPosition,
-					   ImageSourcesModel imageSourcesModel,
-					   double micrometerVoxelSize )
+					   ImageSourcesModel imageSourcesModel )
 	{
 		this.micrometerRadius = micrometerRadius;
 		this.micrometerPosition = micrometerPosition;
 		this.imageSourcesModel = imageSourcesModel;
-		this.micrometerVoxelSize = micrometerVoxelSize;
 	}
 
 
@@ -58,11 +57,15 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 			final RandomAccessibleInterval< ? > rai =
 					BdvUtils.getRealTypeNonVolatileRandomAccessibleInterval( sourceAndMetadata.source(), 0, 0 );
 
+			final VoxelDimensions voxelDimensions = sourceAndMetadata.source().getVoxelDimensions();
+
 			final double fractionOfNonZeroVoxels = Utils.getFractionOfNonZeroVoxels(
 					( RandomAccessibleInterval ) rai,
 					micrometerPosition,
 					micrometerRadius,
-					micrometerVoxelSize );
+					voxelDimensions.dimension( 0 ) );
+
+			Logger.info("Examining " + sourceName + "...");
 
 			localExpression.put( sourceName, fractionOfNonZeroVoxels );
 		}

@@ -76,7 +76,7 @@ public class PlatyBrowser extends JFrame
 	{
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		splitPane.setDividerLocation( 130 );
+		splitPane.setDividerLocation( 180 );
 		splitPane.setTopComponent( actionPanel );
 		splitPane.setBottomComponent( sourcesPanel );
 		splitPane.setAutoscrolls( true );

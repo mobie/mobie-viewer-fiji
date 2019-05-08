@@ -5,6 +5,7 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.GeneSearch;
 import de.embl.cba.platynereis.GeneSearchResults;
+import de.embl.cba.platynereis.Globals;
 import de.embl.cba.platynereis.utils.BdvViewChanger;
 import de.embl.cba.platynereis.utils.SortIgnoreCase;
 import de.embl.cba.platynereis.utils.Utils;
@@ -32,8 +33,6 @@ public class PlatyBrowserActionPanel extends JPanel
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private BdvHandle bdv;
 	private Behaviours behaviours;
-	private double geneSearchVoxelSize;
-	private java.util.List< Double > geneSearchRadii;
 
 	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	private double[] targetNormalVector;
@@ -48,7 +47,22 @@ public class PlatyBrowserActionPanel extends JPanel
 		addSourceSelectionUI( this );
 		addMoveToViewUI( this  );
 		addLevelingUI( this );
+		addShowSegmentsIn3DUI( this );
 		configPanel();
+	}
+
+	private void addShowSegmentsIn3DUI( JPanel panel )
+	{
+		JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+
+		final JCheckBox checkBox = new JCheckBox( "Show selected objects in 3D" );
+		checkBox.setSelected( Globals.showSegmentsIn3D.get() );
+		checkBox.addActionListener( e -> {
+			Globals.showSegmentsIn3D.set( checkBox.isSelected() );
+		} );
+
+		horizontalLayoutPanel.add( checkBox );
+		panel.add( horizontalLayoutPanel );
 	}
 
 	public double getGeneSearchRadiusInMicrometer()
@@ -75,11 +89,6 @@ public class PlatyBrowserActionPanel extends JPanel
 		this.revalidate();
 		this.repaint();
 	}
-
-//	public java.util.List< Double > getGeneSearchRadii()
-//	{
-//		return geneSearchRadii;
-//	}
 
 	private void addPositionAndViewLoggingBehaviour( JPanel panel )
 	{
@@ -161,12 +170,12 @@ public class PlatyBrowserActionPanel extends JPanel
 					= new BdvTextOverlay( bdv,
 					"Searching expressed genes; please wait...", micrometerPosition );
 
-			(new Thread( () ->
+			new Thread( () ->
 			{
 				searchGenes( micrometerPosition, geneSearchRadiusInMicrometer );
 				bdvTextOverlay.setText( "" );
 			}
-			)).start();
+			).start();
 
 		}, "discover genes", "D" );
 
@@ -177,8 +186,7 @@ public class PlatyBrowserActionPanel extends JPanel
 		GeneSearch geneSearch = new GeneSearch(
 				micrometerRadius,
 				micrometerPosition,
-				sourcesPanel.getImageSourcesModel(),
-				geneSearchVoxelSize );
+				sourcesPanel.getImageSourcesModel() );
 
 		final Map< String, Double > geneExpressionLevels =
 				geneSearch.runSearchAndGetLocalExpression();
@@ -211,33 +219,6 @@ public class PlatyBrowserActionPanel extends JPanel
 //			}
 		}
 	}
-
-	private void setGeneSearchRadii( )
-	{
-
-		geneSearchRadii = new ArrayList<>();
-
-		final ArrayList< String > sourceNames = sourcesPanel.getSourceNames();
-
-		for ( String sourceName : sourceNames )
-		{
-			if ( sourceName.contains( Constants.EM_FILE_ID ) ) continue;
-
-			final SourceAndMetadata sourceAndMetadata = sourcesPanel.getSourceAndMetadata( sourceName );
-
-			final VoxelDimensions voxelDimensions = sourceAndMetadata.source().getVoxelDimensions();
-
-			geneSearchVoxelSize = voxelDimensions.dimension( 0 );
-
-			break;
-		}
-
-		for ( int i = 0; i < 8; ++i )
-		{
-			geneSearchRadii.add( Math.pow( 2, i ) * geneSearchVoxelSize );
-		}
-	}
-
 
 //	private int getAppropriateLevel( double radius, double scale, double[][] resolutions )
 //	{

@@ -3,6 +3,7 @@ package de.embl.cba.platynereis.platybrowser;
 import bdv.util.*;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
+import de.embl.cba.platynereis.Globals;
 import de.embl.cba.platynereis.PlatynereisImageSourcesModel;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.image.DefaultImageSourcesModel;
@@ -10,6 +11,7 @@ import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.Metadata;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import de.embl.cba.tables.view.Segments3dView;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
 import ij3d.Image3DUniverse;
 
@@ -213,25 +215,32 @@ public class PlatyBrowserSourcesPanel extends JPanel
                         bdv,
                         universe );
 
+        final Segments3dView< TableRowImageSegment > segments3dView = views.getSegments3dView();
+        segments3dView.setShowSegments( Globals.showSegmentsIn3D );
+
         if ( sam.metadata().imageId.contains( "nuclei" ) )
         {
-            views.getSegments3dView().setVoxelSpacing3DView( voxelSpacing3DView );
-            views.getSegments3dView().setMeshSmoothingIterations( meshSmoothingIterations );
-            views.getSegments3dView().setSegmentFocusDxyMin( 50 );
-            views.getSegments3dView().setSegmentFocusDzMin( 10000 );
-            views.getSegments3dView().setTransparency( 0.0 );
-            views.getSegments3dView().setSegmentFocusZoomLevel( 0.005 );
+            segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
+            segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
+            segments3dView.setSegmentFocusDxyMin( 50 );
+            segments3dView.setSegmentFocusDzMin( 10000 );
+            segments3dView.setTransparency( 0.0 );
+            segments3dView.setSegmentFocusZoomLevel( 0.005 );
+            segments3dView.setMaxNumBoundingBoxElements( 300 * 300 * 300 );
         }
 
         if ( sam.metadata().imageId.contains( "cells" ) )
         {
-            views.getSegments3dView().setVoxelSpacing3DView( voxelSpacing3DView );
-            views.getSegments3dView().setMeshSmoothingIterations( meshSmoothingIterations );
-            views.getSegments3dView().setSegmentFocusDxyMin( 300 );
-            views.getSegments3dView().setSegmentFocusDzMin( 10000 );
-            views.getSegments3dView().setTransparency( 0.6 );
-            views.getSegments3dView().setSegmentFocusZoomLevel( 0.005 );
+            segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
+            segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
+            segments3dView.setSegmentFocusDxyMin( 300 );
+            segments3dView.setSegmentFocusDzMin( 10000 );
+            segments3dView.setTransparency( 0.6 );
+            segments3dView.setSegmentFocusZoomLevel( 0.005 );
+            segments3dView.setMaxNumBoundingBoxElements( 300 * 300 * 300 );
         }
+
+
 
         // update bdv in case this is was first source to be shown.
         bdv = views.getSegmentsBdvView().getBdv();
