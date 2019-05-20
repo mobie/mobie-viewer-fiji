@@ -8,6 +8,7 @@ import bdv.util.Bdv;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
+import bdv.viewer.Source;
 import bdv.viewer.ViewerOptions;
 import de.embl.cba.platynereis.remote.RemoteUtils;
 import ij.ImagePlus;
@@ -31,6 +32,7 @@ public class TestBigDataServer
 		{
 			final String filename = datasetUrlMap.get( key );
 			final String title = new File( filename ).getName();
+
 			final SpimDataMinimal spimData = new XmlIoSpimDataMinimal().load( filename );
 
 			bdv = BdvFunctions.show( spimData, BdvOptions.options().addTo( bdv ) ).get( 0 ).getBdvHandle();

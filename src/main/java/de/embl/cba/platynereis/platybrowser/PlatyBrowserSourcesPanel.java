@@ -171,11 +171,17 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         final Metadata metadata = sam.metadata();
 
+//        final BdvStackSource bdvStackSource = BdvFunctions.show(
+//                sam.source(),
+//                1,
+//                BdvOptions.options().sourceTransform(
+//                        metadata.sourceTransform ).addTo( bdv ) );
+
+
         final BdvStackSource bdvStackSource = BdvFunctions.show(
                 sam.source(),
                 1,
-                BdvOptions.options().sourceTransform(
-                        metadata.sourceTransform ).addTo( bdv ) );
+                BdvOptions.options().addTo( bdv ) );
 
         bdvStackSource.setActive( true );
 
@@ -194,10 +200,16 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 new ARGBConvertedRealSource( sam.source(),
                 new LazyLabelsARGBConverter() );
 
-        sam.metadata().bdvStackSource = BdvFunctions.show( source,
-                BdvOptions.options()
-                        .addTo( bdv )
-                        .sourceTransform( sam.metadata().sourceTransform ) );
+//        sam.metadata().bdvStackSource = BdvFunctions.show( source,
+//                BdvOptions.options()
+//                        .addTo( bdv )
+//                        .sourceTransform( sam.metadata().sourceTransform ) );
+
+        final BdvStackSource bdvStackSource = BdvFunctions.show(
+                sam.source(),
+                1,
+                BdvOptions.options().addTo( bdv ) );
+
     }
 
     private void showAnnotatedLabelsSource( SourceAndMetadata< ? > sam )
