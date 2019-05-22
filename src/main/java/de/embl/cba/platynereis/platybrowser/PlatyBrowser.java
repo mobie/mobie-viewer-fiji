@@ -1,24 +1,20 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import bdv.tools.HelpDialog;
-import bdv.util.Prefs;
 import de.embl.cba.platynereis.Constants;
-import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.File;
 
 public class PlatyBrowser extends JFrame
 {
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private final PlatyBrowserActionPanel actionPanel;
 
-	public PlatyBrowser( File dataFolder ) throws HeadlessException
+	public PlatyBrowser( String dataFolder ) throws HeadlessException
 	{
 		sourcesPanel = new PlatyBrowserSourcesPanel( dataFolder );
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );

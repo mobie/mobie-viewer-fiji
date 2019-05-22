@@ -7,8 +7,8 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>EMBL>Explore>Platynereis Atlas" )
-public class PlatyBrowserCommand implements Command
+@Plugin(type = Command.class, menuPath = "Plugins>EMBL>Explore>Platynereis Atlas (Local)" )
+public class PlatyBrowserLocalCommand implements Command
 {
 	@Parameter ( label = "Platynereis Atlas Data Folder", style = "directory")
 	public File dataFolder;
@@ -16,6 +16,6 @@ public class PlatyBrowserCommand implements Command
 	@Override
 	public void run()
 	{
-		new PlatyBrowser( dataFolder );
+		new PlatyBrowser( dataFolder.toString() );
 	}
 }

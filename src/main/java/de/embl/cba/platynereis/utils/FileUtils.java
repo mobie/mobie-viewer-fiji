@@ -1,12 +1,13 @@
 package de.embl.cba.platynereis.utils;
 
+import de.embl.cba.platynereis.remote.RemoteUtils;
+
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class FileUtils
 {
@@ -41,13 +42,33 @@ public class FileUtils
 		}
 	}
 
-	public static List< File > getFiles( File inputDirectory, String filePattern )
+	public static List< String > getFiles( File inputDirectory, String filePattern )
 	{
 		final List< File > fileList =
 				de.embl.cba.tables.FileUtils.getFileList(
 						inputDirectory, filePattern, false );
 		Collections.sort( fileList, new FileUtils.SortFilesIgnoreCase() );
-		return fileList;
+
+		final List< String > paths = fileList.stream().map( x -> x.toString() ).collect( Collectors.toList() );
+
+		return paths;
+	}
+
+	public static List< String > getUrls( String dataFolder )
+	{
+		try
+		{
+			final Map< String, String > datasetUrlMap
+					= RemoteUtils.getDatasetUrlMap( dataFolder.toString() );
+
+			return new ArrayList( datasetUrlMap.values() );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 
 	public static class SortFilesIgnoreCase implements Comparator<File>

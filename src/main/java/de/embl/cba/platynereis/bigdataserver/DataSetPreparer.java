@@ -28,19 +28,20 @@ public class DataSetPreparer
 	public void run()
 	{
 
-		//if ( outputFile.exists() ) outputFile.delete();
+		if ( outputFile.exists() ) outputFile.delete();
 
-		final List< File > files = FileUtils.getFiles( inputDirectory, ".*.xml" );
+		final List< String > files = FileUtils.getFiles( inputDirectory, ".*.xml" );
 
 		final ArrayList< String > lines = new ArrayList<>();
 
-		for ( File file : files )
+		for ( String file : files )
 		{
-			final String linuxPath = file.toString().replace( "/Volumes/", "/g/" );
-			final String fileName = file.getName();
+			final String linuxPath = file.replace( "/Volumes/", "/g/" );
+			final String fileName = new File( file ).getName();
 			lines.add( fileName + "\t" + linuxPath );
 		}
 
+		System.out.println( "Writing " + lines.size() + " datasets to " + outputFile + "...");
 		try
 		{
 			Files.write( Paths.get( outputFile.toString() ),
@@ -51,6 +52,7 @@ public class DataSetPreparer
 		{
 			e.printStackTrace();
 		}
+		System.out.println( "...done!");
 
 	}
 

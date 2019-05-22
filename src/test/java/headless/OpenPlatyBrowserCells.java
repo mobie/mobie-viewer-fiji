@@ -12,9 +12,7 @@ public class OpenPlatyBrowserCells
 	{
 		new ImageJ().ui().showUI();
 
-		File dataFolder = new File( "/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr" );
-
-		final PlatyBrowser mainFrame = new PlatyBrowser( dataFolder );
+		final PlatyBrowser mainFrame = new PlatyBrowser( "/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr"  );
 
 		final PlatyBrowserSourcesPanel sourcesPanel = mainFrame.getSourcesPanel();
 

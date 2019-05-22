@@ -37,7 +37,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private int meshSmoothingIterations;
     private double voxelSpacing3DView;
 
-    public PlatyBrowserSourcesPanel( File dataFolder )
+    public PlatyBrowserSourcesPanel( String dataFolder )
     {
         imageSourcesModel = new PlatynereisImageSourcesModel( dataFolder );
         sourceNameToPanel = new LinkedHashMap<>();
@@ -49,6 +49,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
         configPanel();
 //        initColors();
     }
+
+
 
     public int getMeshSmoothingIterations()
     {
@@ -198,18 +200,12 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         final ARGBConvertedRealSource source =
                 new ARGBConvertedRealSource( sam.source(),
-                new LazyLabelsARGBConverter() );
+                    new LazyLabelsARGBConverter() );
 
-//        sam.metadata().bdvStackSource = BdvFunctions.show( source,
-//                BdvOptions.options()
-//                        .addTo( bdv )
-//                        .sourceTransform( sam.metadata().sourceTransform ) );
-
-        final BdvStackSource bdvStackSource = BdvFunctions.show(
-                sam.source(),
+        sam.metadata().bdvStackSource = BdvFunctions.show(
+                source,
                 1,
                 BdvOptions.options().addTo( bdv ) );
-
     }
 
     private void showAnnotatedLabelsSource( SourceAndMetadata< ? > sam )

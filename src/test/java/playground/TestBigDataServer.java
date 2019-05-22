@@ -6,7 +6,9 @@ import bdv.util.Bdv;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvOptions;
 import de.embl.cba.platynereis.remote.RemoteUtils;
+import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.XmlIoSpimData;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,9 +27,10 @@ public class TestBigDataServer
 		{
 			final String filename = datasetUrlMap.get( key );
 			final String title = new File( filename ).getName();
-			final SpimDataMinimal spimData = new XmlIoSpimDataMinimal().load( filename );
+			final SpimData spimData = new XmlIoSpimData().load( filename );
 			System.out.println( "Showing: " + key + "( " + title + " )" );
 			bdv = BdvFunctions.show( spimData, BdvOptions.options().addTo( bdv ) ).get( 0 ).getBdvHandle();
+			break;
 		}
 
 	}

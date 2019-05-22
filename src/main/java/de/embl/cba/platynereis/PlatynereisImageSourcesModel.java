@@ -1,6 +1,7 @@
 package de.embl.cba.platynereis;
 
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
+import de.embl.cba.platynereis.utils.FileUtils;
 import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.Metadata;
 import de.embl.cba.tables.image.SourceAndMetadata;
@@ -8,13 +9,8 @@ import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 
-import javax.print.attribute.standard.Media;
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static de.embl.cba.platynereis.utils.FileUtils.getFiles;
+import java.util.*;
 
 public class PlatynereisImageSourcesModel implements ImageSourcesModel
 {
@@ -24,9 +20,9 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	public static final String tablesFolder = "tables";
 
 	private Map< String, SourceAndMetadata< ? > > imageIdToSourceAndMetadata;
-	private final File dataFolder;
+	private final String dataFolder;
 
-	public PlatynereisImageSourcesModel( File dataFolder )
+	public PlatynereisImageSourcesModel( String dataFolder )
 	{
 		this.dataFolder = dataFolder;
 		addSources();
@@ -48,14 +44,24 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	private void addSources()
 	{
 		imageIdToSourceAndMetadata = new HashMap<>();
-		List< File > imageFiles = getFiles( dataFolder, ".*.xml" );
-		for ( File imageFile : imageFiles )
-			addSource( imageFile );
+
+		List< String > imagePaths = getFilePaths();
+
+		for ( String path : imagePaths )
+			addSource( path );
 	}
 
-	private Metadata getMetadata( File imageSourceFile )
+	private List< String > getFilePaths()
 	{
-		final String imageId = imageId( imageSourceFile );
+		if ( dataFolder.contains( "http://" ) )
+			return FileUtils.getUrls( dataFolder );
+		else
+			return FileUtils.getFiles( new File( dataFolder ), ".*.xml" );
+	}
+
+	private Metadata getMetadata( String path )
+	{
+		final String imageId = imageId( path );
 		final Metadata metadata = new Metadata( imageId );
 		metadata.numSpatialDimensions = 3;
 		metadata.displayName = imageId;
@@ -99,8 +105,10 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		return dataFolder + File.separator + tablesFolder + File.separator + sourceName + ".csv";
 	}
 
-	private static String imageId( File file )
+	private static String imageId( String path )
 	{
+		File file = new File( path );
+
 		String dataSourceName = file.getName().replaceAll( BDV_XML_SUFFIX, "" );
 
 		dataSourceName = getProSPrName( dataSourceName );
@@ -128,11 +136,11 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		}
 	}
 
-	private void addSource( File file )
+	private void addSource( String path )
 	{
-		final String imageId = imageId( file );
-		final LazySpimSource lazySpimSource = new LazySpimSource( imageId, file );
-		final Metadata metadata = getMetadata( file );
+		final String imageId = imageId( path );
+		final LazySpimSource lazySpimSource = new LazySpimSource( imageId, path );
+		final Metadata metadata = getMetadata( path );
 		imageIdToSourceAndMetadata.put( imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
 	}
 
