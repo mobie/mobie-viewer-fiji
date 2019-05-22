@@ -1,22 +1,15 @@
 package playground;
 
-import bdv.BigDataViewer;
-import bdv.ij.util.ProgressWriterIJ;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import bdv.util.Bdv;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvOptions;
-import bdv.util.BdvStackSource;
-import bdv.viewer.Source;
-import bdv.viewer.ViewerOptions;
 import de.embl.cba.platynereis.remote.RemoteUtils;
-import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 public class TestBigDataServer
@@ -32,9 +25,8 @@ public class TestBigDataServer
 		{
 			final String filename = datasetUrlMap.get( key );
 			final String title = new File( filename ).getName();
-
 			final SpimDataMinimal spimData = new XmlIoSpimDataMinimal().load( filename );
-
+			System.out.println( "Showing: " + key + "( " + title + " )" );
 			bdv = BdvFunctions.show( spimData, BdvOptions.options().addTo( bdv ) ).get( 0 ).getBdvHandle();
 		}
 

@@ -17,7 +17,7 @@ public class FileUtils
 		return files;
 	}
 
-	public static void populateFileList( File directory, String fileNameRegExp, List< File > files) {
+	public static void populateFileList( File directory, String fileNameRegExp, List< File > files ) {
 
 		// Get all the files from a directory.
 		File[] fList = directory.listFiles();
@@ -31,9 +31,7 @@ public class FileUtils
 					final Matcher matcher = Pattern.compile( fileNameRegExp ).matcher( file.getName() );
 
 					if ( matcher.matches() )
-					{
 						files.add( file );
-					}
 				}
 				else if ( file.isDirectory() )
 				{
