@@ -16,6 +16,6 @@ public class PlatyBrowserLocalCommand implements Command
 	@Override
 	public void run()
 	{
-		new PlatyBrowser( dataFolder.toString() );
+		new PlatyBrowser( dataFolder.toString(), dataFolder.toString() + File.separator + "tables" + File.separator );
 	}
 }

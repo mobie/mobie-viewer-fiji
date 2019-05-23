@@ -5,6 +5,7 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.platynereis.Globals;
 import de.embl.cba.platynereis.PlatynereisImageSourcesModel;
+import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.image.DefaultImageSourcesModel;
 import de.embl.cba.tables.image.ImageSourcesModel;
@@ -17,7 +18,6 @@ import ij3d.Image3DUniverse;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,9 +37,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private int meshSmoothingIterations;
     private double voxelSpacing3DView;
 
-    public PlatyBrowserSourcesPanel( String dataFolder )
+    public PlatyBrowserSourcesPanel( String imageDataLocation, String tableDataLocation )
     {
-        imageSourcesModel = new PlatynereisImageSourcesModel( dataFolder );
+        imageSourcesModel = new PlatynereisImageSourcesModel( imageDataLocation, tableDataLocation );
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelsViews = new LinkedHashMap<>();
         voxelSpacing3DView = 0.05;
@@ -150,22 +150,25 @@ public class PlatyBrowserSourcesPanel extends JPanel
         addSourceToPanel( sourceAndMetadata );
     }
 
-    private void addSourceToViewer( SourceAndMetadata< ? > sourceAndMetadata )
+    private void addSourceToViewer( SourceAndMetadata< ? > sam )
     {
         Prefs.showScaleBar( true ); // make sure bdv has a scale bar
 
-        final Metadata metadata = sourceAndMetadata.metadata();
+        final Metadata metadata = sam.metadata();
 
         if ( metadata.flavour == Metadata.Flavour.LabelSource )
         {
             if ( metadata.segmentsTablePath != null )
-                showAnnotatedLabelsSource( sourceAndMetadata );
+                if ( ! showAnnotatedLabelsSource( sam ) )
+                    showLabelsSource( sam );
             else
-                showLabelsSource( sourceAndMetadata );
+                showLabelsSource( sam );
+
+            sam.metadata().bdvStackSource.setDisplayRange( 0, 1000 );
         }
         else
         {
-            showIntensitySource( sourceAndMetadata );
+            showIntensitySource( sam );
         }
     }
 
@@ -208,58 +211,71 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 BdvOptions.options().addTo( bdv ) );
     }
 
-    private void showAnnotatedLabelsSource( SourceAndMetadata< ? > sam )
+    private boolean showAnnotatedLabelsSource( SourceAndMetadata< ? > sam )
     {
-        final List< TableRowImageSegment > segments
-                = createAnnotatedImageSegmentsFromTableFile(
-                        sam.metadata().segmentsTablePath,
-                        sam.metadata().imageId );
-
-        final SegmentsTableBdvAnd3dViews views =
-                new SegmentsTableBdvAnd3dViews(
-                        segments,
-                        createLabelsSourceModel( sam ),
-                        sam.metadata().imageId,
-                        bdv,
-                        universe );
-
-        final Segments3dView< TableRowImageSegment > segments3dView = views.getSegments3dView();
-        segments3dView.setShowSegments( Globals.showSegmentsIn3D );
-
-        if ( sam.metadata().imageId.contains( "nuclei" ) )
+        try
         {
-            segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
-            segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
-            segments3dView.setSegmentFocusDxyMin( 50 );
-            segments3dView.setSegmentFocusDzMin( 10000 );
-            segments3dView.setTransparency( 0.0 );
-            segments3dView.setSegmentFocusZoomLevel( 0.005 );
-            segments3dView.setMaxNumBoundingBoxElements( 300 * 300 * 300 );
+            final List< TableRowImageSegment > segments
+                    = createAnnotatedImageSegmentsFromTableFile(
+                    sam.metadata().segmentsTablePath,
+                    sam.metadata().imageId );
+
+            final SegmentsTableBdvAnd3dViews views =
+                    new SegmentsTableBdvAnd3dViews(
+                            segments,
+                            createLabelsSourceModel( sam ),
+                            sam.metadata().imageId,
+                            bdv,
+                            universe );
+
+            final Segments3dView< TableRowImageSegment > segments3dView = views.getSegments3dView();
+            segments3dView.setShowSegments( Globals.showSegmentsIn3D );
+
+            if ( sam.metadata().imageId.contains( "nuclei" ) )
+            {
+                segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
+                segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
+                segments3dView.setSegmentFocusDxyMin( 50 );
+                segments3dView.setSegmentFocusDzMin( 10000 );
+                segments3dView.setTransparency( 0.0 );
+                segments3dView.setSegmentFocusZoomLevel( 0.005 );
+                segments3dView.setMaxNumBoundingBoxElements( 300 * 300 * 300 );
+            }
+
+            if ( sam.metadata().imageId.contains( "cells" ) )
+            {
+                segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
+                segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
+                segments3dView.setSegmentFocusDxyMin( 300 );
+                segments3dView.setSegmentFocusDzMin( 10000 );
+                segments3dView.setTransparency( 0.6 );
+                segments3dView.setSegmentFocusZoomLevel( 0.005 );
+                segments3dView.setMaxNumBoundingBoxElements( 300 * 300 * 300 );
+            }
+
+
+            // update bdv in case this is was first source to be shown.
+            bdv = views.getSegmentsBdvView().getBdv();
+
+            // set bdvStackSource field, for changing its color, visibility, a.s.o.
+            sam.metadata().bdvStackSource = views
+                    .getSegmentsBdvView()
+                    .getCurrentSources().get( 0 )
+                    .metadata().bdvStackSource;
+
+            sourceNameToLabelsViews.put( sam.metadata().displayName, views );
+
+        }
+        catch ( Exception e )
+        {
+            Utils.log( "" );
+            Utils.log( "Could not find or open segments table: " + sam.metadata().segmentsTablePath);
+            Utils.log( "" );
+
+            return false;
         }
 
-        if ( sam.metadata().imageId.contains( "cells" ) )
-        {
-            segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
-            segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
-            segments3dView.setSegmentFocusDxyMin( 300 );
-            segments3dView.setSegmentFocusDzMin( 10000 );
-            segments3dView.setTransparency( 0.6 );
-            segments3dView.setSegmentFocusZoomLevel( 0.005 );
-            segments3dView.setMaxNumBoundingBoxElements( 300 * 300 * 300 );
-        }
-
-
-
-        // update bdv in case this is was first source to be shown.
-        bdv = views.getSegmentsBdvView().getBdv();
-
-        // set bdvStackSource field, for changing its color, visibility, a.s.o.
-        sam.metadata().bdvStackSource = views
-                        .getSegmentsBdvView()
-                        .getCurrentSources().get( 0 )
-                        .metadata().bdvStackSource;
-
-        sourceNameToLabelsViews.put( sam.metadata().displayName, views );
+        return true;
     }
 
     private DefaultImageSourcesModel createLabelsSourceModel(

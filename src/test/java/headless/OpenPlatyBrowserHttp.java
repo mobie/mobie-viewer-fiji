@@ -1,10 +1,7 @@
 package headless;
 
 import de.embl.cba.platynereis.platybrowser.PlatyBrowser;
-import de.embl.cba.platynereis.platybrowser.PlatyBrowserSourcesPanel;
 import net.imagej.ImageJ;
-
-import java.io.File;
 
 public class OpenPlatyBrowserHttp
 {
@@ -12,7 +9,7 @@ public class OpenPlatyBrowserHttp
 	{
 		new ImageJ().ui().showUI();
 
-		final PlatyBrowser platyBrowser = new PlatyBrowser( "http://10.11.4.195:8000" );
+		final PlatyBrowser platyBrowser = new PlatyBrowser( "http://10.11.4.195:8000", "https://git.embl.de/tischer/platy-browser-tables/raw/master/" );
 
 //		final PlatyBrowserSourcesPanel sourcesPanel = mainFrame.getSourcesPanel();
 

@@ -20,11 +20,13 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	public static final String tablesFolder = "tables";
 
 	private Map< String, SourceAndMetadata< ? > > imageIdToSourceAndMetadata;
-	private final String dataFolder;
+	private final String imageDataLocation;
+	private final String tableDataLocation;
 
-	public PlatynereisImageSourcesModel( String dataFolder )
+	public PlatynereisImageSourcesModel( String imageDataLocation, String tableDataLocation )
 	{
-		this.dataFolder = dataFolder;
+		this.imageDataLocation = imageDataLocation;
+		this.tableDataLocation = tableDataLocation;
 		addSources();
 	}
 
@@ -53,10 +55,10 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 
 	private List< String > getFilePaths()
 	{
-		if ( dataFolder.contains( "http://" ) )
-			return FileUtils.getUrls( dataFolder );
+		if ( imageDataLocation.startsWith( "http" ) )
+			return FileUtils.getUrls( imageDataLocation );
 		else
-			return FileUtils.getFiles( new File( dataFolder ), ".*.xml" );
+			return FileUtils.getFiles( new File( imageDataLocation ), ".*.xml" );
 	}
 
 	private Metadata createMetadata( String path )
@@ -75,11 +77,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		if ( imageId.contains( LABELS_FILE_ID ) )
 		{
 			metadata.flavour = Metadata.Flavour.LabelSource;
-
-			// TODO: make URL for remote case
-			final String tablePath = getTablePath( imageId );
-			if ( new File( tablePath ).exists() )
-				metadata.segmentsTablePath = tablePath;
+			metadata.segmentsTablePath = getTablePath( imageId );
 		}
 		else
 		{
@@ -103,7 +101,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 
 	private String getTablePath( String sourceName )
 	{
-		return dataFolder + File.separator + tablesFolder + File.separator + sourceName + ".csv";
+		return tableDataLocation + sourceName + ".csv";
 	}
 
 	private static String imageId( String path )

@@ -14,9 +14,9 @@ public class PlatyBrowser extends JFrame
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private final PlatyBrowserActionPanel actionPanel;
 
-	public PlatyBrowser( String dataFolder ) throws HeadlessException
+	public PlatyBrowser( String imageDataLocation, String tableDataLocation ) throws HeadlessException
 	{
-		sourcesPanel = new PlatyBrowserSourcesPanel( dataFolder );
+		sourcesPanel = new PlatyBrowserSourcesPanel( imageDataLocation, tableDataLocation );
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 		actionPanel = new PlatyBrowserActionPanel( sourcesPanel );
 		setJMenuBar( createMenuBar() );
