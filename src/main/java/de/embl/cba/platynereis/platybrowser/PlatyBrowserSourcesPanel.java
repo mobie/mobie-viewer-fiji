@@ -165,16 +165,12 @@ public class PlatyBrowserSourcesPanel extends JPanel
                     showLabelsSource( sam );
             }
             else
-            {
                 showLabelsSource( sam );
-            }
 
             sam.metadata().bdvStackSource.setDisplayRange( 0, 1000 );
         }
         else
-        {
             showIntensitySource( sam );
-        }
     }
 
     private void showIntensitySource( SourceAndMetadata< ? > sam )
