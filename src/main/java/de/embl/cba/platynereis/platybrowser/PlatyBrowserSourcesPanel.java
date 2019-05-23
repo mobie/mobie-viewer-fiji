@@ -159,10 +159,15 @@ public class PlatyBrowserSourcesPanel extends JPanel
         if ( metadata.flavour == Metadata.Flavour.LabelSource )
         {
             if ( metadata.segmentsTablePath != null )
-                if ( ! showAnnotatedLabelsSource( sam ) )
+            {
+                final boolean success = showAnnotatedLabelsSource( sam );
+                if ( !success )
                     showLabelsSource( sam );
+            }
             else
+            {
                 showLabelsSource( sam );
+            }
 
             sam.metadata().bdvStackSource.setDisplayRange( 0, 1000 );
         }
