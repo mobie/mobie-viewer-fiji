@@ -59,7 +59,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 			return FileUtils.getFiles( new File( dataFolder ), ".*.xml" );
 	}
 
-	private Metadata getMetadata( String path )
+	private Metadata createMetadata( String path )
 	{
 		final String imageId = imageId( path );
 		final Metadata metadata = new Metadata( imageId );
@@ -76,9 +76,10 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		{
 			metadata.flavour = Metadata.Flavour.LabelSource;
 
-			final File table = new File( getTablePath( imageId ) );
-			if ( table.exists() )
-				metadata.segmentsTable = table;
+			// TODO: make URL for remote case
+			final String tablePath = getTablePath( imageId );
+			if ( new File( tablePath ).exists() )
+				metadata.segmentsTablePath = tablePath;
 		}
 		else
 		{
@@ -140,7 +141,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	{
 		final String imageId = imageId( path );
 		final LazySpimSource lazySpimSource = new LazySpimSource( imageId, path );
-		final Metadata metadata = getMetadata( path );
+		final Metadata metadata = createMetadata( path );
 		imageIdToSourceAndMetadata.put( imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
 	}
 

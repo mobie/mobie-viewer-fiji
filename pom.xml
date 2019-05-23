@@ -10,7 +10,7 @@
 
 	<groupId>de.embl.cba</groupId>
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
-	<version>0.4.18</version>
+	<version>0.4.19</version>
 	<url>https://github.com/tischi/fiji-plugin-platynereisViewer</url>
 
 	<name>Fiji Plugin Platynereis Viewer</name>
@@ -136,13 +136,13 @@
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>transforms-utils</artifactId>
-			<version>0.2.00</version>
+			<version>0.2.01</version>
 		</dependency>
 
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>table-utils</artifactId>
-			<version>0.3.09</version>
+			<version>0.3.10</version>
 		</dependency>
 
 		<dependency>

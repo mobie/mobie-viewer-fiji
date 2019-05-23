@@ -16,10 +16,10 @@ public class PlatyBrowserUtils
 	public static final String COLUMN_NAME_LABEL_IMAGE_ID = "label_image_id";
 
 	public static List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
-			File tableFile, String imageId )
+			String tablePath, String imageId )
 	{
 		Map< String, List< String > > columns =
-						TableColumns.stringColumnsFromTableFile( tableFile );
+						TableColumns.stringColumnsFromTableFile( tablePath );
 
 		TableColumns.addLabelImageIdColumn(
 				columns,

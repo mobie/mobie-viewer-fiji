@@ -158,7 +158,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         if ( metadata.flavour == Metadata.Flavour.LabelSource )
         {
-            if ( metadata.segmentsTable != null )
+            if ( metadata.segmentsTablePath != null )
                 showAnnotatedLabelsSource( sourceAndMetadata );
             else
                 showLabelsSource( sourceAndMetadata );
@@ -212,7 +212,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         final List< TableRowImageSegment > segments
                 = createAnnotatedImageSegmentsFromTableFile(
-                        sam.metadata().segmentsTable,
+                        sam.metadata().segmentsTablePath,
                         sam.metadata().imageId );
 
         final SegmentsTableBdvAnd3dViews views =
