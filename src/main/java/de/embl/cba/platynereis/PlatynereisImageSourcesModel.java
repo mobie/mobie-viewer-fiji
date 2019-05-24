@@ -23,7 +23,9 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	private final String imageDataLocation;
 	private final String tableDataLocation;
 
-	public PlatynereisImageSourcesModel( String imageDataLocation, String tableDataLocation )
+	public PlatynereisImageSourcesModel(
+			String imageDataLocation,
+			String tableDataLocation )
 	{
 		this.imageDataLocation = imageDataLocation;
 		this.tableDataLocation = tableDataLocation;

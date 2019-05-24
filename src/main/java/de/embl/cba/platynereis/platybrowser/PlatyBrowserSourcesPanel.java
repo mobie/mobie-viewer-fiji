@@ -39,7 +39,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     public PlatyBrowserSourcesPanel( String imageDataLocation, String tableDataLocation )
     {
-        imageSourcesModel = new PlatynereisImageSourcesModel( imageDataLocation, tableDataLocation );
+        imageSourcesModel = new PlatynereisImageSourcesModel(
+                imageDataLocation,
+                tableDataLocation );
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelsViews = new LinkedHashMap<>();
         voxelSpacing3DView = 0.05;
@@ -49,7 +51,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
         configPanel();
 //        initColors();
     }
-
 
 
     public int getMeshSmoothingIterations()
@@ -111,40 +112,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
         this.setAlignmentX( Component.LEFT_ALIGNMENT );
     }
 
-//    private void initColors()
-//    {
-//        colors = new ArrayList<>(  );
-//        colors.add( Color.YELLOW );
-//        colors.add( Color.MAGENTA );
-//        colors.add( Color.CYAN );
-//        colors.add( Color.BLUE );
-//        colors.add( Color.ORANGE );
-//        colors.add( Color.GREEN );
-//        colors.add( Color.PINK );
-//    }
-
-    private Color getColor( Metadata metadata )
-    {
-        return metadata.displayColor;
-//        else if ( sourceNameToPanel.size() <= colors.size()  & sourceNameToPanel.size() > 0 )
-//        {
-//            return colors.get( sourceNameToPanel.size() - 1 );
-//        }
-//        else
-//        {
-//            return colors.get( 0 );
-//        }
-    }
-
-
-
     private void addSourceToPanelAndViewer( SourceAndMetadata< ? > sourceAndMetadata )
     {
         if ( sourceNameToPanel.containsKey(  sourceAndMetadata.metadata().displayName ) )
-        {
-            // source is already shown, don't add again
             return;
-        }
 
         addSourceToViewer( sourceAndMetadata );
         addSourceToPanel( sourceAndMetadata );
@@ -152,22 +123,20 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     private void addSourceToViewer( SourceAndMetadata< ? > sam )
     {
-        Prefs.showScaleBar( true ); // make sure bdv has a scale bar
+        Prefs.showScaleBar( true );
 
         final Metadata metadata = sam.metadata();
 
         if ( metadata.flavour == Metadata.Flavour.LabelSource )
         {
-            if ( metadata.segmentsTablePath != null )
-            {
-                final boolean success = showAnnotatedLabelsSource( sam );
-                if ( !success )
+            new Thread( () -> {
+                if ( ! showAnnotatedLabelsSource( sam ) )
+                {
+                    // fall back on just showing the image
+                    // without annotations
                     showLabelsSource( sam );
-            }
-            else
-                showLabelsSource( sam );
-
-            sam.metadata().bdvStackSource.setDisplayRange( 0, 1000 );
+                }
+            }).start();
         }
         else
             showIntensitySource( sam );
@@ -210,10 +179,14 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 source,
                 1,
                 BdvOptions.options().addTo( bdv ) );
+
+        sam.metadata().bdvStackSource.setDisplayRange( 0, 1000 );
     }
 
     private boolean showAnnotatedLabelsSource( SourceAndMetadata< ? > sam )
     {
+        if ( sam.metadata().segmentsTablePath == null ) return false;
+
         try
         {
             final List< TableRowImageSegment > segments
@@ -229,40 +202,44 @@ public class PlatyBrowserSourcesPanel extends JPanel
                             bdv,
                             universe );
 
-            final Segments3dView< TableRowImageSegment > segments3dView = views.getSegments3dView();
-            segments3dView.setShowSegments( Globals.showSegmentsIn3D );
+            final Segments3dView< TableRowImageSegment > view
+                    = views.getSegments3dView();
+
+            view.setShowSegments( Globals.showSegmentsIn3D );
 
             if ( sam.metadata().imageId.contains( "nuclei" ) )
             {
-                segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
-                segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
-                segments3dView.setSegmentFocusDxyMin( 50 );
-                segments3dView.setSegmentFocusDzMin( 10000 );
-                segments3dView.setTransparency( 0.0 );
-                segments3dView.setSegmentFocusZoomLevel( 0.005 );
-                segments3dView.setMaxNumBoundingBoxElements( 300 * 300 * 300 );
+                view.setVoxelSpacing3DView( voxelSpacing3DView );
+                view.setMeshSmoothingIterations( meshSmoothingIterations );
+                view.setSegmentFocusDxyMin( 50 );
+                view.setSegmentFocusDzMin( 10000 );
+                view.setTransparency( 0.0 );
+                view.setSegmentFocusZoomLevel( 0.005 );
+                view.setMaxNumBoundingBoxElements( 300 * 300 * 300 );
             }
 
             if ( sam.metadata().imageId.contains( "cells" ) )
             {
-                segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
-                segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
-                segments3dView.setSegmentFocusDxyMin( 300 );
-                segments3dView.setSegmentFocusDzMin( 10000 );
-                segments3dView.setTransparency( 0.6 );
-                segments3dView.setSegmentFocusZoomLevel( 0.005 );
-                segments3dView.setMaxNumBoundingBoxElements( 300 * 300 * 300 );
+                view.setVoxelSpacing3DView( voxelSpacing3DView );
+                view.setMeshSmoothingIterations( meshSmoothingIterations );
+                view.setSegmentFocusDxyMin( 300 );
+                view.setSegmentFocusDzMin( 10000 );
+                view.setTransparency( 0.6 );
+                view.setSegmentFocusZoomLevel( 0.005 );
+                view.setMaxNumBoundingBoxElements( 300 * 300 * 300 );
             }
 
 
             // update bdv in case this is was first source to be shown.
             bdv = views.getSegmentsBdvView().getBdv();
 
-            // set bdvStackSource field, for changing its color, visibility, a.s.o.
+            // keep bdvStackSource handle, for changing its color, visibility, a.s.o.
             sam.metadata().bdvStackSource = views
                     .getSegmentsBdvView()
                     .getCurrentSources().get( 0 )
                     .metadata().bdvStackSource;
+
+            sam.metadata().bdvStackSource.setDisplayRange( 0, 1000 );
 
             sourceNameToLabelsViews.put( sam.metadata().displayName, views );
 
@@ -270,7 +247,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
         catch ( Exception e )
         {
             Utils.log( "" );
-            Utils.log( "Could not find or open segments table: " + sam.metadata().segmentsTablePath);
+            Utils.log( "Could not find or open segments table: "
+                    + sam.metadata().segmentsTablePath);
             Utils.log( "" );
 
             return false;
@@ -304,7 +282,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         panel.setBorder( BorderFactory.createEmptyBorder( 0, 10, 0, 10 ) );
         panel.add( Box.createHorizontalGlue() );
         panel.setOpaque( true );
-        panel.setBackground( getColor( metadata ) );
+        panel.setBackground( metadata.displayColor );
 
         JLabel sourceNameLabel = new JLabel( sourceName );
         sourceNameLabel.setHorizontalAlignment( SwingConstants.CENTER );

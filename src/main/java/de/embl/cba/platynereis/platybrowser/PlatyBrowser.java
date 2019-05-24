@@ -1,6 +1,9 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import bdv.tools.HelpDialog;
+import bdv.util.BdvHandle;
+import bdv.viewer.ViewerFrame;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.Constants;
 import ij.gui.NonBlockingGenericDialog;
 
@@ -14,10 +17,17 @@ public class PlatyBrowser extends JFrame
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private final PlatyBrowserActionPanel actionPanel;
 
-	public PlatyBrowser( String imageDataLocation, String tableDataLocation ) throws HeadlessException
+	public PlatyBrowser(
+			String imageDataLocation,
+			String tableDataLocation ) throws HeadlessException
 	{
-		sourcesPanel = new PlatyBrowserSourcesPanel( imageDataLocation, tableDataLocation );
+		sourcesPanel = new PlatyBrowserSourcesPanel(
+				imageDataLocation,
+				tableDataLocation );
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
+
+		BdvUtils.centerBdvWindowLocation( sourcesPanel.getBdv() );
+
 		actionPanel = new PlatyBrowserActionPanel( sourcesPanel );
 		setJMenuBar( createMenuBar() );
 		showFrame();
