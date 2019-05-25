@@ -39,6 +39,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     public PlatyBrowserSourcesPanel( String imageDataLocation, String tableDataLocation )
     {
+        Utils.log( "# Fetching data");
+        Utils.log( "Fetching image data from: " + imageDataLocation );
+        Utils.log( "Fetching table data from: " + tableDataLocation );
         imageSourcesModel = new PlatynereisImageSourcesModel(
                 imageDataLocation,
                 tableDataLocation );
