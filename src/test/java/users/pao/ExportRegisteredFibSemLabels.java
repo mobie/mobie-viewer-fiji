@@ -79,11 +79,12 @@ public class ExportRegisteredFibSemLabels
 		final RandomAccessibleInterval< T > transformedRasteredCropped =
 				Views.interval( raster, Intervals.largestContainedInterval( realInterval ) );
 
-		final RandomAccessibleInterval< T > slice = Views.hyperSlice( transformedRasteredCropped, 2, 152 );
-		final RandomAccessibleInterval< T > copy = CopyUtils.copyAsArrayImg( slice );
+		final RandomAccessibleInterval< T > slice =
+				Views.hyperSlice( transformedRasteredCropped, 2, 152 );
+		final RandomAccessibleInterval< T > copy =
+				CopyUtils.copyPlanarRaiMultiThreaded( slice, 4 );
 		new ImageJ().ui().showUI();
 		ImageJFunctions.show( copy, "" );
-
 
 //
 //		final Interval interval = Intervals.largestContainedInterval( realInterval );
