@@ -1,16 +1,21 @@
 package users.pao;
 
 import bdv.SpimSource;
+import bdv.util.BdvFunctions;
+import bdv.util.BdvOptions;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.transforms.utils.Transforms;
+import itc.utilities.CopyUtils;
 import itc.utilities.VectorUtils;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imagej.ImageJ;
 import net.imglib2.*;
+import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import itc.utilities.IntervalUtils;
@@ -59,14 +64,16 @@ public class ExportRegisteredFibSemLabels
 
 		Utils.log( "Source voxel spacing [unit]: " + VectorUtils.toString( sourceVoxelSpacing ) );
 
-		double[] scalingFactors = createScalingFactors( targetVoxelSpacing, sourceVoxelSpacing );
+		//double[] scalingFactors = createScalingFactors( targetVoxelSpacing, sourceVoxelSpacing );
 
-		Utils.log( "Voxel spacing scaling factors ( source -> target ): " + VectorUtils.toString( scalingFactors ) );
+		final double[] scalingFactors = Arrays.stream( targetVoxelSpacing ).map( x -> 1.0 / x ).toArray();
+
+		Utils.log( "Voxel spacing scaling factors: " + VectorUtils.toString( scalingFactors ) );
 
 		final Scale3D scale3D = new Scale3D( scalingFactors );
 
 		final Interval transformedSourceInterval = Intervals.largestContainedInterval(
-				IntervalUtils.scale( targetRealInterval, Arrays.stream( targetVoxelSpacing ).map( x -> 1.0 / x ).toArray() ) );
+				IntervalUtils.scale( targetRealInterval, scalingFactors ) );
 
 		Utils.log( "Transformed source interval [voxel]: " + IntervalUtils.toString( transformedSourceInterval ) );
 
@@ -83,15 +90,15 @@ public class ExportRegisteredFibSemLabels
 		final RandomAccessible< T > transformedRastered = Views.raster( transformed );
 
 		final RandomAccessibleInterval< T > transformedRasteredInterval =
-				Views.interval( transformedRastered, targetInterval );
+				Views.interval( transformedRastered, transformedSourceInterval );
 
 		final RandomAccessibleInterval< T > slice =
-				Views.hyperSlice( transformedRasteredInterval, 2, 152 );
+				Views.hyperSlice( transformedRasteredInterval, 2, (int)( 152 * scalingFactors[ 2 ] ) );
 
-//		final RandomAccessibleInterval< T > copy =
-//				CopyUtils.copyPlanarRaiMultiThreaded( slice, 4 );
-//		new ImageJ().ui().showUI();
-//		ImageJFunctions.show( copy, "" );
+		final RandomAccessibleInterval< T > copy =
+				CopyUtils.copyPlanarRaiMultiThreaded( slice, 4 );
+
+		BdvFunctions.show( copy, "", BdvOptions.options().is2D() ).setDisplayRange( 0, 255 );
 
 
 
