@@ -15,6 +15,7 @@ import net.imglib2.algorithm.neighborhood.Shape;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.util.Intervals;
 
 import java.awt.*;
 import java.io.File;
@@ -95,7 +96,6 @@ public class Utils
 
 		return max;
 	}
-
 
 	public static < T extends RealType< T > &  NativeType< T > >
 	double getLocalSum( final RandomAccessibleInterval< T > rai, double[] position, double radius, double calibration )
