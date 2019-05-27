@@ -3,6 +3,7 @@ package users.pao;
 import bdv.SpimSource;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.platynereis.utils.Utils;
 import itc.utilities.CopyUtils;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
@@ -19,6 +20,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
+import net.imglib2.util.LinAlgHelpers;
 import net.imglib2.view.Views;
 
 import java.util.ArrayList;
@@ -28,37 +30,42 @@ public class ExportRegisteredFibSemLabels
 	public static < T extends RealType< T > & NativeType< T > > void main( String[] args ) throws SpimDataException
 	{
 
-		SpimData medData = new XmlIoSpimData().load( "/Users/tischer/Desktop/AChE-MED.xml" );
-
-		final AffineTransform3D transform3D
-				= medData.getViewRegistrations()
-				.getViewRegistration( 0, 0 ).getModel();
-
+		SpimData targetSpimData = new XmlIoSpimData().load( "/Users/tischer/Desktop/AChE-MED.xml" );
+		
 		final int setupId = 0;
-		final RandomAccessibleInterval< ? > image = medData.getSequenceDescription()
+		final RandomAccessibleInterval< ? > targetRai = targetSpimData.getSequenceDescription()
 				.getImgLoader().getSetupImgLoader( setupId )
 				.getImage( 0 );
+		
+		final double[] targetVoxelSpacing = getTargetVoxelSpacing( targetSpimData, setupId );
+		Utils.log( "Target voxel spacing [unit]: " + LinAlgHelpers.toString( targetVoxelSpacing ) );
 
-		final VoxelDimensions targetVoxelSpacing
-				= medData.getSequenceDescription()
-				.getViewSetupsOrdered().get( setupId ).getVoxelSize();
+		Utils.log( "Target interval [voxel]: " + targetRai );
 
 		final RealInterval targetRealInterval
-				= IntervalUtils.toCalibratedRealInterval( image, targetVoxelSpacing );
-
-
+				= IntervalUtils.toCalibratedRealInterval( targetRai, targetVoxelSpacing );
+		Utils.log( "Target interval [unit]: " + targetRealInterval );
+		
 		final SpimData spimData = new XmlIoSpimData().load(
 				"/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr/em-raw-parapod-fib-affine_g.xml");
-
-
+		
 		final SpimSource< T > spimSource = new SpimSource< T >( spimData, 0, "" );
 
 		int level = getClosestSourceLevel( targetVoxelSpacing, spimData );
+		
+		final double[] sourceVoxelSpacing = BdvUtils.getVoxelSpacings( spimData, 0 ).get( level );
 
-		AffineTransform3D voxelSpacingTransform3D = getVoxelSpacingTransform3D( targetVoxelSpacing, spimData, level );
+		Utils.log( "Source voxel spacing [unit]: " + LinAlgHelpers.toString( sourceVoxelSpacing ) );
+
+		AffineTransform3D voxelSpacingTransform3D = getVoxelSpacingTransform3D( targetVoxelSpacing, sourceVoxelSpacing );
 
 		voxelSpacingTransform3D.estimateBounds( targetRealInterval );
 
+		Utils.log( "Transformed source interval [voxel]" );
+
+		Utils.log( "");
+		
+		
 		final Interval targetInterval = Intervals.largestContainedInterval(
 				voxelSpacingTransform3D.estimateBounds( targetRealInterval ) );
 
@@ -111,26 +118,36 @@ public class ExportRegisteredFibSemLabels
 
 	}
 
-	public static AffineTransform3D getVoxelSpacingTransform3D( VoxelDimensions targetVoxelSpacing, SpimData parapodCellData, int level )
+	public static double[] getTargetVoxelSpacing( SpimData medData, int setupId )
 	{
-		final ArrayList< double[] > sourceVoxelSpacings = BdvUtils.getVoxelSpacings( parapodCellData, 0 );
-		sourceVoxelSpacings.get( level );
+		final VoxelDimensions targetVoxelDimensions
+				= medData.getSequenceDescription()
+				.getViewSetupsOrdered().get( setupId ).getVoxelSize();
 
+		final double[] targetVoxelSpacing = new double[ targetVoxelDimensions.numDimensions() ];
+		for ( int d = 0; d < targetVoxelSpacing.length; d++ )
+			targetVoxelSpacing[ d ] = targetVoxelDimensions.dimension( d );
+		return targetVoxelSpacing;
+	}
+
+	public static AffineTransform3D getVoxelSpacingTransform3D( double[] targetVoxelSpacing,
+																double[] sourceVoxelSpacing )
+	{
 		AffineTransform3D sourceToTargetVoxelSpacing = new AffineTransform3D();
 		for ( int d = 0; d < 3; ++d )
 			sourceToTargetVoxelSpacing.set(
-					targetVoxelSpacing.dimension( d ) / sourceVoxelSpacings.get( level )[ d ], d, d );
+					targetVoxelSpacing[ d ] / sourceVoxelSpacing[ d ], d, d );
 		return sourceToTargetVoxelSpacing;
 	}
 
-	public static int getClosestSourceLevel( VoxelDimensions targetVoxelSpacing, SpimData sourceData )
+	public static int getClosestSourceLevel( double[] targetVoxelSpacing, SpimData sourceData )
 	{
 		final ArrayList< double[] > voxelSpacings = BdvUtils.getVoxelSpacings( sourceData, 0 );
 
 		int level = 0;
 		for ( ; level < voxelSpacings.size(); level++ )
 		{
-			if ( voxelSpacings.get( level )[ 0 ] > targetVoxelSpacing.dimension( 0 ) )
+			if ( voxelSpacings.get( level )[ 0 ] > targetVoxelSpacing[ 0 ] )
 				break;
 		}
 		if ( level > 0 ) level -= 1;
@@ -143,6 +160,6 @@ public class ExportRegisteredFibSemLabels
 	{
 		final RealRandomAccess< T > realRandomAccess = interpolatedSource.realRandomAccess();
 		realRandomAccess.setPosition( position );
-		System.out.println( realRandomAccess.get() );
+		Utils.log( realRandomAccess.get() );
 	}
 }
