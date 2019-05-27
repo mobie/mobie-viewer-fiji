@@ -1,22 +1,17 @@
 package de.embl.cba.platynereis.utils;
 
-import bdv.util.*;
-import de.embl.cba.bdv.utils.behaviour.BehaviourTransformEventHandler3DLeftMouseDrag;
-import de.embl.cba.platynereis.Constants;
+import bdv.ViewerSetupImgLoader;
 import ij.IJ;
-import ij.ImagePlus;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.*;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.algorithm.neighborhood.HyperSphereShape;
 import net.imglib2.algorithm.neighborhood.Neighborhood;
 import net.imglib2.algorithm.neighborhood.Shape;
-import net.imglib2.img.Img;
-import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
@@ -100,6 +95,7 @@ public class Utils
 
 		return max;
 	}
+
 
 	public static < T extends RealType< T > &  NativeType< T > >
 	double getLocalSum( final RandomAccessibleInterval< T > rai, double[] position, double radius, double calibration )

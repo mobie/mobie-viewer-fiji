@@ -55,7 +55,8 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 					imageSourcesModel.sources().get( sourceName );
 
 			final RandomAccessibleInterval< ? > rai =
-					BdvUtils.getRealTypeNonVolatileRandomAccessibleInterval( sourceAndMetadata.source(), 0, 0 );
+					BdvUtils.getRealTypeNonVolatileRandomAccessibleInterval(
+							sourceAndMetadata.source(), 0, 0 );
 
 			final VoxelDimensions voxelDimensions = sourceAndMetadata.source().getVoxelDimensions();
 
