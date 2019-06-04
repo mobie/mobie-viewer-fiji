@@ -1,4 +1,4 @@
-package de.embl.cba.platynereis.bigdataserver;
+package de.embl.cba.platynereis.remote;
 
 import de.embl.cba.platynereis.utils.FileUtils;
 
@@ -11,13 +11,13 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DataSetPreparer
+public class BigDataServerConfigFileMaker
 {
 
 	final File inputDirectory;
 	final File outputFile;
 
-	public DataSetPreparer(
+	public BigDataServerConfigFileMaker(
 			File inputDirectory,
 			File outputFile )
 	{
@@ -27,7 +27,6 @@ public class DataSetPreparer
 
 	public void run()
 	{
-
 		if ( outputFile.exists() ) outputFile.delete();
 
 		final List< String > files = FileUtils.getFiles( inputDirectory, ".*.xml" );
@@ -53,12 +52,11 @@ public class DataSetPreparer
 			e.printStackTrace();
 		}
 		System.out.println( "...done!");
-
 	}
 
 	public static void main( String[] args )
 	{
-		final DataSetPreparer preparer = new DataSetPreparer(
+		final BigDataServerConfigFileMaker preparer = new BigDataServerConfigFileMaker(
 				new File( "/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr" ),
 				new File( "/Volumes/cba/tischer/bigdataserver/datasets.txt" ) );
 		preparer.run();
