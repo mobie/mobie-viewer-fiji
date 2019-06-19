@@ -14,7 +14,7 @@ public class OpenPlatyBrowserCells
 
 		final PlatyBrowserSourcesPanel sourcesPanel = mainFrame.getSourcesPanel();
 
-		sourcesPanel.addSourceToPanelAndViewer( "em-segmented-cells-labels-new-uint16" );
+		sourcesPanel.addSourceToPanelAndViewer( "em-segmented-cells-labels" );
 
 	}
 }

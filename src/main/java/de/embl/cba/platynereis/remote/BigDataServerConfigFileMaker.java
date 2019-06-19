@@ -13,7 +13,6 @@ import java.util.List;
 
 public class BigDataServerConfigFileMaker
 {
-
 	final File inputDirectory;
 	final File outputFile;
 

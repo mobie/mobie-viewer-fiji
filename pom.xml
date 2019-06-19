@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<parent>
 		<groupId>de.embl.cba</groupId>
 		<artifactId>pom-embl-cba</artifactId>
-		<version>0.1.01</version>
+		<version>0.3.5</version>
 		<relativePath>../pom-embl-cba</relativePath>
 	</parent>
-
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
-	<version>0.4.19</version>
+	<version>0.4.20</version>
 	<url>https://github.com/tischi/fiji-plugin-platynereisViewer</url>
-
 	<name>Fiji Plugin Platynereis Viewer</name>
 	<description>TODO</description>
 	<inceptionYear>2018</inceptionYear>
@@ -26,7 +23,6 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-
 	<developers>
 		<developer>
 			<id>tischi</id>
@@ -46,15 +42,12 @@
 			<name>TODO</name>
 		</contributor>
 	</contributors>
-
 	<mailingLists>
 		<mailingList>
 			<name>ImageJ Forum</name>
 			<archive>http://forum.imagej.net/</archive>
 		</mailingList>
 	</mailingLists>
-
-
 	<scm>
 		<connection>scm:git:git://github.com/tischi/fiji-plugin-platynereisViewer</connection>
 		<developerConnection>scm:git:git@github.com/tischi/fiji-plugin-platynereisViewer</developerConnection>
@@ -68,15 +61,13 @@
 	<ciManagement>
 		<system>None</system>
 	</ciManagement>
-
 	<properties>
 		<package-name>de.embl.cba.platynereis</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<imagej.app.directory>/Applications/Fiji.app/</imagej.app.directory>
+		<enforcer.skip>true</enforcer.skip>
 	</properties>
-
-
 	<repositories>
 		<!-- NB: for SciJava dependencies -->
 		<repository>
@@ -90,78 +81,63 @@
 			<url>https://dl.bintray.com/tischi/snapshots</url>
 		</repository>
 	</repositories>
-
 	<dependencies>
-
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-legacy</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-common</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>ij</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-vistools</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>sc.fiji</groupId>
+			<artifactId>bigdataviewer-core</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer_fiji</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>3D_Viewer</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-math3</artifactId>
 		</dependency>
-
 		<!-- CBA -->
-
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>transforms-utils</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>table-utils</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>bdv-utils</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.itc</groupId>
 			<artifactId>image-transform-converters</artifactId>
 		</dependency>
-
-
 	</dependencies>
-
 </project>
-

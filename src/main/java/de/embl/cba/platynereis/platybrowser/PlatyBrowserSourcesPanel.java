@@ -134,14 +134,12 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         if ( metadata.flavour == Metadata.Flavour.LabelSource )
         {
-            new Thread( () -> {
-                if ( ! showAnnotatedLabelsSource( sam ) )
-                {
-                    // fall back on just showing the image
-                    // without annotations
-                    showLabelsSource( sam );
-                }
-            }).start();
+            if ( ! showAnnotatedLabelsSource( sam ) )
+            {
+                // fall back on just showing the image
+                // without annotations
+                showLabelsSource( sam );
+            }
         }
         else
             showIntensitySource( sam );
