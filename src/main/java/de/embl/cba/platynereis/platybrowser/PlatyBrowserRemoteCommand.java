@@ -13,7 +13,9 @@ public class PlatyBrowserRemoteCommand implements Command
 	@Override
 	public void run()
 	{
-		new PlatyBrowser( "http://10.11.4.195:8000",
+		new PlatyBrowser(
+				"0.2.1",
+				"http://10.11.4.195:8000",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/master/" );
 	}
 }

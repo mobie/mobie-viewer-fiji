@@ -47,6 +47,7 @@ public class FileUtils
 		final List< File > fileList =
 				de.embl.cba.tables.FileUtils.getFileList(
 						inputDirectory, filePattern, false );
+
 		Collections.sort( fileList, new FileUtils.SortFilesIgnoreCase() );
 
 		final List< String > paths = fileList.stream().map( x -> x.toString() ).collect( Collectors.toList() );

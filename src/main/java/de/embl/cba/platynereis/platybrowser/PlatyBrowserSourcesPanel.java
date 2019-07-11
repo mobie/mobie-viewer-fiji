@@ -18,6 +18,7 @@ import ij3d.Image3DUniverse;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,8 +39,14 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private double voxelSpacing3DView;
     private SegmentsTableBdvAnd3dViews views;
 
-    public PlatyBrowserSourcesPanel( String imageDataLocation, String tableDataLocation )
+    public PlatyBrowserSourcesPanel( String version,
+                                     String imageDataLocation,
+                                     String tableDataLocation )
     {
+
+        imageDataLocation += File.separator + version;
+        tableDataLocation += File.separator + version + File.separator + "tables";
+
         Utils.log( "");
         Utils.log( "# Fetching data");
         Utils.log( "Fetching image data from: " + imageDataLocation );
@@ -48,6 +55,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         imageSourcesModel = new PlatynereisImageSourcesModel(
                 imageDataLocation,
                 tableDataLocation );
+
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelsViews = new LinkedHashMap<>();
         voxelSpacing3DView = 0.05;
@@ -224,6 +232,17 @@ public class PlatyBrowserSourcesPanel extends JPanel
             }
 
             if ( sam.metadata().imageId.contains( "cells" ) )
+            {
+                segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
+                segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
+                segments3dView.setSegmentFocusDxyMin( 300 );
+                segments3dView.setSegmentFocusDzMin( 10000 );
+                segments3dView.setTransparency( 0.6 );
+                segments3dView.setSegmentFocusZoomLevel( 0.005 );
+                segments3dView.setMaxNumBoundingBoxElements( 100 * 100 * 100 );
+            }
+
+            if ( sam.metadata().imageId.contains( "chromatin" ) )
             {
                 segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
                 segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );

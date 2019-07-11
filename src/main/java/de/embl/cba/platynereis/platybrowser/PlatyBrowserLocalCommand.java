@@ -13,10 +13,15 @@ public class PlatyBrowserLocalCommand implements Command
 	@Parameter ( label = "Platynereis Atlas Data Folder", style = "directory")
 	public File dataFolder;
 
+	@Parameter ( label = "Version", choices = { "0.2.1" })
+	public String version;
+
+
 	@Override
 	public void run()
 	{
 		new PlatyBrowser(
+				version,
 				dataFolder.toString(),
 				dataFolder.toString() + File.separator + "tables" + File.separator );
 	}

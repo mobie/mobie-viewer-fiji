@@ -122,6 +122,10 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-math3</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
 		<!-- CBA -->
 		<dependency>
 			<groupId>de.embl.cba</groupId>

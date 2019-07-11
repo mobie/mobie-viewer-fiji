@@ -10,7 +10,10 @@ public class OpenPlatyBrowserNucleiCells
 	{
 		new ImageJ().ui().showUI();
 
-		final PlatyBrowser mainFrame = new PlatyBrowser( "/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr", "https://git.embl.de/tischer/platy-browser-tables/raw/master/" );
+		final PlatyBrowser mainFrame = new PlatyBrowser(
+				"0.2.1",
+				"/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr",
+				"https://git.embl.de/tischer/platy-browser-tables/raw/master/" );
 
 		final PlatyBrowserSourcesPanel sourcesPanel = mainFrame.getSourcesPanel();
 

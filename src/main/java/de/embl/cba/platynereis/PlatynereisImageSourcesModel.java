@@ -10,6 +10,7 @@ import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class PlatynereisImageSourcesModel implements ImageSourcesModel
@@ -20,16 +21,25 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	public static final String tablesFolder = "tables";
 
 	private Map< String, SourceAndMetadata< ? > > imageIdToSourceAndMetadata;
-	private final String imageDataLocation;
 	private final String tableDataLocation;
 
 	public PlatynereisImageSourcesModel(
 			String imageDataLocation,
 			String tableDataLocation )
 	{
-		this.imageDataLocation = imageDataLocation;
 		this.tableDataLocation = tableDataLocation;
-		addSources();
+
+		imageIdToSourceAndMetadata = new HashMap<>();
+
+		final ArrayList< String > imageTypes = new ArrayList<>();
+		imageTypes.add( "images" );
+		imageTypes.add( "segmentations" );
+
+		for ( String imageType : imageTypes )
+		{
+			final String folder = imageDataLocation + File.separator + imageType;
+			addSources( folder );
+		}
 	}
 
 	@Override
@@ -45,22 +55,25 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	}
 
 
-	private void addSources()
+	private void addSources( String imageDataLocation )
 	{
-		imageIdToSourceAndMetadata = new HashMap<>();
-
-		List< String > imagePaths = getFilePaths();
+		List< String > imagePaths = getFilePaths( imageDataLocation );
 
 		for ( String path : imagePaths )
+		{
+			final File file = new File( path );
 			addSource( path );
+		}
 	}
 
-	private List< String > getFilePaths()
+	private List< String > getFilePaths( String imageDataLocation )
 	{
 		if ( imageDataLocation.startsWith( "http" ) )
 			return FileUtils.getUrls( imageDataLocation );
 		else
+		{
 			return FileUtils.getFiles( new File( imageDataLocation ), ".*.xml" );
+		}
 	}
 
 	private Metadata createMetadata( String path )
@@ -103,7 +116,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 
 	private String getTablePath( String sourceName )
 	{
-		return tableDataLocation + sourceName + ".csv";
+		return tableDataLocation + File.separator + sourceName + File.separator + "default.csv";
 	}
 
 	private static String imageId( String path )
