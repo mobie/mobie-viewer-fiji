@@ -24,6 +24,7 @@ public class PlatyBrowser extends JFrame
 		sourcesPanel = new PlatyBrowserSourcesPanel(
 				imageDataLocation,
 				tableDataLocation );
+
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 
 		BdvUtils.centerBdvWindowLocation( sourcesPanel.getBdv() );

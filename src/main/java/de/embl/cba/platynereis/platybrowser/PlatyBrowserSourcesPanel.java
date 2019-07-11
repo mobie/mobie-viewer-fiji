@@ -36,6 +36,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private final Image3DUniverse universe;
     private int meshSmoothingIterations;
     private double voxelSpacing3DView;
+    private SegmentsTableBdvAnd3dViews views;
 
     public PlatyBrowserSourcesPanel( String imageDataLocation, String tableDataLocation )
     {
@@ -134,7 +135,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         if ( metadata.flavour == Metadata.Flavour.LabelSource )
         {
-            if ( ! showAnnotatedLabelsSource( sam ) )
+            if ( !showAnnotatedLabelsSource( sam ) )
             {
                 // fall back on just showing the image
                 // without annotations
@@ -142,7 +143,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
             }
         }
         else
+        {
             showIntensitySource( sam );
+        }
     }
 
     private void showIntensitySource( SourceAndMetadata< ? > sam )
@@ -197,41 +200,41 @@ public class PlatyBrowserSourcesPanel extends JPanel
                     sam.metadata().segmentsTablePath,
                     sam.metadata().imageId );
 
-            final SegmentsTableBdvAnd3dViews views =
-                    new SegmentsTableBdvAnd3dViews(
-                            segments,
-                            createLabelsSourceModel( sam ),
-                            sam.metadata().imageId,
-                            bdv,
-                            universe );
+            views = new SegmentsTableBdvAnd3dViews(
+                    segments,
+                    createLabelsSourceModel( sam ),
+                    sam.metadata().imageId,
+                    bdv,
+                    universe );
 
-            final Segments3dView< TableRowImageSegment > view
+            final Segments3dView< TableRowImageSegment > segments3dView
                     = views.getSegments3dView();
 
-            view.setShowSegments( Globals.showSegmentsIn3D );
+            segments3dView.setShowSegments( Globals.showSegmentsIn3D );
 
             if ( sam.metadata().imageId.contains( "nuclei" ) )
             {
-                view.setVoxelSpacing3DView( voxelSpacing3DView );
-                view.setMeshSmoothingIterations( meshSmoothingIterations );
-                view.setSegmentFocusDxyMin( 50 );
-                view.setSegmentFocusDzMin( 10000 );
-                view.setTransparency( 0.0 );
-                view.setSegmentFocusZoomLevel( 0.005 );
-                view.setMaxNumBoundingBoxElements( 300 * 300 * 300 );
+                segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
+                segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
+                segments3dView.setSegmentFocusDxyMin( 50 );
+                segments3dView.setSegmentFocusDzMin( 10000 );
+                segments3dView.setTransparency( 0.0 );
+                segments3dView.setSegmentFocusZoomLevel( 0.005 );
+                segments3dView.setMaxNumBoundingBoxElements( 100 * 100 * 100 );
             }
 
             if ( sam.metadata().imageId.contains( "cells" ) )
             {
-                view.setVoxelSpacing3DView( voxelSpacing3DView );
-                view.setMeshSmoothingIterations( meshSmoothingIterations );
-                view.setSegmentFocusDxyMin( 300 );
-                view.setSegmentFocusDzMin( 10000 );
-                view.setTransparency( 0.6 );
-                view.setSegmentFocusZoomLevel( 0.005 );
-                view.setMaxNumBoundingBoxElements( 300 * 300 * 300 );
+                segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
+                segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
+                segments3dView.setSegmentFocusDxyMin( 300 );
+                segments3dView.setSegmentFocusDzMin( 10000 );
+                segments3dView.setTransparency( 0.6 );
+                segments3dView.setSegmentFocusZoomLevel( 0.005 );
+                segments3dView.setMaxNumBoundingBoxElements( 100 * 100 * 100 );
             }
 
+            segments3dView.setAutoResolutionLevel( true );
 
             // update bdv in case this is was first source to be shown.
             bdv = views.getSegmentsBdvView().getBdv();
@@ -258,6 +261,11 @@ public class PlatyBrowserSourcesPanel extends JPanel
         }
 
         return true;
+    }
+
+    public SegmentsTableBdvAnd3dViews getViews()
+    {
+        return views;
     }
 
     private DefaultImageSourcesModel createLabelsSourceModel(
