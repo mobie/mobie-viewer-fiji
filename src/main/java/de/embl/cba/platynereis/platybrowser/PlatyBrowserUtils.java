@@ -7,10 +7,10 @@ import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,15 +18,16 @@ public class PlatyBrowserUtils
 {
 	public static final String COLUMN_NAME_LABEL_IMAGE_ID = "label_image_id";
 
-	public static List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
-			String tablePath, String imageId )
+	public static
+	List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
+			String tablePath,
+			String imageId )
 	{
 
-		String actualPath = getTablePathFromLink( tablePath );
-
+		String absoluteTablePath = resolveTablePath( tablePath ).toString();
 
 		Map< String, List< String > > columns =
-						TableColumns.stringColumnsFromTableFile( actualPath );
+						TableColumns.stringColumnsFromTableFile( absoluteTablePath );
 
 		TableColumns.addLabelImageIdColumn(
 				columns,
@@ -43,19 +44,23 @@ public class PlatyBrowserUtils
 		return segments;
 	}
 
-	public static String getTablePathFromLink( String tablePath )
+	public static Path resolveTablePath( String inputPath )
 	{
-		String resolvedPath = tablePath;
+		Path currentPath = Paths.get( inputPath );
 
-		while( isLink( resolvedPath ) )
-			resolvedPath = tablePath.replace( "", "" ); // TODO
+		while( isLink( currentPath ) )
+		{
+			final Path link = Paths.get( getLink( currentPath ) );
+			final Path resolve = currentPath.resolve( link ).normalize();
+			currentPath = resolve;
+		}
 
-		return resolvedPath;
+		return currentPath;
 	}
 
-	public static boolean isLink( String tablePath )
+	public static boolean isLink( Path tablePath )
 	{
-		final BufferedReader reader = Tables.getReader( tablePath );
+		final BufferedReader reader = Tables.getReader( tablePath.toString() );
 		final String firstLine;
 		try
 		{
@@ -67,6 +72,20 @@ public class PlatyBrowserUtils
 			e.printStackTrace();
 			return false;
 		}
+	}
+
+	public static String getLink( Path tablePath )
+	{
+		final BufferedReader reader = Tables.getReader( tablePath.toString() );
+		try
+		{
+			return reader.readLine();
+		} catch ( IOException e )
+		{
+			e.printStackTrace();
+			return null;
+		}
+
 	}
 
 	public static Map< SegmentProperty, List< String > > createSegmentPropertyToColumn(
