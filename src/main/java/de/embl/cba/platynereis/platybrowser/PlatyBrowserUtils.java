@@ -1,11 +1,14 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
 import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,8 +21,12 @@ public class PlatyBrowserUtils
 	public static List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
 			String tablePath, String imageId )
 	{
+
+		String actualPath = getTablePathFromLink( tablePath );
+
+
 		Map< String, List< String > > columns =
-						TableColumns.stringColumnsFromTableFile( tablePath );
+						TableColumns.stringColumnsFromTableFile( actualPath );
 
 		TableColumns.addLabelImageIdColumn(
 				columns,
@@ -34,6 +41,32 @@ public class PlatyBrowserUtils
 						columns, segmentPropertyToColumn, false );
 
 		return segments;
+	}
+
+	public static String getTablePathFromLink( String tablePath )
+	{
+		String resolvedPath = tablePath;
+
+		while( isLink( resolvedPath ) )
+			resolvedPath = tablePath.replace( "", "" ); // TODO
+
+		return resolvedPath;
+	}
+
+	public static boolean isLink( String tablePath )
+	{
+		final BufferedReader reader = Tables.getReader( tablePath );
+		final String firstLine;
+		try
+		{
+			firstLine = reader.readLine();
+			return firstLine.startsWith( ".." );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	public static Map< SegmentProperty, List< String > > createSegmentPropertyToColumn(

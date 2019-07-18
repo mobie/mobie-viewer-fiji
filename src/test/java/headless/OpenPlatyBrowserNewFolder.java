@@ -12,12 +12,12 @@ public class OpenPlatyBrowserNewFolder
 
 		final PlatyBrowser platyBrowser = new PlatyBrowser(
 				"0.2.1",
-				"/Volumes/kreshuk/data/arendt/platyneris_v1/platy-browser-tables/data/",
+				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data/",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data/" );
 
 		final PlatyBrowserSourcesPanel sourcesPanel = platyBrowser.getSourcesPanel();
 
-		sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-cells-labels" );
+		//sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-cells-labels" );
 
 	}
 }

@@ -17,8 +17,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 {
 	public static final String LABELS_FILE_ID = "-labels" ;
 	public static final String BDV_XML_SUFFIX = ".xml";
-	public static final String EM_RAW_FILE_ID = "em-raw-";
-	public static final String tablesFolder = "tables";
+	public static final String EM_RAW_FILE_ID = "-raw";
 
 	private Map< String, SourceAndMetadata< ? > > imageIdToSourceAndMetadata;
 	private final String tableDataLocation;

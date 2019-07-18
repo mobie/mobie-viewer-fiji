@@ -27,7 +27,6 @@ public class PlatyBrowser extends JFrame
 				imageDataLocation,
 				tableDataLocation );
 
-		// https://git.embl.de/tischer/platy-browser-tables/raw/dev/data/0.2.1/tables/sbem-6dpf-1-whole-segmented-cells-labels/default.csv
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 
 		BdvUtils.centerBdvWindowLocation( sourcesPanel.getBdv() );

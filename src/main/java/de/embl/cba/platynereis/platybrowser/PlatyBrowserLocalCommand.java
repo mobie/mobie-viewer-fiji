@@ -16,7 +16,6 @@ public class PlatyBrowserLocalCommand implements Command
 	@Parameter ( label = "Version", choices = { "0.2.1" })
 	public String version;
 
-
 	@Override
 	public void run()
 	{
