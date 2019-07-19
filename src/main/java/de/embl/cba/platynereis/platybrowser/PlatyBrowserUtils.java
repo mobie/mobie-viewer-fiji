@@ -24,7 +24,7 @@ public class PlatyBrowserUtils
 			String imageId )
 	{
 
-		String absoluteTablePath = resolveTablePath( tablePath ).toString();
+		String absoluteTablePath = resolveTablePath( tablePath );
 
 		Map< String, List< String > > columns =
 						TableColumns.stringColumnsFromTableFile( absoluteTablePath );
@@ -44,23 +44,23 @@ public class PlatyBrowserUtils
 		return segments;
 	}
 
-	public static Path resolveTablePath( String inputPath )
+	public static String resolveTablePath( String inputPath )
 	{
-		Path currentPath = Paths.get( inputPath );
+		String currentPath = inputPath;
 
 		while( isLink( currentPath ) )
 		{
 			final Path link = Paths.get( getLink( currentPath ) );
-			final Path resolve = currentPath.resolve( link ).normalize();
-			currentPath = resolve;
+			final Path resolve = Paths.get( currentPath ).getParent().resolve( link ).normalize();
+			currentPath = resolve.toString().replace( ":/", "://" );
 		}
 
 		return currentPath;
 	}
 
-	public static boolean isLink( Path tablePath )
+	public static boolean isLink( String tablePath )
 	{
-		final BufferedReader reader = Tables.getReader( tablePath.toString() );
+		final BufferedReader reader = Tables.getReader( tablePath );
 		final String firstLine;
 		try
 		{
@@ -74,13 +74,15 @@ public class PlatyBrowserUtils
 		}
 	}
 
-	public static String getLink( Path tablePath )
+	public static String getLink( String tablePath )
 	{
-		final BufferedReader reader = Tables.getReader( tablePath.toString() );
+		final BufferedReader reader = Tables.getReader( tablePath );
 		try
 		{
-			return reader.readLine();
-		} catch ( IOException e )
+			String link = reader.readLine();
+			return link;
+		}
+		catch ( IOException e )
 		{
 			e.printStackTrace();
 			return null;

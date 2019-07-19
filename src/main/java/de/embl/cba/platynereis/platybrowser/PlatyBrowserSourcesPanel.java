@@ -219,38 +219,36 @@ public class PlatyBrowserSourcesPanel extends JPanel
                     = views.getSegments3dView();
 
             segments3dView.setShowSegments( Globals.showSegmentsIn3D );
+            segments3dView.setObjectsName( sam.metadata().imageId );
+            segments3dView.setSegmentFocusZoomLevel( 0.05 );
+            segments3dView.setMaxNumBoundingBoxElements( 100 * 100 * 100 );
+
 
             if ( sam.metadata().imageId.contains( "nuclei" ) )
             {
-                segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
+                //segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
                 segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
-                segments3dView.setSegmentFocusDxyMin( 50 );
-                segments3dView.setSegmentFocusDzMin( 10000 );
+                segments3dView.setSegmentFocusDxyMin( 5 );
+                segments3dView.setSegmentFocusDzMin( 1000 );
                 segments3dView.setTransparency( 0.0 );
-                segments3dView.setSegmentFocusZoomLevel( 0.005 );
-                segments3dView.setMaxNumBoundingBoxElements( 100 * 100 * 100 );
-            }
+                }
 
             if ( sam.metadata().imageId.contains( "cells" ) )
             {
-                segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
+                //segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
                 segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
-                segments3dView.setSegmentFocusDxyMin( 300 );
-                segments3dView.setSegmentFocusDzMin( 10000 );
-                segments3dView.setTransparency( 0.6 );
-                segments3dView.setSegmentFocusZoomLevel( 0.005 );
-                segments3dView.setMaxNumBoundingBoxElements( 100 * 100 * 100 );
+                segments3dView.setSegmentFocusDxyMin( 30 );
+                segments3dView.setSegmentFocusDzMin( 1000 );
+                segments3dView.setTransparency( 0.4 );
             }
 
             if ( sam.metadata().imageId.contains( "chromatin" ) )
             {
-                segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
+                //segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
                 segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
-                segments3dView.setSegmentFocusDxyMin( 300 );
-                segments3dView.setSegmentFocusDzMin( 10000 );
+                segments3dView.setSegmentFocusDxyMin( 30 );
+                segments3dView.setSegmentFocusDzMin( 1000 );
                 segments3dView.setTransparency( 0.6 );
-                segments3dView.setSegmentFocusZoomLevel( 0.005 );
-                segments3dView.setMaxNumBoundingBoxElements( 100 * 100 * 100 );
             }
 
             segments3dView.setAutoResolutionLevel( true );
