@@ -19,50 +19,24 @@ public class TestPlatyBrowserCells3DView
 
 		final PlatyBrowser mainFrame = new PlatyBrowser(
 				"0.2.1",
-				"/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr",
-				"https://git.embl.de/tischer/platy-browser-tables/raw/master/" );
+				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
+				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data" );
 
 		final PlatyBrowserSourcesPanel sourcesPanel = mainFrame.getSourcesPanel();
 
-		sourcesPanel.addSourceToPanelAndViewer( "em-segmented-cells-labels" );
+		sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-cells-labels" );
 		final SegmentsTableBdvAnd3dViews views = sourcesPanel.getViews();
 
 		final SelectionModel< TableRowImageSegment > selectionModel = views.getSelectionModel();
 		final List< TableRowImageSegment > tableRowImageSegments = views.getTableRowImageSegments();
 
 		selectionModel.setSelected( tableRowImageSegments.get( 11057 ), true ); // small cell
-		selectionModel.setSelected( tableRowImageSegments.get( 12374 ), true ); // neuropil
+		selectionModel.setSelected( tableRowImageSegments.get( 5703 ), true ); // neuropil
 	}
 
-	@Test
-	public void viewChromatinIn3D( )
-	{
-		new ImageJ().ui().showUI();
-
-		final PlatyBrowser mainFrame = new PlatyBrowser(
-				"0.2.1",
-				"/Volumes/arendt/EM_6dpf_segmentation/EM-Prospr",
-				"https://git.embl.de/tischer/platy-browser-tables/raw/master/" );
-
-		final PlatyBrowserSourcesPanel sourcesPanel = mainFrame.getSourcesPanel();
-
-		sourcesPanel.addSourceToPanelAndViewer( "em-segmented-cells-labels" );
-		final SegmentsTableBdvAnd3dViews views = sourcesPanel.getViews();
-
-		final SelectionModel< TableRowImageSegment > selectionModel = views.getSelectionModel();
-		final List< TableRowImageSegment > tableRowImageSegments = views.getTableRowImageSegments();
-
-		selectionModel.setSelected( tableRowImageSegments.get( 8154 ), true );
-		selectionModel.focus( tableRowImageSegments.get( 8154 ) );
-		selectionModel.setSelected( tableRowImageSegments.get( 8155 ), true );
-		selectionModel.focus( tableRowImageSegments.get( 8155 ) );
-		selectionModel.setSelected( tableRowImageSegments.get( 8156 ), true );
-		selectionModel.focus( tableRowImageSegments.get( 8156 ) );
-	}
 
 	public static void main( String[] args )
 	{
-//		new TestPlatyBrowserCells3DView().viewSmallAndLargeCellIn3D( );
-		new TestPlatyBrowserCells3DView().viewChromatinIn3D();
+		new TestPlatyBrowserCells3DView().viewSmallAndLargeCellIn3D( );
 	}
 }
