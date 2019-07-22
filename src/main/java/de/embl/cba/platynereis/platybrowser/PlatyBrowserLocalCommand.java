@@ -13,7 +13,7 @@ public class PlatyBrowserLocalCommand implements Command
 	@Parameter ( label = "Platynereis Atlas Data Folder", style = "directory")
 	public File dataFolder;
 
-	@Parameter ( label = "Version", choices = { "0.2.1" })
+	@Parameter ( label = "Version", choices = { "0.0.0", "0.0.1", "0.1.0", "0.1.1", "0.2.0", "0.2.1" })
 	public String version;
 
 	@Override
