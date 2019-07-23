@@ -5,7 +5,6 @@ import net.imagej.ImageJ;
 
 public class RunPlatyBrowserLocalCommand
 {
-
 	public static void main(final String... args)
 	{
 		final ImageJ ij = new ImageJ();
@@ -13,5 +12,4 @@ public class RunPlatyBrowserLocalCommand
 
 		ij.command().run( PlatyBrowserLocalCommand.class, true );
 	}
-
 }

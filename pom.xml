@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>de.embl.cba</groupId>
 		<artifactId>pom-embl-cba</artifactId>
-		<version>0.3.5</version>
+		<version>0.3.6</version>
 		<relativePath>../pom-embl-cba</relativePath>
 	</parent>
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>

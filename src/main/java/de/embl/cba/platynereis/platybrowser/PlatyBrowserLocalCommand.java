@@ -22,6 +22,6 @@ public class PlatyBrowserLocalCommand implements Command
 		new PlatyBrowser(
 				version,
 				dataFolder.toString(),
-				dataFolder.toString() + File.separator + "tables" + File.separator );
+				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data" );
 	}
 }

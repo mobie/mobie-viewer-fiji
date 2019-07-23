@@ -5,6 +5,7 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.platynereis.Globals;
 import de.embl.cba.platynereis.PlatynereisImageSourcesModel;
+import de.embl.cba.platynereis.utils.FileUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.image.DefaultImageSourcesModel;
@@ -44,8 +45,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
                                      String tableDataLocation )
     {
 
-        imageDataLocation += File.separator + version;
-        tableDataLocation += File.separator + version + File.separator + "tables";
+        imageDataLocation = FileUtils.combinePath( imageDataLocation, version );
+        tableDataLocation = FileUtils.combinePath( tableDataLocation, version, "tables" );
 
         Utils.log( "");
         Utils.log( "# Fetching data");

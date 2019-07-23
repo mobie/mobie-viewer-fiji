@@ -72,6 +72,30 @@ public class FileUtils
 		return null;
 	}
 
+	public static String getSeparator( String location )
+	{
+		String separator = null;
+		if ( location.startsWith( "http" ) )
+			separator = "/";
+		else
+			separator = File.separator;
+		return separator;
+	}
+
+	public static String combinePath( String... paths )
+	{
+		final String separator = getSeparator( paths[ 0 ] );
+
+		String combined = paths[ 0 ];
+		for ( int i = 1; i < paths.length; i++ )
+			combined = combined + separator + paths[ i ];
+
+		//if ( combined.endsWith( separator ) )
+		//	combined = combined.substring(0, combined.length() - 1);
+
+		return combined;
+	}
+
 	public static class SortFilesIgnoreCase implements Comparator<File>
 	{
 		public int compare( File o1, File o2 )

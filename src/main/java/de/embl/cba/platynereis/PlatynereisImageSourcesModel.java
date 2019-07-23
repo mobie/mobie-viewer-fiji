@@ -36,7 +36,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 
 		for ( String imageType : imageTypes )
 		{
-			final String folder = imageDataLocation + File.separator + imageType;
+			final String folder =  FileUtils.combinePath(  imageDataLocation, imageType );
 			addSources( folder );
 		}
 	}
@@ -115,7 +115,8 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 
 	private String getTablePath( String sourceName )
 	{
-		return tableDataLocation + File.separator + sourceName + File.separator + "default.csv";
+		final String tablePath = FileUtils.combinePath( tableDataLocation, sourceName, "default.csv" );
+		return tablePath;
 	}
 
 	private static String imageId( String path )
