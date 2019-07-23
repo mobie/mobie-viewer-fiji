@@ -2,7 +2,6 @@ package de.embl.cba.platynereis.platybrowser;
 
 import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.GeneSearch;
 import de.embl.cba.platynereis.GeneSearchResults;
 import de.embl.cba.platynereis.Globals;
@@ -11,8 +10,6 @@ import de.embl.cba.platynereis.utils.SortIgnoreCase;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
-import de.embl.cba.tables.image.SourceAndMetadata;
-import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -21,10 +18,7 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 public class PlatyBrowserActionPanel extends JPanel
 {
@@ -241,26 +235,49 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		// ComboBox
 		final JComboBox sourcesComboBox = new JComboBox();
-		final ArrayList< String > sourceNames = getSortedSourceNames();
+
+		final ArrayList< String > sourceNames = sourcesPanel.getSourceNames();
+
+		final HashMap< String, String > selectionNameToSourceName = new HashMap<>();
 		for ( String sourceName : sourceNames )
-			sourcesComboBox.addItem( sourceName );
+		{
+			String selectionName = getSelectionName( sourceName );
+			selectionNameToSourceName.put( selectionName, sourceName );
+		}
+
+		final ArrayList< String > sortedSelectionNames = getSortedList( selectionNameToSourceName.keySet() );
+		for ( String name : sortedSelectionNames )
+			sourcesComboBox.addItem( name );
 
 		// Button
 		final JButton addToViewer = new JButton( "Add to viewer" );
 		addToViewer.addActionListener( e ->
-				sourcesPanel.addSourceToPanelAndViewer(
-						( String ) sourcesComboBox.getSelectedItem() ) );
+		{
+			final String selectedSource = ( String ) sourcesComboBox.getSelectedItem();
+			final String sourceName = selectionNameToSourceName.get( selectedSource );
+			sourcesPanel.addSourceToPanelAndViewer( sourceName );
+		} );
 
 		horizontalLayoutPanel.add( addToViewer );
 		horizontalLayoutPanel.add( sourcesComboBox );
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private ArrayList< String > getSortedSourceNames()
+	private String getSelectionName( String sourceName )
 	{
-		final ArrayList< String > sourceNames = new ArrayList<>( sourcesPanel.getSourceNames() );
-		Collections.sort( sourceNames, new SortIgnoreCase() );
-		return sourceNames;
+		sourceName = sourceName.replace( "prospr-", "" );
+		sourceName = sourceName.replace( "whole-", "" );
+		sourceName = sourceName.replace( "1-", "" );
+		sourceName = sourceName.replace( "sbem-", "" );
+		sourceName = sourceName.replace( "6dpf-", "" );
+		return sourceName;
+	}
+
+	private ArrayList< String > getSortedList( Collection< String > strings )
+	{
+		final ArrayList< String > sorted = new ArrayList<>( strings );
+		Collections.sort( sorted, new SortIgnoreCase() );
+		return sorted;
 	}
 
 	private void addLevelingUI( JPanel panel )
