@@ -18,6 +18,7 @@ public class OpenPlatyBrowserLocal
 		final PlatyBrowserSourcesPanel sourcesPanel = platyBrowser.getSourcesPanel();
 
 		sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-nuclei-labels" );
+		sourcesPanel.addSourceToVolumeViewer( "sbem-6dpf-1-whole-segmented-muscles" );
 
 	}
 }

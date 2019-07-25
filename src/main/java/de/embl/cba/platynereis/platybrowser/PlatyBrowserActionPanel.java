@@ -10,6 +10,8 @@ import de.embl.cba.platynereis.utils.SortIgnoreCase;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
+import de.embl.cba.tables.ij3d.UniverseUtils;
+import de.embl.cba.tables.image.SourceAndMetadata;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -249,16 +251,25 @@ public class PlatyBrowserActionPanel extends JPanel
 		for ( String name : sortedSelectionNames )
 			sourcesComboBox.addItem( name );
 
-		// Button
-		final JButton addToViewer = new JButton( "Add to viewer" );
-		addToViewer.addActionListener( e ->
+		final JButton addToSliceViewer = new JButton( "View Slice" );
+		addToSliceViewer.addActionListener( e ->
 		{
 			final String selectedSource = ( String ) sourcesComboBox.getSelectedItem();
 			final String sourceName = selectionNameToSourceName.get( selectedSource );
 			sourcesPanel.addSourceToPanelAndViewer( sourceName );
 		} );
 
-		horizontalLayoutPanel.add( addToViewer );
+
+		final JButton addToVolumeViewer = new JButton( "View Volume" );
+		addToVolumeViewer.addActionListener( e ->
+		{
+			final String selectedSource = ( String ) sourcesComboBox.getSelectedItem();
+			final String sourceName = selectionNameToSourceName.get( selectedSource );
+			sourcesPanel.addSourceToVolumeViewer( sourceName );
+		} );
+
+		horizontalLayoutPanel.add( addToSliceViewer );
+		horizontalLayoutPanel.add( addToVolumeViewer );
 		horizontalLayoutPanel.add( sourcesComboBox );
 		panel.add( horizontalLayoutPanel );
 	}
@@ -267,9 +278,8 @@ public class PlatyBrowserActionPanel extends JPanel
 	{
 		sourceName = sourceName.replace( "prospr-", "" );
 		sourceName = sourceName.replace( "whole-", "" );
-		sourceName = sourceName.replace( "1-", "" );
 		sourceName = sourceName.replace( "sbem-", "" );
-		sourceName = sourceName.replace( "6dpf-", "" );
+		sourceName = sourceName.replace( "6dpf-1-", "" );
 		return sourceName;
 	}
 

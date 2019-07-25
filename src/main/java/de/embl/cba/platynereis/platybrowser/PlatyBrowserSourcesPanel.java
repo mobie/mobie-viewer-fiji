@@ -8,6 +8,7 @@ import de.embl.cba.platynereis.PlatynereisImageSourcesModel;
 import de.embl.cba.platynereis.utils.FileUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
+import de.embl.cba.tables.ij3d.UniverseUtils;
 import de.embl.cba.tables.image.DefaultImageSourcesModel;
 import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.Metadata;
@@ -15,7 +16,9 @@ import de.embl.cba.tables.image.SourceAndMetadata;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.Segments3dView;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
+import ij3d.ContentConstants;
 import ij3d.Image3DUniverse;
+import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
 import java.awt.*;
@@ -67,6 +70,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
 //        initColors();
     }
 
+    public Image3DUniverse getUniverse()
+    {
+        return universe;
+    }
 
     public int getMeshSmoothingIterations()
     {
@@ -94,6 +101,32 @@ public class PlatyBrowserSourcesPanel extends JPanel
         for ( SegmentsTableBdvAnd3dViews views : sourceNameToLabelsViews.values() )
             views.getSegments3dView().setVoxelSpacing3DView( voxelSpacing3DView );
     }
+
+    public void addSourceToVolumeViewer( String sourceName )
+    {
+        if ( ! getSourceNames().contains( sourceName ) )
+        {
+            System.err.println( "Source not present: " + sourceName );
+            return;
+        }
+
+        final SourceAndMetadata< ? > sourceAndMetadata = getSourceAndMetadata( sourceName );
+
+        UniverseUtils.showUniverseWindow( universe, bdv.getViewerPanel() );
+
+        UniverseUtils.addSourceToUniverse(
+                universe,
+                sourceAndMetadata.source(),
+                500 * 500 * 500,
+                ContentConstants.VOLUME,
+                new ARGBType( 0xff00ff00 ),
+                0.2F,
+                0,
+                255
+                );
+    }
+
+
 
     public void addSourceToPanelAndViewer( String sourceName )
     {
@@ -222,8 +255,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
             segments3dView.setShowSegments( Globals.showSegmentsIn3D );
             segments3dView.setObjectsName( sam.metadata().imageId );
             segments3dView.setSegmentFocusZoomLevel( 0.1 );
-            segments3dView.setMaxNumBoundingBoxElements( 100 * 100 * 100 );
-
+            segments3dView.setMaxNumSegmentVoxels( 100 * 100 * 100 );
 
             if ( sam.metadata().imageId.contains( "nuclei" ) )
             {
