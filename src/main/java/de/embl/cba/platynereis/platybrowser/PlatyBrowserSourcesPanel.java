@@ -16,19 +16,20 @@ import de.embl.cba.tables.image.SourceAndMetadata;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.Segments3dView;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
+import ij3d.Content;
 import ij3d.ContentConstants;
 import ij3d.Image3DUniverse;
 import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static de.embl.cba.bdv.utils.BdvDialogs.*;
 import static de.embl.cba.platynereis.platybrowser.PlatyBrowserUtils.createAnnotatedImageSegmentsFromTableFile;
 
 public class PlatyBrowserSourcesPanel extends JPanel
@@ -42,6 +43,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private int meshSmoothingIterations;
     private double voxelSpacing3DView;
     private SegmentsTableBdvAnd3dViews views;
+    private boolean isBdvShownFirstTime = true;
 
     public PlatyBrowserSourcesPanel( String version,
                                      String imageDataLocation,
@@ -102,19 +104,13 @@ public class PlatyBrowserSourcesPanel extends JPanel
             views.getSegments3dView().setVoxelSpacing3DView( voxelSpacing3DView );
     }
 
-    public void addSourceToVolumeViewer( String sourceName )
+    private void addSourceToVolumeViewer( SourceAndMetadata< ? > sourceAndMetadata )
     {
-        if ( ! getSourceNames().contains( sourceName ) )
-        {
-            System.err.println( "Source not present: " + sourceName );
-            return;
-        }
-
-        final SourceAndMetadata< ? > sourceAndMetadata = getSourceAndMetadata( sourceName );
+        if ( ! Globals.showVolumesIn3D.get() ) return;
 
         UniverseUtils.showUniverseWindow( universe, bdv.getViewerPanel() );
 
-        UniverseUtils.addSourceToUniverse(
+        final Content content = UniverseUtils.addSourceToUniverse(
                 universe,
                 sourceAndMetadata.source(),
                 500 * 500 * 500,
@@ -123,7 +119,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 0.2F,
                 0,
                 255
-                );
+        );
+
+        sourceAndMetadata.metadata().content = content;
     }
 
 
@@ -166,6 +164,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
             return;
 
         addSourceToViewer( sourceAndMetadata );
+        addSourceToVolumeViewer( sourceAndMetadata );
         addSourceToPanel( sourceAndMetadata );
     }
 
@@ -187,6 +186,12 @@ public class PlatyBrowserSourcesPanel extends JPanel
         else
         {
             showIntensitySource( sam );
+        }
+
+        if ( isBdvShownFirstTime )
+        {
+            BdvUtils.centerBdvWindowLocation( bdv );
+            isBdvShownFirstTime = false;
         }
     }
 
@@ -359,20 +364,28 @@ public class PlatyBrowserSourcesPanel extends JPanel
         int[] buttonDimensions = new int[]{ 50, 30 };
 
         final JButton colorButton =
-                createColorButton( panel, buttonDimensions, bdvStackSource );
+                SourcesDisplayUI.createColorButton( panel, buttonDimensions, sam );
+
         final JButton brightnessButton =
-                createBrightnessButton( buttonDimensions, sourceName, bdvStackSource,
+                SourcesDisplayUI.createBrightnessButton(
+                        buttonDimensions, sam,
                         0.0, 65535.0);
+
         final JButton removeButton =
                 createRemoveButton( sam, buttonDimensions );
-        final JCheckBox visibilityCheckbox =
-                createVisibilityCheckbox( buttonDimensions, bdvStackSource, true );
+
+        final JCheckBox sliceViewVisibilityCheckbox =
+                SourcesDisplayUI.createSliceViewVisibilityCheckbox( buttonDimensions, sam, true );
+
+        final JCheckBox volumeVisibilityCheckbox =
+                SourcesDisplayUI.createVolumeViewVisibilityCheckbox( buttonDimensions, sam, true );
 
         panel.add( sourceNameLabel );
         panel.add( colorButton );
         panel.add( brightnessButton );
         panel.add( removeButton );
-        panel.add( visibilityCheckbox );
+        panel.add( volumeVisibilityCheckbox );
+        panel.add( sliceViewVisibilityCheckbox );
 
         add( panel );
         refreshGui();
@@ -389,21 +402,35 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
 
         removeButton.addActionListener(
-                e -> removeSourceFromPanelAndViewer(
-                        sam.metadata().displayName, sam.metadata().bdvStackSource ) );
+                new ActionListener()
+                {
+                    @Override
+                    public void actionPerformed( ActionEvent e )
+                    {
+                        removeSourceFromPanelAndViewers(
+                                sam.metadata().displayName,
+                                sam.metadata().bdvStackSource,
+                                sam.metadata().content );
+
+                    }
+                } );
+
 
         return removeButton;
     }
 
-    private void removeSourceFromPanelAndViewer(
+    private void removeSourceFromPanelAndViewers(
             String sourceName,
-            BdvStackSource bdvStackSource )
+            BdvStackSource bdvStackSource,
+            Content content )
     {
 		removeSourceFromPanel( sourceName );
 
 		removeLabelsViews( sourceName );
 
 		BdvUtils.removeSource( bdv, bdvStackSource );
+
+		if ( content != null ) universe.removeContent( content.getName() );
 
         refreshGui();
     }

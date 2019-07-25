@@ -29,8 +29,6 @@ public class PlatyBrowser extends JFrame
 
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 
-		BdvUtils.centerBdvWindowLocation( sourcesPanel.getBdv() );
-
 		actionPanel = new PlatyBrowserActionPanel( sourcesPanel );
 		setJMenuBar( createMenuBar() );
 		showFrame();

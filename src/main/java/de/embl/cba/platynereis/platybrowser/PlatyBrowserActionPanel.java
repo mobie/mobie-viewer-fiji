@@ -51,13 +51,20 @@ public class PlatyBrowserActionPanel extends JPanel
 	{
 		JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JCheckBox checkBox = new JCheckBox( "Show selected objects in 3D" );
-		checkBox.setSelected( Globals.showSegmentsIn3D.get() );
-		checkBox.addActionListener( e -> {
-			Globals.showSegmentsIn3D.set( checkBox.isSelected() );
+		final JCheckBox cbObjects = new JCheckBox( "Show selected objects in 3D" );
+		cbObjects.setSelected( Globals.showSegmentsIn3D.get() );
+		cbObjects.addActionListener( e -> {
+			Globals.showSegmentsIn3D.set( cbObjects.isSelected() );
 		} );
 
-		horizontalLayoutPanel.add( checkBox );
+		final JCheckBox cbVolumes = new JCheckBox( "Show volumes in 3D" );
+		cbVolumes.setSelected( Globals.showVolumesIn3D.get() );
+		cbVolumes.addActionListener( e -> {
+			Globals.showVolumesIn3D.set( cbVolumes.isSelected() );
+		} );
+
+		horizontalLayoutPanel.add( cbObjects );
+		horizontalLayoutPanel.add( cbVolumes );
 		panel.add( horizontalLayoutPanel );
 	}
 
@@ -251,25 +258,15 @@ public class PlatyBrowserActionPanel extends JPanel
 		for ( String name : sortedSelectionNames )
 			sourcesComboBox.addItem( name );
 
-		final JButton addToSliceViewer = new JButton( "View Slice" );
-		addToSliceViewer.addActionListener( e ->
+		final JButton addToView = new JButton( "Add to view" );
+		addToView.addActionListener( e ->
 		{
 			final String selectedSource = ( String ) sourcesComboBox.getSelectedItem();
 			final String sourceName = selectionNameToSourceName.get( selectedSource );
 			sourcesPanel.addSourceToPanelAndViewer( sourceName );
 		} );
 
-
-		final JButton addToVolumeViewer = new JButton( "View Volume" );
-		addToVolumeViewer.addActionListener( e ->
-		{
-			final String selectedSource = ( String ) sourcesComboBox.getSelectedItem();
-			final String sourceName = selectionNameToSourceName.get( selectedSource );
-			sourcesPanel.addSourceToVolumeViewer( sourceName );
-		} );
-
-		horizontalLayoutPanel.add( addToSliceViewer );
-		horizontalLayoutPanel.add( addToVolumeViewer );
+		horizontalLayoutPanel.add( addToView );
 		horizontalLayoutPanel.add( sourcesComboBox );
 		panel.add( horizontalLayoutPanel );
 	}
