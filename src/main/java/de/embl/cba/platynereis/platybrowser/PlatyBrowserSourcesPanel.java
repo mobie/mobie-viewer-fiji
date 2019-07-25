@@ -258,7 +258,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
             }
 
 
-
             segments3dView.setAutoResolutionLevel( true );
 
             // update bdv in case this is was first source to be shown.
@@ -281,6 +280,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
             Utils.log( "Could not find or open segments table: "
                     + sam.metadata().segmentsTablePath);
             Utils.log( "" );
+
+            e.printStackTrace();
 
             return false;
         }

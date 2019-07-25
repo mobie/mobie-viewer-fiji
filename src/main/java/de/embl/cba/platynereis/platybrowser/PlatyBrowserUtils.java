@@ -1,5 +1,6 @@
 package de.embl.cba.platynereis.platybrowser;
 
+import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
@@ -8,8 +9,7 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +24,9 @@ public class PlatyBrowserUtils
 			String imageId )
 	{
 
-		String absoluteTablePath = resolveTablePath( tablePath );
+		Utils.log( "Opening table: " + tablePath );
+
+		String absoluteTablePath = resolveTableURL( URI.create( tablePath ) );
 
 		Map< String, List< String > > columns =
 						TableColumns.stringColumnsFromTableFile( absoluteTablePath );
@@ -44,21 +46,19 @@ public class PlatyBrowserUtils
 		return segments;
 	}
 
-	public static String resolveTablePath( String inputPath )
+	public static String resolveTableURL( URI uri )
 	{
-		String currentPath = inputPath;
-
-		while( isLink( currentPath ) )
+		while( isRelativePath( uri.toString() ) )
 		{
-			final Path link = Paths.get( getLink( currentPath ) );
-			final Path resolve = Paths.get( currentPath ).getParent().resolve( link ).normalize();
-			currentPath = resolve.toString().replace( ":/", "://" );
+			URI relativeURI = URI.create( getRelativePath( uri.toString() ) );
+			uri = uri.resolve( relativeURI ).normalize();
+			Utils.log("URL was a link. Resolved URL is: " + uri );
 		}
 
-		return currentPath;
+		return uri.toString();
 	}
 
-	public static boolean isLink( String tablePath )
+	public static boolean isRelativePath( String tablePath )
 	{
 		final BufferedReader reader = Tables.getReader( tablePath );
 		final String firstLine;
@@ -74,7 +74,7 @@ public class PlatyBrowserUtils
 		}
 	}
 
-	public static String getLink( String tablePath )
+	public static String getRelativePath( String tablePath )
 	{
 		final BufferedReader reader = Tables.getReader( tablePath );
 		try

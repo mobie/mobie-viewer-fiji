@@ -4,7 +4,7 @@ import de.embl.cba.platynereis.platybrowser.PlatyBrowser;
 import de.embl.cba.platynereis.platybrowser.PlatyBrowserSourcesPanel;
 import net.imagej.ImageJ;
 
-public class OpenPlatyBrowserNewFolder
+public class OpenPlatyBrowserLocal
 {
 	public static void main( String[] args )
 	{
