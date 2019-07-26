@@ -10,10 +10,10 @@ import de.embl.cba.platynereis.utils.SortIgnoreCase;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
-import de.embl.cba.tables.ij3d.UniverseUtils;
-import de.embl.cba.tables.image.SourceAndMetadata;
+import ij3d.Image3DUniverse;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.scijava.java3d.Transform3D;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -223,6 +223,63 @@ public class PlatyBrowserActionPanel extends JPanel
 		}
 	}
 
+
+	// TODO: refactor to UniverseUtils
+	private HashMap< String, String > getTransforms( String view )
+	{
+		final HashMap<String, String> transforms = new HashMap<String, String>();
+
+		final String[] lines = view.split( "\n" );
+
+		for ( String line : lines )
+		{
+			final String[] keyval = line.split("=");
+			transforms.put(keyval[0].trim(), keyval[1].trim());
+		}
+		return transforms;
+	}
+
+	// TODO: refactor to UniverseUtils
+	public void setVolumeView( String view )
+	{
+		setVolumeView( getTransforms( view ) );
+	}
+
+	// TODO: refactor to UniverseUtils
+	public void setVolumeView( HashMap<String, String> transforms)
+	{
+		final Image3DUniverse universe = sourcesPanel.getUniverse();
+
+		String tmp;
+		// Set up new Content
+		if ((tmp = transforms.get("center")) != null) universe.getCenterTG().setTransform(
+				t(tmp));
+		if ((tmp = transforms.get("translate")) != null) universe.getTranslateTG()
+				.setTransform(t(tmp));
+		if ((tmp = transforms.get("rotate")) != null) universe.getRotationTG().setTransform(
+				t(tmp));
+		if ((tmp = transforms.get("zoom")) != null) universe.getZoomTG()
+				.setTransform(t(tmp));
+		if ((tmp = transforms.get("animate")) != null) universe.getAnimationTG()
+				.setTransform(t(tmp));
+
+		universe.getViewPlatformTransformer().updateFrontBackClip();
+	}
+
+	// TODO: refactor to UniverseUtils
+	private static final Transform3D t( final String s) {
+		final String[] sp = s.split(" ");
+		final float[] f = new float[16];
+		for (int i = 0; i < sp.length; i++)
+			f[i] = f(sp[i]);
+		return new Transform3D(f);
+	}
+
+	// TODO: refactor to UniverseUtils
+	private static final float f(final String s) {
+		return Float.parseFloat(s);
+	}
+
 //	private int getAppropriateLevel( double radius, double scale, double[][] resolutions )
 //	{
 //		int appropriateLevel = 0;
@@ -331,12 +388,16 @@ public class PlatyBrowserActionPanel extends JPanel
 		viewsChoices.setMaximumSize( new Dimension( 200, TEXT_FIELD_HEIGHT ) );
 		viewsChoices.setMinimumSize( new Dimension(  200, TEXT_FIELD_HEIGHT ) );
 
-		moveToButton.addActionListener( e -> BdvViewChanger.moveToView( bdv, (String) viewsChoices.getSelectedItem()) );
+		moveToButton.addActionListener( e -> setSliceView( ( String ) viewsChoices.getSelectedItem() ) );
 
 		horizontalLayoutPanel.add( moveToButton );
 		horizontalLayoutPanel.add( viewsChoices );
 		panel.add( horizontalLayoutPanel );
 	}
 
+	public void setSliceView( String view )
+	{
+		BdvViewChanger.moveToView( bdv, view );
+	}
 
 }

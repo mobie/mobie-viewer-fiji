@@ -18,6 +18,7 @@ import de.embl.cba.tables.view.Segments3dView;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
 import ij3d.Content;
 import ij3d.ContentConstants;
+import ij3d.DefaultUniverse;
 import ij3d.Image3DUniverse;
 import net.imglib2.type.numeric.ARGBType;
 
@@ -74,8 +75,15 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     public Image3DUniverse getUniverse()
     {
+        final DefaultUniverse.GlobalTransform globalTransform = new DefaultUniverse.GlobalTransform();
+
+
+        //universe.setGlobalTransform(  );
+
+
         return universe;
     }
+
 
     public int getMeshSmoothingIterations()
     {
