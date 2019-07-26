@@ -48,7 +48,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 		for ( String sourceName : sourceNames )
 		{
-			if ( sourceName.contains( Constants.EM_FILE_ID ) ) continue;
+			if ( sourceName.contains( Constants.SEGMENTED ) ) continue;
 			if ( ! sourceName.contains( Constants.MED ) ) continue;
 
 			final SourceAndMetadata sourceAndMetadata =

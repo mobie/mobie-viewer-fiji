@@ -3,10 +3,7 @@ package de.embl.cba.platynereis.platybrowser;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvStackSource;
 import de.embl.cba.bdv.utils.BdvDialogs;
-import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
-import org.scijava.vecmath.Color3f;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,33 +37,6 @@ public class SourcesDisplayUI
 		return checkBox;
 	}
 
-
-	public static JButton createColorButton( JPanel panel,
-											 int[] buttonDimensions,
-											 SourceAndMetadata< ? > sam )
-	{
-
-		JButton colorButton;
-		colorButton = new JButton( "C" );
-
-		colorButton.setPreferredSize(
-				new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
-
-		colorButton.addActionListener( e -> {
-			Color color = JColorChooser.showDialog( null, "", null );
-
-			if ( color == null ) return;
-
-			sam.metadata().bdvStackSource.setColor( BdvUtils.asArgbType( color ) );
-
-			if ( sam.metadata().content != null )
-				sam.metadata().content.setColor( new Color3f( color ));
-
-			panel.setBackground( color );
-		} );
-
-		return colorButton;
-	}
 
 	public static JCheckBox createVolumeViewVisibilityCheckbox(
 			int[] dims,

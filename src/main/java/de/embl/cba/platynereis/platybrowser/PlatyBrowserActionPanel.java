@@ -100,7 +100,7 @@ public class PlatyBrowserActionPanel extends JPanel
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 
 			(new Thread( () -> {
-				logPositionAndView();
+				logPositionAndViews();
 			} )).start();
 
 		}, "Print position and view", "P"  ) ;
@@ -108,13 +108,22 @@ public class PlatyBrowserActionPanel extends JPanel
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private void logPositionAndView()
+	private void logPositionAndViews()
 	{
 		final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
-		Utils.log( "Position: " + globalMouseCoordinates.toString() );
+		Utils.log( "\nPosition: \n" + globalMouseCoordinates.toString() );
+
+		Utils.log( "BigDataViewer transform: \n"+ getBdvViewerTransform() );
+		Utils.log( "3D Viewer transform: \n" + getVolumeViewerTransform() );
+
+	}
+
+	private String getBdvViewerTransform()
+	{
 		final AffineTransform3D view = new AffineTransform3D();
 		bdv.getViewerPanel().getState().getViewerTransform( view );
-		Utils.log( view.toString().replace( "3d-affine", "View" )  );
+
+		return view.toString().replace( "3d-affine", "View" );
 	}
 
 	private void add3DObjectViewResolutionUI( JPanel panel )
@@ -278,6 +287,35 @@ public class PlatyBrowserActionPanel extends JPanel
 	// TODO: refactor to UniverseUtils
 	private static final float f(final String s) {
 		return Float.parseFloat(s);
+	}
+
+	String getVolumeViewerTransform()
+	{
+		final Image3DUniverse universe = sourcesPanel.getUniverse();
+		String transform = "";
+
+		final Transform3D t3d = new Transform3D();
+		universe.getCenterTG().getTransform(t3d);
+		transform += "center = " + toString(t3d) +"\n";
+		universe.getTranslateTG().getTransform(t3d);
+		transform += "translate = " + toString(t3d) +"\n";
+		universe.getRotationTG().getTransform(t3d);
+		transform += "rotate = " + toString(t3d) +"\n";
+		universe.getZoomTG().getTransform(t3d);
+		transform += "zoom = " + toString(t3d) +"\n";
+		universe.getAnimationTG().getTransform(t3d);
+		transform += "animate = " + toString(t3d) +"\n";
+
+		return transform;
+	}
+
+	private static final String toString(final Transform3D t3d) {
+		final float[] xf = new float[16];
+		t3d.get(xf);
+		String ret = "";
+		for (int i = 0; i < 16; i++)
+			ret += " " + xf[i];
+		return ret;
 	}
 
 //	private int getAppropriateLevel( double radius, double scale, double[][] resolutions )

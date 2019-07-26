@@ -3,6 +3,7 @@ package de.embl.cba.platynereis.platybrowser;
 import bdv.util.*;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
+import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.Globals;
 import de.embl.cba.platynereis.PlatynereisImageSourcesModel;
 import de.embl.cba.platynereis.utils.FileUtils;
@@ -21,6 +22,7 @@ import ij3d.ContentConstants;
 import ij3d.DefaultUniverse;
 import ij3d.Image3DUniverse;
 import net.imglib2.type.numeric.ARGBType;
+import org.scijava.vecmath.Color3f;
 
 import javax.swing.*;
 import java.awt.*;
@@ -73,6 +75,54 @@ public class PlatyBrowserSourcesPanel extends JPanel
 //        initColors();
     }
 
+    private void addColorButton( JPanel panel, int[] buttonDimensions, SourceAndMetadata< ? > sam )
+    {
+        JButton colorButton;
+        colorButton = new JButton( "C" );
+
+        colorButton.setPreferredSize(
+                new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
+
+        colorButton.addActionListener( e -> {
+            Color color = JColorChooser.showDialog( null, "", null );
+
+            if ( color == null ) return;
+
+            setSourceColor( sam, color, panel );
+
+        } );
+
+        panel.add( colorButton );
+    }
+
+    private void setSourceColor( SourceAndMetadata< ? > sam, Color color, JPanel panel )
+    {
+        sam.metadata().displayColor = color;
+
+        sam.metadata().bdvStackSource.setColor( BdvUtils.asArgbType( sam.metadata().displayColor ) );
+
+        if ( sam.metadata().content != null )
+            sam.metadata().content.setColor( new Color3f( sam.metadata().displayColor ));
+
+        panel.setBackground( sam.metadata().displayColor );
+    }
+
+    public void setSourceColor( String sourceName, Color color )
+    {
+        if ( ! sourceNameToPanel.containsKey( sourceName ) )
+        {
+            System.err.println( "Source not displayed: " + sourceName );
+            return;
+        }
+
+        final SourceAndMetadata< ? > sam = getSourceAndMetadata( sourceName );
+        final JPanel jPanel = sourceNameToPanel.get( sourceName );
+
+        setSourceColor( sam, color, jPanel );
+
+    }
+
+
     public Image3DUniverse getUniverse()
     {
         final DefaultUniverse.GlobalTransform globalTransform = new DefaultUniverse.GlobalTransform();
@@ -118,15 +168,20 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         UniverseUtils.showUniverseWindow( universe, bdv.getViewerPanel() );
 
+        int max = 255;
+        if ( sourceAndMetadata.metadata().displayName.contains( Constants.MED )
+                || sourceAndMetadata.metadata().displayName.contains( Constants.SEGMENTED )  )
+            max = 1; // binary
+
         final Content content = UniverseUtils.addSourceToUniverse(
                 universe,
                 sourceAndMetadata.source(),
                 500 * 500 * 500,
                 ContentConstants.VOLUME,
-                new ARGBType( 0xff00ff00 ),
+                new ARGBType( 0xffffffff ),
                 0.2F,
                 0,
-                255
+                max
         );
 
         sourceAndMetadata.metadata().content = content;
@@ -184,7 +239,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         if ( metadata.flavour == Metadata.Flavour.LabelSource )
         {
-            if ( !showAnnotatedLabelsSource( sam ) )
+            if ( ! showAnnotatedLabelsSource( sam ) )
             {
                 // fall back on just showing the image
                 // without annotations
@@ -356,7 +411,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         final Metadata metadata = sam.metadata();
         final String sourceName = metadata.displayName;
-        final BdvStackSource bdvStackSource = metadata.bdvStackSource;
 
         JPanel panel = new JPanel();
 
@@ -371,8 +425,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         int[] buttonDimensions = new int[]{ 50, 30 };
 
-        final JButton colorButton =
-                SourcesDisplayUI.createColorButton( panel, buttonDimensions, sam );
+        panel.add( sourceNameLabel );
+
+        addColorButton( panel, buttonDimensions, sam );
 
         final JButton brightnessButton =
                 SourcesDisplayUI.createBrightnessButton(
@@ -388,8 +443,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         final JCheckBox volumeVisibilityCheckbox =
                 SourcesDisplayUI.createVolumeViewVisibilityCheckbox( buttonDimensions, sam, true );
 
-        panel.add( sourceNameLabel );
-        panel.add( colorButton );
+
         panel.add( brightnessButton );
         panel.add( removeButton );
         panel.add( volumeVisibilityCheckbox );
@@ -468,4 +522,5 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         return bdv;
     }
+
 }
