@@ -176,10 +176,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
         final Content content = UniverseUtils.addSourceToUniverse(
                 universe,
                 sourceAndMetadata.source(),
-                500 * 500 * 500,
-                ContentConstants.VOLUME,
+                600 * 600 * 600,
+                ContentConstants.SURFACE,
                 new ARGBType( 0xffffffff ),
-                0.2F,
+                0.33F,
                 0,
                 max
         );

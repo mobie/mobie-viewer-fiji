@@ -3,11 +3,10 @@ package publication;
 import de.embl.cba.platynereis.platybrowser.PlatyBrowser;
 import de.embl.cba.platynereis.platybrowser.PlatyBrowserSourcesPanel;
 import net.imagej.ImageJ;
-import net.imglib2.type.numeric.ARGBType;
 
 import java.awt.*;
 
-public class RegistrationVisualisationMuscles
+public class RegistrationVisualisationNeuropil
 {
 	public static void main( String[] args )
 	{
@@ -20,13 +19,11 @@ public class RegistrationVisualisationMuscles
 
 		final PlatyBrowserSourcesPanel sourcesPanel = platyBrowser.getSourcesPanel();
 
-		sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-muscles" );
-		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-MHCL4-MED" );
-		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-Cal2-MED" );
+		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-segmented-VNC" );
+		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-Glt1-MED" );
 
-		sourcesPanel.setSourceColor( "sbem-6dpf-1-whole-segmented-muscles", new Color( 255,0,255,255) );
-		sourcesPanel.setSourceColor( "prospr-6dpf-1-whole-MHCL4-MED", new Color( 0,255,0,255) );
-		sourcesPanel.setSourceColor( "prospr-6dpf-1-whole-Cal2-MED", new Color( 255,255,0,255) );
+		sourcesPanel.setSourceColor( "prospr-6dpf-1-whole-segmented-VNC", new Color( 255,0,255,255) );
+		sourcesPanel.setSourceColor( "prospr-6dpf-1-whole-Glt1-MED", new Color( 0,255,0,255) );
 
 
 		// OVERVIEW
