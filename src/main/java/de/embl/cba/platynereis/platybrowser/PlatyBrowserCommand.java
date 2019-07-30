@@ -7,8 +7,8 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>EMBL>Explore>Platynereis Atlas (Local)" )
-public class PlatyBrowserLocalCommand implements Command
+@Plugin(type = Command.class, menuPath = "Plugins>EMBL>Explore>Platynereis Atlas" )
+public class PlatyBrowserCommand implements Command
 {
 	@Parameter ( label = "Image Data Location", style = "directory" )
 	public File imagesLocation;
