@@ -22,11 +22,11 @@ public class RegistrationVisualisationMuscles
 
 		sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-muscles" );
 		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-MHCL4-MED" );
-		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-Cal2-MED" );
+		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-ENR22-MED" );
 
 		sourcesPanel.setSourceColor( "sbem-6dpf-1-whole-segmented-muscles", new Color( 255,0,255,255) );
 		sourcesPanel.setSourceColor( "prospr-6dpf-1-whole-MHCL4-MED", new Color( 0,255,0,255) );
-		sourcesPanel.setSourceColor( "prospr-6dpf-1-whole-Cal2-MED", new Color( 255,255,0,255) );
+		sourcesPanel.setSourceColor( "prospr-6dpf-1-whole-ENR22-MED", new Color( 0,255,0,255) );
 
 
 		// OVERVIEW
