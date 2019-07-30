@@ -168,16 +168,15 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         UniverseUtils.showUniverseWindow( universe, bdv.getViewerPanel() );
 
-        int max = 255;
-        if ( sourceAndMetadata.metadata().displayName.contains( Constants.MED )
-                || sourceAndMetadata.metadata().displayName.contains( Constants.SEGMENTED )  )
-            max = 1; // binary
+        int max = getMax( sourceAndMetadata );
+
+        int displayMode = getDisplayMode( sourceAndMetadata );
 
         final Content content = UniverseUtils.addSourceToUniverse(
                 universe,
                 sourceAndMetadata.source(),
                 600 * 600 * 600,
-                ContentConstants.SURFACE,
+                displayMode,
                 new ARGBType( 0xffffffff ),
                 0.33F,
                 0,
@@ -187,6 +186,35 @@ public class PlatyBrowserSourcesPanel extends JPanel
         sourceAndMetadata.metadata().content = content;
     }
 
+    private int getDisplayMode( SourceAndMetadata< ? > sourceAndMetadata )
+    {
+        int displayMode;
+        if ( sourceAndMetadata.metadata().displayName.contains( Constants.MED )
+                || sourceAndMetadata.metadata().displayName.contains( Constants.SEGMENTED )  )
+            displayMode = ContentConstants.SURFACE;
+        else if ( sourceAndMetadata.metadata().displayName.contains( Constants.SPM ) )
+            displayMode = ContentConstants.VOLUME;
+        else if ( sourceAndMetadata.metadata().displayName.contains( Constants.EM_FILE_ID ))
+            displayMode = ContentConstants.MULTIORTHO;
+        else
+            displayMode = ContentConstants.SURFACE;
+        return displayMode;
+    }
+
+    private int getMax( SourceAndMetadata< ? > sourceAndMetadata )
+    {
+        int max;
+        if ( sourceAndMetadata.metadata().displayName.contains( Constants.MED )
+                || sourceAndMetadata.metadata().displayName.contains( Constants.SEGMENTED )  )
+            max = 1; // binary
+        else if ( sourceAndMetadata.metadata().displayName.contains( Constants.SPM ) )
+            max = 65535;
+        else if ( sourceAndMetadata.metadata().displayName.contains( Constants.EM_FILE_ID ))
+            max = 255;
+        else
+            max = 255;
+        return max;
+    }
 
 
     public void addSourceToPanelAndViewer( String sourceName )

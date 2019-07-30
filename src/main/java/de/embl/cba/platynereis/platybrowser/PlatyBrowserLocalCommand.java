@@ -10,10 +10,13 @@ import java.io.File;
 @Plugin(type = Command.class, menuPath = "Plugins>EMBL>Explore>Platynereis Atlas (Local)" )
 public class PlatyBrowserLocalCommand implements Command
 {
-	@Parameter ( label = "Platynereis Atlas Data Folder", style = "directory")
-	public File dataFolder;
+	@Parameter ( label = "Image Data Location", style = "directory" )
+	public File imagesLocation;
 
-	@Parameter ( label = "Version", choices = { "0.0.0", "0.0.1", "0.1.0", "0.1.1", "0.2.0", "0.2.1" })
+	@Parameter ( label = "Table Data Location" )
+	public String tablesLocation = "https://git.embl.de/tischer/platy-browser-tables/raw/dev/data";
+
+	@Parameter ( label = "Version", choices = { "0.0.0", "0.0.1", "0.1.0", "0.1.1", "0.2.0", "0.2.1" } )
 	public String version;
 
 	@Override
@@ -21,7 +24,7 @@ public class PlatyBrowserLocalCommand implements Command
 	{
 		new PlatyBrowser(
 				version,
-				dataFolder.toString(),
-				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data" );
+				imagesLocation.toString(),
+				tablesLocation );
 	}
 }
