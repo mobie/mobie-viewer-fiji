@@ -168,54 +168,60 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         UniverseUtils.showUniverseWindow( universe, bdv.getViewerPanel() );
 
-        int max = getMax( sourceAndMetadata );
-
-        int displayMode = getDisplayMode( sourceAndMetadata );
+        DisplaySettings3DViewer settings = getDisplaySettings3DViewer( sourceAndMetadata );
 
         final Content content = UniverseUtils.addSourceToUniverse(
                 universe,
                 sourceAndMetadata.source(),
                 600 * 600 * 600,
-                displayMode,
-                new ARGBType( 0xffffffff ),
-                0.33F,
+                settings.displayMode,
+                settings.color,
+                settings.transparency,
                 0,
-                max
+                settings.max
         );
 
         sourceAndMetadata.metadata().content = content;
     }
 
-    private int getDisplayMode( SourceAndMetadata< ? > sourceAndMetadata )
+    class DisplaySettings3DViewer
     {
         int displayMode;
-        if ( sourceAndMetadata.metadata().displayName.contains( Constants.MED )
-                || sourceAndMetadata.metadata().displayName.contains( Constants.SEGMENTED )  )
-            displayMode = ContentConstants.SURFACE;
-        else if ( sourceAndMetadata.metadata().displayName.contains( Constants.SPM ) )
-            displayMode = ContentConstants.VOLUME;
-        else if ( sourceAndMetadata.metadata().displayName.contains( Constants.EM_FILE_ID ))
-            displayMode = ContentConstants.MULTIORTHO;
-        else
-            displayMode = ContentConstants.SURFACE;
-        return displayMode;
-    }
-
-    private int getMax( SourceAndMetadata< ? > sourceAndMetadata )
-    {
+        float transparency;
         int max;
-        if ( sourceAndMetadata.metadata().displayName.contains( Constants.MED )
-                || sourceAndMetadata.metadata().displayName.contains( Constants.SEGMENTED )  )
-            max = 1; // binary
-        else if ( sourceAndMetadata.metadata().displayName.contains( Constants.SPM ) )
-            max = 65535;
-        else if ( sourceAndMetadata.metadata().displayName.contains( Constants.EM_FILE_ID ))
-            max = 255;
-        else
-            max = 255;
-        return max;
+        ARGBType color = new ARGBType( 0xffffffff );
     }
 
+    private DisplaySettings3DViewer getDisplaySettings3DViewer( SourceAndMetadata< ? > sourceAndMetadata )
+    {
+
+        final DisplaySettings3DViewer settings = new DisplaySettings3DViewer();
+        if ( sourceAndMetadata.metadata().displayName.contains( Constants.MED )
+                || sourceAndMetadata.metadata().displayName.contains( Constants.SEGMENTED )  )
+        {
+            settings.displayMode = ContentConstants.SURFACE;
+            settings.max = 1;
+            settings.transparency = 0.3F;
+        }
+        else if ( sourceAndMetadata.metadata().displayName.contains( Constants.SPM ) )
+        {
+            settings.displayMode = ContentConstants.VOLUME;
+            settings.max = 65535;
+            settings.transparency = 0.3F;
+        }
+        else if ( sourceAndMetadata.metadata().displayName.contains( Constants.EM_FILE_ID ) )
+        {
+            settings.displayMode = ContentConstants.ORTHO;
+            settings.max = 255;
+            settings.transparency = 0.0F;
+        }
+        else
+        {
+
+        }
+
+        return settings;
+    }
 
     public void addSourceToPanelAndViewer( String sourceName )
     {

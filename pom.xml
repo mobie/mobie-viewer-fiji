@@ -68,6 +68,18 @@
 		<imagej.app.directory>/Applications/Fiji.app/</imagej.app.directory>
 		<enforcer.skip>true</enforcer.skip>
 	</properties>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.19</version>
+				<configuration>
+					<argLine>-Xmx4024m</argLine>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 	<repositories>
 		<!-- NB: for SciJava dependencies -->
 		<repository>
