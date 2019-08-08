@@ -4,7 +4,7 @@ import de.embl.cba.platynereis.utils.BatchApplyAmiraTransformationsToBdvXml;
 
 import java.io.IOException;
 
-public class TransformXRayData
+public class TransformXRayDataUsingAmiraEulerTransform
 {
 	public static void main( String[] args ) throws IOException
 	{

@@ -1,20 +1,25 @@
 package users.sultan;
 
-import de.embl.cba.transforms.utils.TransformConversions;
+import de.embl.cba.elastixwrapper.elastix.ElastixSettings;
+import de.embl.cba.elastixwrapper.elastix.ElastixWrapper;
 import ij.IJ;
 import ij.ImagePlus;
 import itc.converters.AffineTransform3DToElastixAffine3D;
 import itc.converters.AmiraEulerToAffineTransform3D;
 import itc.transforms.elastix.ElastixAffineTransform3D;
 import itc.transforms.elastix.ElastixTransform;
-import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 
-public class ConvertXRayAmiraEulerTransformToElastixAffineTransform
+public class TransformXRayUsingAmiraEulerViaElastix
 {
 	public static void main( String[] args )
 	{
-		final ImagePlus xRayImp = IJ.openImage( "/Volumes/cba/exchange/Sultan/platy_90_02_neuropile_1um.tif" );
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
+
+		final String xRayPath = "/Users/tischer/Documents/sultan-schwab/platy_90_02_neuropile_1um.tif";
+		final ImagePlus xRayImp = IJ.openImage( xRayPath );
 
 		double[] translationInMicrometer = new double[]{ -54.6, 2.59, 53.39 };
 		double[] rotationAxis = new double[]{ -0.27, 0.81, 0.51 };
@@ -57,9 +62,29 @@ public class ConvertXRayAmiraEulerTransformToElastixAffineTransform
 		final ElastixAffineTransform3D elastixAffineTransform3D
 				= affineTransform3DToElastixAffine3D.convert( inverse );
 
-		elastixAffineTransform3D.save( "/Users/tischer/Desktop/elastix-affine-transform.txt" );
+		final String elastixTransformPath =
+				"/Users/tischer/Desktop/elastix-affine-transform.txt";
+		elastixAffineTransform3D.save( elastixTransformPath );
+
+
+
+
+		ElastixSettings settings = new ElastixSettings();
+
+		settings.logService = imageJ.log();
+		settings.elastixDirectory = "/Applications/elastix_macosx64_v4.8";
+		settings.workingDirectory = "/Users/tischer/Desktop/elastix-tmp/";
+		settings.movingImageFilePath = xRayPath;
+		settings.transformationFilePath = elastixTransformPath;
+		settings.numWorkers = 4;
+		settings.outputModality = ElastixWrapper.OUTPUT_MODALITY_SHOW_IMAGES;
+		// settings.outputFile = outputFile;
+
+		ElastixWrapper elastixWrapper = new ElastixWrapper( settings );
+		elastixWrapper.runTransformix();
 
 
 
 	}
+
 }
