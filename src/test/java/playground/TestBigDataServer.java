@@ -19,19 +19,20 @@ public class TestBigDataServer
 	public static void main( String[] args ) throws IOException, SpimDataException
 	{
 		final Map< String, String > datasetUrlMap
-				= RemoteUtils.getDatasetUrlMap( "http://10.11.4.195:8000" );
+				= RemoteUtils.getDatasetUrlMap( "https://bigdata-cbb.embl.de/" );
 
 		Bdv bdv = null;
 
 		for ( String key : datasetUrlMap.keySet() )
 		{
-			final String filename = datasetUrlMap.get( key );
-			final String title = new File( filename ).getName();
-			final SpimData spimData = new XmlIoSpimData().load( filename );
-			System.out.println( "Showing: " + key + "( " + title + " )" );
-			bdv = BdvFunctions.show( spimData, BdvOptions.options().addTo( bdv ) ).get( 0 ).getBdvHandle();
-			break;
+			System.out.println( "Key: " + key );
+			System.out.println( "Path: " + datasetUrlMap.get( key ) );
 		}
 
+		final String filename = datasetUrlMap.values( ).iterator().next();
+		final String title = new File( filename ).getName();
+		System.out.println( "Showing: " + title );
+		final SpimData spimData = new XmlIoSpimData().load( filename );
+		BdvFunctions.show( spimData, BdvOptions.options().addTo( bdv ) ).get( 0 ).getBdvHandle();
 	}
 }

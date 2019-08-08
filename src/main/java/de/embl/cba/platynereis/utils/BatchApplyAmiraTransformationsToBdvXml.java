@@ -33,7 +33,9 @@ public class BatchApplyAmiraTransformationsToBdvXml
 
 	public BatchApplyAmiraTransformationsToBdvXml( double[] rotationAxis,
 												   double rotationAngleInDegrees,
-												   double[] translationInMicrometer, String directory, String filePattern )
+												   double[] translationInMicrometer,
+												   String directory,
+												   String filePattern )
 	{
 		this.rotationAxis = rotationAxis;
 		this.rotationAngleInDegrees = rotationAngleInDegrees;
@@ -98,7 +100,7 @@ public class BatchApplyAmiraTransformationsToBdvXml
 	}
 
 
-	public void setVoxelSizeAndDimensions( File file ) throws IOException
+	private void setVoxelSizeAndDimensions( File file ) throws IOException
 	{
 		final List< String > lines = Files.readAllLines( file.toPath() );
 
