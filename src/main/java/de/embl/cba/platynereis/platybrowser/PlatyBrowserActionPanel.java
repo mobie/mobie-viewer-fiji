@@ -83,6 +83,7 @@ public class PlatyBrowserActionPanel extends JPanel
 		behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( bdv.getTriggerbindings(), "behaviours" );
 		addPositionAndViewLoggingBehaviour( this );
+		addPointOverlayTogglingBehaviour();
 		addLocalGeneSearchBehaviour();
 	}
 
@@ -91,6 +92,18 @@ public class PlatyBrowserActionPanel extends JPanel
 		this.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
 		this.revalidate();
 		this.repaint();
+	}
+
+	private void addPointOverlayTogglingBehaviour(  )
+	{
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
+
+			(new Thread( () -> {
+				BdvViewChanger.togglePointPverlay();
+			} )).start();
+
+		}, "Toggle point overlays", "ctrl P"  ) ;
+
 	}
 
 	private void addPositionAndViewLoggingBehaviour( JPanel panel )
@@ -426,14 +439,14 @@ public class PlatyBrowserActionPanel extends JPanel
 		viewsChoices.setMaximumSize( new Dimension( 200, TEXT_FIELD_HEIGHT ) );
 		viewsChoices.setMinimumSize( new Dimension(  200, TEXT_FIELD_HEIGHT ) );
 
-		moveToButton.addActionListener( e -> setSliceView( ( String ) viewsChoices.getSelectedItem() ) );
+		moveToButton.addActionListener( e -> setView( ( String ) viewsChoices.getSelectedItem() ) );
 
 		horizontalLayoutPanel.add( moveToButton );
 		horizontalLayoutPanel.add( viewsChoices );
 		panel.add( horizontalLayoutPanel );
 	}
 
-	public void setSliceView( String view )
+	public void setView( String view )
 	{
 		BdvViewChanger.moveToView( bdv, view );
 	}

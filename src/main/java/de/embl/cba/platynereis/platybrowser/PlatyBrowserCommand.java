@@ -11,7 +11,7 @@ import java.io.File;
 public class PlatyBrowserCommand implements Command
 {
 	@Parameter ( label = "Image Data Location", style = "directory" )
-	public File imagesLocation;
+	public File imagesLocation = new File("/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data");
 
 	@Parameter ( label = "Table Data Location" )
 	public String tablesLocation = "https://git.embl.de/tischer/platy-browser-tables/raw/dev/data";

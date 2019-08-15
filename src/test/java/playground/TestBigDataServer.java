@@ -33,6 +33,8 @@ public class TestBigDataServer
 		final String title = new File( filename ).getName();
 		System.out.println( "Showing: " + title );
 		final SpimData spimData = new XmlIoSpimData().load( filename );
+
+
 		BdvFunctions.show( spimData, BdvOptions.options().addTo( bdv ) ).get( 0 ).getBdvHandle();
 	}
 }

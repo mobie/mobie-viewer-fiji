@@ -1,11 +1,14 @@
 package de.embl.cba.platynereis.utils;
 
-import bdv.util.Bdv;
+import bdv.util.*;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.platynereis.platybrowser.BdvPointOverlay;
 import de.embl.cba.platynereis.platybrowser.PlatyViews;
+import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 
-import java.util.concurrent.ExecutionException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 
 /**
@@ -17,6 +20,11 @@ public abstract class BdvViewChanger
 {
 
 	public static PlatyViews views = new PlatyViews();
+
+	public static ArrayList< BdvOverlay > pointOverlays = new ArrayList<>(  );
+	private static BdvOverlaySource< BdvOverlay > pointOverlaySource;
+	private static BdvPointOverlay bdvPointOverlay;
+	private static boolean pointOverlaySourceIsActive;
 
 	public static void moveToView( Bdv bdv, String view )
 	{
@@ -30,6 +38,9 @@ public abstract class BdvViewChanger
 		if ( doubles.length == 3 )
 		{
 			BdvUtils.zoomToPosition( bdv, asPosition4D( doubles ), 15D, 1000 );
+
+			addPointOverlay( bdv, doubles );
+
 		}
 		else if ( doubles.length == 4 )
 		{
@@ -43,6 +54,34 @@ public abstract class BdvViewChanger
 		{
 			Utils.log( "Cannot parse view string :-("  );
 		}
+	}
+
+	public static void togglePointPverlay()
+	{
+		if ( pointOverlaySource == null ) return;
+
+		pointOverlaySourceIsActive = !pointOverlaySourceIsActive;
+		pointOverlaySource.setActive( pointOverlaySourceIsActive );
+	}
+
+
+	public static void addPointOverlay( Bdv bdv, double[] doubles )
+	{
+
+		if ( bdvPointOverlay == null )
+		{
+			bdvPointOverlay = new BdvPointOverlay( doubles, 5.0 );
+			pointOverlaySource = BdvFunctions.showOverlay(
+					bdvPointOverlay,
+					"point-overlay-" + Arrays.toString( doubles ),
+					BdvOptions.options().addTo( bdv ) );
+			pointOverlaySourceIsActive = true;
+		}
+		else
+		{
+			bdvPointOverlay.addPoint( doubles );
+		}
+
 	}
 
 	public static AffineTransform3D asView( double[] doubles )
@@ -83,6 +122,8 @@ public abstract class BdvViewChanger
 		{
 			try
 			{
+				view = view.replace( "(", "" );
+				view = view.replace( ")", "" );
 				return Utils.delimitedStringToDoubleArray( view, "," );
 			} catch ( Exception e )
 			{

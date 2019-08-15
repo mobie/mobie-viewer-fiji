@@ -14,13 +14,12 @@ import java.util.Map;
 
 public abstract class RemoteUtils
 {
-
 	public static Map< String, String > getDatasetUrlMap( final String remoteUrl ) throws IOException
 	{
 		Map< String, String > datasetUrlMap = new HashMap<>();
 
 		// Get JSON string from the server
-		final URL url = new URL( remoteUrl ); //+ "/json/" );
+		final URL url = new URL( remoteUrl + "/json/" );
 
 		final InputStream is = url.openStream();
 		final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
