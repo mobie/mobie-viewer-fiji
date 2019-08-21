@@ -16,6 +16,7 @@ import de.embl.cba.tables.image.Metadata;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.Segments3dView;
+import de.embl.cba.tables.view.SegmentsBdvView;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
 import ij3d.Content;
 import ij3d.ContentConstants;
@@ -103,6 +104,15 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         if ( sam.metadata().content != null )
             sam.metadata().content.setColor( new Color3f( sam.metadata().displayColor ));
+
+        if ( sourceNameToLabelsViews.containsKey( sam.metadata().displayName ) )
+        {
+            final SegmentsBdvView< TableRowImageSegment > segmentsBdvView
+                    = sourceNameToLabelsViews.get( sam.metadata().displayName ).getSegmentsBdvView();
+
+            segmentsBdvView.setLabelSourceSingleColor( BdvUtils.asArgbType( sam.metadata().displayColor ) );
+        }
+
 
         panel.setBackground( sam.metadata().displayColor );
     }
@@ -289,13 +299,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         final Metadata metadata = sam.metadata();
 
-//        final BdvStackSource bdvStackSource = BdvFunctions.show(
-//                sam.source(),
-//                1,
-//                BdvOptions.options().sourceTransform(
-//                        metadata.sourceTransform ).addTo( bdv ) );
-
-
         final BdvStackSource bdvStackSource = BdvFunctions.show(
                 sam.source(),
                 1,
@@ -384,7 +387,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 segments3dView.setTransparency( 0.3 );
             }
 
-
             segments3dView.setAutoResolutionLevel( true );
 
             // update bdv in case this is was first source to be shown.
@@ -399,7 +401,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
             sam.metadata().bdvStackSource.setDisplayRange( 0, 1000 );
 
             sourceNameToLabelsViews.put( sam.metadata().displayName, views );
-
         }
         catch ( Exception e )
         {
