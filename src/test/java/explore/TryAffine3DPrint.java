@@ -1,8 +1,6 @@
-package playground;
+package explore;
 
 import net.imglib2.realtransform.AffineTransform3D;
-
-import java.awt.geom.AffineTransform;
 
 public class TryAffine3DPrint
 {

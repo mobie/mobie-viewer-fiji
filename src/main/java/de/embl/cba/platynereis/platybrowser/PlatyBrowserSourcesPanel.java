@@ -119,18 +119,13 @@ public class PlatyBrowserSourcesPanel extends JPanel
         final JPanel jPanel = sourceNameToPanel.get( sourceName );
 
         setSourceColor( sam, color, jPanel );
-
     }
 
 
     public Image3DUniverse getUniverse()
     {
         final DefaultUniverse.GlobalTransform globalTransform = new DefaultUniverse.GlobalTransform();
-
-
         //universe.setGlobalTransform(  );
-
-
         return universe;
     }
 
@@ -146,7 +141,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         for ( SegmentsTableBdvAnd3dViews views : sourceNameToLabelsViews.values() )
             views.getSegments3dView().setMeshSmoothingIterations( meshSmoothingIterations );
-
     }
 
     public double getVoxelSpacing3DView()
@@ -194,7 +188,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     private DisplaySettings3DViewer getDisplaySettings3DViewer( SourceAndMetadata< ? > sourceAndMetadata )
     {
-
         final DisplaySettings3DViewer settings = new DisplaySettings3DViewer();
         if ( sourceAndMetadata.metadata().displayName.contains( Constants.MED )
                 || sourceAndMetadata.metadata().displayName.contains( Constants.SEGMENTED )  )

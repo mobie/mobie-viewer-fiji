@@ -1,4 +1,4 @@
-package playground;
+package explore;
 
 import de.embl.cba.tables.Tables;
 
@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 
-public class TestTableLoadingFromGitlab
+public class ExploreTableLoadingFromGitlab
 {
 	public static void main( String[] args ) throws IOException
 	{

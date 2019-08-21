@@ -7,7 +7,7 @@
 		<version>0.3.6</version>
 	</parent>
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
-	<version>0.5.2</version>
+	<version>0.5.3</version>
 	<url>https://github.com/tischi/fiji-plugin-platynereisViewer</url>
 	<name>Fiji Plugin Platynereis Viewer</name>
 	<description>TODO</description>
