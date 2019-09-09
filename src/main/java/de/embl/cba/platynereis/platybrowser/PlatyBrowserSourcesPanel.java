@@ -113,7 +113,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
             segmentsBdvView.setLabelSourceSingleColor( BdvUtils.asArgbType( sam.metadata().displayColor ) );
         }
 
-
         panel.setBackground( sam.metadata().displayColor );
     }
 
@@ -177,7 +176,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         final Content content = UniverseUtils.addSourceToUniverse(
                 universe,
                 sourceAndMetadata.source(),
-                600 * 600 * 600,
+                200 * 200 * 200,
                 settings.displayMode,
                 settings.color,
                 settings.transparency,
@@ -264,7 +263,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
             return;
 
         addSourceToViewer( sourceAndMetadata );
-        addSourceToVolumeViewer( sourceAndMetadata );
+        new Thread( () -> addSourceToVolumeViewer( sourceAndMetadata ) ).start();
         addSourceToPanel( sourceAndMetadata );
     }
 

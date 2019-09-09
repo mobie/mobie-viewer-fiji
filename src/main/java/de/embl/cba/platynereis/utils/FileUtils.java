@@ -60,7 +60,7 @@ public class FileUtils
 		try
 		{
 			final Map< String, String > datasetUrlMap
-					= RemoteUtils.getDatasetUrlMap( dataFolder.toString() );
+					= RemoteUtils.getDatasetUrlMap( dataFolder );
 
 			return new ArrayList( datasetUrlMap.values() );
 		}
@@ -90,10 +90,13 @@ public class FileUtils
 		for ( int i = 1; i < paths.length; i++ )
 			combined = combined + separator + paths[ i ];
 
-		//if ( combined.endsWith( separator ) )
-		//	combined = combined.substring(0, combined.length() - 1);
-
 		return combined;
+	}
+
+	public static String removeTrailingSlash( String path )
+	{
+		if ( path.endsWith( "/" ) ) path = path.substring(0, path.length() - 1);
+		return path;
 	}
 
 	public static class SortFilesIgnoreCase implements Comparator<File>

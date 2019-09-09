@@ -1,10 +1,8 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import bdv.tools.HelpDialog;
-import bdv.util.BdvHandle;
-import bdv.viewer.ViewerFrame;
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.Constants;
+import de.embl.cba.platynereis.utils.FileUtils;
 import ij.gui.NonBlockingGenericDialog;
 
 import javax.swing.*;
@@ -22,6 +20,9 @@ public class PlatyBrowser extends JFrame
 			String imageDataLocation,
 			String tableDataLocation ) throws HeadlessException
 	{
+		imageDataLocation = FileUtils.removeTrailingSlash( imageDataLocation );
+		tableDataLocation = FileUtils.removeTrailingSlash( tableDataLocation );
+
 		sourcesPanel = new PlatyBrowserSourcesPanel(
 				version,
 				imageDataLocation,

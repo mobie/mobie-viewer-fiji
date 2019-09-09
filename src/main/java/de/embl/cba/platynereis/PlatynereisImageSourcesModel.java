@@ -30,15 +30,23 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 
 		imageIdToSourceAndMetadata = new HashMap<>();
 
-		final ArrayList< String > imageTypes = new ArrayList<>();
-		imageTypes.add( "images" );
-		imageTypes.add( "segmentations" );
-
-		for ( String imageType : imageTypes )
+		if ( imageDataLocation.startsWith( "http" ) )
 		{
-			final String folder =  FileUtils.combinePath(  imageDataLocation, imageType );
-			addSources( folder );
+			addSources( imageDataLocation );
 		}
+		else
+		{
+			final ArrayList< String > imageTypes = new ArrayList<>();
+			imageTypes.add( "images" );
+			imageTypes.add( "segmentations" );
+
+			for ( String imageType : imageTypes )
+			{
+				final String folder = FileUtils.combinePath( imageDataLocation, imageType );
+				addSources( folder );
+			}
+		}
+
 	}
 
 	@Override
@@ -59,10 +67,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		List< String > imagePaths = getFilePaths( imageDataLocation );
 
 		for ( String path : imagePaths )
-		{
-			final File file = new File( path );
 			addSource( path );
-		}
 	}
 
 	private List< String > getFilePaths( String imageDataLocation )
@@ -70,9 +75,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		if ( imageDataLocation.startsWith( "http" ) )
 			return FileUtils.getUrls( imageDataLocation );
 		else
-		{
 			return FileUtils.getFiles( new File( imageDataLocation ), ".*.xml" );
-		}
 	}
 
 	private Metadata createMetadata( String path )

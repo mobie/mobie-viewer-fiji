@@ -10,9 +10,9 @@ public class OpenPlatyBrowserHttp
 		new ImageJ().ui().showUI();
 
 		final PlatyBrowser platyBrowser = new PlatyBrowser(
-				"0.2.1",
-				"http://10.11.4.195:8000",
-				"https://git.embl.de/tischer/platy-browser-tables/raw/master/" );
+				"test2",
+				"http://cbb-bigdata01.embl.de",
+				"https://git.embl.de/tischer/platy-browser-tables/raw/master/data" );
 
 //		final PlatyBrowserSourcesPanel sourcesPanel = mainFrame.getSourcesPanel();
 
