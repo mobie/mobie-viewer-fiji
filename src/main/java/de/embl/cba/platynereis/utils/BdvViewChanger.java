@@ -26,6 +26,11 @@ public abstract class BdvViewChanger
 	private static BdvPointOverlay bdvPointOverlay;
 	private static boolean pointOverlaySourceIsActive;
 
+	public static void initPlatyViews( String viewsSourcePath )
+	{
+		views = new PlatyViews( viewsSourcePath );
+	}
+
 	public static void moveToView( Bdv bdv, String view )
 	{
 		double[] doubles = getDoubles( view );
@@ -56,11 +61,11 @@ public abstract class BdvViewChanger
 		}
 	}
 
-	public static void togglePointPverlay()
+	public static void togglePointOverlay()
 	{
 		if ( pointOverlaySource == null ) return;
 
-		pointOverlaySourceIsActive = !pointOverlaySourceIsActive;
+		pointOverlaySourceIsActive = ! pointOverlaySourceIsActive;
 		pointOverlaySource.setActive( pointOverlaySourceIsActive );
 	}
 
@@ -101,7 +106,6 @@ public abstract class BdvViewChanger
 
 	public static double[] getDoubles( String view )
 	{
-
 		if ( views.views().containsKey( view ) )
 		{
 			return views.views().get( view );

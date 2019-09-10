@@ -98,13 +98,10 @@ public class PlatyBrowserActionPanel extends JPanel
 	private void addPointOverlayTogglingBehaviour(  )
 	{
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-
 			(new Thread( () -> {
-				BdvViewChanger.togglePointPverlay();
+				BdvViewChanger.togglePointOverlay();
 			} )).start();
-
 		}, "Toggle point overlays", "ctrl P"  ) ;
-
 	}
 
 	private void addPositionAndViewLoggingBehaviour( JPanel panel )
@@ -481,10 +478,9 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		final JButton moveToButton = new JButton( "Move to" );
 
-		final String[] positionsAndViews = {
-				"...type here...                                                           ",
-				PlatyViews.LEFT_EYE_POSITION  };
-		final JComboBox< String > viewsChoices = new JComboBox<>( positionsAndViews );
+		final String[] bookmarkNames = getBookmarkNames();
+
+		final JComboBox< String > viewsChoices = new JComboBox<>( bookmarkNames );
 		viewsChoices.setEditable( true );
 		viewsChoices.setMaximumSize( new Dimension( 200, TEXT_FIELD_HEIGHT ) );
 		viewsChoices.setMinimumSize( new Dimension(  200, TEXT_FIELD_HEIGHT ) );
@@ -495,6 +491,17 @@ public class PlatyBrowserActionPanel extends JPanel
 		horizontalLayoutPanel.add( viewsChoices );
 
 		panel.add( horizontalLayoutPanel );
+	}
+
+	private String[] getBookmarkNames()
+	{
+		final Set< String > viewNames = BdvViewChanger.views.views().keySet();
+		final String[] positionsAndViews = new String[ viewNames.size() + 1 ];
+		positionsAndViews[ 0 ] = "...type here...                                                           ";
+		final Iterator< String > iterator = viewNames.iterator();
+		for ( int i = 1; i <= viewNames.size() ; i++ )
+			positionsAndViews[ i ] = iterator.next();
+		return positionsAndViews;
 	}
 
 	public void setView( String view )

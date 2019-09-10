@@ -3,7 +3,10 @@ package de.embl.cba.platynereis.utils;
 import de.embl.cba.platynereis.remote.RemoteUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -97,6 +100,21 @@ public class FileUtils
 	{
 		if ( path.endsWith( "/" ) ) path = path.substring(0, path.length() - 1);
 		return path;
+	}
+
+	public static InputStream getInputStream( String filePath ) throws IOException
+	{
+		InputStream is;
+		if ( filePath.startsWith( "http" ) )
+		{
+			URL url = new URL( filePath );
+			is = url.openStream();
+		}
+		else
+		{
+			is = new FileInputStream( new File( filePath ) );
+		}
+		return is;
 	}
 
 	public static class SortFilesIgnoreCase implements Comparator<File>

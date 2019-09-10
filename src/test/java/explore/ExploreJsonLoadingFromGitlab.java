@@ -14,7 +14,6 @@ public class ExploreJsonLoadingFromGitlab
 {
 	public static void main( String[] args ) throws IOException
 	{
-
 		URL url = new URL("https://git.embl.de/tischer/platy-browser-tables/raw/master/data/versions.json");
 
 		final InputStream is = url.openStream();

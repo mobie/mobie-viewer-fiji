@@ -1,10 +1,10 @@
 package de.embl.cba.platynereis.utils.ui;
 
 import com.google.gson.stream.JsonReader;
+import de.embl.cba.platynereis.utils.FileUtils;
 import ij.gui.GenericDialog;
 
 import java.io.*;
-import java.net.URL;
 import java.util.ArrayList;
 
 public class VersionsDialog
@@ -43,7 +43,7 @@ public class VersionsDialog
 
 	private ArrayList< String > readVersionsFromFile( String versionsJsonFilePath ) throws IOException
 	{
-		InputStream is = getInputStream( versionsJsonFilePath );
+		InputStream is = FileUtils.getInputStream( versionsJsonFilePath );
 
 		final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
 
@@ -58,18 +58,4 @@ public class VersionsDialog
 		return versions;
 	}
 
-	private InputStream getInputStream( String versionsJsonFilePath ) throws IOException
-	{
-		InputStream is;
-		if ( versionsJsonFilePath.startsWith( "http:" ))
-		{
-			URL url = new URL( versionsJsonFilePath );
-			is = url.openStream();
-		}
-		else
-		{
-			is = new FileInputStream( new File( versionsJsonFilePath ) );
-		}
-		return is;
-	}
 }
