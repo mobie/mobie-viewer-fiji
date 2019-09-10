@@ -31,6 +31,7 @@ public class PlatyBrowser extends JFrame
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 
 		actionPanel = new PlatyBrowserActionPanel( sourcesPanel );
+
 		setJMenuBar( createMenuBar() );
 		showFrame();
 		initHelpDialog();
@@ -84,7 +85,7 @@ public class PlatyBrowser extends JFrame
 	{
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		splitPane.setDividerLocation( 180 );
+		splitPane.setDividerLocation( 240 );
 		splitPane.setTopComponent( actionPanel );
 		splitPane.setBottomComponent( sourcesPanel );
 		splitPane.setAutoscrolls( true );

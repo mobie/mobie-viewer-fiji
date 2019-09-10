@@ -33,6 +33,7 @@ public class PlatyBrowserActionPanel extends JPanel
 	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	private double[] targetNormalVector;
 	private double geneSearchRadiusInMicrometer;
+	private HashMap< String, String > selectionNameToSourceName;
 
 	public PlatyBrowserActionPanel( PlatyBrowserSourcesPanel sourcesPanel )
 	{
@@ -348,34 +349,81 @@ public class PlatyBrowserActionPanel extends JPanel
 
 	private void addSourceSelectionUI( JPanel panel )
 	{
-		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+		final JComboBox emSourcesComboBox = new JComboBox();
+		final JComboBox segmentationSourcesComboBox = new JComboBox();
+		final JComboBox prosprSourcesComboBox = new JComboBox();
 
-		// ComboBox
-		final JComboBox sourcesComboBox = new JComboBox();
+		populateSelectionNameToSourceName();
 
+		final ArrayList< String > sortedSelectionNames =
+				getSortedList( selectionNameToSourceName.keySet() );
+
+		for ( String name : sortedSelectionNames )
+		{
+			final String sourceName = selectionNameToSourceName.get( name );
+
+			if ( sourceName.contains( "segmented" ) )
+			{
+				segmentationSourcesComboBox.addItem( name );
+				continue;
+			}
+
+			if ( sourceName.contains( "mask" ) )
+			{
+				segmentationSourcesComboBox.addItem( name );
+				continue;
+			}
+
+			if ( sourceName.contains( "sbem" ) )
+			{
+				emSourcesComboBox.addItem( name );
+				continue;
+			}
+
+			if ( sourceName.contains( "prospr" ) )
+			{
+				prosprSourcesComboBox.addItem( name );
+				continue;
+			}
+		}
+
+		addSourceSelectionComboBoxAndButton( panel, emSourcesComboBox, "EM" );
+		addSourceSelectionComboBoxAndButton( panel, prosprSourcesComboBox, "ProSPr" );
+		addSourceSelectionComboBoxAndButton( panel, segmentationSourcesComboBox, "Segmentation" );
+	}
+
+	private void populateSelectionNameToSourceName()
+	{
 		final ArrayList< String > sourceNames = sourcesPanel.getSourceNames();
 
-		final HashMap< String, String > selectionNameToSourceName = new HashMap<>();
+		selectionNameToSourceName = new HashMap<>();
 		for ( String sourceName : sourceNames )
 		{
 			String selectionName = getSelectionName( sourceName );
 			selectionNameToSourceName.put( selectionName, sourceName );
 		}
+	}
 
-		final ArrayList< String > sortedSelectionNames = getSortedList( selectionNameToSourceName.keySet() );
-		for ( String name : sortedSelectionNames )
-			sourcesComboBox.addItem( name );
+	private void addSourceSelectionComboBoxAndButton(
+			JPanel panel,
+			JComboBox comboBox,
+			String name )
+	{
+		if ( comboBox.getModel().getSize() == 0 ) return;
 
-		final JButton addToView = new JButton( "Add to view" );
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+
+		final JButton addToView = new JButton( "View " + name );
 		addToView.addActionListener( e ->
 		{
-			final String selectedSource = ( String ) sourcesComboBox.getSelectedItem();
+			final String selectedSource = ( String ) comboBox.getSelectedItem();
 			final String sourceName = selectionNameToSourceName.get( selectedSource );
 			sourcesPanel.addSourceToPanelAndViewer( sourceName );
 		} );
 
 		horizontalLayoutPanel.add( addToView );
-		horizontalLayoutPanel.add( sourcesComboBox );
+		horizontalLayoutPanel.add( comboBox );
+
 		panel.add( horizontalLayoutPanel );
 	}
 
@@ -385,6 +433,8 @@ public class PlatyBrowserActionPanel extends JPanel
 		sourceName = sourceName.replace( "whole-", "" );
 		sourceName = sourceName.replace( "sbem-", "" );
 		sourceName = sourceName.replace( "6dpf-1-", "" );
+		sourceName = sourceName.replace( "segmented-", "" );
+
 		return sourceName;
 	}
 
@@ -443,6 +493,7 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		horizontalLayoutPanel.add( moveToButton );
 		horizontalLayoutPanel.add( viewsChoices );
+
 		panel.add( horizontalLayoutPanel );
 	}
 

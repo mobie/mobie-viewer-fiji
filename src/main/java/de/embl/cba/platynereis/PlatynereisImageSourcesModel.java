@@ -18,6 +18,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	public static final String LABELS_FILE_ID = "-labels" ;
 	public static final String BDV_XML_SUFFIX = ".xml";
 	public static final String EM_RAW_FILE_ID = "-raw";
+	public static final String MASK_FILE_ID = "mask-";
 
 	private Map< String, SourceAndMetadata< ? > > imageIdToSourceAndMetadata;
 	private final String tableDataLocation;
@@ -109,11 +110,17 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 			metadata.displayRangeMin = 0.0D;
 			metadata.displayRangeMax = 255.0D;
 		}
+		else if ( imageId.contains( MASK_FILE_ID ))
+		{
+			metadata.displayRangeMin = 0.0D;
+			metadata.displayRangeMax = 1.0D;
+		}
 		else
 		{
 			metadata.displayRangeMin = 0.0D;
 			metadata.displayRangeMax = 1000.0D;
 		}
+
 	}
 
 	private String getTablePath( String sourceName )
