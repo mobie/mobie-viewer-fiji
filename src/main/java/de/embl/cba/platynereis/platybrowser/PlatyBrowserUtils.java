@@ -23,7 +23,6 @@ public class PlatyBrowserUtils
 			String tablePath,
 			String imageId )
 	{
-
 		Utils.log( "Opening table: " + tablePath );
 
 		String absoluteTablePath = resolveTableURL( URI.create( tablePath ) );

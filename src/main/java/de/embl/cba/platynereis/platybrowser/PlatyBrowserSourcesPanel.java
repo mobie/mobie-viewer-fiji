@@ -43,7 +43,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     protected Map< String, JPanel > sourceNameToPanel;
     private BdvHandle bdv;
     private final ImageSourcesModel imageSourcesModel;
-    private final Image3DUniverse universe;
+    private Image3DUniverse universe;
     private int meshSmoothingIterations;
     private double voxelSpacing3DView;
     private SegmentsTableBdvAnd3dViews views;
@@ -168,6 +168,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private void addSourceToVolumeViewer( SourceAndMetadata< ? > sourceAndMetadata )
     {
         if ( ! Globals.showVolumesIn3D.get() ) return;
+
+        if ( universe == null ) universe = new Image3DUniverse();
 
         UniverseUtils.showUniverseWindow( universe, bdv.getViewerPanel() );
 
