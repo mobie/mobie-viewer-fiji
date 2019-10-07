@@ -52,7 +52,7 @@ public class PlatyBrowserActionPanel extends JPanel
 	{
 		JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JCheckBox cbObjects = new JCheckBox( "Show selected objects in 3D" );
+		final JCheckBox cbObjects = new JCheckBox( "Show objects in 3D" );
 		cbObjects.setSelected( Globals.showSegmentsIn3D.get() );
 		cbObjects.addActionListener( e -> {
 			Globals.showSegmentsIn3D.set( cbObjects.isSelected() );
@@ -126,7 +126,6 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		Utils.log( "BigDataViewer transform: \n"+ getBdvViewerTransform() );
 		Utils.log( "3D Viewer transform: \n" + getVolumeViewerTransform() );
-
 	}
 
 	private String getBdvViewerTransform()

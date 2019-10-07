@@ -67,8 +67,6 @@ public class TransformXRayUsingAmiraEulerViaElastix
 		elastixAffineTransform3D.save( elastixTransformPath );
 
 
-
-
 		ElastixSettings settings = new ElastixSettings();
 
 		settings.logService = imageJ.log();
@@ -77,7 +75,7 @@ public class TransformXRayUsingAmiraEulerViaElastix
 		settings.movingImageFilePath = xRayPath;
 		settings.transformationFilePath = elastixTransformPath;
 		settings.numWorkers = 4;
-		settings.outputModality = ElastixWrapper.OUTPUT_MODALITY_SHOW_IMAGES;
+		settings.outputModality = ElastixSettings.OUTPUT_MODALITY_SHOW_IMAGES;
 		// settings.outputFile = outputFile;
 
 		ElastixWrapper elastixWrapper = new ElastixWrapper( settings );

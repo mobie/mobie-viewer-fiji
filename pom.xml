@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>de.embl.cba</groupId>
 		<artifactId>pom-embl-cba</artifactId>
-		<version>0.3.6</version>
+		<version>0.3.8</version>
 	</parent>
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
 	<version>0.5.5</version>
@@ -93,22 +93,22 @@
 		</repository>
 	</repositories>
 	<dependencies>
-<!--		<dependency>-->
-<!--			<groupId>net.imagej</groupId>-->
-<!--			<artifactId>imagej-legacy</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>net.imagej</groupId>-->
-<!--			<artifactId>imagej</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>net.imagej</groupId>-->
-<!--			<artifactId>imagej-common</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>net.imagej</groupId>-->
-<!--			<artifactId>ij</artifactId>-->
-<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>net.imagej</groupId>-->
+		<!--			<artifactId>imagej-legacy</artifactId>-->
+		<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>net.imagej</groupId>-->
+		<!--			<artifactId>imagej</artifactId>-->
+		<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>net.imagej</groupId>-->
+		<!--			<artifactId>imagej-common</artifactId>-->
+		<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>net.imagej</groupId>-->
+		<!--			<artifactId>ij</artifactId>-->
+		<!--		</dependency>-->
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
@@ -134,10 +134,10 @@
 			<groupId>sc.fiji</groupId>
 			<artifactId>3D_Viewer</artifactId>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.apache.commons</groupId>-->
-<!--			<artifactId>commons-math3</artifactId>-->
-<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>org.apache.commons</groupId>-->
+		<!--			<artifactId>commons-math3</artifactId>-->
+		<!--		</dependency>-->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

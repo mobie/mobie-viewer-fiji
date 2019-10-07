@@ -3,6 +3,7 @@ package de.embl.cba.platynereis.platybrowser;
 import bdv.util.*;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
+import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.Globals;
 import de.embl.cba.platynereis.PlatynereisImageSourcesModel;
@@ -12,7 +13,6 @@ import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.ij3d.UniverseUtils;
 import de.embl.cba.tables.image.DefaultImageSourcesModel;
 import de.embl.cba.tables.image.ImageSourcesModel;
-import de.embl.cba.tables.image.Metadata;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.Segments3dView;
@@ -22,6 +22,7 @@ import ij3d.Content;
 import ij3d.ContentConstants;
 import ij3d.DefaultUniverse;
 import ij3d.Image3DUniverse;
+import mpicbg.spim.data.SpimData;
 import net.imglib2.type.numeric.ARGBType;
 import org.scijava.vecmath.Color3f;
 
@@ -174,6 +175,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
         UniverseUtils.showUniverseWindow( universe, bdv.getViewerPanel() );
 
         DisplaySettings3DViewer settings = getDisplaySettings3DViewer( sourceAndMetadata );
+
+        SpimData spimData;
 
         final Content content = UniverseUtils.addSourceToUniverse(
                 universe,
