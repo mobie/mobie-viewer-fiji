@@ -10,7 +10,7 @@ public class OpenPlatyBrowserHttp
 		new ImageJ().ui().showUI();
 
 		final PlatyBrowser platyBrowser = new PlatyBrowser(
-				"test2",
+				"0.6.0",
 				"http://cbb-bigdata01.embl.de",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/master/data" );
 

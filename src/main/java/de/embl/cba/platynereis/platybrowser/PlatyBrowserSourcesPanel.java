@@ -54,7 +54,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
                                      String imageDataLocation,
                                      String tableDataLocation )
     {
-
         imageDataLocation = FileUtils.combinePath( imageDataLocation, version );
         tableDataLocation = FileUtils.combinePath( tableDataLocation, version, "tables" );
 
@@ -275,6 +274,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private void addSourceToViewer( SourceAndMetadata< ? > sam )
     {
         Prefs.showScaleBar( true );
+        Prefs.showMultibox( false );
 
         final Metadata metadata = sam.metadata();
 

@@ -11,7 +11,7 @@ public class OpenPlatyBrowserLocalImageGitTable
 		new ImageJ().ui().showUI();
 
 		final PlatyBrowser platyBrowser = new PlatyBrowser(
-				"0.5.2",
+				"0.6.0",
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/master/data" );
 
