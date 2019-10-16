@@ -36,18 +36,13 @@ public class RegistrationVisualisationSimilarityAndBSpline< R extends RealType< 
 		Prefs.scaleBarColor( ARGBType.rgba( 255, 255, 255, 255 ) );
 
 		final AffineTransform3D gutViewSimilarity = new AffineTransform3D();
-		gutViewSimilarity.set( new double[]{ 0.9476498880169756, -1.1429278186384646, -0.02353485655382334, 437.3256833175399, 1.1383751813599376, 0.940678083877728, 0.15525748717898924, -335.20810430942925, -0.10459366402618271, -0.11712788841143265, 1.476556609666939, -255.5571396760662 } );
+		gutViewSimilarity.set( new double[]{ -0.9276381700057749, 1.1591708414422703, 0.02624088884985559, 358.60730633258726, -1.1547405723118895, -0.9205879732299214, -0.15482310082966486, 917.702862007929, -0.10459366402618271, -0.11712788841143265, 1.476556609666939, -253.55713967606619 } );
 
-		final AffineTransform3D ventralView = new AffineTransform3D();
-		ventralView.set( new double[]{
-				0.7640026486618857, 0.21675540046683806, -1.6962790277984714, 703.9725109035188, -1.1308673387472277, 1.4576715303334729, -0.32307624913149924, 500.1141846847264, 1.2827644000108667, 1.1559655258555834, 0.7254685989352216, -816.2576698664607 } );
-
-		final AffineTransform3D gutViewBSpline = new AffineTransform3D();
-		gutViewBSpline.set( new double[]{
-				1.0424148768186736, -1.2572206005023119, -0.025888342209205707, 441.0582516492939, 1.2522126994959317, 1.0347458922655013, 0.17078323589688818, -397.62891474037247, -0.1150530304288011, -0.12884067725257614, 1.6242122706336333, -270.1128536436731 } );
+		final AffineTransform3D headViewSimilarity = new AffineTransform3D();
+		headViewSimilarity.set( new double[] { -0.9673729426921943, 1.1263366489493118, 0.020821655312497484, 372.5739351026749, -1.1216630303000528, -0.9604816548686338, -0.1556445805937058, 962.76445738753, -0.10459366402618273, -0.11712788841143265, 1.476556609666939, -45.557139676066214
+ } );
 
 		final RegistrationVisualisationSimilarityAndBSpline rvs = new RegistrationVisualisationSimilarityAndBSpline();
-
 
 		/**
 		 * Similarity
@@ -55,17 +50,16 @@ public class RegistrationVisualisationSimilarityAndBSpline< R extends RealType< 
 
 		final ImagePlus em = IJ.openImage( RegistrationVisualisationSimilarityAndBSpline.class.getResource( "../publication/em-onlyDAPI.zip" ).getFile() );
 
-		final AffineTransform3D emTransform = new AffineTransform3D();
+		final AffineTransform3D emManualGutTransform = new AffineTransform3D();
 		final double[] doubles = Utils.delimitedStringToDoubleArray( "0.9975084647027952 0.0039003275874579927 -0.07043898275091061 10.291508243486646 -0.009467829800504684 0.9968391414786343 -0.07888020166688292 13.177618156352992 0.06990867646538076 0.07935057316018584 0.9943924092097696 -36.441354612353564", " " );
-		emTransform.set( doubles );
+		emManualGutTransform.set( doubles );
 
-		// Remove manual EM Transform for side view
-		emTransform.set( new AffineTransform3D() );
+		//emManualGutTransform.set( new AffineTransform3D() );
 
 		final BdvStackSource< ? > emStackSourceManuallyTransformed = BdvFunctions.show(
 				rvs.getChannel( em, 0 ),
 				"em",
-				BdvOptions.options().sourceTransform( emTransform )
+				BdvOptions.options().sourceTransform( emManualGutTransform )
 		);
 		emStackSourceManuallyTransformed.setDisplayRange( 0, 255 );
 		emStackSourceManuallyTransformed.setColor( MAGENTA );
@@ -80,45 +74,52 @@ public class RegistrationVisualisationSimilarityAndBSpline< R extends RealType< 
 		prosprSimilarityStackSource.setDisplayRange( 0, 255 );
 		prosprSimilarityStackSource.setColor( GREEN );
 
-		bdv.getViewerPanel().setCurrentViewerTransform( gutViewSimilarity );
-
 		bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
 
-		bdv.getViewerPanel().setCurrentViewerTransform( ventralView );
-
+		bdv.getViewerPanel().setCurrentViewerTransform( headViewSimilarity );
+		IJ.wait( 2000 );
 		BdvViewCaptures.captureView( bdv, 1, "micrometer", false  );
+		IJ.saveAs( "tif", "/Users/tischer/Desktop/similarity-head-view.tif" );
 
-		IJ.saveAs( "tif", "/Users/tischer/Desktop/similarity-side-view.tif" );
+		bdv.getViewerPanel().setCurrentViewerTransform( gutViewSimilarity );
+		IJ.wait( 2000 );
+		BdvViewCaptures.captureView( bdv, 1, "micrometer", false  );
+		IJ.saveAs( "tif", "/Users/tischer/Desktop/similarity-gut-view.tif" );
 
 		/**
 		 * BSpline
 		 */
 
+		boolean bSpline = true;
+		if ( bSpline )
+		{
+			final BdvStackSource< ? > emStackSource = BdvFunctions.show(
+					rvs.getChannel( em, 0 ),
+					"em" );
+			emStackSource.setDisplayRange( 0, 255 );
+			emStackSource.setColor( MAGENTA );
 
-		final BdvStackSource< ? > emStackSource = BdvFunctions.show(
-				rvs.getChannel( em, 0 ),
-				"em" );
-		emStackSource.setDisplayRange( 0, 255 );
-		emStackSource.setColor( MAGENTA );
+			bdv = emStackSource.getBdvHandle();
+			bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
 
-		bdv = emStackSource.getBdvHandle();
+			addPositionAndViewLogging( bdv );
 
-		addPositionAndViewLogging( bdv );
+			final ImagePlus prosprBSpline = IJ.openImage( RegistrationVisualisationSimilarityAndBSpline.class.getResource( "../publication/prospr-bspline10.zip" ).getFile() );
 
-		final ImagePlus prosprBSpline = IJ.openImage( RegistrationVisualisationSimilarityAndBSpline.class.getResource( "../publication/prospr-bspline10.zip" ).getFile() );
+			final BdvStackSource< ? > prosprBSplineStackSource = BdvFunctions.show( rvs.getChannel( prosprBSpline, 2 ), "prospr-bspline", BdvOptions.options().addTo( bdv ) );
+			prosprBSplineStackSource.setDisplayRange( 0, 255 );
+			prosprBSplineStackSource.setColor( GREEN );
 
-		final BdvStackSource< ? > prosprBSplineStackSource = BdvFunctions.show( rvs.getChannel( prosprBSpline, 2 ), "prospr-bspline", BdvOptions.options().addTo( bdv ) );
-		prosprBSplineStackSource.setDisplayRange( 0, 255 );
-		prosprBSplineStackSource.setColor( GREEN );
+			bdv.getViewerPanel().setCurrentViewerTransform( headViewSimilarity );
+			IJ.wait( 2000 );
+			BdvViewCaptures.captureView( bdv, 1, "micrometer", false  );
+			IJ.saveAs( "tif", "/Users/tischer/Desktop/bspline-head-view.tif" );
 
-		bdv.getViewerPanel().setCurrentViewerTransform( gutViewBSpline );
-		bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
-
-		bdv.getViewerPanel().setCurrentViewerTransform( ventralView );
-
-		BdvViewCaptures.captureView( bdv, 1, "micrometer", false  );
-
-		IJ.saveAs( "tif", "/Users/tischer/Desktop/bspline-side-view.tif" );
+			bdv.getViewerPanel().setCurrentViewerTransform( gutViewSimilarity );
+			IJ.wait( 2000 );
+			BdvViewCaptures.captureView( bdv, 1, "micrometer", false  );
+			IJ.saveAs( "tif", "/Users/tischer/Desktop/bspline-gut-view.tif" );
+		}
 
 	}
 

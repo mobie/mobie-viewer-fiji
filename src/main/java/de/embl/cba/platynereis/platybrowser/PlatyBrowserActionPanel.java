@@ -33,7 +33,7 @@ public class PlatyBrowserActionPanel extends JPanel
 	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	private double[] targetNormalVector;
 	private double geneSearchRadiusInMicrometer;
-	private HashMap< String, String > selectionNameToSourceName;
+	private HashMap< String, String > selectionNameAndModalityToSourceName;
 
 	public PlatyBrowserActionPanel( PlatyBrowserSourcesPanel sourcesPanel )
 	{
@@ -345,75 +345,73 @@ public class PlatyBrowserActionPanel extends JPanel
 
 	private void addSourceSelectionUI( JPanel panel )
 	{
-		final JComboBox emSourcesComboBox = new JComboBox();
-		final JComboBox segmentationSourcesComboBox = new JComboBox();
-		final JComboBox prosprSourcesComboBox = new JComboBox();
+		final HashMap< String, JComboBox > modalityToJComboBox = new HashMap<>();
 
-		populateSelectionNameToSourceName();
+		selectionNameAndModalityToSourceName = new HashMap<>();
+		HashMap< String, ArrayList< String > > modalityToSelectionNames = new HashMap<>();
 
-		final ArrayList< String > sortedSelectionNames =
-				getSortedList( selectionNameToSourceName.keySet() );
-
-		for ( String name : sortedSelectionNames )
+		for ( String sourceName : sourcesPanel.getSourceNames() )
 		{
-			final String sourceName = selectionNameToSourceName.get( name );
+			String modality = sourceName.split( "-" )[ 0 ];
+
+			String selectionName = sourceName.replace( modality + "-", "" );
 
 			if ( sourceName.contains( "segmented" ) )
 			{
-				segmentationSourcesComboBox.addItem( name );
-				continue;
+				selectionName = selectionName.replace( "segmented-", "" );
+				if ( ! modality.contains( " segmentation" ) )
+					modality += " segmentation";
 			}
 
 			if ( sourceName.contains( "mask" ) )
 			{
-				segmentationSourcesComboBox.addItem( name );
-				continue;
+				selectionName = selectionName.replace( "mask-", "" );
+				if ( ! modality.contains( " segmentation" ) )
+					modality += " segmentation";
 			}
 
-			if ( sourceName.contains( "sbem" ) )
+			if ( sourceName.contains( "labels" ) )
 			{
-				emSourcesComboBox.addItem( name );
-				continue;
+				selectionName = selectionName.replace( "labels-", "" );
+				if ( ! modality.contains( " segmentation" ) )
+					modality += " segmentation";
 			}
 
-			if ( sourceName.contains( "prospr" ) )
-			{
-				prosprSourcesComboBox.addItem( name );
-				continue;
-			}
+			selectionName = selectionName.replace(  "6dpf-1-whole-", "");
+
+			selectionNameAndModalityToSourceName.put( selectionName + "-" + modality, sourceName  );
+
+			if ( ! modalityToSelectionNames.containsKey( modality ) )
+				modalityToSelectionNames.put( modality, new ArrayList< String >(  ) );
+
+			modalityToSelectionNames.get( modality ).add( selectionName);
+
 		}
 
-		addSourceSelectionComboBoxAndButton( panel, emSourcesComboBox, "EM" );
-		addSourceSelectionComboBoxAndButton( panel, prosprSourcesComboBox, "ProSPr" );
-		addSourceSelectionComboBoxAndButton( panel, segmentationSourcesComboBox, "Segmentation" );
-	}
+		final ArrayList< String > sortedModalities = getSortedList( modalityToSelectionNames.keySet() );
 
-	private void populateSelectionNameToSourceName()
-	{
-		final ArrayList< String > sourceNames = sourcesPanel.getSourceNames();
-
-		selectionNameToSourceName = new HashMap<>();
-		for ( String sourceName : sourceNames )
+		for ( String modality : sortedModalities )
 		{
-			String selectionName = getSelectionName( sourceName );
-			selectionNameToSourceName.put( selectionName, sourceName );
+			final String[] names = getSortedList( modalityToSelectionNames.get( modality ) ).toArray( new String[ 0 ] );
+			final JComboBox< String > comboBox = new JComboBox<>( names );
+			addSourceSelectionComboBoxAndButton( panel, comboBox, modality );
 		}
 	}
 
 	private void addSourceSelectionComboBoxAndButton(
-			JPanel panel,
-			JComboBox comboBox,
-			String name )
+			final JPanel panel,
+			final JComboBox comboBox,
+			final String modality )
 	{
 		if ( comboBox.getModel().getSize() == 0 ) return;
 
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton addToView = new JButton( "View " + name );
+		final JButton addToView = new JButton( "View " + modality );
 		addToView.addActionListener( e ->
 		{
 			final String selectedSource = ( String ) comboBox.getSelectedItem();
-			final String sourceName = selectionNameToSourceName.get( selectedSource );
+			final String sourceName = selectionNameAndModalityToSourceName.get( selectedSource + "-" + modality );
 			sourcesPanel.addSourceToPanelAndViewer( sourceName );
 		} );
 
@@ -423,16 +421,6 @@ public class PlatyBrowserActionPanel extends JPanel
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private String getSelectionName( String sourceName )
-	{
-		sourceName = sourceName.replace( "prospr-", "" );
-		sourceName = sourceName.replace( "whole-", "" );
-		sourceName = sourceName.replace( "sbem-", "" );
-		sourceName = sourceName.replace( "6dpf-1-", "" );
-		sourceName = sourceName.replace( "segmented-", "" );
-
-		return sourceName;
-	}
 
 	private ArrayList< String > getSortedList( Collection< String > strings )
 	{

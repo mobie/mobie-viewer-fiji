@@ -4,10 +4,10 @@
 	<parent>
 		<groupId>de.embl.cba</groupId>
 		<artifactId>pom-embl-cba</artifactId>
-		<version>0.3.8</version>
+		<version>0.3.9</version>
 	</parent>
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
-	<version>0.5.5</version>
+	<version>0.5.6</version>
 	<url>https://github.com/tischi/fiji-plugin-platynereisViewer</url>
 	<name>Fiji Plugin Platynereis Viewer</name>
 	<description>TODO</description>
