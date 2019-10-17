@@ -2,6 +2,8 @@ package de.embl.cba.platynereis.platybrowser;
 
 import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.capture.BdvViewCaptures;
+import de.embl.cba.bdv.utils.capture.PixelSpacingDialog;
 import de.embl.cba.platynereis.GeneSearch;
 import de.embl.cba.platynereis.GeneSearchResults;
 import de.embl.cba.platynereis.Globals;
@@ -86,6 +88,7 @@ public class PlatyBrowserActionPanel extends JPanel
 		addPositionAndViewLoggingBehaviour( this );
 		addPointOverlayTogglingBehaviour();
 		addLocalGeneSearchBehaviour();
+		addViewCaptureBehaviour();
 	}
 
 	private void configPanel()
@@ -93,6 +96,24 @@ public class PlatyBrowserActionPanel extends JPanel
 		this.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
 		this.revalidate();
 		this.repaint();
+	}
+
+	public void addViewCaptureBehaviour()
+	{
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) ->
+		{
+			new Thread( () -> {
+				final String pixelUnit = "micrometer";
+				final PixelSpacingDialog dialog = new PixelSpacingDialog( BdvUtils.getViewerVoxelSpacing( bdv )[ 0 ], pixelUnit );
+				if ( ! dialog.showDialog() ) return;
+				Utils.log( "Loading data to capture current view..." );
+				BdvViewCaptures.captureView(
+						bdv,
+						dialog.getPixelSpacing(),
+						pixelUnit,
+						false );
+			}).start();
+		}, "capture view", "C" ) ;
 	}
 
 	private void addPointOverlayTogglingBehaviour(  )
