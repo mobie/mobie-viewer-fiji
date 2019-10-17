@@ -1,6 +1,7 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import bdv.util.*;
+import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
@@ -295,6 +296,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         if ( isBdvShownFirstTime )
         {
             BdvUtils.centerBdvWindowLocation( bdv );
+            bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
             isBdvShownFirstTime = false;
         }
     }
@@ -313,6 +315,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
         bdvStackSource.setDisplayRange(
                 metadata.displayRangeMin,
                 metadata.displayRangeMax );
+
+        bdvStackSource.setColor( Utils.asArgbType( metadata.displayColor ) );
 
         bdv = bdvStackSource.getBdvHandle();
 

@@ -6,6 +6,7 @@ import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
 import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import net.imglib2.type.numeric.ARGBType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class PlatyBrowserUtils
 {
 	public static final String COLUMN_NAME_LABEL_IMAGE_ID = "label_image_id";
+	public static final ARGBType MAGENTA = new ARGBType( ARGBType.rgba( 255, 0, 255, 255 ) );
 
 	public static
 	List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(

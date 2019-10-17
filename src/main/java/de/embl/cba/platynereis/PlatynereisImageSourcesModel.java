@@ -2,6 +2,7 @@ package de.embl.cba.platynereis;
 
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.platynereis.platybrowser.PlatyBrowserUtils;
 import de.embl.cba.platynereis.utils.FileUtils;
 import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.SourceAndMetadata;
@@ -9,6 +10,7 @@ import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 
+import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -89,6 +91,10 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		metadata.displayName = imageId;
 		setDisplayRange( imageId, metadata );
 		setFlavour( imageId, metadata );
+
+		if ( path.contains( "prospr" ) )
+			metadata.displayColor = Color.MAGENTA;
+
 		return metadata;
 	}
 

@@ -15,6 +15,7 @@ import de.embl.cba.tables.SwingUtils;
 import ij3d.Image3DUniverse;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.ARGBType;
 import org.scijava.java3d.Transform3D;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
