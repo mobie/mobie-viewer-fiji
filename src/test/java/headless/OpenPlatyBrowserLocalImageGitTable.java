@@ -17,7 +17,7 @@ public class OpenPlatyBrowserLocalImageGitTable
 
 		final PlatyBrowserSourcesPanel sourcesPanel = platyBrowser.getSourcesPanel();
 
-//		sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-cells-labels" );
+		sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-cells-labels" );
 //		sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-muscles" );
 	}
 }

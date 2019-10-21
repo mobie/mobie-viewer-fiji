@@ -12,6 +12,7 @@ import de.embl.cba.platynereis.utils.SortIgnoreCase;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
+import ij.CompositeImage;
 import ij3d.Image3DUniverse;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -108,11 +109,12 @@ public class PlatyBrowserActionPanel extends JPanel
 				final PixelSpacingDialog dialog = new PixelSpacingDialog( BdvUtils.getViewerVoxelSpacing( bdv )[ 0 ], pixelUnit );
 				if ( ! dialog.showDialog() ) return;
 				Utils.log( "Loading data to capture current view..." );
-				BdvViewCaptures.captureView(
+				final CompositeImage compositeImage = BdvViewCaptures.captureView(
 						bdv,
 						dialog.getPixelSpacing(),
 						pixelUnit,
 						false );
+				compositeImage.show();
 			}).start();
 		}, "capture view", "C" ) ;
 	}
