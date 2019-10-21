@@ -2,7 +2,7 @@ package de.embl.cba.platynereis;
 
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.platynereis.platybrowser.PlatyBrowserUtils;
+import de.embl.cba.bdv.utils.sources.Sources;
 import de.embl.cba.platynereis.utils.FileUtils;
 import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.SourceAndMetadata;
@@ -22,6 +22,8 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	public static final String LABELS_FILE_ID = "-labels" ;
 	public static final String BDV_XML_SUFFIX = ".xml";
 	public static final String EM_RAW_FILE_ID = "-raw";
+	public static final String EM_FILE_ID = "em-";
+	public static final String XRAY_FILE_ID = "xray-";
 	public static final String MASK_FILE_ID = "mask-";
 
 	private Map< String, SourceAndMetadata< ? > > imageIdToSourceAndMetadata;
@@ -66,7 +68,6 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		return false;
 	}
 
-
 	private void addSources( String imageDataLocation )
 	{
 		List< String > imagePaths = getFilePaths( imageDataLocation );
@@ -86,39 +87,57 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	private Metadata createMetadata( String path )
 	{
 		final String imageId = imageId( path );
+
 		final Metadata metadata = new Metadata( imageId );
 		metadata.numSpatialDimensions = 3;
 		metadata.displayName = imageId;
+		setImageModality( imageId, metadata );
 		setDisplayRange( imageId, metadata );
-		setFlavour( imageId, metadata );
-
-		if ( path.contains( "prospr" ) )
-			metadata.displayColor = Color.MAGENTA;
+		setColor( path, metadata );
 
 		return metadata;
 	}
 
-	private void setFlavour( String imageId, Metadata metadata )
+	private void setColor( String path, Metadata metadata )
+	{
+		if ( path.contains( "prospr" ) )
+			metadata.displayColor = Color.MAGENTA;
+	}
+
+	private void setImageModality( String imageId, Metadata metadata )
 	{
 		if ( imageId.contains( LABELS_FILE_ID ) )
 		{
-			metadata.flavour = Metadata.Flavour.LabelSource;
+			metadata.modality = Metadata.Modality.Segmentation;
 			metadata.segmentsTablePath = getTablePath( imageId );
+		}
+		else if ( imageId.contains( EM_FILE_ID ) )
+		{
+			metadata.modality = Metadata.Modality.EM;
+		}
+		else if ( imageId.contains( XRAY_FILE_ID ) )
+		{
+			metadata.modality = Metadata.Modality.XRay;
 		}
 		else
 		{
-			metadata.flavour = Metadata.Flavour.IntensitySource;
+			metadata.modality = Metadata.Modality.FM;
 		}
 	}
 
 	private void setDisplayRange( String imageId, Metadata metadata )
 	{
-		if ( imageId.contains( EM_RAW_FILE_ID ) )
+		if ( metadata.modality.equals( Metadata.Modality.EM ) )
 		{
 			metadata.displayRangeMin = 0.0D;
 			metadata.displayRangeMax = 255.0D;
 		}
-		else if ( imageId.contains( MASK_FILE_ID ))
+		else if ( metadata.modality.equals( Metadata.Modality.XRay )  )
+		{
+			metadata.displayRangeMin = 0.0D;
+			metadata.displayRangeMax = 65535.0D;
+		}
+		else if ( imageId.contains( MASK_FILE_ID ) )
 		{
 			metadata.displayRangeMin = 0.0D;
 			metadata.displayRangeMax = 1.0D;
@@ -128,7 +147,6 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 			metadata.displayRangeMin = 0.0D;
 			metadata.displayRangeMax = 1000.0D;
 		}
-
 	}
 
 	private String getTablePath( String sourceName )
@@ -174,6 +192,7 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 		final LazySpimSource lazySpimSource = new LazySpimSource( imageId, path );
 		final Metadata metadata = createMetadata( path );
 		imageIdToSourceAndMetadata.put( imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
+		Sources.sourceToMetadata.put( lazySpimSource, metadata );
 	}
 
 }

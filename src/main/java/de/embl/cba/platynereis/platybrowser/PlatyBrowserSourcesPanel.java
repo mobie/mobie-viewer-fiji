@@ -279,7 +279,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         final Metadata metadata = sam.metadata();
 
-        if ( metadata.flavour == Metadata.Flavour.LabelSource )
+        if ( metadata.modality == Metadata.Modality.Segmentation )
         {
             if ( ! showAnnotatedLabelsSource( sam ) )
             {
