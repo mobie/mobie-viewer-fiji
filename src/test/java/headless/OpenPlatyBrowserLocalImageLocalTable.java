@@ -11,7 +11,7 @@ public class OpenPlatyBrowserLocalImageLocalTable
 		new ImageJ().ui().showUI();
 
 		final PlatyBrowser platyBrowser = new PlatyBrowser(
-				"0.4.0",
+				"0.6.0",
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data" );
 

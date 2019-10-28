@@ -18,6 +18,7 @@ import de.embl.cba.tables.image.SourceAndMetadata;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.Segments3dView;
 import de.embl.cba.tables.view.SegmentsBdvView;
+import de.embl.cba.tables.view.TableRowsTableView;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
 import ij3d.Content;
 import ij3d.ContentConstants;
@@ -31,6 +32,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -345,9 +347,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
         {
             final List< TableRowImageSegment > segments
                     = createAnnotatedImageSegmentsFromTableFile(
-                    sam.metadata().segmentsTablePath,
-                    sam.metadata().imageId );
+                         sam.metadata().segmentsTablePath,
+                         sam.metadata().imageId );
 
+            // TODO: this is not logical anymore, because there can be several views for different segments...
             views = new SegmentsTableBdvAnd3dViews(
                     segments,
                     createLabelsSourceModel( sam ),
@@ -355,47 +358,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
                     bdv,
                     universe );
 
-            final Segments3dView< TableRowImageSegment > segments3dView
-                    = views.getSegments3dView();
-
-            segments3dView.setShowSegments( Globals.showSegmentsIn3D );
-            segments3dView.setObjectsName( sam.metadata().imageId );
-            segments3dView.setSegmentFocusZoomLevel( 0.1 );
-            segments3dView.setMaxNumSegmentVoxels( 100 * 100 * 100 );
-
-            if ( sam.metadata().imageId.contains( "nuclei" ) )
-            {
-                //segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
-                segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
-                segments3dView.setSegmentFocusDxyMin( 0 );
-                segments3dView.setSegmentFocusDzMin( 0 );
-                segments3dView.setTransparency( 0.0 );
-            }
-            else if ( sam.metadata().imageId.contains( "cells" ) )
-            {
-                //segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
-                segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
-                segments3dView.setSegmentFocusDxyMin( 0 );
-                segments3dView.setSegmentFocusDzMin( 0 );
-                segments3dView.setTransparency( 0.4 );
-            }
-            else if ( sam.metadata().imageId.contains( "chromatin" ) )
-            {
-                //segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
-                segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
-                segments3dView.setSegmentFocusDxyMin( 0 );
-                segments3dView.setSegmentFocusDzMin( 0 );
-                segments3dView.setTransparency( 0.6 );
-            }
-            else
-            {
-                segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
-                segments3dView.setSegmentFocusDxyMin( 0 );
-                segments3dView.setSegmentFocusDzMin( 0 );
-                segments3dView.setTransparency( 0.3 );
-            }
-
-            segments3dView.setAutoResolutionLevel( true );
+            configureSegmentsView( sam );
+            configureTableView( sam );
 
             // update bdv in case this is was first source to be shown.
             bdv = views.getSegmentsBdvView().getBdv();
@@ -423,6 +387,60 @@ public class PlatyBrowserSourcesPanel extends JPanel
         }
 
         return true;
+    }
+
+    private void configureTableView( SourceAndMetadata< ? > sam )
+    {
+        final TableRowsTableView< TableRowImageSegment > tableRowsTableView = views.getTableRowsTableView();
+        final String tablesLocation = new File( sam.metadata().segmentsTablePath ).getParent();
+
+        tableRowsTableView.setTablesDirectory( tablesLocation );
+        tableRowsTableView.setMergeByColumnName( Globals.COLUMN_NAME_SEGMENT_LABEL_ID );
+    }
+
+    private void configureSegmentsView( SourceAndMetadata< ? > sam )
+    {
+        final Segments3dView< TableRowImageSegment > segments3dView
+                = views.getSegments3dView();
+
+        segments3dView.setShowSegments( Globals.showSegmentsIn3D );
+        segments3dView.setObjectsName( sam.metadata().imageId );
+        segments3dView.setSegmentFocusZoomLevel( 0.1 );
+        segments3dView.setMaxNumSegmentVoxels( 100 * 100 * 100 );
+
+        if ( sam.metadata().imageId.contains( "nuclei" ) )
+        {
+            //segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
+            segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
+            segments3dView.setSegmentFocusDxyMin( 0 );
+            segments3dView.setSegmentFocusDzMin( 0 );
+            segments3dView.setTransparency( 0.0 );
+        }
+        else if ( sam.metadata().imageId.contains( "cells" ) )
+        {
+            //segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
+            segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
+            segments3dView.setSegmentFocusDxyMin( 0 );
+            segments3dView.setSegmentFocusDzMin( 0 );
+            segments3dView.setTransparency( 0.4 );
+        }
+        else if ( sam.metadata().imageId.contains( "chromatin" ) )
+        {
+            //segments3dView.setVoxelSpacing3DView( voxelSpacing3DView );
+            segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
+            segments3dView.setSegmentFocusDxyMin( 0 );
+            segments3dView.setSegmentFocusDzMin( 0 );
+            segments3dView.setTransparency( 0.6 );
+        }
+        else
+        {
+            segments3dView.setMeshSmoothingIterations( meshSmoothingIterations );
+            segments3dView.setSegmentFocusDxyMin( 0 );
+            segments3dView.setSegmentFocusDzMin( 0 );
+            segments3dView.setTransparency( 0.3 );
+        }
+
+        segments3dView.setAutoResolutionLevel( true );
     }
 
     public SegmentsTableBdvAnd3dViews getViews()

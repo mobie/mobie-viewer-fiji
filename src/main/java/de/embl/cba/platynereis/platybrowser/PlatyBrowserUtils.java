@@ -1,12 +1,12 @@
 package de.embl.cba.platynereis.platybrowser;
 
+import de.embl.cba.platynereis.Globals;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
 import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import net.imglib2.type.numeric.ARGBType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,8 +17,6 @@ import java.util.Map;
 
 public class PlatyBrowserUtils
 {
-	public static final String COLUMN_NAME_LABEL_IMAGE_ID = "label_image_id";
-	public static final ARGBType MAGENTA = new ARGBType( ARGBType.rgba( 255, 0, 255, 255 ) );
 
 	public static
 	List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
@@ -34,7 +32,7 @@ public class PlatyBrowserUtils
 
 		TableColumns.addLabelImageIdColumn(
 				columns,
-				COLUMN_NAME_LABEL_IMAGE_ID,
+				Globals.COLUMN_NAME_LABEL_IMAGE_ID,
 				imageId );
 
 		final Map< SegmentProperty, List< String > > segmentPropertyToColumn
@@ -99,11 +97,11 @@ public class PlatyBrowserUtils
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.LabelImage,
-				columns.get( COLUMN_NAME_LABEL_IMAGE_ID ));
+				columns.get( Globals.COLUMN_NAME_LABEL_IMAGE_ID ));
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.ObjectLabel,
-				columns.get( "label_id" ) );
+				columns.get( Globals.COLUMN_NAME_SEGMENT_LABEL_ID ) );
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.X,
