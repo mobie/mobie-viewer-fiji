@@ -12,10 +12,10 @@ import java.io.File;
 @Plugin(type = Command.class, menuPath = "Plugins>EMBL>Explore>Platynereis Atlas" )
 public class PlatyBrowserCommand implements Command
 {
-	@Parameter ( label = "Image Data Location", style = "directory" )
+	@Parameter ( label = "Image data", style = "directory" )
 	public File imagesLocation = new File("/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data");
 
-	@Parameter ( label = "Table Data Location" )
+	@Parameter ( label = "Table data" )
 	public String tablesLocation = "https://git.embl.de/tischer/platy-browser-tables/raw/master/data";
 
 	@Override

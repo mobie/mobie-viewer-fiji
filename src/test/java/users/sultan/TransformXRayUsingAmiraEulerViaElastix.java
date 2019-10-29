@@ -71,7 +71,7 @@ public class TransformXRayUsingAmiraEulerViaElastix
 
 		settings.logService = imageJ.log();
 		settings.elastixDirectory = "/Applications/elastix_macosx64_v4.8";
-		settings.workingDirectory = "/Users/tischer/Desktop/elastix-tmp/";
+		settings.tmpDir = "/Users/tischer/Desktop/elastix-tmp/";
 		settings.movingImageFilePath = xRayPath;
 		settings.transformationFilePath = elastixTransformPath;
 		settings.numWorkers = 4;

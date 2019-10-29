@@ -22,7 +22,6 @@ import de.embl.cba.tables.view.TableRowsTableView;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
 import ij3d.Content;
 import ij3d.ContentConstants;
-import ij3d.DefaultUniverse;
 import ij3d.Image3DUniverse;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.type.numeric.ARGBType;
@@ -32,7 +31,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -71,9 +69,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelsViews = new LinkedHashMap<>();
+
         voxelSpacing3DView = 0.05;
         meshSmoothingIterations = 5;
-        universe = new Image3DUniverse();
 
         configPanel();
 //        initColors();
@@ -136,11 +134,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     public Image3DUniverse getUniverse()
     {
-        final DefaultUniverse.GlobalTransform globalTransform = new DefaultUniverse.GlobalTransform();
-        //universe.setGlobalTransform(  );
         return universe;
     }
-
 
     public int getMeshSmoothingIterations()
     {
@@ -172,7 +167,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         if ( ! Globals.showVolumesIn3D.get() ) return;
 
-        if ( universe == null ) universe = new Image3DUniverse();
+        if ( universe == null ) init3DUniverse();
 
         UniverseUtils.showUniverseWindow( universe, bdv.getViewerPanel() );
 
@@ -194,7 +189,12 @@ public class PlatyBrowserSourcesPanel extends JPanel
         sourceAndMetadata.metadata().content = content;
     }
 
-    class DisplaySettings3DViewer
+	private void init3DUniverse()
+	{
+		universe = new Image3DUniverse();
+	}
+
+	class DisplaySettings3DViewer
     {
         int displayMode;
         float transparency;
@@ -392,7 +392,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private void configureTableView( SourceAndMetadata< ? > sam )
     {
         final TableRowsTableView< TableRowImageSegment > tableRowsTableView = views.getTableRowsTableView();
-        final String tablesLocation = new File( sam.metadata().segmentsTablePath ).getParent();
+
+        final String tablesLocation = FileUtils.getParentLocation( sam.metadata().segmentsTablePath );
 
         tableRowsTableView.setTablesDirectory( tablesLocation );
         tableRowsTableView.setMergeByColumnName( Globals.COLUMN_NAME_SEGMENT_LABEL_ID );

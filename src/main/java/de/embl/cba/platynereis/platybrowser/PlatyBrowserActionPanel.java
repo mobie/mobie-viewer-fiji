@@ -38,6 +38,7 @@ public class PlatyBrowserActionPanel extends JPanel
 	private double[] targetNormalVector;
 	private double geneSearchRadiusInMicrometer;
 	private HashMap< String, String > selectionNameAndModalityToSourceName;
+	private ArrayList< String > sortedModalities;
 
 	public PlatyBrowserActionPanel( PlatyBrowserSourcesPanel sourcesPanel )
 	{
@@ -369,8 +370,6 @@ public class PlatyBrowserActionPanel extends JPanel
 
 	private void addSourceSelectionUI( JPanel panel )
 	{
-		final HashMap< String, JComboBox > modalityToJComboBox = new HashMap<>();
-
 		selectionNameAndModalityToSourceName = new HashMap<>();
 		HashMap< String, ArrayList< String > > modalityToSelectionNames = new HashMap<>();
 
@@ -412,7 +411,7 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		}
 
-		final ArrayList< String > sortedModalities = getSortedList( modalityToSelectionNames.keySet() );
+		sortedModalities = getSortedList( modalityToSelectionNames.keySet() );
 
 		for ( String modality : sortedModalities )
 		{
@@ -420,6 +419,11 @@ public class PlatyBrowserActionPanel extends JPanel
 			final JComboBox< String > comboBox = new JComboBox<>( names );
 			addSourceSelectionComboBoxAndButton( panel, comboBox, modality );
 		}
+	}
+
+	public ArrayList< String > getSortedModalities()
+	{
+		return sortedModalities;
 	}
 
 	private void addSourceSelectionComboBoxAndButton(

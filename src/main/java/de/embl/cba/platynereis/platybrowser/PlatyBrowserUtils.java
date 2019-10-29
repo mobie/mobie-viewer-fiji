@@ -17,7 +17,6 @@ import java.util.Map;
 
 public class PlatyBrowserUtils
 {
-
 	public static
 	List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
 			String tablePath,
@@ -25,10 +24,11 @@ public class PlatyBrowserUtils
 	{
 		Utils.log( "Opening table: " + tablePath );
 
-		String absoluteTablePath = resolveTableURL( URI.create( tablePath ) );
+		if ( tablePath.startsWith( "http" ) )
+			tablePath = resolveTableURL( URI.create( tablePath ) );
 
 		Map< String, List< String > > columns =
-						TableColumns.stringColumnsFromTableFile( absoluteTablePath );
+						TableColumns.stringColumnsFromTableFile( tablePath );
 
 		TableColumns.addLabelImageIdColumn(
 				columns,
@@ -51,7 +51,6 @@ public class PlatyBrowserUtils
 		{
 			URI relativeURI = URI.create( getRelativePath( uri.toString() ) );
 			uri = uri.resolve( relativeURI ).normalize();
-			Utils.log("URL was a link. Resolved URL is: " + uri );
 		}
 
 		return uri.toString();

@@ -117,6 +117,14 @@ public class FileUtils
 		return is;
 	}
 
+	public static String getParentLocation( String segmentsTablePath )
+	{
+		String tablesLocation = new File( segmentsTablePath ).getParent();
+		if ( tablesLocation.contains( ":/" ) && ! tablesLocation.contains( "://" ) )
+			tablesLocation = tablesLocation.replace( ":/", "://" );
+		return tablesLocation;
+	}
+
 	public static class SortFilesIgnoreCase implements Comparator<File>
 	{
 		public int compare( File o1, File o2 )
