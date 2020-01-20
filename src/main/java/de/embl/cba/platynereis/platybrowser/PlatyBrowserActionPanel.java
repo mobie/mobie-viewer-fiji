@@ -16,7 +16,6 @@ import ij.CompositeImage;
 import ij3d.Image3DUniverse;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.numeric.ARGBType;
 import org.scijava.java3d.Transform3D;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -91,7 +90,7 @@ public class PlatyBrowserActionPanel extends JPanel
 		addPositionAndViewLoggingBehaviour( this );
 		addPointOverlayTogglingBehaviour();
 		addLocalGeneSearchBehaviour();
-		addViewCaptureBehaviour();
+		addViewCaptureBehaviour( bdv, behaviours );
 	}
 
 	private void configPanel()
@@ -101,13 +100,13 @@ public class PlatyBrowserActionPanel extends JPanel
 		this.repaint();
 	}
 
-	public void addViewCaptureBehaviour()
+	public static void addViewCaptureBehaviour( BdvHandle bdv, Behaviours behaviours )
 	{
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) ->
 		{
 			new Thread( () -> {
 				final String pixelUnit = "micrometer";
-				final PixelSpacingDialog dialog = new PixelSpacingDialog( BdvUtils.getViewerVoxelSpacing( bdv )[ 0 ], pixelUnit );
+				final PixelSpacingDialog dialog = new PixelSpacingDialog( BdvUtils.getViewerVoxelSpacing( bdv ), pixelUnit );
 				if ( ! dialog.showDialog() ) return;
 				Utils.log( "Loading data to capture current view..." );
 				final CompositeImage compositeImage = BdvViewCaptures.captureView(

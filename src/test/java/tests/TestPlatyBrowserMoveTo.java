@@ -6,7 +6,7 @@ import org.junit.Test;
 
 public class TestPlatyBrowserMoveTo
 {
-	@Test
+//	@Test
 	public void moveToPoint( )
 	{
 		new ImageJ().ui().showUI();

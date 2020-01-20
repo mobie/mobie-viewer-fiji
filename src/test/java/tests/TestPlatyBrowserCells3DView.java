@@ -12,7 +12,7 @@ import java.util.List;
 
 public class TestPlatyBrowserCells3DView
 {
-	@Test
+//	@Test
 	public void viewSmallAndLargeCellIn3D( )
 	{
 		new ImageJ().ui().showUI();

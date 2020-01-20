@@ -11,7 +11,6 @@ import java.util.List;
 
 public class BdvPointOverlay extends BdvOverlay
 {
-
 	final List< RealPoint > points;
 	private final double depthOfField;
 
@@ -22,7 +21,6 @@ public class BdvPointOverlay extends BdvOverlay
 		this.points.add( new RealPoint( point ) );
 		this.depthOfField = depthOfField;
 	}
-
 
 	public BdvPointOverlay( RealPoint point, double depthOfField )
 	{
