@@ -1,15 +1,8 @@
 package tests;
 
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import de.embl.cba.platynereis.platybrowser.Bookmark;
-import de.embl.cba.platynereis.platybrowser.PlatyViews;
+import de.embl.cba.platynereis.platyviews.PlatyViews;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.ArrayList;
 
 public class TestBookmarksLoadingFromGitlab
 {

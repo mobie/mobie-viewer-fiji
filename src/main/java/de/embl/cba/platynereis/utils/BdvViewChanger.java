@@ -3,8 +3,7 @@ package de.embl.cba.platynereis.utils;
 import bdv.util.*;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.platybrowser.BdvPointOverlay;
-import de.embl.cba.platynereis.platybrowser.PlatyViews;
-import net.imglib2.RealPoint;
+import de.embl.cba.platynereis.platyviews.PlatyViews;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.ArrayList;
