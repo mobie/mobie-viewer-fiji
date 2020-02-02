@@ -83,7 +83,6 @@ public class PlatyBrowser extends JFrame
 		} ).start();
 	}
 
-
 	public void showFrame()
 	{
 		JSplitPane splitPane = new JSplitPane();

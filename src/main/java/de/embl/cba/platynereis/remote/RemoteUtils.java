@@ -14,7 +14,7 @@ import java.util.Map;
 
 public abstract class RemoteUtils
 {
-	public static Map< String, String > getDatasetUrlMap( final String remoteUrl ) throws IOException
+	public static Map< String, String > getDatasetUrlMapFromBigDataServer( final String remoteUrl ) throws IOException
 	{
 		Map< String, String > datasetUrlMap = new HashMap<>();
 
@@ -67,4 +67,30 @@ public abstract class RemoteUtils
 
 		return datasetUrlMap;
 	}
+
+
+	public static Map< String, String > getImageIdToXmlMap( final String remoteUrl ) throws IOException
+	{
+		Map< String, String > imageIdToXml = new HashMap<>();
+
+		// Get JSON string from the server
+		final URL url = new URL( remoteUrl + "/images/images.json" );
+
+		final InputStream is = url.openStream();
+		final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
+
+		reader.beginArray();
+		while ( reader.hasNext() )
+		{
+			final String imageId = reader.nextString();
+			final String datasetUrl = remoteUrl +"/images/s3-n5/" + imageId + ".xml";
+			imageIdToXml.put( imageId, datasetUrl );
+		}
+
+		reader.endArray();
+		reader.close();
+
+		return imageIdToXml;
+	}
+
 }

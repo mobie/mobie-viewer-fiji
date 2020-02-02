@@ -55,6 +55,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
                                      String imageDataLocation,
                                      String tableDataLocation )
     {
+        // TODO
         imageDataLocation = FileUtils.combinePath( imageDataLocation, version );
         tableDataLocation = FileUtils.combinePath( tableDataLocation, version, "tables" );
 
@@ -131,7 +132,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
         setSourceColor( sam, color, jPanel );
     }
 
-
     public Image3DUniverse getUniverse()
     {
         return universe;
@@ -172,8 +172,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
         UniverseUtils.showUniverseWindow( universe, bdv.getViewerPanel() );
 
         DisplaySettings3DViewer settings = getDisplaySettings3DViewer( sourceAndMetadata );
-
-        SpimData spimData;
 
         final Content content = UniverseUtils.addSourceToUniverse(
                 universe,
@@ -240,7 +238,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
             return;
         }
 
-        addSourceToPanelAndViewer( getSourceAndMetadata( sourceName ) );
+        final SourceAndMetadata< ? > sourceAndMetadata = getSourceAndMetadata( sourceName );
+
+        addSourceToPanelAndViewer( sourceAndMetadata );
     }
 
     public SourceAndMetadata< ? > getSourceAndMetadata( String sourceName )

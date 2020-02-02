@@ -17,7 +17,7 @@ public class TestBigDataServer
 	public static void main( String[] args ) throws IOException, SpimDataException
 	{
 		final Map< String, String > datasetUrlMap
-				= RemoteUtils.getDatasetUrlMap( "https://bigdata-cbb.embl.de/" );
+				= RemoteUtils.getDatasetUrlMapFromBigDataServer( "https://bigdata-cbb.embl.de/" );
 
 		Bdv bdv = null;
 

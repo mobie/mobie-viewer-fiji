@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import de.embl.cba.platynereis.utils.FileUtils;
+import de.embl.cba.platynereis.utils.Version;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,10 +34,24 @@ public class PlatyViews
 
 	public PlatyViews( String viewsSourcePath )
 	{
+		this( viewsSourcePath, "0.0.0" );
+	}
+
+	public PlatyViews( String viewsSourcePath, String versionString )
+	{
+		final Version version = new Version( versionString );
+
 		nameToView = new HashMap<>();
 		try
 		{
-			readViewsFromFile( viewsSourcePath );
+			if ( version.compareTo( new Version( "0.6.5" ) ) > 0 )
+			{
+				readViewsFromFileV2( viewsSourcePath );
+			}
+			else
+			{
+				readViewsFromFile( viewsSourcePath );
+			}
 		} catch ( IOException e )
 		{
 			e.printStackTrace();
@@ -51,9 +66,45 @@ public class PlatyViews
 	private void readViewsFromFile( String jsonFilePath ) throws IOException
 	{
 		InputStream is = FileUtils.getInputStream( jsonFilePath );
-
 		final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
+		reader.beginObject();
 
+		bookmarks = new ArrayList<>();
+
+		try
+		{
+			while ( reader.hasNext() )
+			{
+				final Bookmark bookmark = new Bookmark();
+				bookmark.name = reader.nextName();
+				reader.beginObject();
+				addPositionOrView( reader, bookmark );
+				final JsonToken peek = reader.peek();
+				if ( peek.equals( JsonToken.NAME ) )
+					addPositionOrView( reader, bookmark );
+				reader.endObject();
+
+				bookmarks.add( bookmark );
+
+				if ( bookmark.view != null )
+					nameToView.put(	bookmark.name, bookmark.view );
+				else
+					nameToView.put(	bookmark.name, bookmark.position );
+			}
+		}
+		catch ( Exception e )
+		{
+			final String x = e.toString();
+			System.err.println( x );
+		}
+
+		reader.close();
+	}
+
+	private void readViewsFromFileV2( String jsonFilePath ) throws IOException
+	{
+		InputStream is = FileUtils.getInputStream( jsonFilePath );
+		final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
 		reader.beginObject();
 
 		bookmarks = new ArrayList<>();
@@ -90,8 +141,7 @@ public class PlatyViews
 
 	public static void addPositionOrView( JsonReader reader, Bookmark bookmark ) throws IOException
 	{
-		String name;
-		name = reader.nextName();
+		String name = reader.nextName();
 		if ( name.equals( "Position") )
 		{
 			bookmark.position = new double[ 3 ];

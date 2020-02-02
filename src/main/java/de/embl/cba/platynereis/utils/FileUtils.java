@@ -58,14 +58,30 @@ public class FileUtils
 		return paths;
 	}
 
-	public static List< String > getUrls( String dataFolder )
+	/**
+	 * Fetch paths to images stored in a remote location.
+	 * Currently this could be
+	 * i) a git(hub) repo with a json file contain all image names
+	 * ii) a bigdataserver.
+	 *
+	 * @param dataLocation
+	 * @return
+	 */
+	public static List< String > getUrls( String dataLocation )
 	{
 		try
 		{
-			final Map< String, String > datasetUrlMap
-					= RemoteUtils.getDatasetUrlMap( dataFolder );
-
-			return new ArrayList( datasetUrlMap.values() );
+			if ( dataLocation.contains( "git.embl.de" ) )
+			{
+				// TODO: improve below function to also handle hdf5
+				final Map< String, String > datasetUrlMap = RemoteUtils.getImageIdToXmlMap( dataLocation );
+				return new ArrayList( datasetUrlMap.values() );
+			}
+			else
+			{
+				final Map< String, String > datasetUrlMap = RemoteUtils.getDatasetUrlMapFromBigDataServer( dataLocation );
+				return new ArrayList( datasetUrlMap.values() );
+			}
 		}
 		catch ( IOException e )
 		{

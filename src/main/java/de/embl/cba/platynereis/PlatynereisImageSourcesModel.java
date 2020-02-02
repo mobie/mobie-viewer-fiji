@@ -53,7 +53,6 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 				addSources( folder );
 			}
 		}
-
 	}
 
 	@Override
@@ -70,13 +69,13 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 
 	private void addSources( String imageDataLocation )
 	{
-		List< String > imagePaths = getFilePaths( imageDataLocation );
+		List< String > imageLocations = getImageLocations( imageDataLocation );
 
-		for ( String path : imagePaths )
-			addSource( path );
+		for ( String imageLocation : imageLocations )
+			addSource( imageLocation );
 	}
 
-	private List< String > getFilePaths( String imageDataLocation )
+	private List< String > getImageLocations( String imageDataLocation )
 	{
 		if ( imageDataLocation.startsWith( "http" ) )
 			return FileUtils.getUrls( imageDataLocation );
