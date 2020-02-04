@@ -47,7 +47,6 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 		imageIdToSourceAndMetadata = new HashMap<>();
 
 		addSources( imageDataLocation );
-
 	}
 
 	@Override
@@ -64,7 +63,7 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 
 	private void addSources( String imageDataLocation )
 	{
-		final String imagesJsonLocation = FileUtils.combinePath( imageDataLocation, "images.json" );
+		final String imagesJsonLocation = FileUtils.combinePath( imageDataLocation, "/images/images.json" );
 
 		try
 		{
@@ -82,15 +81,17 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 					metadata.numSpatialDimensions = 3;
 					metadata.displayName = imageId;
 					setImageModality( imageId, metadata );
+					reader.beginObject();
 					while ( ! reader.peek().equals( JsonToken.END_OBJECT ) )
 						addImageMetadata( reader, metadata );
+					reader.endObject();
 
 					//TODO: make this h5 for openning from local
-					final String imageXmlUrl = imageDataLocation +"/s3-n5/" + imageId + ".xml";
+					final String imageXmlUrl = FileUtils.combinePath( imageDataLocation, "images", "remote",  imageId + ".xml");
 
 					final LazySpimSource lazySpimSource = new LazySpimSource( imageId, imageXmlUrl );
-
-					imageIdToSourceAndMetadata.put( imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
+					imageIdToSourceAndMetadata.put(
+							imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
 					Sources.sourceToMetadata.put( lazySpimSource, metadata );
 
 				}
@@ -115,24 +116,27 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 		final String nextName = reader.nextName();
 		if ( nextName.equals( "TableFolder" ) )
 		{
-			//FileUtils.combinePath( tableDataLocation, sourceName, "default.csv" );
-			metadata.segmentsTablePath = reader.nextString();
-			int a = 1;
+			metadata.segmentsTablePath = FileUtils.combinePath( tableDataLocation, reader.nextString(), "default.csv");
 		}
 		else if ( nextName.equals( "Color" ) )
 		{
 			metadata.displayColor = Utils.getColor( reader.nextString() );
 		}
-		else if ( nextName.equals( "MaxValue" ) )
+		else if ( nextName.equals( "MinValue" ) )
 		{
 			metadata.displayRangeMin = reader.nextDouble();
 		}
-		else if ( nextName.equals( "MinValue" ) )
+		else if ( nextName.equals( "MaxValue" ) )
 		{
 			metadata.displayRangeMax = reader.nextDouble();
 		}
+		else if ( nextName.equals( "PainteraProject" ) )
+		{
+			reader.nextString();
+		}
 		else
 		{
+			reader.nextNull();
 			throw new UnsupportedOperationException( "Unexpected key in images.json: " + nextName );
 		}
 	}

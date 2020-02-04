@@ -74,8 +74,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
         else
         {
             imageSourcesModel = new PlatyBrowserImageSourcesModelVersion1(
-                    FileUtils.combinePath( imageDataLocation, "images"),
-                    FileUtils.combinePath( tableDataLocation, "tables")
+                    imageDataLocation,
+                    tableDataLocation
             );
         }
 
