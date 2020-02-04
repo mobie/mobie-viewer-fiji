@@ -7,9 +7,9 @@ import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.Globals;
-import de.embl.cba.platynereis.PlatynereisImageSourcesModel;
 import de.embl.cba.platynereis.utils.FileUtils;
 import de.embl.cba.platynereis.utils.Utils;
+import de.embl.cba.platynereis.utils.Version;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.ij3d.UniverseUtils;
 import de.embl.cba.tables.image.DefaultImageSourcesModel;
@@ -23,7 +23,6 @@ import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
 import ij3d.Content;
 import ij3d.ContentConstants;
 import ij3d.Image3DUniverse;
-import mpicbg.spim.data.SpimData;
 import net.imglib2.type.numeric.ARGBType;
 import org.scijava.vecmath.Color3f;
 
@@ -51,28 +50,42 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private SegmentsTableBdvAnd3dViews views;
     private boolean isBdvShownFirstTime = true;
 
-    public PlatyBrowserSourcesPanel( String version,
+    public PlatyBrowserSourcesPanel( String versionString,
                                      String imageDataLocation,
                                      String tableDataLocation )
     {
-        // TODO
-        imageDataLocation = FileUtils.combinePath( imageDataLocation, version );
-        tableDataLocation = FileUtils.combinePath( tableDataLocation, version, "tables" );
+        imageDataLocation = FileUtils.combinePath( imageDataLocation, versionString );
+        tableDataLocation = FileUtils.combinePath( tableDataLocation, versionString );
 
         Utils.log( "");
         Utils.log( "# Fetching data");
         Utils.log( "Fetching image data from: " + imageDataLocation );
         Utils.log( "Fetching table data from: " + tableDataLocation );
 
-        imageSourcesModel = new PlatynereisImageSourcesModel(
-                imageDataLocation,
-                tableDataLocation );
+        final Version version = new Version( versionString );
+
+        if ( version.compareTo( new Version( "0.8.0" ) ) < 0 )
+        {
+            imageSourcesModel = new PlatyBrowserImageSourcesModelVersion0(
+                    imageDataLocation,
+                    tableDataLocation
+            );
+        }
+        else
+        {
+            imageSourcesModel = new PlatyBrowserImageSourcesModelVersion1(
+                    FileUtils.combinePath( imageDataLocation, "images"),
+                    FileUtils.combinePath( tableDataLocation, "tables")
+            );
+        }
+
 
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelsViews = new LinkedHashMap<>();
 
         voxelSpacing3DView = 0.05;
         meshSmoothingIterations = 5;
+
 
         configPanel();
 //        initColors();
@@ -310,7 +323,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         final BdvStackSource bdvStackSource = BdvFunctions.show(
                 sam.source(),
                 1,
-                BdvOptions.options().addTo( bdv ) );
+                BdvOptions.options().addTo( bdv ).targetRenderNanos( 30 * 1000000l ) );
 
         bdvStackSource.setActive( true );
 

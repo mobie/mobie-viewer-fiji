@@ -24,9 +24,6 @@ import java.util.List;
 
 public class Utils
 {
-
-
-
 	public static double[] delimitedStringToDoubleArray( String s, String delimiter) {
 
 		String[] sA = s.split(delimiter);
@@ -38,9 +35,14 @@ public class Utils
 		return nums;
 	}
 
-
-
-
+	public static Color getColor(String name) {
+		try {
+			return (Color)Color.class.getField(name.toUpperCase()).get(null);
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	public static long[] asLongs( double[] doubles )
 	{

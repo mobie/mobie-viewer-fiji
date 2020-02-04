@@ -47,13 +47,12 @@ public class PlatyViews
 		{
 			if ( version.compareTo( new Version( "0.6.5" ) ) > 0 )
 			{
-				readViewsFromFileV2( viewsSourcePath );
+				readViewsFromJsonV1( viewsSourcePath );
 			}
 			else
 			{
-				readViewsFromFile( viewsSourcePath );
+				readViewsFromJsonV0( viewsSourcePath );
 			}
-
 		} catch ( IOException e )
 		{
 			e.printStackTrace();
@@ -65,7 +64,7 @@ public class PlatyViews
 		return nameToView;
 	}
 
-	private void readViewsFromFile( String jsonFilePath ) throws IOException
+	private void readViewsFromJsonV0( String jsonFilePath ) throws IOException
 	{
 		InputStream is = FileUtils.getInputStream( jsonFilePath );
 		final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
@@ -103,7 +102,7 @@ public class PlatyViews
 		reader.close();
 	}
 
-	private void readViewsFromFileV2( String jsonFilePath ) throws IOException
+	private void readViewsFromJsonV1( String jsonFilePath ) throws IOException
 	{
 		InputStream is = FileUtils.getInputStream( jsonFilePath );
 		final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
@@ -203,6 +202,7 @@ public class PlatyViews
 		reader.endObject();
 	}
 
+	// TODO: fetch what is possible with Metadata instead of ImageLayer
 	public void addImageLayerProperty( JsonReader reader, ImageLayer imageLayer ) throws IOException
 	{
 		nextName = reader.nextName();

@@ -1,4 +1,4 @@
-package de.embl.cba.platynereis;
+package de.embl.cba.platynereis.platybrowser;
 
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PlatynereisImageSourcesModel implements ImageSourcesModel
+public class PlatyBrowserImageSourcesModelVersion0 implements ImageSourcesModel
 {
 	public static final String LABELS_FILE_ID = "-labels" ;
 	public static final String BDV_XML_SUFFIX = ".xml";
@@ -27,12 +27,14 @@ public class PlatynereisImageSourcesModel implements ImageSourcesModel
 	public static final String MASK_FILE_ID = "mask-";
 
 	private Map< String, SourceAndMetadata< ? > > imageIdToSourceAndMetadata;
+	private final String imageDataLocation;
 	private final String tableDataLocation;
 
-	public PlatynereisImageSourcesModel(
+	public PlatyBrowserImageSourcesModelVersion0(
 			String imageDataLocation,
 			String tableDataLocation )
 	{
+		this.imageDataLocation = imageDataLocation;
 		this.tableDataLocation = tableDataLocation;
 
 		imageIdToSourceAndMetadata = new HashMap<>();
