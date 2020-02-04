@@ -5,32 +5,24 @@ import com.google.gson.stream.JsonToken;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.bdv.utils.sources.Sources;
-import de.embl.cba.platynereis.platyviews.ImageLayer;
 import de.embl.cba.platynereis.utils.FileUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.SourceAndMetadata;
-import mpicbg.spim.data.SpimData;
-import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.XmlIoSpimData;
 
-import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 {
-	public static final String LABELS_FILE_ID = "-labels" ;
+	public static final String SEGMENTATION_ID = "-segmented" ;
 	public static final String BDV_XML_SUFFIX = ".xml";
 	public static final String EM_RAW_FILE_ID = "-raw";
-	public static final String EM_FILE_ID = "em-";
-	public static final String XRAY_FILE_ID = "xray-";
+	public static final String EM_ID = "em-";
+	public static final String XRAY_ID = "xray-";
 	public static final String MASK_FILE_ID = "mask-";
 
 	private Map< String, SourceAndMetadata< ? > > imageIdToSourceAndMetadata;
@@ -143,16 +135,15 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 
 	private void setImageModality( String imageId, Metadata metadata )
 	{
-		if ( imageId.contains( LABELS_FILE_ID ) )
+		if ( imageId.contains( SEGMENTATION_ID ) )
 		{
 			metadata.modality = Metadata.Modality.Segmentation;
-			//metadata.segmentsTablePath = getTablePath( imageId );
 		}
-		else if ( imageId.contains( EM_FILE_ID ) )
+		else if ( imageId.contains( EM_ID ) )
 		{
 			metadata.modality = Metadata.Modality.EM;
 		}
-		else if ( imageId.contains( XRAY_FILE_ID ) )
+		else if ( imageId.contains( XRAY_ID ) )
 		{
 			metadata.modality = Metadata.Modality.XRay;
 		}

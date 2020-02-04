@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class PlatyBrowserImageSourcesModelVersion0 implements ImageSourcesModel
 {
-	public static final String LABELS_FILE_ID = "-labels" ;
+	public static final String LABELS_FILE_ID = "-segmented" ;
 	public static final String BDV_XML_SUFFIX = ".xml";
 	public static final String EM_RAW_FILE_ID = "-raw";
 	public static final String EM_FILE_ID = "em-";
