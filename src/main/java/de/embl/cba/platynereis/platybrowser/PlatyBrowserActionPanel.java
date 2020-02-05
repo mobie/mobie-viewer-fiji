@@ -2,17 +2,16 @@ package de.embl.cba.platynereis.platybrowser;
 
 import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.capture.BdvViewCaptures;
-import de.embl.cba.bdv.utils.capture.PixelSpacingDialog;
+import de.embl.cba.bdv.utils.behaviour.BdvBehaviours;
 import de.embl.cba.platynereis.GeneSearch;
 import de.embl.cba.platynereis.GeneSearchResults;
 import de.embl.cba.platynereis.Globals;
+import de.embl.cba.platynereis.platyviews.PlatyViews;
 import de.embl.cba.platynereis.utils.BdvViewChanger;
 import de.embl.cba.platynereis.utils.SortIgnoreCase;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
-import ij.CompositeImage;
 import ij3d.Image3DUniverse;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -31,6 +30,7 @@ public class PlatyBrowserActionPanel extends JPanel
 
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private BdvHandle bdv;
+	private final PlatyViews platyViews;
 	private Behaviours behaviours;
 
 	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
@@ -39,14 +39,16 @@ public class PlatyBrowserActionPanel extends JPanel
 	private HashMap< String, String > selectionNameAndModalityToSourceName;
 	private ArrayList< String > sortedModalities;
 
-	public PlatyBrowserActionPanel( PlatyBrowserSourcesPanel sourcesPanel )
+	public PlatyBrowserActionPanel( PlatyBrowserSourcesPanel sourcesPanel, PlatyViews platyViews )
 	{
 		this.sourcesPanel = sourcesPanel;
+		this.platyViews = platyViews;
+
 		bdv = sourcesPanel.getBdv();
 		installBdvBehaviours();
 
 		addSourceSelectionUI( this );
-		addMoveToViewUI( this  );
+		addViewUI( this  );
 		addLevelingUI( this );
 		addShowSegmentsIn3DUI( this );
 		configPanel();
@@ -90,7 +92,8 @@ public class PlatyBrowserActionPanel extends JPanel
 		addPositionAndViewLoggingBehaviour( this );
 		addPointOverlayTogglingBehaviour();
 		addLocalGeneSearchBehaviour();
-		addViewCaptureBehaviour( bdv, behaviours );
+		BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "shift C" );
+		BdvBehaviours.addSimpleViewCaptureBehaviour( bdv, behaviours, "C" );
 	}
 
 	private void configPanel()
@@ -98,25 +101,6 @@ public class PlatyBrowserActionPanel extends JPanel
 		this.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
 		this.revalidate();
 		this.repaint();
-	}
-
-	public static void addViewCaptureBehaviour( BdvHandle bdv, Behaviours behaviours )
-	{
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) ->
-		{
-			new Thread( () -> {
-				final String pixelUnit = "micrometer";
-				final PixelSpacingDialog dialog = new PixelSpacingDialog( BdvUtils.getViewerVoxelSpacing( bdv ), pixelUnit );
-				if ( ! dialog.showDialog() ) return;
-				Utils.log( "Loading data to capture current view..." );
-				final CompositeImage compositeImage = BdvViewCaptures.captureView(
-						bdv,
-						dialog.getPixelSpacing(),
-						pixelUnit,
-						false );
-				compositeImage.show();
-			}).start();
-		}, "capture view", "C" ) ;
 	}
 
 	private void addPointOverlayTogglingBehaviour(  )
@@ -486,11 +470,11 @@ public class PlatyBrowserActionPanel extends JPanel
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private void addMoveToViewUI( JPanel panel )
+	private void addViewUI( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton moveToButton = new JButton( "Move to" );
+		final JButton viewButton = new JButton( "View" );
 
 		final String[] bookmarkNames = getBookmarkNames();
 
@@ -499,9 +483,9 @@ public class PlatyBrowserActionPanel extends JPanel
 		viewsChoices.setMaximumSize( new Dimension( 200, TEXT_FIELD_HEIGHT ) );
 		viewsChoices.setMinimumSize( new Dimension(  200, TEXT_FIELD_HEIGHT ) );
 
-		moveToButton.addActionListener( e -> setView( ( String ) viewsChoices.getSelectedItem() ) );
+		viewButton.addActionListener( e -> platyViews.setView( ( String ) viewsChoices.getSelectedItem() ) );
 
-		horizontalLayoutPanel.add( moveToButton );
+		horizontalLayoutPanel.add( viewButton );
 		horizontalLayoutPanel.add( viewsChoices );
 
 		panel.add( horizontalLayoutPanel );
@@ -509,7 +493,7 @@ public class PlatyBrowserActionPanel extends JPanel
 
 	private String[] getBookmarkNames()
 	{
-		final Set< String > viewNames = BdvViewChanger.views.views().keySet();
+		final Set< String > viewNames = BdvViewChanger.platyViews.views().keySet();
 		final String[] positionsAndViews = new String[ viewNames.size() + 1 ];
 		positionsAndViews[ 0 ] = "...type here...                                                           ";
 		final Iterator< String > iterator = viewNames.iterator();

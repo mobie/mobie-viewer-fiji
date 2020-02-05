@@ -2,6 +2,7 @@ package de.embl.cba.platynereis.platybrowser;
 
 import bdv.tools.HelpDialog;
 import de.embl.cba.platynereis.Constants;
+import de.embl.cba.platynereis.platyviews.PlatyViews;
 import de.embl.cba.platynereis.utils.BdvViewChanger;
 import de.embl.cba.platynereis.utils.FileUtils;
 import ij.gui.NonBlockingGenericDialog;
@@ -31,9 +32,9 @@ public class PlatyBrowser extends JFrame
 
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 
-		BdvViewChanger.initPlatyViews( FileUtils.combinePath( tableDataLocation, version, "misc/bookmarks.json") );
+		final PlatyViews platyViews = new PlatyViews( FileUtils.combinePath( tableDataLocation, version, "misc/bookmarks.json" ) );
 
-		actionPanel = new PlatyBrowserActionPanel( sourcesPanel );
+		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, platyViews );
 
 		setJMenuBar( createMenuBar() );
 		showFrame();

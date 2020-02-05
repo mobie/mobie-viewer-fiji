@@ -1,6 +1,9 @@
 package de.embl.cba.platynereis.utils;
 
 import bdv.ViewerSetupImgLoader;
+import com.google.gson.GsonBuilder;
+import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.stream.JsonReader;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
@@ -19,6 +22,9 @@ import net.imglib2.util.Intervals;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
 import java.util.List;
 
@@ -239,5 +245,13 @@ public class Utils
 		{
 			e.printStackTrace();
 		}
+	}
+
+	public static LinkedTreeMap getLinkedTreeMap( String jsonFilePath ) throws IOException
+	{
+		InputStream is = FileUtils.getInputStream( jsonFilePath );
+		final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
+		GsonBuilder builder = new GsonBuilder();
+		return builder.create().fromJson( reader, Object.class );
 	}
 }

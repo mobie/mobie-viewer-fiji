@@ -17,8 +17,7 @@ import java.util.Arrays;
  */
 public abstract class BdvViewChanger
 {
-
-	public static PlatyViews views = new PlatyViews();
+	public static PlatyViews platyViews = new PlatyViews();
 
 	public static ArrayList< BdvOverlay > pointOverlays = new ArrayList<>(  );
 	private static BdvOverlaySource< BdvOverlay > pointOverlaySource;
@@ -27,7 +26,7 @@ public abstract class BdvViewChanger
 
 	public static void initPlatyViews( String viewsSourcePath )
 	{
-		views = new PlatyViews( viewsSourcePath );
+		platyViews = new PlatyViews( viewsSourcePath );
 	}
 
 	public static void moveToView( Bdv bdv, String view )
@@ -105,9 +104,9 @@ public abstract class BdvViewChanger
 
 	public static double[] getDoubles( String view )
 	{
-		if ( views.views().containsKey( view ) )
+		if ( platyViews.views().containsKey( view ) )
 		{
-			return views.views().get( view );
+			return platyViews.views().get( view );
 		}
 		else if ( view.contains( "View" ) )
 		{

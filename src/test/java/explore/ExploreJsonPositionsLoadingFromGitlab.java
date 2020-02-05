@@ -2,7 +2,7 @@ package explore;
 
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
-import de.embl.cba.platynereis.platybrowser.Bookmark;
+import de.embl.cba.platynereis.platyviews.Bookmark;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,10 +64,10 @@ public class ExploreJsonPositionsLoadingFromGitlab
 		}
 		else
 		{
-			bookmark.view = new double[ 12 ];
+			bookmark.transform = new double[ 12 ];
 			reader.beginArray();
 			for ( int i = 0; i < 12; i++ )
-				bookmark.view[ i ] = reader.nextDouble();
+				bookmark.transform[ i ] = reader.nextDouble();
 			reader.endArray();
 			int a =1;
 
