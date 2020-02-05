@@ -1,5 +1,7 @@
 package de.embl.cba.platynereis.platybrowser;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
@@ -15,6 +17,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 {
@@ -62,38 +65,7 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 			InputStream is = FileUtils.getInputStream( imagesJsonLocation );
 
 			final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
-			reader.beginObject();
-
-			try
-			{
-				while ( reader.hasNext() )
-				{
-					final String imageId = reader.nextName();
-					final Metadata metadata = new Metadata( imageId );
-					metadata.numSpatialDimensions = 3;
-					metadata.displayName = imageId;
-					setImageModality( imageId, metadata );
-					reader.beginObject();
-					while ( ! reader.peek().equals( JsonToken.END_OBJECT ) )
-						addImageMetadata( reader, metadata );
-					reader.endObject();
-
-					//TODO: make this h5 for openning from local
-					final String imageXmlUrl = FileUtils.combinePath( imageDataLocation, "images", "remote",  imageId + ".xml");
-
-					final LazySpimSource lazySpimSource = new LazySpimSource( imageId, imageXmlUrl );
-					imageIdToSourceAndMetadata.put(
-							imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
-					Sources.sourceToMetadata.put( lazySpimSource, metadata );
-
-				}
-			} catch ( Exception e )
-			{
-				final String x = e.toString();
-				System.err.println( x );
-			}
-
-			reader.endObject();
+			parseJsonFile( imageDataLocation, reader );
 			reader.close();
 		}
 		catch ( Exception e ) {
@@ -103,7 +75,99 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 
 	}
 
-	public void addImageMetadata( JsonReader reader, Metadata metadata ) throws IOException
+	@Deprecated
+	private void parseJsonFileOldStyle( String imageDataLocation, JsonReader reader ) throws IOException
+	{
+		reader.beginObject();
+
+		try
+		{
+			while ( reader.hasNext() )
+			{
+				final String imageId = reader.nextName();
+				final Metadata metadata = new Metadata( imageId );
+				metadata.numSpatialDimensions = 3;
+				metadata.displayName = imageId;
+				setImageModality( imageId, metadata );
+				reader.beginObject();
+				while ( ! reader.peek().equals( JsonToken.END_OBJECT ) )
+					addImageMetadataOldStyle( reader, metadata );
+				reader.endObject();
+
+				//TODO: make this h5 for openning from local
+				final String imageXmlUrl = FileUtils.combinePath( imageDataLocation, "images", "remote",  imageId + ".xml");
+
+				final LazySpimSource lazySpimSource = new LazySpimSource( imageId, imageXmlUrl );
+				imageIdToSourceAndMetadata.put(
+						imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
+				Sources.sourceToMetadata.put( lazySpimSource, metadata );
+
+			}
+		} catch ( Exception e )
+		{
+			final String x = e.toString();
+			System.err.println( x );
+		}
+
+		reader.endObject();
+	}
+
+	private void parseJsonFile( String imageDataLocation, JsonReader reader ) throws IOException
+	{
+		GsonBuilder builder = new GsonBuilder();
+		LinkedTreeMap imageIdsToMetadata = builder.create().fromJson(reader, Object.class);
+
+		final Set< String > imageIds = imageIdsToMetadata.keySet();
+
+		for ( String imageId : imageIds )
+		{
+			final Metadata metadata = new Metadata( imageId );
+			metadata.numSpatialDimensions = 3;
+			metadata.displayName = imageId;
+			setImageModality( imageId, metadata );
+
+			LinkedTreeMap metadataKeysToValues = ( LinkedTreeMap ) imageIdsToMetadata.get( imageId );
+			final Set< String > metadataKeys = metadataKeysToValues.keySet();
+			for ( String key : metadataKeys )
+				addImageMetadata( metadata, key, metadataKeysToValues.get( key ) );
+
+			//TODO: make this h5 for openning from local
+			final String imageXmlUrl = FileUtils.combinePath( imageDataLocation, "images", "remote",  imageId + ".xml");
+
+			final LazySpimSource lazySpimSource = new LazySpimSource( imageId, imageXmlUrl );
+			imageIdToSourceAndMetadata.put( imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
+			Sources.sourceToMetadata.put( lazySpimSource, metadata );
+		}
+
+	}
+
+	public void addImageMetadata( Metadata metadata, String key, Object data )
+	{
+		if ( key.equals( "TableFolder" ) )
+		{
+			metadata.segmentsTablePath = FileUtils.combinePath( tableDataLocation, (String) data, "default.csv");
+		}
+		else if ( key.equals( "Color" ) )
+		{
+			metadata.displayColor = Utils.getColor( (String) data );
+		}
+		else if ( key.equals( "MinValue" ) )
+		{
+			metadata.displayRangeMin = (double) data;
+		}
+		else if ( key.equals( "MaxValue" ) )
+		{
+			metadata.displayRangeMax = (double) data;
+		}
+		else
+		{
+			// skip unkown key
+		}
+	}
+
+
+	@Deprecated
+	public void addImageMetadataOldStyle( JsonReader reader, Metadata metadata ) throws IOException
 	{
 		final String nextName = reader.nextName();
 		if ( nextName.equals( "TableFolder" ) )

@@ -1,16 +1,15 @@
 package explore;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
-import de.embl.cba.tables.Tables;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class ExploreJsonLoadingFromGitlab
+public class ExploreJsonLoadingFromGitlab2
 {
 	public static void main( String[] args ) throws IOException
 	{
@@ -19,17 +18,8 @@ public class ExploreJsonLoadingFromGitlab
 		final InputStream is = url.openStream();
 		final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
 
-		reader.beginArray();
-
-		final ArrayList< String > versions = new ArrayList< String >();
-		while ( reader.hasNext() )
-			versions.add( reader.nextString() );
-		reader.endArray();
-		reader.close();
-
-		final String[] versionsArray = new String[ versions.size() ];
-		for ( int i = 0; i < versionsArray.length; i++ )
-			versionsArray[ i ] = versions.get( i );
-
+		GsonBuilder builder = new GsonBuilder();
+		Object o = builder.create().fromJson(reader, Object.class);
+		int a = 1;
 	}
 }

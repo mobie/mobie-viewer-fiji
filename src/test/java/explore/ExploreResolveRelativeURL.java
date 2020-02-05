@@ -2,7 +2,7 @@ package explore;
 
 import java.net.URI;
 
-public class TestResolveRelativeURL
+public class ExploreResolveRelativeURL
 {
 	public static void main( String[] args )
 	{

@@ -79,7 +79,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
             );
         }
 
-
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelsViews = new LinkedHashMap<>();
 

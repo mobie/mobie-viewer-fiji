@@ -3,7 +3,7 @@ package explore;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class TestResolveRelativePaths
+public class ExploreResolveRelativePaths
 {
 	public static void main( String[] args )
 	{

@@ -9,13 +9,13 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>EMBL>Explore>Platynereis Atlas" )
-public class PlatyBrowserCommand implements Command
+@Plugin(type = Command.class, menuPath = "Plugins>EMBL>Platynereis Atlas>Extras>Open Atlas - Advanced" )
+public class PlatyBrowserOpenAdvancedCommand implements Command
 {
-	@Parameter ( label = "Image data", style = "directory" )
+	@Parameter ( label = "Image Data Location", style = "directory" )
 	public File imagesLocation = new File("/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data");
 
-	@Parameter ( label = "Table data" )
+	@Parameter ( label = "Table Data Location" )
 	public String tablesLocation = "https://git.embl.de/tischer/platy-browser-tables/raw/master/data";
 
 	@Override
@@ -34,6 +34,6 @@ public class PlatyBrowserCommand implements Command
 		final ImageJ ij = new ImageJ();
 		ij.ui().showUI();
 
-		ij.command().run( PlatyBrowserCommand.class, true );
+		ij.command().run( PlatyBrowserOpenAdvancedCommand.class, true );
 	}
 }

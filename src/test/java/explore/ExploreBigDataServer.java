@@ -12,7 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-public class TestBigDataServer
+public class ExploreBigDataServer
 {
 	public static void main( String[] args ) throws IOException, SpimDataException
 	{
