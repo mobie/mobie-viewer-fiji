@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class FileUtils
+public class FileAndUrlUtils
 {
 	public static List< File > getFileList( File directory, String fileNameRegExp )
 	{
@@ -51,7 +51,7 @@ public class FileUtils
 				de.embl.cba.tables.FileUtils.getFileList(
 						inputDirectory, filePattern, false );
 
-		Collections.sort( fileList, new FileUtils.SortFilesIgnoreCase() );
+		Collections.sort( fileList, new FileAndUrlUtils.SortFilesIgnoreCase() );
 
 		final List< String > paths = fileList.stream().map( x -> x.toString() ).collect( Collectors.toList() );
 

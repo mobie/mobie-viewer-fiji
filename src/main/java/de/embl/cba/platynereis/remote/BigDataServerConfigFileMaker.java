@@ -1,6 +1,6 @@
 package de.embl.cba.platynereis.remote;
 
-import de.embl.cba.platynereis.utils.FileUtils;
+import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,7 +28,7 @@ public class BigDataServerConfigFileMaker
 	{
 		if ( outputFile.exists() ) outputFile.delete();
 
-		final List< String > files = FileUtils.getFiles( inputDirectory, ".*.xml" );
+		final List< String > files = FileAndUrlUtils.getFiles( inputDirectory, ".*.xml" );
 
 		final ArrayList< String > lines = new ArrayList<>();
 

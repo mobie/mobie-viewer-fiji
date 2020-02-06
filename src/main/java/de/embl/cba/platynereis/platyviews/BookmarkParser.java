@@ -109,7 +109,7 @@ public class BookmarkParser implements Callable< Map< String, Bookmark > >
 			metadata.displayRangeMin = ( Double ) layerAttributes.get( "MinValue" );
 		}
 
-		bookmark.imageLayers.add( metadata );
+		bookmark.nameToMetadata.put( metadata.displayName, metadata );
 	}
 
 }

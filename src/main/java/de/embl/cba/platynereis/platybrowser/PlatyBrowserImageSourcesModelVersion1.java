@@ -7,7 +7,7 @@ import com.google.gson.stream.JsonToken;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.bdv.utils.sources.Sources;
-import de.embl.cba.platynereis.utils.FileUtils;
+import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.SourceAndMetadata;
@@ -58,11 +58,11 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 
 	private void addSources( String imageDataLocation )
 	{
-		final String imagesJsonLocation = FileUtils.combinePath( imageDataLocation, "/images/images.json" );
+		final String imagesJsonLocation = FileAndUrlUtils.combinePath( imageDataLocation, "/images/images.json" );
 
 		try
 		{
-			InputStream is = FileUtils.getInputStream( imagesJsonLocation );
+			InputStream is = FileAndUrlUtils.getInputStream( imagesJsonLocation );
 
 			final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
 			parseJsonFile( imageDataLocation, reader );
@@ -95,7 +95,7 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 				reader.endObject();
 
 				//TODO: make this h5 for openning from local
-				final String imageXmlUrl = FileUtils.combinePath( imageDataLocation, "images", "remote",  imageId + ".xml");
+				final String imageXmlUrl = FileAndUrlUtils.combinePath( imageDataLocation, "images", "remote",  imageId + ".xml");
 
 				final LazySpimSource lazySpimSource = new LazySpimSource( imageId, imageXmlUrl );
 				imageIdToSourceAndMetadata.put(
@@ -114,38 +114,46 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 
 	private void parseJsonFile( String imageDataLocation, JsonReader reader ) throws IOException
 	{
+		final String storageLocation = imageDataLocation.contains( "http:" ) ? "remote" : "local";
+
 		GsonBuilder builder = new GsonBuilder();
 		LinkedTreeMap imageIdsToMetadata = builder.create().fromJson(reader, Object.class);
 
 		final Set< String > imageIds = imageIdsToMetadata.keySet();
-
 		for ( String imageId : imageIds )
 		{
+			LinkedTreeMap metadataKeysToValues = ( LinkedTreeMap ) imageIdsToMetadata.get( imageId );
+
+			final LinkedTreeMap storage = (LinkedTreeMap) metadataKeysToValues.get( "Storage" );
+			if ( ! storage.keySet().contains( storageLocation ) ) continue;
+
 			final Metadata metadata = new Metadata( imageId );
 			metadata.numSpatialDimensions = 3;
 			metadata.displayName = imageId;
 			setImageModality( imageId, metadata );
 
-			LinkedTreeMap metadataKeysToValues = ( LinkedTreeMap ) imageIdsToMetadata.get( imageId );
 			final Set< String > metadataKeys = metadataKeysToValues.keySet();
+
 			for ( String key : metadataKeys )
-				addImageMetadata( metadata, key, metadataKeysToValues.get( key ) );
+				addImageMetadata( metadata, key, metadataKeysToValues.get( key ), storageLocation, FileAndUrlUtils.combinePath( imageDataLocation, "images" ) );
 
-			//TODO: make this h5 for openning from local
-			final String imageXmlUrl = FileUtils.combinePath( imageDataLocation, "images", "remote",  imageId + ".xml");
-
-			final LazySpimSource lazySpimSource = new LazySpimSource( imageId, imageXmlUrl );
+			final LazySpimSource lazySpimSource = new LazySpimSource( imageId, metadata.xmlLocation );
 			imageIdToSourceAndMetadata.put( imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
 			Sources.sourceToMetadata.put( lazySpimSource, metadata );
 		}
 
+		if ( imageIdToSourceAndMetadata.size() == 0)
+		{
+			throw new UnsupportedOperationException( "No image data found in: "
+					+ FileAndUrlUtils.combinePath( imageDataLocation, "images", storageLocation ) );
+		}
 	}
 
-	public void addImageMetadata( Metadata metadata, String key, Object data )
+	public void addImageMetadata( Metadata metadata, String key, Object data, String storageLocation, String imageRootLocation )
 	{
 		if ( key.equals( "TableFolder" ) )
 		{
-			metadata.segmentsTablePath = FileUtils.combinePath( tableDataLocation, (String) data, "default.csv");
+			metadata.segmentsTablePath = FileAndUrlUtils.combinePath( tableDataLocation, (String) data, "default.csv");
 		}
 		else if ( key.equals( "Color" ) )
 		{
@@ -159,9 +167,14 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 		{
 			metadata.displayRangeMax = (double) data;
 		}
+		else if ( key.equals( "Storage" ) )
+		{
+			final LinkedTreeMap treeMap = ( LinkedTreeMap ) data;
+			metadata.xmlLocation = FileAndUrlUtils.combinePath( imageRootLocation, (String) treeMap.get( storageLocation ) );
+		}
 		else
 		{
-			// skip unkown key
+			// skip unknown key
 		}
 	}
 
@@ -172,7 +185,7 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 		final String nextName = reader.nextName();
 		if ( nextName.equals( "TableFolder" ) )
 		{
-			metadata.segmentsTablePath = FileUtils.combinePath( tableDataLocation, reader.nextString(), "default.csv");
+			metadata.segmentsTablePath = FileAndUrlUtils.combinePath( tableDataLocation, reader.nextString(), "default.csv");
 		}
 		else if ( nextName.equals( "Color" ) )
 		{

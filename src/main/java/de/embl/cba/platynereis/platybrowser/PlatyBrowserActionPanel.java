@@ -493,7 +493,7 @@ public class PlatyBrowserActionPanel extends JPanel
 
 	private String[] getBookmarkNames()
 	{
-		final Set< String > viewNames = BdvViewChanger.platyViews.views().keySet();
+		final Set< String > viewNames = platyViews.getBookmarkNames();
 		final String[] positionsAndViews = new String[ viewNames.size() + 1 ];
 		positionsAndViews[ 0 ] = "...type here...                                                           ";
 		final Iterator< String > iterator = viewNames.iterator();

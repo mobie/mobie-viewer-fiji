@@ -3,8 +3,7 @@ package de.embl.cba.platynereis.platybrowser;
 import bdv.tools.HelpDialog;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.platyviews.PlatyViews;
-import de.embl.cba.platynereis.utils.BdvViewChanger;
-import de.embl.cba.platynereis.utils.FileUtils;
+import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import ij.gui.NonBlockingGenericDialog;
 
 import javax.swing.*;
@@ -22,8 +21,8 @@ public class PlatyBrowser extends JFrame
 			String imageDataLocation,
 			String tableDataLocation ) throws HeadlessException
 	{
-		imageDataLocation = FileUtils.removeTrailingSlash( imageDataLocation );
-		tableDataLocation = FileUtils.removeTrailingSlash( tableDataLocation );
+		imageDataLocation = FileAndUrlUtils.removeTrailingSlash( imageDataLocation );
+		tableDataLocation = FileAndUrlUtils.removeTrailingSlash( tableDataLocation );
 
 		sourcesPanel = new PlatyBrowserSourcesPanel(
 				version,
@@ -32,7 +31,7 @@ public class PlatyBrowser extends JFrame
 
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 
-		final PlatyViews platyViews = new PlatyViews( sourcesPanel, FileUtils.combinePath( tableDataLocation, version, "misc/bookmarks.json" ) );
+		final PlatyViews platyViews = new PlatyViews( sourcesPanel, FileAndUrlUtils.combinePath( tableDataLocation, version, "misc/bookmarks.json" ) );
 
 		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, platyViews );
 

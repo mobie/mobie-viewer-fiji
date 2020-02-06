@@ -1,13 +1,14 @@
 package de.embl.cba.platynereis.platyviews;
 
 
-import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.platybrowser.PlatyBrowserSourcesPanel;
 import de.embl.cba.platynereis.utils.BdvViewChanger;
 import de.embl.cba.platynereis.utils.Version;
 
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * TODO: probably read this from a editable text file so that users can add own views.
@@ -34,12 +35,35 @@ public class PlatyViews
 		nameToBookmark = new BookmarkParser( viewsSourcePath ).call();
 	}
 
-
 	public void setView( String bookmarkId )
 	{
 		final Bookmark bookmark = nameToBookmark.get( bookmarkId );
 		adaptViewerTransform( bookmark );
+		removeAllSourcesFromPanelAndViewer( bookmark );
+		addBookmarkSourcesToPanelAndViewer( bookmark );
+	}
 
+	public void addBookmarkSourcesToPanelAndViewer( Bookmark bookmark )
+	{
+		for ( Metadata metadata : bookmark.nameToMetadata.values() )
+		{
+			if ( ! sourcesPanel.getVisibleSourceNames().contains( metadata.displayName ) )
+				sourcesPanel.addSourceToPanelAndViewer( metadata );
+		}
+	}
+
+	public void removeAllSourcesFromPanelAndViewer( Bookmark bookmark )
+	{
+		// TODO: maybe do not remove the ones that we want to keep seeing,
+		//  however it is a bit of coding work to then change the display settings for only those.
+
+		if ( bookmark.nameToMetadata.size() > 0 )
+		{
+			for ( String visibleSourceName : sourcesPanel.getVisibleSourceNames() )
+			{
+				sourcesPanel.removeSourceFromPanelAndViewers( visibleSourceName );
+			}
+		}
 	}
 
 	public void adaptViewerTransform( Bookmark bookmark )
@@ -48,10 +72,10 @@ public class PlatyViews
 			BdvViewChanger.moveToDoubles( sourcesPanel.getBdv(), bookmark.transform );
 		else if ( bookmark.position != null )
 			BdvViewChanger.moveToDoubles( sourcesPanel.getBdv(), bookmark.position );
+	}
 
-		for ( Metadata metadata : bookmark.imageLayers )
-		{
-			sourcesPanel.addSourceToPanelAndViewer( metadata );
-		}
+	public Set< String > getBookmarkNames()
+	{
+		return nameToBookmark.keySet();
 	}
 }

@@ -2,7 +2,6 @@ package de.embl.cba.platynereis.utils;
 
 import de.embl.cba.transforms.utils.TransformConversions;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.Scale;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,7 +48,7 @@ public class BatchApplyAmiraTransformationsToBdvXml
 	{
 
 		System.out.println( "Fetching files....");
-		final List< File > files = FileUtils.getFileList( new File( directory ), filePattern );
+		final List< File > files = FileAndUrlUtils.getFileList( new File( directory ), filePattern );
 
 		for ( File file : files )
 		{

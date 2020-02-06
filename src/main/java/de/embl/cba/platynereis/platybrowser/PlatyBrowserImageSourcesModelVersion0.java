@@ -3,7 +3,7 @@ package de.embl.cba.platynereis.platybrowser;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.bdv.utils.sources.Sources;
-import de.embl.cba.platynereis.utils.FileUtils;
+import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import mpicbg.spim.data.SpimData;
@@ -51,7 +51,7 @@ public class PlatyBrowserImageSourcesModelVersion0 implements ImageSourcesModel
 
 			for ( String imageType : imageTypes )
 			{
-				final String folder = FileUtils.combinePath( imageDataLocation, imageType );
+				final String folder = FileAndUrlUtils.combinePath( imageDataLocation, imageType );
 				addSources( folder );
 			}
 		}
@@ -80,9 +80,9 @@ public class PlatyBrowserImageSourcesModelVersion0 implements ImageSourcesModel
 	private List< String > getImageLocations( String imageDataLocation )
 	{
 		if ( imageDataLocation.startsWith( "http" ) )
-			return FileUtils.getUrls( imageDataLocation );
+			return FileAndUrlUtils.getUrls( imageDataLocation );
 		else
-			return FileUtils.getFiles( new File( imageDataLocation ), ".*.xml" );
+			return FileAndUrlUtils.getFiles( new File( imageDataLocation ), ".*.xml" );
 	}
 
 	private Metadata createMetadata( String path )
@@ -152,7 +152,7 @@ public class PlatyBrowserImageSourcesModelVersion0 implements ImageSourcesModel
 
 	private String getTablePath( String sourceName )
 	{
-		final String tablePath = FileUtils.combinePath( tableDataLocation, sourceName, "default.csv" );
+		final String tablePath = FileAndUrlUtils.combinePath( tableDataLocation, sourceName, "default.csv" );
 		return tablePath;
 	}
 

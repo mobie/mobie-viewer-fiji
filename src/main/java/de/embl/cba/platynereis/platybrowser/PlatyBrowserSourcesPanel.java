@@ -7,7 +7,7 @@ import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.Globals;
-import de.embl.cba.platynereis.utils.FileUtils;
+import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.Version;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
@@ -30,10 +30,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static de.embl.cba.platynereis.platybrowser.PlatyBrowserUtils.createAnnotatedImageSegmentsFromTableFile;
 
@@ -41,6 +39,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 {
     private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelsViews;
     protected Map< String, JPanel > sourceNameToPanel;
+    protected Map< String, Metadata > sourceNameToMetadata;
     private BdvHandle bdv;
     private final ImageSourcesModel imageSourcesModel;
     private Image3DUniverse universe;
@@ -53,8 +52,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
                                      String imageDataLocation,
                                      String tableDataLocation )
     {
-        imageDataLocation = FileUtils.combinePath( imageDataLocation, versionString );
-        tableDataLocation = FileUtils.combinePath( tableDataLocation, versionString );
+        imageDataLocation = FileAndUrlUtils.combinePath( imageDataLocation, versionString );
+        tableDataLocation = FileAndUrlUtils.combinePath( tableDataLocation, versionString );
 
         Utils.log( "");
         Utils.log( "# Fetching data");
@@ -80,6 +79,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelsViews = new LinkedHashMap<>();
+        sourceNameToMetadata = new LinkedHashMap<>();
 
         voxelSpacing3DView = 0.05;
         meshSmoothingIterations = 5;
@@ -203,7 +203,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
 		universe = new Image3DUniverse();
 	}
 
-	class DisplaySettings3DViewer
+
+    class DisplaySettings3DViewer
     {
         int displayMode;
         float transparency;
@@ -267,9 +268,11 @@ public class PlatyBrowserSourcesPanel extends JPanel
             return;
         }
 
-        final SourceAndMetadata< ? > sourceAndMetadata = getSourceAndMetadata( sourceName );
+        final SourceAndMetadata< ? > sam = getSourceAndMetadata( sourceName );
 
-        addSourceToPanelAndViewer( sourceAndMetadata );
+        sourceNameToMetadata.put( sam.metadata().displayName, sam.metadata() );
+
+        addSourceToPanelAndViewer( sam );
     }
 
     public SourceAndMetadata< ? > getSourceAndMetadata( String sourceName )
@@ -280,6 +283,11 @@ public class PlatyBrowserSourcesPanel extends JPanel
     public ArrayList< String > getSourceNames()
     {
         return new ArrayList<>( imageSourcesModel.sources().keySet() );
+    }
+
+    public Set< String > getVisibleSourceNames()
+    {
+        return sourceNameToPanel.keySet();
     }
 
     public ImageSourcesModel getImageSourcesModel()
@@ -293,14 +301,15 @@ public class PlatyBrowserSourcesPanel extends JPanel
         this.setAlignmentX( Component.LEFT_ALIGNMENT );
     }
 
-    private void addSourceToPanelAndViewer( SourceAndMetadata< ? > sourceAndMetadata )
+    private void addSourceToPanelAndViewer( SourceAndMetadata< ? > sam )
     {
-        if ( sourceNameToPanel.containsKey(  sourceAndMetadata.metadata().displayName ) )
-            return;
+        if ( sourceNameToPanel.containsKey( sam.metadata().displayName ) ) return;
 
-        addSourceToViewer( sourceAndMetadata );
-        new Thread( () -> addSourceToVolumeViewer( sourceAndMetadata ) ).start();
-        addSourceToPanel( sourceAndMetadata );
+        sourceNameToMetadata.put( sam.metadata().displayName, sam.metadata() );
+
+        addSourceToViewer( sam );
+        new Thread( () -> addSourceToVolumeViewer( sam ) ).start();
+        addSourceToPanel( sam );
     }
 
     private void addSourceToViewer( SourceAndMetadata< ? > sam )
@@ -422,7 +431,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         final TableRowsTableView< TableRowImageSegment > tableRowsTableView = views.getTableRowsTableView();
 
-        final String tablesLocation = FileUtils.getParentLocation( sam.metadata().segmentsTablePath );
+        final String tablesLocation = FileAndUrlUtils.getParentLocation( sam.metadata().segmentsTablePath );
 
         tableRowsTableView.setTablesDirectory( tablesLocation );
         tableRowsTableView.setMergeByColumnName( Globals.COLUMN_NAME_SEGMENT_LABEL_ID );
@@ -553,11 +562,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
                     @Override
                     public void actionPerformed( ActionEvent e )
                     {
-                        removeSourceFromPanelAndViewers(
-                                sam.metadata().displayName,
-                                sam.metadata().bdvStackSource,
-                                sam.metadata().content );
-
+                        removeSourceFromPanelAndViewers( sam.metadata() );
                     }
                 } );
 
@@ -565,18 +570,20 @@ public class PlatyBrowserSourcesPanel extends JPanel
         return removeButton;
     }
 
-    private void removeSourceFromPanelAndViewers(
-            String sourceName,
-            BdvStackSource bdvStackSource,
-            Content content )
+    public void removeSourceFromPanelAndViewers( String sourceName )
     {
-		removeSourceFromPanel( sourceName );
+        removeSourceFromPanelAndViewers( sourceNameToMetadata.get( sourceName ) );
+    }
 
-		removeLabelsViews( sourceName );
+    public void removeSourceFromPanelAndViewers( Metadata metadata )
+    {
+		removeSourceFromPanel( metadata.displayName );
 
-		BdvUtils.removeSource( bdv, bdvStackSource );
+		removeLabelsViews( metadata.displayName );
 
-		if ( content != null ) universe.removeContent( content.getName() );
+		BdvUtils.removeSource( bdv, ( BdvStackSource ) metadata.bdvStackSource );
+
+		if ( metadata.content != null ) universe.removeContent( metadata.content.getName() );
 
         refreshGui();
     }

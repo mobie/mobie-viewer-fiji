@@ -30,7 +30,7 @@ public abstract class BdvViewChanger
 
 	public static void moveToDoubles( Bdv bdv, ArrayList< Double > doubles )
 	{
-		final double[] array = { doubles.size() };
+		final double[] array =  new double[ doubles.size() ];
 		for ( int i = 0; i < doubles.size(); i++ )
 			array[ i ] = doubles.get( i );
 
