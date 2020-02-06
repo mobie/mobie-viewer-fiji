@@ -17,23 +17,24 @@ import java.util.Arrays;
  */
 public abstract class BdvViewChanger
 {
-	public static PlatyViews platyViews = new PlatyViews();
-
-	public static ArrayList< BdvOverlay > pointOverlays = new ArrayList<>(  );
 	private static BdvOverlaySource< BdvOverlay > pointOverlaySource;
 	private static BdvPointOverlay bdvPointOverlay;
 	private static boolean pointOverlaySourceIsActive;
-
-	public static void initPlatyViews( String viewsSourcePath )
-	{
-		platyViews = new PlatyViews( viewsSourcePath );
-	}
 
 	public static void moveToView( Bdv bdv, String view )
 	{
 		double[] doubles = getDoubles( view );
 
 		moveToDoubles( bdv, doubles );
+	}
+
+	public static void moveToDoubles( Bdv bdv, ArrayList< Double > doubles )
+	{
+		final double[] array = { doubles.size() };
+		for ( int i = 0; i < doubles.size(); i++ )
+			array[ i ] = doubles.get( i );
+
+		moveToDoubles( bdv, array );
 	}
 
 	public static void moveToDoubles( Bdv bdv, double[] doubles )
@@ -43,7 +44,6 @@ public abstract class BdvViewChanger
 			BdvUtils.zoomToPosition( bdv, asPosition4D( doubles ), 15D, 1000 );
 
 			addPointOverlay( bdv, doubles );
-
 		}
 		else if ( doubles.length == 4 )
 		{
@@ -70,7 +70,6 @@ public abstract class BdvViewChanger
 
 	public static void addPointOverlay( Bdv bdv, double[] doubles )
 	{
-
 		if ( bdvPointOverlay == null )
 		{
 			bdvPointOverlay = new BdvPointOverlay( doubles, 5.0 );
@@ -84,17 +83,16 @@ public abstract class BdvViewChanger
 		{
 			bdvPointOverlay.addPoint( doubles );
 		}
-
 	}
 
-	public static AffineTransform3D asView( double[] doubles )
+	private static AffineTransform3D asView( double[] doubles )
 	{
 		final AffineTransform3D view = new AffineTransform3D( );
 		view.set( doubles );
 		return view;
 	}
 
-	public static double[] asPosition4D( double[] doubles )
+	private static double[] asPosition4D( double[] doubles )
 	{
 		final double[] position4D = new double[ 4 ];
 		for ( int d = 0; d < 3; d++ )
@@ -102,13 +100,9 @@ public abstract class BdvViewChanger
 		return position4D;
 	}
 
-	public static double[] getDoubles( String view )
+	private static double[] getDoubles( String view )
 	{
-		if ( platyViews.views().containsKey( view ) )
-		{
-			return platyViews.views().get( view );
-		}
-		else if ( view.contains( "View" ) )
+		if ( view.contains( "View" ) )
 		{
 			view = view.replace( "View: (", "" );
 			view = view.replace( ")", "" );

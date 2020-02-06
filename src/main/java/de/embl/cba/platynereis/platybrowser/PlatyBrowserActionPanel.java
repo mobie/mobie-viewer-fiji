@@ -478,15 +478,15 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		final String[] bookmarkNames = getBookmarkNames();
 
-		final JComboBox< String > viewsChoices = new JComboBox<>( bookmarkNames );
-		viewsChoices.setEditable( true );
-		viewsChoices.setMaximumSize( new Dimension( 200, TEXT_FIELD_HEIGHT ) );
-		viewsChoices.setMinimumSize( new Dimension(  200, TEXT_FIELD_HEIGHT ) );
+		final JComboBox< String > bookmarkChoices = new JComboBox<>( bookmarkNames );
+		bookmarkChoices.setEditable( true );
+		bookmarkChoices.setMaximumSize( new Dimension( 200, TEXT_FIELD_HEIGHT ) );
+		bookmarkChoices.setMinimumSize( new Dimension(  200, TEXT_FIELD_HEIGHT ) );
 
-		viewButton.addActionListener( e -> platyViews.setView( ( String ) viewsChoices.getSelectedItem() ) );
+		viewButton.addActionListener( e -> platyViews.setView( ( String ) bookmarkChoices.getSelectedItem() ) );
 
 		horizontalLayoutPanel.add( viewButton );
-		horizontalLayoutPanel.add( viewsChoices );
+		horizontalLayoutPanel.add( bookmarkChoices );
 
 		panel.add( horizontalLayoutPanel );
 	}

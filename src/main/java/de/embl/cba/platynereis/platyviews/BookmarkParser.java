@@ -82,10 +82,10 @@ public class BookmarkParser implements Callable< Map< String, Bookmark > >
 		}
 	}
 
-	private void addImageLayer( String layer, LinkedTreeMap layerAttributes, Bookmark bookmark )
+	private void addImageLayer( String imageId, LinkedTreeMap layerAttributes, Bookmark bookmark )
 	{
-		final Metadata metadata = new Metadata( layer );
-		metadata.displayName = layer;
+		final Metadata metadata = new Metadata( imageId );
+		metadata.displayName = imageId;
 
 		final Set keySet = layerAttributes.keySet();
 

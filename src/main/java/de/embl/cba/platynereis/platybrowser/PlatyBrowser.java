@@ -32,7 +32,7 @@ public class PlatyBrowser extends JFrame
 
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 
-		final PlatyViews platyViews = new PlatyViews( FileUtils.combinePath( tableDataLocation, version, "misc/bookmarks.json" ) );
+		final PlatyViews platyViews = new PlatyViews( sourcesPanel, FileUtils.combinePath( tableDataLocation, version, "misc/bookmarks.json" ) );
 
 		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, platyViews );
 

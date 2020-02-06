@@ -40,7 +40,6 @@ import static de.embl.cba.platynereis.platybrowser.PlatyBrowserUtils.createAnnot
 public class PlatyBrowserSourcesPanel extends JPanel
 {
     private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelsViews;
-    //    public List< Color > colors;
     protected Map< String, JPanel > sourceNameToPanel;
     private BdvHandle bdv;
     private final ImageSourcesModel imageSourcesModel;
@@ -240,6 +239,24 @@ public class PlatyBrowserSourcesPanel extends JPanel
         }
 
         return settings;
+    }
+
+    public void addSourceToPanelAndViewer( Metadata metadata )
+    {
+        if ( ! getSourceNames().contains( metadata.displayName ) )
+        {
+            System.err.println( "Source not present: " + metadata.displayName );
+            return;
+        }
+
+        final SourceAndMetadata< ? > sam = imageSourcesModel.sources().get( metadata.displayName );
+
+        sam.metadata().displayRangeMin = metadata.displayRangeMin;
+        sam.metadata().displayRangeMax = metadata.displayRangeMax;
+        sam.metadata().selectedSegmentIds = metadata.selectedSegmentIds;
+        sam.metadata().displayColor = metadata.displayColor;
+
+        addSourceToPanelAndViewer( sam );
     }
 
     public void addSourceToPanelAndViewer( String sourceName )
