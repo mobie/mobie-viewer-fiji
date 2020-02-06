@@ -17,6 +17,7 @@ import java.util.Map;
 
 public class PlatyBrowserUtils
 {
+
 	public static
 	List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
 			String tablePath,

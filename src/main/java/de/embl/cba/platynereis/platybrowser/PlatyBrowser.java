@@ -13,6 +13,8 @@ import java.awt.event.KeyEvent;
 
 public class PlatyBrowser extends JFrame
 {
+	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
+
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private final PlatyBrowserActionPanel actionPanel;
 
@@ -87,14 +89,16 @@ public class PlatyBrowser extends JFrame
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
 		final int numModalities = actionPanel.getSortedModalities().size();
-		final int actionPanelHeight = ( numModalities + 5 ) * 40;
+		final int actionPanelHeight = ( numModalities + 7 ) * 40;
 		splitPane.setDividerLocation( actionPanelHeight );
 		splitPane.setTopComponent( actionPanel );
 		splitPane.setBottomComponent( sourcesPanel );
 		splitPane.setAutoscrolls( true );
-		setPreferredSize( new Dimension(700, actionPanelHeight + 200 ) );
+		setPreferredSize( new Dimension(500, actionPanelHeight + 200 ) );
 		getContentPane().setLayout( new GridLayout() );
 		getContentPane().add( splitPane );
+
+		this.setTitle( "PlatyBrowser" );
 
 		this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 		this.pack();
