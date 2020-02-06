@@ -37,7 +37,6 @@ public class PlatyBrowser extends JFrame
 
 		setJMenuBar( createMenuBar() );
 		showFrame();
-		initHelpDialog();
 	}
 
 	private JMenuBar createMenuBar()
@@ -112,25 +111,6 @@ public class PlatyBrowser extends JFrame
 		return actionPanel;
 	}
 
-	public void initHelpDialog()
-	{
-		HelpDialog helpDialog = new HelpDialog( this,
-				PlatyBrowser.class.getResource( "/Help.html" ) );
 
-		this.setFocusable( true );
-		this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-				.put( KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help" );
-
-		AbstractAction help = new AbstractAction()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				helpDialog.setVisible( ! helpDialog.isVisible() );
-			}
-		};
-
-		this.getRootPane().getActionMap().put("help", help );
-	}
 
 }

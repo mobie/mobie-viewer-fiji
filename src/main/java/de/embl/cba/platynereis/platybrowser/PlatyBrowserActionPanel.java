@@ -45,8 +45,10 @@ public class PlatyBrowserActionPanel extends JPanel
 		this.platyViews = platyViews;
 
 		bdv = sourcesPanel.getBdv();
+
 		installBdvBehaviours();
 
+		addHelpUI( this );
 		addSourceSelectionUI( this );
 		addViewUI( this  );
 		addLevelingUI( this );
@@ -490,6 +492,29 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		panel.add( horizontalLayoutPanel );
 	}
+
+	private void addHelpUI( JPanel panel )
+	{
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+
+		final JButton button = new JButton( "Help" );
+
+		final String[] choices = {
+				PlatyHelp.KEYBOARD_SHORTCUTS_IN_BIG_DATA_VIEWER_GENERAL,
+				PlatyHelp.KEYBOARD_SHORTCUTS_IN_BIG_DATA_VIEWER_PLATY_BROWSER_SPECIFIC };
+		final JComboBox< String > jComboBox = new JComboBox<>( choices );
+		jComboBox.setEditable( false );
+		jComboBox.setMaximumSize( new Dimension( 200, TEXT_FIELD_HEIGHT ) );
+		jComboBox.setMinimumSize( new Dimension(  200, TEXT_FIELD_HEIGHT ) );
+
+		button.addActionListener( e -> PlatyHelp.showHelp( ( String ) jComboBox.getSelectedItem() ) );
+
+		horizontalLayoutPanel.add( button );
+		horizontalLayoutPanel.add( jComboBox );
+
+		panel.add( horizontalLayoutPanel );
+	}
+
 
 	private String[] getBookmarkNames()
 	{
