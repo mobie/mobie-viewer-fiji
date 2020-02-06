@@ -17,7 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PlatyBrowserImageSourcesModelVersion0 implements ImageSourcesModel
+@Deprecated
+public class PlatyBrowserImageSourcesModelVersionDeprecated implements ImageSourcesModel
 {
 	public static final String LABELS_FILE_ID = "-segmented" ;
 	public static final String BDV_XML_SUFFIX = ".xml";
@@ -30,7 +31,7 @@ public class PlatyBrowserImageSourcesModelVersion0 implements ImageSourcesModel
 	private final String imageDataLocation;
 	private final String tableDataLocation;
 
-	public PlatyBrowserImageSourcesModelVersion0(
+	public PlatyBrowserImageSourcesModelVersionDeprecated(
 			String imageDataLocation,
 			String tableDataLocation )
 	{

@@ -62,20 +62,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         final Version version = new Version( versionString );
 
-        if ( version.compareTo( new Version( "0.8.0" ) ) < 0 )
-        {
-            imageSourcesModel = new PlatyBrowserImageSourcesModelVersion0(
-                    imageDataLocation,
-                    tableDataLocation
-            );
-        }
-        else
-        {
-            imageSourcesModel = new PlatyBrowserImageSourcesModelVersion1(
-                    imageDataLocation,
-                    tableDataLocation
-            );
-        }
+        imageSourcesModel = new PlatyBrowserImageSourcesModelVersion1(
+                imageDataLocation,
+                tableDataLocation
+        );
 
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelsViews = new LinkedHashMap<>();

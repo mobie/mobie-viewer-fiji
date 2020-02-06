@@ -27,6 +27,7 @@ import java.util.*;
 public class PlatyBrowserActionPanel extends JPanel
 {
 	public static final int TEXT_FIELD_HEIGHT = 20;
+	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private BdvHandle bdv;
@@ -49,7 +50,9 @@ public class PlatyBrowserActionPanel extends JPanel
 		installBdvBehaviours();
 
 		addHelpUI( this );
+		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addSourceSelectionUI( this );
+		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addViewUI( this  );
 		addLevelingUI( this );
 		addShowSegmentsIn3DUI( this );
@@ -402,6 +405,7 @@ public class PlatyBrowserActionPanel extends JPanel
 		{
 			final String[] names = getSortedList( modalityToSelectionNames.get( modality ) ).toArray( new String[ 0 ] );
 			final JComboBox< String > comboBox = new JComboBox<>( names );
+			comboBox.setPrototypeDisplayValue( PROTOTYPE_DISPLAY_VALUE );
 			addSourceSelectionComboBoxAndButton( panel, comboBox, modality );
 		}
 	}
@@ -420,7 +424,7 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton addToView = new JButton( "View " + modality );
+		final JButton addToView = new JButton( "add");
 		addToView.addActionListener( e ->
 		{
 			final String selectedSource = ( String ) comboBox.getSelectedItem();
@@ -428,8 +432,14 @@ public class PlatyBrowserActionPanel extends JPanel
 			sourcesPanel.addSourceToPanelAndViewer( sourceName );
 		} );
 
-		horizontalLayoutPanel.add( addToView );
+
+		final JLabel comp = new JLabel( modality );
+		comp.setPreferredSize( new Dimension( 200,10 ) );
+		comp.setHorizontalAlignment( SwingConstants.RIGHT );
+		comp.setHorizontalTextPosition( SwingConstants.RIGHT );
+		horizontalLayoutPanel.add( comp );
 		horizontalLayoutPanel.add( comboBox );
+		horizontalLayoutPanel.add( addToView );
 
 		panel.add( horizontalLayoutPanel );
 	}
@@ -448,7 +458,7 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton levelCurrentView = new JButton( "Level current view" );
+		final JButton levelCurrentView = new JButton( "level view" );
 		horizontalLayoutPanel.add( levelCurrentView );
 
 		final JButton changeReference = new JButton( "Set new level vector" );
@@ -476,19 +486,20 @@ public class PlatyBrowserActionPanel extends JPanel
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton viewButton = new JButton( "View" );
+		final JButton viewButton = new JButton( "view" );
 
 		final String[] bookmarkNames = getBookmarkNames();
 
-		final JComboBox< String > bookmarkChoices = new JComboBox<>( bookmarkNames );
-		bookmarkChoices.setEditable( true );
-		bookmarkChoices.setMaximumSize( new Dimension( 200, TEXT_FIELD_HEIGHT ) );
-		bookmarkChoices.setMinimumSize( new Dimension(  200, TEXT_FIELD_HEIGHT ) );
+		final JComboBox< String > jComboBox = new JComboBox<>( bookmarkNames );
+		jComboBox.setEditable( true );
+//		jComboBox.setMaximumSize( new Dimension( 200, TEXT_FIELD_HEIGHT ) );
+//		jComboBox.setMinimumSize( new Dimension(  200, TEXT_FIELD_HEIGHT ) );
 
-		viewButton.addActionListener( e -> platyViews.setView( ( String ) bookmarkChoices.getSelectedItem() ) );
+		viewButton.addActionListener( e -> platyViews.setView( ( String ) jComboBox.getSelectedItem() ) );
 
+		jComboBox.setPrototypeDisplayValue( PROTOTYPE_DISPLAY_VALUE );
+		horizontalLayoutPanel.add( jComboBox );
 		horizontalLayoutPanel.add( viewButton );
-		horizontalLayoutPanel.add( bookmarkChoices );
 
 		panel.add( horizontalLayoutPanel );
 	}
@@ -497,11 +508,12 @@ public class PlatyBrowserActionPanel extends JPanel
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = new JButton( "Help" );
+		final JButton button = new JButton( "help" );
 
 		final String[] choices = {
-				PlatyHelp.KEYBOARD_SHORTCUTS_IN_BIG_DATA_VIEWER_GENERAL,
-				PlatyHelp.KEYBOARD_SHORTCUTS_IN_BIG_DATA_VIEWER_PLATY_BROWSER_SPECIFIC };
+				PlatyHelp.BIG_DATA_VIEWER,
+				PlatyHelp.PLATY_BROWSER,
+				PlatyHelp.SEGMENTATION_IMAGE };
 		final JComboBox< String > jComboBox = new JComboBox<>( choices );
 		jComboBox.setEditable( false );
 		jComboBox.setMaximumSize( new Dimension( 200, TEXT_FIELD_HEIGHT ) );
@@ -509,18 +521,18 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		button.addActionListener( e -> PlatyHelp.showHelp( ( String ) jComboBox.getSelectedItem() ) );
 
-		horizontalLayoutPanel.add( button );
+		jComboBox.setPrototypeDisplayValue( PROTOTYPE_DISPLAY_VALUE  );
 		horizontalLayoutPanel.add( jComboBox );
+		horizontalLayoutPanel.add( button );
 
 		panel.add( horizontalLayoutPanel );
 	}
-
 
 	private String[] getBookmarkNames()
 	{
 		final Set< String > viewNames = platyViews.getBookmarkNames();
 		final String[] positionsAndViews = new String[ viewNames.size() + 1 ];
-		positionsAndViews[ 0 ] = "...type here...                                                           ";
+		positionsAndViews[ 0 ] = "...type here...";
 		final Iterator< String > iterator = viewNames.iterator();
 		for ( int i = 1; i <= viewNames.size() ; i++ )
 			positionsAndViews[ i ] = iterator.next();

@@ -62,13 +62,13 @@ public class RegistrationVisualisationSimilarityAndBSpline< R extends RealType< 
 		// head
 		bdv.getViewerPanel().setCurrentViewerTransform( headViewSimilarity );
 		IJ.wait( 2000 );
-		BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).show();
+		BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).rgbImage.show();
 		IJ.saveAs( "tif", outputFolder + "/similarity-head-view.tif" );
 
 		// gut
 		bdv.getViewerPanel().setCurrentViewerTransform( gutViewSimilarity );
 		IJ.wait( 2000 );
-		BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).show();
+		BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).rgbImage.show();
 		IJ.saveAs( "tif", outputFolder + "/similarity-gut-view.tif" );
 
 		/**
@@ -85,13 +85,13 @@ public class RegistrationVisualisationSimilarityAndBSpline< R extends RealType< 
 			// head
 			bdv.getViewerPanel().setCurrentViewerTransform( headViewSimilarity );
 			IJ.wait( 2000 );
-			BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).show();
+			BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).rgbImage.show();
 			IJ.saveAs( "tif", outputFolder + "/bspline-head-view.tif" );
 
 			// gut
 			bdv.getViewerPanel().setCurrentViewerTransform( gutViewSimilarity );
 			IJ.wait( 2000 );
-			BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).show();
+			BdvViewCaptures.captureView( bdv, 1, "micrometer", false  ).rgbImage.show();
 			IJ.saveAs( "tif", outputFolder + "/bspline-gut-view.tif" );
 		}
 

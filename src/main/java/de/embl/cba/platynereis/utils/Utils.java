@@ -251,4 +251,17 @@ public class Utils
 		GsonBuilder builder = new GsonBuilder();
 		return builder.create().fromJson( reader, Object.class );
 	}
+
+	public static String padLeftSpaces(String inputString, int length) {
+		if (inputString.length() >= length) {
+			return inputString;
+		}
+		StringBuilder sb = new StringBuilder();
+		while (sb.length() < length - inputString.length()) {
+			sb.append(' ');
+		}
+		sb.append(inputString);
+
+		return sb.toString();
+	}
 }

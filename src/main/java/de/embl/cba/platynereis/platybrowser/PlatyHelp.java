@@ -1,6 +1,7 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import bdv.tools.HelpDialog;
+import de.embl.cba.tables.Help;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -8,20 +9,22 @@ import java.awt.event.ActionEvent;
 public class PlatyHelp
 {
 
-	public static final String KEYBOARD_SHORTCUTS_IN_BIG_DATA_VIEWER_GENERAL = "General Keyboard Shortcuts in BigDataViewer";
-	public static final String KEYBOARD_SHORTCUTS_IN_BIG_DATA_VIEWER_PLATY_BROWSER_SPECIFIC = "PlatyBrowser Specific Keyboard Shortcuts in BigDataViewer";
-	public static final String PLATYBROWSER_GENERAL = "PlatyBrowser General";
+	public static final String BIG_DATA_VIEWER = "bigdataviewer";
+	public static final String PLATY_BROWSER = "platybrowser";
+	public static final String SEGMENTATION_IMAGE = "segmentation image";
 
 	public static void showHelp( String selectedItem )
 	{
 		switch ( selectedItem )
 		{
-			case KEYBOARD_SHORTCUTS_IN_BIG_DATA_VIEWER_PLATY_BROWSER_SPECIFIC:
+			case PLATY_BROWSER:
 				showPlatyHelp();
 				break;
-			case KEYBOARD_SHORTCUTS_IN_BIG_DATA_VIEWER_GENERAL:
+			case BIG_DATA_VIEWER:
 				showBdvHelp();
 				break;
+			case SEGMENTATION_IMAGE:
+				Help.showSegmentationImageHelp();
 		}
 	}
 
@@ -29,34 +32,12 @@ public class PlatyHelp
 	{
 		HelpDialog helpDialog = new HelpDialog( null, PlatyBrowser.class.getResource( "/PlatyHelp.html" ) );
 		helpDialog.setVisible( true );
-
-		AbstractAction help = new AbstractAction()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				helpDialog.setVisible( ! helpDialog.isVisible() );
-			}
-		};
-
-//		this.getRootPane().getActionMap().put("help", help );
 	}
 
 	public static void showBdvHelp()
 	{
 		HelpDialog helpDialog = new HelpDialog( null, PlatyBrowser.class.getResource( "/BdvHelp.html" ) );
 		helpDialog.setVisible( true );
-
-		AbstractAction help = new AbstractAction()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				helpDialog.setVisible( ! helpDialog.isVisible() );
-			}
-		};
-
-//		this.getRootPane().getActionMap().put("help", help );
 	}
 
 
