@@ -94,7 +94,7 @@ public class PlatyBrowser extends JFrame
 		splitPane.setTopComponent( actionPanel );
 		splitPane.setBottomComponent( sourcesPanel );
 		splitPane.setAutoscrolls( true );
-		setPreferredSize( new Dimension(500, actionPanelHeight + 200 ) );
+		setPreferredSize( new Dimension(550, actionPanelHeight + 200 ) );
 		getContentPane().setLayout( new GridLayout() );
 		getContentPane().add( splitPane );
 

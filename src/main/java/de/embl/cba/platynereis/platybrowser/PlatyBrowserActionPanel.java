@@ -13,8 +13,6 @@ import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
 import ij3d.Image3DUniverse;
-import net.imglib2.RealPoint;
-import net.imglib2.realtransform.AffineTransform3D;
 import org.scijava.java3d.Transform3D;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -27,6 +25,7 @@ import java.util.*;
 public class PlatyBrowserActionPanel extends JPanel
 {
 	public static final int TEXT_FIELD_HEIGHT = 20;
+	public static final int COMBOBOX_WIDTH = 270;
 
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private BdvHandle bdv;
@@ -48,6 +47,7 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		installBdvBehaviours();
 
+		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addHelpUI( this );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addSourceSelectionUI( this );
@@ -383,7 +383,7 @@ public class PlatyBrowserActionPanel extends JPanel
 		{
 			final String[] names = getSortedList( modalityToSelectionNames.get( modality ) ).toArray( new String[ 0 ] );
 			final JComboBox< String > comboBox = new JComboBox<>( names );
-			comboBox.setPrototypeDisplayValue( PlatyBrowser.PROTOTYPE_DISPLAY_VALUE );
+			setComboBoxDimensions( comboBox );
 			addSourceSelectionComboBoxAndButton( panel, comboBox, modality );
 		}
 	}
@@ -411,7 +411,7 @@ public class PlatyBrowserActionPanel extends JPanel
 		} );
 
 
-		final JLabel comp = getjLabel( modality );
+		final JLabel comp = getJLabel( modality );
 
 		horizontalLayoutPanel.add( comp );
 		horizontalLayoutPanel.add( comboBox );
@@ -420,15 +420,15 @@ public class PlatyBrowserActionPanel extends JPanel
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private JLabel getjLabel( String text )
+	private JLabel getJLabel( String text )
 	{
 		final JLabel comp = new JLabel( text );
 		comp.setPreferredSize( new Dimension( 170,10 ) );
 		comp.setHorizontalAlignment( SwingConstants.LEFT );
 		comp.setHorizontalTextPosition( SwingConstants.LEFT );
+		comp.setAlignmentX( Component.LEFT_ALIGNMENT );
 		return comp;
 	}
-
 
 	private ArrayList< String > getSortedList( Collection< String > strings )
 	{
@@ -475,15 +475,12 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		final String[] bookmarkNames = getBookmarkNames();
 
-		final JComboBox< String > jComboBox = new JComboBox<>( bookmarkNames );
-		jComboBox.setPrototypeDisplayValue( PlatyBrowser.PROTOTYPE_DISPLAY_VALUE );
-		//jComboBox.setEditable( true );
+		final JComboBox< String > comboBox = new JComboBox<>( bookmarkNames );
+		setComboBoxDimensions( comboBox );
+		viewButton.addActionListener( e -> platyViews.setView( ( String ) comboBox.getSelectedItem() ) );
 
-		viewButton.addActionListener( e -> platyViews.setView( ( String ) jComboBox.getSelectedItem() ) );
-
-
-		horizontalLayoutPanel.add( getjLabel( "bookmark" ) );
-		horizontalLayoutPanel.add( jComboBox );
+		horizontalLayoutPanel.add( getJLabel( "bookmark" ) );
+		horizontalLayoutPanel.add( comboBox );
 		horizontalLayoutPanel.add( viewButton );
 
 		panel.add( horizontalLayoutPanel );
@@ -494,12 +491,12 @@ public class PlatyBrowserActionPanel extends JPanel
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		final JButton button = new JButton( "move" );
-		final JTextField jTextField = new JTextField( "                    120.5,115.3,201.5" );
-		jTextField.setMaximumSize( new Dimension( 500000, 20 ) );
+		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
+		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, 20 ) );
+		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, 20 ) );
 		button.addActionListener( e -> BdvViewChanger.moveToView( bdv, jTextField.getText() ) );
 
-		horizontalLayoutPanel.add( getjLabel( "position" ) );
-		//horizontalLayoutPanel.add( Box.createHorizontalGlue() );
+		horizontalLayoutPanel.add( getJLabel( "position" ) );
 		horizontalLayoutPanel.add( jTextField );
 		horizontalLayoutPanel.add( button );
 
@@ -516,15 +513,23 @@ public class PlatyBrowserActionPanel extends JPanel
 				PlatyHelp.BIG_DATA_VIEWER,
 				PlatyHelp.PLATY_BROWSER,
 				PlatyHelp.SEGMENTATION_IMAGE };
-		final JComboBox< String > jComboBox = new JComboBox<>( choices );
-		button.addActionListener( e -> PlatyHelp.showHelp( ( String ) jComboBox.getSelectedItem() ) );
-		jComboBox.setPrototypeDisplayValue( PlatyBrowser.PROTOTYPE_DISPLAY_VALUE  );
+		final JComboBox< String > comboBox = new JComboBox<>( choices );
+		setComboBoxDimensions( comboBox );
+		button.addActionListener( e -> PlatyHelp.showHelp( ( String ) comboBox.getSelectedItem() ) );
+		comboBox.setPrototypeDisplayValue( PlatyBrowser.PROTOTYPE_DISPLAY_VALUE  );
 
-		horizontalLayoutPanel.add( getjLabel( " " ) );
-		horizontalLayoutPanel.add( jComboBox );
+		horizontalLayoutPanel.add( getJLabel( " " ) );
+		horizontalLayoutPanel.add( comboBox );
 		horizontalLayoutPanel.add( button );
 
 		panel.add( horizontalLayoutPanel );
+	}
+
+	private void setComboBoxDimensions( JComboBox< String > comboBox )
+	{
+		comboBox.setPrototypeDisplayValue( PlatyBrowser.PROTOTYPE_DISPLAY_VALUE );
+		comboBox.setPreferredSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
+		comboBox.setMaximumSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
 	}
 
 	// TODO simplify code below
