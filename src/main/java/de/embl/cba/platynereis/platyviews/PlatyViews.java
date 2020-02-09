@@ -38,9 +38,9 @@ public class PlatyViews
 	public void setView( String bookmarkId )
 	{
 		final Bookmark bookmark = nameToBookmark.get( bookmarkId );
-		adaptViewerTransform( bookmark );
 		removeAllSourcesFromPanelAndViewer( bookmark );
 		addBookmarkSourcesToPanelAndViewer( bookmark );
+		adaptViewerTransform( bookmark );
 	}
 
 	public void addBookmarkSourcesToPanelAndViewer( Bookmark bookmark )

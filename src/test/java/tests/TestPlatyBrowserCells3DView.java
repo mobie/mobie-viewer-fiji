@@ -6,7 +6,6 @@ import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
 import net.imagej.ImageJ;
-import org.junit.Test;
 
 import java.util.List;
 
@@ -25,7 +24,7 @@ public class TestPlatyBrowserCells3DView
 		final PlatyBrowserSourcesPanel sourcesPanel = mainFrame.getSourcesPanel();
 
 		sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-cells-labels" );
-		final SegmentsTableBdvAnd3dViews views = sourcesPanel.getViews();
+		final SegmentsTableBdvAnd3dViews views = sourcesPanel.getSourceNameToLabelViews().values().iterator().next();
 
 		final SelectionModel< TableRowImageSegment > selectionModel = views.getSelectionModel();
 		final List< TableRowImageSegment > tableRowImageSegments = views.getTableRowImageSegments();

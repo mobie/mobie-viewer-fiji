@@ -37,7 +37,7 @@ import static de.embl.cba.platynereis.platybrowser.PlatyBrowserUtils.createAnnot
 
 public class PlatyBrowserSourcesPanel extends JPanel
 {
-    private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelsViews;
+    private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelViews;
     protected Map< String, JPanel > sourceNameToPanel;
     protected Map< String, Metadata > sourceNameToMetadata;
     private BdvHandle bdv;
@@ -45,7 +45,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private Image3DUniverse universe;
     private int meshSmoothingIterations;
     private double voxelSpacing3DView;
-    private SegmentsTableBdvAnd3dViews views;
     private boolean isBdvShownFirstTime = true;
 
     public PlatyBrowserSourcesPanel( String versionString,
@@ -68,7 +67,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         );
 
         sourceNameToPanel = new LinkedHashMap<>();
-        sourceNameToLabelsViews = new LinkedHashMap<>();
+        sourceNameToLabelViews = new LinkedHashMap<>();
         sourceNameToMetadata = new LinkedHashMap<>();
 
         voxelSpacing3DView = 0.05;
@@ -106,10 +105,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
         if ( sam.metadata().content != null )
             sam.metadata().content.setColor( new Color3f( sam.metadata().displayColor ));
 
-        if ( sourceNameToLabelsViews.containsKey( sam.metadata().displayName ) )
+        if ( sourceNameToLabelViews.containsKey( sam.metadata().displayName ) )
         {
             final SegmentsBdvView< TableRowImageSegment > segmentsBdvView
-                    = sourceNameToLabelsViews.get( sam.metadata().displayName ).getSegmentsBdvView();
+                    = sourceNameToLabelViews.get( sam.metadata().displayName ).getSegmentsBdvView();
 
             segmentsBdvView.setLabelSourceSingleColor( BdvUtils.asArgbType( sam.metadata().displayColor ) );
         }
@@ -145,7 +144,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         this.meshSmoothingIterations = meshSmoothingIterations;
 
-        for ( SegmentsTableBdvAnd3dViews views : sourceNameToLabelsViews.values() )
+        for ( SegmentsTableBdvAnd3dViews views : sourceNameToLabelViews.values() )
             views.getSegments3dView().setMeshSmoothingIterations( meshSmoothingIterations );
     }
 
@@ -158,7 +157,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         this.voxelSpacing3DView = voxelSpacing3DView;
 
-        for ( SegmentsTableBdvAnd3dViews views : sourceNameToLabelsViews.values() )
+        for ( SegmentsTableBdvAnd3dViews views : sourceNameToLabelViews.values() )
             views.getSegments3dView().setVoxelSpacing3DView( voxelSpacing3DView );
     }
 
@@ -241,7 +240,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
         final SourceAndMetadata< ? > sam = imageSourcesModel.sources().get( metadata.displayName );
         // TODO Segments table path
         updateSourceAndMetadata( sam, metadata );
-
         addSourceToPanelAndViewer( sam );
     }
 
@@ -284,7 +282,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     public Set< String > getVisibleSourceNames()
     {
-        return Collections.unmodifiableSet( sourceNameToPanel.keySet() );
+        return Collections.unmodifiableSet( new HashSet<>( sourceNameToPanel.keySet() ) );
     }
 
     public ImageSourcesModel getImageSourcesModel()
@@ -305,7 +303,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
         sourceNameToMetadata.put( sam.metadata().displayName, sam.metadata() );
 
         addSourceToViewer( sam );
+
         new Thread( () -> addSourceToVolumeViewer( sam ) ).start();
+
         addSourceToPanel( sam );
     }
 
@@ -386,17 +386,18 @@ public class PlatyBrowserSourcesPanel extends JPanel
                          sam.metadata().imageId );
 
             // TODO: this is not logical anymore, because there can be several views for different segments...
-            views = new SegmentsTableBdvAnd3dViews(
-                    segments,
-                    createLabelsSourceModel( sam ),
-                    sam.metadata().imageId,
-                    bdv,
-                    universe );
+            final SegmentsTableBdvAnd3dViews views
+                    = new SegmentsTableBdvAnd3dViews(
+                        segments,
+                        createLabelsSourceModel( sam ),
+                        sam.metadata().imageId,
+                        bdv,
+                        universe );
 
-            configureSegmentsView( sam );
-            configureTableView( sam );
+            configureSegmentsView( views, sam );
+            configureTableView( views, sam );
 
-            // update bdv in case this is was first source to be shown.
+            // update bdvHandle
             bdv = views.getSegmentsBdvView().getBdv();
 
             // keep bdvStackSource handle, for changing its color, visibility, a.s.o.
@@ -407,7 +408,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
             sam.metadata().bdvStackSource.setDisplayRange( 0, 1000 );
 
-            sourceNameToLabelsViews.put( sam.metadata().displayName, views );
+            sourceNameToLabelViews.put( sam.metadata().displayName, views );
         }
         catch ( Exception e )
         {
@@ -424,7 +425,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         return true;
     }
 
-    private void configureTableView( SourceAndMetadata< ? > sam )
+    private void configureTableView( SegmentsTableBdvAnd3dViews views, SourceAndMetadata< ? > sam )
     {
         final TableRowsTableView< TableRowImageSegment > tableRowsTableView = views.getTableRowsTableView();
 
@@ -432,9 +433,11 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         tableRowsTableView.setTablesDirectory( tablesLocation );
         tableRowsTableView.setMergeByColumnName( Globals.COLUMN_NAME_SEGMENT_LABEL_ID );
+
+        views.getSegmentsBdvView().select( sam.metadata().selectedSegmentIds );
     }
 
-    private void configureSegmentsView( SourceAndMetadata< ? > sam )
+    private void configureSegmentsView( SegmentsTableBdvAnd3dViews views, SourceAndMetadata< ? > sam )
     {
         final Segments3dView< TableRowImageSegment > segments3dView
                 = views.getSegments3dView();
@@ -479,9 +482,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
         segments3dView.setAutoResolutionLevel( true );
     }
 
-    public SegmentsTableBdvAnd3dViews getViews()
+    public Map< String, SegmentsTableBdvAnd3dViews > getSourceNameToLabelViews()
     {
-        return views;
+        return sourceNameToLabelViews;
     }
 
     private DefaultImageSourcesModel createLabelsSourceModel(
@@ -587,10 +590,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
 	private void removeLabelsViews( String sourceName )
 	{
-		if ( sourceNameToLabelsViews.keySet().contains( sourceName ) )
+		if ( sourceNameToLabelViews.keySet().contains( sourceName ) )
         {
-			sourceNameToLabelsViews.get( sourceName ).close();
-			sourceNameToLabelsViews.remove( sourceName );
+			sourceNameToLabelViews.get( sourceName ).getTableRowsTableView().close();
+			sourceNameToLabelViews.remove( sourceName );
         }
 	}
 
