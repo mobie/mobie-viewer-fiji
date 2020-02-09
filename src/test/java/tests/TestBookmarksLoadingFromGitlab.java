@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class TestBookmarksLoadingFromGitlab
 {
-	@Test
+	//@Test
 	public static void main( String[] args ) throws IOException
 	{
 		// Old style

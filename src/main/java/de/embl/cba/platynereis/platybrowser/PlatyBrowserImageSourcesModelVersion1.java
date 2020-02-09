@@ -12,6 +12,7 @@ import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.SourceAndMetadata;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -65,7 +66,7 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 			InputStream is = FileAndUrlUtils.getInputStream( imagesJsonLocation );
 
 			final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
-			parseJsonFile( imageDataLocation, reader );
+			addSourcesFromJson( imageDataLocation, reader );
 			reader.close();
 		}
 		catch ( Exception e ) {
@@ -112,9 +113,9 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 		reader.endObject();
 	}
 
-	private void parseJsonFile( String imageDataLocation, JsonReader reader ) throws IOException
+	private void addSourcesFromJson( String imageDataLocation, JsonReader reader ) throws IOException
 	{
-		final String storageLocation = imageDataLocation.contains( "http:" ) ? "remote" : "local";
+		final String storageLocation = imageDataLocation.startsWith( "http" ) ? "remote" : "local";
 
 		GsonBuilder builder = new GsonBuilder();
 		LinkedTreeMap imageIdsToMetadata = builder.create().fromJson(reader, Object.class);
@@ -130,6 +131,7 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 			final Metadata metadata = new Metadata( imageId );
 			metadata.numSpatialDimensions = 3;
 			metadata.displayName = imageId;
+			presetDefaultMetadata( metadata );
 			setImageModality( imageId, metadata );
 
 			final Set< String > metadataKeys = metadataKeysToValues.keySet();
@@ -147,6 +149,12 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 			throw new UnsupportedOperationException( "No image data found in: "
 					+ FileAndUrlUtils.combinePath( imageDataLocation, "images", storageLocation ) );
 		}
+	}
+
+	private void presetDefaultMetadata( Metadata metadata )
+	{
+		metadata.displayRangeMin = 0.0;
+		metadata.displayRangeMax = 1000.0;
 	}
 
 	public void addImageMetadata( Metadata metadata, String key, Object data, String storageLocation, String imageRootLocation )

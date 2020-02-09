@@ -38,7 +38,7 @@ public class PlatyBrowser extends JFrame
 		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, platyViews );
 
 		setJMenuBar( createMenuBar() );
-		showFrame();
+		showFrame( version );
 	}
 
 	private JMenuBar createMenuBar()
@@ -84,7 +84,7 @@ public class PlatyBrowser extends JFrame
 		} ).start();
 	}
 
-	public void showFrame()
+	public void showFrame( String version )
 	{
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
@@ -98,7 +98,7 @@ public class PlatyBrowser extends JFrame
 		getContentPane().setLayout( new GridLayout() );
 		getContentPane().add( splitPane );
 
-		this.setTitle( "PlatyBrowser" );
+		this.setTitle( "PlatyBrowser - Data Version " + version );
 
 		this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 		this.pack();

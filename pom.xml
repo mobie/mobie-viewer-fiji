@@ -77,6 +77,39 @@
 					<argLine>-Xmx4024m</argLine>
 				</configuration>
 			</plugin>
+			<plugin>
+				<!--
+				To create an executable jar with maven type:
+				mvn clean package
+				To execute the jar type: java -jar *.jar params
+				-->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<archive>
+								<manifest>
+									<mainClass>
+										de.embl.cba.platynereis.platybrowser.OpenBrowser
+									</mainClass>
+								</manifest>
+							</archive>
+							<outputDirectory>
+								/Users/tischer/Desktop
+<!--								/Volumes/cba/exchange/jars/mmpb-->
+							</outputDirectory>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<repositories>

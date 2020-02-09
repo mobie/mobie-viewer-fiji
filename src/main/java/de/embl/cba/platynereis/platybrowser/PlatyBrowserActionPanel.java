@@ -101,11 +101,12 @@ public class PlatyBrowserActionPanel extends JPanel
 	{
 		behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( bdv.getTriggerbindings(), "behaviours" );
-		addPositionAndViewLoggingBehaviour( this );
 		addPointOverlayTogglingBehaviour();
 		addLocalGeneSearchBehaviour();
-		BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "shift C" );
-		BdvBehaviours.addSimpleViewCaptureBehaviour( bdv, behaviours, "C" );
+		BdvBehaviours.addPositionAndViewLoggingBehaviour( bdv, behaviours, "P" );
+		BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "C", false );
+		BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "shift C", true );
+		//BdvBehaviours.addSimpleViewCaptureBehaviour( bdv, behaviours, "C" );
 	}
 
 	private void configPanel()
@@ -122,38 +123,6 @@ public class PlatyBrowserActionPanel extends JPanel
 				BdvViewChanger.togglePointOverlay();
 			} )).start();
 		}, "Toggle point overlays", "ctrl P"  ) ;
-	}
-
-	private void addPositionAndViewLoggingBehaviour( JPanel panel )
-	{
-		JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-
-			(new Thread( () -> {
-				logPositionAndViews();
-			} )).start();
-
-		}, "Print position and view", "P"  ) ;
-
-		panel.add( horizontalLayoutPanel );
-	}
-
-	private void logPositionAndViews()
-	{
-		final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdv );
-		Utils.log( "\nPosition: \n" + globalMouseCoordinates.toString() );
-
-		Utils.log( "BigDataViewer transform: \n"+ getBdvViewerTransform() );
-		Utils.log( "3D Viewer transform: \n" + getVolumeViewerTransform() );
-	}
-
-	private String getBdvViewerTransform()
-	{
-		final AffineTransform3D view = new AffineTransform3D();
-		bdv.getViewerPanel().getState().getViewerTransform( view );
-
-		return view.toString().replace( "3d-affine", "View" );
 	}
 
 	private void add3DObjectViewResolutionUI( JPanel panel )
@@ -322,8 +291,10 @@ public class PlatyBrowserActionPanel extends JPanel
 	String getVolumeViewerTransform()
 	{
 		final Image3DUniverse universe = sourcesPanel.getUniverse();
-		String transform = "";
 
+		if ( universe == null ) return "";
+
+		String transform = "";
 		final Transform3D t3d = new Transform3D();
 		universe.getCenterTG().getTransform(t3d);
 		transform += "center = " + toString(t3d) +"\n";

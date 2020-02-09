@@ -74,9 +74,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         voxelSpacing3DView = 0.05;
         meshSmoothingIterations = 5;
 
-
         configPanel();
-//        initColors();
     }
 
     private void addColorButton( JPanel panel, int[] buttonDimensions, SourceAndMetadata< ? > sam )
@@ -241,13 +239,22 @@ public class PlatyBrowserSourcesPanel extends JPanel
         }
 
         final SourceAndMetadata< ? > sam = imageSourcesModel.sources().get( metadata.displayName );
-
-        sam.metadata().displayRangeMin = metadata.displayRangeMin;
-        sam.metadata().displayRangeMax = metadata.displayRangeMax;
-        sam.metadata().selectedSegmentIds = metadata.selectedSegmentIds;
-        sam.metadata().displayColor = metadata.displayColor;
+        // TODO Segments table path
+        updateSourceAndMetadata( sam, metadata );
 
         addSourceToPanelAndViewer( sam );
+    }
+
+    public void updateSourceAndMetadata( SourceAndMetadata< ? > sam, Metadata metadata )
+    {
+        sam.metadata().displayRangeMin = metadata.displayRangeMin != null
+                ? metadata.displayRangeMin : sam.metadata().displayRangeMin;
+        sam.metadata().displayRangeMax = metadata.displayRangeMax != null
+                ? metadata.displayRangeMax : sam.metadata().displayRangeMax;
+        sam.metadata().selectedSegmentIds = metadata.selectedSegmentIds != null
+                ? metadata.selectedSegmentIds : sam.metadata().selectedSegmentIds;
+        sam.metadata().displayColor = metadata.displayColor != null
+                ? metadata.displayColor : sam.metadata().displayColor;
     }
 
     public void addSourceToPanelAndViewer( String sourceName )
@@ -277,7 +284,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     public Set< String > getVisibleSourceNames()
     {
-        return sourceNameToPanel.keySet();
+        return Collections.unmodifiableSet( sourceNameToPanel.keySet() );
     }
 
     public ImageSourcesModel getImageSourcesModel()

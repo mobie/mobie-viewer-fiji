@@ -59,10 +59,10 @@ public class PlatyViews
 
 		if ( bookmark.nameToMetadata.size() > 0 )
 		{
-			for ( String visibleSourceName : sourcesPanel.getVisibleSourceNames() )
-			{
+			final Set< String > visibleSourceNames = sourcesPanel.getVisibleSourceNames();
+
+			for ( String visibleSourceName : visibleSourceNames )
 				sourcesPanel.removeSourceFromPanelAndViewers( visibleSourceName );
-			}
 		}
 	}
 
