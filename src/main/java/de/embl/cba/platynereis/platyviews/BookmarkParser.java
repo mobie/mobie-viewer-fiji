@@ -109,6 +109,11 @@ public class BookmarkParser implements Callable< Map< String, Bookmark > >
 			metadata.displayRangeMin = ( Double ) layerAttributes.get( "MinValue" );
 		}
 
+//		if ( keySet.contains( "ShowIn3d") )
+//		{
+//			metadata.showIn3d = ( Double ) layerAttributes.get( "MinValue" );
+//		}
+
 		bookmark.nameToMetadata.put( metadata.displayName, metadata );
 	}
 

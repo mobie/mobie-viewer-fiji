@@ -592,6 +592,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 	{
 		if ( sourceNameToLabelViews.keySet().contains( sourceName ) )
         {
+            // TODO work more on closing the views properly (also free the memory)
 			sourceNameToLabelViews.get( sourceName ).getTableRowsTableView().close();
 			sourceNameToLabelViews.remove( sourceName );
         }
