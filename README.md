@@ -1,19 +1,21 @@
 # PlatyBrowser Fiji
 
-Plugin for visualisation of multi-modal big image data of the biological model system Platynereis dumerilii.
+Fiji plugin for the exploration of multi-modal big image data of the biological model system _Platynereis_ dumerilii.
 
 
-Installation: 
-If you don’t yet have a Fiji installed on your computer, please install from this web site: https://fiji.sc
-Open Fiji and install the EMBL-CBA update site, following this instructions: https://imagej.net/Following_an_update_site#Introduction
-Select the EMBL-CBA update site and then click [ Close ]
+## Installation
 
-Please restart Fiji
-Starting up: 
-In the Fiji search bar, type: PlatyBrowser
-Put an image
-Select the first item in the list and click [ Run ]
-The PlatyBrowser is ready to be used
+1. Please [install Fiji](https://fiji.sc) on your computer.
+1. Open Fiji and install the EMBL-CBA update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).<br> <img width="468" alt="image" src="https://user-images.githubusercontent.com/2157566/74152530-c9603500-4c0e-11ea-81d8-d518b9ed1ef3.png"> <br> Select the EMBL-CBA update site and then click [ Close ]
+1. Restart Fiji
+
+## Starting up
+
+1. In the Fiji search bar, type: "Open Platy"... <br> <img width="851" alt="image" src="https://user-images.githubusercontent.com/2157566/74152904-98cccb00-4c0f-11ea-9819-6c772174a2c0.png"> <br> ...and click [ Run ]
+1. Select the version of the data: <br> <img width="249" alt="image" src="https://user-images.githubusercontent.com/2157566/74152986-cc0f5a00-4c0f-11ea-869d-23456fec0cdc.png"> <br> ...by default the latest is selected.
+1. The PlatyBrowser is ready to be used:
+
+
 Put an image
 Operation: 
 Buttons in main panel:
