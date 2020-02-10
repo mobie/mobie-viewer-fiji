@@ -1,4 +1,4 @@
-package de.embl.cba.platynereis.platybrowser;
+package de.embl.cba.platynereis.bdv;
 
 import bdv.util.BdvOverlay;
 import net.imglib2.RealPoint;

@@ -1,9 +1,9 @@
-package de.embl.cba.platynereis.utils;
+package de.embl.cba.platynereis.bdv;
 
 import bdv.util.*;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.platynereis.platybrowser.BdvPointOverlay;
-import de.embl.cba.platynereis.platyviews.PlatyViews;
+import de.embl.cba.platynereis.bdv.BdvPointOverlay;
+import de.embl.cba.platynereis.utils.Utils;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.ArrayList;

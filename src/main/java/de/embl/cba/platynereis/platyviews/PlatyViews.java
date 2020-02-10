@@ -3,18 +3,12 @@ package de.embl.cba.platynereis.platyviews;
 
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.platybrowser.PlatyBrowserSourcesPanel;
-import de.embl.cba.platynereis.utils.BdvViewChanger;
+import de.embl.cba.platynereis.bdv.BdvViewChanger;
 import de.embl.cba.platynereis.utils.Version;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * TODO: probably read this from a editable text file so that users can add own views.
- *
- *
- */
 public class PlatyViews
 {
 	private final PlatyBrowserSourcesPanel sourcesPanel;

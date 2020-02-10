@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
+public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 {
 	public static final String SEGMENTATION_ID = "-segmented" ;
 	public static final String BDV_XML_SUFFIX = ".xml";
@@ -33,7 +33,7 @@ public class PlatyBrowserImageSourcesModelVersion1 implements ImageSourcesModel
 	private final String imageDataLocation;
 	private final String tableDataLocation;
 
-	public PlatyBrowserImageSourcesModelVersion1(
+	public PlatyBrowserImageSourcesModel(
 			String imageDataLocation,
 			String tableDataLocation )
 	{

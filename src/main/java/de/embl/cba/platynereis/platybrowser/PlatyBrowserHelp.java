@@ -6,7 +6,7 @@ import de.embl.cba.tables.Help;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 
-public class PlatyHelp
+public class PlatyBrowserHelp
 {
 
 	public static final String BIG_DATA_VIEWER = "bigdataviewer";

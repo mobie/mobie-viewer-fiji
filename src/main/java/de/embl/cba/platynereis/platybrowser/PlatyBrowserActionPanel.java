@@ -7,7 +7,7 @@ import de.embl.cba.platynereis.GeneSearch;
 import de.embl.cba.platynereis.GeneSearchResults;
 import de.embl.cba.platynereis.Globals;
 import de.embl.cba.platynereis.platyviews.PlatyViews;
-import de.embl.cba.platynereis.utils.BdvViewChanger;
+import de.embl.cba.platynereis.bdv.BdvViewChanger;
 import de.embl.cba.platynereis.utils.SortIgnoreCase;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
@@ -510,12 +510,12 @@ public class PlatyBrowserActionPanel extends JPanel
 		final JButton button = new JButton( "help" );
 
 		final String[] choices = {
-				PlatyHelp.BIG_DATA_VIEWER,
-				PlatyHelp.PLATY_BROWSER,
-				PlatyHelp.SEGMENTATION_IMAGE };
+				PlatyBrowserHelp.BIG_DATA_VIEWER,
+				PlatyBrowserHelp.PLATY_BROWSER,
+				PlatyBrowserHelp.SEGMENTATION_IMAGE };
 		final JComboBox< String > comboBox = new JComboBox<>( choices );
 		setComboBoxDimensions( comboBox );
-		button.addActionListener( e -> PlatyHelp.showHelp( ( String ) comboBox.getSelectedItem() ) );
+		button.addActionListener( e -> PlatyBrowserHelp.showHelp( ( String ) comboBox.getSelectedItem() ) );
 		comboBox.setPrototypeDisplayValue( PlatyBrowser.PROTOTYPE_DISPLAY_VALUE  );
 
 		horizontalLayoutPanel.add( getJLabel( " " ) );

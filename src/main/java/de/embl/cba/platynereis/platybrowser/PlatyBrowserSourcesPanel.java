@@ -33,7 +33,7 @@ import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
 
-import static de.embl.cba.platynereis.platybrowser.PlatyBrowserUtils.createAnnotatedImageSegmentsFromTableFile;
+import static de.embl.cba.platynereis.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
 
 public class PlatyBrowserSourcesPanel extends JPanel
 {
@@ -61,7 +61,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         final Version version = new Version( versionString );
 
-        imageSourcesModel = new PlatyBrowserImageSourcesModelVersion1(
+        imageSourcesModel = new PlatyBrowserImageSourcesModel(
                 imageDataLocation,
                 tableDataLocation
         );
