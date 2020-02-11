@@ -26,8 +26,8 @@ Fiji plugin for the exploration of multi-modal big image data of the biological 
 
 ### Checkboxes in main panel
 
-- [ X ] show volumes in 3D: Checking will show image data not only in BigDataViewer but also show a 3D rendering in ImageJ’s 3D Image Viewer (Schmid et al., 2010)
-- [ X ] show objects in 3D: Checking will show a 3D rendering of selected objects, also in ImageJ’s 3D Image Viewer  
+- [X] show volumes in 3D: Checking will show image data not only in BigDataViewer but also show a 3D rendering in ImageJ’s 3D Image Viewer (Schmid et al., 2010)
+- [X] show objects in 3D: Checking will show a 3D rendering of selected objects, also in ImageJ’s 3D Image Viewer  
 
 ### Image sources buttons
 
@@ -35,13 +35,16 @@ Adding an image source to BigDataViewer will also make it appear in the image **
 
 <img width="220" alt="image" src="https://user-images.githubusercontent.com/2157566/74252332-d2740380-4ced-11ea-9a4e-d25cb1e83859.png">
 
-There are several buttons and checkboxes:
+To control the image sources appearance, there are several buttons...
 
 - [ C ] Change the color
 - [ B ] Change the brightness settings
 - [ X ] Remove from viewer and sources panel
-- [X]V Uncheck to remove from Volume viewer (but keep in sources panel)  
-- [X]B Uncheck to remove from BigDataViewer (but keep in sources panel)  
+
+...and checkboxes:
+
+- [X] V Uncheck to remove from volume viewer (but keep in sources panel)  
+- [X] B Uncheck to remove from BigDataViewer (but keep in sources panel)  
 
 ### Keyboard shortcuts in BigDataViewer window
 
