@@ -18,16 +18,20 @@ Fiji plugin for the exploration of multi-modal big image data of the biological 
 ## Operation
 
 ### Buttons in main panel
-- [ help ]: Please select an item from the drop-down and click the [ help ] button. A corresponding help page will appear.
-- [ add ]: Please select an image source from the drop-downs and click the corresponding [ add ] button. The image source will be added to the current view. If the image source is a segmentation, also a corresponding objects table will appear. 
-- [ view ]: Please select a bookmark item from the drop-down and click the [ view ] button. The corresponding bookmarked view will appear. A “bookmark” can consist of multiple items, such as different image layers, as well as object selections, and coloring modes.
-- [ move ]: Please enter a x, y, z position (in micrometer units) as comma separated values, as an example you may try: TODO. Clicking [ move ] will move the current viewer such that the entered position is in the centre of the viewer. You may also enter 12 comma separated values; in this case the view will be positioned according to the affine transformation that is specified by these numbers; as an example, you may try: TODO.
-- [ level ]: Clicking this button will level the current view such that the dorso-ventral axis of the animal is perpendicular to the viewing plane, and the anterior part of the animal facing upwards. This view is suited to inspect the the bilateral symmetry of the specimen.
+- [ help ] Please select an item from the drop-down and click the [ help ] button. A corresponding help page will appear.
+- [ add ] Please select an image source from the drop-downs and click the corresponding [ add ] button. The image source will be added to the current view. If the image source is a segmentation, also a corresponding objects table will appear. 
+- [ view ] Please select a bookmark item from the drop-down and click the [ view ] button. The corresponding bookmarked view will appear. A “bookmark” can consist of multiple items, such as different image layers, as well as object selections, and coloring modes.
+- [ move ] Please enter a x, y, z position (in micrometer units) as comma separated values, as an example you may try: TODO. Clicking [ move ] will move the current viewer such that the entered position is in the centre of the viewer. You may also enter 12 comma separated values; in this case the view will be positioned according to the affine transformation that is specified by these numbers; as an example, you may try: TODO.
+- [ level ] Clicking this button will level the current view such that the dorso-ventral axis of the animal is perpendicular to the viewing plane, and the anterior part of the animal facing upwards. This view is suited to inspect the the bilateral symmetry of the specimen.
 
 ### Checkboxes in main panel
 
 - [ X ] show volumes in 3D: Checking will show image data not only in BigDataViewer but also show a 3D rendering in ImageJ’s 3D Image Viewer (Schmid et al., 2010)
 - [ X ] show objects in 3D: Checking will show a 3D rendering of selected objects, also in ImageJ’s 3D Image Viewer  
+
+### Image sources buttons
+
+Adding an image source to the viewer will cause it to appear 
 
 ### Keyboard shortcuts in BigDataViewer window
 
@@ -35,7 +39,26 @@ There are many useful keyboard shortcuts. Please consult the [ help ]  button in
 
 ### Exploring segmentations
 
-Viewing a _segmentation_ will in most cases automatically load and render a corresponding table where each row corresponds to one segmented object in the image. The table is interactive, e.g. clicking on one row will center and highlight the object in BigDataViewer. Please note that the table also has a menu bar with several useful commands. 
+Viewing a _segmentation_ will show the segmented objects as a coloured overlay in the viewer and, if available, also show a corresponding table where each row corresponds to one segmented object in the image. 
+
+#### Interacting with image segments in BigDataViewer
+
+Image segments can be interacted with in the BigDataViewer window, please see [here](https://htmlpreview.github.io/?https://github.com/tischi/table-utils/blob/master/src/main/resources/SegmentationImageActionsHelp.html).
+
+#### Interacting with image segments in the table
+
+The image segments table is interactive.
+
+- Clicking on a row will select an object; this will also center and highlight the object in BigDataViewer.
+- Clicking on a column header will sort the table by the values in that column.
+
+Moreover, the table has its own menu. Important menu entries include:
+
+- [ Color > Color by Column... ] Use this to color the image segments by the feature values of any column.
+- [ Table > Append Table...] By default only minimal information about image segments is shown. Use this menu entry to append more measurements, as stored in other tables. 
+- [ Annotate > Start new annotation...] Use this to perform a manual annotation of image segments. Performing this action will add a new column to the table, containing your annotations.
+- [ Table > Save Table As...] Use this to store the table to disk. This is useful to, e.g., save manual image segment annotations.
+
 
 ### Advanced options
 
