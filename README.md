@@ -31,7 +31,17 @@ Fiji plugin for the exploration of multi-modal big image data of the biological 
 
 ### Image sources buttons
 
-Adding an image source to the viewer will cause it to appear 
+Adding an image source to BigDataViewer will also make it appear in the image **sources panel**, such as shown in below example.
+
+<img width="220" alt="image" src="https://user-images.githubusercontent.com/2157566/74252332-d2740380-4ced-11ea-9a4e-d25cb1e83859.png">
+
+There are several buttons and checkboxes:
+
+- [ C ] Change the color
+- [ B ] Change the brightness settings
+- [ X ] Remove from viewer and sources panel
+- [X]V Uncheck to remove from Volume viewer (but keep in sources panel)  
+- [X]B Uncheck to remove from BigDataViewer (but keep in sources panel)  
 
 ### Keyboard shortcuts in BigDataViewer window
 
