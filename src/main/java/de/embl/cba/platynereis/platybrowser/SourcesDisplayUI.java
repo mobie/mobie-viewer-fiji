@@ -14,13 +14,12 @@ import java.util.List;
 
 public class SourcesDisplayUI
 {
-
-	public static JCheckBox createSliceViewVisibilityCheckbox(
+	public static JCheckBox createBigDataViewerVisibilityCheckbox(
 			int[] dims,
 			SourceAndMetadata< ? > sam,
 			boolean isVisible )
 	{
-		JCheckBox checkBox = new JCheckBox( "S" );
+		JCheckBox checkBox = new JCheckBox( "B" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( new Dimension( dims[ 0 ], dims[ 1 ] ) );
 
@@ -33,7 +32,6 @@ public class SourcesDisplayUI
 					sam.metadata().bdvStackSource.setActive( checkBox.isSelected() );
 			}
 		} );
-
 
 		return checkBox;
 	}

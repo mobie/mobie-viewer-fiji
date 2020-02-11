@@ -29,6 +29,8 @@ import java.net.URI;
 import java.util.*;
 import java.util.List;
 
+import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
+
 public class Utils
 {
 	public static double[] delimitedStringToDoubleArray( String s, String delimiter) {
@@ -369,5 +371,17 @@ public class Utils
 		SegmentUtils.putDefaultBoundingBoxMapping( segmentPropertyToColumn, columns );
 
 		return segmentPropertyToColumn;
+	}
+
+	/**
+	 * Converts a string to a random number between 0 and 1
+	 * @param string
+	 * @return
+	 */
+	public static double createRandom( String string )
+	{
+		double random = string.hashCode() * goldenRatio;
+		random = random - ( long ) Math.floor( random );
+		return random;
 	}
 }

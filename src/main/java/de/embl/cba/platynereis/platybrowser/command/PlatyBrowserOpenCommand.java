@@ -1,5 +1,6 @@
-package de.embl.cba.platynereis.platybrowser;
+package de.embl.cba.platynereis.platybrowser.command;
 
+import de.embl.cba.platynereis.platybrowser.PlatyBrowser;
 import de.embl.cba.platynereis.utils.ui.VersionsDialog;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
@@ -9,10 +10,10 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>EMBL>Platynereis Atlas>Open " )
+@Plugin(type = Command.class, menuPath = "Plugins>PlatyBrowser>Open PlatyBrowser" )
 public class PlatyBrowserOpenCommand implements Command
 {
-	public static final String remoteGitLocation = "https://git.embl.de/tischer/platy-browser-tables/raw/master/data";
+	public static final String remoteGitLocation = "https://raw.githubusercontent.com/platybrowser/platybrowser-backend/master/data";
 
 	@Override
 	public void run()

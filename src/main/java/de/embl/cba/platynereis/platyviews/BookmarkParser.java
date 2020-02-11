@@ -5,10 +5,7 @@ import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.utils.Utils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 public class BookmarkParser implements Callable< Map< String, Bookmark > >
@@ -40,7 +37,7 @@ public class BookmarkParser implements Callable< Map< String, Bookmark > >
 	{
 		final LinkedTreeMap bookmarksTreeMap = Utils.getLinkedTreeMap( jsonFilePath );
 
-		nameToBookmark = new HashMap<>();
+		nameToBookmark = new TreeMap<>();
 
 		for ( Object bookmarkKey : bookmarksTreeMap.keySet() )
 		{
@@ -96,7 +93,7 @@ public class BookmarkParser implements Callable< Map< String, Bookmark > >
 
 		if ( keySet.contains( "Color" ) )
 		{
-			metadata.displayColor = Utils.getColor( ( String ) layerAttributes.get( "Color" ) );
+			metadata.color = Utils.getColor( ( String ) layerAttributes.get( "Color" ) );
 		}
 
 		if ( keySet.contains( "MaxValue") )

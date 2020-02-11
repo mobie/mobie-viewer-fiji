@@ -1,6 +1,6 @@
 package commands;
 
-import de.embl.cba.platynereis.platybrowser.PlatyBrowserOpenCommand;
+import de.embl.cba.platynereis.platybrowser.command.PlatyBrowserOpenCommand;
 import net.imagej.ImageJ;
 
 public class RunPlatyBrowserOpenCommand

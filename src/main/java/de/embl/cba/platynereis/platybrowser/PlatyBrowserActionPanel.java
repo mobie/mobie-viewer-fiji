@@ -512,7 +512,7 @@ public class PlatyBrowserActionPanel extends JPanel
 		final String[] choices = {
 				PlatyBrowserHelp.BIG_DATA_VIEWER,
 				PlatyBrowserHelp.PLATY_BROWSER,
-				PlatyBrowserHelp.SEGMENTATION_IMAGE };
+				PlatyBrowserHelp.SEGMENTATIONS };
 		final JComboBox< String > comboBox = new JComboBox<>( choices );
 		setComboBoxDimensions( comboBox );
 		button.addActionListener( e -> PlatyBrowserHelp.showHelp( ( String ) comboBox.getSelectedItem() ) );

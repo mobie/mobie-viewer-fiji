@@ -1,5 +1,6 @@
-package de.embl.cba.platynereis.platybrowser;
+package de.embl.cba.platynereis.platybrowser.command;
 
+import de.embl.cba.platynereis.platybrowser.PlatyBrowser;
 import de.embl.cba.platynereis.utils.ui.VersionsDialog;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
@@ -9,7 +10,7 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>EMBL>Platynereis Atlas>Extras>Open Atlas - Advanced" )
+@Plugin(type = Command.class, menuPath = "Plugins>PlatyBrowser>Advanced>Open PlatyBrowser Advanced" )
 public class PlatyBrowserOpenAdvancedCommand implements Command
 {
 	@Parameter ( label = "Image Data Location", style = "directory" )

@@ -16,6 +16,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -76,43 +77,6 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 
 	}
 
-	@Deprecated
-	private void parseJsonFileOldStyle( String imageDataLocation, JsonReader reader ) throws IOException
-	{
-		reader.beginObject();
-
-		try
-		{
-			while ( reader.hasNext() )
-			{
-				final String imageId = reader.nextName();
-				final Metadata metadata = new Metadata( imageId );
-				metadata.numSpatialDimensions = 3;
-				metadata.displayName = imageId;
-				setImageModality( imageId, metadata );
-				reader.beginObject();
-				while ( ! reader.peek().equals( JsonToken.END_OBJECT ) )
-					addImageMetadataOldStyle( reader, metadata );
-				reader.endObject();
-
-				//TODO: make this h5 for openning from local
-				final String imageXmlUrl = FileAndUrlUtils.combinePath( imageDataLocation, "images", "remote",  imageId + ".xml");
-
-				final LazySpimSource lazySpimSource = new LazySpimSource( imageId, imageXmlUrl );
-				imageIdToSourceAndMetadata.put(
-						imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
-				Sources.sourceToMetadata.put( lazySpimSource, metadata );
-
-			}
-		} catch ( Exception e )
-		{
-			final String x = e.toString();
-			System.err.println( x );
-		}
-
-		reader.endObject();
-	}
-
 	private void addSourcesFromJson( String imageDataLocation, JsonReader reader ) throws IOException
 	{
 		final String storageLocation = imageDataLocation.startsWith( "http" ) ? "remote" : "local";
@@ -157,28 +121,48 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 		metadata.displayRangeMax = 1000.0;
 	}
 
-	public void addImageMetadata( Metadata metadata, String key, Object data, String storageLocation, String imageRootLocation )
+	public void addImageMetadata( Metadata metadata, String key, Object value, String storageLocation, String imageRootLocation )
 	{
 		if ( key.equals( "TableFolder" ) )
 		{
-			metadata.segmentsTablePath = FileAndUrlUtils.combinePath( tableDataLocation, (String) data, "default.csv");
+			metadata.segmentsTablePath = FileAndUrlUtils.combinePath( tableDataLocation, (String) value, "default.csv");
 		}
 		else if ( key.equals( "Color" ) )
 		{
-			metadata.displayColor = Utils.getColor( (String) data );
+			metadata.color = Utils.getColor( (String) value );
+		}
+		else if ( key.equals( "ColorMap" ) )
+		{
+			metadata.colorMap = (String) value;
+		}
+		else if ( key.equals( "Type" ) )
+		{
+			metadata.type = Metadata.Type.valueOf( (String) value );
 		}
 		else if ( key.equals( "MinValue" ) )
 		{
-			metadata.displayRangeMin = (double) data;
+			metadata.displayRangeMin = (double) value;
 		}
 		else if ( key.equals( "MaxValue" ) )
 		{
-			metadata.displayRangeMax = (double) data;
+			metadata.displayRangeMax = (double) value;
 		}
 		else if ( key.equals( "Storage" ) )
 		{
-			final LinkedTreeMap treeMap = ( LinkedTreeMap ) data;
+			final LinkedTreeMap treeMap = ( LinkedTreeMap ) value;
 			metadata.xmlLocation = FileAndUrlUtils.combinePath( imageRootLocation, (String) treeMap.get( storageLocation ) );
+		}
+		else if ( key.equals( "SelectedLabelIds" ) )
+		{
+			metadata.selectedSegmentIds = ( ArrayList<Double> ) value;
+		}
+		else if ( key.equals( "ShowSelectedSegmentsIn3d" ) )
+		{
+			// TODO
+		}
+		else if ( key.equals( "ShowImageIn3d" ) )
+		{
+			// TODO
 		}
 		else
 		{
@@ -197,7 +181,7 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 		}
 		else if ( nextName.equals( "Color" ) )
 		{
-			metadata.displayColor = Utils.getColor( reader.nextString() );
+			metadata.color = Utils.getColor( reader.nextString() );
 		}
 		else if ( nextName.equals( "MinValue" ) )
 		{

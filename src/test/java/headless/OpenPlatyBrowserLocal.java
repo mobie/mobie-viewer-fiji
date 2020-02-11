@@ -10,7 +10,7 @@ public class OpenPlatyBrowserLocal
 		new ImageJ().ui().showUI();
 
 		final PlatyBrowser platyBrowser = new PlatyBrowser(
-				"0.6.5",
+				"0.6.6",
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data" );
 	}

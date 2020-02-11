@@ -3,6 +3,7 @@ package de.embl.cba.platynereis.platybrowser;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.Constants;
@@ -10,6 +11,7 @@ import de.embl.cba.platynereis.Globals;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.Version;
+import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.ij3d.UniverseUtils;
 import de.embl.cba.tables.image.DefaultImageSourcesModel;
@@ -33,7 +35,9 @@ import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
 
+import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 import static de.embl.cba.platynereis.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
+import static de.embl.cba.platynereis.utils.Utils.createRandom;
 
 public class PlatyBrowserSourcesPanel extends JPanel
 {
@@ -98,22 +102,22 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     private void setSourceColor( SourceAndMetadata< ? > sam, Color color, JPanel panel )
     {
-        sam.metadata().displayColor = color;
+        sam.metadata().color = color;
 
-        sam.metadata().bdvStackSource.setColor( BdvUtils.asArgbType( sam.metadata().displayColor ) );
+        sam.metadata().bdvStackSource.setColor( BdvUtils.asArgbType( sam.metadata().color ) );
 
         if ( sam.metadata().content != null )
-            sam.metadata().content.setColor( new Color3f( sam.metadata().displayColor ));
+            sam.metadata().content.setColor( new Color3f( sam.metadata().color ));
 
         if ( sourceNameToLabelViews.containsKey( sam.metadata().displayName ) )
         {
             final SegmentsBdvView< TableRowImageSegment > segmentsBdvView
                     = sourceNameToLabelViews.get( sam.metadata().displayName ).getSegmentsBdvView();
 
-            segmentsBdvView.setLabelSourceSingleColor( BdvUtils.asArgbType( sam.metadata().displayColor ) );
+            segmentsBdvView.setLabelSourceSingleColor( BdvUtils.asArgbType( sam.metadata().color ) );
         }
 
-        panel.setBackground( sam.metadata().displayColor );
+        panel.setBackground( sam.metadata().color );
     }
 
     public void setSourceColor( String sourceName, Color color )
@@ -251,8 +255,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 ? metadata.displayRangeMax : sam.metadata().displayRangeMax;
         sam.metadata().selectedSegmentIds = metadata.selectedSegmentIds != null
                 ? metadata.selectedSegmentIds : sam.metadata().selectedSegmentIds;
-        sam.metadata().displayColor = metadata.displayColor != null
-                ? metadata.displayColor : sam.metadata().displayColor;
+        sam.metadata().color = metadata.color != null
+                ? metadata.color : sam.metadata().color;
     }
 
     public void addSourceToPanelAndViewer( String sourceName )
@@ -316,16 +320,22 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         final Metadata metadata = sam.metadata();
 
-        if ( metadata.modality == Metadata.Modality.Segmentation )
+        if ( metadata.type.equals( Metadata.Type.Segmentation ) )
         {
-            if ( ! showAnnotatedLabelsSource( sam ) )
+            if ( metadata.segmentsTablePath != null )
             {
-                // fall back on just showing the image
-                // without annotations
+                showAnnotatedLabelsSource( sam );
+            }
+            else
+            {
                 showLabelsSource( sam );
             }
         }
-        else
+        else if ( metadata.type.equals( Metadata.Type.Image ) )
+        {
+            showIntensitySource( sam );
+        }
+        else if ( metadata.type.equals( Metadata.Type.Mask ) )
         {
             showIntensitySource( sam );
         }
@@ -345,19 +355,31 @@ public class PlatyBrowserSourcesPanel extends JPanel
         final BdvStackSource bdvStackSource = BdvFunctions.show(
                 sam.source(),
                 1,
-                BdvOptions.options().addTo( bdv ).targetRenderNanos( 30 * 1000000l ) );
+                BdvOptions.options().addTo( bdv ) );
 
         bdvStackSource.setActive( true );
 
-        bdvStackSource.setDisplayRange(
-                metadata.displayRangeMin,
-                metadata.displayRangeMax );
+        setDisplayRange( bdvStackSource, metadata );
 
-        bdvStackSource.setColor( Utils.asArgbType( metadata.displayColor ) );
+        // TODO: do this while creating the image sources model
+        if ( metadata.modality.equals( Metadata.Modality.FM ) )
+        {
+            final GlasbeyARGBLut glasbeyARGBLut = new GlasbeyARGBLut();
+            final ARGBType color = new ARGBType( glasbeyARGBLut.getARGB( createRandom( metadata.displayName ) ) );
+            metadata.color = ColorUtils.getColor( color );
+        }
+
+        bdvStackSource.setColor( Utils.asArgbType( metadata.color ) );
 
         bdv = bdvStackSource.getBdvHandle();
 
         metadata.bdvStackSource = bdvStackSource;
+    }
+
+    private void setDisplayRange( BdvStackSource bdvStackSource, Metadata metadata )
+    {
+        if ( metadata.displayRangeMin != null && metadata.displayRangeMax != null)
+            bdvStackSource.setDisplayRange( metadata.displayRangeMin, metadata.displayRangeMax );
     }
 
     private void showLabelsSource( SourceAndMetadata< ? > sam )
@@ -371,58 +393,38 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 1,
                 BdvOptions.options().addTo( bdv ) );
 
-        sam.metadata().bdvStackSource.setDisplayRange( 0, 1000 );
+        setDisplayRange( sam.metadata().bdvStackSource, sam.metadata() );
     }
 
-    private boolean showAnnotatedLabelsSource( SourceAndMetadata< ? > sam )
+    private void showAnnotatedLabelsSource( SourceAndMetadata< ? > sam )
     {
-        if ( sam.metadata().segmentsTablePath == null ) return false;
+        final List< TableRowImageSegment > segments
+                = createAnnotatedImageSegmentsFromTableFile(
+                     sam.metadata().segmentsTablePath,
+                     sam.metadata().imageId );
 
-        try
-        {
-            final List< TableRowImageSegment > segments
-                    = createAnnotatedImageSegmentsFromTableFile(
-                         sam.metadata().segmentsTablePath,
-                         sam.metadata().imageId );
+        // TODO: use metadata.colorMap explicitly instead of assuming Glasbey
+        final SegmentsTableBdvAnd3dViews views
+                = new SegmentsTableBdvAnd3dViews(
+                    segments,
+                    createLabelsSourceModel( sam ),
+                    sam.metadata().imageId,
+                    bdv,
+                    universe );
 
-            // TODO: this is not logical anymore, because there can be several views for different segments...
-            final SegmentsTableBdvAnd3dViews views
-                    = new SegmentsTableBdvAnd3dViews(
-                        segments,
-                        createLabelsSourceModel( sam ),
-                        sam.metadata().imageId,
-                        bdv,
-                        universe );
+        configureSegmentsView( views, sam );
+        configureTableView( views, sam );
 
-            configureSegmentsView( views, sam );
-            configureTableView( views, sam );
+        bdv = views.getSegmentsBdvView().getBdv();
 
-            // update bdvHandle
-            bdv = views.getSegmentsBdvView().getBdv();
+        sam.metadata().bdvStackSource = views
+                .getSegmentsBdvView()
+                .getCurrentSources().get( 0 )
+                .metadata().bdvStackSource;
 
-            // keep bdvStackSource handle, for changing its color, visibility, a.s.o.
-            sam.metadata().bdvStackSource = views
-                    .getSegmentsBdvView()
-                    .getCurrentSources().get( 0 )
-                    .metadata().bdvStackSource;
+        setDisplayRange( sam.metadata().bdvStackSource, sam.metadata() );
 
-            sam.metadata().bdvStackSource.setDisplayRange( 0, 1000 );
-
-            sourceNameToLabelViews.put( sam.metadata().displayName, views );
-        }
-        catch ( Exception e )
-        {
-            Utils.log( "" );
-            Utils.log( "Could not find or open segments table: "
-                    + sam.metadata().segmentsTablePath);
-            Utils.log( "" );
-
-            e.printStackTrace();
-
-            return false;
-        }
-
-        return true;
+        sourceNameToLabelViews.put( sam.metadata().displayName, views );
     }
 
     private void configureTableView( SegmentsTableBdvAnd3dViews views, SourceAndMetadata< ? > sam )
@@ -511,7 +513,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         panel.setBorder( BorderFactory.createEmptyBorder( 0, 10, 0, 10 ) );
         panel.add( Box.createHorizontalGlue() );
         panel.setOpaque( true );
-        panel.setBackground( metadata.displayColor );
+        panel.setBackground( metadata.color );
 
         JLabel sourceNameLabel = new JLabel( sourceName );
         sourceNameLabel.setHorizontalAlignment( SwingConstants.CENTER );
@@ -531,7 +533,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 createRemoveButton( sam, buttonDimensions );
 
         final JCheckBox sliceViewVisibilityCheckbox =
-                SourcesDisplayUI.createSliceViewVisibilityCheckbox( buttonDimensions, sam, true );
+                SourcesDisplayUI.createBigDataViewerVisibilityCheckbox( buttonDimensions, sam, true );
 
         final JCheckBox volumeVisibilityCheckbox =
                 SourcesDisplayUI.createVolumeViewVisibilityCheckbox( buttonDimensions, sam, true );
