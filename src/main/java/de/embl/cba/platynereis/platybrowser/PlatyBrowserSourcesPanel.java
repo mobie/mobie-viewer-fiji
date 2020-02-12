@@ -39,8 +39,8 @@ import static de.embl.cba.platynereis.utils.Utils.createAnnotatedImageSegmentsFr
 public class PlatyBrowserSourcesPanel extends JPanel
 {
     private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelViews;
-    protected Map< String, JPanel > sourceNameToPanel;
-    protected Map< String, Metadata > sourceNameToMetadata;
+    private Map< String, JPanel > sourceNameToPanel;
+    private Map< String, Metadata > sourceNameToMetadata;
     private BdvHandle bdv;
     private final PlatyBrowserImageSourcesModel imageSourcesModel;
     private Image3DUniverse universe;
@@ -59,8 +59,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
         Utils.log( "# Fetching data");
         Utils.log( "Fetching image data from: " + imageDataLocation );
         Utils.log( "Fetching table data from: " + tableDataLocation );
-
-        final Version version = new Version( versionString );
 
         imageSourcesModel = new PlatyBrowserImageSourcesModel(
                 imageDataLocation,
@@ -425,7 +423,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
         tableRowsTableView.setTablesDirectory( tablesLocation );
         tableRowsTableView.setMergeByColumnName( Globals.COLUMN_NAME_SEGMENT_LABEL_ID );
 
-        views.getSegmentsBdvView().select( sam.metadata().selectedSegmentIds );
+        if ( sam.metadata().selectedSegmentIds.size() > 0 )
+            views.getSegmentsBdvView().select( sam.metadata().selectedSegmentIds );
+
         // TODO: add coloringModel
     }
 

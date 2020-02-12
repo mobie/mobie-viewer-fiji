@@ -3,6 +3,7 @@ package de.embl.cba.platynereis.platybrowser;
 import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.behaviour.BdvBehaviours;
+import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.GeneSearch;
 import de.embl.cba.platynereis.GeneSearchResults;
 import de.embl.cba.platynereis.Globals;
@@ -345,28 +346,22 @@ public class PlatyBrowserActionPanel extends JPanel
 
 			String selectionName = sourceName.replace( modality + "-", "" );
 
-			if ( sourceName.contains( "segmented" ) )
+			final Metadata metadata = sourcesPanel.getSourceAndMetadata( sourceName ).metadata();
+
+			if ( metadata.type.equals( Metadata.Type.Segmentation ) )
 			{
-				selectionName = selectionName.replace( "segmented-", "" );
+				if ( ! modality.contains( " segmentation" ) )
+					modality += " segmentation";
+			}
+			else if ( metadata.type.equals( Metadata.Type.Mask ) )
+			{
 				if ( ! modality.contains( " segmentation" ) )
 					modality += " segmentation";
 			}
 
-			if ( sourceName.contains( "mask" ) )
-			{
-				selectionName = selectionName.replace( "mask-", "" );
-				if ( ! modality.contains( " segmentation" ) )
-					modality += " segmentation";
-			}
-
-			if ( sourceName.contains( "labels" ) )
-			{
-				selectionName = selectionName.replace( "labels-", "" );
-				if ( ! modality.contains( " segmentation" ) )
-					modality += " segmentation";
-			}
-
-			selectionName = selectionName.replace(  "6dpf-1-whole-", "");
+			selectionName = selectionName.replace( "6dpf-1-whole-", "" );
+			selectionName = selectionName.replace( "segmented-", "" );
+			selectionName = selectionName.replace( "mask-", "" );
 
 			selectionNameAndModalityToSourceName.put( selectionName + "-" + modality, sourceName  );
 
@@ -374,7 +369,6 @@ public class PlatyBrowserActionPanel extends JPanel
 				modalityToSelectionNames.put( modality, new ArrayList< String >(  ) );
 
 			modalityToSelectionNames.get( modality ).add( selectionName);
-
 		}
 
 		sortedModalities = getSortedList( modalityToSelectionNames.keySet() );

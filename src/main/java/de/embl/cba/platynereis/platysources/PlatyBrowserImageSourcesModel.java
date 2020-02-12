@@ -227,11 +227,8 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 
 	private void setImageModality( String imageId, Metadata metadata )
 	{
-		if ( imageId.contains( SEGMENTATION_ID ) )
-		{
-			metadata.modality = Metadata.Modality.Segmentation;
-		}
-		else if ( imageId.contains( EM_ID ) )
+
+		if ( imageId.contains( EM_ID ) )
 		{
 			metadata.modality = Metadata.Modality.EM;
 		}
