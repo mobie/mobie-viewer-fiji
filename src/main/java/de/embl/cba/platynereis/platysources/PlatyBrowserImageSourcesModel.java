@@ -118,7 +118,6 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 		final Metadata metadata = new Metadata( imageId );
 		metadata.numSpatialDimensions = 3;
 		metadata.displayName = imageId;
-		presetDefaultMetadata( metadata );
 		setImageModality( imageId, metadata );
 
 		final Set< String > metadataKeys = imageAttributes.keySet();
