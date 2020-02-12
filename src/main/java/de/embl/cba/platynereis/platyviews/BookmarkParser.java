@@ -2,7 +2,9 @@ package de.embl.cba.platynereis.platyviews;
 
 import com.google.gson.internal.LinkedTreeMap;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.platynereis.platysources.PlatyBrowserImageSourcesModel;
 import de.embl.cba.platynereis.utils.Utils;
+import de.embl.cba.tables.image.ImageSourcesModel;
 
 import java.io.IOException;
 import java.util.*;
@@ -11,11 +13,13 @@ import java.util.concurrent.Callable;
 public class BookmarkParser implements Callable< Map< String, Bookmark > >
 {
 	private final String jsonPath;
+	private final PlatyBrowserImageSourcesModel imageSourcesModel;
 	private Map< String, Bookmark > nameToBookmark;
 
-	public BookmarkParser( String jsonPath )
+	public BookmarkParser( String jsonPath, PlatyBrowserImageSourcesModel imageSourcesModel )
 	{
 		this.jsonPath = jsonPath;
+		this.imageSourcesModel = imageSourcesModel;
 	}
 
 	public Map< String, Bookmark > call()
@@ -45,7 +49,7 @@ public class BookmarkParser implements Callable< Map< String, Bookmark > >
 			bookmark.name = (String) bookmarkKey ;
 			final LinkedTreeMap bookmarkAttributes = ( LinkedTreeMap ) bookmarksTreeMap.get( bookmarkKey );
 
-			addLayers( bookmarkAttributes, bookmark );
+			addImageLayers( bookmarkAttributes, bookmark );
 			addPositionsAndTransforms( bookmarkAttributes, bookmark );
 
 			nameToBookmark.put( bookmark.name, bookmark );
@@ -66,52 +70,18 @@ public class BookmarkParser implements Callable< Map< String, Bookmark > >
 		}
 	}
 
-	private void addLayers( LinkedTreeMap bookmarkAttributes, Bookmark bookmark ) throws IOException
+	private void addImageLayers( LinkedTreeMap bookmarkAttributes, Bookmark bookmark )
 	{
 		if ( bookmarkAttributes.keySet().contains( "Layers") )
 		{
-			final LinkedTreeMap layerAttributes = ( LinkedTreeMap ) bookmarkAttributes.get( "Layers" );
+			final LinkedTreeMap imageLayers = ( LinkedTreeMap ) bookmarkAttributes.get( "Layers" );
 
-			for ( Object layer : layerAttributes.keySet() )
+			for ( Object imageId : imageLayers.keySet() )
 			{
-				addImageLayer( (String) layer, ( LinkedTreeMap ) layerAttributes.get( layer ), bookmark );
+				final LinkedTreeMap imageAttributes = ( LinkedTreeMap ) imageLayers.get( imageId );
+				final Metadata metadata = imageSourcesModel.getMetadata( ( String ) imageId, imageAttributes );
+				bookmark.nameToMetadata.put( metadata.displayName, metadata );
 			}
 		}
 	}
-
-	private void addImageLayer( String imageId, LinkedTreeMap layerAttributes, Bookmark bookmark )
-	{
-		final Metadata metadata = new Metadata( imageId );
-		metadata.displayName = imageId;
-
-		final Set keySet = layerAttributes.keySet();
-
-		if( keySet.contains( "SelectedIds" ) )
-		{
-			metadata.selectedSegmentIds = ( ArrayList< Double> ) layerAttributes.get( "SelectedIds" );
-		}
-
-		if ( keySet.contains( "Color" ) )
-		{
-			metadata.color = Utils.getColor( ( String ) layerAttributes.get( "Color" ) );
-		}
-
-		if ( keySet.contains( "MaxValue") )
-		{
-			metadata.displayRangeMax = ( Double ) layerAttributes.get( "MaxValue" );
-		}
-
-		if ( keySet.contains( "MinValue") )
-		{
-			metadata.displayRangeMin = ( Double ) layerAttributes.get( "MinValue" );
-		}
-
-//		if ( keySet.contains( "ShowIn3d") )
-//		{
-//			metadata.showIn3d = ( Double ) layerAttributes.get( "MinValue" );
-//		}
-
-		bookmark.nameToMetadata.put( metadata.displayName, metadata );
-	}
-
 }

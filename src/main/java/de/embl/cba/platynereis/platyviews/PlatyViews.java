@@ -24,9 +24,7 @@ public class PlatyViews
 	{
 		this.sourcesPanel = sourcesPanel;
 		this.versionString = versionString;
-		final Version version = new Version( versionString );
-
-		nameToBookmark = new BookmarkParser( viewsSourcePath ).call();
+		nameToBookmark = new BookmarkParser( viewsSourcePath, sourcesPanel.getImageSourcesModel() ).call();
 	}
 
 	public void setView( String bookmarkId )

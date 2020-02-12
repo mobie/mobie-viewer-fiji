@@ -3,15 +3,14 @@ package de.embl.cba.platynereis.platybrowser;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.Globals;
+import de.embl.cba.platynereis.platysources.PlatyBrowserImageSourcesModel;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.Version;
-import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.ij3d.UniverseUtils;
 import de.embl.cba.tables.image.DefaultImageSourcesModel;
@@ -35,9 +34,7 @@ import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
 
-import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 import static de.embl.cba.platynereis.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
-import static de.embl.cba.platynereis.utils.Utils.createRandom;
 
 public class PlatyBrowserSourcesPanel extends JPanel
 {
@@ -45,7 +42,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     protected Map< String, JPanel > sourceNameToPanel;
     protected Map< String, Metadata > sourceNameToMetadata;
     private BdvHandle bdv;
-    private final ImageSourcesModel imageSourcesModel;
+    private final PlatyBrowserImageSourcesModel imageSourcesModel;
     private Image3DUniverse universe;
     private int meshSmoothingIterations;
     private double voxelSpacing3DView;
@@ -289,7 +286,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         return Collections.unmodifiableSet( new HashSet<>( sourceNameToPanel.keySet() ) );
     }
 
-    public ImageSourcesModel getImageSourcesModel()
+    public PlatyBrowserImageSourcesModel getImageSourcesModel()
     {
         return imageSourcesModel;
     }
@@ -404,7 +401,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
                     bdv,
                     universe );
 
-        configureSegmentsView( views, sam );
+        configureSegments3dView( views, sam );
         configureTableView( views, sam );
 
         bdv = views.getSegmentsBdvView().getBdv();
@@ -429,9 +426,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
         tableRowsTableView.setMergeByColumnName( Globals.COLUMN_NAME_SEGMENT_LABEL_ID );
 
         views.getSegmentsBdvView().select( sam.metadata().selectedSegmentIds );
+        // TODO: add coloringModel
     }
 
-    private void configureSegmentsView( SegmentsTableBdvAnd3dViews views, SourceAndMetadata< ? > sam )
+    private void configureSegments3dView( SegmentsTableBdvAnd3dViews views, SourceAndMetadata< ? > sam )
     {
         final Segments3dView< TableRowImageSegment > segments3dView
                 = views.getSegments3dView();

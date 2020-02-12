@@ -1,4 +1,4 @@
-package de.embl.cba.platynereis.platybrowser;
+package de.embl.cba.platynereis.platysources;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
@@ -81,10 +81,9 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 			e.printStackTrace();
 			throw new UnsupportedOperationException();
 		}
-
 	}
 
-	private void addSourcesFromJson( String imageDataLocation, JsonReader reader ) throws IOException
+	private void addSourcesFromJson( String imageDataLocation, JsonReader reader )
 	{
 		storageModality = imageDataLocation.startsWith( "http" ) ? "remote" : "local";
 		imageRootLocation = FileAndUrlUtils.combinePath( imageDataLocation, "images" );
@@ -95,23 +94,12 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 		final Set< String > imageIds = imageIdsToMetadata.keySet();
 		for ( String imageId : imageIds )
 		{
-			LinkedTreeMap metadataKeysToValues = ( LinkedTreeMap ) imageIdsToMetadata.get( imageId );
+			LinkedTreeMap imageAttributes = ( LinkedTreeMap ) imageIdsToMetadata.get( imageId );
 
-			final LinkedTreeMap storage = (LinkedTreeMap) metadataKeysToValues.get( "Storage" );
+			final LinkedTreeMap storage = (LinkedTreeMap) imageAttributes.get( "Storage" );
 			if ( ! storage.keySet().contains( storageModality ) ) continue;
 
-			final Metadata metadata = new Metadata( imageId );
-			metadata.numSpatialDimensions = 3;
-			metadata.displayName = imageId;
-			presetDefaultMetadata( metadata );
-			setImageModality( imageId, metadata );
-
-			final Set< String > metadataKeys = metadataKeysToValues.keySet();
-
-			for ( String key : metadataKeys )
-			{
-				addImageMetadata( metadata, key, metadataKeysToValues.get( key ) );
-			}
+			final Metadata metadata = getMetadata( imageId, imageAttributes );
 
 			final LazySpimSource lazySpimSource = new LazySpimSource( imageId, metadata.xmlLocation );
 			imageIdToSourceAndMetadata.put( imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
@@ -123,6 +111,21 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 			throw new UnsupportedOperationException( "No image data found in: "
 					+ FileAndUrlUtils.combinePath( imageDataLocation, "images", storageModality ) );
 		}
+	}
+
+	public Metadata getMetadata( String imageId, LinkedTreeMap imageAttributes )
+	{
+		final Metadata metadata = new Metadata( imageId );
+		metadata.numSpatialDimensions = 3;
+		metadata.displayName = imageId;
+		presetDefaultMetadata( metadata );
+		setImageModality( imageId, metadata );
+
+		final Set< String > metadataKeys = imageAttributes.keySet();
+		for ( String key : metadataKeys )
+			addImageMetadata( metadata, key, imageAttributes.get( key ) );
+
+		return metadata;
 	}
 
 	private void presetDefaultMetadata( Metadata metadata )
