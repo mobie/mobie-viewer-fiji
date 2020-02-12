@@ -361,14 +361,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         setDisplayRange( bdvStackSource, metadata );
 
-        // TODO: do this while creating the image sources model
-        if ( metadata.modality.equals( Metadata.Modality.FM ) )
-        {
-            final GlasbeyARGBLut glasbeyARGBLut = new GlasbeyARGBLut();
-            final ARGBType color = new ARGBType( glasbeyARGBLut.getARGB( createRandom( metadata.displayName ) ) );
-            metadata.color = ColorUtils.getColor( color );
-        }
-
         bdvStackSource.setColor( Utils.asArgbType( metadata.color ) );
 
         bdv = bdvStackSource.getBdvHandle();

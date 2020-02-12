@@ -13,7 +13,7 @@ import java.io.File;
 @Plugin(type = Command.class, menuPath = "Plugins>PlatyBrowser>Open PlatyBrowser" )
 public class PlatyBrowserOpenCommand implements Command
 {
-	public static final String remoteGitLocation = "https://raw.githubusercontent.com/platybrowser/platybrowser-backend/master/data";
+	public static final String remoteGitLocation = "https://raw.githubusercontent.com/platybrowser/platybrowser-backend/prospr-glasbey/data";
 
 	@Override
 	public void run()

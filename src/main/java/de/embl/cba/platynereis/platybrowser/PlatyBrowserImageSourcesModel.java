@@ -3,16 +3,17 @@ package de.embl.cba.platynereis.platybrowser;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
+import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.bdv.utils.sources.Sources;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
+import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.SourceAndMetadata;
+import net.imglib2.type.numeric.ARGBType;
 
-import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -20,6 +21,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import static de.embl.cba.platynereis.utils.Utils.createRandom;
 
 public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 {
@@ -33,6 +36,9 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 	private Map< String, SourceAndMetadata< ? > > imageIdToSourceAndMetadata;
 	private final String imageDataLocation;
 	private final String tableDataLocation;
+	private GlasbeyARGBLut glasbeyARGBLut;
+	private String storageModality;
+	private String imageRootLocation;
 
 	public PlatyBrowserImageSourcesModel(
 			String imageDataLocation,
@@ -42,6 +48,7 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 		this.tableDataLocation = tableDataLocation;
 
 		imageIdToSourceAndMetadata = new HashMap<>();
+		glasbeyARGBLut = new GlasbeyARGBLut();
 
 		addSources( imageDataLocation );
 	}
@@ -79,7 +86,8 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 
 	private void addSourcesFromJson( String imageDataLocation, JsonReader reader ) throws IOException
 	{
-		final String storageLocation = imageDataLocation.startsWith( "http" ) ? "remote" : "local";
+		storageModality = imageDataLocation.startsWith( "http" ) ? "remote" : "local";
+		imageRootLocation = FileAndUrlUtils.combinePath( imageDataLocation, "images" );
 
 		GsonBuilder builder = new GsonBuilder();
 		LinkedTreeMap imageIdsToMetadata = builder.create().fromJson(reader, Object.class);
@@ -90,7 +98,7 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 			LinkedTreeMap metadataKeysToValues = ( LinkedTreeMap ) imageIdsToMetadata.get( imageId );
 
 			final LinkedTreeMap storage = (LinkedTreeMap) metadataKeysToValues.get( "Storage" );
-			if ( ! storage.keySet().contains( storageLocation ) ) continue;
+			if ( ! storage.keySet().contains( storageModality ) ) continue;
 
 			final Metadata metadata = new Metadata( imageId );
 			metadata.numSpatialDimensions = 3;
@@ -101,7 +109,9 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 			final Set< String > metadataKeys = metadataKeysToValues.keySet();
 
 			for ( String key : metadataKeys )
-				addImageMetadata( metadata, key, metadataKeysToValues.get( key ), storageLocation, FileAndUrlUtils.combinePath( imageDataLocation, "images" ) );
+			{
+				addImageMetadata( metadata, key, metadataKeysToValues.get( key ) );
+			}
 
 			final LazySpimSource lazySpimSource = new LazySpimSource( imageId, metadata.xmlLocation );
 			imageIdToSourceAndMetadata.put( imageId, new SourceAndMetadata( lazySpimSource, metadata ) );
@@ -111,7 +121,7 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 		if ( imageIdToSourceAndMetadata.size() == 0)
 		{
 			throw new UnsupportedOperationException( "No image data found in: "
-					+ FileAndUrlUtils.combinePath( imageDataLocation, "images", storageLocation ) );
+					+ FileAndUrlUtils.combinePath( imageDataLocation, "images", storageModality ) );
 		}
 	}
 
@@ -121,7 +131,7 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 		metadata.displayRangeMax = 1000.0;
 	}
 
-	public void addImageMetadata( Metadata metadata, String key, Object value, String storageLocation, String imageRootLocation )
+	public void addImageMetadata( Metadata metadata, String key, Object value )
 	{
 		if ( key.equals( "TableFolder" ) )
 		{
@@ -129,7 +139,18 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 		}
 		else if ( key.equals( "Color" ) )
 		{
-			metadata.color = Utils.getColor( (String) value );
+			final String colorString = ( String ) value;
+
+			if ( colorString.equals("RandomFromGlasbey") )
+			{
+				metadata.color = ColorUtils.getColor(
+						new ARGBType( glasbeyARGBLut.getARGB(
+								createRandom( metadata.imageId ) ) ) );
+			}
+			else
+			{
+				metadata.color = Utils.getColor( colorString );
+			}
 		}
 		else if ( key.equals( "ColorMap" ) )
 		{
@@ -150,7 +171,7 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 		else if ( key.equals( "Storage" ) )
 		{
 			final LinkedTreeMap treeMap = ( LinkedTreeMap ) value;
-			metadata.xmlLocation = FileAndUrlUtils.combinePath( imageRootLocation, (String) treeMap.get( storageLocation ) );
+			metadata.xmlLocation = FileAndUrlUtils.combinePath( imageRootLocation, (String) treeMap.get( storageModality ) );
 		}
 		else if ( key.equals( "SelectedLabelIds" ) )
 		{
