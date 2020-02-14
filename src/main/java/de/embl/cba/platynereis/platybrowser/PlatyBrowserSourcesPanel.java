@@ -11,6 +11,8 @@ import de.embl.cba.platynereis.platysources.PlatyBrowserImageSourcesModel;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.Version;
+import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.ij3d.UniverseUtils;
 import de.embl.cba.tables.image.DefaultImageSourcesModel;
@@ -160,28 +162,33 @@ public class PlatyBrowserSourcesPanel extends JPanel
             views.getSegments3dView().setVoxelSpacing3DView( voxelSpacing3DView );
     }
 
-    private void addSourceToVolumeViewer( SourceAndMetadata< ? > sourceAndMetadata )
+    private void addSourceToVolumeViewer( SourceAndMetadata< ? > sam )
     {
-        if ( ! Globals.showVolumesIn3D.get() ) return;
+    	if ( sam.metadata().showImageIn3d || Globals.showVolumesIn3D.get() )
+        {
+            if ( universe == null ) init3DUniverse();
 
-        if ( universe == null ) init3DUniverse();
+            UniverseUtils.showUniverseWindow( universe, bdv.getViewerPanel() );
 
-        UniverseUtils.showUniverseWindow( universe, bdv.getViewerPanel() );
+            DisplaySettings3DViewer settings = getDisplaySettings3DViewer( sam );
 
-        DisplaySettings3DViewer settings = getDisplaySettings3DViewer( sourceAndMetadata );
+            final Content content = UniverseUtils.addSourceToUniverse(
+                    universe,
+                    sam.source(),
+                    200 * 200 * 200,
+                    settings.displayMode,
+                    settings.color,
+                    settings.transparency,
+                    0,
+                    settings.max
+            );
 
-        final Content content = UniverseUtils.addSourceToUniverse(
-                universe,
-                sourceAndMetadata.source(),
-                200 * 200 * 200,
-                settings.displayMode,
-                settings.color,
-                settings.transparency,
-                0,
-                settings.max
-        );
-
-        sourceAndMetadata.metadata().content = content;
+            sam.metadata().content = content;
+        }
+    	else
+        {
+            return;
+        }
     }
 
 	private void init3DUniverse()
@@ -237,7 +244,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
         }
 
         final SourceAndMetadata< ? > sam = imageSourcesModel.sources().get( metadata.displayName );
-        // TODO Segments table path
         updateSourceAndMetadata( sam, metadata );
         addSourceToPanelAndViewer( sam );
     }
@@ -252,6 +258,11 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 ? metadata.selectedSegmentIds : sam.metadata().selectedSegmentIds;
         sam.metadata().color = metadata.color != null
                 ? metadata.color : sam.metadata().color;
+        sam.metadata().showImageIn3d = metadata.showImageIn3d;
+        sam.metadata().showSelectedSegmentsIn3d = metadata.showSelectedSegmentsIn3d;
+        sam.metadata().colorMap = metadata.colorMap != null ? metadata.colorMap : sam.metadata().colorMap;
+        sam.metadata().additionalSegmentTableNames = metadata.additionalSegmentTableNames;
+        sam.metadata().colorByColumn = metadata.colorByColumn != null ? metadata.colorByColumn : sam.metadata().colorByColumn;
     }
 
     public void addSourceToPanelAndViewer( String sourceName )
@@ -423,14 +434,42 @@ public class PlatyBrowserSourcesPanel extends JPanel
         tableRowsTableView.setTablesDirectory( tablesLocation );
         tableRowsTableView.setMergeByColumnName( Globals.COLUMN_NAME_SEGMENT_LABEL_ID );
 
+        for ( String tableName : sam.metadata().additionalSegmentTableNames )
+        {
+            TableColumns.openAndOrderNewColumns(
+                    tableRowsTableView.getTable(),
+                    Globals.COLUMN_NAME_SEGMENT_LABEL_ID,
+                    FileAndUrlUtils.combinePath( tablesLocation, tableName, ".csv" );
+
+            tableRowsTableView.addColumns( );
+        }
+
+
+        // select segments // TODO: this should not be part of any specific view
         if ( sam.metadata().selectedSegmentIds.size() > 0 )
             views.getSegmentsBdvView().select( sam.metadata().selectedSegmentIds );
 
-        // TODO: add coloringModel
+        // apply colorByColumn
+        if ( sam.metadata().colorByColumn != null && sam.metadata().colorMap != null )
+        {
+            if ( sam.metadata().colorMap.equals( "Glasbey" ) )
+            {
+                views.getTableRowsTableView().colorByColumn(
+                        sam.metadata().colorByColumn,
+                        ColumnColoringModelCreator.CATEGORICAL_GLASBEY );
+            }
+        }
+
     }
 
     private void configureSegments3dView( SegmentsTableBdvAnd3dViews views, SourceAndMetadata< ? > sam )
     {
+        if ( sam.metadata().showSelectedSegmentsIn3d )
+            Globals.showSegmentsIn3D.set( true );
+
+        if ( sam.metadata().showImageIn3d )
+            Globals.showVolumesIn3D.set( true );
+
         final Segments3dView< TableRowImageSegment > segments3dView
                 = views.getSegments3dView();
 

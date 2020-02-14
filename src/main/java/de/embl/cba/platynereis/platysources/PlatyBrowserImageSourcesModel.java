@@ -154,9 +154,19 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 				metadata.color = Utils.getColor( colorString );
 			}
 		}
+		if ( key.equals( "Tables" ) )
+		{
+			final ArrayList< String > tableNames = ( ArrayList< String > ) value ;
+			for ( String tableName : tableNames )
+				metadata.additionalSegmentTableNames.add( tableName );
+		}
 		else if ( key.equals( "ColorMap" ) )
 		{
 			metadata.colorMap = (String) value;
+		}
+		else if ( key.equals( "ColorByColumn" ) )
+		{
+			metadata.colorByColumn = (String) value;
 		}
 		else if ( key.equals( "Type" ) )
 		{
@@ -181,11 +191,11 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 		}
 		else if ( key.equals( "ShowSelectedSegmentsIn3d" ) )
 		{
-			// TODO
+			metadata.showSelectedSegmentsIn3d = (boolean) value;
 		}
 		else if ( key.equals( "ShowImageIn3d" ) )
 		{
-			// TODO
+			metadata.showImageIn3d = (boolean) value;
 		}
 		else
 		{

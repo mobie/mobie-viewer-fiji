@@ -4,7 +4,6 @@ package de.embl.cba.platynereis.platyviews;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.platybrowser.PlatyBrowserSourcesPanel;
 import de.embl.cba.platynereis.bdv.BdvViewChanger;
-import de.embl.cba.platynereis.utils.Version;
 
 import java.util.Map;
 import java.util.Set;
@@ -31,11 +30,11 @@ public class PlatyViews
 	{
 		final Bookmark bookmark = nameToBookmark.get( bookmarkId );
 		removeAllSourcesFromPanelAndViewer( bookmark );
-		addBookmarkSourcesToPanelAndViewer( bookmark );
+		addSourcesToPanelAndViewer( bookmark );
 		adaptViewerTransform( bookmark );
 	}
 
-	public void addBookmarkSourcesToPanelAndViewer( Bookmark bookmark )
+	public void addSourcesToPanelAndViewer( Bookmark bookmark )
 	{
 		for ( Metadata metadata : bookmark.nameToMetadata.values() )
 		{
@@ -47,7 +46,7 @@ public class PlatyViews
 	public void removeAllSourcesFromPanelAndViewer( Bookmark bookmark )
 	{
 		// TODO: maybe do not remove the ones that we want to keep seeing,
-		//  however it is a bit of coding work to then change the display settings for only those.
+		// however it is a bit of coding work to then change the display settings for only those.
 
 		if ( bookmark.nameToMetadata.size() > 0 )
 		{
