@@ -126,62 +126,48 @@
 		</repository>
 	</repositories>
 	<dependencies>
-		<!--		<dependency>-->
-		<!--			<groupId>net.imagej</groupId>-->
-		<!--			<artifactId>imagej-legacy</artifactId>-->
-		<!--		</dependency>-->
-		<!--		<dependency>-->
-		<!--			<groupId>net.imagej</groupId>-->
-		<!--			<artifactId>imagej</artifactId>-->
-		<!--		</dependency>-->
-		<!--		<dependency>-->
-		<!--			<groupId>net.imagej</groupId>-->
-		<!--			<artifactId>imagej-common</artifactId>-->
-		<!--		</dependency>-->
-		<!--		<dependency>-->
-		<!--			<groupId>net.imagej</groupId>-->
-		<!--			<artifactId>ij</artifactId>-->
-		<!--		</dependency>-->
+
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
 			<version>5.8.0</version>
 		</dependency>
+
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-vistools</artifactId>
 		</dependency>
+
+		<!-- bdv with n5 capabilities and some fixes -->
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
 			<version>8.0.1-SNAPSHOT</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.janelia.saalfeldlab</groupId>
 			<artifactId>n5-aws-s3</artifactId>
 			<version>2.1.1-SNAPSHOT</version>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>sc.fiji</groupId>-->
-<!--			<artifactId>bigdataviewer_fiji</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>sc.fiji</groupId>-->
-<!--			<artifactId>bigvolumeviewer</artifactId>-->
-<!--			<version>0.1.6-SNAPSHOT</version>-->
-<!--		</dependency>-->
+
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>3D_Viewer</artifactId>
 		</dependency>
-		<!--		<dependency>-->
-		<!--			<groupId>org.apache.commons</groupId>-->
-		<!--			<artifactId>commons-math3</artifactId>-->
-		<!--		</dependency>-->
+
+		<!-- below version of j3dcore does not have this issue: https://github.com/fiji/3D_Viewer/issues/26		-->
+		<dependency>
+			<groupId>org.scijava</groupId>
+			<artifactId>j3dcore</artifactId>
+			<version>1.6.0-scijava-3-SNAPSHOT</version>
+		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
+
 		<!-- CBA -->
 		<dependency>
 			<groupId>de.embl.cba</groupId>

@@ -17,6 +17,7 @@ public class PlatyBrowser extends JFrame
 
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private final PlatyBrowserActionPanel actionPanel;
+	private int frameWidth;
 
 	public PlatyBrowser(
 			String version,
@@ -31,14 +32,17 @@ public class PlatyBrowser extends JFrame
 				imageDataLocation,
 				tableDataLocation );
 
-		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
-
 		final PlatyViews platyViews = new PlatyViews( sourcesPanel, FileAndUrlUtils.combinePath( tableDataLocation, version, "misc/bookmarks.json" ) );
 
 		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, platyViews );
 
 		setJMenuBar( createMenuBar() );
 		showFrame( version );
+
+		sourcesPanel.setParentComponent( this );
+		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
+
+		actionPanel.setBdv( sourcesPanel.getBdv() );
 	}
 
 	private JMenuBar createMenuBar()
@@ -94,7 +98,8 @@ public class PlatyBrowser extends JFrame
 		splitPane.setTopComponent( actionPanel );
 		splitPane.setBottomComponent( sourcesPanel );
 		splitPane.setAutoscrolls( true );
-		setPreferredSize( new Dimension(550, actionPanelHeight + 200 ) );
+		frameWidth = 550;
+		setPreferredSize( new Dimension( frameWidth, actionPanelHeight + 200 ) );
 		getContentPane().setLayout( new GridLayout() );
 		getContentPane().add( splitPane );
 

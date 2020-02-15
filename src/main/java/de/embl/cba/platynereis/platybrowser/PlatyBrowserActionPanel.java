@@ -39,14 +39,12 @@ public class PlatyBrowserActionPanel extends JPanel
 	private HashMap< String, String > selectionNameAndModalityToSourceName;
 	private ArrayList< String > sortedModalities;
 
-	public PlatyBrowserActionPanel( PlatyBrowserSourcesPanel sourcesPanel, PlatyViews platyViews )
+	public PlatyBrowserActionPanel(
+			PlatyBrowserSourcesPanel sourcesPanel,
+			PlatyViews platyViews )
 	{
 		this.sourcesPanel = sourcesPanel;
 		this.platyViews = platyViews;
-
-		bdv = sourcesPanel.getBdv();
-
-		installBdvBehaviours();
 
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addHelpUI( this );
@@ -59,6 +57,12 @@ public class PlatyBrowserActionPanel extends JPanel
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addShow3DUI( this );
 		configPanel();
+	}
+
+	public void setBdv( BdvHandle bdv )
+	{
+		this.bdv = bdv;
+		installBdvBehaviours();
 	}
 
 	private void addShow3DUI( JPanel panel )

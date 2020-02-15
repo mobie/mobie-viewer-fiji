@@ -49,6 +49,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private int meshSmoothingIterations;
     private double voxelSpacing3DView;
     private boolean isBdvShownFirstTime = true;
+    private JFrame jFrame;
 
     public PlatyBrowserSourcesPanel( String versionString,
                                      String imageDataLocation,
@@ -195,6 +196,11 @@ public class PlatyBrowserSourcesPanel extends JPanel
 	{
 		universe = new Image3DUniverse();
 	}
+
+    public void setParentComponent( JFrame jFrame )
+    {
+        this.jFrame = jFrame;
+    }
 
 
     class DisplaySettings3DViewer
@@ -348,7 +354,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         if ( isBdvShownFirstTime )
         {
-            BdvUtils.centerBdvWindowLocation( bdv );
+            BdvUtils.getViewerFrame( bdv ).setLocation(
+                    jFrame.getLocationOnScreen().x + jFrame.getWidth(),
+                    jFrame.getLocationOnScreen().y );
+
             bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
             isBdvShownFirstTime = false;
         }
@@ -436,12 +445,12 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         for ( String tableName : sam.metadata().additionalSegmentTableNames )
         {
-            TableColumns.openAndOrderNewColumns(
+            final Map< String, List< String > > newColumns = TableColumns.openAndOrderNewColumns(
                     tableRowsTableView.getTable(),
                     Globals.COLUMN_NAME_SEGMENT_LABEL_ID,
-                    FileAndUrlUtils.combinePath( tablesLocation, tableName, ".csv" );
+                    FileAndUrlUtils.combinePath( tablesLocation, tableName + ".csv" ));
 
-            tableRowsTableView.addColumns( );
+            tableRowsTableView.addColumns( newColumns );
         }
 
 
@@ -452,12 +461,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
         // apply colorByColumn
         if ( sam.metadata().colorByColumn != null && sam.metadata().colorMap != null )
         {
-            if ( sam.metadata().colorMap.equals( "Glasbey" ) )
-            {
-                views.getTableRowsTableView().colorByColumn(
+            views.getTableRowsTableView().colorByColumn(
                         sam.metadata().colorByColumn,
-                        ColumnColoringModelCreator.CATEGORICAL_GLASBEY );
-            }
+                        sam.metadata().colorMap );
         }
 
     }
