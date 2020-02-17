@@ -384,4 +384,30 @@ public class Utils
 		random = random - ( long ) Math.floor( random );
 		return random;
 	}
+
+	/**
+	 * TODO: Make this more generic, to also work with other things than prospr and platynereis
+	 *
+	 *
+	 * @param selectionName
+	 * @param isRemoveProspr
+	 * @return
+	 */
+	public static String getSimplifiedSourceName( String selectionName, boolean isRemoveProspr )
+	{
+		if ( isRemoveProspr )
+			selectionName = selectionName.replace( "prospr-", "" );
+
+		selectionName = selectionName.replace( "6dpf-1-whole-", "" );
+		selectionName = selectionName.replace( "segmented-", "" );
+		selectionName = selectionName.replace( "mask-", "" );
+		return selectionName;
+	}
+
+	public static ArrayList< String > getSortedList( Collection< String > strings )
+	{
+		final ArrayList< String > sorted = new ArrayList<>( strings );
+		Collections.sort( sorted, new SortIgnoreCase() );
+		return sorted;
+	}
 }

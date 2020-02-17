@@ -32,8 +32,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 		this.imageSourcesModel = imageSourcesModel;
 	}
 
-
-	public Map< String, Double > getSortedExpressionLevels()
+	public Map< String, Double > getExpressionLevelsSortedByValue()
 	{
 		Map< String, Double > localSortedExpression = Utils.sortByValue( localExpression );
 		removeGenesWithZeroExpression( localSortedExpression );
@@ -48,8 +47,10 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 		for ( String sourceName : sourceNames )
 		{
+
+			// TODO: How to better define which images are gene searched?
 			if ( sourceName.contains( Constants.SEGMENTED ) ) continue;
-			if ( ! sourceName.contains( Constants.MED ) ) continue;
+			if ( ! sourceName.contains( Constants.PROSPR ) ) continue;
 
 			final SourceAndMetadata sourceAndMetadata =
 					imageSourcesModel.sources().get( sourceName );

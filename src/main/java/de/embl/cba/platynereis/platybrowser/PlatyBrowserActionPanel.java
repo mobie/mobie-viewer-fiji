@@ -9,7 +9,6 @@ import de.embl.cba.platynereis.GeneSearchResults;
 import de.embl.cba.platynereis.Globals;
 import de.embl.cba.platynereis.platyviews.PlatyViews;
 import de.embl.cba.platynereis.bdv.BdvViewChanger;
-import de.embl.cba.platynereis.utils.SortIgnoreCase;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
@@ -204,38 +203,15 @@ public class PlatyBrowserActionPanel extends JPanel
 				micrometerPosition,
 				sourcesPanel.getImageSourcesModel() );
 
-		final Map< String, Double > geneExpressionLevels =
-				geneSearch.runSearchAndGetLocalExpression();
-
-		final Map< String, Double > sortedGeneExpressionLevels =
-				geneSearch.getSortedExpressionLevels();
-
-		addSortedGenesToViewerPanel( sortedGeneExpressionLevels, 15 );
+		final Map< String, Double > geneExpressionLevels = geneSearch.runSearchAndGetLocalExpression();
 
 		GeneSearchResults.addRowToGeneExpressionTable(
 				micrometerPosition, micrometerRadius, geneExpressionLevels );
 
 		GeneSearchResults.logGeneExpression(
-				micrometerPosition, micrometerRadius, sortedGeneExpressionLevels );
+				micrometerPosition, micrometerRadius, geneSearch.getExpressionLevelsSortedByValue() );
 
 	}
-
-	public void addSortedGenesToViewerPanel( Map sortedExpressionLevels, int maxNumGenes )
-	{
-		final ArrayList< String > sortedGenes = new ArrayList( sortedExpressionLevels.keySet() );
-
-		if ( sortedGenes.size() > 0 )
-		{
-			// TODO
-//			mainUI.getBdvSourcesPanel().removeAllProSPrSources();
-//
-//			for ( int i = sortedGenes.size()-1; i > sortedGenes.size()- maxNumGenes && i >= 0; --i )
-//			{
-//				mainUI.getBdvSourcesPanel().addSourceToViewerAndPanel( sortedGenes.get( i ) );
-//			}
-		}
-	}
-
 
 	// TODO: refactor to UniverseUtils
 	private HashMap< String, String > getTransforms( String view )
@@ -363,9 +339,7 @@ public class PlatyBrowserActionPanel extends JPanel
 					modality += " segmentation";
 			}
 
-			selectionName = selectionName.replace( "6dpf-1-whole-", "" );
-			selectionName = selectionName.replace( "segmented-", "" );
-			selectionName = selectionName.replace( "mask-", "" );
+			selectionName = Utils.getSimplifiedSourceName( selectionName, false );
 
 			selectionNameAndModalityToSourceName.put( selectionName + "-" + modality, sourceName  );
 
@@ -375,11 +349,11 @@ public class PlatyBrowserActionPanel extends JPanel
 			modalityToSelectionNames.get( modality ).add( selectionName);
 		}
 
-		sortedModalities = getSortedList( modalityToSelectionNames.keySet() );
+		sortedModalities = Utils.getSortedList( modalityToSelectionNames.keySet() );
 
 		for ( String modality : sortedModalities )
 		{
-			final String[] names = getSortedList( modalityToSelectionNames.get( modality ) ).toArray( new String[ 0 ] );
+			final String[] names = Utils.getSortedList( modalityToSelectionNames.get( modality ) ).toArray( new String[ 0 ] );
 			final JComboBox< String > comboBox = new JComboBox<>( names );
 			setComboBoxDimensions( comboBox );
 			addSourceSelectionComboBoxAndButton( panel, comboBox, modality );
@@ -426,13 +400,6 @@ public class PlatyBrowserActionPanel extends JPanel
 		comp.setHorizontalTextPosition( SwingConstants.LEFT );
 		comp.setAlignmentX( Component.LEFT_ALIGNMENT );
 		return comp;
-	}
-
-	private ArrayList< String > getSortedList( Collection< String > strings )
-	{
-		final ArrayList< String > sorted = new ArrayList<>( strings );
-		Collections.sort( sorted, new SortIgnoreCase() );
-		return sorted;
 	}
 
 	private void addLevelingUI( JPanel panel )

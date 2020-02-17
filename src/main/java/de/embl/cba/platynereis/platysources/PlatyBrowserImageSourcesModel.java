@@ -111,6 +111,9 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 			throw new UnsupportedOperationException( "No image data found in: "
 					+ FileAndUrlUtils.combinePath( imageDataLocation, "images", storageModality ) );
 		}
+
+		Utils.log("Added " + imageIdToSourceAndMetadata.size() + " image sources." );
+
 	}
 
 	public Metadata getMetadata( String imageId, LinkedTreeMap imageAttributes )

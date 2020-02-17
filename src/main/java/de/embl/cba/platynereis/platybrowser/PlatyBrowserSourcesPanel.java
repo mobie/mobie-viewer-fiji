@@ -23,6 +23,7 @@ import de.embl.cba.tables.view.Segments3dView;
 import de.embl.cba.tables.view.SegmentsBdvView;
 import de.embl.cba.tables.view.TableRowsTableView;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
+import ij.WindowManager;
 import ij3d.Content;
 import ij3d.ContentConstants;
 import ij3d.Image3DUniverse;
@@ -214,7 +215,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private DisplaySettings3DViewer getDisplaySettings3DViewer( SourceAndMetadata< ? > sourceAndMetadata )
     {
         final DisplaySettings3DViewer settings = new DisplaySettings3DViewer();
-        if ( sourceAndMetadata.metadata().displayName.contains( Constants.MED )
+        if ( sourceAndMetadata.metadata().displayName.contains( Constants.PROSPR ) // TODO: make more general
                 || sourceAndMetadata.metadata().displayName.contains( Constants.SEGMENTED )  )
         {
             settings.displayMode = ContentConstants.SURFACE;

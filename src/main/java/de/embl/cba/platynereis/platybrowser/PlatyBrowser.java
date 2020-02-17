@@ -4,6 +4,7 @@ import bdv.tools.HelpDialog;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.platyviews.PlatyViews;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
+import ij.WindowManager;
 import ij.gui.NonBlockingGenericDialog;
 
 import javax.swing.*;
@@ -38,6 +39,12 @@ public class PlatyBrowser extends JFrame
 
 		setJMenuBar( createMenuBar() );
 		showFrame( version );
+
+		final Frame log = WindowManager.getFrame( "Log" );
+		if (log != null) {
+			setSize(this.getWidth(), 100);
+			log.setLocation(this.getLocationOnScreen().x, this.getLocationOnScreen().y + this.getHeight());
+		}
 
 		sourcesPanel.setParentComponent( this );
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );

@@ -8,7 +8,8 @@ public class Constants
 
 	public static final String EM_FILE_ID = "-raw";
 	public static final String SEGMENTED = "-segmented";
-	public static final CharSequence MED = "-MED" ;
+	//public static final CharSequence MED = "-MED" ;
+	public static final CharSequence PROSPR = "prospr-" ;
 
 	public static final CharSequence SPM = "-SPM";
 }

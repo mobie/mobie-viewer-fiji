@@ -6,7 +6,10 @@ import de.embl.cba.tables.TableUIs;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import static de.embl.cba.platynereis.utils.Utils.combine;
 
@@ -32,18 +35,25 @@ public class GeneSearchResults
 	public static synchronized void addRowToGeneExpressionTable(
 			double[] micrometerPosition,
 			double micrometerRadius,
-			Map< String, Double > geneExpressionLevels )
+			Map< String, Double > expressionLevels )
 	{
+		final ArrayList< String > geneNames = extractGeneNamesFromImageSourcesNames( expressionLevels.keySet() );
+		final ArrayList< String > sortedGeneNames = Utils.getSortedList( geneNames );
+
 		if ( table == null )
 		{
-			initGeneExpressionTable( geneExpressionLevels );
+			initGeneExpressionTable( sortedGeneNames );
 			showGeneExpressionTable();
 		}
 
 		final Double[] position = { micrometerPosition [ 0 ], micrometerPosition[ 1 ], micrometerPosition[ 2 ], 0.0 };
 		final Double[] parameters = { micrometerRadius };
-		final Double[] expressionLevels = geneExpressionLevels.values().toArray( new Double[ geneExpressionLevels.size() ] );
-		model.addRow( combine( combine( position, parameters ), expressionLevels ) );
+
+		final ArrayList< Double > sortedExpressionLevels = new ArrayList<>();
+		for ( String geneName : sortedGeneNames )
+			sortedExpressionLevels.add( expressionLevels.get( geneName ) );
+
+		model.addRow( combine( combine( position, parameters ), sortedExpressionLevels.toArray( new Double[ expressionLevels.size() ] )));
 	}
 
 	public static void showGeneExpressionTable()
@@ -75,15 +85,34 @@ public class GeneSearchResults
 		frame.setVisible(true);
 	}
 
-	public static void initGeneExpressionTable( Map< String, Double > geneExpressionLevels )
+	public static void initGeneExpressionTable( Collection< String > geneNames )
 	{
 		final String[] position = { "X", "Y", "Z", "T" };
 		final String[] searchParameters = { "SearchRadius_um" };
-		final String[] genes = geneExpressionLevels.keySet().toArray( new String[ geneExpressionLevels.keySet().size() ] );
+
+		String[] genes = geneNames.toArray( new String[ geneNames.size() ] );
 
 		model = new DefaultTableModel();
 		model.setColumnIdentifiers( combine( combine( position, searchParameters ), genes )  );
 		table = new JTable( model );
+	}
+
+	public static String[] extractGeneNamesFromImageSourcesNames( String[] genes )
+	{
+		for ( int i = 0; i < genes.length; i++ )
+			genes[ i ] = Utils.getSimplifiedSourceName( genes[i ], true );
+
+		return genes;
+	}
+
+	public static ArrayList< String > extractGeneNamesFromImageSourcesNames( Collection< String > sourceNames )
+	{
+		final ArrayList< String > geneNames = new ArrayList<>();
+
+		for ( String sourceName : sourceNames )
+			geneNames.add( Utils.getSimplifiedSourceName( sourceName, true ));
+
+		return geneNames;
 	}
 
 }
