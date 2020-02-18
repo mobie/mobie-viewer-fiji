@@ -6,10 +6,7 @@ import de.embl.cba.tables.TableUIs;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static de.embl.cba.platynereis.utils.Utils.combine;
 
@@ -21,14 +18,24 @@ public class GeneSearchResults
 	public static void logGeneExpression(
 			double[] micrometerPosition,
 			double micrometerRadius,
-			Map< String, Double > sortedGeneExpressionLevels )
+			Map< String, Double > geneExpressionLevels )
 	{
+
 		Utils.log( "\n# Expression levels [fraction of search volume]" );
-		Utils.logVector( "Center position [um]" , micrometerPosition );
+		Utils.logVector( "Center position [um]" , micrometerPosition, 2 );
 		Utils.log( "Radius [um]: " + micrometerRadius );
-		for ( String gene : sortedGeneExpressionLevels.keySet() )
+
+		final LinkedHashMap< String, Double > sortedExpressionLevels = new LinkedHashMap<>( );
+
+		geneExpressionLevels.entrySet()
+				.stream()
+				.sorted(Map.Entry.comparingByValue((Comparator.reverseOrder())))
+				.forEachOrdered(x -> sortedExpressionLevels.put(x.getKey(), x.getValue()));
+
+		for ( String gene : sortedExpressionLevels.keySet() )
 		{
-			Utils.log( gene  + ": " + sortedGeneExpressionLevels.get( gene ) );
+			if ( sortedExpressionLevels.get( gene ) > 0.0 )
+				Utils.log( gene + ": " + String.format( "%.2f", sortedExpressionLevels.get( gene ) ) );
 		}
 	}
 
@@ -37,8 +44,8 @@ public class GeneSearchResults
 			double micrometerRadius,
 			Map< String, Double > expressionLevels )
 	{
-		final ArrayList< String > geneNames = extractGeneNamesFromImageSourcesNames( expressionLevels.keySet() );
-		final ArrayList< String > sortedGeneNames = Utils.getSortedList( geneNames );
+
+		final ArrayList< String > sortedGeneNames = Utils.getSortedList( expressionLevels.keySet() );
 
 		if ( table == null )
 		{

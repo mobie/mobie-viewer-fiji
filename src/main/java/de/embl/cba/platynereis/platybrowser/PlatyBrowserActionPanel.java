@@ -209,7 +209,7 @@ public class PlatyBrowserActionPanel extends JPanel
 				micrometerPosition, micrometerRadius, geneExpressionLevels );
 
 		GeneSearchResults.logGeneExpression(
-				micrometerPosition, micrometerRadius, geneSearch.getExpressionLevelsSortedByValue() );
+				micrometerPosition, micrometerRadius, geneExpressionLevels );
 
 	}
 

@@ -39,17 +39,21 @@ public class PlatyBrowser extends JFrame
 
 		setJMenuBar( createMenuBar() );
 		showFrame( version );
-
-		final Frame log = WindowManager.getFrame( "Log" );
-		if (log != null) {
-			setSize(this.getWidth(), 100);
-			log.setLocation(this.getLocationOnScreen().x, this.getLocationOnScreen().y + this.getHeight());
-		}
+		adaptLogWindowPositionAndSize();
 
 		sourcesPanel.setParentComponent( this );
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 
 		actionPanel.setBdv( sourcesPanel.getBdv() );
+	}
+
+	public void adaptLogWindowPositionAndSize()
+	{
+		final Frame log = WindowManager.getFrame( "Log" );
+		if (log != null) {
+			log.setSize( this.getWidth(), 300);
+			log.setLocation( this.getLocationOnScreen().x, this.getLocationOnScreen().y + this.getHeight() );
+		}
 	}
 
 	private JMenuBar createMenuBar()

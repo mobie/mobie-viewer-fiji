@@ -45,6 +45,7 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 		localExpression = new LinkedHashMap<>(  );
 
+		Logger.info( "# Gene search" );
 		for ( String sourceName : sourceNames )
 		{
 
@@ -67,9 +68,9 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 					micrometerRadius,
 					voxelDimensions.dimension( 0 ) );
 
-			Logger.info("Examining " + sourceName + "...");
-
-			localExpression.put( sourceName, fractionOfNonZeroVoxels );
+			final String simplifiedSourceName = Utils.getSimplifiedSourceName( sourceName, true );
+			localExpression.put( simplifiedSourceName, fractionOfNonZeroVoxels );
+			Logger.info(simplifiedSourceName + ": " + fractionOfNonZeroVoxels );
 		}
 
 		return localExpression;

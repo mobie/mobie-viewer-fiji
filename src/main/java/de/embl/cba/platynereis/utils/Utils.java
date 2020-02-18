@@ -226,6 +226,17 @@ public class Utils
 		Utils.log( text );
 	}
 
+	public static void logVector( String preText, double[] vector, int numDigits )
+	{
+		String text = preText + ": ";
+
+		for ( int i = 0; i < vector.length; ++i )
+		{
+			text += String.format( "%." + numDigits + "f", vector[ i ] ) + " ";
+		}
+
+		Utils.log( text );
+	}
 
 	public static double[] getCSVasDoubles( String csv )
 	{
