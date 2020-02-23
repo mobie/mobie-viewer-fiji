@@ -13,6 +13,7 @@ import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.Version;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.ij3d.UniverseUtils;
@@ -176,11 +177,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
             {
                 DisplaySettings3DViewer settings = getDisplaySettings3DViewer( sam );
 
-                // TODO: refactor to separate content creation from visualisation
                 final Content content = UniverseUtils.addSourceToUniverse(
                         universe,
                         sam.source(),
-                        200 * 200 * 200,
+                        300 * 300 * 300, // TODO: make adaptable
                         settings.displayMode,
                         settings.color,
                         settings.transparency,
@@ -221,6 +221,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
         this.jFrame = jFrame;
     }
 
+    public void setUniverse( Image3DUniverse universe )
+    {
+        this.universe = universe;
+    }
 
     class DisplaySettings3DViewer
     {
@@ -230,23 +234,17 @@ public class PlatyBrowserSourcesPanel extends JPanel
         ARGBType color = new ARGBType( 0xffffffff );
     }
 
-    private DisplaySettings3DViewer getDisplaySettings3DViewer( SourceAndMetadata< ? > sourceAndMetadata )
+    private DisplaySettings3DViewer getDisplaySettings3DViewer( SourceAndMetadata< ? > sam )
     {
         final DisplaySettings3DViewer settings = new DisplaySettings3DViewer();
-        if ( sourceAndMetadata.metadata().displayName.contains( Constants.PROSPR ) // TODO: make more general
-                || sourceAndMetadata.metadata().displayName.contains( Constants.SEGMENTED )  )
+        if ( sam.metadata().displayName.contains( Constants.PROSPR ) // TODO: make more general
+                || sam.metadata().displayName.contains( Constants.SEGMENTED )  )
         {
             settings.displayMode = ContentConstants.SURFACE;
             settings.max = 1;
             settings.transparency = 0.3F;
         }
-        else if ( sourceAndMetadata.metadata().displayName.contains( Constants.SPM ) )
-        {
-            settings.displayMode = ContentConstants.VOLUME;
-            settings.max = 65535;
-            settings.transparency = 0.3F;
-        }
-        else if ( sourceAndMetadata.metadata().displayName.contains( Constants.EM_FILE_ID ) )
+        else if ( sam.metadata().displayName.contains( Constants.EM_FILE_ID ) )
         {
             settings.displayMode = ContentConstants.ORTHO;
             settings.max = 255;
@@ -254,8 +252,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
         }
         else
         {
-
+            // do nothing
         }
+
+        settings.color = ColorUtils.getARGBType( sam.metadata().color );
 
         return settings;
     }
@@ -458,7 +458,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         setDisplayRange( sam.metadata().bdvStackSource, sam.metadata() );
 
-
         sourceNameToLabelViews.put( sam.metadata().displayName, views );
     }
 
@@ -523,6 +522,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         final Segments3dView< TableRowImageSegment > segments3dView
                 = views.getSegments3dView();
 
+        segments3dView.setShowSelectedSegmentsIn3D( sam.metadata().showSelectedSegmentsIn3d );
         segments3dView.setObjectsName( sam.metadata().imageId );
         segments3dView.setSegmentFocusZoomLevel( 0.1 );
         segments3dView.setMaxNumSegmentVoxels( 100 * 100 * 100 );
@@ -594,9 +594,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
         panel.setBackground( metadata.color );
 
         JLabel sourceNameLabel = new JLabel( sourceName );
-        sourceNameLabel.setHorizontalAlignment( SwingConstants.CENTER );
+        sourceNameLabel.setHorizontalAlignment( SwingUtilities.CENTER );
 
         int[] buttonDimensions = new int[]{ 50, 30 };
+        int[] viewSelectionDimensions = new int[]{ 50, 30 };
 
         panel.add( sourceNameLabel );
 
@@ -611,15 +612,14 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 createRemoveButton( sam, buttonDimensions );
 
         final JCheckBox sliceViewVisibilityCheckbox =
-                SourcesDisplayUI.createBigDataViewerVisibilityCheckbox( buttonDimensions, sam, true );
+                SourcesDisplayUI.createBigDataViewerVisibilityCheckbox( viewSelectionDimensions, sam, true );
 
         final JCheckBox volumeVisibilityCheckbox =
                 SourcesDisplayUI.createVolumeViewVisibilityCheckbox(
                         this,
-                        buttonDimensions,
+                        viewSelectionDimensions,
                         sam,
-                        true );
-
+                        false );
 
         panel.add( brightnessButton );
         panel.add( removeButton );
