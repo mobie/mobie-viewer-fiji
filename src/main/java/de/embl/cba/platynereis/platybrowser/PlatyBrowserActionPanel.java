@@ -53,8 +53,8 @@ public class PlatyBrowserActionPanel extends JPanel
 		addBookmarksUI( this  );
 		addMoveToUI( this );
 		addLevelingUI( this );
-		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		addShow3DUI( this );
+		//this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
+		//addShow3DUI( this );
 		configPanel();
 	}
 
@@ -64,32 +64,32 @@ public class PlatyBrowserActionPanel extends JPanel
 		installBdvBehaviours();
 	}
 
-	private void addShow3DUI( JPanel panel )
-	{
-		JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-//		horizontalLayoutPanel.setAlignmentX( Component.CENTER_ALIGNMENT  );
-
-		final JCheckBox cbObjects = new JCheckBox( "show objects in 3D" );
-		cbObjects.setSelected( Globals.showSegmentsIn3D.get() );
-		cbObjects.addActionListener( e -> {
-			Globals.showSegmentsIn3D.set( cbObjects.isSelected() );
-		} );
-		cbObjects.setHorizontalAlignment( SwingConstants.CENTER );
-
-		final JCheckBox cbVolumes = new JCheckBox( "show volumes in 3D" );
-		cbVolumes.setSelected( Globals.showVolumesIn3D.get() );
-		cbVolumes.addActionListener( e -> {
-			Globals.showVolumesIn3D.set( cbVolumes.isSelected() );
-		} );
-		cbVolumes.setHorizontalAlignment( SwingConstants.CENTER );
-
-		horizontalLayoutPanel.add( Box.createHorizontalGlue() );
-		horizontalLayoutPanel.add( cbObjects );
-		horizontalLayoutPanel.add( Box.createHorizontalGlue() );
-		horizontalLayoutPanel.add( cbVolumes );
-		horizontalLayoutPanel.add( Box.createHorizontalGlue() );
-		panel.add( horizontalLayoutPanel );
-	}
+//	private void addShow3DUI( JPanel panel )
+//	{
+//		JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+////		horizontalLayoutPanel.setAlignmentX( Component.CENTER_ALIGNMENT  );
+//
+//		final JCheckBox cbObjects = new JCheckBox( "show objects in 3D" );
+//		cbObjects.setSelected( Globals.showSegmentsIn3D.get() );
+//		cbObjects.addActionListener( e -> {
+//			Globals.showSegmentsIn3D.set( cbObjects.isSelected() );
+//		} );
+//		cbObjects.setHorizontalAlignment( SwingConstants.CENTER );
+//
+//		final JCheckBox cbVolumes = new JCheckBox( "show volumes in 3D" );
+//		cbVolumes.setSelected( Globals.showVolumesIn3D.get() );
+//		cbVolumes.addActionListener( e -> {
+//			Globals.showVolumesIn3D.set( cbVolumes.isSelected() );
+//		} );
+//		cbVolumes.setHorizontalAlignment( SwingConstants.CENTER );
+//
+//		horizontalLayoutPanel.add( Box.createHorizontalGlue() );
+//		horizontalLayoutPanel.add( cbObjects );
+//		horizontalLayoutPanel.add( Box.createHorizontalGlue() );
+//		horizontalLayoutPanel.add( cbVolumes );
+//		horizontalLayoutPanel.add( Box.createHorizontalGlue() );
+//		panel.add( horizontalLayoutPanel );
+//	}
 
 	public double getGeneSearchRadiusInMicrometer()
 	{

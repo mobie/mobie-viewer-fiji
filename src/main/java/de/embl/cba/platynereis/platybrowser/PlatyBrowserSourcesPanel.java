@@ -166,28 +166,37 @@ public class PlatyBrowserSourcesPanel extends JPanel
             views.getSegments3dView().setVoxelSpacing3DView( voxelSpacing3DView );
     }
 
-    private void addSourceToVolumeViewer( SourceAndMetadata< ? > sam )
+    public void showSourceInVolumeViewer( SourceAndMetadata< ? > sam )
     {
-    	if ( sam.metadata().showImageIn3d || Globals.showVolumesIn3D.get() )
+    	if ( sam.metadata().showImageIn3d )
         {
-            if ( universe == null ) init3DUniverse();
+            initAndShowUniverseIfNecessary();
 
-            UniverseUtils.showUniverseWindow( universe, bdv.getViewerPanel() );
+            if ( sam.metadata().content == null )
+            {
+                DisplaySettings3DViewer settings = getDisplaySettings3DViewer( sam );
 
-            DisplaySettings3DViewer settings = getDisplaySettings3DViewer( sam );
+                // TODO: refactor to separate content creation from visualisation
+                final Content content = UniverseUtils.addSourceToUniverse(
+                        universe,
+                        sam.source(),
+                        200 * 200 * 200,
+                        settings.displayMode,
+                        settings.color,
+                        settings.transparency,
+                        0,
+                        settings.max
+                );
 
-            final Content content = UniverseUtils.addSourceToUniverse(
-                    universe,
-                    sam.source(),
-                    200 * 200 * 200,
-                    settings.displayMode,
-                    settings.color,
-                    settings.transparency,
-                    0,
-                    settings.max
-            );
+                sam.metadata().content = content;
+            }
+            else
+            {
+                if ( ! universe.getContents().contains( sam.metadata().content ) )
+                    universe.addContent( sam.metadata().content );
 
-            sam.metadata().content = content;
+                sam.metadata().content.setVisible( true );
+            }
         }
     	else
         {
@@ -195,7 +204,14 @@ public class PlatyBrowserSourcesPanel extends JPanel
         }
     }
 
-	private void init3DUniverse()
+    public void initAndShowUniverseIfNecessary()
+    {
+        if ( universe == null ) init3DUniverse();
+
+        UniverseUtils.showUniverseWindow( universe, bdv.getViewerPanel() );
+    }
+
+    private void init3DUniverse()
 	{
 		universe = new Image3DUniverse();
 	}
@@ -327,8 +343,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         addSourceToViewer( sam );
 
-        new Thread( () -> addSourceToVolumeViewer( sam ) ).start();
-
         addSourceToPanel( sam );
     }
 
@@ -431,6 +445,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
                     bdv,
                     universe );
 
+        sam.metadata().views = views;
         configureSegments3dView( views, sam );
         configureTableView( views, sam );
 
@@ -442,6 +457,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 .metadata().bdvStackSource;
 
         setDisplayRange( sam.metadata().bdvStackSource, sam.metadata() );
+
 
         sourceNameToLabelViews.put( sam.metadata().displayName, views );
     }
@@ -504,16 +520,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     private void configureSegments3dView( SegmentsTableBdvAnd3dViews views, SourceAndMetadata< ? > sam )
     {
-        if ( sam.metadata().showSelectedSegmentsIn3d )
-            Globals.showSegmentsIn3D.set( true );
-
-        if ( sam.metadata().showImageIn3d )
-            Globals.showVolumesIn3D.set( true );
-
         final Segments3dView< TableRowImageSegment > segments3dView
                 = views.getSegments3dView();
 
-        segments3dView.setShowSegments( Globals.showSegmentsIn3D );
         segments3dView.setObjectsName( sam.metadata().imageId );
         segments3dView.setSegmentFocusZoomLevel( 0.1 );
         segments3dView.setMaxNumSegmentVoxels( 100 * 100 * 100 );
@@ -605,7 +614,11 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 SourcesDisplayUI.createBigDataViewerVisibilityCheckbox( buttonDimensions, sam, true );
 
         final JCheckBox volumeVisibilityCheckbox =
-                SourcesDisplayUI.createVolumeViewVisibilityCheckbox( buttonDimensions, sam, true );
+                SourcesDisplayUI.createVolumeViewVisibilityCheckbox(
+                        this,
+                        buttonDimensions,
+                        sam,
+                        true );
 
 
         panel.add( brightnessButton );
