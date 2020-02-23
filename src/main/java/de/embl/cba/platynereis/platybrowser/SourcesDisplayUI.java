@@ -22,7 +22,7 @@ public class SourcesDisplayUI
 			SourceAndMetadata< ? > sam,
 			boolean isVisible )
 	{
-		JCheckBox checkBox = new JCheckBox( "B" );
+		JCheckBox checkBox = new JCheckBox( "S" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( new Dimension( dims[ 0 ], dims[ 1 ] ) );
 

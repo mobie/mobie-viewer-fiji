@@ -342,7 +342,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
         sourceNameToMetadata.put( sam.metadata().displayName, sam.metadata() );
 
         addSourceToViewer( sam );
-
         addSourceToPanel( sam );
     }
 
@@ -619,7 +618,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
                         this,
                         viewSelectionDimensions,
                         sam,
-                        false );
+                        sam.metadata().showImageIn3d || sam.metadata().showSelectedSegmentsIn3d );
 
         panel.add( brightnessButton );
         panel.add( removeButton );
