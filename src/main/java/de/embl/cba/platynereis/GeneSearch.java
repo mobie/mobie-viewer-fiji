@@ -1,6 +1,7 @@
 package de.embl.cba.platynereis;
 
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.image.ImageSourcesModel;
@@ -41,20 +42,19 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 
 	public Map< String, Double > runSearchAndGetLocalExpression()
 	{
-		final Set< String > sourceNames = imageSourcesModel.sources().keySet();
+		final Map< String, SourceAndMetadata< ? > > sources = imageSourcesModel.sources();
 
 		localExpression = new LinkedHashMap<>(  );
 
 		Logger.info( "# Gene search" );
-		for ( String sourceName : sourceNames )
+		for ( String sourceName : sources.keySet() )
 		{
-
-			// TODO: How to better define which images are gene searched?
-			if ( sourceName.contains( Constants.SEGMENTED ) ) continue;
+			final Metadata.Type type = sources.get( sourceName ).metadata().type;
+			if ( ! type.equals( Metadata.Type.Image )  ) continue;
 			if ( ! sourceName.contains( Constants.PROSPR ) ) continue;
 
 			final SourceAndMetadata sourceAndMetadata =
-					imageSourcesModel.sources().get( sourceName );
+					sources.get( sourceName );
 
 			final RandomAccessibleInterval< ? > rai =
 					BdvUtils.getRealTypeNonVolatileRandomAccessibleInterval(

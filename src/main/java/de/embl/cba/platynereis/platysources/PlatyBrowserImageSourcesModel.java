@@ -130,12 +130,6 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 		return metadata;
 	}
 
-	private void presetDefaultMetadata( Metadata metadata )
-	{
-		metadata.displayRangeMin = 0.0;
-		metadata.displayRangeMax = 1000.0;
-	}
-
 	public void addImageMetadata( Metadata metadata, String key, Object value )
 	{
 		if ( key.equals( "TableFolder" ) )
@@ -182,6 +176,14 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 		else if ( key.equals( "MaxValue" ) )
 		{
 			metadata.displayRangeMax = (double) value;
+		}
+		else if ( key.equals( "ColorMapMinValue" ) )
+		{
+			metadata.colorMapMin = (double) value;
+		}
+		else if ( key.equals( "ColorMapMaxValue" ) )
+		{
+			metadata.colorMapMax = (double) value;
 		}
 		else if ( key.equals( "Storage" ) )
 		{

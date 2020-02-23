@@ -11,6 +11,7 @@ import de.embl.cba.platynereis.platysources.PlatyBrowserImageSourcesModel;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.Version;
+import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
@@ -34,6 +35,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URI;
 import java.util.*;
 import java.util.List;
 
@@ -261,6 +263,10 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 ? metadata.displayRangeMin : sam.metadata().displayRangeMin;
         sam.metadata().displayRangeMax = metadata.displayRangeMax != null
                 ? metadata.displayRangeMax : sam.metadata().displayRangeMax;
+        sam.metadata().colorMapMin = metadata.colorMapMin != null
+                ? metadata.colorMapMin : sam.metadata().colorMapMin;
+        sam.metadata().colorMapMax = metadata.colorMapMax != null
+                ? metadata.colorMapMax : sam.metadata().colorMapMax;
         sam.metadata().selectedSegmentIds = metadata.selectedSegmentIds != null
                 ? metadata.selectedSegmentIds : sam.metadata().selectedSegmentIds;
         sam.metadata().color = metadata.color != null
@@ -355,9 +361,12 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         if ( isBdvShownFirstTime )
         {
-            BdvUtils.getViewerFrame( bdv ).setLocation(
-                    jFrame.getLocationOnScreen().x + jFrame.getWidth(),
-                    jFrame.getLocationOnScreen().y );
+            BdvUtils.getViewerFrame( bdv ).
+                    setLocation(
+                            jFrame.getLocationOnScreen().x + jFrame.getWidth(),
+                            jFrame.getLocationOnScreen().y );
+
+            BdvUtils.getViewerFrame( bdv ).setSize( jFrame.getHeight(), jFrame.getHeight() );
 
             bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
             isBdvShownFirstTime = false;
@@ -411,7 +420,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
                      sam.metadata().segmentsTablePath,
                      sam.metadata().imageId );
 
-        // TODO: use metadata.colorMap explicitly instead of assuming Glasbey
+		setUniverse();
+
+		// TODO: use metadata.colorMap explicitly instead of assuming Glasbey
         final SegmentsTableBdvAnd3dViews views
                 = new SegmentsTableBdvAnd3dViews(
                     segments,
@@ -435,7 +446,19 @@ public class PlatyBrowserSourcesPanel extends JPanel
         sourceNameToLabelViews.put( sam.metadata().displayName, views );
     }
 
-    private void configureTableView( SegmentsTableBdvAnd3dViews views, SourceAndMetadata< ? > sam )
+	private void setUniverse()
+	{
+		for ( SegmentsTableBdvAnd3dViews views : sourceNameToLabelViews.values() )
+		{
+			if ( views.getSegments3dView().getUniverse() != null )
+			{
+				universe = views.getSegments3dView().getUniverse();
+				continue;
+			}
+		}
+	}
+
+	private void configureTableView( SegmentsTableBdvAnd3dViews views, SourceAndMetadata< ? > sam )
     {
         final TableRowsTableView< TableRowImageSegment > tableRowsTableView = views.getTableRowsTableView();
 
@@ -446,25 +469,35 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         for ( String tableName : sam.metadata().additionalSegmentTableNames )
         {
+            String newTablePath = FileAndUrlUtils.combinePath( tablesLocation, tableName + ".csv" );
+
+            if ( newTablePath.startsWith( "http" ) )
+                newTablePath = FileUtils.resolveTableURL( URI.create( newTablePath ) );
+
             final Map< String, List< String > > newColumns = TableColumns.openAndOrderNewColumns(
                     tableRowsTableView.getTable(),
                     Globals.COLUMN_NAME_SEGMENT_LABEL_ID,
-                    FileAndUrlUtils.combinePath( tablesLocation, tableName + ".csv" ));
+                    newTablePath );
 
             tableRowsTableView.addColumns( newColumns );
         }
 
 
-        // select segments // TODO: this should not be part of any specific view
-        if ( sam.metadata().selectedSegmentIds.size() > 0 )
+        // select segments
+         if ( sam.metadata().selectedSegmentIds.size() > 0 )
+        {
+            // TODO: in table-utils: the selection should not be part of any specific view
             views.getSegmentsBdvView().select( sam.metadata().selectedSegmentIds );
+        }
 
         // apply colorByColumn
         if ( sam.metadata().colorByColumn != null && sam.metadata().colorMap != null )
         {
             views.getTableRowsTableView().colorByColumn(
                         sam.metadata().colorByColumn,
-                        sam.metadata().colorMap );
+                        sam.metadata().colorMap,
+                        sam.metadata().colorMapMin,
+                        sam.metadata().colorMapMax );
         }
 
     }

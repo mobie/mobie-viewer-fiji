@@ -1,6 +1,7 @@
 package de.embl.cba.platynereis.platybrowser;
 
 import bdv.tools.HelpDialog;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.platyviews.PlatyViews;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
@@ -49,9 +50,12 @@ public class PlatyBrowser extends JFrame
 
 	public void adaptLogWindowPositionAndSize()
 	{
+
 		final Frame log = WindowManager.getFrame( "Log" );
 		if (log != null) {
-			log.setSize( this.getWidth(), 300);
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			final int logWindowHeight = screenSize.height - ( this.getLocationOnScreen().y + this.getHeight() + 20 );
+			log.setSize( this.getWidth(), logWindowHeight  );
 			log.setLocation( this.getLocationOnScreen().x, this.getLocationOnScreen().y + this.getHeight() );
 		}
 	}

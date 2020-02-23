@@ -20,6 +20,7 @@ public abstract class BdvViewChanger
 	private static BdvOverlaySource< BdvOverlay > pointOverlaySource;
 	private static BdvPointOverlay bdvPointOverlay;
 	private static boolean pointOverlaySourceIsActive;
+	private static boolean isPointOverlayEnabled;
 
 	public static void moveToView( Bdv bdv, String view )
 	{
@@ -43,7 +44,8 @@ public abstract class BdvViewChanger
 		{
 			BdvUtils.zoomToPosition( bdv, asPosition4D( doubles ), 15D, 1000 );
 
-			addPointOverlay( bdv, doubles );
+			if ( isPointOverlayEnabled )
+				addPointOverlay( bdv, doubles );
 		}
 		else if ( doubles.length == 4 )
 		{
@@ -128,5 +130,10 @@ public abstract class BdvViewChanger
 			}
 		}
 
+	}
+
+	public static void enablePointOverlay( boolean isPointOverlayEnabled )
+	{
+		BdvViewChanger.isPointOverlayEnabled = isPointOverlayEnabled;
 	}
 }

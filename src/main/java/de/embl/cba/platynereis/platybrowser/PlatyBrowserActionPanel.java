@@ -210,7 +210,6 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		GeneSearchResults.logGeneExpression(
 				micrometerPosition, micrometerRadius, geneExpressionLevels );
-
 	}
 
 	// TODO: refactor to UniverseUtils

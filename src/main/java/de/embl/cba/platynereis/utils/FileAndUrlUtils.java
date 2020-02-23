@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -133,12 +135,28 @@ public class FileAndUrlUtils
 		return is;
 	}
 
-	public static String getParentLocation( String segmentsTablePath )
+	public static String getParentLocation( String path )
 	{
-		String tablesLocation = new File( segmentsTablePath ).getParent();
-		if ( tablesLocation.contains( ":/" ) && ! tablesLocation.contains( "://" ) )
-			tablesLocation = tablesLocation.replace( ":/", "://" );
-		return tablesLocation;
+		if ( path.startsWith( "http" ) )
+		{
+			try
+			{
+				URI uri = new URI(path );
+				URI parent = uri.getPath().endsWith("/") ? uri.resolve("..") : uri.resolve(".");
+				return parent.toString();
+			} catch ( URISyntaxException e )
+			{
+				throw new RuntimeException( "Invalid URL Syntax: " + path );
+			}
+		}
+		else
+		{
+			return new File( path ).getParent();
+		}
+
+//		String tablesLocation = new File( path ).getParent();
+//		if ( tablesLocation.contains( ":/" ) && ! tablesLocation.contains( "://" ) )
+//			tablesLocation = tablesLocation.replace( ":/", "://" );
 	}
 
 	public static class SortFilesIgnoreCase implements Comparator<File>

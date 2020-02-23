@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
 import de.embl.cba.platynereis.Globals;
+import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
@@ -290,7 +291,7 @@ public class Utils
 		log( "Opening table: " + tablePath );
 
 		if ( tablePath.startsWith( "http" ) )
-			tablePath = resolveTableURL( URI.create( tablePath ) );
+			tablePath = FileUtils.resolveTableURL( URI.create( tablePath ) );
 
 		Map< String, List< String > > columns =
 						TableColumns.stringColumnsFromTableFile( tablePath );
@@ -308,17 +309,6 @@ public class Utils
 						columns, segmentPropertyToColumn, false );
 
 		return segments;
-	}
-
-	public static String resolveTableURL( URI uri )
-	{
-		while( isRelativePath( uri.toString() ) )
-		{
-			URI relativeURI = URI.create( getRelativePath( uri.toString() ) );
-			uri = uri.resolve( relativeURI ).normalize();
-		}
-
-		return uri.toString();
 	}
 
 	public static boolean isRelativePath( String tablePath )

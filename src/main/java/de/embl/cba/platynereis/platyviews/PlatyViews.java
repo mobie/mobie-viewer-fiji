@@ -1,6 +1,8 @@
 package de.embl.cba.platynereis.platyviews;
 
 
+import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.capture.BdvViewCaptures;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.platybrowser.PlatyBrowserSourcesPanel;
 import de.embl.cba.platynereis.bdv.BdvViewChanger;
@@ -57,12 +59,27 @@ public class PlatyViews
 		}
 	}
 
+	/**
+	 * The transform is specific to the size of the
+	 * Bdv window, leading to views appearing off centre.
+	 * Thus, if given, we also move to center the position.
+	 *
+	 * @param bookmark
+	 */
 	public void adaptViewerTransform( Bookmark bookmark )
 	{
 		if ( bookmark.transform != null )
 			BdvViewChanger.moveToDoubles( sourcesPanel.getBdv(), bookmark.transform );
-		else if ( bookmark.position != null )
-			BdvViewChanger.moveToDoubles( sourcesPanel.getBdv(), bookmark.position );
+
+		if ( bookmark.position != null )
+		{
+			BdvUtils.moveToPosition( sourcesPanel.getBdv(),
+					bookmark.position.stream().mapToDouble( d -> d ).toArray(),
+					0, 100 );
+//			BdvViewChanger.enablePointOverlay( false );
+//			BdvViewChanger.moveToDoubles( sourcesPanel.getBdv(), bookmark.position );
+//			BdvViewChanger.enablePointOverlay( true );
+		}
 	}
 
 	public Set< String > getBookmarkNames()

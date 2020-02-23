@@ -10,7 +10,7 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>PlatyBrowser>Advanced>Open PlatyBrowser Advanced" )
+@Plugin(type = Command.class, menuPath = "Plugins>MMB>CustomBrowser" )
 public class PlatyBrowserOpenAdvancedCommand implements Command
 {
 	@Parameter ( label = "Image Data Location", style = "directory" )
