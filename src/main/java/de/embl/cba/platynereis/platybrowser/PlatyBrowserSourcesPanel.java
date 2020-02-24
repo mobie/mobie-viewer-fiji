@@ -279,19 +279,17 @@ public class PlatyBrowserSourcesPanel extends JPanel
                 ? metadata.displayRangeMin : sam.metadata().displayRangeMin;
         sam.metadata().displayRangeMax = metadata.displayRangeMax != null
                 ? metadata.displayRangeMax : sam.metadata().displayRangeMax;
-        sam.metadata().colorMapMin = metadata.colorMapMin != null
-                ? metadata.colorMapMin : sam.metadata().colorMapMin;
-        sam.metadata().colorMapMax = metadata.colorMapMax != null
-                ? metadata.colorMapMax : sam.metadata().colorMapMax;
-        sam.metadata().selectedSegmentIds = metadata.selectedSegmentIds != null
-                ? metadata.selectedSegmentIds : sam.metadata().selectedSegmentIds;
         sam.metadata().color = metadata.color != null
                 ? metadata.color : sam.metadata().color;
+
+        sam.metadata().colorByColumn = metadata.colorByColumn;
+        sam.metadata().colorMapMin = metadata.colorMapMin;
+        sam.metadata().colorMapMax = metadata.colorMapMax;
+        sam.metadata().selectedSegmentIds = metadata.selectedSegmentIds;
         sam.metadata().showImageIn3d = metadata.showImageIn3d;
         sam.metadata().showSelectedSegmentsIn3d = metadata.showSelectedSegmentsIn3d;
-        sam.metadata().colorMap = metadata.colorMap != null ? metadata.colorMap : sam.metadata().colorMap;
+        sam.metadata().colorMap = metadata.colorMap;
         sam.metadata().additionalSegmentTableNames = metadata.additionalSegmentTableNames;
-        sam.metadata().colorByColumn = metadata.colorByColumn != null ? metadata.colorByColumn : sam.metadata().colorByColumn;
     }
 
     public void addSourceToPanelAndViewer( String sourceName )
@@ -474,9 +472,11 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
 	private void configureTableView( SegmentsTableBdvAnd3dViews views, SourceAndMetadata< ? > sam )
     {
-        final TableRowsTableView< TableRowImageSegment > tableRowsTableView = views.getTableRowsTableView();
+        final TableRowsTableView< TableRowImageSegment > tableRowsTableView
+                = views.getTableRowsTableView();
 
-        final String tablesLocation = FileAndUrlUtils.getParentLocation( sam.metadata().segmentsTablePath );
+        final String tablesLocation =
+                FileAndUrlUtils.getParentLocation( sam.metadata().segmentsTablePath );
 
         tableRowsTableView.setTablesDirectory( tablesLocation );
         tableRowsTableView.setMergeByColumnName( Globals.COLUMN_NAME_SEGMENT_LABEL_ID );
@@ -488,17 +488,18 @@ public class PlatyBrowserSourcesPanel extends JPanel
             if ( newTablePath.startsWith( "http" ) )
                 newTablePath = FileUtils.resolveTableURL( URI.create( newTablePath ) );
 
-            final Map< String, List< String > > newColumns = TableColumns.openAndOrderNewColumns(
-                    tableRowsTableView.getTable(),
-                    Globals.COLUMN_NAME_SEGMENT_LABEL_ID,
-                    newTablePath );
+            final Map< String, List< String > > newColumns =
+                    TableColumns.openAndOrderNewColumns(
+                        tableRowsTableView.getTable(),
+                        Globals.COLUMN_NAME_SEGMENT_LABEL_ID,
+                        newTablePath );
 
+            newColumns.remove( Globals.COLUMN_NAME_SEGMENT_LABEL_ID );
             tableRowsTableView.addColumns( newColumns );
         }
 
-
         // select segments
-         if ( sam.metadata().selectedSegmentIds.size() > 0 )
+        if ( sam.metadata().selectedSegmentIds.size() > 0 )
         {
             // TODO: in table-utils: the selection should not be part of any specific view
             views.getSegmentsBdvView().select( sam.metadata().selectedSegmentIds );
