@@ -1,6 +1,6 @@
-# PlatyBrowser Fiji
+# MMB Fiji
 
-Fiji plugin for the exploration of multi-modal big image data of the biological model system _Platynereis_ dumerilii.
+Fiji plugin for the exploration of multi-modal big image data. Currently, it is used to implemnt the PlatyBrowser, a tool to explore a cellular atlas for the biological model system _Platynereis dumerilii_.
 
 
 ## Installation
@@ -21,13 +21,13 @@ Fiji plugin for the exploration of multi-modal big image data of the biological 
 - [ help ] Please select an item from the drop-down and click the [ help ] button. A corresponding help page will appear.
 - [ add ] Please select an image source from the drop-downs and click the corresponding [ add ] button. The image source will be added to the current view. If the image source is a segmentation, also a corresponding objects table will appear. 
 - [ view ] Please select a bookmark item from the drop-down and click the [ view ] button. The corresponding bookmarked view will appear. A “bookmark” can consist of multiple items, such as different image layers, as well as object selections, and coloring modes.
-- [ move ] Please enter a x, y, z position (in micrometer units) as comma separated values, as an example you may try: TODO. Clicking [ move ] will move the current viewer such that the entered position is in the centre of the viewer. You may also enter 12 comma separated values; in this case the view will be positioned according to the affine transformation that is specified by these numbers; as an example, you may try: TODO.
+- [ move ] Please enter a x, y, z position (in micrometer units) as comma separated values, as an example you may try: `120.5,115.3,201.5`. Clicking [ move ] will move the current viewer such that the entered position is in the centre of the viewer. You may also enter 12 comma separated values; in this case the view will be positioned according to the affine transformation that is specified by these numbers; as an example, you may try: ``.
 - [ level ] Clicking this button will level the current view such that the dorso-ventral axis of the animal is perpendicular to the viewing plane, and the anterior part of the animal facing upwards. This view is suited to inspect the the bilateral symmetry of the specimen.
 
 ### Checkboxes in main panel
 
-- [X] show volumes in 3D: Checking will show image data not only in BigDataViewer but also show a 3D rendering in ImageJ’s 3D Image Viewer (Schmid et al., 2010)
-- [X] show objects in 3D: Checking will show a 3D rendering of selected objects, also in ImageJ’s 3D Image Viewer  
+- [ X ] show volumes in 3D: Checking will show image data not only in BigDataViewer but also show a 3D rendering in ImageJ’s 3D Image Viewer (Schmid et al., 2010)
+- [ X ] show objects in 3D: Checking will show a 3D rendering of selected objects, also in ImageJ’s 3D Image Viewer  
 
 ### Image sources buttons
 
@@ -43,8 +43,8 @@ To control the image sources appearance, there are several buttons...
 
 ...and checkboxes:
 
-- [X] V Uncheck to remove from volume viewer (but keep in sources panel)  
-- [X] B Uncheck to remove from BigDataViewer (but keep in sources panel)  
+- [ X ] V Uncheck to remove from volume viewer (but keep in sources panel)  
+- [ X ] S Uncheck to remove from BigDataViewer (but keep in sources panel)  
 
 ### Keyboard shortcuts in BigDataViewer window
 
