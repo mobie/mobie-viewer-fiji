@@ -6,14 +6,14 @@ Fiji plugin for the exploration of multi-modal big image data. Currently, it is 
 ## Installation
 
 1. Please [install Fiji](https://fiji.sc) on your computer.
-1. Open Fiji and install the EMBL-CBA update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).<br><img width="460" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/74152530-c9603500-4c0e-11ea-81d8-d518b9ed1ef3.png"> <br> Select the EMBL-CBA update site and then click [ Close ]
-1. Restart Fiji
+2. Open Fiji and install the EMBL-CBA update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).<br><img width="460" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/74152530-c9603500-4c0e-11ea-81d8-d518b9ed1ef3.png"> <br> Select the EMBL-CBA update site and then click [ Close ]
+3. Restart Fiji
 
 ## Starting up
 
-1. In the Fiji search bar, type: "Open Platy"<br> <img width="460" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/74152904-98cccb00-4c0f-11ea-9819-6c772174a2c0.png"> <br> ...and click [ Run ]
-1. Select the version of the data: <br><img width="200" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/version.jpg">
-1. The PlatyBrowser is ready to be used:<br><img width="800" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/main-ui-bdv.jpg">
+1. In the Fiji search bar, type: "Platy"<br> <img width="460" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/74152904-98cccb00-4c0f-11ea-9819-6c772174a2c0.png"> <br> ...and click [ Run ]
+2. Select the version of the data: <br><img width="200" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/version.jpg">
+3. The PlatyBrowser is ready to be used:<br><img width="800" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/main-ui-bdv.jpg">
 
 ## Operation
 
@@ -70,5 +70,4 @@ Moreover, the table has its own menu. Important menu entries include:
 
 ### Advanced options
 
-By default the PlatyBrowser plugin fetches the data from github and a publicly accessible object store. However it can also be configured to fetch the data from other locations, such as a local file-server. To access this functionality please type in Fiji’s search bar: "Open PlatyBrowser Advanced"
-
+By default the PlatyBrowser plugin fetches the data from github and a publicly accessible object store. However it can also be configured to fetch the data from other locations, such as a local file-server. To access this functionality please type in Fiji’s search bar: "CustomBrowser".
