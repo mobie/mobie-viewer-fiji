@@ -12,7 +12,7 @@ Fiji plugin for the exploration of multi-modal big image data. Currently, it is 
 ## Starting up
 
 1. In the Fiji search bar, type: "Open Platy"<br> <img width="460" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/74152904-98cccb00-4c0f-11ea-9819-6c772174a2c0.png"> <br> ...and click [ Run ]
-1. Select the version of the data: <br><img width="200" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/version.jpp">
+1. Select the version of the data: <br><img width="200" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/version.jpg">
 1. The PlatyBrowser is ready to be used:<br><img width="800" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/main-ui-bdv.jpg">
 
 ## Operation
