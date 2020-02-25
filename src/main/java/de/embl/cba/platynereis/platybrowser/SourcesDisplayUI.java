@@ -3,17 +3,13 @@ package de.embl.cba.platynereis.platybrowser;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvStackSource;
 import de.embl.cba.bdv.utils.BdvDialogs;
-import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.tables.image.SourceAndMetadata;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import de.embl.cba.tables.view.Segments3dView;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.List;
 
 public class SourcesDisplayUI
 {
@@ -55,43 +51,13 @@ public class SourcesDisplayUI
 			public void actionPerformed( ActionEvent e )
 			{
 				new Thread( () -> {
-					updateSegments3dView( sam, checkBox, sourcesPanel);
-					updateSource3dView( sam, checkBox, sourcesPanel );
+					PlatyBrowserSourcesPanel.updateSegments3dView( sam.metadata(), sourcesPanel, checkBox.isSelected() );
+					PlatyBrowserSourcesPanel.updateSource3dView( sam, sourcesPanel, checkBox.isSelected() );
 				}).start();
 			}
 		} );
 
 		return checkBox;
-	}
-
-	public static void updateSource3dView( SourceAndMetadata< ? > sam, JCheckBox checkBox, PlatyBrowserSourcesPanel sourcesPanel )
-	{
-		sam.metadata().showImageIn3d = checkBox.isSelected();
-
-		if ( sam.metadata().type.equals( Metadata.Type.Segmentation ) ) return;
-
-		if ( checkBox.isSelected() )
-		{
-			sourcesPanel.showSourceInVolumeViewer( sam );
-		}
-		else
-		{
-			if ( sam.metadata().content != null )
-				sam.metadata().content.setVisible( false );
-		}
-	}
-
-	public static void updateSegments3dView( SourceAndMetadata< ? > sam, JCheckBox checkBox, PlatyBrowserSourcesPanel sourcesPanel )
-	{
-		if ( sam.metadata().views != null )
-		{
-			final Segments3dView< TableRowImageSegment > segments3dView = sam.metadata().views.getSegments3dView();
-
-			segments3dView.setShowSelectedSegmentsIn3D( checkBox.isSelected() );
-
-			if ( checkBox.isSelected() )
-				sourcesPanel.setUniverse( segments3dView.getUniverse() );
-		}
 	}
 
 

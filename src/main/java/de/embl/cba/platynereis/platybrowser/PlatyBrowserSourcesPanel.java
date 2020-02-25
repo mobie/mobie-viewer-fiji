@@ -10,22 +10,18 @@ import de.embl.cba.platynereis.Globals;
 import de.embl.cba.platynereis.platysources.PlatyBrowserImageSourcesModel;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
-import de.embl.cba.platynereis.utils.Version;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.ij3d.UniverseUtils;
 import de.embl.cba.tables.image.DefaultImageSourcesModel;
-import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.Segments3dView;
 import de.embl.cba.tables.view.SegmentsBdvView;
 import de.embl.cba.tables.view.TableRowsTableView;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
-import ij.WindowManager;
 import ij3d.Content;
 import ij3d.ContentConstants;
 import ij3d.Image3DUniverse;
@@ -46,7 +42,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 {
     private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelViews;
     private Map< String, JPanel > sourceNameToPanel;
-    private Map< String, Metadata > sourceNameToMetadata;
+    private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndMetadata;
     private BdvHandle bdv;
     private final PlatyBrowserImageSourcesModel imageSourcesModel;
     private Image3DUniverse universe;
@@ -74,12 +70,42 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelViews = new LinkedHashMap<>();
-        sourceNameToMetadata = new LinkedHashMap<>();
+        sourceNameToSourceAndMetadata = new LinkedHashMap<>();
 
         voxelSpacing3DView = 0.05;
         meshSmoothingIterations = 5;
 
         configPanel();
+    }
+
+    public static void updateSource3dView( SourceAndMetadata< ? > sam, PlatyBrowserSourcesPanel sourcesPanel, boolean showImageIn3d )
+    {
+        sam.metadata().showImageIn3d = showImageIn3d;
+
+        if ( sam.metadata().type.equals( Metadata.Type.Segmentation ) ) return;
+
+        if ( showImageIn3d )
+        {
+            sourcesPanel.showSourceInVolumeViewer( sam );
+        }
+        else
+        {
+            if ( sam.metadata().content != null )
+                sam.metadata().content.setVisible( false );
+        }
+    }
+
+    public static void updateSegments3dView( Metadata metadata, PlatyBrowserSourcesPanel sourcesPanel, boolean showSelectedSegmentsIn3D )
+    {
+        if ( metadata.views != null )
+        {
+            final Segments3dView< TableRowImageSegment > segments3dView = metadata.views.getSegments3dView();
+
+            segments3dView.setShowSelectedSegmentsIn3D( showSelectedSegmentsIn3D );
+
+            if ( showSelectedSegmentsIn3D )
+                sourcesPanel.setUniverse( segments3dView.getUniverse() );
+        }
     }
 
     private void addColorButton( JPanel panel, int[] buttonDimensions, SourceAndMetadata< ? > sam )
@@ -302,7 +328,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
         final SourceAndMetadata< ? > sam = getSourceAndMetadata( sourceName );
 
-        sourceNameToMetadata.put( sam.metadata().displayName, sam.metadata() );
+        sourceNameToSourceAndMetadata.put( sam.metadata().displayName, sam );
 
         addSourceToPanelAndViewer( sam );
     }
@@ -337,7 +363,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         if ( sourceNameToPanel.containsKey( sam.metadata().displayName ) ) return;
 
-        sourceNameToMetadata.put( sam.metadata().displayName, sam.metadata() );
+        sourceNameToSourceAndMetadata.put( sam.metadata().displayName, sam );
 
         addSourceToViewer( sam );
         addSourceToPanel( sam );
@@ -646,7 +672,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
                     @Override
                     public void actionPerformed( ActionEvent e )
                     {
-                        removeSourceFromPanelAndViewers( sam.metadata() );
+                        removeSourceFromPanelAndViewers( sam );
                     }
                 } );
 
@@ -656,18 +682,20 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     public void removeSourceFromPanelAndViewers( String sourceName )
     {
-        removeSourceFromPanelAndViewers( sourceNameToMetadata.get( sourceName ) );
+        removeSourceFromPanelAndViewers( sourceNameToSourceAndMetadata.get( sourceName ) );
     }
 
-    public void removeSourceFromPanelAndViewers( Metadata metadata )
+    public void removeSourceFromPanelAndViewers( SourceAndMetadata< ? > sam )
     {
-		removeSourceFromPanel( metadata.displayName );
+        updateSegments3dView( sam.metadata(), this, false );
+        updateSource3dView( sam, this, false );
 
-		removeLabelsViews( metadata.displayName );
+        removeSourceFromPanel( sam.metadata().displayName );
+		removeLabelsViews( sam.metadata().displayName );
 
-		BdvUtils.removeSource( bdv, ( BdvStackSource ) metadata.bdvStackSource );
+		BdvUtils.removeSource( bdv, ( BdvStackSource ) sam.metadata().bdvStackSource );
 
-		if ( metadata.content != null ) universe.removeContent( metadata.content.getName() );
+		if ( sam.metadata().content != null ) universe.removeContent( sam.metadata().content.getName() );
 
         refreshGui();
     }
