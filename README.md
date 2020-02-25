@@ -24,11 +24,6 @@ Fiji plugin for the exploration of multi-modal big image data. Currently, it is 
 - [ move ] Please enter a x, y, z position (in micrometer units) as comma separated values, as an example you may try: `120.5,115.3,201.5`. Clicking [ move ] will move the current viewer such that the entered position is in the centre of the viewer. You may also enter 12 comma separated values; in this case the view will be positioned according to the affine transformation that is specified by these numbers; as an example, you may try: ``.
 - [ level ] Clicking this button will level the current view such that the dorso-ventral axis of the animal is perpendicular to the viewing plane, and the anterior part of the animal facing upwards. This view is suited to inspect the the bilateral symmetry of the specimen.
 
-### Checkboxes in main panel
-
-- [ X ] show volumes in 3D: Checking will show image data not only in BigDataViewer but also show a 3D rendering in ImageJ’s 3D Image Viewer (Schmid et al., 2010)
-- [ X ] show objects in 3D: Checking will show a 3D rendering of selected objects, also in ImageJ’s 3D Image Viewer  
-
 ### Image sources buttons
 
 Adding an image source to BigDataViewer will also make it appear in the image **sources panel**, such as shown in below example.
