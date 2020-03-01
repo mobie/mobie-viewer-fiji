@@ -1,6 +1,6 @@
 # MMB Fiji
 
-MulitModelBrowser (MMB) is a Fiji plugin for the exploration of multi-modal big image data. Currently, it is used to implemnt the PlatyBrowser, a tool to explore a cellular atlas for the biological model system _Platynereis dumerilii_, see [Whole-body integration of gene expression and single-cell morphology](https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1).
+MulitModelBrowser (MMB) is a Fiji plugin for the exploration of multi-modal big image data. Currently, it is used to implemnt the [PlatyBrowser](https://github.com/platybrowser/platybrowser), a tool to explore a cellular atlas for the biological model system _Platynereis dumerilii_, see [Whole-body integration of gene expression and single-cell morphology](https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1).
 
 
 ## Installation
@@ -70,7 +70,7 @@ Moreover, the table has its own menu. Important menu entries include:
 
 ### Advanced options
 
-By default the PlatyBrowser plugin fetches the data from github and a publicly accessible object store. However it can also be configured to fetch the data from other locations, such as a local file-server. To access this functionality please type in Fiji’s search bar: "CustomBrowser".
+By default the PlatyBrowser plugin fetches the data from [github](https://github.com/platybrowser/platybrowser) and a publicly accessible object store. However it can also be configured to fetch the data from other locations, such as a local file-server. To access this functionality please type in Fiji’s search bar: "CustomBrowser". You can find a minimal example for setting up data for the MMB [here](https://github.com/platybrowser/mmb-python).
 
 
 ## Citation
