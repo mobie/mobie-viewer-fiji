@@ -17,6 +17,7 @@ import java.util.Arrays;
  */
 public abstract class BdvViewChanger
 {
+	public static final int DURATION_MILLIS = 3000;
 	private static BdvOverlaySource< BdvOverlay > pointOverlaySource;
 	private static BdvPointOverlay bdvPointOverlay;
 	private static boolean pointOverlaySourceIsActive;
@@ -42,18 +43,18 @@ public abstract class BdvViewChanger
 	{
 		if ( doubles.length == 3 )
 		{
-			BdvUtils.zoomToPosition( bdv, asPosition4D( doubles ), 15D, 1000 );
+			BdvUtils.zoomToPosition( bdv, asPosition4D( doubles ), 15D, DURATION_MILLIS );
 
 			if ( isPointOverlayEnabled )
 				addPointOverlay( bdv, doubles );
 		}
 		else if ( doubles.length == 4 )
 		{
-			BdvUtils.zoomToPosition( bdv, doubles, 15D, 1000 );
+			BdvUtils.zoomToPosition( bdv, doubles, 15D, DURATION_MILLIS );
 		}
 		else if ( doubles.length == 12 )
 		{
-			BdvUtils.changeBdvViewerTransform( bdv, asView( doubles ), 1000  );
+			BdvUtils.changeBdvViewerTransform( bdv, asView( doubles ), DURATION_MILLIS  );
 		}
 		else
 		{

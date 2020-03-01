@@ -14,11 +14,10 @@ import java.io.File;
 public class PlatyBrowserOpenAdvancedCommand implements Command
 {
 	@Parameter ( label = "Image Data Location", style = "directory" )
-	public File imagesLocation = new File("/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data");
+	public String imagesLocation = "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data";
 
 	@Parameter ( label = "Table Data Location" )
-	public String tablesLocation = "https://git.embl.de/tischer/platy-browser-tables/raw/master/data";
-
+	public String tablesLocation = "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data";
 	@Override
 	public void run()
 	{
@@ -26,7 +25,7 @@ public class PlatyBrowserOpenAdvancedCommand implements Command
 
 		new PlatyBrowser(
 				version,
-				imagesLocation.toString(),
+				imagesLocation,
 				tablesLocation );
 	}
 

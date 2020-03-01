@@ -75,7 +75,7 @@ public class PlatyViews
 		{
 			BdvUtils.moveToPosition( sourcesPanel.getBdv(),
 					bookmark.position.stream().mapToDouble( d -> d ).toArray(),
-					0, 100 );
+					0, 3000 );
 //			BdvViewChanger.enablePointOverlay( false );
 //			BdvViewChanger.moveToDoubles( sourcesPanel.getBdv(), bookmark.position );
 //			BdvViewChanger.enablePointOverlay( true );
