@@ -44,13 +44,11 @@ public class PlatyBrowser extends JFrame
 
 		sourcesPanel.setParentComponent( this );
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
-
 		actionPanel.setBdv( sourcesPanel.getBdv() );
 	}
 
 	public void adaptLogWindowPositionAndSize()
 	{
-
 		final Frame log = WindowManager.getFrame( "Log" );
 		if (log != null) {
 			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();

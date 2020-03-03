@@ -3,6 +3,7 @@ package de.embl.cba.platynereis.platybrowser;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.Constants;
@@ -322,15 +323,15 @@ public class PlatyBrowserSourcesPanel extends JPanel
     {
         if ( ! getSourceNames().contains( sourceName ) )
         {
-            System.err.println( "Source not present: " + sourceName );
+            Logger.error( "Source not present: " + sourceName );
             return;
         }
-
-        final SourceAndMetadata< ? > sam = getSourceAndMetadata( sourceName );
-
-        sourceNameToSourceAndMetadata.put( sam.metadata().displayName, sam );
-
-        addSourceToPanelAndViewer( sam );
+        else
+        {
+            final SourceAndMetadata< ? > sam = getSourceAndMetadata( sourceName );
+            sourceNameToSourceAndMetadata.put( sam.metadata().displayName, sam );
+            addSourceToPanelAndViewer( sam );
+        }
     }
 
     public SourceAndMetadata< ? > getSourceAndMetadata( String sourceName )
@@ -361,12 +362,20 @@ public class PlatyBrowserSourcesPanel extends JPanel
 
     private void addSourceToPanelAndViewer( SourceAndMetadata< ? > sam )
     {
-        if ( sourceNameToPanel.containsKey( sam.metadata().displayName ) ) return;
+        final String sourceName = sam.metadata().displayName;
 
-        sourceNameToSourceAndMetadata.put( sam.metadata().displayName, sam );
-
-        addSourceToViewer( sam );
-        addSourceToPanel( sam );
+        if ( sourceNameToPanel.containsKey( sourceName ) )
+        {
+            Logger.log( "Source is already shown: " + sourceName + "" );
+            return;
+        }
+        else
+        {
+            Logger.log( "Adding source: " + sourceName + "..." );
+            sourceNameToSourceAndMetadata.put( sourceName, sam );
+            addSourceToViewer( sam );
+            addSourceToPanel( sam );
+        }
     }
 
     private void addSourceToViewer( SourceAndMetadata< ? > sam )

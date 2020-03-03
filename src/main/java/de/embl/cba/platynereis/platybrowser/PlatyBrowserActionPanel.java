@@ -2,6 +2,7 @@ package de.embl.cba.platynereis.platybrowser;
 
 import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.behaviour.BdvBehaviours;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.GeneSearch;
@@ -376,9 +377,19 @@ public class PlatyBrowserActionPanel extends JPanel
 		final JButton addToView = new JButton( "add");
 		addToView.addActionListener( e ->
 		{
-			final String selectedSource = ( String ) comboBox.getSelectedItem();
-			final String sourceName = selectionNameAndModalityToSourceName.get( selectedSource + "-" + modality );
-			sourcesPanel.addSourceToPanelAndViewer( sourceName );
+			SwingUtilities.invokeLater( () ->
+			{
+				if ( bdv == null )
+				{
+					Logger.log( "Warning: Source cannot be added yet, because BigDataViewer is still being initialised..." );
+					return;
+				}
+
+				final String selectedSource = ( String ) comboBox.getSelectedItem();
+				final String sourceName = selectionNameAndModalityToSourceName.get( selectedSource + "-" + modality );
+
+				sourcesPanel.addSourceToPanelAndViewer( sourceName );
+			} );
 		} );
 
 
