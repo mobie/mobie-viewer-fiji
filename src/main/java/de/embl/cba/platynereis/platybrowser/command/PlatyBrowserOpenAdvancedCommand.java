@@ -22,6 +22,7 @@ public class PlatyBrowserOpenAdvancedCommand implements Command
 	public void run()
 	{
 		final String version = new VersionsDialog().showDialog( tablesLocation + "/versions.json" );
+		if ( version == null ) return;
 
 		new PlatyBrowser(
 				version,

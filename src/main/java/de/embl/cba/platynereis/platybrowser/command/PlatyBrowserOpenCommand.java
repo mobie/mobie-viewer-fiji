@@ -20,6 +20,7 @@ public class PlatyBrowserOpenCommand implements Command
 	public void run()
 	{
 		final String version = new VersionsDialog().showDialog( remoteGitLocation + "/versions.json" );
+		if ( version == null ) return;
 
 		new PlatyBrowser(
 				version,
