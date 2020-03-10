@@ -13,7 +13,6 @@ import java.io.File;
 @Plugin(type = Command.class, menuPath = "Plugins>MMB>PlatyBrowser" )
 public class PlatyBrowserOpenCommand implements Command
 {
-	// TODO: Make this a SciJava setting, look how they did it in ilastik...
 	public static final String remoteGitLocation = "https://raw.githubusercontent.com/platybrowser/platybrowser-backend/master/data";
 
 	@Override
