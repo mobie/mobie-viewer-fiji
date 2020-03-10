@@ -32,14 +32,14 @@ Adding an image source to BigDataViewer will also make it appear in the image **
 
 To control the image sources appearance, there are several buttons...
 
-- [ C ] Change the color
-- [ B ] Change the brightness settings
-- [ X ] Remove from viewer and sources panel
+- **[ C ]**  Change the color
+- **[ B ]**  Change the brightness settings
+- **[ X ]**  Remove from viewer and sources panel
 
 ...and checkboxes:
 
-- [ X ] V Uncheck to remove from volume viewer (but keep in sources panel)  
-- [ X ] S Uncheck to remove from BigDataViewer (but keep in sources panel)  
+- **[ X ] V**  Check to show source in **v**olume viewer
+- **[ X ] S**  Check to show source in **s**licing viewer (i.e., BigDataViewer) 
 
 ### Keyboard shortcuts in BigDataViewer window
 
