@@ -77,55 +77,55 @@
 					<argLine>-Xmx4024m</argLine>
 				</configuration>
 			</plugin>
-<!--			<plugin>-->
-<!--				&lt;!&ndash;-->
-<!--				To create an executable jar with maven type:-->
-<!--				mvn clean package-->
-<!--				To execute the jar type: java -jar *.jar params-->
-<!--				&ndash;&gt;-->
-<!--				<groupId>org.apache.maven.plugins</groupId>-->
-<!--				<artifactId>maven-assembly-plugin</artifactId>-->
-<!--				<executions>-->
-<!--					<execution>-->
-<!--						<phase>package</phase>-->
-<!--						<goals>-->
-<!--							<goal>single</goal>-->
-<!--						</goals>-->
-<!--						<configuration>-->
-<!--							<archive>-->
-<!--								<manifest>-->
-<!--									<mainClass>-->
-<!--										de.embl.cba.platynereis.platybrowser.OpenBrowser-->
-<!--									</mainClass>-->
-<!--								</manifest>-->
-<!--							</archive>-->
-<!--							<outputDirectory>-->
-<!--								/Users/tischer/Desktop-->
-<!--&lt;!&ndash;								/Volumes/cba/exchange/jars/mmpb&ndash;&gt;-->
-<!--							</outputDirectory>-->
-<!--							<descriptorRefs>-->
-<!--								<descriptorRef>jar-with-dependencies</descriptorRef>-->
-<!--							</descriptorRefs>-->
-<!--						</configuration>-->
-<!--					</execution>-->
-<!--				</executions>-->
-<!--			</plugin>-->
-		</plugins>
-	</build>
-	<repositories>
-		<!-- NB: for SciJava dependencies -->
-		<repository>
-			<id>imagej.public</id>
-			<url>https://maven.imagej.net/content/groups/public</url>
-		</repository>
-		<!-- for CBA dependencies -->
-		<repository>
-			<id>bintray-tischi-snapshots</id>
-			<name>bintray</name>
-			<url>https://dl.bintray.com/tischi/snapshots</url>
-		</repository>
-	</repositories>
-	<dependencies>
+	<!--			<plugin>-->
+	<!--				&lt;!&ndash;-->
+	<!--				To create an executable jar with maven type:-->
+	<!--				mvn clean package-->
+	<!--				To execute the jar type: java -jar *.jar params-->
+	<!--				&ndash;&gt;-->
+	<!--				<groupId>org.apache.maven.plugins</groupId>-->
+	<!--				<artifactId>maven-assembly-plugin</artifactId>-->
+	<!--				<executions>-->
+	<!--					<execution>-->
+	<!--						<phase>package</phase>-->
+	<!--						<goals>-->
+	<!--							<goal>single</goal>-->
+	<!--						</goals>-->
+	<!--						<configuration>-->
+	<!--							<archive>-->
+	<!--								<manifest>-->
+	<!--									<mainClass>-->
+	<!--										de.embl.cba.platynereis.platybrowser.OpenBrowser-->
+	<!--									</mainClass>-->
+	<!--								</manifest>-->
+	<!--							</archive>-->
+	<!--							<outputDirectory>-->
+	<!--								/Users/tischer/Desktop-->
+	<!--&lt;!&ndash;								/Volumes/cba/exchange/jars/mmpb&ndash;&gt;-->
+	<!--							</outputDirectory>-->
+	<!--							<descriptorRefs>-->
+	<!--								<descriptorRef>jar-with-dependencies</descriptorRef>-->
+	<!--							</descriptorRefs>-->
+	<!--						</configuration>-->
+	<!--					</execution>-->
+	<!--				</executions>-->
+	<!--			</plugin>-->
+			</plugins>
+		</build>
+		<repositories>
+			<!-- NB: for SciJava dependencies -->
+			<repository>
+				<id>imagej.public</id>
+				<url>https://maven.imagej.net/content/groups/public</url>
+			</repository>
+			<!-- for CBA dependencies -->
+			<repository>
+				<id>bintray-tischi-snapshots</id>
+				<name>bintray</name>
+				<url>https://dl.bintray.com/tischi/snapshots</url>
+			</repository>
+		</repositories>
+		<dependencies>
 
 		<dependency>
 			<groupId>net.imglib2</groupId>
@@ -136,6 +136,7 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-vistools</artifactId>
+			<version>1.0.0-beta-18-SNAPSHOT</version>
 		</dependency>
 
 		<!-- bdv with n5 capabilities and some fixes -->
@@ -160,7 +161,7 @@
 		<dependency>
 			<groupId>org.scijava</groupId>
 			<artifactId>j3dcore</artifactId>
-			<version>1.6.0-scijava-3-SNAPSHOT</version>
+			<version>1.6.0-scijava-3-platybrowser</version>
 		</dependency>
 
 		<dependency>
