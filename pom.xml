@@ -124,6 +124,12 @@
 				<name>bintray</name>
 				<url>https://dl.bintray.com/tischi/snapshots</url>
 			</repository>
+			<!-- for ITC dependencies -->
+			<repository>
+				<id>bintray-image-transform-converters-image-transform-converters</id>
+				<name>image-transform-converters-image-transform-converters</name>
+				<url>https://dl.bintray.com/image-transform-converters/image-transform-converters/;publish=1</url>
+			</repository>
 		</repositories>
 		<dependencies>
 
