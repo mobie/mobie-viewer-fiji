@@ -6,9 +6,10 @@
 		<artifactId>pom-embl-cba</artifactId>
 		<version>0.3.12</version>
 	</parent>
+	<!-- TODO: change to mmb-fiji (but then remove old one from Fiji update site!)	-->
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
 	<version>0.5.8</version>
-	<url>https://github.com/tischi/fiji-plugin-platynereisViewer</url>
+	<url>https://github.com/platybrowser/mmb-fiji</url>
 	<name>Fiji Plugin Platynereis Viewer</name>
 	<description>TODO</description>
 	<inceptionYear>2018</inceptionYear>
@@ -48,14 +49,14 @@
 		</mailingList>
 	</mailingLists>
 	<scm>
-		<connection>scm:git:git://github.com/tischi/fiji-plugin-platynereisViewer</connection>
-		<developerConnection>scm:git:git@github.com/tischi/fiji-plugin-platynereisViewer</developerConnection>
+		<connection>scm:git:git://github.com/platybrowser/mmb-fiji</connection>
+		<developerConnection>scm:git:git@github.com/platybrowser/mmb-fiji</developerConnection>
 		<tag>HEAD</tag>
-		<url>https://github.com/tischi/fiji-plugin-platynereisViewer</url>
+		<url>https://github.com/platybrowser/mmb-fiji</url>
 	</scm>
 	<issueManagement>
 		<system>GitHub</system>
-		<url>https://github.com/tischi/fiji-plugin-platynereisViewer/issues</url>
+		<url>https://github.com/platybrowser/mmb-fiji/issues</url>
 	</issueManagement>
 	<ciManagement>
 		<system>None</system>
@@ -128,7 +129,7 @@
 		<repository>
 			<id>bintray-image-transform-converters-image-transform-converters</id>
 			<name>image-transform-converters-image-transform-converters</name>
-			<url>https://dl.bintray.com/image-transform-converters/image-transform-converters/;publish=1</url>
+			<url>https://dl.bintray.com/image-transform-converters/image-transform-converters</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -142,12 +143,13 @@
 			<artifactId>bigdataviewer-vistools</artifactId>
 			<version>1.0.0-beta-18-platybrowser</version>
 		</dependency>
-		<!-- bdv with n5 capabilities and some fixes -->
+		<!-- bdv with n5 capabilities and some fixes TODO: merge into master -->
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
 			<version>8.0.1-platybrowser</version>
 		</dependency>
+		<!-- TODO: check whether this can be replaced by official one (path in bucket) -->
 		<dependency>
 			<groupId>org.janelia.saalfeldlab</groupId>
 			<artifactId>n5-aws-s3</artifactId>
@@ -170,15 +172,17 @@
 		<!-- CBA -->
 		<dependency>
 			<groupId>de.embl.cba</groupId>
-			<artifactId>transforms-utils</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.embl.cba</groupId>
 			<artifactId>table-utils</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>bdv-utils</artifactId>
+		</dependency>
+		<!-- TODO: this is only needed for specific user projects in /src/test => remove
+		 once those projects are stored in another repo -->
+		<dependency>
+			<groupId>de.embl.cba</groupId>
+			<artifactId>transforms-utils</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.embl.cba</groupId>
