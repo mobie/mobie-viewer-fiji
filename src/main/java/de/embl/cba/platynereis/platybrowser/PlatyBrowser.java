@@ -44,6 +44,7 @@ public class PlatyBrowser extends JFrame
 
 		sourcesPanel.setParentComponent( this );
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
+
 		actionPanel.setBdv( sourcesPanel.getBdv() );
 	}
 

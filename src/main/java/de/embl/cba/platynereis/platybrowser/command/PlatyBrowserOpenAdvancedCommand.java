@@ -7,8 +7,6 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import java.io.File;
-
 
 @Plugin(type = Command.class, menuPath = "Plugins>MMB>CustomBrowser" )
 public class PlatyBrowserOpenAdvancedCommand implements Command
@@ -18,6 +16,7 @@ public class PlatyBrowserOpenAdvancedCommand implements Command
 
 	@Parameter ( label = "Table Data Location" )
 	public String tablesLocation = "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data";
+
 	@Override
 	public void run()
 	{

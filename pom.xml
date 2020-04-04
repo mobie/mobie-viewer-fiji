@@ -142,7 +142,7 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-vistools</artifactId>
-			<version>1.0.0-beta-18</version>
+			<version>1.0.0-beta-18-platybrowser</version>
 		</dependency>
 
 		<!-- bdv with n5 capabilities and some fixes -->
