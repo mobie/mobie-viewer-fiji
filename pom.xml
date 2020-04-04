@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>de.embl.cba</groupId>
 		<artifactId>pom-embl-cba</artifactId>
-		<version>0.3.11</version>
+		<version>0.3.12</version>
 	</parent>
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
 	<version>0.5.8</version>
@@ -77,104 +77,96 @@
 					<argLine>-Xmx4024m</argLine>
 				</configuration>
 			</plugin>
-	<!--			<plugin>-->
-	<!--				&lt;!&ndash;-->
-	<!--				To create an executable jar with maven type:-->
-	<!--				mvn clean package-->
-	<!--				To execute the jar type: java -jar *.jar params-->
-	<!--				&ndash;&gt;-->
-	<!--				<groupId>org.apache.maven.plugins</groupId>-->
-	<!--				<artifactId>maven-assembly-plugin</artifactId>-->
-	<!--				<executions>-->
-	<!--					<execution>-->
-	<!--						<phase>package</phase>-->
-	<!--						<goals>-->
-	<!--							<goal>single</goal>-->
-	<!--						</goals>-->
-	<!--						<configuration>-->
-	<!--							<archive>-->
-	<!--								<manifest>-->
-	<!--									<mainClass>-->
-	<!--										de.embl.cba.platynereis.platybrowser.OpenBrowser-->
-	<!--									</mainClass>-->
-	<!--								</manifest>-->
-	<!--							</archive>-->
-	<!--							<outputDirectory>-->
-	<!--								/Users/tischer/Desktop-->
-	<!--&lt;!&ndash;								/Volumes/cba/exchange/jars/mmpb&ndash;&gt;-->
-	<!--							</outputDirectory>-->
-	<!--							<descriptorRefs>-->
-	<!--								<descriptorRef>jar-with-dependencies</descriptorRef>-->
-	<!--							</descriptorRefs>-->
-	<!--						</configuration>-->
-	<!--					</execution>-->
-	<!--				</executions>-->
-	<!--			</plugin>-->
-			</plugins>
-		</build>
-		<repositories>
-			<!-- NB: for SciJava dependencies -->
-			<repository>
-				<id>imagej.public</id>
-				<url>https://maven.imagej.net/content/groups/public</url>
-			</repository>
-			<!-- for CBA dependencies -->
-			<repository>
-				<id>bintray-tischi-snapshots</id>
-				<name>bintray</name>
-				<url>https://dl.bintray.com/tischi/snapshots</url>
-			</repository>
-			<!-- for ITC dependencies -->
-			<repository>
-				<id>bintray-image-transform-converters-image-transform-converters</id>
-				<name>image-transform-converters-image-transform-converters</name>
-				<url>https://dl.bintray.com/image-transform-converters/image-transform-converters/;publish=1</url>
-			</repository>
-		</repositories>
-		<dependencies>
-
+			<!--			<plugin>-->
+			<!--				&lt;!&ndash;-->
+			<!--				To create an executable jar with maven type:-->
+			<!--				mvn clean package-->
+			<!--				To execute the jar type: java -jar *.jar params-->
+			<!--				&ndash;&gt;-->
+			<!--				<groupId>org.apache.maven.plugins</groupId>-->
+			<!--				<artifactId>maven-assembly-plugin</artifactId>-->
+			<!--				<executions>-->
+			<!--					<execution>-->
+			<!--						<phase>package</phase>-->
+			<!--						<goals>-->
+			<!--							<goal>single</goal>-->
+			<!--						</goals>-->
+			<!--						<configuration>-->
+			<!--							<archive>-->
+			<!--								<manifest>-->
+			<!--									<mainClass>-->
+			<!--										de.embl.cba.platynereis.platybrowser.OpenBrowser-->
+			<!--									</mainClass>-->
+			<!--								</manifest>-->
+			<!--							</archive>-->
+			<!--							<outputDirectory>-->
+			<!--								/Users/tischer/Desktop-->
+			<!--&lt;!&ndash;								/Volumes/cba/exchange/jars/mmpb&ndash;&gt;-->
+			<!--							</outputDirectory>-->
+			<!--							<descriptorRefs>-->
+			<!--								<descriptorRef>jar-with-dependencies</descriptorRef>-->
+			<!--							</descriptorRefs>-->
+			<!--						</configuration>-->
+			<!--					</execution>-->
+			<!--				</executions>-->
+			<!--			</plugin>-->
+		</plugins>
+	</build>
+	<repositories>
+		<!-- NB: for SciJava dependencies -->
+		<repository>
+			<id>imagej.public</id>
+			<url>https://maven.imagej.net/content/groups/public</url>
+		</repository>
+		<!-- for CBA dependencies -->
+		<repository>
+			<id>bintray-tischi-snapshots</id>
+			<name>bintray</name>
+			<url>https://dl.bintray.com/tischi/snapshots</url>
+		</repository>
+		<!-- for ITC dependencies -->
+		<repository>
+			<id>bintray-image-transform-converters-image-transform-converters</id>
+			<name>image-transform-converters-image-transform-converters</name>
+			<url>https://dl.bintray.com/image-transform-converters/image-transform-converters/;publish=1</url>
+		</repository>
+	</repositories>
+	<dependencies>
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
 			<version>5.8.0</version>
 		</dependency>
-
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-vistools</artifactId>
 			<version>1.0.0-beta-18-platybrowser</version>
 		</dependency>
-
 		<!-- bdv with n5 capabilities and some fixes -->
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
 			<version>8.0.1-platybrowser</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.janelia.saalfeldlab</groupId>
 			<artifactId>n5-aws-s3</artifactId>
 			<version>2.1.1-platybrowser</version>
 		</dependency>
-
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>3D_Viewer</artifactId>
 		</dependency>
-
 		<!-- below version of j3dcore does not have this issue: https://github.com/fiji/3D_Viewer/issues/26		-->
 		<dependency>
 			<groupId>org.scijava</groupId>
 			<artifactId>j3dcore</artifactId>
 			<version>1.6.0-scijava-3-platybrowser</version>
 		</dependency>
-
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
-
 		<!-- CBA -->
 		<dependency>
 			<groupId>de.embl.cba</groupId>
