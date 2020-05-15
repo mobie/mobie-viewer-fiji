@@ -9,7 +9,7 @@ import org.scijava.plugin.Plugin;
 
 
 @Plugin(type = Command.class, menuPath = "Plugins>MMB>CustomBrowser" )
-public class PlatyBrowserOpenAdvancedCommand implements Command
+public class OpenCustomBrowserCommand implements Command
 {
 	@Parameter ( label = "Image Data Location", style = "directory" )
 	public String imagesLocation = "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data";
@@ -34,6 +34,6 @@ public class PlatyBrowserOpenAdvancedCommand implements Command
 		final ImageJ ij = new ImageJ();
 		ij.ui().showUI();
 
-		ij.command().run( PlatyBrowserOpenAdvancedCommand.class, true );
+		ij.command().run( OpenCustomBrowserCommand.class, true );
 	}
 }

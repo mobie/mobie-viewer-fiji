@@ -8,7 +8,7 @@
 	</parent>
 	<!-- TODO: change to mmb-fiji (but then remove old one from Fiji update site!)	-->
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
-	<version>0.5.8</version>
+	<version>0.5.9</version>
 	<url>https://github.com/platybrowser/mmb-fiji</url>
 	<name>Fiji Plugin Platynereis Viewer</name>
 	<description>TODO</description>
@@ -147,7 +147,7 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
-			<version>8.0.1-platybrowser</version>
+			<version>8.0.2-platybrowser</version>
 		</dependency>
 		<!-- TODO: check whether this can be replaced by official one (path in bucket) -->
 		<dependency>

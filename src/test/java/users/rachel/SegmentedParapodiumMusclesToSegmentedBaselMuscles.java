@@ -15,7 +15,6 @@ import net.imglib2.type.numeric.ARGBType;
 
 public class SegmentedParapodiumMusclesToSegmentedBaselMuscles
 {
-
 	public static void main( String[] args )
 	{
 		final ImagePlus musclesParaImp = IJ.openImage( "/Users/tischer/Documents/rachel-mellwig-em-prospr-registration/data/FIB segmentation/muscle.tif" );
@@ -29,7 +28,7 @@ public class SegmentedParapodiumMusclesToSegmentedBaselMuscles
 		final RandomAccessibleInterval musclesBasel = ImageJFunctions.wrapReal( musclesBaselImp );
 		final RandomAccessibleInterval musclesParapodium = ImageJFunctions.wrapReal( musclesParaImp );
 
-		// SegmentedParapodium to SegmentedBasel
+		// SegmentedParapodium to SegmentedBasel from AMIRA
 		double[] translationInMicrometer = new double[]{ 147.9, 48.13, 103.0661 };
 		double[] rotationAxis = new double[]{ 0.064, 0.762, 0.643 };
 		double rotationAngle = 237.0;

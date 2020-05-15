@@ -5,6 +5,8 @@ import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import ij.gui.GenericDialog;
 
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class VersionsDialog
@@ -19,9 +21,10 @@ public class VersionsDialog
 		try
 		{
 			versions = readVersionsFromFile( versionsJsonFilePath );
-		} catch ( IOException e )
+		} catch ( Exception e )
 		{
 			e.printStackTrace();
+			throw new UnsupportedOperationException( "Could not open or parse versions file: " + versionsJsonFilePath );
 		}
 
 		final String[] versionsArray = asArray( versions );

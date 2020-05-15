@@ -10,8 +10,8 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>MMB>PlatyBrowser" )
-public class PlatyBrowserOpenCommand implements Command
+@Plugin(type = Command.class, menuPath = "Plugins>MMB>PlatyBrowser")
+public class OpenPlatyBrowserCommand implements Command
 {
 	public static final String remoteGitLocation = "https://raw.githubusercontent.com/platybrowser/platybrowser-backend/master/data";
 

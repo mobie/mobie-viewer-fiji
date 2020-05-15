@@ -130,7 +130,6 @@ public class Utils
 		return sum;
 	}
 
-
 	public static < T extends RealType< T > &  NativeType< T > >
 	double getFractionOfNonZeroVoxels( final RandomAccessibleInterval< T > rai, double[] position, double radius, double calibration )
 	{

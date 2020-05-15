@@ -67,7 +67,7 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 
 	private void addSources( String imageDataLocation )
 	{
-		final String imagesJsonLocation = FileAndUrlUtils.combinePath( imageDataLocation, "/images/images.json" );
+		final String imagesJsonLocation = FileAndUrlUtils.combinePath( imageDataLocation, "images/images.json" );
 
 		try
 		{

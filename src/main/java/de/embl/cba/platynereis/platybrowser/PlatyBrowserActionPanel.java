@@ -111,7 +111,7 @@ public class PlatyBrowserActionPanel extends JPanel
 		BdvBehaviours.addPositionAndViewLoggingBehaviour( bdv, behaviours, "P" );
 		BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "C", false );
 		BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "shift C", true );
-		//BdvBehaviours.addSimpleViewCaptureBehaviour( bdv, behaviours, "C" );
+//		BdvBehaviours.addSimpleViewCaptureBehaviour( bdv, behaviours, "C" );
 	}
 
 	private void configPanel()
