@@ -10,7 +10,7 @@ public class OpenBrowser
 	 */
 	public static void main( String[] args )
 	{
-		final PlatyBrowser platyBrowser = new PlatyBrowser(
+		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				args[0],
 				args[1],
 				args[1] );

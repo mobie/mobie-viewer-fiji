@@ -1,8 +1,7 @@
 package tests;
 
-import de.embl.cba.platynereis.platybrowser.PlatyBrowser;
+import de.embl.cba.platynereis.platybrowser.MoBIEViewer;
 import net.imagej.ImageJ;
-import org.junit.Test;
 
 public class TestPlatyBrowserMoveTo
 {
@@ -11,12 +10,12 @@ public class TestPlatyBrowserMoveTo
 	{
 		new ImageJ().ui().showUI();
 
-		final PlatyBrowser platyBrowser = new PlatyBrowser(
+		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				"0.2.1",
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data" );
 
-		platyBrowser.getActionPanel().setView( "177.46666666666667,214.46666666666667,67.0" );
+		moBIEViewer.getActionPanel().setView( "177.46666666666667,214.46666666666667,67.0" );
 	}
 
 

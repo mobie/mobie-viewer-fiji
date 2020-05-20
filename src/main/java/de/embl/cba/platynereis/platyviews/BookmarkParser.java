@@ -3,30 +3,44 @@ package de.embl.cba.platynereis.platyviews;
 import com.google.gson.internal.LinkedTreeMap;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.platysources.PlatyBrowserImageSourcesModel;
+import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
-import de.embl.cba.tables.image.ImageSourcesModel;
+import de.embl.cba.tables.github.GitHubContentGetter;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.Callable;
 
 public class BookmarkParser implements Callable< Map< String, Bookmark > >
 {
-	private final String jsonPath;
+	private final ArrayList< String > bookmarksLocations = new ArrayList<>(  );
 	private final PlatyBrowserImageSourcesModel imageSourcesModel;
 	private Map< String, Bookmark > nameToBookmark;
 
-	public BookmarkParser( String jsonPath, PlatyBrowserImageSourcesModel imageSourcesModel )
+	public BookmarkParser( String datasetLocation, PlatyBrowserImageSourcesModel imageSourcesModel )
 	{
-		this.jsonPath = jsonPath;
 		this.imageSourcesModel = imageSourcesModel;
+
+		try
+		{
+			final String bookmarksFileLocation = FileAndUrlUtils.combinePath( datasetLocation + "/misc/bookmarks.json" );
+			FileAndUrlUtils.getInputStream( bookmarksFileLocation );
+			bookmarksLocations.add( bookmarksFileLocation );
+		}
+		catch ( Exception e )
+		{
+			String a = datasetLocation;
+			//new GitHubContentGetter( )
+			throw new RuntimeException( "Could not find bookmarks..." );
+		}
 	}
 
 	public Map< String, Bookmark > call()
 	{
 		try
 		{
-			readViewsFromJson( jsonPath );
+			readBookmarks();
 			return nameToBookmark;
 		}
 		catch ( IOException e )
@@ -37,22 +51,27 @@ public class BookmarkParser implements Callable< Map< String, Bookmark > >
 		return null;
 	}
 
-	private void readViewsFromJson( String jsonFilePath ) throws IOException
+	private void readBookmarks() throws IOException
 	{
-		final LinkedTreeMap bookmarksTreeMap = Utils.getLinkedTreeMap( jsonFilePath );
-
 		nameToBookmark = new TreeMap<>();
 
-		for ( Object bookmarkKey : bookmarksTreeMap.keySet() )
+		for ( String bookmarksLocation : bookmarksLocations )
 		{
-			final Bookmark bookmark = new Bookmark();
-			bookmark.name = (String) bookmarkKey ;
-			final LinkedTreeMap bookmarkAttributes = ( LinkedTreeMap ) bookmarksTreeMap.get( bookmarkKey );
+			InputStream bookmarksStream = FileAndUrlUtils.getInputStream( bookmarksLocation );
 
-			addImageLayers( bookmarkAttributes, bookmark );
-			addPositionsAndTransforms( bookmarkAttributes, bookmark );
+			final LinkedTreeMap bookmarksTreeMap = Utils.getLinkedTreeMap( bookmarksStream );
 
-			nameToBookmark.put( bookmark.name, bookmark );
+			for ( Object bookmarkKey : bookmarksTreeMap.keySet() )
+			{
+				final Bookmark bookmark = new Bookmark();
+				bookmark.name = ( String ) bookmarkKey;
+				final LinkedTreeMap bookmarkAttributes = ( LinkedTreeMap ) bookmarksTreeMap.get( bookmarkKey );
+
+				addImageLayers( bookmarkAttributes, bookmark );
+				addPositionsAndTransforms( bookmarkAttributes, bookmark );
+
+				nameToBookmark.put( bookmark.name, bookmark );
+			}
 		}
 	}
 

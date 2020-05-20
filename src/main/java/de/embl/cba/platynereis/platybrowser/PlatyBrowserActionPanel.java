@@ -7,8 +7,7 @@ import de.embl.cba.bdv.utils.behaviour.BdvBehaviours;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.GeneSearch;
 import de.embl.cba.platynereis.GeneSearchResults;
-import de.embl.cba.platynereis.Globals;
-import de.embl.cba.platynereis.platyviews.PlatyViews;
+import de.embl.cba.platynereis.platyviews.BookmarkManager;
 import de.embl.cba.platynereis.bdv.BdvViewChanger;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
@@ -30,10 +29,10 @@ public class PlatyBrowserActionPanel extends JPanel
 
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private BdvHandle bdv;
-	private final PlatyViews platyViews;
+	private final BookmarkManager bookmarkManager;
 	private Behaviours behaviours;
 
-	private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
+	private double[] levelingVector;
 	private double[] targetNormalVector;
 	private double geneSearchRadiusInMicrometer;
 	private HashMap< String, String > selectionNameAndModalityToSourceName;
@@ -41,10 +40,13 @@ public class PlatyBrowserActionPanel extends JPanel
 
 	public PlatyBrowserActionPanel(
 			PlatyBrowserSourcesPanel sourcesPanel,
-			PlatyViews platyViews )
+			BookmarkManager bookmarkManager,
+			double[] levelingVector // can be NULL
+	)
 	{
 		this.sourcesPanel = sourcesPanel;
-		this.platyViews = platyViews;
+		this.bookmarkManager = bookmarkManager;
+		this.levelingVector = levelingVector;
 
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addHelpUI( this );
@@ -414,7 +416,9 @@ public class PlatyBrowserActionPanel extends JPanel
 
 	private void addLevelingUI( JPanel panel )
 	{
-		this.targetNormalVector = Arrays.copyOf( defaultTargetNormalVector, 3 );
+		if ( levelingVector == null ) return;
+
+		this.targetNormalVector = Arrays.copyOf( levelingVector, 3 );
 
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
@@ -433,8 +437,8 @@ public class PlatyBrowserActionPanel extends JPanel
 		} );
 
 		defaultReference.addActionListener( e -> {
-			targetNormalVector = Arrays.copyOf( defaultTargetNormalVector, 3);
-			Utils.logVector( "New reference normal vector (default): ", defaultTargetNormalVector );
+			targetNormalVector = Arrays.copyOf( levelingVector, 3);
+			Utils.logVector( "New reference normal vector (default): ", levelingVector );
 		} );
 
 		levelCurrentView.addActionListener( e -> BdvUtils.levelCurrentView( bdv, targetNormalVector ) );
@@ -452,7 +456,7 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		final JComboBox< String > comboBox = new JComboBox<>( bookmarkNames );
 		setComboBoxDimensions( comboBox );
-		viewButton.addActionListener( e -> platyViews.setView( ( String ) comboBox.getSelectedItem() ) );
+		viewButton.addActionListener( e -> bookmarkManager.setView( ( String ) comboBox.getSelectedItem() ) );
 
 		horizontalLayoutPanel.add( getJLabel( "bookmark" ) );
 		horizontalLayoutPanel.add( comboBox );
@@ -491,7 +495,7 @@ public class PlatyBrowserActionPanel extends JPanel
 		final JComboBox< String > comboBox = new JComboBox<>( choices );
 		setComboBoxDimensions( comboBox );
 		button.addActionListener( e -> PlatyBrowserHelp.showHelp( ( String ) comboBox.getSelectedItem() ) );
-		comboBox.setPrototypeDisplayValue( PlatyBrowser.PROTOTYPE_DISPLAY_VALUE  );
+		comboBox.setPrototypeDisplayValue( MoBIEViewer.PROTOTYPE_DISPLAY_VALUE  );
 
 		horizontalLayoutPanel.add( getJLabel( " " ) );
 		horizontalLayoutPanel.add( comboBox );
@@ -502,7 +506,7 @@ public class PlatyBrowserActionPanel extends JPanel
 
 	private void setComboBoxDimensions( JComboBox< String > comboBox )
 	{
-		comboBox.setPrototypeDisplayValue( PlatyBrowser.PROTOTYPE_DISPLAY_VALUE );
+		comboBox.setPrototypeDisplayValue( MoBIEViewer.PROTOTYPE_DISPLAY_VALUE );
 		comboBox.setPreferredSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
 		comboBox.setMaximumSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
 	}
@@ -510,7 +514,7 @@ public class PlatyBrowserActionPanel extends JPanel
 	// TODO simplify code below
 	private String[] getBookmarkNames()
 	{
-		final Set< String > viewNames = platyViews.getBookmarkNames();
+		final Set< String > viewNames = bookmarkManager.getBookmarkNames();
 		final String[] positionsAndViews = new String[ viewNames.size() ];
 //		positionsAndViews[ 0 ] = "...type here...";
 		final Iterator< String > iterator = viewNames.iterator();

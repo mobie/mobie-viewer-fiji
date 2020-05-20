@@ -1,6 +1,6 @@
 package headless;
 
-import de.embl.cba.platynereis.platybrowser.PlatyBrowser;
+import de.embl.cba.platynereis.platybrowser.MoBIEViewer;
 import net.imagej.ImageJ;
 
 public class OpenPlatyBrowserLocal
@@ -9,7 +9,7 @@ public class OpenPlatyBrowserLocal
 	{
 		new ImageJ().ui().showUI();
 
-		final PlatyBrowser platyBrowser = new PlatyBrowser(
+		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				"0.6.6",
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data" );

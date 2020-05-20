@@ -8,7 +8,7 @@
 	</parent>
 	<!-- TODO: change to mmb-fiji (but then remove old one from Fiji update site!)	-->
 	<artifactId>fiji-plugin-platynereisViewer</artifactId>
-	<version>0.5.9</version>
+	<version>0.6.0</version>
 	<url>https://github.com/platybrowser/mmb-fiji</url>
 	<name>Fiji Plugin Platynereis Viewer</name>
 	<description>TODO</description>
@@ -173,6 +173,7 @@
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>table-utils</artifactId>
+			<version>0.3.22</version>
 		</dependency>
 		<dependency>
 			<groupId>de.embl.cba</groupId>

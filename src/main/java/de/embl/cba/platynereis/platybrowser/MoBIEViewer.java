@@ -1,51 +1,99 @@
 package de.embl.cba.platynereis.platybrowser;
 
-import bdv.tools.HelpDialog;
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.platynereis.Constants;
-import de.embl.cba.platynereis.platyviews.PlatyViews;
+import de.embl.cba.platynereis.platysources.PlatyBrowserImageSourcesModel;
+import de.embl.cba.platynereis.platyviews.Bookmark;
+import de.embl.cba.platynereis.platyviews.BookmarkParser;
+import de.embl.cba.platynereis.platyviews.BookmarkManager;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
+import de.embl.cba.platynereis.utils.Utils;
 import ij.WindowManager;
 import ij.gui.NonBlockingGenericDialog;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
+import java.util.Map;
 
-public class PlatyBrowser extends JFrame
+public class MoBIEViewer extends JFrame
 {
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private final PlatyBrowserActionPanel actionPanel;
-	private int frameWidth;
+	private final PlatyBrowserImageSourcesModel imageSourcesModel;
+	private String imageDataLocation;
+	private String tableDataLocation;
 
-	public PlatyBrowser(
-			String version,
+	private int frameWidth;
+	private BookmarkManager bookmarkManager;
+
+	public MoBIEViewer(
+			String dataSet,
 			String imageDataLocation,
 			String tableDataLocation ) throws HeadlessException
 	{
-		imageDataLocation = FileAndUrlUtils.removeTrailingSlash( imageDataLocation );
-		tableDataLocation = FileAndUrlUtils.removeTrailingSlash( tableDataLocation );
+		configureDataLocations( dataSet, imageDataLocation, tableDataLocation );
 
-		sourcesPanel = new PlatyBrowserSourcesPanel(
-				version,
-				imageDataLocation,
-				tableDataLocation );
+		imageSourcesModel = new PlatyBrowserImageSourcesModel( this.imageDataLocation, this.tableDataLocation );
 
-		final PlatyViews platyViews = new PlatyViews( sourcesPanel, FileAndUrlUtils.combinePath( tableDataLocation, version, "misc/bookmarks.json" ) );
+		sourcesPanel = new PlatyBrowserSourcesPanel( imageSourcesModel );
 
-		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, platyViews );
+		fetchBookmarks( this.tableDataLocation );
+
+		final double[] levelingVector = fetchLeveling( this.tableDataLocation );
+
+		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, bookmarkManager, levelingVector );
 
 		setJMenuBar( createMenuBar() );
-		showFrame( version );
+		showFrame( dataSet );
 		adaptLogWindowPositionAndSize();
 
 		sourcesPanel.setParentComponent( this );
 		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 
 		actionPanel.setBdv( sourcesPanel.getBdv() );
+	}
+
+	private double[] fetchLeveling( String tableDataLocation )
+	{
+		// TODO
+		return new double[]{0.70,0.56,0.43};
+	}
+
+	public void configureDataLocations( String dataSet, String aImageDataLocation, String aTableDataLocation )
+	{
+		this.imageDataLocation = aImageDataLocation;
+		this.tableDataLocation = aTableDataLocation;
+
+		imageDataLocation = FileAndUrlUtils.removeTrailingSlash( imageDataLocation );
+		tableDataLocation = FileAndUrlUtils.removeTrailingSlash( tableDataLocation );
+
+		adaptUrl( imageDataLocation );
+
+		imageDataLocation = FileAndUrlUtils.combinePath( imageDataLocation, dataSet );
+		tableDataLocation = FileAndUrlUtils.combinePath( tableDataLocation, dataSet );
+
+		Utils.log( "");
+		Utils.log( "# Fetching data");
+		Utils.log( "Fetching image data from: " + imageDataLocation );
+		Utils.log( "Fetching table data from: " + tableDataLocation );
+	}
+
+	public String adaptUrl( String url )
+	{
+		if ( url.contains( "github.com" ) )
+		{
+			url = url.replace( "github.com", "raw.githubusercontent.com" );
+			url += "/master/data";
+		}
+		return url;
+	}
+
+	public void fetchBookmarks( String tableDataLocation )
+	{
+		Map< String, Bookmark > nameToBookmark = new BookmarkParser( tableDataLocation, imageSourcesModel ).call();
+
+		bookmarkManager = new BookmarkManager( sourcesPanel, nameToBookmark );
 	}
 
 	public void adaptLogWindowPositionAndSize()

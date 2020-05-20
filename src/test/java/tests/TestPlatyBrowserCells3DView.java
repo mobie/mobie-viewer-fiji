@@ -1,6 +1,6 @@
 package tests;
 
-import de.embl.cba.platynereis.platybrowser.PlatyBrowser;
+import de.embl.cba.platynereis.platybrowser.MoBIEViewer;
 import de.embl.cba.platynereis.platybrowser.PlatyBrowserSourcesPanel;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
@@ -16,7 +16,7 @@ public class TestPlatyBrowserCells3DView
 	{
 		new ImageJ().ui().showUI();
 
-		final PlatyBrowser mainFrame = new PlatyBrowser(
+		final MoBIEViewer mainFrame = new MoBIEViewer(
 				"0.2.1",
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data" );

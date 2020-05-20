@@ -1,6 +1,6 @@
 package de.embl.cba.platynereis.platybrowser.command;
 
-import de.embl.cba.platynereis.platybrowser.PlatyBrowser;
+import de.embl.cba.platynereis.platybrowser.MoBIEViewer;
 import de.embl.cba.platynereis.utils.ui.VersionsDialog;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
@@ -20,10 +20,10 @@ public class OpenCustomBrowserCommand implements Command
 	@Override
 	public void run()
 	{
-		final String version = new VersionsDialog().showDialog( tablesLocation + "/versions.json" );
+		final String version = new VersionsDialog().showDialog( tablesLocation );
 		if ( version == null ) return;
 
-		new PlatyBrowser(
+		new MoBIEViewer(
 				version,
 				imagesLocation,
 				tablesLocation );

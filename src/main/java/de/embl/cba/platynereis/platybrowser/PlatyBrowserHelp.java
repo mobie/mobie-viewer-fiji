@@ -27,13 +27,13 @@ public class PlatyBrowserHelp
 
 	public static void showPlatyHelp()
 	{
-		HelpDialog helpDialog = new HelpDialog( null, PlatyBrowser.class.getResource( "/PlatyHelp.html" ) );
+		HelpDialog helpDialog = new HelpDialog( null, MoBIEViewer.class.getResource( "/PlatyHelp.html" ) );
 		helpDialog.setVisible( true );
 	}
 
 	public static void showBdvHelp()
 	{
-		HelpDialog helpDialog = new HelpDialog( null, PlatyBrowser.class.getResource( "/BdvHelp.html" ) );
+		HelpDialog helpDialog = new HelpDialog( null, MoBIEViewer.class.getResource( "/BdvHelp.html" ) );
 		helpDialog.setVisible( true );
 	}
 

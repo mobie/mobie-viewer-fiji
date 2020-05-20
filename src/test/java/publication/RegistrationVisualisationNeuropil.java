@@ -1,6 +1,6 @@
 package publication;
 
-import de.embl.cba.platynereis.platybrowser.PlatyBrowser;
+import de.embl.cba.platynereis.platybrowser.MoBIEViewer;
 import de.embl.cba.platynereis.platybrowser.PlatyBrowserSourcesPanel;
 import net.imagej.ImageJ;
 
@@ -12,12 +12,12 @@ public class RegistrationVisualisationNeuropil
 	{
 		new ImageJ().ui().showUI();
 
-		final PlatyBrowser platyBrowser = new PlatyBrowser(
+		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				"0.2.1",
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data" );
 
-		final PlatyBrowserSourcesPanel sourcesPanel = platyBrowser.getSourcesPanel();
+		final PlatyBrowserSourcesPanel sourcesPanel = moBIEViewer.getSourcesPanel();
 
 		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-segmented-aridane-Neuropil" );
 		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-Glt1-MED" );
@@ -28,10 +28,10 @@ public class RegistrationVisualisationNeuropil
 
 		// OVERVIEW
 
-		platyBrowser.getActionPanel().setView( "View: (-0.7478710175280877, -0.6676436522042725, 2.086953854660592, 291.5334749475883, 1.4642245659643176, -1.7927905904117467, -0.048824338475451055, 337.95348110873744, 1.6300830832316395, 1.3040664665853117, 1.0013367511280067, -516.0999606550258)" );
+		moBIEViewer.getActionPanel().setView( "View: (-0.7478710175280877, -0.6676436522042725, 2.086953854660592, 291.5334749475883, 1.4642245659643176, -1.7927905904117467, -0.048824338475451055, 337.95348110873744, 1.6300830832316395, 1.3040664665853117, 1.0013367511280067, -516.0999606550258)" );
 
 		// TODO: get this via keyboard shortcut
-		platyBrowser.getActionPanel().setVolumeView("center =  1.0 0.0 0.0 122.88 0.0 1.0 0.0 122.88 0.0 0.0 1.0 140.40001 0.0 0.0 0.0 1.0\n" +
+		moBIEViewer.getActionPanel().setVolumeView("center =  1.0 0.0 0.0 122.88 0.0 1.0 0.0 122.88 0.0 0.0 1.0 140.40001 0.0 0.0 0.0 1.0\n" +
 				"translate =  1.0 0.0 0.0 0.117842264 0.0 1.0 0.0 0.15685147 0.0 0.0 1.0 -0.52159584 0.0 0.0 0.0 1.0\n" +
 				"rotate =  -0.22049984 -0.6480566 -0.72897357 0.0 -0.22329058 0.76105946 -0.60904 0.0 0.94948465 0.028479699 -0.31251845 0.0 0.0 0.0 0.0 1.0\n" +
 				"zoom =  1.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 1.0 358.10345 0.0 0.0 0.0 1.0\n" +

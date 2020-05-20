@@ -52,23 +52,9 @@ public class PlatyBrowserSourcesPanel extends JPanel
     private boolean isBdvShownFirstTime = true;
     private JFrame jFrame;
 
-    public PlatyBrowserSourcesPanel( String versionString,
-                                     String imageDataLocation,
-                                     String tableDataLocation )
+    public PlatyBrowserSourcesPanel( PlatyBrowserImageSourcesModel imageSourcesModel )
     {
-        imageDataLocation = FileAndUrlUtils.combinePath( imageDataLocation, versionString );
-        tableDataLocation = FileAndUrlUtils.combinePath( tableDataLocation, versionString );
-
-        Utils.log( "");
-        Utils.log( "# Fetching data");
-        Utils.log( "Fetching image data from: " + imageDataLocation );
-        Utils.log( "Fetching table data from: " + tableDataLocation );
-
-        imageSourcesModel = new PlatyBrowserImageSourcesModel(
-                imageDataLocation,
-                tableDataLocation
-        );
-
+        this.imageSourcesModel = imageSourcesModel;
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelViews = new LinkedHashMap<>();
         sourceNameToSourceAndMetadata = new LinkedHashMap<>();

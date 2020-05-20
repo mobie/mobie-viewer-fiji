@@ -261,10 +261,9 @@ public class Utils
 		}
 	}
 
-	public static LinkedTreeMap getLinkedTreeMap( String jsonFilePath ) throws IOException
+	public static LinkedTreeMap getLinkedTreeMap( InputStream inputStream ) throws IOException
 	{
-		InputStream is = FileAndUrlUtils.getInputStream( jsonFilePath );
-		final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
+		final JsonReader reader = new JsonReader( new InputStreamReader( inputStream, "UTF-8" ) );
 		GsonBuilder builder = new GsonBuilder();
 		return builder.create().fromJson( reader, Object.class );
 	}
