@@ -1,12 +1,17 @@
 package de.embl.cba.platynereis.platyviews;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.platynereis.github.RepoUrlAndPath;
 import de.embl.cba.platynereis.platysources.PlatyBrowserImageSourcesModel;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
+import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.github.GitHubContentGetter;
+import org.jfree.data.json.JSONUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -24,16 +29,70 @@ public class BookmarkParser implements Callable< Map< String, Bookmark > >
 
 		try
 		{
-			final String bookmarksFileLocation = FileAndUrlUtils.combinePath( datasetLocation + "/misc/bookmarks.json" );
-			FileAndUrlUtils.getInputStream( bookmarksFileLocation );
-			bookmarksLocations.add( bookmarksFileLocation );
+			addBookmarksFromSingleFile( datasetLocation );
 		}
 		catch ( Exception e )
 		{
-			String a = datasetLocation;
-			//new GitHubContentGetter( )
-			throw new RuntimeException( "Could not find bookmarks..." );
+			if ( datasetLocation.contains( "githubusercontent" ) )
+			{
+				addBookmarkFilesFromGithub( datasetLocation );
+			}
+			else
+			{
+				addBookmarkFilesFromFolder( datasetLocation );
+			}
 		}
+	}
+
+	public void addBookmarksFromSingleFile( String datasetLocation ) throws IOException
+	{
+		final String bookmarksFileLocation = FileAndUrlUtils.combinePath( datasetLocation + "/misc/bookmarks.json" );
+		FileAndUrlUtils.getInputStream( bookmarksFileLocation ); // to throw an error if not found
+
+		bookmarksLocations.add( bookmarksFileLocation );
+	}
+
+	public void addBookmarkFilesFromFolder( String datasetLocation )
+	{
+		final String bookmarksFolder = FileAndUrlUtils.combinePath( datasetLocation + "/misc/bookmarks" );
+		final List< File > fileList = FileUtils.getFileList( new File( bookmarksFolder ), ".*.json", false );
+
+		for ( File file : fileList )
+		{
+			bookmarksLocations.add( file.getAbsolutePath() );
+		}
+	}
+
+	public void addBookmarkFilesFromGithub( String datasetLocation )
+	{
+		final RepoUrlAndPath repoUrlAndPath = rawUrlToRepoUrlAndPath( datasetLocation );
+		repoUrlAndPath.path += "misc/bookmarks";
+
+		final GitHubContentGetter contentGetter = new GitHubContentGetter( repoUrlAndPath.repoUrl, repoUrlAndPath.path );
+		final String json = contentGetter.getContent();
+
+		GsonBuilder builder = new GsonBuilder();
+		ArrayList< LinkedTreeMap > linkedTreeMaps = ( ArrayList< LinkedTreeMap >) builder.create().fromJson( json, Object.class );
+		for ( LinkedTreeMap linkedTreeMap : linkedTreeMaps )
+		{
+			final String downloadUrl = ( String ) linkedTreeMap.get( "download_url" );
+			bookmarksLocations.add( downloadUrl );
+		}
+	}
+
+	public static RepoUrlAndPath rawUrlToRepoUrlAndPath( String datasetLocation )
+	{
+		final RepoUrlAndPath repoUrlAndPath = new RepoUrlAndPath();
+		final String[] split = datasetLocation.split( "/" );
+		final String user = split[ 3 ];
+		final String repo = split[ 4 ];
+		repoUrlAndPath.repoUrl = "https://github.com/" + user + "/" + repo;
+		repoUrlAndPath.path = "";
+		for ( int i = 6; i < split.length; i++ )
+		{
+			repoUrlAndPath.path += split[ i ] + "/";
+		}
+		return repoUrlAndPath;
 	}
 
 	public Map< String, Bookmark > call()

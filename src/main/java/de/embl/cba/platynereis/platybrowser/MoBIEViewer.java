@@ -1,5 +1,9 @@
 package de.embl.cba.platynereis.platybrowser;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.stream.JsonReader;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.platysources.PlatyBrowserImageSourcesModel;
 import de.embl.cba.platynereis.platyviews.Bookmark;
@@ -12,6 +16,9 @@ import ij.gui.NonBlockingGenericDialog;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Map;
 
 public class MoBIEViewer extends JFrame
@@ -29,18 +36,20 @@ public class MoBIEViewer extends JFrame
 
 	public MoBIEViewer(
 			String dataSet,
-			String imageDataLocation,
-			String tableDataLocation ) throws HeadlessException
+			String aImageDataLocation,
+			String aTableDataLocation ) throws HeadlessException
 	{
-		configureDataLocations( dataSet, imageDataLocation, tableDataLocation );
+		configureDataLocations( dataSet, aImageDataLocation, aTableDataLocation );
 
-		imageSourcesModel = new PlatyBrowserImageSourcesModel( this.imageDataLocation, this.tableDataLocation );
+		imageSourcesModel = new PlatyBrowserImageSourcesModel( imageDataLocation, tableDataLocation );
 
 		sourcesPanel = new PlatyBrowserSourcesPanel( imageSourcesModel );
 
-		fetchBookmarks( this.tableDataLocation );
+		// TODO: this should be the image data location, not the tables!
+		fetchBookmarks( tableDataLocation );
 
-		final double[] levelingVector = fetchLeveling( this.tableDataLocation );
+		// TODO: this should be the image data location, not the tables!
+		final double[] levelingVector = fetchLeveling( tableDataLocation );
 
 		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, bookmarkManager, levelingVector );
 
@@ -49,15 +58,32 @@ public class MoBIEViewer extends JFrame
 		adaptLogWindowPositionAndSize();
 
 		sourcesPanel.setParentComponent( this );
-		sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
+
+		bookmarkManager.setView( "default" );
+		// TODO: show something as default
+		//sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 
 		actionPanel.setBdv( sourcesPanel.getBdv() );
 	}
 
-	private double[] fetchLeveling( String tableDataLocation )
+	private double[] fetchLeveling( String dataLocation )
 	{
-		// TODO
-		return new double[]{0.70,0.56,0.43};
+		final String levelingFile = FileAndUrlUtils.combinePath( dataLocation, "misc/leveling.json" );
+		try
+		{
+			InputStream is = FileAndUrlUtils.getInputStream( levelingFile );
+			final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
+			final GsonBuilder gsonBuilder = new GsonBuilder();
+			LinkedTreeMap linkedTreeMap = gsonBuilder.create().fromJson( reader, Object.class );
+			ArrayList< Double >  normalVector = ( ArrayList< Double > ) linkedTreeMap.get( "NormalVector" );
+			final double[] doubles = normalVector.stream().mapToDouble( Double::doubleValue ).toArray();
+			return doubles;
+		}
+		catch ( Exception e )
+		{
+			return null; // new double[]{0.70,0.56,0.43};
+		}
+
 	}
 
 	public void configureDataLocations( String dataSet, String aImageDataLocation, String aTableDataLocation )
@@ -68,7 +94,8 @@ public class MoBIEViewer extends JFrame
 		imageDataLocation = FileAndUrlUtils.removeTrailingSlash( imageDataLocation );
 		tableDataLocation = FileAndUrlUtils.removeTrailingSlash( tableDataLocation );
 
-		adaptUrl( imageDataLocation );
+		imageDataLocation = adaptUrl( imageDataLocation );
+		tableDataLocation = adaptUrl( tableDataLocation );
 
 		imageDataLocation = FileAndUrlUtils.combinePath( imageDataLocation, dataSet );
 		tableDataLocation = FileAndUrlUtils.combinePath( tableDataLocation, dataSet );

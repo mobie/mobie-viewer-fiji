@@ -112,7 +112,7 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 					+ FileAndUrlUtils.combinePath( imageDataLocation, "images", storageModality ) );
 		}
 
-		Utils.log("Added " + imageIdToSourceAndMetadata.size() + " image sources." );
+		Utils.log("Found " + imageIdToSourceAndMetadata.size() + " image sources." );
 
 	}
 
