@@ -22,13 +22,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 
-public class PlatyBrowserActionPanel extends JPanel
+public class ActionPanel extends JPanel
 {
 	public static final int TEXT_FIELD_HEIGHT = 20;
 	public static final int COMBOBOX_WIDTH = 270;
 
-	private final PlatyBrowserSourcesPanel sourcesPanel;
+	private final SourcesPanel sourcesPanel;
 	private BdvHandle bdv;
+	private final MoBIEViewer moBIEViewer;
+	private final ArrayList< String > datasets;
 	private final BookmarksManager bookmarksManager;
 	private Behaviours behaviours;
 
@@ -38,18 +40,18 @@ public class PlatyBrowserActionPanel extends JPanel
 	private HashMap< String, String > selectionNameAndModalityToSourceName;
 	private ArrayList< String > sortedModalities;
 
-	public PlatyBrowserActionPanel(
-			PlatyBrowserSourcesPanel sourcesPanel,
-			BookmarksManager bookmarksManager,
-			double[] levelingVector // can be NULL
-	)
+	public ActionPanel( MoBIEViewer moBIEViewer )
 	{
-		this.sourcesPanel = sourcesPanel;
-		this.bookmarksManager = bookmarksManager;
-		this.levelingVector = levelingVector;
+		this.moBIEViewer = moBIEViewer;
+		this.sourcesPanel = moBIEViewer.getSourcesPanel();
+		this.datasets = moBIEViewer.getDatasets();
+		this.bookmarksManager = moBIEViewer.getBookmarksManager();
+		this.levelingVector = moBIEViewer.getLevelingVector();
 
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addHelpUI( this );
+		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
+		addDatasetSelectionUI( this );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addSourceSelectionUI( this );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
@@ -502,6 +504,31 @@ public class PlatyBrowserActionPanel extends JPanel
 		horizontalLayoutPanel.add( button );
 
 		panel.add( horizontalLayoutPanel );
+	}
+
+	private void addDatasetSelectionUI( JPanel panel )
+	{
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+
+		final JButton button = new JButton( "switch" );
+
+		final String[] choices = datasets.stream().toArray( String[]::new );
+		final JComboBox< String > comboBox = new JComboBox<>( choices );
+		setComboBoxDimensions( comboBox );
+		button.addActionListener( e -> switchDataset( ( String ) comboBox.getSelectedItem() ) );
+		comboBox.setPrototypeDisplayValue( MoBIEViewer.PROTOTYPE_DISPLAY_VALUE  );
+
+		horizontalLayoutPanel.add( getJLabel( "dataset" ) );
+		horizontalLayoutPanel.add( comboBox );
+		horizontalLayoutPanel.add( button );
+
+		panel.add( horizontalLayoutPanel );
+	}
+
+	private void switchDataset( String dataset )
+	{
+		new MoBIEViewer( dataset, datasets, moBIEViewer.getProjectImagesLocation(), moBIEViewer.getProjectTablesLocation() );
+		moBIEViewer.close();
 	}
 
 	private void setComboBoxDimensions( JComboBox< String > comboBox )

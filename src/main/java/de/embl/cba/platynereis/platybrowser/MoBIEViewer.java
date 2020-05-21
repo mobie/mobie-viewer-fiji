@@ -3,7 +3,7 @@ package de.embl.cba.platynereis.platybrowser;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
-import de.embl.cba.platynereis.platysources.PlatyBrowserImageSourcesModel;
+import de.embl.cba.platynereis.platysources.SourcesModel;
 import de.embl.cba.platynereis.bookmark.Bookmark;
 import de.embl.cba.platynereis.bookmark.BookmarksParser;
 import de.embl.cba.platynereis.bookmark.BookmarksManager;
@@ -19,51 +19,88 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class MoBIEViewer extends JFrame
+public class MoBIEViewer
 {
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 
-	private final PlatyBrowserSourcesPanel sourcesPanel;
-	private final PlatyBrowserActionPanel actionPanel;
-	private final PlatyBrowserImageSourcesModel imageSourcesModel;
-	private String imagesLocation;
+	private final SourcesPanel sourcesPanel;
+	private final ActionPanel actionPanel;
+	private final SourcesModel sourcesModel;
+	private final String projectImagesLocation; // whole project (multiple datasets)
+	private final String projectTablesLocation;
+	private final String dataset;
+	private String imagesLocation; // selected dataset
 	private String tablesLocation;
 
 	private int frameWidth;
 	private BookmarksManager bookmarksManager;
 	private ArrayList< String > datasets;
+	private final double[] levelingVector;
+	private final JFrame jFrame;
 
 	public MoBIEViewer(
 			String dataset,
 			ArrayList< String > datasets,
-			String aImageDataLocation,
-			String aTableDataLocation ) throws HeadlessException
+			String projectImagesLocation,
+			String projectTablesLocation ) throws HeadlessException
 	{
-		configureDataLocations( dataset, aImageDataLocation, aTableDataLocation );
+		this.dataset = dataset;
+		this.datasets = datasets;
+		this.projectImagesLocation = projectImagesLocation;
+		this.projectTablesLocation = projectTablesLocation;
+		configureDatasetLocations( dataset, projectImagesLocation, projectTablesLocation );
 
-		imageSourcesModel = new PlatyBrowserImageSourcesModel( imagesLocation, tablesLocation );
+		sourcesModel = new SourcesModel( imagesLocation, tablesLocation );
+		sourcesPanel = new SourcesPanel( sourcesModel );
 
-		sourcesPanel = new PlatyBrowserSourcesPanel( imageSourcesModel );
+		bookmarksManager = fetchBookmarks( imagesLocation );
+		levelingVector = fetchLeveling( imagesLocation );
 
-		// TODO: this should be the image data location, not the tables!
-		fetchBookmarks( tablesLocation );
+		actionPanel = new ActionPanel( this );
 
-		// TODO: this should be the image data location, not the tables!
-		final double[] levelingVector = fetchLeveling( tablesLocation );
-
-		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, bookmarksManager, levelingVector );
-
-		setJMenuBar( createMenuBar() );
-		showFrame( dataset );
+		jFrame = new JFrame( "MoBIE: " + dataset );
+		showFrame( jFrame );
+		jFrame.setJMenuBar( createJMenuBar() );
 		adaptLogWindowPositionAndSize();
-
-		sourcesPanel.setParentComponent( this );
+		sourcesPanel.setParentComponent( jFrame );
 
 		bookmarksManager.setView( "default" );
-		// TODO: show something as default
-		//sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
-
 		actionPanel.setBdv( sourcesPanel.getBdv() );
+	}
+
+	public double[] getLevelingVector()
+	{
+		return levelingVector;
+	}
+
+	public SourcesModel getSourcesModel()
+	{
+		return sourcesModel;
+	}
+
+	public String getProjectImagesLocation()
+	{
+		return projectImagesLocation;
+	}
+
+	public String getProjectTablesLocation()
+	{
+		return projectTablesLocation;
+	}
+
+	public String getDataset()
+	{
+		return dataset;
+	}
+
+	public ArrayList< String > getDatasets()
+	{
+		return datasets;
+	}
+
+	public BookmarksManager getBookmarksManager()
+	{
+		return bookmarksManager;
 	}
 
 	private double[] fetchLeveling( String dataLocation )
@@ -86,7 +123,7 @@ public class MoBIEViewer extends JFrame
 
 	}
 
-	public void configureDataLocations( String dataSet, String aImageDataLocation, String aTableDataLocation )
+	public void configureDatasetLocations( String dataSet, String aImageDataLocation, String aTableDataLocation )
 	{
 		this.imagesLocation = aImageDataLocation;
 		this.tablesLocation = aTableDataLocation;
@@ -116,11 +153,11 @@ public class MoBIEViewer extends JFrame
 		return url;
 	}
 
-	public void fetchBookmarks( String tableDataLocation )
+	public BookmarksManager fetchBookmarks( String tableDataLocation )
 	{
-		Map< String, Bookmark > nameToBookmark = new BookmarksParser( tableDataLocation, imageSourcesModel ).call();
+		Map< String, Bookmark > nameToBookmark = new BookmarksParser( tableDataLocation, sourcesModel ).call();
 
-		bookmarksManager = new BookmarksManager( sourcesPanel, nameToBookmark );
+		return new BookmarksManager( sourcesPanel, nameToBookmark );
 	}
 
 	public void adaptLogWindowPositionAndSize()
@@ -128,13 +165,13 @@ public class MoBIEViewer extends JFrame
 		final Frame log = WindowManager.getFrame( "Log" );
 		if (log != null) {
 			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			final int logWindowHeight = screenSize.height - ( this.getLocationOnScreen().y + this.getHeight() + 20 );
-			log.setSize( this.getWidth(), logWindowHeight  );
-			log.setLocation( this.getLocationOnScreen().x, this.getLocationOnScreen().y + this.getHeight() );
+			final int logWindowHeight = screenSize.height - ( jFrame.getLocationOnScreen().y + jFrame.getHeight() + 20 );
+			log.setSize( jFrame.getWidth(), logWindowHeight  );
+			log.setLocation( jFrame.getLocationOnScreen().x, jFrame.getLocationOnScreen().y + jFrame.getHeight() );
 		}
 	}
 
-	private JMenuBar createMenuBar()
+	private JMenuBar createJMenuBar()
 	{
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add( createMainMenu() );
@@ -177,8 +214,9 @@ public class MoBIEViewer extends JFrame
 		} ).start();
 	}
 
-	public void showFrame( String version )
+	public void showFrame( JFrame frame )
 	{
+
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
 		final int numModalities = actionPanel.getSortedModalities().size();
@@ -188,24 +226,29 @@ public class MoBIEViewer extends JFrame
 		splitPane.setBottomComponent( sourcesPanel );
 		splitPane.setAutoscrolls( true );
 		frameWidth = 600;
-		setPreferredSize( new Dimension( frameWidth, actionPanelHeight + 200 ) );
-		getContentPane().setLayout( new GridLayout() );
-		getContentPane().add( splitPane );
+		frame.setPreferredSize( new Dimension( frameWidth, actionPanelHeight + 200 ) );
+		frame.getContentPane().setLayout( new GridLayout() );
+		frame.getContentPane().add( splitPane );
 
-		this.setTitle( "PlatyBrowser - Data Version " + version );
-
-		this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-		this.pack();
-		this.setVisible( true );
+		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+		frame.pack();
+		frame.setVisible( true );
 	}
 
-	public PlatyBrowserSourcesPanel getSourcesPanel()
+	public SourcesPanel getSourcesPanel()
 	{
 		return sourcesPanel;
 	}
 
-	public PlatyBrowserActionPanel getActionPanel()
+	public ActionPanel getActionPanel()
 	{
 		return actionPanel;
+	}
+
+	public void close()
+	{
+		sourcesPanel.removeAllSourcesFromPanelAndViewers();
+		sourcesPanel.getBdv().close();
+		jFrame.dispose();
 	}
 }

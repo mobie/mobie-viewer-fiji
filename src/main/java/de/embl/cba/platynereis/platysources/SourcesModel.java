@@ -24,7 +24,7 @@ import java.util.Set;
 
 import static de.embl.cba.platynereis.utils.Utils.createRandom;
 
-public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
+public class SourcesModel implements ImageSourcesModel
 {
 	public static final String SEGMENTATION_ID = "-segmented" ;
 	public static final String BDV_XML_SUFFIX = ".xml";
@@ -40,7 +40,7 @@ public class PlatyBrowserImageSourcesModel implements ImageSourcesModel
 	private String storageModality;
 	private String imageRootLocation;
 
-	public PlatyBrowserImageSourcesModel(
+	public SourcesModel(
 			String imageDataLocation,
 			String tableDataLocation )
 	{

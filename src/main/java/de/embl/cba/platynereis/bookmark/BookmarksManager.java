@@ -3,7 +3,7 @@ package de.embl.cba.platynereis.bookmark;
 
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.platynereis.platybrowser.PlatyBrowserSourcesPanel;
+import de.embl.cba.platynereis.platybrowser.SourcesPanel;
 import de.embl.cba.platynereis.bdv.BdvViewChanger;
 
 import java.util.Map;
@@ -11,10 +11,10 @@ import java.util.Set;
 
 public class BookmarksManager
 {
-	private final PlatyBrowserSourcesPanel sourcesPanel;
+	private final SourcesPanel sourcesPanel;
 	private Map< String, Bookmark > nameToBookmark;
 
-	public BookmarksManager( PlatyBrowserSourcesPanel sourcesPanel, Map< String, Bookmark > nameToBookmark )
+	public BookmarksManager( SourcesPanel sourcesPanel, Map< String, Bookmark > nameToBookmark )
 	{
 		this.sourcesPanel = sourcesPanel;
 		this.nameToBookmark = nameToBookmark;
@@ -23,7 +23,12 @@ public class BookmarksManager
 	public void setView( String bookmarkId )
 	{
 		final Bookmark bookmark = nameToBookmark.get( bookmarkId );
-		removeAllSourcesFromPanelAndViewer( bookmark );
+
+		if ( bookmark.nameToMetadata.size() > 0 )
+		{
+			sourcesPanel.removeAllSourcesFromPanelAndViewers();
+		}
+
 		addSourcesToPanelAndViewer( bookmark );
 		adaptViewerTransform( bookmark );
 	}
@@ -34,20 +39,6 @@ public class BookmarksManager
 		{
 			if ( ! sourcesPanel.getVisibleSourceNames().contains( metadata.displayName ) )
 				sourcesPanel.addSourceToPanelAndViewer( metadata );
-		}
-	}
-
-	public void removeAllSourcesFromPanelAndViewer( Bookmark bookmark )
-	{
-		// TODO: maybe do not remove the ones that we want to keep seeing,
-		// however it is a bit of coding work to then change the display settings for only those.
-
-		if ( bookmark.nameToMetadata.size() > 0 )
-		{
-			final Set< String > visibleSourceNames = sourcesPanel.getVisibleSourceNames();
-
-			for ( String visibleSourceName : visibleSourceNames )
-				sourcesPanel.removeSourceFromPanelAndViewers( visibleSourceName );
 		}
 	}
 

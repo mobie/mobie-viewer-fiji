@@ -8,7 +8,7 @@ import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.Globals;
-import de.embl.cba.platynereis.platysources.PlatyBrowserImageSourcesModel;
+import de.embl.cba.platynereis.platysources.SourcesModel;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.FileUtils;
@@ -39,20 +39,20 @@ import java.util.List;
 
 import static de.embl.cba.platynereis.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
 
-public class PlatyBrowserSourcesPanel extends JPanel
+public class SourcesPanel extends JPanel
 {
     private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelViews;
     private Map< String, JPanel > sourceNameToPanel;
     private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndMetadata;
     private BdvHandle bdv;
-    private final PlatyBrowserImageSourcesModel imageSourcesModel;
+    private final SourcesModel imageSourcesModel;
     private Image3DUniverse universe;
     private int meshSmoothingIterations;
     private double voxelSpacing3DView;
     private boolean isBdvShownFirstTime = true;
     private JFrame jFrame;
 
-    public PlatyBrowserSourcesPanel( PlatyBrowserImageSourcesModel imageSourcesModel )
+    public SourcesPanel( SourcesModel imageSourcesModel )
     {
         this.imageSourcesModel = imageSourcesModel;
         sourceNameToPanel = new LinkedHashMap<>();
@@ -65,7 +65,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         configPanel();
     }
 
-    public static void updateSource3dView( SourceAndMetadata< ? > sam, PlatyBrowserSourcesPanel sourcesPanel, boolean showImageIn3d )
+    public static void updateSource3dView( SourceAndMetadata< ? > sam, SourcesPanel sourcesPanel, boolean showImageIn3d )
     {
         sam.metadata().showImageIn3d = showImageIn3d;
 
@@ -82,7 +82,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         }
     }
 
-    public static void updateSegments3dView( Metadata metadata, PlatyBrowserSourcesPanel sourcesPanel, boolean showSelectedSegmentsIn3D )
+    public static void updateSegments3dView( Metadata metadata, SourcesPanel sourcesPanel, boolean showSelectedSegmentsIn3D )
     {
         if ( metadata.views != null )
         {
@@ -239,6 +239,11 @@ public class PlatyBrowserSourcesPanel extends JPanel
         this.universe = universe;
     }
 
+    public void close()
+    {
+
+    }
+
     class DisplaySettings3DViewer
     {
         int displayMode;
@@ -335,7 +340,7 @@ public class PlatyBrowserSourcesPanel extends JPanel
         return Collections.unmodifiableSet( new HashSet<>( sourceNameToPanel.keySet() ) );
     }
 
-    public PlatyBrowserImageSourcesModel getImageSourcesModel()
+    public SourcesModel getImageSourcesModel()
     {
         return imageSourcesModel;
     }
@@ -671,7 +676,6 @@ public class PlatyBrowserSourcesPanel extends JPanel
                     }
                 } );
 
-
         return removeButton;
     }
 
@@ -705,6 +709,14 @@ public class PlatyBrowserSourcesPanel extends JPanel
         }
 	}
 
+    public void removeAllSourcesFromPanelAndViewers()
+    {
+        final Set< String > visibleSourceNames = getVisibleSourceNames();
+
+        for ( String visibleSourceName : visibleSourceNames )
+            removeSourceFromPanelAndViewers( visibleSourceName );
+    }
+
 	private void removeSourceFromPanel( String sourceName )
 	{
 		remove( sourceNameToPanel.get( sourceName ) );
@@ -716,6 +728,8 @@ public class PlatyBrowserSourcesPanel extends JPanel
         this.revalidate();
         this.repaint();
     }
+
+
 
     public BdvHandle getBdv()
     {

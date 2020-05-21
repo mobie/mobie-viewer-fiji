@@ -1,7 +1,7 @@
 package publication;
 
 import de.embl.cba.platynereis.platybrowser.MoBIEViewer;
-import de.embl.cba.platynereis.platybrowser.PlatyBrowserSourcesPanel;
+import de.embl.cba.platynereis.platybrowser.SourcesPanel;
 import net.imagej.ImageJ;
 
 import java.awt.*;
@@ -17,7 +17,7 @@ public class RegistrationVisualisationMuscles
 				null, "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data" );
 
-		final PlatyBrowserSourcesPanel sourcesPanel = moBIEViewer.getSourcesPanel();
+		final SourcesPanel sourcesPanel = moBIEViewer.getSourcesPanel();
 
 		sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-muscles" );
 		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-MHCL4-MED" );

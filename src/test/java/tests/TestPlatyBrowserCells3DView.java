@@ -1,7 +1,7 @@
 package tests;
 
 import de.embl.cba.platynereis.platybrowser.MoBIEViewer;
-import de.embl.cba.platynereis.platybrowser.PlatyBrowserSourcesPanel;
+import de.embl.cba.platynereis.platybrowser.SourcesPanel;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
@@ -21,7 +21,7 @@ public class TestPlatyBrowserCells3DView
 				null, "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data" );
 
-		final PlatyBrowserSourcesPanel sourcesPanel = mainFrame.getSourcesPanel();
+		final SourcesPanel sourcesPanel = mainFrame.getSourcesPanel();
 
 		sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-cells-labels" );
 		final SegmentsTableBdvAnd3dViews views = sourcesPanel.getSourceNameToLabelViews().values().iterator().next();

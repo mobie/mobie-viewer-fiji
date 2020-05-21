@@ -1,7 +1,7 @@
 package headless;
 
 import de.embl.cba.platynereis.platybrowser.MoBIEViewer;
-import de.embl.cba.platynereis.platybrowser.PlatyBrowserSourcesPanel;
+import de.embl.cba.platynereis.platybrowser.SourcesPanel;
 import net.imagej.ImageJ;
 
 public class OpenPlatyBrowserHttpBigDataServer
@@ -15,7 +15,7 @@ public class OpenPlatyBrowserHttpBigDataServer
 				null, "http://cbb-bigdata01.embl.de",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/master/data" );
 
-		final PlatyBrowserSourcesPanel sourcesPanel = moBIEViewer.getSourcesPanel();
+		final SourcesPanel sourcesPanel = moBIEViewer.getSourcesPanel();
 
 		sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-cells-labels" );
 	}

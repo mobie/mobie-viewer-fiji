@@ -36,7 +36,7 @@ public class SourcesDisplayUI
 	}
 
 	public static JCheckBox createVolumeViewVisibilityCheckbox(
-			PlatyBrowserSourcesPanel sourcesPanel,
+			SourcesPanel sourcesPanel,
 			int[] dims,
 			SourceAndMetadata< ? > sam,
 			boolean isVisible )
@@ -51,8 +51,8 @@ public class SourcesDisplayUI
 			public void actionPerformed( ActionEvent e )
 			{
 				new Thread( () -> {
-					PlatyBrowserSourcesPanel.updateSegments3dView( sam.metadata(), sourcesPanel, checkBox.isSelected() );
-					PlatyBrowserSourcesPanel.updateSource3dView( sam, sourcesPanel, checkBox.isSelected() );
+					SourcesPanel.updateSegments3dView( sam.metadata(), sourcesPanel, checkBox.isSelected() );
+					SourcesPanel.updateSource3dView( sam, sourcesPanel, checkBox.isSelected() );
 				}).start();
 			}
 		} );
