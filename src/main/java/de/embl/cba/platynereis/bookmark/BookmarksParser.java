@@ -16,39 +16,24 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-public class BookmarksParser implements Callable< Map< String, Bookmark > >
+public class BookmarksParser
 {
-	private final ArrayList< String > bookmarksLocations = new ArrayList<>(  );
+	private final ArrayList< String > bookmarksFiles = new ArrayList<>(  );
+	private final String datasetLocation;
 	private final SourcesModel imageSourcesModel;
 	private Map< String, Bookmark > nameToBookmark;
 
 	public BookmarksParser( String datasetLocation, SourcesModel imageSourcesModel )
 	{
+		this.datasetLocation = datasetLocation;
 		this.imageSourcesModel = imageSourcesModel;
-
-		try
-		{
-			addBookmarksFromSingleFile( datasetLocation );
-		}
-		catch ( Exception e )
-		{
-			if ( datasetLocation.contains( "githubusercontent" ) )
-			{
-				addBookmarkFilesFromGithub( datasetLocation );
-			}
-			else
-			{
-				addBookmarkFilesFromFolder( datasetLocation );
-			}
-		}
 	}
 
-	public void addBookmarksFromSingleFile( String datasetLocation ) throws IOException
+	public void addBookmarkFile( String datasetLocation ) throws IOException
 	{
 		final String bookmarksFileLocation = FileAndUrlUtils.combinePath( datasetLocation + "/misc/bookmarks.json" );
 		FileAndUrlUtils.getInputStream( bookmarksFileLocation ); // to throw an error if not found
-
-		bookmarksLocations.add( bookmarksFileLocation );
+		bookmarksFiles.add( bookmarksFileLocation );
 	}
 
 	public void addBookmarkFilesFromFolder( String datasetLocation )
@@ -58,7 +43,7 @@ public class BookmarksParser implements Callable< Map< String, Bookmark > >
 
 		for ( File file : fileList )
 		{
-			bookmarksLocations.add( file.getAbsolutePath() );
+			bookmarksFiles.add( file.getAbsolutePath() );
 		}
 	}
 
@@ -75,7 +60,7 @@ public class BookmarksParser implements Callable< Map< String, Bookmark > >
 		for ( LinkedTreeMap linkedTreeMap : linkedTreeMaps )
 		{
 			final String downloadUrl = ( String ) linkedTreeMap.get( "download_url" );
-			bookmarksLocations.add( downloadUrl );
+			bookmarksFiles.add( downloadUrl );
 		}
 	}
 
@@ -94,7 +79,7 @@ public class BookmarksParser implements Callable< Map< String, Bookmark > >
 		return repoUrlAndPath;
 	}
 
-	public Map< String, Bookmark > call()
+	public Map< String, Bookmark > getBookmarks()
 	{
 		try
 		{
@@ -111,9 +96,15 @@ public class BookmarksParser implements Callable< Map< String, Bookmark > >
 
 	private void readBookmarks() throws IOException
 	{
+		fetchBookmarksLocations();
+		parseBookmarks();
+	}
+
+	private void parseBookmarks() throws IOException
+	{
 		nameToBookmark = new TreeMap<>();
 
-		for ( String bookmarksLocation : bookmarksLocations )
+		for ( String bookmarksLocation : bookmarksFiles )
 		{
 			InputStream bookmarksStream = FileAndUrlUtils.getInputStream( bookmarksLocation );
 
@@ -129,6 +120,25 @@ public class BookmarksParser implements Callable< Map< String, Bookmark > >
 				addPositionsAndTransforms( bookmarkAttributes, bookmark );
 
 				nameToBookmark.put( bookmark.name, bookmark );
+			}
+		}
+	}
+
+	private void fetchBookmarksLocations()
+	{
+		try
+		{
+			addBookmarkFile( datasetLocation );
+		}
+		catch ( Exception e )
+		{
+			if ( datasetLocation.contains( "githubusercontent" ) )
+			{
+				addBookmarkFilesFromGithub( datasetLocation );
+			}
+			else
+			{
+				addBookmarkFilesFromFolder( datasetLocation );
 			}
 		}
 	}

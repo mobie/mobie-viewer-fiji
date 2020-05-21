@@ -155,7 +155,7 @@ public class MoBIEViewer
 
 	public BookmarksManager fetchBookmarks( String tableDataLocation )
 	{
-		Map< String, Bookmark > nameToBookmark = new BookmarksParser( tableDataLocation, sourcesModel ).call();
+		Map< String, Bookmark > nameToBookmark = new BookmarksParser( tableDataLocation, sourcesModel ).getBookmarks();
 
 		return new BookmarksManager( sourcesPanel, nameToBookmark );
 	}
