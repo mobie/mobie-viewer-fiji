@@ -12,7 +12,7 @@ public class OpenBrowser
 	{
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				args[0],
-				args[1],
+				null, args[1],
 				args[1] );
 	}
 }

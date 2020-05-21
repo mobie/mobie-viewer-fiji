@@ -1,11 +1,13 @@
 package de.embl.cba.platynereis.platybrowser.command;
 
+import de.embl.cba.platynereis.dataset.DatasetsParser;
 import de.embl.cba.platynereis.platybrowser.MoBIEViewer;
-import de.embl.cba.platynereis.utils.ui.VersionsDialog;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+
+import java.util.ArrayList;
 
 
 @Plugin(type = Command.class, menuPath = "Plugins>MMB>CustomBrowser" )
@@ -20,12 +22,11 @@ public class OpenCustomBrowserCommand implements Command
 	@Override
 	public void run()
 	{
-		final String version = new VersionsDialog().showDialog( tablesLocation );
-		if ( version == null ) return;
+		final ArrayList< String > datasets = new DatasetsParser().datasetsFromDataSource( imagesLocation );
 
-		new MoBIEViewer(
-				version,
-				imagesLocation,
+		final MoBIEViewer moBIEViewer = new MoBIEViewer(
+				datasets.get( datasets.size() - 1 ),
+				datasets, imagesLocation,
 				tablesLocation );
 	}
 

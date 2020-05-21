@@ -1,14 +1,12 @@
 package de.embl.cba.platynereis.platybrowser;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
-import de.embl.cba.platynereis.Constants;
 import de.embl.cba.platynereis.platysources.PlatyBrowserImageSourcesModel;
-import de.embl.cba.platynereis.platyviews.Bookmark;
-import de.embl.cba.platynereis.platyviews.BookmarkParser;
-import de.embl.cba.platynereis.platyviews.BookmarkManager;
+import de.embl.cba.platynereis.bookmark.Bookmark;
+import de.embl.cba.platynereis.bookmark.BookmarksParser;
+import de.embl.cba.platynereis.bookmark.BookmarksManager;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import ij.WindowManager;
@@ -28,38 +26,40 @@ public class MoBIEViewer extends JFrame
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private final PlatyBrowserActionPanel actionPanel;
 	private final PlatyBrowserImageSourcesModel imageSourcesModel;
-	private String imageDataLocation;
-	private String tableDataLocation;
+	private String imagesLocation;
+	private String tablesLocation;
 
 	private int frameWidth;
-	private BookmarkManager bookmarkManager;
+	private BookmarksManager bookmarksManager;
+	private ArrayList< String > datasets;
 
 	public MoBIEViewer(
-			String dataSet,
+			String dataset,
+			ArrayList< String > datasets,
 			String aImageDataLocation,
 			String aTableDataLocation ) throws HeadlessException
 	{
-		configureDataLocations( dataSet, aImageDataLocation, aTableDataLocation );
+		configureDataLocations( dataset, aImageDataLocation, aTableDataLocation );
 
-		imageSourcesModel = new PlatyBrowserImageSourcesModel( imageDataLocation, tableDataLocation );
+		imageSourcesModel = new PlatyBrowserImageSourcesModel( imagesLocation, tablesLocation );
 
 		sourcesPanel = new PlatyBrowserSourcesPanel( imageSourcesModel );
 
 		// TODO: this should be the image data location, not the tables!
-		fetchBookmarks( tableDataLocation );
+		fetchBookmarks( tablesLocation );
 
 		// TODO: this should be the image data location, not the tables!
-		final double[] levelingVector = fetchLeveling( tableDataLocation );
+		final double[] levelingVector = fetchLeveling( tablesLocation );
 
-		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, bookmarkManager, levelingVector );
+		actionPanel = new PlatyBrowserActionPanel( sourcesPanel, bookmarksManager, levelingVector );
 
 		setJMenuBar( createMenuBar() );
-		showFrame( dataSet );
+		showFrame( dataset );
 		adaptLogWindowPositionAndSize();
 
 		sourcesPanel.setParentComponent( this );
 
-		bookmarkManager.setView( "default" );
+		bookmarksManager.setView( "default" );
 		// TODO: show something as default
 		//sourcesPanel.addSourceToPanelAndViewer( Constants.DEFAULT_EM_RAW_FILE_ID );
 
@@ -88,22 +88,22 @@ public class MoBIEViewer extends JFrame
 
 	public void configureDataLocations( String dataSet, String aImageDataLocation, String aTableDataLocation )
 	{
-		this.imageDataLocation = aImageDataLocation;
-		this.tableDataLocation = aTableDataLocation;
+		this.imagesLocation = aImageDataLocation;
+		this.tablesLocation = aTableDataLocation;
 
-		imageDataLocation = FileAndUrlUtils.removeTrailingSlash( imageDataLocation );
-		tableDataLocation = FileAndUrlUtils.removeTrailingSlash( tableDataLocation );
+		imagesLocation = FileAndUrlUtils.removeTrailingSlash( imagesLocation );
+		tablesLocation = FileAndUrlUtils.removeTrailingSlash( tablesLocation );
 
-		imageDataLocation = adaptUrl( imageDataLocation );
-		tableDataLocation = adaptUrl( tableDataLocation );
+		imagesLocation = adaptUrl( imagesLocation );
+		tablesLocation = adaptUrl( tablesLocation );
 
-		imageDataLocation = FileAndUrlUtils.combinePath( imageDataLocation, dataSet );
-		tableDataLocation = FileAndUrlUtils.combinePath( tableDataLocation, dataSet );
+		imagesLocation = FileAndUrlUtils.combinePath( imagesLocation, dataSet );
+		tablesLocation = FileAndUrlUtils.combinePath( tablesLocation, dataSet );
 
 		Utils.log( "");
 		Utils.log( "# Fetching data");
-		Utils.log( "Fetching image data from: " + imageDataLocation );
-		Utils.log( "Fetching table data from: " + tableDataLocation );
+		Utils.log( "Fetching image data from: " + imagesLocation );
+		Utils.log( "Fetching table data from: " + tablesLocation );
 	}
 
 	public String adaptUrl( String url )
@@ -118,9 +118,9 @@ public class MoBIEViewer extends JFrame
 
 	public void fetchBookmarks( String tableDataLocation )
 	{
-		Map< String, Bookmark > nameToBookmark = new BookmarkParser( tableDataLocation, imageSourcesModel ).call();
+		Map< String, Bookmark > nameToBookmark = new BookmarksParser( tableDataLocation, imageSourcesModel ).call();
 
-		bookmarkManager = new BookmarkManager( sourcesPanel, nameToBookmark );
+		bookmarksManager = new BookmarksManager( sourcesPanel, nameToBookmark );
 	}
 
 	public void adaptLogWindowPositionAndSize()
@@ -208,7 +208,4 @@ public class MoBIEViewer extends JFrame
 	{
 		return actionPanel;
 	}
-
-
-
 }

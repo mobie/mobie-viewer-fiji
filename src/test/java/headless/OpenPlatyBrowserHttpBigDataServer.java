@@ -12,7 +12,7 @@ public class OpenPlatyBrowserHttpBigDataServer
 
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				"0.6.0",
-				"http://cbb-bigdata01.embl.de",
+				null, "http://cbb-bigdata01.embl.de",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/master/data" );
 
 		final PlatyBrowserSourcesPanel sourcesPanel = moBIEViewer.getSourcesPanel();

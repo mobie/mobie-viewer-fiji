@@ -11,7 +11,7 @@ public class OpenPlatyBrowserGitTablesS3Images
 
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				"0.6.5",
-				"https://git.embl.de/tischer/platy-browser-tables/raw/master/data/test_n5",
+				null, "https://git.embl.de/tischer/platy-browser-tables/raw/master/data/test_n5",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/master/data/test_n5" );
 	}
 }

@@ -1,7 +1,5 @@
 package tests;
 
-import de.embl.cba.platynereis.platyviews.BookmarkManager;
-
 import java.io.IOException;
 
 public class TestBookmarksLoadingFromGitlab

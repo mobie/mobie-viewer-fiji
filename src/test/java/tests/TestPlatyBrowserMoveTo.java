@@ -12,7 +12,7 @@ public class TestPlatyBrowserMoveTo
 
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				"0.2.1",
-				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
+				null, "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data" );
 
 		moBIEViewer.getActionPanel().setView( "177.46666666666667,214.46666666666667,67.0" );

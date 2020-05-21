@@ -1,4 +1,4 @@
-package de.embl.cba.platynereis.platyviews;
+package de.embl.cba.platynereis.bookmark;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
@@ -9,7 +9,6 @@ import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.github.GitHubContentGetter;
-import org.jfree.data.json.JSONUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,13 +16,13 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-public class BookmarkParser implements Callable< Map< String, Bookmark > >
+public class BookmarksParser implements Callable< Map< String, Bookmark > >
 {
 	private final ArrayList< String > bookmarksLocations = new ArrayList<>(  );
 	private final PlatyBrowserImageSourcesModel imageSourcesModel;
 	private Map< String, Bookmark > nameToBookmark;
 
-	public BookmarkParser( String datasetLocation, PlatyBrowserImageSourcesModel imageSourcesModel )
+	public BookmarksParser( String datasetLocation, PlatyBrowserImageSourcesModel imageSourcesModel )
 	{
 		this.imageSourcesModel = imageSourcesModel;
 

@@ -8,7 +8,7 @@ public class OpenPlatynereis
 	{
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				"1.0.1",
-				"https://raw.githubusercontent.com/platybrowser/platybrowser/master/data",
+				null, "https://raw.githubusercontent.com/platybrowser/platybrowser/master/data",
 				"https://raw.githubusercontent.com/platybrowser/platybrowser/master/data" );
 	}
 }

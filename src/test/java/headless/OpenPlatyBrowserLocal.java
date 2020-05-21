@@ -11,7 +11,7 @@ public class OpenPlatyBrowserLocal
 
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				"0.6.6",
-				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
+				null, "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data" );
 	}
 }

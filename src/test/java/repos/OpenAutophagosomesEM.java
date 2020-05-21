@@ -11,7 +11,7 @@ public class OpenAutophagosomesEM
 
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				"10spd",
-				"/g/kreshuk/pape/work/my_projects/autophagosoms-clem/data",
+				null, "/g/kreshuk/pape/work/my_projects/autophagosoms-clem/data",
 				"https://github.com/constantinpape/autophagosomes-clem" );
 	}
 }

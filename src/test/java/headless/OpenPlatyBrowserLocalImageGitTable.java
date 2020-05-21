@@ -12,7 +12,7 @@ public class OpenPlatyBrowserLocalImageGitTable
 
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				"0.6.0",
-				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
+				null, "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/master/data" );
 
 		final PlatyBrowserSourcesPanel sourcesPanel = moBIEViewer.getSourcesPanel();

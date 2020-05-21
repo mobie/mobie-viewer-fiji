@@ -1,4 +1,4 @@
-package de.embl.cba.platynereis.platyviews;
+package de.embl.cba.platynereis.bookmark;
 
 
 import de.embl.cba.bdv.utils.BdvUtils;
@@ -9,12 +9,12 @@ import de.embl.cba.platynereis.bdv.BdvViewChanger;
 import java.util.Map;
 import java.util.Set;
 
-public class BookmarkManager
+public class BookmarksManager
 {
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private Map< String, Bookmark > nameToBookmark;
 
-	public BookmarkManager( PlatyBrowserSourcesPanel sourcesPanel, Map< String, Bookmark > nameToBookmark )
+	public BookmarksManager( PlatyBrowserSourcesPanel sourcesPanel, Map< String, Bookmark > nameToBookmark )
 	{
 		this.sourcesPanel = sourcesPanel;
 		this.nameToBookmark = nameToBookmark;

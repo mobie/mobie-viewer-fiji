@@ -10,7 +10,7 @@ public class OpenCovidEM
 
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				"Covid19-S4-Area2",
-				"https://git.embl.de/pape/covid-em/-/raw/master/data",
+				null, "https://git.embl.de/pape/covid-em/-/raw/master/data",
 				"https://git.embl.de/pape/covid-em/-/raw/master/data" );
 	}
 }

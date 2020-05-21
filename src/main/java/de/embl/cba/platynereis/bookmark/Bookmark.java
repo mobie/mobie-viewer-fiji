@@ -1,4 +1,4 @@
-package de.embl.cba.platynereis.platyviews;
+package de.embl.cba.platynereis.bookmark;
 
 import de.embl.cba.bdv.utils.sources.Metadata;
 

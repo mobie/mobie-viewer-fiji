@@ -7,7 +7,7 @@ import de.embl.cba.bdv.utils.behaviour.BdvBehaviours;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.platynereis.GeneSearch;
 import de.embl.cba.platynereis.GeneSearchResults;
-import de.embl.cba.platynereis.platyviews.BookmarkManager;
+import de.embl.cba.platynereis.bookmark.BookmarksManager;
 import de.embl.cba.platynereis.bdv.BdvViewChanger;
 import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.platynereis.utils.ui.BdvTextOverlay;
@@ -29,7 +29,7 @@ public class PlatyBrowserActionPanel extends JPanel
 
 	private final PlatyBrowserSourcesPanel sourcesPanel;
 	private BdvHandle bdv;
-	private final BookmarkManager bookmarkManager;
+	private final BookmarksManager bookmarksManager;
 	private Behaviours behaviours;
 
 	private double[] levelingVector;
@@ -40,12 +40,12 @@ public class PlatyBrowserActionPanel extends JPanel
 
 	public PlatyBrowserActionPanel(
 			PlatyBrowserSourcesPanel sourcesPanel,
-			BookmarkManager bookmarkManager,
+			BookmarksManager bookmarksManager,
 			double[] levelingVector // can be NULL
 	)
 	{
 		this.sourcesPanel = sourcesPanel;
-		this.bookmarkManager = bookmarkManager;
+		this.bookmarksManager = bookmarksManager;
 		this.levelingVector = levelingVector;
 
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
@@ -456,7 +456,7 @@ public class PlatyBrowserActionPanel extends JPanel
 
 		final JComboBox< String > comboBox = new JComboBox<>( bookmarkNames );
 		setComboBoxDimensions( comboBox );
-		viewButton.addActionListener( e -> bookmarkManager.setView( ( String ) comboBox.getSelectedItem() ) );
+		viewButton.addActionListener( e -> bookmarksManager.setView( ( String ) comboBox.getSelectedItem() ) );
 
 		horizontalLayoutPanel.add( getJLabel( "bookmark" ) );
 		horizontalLayoutPanel.add( comboBox );
@@ -514,7 +514,7 @@ public class PlatyBrowserActionPanel extends JPanel
 	// TODO simplify code below
 	private String[] getBookmarkNames()
 	{
-		final Set< String > viewNames = bookmarkManager.getBookmarkNames();
+		final Set< String > viewNames = bookmarksManager.getBookmarkNames();
 		final String[] positionsAndViews = new String[ viewNames.size() ];
 //		positionsAndViews[ 0 ] = "...type here...";
 		final Iterator< String > iterator = viewNames.iterator();
