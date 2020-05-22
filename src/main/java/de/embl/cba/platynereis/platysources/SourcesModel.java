@@ -131,6 +131,7 @@ public class SourcesModel implements ImageSourcesModel
 		return metadata;
 	}
 
+	@Deprecated
 	public void addImageMetadata( Metadata metadata, String key, Object value )
 	{
 		if ( key.equals( "TableFolder" ) )

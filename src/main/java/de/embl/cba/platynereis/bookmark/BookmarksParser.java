@@ -1,55 +1,77 @@
 package de.embl.cba.platynereis.bookmark;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
-import de.embl.cba.bdv.utils.sources.Metadata;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import de.embl.cba.platynereis.github.GithubUtils;
 import de.embl.cba.platynereis.github.RepoUrlAndPath;
 import de.embl.cba.platynereis.platysources.SourcesModel;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
-import de.embl.cba.platynereis.utils.Utils;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.github.GitHubContentGetter;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 public class BookmarksParser
 {
-	private final ArrayList< String > bookmarksFiles = new ArrayList<>(  );
 	private final String datasetLocation;
-	private final SourcesModel imageSourcesModel;
-	private Map< String, Bookmark > nameToBookmark;
 
 	public BookmarksParser( String datasetLocation, SourcesModel imageSourcesModel )
 	{
 		this.datasetLocation = datasetLocation;
-		this.imageSourcesModel = imageSourcesModel;
 	}
 
-	public void addBookmarkFile( String datasetLocation ) throws IOException
+	public Map< String, Bookmark > getBookmarks()
 	{
+		try
+		{
+			return readBookmarks();
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private ArrayList< String > fetchBookmarkPaths( String datasetLocation ) throws IOException
+	{
+		final ArrayList< String > bookmarkPaths = new ArrayList<>();
+
 		final String bookmarksFileLocation = FileAndUrlUtils.combinePath( datasetLocation + "/misc/bookmarks.json" );
 		FileAndUrlUtils.getInputStream( bookmarksFileLocation ); // to throw an error if not found
-		bookmarksFiles.add( bookmarksFileLocation );
+		bookmarkPaths.add( bookmarksFileLocation );
+
+		return bookmarkPaths;
 	}
 
-	public void addBookmarkFilesFromFolder( String datasetLocation )
+	private ArrayList< String > addBookmarkFilesFromFolder( String datasetLocation )
 	{
+		final ArrayList< String > bookmarkPaths = new ArrayList<>();
+
 		final String bookmarksFolder = FileAndUrlUtils.combinePath( datasetLocation + "/misc/bookmarks" );
 		final List< File > fileList = FileUtils.getFileList( new File( bookmarksFolder ), ".*.json", false );
 
 		for ( File file : fileList )
 		{
-			bookmarksFiles.add( file.getAbsolutePath() );
+			bookmarkPaths.add( file.getAbsolutePath() );
 		}
+
+		return bookmarkPaths;
 	}
 
-	public void addBookmarkFilesFromGithub( String datasetLocation )
+	private ArrayList< String > addBookmarkFilesFromGithub( String datasetLocation )
 	{
-		final RepoUrlAndPath repoUrlAndPath = rawUrlToRepoUrlAndPath( datasetLocation );
+		final ArrayList< String > bookmarkPaths = new ArrayList<>();
+
+		final RepoUrlAndPath repoUrlAndPath = GithubUtils.rawUrlToRepoUrlAndPath( datasetLocation );
 		repoUrlAndPath.path += "misc/bookmarks";
 
 		final GitHubContentGetter contentGetter = new GitHubContentGetter( repoUrlAndPath.repoUrl, repoUrlAndPath.path );
@@ -60,115 +82,66 @@ public class BookmarksParser
 		for ( LinkedTreeMap linkedTreeMap : linkedTreeMaps )
 		{
 			final String downloadUrl = ( String ) linkedTreeMap.get( "download_url" );
-			bookmarksFiles.add( downloadUrl );
-		}
-	}
-
-	public static RepoUrlAndPath rawUrlToRepoUrlAndPath( String datasetLocation )
-	{
-		final RepoUrlAndPath repoUrlAndPath = new RepoUrlAndPath();
-		final String[] split = datasetLocation.split( "/" );
-		final String user = split[ 3 ];
-		final String repo = split[ 4 ];
-		repoUrlAndPath.repoUrl = "https://github.com/" + user + "/" + repo;
-		repoUrlAndPath.path = "";
-		for ( int i = 6; i < split.length; i++ )
-		{
-			repoUrlAndPath.path += split[ i ] + "/";
-		}
-		return repoUrlAndPath;
-	}
-
-	public Map< String, Bookmark > getBookmarks()
-	{
-		try
-		{
-			readBookmarks();
-			return nameToBookmark;
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
+			bookmarkPaths.add( downloadUrl );
 		}
 
-		return null;
+		return bookmarkPaths;
 	}
 
-	private void readBookmarks() throws IOException
+	private Map< String, Bookmark > readBookmarks() throws IOException
 	{
-		fetchBookmarksLocations();
-		parseBookmarks();
+		final ArrayList< String > bookmarkFiles = fetchBookmarkPaths();
+		final Map< String, Bookmark > stringBookmarkMap = parseBookmarks( bookmarkFiles );
+		return stringBookmarkMap;
 	}
 
-	private void parseBookmarks() throws IOException
+	private Map< String, Bookmark > parseBookmarks( ArrayList< String > bookmarksFiles ) throws IOException
 	{
-		nameToBookmark = new TreeMap<>();
+		Map< String, Bookmark > nameToBookmark = new TreeMap<>();
 
+		Gson gson = new Gson();
+		Type type = new TypeToken< Map< String, Bookmark > >() {}.getType();
+
+		// parse bookmark files
+		// each file can contain multiple bookmarks
 		for ( String bookmarksLocation : bookmarksFiles )
 		{
-			InputStream bookmarksStream = FileAndUrlUtils.getInputStream( bookmarksLocation );
+			final Map< String, Bookmark > bookmarks = readBookmarksFromFile( gson, type, bookmarksLocation );
 
-			final LinkedTreeMap bookmarksTreeMap = Utils.getLinkedTreeMap( bookmarksStream );
-
-			for ( Object bookmarkKey : bookmarksTreeMap.keySet() )
+			for ( Map.Entry< String, Bookmark > entry : bookmarks.entrySet() )
 			{
-				final Bookmark bookmark = new Bookmark();
-				bookmark.name = ( String ) bookmarkKey;
-				final LinkedTreeMap bookmarkAttributes = ( LinkedTreeMap ) bookmarksTreeMap.get( bookmarkKey );
-
-				addImageLayers( bookmarkAttributes, bookmark );
-				addPositionsAndTransforms( bookmarkAttributes, bookmark );
-
-				nameToBookmark.put( bookmark.name, bookmark );
+				nameToBookmark.put( entry.getKey(), entry.getValue() );
 			}
 		}
+
+		return nameToBookmark;
 	}
 
-	private void fetchBookmarksLocations()
+	private Map< String, Bookmark > readBookmarksFromFile( Gson gson, Type type, String bookmarksLocation ) throws IOException
+	{
+		InputStream inputStream = FileAndUrlUtils.getInputStream( bookmarksLocation );
+		final JsonReader reader = new JsonReader( new InputStreamReader( inputStream, "UTF-8" ) );
+
+		return gson.fromJson( reader, type );
+	}
+
+	private ArrayList< String > fetchBookmarkPaths()
 	{
 		try
 		{
-			addBookmarkFile( datasetLocation );
+			return fetchBookmarkPaths( datasetLocation );
 		}
 		catch ( Exception e )
 		{
 			if ( datasetLocation.contains( "githubusercontent" ) )
 			{
-				addBookmarkFilesFromGithub( datasetLocation );
+				return addBookmarkFilesFromGithub( datasetLocation );
 			}
 			else
 			{
-				addBookmarkFilesFromFolder( datasetLocation );
+				return addBookmarkFilesFromFolder( datasetLocation );
 			}
 		}
 	}
 
-	private void addPositionsAndTransforms( LinkedTreeMap bookmarkAttributes, Bookmark bookmark )
-	{
-		final Set keySet = bookmarkAttributes.keySet();
-		if ( keySet.contains( "Position" ) )
-		{
-			bookmark.position = ( ArrayList< Double > ) bookmarkAttributes.get( "Position" );
-		}
-
-		if ( keySet.contains( "View" ) )
-		{
-			bookmark.transform = ( ArrayList< Double >) bookmarkAttributes.get( "View" );
-		}
-	}
-
-	private void addImageLayers( LinkedTreeMap bookmarkAttributes, Bookmark bookmark )
-	{
-		if ( bookmarkAttributes.keySet().contains( "Layers") )
-		{
-			final LinkedTreeMap imageLayers = ( LinkedTreeMap ) bookmarkAttributes.get( "Layers" );
-
-			for ( Object imageId : imageLayers.keySet() )
-			{
-				final LinkedTreeMap imageAttributes = ( LinkedTreeMap ) imageLayers.get( imageId );
-				final Metadata metadata = imageSourcesModel.getMetadata( ( String ) imageId, imageAttributes );
-				bookmark.nameToMetadata.put( metadata.displayName, metadata );
-			}
-		}
-	}
 }
