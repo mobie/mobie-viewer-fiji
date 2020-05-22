@@ -44,7 +44,7 @@ public class BookmarksManager
 			if ( ! sourcesPanel.getVisibleSourceNames().contains( sourceName ) )
 			{
 				final Metadata metadata = getAndUpdateSourceMetadata( entry, sourceName );
-				sourcesPanel.addSourceToPanelAndViewer( metadata );
+				sourcesPanel.addSourceToPanelAndViewer( metadata.displayName );
 			}
 
 		}

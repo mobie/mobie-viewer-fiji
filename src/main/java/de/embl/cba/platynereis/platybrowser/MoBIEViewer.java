@@ -7,7 +7,7 @@ import de.embl.cba.platynereis.dataset.Datasets;
 import de.embl.cba.platynereis.dataset.DatasetsParser;
 import de.embl.cba.platynereis.platysources.SourcesModel;
 import de.embl.cba.platynereis.bookmark.Bookmark;
-import de.embl.cba.platynereis.bookmark.BookmarksParser;
+import de.embl.cba.platynereis.bookmark.BookmarksJsonParser;
 import de.embl.cba.platynereis.bookmark.BookmarksManager;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 import de.embl.cba.platynereis.utils.Utils;
@@ -176,7 +176,7 @@ public class MoBIEViewer
 
 	public BookmarksManager fetchBookmarks( String tableDataLocation )
 	{
-		Map< String, Bookmark > nameToBookmark = new BookmarksParser( tableDataLocation, sourcesModel ).getBookmarks();
+		Map< String, Bookmark > nameToBookmark = new BookmarksJsonParser( tableDataLocation, sourcesModel ).getBookmarks();
 
 		return new BookmarksManager( sourcesPanel, nameToBookmark );
 	}

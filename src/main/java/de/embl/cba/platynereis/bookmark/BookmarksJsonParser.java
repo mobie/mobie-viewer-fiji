@@ -19,11 +19,11 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.*;
 
-public class BookmarksParser
+public class BookmarksJsonParser
 {
 	private final String datasetLocation;
 
-	public BookmarksParser( String datasetLocation, SourcesModel imageSourcesModel )
+	public BookmarksJsonParser( String datasetLocation, SourcesModel imageSourcesModel )
 	{
 		this.datasetLocation = datasetLocation;
 	}

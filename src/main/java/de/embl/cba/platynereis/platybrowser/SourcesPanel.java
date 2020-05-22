@@ -278,38 +278,6 @@ public class SourcesPanel extends JPanel
         return settings;
     }
 
-    public void addSourceToPanelAndViewer( Metadata metadata )
-    {
-        if ( ! getSourceNames().contains( metadata.displayName ) )
-        {
-            System.err.println( "Source not present: " + metadata.displayName );
-            return;
-        }
-
-        final SourceAndMetadata< ? > sam = imageSourcesModel.sources().get( metadata.displayName );
-        updateSourceAndMetadata( sam, metadata );
-        addSourceToPanelAndViewer( sam );
-    }
-
-    public void updateSourceAndMetadata( SourceAndMetadata< ? > sam, Metadata metadata )
-    {
-        sam.metadata().displayRangeMin = metadata.displayRangeMin != null
-                ? metadata.displayRangeMin : sam.metadata().displayRangeMin;
-        sam.metadata().displayRangeMax = metadata.displayRangeMax != null
-                ? metadata.displayRangeMax : sam.metadata().displayRangeMax;
-        sam.metadata().color = metadata.color != null
-                ? metadata.color : sam.metadata().color;
-
-        sam.metadata().colorByColumn = metadata.colorByColumn;
-        sam.metadata().colorMapMin = metadata.colorMapMin;
-        sam.metadata().colorMapMax = metadata.colorMapMax;
-        sam.metadata().selectedSegmentIds = metadata.selectedSegmentIds;
-        sam.metadata().showImageIn3d = metadata.showImageIn3d;
-        sam.metadata().showSelectedSegmentsIn3d = metadata.showSelectedSegmentsIn3d;
-        sam.metadata().colorMap = metadata.colorMap;
-        sam.metadata().additionalSegmentTableNames = metadata.additionalSegmentTableNames;
-    }
-
     public void addSourceToPanelAndViewer( String sourceName )
     {
         if ( ! getSourceNames().contains( sourceName ) )

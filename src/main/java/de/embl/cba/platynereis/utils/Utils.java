@@ -45,6 +45,7 @@ public class Utils
 		return nums;
 	}
 
+	@Deprecated // use ColorUtils instead
 	public static Color getColor(String name) {
 		try {
 			return (Color)Color.class.getField(name.toUpperCase()).get(null);
