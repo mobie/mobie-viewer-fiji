@@ -3,8 +3,11 @@ package de.embl.cba.platynereis.bookmark;
 
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.platynereis.image.ImagePropertiesToMetadataAdapter;
+import de.embl.cba.platynereis.image.MutableImageProperties;
 import de.embl.cba.platynereis.platybrowser.SourcesPanel;
 import de.embl.cba.platynereis.bdv.BdvViewChanger;
+import de.embl.cba.tables.image.SourceAndMetadata;
 
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +27,7 @@ public class BookmarksManager
 	{
 		final Bookmark bookmark = nameToBookmark.get( bookmarkId );
 
-		if ( bookmark.nameToMetadata.size() > 0 )
+		if ( bookmark.layers.size() > 0 )
 		{
 			sourcesPanel.removeAllSourcesFromPanelAndViewers();
 		}
@@ -35,11 +38,24 @@ public class BookmarksManager
 
 	public void addSourcesToPanelAndViewer( Bookmark bookmark )
 	{
-		for ( Metadata metadata : bookmark.nameToMetadata.values() )
+		for ( Map.Entry< String, MutableImageProperties> entry : bookmark.layers.entrySet() )
 		{
-			if ( ! sourcesPanel.getVisibleSourceNames().contains( metadata.displayName ) )
+			final String sourceName = entry.getKey();
+			if ( ! sourcesPanel.getVisibleSourceNames().contains( sourceName ) )
+			{
+				final Metadata metadata = getAndUpdateSourceMetadata( entry, sourceName );
 				sourcesPanel.addSourceToPanelAndViewer( metadata );
+			}
+
 		}
+	}
+
+	public Metadata getAndUpdateSourceMetadata( Map.Entry< String, MutableImageProperties > entry, String sourceName )
+	{
+		final Metadata metadata = sourcesPanel.getImageSourcesModel().sources().get( sourceName ).metadata();
+		final ImagePropertiesToMetadataAdapter adapter = new ImagePropertiesToMetadataAdapter();
+		adapter.setMetadata( metadata, entry.getValue() );
+		return metadata;
 	}
 
 	/**
@@ -51,14 +67,12 @@ public class BookmarksManager
 	 */
 	public void adaptViewerTransform( Bookmark bookmark )
 	{
-		if ( bookmark.transform != null )
-			BdvViewChanger.moveToDoubles( sourcesPanel.getBdv(), bookmark.transform );
+		if ( bookmark.view != null )
+			BdvViewChanger.moveToDoubles( sourcesPanel.getBdv(), bookmark.view );
 
 		if ( bookmark.position != null )
 		{
-			BdvUtils.moveToPosition( sourcesPanel.getBdv(),
-					bookmark.position.stream().mapToDouble( d -> d ).toArray(),
-					0, 3000 );
+			BdvUtils.moveToPosition( sourcesPanel.getBdv(), bookmark.position, 0, 3000 );
 //			BdvViewChanger.enablePointOverlay( false );
 //			BdvViewChanger.moveToDoubles( sourcesPanel.getBdv(), bookmark.position );
 //			BdvViewChanger.enablePointOverlay( true );

@@ -91,8 +91,8 @@ public class BookmarksParser
 	private Map< String, Bookmark > readBookmarks() throws IOException
 	{
 		final ArrayList< String > bookmarkFiles = fetchBookmarkPaths();
-		final Map< String, Bookmark > stringBookmarkMap = parseBookmarks( bookmarkFiles );
-		return stringBookmarkMap;
+		final Map< String, Bookmark > nameToBookmark = parseBookmarks( bookmarkFiles );
+		return nameToBookmark;
 	}
 
 	private Map< String, Bookmark > parseBookmarks( ArrayList< String > bookmarksFiles ) throws IOException
