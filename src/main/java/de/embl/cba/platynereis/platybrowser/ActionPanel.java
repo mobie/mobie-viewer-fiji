@@ -527,7 +527,7 @@ public class ActionPanel extends JPanel
 
 	private void switchDataset( String dataset )
 	{
-		new MoBIEViewer( dataset, datasets, moBIEViewer.getProjectImagesLocation(), moBIEViewer.getProjectTablesLocation() );
+		new MoBIEViewer( moBIEViewer.getProjectImagesLocation(), moBIEViewer.getProjectTablesLocation(), dataset );
 		moBIEViewer.close();
 	}
 

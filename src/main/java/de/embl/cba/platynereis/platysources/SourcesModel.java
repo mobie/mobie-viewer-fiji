@@ -116,6 +116,7 @@ public class SourcesModel implements ImageSourcesModel
 
 	}
 
+	// TODO: remove this. Should an LayerPropertiesToMetadataAdaptor
 	public Metadata getMetadata( String imageId, LinkedTreeMap imageAttributes )
 	{
 		final Metadata metadata = new Metadata( imageId );

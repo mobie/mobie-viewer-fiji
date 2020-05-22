@@ -22,11 +22,8 @@ public class OpenCustomBrowserCommand implements Command
 	@Override
 	public void run()
 	{
-		final ArrayList< String > datasets = new DatasetsParser().datasetsFromDataSource( imagesLocation );
-
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
-				datasets.get( datasets.size() - 1 ),
-				datasets, imagesLocation,
+				imagesLocation,
 				tablesLocation );
 	}
 

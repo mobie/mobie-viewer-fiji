@@ -1,16 +1,16 @@
-package headless;
+package repos;
 
 import de.embl.cba.platynereis.platybrowser.MoBIEViewer;
 import net.imagej.ImageJ;
 
-public class OpenPlatyBrowserUnsignedLong
+public class OpenLocalAutophagosomesEM
 {
 	public static void main( String[] args )
 	{
 		new ImageJ().ui().showUI();
 
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
-				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
-				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data" );
+				"/g/kreshuk/pape/work/my_projects/autophagosoms-clem/data",
+				"https://github.com/constantinpape/autophagosomes-clem" );
 	}
 }

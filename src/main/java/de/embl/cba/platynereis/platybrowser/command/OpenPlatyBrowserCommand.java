@@ -17,13 +17,7 @@ public class OpenPlatyBrowserCommand implements Command
 	@Override
 	public void run()
 	{
-		final ArrayList< String > datasets = new DatasetsParser().datasetsFromDataSource( remoteGitLocation );
-
-		final String defaultDataset = datasets.get( datasets.size() - 1 );
-
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
-				defaultDataset,
-				datasets,
 				remoteGitLocation,
 				remoteGitLocation );
 

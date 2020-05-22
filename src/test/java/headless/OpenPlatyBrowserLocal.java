@@ -10,8 +10,7 @@ public class OpenPlatyBrowserLocal
 		new ImageJ().ui().showUI();
 
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
-				"0.6.6",
-				null, "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
+				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data" );
 	}
 }

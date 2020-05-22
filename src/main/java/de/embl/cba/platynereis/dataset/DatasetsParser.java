@@ -1,15 +1,17 @@
 package de.embl.cba.platynereis.dataset;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
 import de.embl.cba.platynereis.json.JsonUtils;
 import de.embl.cba.platynereis.utils.FileAndUrlUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.io.InputStreamReader;
 
 public class DatasetsParser
 {
-	public ArrayList< String > datasetsFromDataSource( String dataSourceLocation )
+	public Datasets datasetsFromDataSource( String dataSourceLocation )
 	{
 		try
 		{
@@ -29,12 +31,23 @@ public class DatasetsParser
 		}
 	}
 
-	private ArrayList< String > datasetsFromFile( String path ) throws IOException
+	private Datasets datasetsFromFile( String path ) throws IOException
 	{
 		InputStream is = FileAndUrlUtils.getInputStream( path );
 
-		final ArrayList< String > datasets = JsonUtils.readStringArray( is );
-
-		return datasets;
+		try{
+			final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
+			GsonBuilder builder = new GsonBuilder();
+			Datasets datasets = builder.create().fromJson( reader, Datasets.class);
+			return datasets;
+		}
+		catch ( Exception e )
+		{
+			// old version
+			final Datasets datasets = new Datasets();
+			datasets.datasets = JsonUtils.readStringArray( is );
+			datasets.defaultDataset = datasets.datasets.get( 0 );
+			return datasets;
+		}
 	}
 }

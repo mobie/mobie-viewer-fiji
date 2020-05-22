@@ -3,6 +3,8 @@ package de.embl.cba.platynereis.platybrowser;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
+import de.embl.cba.platynereis.dataset.Datasets;
+import de.embl.cba.platynereis.dataset.DatasetsParser;
 import de.embl.cba.platynereis.platysources.SourcesModel;
 import de.embl.cba.platynereis.bookmark.Bookmark;
 import de.embl.cba.platynereis.bookmark.BookmarksParser;
@@ -34,20 +36,36 @@ public class MoBIEViewer
 
 	private int frameWidth;
 	private BookmarksManager bookmarksManager;
-	private ArrayList< String > datasets;
+	private Datasets datasets;
 	private final double[] levelingVector;
 	private final JFrame jFrame;
 
 	public MoBIEViewer(
-			String dataset,
-			ArrayList< String > datasets,
 			String projectImagesLocation,
 			String projectTablesLocation ) throws HeadlessException
 	{
+			this( projectImagesLocation, projectTablesLocation, null );
+	}
+
+
+	public MoBIEViewer(
+			String projectImagesLocation,
+			String projectTablesLocation,
+			String dataset )
+	{
 		this.dataset = dataset;
-		this.datasets = datasets;
 		this.projectImagesLocation = projectImagesLocation;
 		this.projectTablesLocation = projectTablesLocation;
+
+		initDatasetLocations( projectImagesLocation, projectTablesLocation );
+
+		this.datasets = new DatasetsParser().datasetsFromDataSource( imagesLocation );
+
+		if ( dataset == null )
+		{
+			dataset = datasets.defaultDataset;
+		}
+
 		configureDatasetLocations( dataset, projectImagesLocation, projectTablesLocation );
 
 		sourcesModel = new SourcesModel( imagesLocation, tablesLocation );
@@ -95,7 +113,7 @@ public class MoBIEViewer
 
 	public ArrayList< String > getDatasets()
 	{
-		return datasets;
+		return datasets.datasets;
 	}
 
 	public BookmarksManager getBookmarksManager()
@@ -125,6 +143,17 @@ public class MoBIEViewer
 
 	public void configureDatasetLocations( String dataSet, String aImageDataLocation, String aTableDataLocation )
 	{
+		imagesLocation = FileAndUrlUtils.combinePath( imagesLocation, dataSet );
+		tablesLocation = FileAndUrlUtils.combinePath( tablesLocation, dataSet );
+
+		Utils.log( "");
+		Utils.log( "# Fetching data");
+		Utils.log( "Fetching image data from: " + imagesLocation );
+		Utils.log( "Fetching table data from: " + tablesLocation );
+	}
+
+	public void initDatasetLocations( String aImageDataLocation, String aTableDataLocation )
+	{
 		this.imagesLocation = aImageDataLocation;
 		this.tablesLocation = aTableDataLocation;
 
@@ -133,14 +162,6 @@ public class MoBIEViewer
 
 		imagesLocation = adaptUrl( imagesLocation );
 		tablesLocation = adaptUrl( tablesLocation );
-
-		imagesLocation = FileAndUrlUtils.combinePath( imagesLocation, dataSet );
-		tablesLocation = FileAndUrlUtils.combinePath( tablesLocation, dataSet );
-
-		Utils.log( "");
-		Utils.log( "# Fetching data");
-		Utils.log( "Fetching image data from: " + imagesLocation );
-		Utils.log( "Fetching table data from: " + tablesLocation );
 	}
 
 	public String adaptUrl( String url )

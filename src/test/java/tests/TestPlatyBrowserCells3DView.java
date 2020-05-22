@@ -17,8 +17,7 @@ public class TestPlatyBrowserCells3DView
 		new ImageJ().ui().showUI();
 
 		final MoBIEViewer mainFrame = new MoBIEViewer(
-				"0.2.1",
-				null, "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
+				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data" );
 
 		final SourcesPanel sourcesPanel = mainFrame.getSourcesPanel();
