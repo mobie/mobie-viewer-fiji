@@ -62,7 +62,7 @@
 		<system>None</system>
 	</ciManagement>
 	<properties>
-		<package-name>de.embl.cba.platynereis</package-name>
+		<package-name>de.embl.cba.mobie</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<imagej.app.directory>/Applications/Fiji.app/</imagej.app.directory>
@@ -96,7 +96,7 @@
 			<!--							<archive>-->
 			<!--								<manifest>-->
 			<!--									<mainClass>-->
-			<!--										de.embl.cba.platynereis.platybrowser.OpenBrowser-->
+			<!--										de.embl.cba.mobiebrowser.OpenBrowser-->
 			<!--									</mainClass>-->
 			<!--								</manifest>-->
 			<!--							</archive>-->

@@ -1,7 +1,7 @@
 package tests;
 
-import de.embl.cba.platynereis.platybrowser.MoBIEViewer;
-import de.embl.cba.platynereis.platybrowser.SourcesPanel;
+import de.embl.cba.mobie.platybrowser.MoBIEViewer;
+import de.embl.cba.mobie.platybrowser.SourcesPanel;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;

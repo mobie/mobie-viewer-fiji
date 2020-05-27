@@ -1,6 +1,6 @@
 package tests;
 
-import de.embl.cba.platynereis.utils.Utils;
+import de.embl.cba.mobie.utils.Utils;
 import org.junit.Test;
 
 import java.awt.*;

@@ -1,10 +1,7 @@
 package repos;
 
-import de.embl.cba.platynereis.dataset.DatasetsParser;
-import de.embl.cba.platynereis.platybrowser.MoBIEViewer;
+import de.embl.cba.mobie.platybrowser.MoBIEViewer;
 import net.imagej.ImageJ;
-
-import java.util.ArrayList;
 
 public class OpenRemoteAutophagosomesEM
 {

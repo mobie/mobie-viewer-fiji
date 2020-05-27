@@ -1,6 +1,6 @@
 package users.sultan;
 
-import de.embl.cba.platynereis.utils.BatchApplyAmiraTransformationsToBdvXml;
+import de.embl.cba.mobie.utils.BatchApplyAmiraTransformationsToBdvXml;
 
 import java.io.IOException;
 
