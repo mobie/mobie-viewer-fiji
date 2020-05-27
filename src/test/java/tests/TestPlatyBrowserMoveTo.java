@@ -1,6 +1,6 @@
 package tests;
 
-import de.embl.cba.mobie.platybrowser.MoBIEViewer;
+import de.embl.cba.mobie.viewer.MoBIEViewer;
 import net.imagej.ImageJ;
 
 public class TestPlatyBrowserMoveTo

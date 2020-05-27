@@ -10,4 +10,6 @@ public class Constants
 	public static final CharSequence PROSPR = "prospr-" ;
 
 	public static final CharSequence SPM = "-SPM";
+	public static final String COLUMN_NAME_LABEL_IMAGE_ID = "label_image_id";
+	public static final String COLUMN_NAME_SEGMENT_LABEL_ID = "label_id";
 }

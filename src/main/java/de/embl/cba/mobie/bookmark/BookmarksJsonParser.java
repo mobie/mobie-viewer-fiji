@@ -5,12 +5,14 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import de.embl.cba.mobie.github.GitHubUtils;
-import de.embl.cba.mobie.github.GitLocation;
-import de.embl.cba.mobie.platysources.SourcesModel;
+import de.embl.cba.tables.github.GitHubUtils;
+import de.embl.cba.tables.github.GitLocation;
+import de.embl.cba.mobie.image.SourcesModel;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.github.GitHubContentGetter;
+import de.embl.cba.tables.github.GitHubUtils;
+import de.embl.cba.tables.github.GitLocation;
 
 import java.io.File;
 import java.io.IOException;

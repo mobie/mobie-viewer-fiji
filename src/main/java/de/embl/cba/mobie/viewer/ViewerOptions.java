@@ -1,6 +1,4 @@
-package de.embl.cba.mobie.platybrowser;
-
-import bdv.util.BdvOptions;
+package de.embl.cba.mobie.viewer;
 
 public class ViewerOptions
 {

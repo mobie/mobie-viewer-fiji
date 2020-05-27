@@ -5,7 +5,7 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.MutableImageProperties;
-import de.embl.cba.mobie.platybrowser.SourcesPanel;
+import de.embl.cba.mobie.viewer.SourcesPanel;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 
 import java.util.Map;

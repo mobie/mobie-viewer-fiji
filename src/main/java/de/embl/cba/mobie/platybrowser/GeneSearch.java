@@ -1,7 +1,8 @@
-package de.embl.cba.mobie;
+package de.embl.cba.mobie.platybrowser;
 
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.image.ImageSourcesModel;

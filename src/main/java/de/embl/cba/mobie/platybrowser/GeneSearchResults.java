@@ -1,4 +1,4 @@
-package de.embl.cba.mobie;
+package de.embl.cba.mobie.platybrowser;
 
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.TableUIs;

@@ -1,13 +1,11 @@
-package de.embl.cba.mobie.platybrowser;
+package de.embl.cba.mobie.viewer;
 
-import bdv.util.BdvFunctions;
-import bdv.util.BdvOptions;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
 import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.dataset.DatasetsParser;
-import de.embl.cba.mobie.platysources.SourcesModel;
+import de.embl.cba.mobie.image.SourcesModel;
 import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.bookmark.BookmarksJsonParser;
 import de.embl.cba.mobie.bookmark.BookmarksManager;

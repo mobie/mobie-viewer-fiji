@@ -1,7 +1,7 @@
 package headless;
 
-import de.embl.cba.mobie.platybrowser.MoBIEViewer;
-import de.embl.cba.mobie.platybrowser.SourcesPanel;
+import de.embl.cba.mobie.viewer.MoBIEViewer;
+import de.embl.cba.mobie.viewer.SourcesPanel;
 import net.imagej.ImageJ;
 
 public class OpenPlatyBrowserLocalImageLocalTable

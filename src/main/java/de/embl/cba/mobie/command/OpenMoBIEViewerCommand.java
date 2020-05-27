@@ -1,19 +1,19 @@
 package de.embl.cba.mobie.command;
 
-import de.embl.cba.mobie.platybrowser.MoBIEViewer;
+import de.embl.cba.mobie.viewer.MoBIEViewer;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>MMB>CustomBrowser" )
-public class OpenCustomBrowserCommand implements Command
+@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>View Datasets..." )
+public class OpenMoBIEViewerCommand implements Command
 {
-	@Parameter ( label = "Image Data Location", style = "directory" )
+	@Parameter ( label = "Images Location", style = "directory" )
 	public String imagesLocation = "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data";
 
-	@Parameter ( label = "Table Data Location" )
+	@Parameter ( label = "Tables Location" )
 	public String tablesLocation = "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data";
 
 	@Override
@@ -29,6 +29,6 @@ public class OpenCustomBrowserCommand implements Command
 		final ImageJ ij = new ImageJ();
 		ij.ui().showUI();
 
-		ij.command().run( OpenCustomBrowserCommand.class, true );
+		ij.command().run( OpenMoBIEViewerCommand.class, true );
 	}
 }

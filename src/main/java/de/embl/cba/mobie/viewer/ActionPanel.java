@@ -1,14 +1,15 @@
-package de.embl.cba.mobie.platybrowser;
+package de.embl.cba.mobie.viewer;
 
 import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.behaviour.BdvBehaviours;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.mobie.GeneSearch;
-import de.embl.cba.mobie.GeneSearchResults;
+import de.embl.cba.mobie.platybrowser.GeneSearch;
+import de.embl.cba.mobie.platybrowser.GeneSearchResults;
 import de.embl.cba.mobie.bookmark.BookmarksManager;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
+import de.embl.cba.mobie.platybrowser.PlatyBrowserHelp;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;

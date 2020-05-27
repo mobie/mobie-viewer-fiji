@@ -3,7 +3,7 @@ package de.embl.cba.mobie.utils;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
-import de.embl.cba.mobie.Globals;
+import de.embl.cba.mobie.Constants;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.Tables;
@@ -296,7 +296,7 @@ public class Utils
 
 		TableColumns.addLabelImageIdColumn(
 				columns,
-				Globals.COLUMN_NAME_LABEL_IMAGE_ID,
+				Constants.COLUMN_NAME_LABEL_IMAGE_ID,
 				imageId );
 
 		final Map< SegmentProperty, List< String > > segmentPropertyToColumn
@@ -349,11 +349,11 @@ public class Utils
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.LabelImage,
-				columns.get( Globals.COLUMN_NAME_LABEL_IMAGE_ID ));
+				columns.get( Constants.COLUMN_NAME_LABEL_IMAGE_ID ));
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.ObjectLabel,
-				columns.get( Globals.COLUMN_NAME_SEGMENT_LABEL_ID ) );
+				columns.get( Constants.COLUMN_NAME_SEGMENT_LABEL_ID ) );
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.X,

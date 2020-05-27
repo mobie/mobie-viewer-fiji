@@ -1,6 +1,6 @@
 package repos;
 
-import de.embl.cba.mobie.platybrowser.MoBIEViewer;
+import de.embl.cba.mobie.viewer.MoBIEViewer;
 
 public class OpenCovidEM
 {

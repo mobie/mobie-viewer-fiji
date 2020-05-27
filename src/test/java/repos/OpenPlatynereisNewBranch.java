@@ -1,9 +1,7 @@
 package repos;
 
-import de.embl.cba.mobie.platybrowser.MoBIEViewer;
-import de.embl.cba.mobie.platybrowser.ViewerOptions;
-
-import javax.swing.text.View;
+import de.embl.cba.mobie.viewer.MoBIEViewer;
+import de.embl.cba.mobie.viewer.ViewerOptions;
 
 public class OpenPlatynereisNewBranch
 {

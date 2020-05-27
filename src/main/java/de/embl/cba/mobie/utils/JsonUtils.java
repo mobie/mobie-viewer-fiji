@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.json;
+package de.embl.cba.mobie.utils;
 
 import com.google.gson.stream.JsonReader;
 

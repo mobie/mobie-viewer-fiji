@@ -1,6 +1,6 @@
-package de.embl.cba.mobie.platybrowser;
+package de.embl.cba.mobie.viewer;
 
-public class OpenBrowser
+public class OpenViewer
 {
 	/**
 	 * Open PlatyBrowser from command line

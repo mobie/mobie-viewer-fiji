@@ -2,7 +2,7 @@ package de.embl.cba.mobie.dataset;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
-import de.embl.cba.mobie.json.JsonUtils;
+import de.embl.cba.mobie.utils.JsonUtils;
 import de.embl.cba.tables.FileAndUrlUtils;
 
 import java.io.IOException;

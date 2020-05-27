@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.platysources;
+package de.embl.cba.mobie.image;
 
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;

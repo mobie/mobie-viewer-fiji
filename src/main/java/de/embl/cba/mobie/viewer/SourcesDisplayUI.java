@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.platybrowser;
+package de.embl.cba.mobie.viewer;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvStackSource;

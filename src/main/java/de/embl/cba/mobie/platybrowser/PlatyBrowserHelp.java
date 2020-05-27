@@ -1,13 +1,13 @@
 package de.embl.cba.mobie.platybrowser;
 
 import bdv.tools.HelpDialog;
+import de.embl.cba.mobie.viewer.MoBIEViewer;
 import de.embl.cba.tables.Help;
 
 public class PlatyBrowserHelp
 {
-
 	public static final String BIG_DATA_VIEWER = "bigdataviewer";
-	public static final String PLATY_BROWSER = "platybrowser";
+	public static final String PLATY_BROWSER = "viewer";
 	public static final String SEGMENTATIONS = "segmentations";
 
 	public static void showHelp( String selectedItem )
@@ -36,7 +36,4 @@ public class PlatyBrowserHelp
 		HelpDialog helpDialog = new HelpDialog( null, MoBIEViewer.class.getResource( "/BdvHelp.html" ) );
 		helpDialog.setVisible( true );
 	}
-
-
-
 }

@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.platybrowser;
+package de.embl.cba.mobie.viewer;
 
 import bdv.util.*;
 import bdv.viewer.Interpolation;
@@ -7,12 +7,10 @@ import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.Constants;
-import de.embl.cba.mobie.Globals;
-import de.embl.cba.mobie.platysources.SourcesModel;
+import de.embl.cba.mobie.image.SourcesModel;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.ij3d.UniverseUtils;
@@ -489,7 +487,7 @@ public class SourcesPanel extends JPanel
 
         final String tablesLocation = FileAndUrlUtils.getParentLocation( sam.metadata().segmentsTablePath );
         tableRowsTableView.setTablesForMergingDirectory( tablesLocation );
-        tableRowsTableView.setMergeByColumnName( Globals.COLUMN_NAME_SEGMENT_LABEL_ID );
+        tableRowsTableView.setMergeByColumnName( Constants.COLUMN_NAME_SEGMENT_LABEL_ID );
 
         mergeDefaultTableWithAdditionalTables( sam, tableRowsTableView, tablesLocation );
 
@@ -526,10 +524,10 @@ public class SourcesPanel extends JPanel
             final Map< String, List< String > > newColumns =
                     TableColumns.openAndOrderNewColumns(
                         tableRowsTableView.getTable(),
-                        Globals.COLUMN_NAME_SEGMENT_LABEL_ID,
+                        Constants.COLUMN_NAME_SEGMENT_LABEL_ID,
                         newTablePath );
 
-            newColumns.remove( Globals.COLUMN_NAME_SEGMENT_LABEL_ID );
+            newColumns.remove( Constants.COLUMN_NAME_SEGMENT_LABEL_ID );
             tableRowsTableView.addColumns( newColumns );
         }
     }
