@@ -42,6 +42,16 @@ public class MoBIEViewer
 	private String gitBranch;
 	private String projectName;
 
+	public MoBIEViewer( String projectLocation ) throws HeadlessException
+	{
+		this( projectLocation, projectLocation, ViewerOptions.options() );
+	}
+
+	public MoBIEViewer( String projectLocation, ViewerOptions options ) throws HeadlessException
+	{
+		this( projectLocation, projectLocation, options );
+	}
+
 	public MoBIEViewer(
 			String projectImagesLocation,
 			String projectTablesLocation ) throws HeadlessException

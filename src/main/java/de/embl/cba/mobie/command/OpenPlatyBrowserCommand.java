@@ -16,6 +16,5 @@ public class OpenPlatyBrowserCommand implements Command
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				remoteGitLocation,
 				remoteGitLocation );
-
 	}
 }
