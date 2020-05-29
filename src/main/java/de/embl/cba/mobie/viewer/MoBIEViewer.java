@@ -40,6 +40,7 @@ public class MoBIEViewer
 	private final double[] levelingVector;
 	private final JFrame jFrame;
 	private String gitBranch;
+	private String projectName;
 
 	public MoBIEViewer(
 			String projectImagesLocation,
@@ -53,6 +54,7 @@ public class MoBIEViewer
 			String projectTablesLocation,
 			ViewerOptions options )
 	{
+		this.projectName = de.embl.cba.mobie.utils.FileAndUrlUtils.getName( projectImagesLocation );
 		this.dataset = options.values.getDataset();
 		this.gitBranch = options.values.getGitBranch();
 		this.projectImagesLocation = projectImagesLocation;
@@ -77,7 +79,7 @@ public class MoBIEViewer
 
 		actionPanel = new ActionPanel( this );
 
-		jFrame = new JFrame( "MoBIE: " + dataset );
+		jFrame = new JFrame( "MoBIE: " + projectName + "-" + dataset );
 		showFrame( jFrame );
 		jFrame.setJMenuBar( createJMenuBar() );
 		adaptLogWindowPositionAndSize();

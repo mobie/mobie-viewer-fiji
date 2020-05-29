@@ -27,6 +27,13 @@ public class ActionPanel extends JPanel
 {
 	public static final int TEXT_FIELD_HEIGHT = 20;
 	public static final int COMBOBOX_WIDTH = 270;
+	public static final String BUTTON_LABEL_VIEW = "view";
+	public static final String BUTTON_LABEL_MOVE = "move";
+	public static final String BUTTON_LABEL_HELP = "help";
+	public static final String BUTTON_LABEL_SWITCH = "switch";
+	public static final Dimension BUTTON_DIMENSION = new Dimension( 80, 10 );
+	public static final String BUTTON_LABEL_LEVEL = "level";
+	public static final String BUTTON_LABEL_ADD = "add";
 
 	private final SourcesPanel sourcesPanel;
 	private BdvHandle bdv;
@@ -379,8 +386,8 @@ public class ActionPanel extends JPanel
 
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton addToView = new JButton( "add");
-		addToView.addActionListener( e ->
+		final JButton button = getButton( BUTTON_LABEL_ADD );
+		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
 			{
@@ -402,7 +409,7 @@ public class ActionPanel extends JPanel
 
 		horizontalLayoutPanel.add( comp );
 		horizontalLayoutPanel.add( comboBox );
-		horizontalLayoutPanel.add( addToView );
+		horizontalLayoutPanel.add( button );
 
 		panel.add( horizontalLayoutPanel );
 	}
@@ -425,8 +432,8 @@ public class ActionPanel extends JPanel
 
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton levelCurrentView = new JButton( "level" );
-		horizontalLayoutPanel.add( levelCurrentView );
+		final JButton button = getButton( BUTTON_LABEL_LEVEL );
+		horizontalLayoutPanel.add( button );
 
 		final JButton changeReference = new JButton( "Set new level vector" );
 //		horizontalLayoutPanel.add( changeReference );
@@ -444,7 +451,7 @@ public class ActionPanel extends JPanel
 			Utils.logVector( "New reference normal vector (default): ", levelingVector );
 		} );
 
-		levelCurrentView.addActionListener( e -> BdvUtils.levelCurrentView( bdv, targetNormalVector ) );
+		button.addActionListener( e -> BdvUtils.levelCurrentView( bdv, targetNormalVector ) );
 
 		panel.add( horizontalLayoutPanel );
 	}
@@ -453,26 +460,34 @@ public class ActionPanel extends JPanel
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton viewButton = new JButton( "view" );
+		final JButton button = getButton( BUTTON_LABEL_VIEW );
 
 		final String[] bookmarkNames = getBookmarkNames();
 
 		final JComboBox< String > comboBox = new JComboBox<>( bookmarkNames );
 		setComboBoxDimensions( comboBox );
-		viewButton.addActionListener( e -> bookmarksManager.setView( ( String ) comboBox.getSelectedItem() ) );
+		button.addActionListener( e -> bookmarksManager.setView( ( String ) comboBox.getSelectedItem() ) );
 
 		horizontalLayoutPanel.add( getJLabel( "bookmark" ) );
 		horizontalLayoutPanel.add( comboBox );
-		horizontalLayoutPanel.add( viewButton );
+		horizontalLayoutPanel.add( button );
 
 		panel.add( horizontalLayoutPanel );
+	}
+
+	private JButton getButton( String buttonLabel )
+	{
+		final JButton button = new JButton( buttonLabel );
+		// button.setPreferredSize( BUTTON_DIMENSION ); // TODO
+		return button;
 	}
 
 	private void addMoveToUI( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = new JButton( "move" );
+		final JButton button = getButton( BUTTON_LABEL_MOVE );
+
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, 20 ) );
 		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, 20 ) );
@@ -489,7 +504,8 @@ public class ActionPanel extends JPanel
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = new JButton( "help" );
+		final JButton button = getButton( BUTTON_LABEL_HELP );
+
 
 		final String[] choices = {
 				PlatyBrowserHelp.BIG_DATA_VIEWER,
@@ -511,10 +527,11 @@ public class ActionPanel extends JPanel
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = new JButton( "switch" );
+		final JButton button = getButton( BUTTON_LABEL_SWITCH );
 
 		final String[] choices = datasets.stream().toArray( String[]::new );
 		final JComboBox< String > comboBox = new JComboBox<>( choices );
+		comboBox.setSelectedItem( moBIEViewer.getDataset() );
 		setComboBoxDimensions( comboBox );
 		button.addActionListener( e -> switchDataset( ( String ) comboBox.getSelectedItem() ) );
 		comboBox.setPrototypeDisplayValue( MoBIEViewer.PROTOTYPE_DISPLAY_VALUE  );
