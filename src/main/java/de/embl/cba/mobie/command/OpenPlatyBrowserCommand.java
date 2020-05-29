@@ -8,7 +8,7 @@ import org.scijava.plugin.Plugin;
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open PlatyBrowser")
 public class OpenPlatyBrowserCommand implements Command
 {
-	public static final String remoteGitLocation = "https://raw.githubusercontent.com/platybrowser/platybrowser-backend/master/data";
+	public static final String remoteGitLocation = "https://github.com/platybrowser/platybrowser";
 
 	@Override
 	public void run()

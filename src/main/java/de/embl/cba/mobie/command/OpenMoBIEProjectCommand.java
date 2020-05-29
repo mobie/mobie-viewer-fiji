@@ -10,25 +10,14 @@ import org.scijava.plugin.Plugin;
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open MoBIE Project..." )
 public class OpenMoBIEProjectCommand implements Command
 {
-	@Parameter ( label = "Images Location", style = "directory" )
-	public String imagesLocation = "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data";
-
-	@Parameter ( label = "Tables Location" )
-	public String tablesLocation = "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data";
+	@Parameter ( label = "Project Location" )
+	public String projectLocation = "https://github.com/platybrowser/platybrowser";
 
 	@Override
 	public void run()
 	{
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
-				imagesLocation,
-				tablesLocation );
-	}
-
-	public static void main(final String... args)
-	{
-		final ImageJ ij = new ImageJ();
-		ij.ui().showUI();
-
-		ij.command().run( OpenMoBIEProjectCommand.class, true );
+				projectLocation,
+				projectLocation );
 	}
 }

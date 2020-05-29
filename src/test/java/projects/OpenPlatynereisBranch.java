@@ -10,6 +10,6 @@ public class OpenPlatynereisBranch
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				"https://github.com/platybrowser/platybrowser",
 				"https://github.com/platybrowser/platybrowser",
-				ViewerOptions.options().gitBranch( "mobie" ) );
+				ViewerOptions.options().gitBranch( "master" ) );
 	}
 }
