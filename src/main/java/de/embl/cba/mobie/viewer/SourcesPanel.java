@@ -492,7 +492,7 @@ public class SourcesPanel extends JPanel
         mergeDefaultTableWithAdditionalTables( sam, tableRowsTableView, tablesLocation );
 
         // select segments
-        if ( sam.metadata().selectedSegmentIds.size() > 0 )
+        if ( sam.metadata().selectedSegmentIds != null && sam.metadata().selectedSegmentIds.size() > 0 )
         {
             // TODO: in table-utils: the selection should not be part of any specific view
             views.getSegmentsBdvView().select( sam.metadata().selectedSegmentIds );

@@ -1,4 +1,4 @@
-package publication;
+package publication.platybrowser;
 
 import bdv.util.*;
 import bdv.viewer.Interpolation;

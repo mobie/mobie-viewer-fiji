@@ -1,4 +1,4 @@
-package repos;
+package projects;
 
 import de.embl.cba.mobie.viewer.MoBIEViewer;
 

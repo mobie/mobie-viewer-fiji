@@ -1,4 +1,4 @@
-package publication;
+package publication.platybrowser;
 
 import de.embl.cba.mobie.viewer.MoBIEViewer;
 import de.embl.cba.mobie.viewer.SourcesPanel;
@@ -6,7 +6,7 @@ import net.imagej.ImageJ;
 
 import java.awt.*;
 
-public class RegistrationVisualisationMuscles
+public class RegistrationVisualisationNeuropil
 {
 	public static void main( String[] args )
 	{
@@ -18,18 +18,16 @@ public class RegistrationVisualisationMuscles
 
 		final SourcesPanel sourcesPanel = moBIEViewer.getSourcesPanel();
 
-		sourcesPanel.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-muscles" );
-		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-MHCL4-MED" );
-		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-ENR22-MED" );
+		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-segmented-aridane-Neuropil" );
+		sourcesPanel.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-Glt1-MED" );
 
-		sourcesPanel.setSourceColor( "sbem-6dpf-1-whole-segmented-muscles", new Color( 255,0,255,255) );
-		sourcesPanel.setSourceColor( "prospr-6dpf-1-whole-MHCL4-MED", new Color( 0,255,0,255) );
-		sourcesPanel.setSourceColor( "prospr-6dpf-1-whole-ENR22-MED", new Color( 0,255,0,255) );
+		sourcesPanel.setSourceColor( "prospr-6dpf-1-whole-segmented-aridane-Neuropil", new Color( 255,0,255,255) );
+		sourcesPanel.setSourceColor( "prospr-6dpf-1-whole-Glt1-MED", new Color( 0,255,0,255) );
 
 
 		// OVERVIEW
 
-		moBIEViewer.getActionPanel().setView( "View: (-0.747871017528087, -0.6676436522042726, 2.0869538546605892, 291.53347494758805, 1.4642245659643167, -1.7927905904117456, -0.04882433847545138, 337.95348110873715, 1.6300830832316395, 1.3040664665853112, 1.0013367511280067, -535.9999606550252)" );
+		moBIEViewer.getActionPanel().setView( "View: (-0.7478710175280877, -0.6676436522042725, 2.086953854660592, 291.5334749475883, 1.4642245659643176, -1.7927905904117467, -0.048824338475451055, 337.95348110873744, 1.6300830832316395, 1.3040664665853117, 1.0013367511280067, -516.0999606550258)" );
 
 		// TODO: get this via keyboard shortcut
 		moBIEViewer.getActionPanel().setVolumeView("center =  1.0 0.0 0.0 122.88 0.0 1.0 0.0 122.88 0.0 0.0 1.0 140.40001 0.0 0.0 0.0 1.0\n" +
@@ -41,7 +39,7 @@ public class RegistrationVisualisationMuscles
 
 
 		// DETAIL ZOOM
-		// View: (-6.099350109804703, -5.3990077927603535, 18.614782509183787, -202.73480935758062, 12.078494318540145, -16.320823077240274, -0.7760115017778567, 117.84084743329208, 15.158145929086958, 10.832494343760871, 8.108585761855771, -4294.781037288093)
+		// View: (-5.457887183190528, 6.892455295688354, -0.09128822640025808, 243.5120593221493, -3.0323636942634073, -2.2962312393397, 7.926846697708436, 869.0433860416233, 6.19023779584073, 4.952190236672585, 3.8025746460164447, -2153.870206057355)
 
 
 

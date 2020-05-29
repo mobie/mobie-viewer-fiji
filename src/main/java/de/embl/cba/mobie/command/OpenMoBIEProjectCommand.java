@@ -7,8 +7,8 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>View Datasets..." )
-public class OpenMoBIEViewerCommand implements Command
+@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open MoBIE Project..." )
+public class OpenMoBIEProjectCommand implements Command
 {
 	@Parameter ( label = "Images Location", style = "directory" )
 	public String imagesLocation = "/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data";
@@ -29,6 +29,6 @@ public class OpenMoBIEViewerCommand implements Command
 		final ImageJ ij = new ImageJ();
 		ij.ui().showUI();
 
-		ij.command().run( OpenMoBIEViewerCommand.class, true );
+		ij.command().run( OpenMoBIEProjectCommand.class, true );
 	}
 }

@@ -8,9 +8,9 @@
 	</parent>
 	<artifactId>mobie</artifactId>
 	<version>0.5.0</version>
-	<url>https://github.com/platybrowser/mmb-fiji</url>
-	<name>Fiji Plugin Platynereis Viewer</name>
-	<description>TODO</description>
+	<url>https://github.com/platybrowser/mobie-viewer-fiji</url>
+	<name>MoBIE Fiji Viewer</name>
+	<description>Fiji viewer for MoBIE projects</description>
 	<inceptionYear>2018</inceptionYear>
 	<organization>
 		<name>EMBL</name>
@@ -48,14 +48,14 @@
 		</mailingList>
 	</mailingLists>
 	<scm>
-		<connection>scm:git:git://github.com/platybrowser/mmb-fiji</connection>
-		<developerConnection>scm:git:git@github.com/platybrowser/mmb-fiji</developerConnection>
+		<connection>scm:git:git://github.com/platybrowser/mobie-viewer-fiji</connection>
+		<developerConnection>scm:git:git@github.com/platybrowser/mobie-viewer-fiji</developerConnection>
 		<tag>HEAD</tag>
-		<url>https://github.com/platybrowser/mmb-fiji</url>
+		<url>https://github.com/platybrowser/mobie-viewer-fiji</url>
 	</scm>
 	<issueManagement>
 		<system>GitHub</system>
-		<url>https://github.com/platybrowser/mmb-fiji/issues</url>
+		<url>https://github.com/platybrowser/mobie-viewer-fiji/issues</url>
 	</issueManagement>
 	<ciManagement>
 		<system>None</system>

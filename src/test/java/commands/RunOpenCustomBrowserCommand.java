@@ -1,6 +1,6 @@
 package commands;
 
-import de.embl.cba.mobie.command.OpenMoBIEViewerCommand;
+import de.embl.cba.mobie.command.OpenMoBIEProjectCommand;
 import net.imagej.ImageJ;
 
 public class RunOpenCustomBrowserCommand
@@ -10,6 +10,6 @@ public class RunOpenCustomBrowserCommand
 		final ImageJ ij = new ImageJ();
 		ij.ui().showUI();
 
-		ij.command().run( OpenMoBIEViewerCommand.class, true );
+		ij.command().run( OpenMoBIEProjectCommand.class, true );
 	}
 }

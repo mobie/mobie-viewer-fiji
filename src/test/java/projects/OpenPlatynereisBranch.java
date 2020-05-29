@@ -1,9 +1,9 @@
-package repos;
+package projects;
 
 import de.embl.cba.mobie.viewer.MoBIEViewer;
 import de.embl.cba.mobie.viewer.ViewerOptions;
 
-public class OpenPlatynereisNewBranch
+public class OpenPlatynereisBranch
 {
 	public static void main( String[] args )
 	{
