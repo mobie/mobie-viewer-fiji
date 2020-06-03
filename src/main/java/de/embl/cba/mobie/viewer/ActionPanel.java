@@ -31,7 +31,7 @@ public class ActionPanel extends JPanel
 	public static final String BUTTON_LABEL_MOVE = "move";
 	public static final String BUTTON_LABEL_HELP = "help";
 	public static final String BUTTON_LABEL_SWITCH = "switch";
-	public static final Dimension BUTTON_DIMENSION = new Dimension( 80, 10 );
+	public static final Dimension BUTTON_DIMENSION = new Dimension( 80, TEXT_FIELD_HEIGHT );
 	public static final String BUTTON_LABEL_LEVEL = "level";
 	public static final String BUTTON_LABEL_ADD = "add";
 
@@ -478,7 +478,7 @@ public class ActionPanel extends JPanel
 	private JButton getButton( String buttonLabel )
 	{
 		final JButton button = new JButton( buttonLabel );
-		// button.setPreferredSize( BUTTON_DIMENSION ); // TODO
+		button.setPreferredSize( BUTTON_DIMENSION ); // TODO
 		return button;
 	}
 
@@ -489,8 +489,8 @@ public class ActionPanel extends JPanel
 		final JButton button = getButton( BUTTON_LABEL_MOVE );
 
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
-		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, 20 ) );
-		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, 20 ) );
+		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
+		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		button.addActionListener( e -> BdvViewChanger.moveToView( bdv, jTextField.getText() ) );
 
 		horizontalLayoutPanel.add( getJLabel( "position" ) );

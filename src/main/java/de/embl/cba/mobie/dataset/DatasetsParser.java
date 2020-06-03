@@ -26,7 +26,7 @@ public class DatasetsParser
 			catch ( Exception e2 )
 			{
 				e.printStackTrace();
-				throw new UnsupportedOperationException( "Could not open or parse versions file: " + dataSourceLocation );
+				throw new UnsupportedOperationException( "Could not open or parse datasets file: " + dataSourceLocation + "/datasets.json"  );
 			}
 		}
 	}

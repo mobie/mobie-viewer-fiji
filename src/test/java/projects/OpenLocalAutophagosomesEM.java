@@ -9,8 +9,6 @@ public class OpenLocalAutophagosomesEM
 	{
 		new ImageJ().ui().showUI();
 
-		final MoBIEViewer moBIEViewer = new MoBIEViewer(
-				"/g/kreshuk/pape/work/my_projects/autophagosoms-clem/data",
-				"https://github.com/constantinpape/autophagosomes-clem" );
+		final MoBIEViewer moBIEViewer = new MoBIEViewer("/g/kreshuk/pape/work/my_projects/autophagosoms-clem/data");
 	}
 }

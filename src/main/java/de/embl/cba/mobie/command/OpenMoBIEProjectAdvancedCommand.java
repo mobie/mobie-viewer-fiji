@@ -7,7 +7,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Experts>Open MoBIE Project Advanced..." )
+@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Expert>Open MoBIE Project Advanced..." )
 public class OpenMoBIEProjectAdvancedCommand implements Command
 {
 	@Parameter ( label = "Images Location" )
