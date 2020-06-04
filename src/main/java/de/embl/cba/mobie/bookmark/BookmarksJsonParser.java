@@ -138,8 +138,10 @@ public class BookmarksJsonParser
 	{
 		InputStream inputStream = FileAndUrlUtils.getInputStream( bookmarksLocation );
 		final JsonReader reader = new JsonReader( new InputStreamReader( inputStream, "UTF-8" ) );
-
-		return gson.fromJson( reader, type );
+		final Map< String, Bookmark > stringBookmarkMap = gson.fromJson( reader, type );
+		reader.close();
+		inputStream.close();
+		return stringBookmarkMap;
 	}
 
 	private ArrayList< String > fetchBookmarkPaths()
