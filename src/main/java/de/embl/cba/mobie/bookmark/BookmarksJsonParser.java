@@ -115,9 +115,15 @@ public class BookmarksJsonParser
 
 		// parse bookmark files
 		// each file can contain multiple bookmarks
-		for ( String bookmarksLocation : bookmarksFiles )
+		for ( String bookmarksFile : bookmarksFiles )
 		{
-			final Map< String, Bookmark > bookmarks = readBookmarksFromFile( gson, type, bookmarksLocation );
+			if ( ! bookmarksFile.endsWith( ".json" ) )
+			{
+				System.out.println("Found invalid bookmarks file: " + bookmarksFile );
+				continue;
+			}
+
+			final Map< String, Bookmark > bookmarks = readBookmarksFromFile( gson, type, bookmarksFile );
 
 			for ( Map.Entry< String, Bookmark > entry : bookmarks.entrySet() )
 			{

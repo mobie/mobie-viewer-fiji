@@ -8,13 +8,11 @@ import org.scijava.plugin.Plugin;
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open PlatyBrowser")
 public class OpenPlatyBrowserCommand implements Command
 {
-	public static final String remoteGitLocation = "https://github.com/platybrowser/platybrowser";
+	public static final String githubProject = "https://github.com/platybrowser/platybrowser";
 
 	@Override
 	public void run()
 	{
-		final MoBIEViewer moBIEViewer = new MoBIEViewer(
-				remoteGitLocation,
-				remoteGitLocation );
+		new MoBIEViewer( githubProject );
 	}
 }
