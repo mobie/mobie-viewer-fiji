@@ -486,7 +486,7 @@ public class SourcesPanel extends JPanel
         final TableRowsTableView< TableRowImageSegment > tableRowsTableView = views.getTableRowsTableView();
 
         final String tablesLocation = FileAndUrlUtils.getParentLocation( sam.metadata().segmentsTablePath );
-        tableRowsTableView.setTablesForMergingDirectory( tablesLocation );
+        tableRowsTableView.setTablesDirectory( tablesLocation );
         tableRowsTableView.setMergeByColumnName( Constants.COLUMN_NAME_SEGMENT_LABEL_ID );
 
         mergeDefaultTableWithAdditionalTables( sam, tableRowsTableView, tablesLocation );

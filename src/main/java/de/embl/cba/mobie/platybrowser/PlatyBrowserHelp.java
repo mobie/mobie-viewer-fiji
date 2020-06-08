@@ -6,14 +6,18 @@ import de.embl.cba.tables.Help;
 
 public class PlatyBrowserHelp
 {
-	public static final String BIG_DATA_VIEWER = "bigdataviewer";
-	public static final String PLATY_BROWSER = "viewer";
-	public static final String SEGMENTATIONS = "segmentations";
+	public static final String MOBIE = "MoBIE";
+	public static final String BIG_DATA_VIEWER = "BigDataViewer";
+	public static final String PLATY_BROWSER = "PlatyBrowser";
+	public static final String SEGMENTATIONS = "Segmentations";
 
 	public static void showHelp( String selectedItem )
 	{
 		switch ( selectedItem )
 		{
+			case MOBIE:
+				// TODO
+				break;
 			case PLATY_BROWSER:
 				showPlatyHelp();
 				break;

@@ -21,6 +21,7 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 import javax.swing.*;
 import java.awt.*;
+import java.net.URL;
 import java.util.*;
 
 public class ActionPanel extends JPanel
@@ -56,7 +57,10 @@ public class ActionPanel extends JPanel
 		this.bookmarksManager = moBIEViewer.getBookmarksManager();
 		this.levelingVector = moBIEViewer.getLevelingVector();
 
-		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
+
+		//addIconUI( this );
+
+		//this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addHelpUI( this );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addDatasetSelectionUI( this );
@@ -114,6 +118,7 @@ public class ActionPanel extends JPanel
 		this.geneSearchRadiusInMicrometer = geneSearchRadiusInMicrometer;
 	}
 
+	// TODO: move into popup menu (for this: make popup menu in imagej-utils extensible)
 	private void installBdvBehaviours()
 	{
 		behaviours = new Behaviours( new InputTriggerConfig() );
@@ -500,14 +505,30 @@ public class ActionPanel extends JPanel
 		panel.add( horizontalLayoutPanel );
 	}
 
+	private void addIconUI( JPanel panel )
+	{
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+		horizontalLayoutPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		//panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 10, 10) );
+		panel.setSize( 200, 80 );
+		final ImageIcon icon = getMobieIcon( 80 );
+		final JLabel moBIE = new JLabel( "MoBIE" );
+		moBIE.setIcon( icon );
+
+		horizontalLayoutPanel.add( moBIE );
+
+		panel.add( horizontalLayoutPanel );
+	}
+
+
 	private void addHelpUI( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		final JButton button = getButton( BUTTON_LABEL_HELP );
 
-
 		final String[] choices = {
+				PlatyBrowserHelp.MOBIE,
 				PlatyBrowserHelp.BIG_DATA_VIEWER,
 				PlatyBrowserHelp.PLATY_BROWSER,
 				PlatyBrowserHelp.SEGMENTATIONS };
@@ -516,11 +537,24 @@ public class ActionPanel extends JPanel
 		button.addActionListener( e -> PlatyBrowserHelp.showHelp( ( String ) comboBox.getSelectedItem() ) );
 		comboBox.setPrototypeDisplayValue( MoBIEViewer.PROTOTYPE_DISPLAY_VALUE  );
 
-		horizontalLayoutPanel.add( getJLabel( " " ) );
+		horizontalLayoutPanel.setSize( 0, 80 );
+		final ImageIcon icon = getMobieIcon( 80 );
+		final JLabel moBIE = new JLabel( "                   " );
+		moBIE.setIcon( icon );
+
+		horizontalLayoutPanel.add( moBIE );
 		horizontalLayoutPanel.add( comboBox );
 		horizontalLayoutPanel.add( button );
 
 		panel.add( horizontalLayoutPanel );
+	}
+
+	private ImageIcon getMobieIcon( int size )
+	{
+		final URL resource = ActionPanel.class.getResource( "/mobie.jpeg" );
+		final ImageIcon imageIcon = new ImageIcon( resource );
+		final Image scaledInstance = imageIcon.getImage().getScaledInstance( size, size, Image.SCALE_SMOOTH );
+		return new ImageIcon( scaledInstance );
 	}
 
 	private void addDatasetSelectionUI( JPanel panel )
