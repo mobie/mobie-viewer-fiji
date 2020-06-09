@@ -115,6 +115,11 @@ public class MoBIEViewer
 		return projectImagesLocation;
 	}
 
+	public String getProjectLocation()
+	{
+		return projectImagesLocation; // TODO
+	}
+
 	public String getProjectTablesLocation()
 	{
 		return projectTablesLocation;
@@ -250,7 +255,6 @@ public class MoBIEViewer
 
 	public void showFrame( JFrame frame )
 	{
-
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
 		final int numModalities = actionPanel.getSortedModalities().size();

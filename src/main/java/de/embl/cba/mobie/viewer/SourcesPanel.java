@@ -4,6 +4,7 @@ import bdv.util.*;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
+import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.Constants;
@@ -376,6 +377,7 @@ public class SourcesPanel extends JPanel
             BdvUtils.getViewerFrame( bdv ).setSize( jFrame.getHeight(), jFrame.getHeight() );
 
             bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
+
             isBdvShownFirstTime = false;
         }
     }
@@ -727,11 +729,8 @@ public class SourcesPanel extends JPanel
         this.repaint();
     }
 
-
-
     public BdvHandle getBdv()
     {
         return bdv;
     }
-
 }

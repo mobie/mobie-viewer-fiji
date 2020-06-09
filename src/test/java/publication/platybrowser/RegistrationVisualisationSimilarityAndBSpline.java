@@ -136,9 +136,9 @@ public class RegistrationVisualisationSimilarityAndBSpline< R extends RealType< 
 
 	public static void addPositionAndViewLogging( BdvHandle bdv )
 	{
-		Behaviours bSplineBehaviours = new Behaviours( new InputTriggerConfig() );
-		bSplineBehaviours.install( bdv.getTriggerbindings(), "behaviours" );
-		addPositionAndViewLoggingBehaviour( bdv, bSplineBehaviours );
+		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
+		behaviours.install( bdv.getTriggerbindings(), "behaviours" );
+		addPositionAndViewLoggingBehaviour( bdv, behaviours );
 	}
 
 	public RandomAccessibleInterval< R >

@@ -4,12 +4,13 @@ import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.behaviour.BdvBehaviours;
+import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.platybrowser.GeneSearch;
 import de.embl.cba.mobie.platybrowser.GeneSearchResults;
 import de.embl.cba.mobie.bookmark.BookmarksManager;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
-import de.embl.cba.mobie.platybrowser.PlatyBrowserHelp;
+import de.embl.cba.mobie.platybrowser.MobIEInfo;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
@@ -30,7 +31,7 @@ public class ActionPanel extends JPanel
 	public static final int COMBOBOX_WIDTH = 270;
 	public static final String BUTTON_LABEL_VIEW = "view";
 	public static final String BUTTON_LABEL_MOVE = "move";
-	public static final String BUTTON_LABEL_HELP = "help";
+	public static final String BUTTON_LABEL_HELP = "info";
 	public static final String BUTTON_LABEL_SWITCH = "switch";
 	public static final Dimension BUTTON_DIMENSION = new Dimension( 80, TEXT_FIELD_HEIGHT );
 	public static final String BUTTON_LABEL_LEVEL = "level";
@@ -57,11 +58,7 @@ public class ActionPanel extends JPanel
 		this.bookmarksManager = moBIEViewer.getBookmarksManager();
 		this.levelingVector = moBIEViewer.getLevelingVector();
 
-
-		//addIconUI( this );
-
-		//this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		addHelpUI( this );
+		addInfoUI( this, moBIEViewer.getProjectLocation() );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addDatasetSelectionUI( this );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
@@ -78,7 +75,7 @@ public class ActionPanel extends JPanel
 	public void setBdv( BdvHandle bdv )
 	{
 		this.bdv = bdv;
-		installBdvBehaviours();
+		installBdvBehavioursAndPopupMenu();
 	}
 
 //	private void addShow3DUI( JPanel panel )
@@ -118,17 +115,45 @@ public class ActionPanel extends JPanel
 		this.geneSearchRadiusInMicrometer = geneSearchRadiusInMicrometer;
 	}
 
-	// TODO: move into popup menu (for this: make popup menu in imagej-utils extensible)
-	private void installBdvBehaviours()
+	private void installBdvBehavioursAndPopupMenu()
 	{
+		BdvPopupMenus.addScreenshotAction( bdv );
+
+		BdvPopupMenus.addAction( bdv, "Log current location",
+				() -> {
+					(new Thread( () -> {
+						Logger.log( "\nBigDataViewer position: " + BdvUtils.getGlobalMousePositionString( bdv ) );
+						Logger.log( "BigDataViewer transform: " + BdvUtils.getBdvViewerTransformString( bdv ) );
+					} )).start();
+
+				});
+
+		BdvPopupMenus.addAction( bdv, "Search genes...", ( x, y ) ->
+		{
+			double[] micrometerPosition = new double[ 3 ];
+			BdvUtils.getGlobalMouseCoordinates( bdv ).localize( micrometerPosition );
+
+			final BdvTextOverlay bdvTextOverlay
+					= new BdvTextOverlay( bdv,
+					"Searching expressed genes; please wait...", micrometerPosition );
+
+			new Thread( () ->
+			{
+				searchGenes( micrometerPosition, geneSearchRadiusInMicrometer );
+				bdvTextOverlay.setText( "" );
+			}
+			).start();
+		});
+
+
 		behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( bdv.getTriggerbindings(), "behaviours" );
 		addPointOverlayTogglingBehaviour();
-		addLocalGeneSearchBehaviour();
-		BdvBehaviours.addPositionAndViewLoggingBehaviour( bdv, behaviours, "P" );
-		BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "C", false );
-		BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "shift C", true );
-//		BdvBehaviours.addSimpleViewCaptureBehaviour( bdv, behaviours, "C" );
+
+		//addLocalGeneSearchBehaviour();
+		//BdvBehaviours.addPositionAndViewLoggingBehaviour( bdv, behaviours, "P" );
+		//BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "C", false );
+		//BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "shift C", true );
 	}
 
 	private void configPanel()
@@ -505,36 +530,25 @@ public class ActionPanel extends JPanel
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private void addIconUI( JPanel panel )
-	{
-		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-		horizontalLayoutPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		//panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 10, 10) );
-		panel.setSize( 200, 80 );
-		final ImageIcon icon = getMobieIcon( 80 );
-		final JLabel moBIE = new JLabel( "MoBIE" );
-		moBIE.setIcon( icon );
-
-		horizontalLayoutPanel.add( moBIE );
-
-		panel.add( horizontalLayoutPanel );
-	}
-
-
-	private void addHelpUI( JPanel panel )
+	private void addInfoUI( JPanel panel, String projectLocation )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		final JButton button = getButton( BUTTON_LABEL_HELP );
 
 		final String[] choices = {
-				PlatyBrowserHelp.MOBIE,
-				PlatyBrowserHelp.BIG_DATA_VIEWER,
-				PlatyBrowserHelp.PLATY_BROWSER,
-				PlatyBrowserHelp.SEGMENTATIONS };
+				MobIEInfo.MOBIE,
+				MobIEInfo.REPOSITORY,
+				MobIEInfo.BIG_DATA_VIEWER,
+				MobIEInfo.SEGMENTATIONS };
+
 		final JComboBox< String > comboBox = new JComboBox<>( choices );
 		setComboBoxDimensions( comboBox );
-		button.addActionListener( e -> PlatyBrowserHelp.showHelp( ( String ) comboBox.getSelectedItem() ) );
+
+		button.addActionListener( e -> {
+			final MobIEInfo mobIEInfo = new MobIEInfo( projectLocation );
+			mobIEInfo.showInfo( ( String ) comboBox.getSelectedItem() );
+		} );
 		comboBox.setPrototypeDisplayValue( MoBIEViewer.PROTOTYPE_DISPLAY_VALUE  );
 
 		horizontalLayoutPanel.setSize( 0, 80 );
