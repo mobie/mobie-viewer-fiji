@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.viewer;
+package de.embl.cba.mobie.ui.viewer;
 
 public class ViewerOptions
 {

@@ -36,7 +36,7 @@ public class RegistrationVisualisationSimilarityAndBSpline< R extends RealType< 
 		Prefs.scaleBarColor( ARGBType.rgba( 255, 255, 255, 255 ) );
 
 		/**
-		 * Configure viewer transformations
+		 * Configure ui transformations
 		 */
 
 		final AffineTransform3D gutViewSimilarity = new AffineTransform3D();

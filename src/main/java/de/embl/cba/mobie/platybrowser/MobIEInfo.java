@@ -1,13 +1,9 @@
 package de.embl.cba.mobie.platybrowser;
 
 import bdv.tools.HelpDialog;
-import de.embl.cba.mobie.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Help;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 public class MobIEInfo
 {

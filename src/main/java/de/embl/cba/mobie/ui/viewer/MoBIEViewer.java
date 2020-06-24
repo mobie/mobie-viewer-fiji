@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.viewer;
+package de.embl.cba.mobie.ui.viewer;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;

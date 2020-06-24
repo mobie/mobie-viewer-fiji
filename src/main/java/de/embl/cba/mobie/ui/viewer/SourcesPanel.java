@@ -1,10 +1,9 @@
-package de.embl.cba.mobie.viewer;
+package de.embl.cba.mobie.ui.viewer;
 
 import bdv.util.*;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
-import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.Constants;

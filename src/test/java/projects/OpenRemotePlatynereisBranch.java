@@ -1,7 +1,7 @@
 package projects;
 
-import de.embl.cba.mobie.viewer.MoBIEViewer;
-import de.embl.cba.mobie.viewer.ViewerOptions;
+import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.viewer.ViewerOptions;
 
 public class OpenRemotePlatynereisBranch
 {

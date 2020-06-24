@@ -1,7 +1,7 @@
 package tests;
 
-import de.embl.cba.mobie.viewer.MoBIEViewer;
-import de.embl.cba.mobie.viewer.SourcesPanel;
+import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.viewer.SourcesPanel;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;

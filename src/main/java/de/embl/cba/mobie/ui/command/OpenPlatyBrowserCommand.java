@@ -1,6 +1,6 @@
-package de.embl.cba.mobie.command;
+package de.embl.cba.mobie.ui.command;
 
-import de.embl.cba.mobie.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 

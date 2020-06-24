@@ -1,7 +1,6 @@
 package projects;
 
-import de.embl.cba.mobie.viewer.MoBIEViewer;
-import net.imagej.ImageJ;
+import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
 
 public class OpenRemoteAutophagosomesCLEM
 {

@@ -1,9 +1,8 @@
-package de.embl.cba.mobie.viewer;
+package de.embl.cba.mobie.ui.viewer;
 
 import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
-import de.embl.cba.bdv.utils.behaviour.BdvBehaviours;
 import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.platybrowser.GeneSearch;
@@ -67,8 +66,6 @@ public class ActionPanel extends JPanel
 		addBookmarksUI( this  );
 		addMoveToUI( this );
 		addLevelingUI( this );
-		//this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		//addShow3DUI( this );
 		configPanel();
 	}
 
@@ -77,33 +74,6 @@ public class ActionPanel extends JPanel
 		this.bdv = bdv;
 		installBdvBehavioursAndPopupMenu();
 	}
-
-//	private void addShow3DUI( JPanel panel )
-//	{
-//		JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-////		horizontalLayoutPanel.setAlignmentX( Component.CENTER_ALIGNMENT  );
-//
-//		final JCheckBox cbObjects = new JCheckBox( "show objects in 3D" );
-//		cbObjects.setSelected( Globals.showSegmentsIn3D.get() );
-//		cbObjects.addActionListener( e -> {
-//			Globals.showSegmentsIn3D.set( cbObjects.isSelected() );
-//		} );
-//		cbObjects.setHorizontalAlignment( SwingConstants.CENTER );
-//
-//		final JCheckBox cbVolumes = new JCheckBox( "show volumes in 3D" );
-//		cbVolumes.setSelected( Globals.showVolumesIn3D.get() );
-//		cbVolumes.addActionListener( e -> {
-//			Globals.showVolumesIn3D.set( cbVolumes.isSelected() );
-//		} );
-//		cbVolumes.setHorizontalAlignment( SwingConstants.CENTER );
-//
-//		horizontalLayoutPanel.add( Box.createHorizontalGlue() );
-//		horizontalLayoutPanel.add( cbObjects );
-//		horizontalLayoutPanel.add( Box.createHorizontalGlue() );
-//		horizontalLayoutPanel.add( cbVolumes );
-//		horizontalLayoutPanel.add( Box.createHorizontalGlue() );
-//		panel.add( horizontalLayoutPanel );
-//	}
 
 	public double getGeneSearchRadiusInMicrometer()
 	{

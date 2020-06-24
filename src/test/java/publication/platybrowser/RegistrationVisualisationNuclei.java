@@ -1,7 +1,7 @@
 package publication.platybrowser;
 
-import de.embl.cba.mobie.viewer.MoBIEViewer;
-import de.embl.cba.mobie.viewer.SourcesPanel;
+import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.viewer.SourcesPanel;
 import net.imagej.ImageJ;
 
 import java.awt.*;

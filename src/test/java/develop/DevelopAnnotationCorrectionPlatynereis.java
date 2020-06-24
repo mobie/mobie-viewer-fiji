@@ -1,6 +1,6 @@
 package develop;
 
-import de.embl.cba.mobie.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
 
 public class DevelopAnnotationCorrectionPlatynereis
 {

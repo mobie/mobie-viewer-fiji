@@ -1,6 +1,6 @@
 package projects;
 
-import de.embl.cba.mobie.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
 import net.imagej.ImageJ;
 
 public class OpenLocalAutophagosomesEM
