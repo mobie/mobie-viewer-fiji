@@ -1,25 +1,29 @@
-# MMB Fiji
+# MoBIE Fiji Viewer
 
-MulitModelBrowser (MMB) is a Fiji plugin for the exploration of multi-modal big image data. Currently, it is used to implemnt the [PlatyBrowser](https://github.com/platybrowser/platybrowser), a tool to explore a cellular atlas for the biological model system _Platynereis dumerilii_, see [Whole-body integration of gene expression and single-cell morphology](https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1).
+The MoBIE Fiji viewer is a Fiji plugin for the exploration of big multi-modal image and associated tabular data. 
 
+## History
+
+The MoBIE was initially develped to explore a cellular atlas for the biological model system _Platynereis dumerilii_, see [Whole-body integration of gene expression and single-cell morphology](https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1). However, the framework turned out to be so useful and generalisable that it is now used for other projects as well, e.g. see all the repositories ending on "-datasets" [here](https://github.com/mobie).
 
 ## Installation
 
 1. Please [install Fiji](https://fiji.sc) on your computer.
-2. Open Fiji and install the EMBL-CBA update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).<br><img width="460" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/74152530-c9603500-4c0e-11ea-81d8-d518b9ed1ef3.png"> <br> Select the EMBL-CBA update site and then click [ Close ]
+2. Open Fiji and install the MoBIE update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).
 3. Restart Fiji
 
 ## Starting up
 
-1. In the Fiji search bar, type: "Platy"<br> <img width="460" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/open.jpg"> <br> ...and click [ Run ]
-2. Select the version of the data: <br><img width="200" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/version.jpg">
-3. The PlatyBrowser is ready to be used:<br><img width="800" alt="image" src="https://github.com/platybrowser/mmb-fiji/blob/master/images/main-ui-bdv.jpg">
+1. In the Fiji search bar, type: "mobie"<br> <img width="460" alt="image" src="https://user-images.githubusercontent.com/2157566/86445323-79dfea00-bd12-11ea-8884-5e50a08660d0.png"> <br> ...and click [ Run ]
+2. Enter a github repository representing your datasets <br><img width="300" alt="image" src="https://user-images.githubusercontent.com/2157566/86445504-cdeace80-bd12-11ea-996a-4a6d5d58ccc7.png">
+3. The MoBIE viewer is ready to be used:<br><img width="800" alt="image" src="https://user-images.githubusercontent.com/2157566/86445771-42be0880-bd13-11ea-9627-cd1ee7b62a99.png">
 
 ## Operation
 
 ### Buttons in main panel
-- [ help ] Please select an item from the drop-down and click the [ help ] button. A corresponding help page will appear.
-- [ add ] Please select an image source from the drop-downs and click the corresponding [ add ] button. The image source will be added to the current view. If the image source is a segmentation, also a corresponding objects table will appear. 
+- [ info ] Please select an item from the drop-down and click the button. A corresponding info page will appear.
+- [ switch ] Please select an item from the drop-down and click the button. The dataset will be switched. Note that a MoBIE datasets repository can contain multiple datasets. The definition of one dataset is that all images in this dataset can be meaningfully displayed in the same physical coordinate system.
+- [ add ] Please select an image source from the drop-downs and click the button. The image source will be added to the current view. If the image source is a segmentation, also a corresponding objects table will appear. 
 - [ view ] Please select a bookmark item from the drop-down and click the [ view ] button. The corresponding bookmarked view will appear. A “bookmark” can consist of multiple items, such as different image layers, as well as object selections, and coloring modes.
 - [ move ] Please enter a x, y, z position (in micrometer units) as comma separated values, as an example you may try: `120.5,115.3,201.5`. Clicking [ move ] will move the current viewer such that the entered position is in the centre of the viewer. You may also enter 12 comma separated values; in this case the view will be positioned according to the affine transformation that is specified by these numbers; as an example, you may try: ``.
 - [ level ] Clicking this button will level the current view such that the dorso-ventral axis of the animal is perpendicular to the viewing plane, and the anterior part of the animal facing upwards. This view is suited to inspect the the bilateral symmetry of the specimen.
