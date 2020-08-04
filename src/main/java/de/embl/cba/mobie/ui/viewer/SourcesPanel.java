@@ -368,10 +368,9 @@ public class SourcesPanel extends JPanel
 
         if ( isBdvShownFirstTime )
         {
-            BdvUtils.getViewerFrame( bdv ).
-                    setLocation(
-                            jFrame.getLocationOnScreen().x + jFrame.getWidth(),
-                            jFrame.getLocationOnScreen().y );
+            BdvUtils.getViewerFrame( bdv ).setLocation(
+                    jFrame.getLocationOnScreen().x + jFrame.getWidth(),
+                    jFrame.getLocationOnScreen().y );
 
             BdvUtils.getViewerFrame( bdv ).setSize( jFrame.getHeight(), jFrame.getHeight() );
 
