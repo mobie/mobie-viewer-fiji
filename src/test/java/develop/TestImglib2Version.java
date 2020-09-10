@@ -1,4 +1,4 @@
-package explore;
+package develop;
 
 public class TestImglib2Version
 {

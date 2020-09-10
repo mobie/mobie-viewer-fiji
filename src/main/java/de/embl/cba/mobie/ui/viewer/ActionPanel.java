@@ -9,7 +9,6 @@ import de.embl.cba.mobie.platybrowser.GeneSearch;
 import de.embl.cba.mobie.platybrowser.GeneSearchResults;
 import de.embl.cba.mobie.bookmark.BookmarksManager;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
-import de.embl.cba.mobie.platybrowser.MobIEInfo;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
@@ -48,6 +47,7 @@ public class ActionPanel extends JPanel
 	private double geneSearchRadiusInMicrometer;
 	private HashMap< String, String > selectionNameAndModalityToSourceName;
 	private ArrayList< String > sortedModalities;
+	private final String projectLocation;
 
 	public ActionPanel( MoBIEViewer moBIEViewer )
 	{
@@ -56,15 +56,17 @@ public class ActionPanel extends JPanel
 		this.datasets = moBIEViewer.getDatasets();
 		this.bookmarksManager = moBIEViewer.getBookmarksManager();
 		this.levelingVector = moBIEViewer.getLevelingVector();
+		this.projectLocation = moBIEViewer.getProjectLocation();
 
-		addInfoUI( this, moBIEViewer.getProjectLocation() );
+		addInfoUI( this, projectLocation );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addDatasetSelectionUI( this );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addSourceSelectionUI( this );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addBookmarksUI( this  );
-		addMoveToUI( this );
+		addMoveToPositionUI( this );
+		addMoveToNormalisedViewUI( this );
 		addLevelingUI( this );
 		configPanel();
 	}
@@ -92,29 +94,31 @@ public class ActionPanel extends JPanel
 		BdvPopupMenus.addAction( bdv, "Log current location",
 				() -> {
 					(new Thread( () -> {
-						Logger.log( "\nBigDataViewer position: " + BdvUtils.getGlobalMousePositionString( bdv ) );
-						Logger.log( "BigDataViewer transform: " + BdvUtils.getBdvViewerTransformString( bdv ) );
+						Logger.log( "\nPosition:\n" + BdvUtils.getGlobalMousePositionString( bdv ) );
+						Logger.log( "Transform:\n" + BdvUtils.getBdvViewerTransformString( bdv ) );
 					} )).start();
 
 				});
 
-		BdvPopupMenus.addAction( bdv, "Search genes...", ( x, y ) ->
+		if ( projectLocation.contains( "platybrowser" ) )
 		{
-			double[] micrometerPosition = new double[ 3 ];
-			BdvUtils.getGlobalMouseCoordinates( bdv ).localize( micrometerPosition );
-
-			final BdvTextOverlay bdvTextOverlay
-					= new BdvTextOverlay( bdv,
-					"Searching expressed genes; please wait...", micrometerPosition );
-
-			new Thread( () ->
+			BdvPopupMenus.addAction( bdv, "Search genes...", ( x, y ) ->
 			{
-				searchGenes( micrometerPosition, geneSearchRadiusInMicrometer );
-				bdvTextOverlay.setText( "" );
-			}
-			).start();
-		});
+				double[] micrometerPosition = new double[ 3 ];
+				BdvUtils.getGlobalMouseCoordinates( bdv ).localize( micrometerPosition );
 
+				final BdvTextOverlay bdvTextOverlay
+						= new BdvTextOverlay( bdv,
+						"Searching expressed genes; please wait...", micrometerPosition );
+
+				new Thread( () ->
+				{
+					searchGenes( micrometerPosition, geneSearchRadiusInMicrometer );
+					bdvTextOverlay.setText( "" );
+				}
+				).start();
+			} );
+		}
 
 		behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( bdv.getTriggerbindings(), "behaviours" );
@@ -482,7 +486,7 @@ public class ActionPanel extends JPanel
 		return button;
 	}
 
-	private void addMoveToUI( JPanel panel )
+	private void addMoveToPositionUI( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
@@ -500,23 +504,35 @@ public class ActionPanel extends JPanel
 		panel.add( horizontalLayoutPanel );
 	}
 
+	private void addMoveToNormalisedViewUI( JPanel panel )
+	{
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+
+		final JButton button = getButton( BUTTON_LABEL_MOVE );
+
+		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
+		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
+		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
+		button.addActionListener( e -> BdvViewChanger.moveToNormalisedView( bdv, jTextField.getText() ) );
+
+		horizontalLayoutPanel.add( getJLabel( "norm view" ) );
+		horizontalLayoutPanel.add( jTextField );
+		horizontalLayoutPanel.add( button );
+
+		panel.add( horizontalLayoutPanel );
+	}
+
 	private void addInfoUI( JPanel panel, String projectLocation )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		final JButton button = getButton( BUTTON_LABEL_HELP );
 
-		final String[] choices = {
-				MobIEInfo.MOBIE,
-				MobIEInfo.REPOSITORY,
-				MobIEInfo.BIG_DATA_VIEWER,
-				MobIEInfo.SEGMENTATIONS };
-
-		final JComboBox< String > comboBox = new JComboBox<>( choices );
+		final JComboBox< String > comboBox = new JComboBox<>( MoBIEInfo.getInfoChoices() );
 		setComboBoxDimensions( comboBox );
 
 		button.addActionListener( e -> {
-			final MobIEInfo mobIEInfo = new MobIEInfo( projectLocation );
+			final MoBIEInfo mobIEInfo = new MoBIEInfo( projectLocation );
 			mobIEInfo.showInfo( ( String ) comboBox.getSelectedItem() );
 		} );
 		comboBox.setPrototypeDisplayValue( MoBIEViewer.PROTOTYPE_DISPLAY_VALUE  );

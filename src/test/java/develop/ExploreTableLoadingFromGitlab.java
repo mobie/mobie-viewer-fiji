@@ -1,4 +1,4 @@
-package explore;
+package develop;
 
 import de.embl.cba.tables.Tables;
 

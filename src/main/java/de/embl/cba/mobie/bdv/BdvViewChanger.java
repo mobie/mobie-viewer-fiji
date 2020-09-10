@@ -30,6 +30,19 @@ public abstract class BdvViewChanger
 		moveToDoubles( bdv, doubles );
 	}
 
+	public static void moveToNormalisedView( Bdv bdv, String view )
+	{
+		double[] doubles = getDoubles( view );
+
+		if ( ! ( doubles.length == 12 ) )
+		{
+			throw new UnsupportedOperationException( "Please enter a comma separated list of 12 numbers." );
+		}
+		// TODO: "unnormalise" the transformation
+
+		BdvUtils.changeBdvViewerTransform( bdv, asView( doubles ), animationDurationMillis );
+	}
+
 	public static void moveToDoubles( Bdv bdv, ArrayList< Double > doubles )
 	{
 		final double[] array =  new double[ doubles.size() ];
@@ -39,20 +52,30 @@ public abstract class BdvViewChanger
 		moveToDoubles( bdv, array );
 	}
 
+	/**
+	 * TODO: The logic of just counting the number of doubles is fragile...
+	 *
+	 * @param bdv
+	 * @param doubles
+	 */
 	public static void moveToDoubles( Bdv bdv, double[] doubles )
 	{
-		if ( doubles.length == 3 )
+		if ( doubles.length == 3 ) // 3D
 		{
-			BdvUtils.zoomToPosition( bdv, asPosition4D( doubles ), 15D, animationDurationMillis );
+			BdvUtils.moveToPosition( bdv, doubles, 0, animationDurationMillis );
 
 			if ( isPointOverlayEnabled )
 				addPointOverlay( bdv, doubles );
 		}
-		else if ( doubles.length == 4 )
+		else if ( doubles.length == 4 ) // 3D + t
 		{
-			BdvUtils.zoomToPosition( bdv, doubles, 15D, animationDurationMillis );
+			final double[] position = new double[ 3 ];
+			for ( int d = 0; d < 3; d++ )
+				position[ d ] = doubles[ d ];
+
+			BdvUtils.zoomToPosition( bdv, position, doubles[ 3 ], animationDurationMillis );
 		}
-		else if ( doubles.length == 12 )
+		else if ( doubles.length == 12 ) // ViewerTransform
 		{
 			BdvUtils.changeBdvViewerTransform( bdv, asView( doubles ), animationDurationMillis );
 		}
@@ -69,7 +92,6 @@ public abstract class BdvViewChanger
 		pointOverlaySourceIsActive = ! pointOverlaySourceIsActive;
 		pointOverlaySource.setActive( pointOverlaySourceIsActive );
 	}
-
 
 	public static void addPointOverlay( Bdv bdv, double[] doubles )
 	{
@@ -105,9 +127,9 @@ public abstract class BdvViewChanger
 
 	private static double[] getDoubles( String view )
 	{
-		if ( view.contains( "View" ) )
+		if ( view.contains( "ViewerTransform" ) )
 		{
-			view = view.replace( "View: (", "" );
+			view = view.replace( "ViewerTransform: (", "" );
 			view = view.replace( ")", "" );
 			return Utils.delimitedStringToDoubleArray( view, "," );
 		}
@@ -130,7 +152,6 @@ public abstract class BdvViewChanger
 				return null;
 			}
 		}
-
 	}
 
 	public static void enablePointOverlay( boolean isPointOverlayEnabled )

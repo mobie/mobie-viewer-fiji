@@ -1,4 +1,4 @@
-package explore;
+package develop;
 
 import com.google.gson.stream.JsonReader;
 import de.embl.cba.tables.Tables;

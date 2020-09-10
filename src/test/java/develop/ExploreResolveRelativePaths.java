@@ -1,4 +1,6 @@
-package explore;
+package develop;
+
+import org.janelia.saalfeldlab.n5.s3.N5AmazonS3Reader;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,6 +17,5 @@ public class ExploreResolveRelativePaths
 
 		final Path normalize = resolve.normalize();
 		System.out.println( normalize );
-
 	}
 }

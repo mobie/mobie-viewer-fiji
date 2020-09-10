@@ -18,7 +18,6 @@ public class ViewerOptions
 		return this;
 	}
 
-
 	public ViewerOptions gitBranch( String gitBranch )
 	{
 		this.values.gitBranch = gitBranch;

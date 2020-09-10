@@ -7,6 +7,7 @@ import java.util.HashMap;
 public class Bookmark
 {
 	public HashMap< String, MutableImageProperties > layers;
-	public double[] view;
+	public double[] view; // ViewerTransform
+	public double[] normView; // ViewerTransform, normalised for BDV window size
 	public double[] position;
 }
