@@ -30,7 +30,7 @@ public abstract class BdvViewChanger
 		moveToDoubles( bdv, doubles );
 	}
 
-	public static void moveToNormalisedView( Bdv bdv, String view )
+	public static void moveToNormalisedView( BdvHandle bdv, String view )
 	{
 		double[] doubles = getDoubles( view );
 
@@ -38,9 +38,11 @@ public abstract class BdvViewChanger
 		{
 			throw new UnsupportedOperationException( "Please enter a comma separated list of 12 numbers." );
 		}
-		// TODO: "unnormalise" the transformation
 
-		BdvUtils.changeBdvViewerTransform( bdv, asView( doubles ), animationDurationMillis );
+		final AffineTransform3D transform = Utils.createUnnormalizedViewerTransform( asView( doubles ), bdv );
+		System.out.println( transform );
+
+		BdvUtils.changeBdvViewerTransform( bdv, transform, animationDurationMillis );
 	}
 
 	public static void moveToDoubles( Bdv bdv, ArrayList< Double > doubles )

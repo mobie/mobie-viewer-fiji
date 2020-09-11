@@ -66,6 +66,7 @@ public class ActionPanel extends JPanel
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addBookmarksUI( this  );
 		addMoveToPositionUI( this );
+		addMoveToViewUI( this );
 		addMoveToNormalisedViewUI( this );
 		addLevelingUI( this );
 		configPanel();
@@ -95,7 +96,8 @@ public class ActionPanel extends JPanel
 				() -> {
 					(new Thread( () -> {
 						Logger.log( "\nPosition:\n" + BdvUtils.getGlobalMousePositionString( bdv ) );
-						Logger.log( "Transform:\n" + BdvUtils.getBdvViewerTransformString( bdv ) );
+						Logger.log( "View:\n" + BdvUtils.getBdvViewerTransformString( bdv ) );
+						Logger.log( "Normalised view:\n" + Utils.createNormalisedViewerTransformString( bdv ) );
 					} )).start();
 
 				});
@@ -516,6 +518,24 @@ public class ActionPanel extends JPanel
 		button.addActionListener( e -> BdvViewChanger.moveToNormalisedView( bdv, jTextField.getText() ) );
 
 		horizontalLayoutPanel.add( getJLabel( "norm view" ) );
+		horizontalLayoutPanel.add( jTextField );
+		horizontalLayoutPanel.add( button );
+
+		panel.add( horizontalLayoutPanel );
+	}
+
+	private void addMoveToViewUI( JPanel panel )
+	{
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+
+		final JButton button = getButton( BUTTON_LABEL_MOVE );
+
+		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
+		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
+		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
+		button.addActionListener( e -> BdvViewChanger.moveToNormalisedView( bdv, jTextField.getText() ) );
+
+		horizontalLayoutPanel.add( getJLabel( "view" ) );
 		horizontalLayoutPanel.add( jTextField );
 		horizontalLayoutPanel.add( button );
 
