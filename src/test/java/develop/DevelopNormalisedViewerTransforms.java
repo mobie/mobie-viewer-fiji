@@ -3,6 +3,7 @@ package develop;
 import bdv.util.BdvHandle;
 import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
 import de.embl.cba.mobie.utils.Utils;
+import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
 
@@ -10,6 +11,9 @@ public class DevelopNormalisedViewerTransforms
 {
 	public static void main( String[] args )
 	{
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
+
 		testNormalisationAndReversion();
 
 		final MoBIEViewer moBIEViewer = new MoBIEViewer( "https://github.com/mobie-org/covid-em-datasets" );

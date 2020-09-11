@@ -1,10 +1,12 @@
 package de.embl.cba.mobie.bookmark;
 
+import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.MutableImageProperties;
 import de.embl.cba.mobie.ui.viewer.SourcesPanel;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
+import de.embl.cba.mobie.utils.Utils;
 
 import java.util.Map;
 import java.util.Set;
@@ -56,12 +58,14 @@ public class BookmarksManager
 
 	public void adaptViewerTransform( Bookmark bookmark )
 	{
-		final Location location = getLocation( bookmark );
+		final Location location = getLocation( bookmark, sourcesPanel.getBdv() );
+
+		if ( location == null ) return; // not all Bookmarks have a location, some are just layers
 
 		BdvViewChanger.moveToLocation( sourcesPanel.getBdv(), location );
 	}
 
-	public static Location getLocation( Bookmark bookmark )
+	public static Location getLocation( Bookmark bookmark, BdvHandle bdv )
 	{
 		if ( bookmark.normView != null )
 		{
@@ -77,7 +81,15 @@ public class BookmarksManager
 		}
 		else
 		{
-			throw new RuntimeException( "Error parsing the view of bookmark: " + bookmark.name );
+			if ( bookmark.name.equals( "default" ) )
+			{
+				bookmark.normView = Utils.createNormalisedViewerTransform( bdv ).getRowPackedCopy();
+				return new Location( LocationType.NormalisedViewerTransform, bookmark.normView );
+			}
+			else
+			{
+				return null;
+			}
 		}
 	}
 

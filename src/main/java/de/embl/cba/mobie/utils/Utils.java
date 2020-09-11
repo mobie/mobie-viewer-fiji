@@ -34,6 +34,7 @@ import java.io.*;
 import java.net.URI;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
 import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
@@ -419,7 +420,9 @@ public class Utils
 	public static String createNormalisedViewerTransformString( BdvHandle bdv )
 	{
 		final AffineTransform3D view = createNormalisedViewerTransform( bdv );
-		return view.toString().replace( "3d-affine: (", "" ).replace( ")", "" );
+		final String replace = view.toString().replace( "3d-affine: (", "" ).replace( ")", "" );
+		final String collect = Arrays.stream( replace.split( "," ) ).map( x -> "n" + x.trim() ).collect( Collectors.joining( "," ) );
+		return collect;
 	}
 
 	@NotNull

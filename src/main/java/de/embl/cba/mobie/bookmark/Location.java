@@ -37,7 +37,7 @@ public class Location
 
 		if ( location.contains( "n" ) )
 		{
-			location = location.replace( ")", "" );
+			location = location.replace( "n", "" );
 			isNormalised = true;
 		}
 
