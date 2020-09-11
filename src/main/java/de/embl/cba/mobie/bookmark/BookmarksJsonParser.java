@@ -128,6 +128,7 @@ public class BookmarksJsonParser
 			for ( Map.Entry< String, Bookmark > entry : bookmarks.entrySet() )
 			{
 				nameToBookmark.put( entry.getKey(), entry.getValue() );
+				entry.getValue().name = entry.getKey();
 			}
 		}
 

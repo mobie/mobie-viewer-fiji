@@ -5,6 +5,7 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.platybrowser.GeneSearch;
 import de.embl.cba.mobie.platybrowser.GeneSearchResults;
 import de.embl.cba.mobie.bookmark.BookmarksManager;
@@ -65,9 +66,7 @@ public class ActionPanel extends JPanel
 		addSourceSelectionUI( this );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addBookmarksUI( this  );
-		addMoveToPositionUI( this );
-		addMoveToViewUI( this );
-		addMoveToNormalisedViewUI( this );
+		addMoveToLocationUI( this );
 		addLevelingUI( this );
 		configPanel();
 	}
@@ -488,7 +487,7 @@ public class ActionPanel extends JPanel
 		return button;
 	}
 
-	private void addMoveToPositionUI( JPanel panel )
+	private void addMoveToLocationUI( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
@@ -497,45 +496,9 @@ public class ActionPanel extends JPanel
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		button.addActionListener( e -> BdvViewChanger.moveToView( bdv, jTextField.getText() ) );
+		button.addActionListener( e -> BdvViewChanger.moveToLocation( bdv, new Location( jTextField.getText() ) ) );
 
-		horizontalLayoutPanel.add( getJLabel( "position" ) );
-		horizontalLayoutPanel.add( jTextField );
-		horizontalLayoutPanel.add( button );
-
-		panel.add( horizontalLayoutPanel );
-	}
-
-	private void addMoveToNormalisedViewUI( JPanel panel )
-	{
-		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-
-		final JButton button = getButton( BUTTON_LABEL_MOVE );
-
-		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
-		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		button.addActionListener( e -> BdvViewChanger.moveToNormalisedView( bdv, jTextField.getText() ) );
-
-		horizontalLayoutPanel.add( getJLabel( "norm view" ) );
-		horizontalLayoutPanel.add( jTextField );
-		horizontalLayoutPanel.add( button );
-
-		panel.add( horizontalLayoutPanel );
-	}
-
-	private void addMoveToViewUI( JPanel panel )
-	{
-		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-
-		final JButton button = getButton( BUTTON_LABEL_MOVE );
-
-		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
-		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		button.addActionListener( e -> BdvViewChanger.moveToNormalisedView( bdv, jTextField.getText() ) );
-
-		horizontalLayoutPanel.add( getJLabel( "view" ) );
+		horizontalLayoutPanel.add( getJLabel( "location" ) );
 		horizontalLayoutPanel.add( jTextField );
 		horizontalLayoutPanel.add( button );
 
@@ -624,7 +587,7 @@ public class ActionPanel extends JPanel
 
 	public void setView( String view )
 	{
-		BdvViewChanger.moveToView( bdv, view );
+		BdvViewChanger.moveToLocation( bdv, new Location( view ) );
 	}
 
 }

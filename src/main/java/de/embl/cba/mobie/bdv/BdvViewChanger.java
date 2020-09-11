@@ -2,10 +2,10 @@ package de.embl.cba.mobie.bdv;
 
 import bdv.util.*;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.utils.Utils;
 import net.imglib2.realtransform.AffineTransform3D;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 
@@ -23,67 +23,36 @@ public abstract class BdvViewChanger
 	private static boolean pointOverlaySourceIsActive;
 	private static boolean isPointOverlayEnabled;
 
-	public static void moveToView( Bdv bdv, String view )
+	public static void moveToLocation( BdvHandle bdv, Location location )
 	{
-		double[] doubles = getDoubles( view );
-
-		moveToDoubles( bdv, doubles );
-	}
-
-	public static void moveToNormalisedView( BdvHandle bdv, String view )
-	{
-		double[] doubles = getDoubles( view );
-
-		if ( ! ( doubles.length == 12 ) )
+		switch ( location.type )
 		{
-			throw new UnsupportedOperationException( "Please enter a comma separated list of 12 numbers." );
-		}
+			case Position3d:
 
-		final AffineTransform3D transform = Utils.createUnnormalizedViewerTransform( asView( doubles ), bdv );
-		System.out.println( transform );
+				BdvUtils.moveToPosition( bdv, location.doubles, 0, animationDurationMillis );
 
-		BdvUtils.changeBdvViewerTransform( bdv, transform, animationDurationMillis );
-	}
+				if ( isPointOverlayEnabled )
+					addPointOverlay( bdv, location.doubles );
+				break;
 
-	public static void moveToDoubles( Bdv bdv, ArrayList< Double > doubles )
-	{
-		final double[] array =  new double[ doubles.size() ];
-		for ( int i = 0; i < doubles.size(); i++ )
-			array[ i ] = doubles.get( i );
+			case Position3dAndTime:
 
-		moveToDoubles( bdv, array );
-	}
+				final double[] position = new double[ 3 ];
+				for ( int d = 0; d < 3; d++ )
+					position[ d ] = location.doubles[ d ];
 
-	/**
-	 * TODO: The logic of just counting the number of doubles is fragile...
-	 *
-	 * @param bdv
-	 * @param doubles
-	 */
-	public static void moveToDoubles( Bdv bdv, double[] doubles )
-	{
-		if ( doubles.length == 3 ) // 3D
-		{
-			BdvUtils.moveToPosition( bdv, doubles, 0, animationDurationMillis );
+				BdvUtils.zoomToPosition( bdv, position, location.doubles[ 3 ], animationDurationMillis );
+				break;
 
-			if ( isPointOverlayEnabled )
-				addPointOverlay( bdv, doubles );
-		}
-		else if ( doubles.length == 4 ) // 3D + t
-		{
-			final double[] position = new double[ 3 ];
-			for ( int d = 0; d < 3; d++ )
-				position[ d ] = doubles[ d ];
+			case ViewerTransform:
 
-			BdvUtils.zoomToPosition( bdv, position, doubles[ 3 ], animationDurationMillis );
-		}
-		else if ( doubles.length == 12 ) // ViewerTransform
-		{
-			BdvUtils.changeBdvViewerTransform( bdv, asView( doubles ), animationDurationMillis );
-		}
-		else
-		{
-			Utils.log( "Cannot parse view string :-("  );
+				BdvUtils.changeBdvViewerTransform( bdv, Utils.asAffineTransform3D( location.doubles ), animationDurationMillis );
+				break;
+
+			case NormalisedViewerTransform:
+
+				final AffineTransform3D transform = Utils.createUnnormalizedViewerTransform( Utils.asAffineTransform3D( location.doubles ), bdv );
+				BdvUtils.changeBdvViewerTransform( bdv, transform, animationDurationMillis );
 		}
 	}
 
@@ -109,50 +78,6 @@ public abstract class BdvViewChanger
 		else
 		{
 			bdvPointOverlay.addPoint( doubles );
-		}
-	}
-
-	private static AffineTransform3D asView( double[] doubles )
-	{
-		final AffineTransform3D view = new AffineTransform3D( );
-		view.set( doubles );
-		return view;
-	}
-
-	private static double[] asPosition4D( double[] doubles )
-	{
-		final double[] position4D = new double[ 4 ];
-		for ( int d = 0; d < 3; d++ )
-			position4D[ d ] = doubles[ d ];
-		return position4D;
-	}
-
-	private static double[] getDoubles( String view )
-	{
-		if ( view.contains( "ViewerTransform" ) )
-		{
-			view = view.replace( "ViewerTransform: (", "" );
-			view = view.replace( ")", "" );
-			return Utils.delimitedStringToDoubleArray( view, "," );
-		}
-		else if ( view.contains( "Position" ) )
-		{
-			view = view.replace( "Position: (", "" );
-			view = view.replace( ")", "" );
-			return Utils.delimitedStringToDoubleArray( view, "," );
-		}
-		else
-		{
-			try
-			{
-				view = view.replace( "(", "" );
-				view = view.replace( ")", "" );
-				return Utils.delimitedStringToDoubleArray( view, "," );
-			} catch ( Exception e )
-			{
-				Utils.log( "Cannot parse view string :-(" );
-				return null;
-			}
 		}
 	}
 

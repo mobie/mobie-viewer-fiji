@@ -1,7 +1,5 @@
 package de.embl.cba.mobie.bookmark;
 
-
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.MutableImageProperties;
@@ -56,24 +54,30 @@ public class BookmarksManager
 		return metadata;
 	}
 
-	/**
-	 * The transform is specific to the size of the
-	 * Bdv window, leading to views appearing off centre.
-	 * Thus, if given, we also move to center the position.
-	 *
-	 * @param bookmark
-	 */
 	public void adaptViewerTransform( Bookmark bookmark )
 	{
-		if ( bookmark.view != null )
-			BdvViewChanger.moveToDoubles( sourcesPanel.getBdv(), bookmark.view );
+		final Location location = getLocation( bookmark );
 
-		if ( bookmark.position != null )
+		BdvViewChanger.moveToLocation( sourcesPanel.getBdv(), location );
+	}
+
+	public static Location getLocation( Bookmark bookmark )
+	{
+		if ( bookmark.normView != null )
 		{
-			BdvUtils.moveToPosition( sourcesPanel.getBdv(), bookmark.position, 0, 3000 );
-//			BdvViewChanger.enablePointOverlay( false );
-//			BdvViewChanger.moveToDoubles( sourcesPanel.getBdv(), bookmark.position );
-//			BdvViewChanger.enablePointOverlay( true );
+			return new Location( LocationType.NormalisedViewerTransform, bookmark.normView );
+		}
+		else if ( bookmark.view != null  )
+		{
+			return new Location( LocationType.ViewerTransform, bookmark.view );
+		}
+		else if ( bookmark.position != null )
+		{
+			return new Location( LocationType.Position3d, bookmark.position );
+		}
+		else
+		{
+			throw new RuntimeException( "Error parsing the view of bookmark: " + bookmark.name );
 		}
 	}
 

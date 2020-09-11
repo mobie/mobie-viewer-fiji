@@ -455,4 +455,11 @@ public class Utils
 
 		return affineTransform3D;
 	}
+
+	public static AffineTransform3D asAffineTransform3D( double[] doubles )
+	{
+		final AffineTransform3D view = new AffineTransform3D( );
+		view.set( doubles );
+		return view;
+	}
 }
