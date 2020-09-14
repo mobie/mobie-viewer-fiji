@@ -9,8 +9,26 @@ The MoBIE was initially develped to explore a cellular atlas for the biological 
 ## Installation
 
 1. Please [install Fiji](https://fiji.sc) on your computer.
-2. Open Fiji and install the MoBIE update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).
+1. Open Fiji and install the MoBIE update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).
 3. Restart Fiji
+
+### Expert mode
+
+1. Please [download](https://fiji.sc) a new Fiji onto your computer
+  - You may also try with a Fiji that you have already, but then please first uncheck the following update sites:
+    - `EMBL-CBA`
+    - `MoBIE`
+1. Open Fiji and update it once [ Help > Update ...], **without adding any update site**
+  - this is necessary until this issue is fixed: https://github.com/fiji/fiji/issues/263
+  - on a Mac, it should download `macosx/libblosc.dylib`
+  - on Windows and Linux, it may not update anything, that's ok
+1. Restart Fiji and add the Update Site `MoBIE-beta` like this:
+  - [ Help > Update.. ]
+  - [ Manage update sites ]
+  - [ Add update site ] and manually fill in the following fields:
+    - Name: `MoBIE-beta` 
+    - URL: `https://sites.imagej.net/MoBIE-beta`
+1. Restart Fiji
 
 ## Starting up
 
