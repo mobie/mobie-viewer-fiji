@@ -17,7 +17,6 @@ The MoBIE was initially develped to explore a cellular atlas for the biological 
 #### Expert usage (testing latest features)
 
 
-
 1. Please [download](https://fiji.sc) a new Fiji onto your computer
   - You may also try with a Fiji that you have already, but then please first uncheck the following update sites:
     - `EMBL-CBA`
@@ -29,10 +28,11 @@ The MoBIE was initially develped to explore a cellular atlas for the biological 
 1. Restart Fiji and add the Update Site `MoBIE-beta` like this:
   - [ Help > Update.. ]
   - [ Manage update sites ]
-  - <img width="350" alt="image" src="images/mobie-beta-update-site.png"> <br>
-    - [ Add update site ] and manually fill in the following fields:
+  - [ Add update site ] and manually fill in the following fields:
     - Name: `MoBIE-beta` 
     - URL: `https://sites.imagej.net/MoBIE-beta`
+    - It should look like this: <img width="350" alt="image" src="images/mobie-beta-update-site.png">
+  - [ Close ]
 1. Restart Fiji
 
 ## Starting up
