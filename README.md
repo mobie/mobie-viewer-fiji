@@ -6,7 +6,15 @@ The MoBIE Fiji viewer is a Fiji plugin for the exploration of big multi-modal im
 
 The MoBIE was initially develped to explore a cellular atlas for the biological model system _Platynereis dumerilii_, see: [Whole-body integration of gene expression and single-cell morphology](https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1). However, the framework turned out to be so useful and generalisable that it is now used for other projects as well, e.g. see all the repositories ending on "-datasets" [here](https://github.com/mobie).
 
-## Installation
+## Cite
+
+If you use MoBIE, or the PlatyBrowser resource, please cite [Whole-body integration of gene expression and single-cell morphology](https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1).
+
+<!---
+TODO we should also list important dependencies, FIJI, BDV, ?
+--->
+
+## Install
 
 #### Normal usage
 
@@ -98,12 +106,3 @@ Moreover, the table has its own menu. Important menu entries include:
 ### Advanced options
 
 By default the PlatyBrowser plugin fetches the data from [github](https://github.com/platybrowser/platybrowser) and a publicly accessible object store. However it can also be configured to fetch the data from other locations, such as a local file-server. To access this functionality please type in Fiji’s search bar: "CustomBrowser". You can find a minimal example for setting up data for the MMB [here](https://github.com/platybrowser/mmb-python).
-
-
-## Cite
-
-If you use MoBIE, or the PlatyBrowser resource, please cite [Whole-body integration of gene expression and single-cell morphology](https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1).
-
-<!---
-TODO we should also list important dependencies, FIJI, BDV, ?
---->
