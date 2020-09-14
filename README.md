@@ -32,7 +32,7 @@ The MoBIE was initially develped to explore a cellular atlas for the biological 
   - [ Add update site ] and manually fill in the following fields:
     - Name: `MoBIE-beta` 
     - URL: `https://sites.imagej.net/MoBIE-beta`
-    - <br> <img width="300" alt="image" src="images/mobie-beta-update-site.png"> <br>
+    - <img width="350" alt="image" src="images/mobie-beta-update-site.png">
 1. Restart Fiji
 
 ## Starting up
