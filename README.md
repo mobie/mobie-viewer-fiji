@@ -21,11 +21,11 @@ The MoBIE was initially develped to explore a cellular atlas for the biological 
   - You may also try with a Fiji that you have already, but then please first uncheck the following update sites:
     - `EMBL-CBA`
     - `MoBIE`
-1. Open Fiji and update it once [ Help > Update ...] **without adding any update site**
+2. Open Fiji and update it once [ Help > Update ...] **without adding any update site**
   - this is necessary until this issue is fixed: https://github.com/fiji/fiji/issues/263
   - on a Mac, it should download `macosx/libblosc.dylib`
   - on Windows and Linux, it may not update anything, that's ok
-1. Restart Fiji and add the Update Site `MoBIE-beta` like this:
+3. Restart Fiji and add the Update Site `MoBIE-beta` like this:
   - [ Help > Update.. ]
   - [ Manage update sites ]
   - [ Add update site ] and manually fill in the following fields:
@@ -33,7 +33,7 @@ The MoBIE was initially develped to explore a cellular atlas for the biological 
     - URL: `https://sites.imagej.net/MoBIE-beta`
     - It should look like this: <img width="350" alt="image" src="images/mobie-beta-update-site.png">
   - [ Close ]
-1. Restart Fiji
+4. Restart Fiji
 
 ## Starting up
 
@@ -100,9 +100,9 @@ Moreover, the table has its own menu. Important menu entries include:
 By default the PlatyBrowser plugin fetches the data from [github](https://github.com/platybrowser/platybrowser) and a publicly accessible object store. However it can also be configured to fetch the data from other locations, such as a local file-server. To access this functionality please type in Fiji’s search bar: "CustomBrowser". You can find a minimal example for setting up data for the MMB [here](https://github.com/platybrowser/mmb-python).
 
 
-## Citation
+## Cite
 
-If you use MMB, or the PlatyBrowser resource, please cite [Whole-body integration of gene expression and single-cell morphology](https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1).
+If you use MoBIE, or the PlatyBrowser resource, please cite [Whole-body integration of gene expression and single-cell morphology](https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1).
 
 <!---
 TODO we should also list important dependencies, FIJI, BDV, ?
