@@ -91,7 +91,7 @@ public class ActionPanel extends JPanel
 	{
 		BdvPopupMenus.addScreenshotAction( bdv );
 
-		BdvPopupMenus.addAction( bdv, "Log current location",
+		BdvPopupMenus.addAction( bdv, "Log current location [ Ctrl L ]",
 				() -> {
 					(new Thread( () -> {
 						Logger.log( "\nPosition:\n" + BdvUtils.getGlobalMousePositionString( bdv ) );

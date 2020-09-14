@@ -4,7 +4,8 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>29.2.2-SNAPSHOT</version>
+<!--		<version>29.2.2-SNAPSHOT</version>-->
+		<version>29.2.1</version>
 	</parent>
 	<artifactId>mobie</artifactId>
 	<version>0.5.1-SNAPSHOT</version>
@@ -64,7 +65,7 @@
 		<package-name>de.embl.cba.mobie</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
-		<scijava.app.directory>/Users/tischer/Desktop/Fiji-2.0-deploy-MoBIE.app</scijava.app.directory>
+		<scijava.app.directory>/Users/tischer/Desktop/Fiji-MoBIE-beta.app</scijava.app.directory>
 		<enforcer.skip>true</enforcer.skip>
 	</properties>
 	<build>
@@ -140,7 +141,7 @@
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>imagej-utils</artifactId>
-			<version>0.5.3-SNAPSHOT</version>
+			<version>0.5.4-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>
