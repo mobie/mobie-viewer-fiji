@@ -20,7 +20,7 @@ The MoBIE was initially develped to explore a cellular atlas for the biological 
   - You may also try with a Fiji that you have already, but then please first uncheck the following update sites:
     - `EMBL-CBA`
     - `MoBIE`
-1. Open Fiji and update it once [ Help > Update ...], **without adding any update site**
+1. Open Fiji and update it once [ Help > Update ...] **without adding any update site**
   - this is necessary until this issue is fixed: https://github.com/fiji/fiji/issues/263
   - on a Mac, it should download `macosx/libblosc.dylib`
   - on Windows and Linux, it may not update anything, that's ok
