@@ -29,7 +29,7 @@ The MoBIE was initially develped to explore a cellular atlas for the biological 
 1. Restart Fiji and add the Update Site `MoBIE-beta` like this:
   - [ Help > Update.. ]
   - [ Manage update sites ]
-  - <img width="350" alt="image" src="images/mobie-beta-update-site.png"> 
+  - <img width="350" alt="image" src="images/mobie-beta-update-site.png"> <br>
     - [ Add update site ] and manually fill in the following fields:
     - Name: `MoBIE-beta` 
     - URL: `https://sites.imagej.net/MoBIE-beta`
