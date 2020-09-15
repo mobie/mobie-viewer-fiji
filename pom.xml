@@ -65,7 +65,7 @@
 		<package-name>de.embl.cba.mobie</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
-		<scijava.app.directory>/Users/tischer/Desktop/Fiji-MoBIE.app</scijava.app.directory>
+		<scijava.app.directory>/Users/tischer/Desktop/Fiji-MoBIE-beta.app</scijava.app.directory>
 		<enforcer.skip>true</enforcer.skip>
 	</properties>
 	<build>

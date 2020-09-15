@@ -425,6 +425,14 @@ public class Utils
 		return collect;
 	}
 
+	public static String[] createNormalisedViewerTransformStringArray( BdvHandle bdv )
+	{
+		final AffineTransform3D view = createNormalisedViewerTransform( bdv );
+		final String replace = view.toString().replace( "3d-affine: (", "" ).replace( ")", "" );
+		final String[] strings = Arrays.stream( replace.split( "," ) ).map( x -> "n" + x.trim() ).toArray( String[]::new );
+		return strings;
+	}
+
 	@NotNull
 	public static AffineTransform3D createNormalisedViewerTransform( BdvHandle bdv )
 	{

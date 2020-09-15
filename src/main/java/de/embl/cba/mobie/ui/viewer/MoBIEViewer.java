@@ -81,6 +81,7 @@ public class MoBIEViewer
 
 		configureDatasetLocations( dataset );
 
+		// TODO: maybe show the UI of the panel only after the BDV has been shown?
 		sourcesModel = new SourcesModel( imagesLocation, tablesLocation );
 		sourcesPanel = new SourcesPanel( sourcesModel );
 
@@ -96,6 +97,7 @@ public class MoBIEViewer
 		sourcesPanel.setParentComponent( jFrame );
 
 		// show a first image
+		// (sourcesPanel is a field of the Bookmarks Manager)
 		bookmarksManager.setView( "default" );
 		actionPanel.setBdv( sourcesPanel.getBdv() );
 	}

@@ -562,6 +562,7 @@ public class ActionPanel extends JPanel
 
 	private void switchDataset( String dataset )
 	{
+		// TODO: make sure the Swing UI (sources panel is fully visible before instantiating the new BDV)
 		new MoBIEViewer( moBIEViewer.getProjectImagesLocation(), moBIEViewer.getProjectTablesLocation(), new ViewerOptions().dataset( dataset ) );
 		moBIEViewer.close();
 	}

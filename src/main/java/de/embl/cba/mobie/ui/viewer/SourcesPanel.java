@@ -335,7 +335,7 @@ public class SourcesPanel extends JPanel
             Logger.log( "Adding source: " + sourceName + "..." );
             sourceNameToSourceAndMetadata.put( sourceName, sam );
             addSourceToViewer( sam );
-            addSourceToPanel( sam );
+            SwingUtilities.invokeLater( () -> addSourceToPanel( sam ) );
         }
     }
 

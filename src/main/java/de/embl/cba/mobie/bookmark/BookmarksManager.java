@@ -32,7 +32,10 @@ public class BookmarksManager
 			addSourcesToPanelAndViewer( bookmark );
 		}
 
-		adaptViewerTransform( bookmark );
+		new Thread( () -> {
+			Utils.wait( 2000 ); // without the waiting it hangs => TODO: make issue
+			adaptViewerTransform( bookmark );
+		} ).start();
 	}
 
 	public void addSourcesToPanelAndViewer( Bookmark bookmark )
@@ -69,7 +72,9 @@ public class BookmarksManager
 	{
 		if ( bookmark.normView != null )
 		{
-			return new Location( LocationType.NormalisedViewerTransform, bookmark.normView );
+			final double[] doubles = null;
+
+			return new Location( LocationType.NormalisedViewerTransform, doubles );
 		}
 		else if ( bookmark.view != null  )
 		{
@@ -83,8 +88,9 @@ public class BookmarksManager
 		{
 			if ( bookmark.name.equals( "default" ) )
 			{
-				bookmark.normView = Utils.createNormalisedViewerTransform( bdv ).getRowPackedCopy();
-				return new Location( LocationType.NormalisedViewerTransform, bookmark.normView );
+				final double[] doubles = Utils.createNormalisedViewerTransform( bdv ).getRowPackedCopy();
+				bookmark.normView = Utils.createNormalisedViewerTransformStringArray( bdv );
+				return new Location( LocationType.NormalisedViewerTransform, doubles );
 			}
 			else
 			{
