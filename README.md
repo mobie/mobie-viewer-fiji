@@ -19,11 +19,14 @@ TODO we should also list important dependencies, FIJI, BDV, ?
 #### Normal usage
 
 1. Please [install Fiji](https://fiji.sc) on your computer.
-1. Open Fiji and install the MoBIE update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).
-3. Restart Fiji
+2. Open Fiji and update it once [ Help > Update ...] **without adding any update site**
+  - this is necessary until this issue is fixed: https://github.com/fiji/fiji/issues/263
+  - on a Mac, it should download `macosx/libblosc.dylib`
+  - on Windows and Linux, it may not update anything, that's ok
+3. Restart Fiji and install the `MoBIE` update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).
+4. Restart Fiji
 
 #### Expert usage (testing latest features)
-
 
 1. Please [download](https://fiji.sc) a new Fiji onto your computer
   - You may also try with a Fiji that you have already, but then please first uncheck the following update sites:
