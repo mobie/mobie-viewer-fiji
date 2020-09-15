@@ -31,11 +31,8 @@ TODO we should also list important dependencies, FIJI, BDV, ?
 
 #### Expert usage (testing latest features)
 
-1. Please [install Fiji](https://fiji.sc) on your computer
-2. Open Fiji and update it once [ Help > Update ...] **without adding any update site**
-  - this is necessary until this issue is fixed: https://github.com/fiji/fiji/issues/263
-  - on a Mac, it should download `macosx/libblosc.dylib`
-  - on Windows and Linux, it may not update anything, that's ok
+Perform steps 1 and 2 as described above and then:
+
 3. Restart Fiji and add the Update Site `MoBIE-beta` like this:
    - [ Help > Update.. ]
    - [ Manage update sites ]
