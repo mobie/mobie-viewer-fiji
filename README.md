@@ -20,9 +20,9 @@ TODO we should also list important dependencies, FIJI, BDV, ?
 
 1. Please [install Fiji](https://fiji.sc) on your computer.
 2. Open Fiji and update it once [ Help > Update ...] **without adding any update site**
-  - this is necessary until this issue is fixed: https://github.com/fiji/fiji/issues/263
-  - on a Mac, it should download `macosx/libblosc.dylib`
-  - on Windows and Linux, it may not update anything, that's ok
+   - this is necessary until this issue is fixed: https://github.com/fiji/fiji/issues/263
+   - on a Mac, it should download `macosx/libblosc.dylib`
+   - on Windows and Linux, it may not update anything, that's ok
 3. Restart Fiji and install the `MoBIE` update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).
 4. Restart Fiji
 
@@ -37,13 +37,13 @@ TODO we should also list important dependencies, FIJI, BDV, ?
   - on a Mac, it should download `macosx/libblosc.dylib`
   - on Windows and Linux, it may not update anything, that's ok
 3. Restart Fiji and add the Update Site `MoBIE-beta` like this:
-  - [ Help > Update.. ]
-  - [ Manage update sites ]
-  - [ Add update site ] and manually fill in the following fields:
-    - Name: `MoBIE-beta` 
-    - URL: `https://sites.imagej.net/MoBIE-beta`
-    - It should look like this: <img width="350" alt="image" src="images/mobie-beta-update-site.png">
-  - [ Close ]
+   - [ Help > Update.. ]
+   - [ Manage update sites ]
+   - [ Add update site ] and manually fill in the following fields:
+      - Name: `MoBIE-beta` 
+      - URL: `https://sites.imagej.net/MoBIE-beta`
+      - It should look like this: <img width="350" alt="image" src="images/mobie-beta-update-site.png">
+   - [ Close ]
 4. Restart Fiji
 
 ## Starting up
