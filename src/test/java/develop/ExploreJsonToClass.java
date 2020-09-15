@@ -7,7 +7,6 @@ import java.util.ArrayList;
 
 public class ExploreJsonToClass
 {
-
 	public class Test
 	{
 		public ArrayList< String > datasets;
