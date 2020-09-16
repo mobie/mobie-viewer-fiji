@@ -365,19 +365,17 @@ public class SourcesPanel extends JPanel
         {
             showIntensitySource( sam );
         }
+    }
 
-        if ( isBdvShownFirstTime )
-        {
-            BdvUtils.getViewerFrame( bdv ).setLocation(
-                    jFrame.getLocationOnScreen().x + jFrame.getWidth(),
-                    jFrame.getLocationOnScreen().y );
+    public void setBdvWindowPositionAndSize( Component component )
+    {
+        BdvUtils.getViewerFrame( bdv ).setLocation(
+                component.getLocationOnScreen().x + component.getWidth(),
+                component.getLocationOnScreen().y );
 
-            BdvUtils.getViewerFrame( bdv ).setSize( jFrame.getHeight(), jFrame.getHeight() );
+        BdvUtils.getViewerFrame( bdv ).setSize( component.getHeight(), component.getHeight() );
 
-            bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
-
-            isBdvShownFirstTime = false;
-        }
+        bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
     }
 
     private void showIntensitySource( SourceAndMetadata< ? > sam )
@@ -444,7 +442,6 @@ public class SourcesPanel extends JPanel
 
 		setUniverse();
 
-		// TODO: use metadata.color explicitly instead of assuming Glasbey
         final SegmentsTableBdvAnd3dViews views
                 = new SegmentsTableBdvAnd3dViews(
                     segments,
@@ -456,6 +453,9 @@ public class SourcesPanel extends JPanel
         sam.metadata().views = views;
         configureSegments3dView( views, sam );
         configureTableView( views, sam );
+
+        // TODO: Kimberly: Here change the coloring model to what is specified in the Metadata, enable this.
+        // views.getTableRowsTableView().colorByColumn( sam.metadata().colorByColumn, sam.metadata().color );
 
         bdv = views.getSegmentsBdvView().getBdv();
 

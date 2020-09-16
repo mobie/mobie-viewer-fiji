@@ -8,6 +8,7 @@ import de.embl.cba.mobie.ui.viewer.SourcesPanel;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,10 +33,7 @@ public class BookmarksManager
 			addSourcesToPanelAndViewer( bookmark );
 		}
 
-		new Thread( () -> {
-			Utils.wait( 2000 ); // without the waiting it hangs => TODO: make issue
-			adaptViewerTransform( bookmark );
-		} ).start();
+		adaptViewerTransform( bookmark );
 	}
 
 	public void addSourcesToPanelAndViewer( Bookmark bookmark )
@@ -61,18 +59,30 @@ public class BookmarksManager
 
 	public void adaptViewerTransform( Bookmark bookmark )
 	{
-		final Location location = getLocation( bookmark, sourcesPanel.getBdv() );
+		final BdvHandle bdv = sourcesPanel.getBdv();
 
-		if ( location == null ) return; // not all Bookmarks have a location, some are just layers
+		final Location location = getLocationFromBookmark( bookmark, bdv );
 
-		BdvViewChanger.moveToLocation( sourcesPanel.getBdv(), location );
+		if ( bookmark.name.equals( "default" ) && location == null )
+		{
+			// remember current view for users to come back to it
+			bookmark.normView = Utils.createNormalisedViewerTransformStringArray( bdv );
+
+			// below code is needed to force the deadlock during switching of datasets
+//			final Location location2 = getLocationFromBookmark( bookmark, bdv );
+//			BdvViewChanger.moveToLocation( sourcesPanel.getBdv(), location2 );
+		}
+		else if ( location != null )
+		{
+			BdvViewChanger.moveToLocation( sourcesPanel.getBdv(), location );
+		}
 	}
 
-	public static Location getLocation( Bookmark bookmark, BdvHandle bdv )
+	public static Location getLocationFromBookmark( Bookmark bookmark, BdvHandle bdv )
 	{
 		if ( bookmark.normView != null )
 		{
-			final double[] doubles = null;
+			final double[] doubles = Arrays.stream( bookmark.normView ).mapToDouble( x -> Double.parseDouble( x.replace( "n", "" ) ) ).toArray();
 
 			return new Location( LocationType.NormalisedViewerTransform, doubles );
 		}
@@ -86,16 +96,7 @@ public class BookmarksManager
 		}
 		else
 		{
-			if ( bookmark.name.equals( "default" ) )
-			{
-				final double[] doubles = Utils.createNormalisedViewerTransform( bdv ).getRowPackedCopy();
-				bookmark.normView = Utils.createNormalisedViewerTransformStringArray( bdv );
-				return new Location( LocationType.NormalisedViewerTransform, doubles );
-			}
-			else
-			{
-				return null;
-			}
+			return null;
 		}
 	}
 

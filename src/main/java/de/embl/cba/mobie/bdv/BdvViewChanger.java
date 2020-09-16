@@ -53,6 +53,7 @@ public abstract class BdvViewChanger
 
 				final AffineTransform3D transform = Utils.createUnnormalizedViewerTransform( Utils.asAffineTransform3D( location.doubles ), bdv );
 				BdvUtils.changeBdvViewerTransform( bdv, transform, animationDurationMillis );
+				break;
 		}
 	}
 

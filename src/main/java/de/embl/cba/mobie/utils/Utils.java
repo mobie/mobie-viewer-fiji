@@ -453,18 +453,18 @@ public class Utils
 	@NotNull
 	public static AffineTransform3D createUnnormalizedViewerTransform( AffineTransform3D normalisedTransform, BdvHandle bdv )
 	{
-		final AffineTransform3D affineTransform3D = normalisedTransform.copy();
+		final AffineTransform3D unnormalisedTransfom = normalisedTransform.copy();
 
 		final int bdvWindowWidth = BdvUtils.getBdvWindowWidth( bdv );
 		final Scale3D scale = new Scale3D( 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth );
-		affineTransform3D.preConcatenate( scale.inverse() );
+		unnormalisedTransfom.preConcatenate( scale.inverse() );
 
 		AffineTransform3D translate = new AffineTransform3D();
 		translate.translate( getBdvWindowCenter( bdv ) );
 
-		affineTransform3D.preConcatenate( translate );
+		unnormalisedTransfom.preConcatenate( translate );
 
-		return affineTransform3D;
+		return unnormalisedTransfom;
 	}
 
 	public static AffineTransform3D asAffineTransform3D( double[] doubles )

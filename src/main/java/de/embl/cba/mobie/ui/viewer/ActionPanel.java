@@ -134,8 +134,8 @@ public class ActionPanel extends JPanel
 	private void configPanel()
 	{
 		this.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
-		this.revalidate();
-		this.repaint();
+		//this.revalidate();
+		//this.repaint();
 	}
 
 	private void addPointOverlayTogglingBehaviour(  )
@@ -563,8 +563,8 @@ public class ActionPanel extends JPanel
 	private void switchDataset( String dataset )
 	{
 		// TODO: make sure the Swing UI (sources panel is fully visible before instantiating the new BDV)
-		new MoBIEViewer( moBIEViewer.getProjectImagesLocation(), moBIEViewer.getProjectTablesLocation(), new ViewerOptions().dataset( dataset ) );
 		moBIEViewer.close();
+		new MoBIEViewer( moBIEViewer.getProjectImagesLocation(), moBIEViewer.getProjectTablesLocation(), new ViewerOptions().dataset( dataset ) );
 	}
 
 	private void setComboBoxDimensions( JComboBox< String > comboBox )

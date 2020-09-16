@@ -81,7 +81,6 @@ public class MoBIEViewer
 
 		configureDatasetLocations( dataset );
 
-		// TODO: maybe show the UI of the panel only after the BDV has been shown?
 		sourcesModel = new SourcesModel( imagesLocation, tablesLocation );
 		sourcesPanel = new SourcesPanel( sourcesModel );
 
@@ -91,15 +90,19 @@ public class MoBIEViewer
 		actionPanel = new ActionPanel( this );
 
 		jFrame = new JFrame( "MoBIE: " + projectName + "-" + dataset );
-		showFrame( jFrame );
 		jFrame.setJMenuBar( createJMenuBar() );
-		adaptLogWindowPositionAndSize();
-		sourcesPanel.setParentComponent( jFrame );
 
-		// show a first image
-		// (sourcesPanel is a field of the Bookmarks Manager)
+		// open bdv with default image
 		bookmarksManager.setView( "default" );
 		actionPanel.setBdv( sourcesPanel.getBdv() );
+
+		SwingUtilities.invokeLater( () ->
+		{
+			showFrame( jFrame );
+			setLogWindowPositionAndSize( jFrame );
+			sourcesPanel.setParentComponent( jFrame );
+			sourcesPanel.setBdvWindowPositionAndSize( jFrame );
+		});
 	}
 
 	public double[] getLevelingVector()
@@ -201,7 +204,7 @@ public class MoBIEViewer
 		return new BookmarksManager( sourcesPanel, nameToBookmark );
 	}
 
-	public void adaptLogWindowPositionAndSize()
+	public void setLogWindowPositionAndSize( JFrame jFrame )
 	{
 		final Frame log = WindowManager.getFrame( "Log" );
 		if (log != null) {
