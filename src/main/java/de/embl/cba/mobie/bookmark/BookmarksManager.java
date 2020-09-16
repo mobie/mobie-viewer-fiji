@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.bookmark;
 
 import bdv.util.BdvHandle;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.MutableImageProperties;
@@ -66,7 +67,7 @@ public class BookmarksManager
 		if ( bookmark.name.equals( "default" ) && location == null )
 		{
 			// remember current view for users to come back to it
-			bookmark.normView = Utils.createNormalisedViewerTransformStringArray( bdv );
+			bookmark.normView = Utils.createNormalisedViewerTransformString( bdv, BdvUtils.getBdvWindowCenter( bdv ) ).split( "," );
 
 			// below code is needed to force the deadlock during switching of datasets
 //			final Location location2 = getLocationFromBookmark( bookmark, bdv );

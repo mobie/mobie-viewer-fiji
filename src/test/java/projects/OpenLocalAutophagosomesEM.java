@@ -11,7 +11,5 @@ public class OpenLocalAutophagosomesEM
 		new ImageJ().ui().showUI();
 
 		final MoBIEViewer moBIEViewer = new MoBIEViewer("/g/kreshuk/pape/work/my_projects/autophagosoms-clem/data");
-
-		new XmlIoSpimData().save(  );
 	}
 }

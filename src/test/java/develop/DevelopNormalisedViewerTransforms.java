@@ -1,6 +1,7 @@
 package develop;
 
 import bdv.util.BdvHandle;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
 import de.embl.cba.mobie.utils.Utils;
 import net.imagej.ImageJ;
@@ -17,22 +18,6 @@ public class DevelopNormalisedViewerTransforms
 		testNormalisationAndReversion();
 
 		final MoBIEViewer moBIEViewer = new MoBIEViewer( "https://github.com/mobie-org/covid-em-datasets" );
-//BdvUtils.moveToPosition( moBIEViewer.getSourcesPanel().getBdv(), new double[]{10,10,10}, 0, 500 );
-		final BdvHandle bdv = moBIEViewer.getSourcesPanel().getBdv();
-
-		final String s = Utils.createNormalisedViewerTransformString( bdv );
-		System.out.println( "Normalised transform");
-		System.out.println( s );
-
-		final AffineTransform3D absoluteView = new AffineTransform3D();
-		bdv.getViewerPanel().state().getViewerTransform( absoluteView );
-		System.out.println( absoluteView );
-
-		final AffineTransform3D normView = Utils.createNormalisedViewerTransform( bdv );
-		System.out.println( normView );
-
-		final AffineTransform3D view = Utils.createUnnormalizedViewerTransform( normView, bdv );
-		System.out.println( view ); // should be the same as absoluteView above
 	}
 
 	public static void testNormalisationAndReversion()

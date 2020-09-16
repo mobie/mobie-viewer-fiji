@@ -417,32 +417,26 @@ public class Utils
 		return sorted;
 	}
 
-	public static String createNormalisedViewerTransformString( BdvHandle bdv )
+	public static String createNormalisedViewerTransformString( BdvHandle bdv, double[] position )
 	{
-		final AffineTransform3D view = createNormalisedViewerTransform( bdv );
+		final AffineTransform3D view = createNormalisedViewerTransform( bdv, position );
 		final String replace = view.toString().replace( "3d-affine: (", "" ).replace( ")", "" );
 		final String collect = Arrays.stream( replace.split( "," ) ).map( x -> "n" + x.trim() ).collect( Collectors.joining( "," ) );
 		return collect;
 	}
 
-	public static String[] createNormalisedViewerTransformStringArray( BdvHandle bdv )
-	{
-		final AffineTransform3D view = createNormalisedViewerTransform( bdv );
-		final String replace = view.toString().replace( "3d-affine: (", "" ).replace( ")", "" );
-		final String[] strings = Arrays.stream( replace.split( "," ) ).map( x -> "n" + x.trim() ).toArray( String[]::new );
-		return strings;
-	}
-
 	@NotNull
-	public static AffineTransform3D createNormalisedViewerTransform( BdvHandle bdv )
+	public static AffineTransform3D createNormalisedViewerTransform( BdvHandle bdv, double[] position )
 	{
 		final AffineTransform3D view = new AffineTransform3D();
 		bdv.getViewerPanel().state().getViewerTransform( view );
 
+		// translate position to upper left corner of the Window (0,0)
 		final AffineTransform3D translate = new AffineTransform3D();
-		translate.translate( getBdvWindowCenter( bdv ) );
+		translate.translate( position );
 		view.preConcatenate( translate.inverse() );
 
+		// divide by window width
 		final int bdvWindowWidth = BdvUtils.getBdvWindowWidth( bdv );
 		final Scale3D scale = new Scale3D( 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth );
 		view.preConcatenate( scale );
@@ -450,21 +444,30 @@ public class Utils
 		return view;
 	}
 
+	public static double[] getMousePosition( BdvHandle bdv )
+	{
+		final RealPoint realPoint = new RealPoint( 2 );
+		bdv.getViewerPanel().getMouseCoordinates( realPoint );
+		final double[] doubles = new double[ 3 ];
+		realPoint.localize( doubles );
+		return doubles;
+	}
+
 	@NotNull
 	public static AffineTransform3D createUnnormalizedViewerTransform( AffineTransform3D normalisedTransform, BdvHandle bdv )
 	{
-		final AffineTransform3D unnormalisedTransfom = normalisedTransform.copy();
+		final AffineTransform3D transform = normalisedTransform.copy();
 
 		final int bdvWindowWidth = BdvUtils.getBdvWindowWidth( bdv );
 		final Scale3D scale = new Scale3D( 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth );
-		unnormalisedTransfom.preConcatenate( scale.inverse() );
+		transform.preConcatenate( scale.inverse() );
 
 		AffineTransform3D translate = new AffineTransform3D();
 		translate.translate( getBdvWindowCenter( bdv ) );
 
-		unnormalisedTransfom.preConcatenate( translate );
+		transform.preConcatenate( translate );
 
-		return unnormalisedTransfom;
+		return transform;
 	}
 
 	public static AffineTransform3D asAffineTransform3D( double[] doubles )

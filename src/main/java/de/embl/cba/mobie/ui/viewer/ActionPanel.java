@@ -96,7 +96,7 @@ public class ActionPanel extends JPanel
 					(new Thread( () -> {
 						Logger.log( "\nPosition:\n" + BdvUtils.getGlobalMousePositionString( bdv ) );
 						Logger.log( "View:\n" + BdvUtils.getBdvViewerTransformString( bdv ) );
-						Logger.log( "Normalised view:\n" + Utils.createNormalisedViewerTransformString( bdv ) );
+						Logger.log( "Normalised view:\n" + Utils.createNormalisedViewerTransformString( bdv, Utils.getMousePosition( bdv ) ) );
 					} )).start();
 
 				});
