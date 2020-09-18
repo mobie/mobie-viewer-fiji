@@ -3,6 +3,7 @@ package de.embl.cba.mobie.bookmark;
 import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.bdv.utils.sources.Sources;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.MutableImageProperties;
 import de.embl.cba.mobie.ui.viewer.SourcesPanel;
