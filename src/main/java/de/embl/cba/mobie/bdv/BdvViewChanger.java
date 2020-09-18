@@ -40,8 +40,9 @@ public abstract class BdvViewChanger
 				final double[] position = new double[ 3 ];
 				for ( int d = 0; d < 3; d++ )
 					position[ d ] = location.doubles[ d ];
+				final int time = (int) location.doubles[ 3 ];
 
-				BdvUtils.zoomToPosition( bdv, position, location.doubles[ 3 ], animationDurationMillis );
+				BdvUtils.moveToPosition( bdv, position, time, animationDurationMillis );
 				break;
 
 			case ViewerTransform:

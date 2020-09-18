@@ -3,6 +3,7 @@ package de.embl.cba.mobie.ui.viewer;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.dataset.DatasetsParser;
 import de.embl.cba.mobie.image.SourcesModel;
@@ -13,6 +14,7 @@ import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.mobie.utils.Utils;
 import ij.WindowManager;
 import ij.gui.NonBlockingGenericDialog;
+import net.imglib2.realtransform.AffineTransform3D;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,6 +43,7 @@ public class MoBIEViewer
 	private final JFrame jFrame;
 	private String gitBranch;
 	private String projectName;
+	private AffineTransform3D defaultNormalisedViewerTransform;
 
 	public MoBIEViewer( String projectLocation ) throws HeadlessException
 	{
@@ -92,9 +95,10 @@ public class MoBIEViewer
 		jFrame = new JFrame( "MoBIE: " + projectName + "-" + dataset );
 		jFrame.setJMenuBar( createJMenuBar() );
 
-		// open bdv with default image
+		// open bdv and show default bookmark (this will also initialise the bdv in sourcesPanel)
 		bookmarksManager.setView( "default" );
-		actionPanel.setBdv( sourcesPanel.getBdv() );
+		actionPanel.setBdvAndInstallBehavioursAndPopupMenu( sourcesPanel.getBdv() );
+		defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( sourcesPanel.getBdv(), BdvUtils.getBdvWindowCenter( sourcesPanel.getBdv() ) );
 
 		SwingUtilities.invokeLater( () ->
 		{
@@ -103,6 +107,11 @@ public class MoBIEViewer
 			sourcesPanel.setParentComponent( jFrame );
 			sourcesPanel.setBdvWindowPositionAndSize( jFrame );
 		});
+	}
+
+	public AffineTransform3D getDefaultNormalisedViewerTransform()
+	{
+		return defaultNormalisedViewerTransform;
 	}
 
 	public double[] getLevelingVector()

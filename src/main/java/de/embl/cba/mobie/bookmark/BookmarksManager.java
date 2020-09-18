@@ -34,6 +34,10 @@ public class BookmarksManager
 			addSourcesToPanelAndViewer( bookmark );
 		}
 
+		// note: if this is trying to restore the default bookmark
+		// it may not do anything because bdv already automatically
+		// adapts the viewer transform when restoring the default view
+		// in case only one source was added
 		adaptViewerTransform( bookmark );
 	}
 
@@ -64,16 +68,7 @@ public class BookmarksManager
 
 		final Location location = getLocationFromBookmark( bookmark, bdv );
 
-		if ( bookmark.name.equals( "default" ) && location == null )
-		{
-			// remember current view for users to come back to it
-			bookmark.normView = Utils.createNormalisedViewerTransformString( bdv, BdvUtils.getBdvWindowCenter( bdv ) ).split( "," );
-
-			// below code is needed to force the deadlock during switching of datasets
-//			final Location location2 = getLocationFromBookmark( bookmark, bdv );
-//			BdvViewChanger.moveToLocation( sourcesPanel.getBdv(), location2 );
-		}
-		else if ( location != null )
+		if ( location != null )
 		{
 			BdvViewChanger.moveToLocation( sourcesPanel.getBdv(), location );
 		}

@@ -4,6 +4,7 @@ import bdv.util.*;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
+import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.Constants;
@@ -39,6 +40,7 @@ import java.util.*;
 import java.util.List;
 
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
+import static de.embl.cba.mobie.utils.Utils.createRandom;
 
 public class SourcesPanel extends JPanel
 {
@@ -390,13 +392,28 @@ public class SourcesPanel extends JPanel
         bdvStackSource.setActive( true );
 
         setDisplayRange( bdvStackSource, metadata );
-
-        final ARGBType argbType = ColorUtils.getARGBType( metadata.color );
-        if ( argbType != null ) bdvStackSource.setColor( argbType );
+        setColor( bdvStackSource, metadata );
 
         bdv = bdvStackSource.getBdvHandle();
 
         metadata.bdvStackSource = bdvStackSource;
+    }
+
+    private void setColor( BdvStackSource bdvStackSource, Metadata metadata )
+    {
+        ARGBType argbType;
+        if ( metadata.color.equals("RandomFromGlasbey") )
+        {
+            final GlasbeyARGBLut glasbeyARGBLut = new GlasbeyARGBLut();
+            final int argb = glasbeyARGBLut.getARGB( createRandom( metadata.imageId ) );
+            argbType = new ARGBType( argb );
+        }
+        else
+        {
+            argbType = ColorUtils.getARGBType( metadata.color );
+        }
+
+        if ( argbType != null ) bdvStackSource.setColor( argbType );
     }
 
     private void setDisplayRange( BdvStackSource bdvStackSource, Metadata metadata )
@@ -688,7 +705,7 @@ public class SourcesPanel extends JPanel
         updateSource3dView( sam, this, false );
 
         removeSourceFromPanel( sam.metadata().displayName );
-		removeLabelsViews( sam.metadata().displayName );
+		removeLabelViews( sam.metadata().displayName );
 
 		BdvUtils.removeSource( bdv, ( BdvStackSource ) sam.metadata().bdvStackSource );
 
@@ -697,13 +714,14 @@ public class SourcesPanel extends JPanel
         refreshGui();
     }
 
-	private void removeLabelsViews( String sourceName )
+	private void removeLabelViews( String sourceName )
 	{
 		if ( sourceNameToLabelViews.keySet().contains( sourceName ) )
         {
             // TODO work more on closing the views properly (also free the memory)
 			sourceNameToLabelViews.get( sourceName ).getTableRowsTableView().close();
-			sourceNameToLabelViews.remove( sourceName );
+            sourceNameToLabelViews.get( sourceName ).getSegmentsBdvView().close();
+            sourceNameToLabelViews.remove( sourceName );
         }
 	}
 
