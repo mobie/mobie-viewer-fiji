@@ -584,7 +584,7 @@ public class ActionPanel extends JPanel
 	{
 		// TODO: make sure the Swing UI (sources panel is fully visible before instantiating the new BDV)
 		moBIEViewer.close();
-		new MoBIEViewer( moBIEViewer.getProjectImagesLocation(), moBIEViewer.getProjectTablesLocation(), new ViewerOptions().dataset( dataset ) );
+		new MoBIEViewer( moBIEViewer.getProjectLocation(), moBIEViewer.getOptions().dataset( dataset ) );
 	}
 
 	private void setComboBoxDimensions( JComboBox< String > comboBox )

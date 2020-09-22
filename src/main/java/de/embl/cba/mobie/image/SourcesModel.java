@@ -9,6 +9,7 @@ import de.embl.cba.bdv.utils.sources.Sources;
 import de.embl.cba.mobie.image.ImageProperties;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.ImagesJsonParser;
+import de.embl.cba.mobie.ui.viewer.MoBIEOptions;
 import de.embl.cba.mobie.utils.Enums;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.mobie.utils.Utils;
@@ -28,17 +29,17 @@ public class SourcesModel implements ImageSourcesModel
 	public static final String EM_ID = "em-";
 	public static final String XRAY_ID = "xray-";
 	public static final String MASK_FILE_ID = "mask-";
+	private final MoBIEOptions.ImageDataLocationType imageDataLocationType;
 
 	private Map< String, SourceAndMetadata< ? > > nameToSourceAndMetadata;
-	private final String imageDataLocation;
 	private final String tableDataLocation;
 	private GlasbeyARGBLut glasbeyARGBLut;
 	private String storageModality;
 	private String imageRootLocation;
 
-	public SourcesModel( String imageDataLocation, String tableDataLocation )
+	public SourcesModel( String imageDataLocation, MoBIEOptions.ImageDataLocationType imageDataLocationType, String tableDataLocation )
 	{
-		this.imageDataLocation = imageDataLocation;
+		this.imageDataLocationType = imageDataLocationType;
 		this.tableDataLocation = tableDataLocation;
 
 		nameToSourceAndMetadata = new HashMap<>();
@@ -75,7 +76,7 @@ public class SourcesModel implements ImageSourcesModel
 
 	private void addSources( String imageDataLocation, Map< String, ImageProperties > nameToImageProperties )
 	{
-		storageModality = imageDataLocation.startsWith( "http" ) ? "remote" : "local";
+		storageModality = imageDataLocationType.equals( MoBIEOptions.ImageDataLocationType.S3 ) ? "remote" : "local";
 		imageRootLocation = FileAndUrlUtils.combinePath( imageDataLocation, "images" );
 
 		final Set< String > names = nameToImageProperties.keySet();

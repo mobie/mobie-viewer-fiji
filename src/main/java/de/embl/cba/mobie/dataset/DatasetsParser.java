@@ -11,7 +11,7 @@ import java.io.InputStreamReader;
 
 public class DatasetsParser
 {
-	public Datasets datasetsFromDataSource( String dataSourceLocation )
+	public Datasets fetchProjectDatasets( String dataSourceLocation )
 	{
 		try
 		{

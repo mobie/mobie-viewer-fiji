@@ -23,6 +23,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Map;
 
+import static de.embl.cba.mobie.utils.FileAndUrlUtils.getName;
+
 public class MoBIEViewer
 {
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
@@ -30,9 +32,10 @@ public class MoBIEViewer
 	private final SourcesPanel sourcesPanel;
 	private final ActionPanel actionPanel;
 	private final SourcesModel sourcesModel;
-	private final String projectImagesLocation; // whole project (multiple datasets)
-	private final String projectTablesLocation;
+	private final MoBIEOptions options;
 	private String dataset;
+	private final String projectBaseLocation; // without branch, pure github address
+	private String projectLocation; // with branch, actual url to data
 	private String imagesLocation; // selected dataset
 	private String tablesLocation;
 
@@ -41,50 +44,35 @@ public class MoBIEViewer
 	private Datasets datasets;
 	private final double[] levelingVector;
 	private final JFrame jFrame;
-	private String gitBranch;
 	private String projectName;
 	private AffineTransform3D defaultNormalisedViewerTransform;
 
 	public MoBIEViewer( String projectLocation ) throws HeadlessException
 	{
-		this( projectLocation, projectLocation, ViewerOptions.options() );
+		this( projectLocation, MoBIEOptions.options() );
 	}
 
-	public MoBIEViewer( String projectLocation, ViewerOptions options ) throws HeadlessException
-	{
-		this( projectLocation, projectLocation, options );
-	}
-
+	@Deprecated
 	public MoBIEViewer(
-			String projectImagesLocation,
+			String projectLocation,
 			String projectTablesLocation ) throws HeadlessException
 	{
-			this( projectImagesLocation, projectTablesLocation, ViewerOptions.options() );
+		this( projectLocation, MoBIEOptions.options().tableDataLocation( projectTablesLocation ) );
 	}
 
 	public MoBIEViewer(
-			String projectImagesLocation,
-			String projectTablesLocation,
-			ViewerOptions options )
+			String projectLocation,
+			MoBIEOptions options )
 	{
-		this.projectName = de.embl.cba.mobie.utils.FileAndUrlUtils.getName( projectImagesLocation );
-		this.dataset = options.values.getDataset();
-		this.gitBranch = options.values.getGitBranch();
-		this.projectImagesLocation = projectImagesLocation;
-		this.projectTablesLocation = projectTablesLocation;
+		this.projectBaseLocation = projectLocation;
+		this.options = options;
 
-		initDatasetLocations();
+		this.projectName = getName( projectBaseLocation );
 
-		this.datasets = new DatasetsParser().datasetsFromDataSource( imagesLocation );
+		configureRootLocations();
+		appendSpecificDatasetLocations();
 
-		if ( dataset == null )
-		{
-			dataset = datasets.defaultDataset;
-		}
-
-		configureDatasetLocations( dataset );
-
-		sourcesModel = new SourcesModel( imagesLocation, tablesLocation );
+		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataLocationType(), tablesLocation );
 		sourcesPanel = new SourcesPanel( sourcesModel );
 
 		bookmarksManager = fetchBookmarks( imagesLocation );
@@ -109,6 +97,11 @@ public class MoBIEViewer
 		});
 	}
 
+	public MoBIEOptions getOptions()
+	{
+		return options;
+	}
+
 	public AffineTransform3D getDefaultNormalisedViewerTransform()
 	{
 		return defaultNormalisedViewerTransform;
@@ -124,19 +117,9 @@ public class MoBIEViewer
 		return sourcesModel;
 	}
 
-	public String getProjectImagesLocation()
-	{
-		return projectImagesLocation;
-	}
-
 	public String getProjectLocation()
 	{
-		return projectImagesLocation; // TODO
-	}
-
-	public String getProjectTablesLocation()
-	{
-		return projectTablesLocation;
+		return projectBaseLocation; // without branch information, which is stored in the options
 	}
 
 	public String getDataset()
@@ -173,10 +156,18 @@ public class MoBIEViewer
 		}
 	}
 
-	public void configureDatasetLocations( String dataSet )
+	public void appendSpecificDatasetLocations()
 	{
-		imagesLocation = FileAndUrlUtils.combinePath( imagesLocation, dataSet );
-		tablesLocation = FileAndUrlUtils.combinePath( tablesLocation, dataSet );
+		this.datasets = new DatasetsParser().fetchProjectDatasets( projectLocation );
+		this.dataset = options.values.getDataset();
+
+		if ( dataset == null )
+		{
+			dataset = datasets.defaultDataset;
+		}
+
+		imagesLocation = FileAndUrlUtils.combinePath( imagesLocation, dataset );
+		tablesLocation = FileAndUrlUtils.combinePath( tablesLocation, dataset );
 
 		Utils.log( "");
 		Utils.log( "# Fetching data");
@@ -184,24 +175,27 @@ public class MoBIEViewer
 		Utils.log( "Fetching table data from: " + tablesLocation );
 	}
 
-	public void initDatasetLocations( )
+	public void configureRootLocations( )
 	{
-		this.imagesLocation = projectImagesLocation;
-		this.tablesLocation = projectTablesLocation;
+		this.projectLocation = projectBaseLocation;
+		this.imagesLocation = projectBaseLocation;
+		this.tablesLocation = options.values.getTableDataLocation() != null ? options.values.getTableDataLocation() : projectBaseLocation;
 
+		projectLocation = FileAndUrlUtils.removeTrailingSlash( projectLocation );
 		imagesLocation = FileAndUrlUtils.removeTrailingSlash( imagesLocation );
 		tablesLocation = FileAndUrlUtils.removeTrailingSlash( tablesLocation );
 
-		imagesLocation = adaptUrl( imagesLocation );
-		tablesLocation = adaptUrl( tablesLocation );
+		projectLocation = adaptUrl( projectLocation, options.values.getProjectBranch() );
+		imagesLocation = adaptUrl( imagesLocation, options.values.getProjectBranch() );
+		tablesLocation = adaptUrl( tablesLocation, options.values.getTableDataBranch() );
 	}
 
-	public String adaptUrl( String url )
+	public String adaptUrl( String url, String projectBranch )
 	{
 		if ( url.contains( "github.com" ) )
 		{
 			url = url.replace( "github.com", "raw.githubusercontent.com" );
-			url += "/" + gitBranch + "/data";
+			url += "/" + projectBranch + "/data";
 		}
 		return url;
 	}
