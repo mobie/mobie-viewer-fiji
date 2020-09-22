@@ -72,10 +72,10 @@ public class MoBIEViewer
 		configureRootLocations();
 		appendSpecificDatasetLocations();
 
-		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataLocationType(), tablesLocation );
+		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageType(), tablesLocation );
 		sourcesPanel = new SourcesPanel( sourcesModel );
 
-		bookmarksManager = fetchBookmarks( imagesLocation );
+		bookmarksManager = fetchBookmarks( projectLocation );
 		levelingVector = fetchLeveling( imagesLocation );
 
 		actionPanel = new ActionPanel( this );
@@ -166,12 +166,15 @@ public class MoBIEViewer
 			dataset = datasets.defaultDataset;
 		}
 
+		projectLocation = FileAndUrlUtils.combinePath( projectLocation, dataset );
 		imagesLocation = FileAndUrlUtils.combinePath( imagesLocation, dataset );
 		tablesLocation = FileAndUrlUtils.combinePath( tablesLocation, dataset );
 
 		Utils.log( "");
 		Utils.log( "# Fetching data");
+		Utils.log( "Fetching project information (e.g., bookmarks) from: " + projectLocation );
 		Utils.log( "Fetching image data from: " + imagesLocation );
+		Utils.log( "  " + options.values.getImageDataStorageType() );
 		Utils.log( "Fetching table data from: " + tablesLocation );
 	}
 

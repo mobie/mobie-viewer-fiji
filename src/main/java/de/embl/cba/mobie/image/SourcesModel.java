@@ -6,9 +6,6 @@ import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.bdv.utils.sources.Sources;
-import de.embl.cba.mobie.image.ImageProperties;
-import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
-import de.embl.cba.mobie.image.ImagesJsonParser;
 import de.embl.cba.mobie.ui.viewer.MoBIEOptions;
 import de.embl.cba.mobie.utils.Enums;
 import de.embl.cba.tables.FileAndUrlUtils;
@@ -29,7 +26,7 @@ public class SourcesModel implements ImageSourcesModel
 	public static final String EM_ID = "em-";
 	public static final String XRAY_ID = "xray-";
 	public static final String MASK_FILE_ID = "mask-";
-	private final MoBIEOptions.ImageDataLocationType imageDataLocationType;
+	private final MoBIEOptions.ImageDataStorageType imageDataStorageType;
 
 	private Map< String, SourceAndMetadata< ? > > nameToSourceAndMetadata;
 	private final String tableDataLocation;
@@ -37,9 +34,9 @@ public class SourcesModel implements ImageSourcesModel
 	private String storageModality;
 	private String imageRootLocation;
 
-	public SourcesModel( String imageDataLocation, MoBIEOptions.ImageDataLocationType imageDataLocationType, String tableDataLocation )
+	public SourcesModel( String imageDataLocation, MoBIEOptions.ImageDataStorageType imageDataStorageType, String tableDataLocation )
 	{
-		this.imageDataLocationType = imageDataLocationType;
+		this.imageDataStorageType = imageDataStorageType;
 		this.tableDataLocation = tableDataLocation;
 
 		nameToSourceAndMetadata = new HashMap<>();
@@ -76,7 +73,7 @@ public class SourcesModel implements ImageSourcesModel
 
 	private void addSources( String imageDataLocation, Map< String, ImageProperties > nameToImageProperties )
 	{
-		storageModality = imageDataLocationType.equals( MoBIEOptions.ImageDataLocationType.S3 ) ? "remote" : "local";
+		storageModality = imageDataStorageType.equals( MoBIEOptions.ImageDataStorageType.S3 ) ? "remote" : "local";
 		imageRootLocation = FileAndUrlUtils.combinePath( imageDataLocation, "images" );
 
 		final Set< String > names = nameToImageProperties.keySet();

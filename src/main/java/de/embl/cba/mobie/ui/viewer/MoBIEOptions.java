@@ -4,9 +4,9 @@ public class MoBIEOptions
 {
 	public final Values values = new Values();
 
-	public enum ImageDataLocationType
+	public enum ImageDataStorageType
 	{
-		Local,
+		FileSystem,
 		S3
 	}
 
@@ -27,9 +27,9 @@ public class MoBIEOptions
 		return this;
 	}
 
-	public MoBIEOptions imageDataLocationType( ImageDataLocationType imageDataLocationType )
+	public MoBIEOptions imageDataStorageType( ImageDataStorageType imageDataStorageType )
 	{
-		this.values.imageDataLocationType = imageDataLocationType;
+		this.values.imageDataStorageType = imageDataStorageType;
 		return this;
 	}
 
@@ -56,7 +56,7 @@ public class MoBIEOptions
 		private String dataset;
 		private String projectBranch = "master"; // project and images
 		private String tableDataBranch;
-		private ImageDataLocationType imageDataLocationType = ImageDataLocationType.S3;
+		private ImageDataStorageType imageDataStorageType = ImageDataStorageType.S3;
 		private String imageDataRootPath;
 		private String tableDataLocation;
 
@@ -68,7 +68,7 @@ public class MoBIEOptions
 		{
 			return projectBranch;
 		}
-		public ImageDataLocationType getImageDataLocationType() { return imageDataLocationType; }
+		public ImageDataStorageType getImageDataStorageType() { return imageDataStorageType; }
 
 		public String getImageDataRootPath()
 		{

@@ -7,12 +7,11 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Expert>Open MoBIE Project Branch..." )
 public class OpenMoBIEProjectBranchCommand implements Command
 {
 	@Parameter ( label = "Project Location" )
-	public String imagesLocation = "https://github.com/platybrowser/platybrowser";
+	public String projectLocation = "https://github.com/platybrowser/platybrowser";
 
 	@Parameter ( label = "Project Branch" )
 	public String projectBranch = "master";
@@ -21,7 +20,7 @@ public class OpenMoBIEProjectBranchCommand implements Command
 	public void run()
 	{
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
-				projectBranch,
+				projectLocation,
 				MoBIEOptions.options().gitBranch( projectBranch ) );
 	}
 
