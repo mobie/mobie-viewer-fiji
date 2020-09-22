@@ -26,7 +26,7 @@ public class SourcesModel implements ImageSourcesModel
 	public static final String EM_ID = "em-";
 	public static final String XRAY_ID = "xray-";
 	public static final String MASK_FILE_ID = "mask-";
-	private final MoBIEOptions.ImageDataStorageType imageDataStorageType;
+	private final MoBIEOptions.ImageDataStorageModality imageDataStorageModality;
 
 	private Map< String, SourceAndMetadata< ? > > nameToSourceAndMetadata;
 	private final String tableDataLocation;
@@ -34,9 +34,9 @@ public class SourcesModel implements ImageSourcesModel
 	private String storageModality;
 	private String imageRootLocation;
 
-	public SourcesModel( String imageDataLocation, MoBIEOptions.ImageDataStorageType imageDataStorageType, String tableDataLocation )
+	public SourcesModel( String imageDataLocation, MoBIEOptions.ImageDataStorageModality imageDataStorageModality, String tableDataLocation )
 	{
-		this.imageDataStorageType = imageDataStorageType;
+		this.imageDataStorageModality = imageDataStorageModality;
 		this.tableDataLocation = tableDataLocation;
 
 		nameToSourceAndMetadata = new HashMap<>();
@@ -73,7 +73,7 @@ public class SourcesModel implements ImageSourcesModel
 
 	private void addSources( String imageDataLocation, Map< String, ImageProperties > nameToImageProperties )
 	{
-		storageModality = imageDataStorageType.equals( MoBIEOptions.ImageDataStorageType.S3 ) ? "remote" : "local";
+		storageModality = imageDataStorageModality.equals( MoBIEOptions.ImageDataStorageModality.S3 ) ? "remote" : "local";
 		imageRootLocation = FileAndUrlUtils.combinePath( imageDataLocation, "images" );
 
 		final Set< String > names = nameToImageProperties.keySet();

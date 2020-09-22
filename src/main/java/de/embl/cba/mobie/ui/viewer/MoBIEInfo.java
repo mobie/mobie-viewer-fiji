@@ -3,27 +3,32 @@ package de.embl.cba.mobie.ui.viewer;
 import bdv.tools.HelpDialog;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Help;
+import ij.IJ;
 
 public class MoBIEInfo
 {
 	public static final String MOBIE_VIEWER = "MoBIE Viewer";
 	public static final String MOBIE_FRAMEWORK = "MoBIE Framework";
 	public static final String BIG_DATA_VIEWER = "BigDataViewer";
-	public static final String REPOSITORY = "Repository";
+	public static final String REPOSITORY = "Datasets Repository";
+	public static final String PUBLICATION = "Datasets Publication";
 	public static final String SEGMENTATIONS = "Segmentations Browsing";
 	private final String projectLocation;
+	private final String publicationURL;
 
-	public MoBIEInfo( String projectLocation )
+	public MoBIEInfo( String projectLocation, String publicationURL )
 	{
 		this.projectLocation = projectLocation;
+		this.publicationURL = publicationURL;
 	}
 
-	public static String[] getInfoChoices()
+	public String[] getInfoChoices()
 	{
 		return new String[]{
+				REPOSITORY,
+				PUBLICATION,
 				MOBIE_VIEWER,
 				MOBIE_FRAMEWORK,
-				REPOSITORY,
 				BIG_DATA_VIEWER,
 				SEGMENTATIONS };
 	}
@@ -39,8 +44,18 @@ public class MoBIEInfo
 				FileAndUrlUtils.openURI( "https://github.com/mobie/mobie#mobie" );
 				break;
 			case REPOSITORY:
-				final String uri = FileAndUrlUtils.combinePath( projectLocation, "blob/master/README.md" );
-				FileAndUrlUtils.openURI( uri );
+				FileAndUrlUtils.openURI( FileAndUrlUtils.combinePath( projectLocation, "blob/master/README.md" ) );
+				break;
+			case PUBLICATION:
+				if ( publicationURL == null )
+				{
+					IJ.showMessage( "There is not yet a publication registered with this project.");
+					return;
+				}
+				else
+				{
+					FileAndUrlUtils.openURI( publicationURL );
+				}
 				break;
 			case BIG_DATA_VIEWER:
 				showBdvHelp();

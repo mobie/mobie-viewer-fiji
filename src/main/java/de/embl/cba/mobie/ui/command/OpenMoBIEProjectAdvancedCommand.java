@@ -7,7 +7,7 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Expert>Open MoBIE Project Expert Mode..." )
+@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open>Advanced>Open MoBIE Project Expert Mode..." )
 public class OpenMoBIEProjectAdvancedCommand implements Command
 {
 	@Parameter ( label = "Project Location" )
@@ -16,17 +16,18 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 	@Parameter ( label = "Project Branch" )
 	public String projectBranch = "master";
 
-	@Parameter ( label = "Image Data Storage Type", choices = { "S3", "FileSystem" } )
-	public String imageDataStorageType = "S3";
+	@Parameter ( label = "Image Data Storage Modality", choices = { "S3", "FileSystem" } )
+	public String imageDataStorageModality = "S3";
 
-	@Parameter ( label = "Image Data Root Path (only for FileSystem storage)" )
-	public String imageDataRootPath = "";
+	@Parameter ( label = "Image Data Location" )
+	public String imageDataLocation = "https://github.com/platybrowser/platybrowser";
 
 	@Parameter ( label = "Table Data Location" )
 	public String tableDataLocation = "https://github.com/platybrowser/platybrowser";
 
-	@Parameter ( label = "Table Data Branch (only for GitHub locations)" )
+	@Parameter ( label = "Table Data Branch" )
 	public String tableDataBranch = "master";
+
 
 	@Override
 	public void run()
@@ -34,11 +35,11 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				projectLocation,
 				MoBIEOptions.options()
-						.gitBranch( projectBranch )
-						.imageDataStorageType( MoBIEOptions.ImageDataStorageType.valueOf( imageDataStorageType ) )
-						.imageDataRootPath( imageDataRootPath )
+						.gitProjectBranch( projectBranch )
+						.imageDataStorageModality( MoBIEOptions.ImageDataStorageModality.valueOf( imageDataStorageModality ) )
+						.imageDataLocation( imageDataLocation )
 						.tableDataLocation( tableDataLocation )
-						.tableDataBranch( tableDataBranch ) );
+						.gitTablesBranch( tableDataBranch ) );
 	}
 
 	public static void main(final String... args)
@@ -46,8 +47,44 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 		final ImageJ ij = new ImageJ();
 		ij.ui().showUI();
 
-		final MoBIEViewer moBIEViewer = new MoBIEViewer(
-				"https://github.com/mobie/covid-tomo-datasets",
-				MoBIEOptions.options().gitBranch( "norm-bookmarks" ) );
+
+		/**
+		 * Project location (github or local): "https://github.com/mobie/platybrowser-datasets"
+		 * Project branch (for github): "master"
+		 * Load image data from: choice: local
+		 * Image data root path (for local): "/g/arendt/EM_6dpf_segmentation/platy-browser-data"
+		 * Table data location (github or local): "https://github.com/vzinche/platybrowser-backend"
+		 * Table data branch (for github):"bookmarks"
+		 */
+
+//		new MoBIEViewer(
+//				"https://github.com/mobie/platybrowser-datasets",
+//				MoBIEOptions.options()
+//						.gitProjectBranch( "master" )
+//						.imageDataStorageModality( MoBIEOptions.ImageDataStorageModality.FileSystem )
+//						.imageDataLocation( "/g/arendt/EM_6dpf_segmentation/platy-browser-data" )
+//						.tableDataLocation( "https://github.com/vzinche/platybrowser-backend" )
+//						.gitTablesBranch( "bookmarks" ) );
+
+		/**
+		 * Project location (github or local): "https://github.com/mobie/platybrowser-datasets"
+		 * Project branch (for github): "xray"
+		 * Load image data from: choice: local
+		 * Image data root path (for local): "/g/arendt/EM_6dpf_segmentation/platy-browser-data"
+		 * Table data location (github or local): "https://github.com/mobie/platy-browser-data"
+		 * Table data branch (for github): "xray"
+		 */
+
+		new MoBIEViewer(
+				"https://github.com/mobie/platybrowser-datasets",
+				MoBIEOptions.options()
+						.gitProjectBranch( "xray" )
+						.imageDataStorageModality( MoBIEOptions.ImageDataStorageModality.FileSystem )
+						.imageDataLocation( "/g/arendt/EM_6dpf_segmentation/platy-browser-data" )
+						.tableDataLocation( "https://github.com/mobie/platy-browser-data" )
+						.gitTablesBranch( "xray" ) );
+
+
+
 	}
 }

@@ -31,7 +31,7 @@ public class ActionPanel extends JPanel
 	public static final int COMBOBOX_WIDTH = 270;
 	public static final String BUTTON_LABEL_VIEW = "view";
 	public static final String BUTTON_LABEL_MOVE = "move";
-	public static final String BUTTON_LABEL_HELP = "info";
+	public static final String BUTTON_LABEL_HELP = "show";
 	public static final String BUTTON_LABEL_SWITCH = "switch";
 	public static final Dimension BUTTON_DIMENSION = new Dimension( 80, TEXT_FIELD_HEIGHT );
 	public static final String BUTTON_LABEL_LEVEL = "level";
@@ -61,7 +61,7 @@ public class ActionPanel extends JPanel
 		this.levelingVector = moBIEViewer.getLevelingVector();
 		this.projectLocation = moBIEViewer.getProjectLocation();
 
-		addInfoUI( this, projectLocation );
+		addInfoUI( this, projectLocation, moBIEViewer.getOptions().values.getPublicationURL() );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addDatasetSelectionUI( this );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
@@ -525,18 +525,19 @@ public class ActionPanel extends JPanel
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private void addInfoUI( JPanel panel, String projectLocation )
+	private void addInfoUI( JPanel panel, String projectLocation, String publicationURL )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		final JButton button = getButton( BUTTON_LABEL_HELP );
 
-		final JComboBox< String > comboBox = new JComboBox<>( MoBIEInfo.getInfoChoices() );
+		final MoBIEInfo moBIEInfo = new MoBIEInfo( projectLocation, publicationURL );
+
+		final JComboBox< String > comboBox = new JComboBox<>( moBIEInfo.getInfoChoices() );
 		setComboBoxDimensions( comboBox );
 
 		button.addActionListener( e -> {
-			final MoBIEInfo mobIEInfo = new MoBIEInfo( projectLocation );
-			mobIEInfo.showInfo( ( String ) comboBox.getSelectedItem() );
+			moBIEInfo.showInfo( ( String ) comboBox.getSelectedItem() );
 		} );
 		comboBox.setPrototypeDisplayValue( MoBIEViewer.PROTOTYPE_DISPLAY_VALUE  );
 

@@ -7,7 +7,7 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Expert>Open MoBIE Project Branch..." )
+@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open>Advanced>Open MoBIE Project Branch..." )
 public class OpenMoBIEProjectBranchCommand implements Command
 {
 	@Parameter ( label = "Project Location" )
@@ -21,7 +21,7 @@ public class OpenMoBIEProjectBranchCommand implements Command
 	{
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				projectLocation,
-				MoBIEOptions.options().gitBranch( projectBranch ) );
+				MoBIEOptions.options().gitProjectBranch( projectBranch ) );
 	}
 
 	public static void main(final String... args)
@@ -31,6 +31,6 @@ public class OpenMoBIEProjectBranchCommand implements Command
 
 		final MoBIEViewer moBIEViewer = new MoBIEViewer(
 				"https://github.com/mobie/covid-tomo-datasets",
-				MoBIEOptions.options().gitBranch( "norm-bookmarks" ) );
+				MoBIEOptions.options().gitProjectBranch( "norm-bookmarks" ) );
 	}
 }

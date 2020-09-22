@@ -6,7 +6,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open MoBIE Project..." )
+@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open>Open MoBIE Project..." )
 public class OpenMoBIEProjectCommand implements Command
 {
 	@Parameter ( label = "Project Location" )

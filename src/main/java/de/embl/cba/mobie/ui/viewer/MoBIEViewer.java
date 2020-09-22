@@ -55,24 +55,24 @@ public class MoBIEViewer
 	@Deprecated
 	public MoBIEViewer(
 			String projectLocation,
-			String projectTablesLocation ) throws HeadlessException
+			String tablesLocation ) throws HeadlessException
 	{
-		this( projectLocation, MoBIEOptions.options().tableDataLocation( projectTablesLocation ) );
+		this( projectLocation, MoBIEOptions.options().tableDataLocation( tablesLocation ) );
 	}
 
 	public MoBIEViewer(
-			String projectLocation,
+			String projectBaseLocation,
 			MoBIEOptions options )
 	{
-		this.projectBaseLocation = projectLocation;
+		this.projectBaseLocation = projectBaseLocation;
 		this.options = options;
 
-		this.projectName = getName( projectBaseLocation );
+		this.projectName = getName( this.projectBaseLocation );
 
 		configureRootLocations();
 		appendSpecificDatasetLocations();
 
-		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageType(), tablesLocation );
+		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageModality(), tablesLocation );
 		sourcesPanel = new SourcesPanel( sourcesModel );
 
 		bookmarksManager = fetchBookmarks( projectLocation );
@@ -172,25 +172,25 @@ public class MoBIEViewer
 
 		Utils.log( "");
 		Utils.log( "# Fetching data");
-		Utils.log( "Fetching project information (e.g., bookmarks) from: " + projectLocation );
-		Utils.log( "Fetching image data from: " + imagesLocation );
-		Utils.log( "  " + options.values.getImageDataStorageType() );
-		Utils.log( "Fetching table data from: " + tablesLocation );
+		Utils.log( "Fetching project from: " + projectLocation );
+		Utils.log( "Fetching images from: " + imagesLocation );
+		Utils.log( "    Image data storage modality: " + options.values.getImageDataStorageModality() );
+		Utils.log( "Fetching tables from: " + tablesLocation );
 	}
 
 	public void configureRootLocations( )
 	{
 		this.projectLocation = projectBaseLocation;
-		this.imagesLocation = projectBaseLocation;
+		this.imagesLocation = options.values.getImageDataLocation() != null ? options.values.getImageDataLocation() : projectBaseLocation;
 		this.tablesLocation = options.values.getTableDataLocation() != null ? options.values.getTableDataLocation() : projectBaseLocation;
 
 		projectLocation = FileAndUrlUtils.removeTrailingSlash( projectLocation );
 		imagesLocation = FileAndUrlUtils.removeTrailingSlash( imagesLocation );
 		tablesLocation = FileAndUrlUtils.removeTrailingSlash( tablesLocation );
 
-		projectLocation = adaptUrl( projectLocation, options.values.getProjectBranch() );
-		imagesLocation = adaptUrl( imagesLocation, options.values.getProjectBranch() );
-		tablesLocation = adaptUrl( tablesLocation, options.values.getTableDataBranch() );
+		projectLocation = adaptUrl( projectLocation, options.values.getProjectBranch() ) + "/data";
+		imagesLocation = adaptUrl( imagesLocation, options.values.getProjectBranch() ) + "/data";
+		tablesLocation = adaptUrl( tablesLocation, options.values.getTableDataBranch() ) + "/data";
 	}
 
 	public String adaptUrl( String url, String projectBranch )
@@ -198,14 +198,14 @@ public class MoBIEViewer
 		if ( url.contains( "github.com" ) )
 		{
 			url = url.replace( "github.com", "raw.githubusercontent.com" );
-			url += "/" + projectBranch + "/data";
+			url += "/" + projectBranch;
 		}
 		return url;
 	}
 
 	public BookmarksManager fetchBookmarks( String location )
 	{
-		Map< String, Bookmark > nameToBookmark = new BookmarksJsonParser( location, sourcesModel ).getBookmarks();
+		Map< String, Bookmark > nameToBookmark = new BookmarksJsonParser( location ).getBookmarks();
 
 		return new BookmarksManager( sourcesPanel, nameToBookmark );
 	}

@@ -4,7 +4,8 @@ public class MoBIEOptions
 {
 	public final Values values = new Values();
 
-	public enum ImageDataStorageType
+
+	public enum ImageDataStorageModality
 	{
 		FileSystem,
 		S3
@@ -21,21 +22,21 @@ public class MoBIEOptions
 		return this;
 	}
 
-	public MoBIEOptions gitBranch( String gitBranch )
+	public MoBIEOptions gitProjectBranch( String gitBranch )
 	{
 		this.values.projectBranch = gitBranch;
 		return this;
 	}
 
-	public MoBIEOptions imageDataStorageType( ImageDataStorageType imageDataStorageType )
+	public MoBIEOptions imageDataStorageModality( ImageDataStorageModality imageDataStorageModality )
 	{
-		this.values.imageDataStorageType = imageDataStorageType;
+		this.values.imageDataStorageModality = imageDataStorageModality;
 		return this;
 	}
 
-	public MoBIEOptions imageDataRootPath( String imageDataRootPath )
+	public MoBIEOptions imageDataLocation( String imageDataLocation )
 	{
-		this.values.imageDataRootPath = imageDataRootPath;
+		this.values.imageDataLocation = imageDataLocation;
 		return this;
 	}
 
@@ -45,19 +46,26 @@ public class MoBIEOptions
 		return this;
 	}
 
-	public MoBIEOptions tableDataBranch( String tableDataBranch )
+	public MoBIEOptions gitTablesBranch( String tableDataBranch )
 	{
 		this.values.tableDataBranch = tableDataBranch;
 		return this;
 	}
 
+	public MoBIEOptions pulicationURL( String publicationURL )
+	{
+		this.values.publicationURL = publicationURL;
+		return this;
+	}
+
 	public static class Values
 	{
+		private String publicationURL;
 		private String dataset;
 		private String projectBranch = "master"; // project and images
 		private String tableDataBranch;
-		private ImageDataStorageType imageDataStorageType = ImageDataStorageType.S3;
-		private String imageDataRootPath;
+		private ImageDataStorageModality imageDataStorageModality = ImageDataStorageModality.S3;
+		private String imageDataLocation;
 		private String tableDataLocation;
 
 		public String getDataset()
@@ -68,11 +76,11 @@ public class MoBIEOptions
 		{
 			return projectBranch;
 		}
-		public ImageDataStorageType getImageDataStorageType() { return imageDataStorageType; }
+		public ImageDataStorageModality getImageDataStorageModality() { return imageDataStorageModality; }
 
-		public String getImageDataRootPath()
+		public String getImageDataLocation()
 		{
-			return imageDataRootPath;
+			return imageDataLocation;
 		}
 
 		public String getTableDataLocation()
@@ -83,6 +91,11 @@ public class MoBIEOptions
 		public String getTableDataBranch()
 		{
 			return tableDataBranch != null ? tableDataBranch : projectBranch;
+		}
+
+		public String getPublicationURL()
+		{
+			return publicationURL;
 		}
 	}
 }

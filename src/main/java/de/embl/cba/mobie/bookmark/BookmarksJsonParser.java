@@ -28,7 +28,7 @@ public class BookmarksJsonParser
 {
 	private final String datasetLocation;
 
-	public BookmarksJsonParser( String datasetLocation, SourcesModel imageSourcesModel )
+	public BookmarksJsonParser( String datasetLocation )
 	{
 		this.datasetLocation = datasetLocation;
 	}
