@@ -49,7 +49,7 @@ public class MoBIEInfo
 			case PUBLICATION:
 				if ( publicationURL == null )
 				{
-					IJ.showMessage( "There is not yet a publication registered with this project.");
+					IJ.showMessage( "There is no publication registered with this project.");
 					return;
 				}
 				else
