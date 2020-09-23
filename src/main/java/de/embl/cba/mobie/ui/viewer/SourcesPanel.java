@@ -419,7 +419,18 @@ public class SourcesPanel extends JPanel
     private void setDisplayRange( BdvStackSource bdvStackSource, Metadata metadata )
     {
         if ( metadata.contrastLimits != null )
-            bdvStackSource.setDisplayRange( metadata.contrastLimits[ 0 ], metadata.contrastLimits[ 1 ] );
+        {
+            if ( metadata.colorByColumn == null )
+            {
+                bdvStackSource.setDisplayRange( metadata.contrastLimits[ 0 ], metadata.contrastLimits[ 1 ] );
+            }
+            else
+            {
+                // TODO: This should be configurable
+                //   See issue: https://github.com/mobie/mobie-viewer-fiji/issues/127
+                bdvStackSource.setDisplayRange( 0, 1000 );
+            }
+        }
     }
 
     // TODO: probably this should be an own class, part of the table-utils views framework

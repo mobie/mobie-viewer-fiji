@@ -4,11 +4,12 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-<!--		<version>29.2.2-SNAPSHOT</version>-->
 		<version>29.2.1</version>
 	</parent>
+
 	<artifactId>mobie</artifactId>
 	<version>0.5.2-SNAPSHOT</version>
+
 	<url>https://github.com/platybrowser/mobie-viewer-fiji</url>
 	<name>MoBIE Fiji Viewer</name>
 	<description>Fiji viewer for MoBIE projects</description>
@@ -65,7 +66,7 @@
 		<package-name>de.embl.cba.mobie</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
-		<scijava.app.directory>/Users/tischer/Desktop/Fiji-MoBIE-beta.app</scijava.app.directory>
+		<scijava.app.directory>/Users/tischer/Desktop/Fiji-MoBIE.app</scijava.app.directory>
 		<enforcer.skip>true</enforcer.skip>
 	</properties>
 	<build>
