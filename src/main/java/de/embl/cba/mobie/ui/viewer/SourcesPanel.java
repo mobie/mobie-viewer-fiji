@@ -420,16 +420,7 @@ public class SourcesPanel extends JPanel
     {
         if ( metadata.contrastLimits != null )
         {
-            if ( metadata.colorByColumn == null )
-            {
-                bdvStackSource.setDisplayRange( metadata.contrastLimits[ 0 ], metadata.contrastLimits[ 1 ] );
-            }
-            else
-            {
-                // TODO: This should be configurable
-                //   See issue: https://github.com/mobie/mobie-viewer-fiji/issues/127
-                bdvStackSource.setDisplayRange( 0, 1000 );
-            }
+            bdvStackSource.setDisplayRange( metadata.contrastLimits[ 0 ], metadata.contrastLimits[ 1 ] );
         }
     }
 
@@ -482,9 +473,6 @@ public class SourcesPanel extends JPanel
         configureSegments3dView( views, sam );
         configureTableView( views, sam );
 
-        // TODO: Kimberly: Here change the coloring model to what is specified in the Metadata, enable this.
-        // views.getTableRowsTableView().colorByColumn( sam.metadata().colorByColumn, sam.metadata().color );
-
         bdv = views.getSegmentsBdvView().getBdv();
 
         sam.metadata().bdvStackSource = views
@@ -529,11 +517,19 @@ public class SourcesPanel extends JPanel
         // apply colorByColumn
         if ( sam.metadata().colorByColumn != null && sam.metadata().color != null )
         {
-            views.getTableRowsTableView().colorByColumn(
+            if ( sam.metadata().valueLimits != null ) {
+                views.getTableRowsTableView().colorByColumn(
                         sam.metadata().colorByColumn,
                         sam.metadata().color,
-                        sam.metadata().contrastLimits[ 0 ],
-                        sam.metadata().contrastLimits[ 1 ] );
+                        sam.metadata().valueLimits[0],
+                        sam.metadata().valueLimits[1]);
+            } else {
+                views.getTableRowsTableView().colorByColumn(
+                        sam.metadata().colorByColumn,
+                        sam.metadata().color,
+                        null,
+                        null);
+            }
         }
 
     }

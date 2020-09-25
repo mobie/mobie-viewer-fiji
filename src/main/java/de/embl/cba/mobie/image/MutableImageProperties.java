@@ -7,6 +7,7 @@ public class MutableImageProperties
 	public String color;
 	public String colorByColumn;
 	public double[] contrastLimits;
+	public double[] valueLimits;
 	public ArrayList< String > tables;
 	public ArrayList< Double > selectedLabelIds;
 	public boolean showSelectedSegmentsIn3d;
