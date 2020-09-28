@@ -16,6 +16,8 @@ public class ImagePropertiesToMetadataAdapter
 				? imageProperties.contrastLimits : metadata.contrastLimits;
 		metadata.color = imageProperties.color != null
 				? imageProperties.color : metadata.color;
+		metadata.valueLimits = imageProperties.valueLimits != null
+				? imageProperties.valueLimits : metadata.valueLimits;
 
 		if ( metadata.color != null )
 		{
