@@ -5,6 +5,7 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.bookmark.LocationType;
 import de.embl.cba.mobie.platybrowser.GeneSearch;
@@ -100,6 +101,13 @@ public class ActionPanel extends JPanel
 						Logger.log( "View:\n" + BdvUtils.getBdvViewerTransformString( bdv ) );
 						Logger.log( "Normalised view:\n" + Utils.createNormalisedViewerTransformString( bdv, Utils.getMousePosition( bdv ) ) );
 					} )).start();
+				});
+
+		BdvPopupMenus.addAction(bdv, "Save Current Settings As Bookmark",
+				() -> {
+					(new Thread( () -> {
+						bookmarksManager.saveCurrentSettingsAsBookmark();
+						} )).start();
 				});
 
 		BdvPopupMenus.addAction( bdv, "Restore Default View" + BdvUtils.getShortCutString( RESTORE_DEFAULT_VIEW_TRIGGER ) ,

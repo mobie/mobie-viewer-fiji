@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import de.embl.cba.tables.github.GitHubUtils;
 import de.embl.cba.tables.github.GitLocation;
 import de.embl.cba.mobie.image.SourcesModel;
@@ -14,10 +15,7 @@ import de.embl.cba.tables.github.GitHubContentGetter;
 import de.embl.cba.tables.github.GitHubUtils;
 import de.embl.cba.tables.github.GitLocation;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -143,6 +141,17 @@ public class BookmarksJsonParser
 		reader.close();
 		inputStream.close();
 		return stringBookmarkMap;
+	}
+
+	public void writeBookmarksToFile (String filePath, Map< String, Bookmark > bookmarks) throws IOException {
+		Gson gson = new Gson();
+		Type type = new TypeToken< Map< String, Bookmark > >() {}.getType();
+
+		OutputStream outputStream = new FileOutputStream( new File( filePath ) );
+		final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8"));
+		gson.toJson(bookmarks, type, writer);
+		writer.close();
+		outputStream.close();
 	}
 
 	private ArrayList< String > fetchBookmarkPaths()

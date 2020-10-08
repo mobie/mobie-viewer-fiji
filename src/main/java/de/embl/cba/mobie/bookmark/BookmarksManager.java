@@ -10,7 +10,9 @@ import de.embl.cba.mobie.ui.viewer.SourcesPanel;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -18,11 +20,14 @@ public class BookmarksManager
 {
 	private final SourcesPanel sourcesPanel;
 	private Map< String, Bookmark > nameToBookmark;
+	private BookmarksJsonParser bookmarksJsonParser;
 
-	public BookmarksManager( SourcesPanel sourcesPanel, Map< String, Bookmark > nameToBookmark )
+	public BookmarksManager( SourcesPanel sourcesPanel, Map< String, Bookmark > nameToBookmark,
+							 BookmarksJsonParser bookmarksJsonParser )
 	{
 		this.sourcesPanel = sourcesPanel;
 		this.nameToBookmark = nameToBookmark;
+		this.bookmarksJsonParser = bookmarksJsonParser;
 	}
 
 	public void setView( String bookmarkId )
@@ -73,6 +78,43 @@ public class BookmarksManager
 		{
 			BdvViewChanger.moveToLocation( sourcesPanel.getBdv(), location );
 		}
+	}
+
+	public void saveCurrentSettingsAsBookmark () {
+		Bookmark currentBookmark = getBookmarkFromCurrentSettings("test");
+		HashMap<String, Bookmark> namesToBookmarks = new HashMap<>();
+		namesToBookmarks.put("test", currentBookmark);
+		try {
+			bookmarksJsonParser.writeBookmarksToFile("C:\\Users\\meechan\\Documents\\test.json",
+					namesToBookmarks);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public Bookmark getBookmarkFromCurrentSettings( String bookmarkName) {
+		HashMap< String, MutableImageProperties > layers = new HashMap<>();
+		Set<String> visibleSourceNames = sourcesPanel.getVisibleSourceNames();
+
+		for (String sourceName : visibleSourceNames) {
+			Metadata sourceMetadata = sourcesPanel.getSourceAndMetadata(sourceName).metadata();
+			MutableImageProperties sourceImageProperties = new MutableImageProperties();
+			new ImagePropertiesToMetadataAdapter().setImageProperties(sourceMetadata, sourceImageProperties);
+			layers.put(sourceName, sourceImageProperties);
+		}
+
+		BdvHandle bdv = sourcesPanel.getBdv();
+		Bookmark currentBookmark = new Bookmark();
+		currentBookmark.name = bookmarkName;
+		currentBookmark.layers = layers;
+		// TODO - add to bdv utils
+		double[] currentPosition = new double[3];
+		BdvUtils.getGlobalMouseCoordinates(bdv).localize(currentPosition);
+		currentBookmark.position = currentPosition;
+		currentBookmark.normView = Utils.createNormalisedViewerTransformString( bdv, Utils.getMousePosition( bdv ) ).split(",");
+		currentBookmark.view = null;
+
+		return currentBookmark;
 	}
 
 	public static Location getLocationFromBookmark( Bookmark bookmark, BdvHandle bdv )
