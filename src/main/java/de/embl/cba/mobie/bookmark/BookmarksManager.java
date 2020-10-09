@@ -79,13 +79,10 @@ public class BookmarksManager
 
 	public void saveCurrentSettingsAsBookmark () {
 		Bookmark currentBookmark = getBookmarkFromCurrentSettings("test");
-//		ArrayList<Bookmark> bookmarks = new ArrayList<>();
-//		bookmarks.add(currentBookmark);
-		HashMap<String, Bookmark> namesToBookmarks = new HashMap<>();
-		namesToBookmarks.put("test", currentBookmark);
+		ArrayList<Bookmark> bookmarks = new ArrayList<>();
+		bookmarks.add(currentBookmark);
 		try {
-			bookmarksJsonParser.writeBookmarksToFile("C:\\Users\\meechan\\Documents\\test.json",
-					namesToBookmarks);
+			bookmarksJsonParser.saveBookmarks(bookmarks);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

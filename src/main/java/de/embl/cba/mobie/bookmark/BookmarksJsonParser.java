@@ -17,12 +17,11 @@ import de.embl.cba.tables.github.GitHubContentGetter;
 import de.embl.cba.tables.github.GitHubUtils;
 import de.embl.cba.tables.github.GitLocation;
 
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.*;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class BookmarksJsonParser
 {
@@ -135,6 +134,46 @@ public class BookmarksJsonParser
 		return nameToBookmark;
 	}
 
+	public void saveBookmarks ( ArrayList<Bookmark> bookmarks) throws IOException {
+		HashMap<String, Bookmark> namesToBookmarks = new HashMap<>();
+		for (Bookmark bookmark : bookmarks) {
+			namesToBookmarks.put(bookmark.name, bookmark);
+		}
+
+		String jsonPath = null;
+		final JFileChooser jFileChooser = new JFileChooser();
+		jFileChooser.setFileFilter(new FileNameExtensionFilter("json", "json"));
+		if (jFileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+			jsonPath = jFileChooser.getSelectedFile().getAbsolutePath() + ".json";
+		}
+
+		if (jsonPath != null) {
+
+			// exclude the name field from json
+			ExclusionStrategy strategy = new ExclusionStrategy() {
+				@Override
+				public boolean shouldSkipField(FieldAttributes f) {
+					if (f.getName().equals("name")) {
+						return true;
+					}
+					return false;
+				}
+
+				@Override
+				public boolean shouldSkipClass(Class<?> clazz) {
+					return false;
+				}
+			};
+
+			Gson gson = new GsonBuilder().addSerializationExclusionStrategy(strategy).create();
+			Type type = new TypeToken<Map<String, Bookmark>>() {
+			}.getType();
+
+			writeBookmarksToFile(gson, type, jsonPath, namesToBookmarks);
+		}
+
+	}
+
 	private Map< String, Bookmark > readBookmarksFromFile( Gson gson, Type type, String bookmarksLocation ) throws IOException
 	{
 		InputStream inputStream = FileAndUrlUtils.getInputStream( bookmarksLocation );
@@ -145,32 +184,11 @@ public class BookmarksJsonParser
 		return stringBookmarkMap;
 	}
 
-	public void writeBookmarksToFile (String filePath, Map< String, Bookmark > bookmarks) throws IOException {
-//		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-		// exclude the name field
-		ExclusionStrategy strategy = new ExclusionStrategy() {
-			@Override
-			public boolean shouldSkipField(FieldAttributes f) {
-				if (f.getName().equals("name")) {
-					return true;
-				}
-				return false;
-			}
-
-			@Override
-			public boolean shouldSkipClass(Class<?> clazz) {
-				return false;
-			}
-		};
-
-		Gson gson = new GsonBuilder().addSerializationExclusionStrategy(strategy).create();
-		Type type = new TypeToken< Map< String, Bookmark > >() {}.getType();
-
+	private void writeBookmarksToFile (Gson gson, Type type, String filePath, Map< String, Bookmark > bookmarks) throws IOException
+	{
 		OutputStream outputStream = new FileOutputStream( new File( filePath ) );
 		final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8"));
 		writer.setIndent("	");
-//		gson.toJson(bookmarks, writer);
 		gson.toJson(bookmarks, type, writer);
 		writer.close();
 		outputStream.close();
