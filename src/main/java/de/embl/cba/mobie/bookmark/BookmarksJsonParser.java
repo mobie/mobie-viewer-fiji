@@ -144,32 +144,50 @@ public class BookmarksJsonParser
 		final JFileChooser jFileChooser = new JFileChooser();
 		jFileChooser.setFileFilter(new FileNameExtensionFilter("json", "json"));
 		if (jFileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-			jsonPath = jFileChooser.getSelectedFile().getAbsolutePath() + ".json";
+			jsonPath = jFileChooser.getSelectedFile().getAbsolutePath();
 		}
 
 		if (jsonPath != null) {
 
-			// exclude the name field from json
-			ExclusionStrategy strategy = new ExclusionStrategy() {
-				@Override
-				public boolean shouldSkipField(FieldAttributes f) {
-					if (f.getName().equals("name")) {
-						return true;
+			if (!jsonPath.endsWith(".json")) {
+				jsonPath += ".json";
+			}
+
+			File jsonFile = new File(jsonPath);
+			if (jsonFile.exists()) {
+				int result = JOptionPane.showConfirmDialog(null,
+						"This Json file already exists - append bookmark to this file?", "Append to file?",
+						JOptionPane.YES_NO_OPTION,
+						JOptionPane.QUESTION_MESSAGE);
+				if (result != JOptionPane.YES_OPTION) {
+					jsonFile = null;
+				}
+			}
+
+			if (jsonFile != null) {
+
+				// exclude the name field from json
+				ExclusionStrategy strategy = new ExclusionStrategy() {
+					@Override
+					public boolean shouldSkipField(FieldAttributes f) {
+						if (f.getName().equals("name")) {
+							return true;
+						}
+						return false;
 					}
-					return false;
-				}
 
-				@Override
-				public boolean shouldSkipClass(Class<?> clazz) {
-					return false;
-				}
-			};
+					@Override
+					public boolean shouldSkipClass(Class<?> clazz) {
+						return false;
+					}
+				};
 
-			Gson gson = new GsonBuilder().addSerializationExclusionStrategy(strategy).create();
-			Type type = new TypeToken<Map<String, Bookmark>>() {
-			}.getType();
+				Gson gson = new GsonBuilder().addSerializationExclusionStrategy(strategy).create();
+				Type type = new TypeToken<Map<String, Bookmark>>() {
+				}.getType();
 
-			writeBookmarksToFile(gson, type, jsonPath, namesToBookmarks);
+				writeBookmarksToFile(gson, type, jsonFile, namesToBookmarks);
+			}
 		}
 
 	}
@@ -184,9 +202,16 @@ public class BookmarksJsonParser
 		return stringBookmarkMap;
 	}
 
-	private void writeBookmarksToFile (Gson gson, Type type, String filePath, Map< String, Bookmark > bookmarks) throws IOException
+	private void writeBookmarksToFile (Gson gson, Type type, File jsonFile, Map< String, Bookmark > bookmarks) throws IOException
 	{
-		OutputStream outputStream = new FileOutputStream( new File( filePath ) );
+		Map<String, Bookmark> bookmarksInFile = new HashMap<>();
+		// If json already exists, read existing bookmarks to append new ones
+		if (jsonFile.exists()) {
+			bookmarksInFile.putAll(readBookmarksFromFile(gson, type, jsonFile.getAbsolutePath()));
+		}
+		bookmarksInFile.putAll(bookmarks);
+
+		OutputStream outputStream = new FileOutputStream( jsonFile );
 		final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8"));
 		writer.setIndent("	");
 		gson.toJson(bookmarks, type, writer);

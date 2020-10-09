@@ -78,6 +78,7 @@ public class BookmarksManager
 	}
 
 	public void saveCurrentSettingsAsBookmark () {
+		// TODO - make bookmark name user definable
 		Bookmark currentBookmark = getBookmarkFromCurrentSettings("test");
 		ArrayList<Bookmark> bookmarks = new ArrayList<>();
 		bookmarks.add(currentBookmark);
