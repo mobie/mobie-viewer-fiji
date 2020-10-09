@@ -214,7 +214,7 @@ public class BookmarksJsonParser
 		OutputStream outputStream = new FileOutputStream( jsonFile );
 		final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8"));
 		writer.setIndent("	");
-		gson.toJson(bookmarks, type, writer);
+		gson.toJson(bookmarksInFile, type, writer);
 		writer.close();
 		outputStream.close();
 	}
