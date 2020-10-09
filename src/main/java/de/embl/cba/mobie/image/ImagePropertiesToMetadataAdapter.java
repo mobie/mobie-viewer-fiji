@@ -44,9 +44,11 @@ public class ImagePropertiesToMetadataAdapter
 				? metadata.valueLimits : imageProperties.valueLimits;
 
 		imageProperties.colorByColumn = metadata.colorByColumn;
-		imageProperties.selectedLabelIds = new ArrayList<>(metadata.selectedSegmentIds);
+		imageProperties.selectedLabelIds = metadata.selectedSegmentIds != null
+				? new ArrayList<>(metadata.selectedSegmentIds) : imageProperties.selectedLabelIds;
 		imageProperties.showImageIn3d = metadata.showImageIn3d;
 		imageProperties.showSelectedSegmentsIn3d = metadata.showSelectedSegmentsIn3d;
-		imageProperties.tables = new ArrayList<>(metadata.additionalSegmentTableNames);
+		imageProperties.tables = metadata.additionalSegmentTableNames != null
+				? new ArrayList<>(metadata.additionalSegmentTableNames): imageProperties.tables;
 	}
 }

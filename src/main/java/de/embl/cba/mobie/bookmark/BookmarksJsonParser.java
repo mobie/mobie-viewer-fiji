@@ -1,5 +1,7 @@
 package de.embl.cba.mobie.bookmark;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
@@ -144,11 +146,31 @@ public class BookmarksJsonParser
 	}
 
 	public void writeBookmarksToFile (String filePath, Map< String, Bookmark > bookmarks) throws IOException {
-		Gson gson = new Gson();
+//		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+		// exclude the name field
+		ExclusionStrategy strategy = new ExclusionStrategy() {
+			@Override
+			public boolean shouldSkipField(FieldAttributes f) {
+				if (f.getName().equals("name")) {
+					return true;
+				}
+				return false;
+			}
+
+			@Override
+			public boolean shouldSkipClass(Class<?> clazz) {
+				return false;
+			}
+		};
+
+		Gson gson = new GsonBuilder().addSerializationExclusionStrategy(strategy).create();
 		Type type = new TypeToken< Map< String, Bookmark > >() {}.getType();
 
 		OutputStream outputStream = new FileOutputStream( new File( filePath ) );
 		final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8"));
+		writer.setIndent("	");
+//		gson.toJson(bookmarks, writer);
 		gson.toJson(bookmarks, type, writer);
 		writer.close();
 		outputStream.close();

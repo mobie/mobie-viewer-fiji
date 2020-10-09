@@ -11,10 +11,7 @@ import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class BookmarksManager
 {
@@ -82,6 +79,8 @@ public class BookmarksManager
 
 	public void saveCurrentSettingsAsBookmark () {
 		Bookmark currentBookmark = getBookmarkFromCurrentSettings("test");
+//		ArrayList<Bookmark> bookmarks = new ArrayList<>();
+//		bookmarks.add(currentBookmark);
 		HashMap<String, Bookmark> namesToBookmarks = new HashMap<>();
 		namesToBookmarks.put("test", currentBookmark);
 		try {
