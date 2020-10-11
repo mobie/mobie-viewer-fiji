@@ -9,6 +9,7 @@ import de.embl.cba.mobie.image.MutableImageProperties;
 import de.embl.cba.mobie.ui.viewer.SourcesPanel;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
+import ij.gui.GenericDialog;
 
 import java.io.IOException;
 import java.util.*;
@@ -18,6 +19,8 @@ public class BookmarksManager
 	private final SourcesPanel sourcesPanel;
 	private Map< String, Bookmark > nameToBookmark;
 	private BookmarksJsonParser bookmarksJsonParser;
+	private String PROJECT = "Project";
+	private String FILE_SYSTEM = "File system";
 
 	public BookmarksManager( SourcesPanel sourcesPanel, Map< String, Bookmark > nameToBookmark,
 							 BookmarksJsonParser bookmarksJsonParser )
@@ -76,6 +79,40 @@ public class BookmarksManager
 			BdvViewChanger.moveToLocation( sourcesPanel.getBdv(), location );
 		}
 	}
+
+	// public void loadAdditionalBookmarks(String bookmarksDirectory) {
+	// 	String bookmarksLocation = null;
+	// 	if ( bookmarksDirectory != null )
+	// 	{
+	// 		final GenericDialog gd = new GenericDialog( "Choose bookmarks source" );
+	// 		gd.addChoice( "Load bookmarks from", new String[]{ PROJECT, FILE_SYSTEM }, PROJECT );
+	// 		gd.showDialog();
+	// 		if ( gd.wasCanceled() ) return null;
+	// 		bookmarksLocation = gd.getNextChoice();
+	// 	}
+	//
+	// 	String bookmarksPath = null;
+	// 	if ( bookmarksDirectory != null && bookmarksLocation.equals( PROJECT ) && bookmarksDirectory.contains( "raw.githubusercontent" ) )
+	// 	{
+	// 		tablesPath = selectGitHubTablePath( tablesDirectory );
+	// 		if ( tablesPath == null ) return null;
+	// 	}
+	// 	else
+	// 	{
+	// 		final JFileChooser jFileChooser = new JFileChooser( tablesDirectory );
+	//
+	// 		if ( jFileChooser.showOpenDialog( null ) == JFileChooser.APPROVE_OPTION )
+	// 			tablesPath = jFileChooser.getSelectedFile().getAbsolutePath();
+	// 	}
+	//
+	// 	if ( tablesPath == null ) return null;
+	//
+	// 	if ( tablesPath.startsWith( "http" ) )
+	// 		tablesPath = resolveTableURL( URI.create( tablesPath ) );
+	//
+	// 	Map< String, List< String > > columns = TableColumns.openAndOrderNewColumns( table, mergeByColumnName, tablesPath );
+	//
+	// }
 
 	public void saveCurrentSettingsAsBookmark () {
 		// TODO - make bookmark name user definable

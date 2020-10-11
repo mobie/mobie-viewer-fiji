@@ -206,7 +206,7 @@ public class MoBIEViewer
 	public BookmarksManager fetchBookmarks( String location )
 	{
 		BookmarksJsonParser bookmarkParser = new BookmarksJsonParser(location);
-		Map< String, Bookmark > nameToBookmark = bookmarkParser.getBookmarks();
+		Map< String, Bookmark > nameToBookmark = bookmarkParser.getDefaultBookmarks();
 
 		return new BookmarksManager( sourcesPanel, nameToBookmark, bookmarkParser);
 	}

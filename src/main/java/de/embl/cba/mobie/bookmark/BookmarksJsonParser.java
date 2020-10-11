@@ -32,11 +32,15 @@ public class BookmarksJsonParser
 		this.datasetLocation = datasetLocation;
 	}
 
-	public Map< String, Bookmark > getBookmarks()
+	public Map<String, Bookmark> getDefaultBookmarks() {
+		return getBookmarksFromFile("default");
+	}
+
+	public Map< String, Bookmark > getBookmarksFromFile(String fileName)
 	{
 		try
 		{
-			return readBookmarks();
+			return readBookmarks(String fileName);
 		}
 		catch ( IOException e )
 		{
@@ -98,9 +102,10 @@ public class BookmarksJsonParser
 		return bookmarkPaths;
 	}
 
-	private Map< String, Bookmark > readBookmarks() throws IOException
+	private Map< String, Bookmark > readBookmarks(String fileName) throws IOException
 	{
-		final ArrayList< String > bookmarkFiles = fetchBookmarkPaths();
+		ArrayList<String> bookmarkFiles = new ArrayList<>();
+		bookmarkFiles.add( fetchBookmarkPath(fileName) );
 		final Map< String, Bookmark > nameToBookmark = parseBookmarks( bookmarkFiles );
 		return nameToBookmark;
 	}
@@ -219,21 +224,21 @@ public class BookmarksJsonParser
 		outputStream.close();
 	}
 
-	private ArrayList< String > fetchBookmarkPaths()
+	private ArrayList< String > fetchBookmarkPath()
 	{
 		try
 		{
-			return fetchBookmarkPaths( datasetLocation );
+			return fetchBookmarkPath( datasetLocation );
 		}
 		catch ( Exception e )
 		{
 			if ( datasetLocation.contains( "githubusercontent" ) )
 			{
-				return addBookmarkFilesFromGithub( datasetLocation );
+				return addBookmarkFileFromGithub( datasetLocation );
 			}
 			else
 			{
-				return addBookmarkFilesFromFolder( datasetLocation );
+				return addBookmarkFileFromFolder( datasetLocation );
 			}
 		}
 	}

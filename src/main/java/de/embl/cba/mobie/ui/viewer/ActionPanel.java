@@ -103,6 +103,13 @@ public class ActionPanel extends JPanel
 					} )).start();
 				});
 
+		BdvPopupMenus.addAction(bdv, "Load Additional Bookmarks",
+				() -> {
+					(new Thread( () -> {
+						// bookmarksManager.loadAdditionalBookmarks();
+					} )).start();
+				});
+
 		BdvPopupMenus.addAction(bdv, "Save Current Settings As Bookmark",
 				() -> {
 					(new Thread( () -> {
