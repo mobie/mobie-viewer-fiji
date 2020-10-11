@@ -11,6 +11,7 @@ import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
 import ij.gui.GenericDialog;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
 
@@ -21,8 +22,7 @@ public class BookmarksManager
 	private final SourcesPanel sourcesPanel;
 	private Map< String, Bookmark > nameToBookmark;
 	private BookmarksJsonParser bookmarksJsonParser;
-	private String PROJECT = "Project";
-	private String FILE_SYSTEM = "File system";
+	private JComboBox<String> bookmarkDropDown;
 
 	public BookmarksManager( SourcesPanel sourcesPanel, Map< String, Bookmark > nameToBookmark,
 							 BookmarksJsonParser bookmarksJsonParser )
@@ -30,6 +30,10 @@ public class BookmarksManager
 		this.sourcesPanel = sourcesPanel;
 		this.nameToBookmark = nameToBookmark;
 		this.bookmarksJsonParser = bookmarksJsonParser;
+	}
+
+	public void setBookmarkDropDown (JComboBox<String> bookmarkDropDown) {
+		this.bookmarkDropDown = bookmarkDropDown;
 	}
 
 	public void setView( String bookmarkId )
@@ -82,14 +86,13 @@ public class BookmarksManager
 		}
 	}
 
-	public void loadAdditionalBookmarks(String bookmarksDirectory) {
-		try {
-			String bookmarkPath = selectPathFromProjectOrFileSystem( bookmarksDirectory, "Bookmark" );
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
+	public void loadAdditionalBookmarks() {
+			Map<String, Bookmark> additionalBookmarks = bookmarksJsonParser.selectAndLoadBookmarks();
+			nameToBookmark.putAll(additionalBookmarks);
+			bookmarkDropDown.removeAllItems();
+			for (String bookmarkName : nameToBookmark.keySet()) {
+				bookmarkDropDown.addItem(bookmarkName);
+			}
 	}
 
 	public void saveCurrentSettingsAsBookmark () {

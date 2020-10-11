@@ -5,7 +5,6 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.bookmark.LocationType;
 import de.embl.cba.mobie.platybrowser.GeneSearch;
@@ -68,7 +67,7 @@ public class ActionPanel extends JPanel
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addSourceSelectionUI( this );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		addBookmarksUI( this  );
+		bookmarksManager.setBookmarkDropDown( addBookmarksUI( this  ) );
 		addMoveToLocationUI( this );
 		addLevelingUI( this );
 		configPanel();
@@ -496,7 +495,7 @@ public class ActionPanel extends JPanel
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private void addBookmarksUI( JPanel panel )
+	private JComboBox<String> addBookmarksUI( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
@@ -513,6 +512,8 @@ public class ActionPanel extends JPanel
 		horizontalLayoutPanel.add( button );
 
 		panel.add( horizontalLayoutPanel );
+
+		return comboBox;
 	}
 
 	private JButton getButton( String buttonLabel )
