@@ -14,6 +14,8 @@ import ij.gui.GenericDialog;
 import java.io.IOException;
 import java.util.*;
 
+import static de.embl.cba.tables.FileUtils.selectPathFromProjectOrFileSystem;
+
 public class BookmarksManager
 {
 	private final SourcesPanel sourcesPanel;
@@ -80,39 +82,15 @@ public class BookmarksManager
 		}
 	}
 
-	// public void loadAdditionalBookmarks(String bookmarksDirectory) {
-	// 	String bookmarksLocation = null;
-	// 	if ( bookmarksDirectory != null )
-	// 	{
-	// 		final GenericDialog gd = new GenericDialog( "Choose bookmarks source" );
-	// 		gd.addChoice( "Load bookmarks from", new String[]{ PROJECT, FILE_SYSTEM }, PROJECT );
-	// 		gd.showDialog();
-	// 		if ( gd.wasCanceled() ) return null;
-	// 		bookmarksLocation = gd.getNextChoice();
-	// 	}
-	//
-	// 	String bookmarksPath = null;
-	// 	if ( bookmarksDirectory != null && bookmarksLocation.equals( PROJECT ) && bookmarksDirectory.contains( "raw.githubusercontent" ) )
-	// 	{
-	// 		tablesPath = selectGitHubTablePath( tablesDirectory );
-	// 		if ( tablesPath == null ) return null;
-	// 	}
-	// 	else
-	// 	{
-	// 		final JFileChooser jFileChooser = new JFileChooser( tablesDirectory );
-	//
-	// 		if ( jFileChooser.showOpenDialog( null ) == JFileChooser.APPROVE_OPTION )
-	// 			tablesPath = jFileChooser.getSelectedFile().getAbsolutePath();
-	// 	}
-	//
-	// 	if ( tablesPath == null ) return null;
-	//
-	// 	if ( tablesPath.startsWith( "http" ) )
-	// 		tablesPath = resolveTableURL( URI.create( tablesPath ) );
-	//
-	// 	Map< String, List< String > > columns = TableColumns.openAndOrderNewColumns( table, mergeByColumnName, tablesPath );
-	//
-	// }
+	public void loadAdditionalBookmarks(String bookmarksDirectory) {
+		try {
+			String bookmarkPath = selectPathFromProjectOrFileSystem( bookmarksDirectory, "Bookmark" );
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
 
 	public void saveCurrentSettingsAsBookmark () {
 		// TODO - make bookmark name user definable

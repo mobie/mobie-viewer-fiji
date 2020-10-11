@@ -106,7 +106,7 @@ public class ActionPanel extends JPanel
 		BdvPopupMenus.addAction(bdv, "Load Additional Bookmarks",
 				() -> {
 					(new Thread( () -> {
-						// bookmarksManager.loadAdditionalBookmarks();
+						bookmarksManager.loadAdditionalBookmarks();
 					} )).start();
 				});
 
