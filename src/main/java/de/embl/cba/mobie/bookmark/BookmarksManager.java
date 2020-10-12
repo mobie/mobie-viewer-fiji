@@ -3,19 +3,15 @@ package de.embl.cba.mobie.bookmark;
 import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.bdv.utils.sources.Sources;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.MutableImageProperties;
 import de.embl.cba.mobie.ui.viewer.SourcesPanel;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
-import ij.gui.GenericDialog;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
-
-import static de.embl.cba.tables.FileUtils.selectPathFromProjectOrFileSystem;
 
 public class BookmarksManager
 {
@@ -112,9 +108,7 @@ public class BookmarksManager
 		Set<String> visibleSourceNames = sourcesPanel.getVisibleSourceNames();
 
 		for (String sourceName : visibleSourceNames) {
-			Metadata sourceMetadata = sourcesPanel.getSourceAndMetadata(sourceName).metadata();
-			MutableImageProperties sourceImageProperties = new MutableImageProperties();
-			new ImagePropertiesToMetadataAdapter().setImageProperties(sourceMetadata, sourceImageProperties);
+			MutableImageProperties sourceImageProperties = sourcesPanel.getCurrentMutableImageProperties(sourceName);
 			layers.put(sourceName, sourceImageProperties);
 		}
 

@@ -8,6 +8,8 @@ import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.Constants;
+import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
+import de.embl.cba.mobie.image.MutableImageProperties;
 import de.embl.cba.mobie.image.SourcesModel;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils;
@@ -39,6 +41,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.List;
 
+import static de.embl.cba.mobie.ui.viewer.SourcesDisplayUI.getConverterSetups;
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
 import static de.embl.cba.mobie.utils.Utils.createRandom;
 
@@ -46,7 +49,9 @@ public class SourcesPanel extends JPanel
 {
     private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelViews;
     private Map< String, JPanel > sourceNameToPanel;
-    private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndMetadata;
+    private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndDefaultMetadata;
+    private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndCurrentMetadata;
+    private Map< String, MutableImageProperties > sourceNameToCurrentMutableImageProperties;
     private BdvHandle bdv;
     private final SourcesModel imageSourcesModel;
     private Image3DUniverse universe;
@@ -60,7 +65,9 @@ public class SourcesPanel extends JPanel
         this.imageSourcesModel = imageSourcesModel;
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelViews = new LinkedHashMap<>();
-        sourceNameToSourceAndMetadata = new LinkedHashMap<>();
+        sourceNameToSourceAndDefaultMetadata = new LinkedHashMap<>();
+        sourceNameToSourceAndCurrentMetadata = new LinkedHashMap<>();
+        sourceNameToCurrentMutableImageProperties = new LinkedHashMap<>();
 
         voxelSpacing3DView = 0.05;
         meshSmoothingIterations = 5;
@@ -71,6 +78,7 @@ public class SourcesPanel extends JPanel
     public static void updateSource3dView( SourceAndMetadata< ? > sam, SourcesPanel sourcesPanel, boolean showImageIn3d )
     {
         sam.metadata().showImageIn3d = showImageIn3d;
+        sourcesPanel.setShowImageIn3dInCurrentImageProperties(sam.metadata().displayName, showImageIn3d);
 
         if ( sam.metadata().type.equals( Metadata.Type.Segmentation ) ) return;
 
@@ -85,8 +93,20 @@ public class SourcesPanel extends JPanel
         }
     }
 
+    public void setShowSelectedSegmentsIn3dInCurrentImageProperties (String sourceName, boolean showSelectedSegmentsIn3D) {
+        MutableImageProperties sourceCurrentImageProperties = sourceNameToCurrentMutableImageProperties.get(sourceName);
+        sourceCurrentImageProperties.showSelectedSegmentsIn3d = showSelectedSegmentsIn3D;
+    }
+
+    public void setShowImageIn3dInCurrentImageProperties (String sourceName, boolean showImageIn3d) {
+        MutableImageProperties sourceCurrentImageProperties = sourceNameToCurrentMutableImageProperties.get(sourceName);
+        sourceCurrentImageProperties.showImageIn3d = showImageIn3d;
+    }
+
     public static void updateSegments3dView( Metadata metadata, SourcesPanel sourcesPanel, boolean showSelectedSegmentsIn3D )
     {
+        sourcesPanel.setShowSelectedSegmentsIn3dInCurrentImageProperties(metadata.displayName, showSelectedSegmentsIn3D);
+
         if ( metadata.views != null )
         {
             final Segments3dView< TableRowImageSegment > segments3dView = metadata.views.getSegments3dView();
@@ -121,6 +141,7 @@ public class SourcesPanel extends JPanel
     private void setSourceColor( SourceAndMetadata< ? > sam, Color color, JPanel panel )
     {
         sam.metadata().color = color.toString();
+        sourceNameToCurrentMutableImageProperties.get(sam.metadata().displayName).color = color.toString();
 
         sam.metadata().bdvStackSource.setColor( ColorUtils.getARGBType( color ) );
 
@@ -146,7 +167,7 @@ public class SourcesPanel extends JPanel
             return;
         }
 
-        final SourceAndMetadata< ? > sam = getSourceAndMetadata( sourceName );
+        final SourceAndMetadata< ? > sam = getSourceAndDefaultMetadata( sourceName );
         final JPanel jPanel = sourceNameToPanel.get( sourceName );
 
         setSourceColor( sam, color, jPanel );
@@ -291,15 +312,61 @@ public class SourcesPanel extends JPanel
         }
         else
         {
-            final SourceAndMetadata< ? > sam = getSourceAndMetadata( sourceName );
-            sourceNameToSourceAndMetadata.put( sam.metadata().displayName, sam );
+            final SourceAndMetadata< ? > sam = getSourceAndDefaultMetadata( sourceName );
             addSourceToPanelAndViewer( sam );
         }
     }
 
-    public SourceAndMetadata< ? > getSourceAndMetadata( String sourceName )
+    public void updateCurrentMutableImageProperties(String sourceName) {
+        MutableImageProperties sourceImageProperties = sourceNameToCurrentMutableImageProperties.get(sourceName);
+        Metadata sourceDefaultMetadata = getSourceAndDefaultMetadata(sourceName).metadata();
+
+        // color is set on the fly in setSourceColor
+        if (sourceNameToLabelViews.containsKey(sourceName)) {
+            TableRowsTableView< TableRowImageSegment > sourceTableRowsTableView = sourceDefaultMetadata.views.getTableRowsTableView();
+            sourceImageProperties.color = sourceTableRowsTableView.getColorByColumnLUT();
+            sourceImageProperties.colorByColumn = sourceTableRowsTableView.getColoringColumnName();
+            sourceImageProperties.valueLimits = sourceTableRowsTableView.getColorByColumnValueLimits();
+
+            ArrayList<TableRowImageSegment> selectedSegments = sourceTableRowsTableView.getSelectedLabelIds();
+            if (selectedSegments != null) {
+                ArrayList<Double> selectedLabelIds = new ArrayList<>();
+                for (TableRowImageSegment segment : selectedSegments) {
+                    selectedLabelIds.add(segment.labelId());
+                }
+                sourceImageProperties.selectedLabelIds = selectedLabelIds;
+            } else {
+                sourceImageProperties.selectedLabelIds = null;
+            }
+
+            if (sourceTableRowsTableView.getAdditionalTables() != null) {
+                for (String tableName : sourceTableRowsTableView.getAdditionalTables()) {
+                    if (!sourceImageProperties.tables.contains(tableName)) {
+                        sourceImageProperties.tables.add(tableName);
+                    }
+                }
+            }
+        }
+
+        double[] currentContrastLimits = new double[2];
+        currentContrastLimits[0] = getConverterSetups( sourceDefaultMetadata.bdvStackSource ).get(0).getDisplayRangeMin();
+        currentContrastLimits[1] = getConverterSetups( sourceDefaultMetadata.bdvStackSource ).get(0).getDisplayRangeMax();
+        sourceImageProperties.contrastLimits = currentContrastLimits;
+
+        // showSelectedSegmentsIn3d and showImageIn3d are set on the fly with updateSource3dView and
+        // updateSegments3dView so no need to update here
+
+
+    }
+
+    public SourceAndMetadata< ? > getSourceAndDefaultMetadata(String sourceName )
     {
         return imageSourcesModel.sources().get( sourceName );
+    }
+
+    public MutableImageProperties getCurrentMutableImageProperties (String sourceName) {
+        updateCurrentMutableImageProperties( sourceName );
+        return sourceNameToCurrentMutableImageProperties.get(sourceName);
     }
 
     public ArrayList< String > getSourceNames()
@@ -335,7 +402,10 @@ public class SourcesPanel extends JPanel
         else
         {
             Logger.log( "Adding source: " + sourceName + "..." );
-            sourceNameToSourceAndMetadata.put( sourceName, sam );
+
+            MutableImageProperties sourceImageProperties = new MutableImageProperties();
+            new ImagePropertiesToMetadataAdapter().setImageProperties(sam.metadata(), sourceImageProperties);
+            sourceNameToCurrentMutableImageProperties.put( sam.metadata().displayName, sourceImageProperties );
             addSourceToViewer( sam );
             SwingUtilities.invokeLater( () -> addSourceToPanel( sam ) );
         }
@@ -703,7 +773,7 @@ public class SourcesPanel extends JPanel
 
     public void removeSourceFromPanelAndViewers( String sourceName )
     {
-        removeSourceFromPanelAndViewers( sourceNameToSourceAndMetadata.get( sourceName ) );
+        removeSourceFromPanelAndViewers( sourceNameToSourceAndCurrentMetadata.get( sourceName ) );
     }
 
     public void removeSourceFromPanelAndViewers( SourceAndMetadata< ? > sam )

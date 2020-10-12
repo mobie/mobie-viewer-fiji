@@ -377,7 +377,7 @@ public class ActionPanel extends JPanel
 
 			String selectionName = sourceName.replace( modality + "-", "" );
 
-			final Metadata metadata = sourcesPanel.getSourceAndMetadata( sourceName ).metadata();
+			final Metadata metadata = sourcesPanel.getSourceAndDefaultMetadata( sourceName ).metadata();
 
 			if ( metadata.type.equals( Metadata.Type.Segmentation ) )
 			{

@@ -89,7 +89,7 @@ public class SourcesDisplayUI
 	}
 
 
-	private static ArrayList< ConverterSetup > getConverterSetups(
+	public static ArrayList< ConverterSetup > getConverterSetups(
 			BdvStackSource bdvStackSource )
 	{
 		bdvStackSource.setCurrent();

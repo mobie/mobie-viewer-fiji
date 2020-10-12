@@ -28,7 +28,7 @@ public class SourcesModel implements ImageSourcesModel
 	public static final String MASK_FILE_ID = "mask-";
 	private final MoBIEOptions.ImageDataStorageModality imageDataStorageModality;
 
-	private Map< String, SourceAndMetadata< ? > > nameToSourceAndMetadata;
+	private Map< String, SourceAndMetadata< ? > > nameToSourceAndDefaultMetadata;
 	private final String tableDataLocation;
 	private GlasbeyARGBLut glasbeyARGBLut;
 	private String storageModality;
@@ -39,7 +39,7 @@ public class SourcesModel implements ImageSourcesModel
 		this.imageDataStorageModality = imageDataStorageModality;
 		this.tableDataLocation = tableDataLocation;
 
-		nameToSourceAndMetadata = new HashMap<>();
+		nameToSourceAndDefaultMetadata = new HashMap<>();
 		glasbeyARGBLut = new GlasbeyARGBLut();
 
 		fetchSources( imageDataLocation );
@@ -48,7 +48,7 @@ public class SourcesModel implements ImageSourcesModel
 	@Override
 	public Map< String, SourceAndMetadata< ? > > sources()
 	{
-		return nameToSourceAndMetadata;
+		return nameToSourceAndDefaultMetadata;
 	}
 
 	@Override
@@ -93,17 +93,17 @@ public class SourcesModel implements ImageSourcesModel
 			adapter.setMetadata( metadata, properties );
 
 			final LazySpimSource lazySpimSource = new LazySpimSource( name, metadata.xmlLocation );
-			nameToSourceAndMetadata.put( name, new SourceAndMetadata( lazySpimSource, metadata ) );
+			nameToSourceAndDefaultMetadata.put( name, new SourceAndMetadata( lazySpimSource, metadata ) );
 			Sources.sourceToMetadata.put( lazySpimSource, metadata );
 		}
 
-		if ( nameToSourceAndMetadata.size() == 0)
+		if ( nameToSourceAndDefaultMetadata.size() == 0)
 		{
 			throw new UnsupportedOperationException( "No image data found in: "
 					+ FileAndUrlUtils.combinePath( imageDataLocation, "images", storageModality ) );
 		}
 
-		Utils.log("Found " + nameToSourceAndMetadata.size() + " image sources." );
+		Utils.log("Found " + nameToSourceAndDefaultMetadata.size() + " image sources." );
 	}
 
 	private Metadata initMetadata( String name )
