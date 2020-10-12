@@ -321,12 +321,18 @@ public class SourcesPanel extends JPanel
         MutableImageProperties sourceImageProperties = sourceNameToCurrentMutableImageProperties.get(sourceName);
         Metadata sourceDefaultMetadata = getSourceAndDefaultMetadata(sourceName).metadata();
 
-        // color is set on the fly in setSourceColor
+        // color is set on the fly in setSourceColor (for solid colours)
         if (sourceNameToLabelViews.containsKey(sourceName)) {
             TableRowsTableView< TableRowImageSegment > sourceTableRowsTableView = sourceDefaultMetadata.views.getTableRowsTableView();
-            sourceImageProperties.color = sourceTableRowsTableView.getColorByColumnLUT();
-            sourceImageProperties.colorByColumn = sourceTableRowsTableView.getColoringColumnName();
-            sourceImageProperties.valueLimits = sourceTableRowsTableView.getColorByColumnValueLimits();
+
+            if (!sourceDefaultMetadata.views.getSegmentsBdvView().isLabelMaskShownAsBinaryMask()) {
+                sourceImageProperties.color = sourceTableRowsTableView.getColoringLUTName();
+                sourceImageProperties.colorByColumn = sourceTableRowsTableView.getColoringColumnName();
+                sourceImageProperties.valueLimits = sourceTableRowsTableView.getColorByColumnValueLimits();
+            } else {
+                sourceImageProperties.colorByColumn = null;
+                sourceImageProperties.valueLimits = null;
+            }
 
             ArrayList<TableRowImageSegment> selectedSegments = sourceTableRowsTableView.getSelectedLabelIds();
             if (selectedSegments != null) {
@@ -340,6 +346,9 @@ public class SourcesPanel extends JPanel
             }
 
             if (sourceTableRowsTableView.getAdditionalTables() != null) {
+                if (sourceImageProperties.tables == null) {
+                    sourceImageProperties.tables = new ArrayList<>();
+                }
                 for (String tableName : sourceTableRowsTableView.getAdditionalTables()) {
                     if (!sourceImageProperties.tables.contains(tableName)) {
                         sourceImageProperties.tables.add(tableName);
