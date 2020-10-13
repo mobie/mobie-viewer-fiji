@@ -50,7 +50,6 @@ public class SourcesPanel extends JPanel
     private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelViews;
     private Map< String, JPanel > sourceNameToPanel;
     private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndMetadata;
-    private Map< String, MutableImageProperties > sourceNameToCurrentImageProperties;
     private BdvHandle bdv;
     private final SourcesModel imageSourcesModel;
     private Image3DUniverse universe;
@@ -65,7 +64,6 @@ public class SourcesPanel extends JPanel
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelViews = new LinkedHashMap<>();
         sourceNameToSourceAndMetadata = new LinkedHashMap<>();
-        sourceNameToCurrentImageProperties = new LinkedHashMap<>();
 
         voxelSpacing3DView = 0.05;
         meshSmoothingIterations = 5;
@@ -75,6 +73,9 @@ public class SourcesPanel extends JPanel
 
     public static void updateSource3dView( SourceAndMetadata< ? > sam, SourcesPanel sourcesPanel, boolean showImageIn3d )
     {
+        // TODO - save this another way? At the moment, this means that adding an image from the GUI will
+        // result in this metadata being the default, and showImageIn3d persisting. If you load from a bookmark,
+        // this metadata will not be the default, and these changes won't persist.
         sam.metadata().showImageIn3d = showImageIn3d;
 
         if ( sam.metadata().type.equals( Metadata.Type.Segmentation ) ) return;
@@ -125,6 +126,9 @@ public class SourcesPanel extends JPanel
 
     private void setSourceColor( SourceAndMetadata< ? > sam, Color color, JPanel panel )
     {
+        // TODO - save this another way? At the moment, this means that adding an image from the GUI will
+        // result in this metadata being the default, and colour changes persisting. If you load from a bookmark,
+        // this metadata will not be the default, and these changes won't persist.
         sam.metadata().color = color.toString();
 
         sam.metadata().bdvStackSource.setColor( ColorUtils.getARGBType( color ) );
@@ -151,7 +155,7 @@ public class SourcesPanel extends JPanel
             return;
         }
 
-        final SourceAndMetadata< ? > sam = getSourceAndDefaultMetadata( sourceName );
+        final SourceAndMetadata< ? > sam = sourceNameToSourceAndMetadata.get(sourceName);
         final JPanel jPanel = sourceNameToPanel.get( sourceName );
 
         setSourceColor( sam, color, jPanel );
@@ -301,70 +305,14 @@ public class SourcesPanel extends JPanel
         }
     }
 
-    public void updateCurrentImageProperties(String sourceName) {
-        MutableImageProperties sourceImageProperties = sourceNameToCurrentImageProperties.get(sourceName);
-        Metadata sourceDefaultMetadata = getSourceAndDefaultMetadata(sourceName).metadata();
-
-        sourceImageProperties.color = sourceDefaultMetadata.color;
-
-        if (sourceNameToLabelViews.containsKey(sourceName)) {
-            TableRowsTableView< TableRowImageSegment > sourceTableRowsTableView = sourceDefaultMetadata.views.getTableRowsTableView();
-
-            if (!sourceDefaultMetadata.views.getSegmentsBdvView().isLabelMaskShownAsBinaryMask()) {
-                sourceImageProperties.color = sourceTableRowsTableView.getColoringLUTName();
-                sourceImageProperties.colorByColumn = sourceTableRowsTableView.getColoringColumnName();
-                sourceImageProperties.valueLimits = sourceTableRowsTableView.getColorByColumnValueLimits();
-            } else {
-                sourceImageProperties.colorByColumn = null;
-                sourceImageProperties.valueLimits = null;
-            }
-
-            ArrayList<TableRowImageSegment> selectedSegments = sourceTableRowsTableView.getSelectedLabelIds();
-            if (selectedSegments != null) {
-                ArrayList<Double> selectedLabelIds = new ArrayList<>();
-                for (TableRowImageSegment segment : selectedSegments) {
-                    selectedLabelIds.add(segment.labelId());
-                }
-                sourceImageProperties.selectedLabelIds = selectedLabelIds;
-            } else {
-                sourceImageProperties.selectedLabelIds = null;
-            }
-
-            if (sourceTableRowsTableView.getAdditionalTables() != null) {
-                if (sourceImageProperties.tables == null) {
-                    sourceImageProperties.tables = new ArrayList<>();
-                }
-                for (String tableName : sourceTableRowsTableView.getAdditionalTables()) {
-                    if (!sourceImageProperties.tables.contains(tableName)) {
-                        sourceImageProperties.tables.add(tableName);
-                    }
-                }
-            }
-
-            Segments3dView s3v = sourceDefaultMetadata.views.getSegments3dView();
-            sourceImageProperties.showSelectedSegmentsIn3d = s3v.getShowSelectedSegmentsIn3D();
-            sourceImageProperties.showImageIn3d = sourceDefaultMetadata.showImageIn3d;
-        }
-
-        double[] currentContrastLimits = new double[2];
-        currentContrastLimits[0] = getConverterSetups( sourceDefaultMetadata.bdvStackSource ).get(0).getDisplayRangeMin();
-        currentContrastLimits[1] = getConverterSetups( sourceDefaultMetadata.bdvStackSource ).get(0).getDisplayRangeMax();
-        sourceImageProperties.contrastLimits = currentContrastLimits;
-
-        // showSelectedSegmentsIn3d and showImageIn3d are set on the fly with updateSource3dView and
-        // updateSegments3dView so no need to update here
-
-
-    }
-
     public SourceAndMetadata< ? > getSourceAndDefaultMetadata(String sourceName )
     {
         return imageSourcesModel.sources().get( sourceName );
     }
 
-    public MutableImageProperties getCurrentImageProperties(String sourceName) {
-        updateCurrentImageProperties( sourceName );
-        return sourceNameToCurrentImageProperties.get(sourceName);
+    // necessary as loading from bookmark creates a new sourceAndMetadata that is separate from the default
+    public SourceAndMetadata< ? > getSourceAndCurrentMetadata(String sourceName) {
+        return sourceNameToSourceAndMetadata.get(sourceName);
     }
 
     public ArrayList< String > getSourceNames()
@@ -404,7 +352,6 @@ public class SourcesPanel extends JPanel
 
             MutableImageProperties sourceImageProperties = new MutableImageProperties();
             new ImagePropertiesToMetadataAdapter().setImageProperties(sam.metadata(), sourceImageProperties);
-            sourceNameToCurrentImageProperties.put( sam.metadata().displayName, sourceImageProperties );
 
             addSourceToViewer( sam );
             SwingUtilities.invokeLater( () -> addSourceToPanel( sam ) );
@@ -611,6 +558,7 @@ public class SourcesPanel extends JPanel
         for ( String tableName : sam.metadata().additionalSegmentTableNames )
         {
             String newTablePath = FileAndUrlUtils.combinePath( tablesLocation, tableName + ".csv" );
+            tableRowsTableView.addAdditionalTables(newTablePath);
 
             if ( newTablePath.startsWith( "http" ) )
                 newTablePath = FileUtils.resolveTableURL( URI.create( newTablePath ) );
@@ -784,7 +732,6 @@ public class SourcesPanel extends JPanel
         removeSourceFromPanel( sam.metadata().displayName );
 		removeLabelViews( sam.metadata().displayName );
 		sourceNameToSourceAndMetadata.remove( sam.metadata().displayName );
-		sourceNameToCurrentImageProperties.remove( sam.metadata().displayName );
 
 		BdvUtils.removeSource( bdv, ( BdvStackSource ) sam.metadata().bdvStackSource );
 
