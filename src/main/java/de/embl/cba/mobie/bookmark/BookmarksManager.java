@@ -11,20 +11,15 @@ import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import de.embl.cba.tables.view.Segments3dView;
 import de.embl.cba.tables.view.TableRowsTableView;
-import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
 import ij.gui.GenericDialog;
 import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.IOException;
-import java.net.URI;
 import java.util.*;
 
 import static de.embl.cba.mobie.ui.viewer.SourcesDisplayUI.getConverterSetups;
-import static de.embl.cba.tables.github.GitHubUtils.selectGitHubPathFromDirectory;
 
 public class BookmarksManager
 {
@@ -108,15 +103,15 @@ public class BookmarksManager
 	public void saveCurrentSettingsAsBookmark () {
 		ArrayList<String> bookmarkNameAndLocation = bookmarkSaveDialog();
 		Bookmark currentBookmark = getBookmarkFromCurrentSettings(bookmarkNameAndLocation.get(0));
+		ArrayList<Bookmark> bookmarks = new ArrayList<>();
+		bookmarks.add(currentBookmark);
 
 		if (bookmarkNameAndLocation.get(1) == FileUtils.PROJECT &&
 				bookmarksJsonParser.getDatasetLocation().contains( "raw.githubusercontent" )) {
-
+			bookmarksJsonParser.saveBookmarkToGithub(currentBookmark);
 		} else {
-			ArrayList<Bookmark> bookmarks = new ArrayList<>();
-			bookmarks.add(currentBookmark);
 			try {
-				bookmarksJsonParser.saveBookmarks(bookmarks, bookmarkNameAndLocation.get(1));
+				bookmarksJsonParser.saveBookmarksToFile(bookmarks, bookmarkNameAndLocation.get(1));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

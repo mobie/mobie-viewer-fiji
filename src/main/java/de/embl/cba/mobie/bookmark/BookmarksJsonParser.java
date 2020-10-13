@@ -9,11 +9,14 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils;
+import de.embl.cba.tables.github.GitHubUtils;
+import de.embl.cba.tables.github.GitLocation;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.*;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static de.embl.cba.tables.FileUtils.selectPathFromProjectOrFileSystem;
@@ -53,7 +56,7 @@ public class BookmarksJsonParser {
 		}
 	}
 
-	private Map< String, Bookmark > parseBookmarks( ArrayList< String > bookmarksFiles ) throws IOException
+	public Map< String, Bookmark > parseBookmarks( ArrayList< String > bookmarksFiles ) throws IOException
 	{
 		Map< String, Bookmark > nameToBookmark = new TreeMap<>();
 
@@ -82,7 +85,18 @@ public class BookmarksJsonParser {
 		return nameToBookmark;
 	}
 
-	public void saveBookmarks(ArrayList<Bookmark> bookmarks, String fileLocation) throws IOException {
+	public void saveBookmarkToGithub(Bookmark bookmark) {
+		final GitLocation gitLocation = GitHubUtils.rawUrlToGitLocation( datasetLocation );
+		gitLocation.path += "misc/bookmarks";
+
+		BookmarkGithubWriter bookmarkWriter = new BookmarkGithubWriter(gitLocation, this);
+		bookmarkWriter.writeBookmarkToGithub(bookmark);
+		// check if file exists
+		// if it does, read it, append, then overwrite
+		// else just write
+	}
+
+	public void saveBookmarksToFile(ArrayList<Bookmark> bookmarks, String fileLocation) throws IOException {
 		HashMap<String, Bookmark> namesToBookmarks = new HashMap<>();
 		for (Bookmark bookmark : bookmarks) {
 			namesToBookmarks.put(bookmark.name, bookmark);
@@ -171,5 +185,16 @@ public class BookmarksJsonParser {
 		gson.toJson(bookmarksInFile, type, writer);
 		writer.close();
 		outputStream.close();
+	}
+
+	public String writeBookmarksToBase64String (Map<String, Bookmark> bookmarks) {
+		// EXCLUSIONG STRATEGY!!
+		Gson gson = new GsonBuilder().create();
+		Type type = new TypeToken<Map<String, Bookmark>>() {
+		}.getType();
+		String jstring = gson.toJson(bookmarks, type);
+		byte[] jsonBytes = jstring.getBytes(StandardCharsets.UTF_8);
+		byte[] encodedBytes = Base64.getEncoder().encode(jsonBytes);
+		return new String(encodedBytes);
 	}
 }
