@@ -35,7 +35,7 @@ public class BookmarksJsonParser {
 	public Map<String, Bookmark> getDefaultBookmarks() {
 		try {
 			ArrayList<String> filePaths = new ArrayList<>();
-			String bookmarkPath = FileAndUrlUtils.combinePath(datasetLocation + "/misc/bookmarks/default.json");
+			String bookmarkPath = FileAndUrlUtils.combinePath(datasetLocation, "misc", "bookmarks", "default.json");
 			filePaths.add(bookmarkPath);
 			return parseBookmarks( filePaths );
 		} catch (IOException e) {
@@ -47,7 +47,7 @@ public class BookmarksJsonParser {
 	public Map<String, Bookmark> selectAndLoadBookmarks() {
 		try {
 			ArrayList<String> filePaths = new ArrayList<>();
-			String bookmarksDirectory = FileAndUrlUtils.combinePath(datasetLocation + "/misc/bookmarks");
+			String bookmarksDirectory = FileAndUrlUtils.combinePath(datasetLocation, "misc", "bookmarks");
 			filePaths.add( selectPathFromProjectOrFileSystem( bookmarksDirectory, "Bookmark" ) );
 			return parseBookmarks(filePaths);
 		} catch (IOException e) {
@@ -85,15 +85,41 @@ public class BookmarksJsonParser {
 		return nameToBookmark;
 	}
 
-	public void saveBookmarkToGithub(Bookmark bookmark) {
+	public void saveBookmarksToGithub(ArrayList<Bookmark> bookmarks) {
 		final GitLocation gitLocation = GitHubUtils.rawUrlToGitLocation( datasetLocation );
 		gitLocation.path += "misc/bookmarks";
 
 		BookmarkGithubWriter bookmarkWriter = new BookmarkGithubWriter(gitLocation, this);
-		bookmarkWriter.writeBookmarkToGithub(bookmark);
+		bookmarkWriter.writeBookmarksToGithub(bookmarks);
 		// check if file exists
 		// if it does, read it, append, then overwrite
 		// else just write
+	}
+
+	private Gson createBookmarkWriterGson (boolean usePrettyPrinting) {
+		// exclude the name field from json
+		ExclusionStrategy strategy = new ExclusionStrategy() {
+			@Override
+			public boolean shouldSkipField(FieldAttributes f) {
+				if (f.getName().equals("name")) {
+					return true;
+				}
+				return false;
+			}
+
+			@Override
+			public boolean shouldSkipClass(Class<?> clazz) {
+				return false;
+			}
+		};
+
+		Gson gson;
+		if (usePrettyPrinting) {
+			gson = new GsonBuilder().setPrettyPrinting().addSerializationExclusionStrategy(strategy).create();
+		} else {
+			gson = new GsonBuilder().addSerializationExclusionStrategy(strategy).create();
+		}
+		return gson;
 	}
 
 	public void saveBookmarksToFile(ArrayList<Bookmark> bookmarks, String fileLocation) throws IOException {
@@ -107,7 +133,7 @@ public class BookmarksJsonParser {
 		if (fileLocation == FileUtils.FILE_SYSTEM) {
 			jFileChooser = new JFileChooser();
 		} else {
-			String bookmarksDirectory = FileAndUrlUtils.combinePath(datasetLocation + "/misc/bookmarks");
+			String bookmarksDirectory = FileAndUrlUtils.combinePath(datasetLocation, "misc", "bookmarks");
 			jFileChooser = new JFileChooser(bookmarksDirectory);
 		}
 		jFileChooser.setFileFilter(new FileNameExtensionFilter("json", "json"));
@@ -134,23 +160,7 @@ public class BookmarksJsonParser {
 
 			if (jsonFile != null) {
 
-				// exclude the name field from json
-				ExclusionStrategy strategy = new ExclusionStrategy() {
-					@Override
-					public boolean shouldSkipField(FieldAttributes f) {
-						if (f.getName().equals("name")) {
-							return true;
-						}
-						return false;
-					}
-
-					@Override
-					public boolean shouldSkipClass(Class<?> clazz) {
-						return false;
-					}
-				};
-
-				Gson gson = new GsonBuilder().addSerializationExclusionStrategy(strategy).create();
+				Gson gson = createBookmarkWriterGson(false);
 				Type type = new TypeToken<Map<String, Bookmark>>() {
 				}.getType();
 
@@ -188,13 +198,13 @@ public class BookmarksJsonParser {
 	}
 
 	public String writeBookmarksToBase64String (Map<String, Bookmark> bookmarks) {
-		// EXCLUSIONG STRATEGY!!
-		Gson gson = new GsonBuilder().create();
+		Gson gson = createBookmarkWriterGson(true);
 		Type type = new TypeToken<Map<String, Bookmark>>() {
 		}.getType();
-		String jstring = gson.toJson(bookmarks, type);
-		byte[] jsonBytes = jstring.getBytes(StandardCharsets.UTF_8);
+		String jsonString = gson.toJson(bookmarks, type);
+		byte[] jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
 		byte[] encodedBytes = Base64.getEncoder().encode(jsonBytes);
 		return new String(encodedBytes);
+		// TODO - add new line at end?
 	}
 }

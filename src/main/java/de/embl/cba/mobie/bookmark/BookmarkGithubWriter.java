@@ -29,10 +29,6 @@ public class BookmarkGithubWriter {
         this.bookmarksJsonParser = bookmarksJsonParser;
     }
 
-    //repository
-    //branch
-    //dataset
-
     private ArrayList< String > getFilePaths()
     {
         final GitHubContentGetter contentGetter =
@@ -63,7 +59,7 @@ public class BookmarkGithubWriter {
         ArrayList<String> bookmarkFilesOnGithub = getFilePaths();
         ArrayList<String> bookmarkFileNames = getBookmarkFileNamesFromPaths(bookmarkFilesOnGithub);
         for (int i=0; i<bookmarkFileNames.size(); i++) {
-            if (bookmarkFileNames.get(i) == bookmarkFileName) {
+            if (bookmarkFileNames.get(i).equals(bookmarkFileName)) {
                 return bookmarkFilesOnGithub.get(i);
             }
         }
@@ -71,55 +67,42 @@ public class BookmarkGithubWriter {
         return null;
     }
 
-    private String constructBookmarkPath () {
-        // FileAndUrlUtils.combinePath(bookmarkGitLocation.repoUrl + "/misc/bookmarks");
-        return "no";
-    }
-
-    private Map<String, Bookmark> appendBookmarkToExistingFile (String githubFilePath, Bookmark bookmark, String bookmarkName) {
-        ArrayList<String> bookmarkPaths = new ArrayList<>();
-        bookmarkPaths.add(githubFilePath);
-        Map<String, Bookmark> bookmarksInFile = new HashMap<>();
-        try {
-            Map<String, Bookmark> existingBookmarks = bookmarksJsonParser.parseBookmarks(bookmarkPaths);
-            bookmarksInFile.putAll(existingBookmarks);
-            bookmarksInFile.put(bookmarkName, bookmark);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return bookmarksInFile;
-    }
-
-    public void writeBookmarkToGithub(Bookmark bookmark) {
+    public void writeBookmarksToGithub(ArrayList<Bookmark> bookmarks) {
         if (showDialog()) {
-            // String matchingBookmarkFilePathFromGithub = getMatchingBookmarkFilePath();
-            Bookmark bookmarkToWrite = bookmark;
+            try {
+                HashMap<String, Bookmark> namesToBookmarks = new HashMap<>();
+                for (Bookmark bookmark : bookmarks) {
+                    namesToBookmarks.put(bookmark.name, bookmark);
+                }
 
-            Map<String, Bookmark> bookmarksInFile = new HashMap<>();
-            bookmarksInFile.put(bookmark.name, bookmark);
+                Map<String, Bookmark> bookmarksInFile = new HashMap<>();
+                ArrayList<String> matchingFilePathsFromGithub = new ArrayList<>();
+                String matchingFilePath = getMatchingBookmarkFilePath();
+                if (matchingFilePath != null) {
+                    matchingFilePathsFromGithub.add(matchingFilePath);
+                    Map<String, Bookmark> existingBookmarks = bookmarksJsonParser.parseBookmarks(matchingFilePathsFromGithub);
+                    bookmarksInFile.putAll(existingBookmarks);
+                }
+                bookmarksInFile.putAll(namesToBookmarks);
 
-            final String bookmarkJsonBase64String = bookmarksJsonParser.writeBookmarksToBase64String(bookmarksInFile);
-            final GitHubFileCommitter fileCommitter = new GitHubFileCommitter(
-                    bookmarkGitLocation.repoUrl, accessToken, bookmarkGitLocation.path + bookmarkFileName + ".json"
-            );
-            fileCommitter.commitStringAsFile("test bookmark file", bookmarkJsonBase64String);
+                final String bookmarkJsonBase64String = bookmarksJsonParser.writeBookmarksToBase64String(bookmarksInFile);
+                final GitHubFileCommitter fileCommitter = new GitHubFileCommitter(
+                        bookmarkGitLocation.repoUrl, accessToken, bookmarkGitLocation.path + "/" + bookmarkFileName + ".json"
+                );
+                fileCommitter.commitStringAsFile("Add new bookmarks from UI", bookmarkJsonBase64String);
 
-            // if (matchingBookmarkFilePathFromGithub != null){
-            //
-            // } else {
-            //     //write
-            // }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private boolean showDialog()
     {
         final GenericDialog gd = new GenericDialog( "Save to github" );
-        final int columns = 80;
 
-        gd.addStringField( "GitHub access token", Prefs.get( ACCESS_TOKEN, "1234567890" ), columns );
-        gd.addStringField( "Bookmark file name", "", columns );
+        gd.addStringField( "GitHub access token", Prefs.get( ACCESS_TOKEN, "1234567890" ));
+        gd.addStringField( "Bookmark file name", "");
         gd.showDialog();
 
         if ( gd.wasCanceled() ) return false;

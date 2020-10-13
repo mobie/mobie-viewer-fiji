@@ -108,7 +108,7 @@ public class BookmarksManager
 
 		if (bookmarkNameAndLocation.get(1) == FileUtils.PROJECT &&
 				bookmarksJsonParser.getDatasetLocation().contains( "raw.githubusercontent" )) {
-			bookmarksJsonParser.saveBookmarkToGithub(currentBookmark);
+			bookmarksJsonParser.saveBookmarksToGithub(bookmarks);
 		} else {
 			try {
 				bookmarksJsonParser.saveBookmarksToFile(bookmarks, bookmarkNameAndLocation.get(1));
