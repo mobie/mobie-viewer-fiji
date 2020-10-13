@@ -126,11 +126,6 @@ public class SourcesPanel extends JPanel
 
     private void setSourceColor( SourceAndMetadata< ? > sam, Color color, JPanel panel )
     {
-        // TODO - save this another way? At the moment, this means that adding an image from the GUI will
-        // result in this metadata being the default, and colour changes persisting. If you load from a bookmark,
-        // this metadata will not be the default, and these changes won't persist.
-        sam.metadata().color = color.toString();
-
         sam.metadata().bdvStackSource.setColor( ColorUtils.getARGBType( color ) );
 
         if ( sam.metadata().content != null )

@@ -140,8 +140,8 @@ public class BookmarksManager
 		MutableImageProperties sourceImageProperties = new MutableImageProperties();
 		Metadata sourceMetadata = sourcesPanel.getSourceAndCurrentMetadata(sourceName).metadata();
 
-		//TODO - read colour directly? Currently colouring doesn't work properly
-		sourceImageProperties.color = sourceMetadata.color;
+		ARGBType color = sourceMetadata.bdvStackSource.getConverterSetups().get(0).getColor();
+		sourceImageProperties.color = color.toString();
 
 		if (sourcesPanel.getSourceNameToLabelViews().containsKey(sourceName)) {
 			TableRowsTableView<TableRowImageSegment> sourceTableRowsTableView = sourceMetadata.views.getTableRowsTableView();
