@@ -73,11 +73,6 @@ public class SourcesPanel extends JPanel
 
     public static void updateSource3dView( SourceAndMetadata< ? > sam, SourcesPanel sourcesPanel, boolean showImageIn3d )
     {
-        // TODO - save this another way? At the moment, this means that adding an image from the GUI will
-        // result in this metadata being the default, and showImageIn3d persisting. If you load from a bookmark,
-        // this metadata will not be the default, and these changes won't persist.
-        sam.metadata().showImageIn3d = showImageIn3d;
-
         if ( sam.metadata().type.equals( Metadata.Type.Segmentation ) ) return;
 
         if ( showImageIn3d )

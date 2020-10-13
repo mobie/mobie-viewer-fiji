@@ -175,8 +175,15 @@ public class BookmarksManager
 			sourceImageProperties.showSelectedSegmentsIn3d = sourceMetadata.views.getSegments3dView().getShowSelectedSegmentsIn3D();
 		}
 
-		// TODO -read directly?
-		sourceImageProperties.showImageIn3d = sourceMetadata.showImageIn3d;
+		if (sourceMetadata.content != null) {
+			if (sourceMetadata.content.isVisible()) {
+				sourceImageProperties.showImageIn3d = true;
+			} else {
+				sourceImageProperties.showImageIn3d = false;
+			}
+		} else {
+			sourceImageProperties.showImageIn3d = false;
+		}
 
 		double[] currentContrastLimits = new double[2];
 		currentContrastLimits[0] = getConverterSetups( sourceMetadata.bdvStackSource ).get(0).getDisplayRangeMin();
