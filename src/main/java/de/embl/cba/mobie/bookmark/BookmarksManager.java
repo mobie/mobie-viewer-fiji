@@ -8,6 +8,7 @@ import de.embl.cba.mobie.image.MutableImageProperties;
 import de.embl.cba.mobie.ui.viewer.SourcesPanel;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
+import de.embl.cba.tables.image.SourceAndMetadata;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -56,18 +57,22 @@ public class BookmarksManager
 			final String sourceName = entry.getKey();
 			if ( ! sourcesPanel.getVisibleSourceNames().contains( sourceName ) )
 			{
-				final Metadata metadata = getAndUpdateSourceMetadata( entry, sourceName );
-				sourcesPanel.addSourceToPanelAndViewer( metadata.displayName );
+				final SourceAndMetadata< ? > samDefault = sourcesPanel.getSourceAndDefaultMetadata( sourceName );
+				final SourceAndMetadata< ? > samBookmark = new SourceAndMetadata(samDefault.source(), samDefault.metadata().copy());
+				updateSourceMetadata(entry, samBookmark.metadata());
+
+				// final Metadata metadata = getAndUpdateSourceMetadata( entry, sourceName );
+				// new SourceAndMetadata<>()
+				sourcesPanel.addSourceToPanelAndViewer( samBookmark );
 			}
 		}
 	}
 
-	public Metadata getAndUpdateSourceMetadata( Map.Entry< String, MutableImageProperties > entry, String sourceName )
+	public void updateSourceMetadata( Map.Entry< String, MutableImageProperties > entry, Metadata sourceMetadata )
 	{
-		final Metadata metadata = sourcesPanel.getImageSourcesModel().sources().get( sourceName ).metadata();
+		// final Metadata metadata = sourcesPanel.getImageSourcesModel().sources().get( sourceName ).metadata();
 		final ImagePropertiesToMetadataAdapter adapter = new ImagePropertiesToMetadataAdapter();
-		adapter.setMetadata( metadata, entry.getValue() );
-		return metadata;
+		adapter.setMetadata( sourceMetadata, entry.getValue() );
 	}
 
 	public void adaptViewerTransform( Bookmark bookmark )
@@ -108,7 +113,7 @@ public class BookmarksManager
 		Set<String> visibleSourceNames = sourcesPanel.getVisibleSourceNames();
 
 		for (String sourceName : visibleSourceNames) {
-			MutableImageProperties sourceImageProperties = sourcesPanel.getCurrentMutableImageProperties(sourceName);
+			MutableImageProperties sourceImageProperties = sourcesPanel.getCurrentImageProperties(sourceName);
 			layers.put(sourceName, sourceImageProperties);
 		}
 
