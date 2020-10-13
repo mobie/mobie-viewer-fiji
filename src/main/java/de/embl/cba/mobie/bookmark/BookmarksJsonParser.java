@@ -8,6 +8,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import de.embl.cba.tables.FileAndUrlUtils;
+import de.embl.cba.tables.FileUtils;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -22,6 +23,10 @@ public class BookmarksJsonParser {
 
 	public BookmarksJsonParser(String datasetLocation) {
 		this.datasetLocation = datasetLocation;
+	}
+
+	public String getDatasetLocation() {
+		return datasetLocation;
 	}
 
 	public Map<String, Bookmark> getDefaultBookmarks() {
@@ -77,14 +82,20 @@ public class BookmarksJsonParser {
 		return nameToBookmark;
 	}
 
-	public void saveBookmarks(ArrayList<Bookmark> bookmarks) throws IOException {
+	public void saveBookmarks(ArrayList<Bookmark> bookmarks, String fileLocation) throws IOException {
 		HashMap<String, Bookmark> namesToBookmarks = new HashMap<>();
 		for (Bookmark bookmark : bookmarks) {
 			namesToBookmarks.put(bookmark.name, bookmark);
 		}
 
 		String jsonPath = null;
-		final JFileChooser jFileChooser = new JFileChooser();
+		final JFileChooser jFileChooser;
+		if (fileLocation == FileUtils.FILE_SYSTEM) {
+			jFileChooser = new JFileChooser();
+		} else {
+			String bookmarksDirectory = FileAndUrlUtils.combinePath(datasetLocation + "/misc/bookmarks");
+			jFileChooser = new JFileChooser(bookmarksDirectory);
+		}
 		jFileChooser.setFileFilter(new FileNameExtensionFilter("json", "json"));
 		if (jFileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 			jsonPath = jFileChooser.getSelectedFile().getAbsolutePath();

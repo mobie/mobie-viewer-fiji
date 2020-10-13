@@ -8,19 +8,23 @@ import de.embl.cba.mobie.image.MutableImageProperties;
 import de.embl.cba.mobie.ui.viewer.SourcesPanel;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
+import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.Segments3dView;
 import de.embl.cba.tables.view.TableRowsTableView;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
+import ij.gui.GenericDialog;
 import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.net.URI;
 import java.util.*;
 
 import static de.embl.cba.mobie.ui.viewer.SourcesDisplayUI.getConverterSetups;
+import static de.embl.cba.tables.github.GitHubUtils.selectGitHubPathFromDirectory;
 
 public class BookmarksManager
 {
@@ -102,15 +106,40 @@ public class BookmarksManager
 	}
 
 	public void saveCurrentSettingsAsBookmark () {
-		// TODO - make bookmark name user definable
-		Bookmark currentBookmark = getBookmarkFromCurrentSettings("test");
-		ArrayList<Bookmark> bookmarks = new ArrayList<>();
-		bookmarks.add(currentBookmark);
-		try {
-			bookmarksJsonParser.saveBookmarks(bookmarks);
-		} catch (IOException e) {
-			e.printStackTrace();
+		ArrayList<String> bookmarkNameAndLocation = bookmarkSaveDialog();
+		Bookmark currentBookmark = getBookmarkFromCurrentSettings(bookmarkNameAndLocation.get(0));
+
+		if (bookmarkNameAndLocation.get(1) == FileUtils.PROJECT &&
+				bookmarksJsonParser.getDatasetLocation().contains( "raw.githubusercontent" )) {
+
+		} else {
+			ArrayList<Bookmark> bookmarks = new ArrayList<>();
+			bookmarks.add(currentBookmark);
+			try {
+				bookmarksJsonParser.saveBookmarks(bookmarks, bookmarkNameAndLocation.get(1));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
+	}
+
+	private ArrayList<String> bookmarkSaveDialog () {
+		String fileLocation = null;
+		String bookmarkName = null;
+		final GenericDialog gd = new GenericDialog( "Choose save location" );
+		gd.addStringField("Bookmark Name", "name");
+		gd.addChoice( "Save to", new String[]{FileUtils.PROJECT, FileUtils.FILE_SYSTEM }, FileUtils.PROJECT );
+		gd.showDialog();
+		if ( gd.wasCanceled() ) return null;
+		bookmarkName = gd.getNextString();
+		fileLocation = gd.getNextChoice();
+		System.out.println(bookmarkName);
+		System.out.println(fileLocation);
+
+		ArrayList<String> bookmarkNameandLocation = new ArrayList<>();
+		bookmarkNameandLocation.add(bookmarkName);
+		bookmarkNameandLocation.add(fileLocation);
+		return bookmarkNameandLocation;
 	}
 
 	public Bookmark getBookmarkFromCurrentSettings( String bookmarkName) {
