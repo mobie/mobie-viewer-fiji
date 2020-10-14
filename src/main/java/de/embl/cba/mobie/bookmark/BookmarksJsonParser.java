@@ -91,9 +91,6 @@ public class BookmarksJsonParser {
 
 		BookmarkGithubWriter bookmarkWriter = new BookmarkGithubWriter(gitLocation, this);
 		bookmarkWriter.writeBookmarksToGithub(bookmarks);
-		// check if file exists
-		// if it does, read it, append, then overwrite
-		// else just write
 	}
 
 	private Gson createBookmarkWriterGson (boolean usePrettyPrinting) {
@@ -149,11 +146,7 @@ public class BookmarksJsonParser {
 
 			File jsonFile = new File(jsonPath);
 			if (jsonFile.exists()) {
-				int result = JOptionPane.showConfirmDialog(null,
-						"This Json file already exists - append bookmark to this file?", "Append to file?",
-						JOptionPane.YES_NO_OPTION,
-						JOptionPane.QUESTION_MESSAGE);
-				if (result != JOptionPane.YES_OPTION) {
+				if (!appendToFileDialog()) {
 					jsonFile = null;
 				}
 			}
@@ -168,6 +161,18 @@ public class BookmarksJsonParser {
 			}
 		}
 
+	}
+
+	public boolean appendToFileDialog () {
+		int result = JOptionPane.showConfirmDialog(null,
+				"This Json file already exists - append bookmark to this file?", "Append to file?",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE);
+		if (result != JOptionPane.YES_OPTION) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	private Map< String, Bookmark > readBookmarksFromFile( Gson gson, Type type, String bookmarksLocation ) throws IOException
@@ -203,8 +208,7 @@ public class BookmarksJsonParser {
 		}.getType();
 		String jsonString = gson.toJson(bookmarks, type);
 		byte[] jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
-		byte[] encodedBytes = Base64.getEncoder().encode(jsonBytes);
-		return new String(encodedBytes);
+		return Base64.getEncoder().encodeToString(jsonBytes);
 		// TODO - add new line at end?
 	}
 }
