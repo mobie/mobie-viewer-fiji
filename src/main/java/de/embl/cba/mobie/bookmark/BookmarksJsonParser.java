@@ -48,8 +48,13 @@ public class BookmarksJsonParser {
 		try {
 			ArrayList<String> filePaths = new ArrayList<>();
 			String bookmarksDirectory = FileAndUrlUtils.combinePath(datasetLocation, "misc", "bookmarks");
-			filePaths.add( selectPathFromProjectOrFileSystem( bookmarksDirectory, "Bookmark" ) );
-			return parseBookmarks(filePaths);
+			String selectedFilePath = selectPathFromProjectOrFileSystem( bookmarksDirectory, "Bookmark" );
+			if (selectedFilePath != null) {
+				filePaths.add(selectedFilePath);
+				return parseBookmarks(filePaths);
+			} else {
+				return null;
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;

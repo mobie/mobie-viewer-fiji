@@ -93,10 +93,12 @@ public class BookmarksManager
 
 	public void loadAdditionalBookmarks() {
 			Map<String, Bookmark> additionalBookmarks = bookmarksJsonParser.selectAndLoadBookmarks();
-			nameToBookmark.putAll(additionalBookmarks);
-			bookmarkDropDown.removeAllItems();
-			for (String bookmarkName : nameToBookmark.keySet()) {
-				bookmarkDropDown.addItem(bookmarkName);
+			if (additionalBookmarks != null) {
+				nameToBookmark.putAll(additionalBookmarks);
+				bookmarkDropDown.removeAllItems();
+				for (String bookmarkName : nameToBookmark.keySet()) {
+					bookmarkDropDown.addItem(bookmarkName);
+				}
 			}
 	}
 
