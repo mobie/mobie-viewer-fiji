@@ -340,9 +340,6 @@ public class SourcesPanel extends JPanel
             Logger.log( "Adding source: " + sourceName + "..." );
             sourceNameToSourceAndMetadata.put( sourceName, sam );
 
-            MutableImageProperties sourceImageProperties = new MutableImageProperties();
-            new ImagePropertiesToMetadataAdapter().setImageProperties(sam.metadata(), sourceImageProperties);
-
             addSourceToViewer( sam );
             SwingUtilities.invokeLater( () -> addSourceToPanel( sam ) );
         }
