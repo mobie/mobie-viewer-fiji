@@ -106,7 +106,7 @@ public class BookmarksManager
 		ArrayList<Bookmark> bookmarks = new ArrayList<>();
 		bookmarks.add(currentBookmark);
 
-		if (bookmarkNameAndLocation.get(1) == FileUtils.PROJECT &&
+		if (bookmarkNameAndLocation.get(1).equals(FileUtils.PROJECT) &&
 				bookmarksJsonParser.getDatasetLocation().contains( "raw.githubusercontent" )) {
 			bookmarksJsonParser.saveBookmarksToGithub(bookmarks);
 		} else {
@@ -128,8 +128,6 @@ public class BookmarksManager
 		if ( gd.wasCanceled() ) return null;
 		bookmarkName = gd.getNextString();
 		fileLocation = gd.getNextChoice();
-		System.out.println(bookmarkName);
-		System.out.println(fileLocation);
 
 		ArrayList<String> bookmarkNameandLocation = new ArrayList<>();
 		bookmarkNameandLocation.add(bookmarkName);
@@ -150,7 +148,6 @@ public class BookmarksManager
 		Bookmark currentBookmark = new Bookmark();
 		currentBookmark.name = bookmarkName;
 		currentBookmark.layers = layers;
-		// TODO - add to bdv utils
 		double[] currentPosition = new double[3];
 		BdvUtils.getGlobalMouseCoordinates(bdv).localize(currentPosition);
 		currentBookmark.position = currentPosition;
