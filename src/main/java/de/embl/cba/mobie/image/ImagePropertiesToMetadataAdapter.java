@@ -12,7 +12,7 @@ import static de.embl.cba.mobie.utils.Utils.createRandom;
 
 public class ImagePropertiesToMetadataAdapter
 {
-	public void setMetadata( Metadata metadata, MutableImageProperties imageProperties )
+	public void setMetadataFromMutableImageProperties(Metadata metadata, MutableImageProperties imageProperties )
 	{
 		metadata.contrastLimits = imageProperties.contrastLimits != null
 				? imageProperties.contrastLimits : metadata.contrastLimits;
@@ -35,7 +35,7 @@ public class ImagePropertiesToMetadataAdapter
 		metadata.additionalSegmentTableNames = imageProperties.tables;
 	}
 
-	public void setImageProperties( Metadata metadata, MutableImageProperties imageProperties) {
+	public void setMutableImagePropertiesFromMetadata(MutableImageProperties imageProperties, Metadata metadata) {
 		imageProperties.contrastLimits = metadata.contrastLimits != null
 				? metadata.contrastLimits : imageProperties.contrastLimits;
 		imageProperties.color = metadata.color != null

@@ -98,7 +98,7 @@ public class BookmarksJsonParser {
 		bookmarkWriter.writeBookmarksToGithub(bookmarks);
 	}
 
-	private Gson createBookmarkWriterGson (boolean usePrettyPrinting) {
+	private Gson createGsonBuilder(boolean usePrettyPrinting) {
 		// exclude the name field from json
 		ExclusionStrategy strategy = new ExclusionStrategy() {
 			@Override
@@ -158,7 +158,7 @@ public class BookmarksJsonParser {
 
 			if (jsonFile != null) {
 
-				Gson gson = createBookmarkWriterGson(false);
+				Gson gson = createGsonBuilder(false);
 				Type type = new TypeToken<Map<String, Bookmark>>() {
 				}.getType();
 
@@ -208,7 +208,7 @@ public class BookmarksJsonParser {
 	}
 
 	public String writeBookmarksToBase64String (Map<String, Bookmark> bookmarks) {
-		Gson gson = createBookmarkWriterGson(true);
+		Gson gson = createGsonBuilder(true);
 		Type type = new TypeToken<Map<String, Bookmark>>() {
 		}.getType();
 		String jsonString = gson.toJson(bookmarks, type);

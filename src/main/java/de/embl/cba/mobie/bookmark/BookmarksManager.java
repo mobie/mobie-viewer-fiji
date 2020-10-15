@@ -19,7 +19,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
 
-import static de.embl.cba.mobie.ui.viewer.SourcesDisplayUI.getConverterSetups;
+import static de.embl.cba.bdv.utils.BdvUtils.getConverterSetups;
 
 public class BookmarksManager
 {
@@ -76,7 +76,7 @@ public class BookmarksManager
 	public void updateSourceMetadata( Map.Entry< String, MutableImageProperties > entry, Metadata sourceMetadata )
 	{
 		final ImagePropertiesToMetadataAdapter adapter = new ImagePropertiesToMetadataAdapter();
-		adapter.setMetadata( sourceMetadata, entry.getValue() );
+		adapter.setMetadataFromMutableImageProperties( sourceMetadata, entry.getValue() );
 	}
 
 	public void adaptViewerTransform( Bookmark bookmark )
@@ -103,24 +103,29 @@ public class BookmarksManager
 	}
 
 	public void saveCurrentSettingsAsBookmark () {
-		ArrayList<String> bookmarkNameAndLocation = bookmarkSaveDialog();
-		Bookmark currentBookmark = getBookmarkFromCurrentSettings(bookmarkNameAndLocation.get(0));
+		NameAndLocation bookmarkNameAndLocation = bookmarkSaveDialog();
+		Bookmark currentBookmark = createBookmarkFromCurrentSettings(bookmarkNameAndLocation.name);
 		ArrayList<Bookmark> bookmarks = new ArrayList<>();
 		bookmarks.add(currentBookmark);
 
-		if (bookmarkNameAndLocation.get(1).equals(FileUtils.PROJECT) &&
+		if (bookmarkNameAndLocation.location.equals(FileUtils.PROJECT) &&
 				bookmarksJsonParser.getDatasetLocation().contains( "raw.githubusercontent" )) {
 			bookmarksJsonParser.saveBookmarksToGithub(bookmarks);
 		} else {
 			try {
-				bookmarksJsonParser.saveBookmarksToFile(bookmarks, bookmarkNameAndLocation.get(1));
+				bookmarksJsonParser.saveBookmarksToFile(bookmarks, bookmarkNameAndLocation.location);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 	}
 
-	private ArrayList<String> bookmarkSaveDialog () {
+	class NameAndLocation {
+		String name;
+		String location;
+	}
+
+	private NameAndLocation bookmarkSaveDialog () {
 		String fileLocation = null;
 		String bookmarkName = null;
 		final GenericDialog gd = new GenericDialog( "Choose save location" );
@@ -131,18 +136,19 @@ public class BookmarksManager
 		bookmarkName = gd.getNextString();
 		fileLocation = gd.getNextChoice();
 
-		ArrayList<String> bookmarkNameandLocation = new ArrayList<>();
-		bookmarkNameandLocation.add(bookmarkName);
-		bookmarkNameandLocation.add(fileLocation);
-		return bookmarkNameandLocation;
+		NameAndLocation bookmarkNameAndLocation = new NameAndLocation();
+		bookmarkNameAndLocation.name = bookmarkName;
+		bookmarkNameAndLocation.location = fileLocation;
+
+		return bookmarkNameAndLocation;
 	}
 
-	public Bookmark getBookmarkFromCurrentSettings( String bookmarkName) {
+	public Bookmark createBookmarkFromCurrentSettings(String bookmarkName) {
 		HashMap< String, MutableImageProperties > layers = new HashMap<>();
 		Set<String> visibleSourceNames = sourcesPanel.getVisibleSourceNames();
 
 		for (String sourceName : visibleSourceNames) {
-			MutableImageProperties sourceImageProperties = getCurrentImageProperties(sourceName);
+			MutableImageProperties sourceImageProperties = fetchMutableSourceProperties(sourceName);
 			layers.put(sourceName, sourceImageProperties);
 		}
 
@@ -159,7 +165,7 @@ public class BookmarksManager
 		return currentBookmark;
 	}
 
-	private MutableImageProperties getCurrentImageProperties(String sourceName) {
+	private MutableImageProperties fetchMutableSourceProperties(String sourceName) {
 		MutableImageProperties sourceImageProperties = new MutableImageProperties();
 		Metadata sourceMetadata = sourcesPanel.getSourceAndCurrentMetadata(sourceName).metadata();
 

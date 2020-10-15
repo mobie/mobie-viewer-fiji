@@ -8,8 +8,6 @@ import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.Constants;
-import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
-import de.embl.cba.mobie.image.MutableImageProperties;
 import de.embl.cba.mobie.image.SourcesModel;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils;
@@ -41,7 +39,6 @@ import java.net.URI;
 import java.util.*;
 import java.util.List;
 
-import static de.embl.cba.mobie.ui.viewer.SourcesDisplayUI.getConverterSetups;
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
 import static de.embl.cba.mobie.utils.Utils.createRandom;
 
@@ -49,7 +46,7 @@ public class SourcesPanel extends JPanel
 {
     private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelViews;
     private Map< String, JPanel > sourceNameToPanel;
-    private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndMetadata;
+    private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndCurrentMetadata;
     private BdvHandle bdv;
     private final SourcesModel imageSourcesModel;
     private Image3DUniverse universe;
@@ -63,7 +60,7 @@ public class SourcesPanel extends JPanel
         this.imageSourcesModel = imageSourcesModel;
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelViews = new LinkedHashMap<>();
-        sourceNameToSourceAndMetadata = new LinkedHashMap<>();
+        sourceNameToSourceAndCurrentMetadata = new LinkedHashMap<>();
 
         voxelSpacing3DView = 0.05;
         meshSmoothingIterations = 5;
@@ -145,7 +142,7 @@ public class SourcesPanel extends JPanel
             return;
         }
 
-        final SourceAndMetadata< ? > sam = sourceNameToSourceAndMetadata.get(sourceName);
+        final SourceAndMetadata< ? > sam = sourceNameToSourceAndCurrentMetadata.get(sourceName);
         final JPanel jPanel = sourceNameToPanel.get( sourceName );
 
         setSourceColor( sam, color, jPanel );
@@ -302,7 +299,7 @@ public class SourcesPanel extends JPanel
 
     // necessary as loading from bookmark creates a new sourceAndMetadata that is separate from the default
     public SourceAndMetadata< ? > getSourceAndCurrentMetadata(String sourceName) {
-        return sourceNameToSourceAndMetadata.get(sourceName);
+        return sourceNameToSourceAndCurrentMetadata.get(sourceName);
     }
 
     public ArrayList< String > getSourceNames()
@@ -338,7 +335,7 @@ public class SourcesPanel extends JPanel
         else
         {
             Logger.log( "Adding source: " + sourceName + "..." );
-            sourceNameToSourceAndMetadata.put( sourceName, sam );
+            sourceNameToSourceAndCurrentMetadata.put( sourceName, sam );
 
             addSourceToViewer( sam );
             SwingUtilities.invokeLater( () -> addSourceToPanel( sam ) );
@@ -708,7 +705,7 @@ public class SourcesPanel extends JPanel
 
     public void removeSourceFromPanelAndViewers( String sourceName )
     {
-        removeSourceFromPanelAndViewers( sourceNameToSourceAndMetadata.get( sourceName ) );
+        removeSourceFromPanelAndViewers( sourceNameToSourceAndCurrentMetadata.get( sourceName ) );
     }
 
     private void removeSourceFromPanelAndViewers( SourceAndMetadata< ? > sam )
@@ -718,7 +715,7 @@ public class SourcesPanel extends JPanel
 
         removeSourceFromPanel( sam.metadata().displayName );
 		removeLabelViews( sam.metadata().displayName );
-		sourceNameToSourceAndMetadata.remove( sam.metadata().displayName );
+		sourceNameToSourceAndCurrentMetadata.remove( sam.metadata().displayName );
 
 		BdvUtils.removeSource( bdv, ( BdvStackSource ) sam.metadata().bdvStackSource );
 

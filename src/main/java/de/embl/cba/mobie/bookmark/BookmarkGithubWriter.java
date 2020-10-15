@@ -55,16 +55,21 @@ public class BookmarkGithubWriter {
         return bookmarkNamesToPaths;
     }
 
-    private ArrayList<String> getMatchingBookmarkFilePathAndSha () {
+    class FilePathAndSha {
+        String filePath;
+        String sha;
+    }
+
+    private FilePathAndSha getMatchingBookmarkFilePathAndSha () {
         Map<String, String> bookmarkPathsToSha = getFilePathsToSha();
         Map<String, String> bookmarkFileNamesToPaths = getBookmarkFileNamesToPaths(bookmarkPathsToSha.keySet());
 
         for (String bookmarkFileNameGithub : bookmarkFileNamesToPaths.keySet()) {
             if (bookmarkFileNameGithub.equals(bookmarkFileName)) {
-                ArrayList<String> matchingFileAndSha = new ArrayList<>();
+                FilePathAndSha matchingFileAndSha = new FilePathAndSha();
                 String matchingPath = bookmarkFileNamesToPaths.get(bookmarkFileNameGithub);
-                matchingFileAndSha.add(matchingPath);
-                matchingFileAndSha.add(bookmarkPathsToSha.get(matchingPath));
+                matchingFileAndSha.filePath = matchingPath;
+                matchingFileAndSha.sha = bookmarkPathsToSha.get(matchingPath);
                 return matchingFileAndSha;
             }
         }
@@ -81,7 +86,7 @@ public class BookmarkGithubWriter {
                 }
 
                 // check for matching bookmark file on github
-                ArrayList<String> matchingFilePathAndSha = getMatchingBookmarkFilePathAndSha();
+                FilePathAndSha matchingFilePathAndSha = getMatchingBookmarkFilePathAndSha();
 
                 boolean appendToFile = false;
                 if (matchingFilePathAndSha != null) {
@@ -95,7 +100,7 @@ public class BookmarkGithubWriter {
 
                     if (appendToFile) {
                         ArrayList<String> matchingFilePathsFromGithub = new ArrayList<>();
-                        matchingFilePathsFromGithub.add(matchingFilePathAndSha.get(0));
+                        matchingFilePathsFromGithub.add(matchingFilePathAndSha.filePath);
                         Map<String, Bookmark> existingBookmarks = bookmarksJsonParser.parseBookmarks(matchingFilePathsFromGithub);
                         bookmarksInFile.putAll(existingBookmarks);
                     }
@@ -107,7 +112,7 @@ public class BookmarkGithubWriter {
                     if (appendToFile) {
                         fileCommitter = new GitHubFileCommitter(
                                 bookmarkGitLocation.repoUrl, accessToken, bookmarkGitLocation.branch,
-                                bookmarkGitLocation.path + "/" + bookmarkFileName + ".json", matchingFilePathAndSha.get(1));
+                                bookmarkGitLocation.path + "/" + bookmarkFileName + ".json", matchingFilePathAndSha.sha);
                     } else {
                         fileCommitter = new GitHubFileCommitter(
                                 bookmarkGitLocation.repoUrl, accessToken, bookmarkGitLocation.branch,

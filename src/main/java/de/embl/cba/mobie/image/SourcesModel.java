@@ -90,7 +90,7 @@ public class SourcesModel implements ImageSourcesModel
 			metadata.type = Enums.valueOf( Metadata.Type.class, properties.type );
 
 			final ImagePropertiesToMetadataAdapter adapter = new ImagePropertiesToMetadataAdapter();
-			adapter.setMetadata( metadata, properties );
+			adapter.setMetadataFromMutableImageProperties( metadata, properties );
 
 			final LazySpimSource lazySpimSource = new LazySpimSource( name, metadata.xmlLocation );
 			nameToSourceAndDefaultMetadata.put( name, new SourceAndMetadata( lazySpimSource, metadata ) );
