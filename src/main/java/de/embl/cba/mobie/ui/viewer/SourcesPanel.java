@@ -542,7 +542,7 @@ public class SourcesPanel extends JPanel
         for ( String tableName : sam.metadata().additionalSegmentTableNames )
         {
             String newTablePath = FileAndUrlUtils.combinePath( tablesLocation, tableName + ".csv" );
-            tableRowsTableView.addAdditionalTables(newTablePath);
+            tableRowsTableView.addAdditionalTable(newTablePath);
 
             if ( newTablePath.startsWith( "http" ) )
                 newTablePath = FileUtils.resolveTableURL( URI.create( newTablePath ) );
