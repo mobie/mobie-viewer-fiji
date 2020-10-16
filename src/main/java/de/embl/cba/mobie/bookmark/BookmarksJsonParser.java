@@ -1,112 +1,67 @@
 package de.embl.cba.mobie.bookmark;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import de.embl.cba.tables.github.GitHubUtils;
-import de.embl.cba.tables.github.GitLocation;
-import de.embl.cba.mobie.image.SourcesModel;
+import com.google.gson.stream.JsonWriter;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils;
-import de.embl.cba.tables.github.GitHubContentGetter;
 import de.embl.cba.tables.github.GitHubUtils;
 import de.embl.cba.tables.github.GitLocation;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.*;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
-public class BookmarksJsonParser
-{
+import static de.embl.cba.tables.FileUtils.selectPathFromProjectOrFileSystem;
+
+public class BookmarksJsonParser {
 	private final String datasetLocation;
 
-	public BookmarksJsonParser( String datasetLocation )
-	{
+	public BookmarksJsonParser(String datasetLocation) {
 		this.datasetLocation = datasetLocation;
 	}
 
-	public Map< String, Bookmark > getBookmarks()
-	{
-		try
-		{
-			return readBookmarks();
-		}
-		catch ( IOException e )
-		{
+	public String getDatasetLocation() {
+		return datasetLocation;
+	}
+
+	public Map<String, Bookmark> getDefaultBookmarks() {
+		try {
+			ArrayList<String> filePaths = new ArrayList<>();
+			String bookmarkPath = FileAndUrlUtils.combinePath(datasetLocation, "misc", "bookmarks", "default.json");
+			filePaths.add(bookmarkPath);
+			return parseBookmarks( filePaths );
+		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 
-	private ArrayList< String > fetchBookmarkPaths( String datasetLocation ) throws IOException
-	{
-		final ArrayList< String > bookmarkPaths = new ArrayList<>();
-
-		final String bookmarksFileLocation = FileAndUrlUtils.combinePath( datasetLocation + "/misc/bookmarks.json" );
-		FileAndUrlUtils.getInputStream( bookmarksFileLocation ); // to throw an error if not found
-		bookmarkPaths.add( bookmarksFileLocation );
-
-		return bookmarkPaths;
-	}
-
-	private ArrayList< String > addBookmarkFilesFromFolder( String datasetLocation )
-	{
-		final ArrayList< String > bookmarkPaths = new ArrayList<>();
-
-		final String bookmarksFolder = FileAndUrlUtils.combinePath( datasetLocation + "/misc/bookmarks" );
-		final List< File > fileList = FileUtils.getFileList( new File( bookmarksFolder ), ".*.json", false );
-
-		for ( File file : fileList )
-		{
-			bookmarkPaths.add( file.getAbsolutePath() );
+	public Map<String, Bookmark> selectAndLoadBookmarks() {
+		try {
+			ArrayList<String> filePaths = new ArrayList<>();
+			String bookmarksDirectory = FileAndUrlUtils.combinePath(datasetLocation, "misc", "bookmarks");
+			String selectedFilePath = selectPathFromProjectOrFileSystem( bookmarksDirectory, "Bookmark" );
+			if (selectedFilePath != null) {
+				filePaths.add(selectedFilePath);
+				return parseBookmarks(filePaths);
+			} else {
+				return null;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
 		}
-
-		return bookmarkPaths;
 	}
 
-	private ArrayList< String > addBookmarkFilesFromGithub( String datasetLocation )
-	{
-		final GitLocation gitLocation = GitHubUtils.rawUrlToGitLocation( datasetLocation );
-		gitLocation.path += "misc/bookmarks";
-
-		final ArrayList< String > bookmarkPaths = getFilePaths( gitLocation );
-
-		return bookmarkPaths;
-	}
-
-	public static ArrayList< String > getFilePaths( GitLocation gitLocation )
-	{
-		final GitHubContentGetter contentGetter = new GitHubContentGetter( gitLocation.repoUrl, gitLocation.path, gitLocation.branch, null );
-		final String json = contentGetter.getContent();
-
-		GsonBuilder builder = new GsonBuilder();
-
-		final ArrayList< String > bookmarkPaths = new ArrayList<>();
-		ArrayList< LinkedTreeMap > linkedTreeMaps = ( ArrayList< LinkedTreeMap >) builder.create().fromJson( json, Object.class );
-		for ( LinkedTreeMap linkedTreeMap : linkedTreeMaps )
-		{
-			final String downloadUrl = ( String ) linkedTreeMap.get( "download_url" );
-			bookmarkPaths.add( downloadUrl );
-		}
-		return bookmarkPaths;
-	}
-
-	private Map< String, Bookmark > readBookmarks() throws IOException
-	{
-		final ArrayList< String > bookmarkFiles = fetchBookmarkPaths();
-		final Map< String, Bookmark > nameToBookmark = parseBookmarks( bookmarkFiles );
-		return nameToBookmark;
-	}
-
-	private Map< String, Bookmark > parseBookmarks( ArrayList< String > bookmarksFiles ) throws IOException
+	public Map< String, Bookmark > parseBookmarks( ArrayList< String > bookmarksFiles ) throws IOException
 	{
 		Map< String, Bookmark > nameToBookmark = new TreeMap<>();
 
@@ -135,6 +90,96 @@ public class BookmarksJsonParser
 		return nameToBookmark;
 	}
 
+	public void saveBookmarksToGithub(ArrayList<Bookmark> bookmarks) {
+		final GitLocation gitLocation = GitHubUtils.rawUrlToGitLocation( datasetLocation );
+		gitLocation.path += "misc/bookmarks";
+
+		BookmarkGithubWriter bookmarkWriter = new BookmarkGithubWriter(gitLocation, this);
+		bookmarkWriter.writeBookmarksToGithub(bookmarks);
+	}
+
+	private Gson createGsonBuilder(boolean usePrettyPrinting) {
+		// exclude the name field from json
+		ExclusionStrategy strategy = new ExclusionStrategy() {
+			@Override
+			public boolean shouldSkipField(FieldAttributes f) {
+				if (f.getName().equals("name")) {
+					return true;
+				}
+				return false;
+			}
+
+			@Override
+			public boolean shouldSkipClass(Class<?> clazz) {
+				return false;
+			}
+		};
+
+		Gson gson;
+		if (usePrettyPrinting) {
+			gson = new GsonBuilder().setPrettyPrinting().addSerializationExclusionStrategy(strategy).create();
+		} else {
+			gson = new GsonBuilder().addSerializationExclusionStrategy(strategy).create();
+		}
+		return gson;
+	}
+
+	public void saveBookmarksToFile(ArrayList<Bookmark> bookmarks, String fileLocation) throws IOException {
+		HashMap<String, Bookmark> namesToBookmarks = new HashMap<>();
+		for (Bookmark bookmark : bookmarks) {
+			namesToBookmarks.put(bookmark.name, bookmark);
+		}
+
+		String jsonPath = null;
+		final JFileChooser jFileChooser;
+		if (fileLocation == FileUtils.FILE_SYSTEM) {
+			jFileChooser = new JFileChooser();
+		} else {
+			String bookmarksDirectory = FileAndUrlUtils.combinePath(datasetLocation, "misc", "bookmarks");
+			jFileChooser = new JFileChooser(bookmarksDirectory);
+		}
+		jFileChooser.setFileFilter(new FileNameExtensionFilter("json", "json"));
+		if (jFileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+			jsonPath = jFileChooser.getSelectedFile().getAbsolutePath();
+		}
+
+		if (jsonPath != null) {
+
+			if (!jsonPath.endsWith(".json")) {
+				jsonPath += ".json";
+			}
+
+			File jsonFile = new File(jsonPath);
+			if (jsonFile.exists()) {
+				if (!appendToFileDialog()) {
+					jsonFile = null;
+				}
+			}
+
+			if (jsonFile != null) {
+
+				Gson gson = createGsonBuilder(false);
+				Type type = new TypeToken<Map<String, Bookmark>>() {
+				}.getType();
+
+				writeBookmarksToFile(gson, type, jsonFile, namesToBookmarks);
+			}
+		}
+
+	}
+
+	public boolean appendToFileDialog () {
+		int result = JOptionPane.showConfirmDialog(null,
+				"This Json file already exists - append bookmark to this file?", "Append to file?",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE);
+		if (result != JOptionPane.YES_OPTION) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
 	private Map< String, Bookmark > readBookmarksFromFile( Gson gson, Type type, String bookmarksLocation ) throws IOException
 	{
 		InputStream inputStream = FileAndUrlUtils.getInputStream( bookmarksLocation );
@@ -145,23 +190,30 @@ public class BookmarksJsonParser
 		return stringBookmarkMap;
 	}
 
-	private ArrayList< String > fetchBookmarkPaths()
+	private void writeBookmarksToFile (Gson gson, Type type, File jsonFile, Map< String, Bookmark > bookmarks) throws IOException
 	{
-		try
-		{
-			return fetchBookmarkPaths( datasetLocation );
+		Map<String, Bookmark> bookmarksInFile = new HashMap<>();
+		// If json already exists, read existing bookmarks to append new ones
+		if (jsonFile.exists()) {
+			bookmarksInFile.putAll(readBookmarksFromFile(gson, type, jsonFile.getAbsolutePath()));
 		}
-		catch ( Exception e )
-		{
-			if ( datasetLocation.contains( "githubusercontent" ) )
-			{
-				return addBookmarkFilesFromGithub( datasetLocation );
-			}
-			else
-			{
-				return addBookmarkFilesFromFolder( datasetLocation );
-			}
-		}
+		bookmarksInFile.putAll(bookmarks);
+
+		OutputStream outputStream = new FileOutputStream( jsonFile );
+		final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8"));
+		writer.setIndent("	");
+		gson.toJson(bookmarksInFile, type, writer);
+		writer.close();
+		outputStream.close();
 	}
 
+	public String writeBookmarksToBase64String (Map<String, Bookmark> bookmarks) {
+		Gson gson = createGsonBuilder(true);
+		Type type = new TypeToken<Map<String, Bookmark>>() {
+		}.getType();
+		String jsonString = gson.toJson(bookmarks, type);
+		byte[] jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8);
+		return Base64.getEncoder().encodeToString(jsonBytes);
+		// TODO - add new line at end?
+	}
 }

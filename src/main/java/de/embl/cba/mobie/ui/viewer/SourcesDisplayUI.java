@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
+import static de.embl.cba.bdv.utils.BdvUtils.getConverterSetups;
+
 public class SourcesDisplayUI
 {
 	public static JCheckBox createBigDataViewerVisibilityCheckbox(
@@ -86,19 +88,6 @@ public class SourcesDisplayUI
 		} );
 
 		return button;
-	}
-
-
-	private static ArrayList< ConverterSetup > getConverterSetups(
-			BdvStackSource bdvStackSource )
-	{
-		bdvStackSource.setCurrent();
-		final int sourceIndex = bdvStackSource.getBdvHandle()
-				.getViewerPanel().getVisibilityAndGrouping().getCurrentSource();
-		final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
-		converterSetups.add( bdvStackSource.getBdvHandle()
-				.getSetupAssignments().getConverterSetups().get( sourceIndex ) );
-		return converterSetups;
 	}
 
 

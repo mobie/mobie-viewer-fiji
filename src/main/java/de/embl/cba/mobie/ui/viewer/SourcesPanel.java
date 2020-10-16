@@ -46,7 +46,7 @@ public class SourcesPanel extends JPanel
 {
     private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelViews;
     private Map< String, JPanel > sourceNameToPanel;
-    private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndMetadata;
+    private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndCurrentMetadata;
     private BdvHandle bdv;
     private final SourcesModel imageSourcesModel;
     private Image3DUniverse universe;
@@ -60,7 +60,7 @@ public class SourcesPanel extends JPanel
         this.imageSourcesModel = imageSourcesModel;
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelViews = new LinkedHashMap<>();
-        sourceNameToSourceAndMetadata = new LinkedHashMap<>();
+        sourceNameToSourceAndCurrentMetadata = new LinkedHashMap<>();
 
         voxelSpacing3DView = 0.05;
         meshSmoothingIterations = 5;
@@ -70,8 +70,6 @@ public class SourcesPanel extends JPanel
 
     public static void updateSource3dView( SourceAndMetadata< ? > sam, SourcesPanel sourcesPanel, boolean showImageIn3d )
     {
-        sam.metadata().showImageIn3d = showImageIn3d;
-
         if ( sam.metadata().type.equals( Metadata.Type.Segmentation ) ) return;
 
         if ( showImageIn3d )
@@ -120,8 +118,6 @@ public class SourcesPanel extends JPanel
 
     private void setSourceColor( SourceAndMetadata< ? > sam, Color color, JPanel panel )
     {
-        sam.metadata().color = color.toString();
-
         sam.metadata().bdvStackSource.setColor( ColorUtils.getARGBType( color ) );
 
         if ( sam.metadata().content != null )
@@ -146,7 +142,7 @@ public class SourcesPanel extends JPanel
             return;
         }
 
-        final SourceAndMetadata< ? > sam = getSourceAndMetadata( sourceName );
+        final SourceAndMetadata< ? > sam = sourceNameToSourceAndCurrentMetadata.get(sourceName);
         final JPanel jPanel = sourceNameToPanel.get( sourceName );
 
         setSourceColor( sam, color, jPanel );
@@ -291,15 +287,19 @@ public class SourcesPanel extends JPanel
         }
         else
         {
-            final SourceAndMetadata< ? > sam = getSourceAndMetadata( sourceName );
-            sourceNameToSourceAndMetadata.put( sam.metadata().displayName, sam );
+            final SourceAndMetadata< ? > sam = getSourceAndDefaultMetadata( sourceName );
             addSourceToPanelAndViewer( sam );
         }
     }
 
-    public SourceAndMetadata< ? > getSourceAndMetadata( String sourceName )
+    public SourceAndMetadata< ? > getSourceAndDefaultMetadata(String sourceName )
     {
         return imageSourcesModel.sources().get( sourceName );
+    }
+
+    // necessary as loading from bookmark creates a new sourceAndMetadata that is separate from the default
+    public SourceAndMetadata< ? > getSourceAndCurrentMetadata(String sourceName) {
+        return sourceNameToSourceAndCurrentMetadata.get(sourceName);
     }
 
     public ArrayList< String > getSourceNames()
@@ -323,7 +323,7 @@ public class SourcesPanel extends JPanel
         this.setAlignmentX( Component.LEFT_ALIGNMENT );
     }
 
-    private void addSourceToPanelAndViewer( SourceAndMetadata< ? > sam )
+    public void addSourceToPanelAndViewer( SourceAndMetadata< ? > sam )
     {
         final String sourceName = sam.metadata().displayName;
 
@@ -335,7 +335,8 @@ public class SourcesPanel extends JPanel
         else
         {
             Logger.log( "Adding source: " + sourceName + "..." );
-            sourceNameToSourceAndMetadata.put( sourceName, sam );
+            sourceNameToSourceAndCurrentMetadata.put( sourceName, sam );
+
             addSourceToViewer( sam );
             SwingUtilities.invokeLater( () -> addSourceToPanel( sam ) );
         }
@@ -541,6 +542,7 @@ public class SourcesPanel extends JPanel
         for ( String tableName : sam.metadata().additionalSegmentTableNames )
         {
             String newTablePath = FileAndUrlUtils.combinePath( tablesLocation, tableName + ".csv" );
+            tableRowsTableView.addAdditionalTable(newTablePath);
 
             if ( newTablePath.startsWith( "http" ) )
                 newTablePath = FileUtils.resolveTableURL( URI.create( newTablePath ) );
@@ -703,16 +705,17 @@ public class SourcesPanel extends JPanel
 
     public void removeSourceFromPanelAndViewers( String sourceName )
     {
-        removeSourceFromPanelAndViewers( sourceNameToSourceAndMetadata.get( sourceName ) );
+        removeSourceFromPanelAndViewers( sourceNameToSourceAndCurrentMetadata.get( sourceName ) );
     }
 
-    public void removeSourceFromPanelAndViewers( SourceAndMetadata< ? > sam )
+    private void removeSourceFromPanelAndViewers( SourceAndMetadata< ? > sam )
     {
         updateSegments3dView( sam.metadata(), this, false );
         updateSource3dView( sam, this, false );
 
         removeSourceFromPanel( sam.metadata().displayName );
 		removeLabelViews( sam.metadata().displayName );
+		sourceNameToSourceAndCurrentMetadata.remove( sam.metadata().displayName );
 
 		BdvUtils.removeSource( bdv, ( BdvStackSource ) sam.metadata().bdvStackSource );
 

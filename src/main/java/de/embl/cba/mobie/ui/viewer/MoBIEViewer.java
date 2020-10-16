@@ -205,9 +205,10 @@ public class MoBIEViewer
 
 	public BookmarksManager fetchBookmarks( String location )
 	{
-		Map< String, Bookmark > nameToBookmark = new BookmarksJsonParser( location ).getBookmarks();
+		BookmarksJsonParser bookmarkParser = new BookmarksJsonParser(location);
+		Map< String, Bookmark > nameToBookmark = bookmarkParser.getDefaultBookmarks();
 
-		return new BookmarksManager( sourcesPanel, nameToBookmark );
+		return new BookmarksManager( sourcesPanel, nameToBookmark, bookmarkParser);
 	}
 
 	public void setLogWindowPositionAndSize( JFrame jFrame )

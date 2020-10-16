@@ -6,11 +6,13 @@ import de.embl.cba.tables.color.ColorUtils;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.lang.WordUtils;
 
+import java.util.ArrayList;
+
 import static de.embl.cba.mobie.utils.Utils.createRandom;
 
 public class ImagePropertiesToMetadataAdapter
 {
-	public void setMetadata( Metadata metadata, MutableImageProperties imageProperties )
+	public void setMetadataFromMutableImageProperties(Metadata metadata, MutableImageProperties imageProperties )
 	{
 		metadata.contrastLimits = imageProperties.contrastLimits != null
 				? imageProperties.contrastLimits : metadata.contrastLimits;
@@ -31,5 +33,22 @@ public class ImagePropertiesToMetadataAdapter
 		metadata.showImageIn3d = imageProperties.showImageIn3d;
 		metadata.showSelectedSegmentsIn3d = imageProperties.showSelectedSegmentsIn3d;
 		metadata.additionalSegmentTableNames = imageProperties.tables;
+	}
+
+	public void setMutableImagePropertiesFromMetadata(MutableImageProperties imageProperties, Metadata metadata) {
+		imageProperties.contrastLimits = metadata.contrastLimits != null
+				? metadata.contrastLimits : imageProperties.contrastLimits;
+		imageProperties.color = metadata.color != null
+				? metadata.color : imageProperties.color;
+		imageProperties.valueLimits = metadata.valueLimits != null
+				? metadata.valueLimits : imageProperties.valueLimits;
+
+		imageProperties.colorByColumn = metadata.colorByColumn;
+		imageProperties.selectedLabelIds = metadata.selectedSegmentIds != null
+				? new ArrayList<>(metadata.selectedSegmentIds) : imageProperties.selectedLabelIds;
+		imageProperties.showImageIn3d = metadata.showImageIn3d;
+		imageProperties.showSelectedSegmentsIn3d = metadata.showSelectedSegmentsIn3d;
+		imageProperties.tables = metadata.additionalSegmentTableNames != null
+				? new ArrayList<>(metadata.additionalSegmentTableNames): imageProperties.tables;
 	}
 }

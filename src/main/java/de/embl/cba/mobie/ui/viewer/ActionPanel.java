@@ -67,7 +67,7 @@ public class ActionPanel extends JPanel
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addSourceSelectionUI( this );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		addBookmarksUI( this  );
+		bookmarksManager.setBookmarkDropDown( addBookmarksUI( this  ) );
 		addMoveToLocationUI( this );
 		addLevelingUI( this );
 		configPanel();
@@ -100,6 +100,20 @@ public class ActionPanel extends JPanel
 						Logger.log( "View:\n" + BdvUtils.getBdvViewerTransformString( bdv ) );
 						Logger.log( "Normalised view:\n" + Utils.createNormalisedViewerTransformString( bdv, Utils.getMousePosition( bdv ) ) );
 					} )).start();
+				});
+
+		BdvPopupMenus.addAction(bdv, "Load Additional Bookmarks",
+				() -> {
+					(new Thread( () -> {
+						bookmarksManager.loadAdditionalBookmarks();
+					} )).start();
+				});
+
+		BdvPopupMenus.addAction(bdv, "Save Current Settings As Bookmark",
+				() -> {
+					(new Thread( () -> {
+						bookmarksManager.saveCurrentSettingsAsBookmark();
+						} )).start();
 				});
 
 		BdvPopupMenus.addAction( bdv, "Restore Default View" + BdvUtils.getShortCutString( RESTORE_DEFAULT_VIEW_TRIGGER ) ,
@@ -363,7 +377,7 @@ public class ActionPanel extends JPanel
 
 			String selectionName = sourceName.replace( modality + "-", "" );
 
-			final Metadata metadata = sourcesPanel.getSourceAndMetadata( sourceName ).metadata();
+			final Metadata metadata = sourcesPanel.getSourceAndDefaultMetadata( sourceName ).metadata();
 
 			if ( metadata.type.equals( Metadata.Type.Segmentation ) )
 			{
@@ -481,7 +495,7 @@ public class ActionPanel extends JPanel
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private void addBookmarksUI( JPanel panel )
+	private JComboBox<String> addBookmarksUI( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
@@ -498,6 +512,8 @@ public class ActionPanel extends JPanel
 		horizontalLayoutPanel.add( button );
 
 		panel.add( horizontalLayoutPanel );
+
+		return comboBox;
 	}
 
 	private JButton getButton( String buttonLabel )
