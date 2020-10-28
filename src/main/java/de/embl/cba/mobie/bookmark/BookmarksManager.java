@@ -108,7 +108,7 @@ public class BookmarksManager
 		ArrayList<Bookmark> bookmarks = new ArrayList<>();
 		bookmarks.add(currentBookmark);
 
-		if ( bookmarkNameAndLocation.location == FileLocation.PROJECT &&
+		if ( bookmarkNameAndLocation.location == FileLocation.Project &&
 				bookmarksJsonParser.getDatasetLocation().contains( "raw.githubusercontent" )) {
 			bookmarksJsonParser.saveBookmarksToGithub(bookmarks);
 		} else {
@@ -130,17 +130,17 @@ public class BookmarksManager
 		String bookmarkName = null;
 		final GenericDialog gd = new GenericDialog( "Choose save location" );
 		gd.addStringField("Bookmark Name", "name");
-		gd.addChoice( "Save to", new String[]{ FileLocation.PROJECT.toString(),
-				FileLocation.FILE_SYSTEM.toString() }, FileLocation.PROJECT.toString() );
+		gd.addChoice( "Save to", new String[]{ FileLocation.Project.toString(),
+				FileLocation.File_system.toString() }, FileLocation.Project.toString() );
 		gd.showDialog();
 
 		if ( gd.wasCanceled() ) return null;
 		bookmarkName = gd.getNextString();
 		String fileLocationString = gd.getNextChoice();
-		if ( fileLocationString.equals( FileLocation.PROJECT.toString() )) {
-			fileLocation = FileLocation.PROJECT;
+		if ( fileLocationString.equals( FileLocation.Project.toString() )) {
+			fileLocation = FileLocation.Project;
 		} else {
-			fileLocation = FileLocation.FILE_SYSTEM;
+			fileLocation = FileLocation.File_system;
 		}
 
 		NameAndLocation bookmarkNameAndLocation = new NameAndLocation();
