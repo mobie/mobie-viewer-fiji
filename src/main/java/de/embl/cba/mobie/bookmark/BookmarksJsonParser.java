@@ -8,7 +8,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import de.embl.cba.tables.FileAndUrlUtils;
-import de.embl.cba.tables.FileUtils;
+import de.embl.cba.tables.FileUtils.FileLocation;
 import de.embl.cba.tables.github.GitHubUtils;
 import de.embl.cba.tables.github.GitLocation;
 
@@ -124,7 +124,7 @@ public class BookmarksJsonParser {
 		return gson;
 	}
 
-	public void saveBookmarksToFile(ArrayList<Bookmark> bookmarks, String fileLocation) throws IOException {
+	public void saveBookmarksToFile(ArrayList<Bookmark> bookmarks, FileLocation fileLocation) throws IOException {
 		HashMap<String, Bookmark> namesToBookmarks = new HashMap<>();
 		for (Bookmark bookmark : bookmarks) {
 			namesToBookmarks.put(bookmark.name, bookmark);
@@ -132,7 +132,7 @@ public class BookmarksJsonParser {
 
 		String jsonPath = null;
 		final JFileChooser jFileChooser;
-		if (fileLocation == FileUtils.FILE_SYSTEM) {
+		if ( fileLocation == FileLocation.FILE_SYSTEM ) {
 			jFileChooser = new JFileChooser();
 		} else {
 			String bookmarksDirectory = FileAndUrlUtils.combinePath(datasetLocation, "misc", "bookmarks");
