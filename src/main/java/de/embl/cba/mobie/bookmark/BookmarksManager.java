@@ -8,7 +8,7 @@ import de.embl.cba.mobie.image.MutableImageProperties;
 import de.embl.cba.mobie.ui.viewer.SourcesPanel;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
-import de.embl.cba.tables.FileUtils;
+import de.embl.cba.tables.FileUtils.FileLocation;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.TableRowsTableView;
@@ -108,7 +108,7 @@ public class BookmarksManager
 		ArrayList<Bookmark> bookmarks = new ArrayList<>();
 		bookmarks.add(currentBookmark);
 
-		if (bookmarkNameAndLocation.location.equals(FileUtils.PROJECT) &&
+		if ( bookmarkNameAndLocation.location.equals( FileLocation.Project ) &&
 				bookmarksJsonParser.getDatasetLocation().contains( "raw.githubusercontent" )) {
 			bookmarksJsonParser.saveBookmarksToGithub(bookmarks);
 		} else {
@@ -122,19 +122,21 @@ public class BookmarksManager
 
 	class NameAndLocation {
 		String name;
-		String location;
+		FileLocation location;
 	}
 
 	private NameAndLocation bookmarkSaveDialog () {
-		String fileLocation = null;
+		FileLocation fileLocation = null;
 		String bookmarkName = null;
 		final GenericDialog gd = new GenericDialog( "Choose save location" );
 		gd.addStringField("Bookmark Name", "name");
-		gd.addChoice( "Save to", new String[]{FileUtils.PROJECT, FileUtils.FILE_SYSTEM }, FileUtils.PROJECT );
+		gd.addChoice( "Save to", new String[]{ FileLocation.Project.toString(),
+				FileLocation.File_system.toString() }, FileLocation.Project.toString() );
 		gd.showDialog();
+
 		if ( gd.wasCanceled() ) return null;
 		bookmarkName = gd.getNextString();
-		fileLocation = gd.getNextChoice();
+		fileLocation = FileLocation.valueOf( gd.getNextChoice() );
 
 		NameAndLocation bookmarkNameAndLocation = new NameAndLocation();
 		bookmarkNameAndLocation.name = bookmarkName;
