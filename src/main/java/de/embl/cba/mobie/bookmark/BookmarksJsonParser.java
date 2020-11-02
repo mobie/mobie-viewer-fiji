@@ -132,7 +132,7 @@ public class BookmarksJsonParser {
 
 		String jsonPath = null;
 		final JFileChooser jFileChooser;
-		if ( fileLocation == FileLocation.File_system ) {
+		if ( fileLocation.equals( FileLocation.File_system )) {
 			jFileChooser = new JFileChooser();
 		} else {
 			String bookmarksDirectory = FileAndUrlUtils.combinePath(datasetLocation, "misc", "bookmarks");
