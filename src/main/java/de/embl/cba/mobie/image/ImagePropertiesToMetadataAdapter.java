@@ -20,6 +20,7 @@ public class ImagePropertiesToMetadataAdapter
 				? imageProperties.color : metadata.color;
 		metadata.valueLimits = imageProperties.valueLimits != null
 				? imageProperties.valueLimits : metadata.valueLimits;
+		metadata.resolution3dView = imageProperties.resolution3dView;
 
 		if ( metadata.color != null )
 		{
@@ -42,6 +43,7 @@ public class ImagePropertiesToMetadataAdapter
 				? metadata.color : imageProperties.color;
 		imageProperties.valueLimits = metadata.valueLimits != null
 				? metadata.valueLimits : imageProperties.valueLimits;
+		imageProperties.resolution3dView = metadata.resolution3dView;
 
 		imageProperties.colorByColumn = metadata.colorByColumn;
 		imageProperties.selectedLabelIds = metadata.selectedSegmentIds != null
