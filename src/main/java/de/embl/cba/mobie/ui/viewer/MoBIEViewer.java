@@ -81,7 +81,6 @@ public class MoBIEViewer
 		actionPanel = new ActionPanel( this );
 
 		jFrame = new JFrame( "MoBIE: " + projectName + "-" + dataset );
-		jFrame.setJMenuBar( createJMenuBar() );
 
 		// open bdv and show default bookmark (this will also initialise the bdv in sourcesPanel)
 		bookmarksManager.setView( "default" );
@@ -92,7 +91,6 @@ public class MoBIEViewer
 		{
 			showFrame( jFrame );
 			setLogWindowPositionAndSize( jFrame );
-			sourcesPanel.setParentComponent( jFrame );
 			sourcesPanel.setBdvWindowPositionAndSize( jFrame );
 		});
 	}
@@ -220,45 +218,6 @@ public class MoBIEViewer
 			log.setSize( jFrame.getWidth(), logWindowHeight  );
 			log.setLocation( jFrame.getLocationOnScreen().x, jFrame.getLocationOnScreen().y + jFrame.getHeight() );
 		}
-	}
-
-	private JMenuBar createJMenuBar()
-	{
-		JMenuBar menuBar = new JMenuBar();
-		menuBar.add( createMainMenu() );
-		return menuBar;
-	}
-
-	private JMenu createMainMenu()
-	{
-		final JMenu main = new JMenu( "Main" );
-		main.add( createPreferencesMenuItem() );
-		return main;
-	}
-
-	private JMenuItem createPreferencesMenuItem()
-	{
-		final JMenuItem menuItem = new JMenuItem( "Preferences..." );
-		menuItem.addActionListener( e ->
-				SwingUtilities.invokeLater( ()
-						-> showPreferencesDialog() ) );
-		return menuItem;
-	}
-
-	private void showPreferencesDialog()
-	{
-		new Thread( () -> {
-			final NonBlockingGenericDialog gd = new NonBlockingGenericDialog( "Preferences" );
-			gd.addNumericField( "3D View Voxel Size [micrometer] (0 = auto)", sourcesPanel.getVoxelSpacing3DView(), 2 );
-			//gd.addNumericField( "3D View Mesh Smoothing Iterations [#]", sourcesPanel.getMeshSmoothingIterations(), 0 );
-			//gd.addNumericField( "Gene Search Radius [micrometer]", actionPanel.getGeneSearchRadiusInMicrometer(), 1 );
-			gd.showDialog();
-			if ( gd.wasCanceled() ) return;
-			sourcesPanel.setVoxelSpacing3DView( gd.getNextNumber() );
-			//sourcesPanel.setMeshSmoothingIterations( ( int ) gd.getNextNumber() );
-			// actionPanel.setGeneSearchRadiusInMicrometer( gd.getNextNumber() );
-
-		} ).start();
 	}
 
 	public void showFrame( JFrame frame )

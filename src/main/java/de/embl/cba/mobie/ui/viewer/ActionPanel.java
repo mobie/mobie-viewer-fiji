@@ -11,6 +11,7 @@ import de.embl.cba.mobie.platybrowser.GeneSearch;
 import de.embl.cba.mobie.platybrowser.GeneSearchResults;
 import de.embl.cba.mobie.bookmark.BookmarksManager;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
+import de.embl.cba.mobie.ui.UniverseConfigurationDialog;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
@@ -95,34 +96,42 @@ public class ActionPanel extends JPanel
 
 		BdvPopupMenus.addAction( bdv, "Log Current Location",
 				() -> {
-					(new Thread( () -> {
+					new Thread( () -> {
 						Logger.log( "\nPosition:\n" + BdvUtils.getGlobalMousePositionString( bdv ) );
 						Logger.log( "View:\n" + BdvUtils.getBdvViewerTransformString( bdv ) );
 						Logger.log( "Normalised view:\n" + Utils.createNormalisedViewerTransformString( bdv, Utils.getMousePosition( bdv ) ) );
-					} )).start();
+					} ).start();
 				});
 
 		BdvPopupMenus.addAction(bdv, "Load Additional Bookmarks",
 				() -> {
-					(new Thread( () -> {
+					new Thread( () -> {
 						bookmarksManager.loadAdditionalBookmarks();
-					} )).start();
+					} ).start();
 				});
 
 		BdvPopupMenus.addAction(bdv, "Save Current Settings As Bookmark",
 				() -> {
-					(new Thread( () -> {
+					new Thread( () -> {
 						bookmarksManager.saveCurrentSettingsAsBookmark();
-						} )).start();
+						} ).start();
 				});
 
 		BdvPopupMenus.addAction( bdv, "Restore Default View" + BdvUtils.getShortCutString( RESTORE_DEFAULT_VIEW_TRIGGER ) ,
 				() -> {
-					(new Thread( () -> {
+					new Thread( () -> {
 						restoreDefaultView();
-					} )).start();
+					} ).start();
 
 				});
+
+		BdvPopupMenus.addAction( bdv, "Configure 3D View...",
+				() -> {
+					new Thread( () -> {
+						new UniverseConfigurationDialog( sourcesPanel ).showDialog();
+					} ).start();
+				});
+
 
 		if ( projectLocation.contains( "platybrowser" ) )
 		{

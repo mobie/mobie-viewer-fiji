@@ -50,9 +50,6 @@ public class SourcesPanel extends JPanel
     private final SourcesModel imageSourcesModel;
     private Image3DUniverse universe;
     private int meshSmoothingIterations = 5;
-    private double voxelSpacing3DView = 0;
-    private boolean isBdvShownFirstTime = true;
-    private JFrame jFrame;
 
     public SourcesPanel( SourcesModel imageSourcesModel )
     {
@@ -64,13 +61,11 @@ public class SourcesPanel extends JPanel
         configPanel();
     }
 
-    public static void updateSource3dView( SourceAndMetadata< ? > sam, SourcesPanel sourcesPanel, boolean show, boolean forceRepaint )
+    public static void updateSource3dView( SourceAndMetadata< ? > sam, SourcesPanel sourcesPanel, boolean forceRepaint )
     {
         if ( sam.metadata().type.equals( Metadata.Type.Segmentation ) ) return;
 
-        sam.metadata().showImageIn3d = show;
-
-        if ( show )
+        if ( sam.metadata().showImageIn3d )
         {
             sourcesPanel.showSourceInVolumeViewer( sam, forceRepaint );
         }
@@ -81,15 +76,15 @@ public class SourcesPanel extends JPanel
         }
     }
 
-    public static void updateSegments3dView( Metadata metadata, SourcesPanel sourcesPanel, boolean showSelectedSegmentsIn3D )
+    public static void updateSegments3dView( SourceAndMetadata< ? > sam, SourcesPanel sourcesPanel )
     {
-        if ( metadata.views != null )
+        if ( sam.metadata().views != null )
         {
-            final Segments3dView< TableRowImageSegment > segments3dView = metadata.views.getSegments3dView();
+            final Segments3dView< TableRowImageSegment > segments3dView = sam.metadata().views.getSegments3dView();
+            segments3dView.setVoxelSpacing( sam.metadata().resolution3dView );
+            segments3dView.showSelectedSegments( sam.metadata().showSelectedSegmentsIn3d, false );
 
-            segments3dView.showSelectedSegments( showSelectedSegmentsIn3D );
-
-            if ( showSelectedSegmentsIn3D ) sourcesPanel.setUniverse( segments3dView.getUniverse() );
+            if ( sam.metadata().showSelectedSegmentsIn3d ) sourcesPanel.setUniverse( segments3dView.getUniverse() );
         }
     }
 
@@ -163,27 +158,22 @@ public class SourcesPanel extends JPanel
             views.getSegments3dView().setMeshSmoothingIterations( meshSmoothingIterations );
     }
 
-    public double getVoxelSpacing3DView()
+    public void setVoxelSpacing3DView( String sourceName, double voxelSpacing )
     {
-        return voxelSpacing3DView;
-    }
+        SourceAndMetadata< ? > sam = sourceNameToSourceAndCurrentMetadata.get( sourceName );
 
-    // TODO: Do this separately for each source
-    public void setVoxelSpacing3DView( double voxelSpacing3DView )
-    {
-        if ( this.voxelSpacing3DView != voxelSpacing3DView )
+        if ( sam.metadata().resolution3dView != voxelSpacing )
         {
-            this.voxelSpacing3DView = voxelSpacing3DView;
+            sam.metadata().resolution3dView = voxelSpacing;
 
-            for ( SegmentsTableBdvAnd3dViews views : sourceNameToLabelViews.values() )
-                views.getSegments3dView().setVoxelSpacing( voxelSpacing3DView );
+            if ( sam.metadata().content != null )
+                updateSource3dView( sam, this, true );
 
-            Set< String > sourceNames = sourceNameToSourceAndCurrentMetadata.keySet();
-            for ( String sourceName : sourceNames )
+            if ( sourceNameToLabelViews.containsKey( sourceName ) )
             {
-                SourceAndMetadata< ? > sourceAndMetadata = sourceNameToSourceAndCurrentMetadata.get( sourceName );
-                if ( sourceAndMetadata.metadata().content != null )
-                    updateSource3dView( sourceAndMetadata , this, true, true );
+                Segments3dView< TableRowImageSegment > segments3dView = sourceNameToLabelViews.get( sourceName ).getSegments3dView();
+                segments3dView.setVoxelSpacing( voxelSpacing );
+                segments3dView.showSelectedSegments( sam.metadata().showSelectedSegmentsIn3d, true );
             }
         }
     }
@@ -206,7 +196,7 @@ public class SourcesPanel extends JPanel
                     }
                 }
 
-                if ( voxelSpacing3DView == 0 )
+                if ( sam.metadata().resolution3dView == 0 )
                 {
                     // auto-adjust voxel spacing using maxNumVoxels
                     sam.metadata().content = UniverseUtils.addSourceToUniverse(
@@ -224,7 +214,7 @@ public class SourcesPanel extends JPanel
                     sam.metadata().content = UniverseUtils.addSourceToUniverse(
                             universe,
                             sam.source(),
-                            voxelSpacing3DView,
+                            sam.metadata().resolution3dView,
                             settings.displayMode,
                             settings.color,
                             settings.transparency,
@@ -257,11 +247,6 @@ public class SourcesPanel extends JPanel
 	{
 		universe = new Image3DUniverse();
 	}
-
-    public void setParentComponent( JFrame jFrame )
-    {
-        this.jFrame = jFrame;
-    }
 
     public void setUniverse( Image3DUniverse universe )
     {
@@ -322,14 +307,15 @@ public class SourcesPanel extends JPanel
         }
     }
 
-    public SourceAndMetadata< ? > getSourceAndDefaultMetadata(String sourceName )
+    public SourceAndMetadata< ? > getSourceAndDefaultMetadata( String sourceName )
     {
         return imageSourcesModel.sources().get( sourceName );
     }
 
     // necessary as loading from bookmark creates a new sourceAndMetadata that is separate from the default
-    public SourceAndMetadata< ? > getSourceAndCurrentMetadata(String sourceName) {
-        return sourceNameToSourceAndCurrentMetadata.get(sourceName);
+    public SourceAndMetadata< ? > getSourceAndCurrentMetadata( String sourceName )
+    {
+        return sourceNameToSourceAndCurrentMetadata.get( sourceName );
     }
 
     public ArrayList< String > getSourceNames()
@@ -629,7 +615,8 @@ public class SourcesPanel extends JPanel
             segments3dView.setTransparency( 0.3 );
         }
 
-        segments3dView.showSelectedSegments( sam.metadata().showSelectedSegmentsIn3d );
+        segments3dView.setVoxelSpacing( sam.metadata().resolution3dView );
+        segments3dView.showSelectedSegments( sam.metadata().showSelectedSegmentsIn3d, true );
     }
 
     public Map< String, SegmentsTableBdvAnd3dViews > getSourceNameToLabelViews()
@@ -739,8 +726,10 @@ public class SourcesPanel extends JPanel
 
     private void removeSourceFromPanelAndViewers( SourceAndMetadata< ? > sam )
     {
-        updateSegments3dView( sam.metadata(), this, false );
-        updateSource3dView( sam, this, false, false );
+        sam.metadata().showImageIn3d = false;
+        sam.metadata().showSelectedSegmentsIn3d = false;
+        updateSegments3dView( sam, this );
+        updateSource3dView( sam, this, false );
 
         removeSourceFromPanel( sam.metadata().displayName );
 		removeLabelViews( sam.metadata().displayName );

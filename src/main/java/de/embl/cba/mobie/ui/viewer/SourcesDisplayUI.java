@@ -52,8 +52,10 @@ public class SourcesDisplayUI
 			public void actionPerformed( ActionEvent e )
 			{
 				new Thread( () -> {
-					SourcesPanel.updateSegments3dView( sam.metadata(), sourcesPanel, checkBox.isSelected() );
-					SourcesPanel.updateSource3dView( sam, sourcesPanel, checkBox.isSelected(), false );
+					sam.metadata().showImageIn3d = checkBox.isSelected();
+					sam.metadata().showSelectedSegmentsIn3d = checkBox.isSelected();
+					sourcesPanel.updateSegments3dView( sam, sourcesPanel );
+					sourcesPanel.updateSource3dView( sam, sourcesPanel, false );
 				}).start();
 			}
 		} );

@@ -203,7 +203,7 @@ public class BookmarksManager
 				}
 			}
 
-			sourceImageProperties.showSelectedSegmentsIn3d = sourceMetadata.views.getSegments3dView().getShowSelectedSegmentsIn3D();
+			sourceImageProperties.showSelectedSegmentsIn3d = sourceMetadata.views.getSegments3dView().showSelectedSegments();
 		}
 
 		if (sourceMetadata.content != null) {
