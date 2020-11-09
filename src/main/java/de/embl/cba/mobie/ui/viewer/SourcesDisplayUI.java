@@ -1,7 +1,6 @@
 package de.embl.cba.mobie.ui.viewer;
 
 import bdv.tools.brightness.ConverterSetup;
-import bdv.util.BdvStackSource;
 import de.embl.cba.bdv.utils.BdvDialogs;
 import de.embl.cba.tables.image.SourceAndMetadata;
 
@@ -54,7 +53,7 @@ public class SourcesDisplayUI
 			{
 				new Thread( () -> {
 					SourcesPanel.updateSegments3dView( sam.metadata(), sourcesPanel, checkBox.isSelected() );
-					SourcesPanel.updateSource3dView( sam, sourcesPanel, checkBox.isSelected() );
+					SourcesPanel.updateSource3dView( sam, sourcesPanel, checkBox.isSelected(), false );
 				}).start();
 			}
 		} );

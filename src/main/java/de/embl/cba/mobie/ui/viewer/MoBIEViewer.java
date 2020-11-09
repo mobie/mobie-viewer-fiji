@@ -248,19 +248,15 @@ public class MoBIEViewer
 	private void showPreferencesDialog()
 	{
 		new Thread( () -> {
-			final NonBlockingGenericDialog gd
-					= new NonBlockingGenericDialog( "Preferences" );
-			gd.addNumericField( "3D View Voxel Size [micrometer]",
-					sourcesPanel.getVoxelSpacing3DView(), 2 );
-			gd.addNumericField( "3D View Mesh Smoothing Iterations [#]",
-					sourcesPanel.getMeshSmoothingIterations(), 0 );
-			gd.addNumericField( "Gene Search Radius [micrometer]",
-					actionPanel.getGeneSearchRadiusInMicrometer(), 1 );
+			final NonBlockingGenericDialog gd = new NonBlockingGenericDialog( "Preferences" );
+			gd.addNumericField( "3D View Voxel Size [micrometer] (0 = auto)", sourcesPanel.getVoxelSpacing3DView(), 2 );
+			//gd.addNumericField( "3D View Mesh Smoothing Iterations [#]", sourcesPanel.getMeshSmoothingIterations(), 0 );
+			//gd.addNumericField( "Gene Search Radius [micrometer]", actionPanel.getGeneSearchRadiusInMicrometer(), 1 );
 			gd.showDialog();
 			if ( gd.wasCanceled() ) return;
 			sourcesPanel.setVoxelSpacing3DView( gd.getNextNumber() );
-			sourcesPanel.setMeshSmoothingIterations( ( int ) gd.getNextNumber() );
-			actionPanel.setGeneSearchRadiusInMicrometer( gd.getNextNumber() );
+			//sourcesPanel.setMeshSmoothingIterations( ( int ) gd.getNextNumber() );
+			// actionPanel.setGeneSearchRadiusInMicrometer( gd.getNextNumber() );
 
 		} ).start();
 	}
