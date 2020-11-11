@@ -102,20 +102,10 @@
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>net.imglib2</groupId>
-			<artifactId>imglib2</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>sc.fiji</groupId>
-			<artifactId>bigdataviewer-vistools</artifactId>
-		</dependency>
-		<!-- 9.0.7-SNAPSHOT contains bug-fix for n5 missing blocks -->
-		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
-			<version>9.0.7-SNAPSHOT</version>
+			<version>9.0.7-SNAPSHOT</version> <!-- 9.0.7-SNAPSHOT contains bug-fix for n5 missing blocks -->
 		</dependency>
-		<!-- TODO: check whether this can be replaced by official one (path in bucket) -->
 		<dependency>
 			<groupId>org.janelia.saalfeldlab</groupId>
 			<artifactId>n5-aws-s3</artifactId>
@@ -124,11 +114,10 @@
 			<groupId>sc.fiji</groupId>
 			<artifactId>3D_Viewer</artifactId>
 		</dependency>
-		<!-- below version of j3dcore does not have this issue: https://github.com/fiji/3D_Viewer/issues/26		-->
 		<dependency>
 			<groupId>org.scijava</groupId>
 			<artifactId>j3dcore</artifactId>
-			<version>1.6.0-scijava-3-SNAPSHOT</version>
+			<version>1.6.0-scijava-3-SNAPSHOT</version> <!-- 3-SNAPSHOT addresses this issue: https://github.com/fiji/3D_Viewer/issues/26		-->
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

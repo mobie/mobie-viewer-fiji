@@ -88,7 +88,7 @@ public class SourcesPanel extends JPanel
         }
     }
 
-    private void addColorButton( JPanel panel, int[] buttonDimensions, SourceAndMetadata< ? > sam )
+    private JButton createColorButton( JPanel panel, int[] buttonDimensions, SourceAndMetadata< ? > sam )
     {
         JButton colorButton;
         colorButton = new JButton( "C" );
@@ -105,7 +105,7 @@ public class SourcesPanel extends JPanel
 
         } );
 
-        panel.add( colorButton );
+        return colorButton;
     }
 
     private void setSourceColor( SourceAndMetadata< ? > sam, Color color, JPanel panel )
@@ -114,6 +114,7 @@ public class SourcesPanel extends JPanel
 
         if ( sam.metadata().content != null )
             sam.metadata().content.setColor( new Color3f( color ));
+
 
         if ( sourceNameToLabelViews.containsKey( sam.metadata().displayName ) )
         {
@@ -287,8 +288,16 @@ public class SourcesPanel extends JPanel
             // do nothing
         }
 
-        final ARGBType argbType = ColorUtils.getARGBType( sam.metadata().color );
-        if ( argbType != null ) settings.color = argbType;
+        if ( sam.metadata().content != null )
+        {
+            final ARGBType argbType = ColorUtils.getARGBType( sam.metadata().content.getColor().get() );
+            if ( argbType != null ) settings.color = argbType;
+        }
+        else
+        {
+            final ARGBType argbType = ColorUtils.getARGBType( sam.metadata().color );
+            if ( argbType != null ) settings.color = argbType;
+        }
 
         return settings;
     }
@@ -657,15 +666,14 @@ public class SourcesPanel extends JPanel
 
         panel.add( sourceNameLabel );
 
-        addColorButton( panel, buttonDimensions, sam );
+        JButton colorButton = createColorButton( panel, buttonDimensions, sam );
 
         final JButton brightnessButton =
                 SourcesDisplayUI.createBrightnessButton(
                         buttonDimensions, sam,
                         0.0, 65535.0);
 
-        final JButton removeButton =
-                createRemoveButton( sam, buttonDimensions );
+        final JButton removeButton = createRemoveButton( sam, buttonDimensions );
 
         final JCheckBox sliceViewVisibilityCheckbox =
                 SourcesDisplayUI.createBigDataViewerVisibilityCheckbox( viewSelectionDimensions, sam, true );
@@ -677,6 +685,7 @@ public class SourcesPanel extends JPanel
                         sam,
                         sam.metadata().showImageIn3d || sam.metadata().showSelectedSegmentsIn3d );
 
+        panel.add( colorButton );
         panel.add( brightnessButton );
         panel.add( removeButton );
         panel.add( volumeVisibilityCheckbox );
