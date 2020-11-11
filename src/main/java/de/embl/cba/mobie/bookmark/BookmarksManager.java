@@ -169,57 +169,11 @@ public class BookmarksManager
 
 	private MutableImageProperties fetchMutableSourceProperties(String sourceName) {
 		MutableImageProperties sourceImageProperties = new MutableImageProperties();
-		Metadata sourceMetadata = sourcesPanel.getSourceAndCurrentMetadata(sourceName).metadata();
+		sourcesPanel.updateCurrentMetadata( sourceName );
+		Metadata sourceMetadata = sourcesPanel.getSourceAndCurrentMetadata( sourceName ).metadata();
 
-		ARGBType color = sourceMetadata.bdvStackSource.getConverterSetups().get(0).getColor();
-		sourceImageProperties.color = color.toString();
-
-		if (sourcesPanel.getSourceNameToLabelViews().containsKey(sourceName)) {
-			TableRowsTableView<TableRowImageSegment> sourceTableRowsTableView = sourceMetadata.views.getTableRowsTableView();
-
-			if (!sourceMetadata.views.getSegmentsBdvView().isLabelMaskShownAsBinaryMask()) {
-				sourceImageProperties.color = sourceTableRowsTableView.getColoringLUTName();
-				sourceImageProperties.colorByColumn = sourceTableRowsTableView.getColoringColumnName();
-				sourceImageProperties.valueLimits = sourceTableRowsTableView.getColorByColumnValueLimits();
-			}
-
-			ArrayList<TableRowImageSegment> selectedSegments = sourceTableRowsTableView.getSelectedLabelIds();
-			if (selectedSegments != null) {
-				ArrayList<Double> selectedLabelIds = new ArrayList<>();
-				for (TableRowImageSegment segment : selectedSegments) {
-					selectedLabelIds.add(segment.labelId());
-				}
-				sourceImageProperties.selectedLabelIds = selectedLabelIds;
-			}
-
-			ArrayList<String> additionalTables = sourceTableRowsTableView.getAdditionalTables();
-			if (additionalTables != null & additionalTables.size() > 0 ) {
-				sourceImageProperties.tables = new ArrayList<>();
-				// ensure tables are unique
-				for (String tableName : sourceTableRowsTableView.getAdditionalTables()) {
-					if (!sourceImageProperties.tables.contains(tableName)) {
-						sourceImageProperties.tables.add(tableName);
-					}
-				}
-			}
-
-			sourceImageProperties.showSelectedSegmentsIn3d = sourceMetadata.views.getSegments3dView().showSelectedSegments();
-		}
-
-		if (sourceMetadata.content != null) {
-			if (sourceMetadata.content.isVisible()) {
-				sourceImageProperties.showImageIn3d = true;
-			} else {
-				sourceImageProperties.showImageIn3d = false;
-			}
-		} else {
-			sourceImageProperties.showImageIn3d = false;
-		}
-
-		double[] currentContrastLimits = new double[2];
-		currentContrastLimits[0] = getConverterSetups( sourceMetadata.bdvStackSource ).get(0).getDisplayRangeMin();
-		currentContrastLimits[1] = getConverterSetups( sourceMetadata.bdvStackSource ).get(0).getDisplayRangeMax();
-		sourceImageProperties.contrastLimits = currentContrastLimits;
+		final ImagePropertiesToMetadataAdapter adapter = new ImagePropertiesToMetadataAdapter();
+		adapter.setMutableImagePropertiesFromMetadata( sourceImageProperties, sourceMetadata );
 
 		return sourceImageProperties;
 	}
