@@ -10,7 +10,7 @@
 	<artifactId>mobie</artifactId>
 	<version>0.5.2-SNAPSHOT</version>
 
-	<url>https://github.com/platybrowser/mobie-viewer-fiji</url>
+	<url>https://github.com/mobie/mobie-viewer-fiji</url>
 	<name>MoBIE Fiji Viewer</name>
 	<description>Fiji viewer for MoBIE projects</description>
 	<inceptionYear>2018</inceptionYear>
@@ -40,7 +40,7 @@
 	</developers>
 	<contributors>
 		<contributor>
-			<name>TODO</name>
+			<name>Kimberly Meechan</name>
 		</contributor>
 	</contributors>
 	<mailingLists>
@@ -50,14 +50,14 @@
 		</mailingList>
 	</mailingLists>
 	<scm>
-		<connection>scm:git:git://github.com/platybrowser/mobie-viewer-fiji</connection>
-		<developerConnection>scm:git:git@github.com/platybrowser/mobie-viewer-fiji</developerConnection>
+		<connection>scm:git:git://github.com/mobie/mobie-viewer-fiji</connection>
+		<developerConnection>scm:git:git@github.com/mobie/mobie-viewer-fiji</developerConnection>
 		<tag>HEAD</tag>
-		<url>https://github.com/platybrowser/mobie-viewer-fiji</url>
+		<url>https://github.com/mobie/mobie-viewer-fiji</url>
 	</scm>
 	<issueManagement>
 		<system>GitHub</system>
-		<url>https://github.com/platybrowser/mobie-viewer-fiji/issues</url>
+		<url>https://github.com/mobie/mobie-viewer-fiji/issues</url>
 	</issueManagement>
 	<ciManagement>
 		<system>None</system>
@@ -68,6 +68,25 @@
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<scijava.app.directory>/Users/tischer/Desktop/Fiji-MoBIE-beta.app</scijava.app.directory>
 		<enforcer.skip>true</enforcer.skip>
+
+
+		<imagej-utils.version>0.5.5</imagej-utils.version>
+
+		<!--  Version 9.1.0 of BDV contains a critical fix for loading n5 data -->
+		<bigdataviewer-core.version>9.1.0</bigdataviewer-core.version>
+
+		<!-- Version 1.6.0-scijava-3-SNAPSHOT of j3dcore addresses a minor issue
+		https://github.com/fiji/3D_Viewer/issues/26
+
+		1.6.0-scijava-3-SNAPSHOT is not released on any repository,
+		so you'd have to build it locally from https://github.com/scijava/java3d-core
+
+		Alternatively, as the fix included in 1.6.0-scijava-3-SNAPSHOT is not critical,
+		the easiest is to use version 1.6.0-scijava-2 instead, which is available
+		on a central repository
+		-->
+		<j3dcore.version>1.6.0-scijava-3-SNAPSHOT</j3dcore.version>
+
 	</properties>
 	<build>
 		<plugins>
@@ -82,29 +101,16 @@
 		</plugins>
 	</build>
 	<repositories>
-		<!-- NB: for SciJava dependencies -->
 		<repository>
 			<id>imagej.public</id>
 			<url>https://maven.imagej.net/content/groups/public</url>
-		</repository>
-		<!-- for CBA dependencies -->
-		<repository>
-			<id>bintray-tischi-snapshots</id>
-			<name>bintray</name>
-			<url>https://dl.bintray.com/tischi/snapshots</url>
-		</repository>
-		<!-- for ITC dependencies -->
-		<repository>
-			<id>bintray-image-transform-converters-image-transform-converters</id>
-			<name>image-transform-converters-image-transform-converters</name>
-			<url>https://dl.bintray.com/image-transform-converters/image-transform-converters</url>
 		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
-			<version>9.0.7-SNAPSHOT</version> <!-- 9.0.7-SNAPSHOT contains bug-fix for n5 missing blocks -->
+			<version>${bigdataviewer-core.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.janelia.saalfeldlab</groupId>
@@ -117,17 +123,16 @@
 		<dependency>
 			<groupId>org.scijava</groupId>
 			<artifactId>j3dcore</artifactId>
-			<version>1.6.0-scijava-3-SNAPSHOT</version> <!-- 3-SNAPSHOT addresses this issue: https://github.com/fiji/3D_Viewer/issues/26		-->
+			<version>${j3dcore.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
-		<!-- CBA -->
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>imagej-utils</artifactId>
-			<version>0.5.5-SNAPSHOT</version>
+			<version>${imagej-utils.version}</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -168,11 +168,9 @@ public class MoBIEViewer
 		imagesLocation = FileAndUrlUtils.combinePath( imagesLocation, dataset );
 		tablesLocation = FileAndUrlUtils.combinePath( tablesLocation, dataset );
 
-		Utils.log( "");
-		Utils.log( "# Fetching data");
 		Utils.log( "Fetching project from: " + projectLocation );
 		Utils.log( "Fetching images from: " + imagesLocation );
-		Utils.log( "    Image data storage modality: " + options.values.getImageDataStorageModality() );
+		Utils.log( "Image data storage modality: " + options.values.getImageDataStorageModality() );
 		Utils.log( "Fetching tables from: " + tablesLocation );
 	}
 
