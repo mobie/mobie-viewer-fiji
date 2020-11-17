@@ -38,6 +38,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.List;
 
+import static de.embl.cba.bdv.utils.BdvUtils.getConverterSetups;
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
 import static de.embl.cba.mobie.utils.Utils.createRandom;
 
@@ -179,6 +180,60 @@ public class SourcesPanel extends JPanel
         }
     }
 
+    public void updateCurrentMetadata (String sourceName) {
+        Metadata sourceMetadata = sourceNameToSourceAndCurrentMetadata.get( sourceName ).metadata();
+
+        ARGBType color = sourceMetadata.bdvStackSource.getConverterSetups().get(0).getColor();
+        sourceMetadata.color = color.toString();
+
+        if (sourceNameToLabelViews.containsKey(sourceName)) {
+            TableRowsTableView<TableRowImageSegment> sourceTableRowsTableView = sourceMetadata.views.getTableRowsTableView();
+
+            if (!sourceMetadata.views.getSegmentsBdvView().isLabelMaskShownAsBinaryMask()) {
+                sourceMetadata.color = sourceTableRowsTableView.getColoringLUTName();
+                sourceMetadata.colorByColumn = sourceTableRowsTableView.getColoringColumnName();
+                sourceMetadata.valueLimits = sourceTableRowsTableView.getColorByColumnValueLimits();
+            }
+
+            ArrayList<TableRowImageSegment> selectedSegments = sourceTableRowsTableView.getSelectedLabelIds();
+            if (selectedSegments != null) {
+                ArrayList<Double> selectedLabelIds = new ArrayList<>();
+                for (TableRowImageSegment segment : selectedSegments) {
+                    selectedLabelIds.add(segment.labelId());
+                }
+                sourceMetadata.selectedSegmentIds = selectedLabelIds;
+            }
+
+            ArrayList<String> additionalTables = sourceTableRowsTableView.getAdditionalTables();
+            if (additionalTables != null & additionalTables.size() > 0 ) {
+                sourceMetadata.additionalSegmentTableNames = new ArrayList<>();
+                // ensure tables are unique
+                for (String tableName : sourceTableRowsTableView.getAdditionalTables()) {
+                    if (!sourceMetadata.additionalSegmentTableNames.contains(tableName)) {
+                        sourceMetadata.additionalSegmentTableNames.add(tableName);
+                    }
+                }
+            }
+
+            sourceMetadata.showSelectedSegmentsIn3d = sourceMetadata.views.getSegments3dView().showSelectedSegments();
+        }
+
+        if (sourceMetadata.content != null) {
+            if (sourceMetadata.content.isVisible()) {
+                sourceMetadata.showImageIn3d = true;
+            } else {
+                sourceMetadata.showImageIn3d = false;
+            }
+        } else {
+            sourceMetadata.showImageIn3d = false;
+        }
+
+        double[] currentContrastLimits = new double[2];
+        currentContrastLimits[0] = getConverterSetups( sourceMetadata.bdvStackSource ).get(0).getDisplayRangeMin();
+        currentContrastLimits[1] = getConverterSetups( sourceMetadata.bdvStackSource ).get(0).getDisplayRangeMax();
+        sourceMetadata.contrastLimits = currentContrastLimits;
+    }
+
     public void showSourceInVolumeViewer( SourceAndMetadata< ? > sam, boolean forceRepaint )
     {
     	if ( sam.metadata().showImageIn3d )
@@ -311,8 +366,11 @@ public class SourcesPanel extends JPanel
         }
         else
         {
-            final SourceAndMetadata< ? > sam = getSourceAndDefaultMetadata( sourceName );
-            addSourceToPanelAndViewer( sam );
+            final SourceAndMetadata< ? > samDefault = getSourceAndDefaultMetadata( sourceName );
+            // make a copy here so that changes to the current metadata, don't affect the default
+            // this means any changes to current metadata won't persist when sources are removed and added again
+            final SourceAndMetadata< ? > samCurrent = new SourceAndMetadata( samDefault.source(), samDefault.metadata().copy() );
+            addSourceToPanelAndViewer( samCurrent );
         }
     }
 
