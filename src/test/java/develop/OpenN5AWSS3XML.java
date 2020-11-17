@@ -1,13 +1,9 @@
 package develop;
 
 import bdv.util.BdvFunctions;
-import bdv.util.BdvOptions;
-import bdv.util.BdvStackSource;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
-
-import java.util.List;
 
 public class OpenN5AWSS3XML
 {
