@@ -32,6 +32,7 @@ import org.janelia.saalfeldlab.n5.GzipCompression;
 import org.janelia.saalfeldlab.n5.RawCompression;
 import org.janelia.saalfeldlab.n5.blosc.BloscCompression;
 
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -56,7 +57,7 @@ public interface ZarrCompressor {
 	public static ZarrCompressor fromCompression( final Compression compression ) {
 
 		try {
-			if (compression instanceof BloscCompression) {
+			if (compression instanceof BloscCompression ) {
 				return new Blosc((BloscCompression)compression);
 			} else if (compression instanceof GzipCompression ) {
 				final Class<? extends Compression > clazz = compression.getClass();
