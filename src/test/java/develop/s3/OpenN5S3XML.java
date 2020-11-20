@@ -1,11 +1,11 @@
-package develop;
+package develop.s3;
 
 import bdv.util.BdvFunctions;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 
-public class OpenN5AWSS3XML
+public class OpenN5S3XML
 {
 	public static void main( String[] args ) throws SpimDataException
 	{
