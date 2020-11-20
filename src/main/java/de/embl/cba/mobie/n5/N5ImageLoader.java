@@ -159,9 +159,16 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 
 	private < T extends NativeType< T >, V extends Volatile< T > & NativeType< V > > SetupImgLoader< T, V > createSetupImgLoader( final int setupId ) throws IOException
 	{
-		final String pathName = getPathName( setupId );
-		final DataType dataType = n5.getAttribute( pathName, DATA_TYPE_KEY, DataType.class );
-		switch ( dataType )
+		// ome.zarr multiscale does not store the datatype as metadata.
+                // instead, we can read it from our first scale dataset using
+                // https://github.com/saalfeldlab/n5/blob/master/src/main/java/org/janelia/saalfeldlab/n5/N5Reader.java#L244
+		
+                // here, we need to get the path to "setup0/timepoint0/s0" instead of just "setup0"
+                // I don't really now how to do that in java, so this is just pseudo code...
+                final String pathName = getPathName( setupId, "timepoint0", "s0" );  
+		final DataType dataType = n5.getDatasetAttributes( pathName ).getDataType();
+		
+                switch ( dataType )
 		{
 		case UINT8:
 			return Cast.unchecked( new SetupImgLoader<>( setupId, new UnsignedByteType(), new VolatileUnsignedByteType() ) );
@@ -208,8 +215,10 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 		{
 			super( type, volatileType );
 			this.setupId = setupId;
-			final String pathName = getPathName( setupId );
-			mipmapResolutions = n5.getAttribute( pathName, DOWNSAMPLING_FACTORS_KEY, double[][].class );
+			// again, here we need to read from "setup0/timepoint0" instead of "setup0"
+			final String pathName = getPathName( setupId, "timepoint0" );
+			// the key for the downsampling factors is different (note that this is not part of the ome.zarr definition yet)
+			mipmapResolutions = n5.getAttribute( pathName, "scales", double[][].class );
 			mipmapTransforms = new AffineTransform3D[ mipmapResolutions.length ];
 			for ( int level = 0; level < mipmapResolutions.length; level++ )
 				mipmapTransforms[ level ] = MipmapTransforms.getMipmapTransformDefault( mipmapResolutions[ level ] );
