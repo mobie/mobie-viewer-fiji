@@ -588,7 +588,7 @@ public class SourcesPanel extends JPanel
         final String tablesLocation = FileAndUrlUtils.getParentLocation( sam.metadata().segmentsTablePath );
         tableRowsTableView.setTablesDirectory( tablesLocation );
         tableRowsTableView.setMergeByColumnName( Constants.COLUMN_NAME_SEGMENT_LABEL_ID );
-        tableRowsTableView.setSelectionMode( TableRowsTableView.SelectionMode.FocusOnly );
+        //tableRowsTableView.setSelectionMode( TableRowsTableView.SelectionMode.FocusOnly );
 
         mergeDefaultTableWithAdditionalTables( sam, tableRowsTableView, tablesLocation );
 
@@ -616,7 +616,6 @@ public class SourcesPanel extends JPanel
                         null);
             }
         }
-
     }
 
     private void mergeDefaultTableWithAdditionalTables( SourceAndMetadata< ? > sam, TableRowsTableView< TableRowImageSegment > tableRowsTableView, String tablesLocation )
