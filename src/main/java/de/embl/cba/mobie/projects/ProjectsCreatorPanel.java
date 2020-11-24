@@ -6,11 +6,14 @@ import bdv.util.BoundedValueDouble;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.mobie.dataset.DatasetsParser;
 import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.tables.FileAndUrlUtils;
+import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.SwingUtils;
 import ij.Prefs;
 import ij.gui.GenericDialog;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.util.Arrays;
 
@@ -19,10 +22,14 @@ public class ProjectsCreatorPanel extends JFrame {
     public static final int COMBOBOX_WIDTH = 270;
     public static final Dimension BUTTON_DIMENSION = new Dimension( 80, TEXT_FIELD_HEIGHT );
     private ProjectsCreator projectsCreator;
+    private JComboBox<String> datasetComboBox;
+    private JComboBox<String> imagesComboBox;
 
     public ProjectsCreatorPanel ( ProjectsCreator projectsCreator ) {
         this.projectsCreator = projectsCreator;
         addDatasetPanel();
+        addImagesPanel();
+        this.getContentPane().setLayout( new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS ) );
         this.pack();
         this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         this.setVisible( true );
@@ -31,22 +38,35 @@ public class ProjectsCreatorPanel extends JFrame {
     private void addDatasetPanel() {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-        final JButton button = getButton("Add");
+        final JButton addButton = getButton("Add");
 
-        final JComboBox<String> comboBox = new JComboBox<>( projectsCreator.getCurrentDatasets() );
-        setComboBoxDimensions(comboBox);
-        button.addActionListener(e -> addDatasetDialog());
-        comboBox.setPrototypeDisplayValue(MoBIEViewer.PROTOTYPE_DISPLAY_VALUE);
+        datasetComboBox = new JComboBox<>( projectsCreator.getCurrentDatasets() );
+        setComboBoxDimensions(datasetComboBox);
+        addButton.addActionListener(e -> addDatasetDialog());
+        datasetComboBox.setPrototypeDisplayValue(MoBIEViewer.PROTOTYPE_DISPLAY_VALUE);
 
         horizontalLayoutPanel.add(getJLabel("dataset"));
-        horizontalLayoutPanel.add(comboBox);
-        horizontalLayoutPanel.add(button);
+        horizontalLayoutPanel.add(datasetComboBox);
+        horizontalLayoutPanel.add(addButton);
 
         this.getContentPane().add(horizontalLayoutPanel);
     }
 
     private void addImagesPanel() {
+        final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
+        final JButton addButton = getButton("Add");
+
+        imagesComboBox = new JComboBox<>( projectsCreator.getCurrentDatasets() );
+        setComboBoxDimensions(imagesComboBox);
+        addButton.addActionListener(e -> addImageDialog());
+        imagesComboBox.setPrototypeDisplayValue(MoBIEViewer.PROTOTYPE_DISPLAY_VALUE);
+
+        horizontalLayoutPanel.add(getJLabel("image"));
+        horizontalLayoutPanel.add(imagesComboBox);
+        horizontalLayoutPanel.add(addButton);
+
+        this.getContentPane().add(horizontalLayoutPanel);
     }
 
     private void addDatasetDialog () {
@@ -61,8 +81,47 @@ public class ProjectsCreatorPanel extends JFrame {
             boolean contains = Arrays.stream( projectsCreator.getCurrentDatasets() ).anyMatch(datasetName::equals);
             if ( !contains ) {
                 projectsCreator.addDataset( datasetName );
+                updateDatasetsComboBox();
             }
 
+        }
+    }
+
+    private void addImageDialog () {
+
+        final JFileChooser jFileChooser = new JFileChooser();
+        if (jFileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+            String imagePath = jFileChooser.getSelectedFile().getAbsolutePath();
+
+            final GenericDialog gd = new GenericDialog("Add a new image");
+            gd.addMessage("Adding image to dataset: " + datasetComboBox.getSelectedItem());
+            gd.addStringField("Name of image", "");
+            gd.addChoice("Bdv format", new String[]{"n5", "h5"}, "n5");
+            gd.addStringField("Pixel size unit", "micrometer");
+            gd.addNumericField("x pixel size", 1);
+            gd.addNumericField("y pixel size", 1);
+            gd.addNumericField("z pixel size", 1);
+            gd.showDialog();
+
+            if (!gd.wasCanceled()) {
+                String imageName = gd.getNextString();
+                String datasetName = (String) datasetComboBox.getSelectedItem();
+                String bdvFormat = gd.getNextChoice();
+                String pixelSizeUnit = gd.getNextString();
+                double xPixelSize = gd.getNextNumber();
+                double yPixelSize = gd.getNextNumber();
+                double zPixelSize = gd.getNextNumber();
+                projectsCreator.addImage( imagePath, imageName, datasetName, bdvFormat, pixelSizeUnit,
+                        xPixelSize, yPixelSize, zPixelSize);
+
+            }
+        }
+    }
+
+    private void updateDatasetsComboBox () {
+        datasetComboBox.removeAllItems();
+        for (String datasetName : projectsCreator.getCurrentDatasets() ) {
+            datasetComboBox.addItem(datasetName);
         }
     }
 

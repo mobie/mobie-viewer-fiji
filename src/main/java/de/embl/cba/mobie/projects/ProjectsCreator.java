@@ -19,23 +19,41 @@ public class ProjectsCreator {
         new ProjectsCreatorPanel( this );
     }
 
+    public void addImage ( String imagePath, String imageName, String datasetName, String bdvFormat,
+                           String pixelSizeUnit, double xPixelSize, double yPixelSize, double zPixelSize) {
+    //    https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusAsN5PlugIn.java
+    //    https://github.com/bigdataviewer/bigdataviewer-core/blob/master/src/main/java/bdv/export/n5/WriteSequenceToN5.java
+    //    Need an image loader https://javadoc.scijava.org/Fiji/mpicbg/spim/data/generic/sequence/BasicImgLoader.html
+    //    I'm curious if it might be easier to just open it in fiji as a virtual stack then run teh plugin....
+
+    }
+
+
     public void addDataset ( String name ) {
         File datasetDir = new File ( dataLocation, name );
         if ( !datasetDir.exists() ) {
             datasetDir.mkdirs();
-        }
 
-        File datasetJSON = new File( dataLocation, "datasets.json");
+            // make rest of folders required under dataset
+            new File(datasetDir, "images").mkdirs();
+            new File(datasetDir, "misc").mkdirs();
+            new File(datasetDir, "tables").mkdirs();
+            new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "images", "local")).mkdirs();
+            new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "images", "remote")).mkdirs();
+            new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "misc", "bookmarks")).mkdirs();
 
-        // if this is the first dataset, then make this the default
-        if ( currentDatasets.datasets.size() == 0) {
-            currentDatasets.defaultDataset = name;
-        }
-        currentDatasets.datasets.add( name );
-        try {
-            new DatasetsParser().datasetsToFile( datasetJSON.getAbsolutePath(), currentDatasets );
-        } catch (IOException e) {
-            e.printStackTrace();
+            File datasetJSON = new File(dataLocation, "datasets.json");
+
+            // if this is the first dataset, then make this the default
+            if (currentDatasets.datasets.size() == 0) {
+                currentDatasets.defaultDataset = name;
+            }
+            currentDatasets.datasets.add(name);
+            try {
+                new DatasetsParser().datasetsToFile(datasetJSON.getAbsolutePath(), currentDatasets);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
 
