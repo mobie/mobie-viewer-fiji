@@ -37,6 +37,7 @@ import bdv.img.cache.VolatileGlobalCellCache;
 import bdv.util.ConstantRandomAccessible;
 import bdv.util.MipmapTransforms;
 import com.amazonaws.SdkClientException;
+import com.mchange.v2.holders.VolatileShortHolder;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.generic.sequence.ImgLoaderHint;
@@ -49,6 +50,10 @@ import net.imglib2.cache.queue.BlockingFetchQueues;
 import net.imglib2.cache.queue.FetcherThreads;
 import net.imglib2.cache.volatiles.CacheHints;
 import net.imglib2.cache.volatiles.LoadingStrategy;
+import net.imglib2.img.array.ArrayImg;
+import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.img.basictypeaccess.array.ByteArray;
+import net.imglib2.img.basictypeaccess.array.ShortArray;
 import net.imglib2.img.basictypeaccess.volatiles.array.*;
 import net.imglib2.img.cell.CellGrid;
 import net.imglib2.img.cell.CellImg;
@@ -69,6 +74,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.function.BiConsumer;
 
 import static bdv.img.n5.BdvN5Format.*;
 
@@ -339,27 +345,65 @@ public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoa
 		}
 	}
 
-	private static class ArrayCreator< A >
+	private static class ArrayCreator< A, T extends NativeType< T > >
 	{
 		private final CellGrid cellGrid;
 		private final DataType dataType;
+		private final BiConsumer< ArrayImg<T,?>, DataBlock<?>> copyFromBlock;
 
 		public ArrayCreator( CellGrid cellGrid, DataType dataType )
 		{
 			this.cellGrid = cellGrid;
 			this.dataType = dataType;
+			this.copyFromBlock = N5CellLoader.createCopy( dataType );
 		}
 
 		public A createArray( DataBlock< ? > dataBlock, long[] gridPosition )
 		{
-			long[] cellMin = new long[ 3 ];
-			int[] cellDims = new int[ 3 ];
-			cellGrid.getCellDimensions( gridPosition, cellMin, cellDims );
-			int n = cellDims[ 0 ] * cellDims[ 1 ] * cellDims[ 2 ];
+			long[] cellDims = getCellDims( gridPosition );
+			int n = (int) ( cellDims[ 0 ] * cellDims[ 1 ] * cellDims[ 2 ] );
 
-			SingleCellArrayImg singleCellArrayImg = new SingleCellArrayImg( cellDims, cellMin, new VolatileByteArray( n, true ), null );
-			N5CellLoader.createCopy( dataType ).accept( singleCellArrayImg, dataBlock );
-			return ( A ) new VolatileByteArray( Cast.unchecked( singleCellArrayImg.getStorageArray() ), true );
+			switch ( dataType )
+			{
+				case UINT8:
+				case INT8:
+					byte[] bytes = new byte[ n ];
+					copyFromBlock.accept( (ArrayImg<T,?>) ArrayImgs.bytes( bytes, cellDims ), dataBlock );
+					return ( A ) new VolatileByteArray( bytes , true );
+				case UINT16:
+				case INT16:
+					short[] shorts = new short[ n ];
+					copyFromBlock.accept( (ArrayImg<T,?>) ArrayImgs.shorts( shorts, cellDims ), dataBlock );
+					return ( A ) new VolatileShortArray( shorts , true );
+				case UINT32:
+				case INT32:
+					return null;
+				//return createArray.apply( new IntArrayDataBlock( blockSize, gridPosition, new int[ n ] ) );
+				case UINT64:
+				case INT64:
+					return null;
+				//return createArray.apply( new LongArrayDataBlock( blockSize, gridPosition, new long[ n ] ) );
+				case FLOAT32:
+					return null;
+				//return createArray.apply( new FloatArrayDataBlock( blockSize, gridPosition, new float[ n ] ) );
+				case FLOAT64:
+					return null;
+				//return createArray.apply( new DoubleArrayDataBlock( blockSize, gridPosition, new double[ n ] ) );
+				default:
+					throw new IllegalArgumentException();
+			}
+
+
+		}
+
+		public long[] getCellDims( long[] gridPosition )
+		{
+			long[] cellMin = new long[ 5 ];
+			int[] cellDims = new int[ 5 ];
+			cellGrid.getCellDimensions( gridPosition, cellMin, cellDims );
+			cellDims[ 3 ] = 1; // channel
+			cellDims[ 4 ] = 1; // timepoint
+			return Arrays.stream( cellDims ).mapToLong( i -> i ).toArray();
 		}
 
 		public A createArray( long[] gridPosition )
@@ -372,11 +416,10 @@ public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoa
 			{
 				case UINT8:
 				case INT8:
-					return ( A ) new VolatileByteArray( Cast.unchecked( new ByteArrayDataBlock( cellDims, gridPosition, new byte[ n ] ) ), true );
+					return ( A ) new VolatileByteArray( new byte[ n ], true );
 				case UINT16:
 				case INT16:
-					return null;
-					//return createArray.apply( new ShortArrayDataBlock( blockSize, gridPosition, new short[ n ] ) );
+					return ( A ) new VolatileShortArray( new short[ n ], true );
 				case UINT32:
 				case INT32:
 					return null;
@@ -403,7 +446,7 @@ public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoa
 		private final String pathName;
 		private final int timepoint;
 		private final DatasetAttributes attributes;
-		private final ArrayCreator< A > arrayCreator;
+		private final ArrayCreator< A, ? > arrayCreator;
 
 		N5OMEZarrCacheArrayLoader( final N5Reader n5, final String pathName, final int timepoint, final DatasetAttributes attributes, CellGrid grid )
 		{
