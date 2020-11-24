@@ -44,6 +44,7 @@ import mpicbg.spim.data.sequence.MultiResolutionImgLoader;
 import mpicbg.spim.data.sequence.MultiResolutionSetupImgLoader;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.*;
+import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.cache.queue.BlockingFetchQueues;
 import net.imglib2.cache.queue.FetcherThreads;
 import net.imglib2.cache.volatiles.CacheHints;
@@ -60,6 +61,7 @@ import net.imglib2.type.volatiles.*;
 import net.imglib2.util.Cast;
 import net.imglib2.view.Views;
 import org.janelia.saalfeldlab.n5.*;
+import org.janelia.saalfeldlab.n5.imglib2.N5CellLoader;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -67,16 +69,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.function.Function;
 
 import static bdv.img.n5.BdvN5Format.*;
 
 public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 {
 	protected final N5Reader n5;
-
-	// TODO: it would be good if this would not be needed
-	//       find available setups from the n5
 	protected final AbstractSequenceDescription< ?, ?, ? > seq;
 
 	/**
@@ -326,7 +324,7 @@ public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoa
 				final int priority = numMipmapLevels() - 1 - level;
 				final CacheHints cacheHints = new CacheHints( loadingStrategy, priority, false );
 
-				final SimpleCacheArrayLoader< ? > loader = createCacheArrayLoader( n5, pathName, timepointId );
+				final SimpleCacheArrayLoader< ? > loader = createCacheArrayLoader( n5, pathName, timepointId, grid );
 				return cache.createImg( grid, timepointId, setupId, level, cacheHints, loader, type );
 			}
 			catch ( IOException e )
@@ -341,21 +339,79 @@ public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoa
 		}
 	}
 
+	private static class ArrayCreator< A >
+	{
+		private final CellGrid cellGrid;
+		private final DataType dataType;
+
+		public ArrayCreator( CellGrid cellGrid, DataType dataType )
+		{
+			this.cellGrid = cellGrid;
+			this.dataType = dataType;
+		}
+
+		public A createArray( DataBlock< ? > dataBlock, long[] gridPosition )
+		{
+			long[] cellMin = new long[ 3 ];
+			int[] cellDims = new int[ 3 ];
+			cellGrid.getCellDimensions( gridPosition, cellMin, cellDims );
+			int n = cellDims[ 0 ] * cellDims[ 1 ] * cellDims[ 2 ];
+
+			SingleCellArrayImg singleCellArrayImg = new SingleCellArrayImg( cellDims, cellMin, new VolatileByteArray( n, true ), null );
+			N5CellLoader.createCopy( dataType ).accept( singleCellArrayImg, dataBlock );
+			return ( A ) new VolatileByteArray( Cast.unchecked( singleCellArrayImg.getStorageArray() ), true );
+		}
+
+		public A createArray( long[] gridPosition )
+		{
+			long[] cellMin = new long[ 3 ];
+			int[] cellDims = new int[ 3 ];
+			cellGrid.getCellDimensions( gridPosition, cellMin, cellDims );
+			int n = cellDims[ 0 ]* cellDims[ 1 ] * cellDims[ 2 ];
+			switch ( dataType )
+			{
+				case UINT8:
+				case INT8:
+					return ( A ) new VolatileByteArray( Cast.unchecked( new ByteArrayDataBlock( cellDims, gridPosition, new byte[ n ] ) ), true );
+				case UINT16:
+				case INT16:
+					return null;
+					//return createArray.apply( new ShortArrayDataBlock( blockSize, gridPosition, new short[ n ] ) );
+				case UINT32:
+				case INT32:
+					return null;
+				//return createArray.apply( new IntArrayDataBlock( blockSize, gridPosition, new int[ n ] ) );
+				case UINT64:
+				case INT64:
+					return null;
+				//return createArray.apply( new LongArrayDataBlock( blockSize, gridPosition, new long[ n ] ) );
+				case FLOAT32:
+					return null;
+				//return createArray.apply( new FloatArrayDataBlock( blockSize, gridPosition, new float[ n ] ) );
+				case FLOAT64:
+					return null;
+				//return createArray.apply( new DoubleArrayDataBlock( blockSize, gridPosition, new double[ n ] ) );
+				default:
+					throw new IllegalArgumentException();
+			}
+		}
+	}
+
 	private static class N5OMEZarrCacheArrayLoader< A > implements SimpleCacheArrayLoader< A >
 	{
 		private final N5Reader n5;
 		private final String pathName;
 		private final int timepoint;
 		private final DatasetAttributes attributes;
-		private final Function< DataBlock< ? >, A > createArray;
+		private final ArrayCreator< A > arrayCreator;
 
-		N5OMEZarrCacheArrayLoader( final N5Reader n5, final String pathName, final int timepoint, final DatasetAttributes attributes, final Function< DataBlock< ? >, A > createArray )
+		N5OMEZarrCacheArrayLoader( final N5Reader n5, final String pathName, final int timepoint, final DatasetAttributes attributes, CellGrid grid )
 		{
 			this.n5 = n5;
 			this.pathName = pathName; // includes the level
 			this.timepoint = timepoint;
 			this.attributes = attributes;
-			this.createArray = createArray;
+			this.arrayCreator = new ArrayCreator<>( grid, attributes.getDataType() );
 		}
 
 		@Override
@@ -377,68 +433,26 @@ public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoa
 				System.err.println( e ); // this happens sometimes, not sure yet why...
 			}
 
+			if ( block != null )
+				System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " " + block.getNumElements() );
+			else
+				System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " NaN" );
+
+
 			if ( block == null )
 			{
-				final int[] blockSize = attributes.getBlockSize();
-				final int n = blockSize[ 0 ] * blockSize[ 1 ] * blockSize[ 2 ];
-				switch ( attributes.getDataType() )
-				{
-					case UINT8:
-					case INT8:
-						return createArray.apply( new ByteArrayDataBlock( blockSize, gridPosition, new byte[ n ] ) );
-					case UINT16:
-					case INT16:
-						return createArray.apply( new ShortArrayDataBlock( blockSize, gridPosition, new short[ n ] ) );
-					case UINT32:
-					case INT32:
-						return createArray.apply( new IntArrayDataBlock( blockSize, gridPosition, new int[ n ] ) );
-					case UINT64:
-					case INT64:
-						return createArray.apply( new LongArrayDataBlock( blockSize, gridPosition, new long[ n ] ) );
-					case FLOAT32:
-						return createArray.apply( new FloatArrayDataBlock( blockSize, gridPosition, new float[ n ] ) );
-					case FLOAT64:
-						return createArray.apply( new DoubleArrayDataBlock( blockSize, gridPosition, new double[ n ] ) );
-					default:
-						throw new IllegalArgumentException();
-				}
+				return arrayCreator.createArray( gridPosition );
 			}
 			else
 			{
-				return createArray.apply( block );
+				return arrayCreator.createArray( block, gridPosition );
 			}
 		}
 	}
 
-	public static SimpleCacheArrayLoader< ? > createCacheArrayLoader( final N5Reader n5, final String pathName, int timepointId ) throws IOException
+	public static SimpleCacheArrayLoader< ? > createCacheArrayLoader( final N5Reader n5, final String pathName, int timepointId, CellGrid grid ) throws IOException
 	{
 		final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
-		switch ( attributes.getDataType() )
-		{
-		case UINT8:
-		case INT8:
-			return new N5OMEZarrCacheArrayLoader<>( n5, pathName, timepointId, attributes,
-					dataBlock -> new VolatileByteArray( Cast.unchecked( dataBlock.getData() ), true ) );
-		case UINT16:
-		case INT16:
-			return new N5OMEZarrCacheArrayLoader<>( n5, pathName, timepointId, attributes,
-					dataBlock -> new VolatileShortArray( Cast.unchecked( dataBlock.getData() ), true ) );
-		case UINT32:
-		case INT32:
-			return new N5OMEZarrCacheArrayLoader<>( n5, pathName, timepointId, attributes,
-					dataBlock -> new VolatileIntArray( Cast.unchecked( dataBlock.getData() ), true ) );
-		case UINT64:
-		case INT64:
-			return new N5OMEZarrCacheArrayLoader<>( n5, pathName, timepointId, attributes,
-					dataBlock -> new VolatileLongArray( Cast.unchecked( dataBlock.getData() ), true ) );
-		case FLOAT32:
-			return new N5OMEZarrCacheArrayLoader<>( n5, pathName, timepointId, attributes,
-					dataBlock -> new VolatileFloatArray( Cast.unchecked( dataBlock.getData() ), true ) );
-		case FLOAT64:
-			return new N5OMEZarrCacheArrayLoader<>( n5, pathName, timepointId, attributes,
-					dataBlock -> new VolatileDoubleArray( Cast.unchecked( dataBlock.getData() ), true ) );
-		default:
-			throw new IllegalArgumentException();
-		}
+		return new N5OMEZarrCacheArrayLoader<>( n5, pathName, timepointId, attributes, grid);
 	}
 }
