@@ -39,7 +39,7 @@ import java.io.IOException;
 
 // TODO: avoid code duplication!
 //  this is essentially identical to N5S3ImageLoader
-public class N5S3ZarrImageLoader extends N5ImageLoader
+public class N5S3ZarrImageLoader extends N5ZarrImageLoader
 {
 	private final String serviceEndpoint;
 	private final String signingRegion;
@@ -47,7 +47,7 @@ public class N5S3ZarrImageLoader extends N5ImageLoader
 	private final String key;
 	private final S3Authentication authentication;
 
-	static class N5S3ZarrReaderCreator
+	static class  N5S3ZarrReaderCreator
 	{
 		public N5S3ZarrReader create( String serviceEndpoint, String signingRegion, String bucketName, String key, S3Authentication authentication ) throws IOException
 		{

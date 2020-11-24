@@ -53,7 +53,6 @@ import java.util.HashMap;
  */
 public class N5S3ZarrReader extends N5AmazonS3Reader
 {
-
 	private static final String zarrayFile = N5ZarrReader.zarrayFile;
 	private static final String zattrsFile = N5ZarrReader.zattrsFile;
 	private static final String zgroupFile = N5ZarrReader.zgroupFile;
@@ -80,7 +79,8 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 	 * @param file One of .zarray, .zgroup or .zattrs
 	 * @return
 	 */
-	private String objectFile(final String pathName, String file) {
+	private String objectFile(final String pathName, String file)
+	{
 		StringBuilder sb = new StringBuilder();
 		sb.append(containerPath);
 		String cleaned = removeLeadingSlash(pathName);
@@ -97,8 +97,8 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 	// Methods from N5ZarrReader which could be extracted
 	//
 
-	static private GsonBuilder initGsonBuilder(final GsonBuilder gsonBuilder) {
-
+	static private GsonBuilder initGsonBuilder(final GsonBuilder gsonBuilder)
+	{
 		gsonBuilder.registerTypeAdapter(DType.class, new DType.JsonAdapter());
 		gsonBuilder.registerTypeAdapter(ZarrCompressor.class, ZarrCompressor.jsonAdapter);
 		gsonBuilder.serializeNulls();
@@ -109,7 +109,6 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 	@Override
 	public Version getVersion() throws IOException
 	{
-
 		HashMap< String, JsonElement> meta;
 		meta = readJson(objectFile("", zgroupFile));
 		if (meta == null) {
@@ -139,7 +138,6 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 
 	public ZArrayAttributes getZArraryAttributes(final String pathName) throws IOException
 	{
-
 		final String path = objectFile(pathName, zarrayFile);
 		HashMap< String, JsonElement> attributes = readJson(path);
 
@@ -160,9 +158,8 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 	}
 
 	@Override
-	public DatasetAttributes getDatasetAttributes( final String pathName) throws IOException
+	public DatasetAttributes getDatasetAttributes(final String pathName) throws IOException
 	{
-
 		final ZArrayAttributes zArrayAttributes = getZArraryAttributes(pathName);
 		return zArrayAttributes == null ? null : zArrayAttributes.getDatasetAttributes();
 	}
@@ -170,7 +167,6 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 	@Override
 	public boolean datasetExists(final String pathName) throws IOException
 	{
-
 		final String path = objectFile(pathName, zarrayFile);
 		return readJson(path) != null;
 	}
@@ -182,8 +178,8 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 	 * 		attempt to access
 	 */
 	// @Override
-	public boolean zarrExists(final String pathName) {
-
+	public boolean zarrExists(final String pathName)
+	{
 		try {
 			return groupExists(pathName) || datasetExists(pathName);
 		} catch (final IOException e) {
@@ -198,9 +194,8 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 	 * override attributes with the same key.
 	 */
 	@Override
-	public HashMap< String, JsonElement> getAttributes( final String pathName) throws IOException
+	public HashMap< String, JsonElement> getAttributes(final String pathName) throws IOException
 	{
-
 		final String path = objectFile(pathName, zattrsFile);
 		HashMap< String, JsonElement> attributes = readJson(path);
 
@@ -235,7 +230,6 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 			final ZarrDatasetAttributes datasetAttributes,
 			final long... gridPosition) throws IOException
 	{
-
 		final int[] blockSize = datasetAttributes.getBlockSize();
 		final DType dType = datasetAttributes.getDType();
 
@@ -261,8 +255,8 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 
 	protected static <T extends Type<T>> void copyTransposed(
 			final RandomAccessibleInterval<? extends T> src,
-			final RandomAccessibleInterval<? extends T> dst) {
-
+			final RandomAccessibleInterval<? extends T> dst)
+	{
 		/* transpose */
 		final int n = src.numDimensions();
 		final int[] lut = new int[n];
@@ -282,7 +276,6 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 			final DatasetAttributes datasetAttributes,
 			final long... gridPosition) throws IOException
 	{
-
 		final ZarrDatasetAttributes zarrDatasetAttributes;
 		if (datasetAttributes instanceof ZarrDatasetAttributes)
 			zarrDatasetAttributes = (ZarrDatasetAttributes)datasetAttributes;
@@ -291,7 +284,7 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 
 		final String dataBlockKey =
 				objectFile(pathName,
-				getZarrDataBlockPath(
+					getZarrDataBlockPath(
 						gridPosition,
 						dimensionSeparator,
 						zarrDatasetAttributes.isRowMajor()).toString());
@@ -310,7 +303,6 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 			}
 			throw ase;
 		}
-
 	}
 
 	// CHANGE: remove N5FSReader.list(String) implementation in favor of AWS
@@ -334,8 +326,8 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 	protected static String getZarrDataBlockPath(
 			final long[] gridPosition,
 			final String dimensionSeparator,
-			final boolean isRowMajor) {
-
+			final boolean isRowMajor)
+	{
 		final StringBuilder pathStringBuilder = new StringBuilder();
 		if (isRowMajor) {
 			pathStringBuilder.append(gridPosition[gridPosition.length - 1]);
@@ -366,7 +358,7 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 	 * @return null if the object does not exist, otherwise the loaded attributes.
 	 * @throws IOException
 	 */
-	public HashMap< String, JsonElement> readJson( String objectPath) throws IOException
+	public HashMap< String, JsonElement> readJson(String objectPath) throws IOException
 	{
 		if (!this.s3.doesObjectExist(this.bucketName, objectPath)) {
 			return null;

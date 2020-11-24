@@ -42,7 +42,7 @@ import static mpicbg.spim.data.XmlKeys.IMGLOADER_FORMAT_ATTRIBUTE_NAME;
 
 // TODO: avoid code duplication!
 //  this is essentially identical to XmlIoN5S3ImageLoader
-@ImgLoaderIo( format = "bdv.zarr.s3", type = N5FSImageLoader.class )
+@ImgLoaderIo( format = "ome.zarr.s3", type = N5S3ZarrImageLoader.class )
 public class XmlIoN5S3ZarrImageLoader implements XmlIoBasicImgLoader< N5S3ZarrImageLoader >
 {
 	public static final String SERVICE_ENDPOINT = "ServiceEndpoint";
@@ -55,7 +55,7 @@ public class XmlIoN5S3ZarrImageLoader implements XmlIoBasicImgLoader< N5S3ZarrIm
 	public Element toXml( final N5S3ZarrImageLoader imgLoader, final File basePath )
 	{
 		final Element elem = new Element( "ImageLoader" );
-		elem.setAttribute( IMGLOADER_FORMAT_ATTRIBUTE_NAME, "bdv.zarr.s3" );
+		elem.setAttribute( IMGLOADER_FORMAT_ATTRIBUTE_NAME, "ome.zarr.s3" );
 		elem.setAttribute( "version", "1.0" );
 		elem.setAttribute( SERVICE_ENDPOINT, imgLoader.getServiceEndpoint() );
 		elem.setAttribute( SIGNING_REGION, imgLoader.getSigningRegion() );

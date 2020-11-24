@@ -25,7 +25,7 @@
       <first>0</first>
       <last>0</last>
     </Timepoints>
-    <ImageLoader format="bdv.zarr.s3">
+    <ImageLoader format="ome.zarr.s3">
       <Key>prospr-myosin.ome.zarr</Key>
       <SigningRegion>us-west-2</SigningRegion>
       <ServiceEndpoint>https://s3.embl.de</ServiceEndpoint>
