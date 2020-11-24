@@ -1,13 +1,18 @@
 package de.embl.cba.mobie.dataset;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.utils.JsonUtils;
 import de.embl.cba.tables.FileAndUrlUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DatasetsParser
 {
@@ -49,5 +54,16 @@ public class DatasetsParser
 			datasets.defaultDataset = datasets.datasets.get( 0 );
 			return datasets;
 		}
+	}
+
+	public void datasetsToFile( String path, Datasets datasets ) throws IOException
+	{
+		Gson gson = new GsonBuilder().create();
+		OutputStream outputStream = new FileOutputStream( path );
+		final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8"));
+		writer.setIndent("	");
+		gson.toJson(datasets, Datasets.class, writer);
+		writer.close();
+		outputStream.close();
 	}
 }
