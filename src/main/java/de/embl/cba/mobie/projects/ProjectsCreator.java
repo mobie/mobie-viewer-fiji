@@ -25,7 +25,9 @@ public class ProjectsCreator {
     //    https://github.com/bigdataviewer/bigdataviewer-core/blob/master/src/main/java/bdv/export/n5/WriteSequenceToN5.java
     //    Need an image loader https://javadoc.scijava.org/Fiji/mpicbg/spim/data/generic/sequence/BasicImgLoader.html
     //    I'm curious if it might be easier to just open it in fiji as a virtual stack then run teh plugin....
-
+    // or liek this https://syn.mrc-lmb.cam.ac.uk/acardona/fiji-tutorial/#imglib2-n5
+    //    https://github.com/saalfeldlab/n5-imglib2
+    //    n5 imglib2 looks pretty promising - get it to randomaccessible itnermval then write
     }
 
 
