@@ -42,8 +42,8 @@ import static mpicbg.spim.data.XmlKeys.IMGLOADER_FORMAT_ATTRIBUTE_NAME;
 
 // TODO: avoid code duplication!
 //  this is essentially identical to XmlIoN5S3ImageLoader
-@ImgLoaderIo( format = "ome.zarr.s3", type = N5S3ZarrImageLoader.class )
-public class XmlIoN5S3ZarrImageLoader implements XmlIoBasicImgLoader< N5S3ZarrImageLoader >
+@ImgLoaderIo( format = "ome.zarr.s3", type = N5S3OMEZarrImageLoader.class )
+public class XmlIoN5S3ZarrImageLoader implements XmlIoBasicImgLoader< N5S3OMEZarrImageLoader >
 {
 	public static final String SERVICE_ENDPOINT = "ServiceEndpoint";
 	public static final String SIGNING_REGION = "SigningRegion";
@@ -52,7 +52,7 @@ public class XmlIoN5S3ZarrImageLoader implements XmlIoBasicImgLoader< N5S3ZarrIm
 	public static final String AUTHENTICATION = "Authentication";
 
 	@Override
-	public Element toXml( final N5S3ZarrImageLoader imgLoader, final File basePath )
+	public Element toXml( final N5S3OMEZarrImageLoader imgLoader, final File basePath )
 	{
 		final Element elem = new Element( "ImageLoader" );
 		elem.setAttribute( IMGLOADER_FORMAT_ATTRIBUTE_NAME, "ome.zarr.s3" );
@@ -67,7 +67,7 @@ public class XmlIoN5S3ZarrImageLoader implements XmlIoBasicImgLoader< N5S3ZarrIm
 	}
 
 	@Override
-	public N5S3ZarrImageLoader fromXml( final Element elem, final File basePath, final AbstractSequenceDescription< ?, ?, ? > sequenceDescription )
+	public N5S3OMEZarrImageLoader fromXml( final Element elem, final File basePath, final AbstractSequenceDescription< ?, ?, ? > sequenceDescription )
 	{
 //		final String version = elem.getAttributeValue( "version" );
 
@@ -79,7 +79,7 @@ public class XmlIoN5S3ZarrImageLoader implements XmlIoBasicImgLoader< N5S3ZarrIm
 
 		try
 		{
-			return new N5S3ZarrImageLoader( serviceEndpoint, signingRegion, bucketName, key, authentication, sequenceDescription );
+			return new N5S3OMEZarrImageLoader( serviceEndpoint, signingRegion, bucketName, key, authentication, sequenceDescription );
 		}
 		catch ( IOException e )
 		{

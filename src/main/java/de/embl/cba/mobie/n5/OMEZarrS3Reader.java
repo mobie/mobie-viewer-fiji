@@ -4,7 +4,6 @@ import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
-import de.embl.cba.bdv.utils.BdvUtils;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Cast;
@@ -26,7 +25,7 @@ public class OMEZarrS3Reader
 
 	public SpimData readSpimData( String key ) throws IOException
 	{
-		N5S3ZarrImageLoader imageLoader = new N5S3ZarrImageLoader( serviceEndpoint, signingRegion, bucketName, key, S3Authentication.Anonymous );
+		N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader( serviceEndpoint, signingRegion, bucketName, key, S3Authentication.Anonymous );
 		SpimData spimData = new SpimData( null, Cast.unchecked( imageLoader.getSequenceDescription() ), imageLoader.getViewRegistrations() );
 		return spimData;
 	}

@@ -72,7 +72,7 @@ import java.util.function.BiConsumer;
 
 import static bdv.img.n5.BdvN5Format.*;
 
-public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
+public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 {
 	protected final N5Reader n5;
 	protected AbstractSequenceDescription< ?, ?, ? > seq;
@@ -88,13 +88,13 @@ public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoa
 	private FetcherThreads fetchers;
 	private VolatileGlobalCellCache cache;
 
-	public N5ZarrImageLoader( N5Reader n5Reader, AbstractSequenceDescription< ?, ?, ? > sequenceDescription )
+	public N5OMEZarrImageLoader( N5Reader n5Reader, AbstractSequenceDescription< ?, ?, ? > sequenceDescription )
 	{
 		this.n5 = n5Reader;
 		this.seq = sequenceDescription;
 	}
 
-	public N5ZarrImageLoader( N5Reader n5Reader ) throws IOException
+	public N5OMEZarrImageLoader( N5Reader n5Reader ) throws IOException
 	{
 		this.n5 = n5Reader;
 		fetchSequenceDescription();
@@ -204,7 +204,7 @@ public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoa
 			Channel channel = new Channel( 0 );
 			Angle angle = new Angle( 0 );
 			Illumination illumination = new Illumination( 0 );
-			ViewSetup viewSetup = new ViewSetup( 0, "setup0", dimensions, voxelDimensions, tile, channel, angle, illumination );
+			ViewSetup viewSetup = new ViewSetup( 0, multiScales[ setupId ].name, dimensions, voxelDimensions, tile, channel, angle, illumination );
 			viewSetups.add( viewSetup );
 			seq = new SequenceDescription( timePoints, viewSetups );
 		}

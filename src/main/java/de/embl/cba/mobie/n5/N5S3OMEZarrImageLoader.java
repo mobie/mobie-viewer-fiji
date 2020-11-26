@@ -39,7 +39,7 @@ import java.io.IOException;
 
 // TODO: avoid code duplication!
 //  this is essentially identical to N5S3ImageLoader
-public class N5S3ZarrImageLoader extends N5ZarrImageLoader
+public class N5S3OMEZarrImageLoader extends N5OMEZarrImageLoader
 {
 	private final String serviceEndpoint;
 	private final String signingRegion;
@@ -65,7 +65,7 @@ public class N5S3ZarrImageLoader extends N5ZarrImageLoader
 	}
 
 	// sequenceDescription has been read from xml
-	public N5S3ZarrImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key, S3Authentication authentication, AbstractSequenceDescription< ?, ?, ? > sequenceDescription ) throws IOException
+	public N5S3OMEZarrImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key, S3Authentication authentication, AbstractSequenceDescription< ?, ?, ? > sequenceDescription ) throws IOException
 	{
 		super( new N5S3ZarrReaderCreator().create( serviceEndpoint, signingRegion, bucketName, key, authentication ), sequenceDescription );
 		this.serviceEndpoint = serviceEndpoint;
@@ -76,7 +76,7 @@ public class N5S3ZarrImageLoader extends N5ZarrImageLoader
 	}
 
 	// sequenceDescription will be read from zarr
-	public N5S3ZarrImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key, S3Authentication authentication ) throws IOException
+	public N5S3OMEZarrImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key, S3Authentication authentication ) throws IOException
 	{
 		super( new N5S3ZarrReaderCreator().create( serviceEndpoint, signingRegion, bucketName, key, authentication ) );
 		this.serviceEndpoint = serviceEndpoint;
