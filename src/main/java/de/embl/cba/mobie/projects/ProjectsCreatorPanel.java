@@ -5,18 +5,30 @@ import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BoundedValueDouble;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.mobie.dataset.DatasetsParser;
+import de.embl.cba.mobie.image.ImageProperties;
+import de.embl.cba.mobie.image.MutableImageProperties;
+import de.embl.cba.mobie.ui.command.OpenMoBIEPublishedProjectCommand;
 import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.SwingUtils;
+import de.embl.cba.tables.color.ColoringLuts;
 import ij.Prefs;
 import ij.gui.GenericDialog;
+import net.imagej.ImageJ;
+import org.apache.commons.compress.utils.FileNameUtils;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
+import java.io.FilenameFilter;
+import java.lang.reflect.Field;
+import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+
+// TODO - move some of this to swingutils
 
 public class ProjectsCreatorPanel extends JFrame {
     public static final int TEXT_FIELD_HEIGHT = 20;
@@ -181,5 +193,141 @@ public class ProjectsCreatorPanel extends JFrame {
         comp.setHorizontalTextPosition( SwingConstants.LEFT );
         comp.setAlignmentX( Component.LEFT_ALIGNMENT );
         return comp;
+    }
+
+    private JPanel createComboPanel (JComboBox<String> combo, String label) {
+        final JPanel comboPanel = SwingUtils.horizontalLayoutPanel();
+        setComboBoxDimensions( combo );
+        combo.setPrototypeDisplayValue(MoBIEViewer.PROTOTYPE_DISPLAY_VALUE);
+        comboPanel.add(getJLabel(label));
+        comboPanel.add(combo);
+
+        return comboPanel;
+    }
+
+    private JPanel createTextPanel ( String label ) {
+        return createTextPanel( label, null);
+    }
+
+    private JPanel createListPanel ( String label, JList list ) {
+        final JPanel listPanel = SwingUtils.horizontalLayoutPanel();
+        listPanel.add(getJLabel(label));
+        JScrollPane scroller = new JScrollPane( list );
+        scroller.setPreferredSize( new Dimension(250, 80));
+        listPanel.add(scroller);
+        return listPanel;
+    }
+
+    private JPanel createTextPanel ( String label, NumberFormat format) {
+        final JPanel textPanel = SwingUtils.horizontalLayoutPanel();
+        textPanel.add(getJLabel(label));
+
+        if (format == null) {
+            JTextField textField = new JTextField(20);
+            textPanel.add(textField);
+        } else {
+            JFormattedTextField textField = new JFormattedTextField( format );
+            textField.setFocusLostBehavior( JFormattedTextField.COMMIT_OR_REVERT );
+            textPanel.add(textField);
+        }
+
+        return textPanel;
+    }
+
+
+
+    public void editImagePropertiesDialog( String datasetName, String imageName ) {
+        ImageProperties imageProperties = projectsCreator.getCurrentImages( datasetName ).get( imageName );
+
+        JFrame editImageFrame = new JFrame();
+        editImageFrame.getContentPane().setLayout( new BoxLayout(editImageFrame.getContentPane(), BoxLayout.Y_AXIS ) );
+        editImageFrame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+
+        String[] colorOptions;
+        if ( imageProperties.type.equals("segmentation") ) {
+            colorOptions = new String[] { ColoringLuts.GLASBEY, ColoringLuts.BLUE_WHITE_RED, ColoringLuts.VIRIDIS,
+                    ColoringLuts.ARGB_COLUMN };
+            // TODO - deal with zero transparency
+        } else {
+            // TODO - ideally we'd have a colour picker here
+            colorOptions = new String[] {"white", "randomFromGlasbey"};
+        }
+
+        final JPanel colorComboPanel = createComboPanel( new JComboBox<>( colorOptions ), "color");
+
+        JCheckBox transparent = new JCheckBox("Paint Zero Transparent");
+        transparent.setSelected( false );
+
+        final JPanel colorByColumnPanel = createTextPanel( "colorByColumn" );
+
+        NumberFormat amountFormat = NumberFormat.getNumberInstance();
+        amountFormat.setMaximumFractionDigits(5);
+        final JPanel contrastLimitMin = createTextPanel( "contrast limit min", amountFormat);
+        final JPanel contrastLimitMax = createTextPanel( "contrast limit max", amountFormat);
+        final JPanel valueLimitMin = createTextPanel( "value limit min", amountFormat);
+        final JPanel valueLimitMax = createTextPanel( "value limit max", amountFormat);
+        final JPanel resolution3dView = createTextPanel( "resolution 3d view", amountFormat);
+
+        JPanel tables = null;
+        if ( imageProperties.type.equals("segmentation") ) {
+            File tableFolder = new File(FileAndUrlUtils.combinePath(projectsCreator.getDatasetPath(datasetName), imageProperties.tableFolder) );
+            System.out.println(tableFolder);
+            File[] tableFiles = tableFolder.listFiles(new FilenameFilter() {
+                public boolean accept(File dir, String name) {
+                    return name.toLowerCase().endsWith(".csv") || name.toLowerCase().endsWith(".tsv");
+                }
+            });
+
+            String[] tableNames = new String[tableFiles.length];
+            for (int i = 0; i< tableFiles.length; i++) {
+                tableNames[i] = FileNameUtils.getBaseName( tableFiles[i].getAbsolutePath() );
+            }
+            JList tableList = new JList( tableNames );
+            tableList.setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
+            tableList.setLayoutOrientation( JList.VERTICAL );
+            if ( tableNames.length < 3) {
+                tableList.setVisibleRowCount( tableNames.length );
+            } else {
+                tableList.setVisibleRowCount(3);
+            }
+
+            tables = createListPanel( "tables", tableList);
+        }
+
+        JCheckBox showSelectedSegmentsIn3d = new JCheckBox("Show selected segments in 3d");
+        transparent.setSelected( false );
+
+        JCheckBox showImageIn3d = new JCheckBox("Show image in 3d");
+        transparent.setSelected( false );
+
+        // need numeric entries for contrast limits and valuelimits
+        // public String colorByColumn;
+        // public double[] contrastLimits;
+        // public double[] valueLimits;
+        // public double resolution3dView;
+        // public ArrayList< String > tables;
+        // public ArrayList< Double > selectedLabelIds;
+        // public boolean showSelectedSegmentsIn3d;
+        // public boolean showImageIn3d;
+
+        JPanel editPropertiesPanel = new JPanel();
+        editPropertiesPanel.setLayout( new BoxLayout(editPropertiesPanel, BoxLayout.Y_AXIS) );
+        editPropertiesPanel.add(colorComboPanel);
+        editPropertiesPanel.add(transparent);
+        editPropertiesPanel.add(colorByColumnPanel);
+        editPropertiesPanel.add(contrastLimitMin);
+        editPropertiesPanel.add(contrastLimitMax);
+        editPropertiesPanel.add(valueLimitMin);
+        editPropertiesPanel.add(valueLimitMax);
+        editPropertiesPanel.add(tables);
+        editPropertiesPanel.add(showSelectedSegmentsIn3d);
+        editPropertiesPanel.add(showImageIn3d);
+        editImageFrame.add(editPropertiesPanel);
+
+        editImageFrame.pack();
+        editImageFrame.setVisible( true );
+
+        // TODO - checkbox to make default bookmark
+
     }
 }

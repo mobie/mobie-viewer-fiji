@@ -4,8 +4,10 @@ import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.dataset.DatasetsParser;
 import de.embl.cba.mobie.image.ImageProperties;
 import de.embl.cba.mobie.image.ImagesJsonParser;
+import de.embl.cba.mobie.image.MutableImageProperties;
 import de.embl.cba.mobie.image.Storage;
 import de.embl.cba.tables.FileAndUrlUtils;
+import de.embl.cba.tables.color.ColoringLuts;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,13 +93,22 @@ public class ProjectsCreator {
         }
     }
 
-    private String getDatasetPath ( String datasetName ) {
+    public Map< String, ImageProperties> getCurrentImages( String datasetName ) {
+        updateCurrentImages( datasetName );
+        return currentImages;
+    }
+
+    public String getDatasetPath ( String datasetName ) {
         return FileAndUrlUtils.combinePath(dataLocation.getAbsolutePath(), datasetName);
     }
 
     private String getImagesJsonPath ( String datasetName ) {
         return FileAndUrlUtils.combinePath( dataLocation.getAbsolutePath(), datasetName,
                 "images", "images.json");
+    }
+
+    public String getImagesPath ( String datasetName ) {
+        return FileAndUrlUtils.combinePath( dataLocation.getAbsolutePath(), datasetName, "images");
     }
 
     public void updateCurrentImages( String datasetName ) {
@@ -110,12 +121,23 @@ public class ProjectsCreator {
         }
     }
 
+    private void addDefaultTableForImage ( String imageName, String datasetName ) {
+        File tableFolder = new File( FileAndUrlUtils.combinePath( getDatasetPath( datasetName ), "tables", imageName));
+        if ( !tableFolder.exists() ){
+            tableFolder.mkdirs();
+        }
+        // TODO - calculate bounding box / make default csv
+    }
+
     public void addToImagesJson ( String imageName, String imageType, String datasetName ) {
         updateCurrentImages( datasetName );
         ImageProperties newImageProperties = new ImageProperties();
         newImageProperties.type = imageType;
         if ( imageType.equals("segmentation") ) {
-            newImageProperties.color = "randomFromGlasbey";
+            newImageProperties.color = ColoringLuts.GLASBEY;
+            newImageProperties.tableFolder = "tables/" + imageName;
+            addDefaultTableForImage( imageName, datasetName );
+            // TODO - make default.csv
         } else {
             newImageProperties.color = "white";
         }
