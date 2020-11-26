@@ -54,6 +54,7 @@ import net.imglib2.img.basictypeaccess.volatiles.array.*;
 import net.imglib2.img.cell.CellGrid;
 import net.imglib2.img.cell.CellImg;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.Scale3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.integer.*;
 import net.imglib2.type.numeric.real.DoubleType;
@@ -76,7 +77,7 @@ public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoa
 	protected final N5Reader n5;
 	protected AbstractSequenceDescription< ?, ?, ? > seq;
 	protected ViewRegistrations viewRegistrations;
-	private static boolean debug = true;
+	private static boolean debug = false;
 
 	/**
 	 * Maps setup id to {@link SetupImgLoader}.
@@ -148,29 +149,57 @@ public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoa
 		}
 	}
 
+	class MultiScale
+	{
+		String name;
+		Transform transform;
+		// add more
+	}
+
+	class Transform
+	{
+		String[] axes;
+		double[] scale;
+		double[] translate;
+		String[] units;
+	}
+
 	private void fetchViewRegistrations()
 	{
-		// TODO: Fetch from zarr
-		ArrayList< ViewRegistration > viewRegistrationList = new ArrayList<>();
-		ViewRegistration viewRegistration = new ViewRegistration( 0, 0, new AffineTransform3D() );
-		viewRegistrationList.add( viewRegistration );
-		viewRegistrations = new ViewRegistrations( viewRegistrationList );
+		try
+		{
+			int setupId = 0;
+			final String pathName = getPathName( setupId );
+			MultiScale[] multiScales = n5.getAttribute( pathName, "multiscales", MultiScale[].class );
+			ArrayList< ViewRegistration > viewRegistrationList = new ArrayList<>();
+			AffineTransform3D transform = new AffineTransform3D();
+			double[] scale = multiScales[ setupId ].transform.scale;
+			transform.scale( scale[ 0 ], scale[ 1 ], scale[ 2  ]);
+			ViewRegistration viewRegistration = new ViewRegistration( 0, setupId, transform );
+			viewRegistrationList.add( viewRegistration );
+			viewRegistrations = new ViewRegistrations( viewRegistrationList );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
 	}
 
 	private void fetchSequenceDescription()
 	{
 		try
 		{
-			// TODO: Fetch more information from zarr
 			ArrayList< TimePoint > timePointsList = new ArrayList<>();
 			timePointsList.add( new TimePoint( 0 ) );
 			TimePoints timePoints = new TimePoints( timePointsList );
 
 			ArrayList< ViewSetup > viewSetups = new ArrayList<>();
-			final String pathName = getPathName( 0, 0 ); // only the levels have the data type
-			final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
+			int setupId = 0;
+			final DatasetAttributes attributes = n5.getDatasetAttributes( getPathName( setupId, 0 ) );  // only the levels have the data type
 			FinalDimensions dimensions = new FinalDimensions( attributes.getDimensions() );
-			DefaultVoxelDimensions voxelDimensions = new DefaultVoxelDimensions( 3 );
+			MultiScale[] multiScales = n5.getAttribute( getPathName( setupId ), "multiscales", MultiScale[].class );
+			VoxelDimensions voxelDimensions = new FinalVoxelDimensions( multiScales[ 0 ].transform.units[ 0 ], multiScales[ setupId ].transform.scale );
 			Tile tile = new Tile( 0 );
 			Channel channel = new Channel( 0 );
 			Angle angle = new Angle( 0 );
