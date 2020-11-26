@@ -1,6 +1,8 @@
 package de.embl.cba.mobie.ui.command;
 
 import bdv.ij.ExportImagePlusAsN5PlugIn;
+import de.embl.cba.mobie.projects.ProjectsCreatorPanel;
+import de.embl.cba.tables.FileAndUrlUtils;
 import ij.IJ;
 import ij.ImagePlus;
 import net.imagej.ImageJ;
@@ -34,6 +36,9 @@ public class AddCurrentImageToProject implements Command {
     @Parameter( label = "Image Name" )
     public String imageName;
 
+    @Parameter( label = "Image Type", choices={"image", "segmentation", "mask"} )
+    public String imageType;
+
     @Parameter (label= "Bdv format:", choices={"n5", "h5"}, style="listBox")
     public String bdvFormat;
 
@@ -46,20 +51,28 @@ public class AddCurrentImageToProject implements Command {
     @Override
     public void run()
     {
-        // dialog to name dataset, and create it
-        // dropdown of existing datasets
-        IJ.run("Export Current Image as XML/HDF5",
-                "  export_path=C:/Users/meechan/Documents/testooo.xml");
-        IJ.run("Export Current Image as XML/N5",
-                "  export_path=C:/Users/meechan/Documents/testry.xml");
-        // // Dialog for new name of dataset, or dropdownof existing
-        // String dataset_name = "fluffy";
-        // File dataDirectory = new File( projectLocation, "data");
-        // if ( dataDirectory.exists() ) {
-        //     IJ.run("Export Current Image as XML/N5",
-        //             "  subsampling_factors=[{ {1,1,1} }] n5_chunk_sizes=[{ {64,64,64} }] compression=[raw (no compression)] default export_path=C:/Users/meechan/Documents/testry.xml");
-        // }
-        // IJ.log(projectLocation.toString());
+        ProjectsCreatorPanel projectsCreatorPanel = new ProjectsCreatorPanel( projectLocation );
+
+        String chosenDataset;
+        if (datasetType.equals("new dataset")) {
+            chosenDataset = projectsCreatorPanel.addDatasetDialog();
+        } else {
+            chosenDataset = projectsCreatorPanel.chooseDatasetDialog();
+        }
+
+        if ( chosenDataset != null ) {
+            String xmlPath = FileAndUrlUtils.combinePath(projectLocation.getAbsolutePath(), "data", chosenDataset, "images", "local", imageName + ".xml");
+            if (bdvFormat.equals("n5")) {
+                IJ.run("Export Current Image as XML/N5",
+                        "  export_path=" + xmlPath);
+            } else if ( bdvFormat.equals("h5") ) {
+                IJ.run("Export Current Image as XML/HDF5",
+                        "  export_path=" + xmlPath );
+            }
+
+            // update images.json
+            projectsCreatorPanel.getProjectsCreator().addToImagesJson( imageName, imageType, chosenDataset );
+        }
     }
 
     public static void main(final String... args) {

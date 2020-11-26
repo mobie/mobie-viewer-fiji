@@ -15,6 +15,7 @@ import ij.gui.GenericDialog;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.io.File;
 import java.util.Arrays;
 
 public class ProjectsCreatorPanel extends JFrame {
@@ -25,14 +26,21 @@ public class ProjectsCreatorPanel extends JFrame {
     private JComboBox<String> datasetComboBox;
     private JComboBox<String> imagesComboBox;
 
-    public ProjectsCreatorPanel ( ProjectsCreator projectsCreator ) {
-        this.projectsCreator = projectsCreator;
+    public ProjectsCreatorPanel ( File projectLocation ) {
+        this.projectsCreator = new ProjectsCreator( projectLocation );
         addDatasetPanel();
         addImagesPanel();
         this.getContentPane().setLayout( new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS ) );
-        this.pack();
         this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+    }
+
+    public void showProjectsCreatorPanel() {
+        this.pack();
         this.setVisible( true );
+    }
+
+    public ProjectsCreator getProjectsCreator() {
+        return projectsCreator;
     }
 
     private void addDatasetPanel() {
@@ -40,16 +48,20 @@ public class ProjectsCreatorPanel extends JFrame {
 
         final JButton addButton = getButton("Add");
 
-        datasetComboBox = new JComboBox<>( projectsCreator.getCurrentDatasets() );
-        setComboBoxDimensions(datasetComboBox);
+        createDatasetComboBox();
         addButton.addActionListener(e -> addDatasetDialog());
-        datasetComboBox.setPrototypeDisplayValue(MoBIEViewer.PROTOTYPE_DISPLAY_VALUE);
 
         horizontalLayoutPanel.add(getJLabel("dataset"));
         horizontalLayoutPanel.add(datasetComboBox);
         horizontalLayoutPanel.add(addButton);
 
         this.getContentPane().add(horizontalLayoutPanel);
+    }
+
+    private void createDatasetComboBox() {
+        datasetComboBox = new JComboBox<>( projectsCreator.getCurrentDatasets() );
+        setComboBoxDimensions(datasetComboBox);
+        datasetComboBox.setPrototypeDisplayValue(MoBIEViewer.PROTOTYPE_DISPLAY_VALUE);
     }
 
     private void addImagesPanel() {
@@ -69,7 +81,23 @@ public class ProjectsCreatorPanel extends JFrame {
         this.getContentPane().add(horizontalLayoutPanel);
     }
 
-    private void addDatasetDialog () {
+    public String chooseDatasetDialog() {
+        final GenericDialog gd = new GenericDialog( "Choose a dataset" );
+        String[] currentDatasets = projectsCreator.getCurrentDatasets();
+        gd.addChoice("Dataset", currentDatasets, currentDatasets[0]);
+        gd.showDialog();
+
+        if ( !gd.wasCanceled() ) {
+            return gd.getNextChoice();
+
+        } else {
+            return null;
+        }
+
+
+    }
+
+    public String addDatasetDialog () {
         final GenericDialog gd = new GenericDialog( "Create a new dataset" );
 
         gd.addStringField( "Name of dataset", "");
@@ -84,6 +112,10 @@ public class ProjectsCreatorPanel extends JFrame {
                 updateDatasetsComboBox();
             }
 
+            return datasetName;
+
+        } else {
+            return null;
         }
     }
 
@@ -119,9 +151,11 @@ public class ProjectsCreatorPanel extends JFrame {
     }
 
     private void updateDatasetsComboBox () {
-        datasetComboBox.removeAllItems();
-        for (String datasetName : projectsCreator.getCurrentDatasets() ) {
-            datasetComboBox.addItem(datasetName);
+        if ( datasetComboBox != null ) {
+            datasetComboBox.removeAllItems();
+            for (String datasetName : projectsCreator.getCurrentDatasets()) {
+                datasetComboBox.addItem(datasetName);
+            }
         }
     }
 

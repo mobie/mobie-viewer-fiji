@@ -2,21 +2,26 @@ package de.embl.cba.mobie.projects;
 
 import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.dataset.DatasetsParser;
+import de.embl.cba.mobie.image.ImageProperties;
+import de.embl.cba.mobie.image.ImagesJsonParser;
+import de.embl.cba.mobie.image.Storage;
 import de.embl.cba.tables.FileAndUrlUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProjectsCreator {
     private final File projectLocation;
     private final File dataLocation;
     private Datasets currentDatasets;
+    private Map< String, ImageProperties> currentImages;
 
     public ProjectsCreator ( File projectLocation ) {
         this.projectLocation = projectLocation;
         this.dataLocation = new File( projectLocation, "data");
-        new ProjectsCreatorPanel( this );
     }
 
     public void addImage ( String imagePath, String imageName, String datasetName, String bdvFormat,
@@ -33,6 +38,8 @@ public class ProjectsCreator {
 
     public void addDataset ( String name ) {
         File datasetDir = new File ( dataLocation, name );
+        updateCurrentDatasets();
+
         if ( !datasetDir.exists() ) {
             datasetDir.mkdirs();
 
@@ -61,21 +68,72 @@ public class ProjectsCreator {
 
     }
 
-    public String[] getCurrentDatasets () {
+    public void updateCurrentDatasets() {
         File datasetJSON = new File( dataLocation, "datasets.json");
 
         if ( datasetJSON.exists() ) {
             currentDatasets = new DatasetsParser().fetchProjectDatasets(dataLocation.getAbsolutePath());
-            ArrayList<String> datasetNames = currentDatasets.datasets;
+        } else {
+            currentDatasets = new Datasets();
+            currentDatasets.datasets = new ArrayList<>();
+        }
+    }
 
+    public String[] getCurrentDatasets () {
+        updateCurrentDatasets();
+        if ( currentDatasets.datasets.size() > 0 ) {
+            ArrayList<String> datasetNames = currentDatasets.datasets;
             String[] datasetNamesArray = new String[datasetNames.size()];
             datasetNames.toArray( datasetNamesArray );
             return datasetNamesArray;
         } else {
-            currentDatasets = new Datasets();
-            currentDatasets.datasets = new ArrayList<>();
             return new String[] {""};
         }
+    }
+
+    private String getDatasetPath ( String datasetName ) {
+        return FileAndUrlUtils.combinePath(dataLocation.getAbsolutePath(), datasetName);
+    }
+
+    private String getImagesJsonPath ( String datasetName ) {
+        return FileAndUrlUtils.combinePath( dataLocation.getAbsolutePath(), datasetName,
+                "images", "images.json");
+    }
+
+    public void updateCurrentImages( String datasetName ) {
+        File imagesJSON = new File( getImagesJsonPath( datasetName ) );
+
+        if ( imagesJSON.exists() ) {
+            currentImages = new ImagesJsonParser( getDatasetPath( datasetName ) ).getImagePropertiesMap();
+        } else {
+            currentImages = new HashMap<>();
+        }
+    }
+
+    public void addToImagesJson ( String imageName, String imageType, String datasetName ) {
+        updateCurrentImages( datasetName );
+        ImageProperties newImageProperties = new ImageProperties();
+        newImageProperties.type = imageType;
+        if ( imageType.equals("segmentation") ) {
+            newImageProperties.color = "randomFromGlasbey";
+        } else {
+            newImageProperties.color = "white";
+        }
+
+        newImageProperties.contrastLimits = new double[] {0, 255};
+
+        Storage storage = new Storage();
+        storage.local = "local/" + imageName + ".xml";
+        newImageProperties.storage = storage;
+
+        currentImages.put( imageName, newImageProperties);
+
+        writeImagesJson( datasetName );
+    }
+
+    public void writeImagesJson ( String datasetName ) {
+        new ImagesJsonParser( getDatasetPath( datasetName) ).writeImagePropertiesMap( getImagesJsonPath( datasetName),
+                currentImages);
     }
 
 
