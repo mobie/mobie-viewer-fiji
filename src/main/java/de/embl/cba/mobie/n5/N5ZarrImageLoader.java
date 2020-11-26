@@ -40,9 +40,9 @@ import com.amazonaws.SdkClientException;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.generic.sequence.ImgLoaderHint;
-import mpicbg.spim.data.sequence.MultiResolutionImgLoader;
-import mpicbg.spim.data.sequence.MultiResolutionSetupImgLoader;
-import mpicbg.spim.data.sequence.VoxelDimensions;
+import mpicbg.spim.data.registration.ViewRegistration;
+import mpicbg.spim.data.registration.ViewRegistrations;
+import mpicbg.spim.data.sequence.*;
 import net.imglib2.*;
 import net.imglib2.cache.queue.BlockingFetchQueues;
 import net.imglib2.cache.queue.FetcherThreads;
@@ -65,10 +65,7 @@ import org.janelia.saalfeldlab.n5.*;
 import org.janelia.saalfeldlab.n5.imglib2.N5CellLoader;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 
@@ -77,7 +74,9 @@ import static bdv.img.n5.BdvN5Format.*;
 public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 {
 	protected final N5Reader n5;
-	protected final AbstractSequenceDescription< ?, ?, ? > seq;
+	protected AbstractSequenceDescription< ?, ?, ? > seq;
+	protected ViewRegistrations viewRegistrations;
+	private static boolean debug = true;
 
 	/**
 	 * Maps setup id to {@link SetupImgLoader}.
@@ -92,6 +91,25 @@ public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoa
 	{
 		this.n5 = n5Reader;
 		this.seq = sequenceDescription;
+	}
+
+	public N5ZarrImageLoader( N5Reader n5Reader ) throws IOException
+	{
+		this.n5 = n5Reader;
+		fetchSequenceDescription();
+		fetchViewRegistrations();
+	}
+
+	public AbstractSequenceDescription< ?, ?, ? > getSequenceDescription()
+	{
+		//open();
+		seq.setImgLoader( Cast.unchecked( this ) );
+		return seq;
+	}
+
+	public ViewRegistrations getViewRegistrations()
+	{
+		return viewRegistrations;
 	}
 
 	private void open()
@@ -127,6 +145,44 @@ public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoa
 
 				isOpen = true;
 			}
+		}
+	}
+
+	private void fetchViewRegistrations()
+	{
+		// TODO: Fetch from zarr
+		ArrayList< ViewRegistration > viewRegistrationList = new ArrayList<>();
+		ViewRegistration viewRegistration = new ViewRegistration( 0, 0, new AffineTransform3D() );
+		viewRegistrationList.add( viewRegistration );
+		viewRegistrations = new ViewRegistrations( viewRegistrationList );
+	}
+
+	private void fetchSequenceDescription()
+	{
+		try
+		{
+			// TODO: Fetch more information from zarr
+			ArrayList< TimePoint > timePointsList = new ArrayList<>();
+			timePointsList.add( new TimePoint( 0 ) );
+			TimePoints timePoints = new TimePoints( timePointsList );
+
+			ArrayList< ViewSetup > viewSetups = new ArrayList<>();
+			final String pathName = getPathName( 0, 0 ); // only the levels have the data type
+			final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
+			FinalDimensions dimensions = new FinalDimensions( attributes.getDimensions() );
+			DefaultVoxelDimensions voxelDimensions = new DefaultVoxelDimensions( 3 );
+			Tile tile = new Tile( 0 );
+			Channel channel = new Channel( 0 );
+			Angle angle = new Angle( 0 );
+			Illumination illumination = new Illumination( 0 );
+			ViewSetup viewSetup = new ViewSetup( 0, "setup0", dimensions, voxelDimensions, tile, channel, angle, illumination );
+			viewSetups.add( viewSetup );
+			seq = new SequenceDescription( timePoints, viewSetups );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
 		}
 	}
 
@@ -467,11 +523,13 @@ public class N5ZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoa
 				System.err.println( e ); // this happens sometimes, not sure yet why...
 			}
 
-			if ( block != null )
-				System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " " + block.getNumElements() );
-			else
-				System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " NaN" );
-
+			if ( debug )
+			{
+				if ( block != null )
+					System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " " + block.getNumElements() );
+				else
+					System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " NaN" );
+			}
 
 			if ( block == null )
 			{
