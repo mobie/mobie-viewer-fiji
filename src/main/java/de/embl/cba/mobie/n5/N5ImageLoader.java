@@ -62,6 +62,7 @@ import net.imglib2.view.Views;
 import org.janelia.saalfeldlab.n5.*;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -234,7 +235,8 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 			{
 				final String pathName = getPathName( setupId, timepointId, level );
 				final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
-				return new FinalDimensions( attributes.getDimensions() );
+				FinalDimensions dimensions = new FinalDimensions( attributes.getDimensions() );
+				return dimensions;
 			}
 			catch( Exception e )
 			{
@@ -324,6 +326,12 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 			{
 				System.err.println( e ); // this happens sometimes, not sure yet why...
 			}
+
+			if ( block != null )
+				System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " " + block.getNumElements() );
+			else
+				System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " NaN" );
+
 
 			if ( block == null )
 			{

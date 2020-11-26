@@ -1,0 +1,43 @@
+<SpimData version="0.2">
+  <BasePath type="relative">.</BasePath>
+  <SequenceDescription>
+    <ViewSetups>
+      <Attributes name="channel">
+        <Channel>
+          <id>0</id>
+          <name>0</name>
+        </Channel>
+      </Attributes>
+      <ViewSetup>
+        <id>0</id>
+        <name>Setup0</name>
+        <size>500 471 519</size>
+        <voxelSize>
+          <unit>micrometer</unit>
+          <size>0.55 0.55 0.55</size>
+        </voxelSize>
+        <attributes>
+          <channel>0</channel>
+        </attributes>
+      </ViewSetup>
+    </ViewSetups>
+    <Timepoints type="range">
+      <first>0</first>
+      <last>0</last>
+    </Timepoints>
+    <ImageLoader format="bdv.n5.s3">
+      <Key>0.6.3/images/remote/prospr-6dpf-1-whole-mhcl4.n5</Key>
+      <SigningRegion>us-west-2</SigningRegion>
+      <ServiceEndpoint>https://s3.embl.de</ServiceEndpoint>
+      <BucketName>platybrowser</BucketName>
+      <Authentication>Anonymous</Authentication>
+    </ImageLoader>
+  </SequenceDescription>
+  <ViewRegistrations>
+    <ViewRegistration setup="0" timepoint="0">
+      <ViewTransform type="affine">
+        <affine>0.55 0.0 0.0 0.0 0.0 0.55 0.0 0.0 0.0 0.0 0.55 0.0</affine>
+      </ViewTransform>
+    </ViewRegistration>
+  </ViewRegistrations>
+</SpimData>
