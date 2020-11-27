@@ -12,18 +12,23 @@ import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.SwingUtils;
+import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringLuts;
+import de.embl.cba.tables.image.SourceAndMetadata;
 import ij.Prefs;
 import ij.gui.GenericDialog;
 import net.imagej.ImageJ;
+import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.compress.utils.FileNameUtils;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.lang.reflect.Field;
+import java.text.Format;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -205,6 +210,13 @@ public class ProjectsCreatorPanel extends JFrame {
         return comboPanel;
     }
 
+    private JPanel createComboPanel (JComboBox<String> combo, String label, JButton button) {
+        JPanel comboPanel = createComboPanel( combo, label );
+        comboPanel.add( button );
+
+        return comboPanel;
+    }
+
     private JPanel createTextPanel ( String label ) {
         return createTextPanel( label, null);
     }
@@ -218,7 +230,7 @@ public class ProjectsCreatorPanel extends JFrame {
         return listPanel;
     }
 
-    private JPanel createTextPanel ( String label, NumberFormat format) {
+    private JPanel createTextPanel ( String label, Format format) {
         final JPanel textPanel = SwingUtils.horizontalLayoutPanel();
         textPanel.add(getJLabel(label));
 
@@ -234,26 +246,66 @@ public class ProjectsCreatorPanel extends JFrame {
         return textPanel;
     }
 
+    // TODO - there must be a way to collapse this with the one above
+    private JPanel createTextPanel ( String label, MaskFormatter format, boolean aah) {
+        final JPanel textPanel = SwingUtils.horizontalLayoutPanel();
+        textPanel.add(getJLabel(label));
+
+        if (format == null) {
+            JTextField textField = new JTextField(20);
+            textPanel.add(textField);
+        } else {
+            JFormattedTextField textField = new JFormattedTextField( format );
+            textField.setFocusLostBehavior( JFormattedTextField.COMMIT_OR_REVERT );
+            textPanel.add(textField);
+        }
+
+        return textPanel;
+    }
+
+    private JButton createColorButton( JComboBox<String> colorCombo )
+    {
+        JButton colorButton;
+        colorButton = new JButton( "other color" );
+
+        colorButton.addActionListener( e -> {
+            Color color = JColorChooser.showDialog( null, "", null );
+
+            if ( color == null ) return;
+
+            ARGBType colorARGB = ColorUtils.getARGBType( color );
+            colorCombo.addItem( colorARGB.toString() );
+            colorCombo.setSelectedItem( colorARGB.toString() );
+
+        } );
+
+        return colorButton;
+    }
+
 
 
     public void editImagePropertiesDialog( String datasetName, String imageName ) {
+        // TODO - only show ones relevant for that image type
         ImageProperties imageProperties = projectsCreator.getCurrentImages( datasetName ).get( imageName );
 
         JFrame editImageFrame = new JFrame();
         editImageFrame.getContentPane().setLayout( new BoxLayout(editImageFrame.getContentPane(), BoxLayout.Y_AXIS ) );
         editImageFrame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
-        String[] colorOptions;
+        JPanel colorComboPanel;
         if ( imageProperties.type.equals("segmentation") ) {
-            colorOptions = new String[] { ColoringLuts.GLASBEY, ColoringLuts.BLUE_WHITE_RED, ColoringLuts.VIRIDIS,
+            String[] colorOptions = new String[] { ColoringLuts.GLASBEY, ColoringLuts.BLUE_WHITE_RED, ColoringLuts.VIRIDIS,
                     ColoringLuts.ARGB_COLUMN };
+            colorComboPanel = createComboPanel( new JComboBox<>( colorOptions ), "color");
             // TODO - deal with zero transparency
         } else {
-            // TODO - ideally we'd have a colour picker here
-            colorOptions = new String[] {"white", "randomFromGlasbey"};
+            String[] colorOptions = new String[] {"white", "randomFromGlasbey"};
+            JComboBox<String> colorCombo = new JComboBox<>( colorOptions );
+            JButton otherColorButton = createColorButton( colorCombo );
+            colorComboPanel = createComboPanel( colorCombo, "color", otherColorButton );
         }
 
-        final JPanel colorComboPanel = createComboPanel( new JComboBox<>( colorOptions ), "color");
+
 
         JCheckBox transparent = new JCheckBox("Paint Zero Transparent");
         transparent.setSelected( false );
@@ -269,6 +321,7 @@ public class ProjectsCreatorPanel extends JFrame {
         final JPanel resolution3dView = createTextPanel( "resolution 3d view", amountFormat);
 
         JPanel tables = null;
+        //TODO - remove default table, prehaps only show if there is more than one table here
         if ( imageProperties.type.equals("segmentation") ) {
             File tableFolder = new File(FileAndUrlUtils.combinePath(projectsCreator.getDatasetPath(datasetName), imageProperties.tableFolder) );
             System.out.println(tableFolder);
@@ -294,6 +347,10 @@ public class ProjectsCreatorPanel extends JFrame {
             tables = createListPanel( "tables", tableList);
         }
 
+        // TODO - how to restrict to a list of comma separated values??????
+        JPanel selectedLabelIDs = createTextPanel( "selected label ids", amountFormat);
+
+
         JCheckBox showSelectedSegmentsIn3d = new JCheckBox("Show selected segments in 3d");
         transparent.setSelected( false );
 
@@ -313,14 +370,22 @@ public class ProjectsCreatorPanel extends JFrame {
         JPanel editPropertiesPanel = new JPanel();
         editPropertiesPanel.setLayout( new BoxLayout(editPropertiesPanel, BoxLayout.Y_AXIS) );
         editPropertiesPanel.add(colorComboPanel);
-        editPropertiesPanel.add(transparent);
-        editPropertiesPanel.add(colorByColumnPanel);
+        if ( imageProperties.type.equals("segmentation")) {
+            editPropertiesPanel.add(transparent);
+            editPropertiesPanel.add(colorByColumnPanel);
+        }
         editPropertiesPanel.add(contrastLimitMin);
         editPropertiesPanel.add(contrastLimitMax);
-        editPropertiesPanel.add(valueLimitMin);
-        editPropertiesPanel.add(valueLimitMax);
-        editPropertiesPanel.add(tables);
-        editPropertiesPanel.add(showSelectedSegmentsIn3d);
+        if ( imageProperties.type.equals("segmentation")) {
+            editPropertiesPanel.add(valueLimitMin);
+            editPropertiesPanel.add(valueLimitMax);
+            editPropertiesPanel.add(tables);
+            editPropertiesPanel.add(selectedLabelIDs);
+        }
+        editPropertiesPanel.add(resolution3dView);
+        if ( imageProperties.type.equals("segmentation")) {
+            editPropertiesPanel.add(showSelectedSegmentsIn3d);
+        }
         editPropertiesPanel.add(showImageIn3d);
         editImageFrame.add(editPropertiesPanel);
 
