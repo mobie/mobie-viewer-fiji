@@ -147,7 +147,7 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 		}
 
 		return new ZArrayAttributes(
-				attributes.get("zarr_format").getAsInt(),
+				attributes.get( "zarr_format" ).getAsInt(),
 				gson.fromJson(attributes.get("shape"), long[].class),
 				gson.fromJson(attributes.get("chunks"), int[].class),
 				gson.fromJson(attributes.get("dtype"), DType.class),

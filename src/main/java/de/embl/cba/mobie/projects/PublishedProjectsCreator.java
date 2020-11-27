@@ -4,7 +4,6 @@ import java.util.HashMap;
 
 public class PublishedProjectsCreator
 {
-
 	private final HashMap< String, PublishedProject > publishedProjects;
 
 	public PublishedProjectsCreator()

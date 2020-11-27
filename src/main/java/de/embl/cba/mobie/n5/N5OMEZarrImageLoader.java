@@ -54,7 +54,6 @@ import net.imglib2.img.basictypeaccess.volatiles.array.*;
 import net.imglib2.img.cell.CellGrid;
 import net.imglib2.img.cell.CellImg;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.Scale3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.integer.*;
 import net.imglib2.type.numeric.real.DoubleType;
@@ -64,6 +63,7 @@ import net.imglib2.util.Cast;
 import net.imglib2.view.Views;
 import org.janelia.saalfeldlab.n5.*;
 import org.janelia.saalfeldlab.n5.imglib2.N5CellLoader;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.*;
@@ -87,6 +87,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	private volatile boolean isOpen = false;
 	private FetcherThreads fetchers;
 	private VolatileGlobalCellCache cache;
+	private Map< Integer, String > setupPathnames = new HashMap<>(  );
 
 	public N5OMEZarrImageLoader( N5Reader n5Reader, AbstractSequenceDescription< ?, ?, ? > sequenceDescription )
 	{
@@ -149,11 +150,16 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		}
 	}
 
-	class MultiScale
+	class Multiscale
 	{
 		String name;
 		Transform transform;
-		// add more
+		Dataset[] datasets;
+	}
+
+	class Dataset
+	{
+		String path;
 	}
 
 	class Transform
@@ -168,16 +174,12 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	{
 		try
 		{
-			int setupId = 0;
-			final String pathName = getPathName( setupId );
-			MultiScale[] multiScales = n5.getAttribute( pathName, "multiscales", MultiScale[].class );
 			ArrayList< ViewRegistration > viewRegistrationList = new ArrayList<>();
-			AffineTransform3D transform = new AffineTransform3D();
-			double[] scale = multiScales[ setupId ].transform.scale;
-			transform.scale( scale[ 0 ], scale[ 1 ], scale[ 2  ]);
-			ViewRegistration viewRegistration = new ViewRegistration( 0, setupId, transform );
-			viewRegistrationList.add( viewRegistration );
+			int setupId = 0;
+			viewRegistrationList.add( getViewRegistration( setupId, false, null ) );
+			addLabelImagesViewRegistration( viewRegistrationList, ++setupId );
 			viewRegistrations = new ViewRegistrations( viewRegistrationList );
+
 		}
 		catch ( IOException e )
 		{
@@ -186,32 +188,84 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		}
 	}
 
+	private void addLabelImagesViewRegistration( ArrayList< ViewRegistration > viewRegistrationList, int setupId ) throws IOException
+	{
+		List< String > labels = n5.getAttribute( getLabelsPathName( setupId ), "labels", List.class );
+		if ( labels != null)
+		{
+			String labelImage = labels.get( 0 );
+			viewRegistrationList.add( getViewRegistration( setupId, true, labelImage ) );
+		}
+	}
+
+	@NotNull
+	private ViewRegistration getViewRegistration( int setupId, boolean isLabelImage, String labelImage ) throws IOException
+	{
+		String pathName = getPathName( setupId );
+
+		if ( isLabelImage )
+			pathName = getLabelImagePathName( setupId, labelImage );
+
+		Multiscale[] multiscales = n5.getAttribute( pathName, "multiscales", Multiscale[].class );
+		AffineTransform3D transform = new AffineTransform3D();
+		double[] scale = multiscales[ 0 ].transform.scale;
+		transform.scale( scale[ 0 ], scale[ 1 ], scale[ 2  ]);
+		ViewRegistration viewRegistration = new ViewRegistration( 0, setupId, transform );
+
+		return viewRegistration;
+	}
+
+	// TODO: fetch sequenceDescription and viewSetup in one function
 	private void fetchSequenceDescription()
 	{
 		try
 		{
-			ArrayList< TimePoint > timePointsList = new ArrayList<>();
-			timePointsList.add( new TimePoint( 0 ) );
-			TimePoints timePoints = new TimePoints( timePointsList );
+			ArrayList< TimePoint > timePoints = new ArrayList<>();
+			timePoints.add( new TimePoint( 0 ) );
 
 			ArrayList< ViewSetup > viewSetups = new ArrayList<>();
 			int setupId = 0;
-			final DatasetAttributes attributes = n5.getDatasetAttributes( getPathName( setupId, 0 ) );  // only the levels have the data type
-			FinalDimensions dimensions = new FinalDimensions( attributes.getDimensions() );
-			MultiScale[] multiScales = n5.getAttribute( getPathName( setupId ), "multiscales", MultiScale[].class );
-			VoxelDimensions voxelDimensions = new FinalVoxelDimensions( multiScales[ 0 ].transform.units[ 0 ], multiScales[ setupId ].transform.scale );
-			Tile tile = new Tile( 0 );
-			Channel channel = new Channel( 0 );
-			Angle angle = new Angle( 0 );
-			Illumination illumination = new Illumination( 0 );
-			ViewSetup viewSetup = new ViewSetup( 0, multiScales[ setupId ].name, dimensions, voxelDimensions, tile, channel, angle, illumination );
+			ViewSetup viewSetup = getViewSetup( setupId, false, null );
 			viewSetups.add( viewSetup );
-			seq = new SequenceDescription( timePoints, viewSetups );
+			addLabelImagesViewSetup( viewSetups, ++setupId );
+
+			seq = new SequenceDescription( new TimePoints( timePoints ), viewSetups );
 		}
 		catch ( IOException e )
 		{
 			e.printStackTrace();
 			throw new RuntimeException( e );
+		}
+	}
+
+
+	@NotNull
+	private ViewSetup getViewSetup( int setupId, boolean isLabelImage, String labelImage ) throws IOException
+	{
+		String pathName = isLabelImage ? getLabelImagePathName( setupId, 0 ,labelImage ) : getPathName( setupId, 0 );
+		final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );  // only the levels have the data type
+		FinalDimensions dimensions = new FinalDimensions( attributes.getDimensions() );
+
+		pathName = isLabelImage ? getLabelImagePathName( setupId, labelImage ) : getPathName( setupId );
+		setupPathnames.put( setupId, pathName );
+		Multiscale[] multiscales = n5.getAttribute( pathName, "multiscales", Multiscale[].class );
+		VoxelDimensions voxelDimensions = new FinalVoxelDimensions( multiscales[ 0 ].transform.units[ 0 ], multiscales[ 0 ].transform.scale );
+		Tile tile = new Tile( 0 );
+		Channel channel = new Channel( 0 );
+		Angle angle = new Angle( 0 );
+		Illumination illumination = new Illumination( 0 );
+		ViewSetup viewSetup = new ViewSetup( setupId, multiscales[ 0 ].name, dimensions, voxelDimensions, tile, channel, angle, illumination );
+
+		return viewSetup;
+	}
+
+	private void addLabelImagesViewSetup( ArrayList< ViewSetup > viewSetups, int setupId ) throws IOException
+	{
+		List< String > labels = n5.getAttribute( getLabelsPathName( setupId ), "labels", List.class );
+		if ( labels != null)
+		{
+			String labelImage = labels.get( 0 );
+			viewSetups.add( getViewSetup( setupId, true, labelImage ) );
 		}
 	}
 
@@ -242,8 +296,28 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		return "";
 	}
 
+	private String getLabelsPathName( int setupId )
+	{
+		return "labels";
+	}
+
+	private String getLabelImagePathName( int setupId, String image )
+	{
+		return "labels/" + image;
+	}
+
+	private String getLabelImagePathName( int setupId, int level, String image )
+	{
+		return getLabelImagePathName( setupId, image ) + String.format( "/s%d", level );
+	}
+
 	// TODO
 	private String getPathName( int setupId, int level )
+	{
+		return String.format( "s%d", level );
+	}
+
+	private String getLevelName( int level )
 	{
 		return String.format( "s%d", level );
 	}
@@ -257,7 +331,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 
 	private < T extends NativeType< T >, V extends Volatile< T > & NativeType< V > > SetupImgLoader< T, V > createSetupImgLoader( final int setupId ) throws IOException
 	{
-		final String pathName = getPathName( setupId, 0 ); // only the levels have the data type
+		final String pathName = setupPathnames.get( setupId ) + "/s0"; // only the levels have the data type
 
 		final DataType dataType = n5.getAttribute( pathName, DATA_TYPE_KEY, DataType.class );
 
@@ -323,7 +397,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		 */
 		private double[][] fetchMipmapResolutions() throws IOException
 		{
-			final String pathName = getPathName( setupId );
+			final String pathName = setupPathnames.get( setupId );
 			List< Map< String, Object > > multiscales = n5.getAttribute( pathName, "multiscales", List.class );
 			Map< String, Object > multiscale = multiscales.get(0);
 			if ( ! multiscale.get("version").equals( "0.1" ) )
@@ -359,7 +433,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		{
 			try
 			{
-				final String pathName = getPathName( setupId, level );
+				final String pathName = setupPathnames.get( setupId ) + "/" + getLevelName( level );
 				final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
 				return new FinalDimensions( attributes.getDimensions() );
 			}
@@ -401,7 +475,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			try
 			{
 				// https://github.com/glencoesoftware/bioformats2raw/blob/master/src/test/java/com/glencoesoftware/bioformats2raw/test/ZarrTest.java#L554
-				final String pathName = getPathName( setupId, level );
+				final String pathName = setupPathnames.get( setupId ) + "/" + getLevelName( level );
 				final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
 				// ome.zarr is 5D but BDV expects 3D
 				final long[] dimensions = Arrays.stream( attributes.getDimensions() ).limit( 3 ).toArray();
@@ -462,8 +536,9 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 					//return createArray.apply( new IntArrayDataBlock( blockSize, gridPosition, new int[ n ] ) );
 				case UINT64:
 				case INT64:
-					return null;
-					//return createArray.apply( new LongArrayDataBlock( blockSize, gridPosition, new long[ n ] ) );
+					long[] longs = new long[ n ];
+					copyFromBlock.accept( Cast.unchecked( ArrayImgs.longs( longs, cellDims ) ), dataBlock );
+					return ( A ) new VolatileLongArray( longs , true );
 				case FLOAT32:
 					return null;
 					//return createArray.apply( new FloatArrayDataBlock( blockSize, gridPosition, new float[ n ] ) );
@@ -493,7 +568,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 					//return createArray.apply( new IntArrayDataBlock( blockSize, gridPosition, new int[ n ] ) );
 				case UINT64:
 				case INT64:
-					return null;
+					return Cast.unchecked( new VolatileLongArray( new long[ n ], true ) );
 					//return createArray.apply( new LongArrayDataBlock( blockSize, gridPosition, new long[ n ] ) );
 				case FLOAT32:
 					return null;
