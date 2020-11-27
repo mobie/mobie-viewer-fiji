@@ -1,5 +1,6 @@
 package de.embl.cba.mobie.ui.command;
 
+import de.embl.cba.mobie.image.ImagePropertiesEditor;
 import de.embl.cba.mobie.projects.ProjectsCreator;
 import de.embl.cba.mobie.projects.ProjectsCreatorPanel;
 import de.embl.cba.mobie.ui.viewer.MoBIEOptions;
@@ -30,7 +31,7 @@ public class EditMoBIEProjectCommand implements Command
 
         ProjectsCreatorPanel panel = new ProjectsCreatorPanel( new File("C:\\Users\\meechan\\Documents\\temp\\mobie_test\\ruse" ));
         // TODO - populate dialog from existing properites
-        panel.editImagePropertiesDialog( "eldeer", "blah");
+        new ImagePropertiesEditor( "eldeer", "blah", panel.getProjectsCreator());
 
 
         // final MoBIEViewer moBIEViewer = new MoBIEViewer(
