@@ -18,6 +18,7 @@ import de.embl.cba.tables.image.SourceAndMetadata;
 import ij.Prefs;
 import ij.gui.GenericDialog;
 import net.imagej.ImageJ;
+import net.imglib2.ops.parse.token.Int;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.lang.WordUtils;
@@ -35,6 +36,7 @@ import java.text.Format;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 // TODO - move some of this to swingutils
 
@@ -238,11 +240,7 @@ public class ProjectsCreatorPanel extends JFrame {
     }
 
     private JPanel createTextPanel ( String label ) {
-        return createTextPanel( label, null, null);
-    }
-
-    private JPanel createTextPanel ( String label, String defaultText ) {
-        return createTextPanel( label, null, defaultText);
+        return createTextPanel( label, null );
     }
 
     private JPanel createListPanel ( String label, JList list ) {
@@ -254,29 +252,39 @@ public class ProjectsCreatorPanel extends JFrame {
         return listPanel;
     }
 
-    private JPanel createTextPanel ( String label, Format format, String defaultText) {
+    private JPanel createTextPanel ( String label, String defaultValue) {
         final JPanel textPanel = SwingUtils.horizontalLayoutPanel();
         textPanel.add(getJLabel(label));
 
-        if (format == null) {
-            JTextField textField;
-            if ( defaultText == null ) {
-                textField = new JTextField(20);
-            } else {
-                textField = new JTextField( defaultText, 20);
-            }
-            textPanel.add(textField);
+        JTextField textField;
+        if ( defaultValue == null ) {
+            textField = new JTextField(20);
         } else {
-            JFormattedTextField textField = new JFormattedTextField(format);
-            if ( defaultText != null ) {
-                textField.setValue( defaultText );
-            }
-            textField.setFocusLostBehavior( JFormattedTextField.COMMIT_OR_REVERT );
-            textPanel.add(textField);
+            textField = new JTextField( defaultValue, 20);
         }
+        textPanel.add(textField);
 
         return textPanel;
     }
+
+    // private JPanel createNumberPanel (String label, Format format) {
+    //     return createNumberPanel( label, format, "");
+    // }
+
+    private JPanel createNumberPanel ( String label, Format format, Object defaultValue) {
+        final JPanel textPanel = SwingUtils.horizontalLayoutPanel();
+        textPanel.add(getJLabel(label));
+
+        JFormattedTextField textField = new JFormattedTextField(format);
+        if ( defaultValue != null ) {
+            textField.setValue( defaultValue );
+        }
+        textField.setFocusLostBehavior( JFormattedTextField.COMMIT_OR_REVERT );
+        textPanel.add(textField);
+
+        return textPanel;
+    }
+
 
     private JButton createColorButton( JComboBox<String> colorCombo )
     {
@@ -366,11 +374,29 @@ public class ProjectsCreatorPanel extends JFrame {
         NumberFormat amountFormat = NumberFormat.getNumberInstance();
         amountFormat.setMaximumFractionDigits(5);
         amountFormat.setGroupingUsed( false );
-        final JPanel contrastLimitMin = createTextPanel( "contrast limit min", amountFormat, null);
-        final JPanel contrastLimitMax = createTextPanel( "contrast limit max", amountFormat, null);
-        final JPanel valueLimitMin = createTextPanel( "value limit min", amountFormat, null);
-        final JPanel valueLimitMax = createTextPanel( "value limit max", amountFormat, null);
-        final JPanel resolution3dView = createTextPanel( "resolution 3d view", amountFormat, null);
+
+        double[] currentContrastLimits = imageProperties.contrastLimits;
+        JPanel contrastLimitMin;
+        JPanel contrastLimitMax;
+        if ( currentContrastLimits != null) {
+            contrastLimitMin = createNumberPanel("contrast limit min", amountFormat, currentContrastLimits[0]);
+            contrastLimitMax = createNumberPanel("contrast limit max", amountFormat, currentContrastLimits[1]);
+        } else {
+            contrastLimitMin = createNumberPanel("contrast limit min", amountFormat, null);
+            contrastLimitMax = createNumberPanel("contrast limit max", amountFormat, null);
+        }
+
+        double[] currentValueLimits = imageProperties.valueLimits;
+        JPanel valueLimitMin;
+        JPanel valueLimitMax;
+        if ( currentValueLimits != null ) {
+            valueLimitMin = createNumberPanel("value limit min", amountFormat, currentValueLimits[0]);
+            valueLimitMax = createNumberPanel("value limit max", amountFormat, currentValueLimits[1]);
+        } else {
+            valueLimitMin = createNumberPanel("value limit min", amountFormat, null);
+            valueLimitMax = createNumberPanel("value limit max", amountFormat, null);
+        }
+        final JPanel resolution3dView = createNumberPanel( "resolution 3d view", amountFormat, imageProperties.resolution3dView);
 
         JPanel tables = null;
         //TODO - remove default table, prehaps only show if there is more than one table here
@@ -396,6 +422,20 @@ public class ProjectsCreatorPanel extends JFrame {
                 tableList.setVisibleRowCount(3);
             }
 
+            ArrayList<String> selectedTables = imageProperties.tables;
+            if ( selectedTables != null ) {
+                if (selectedTables.size() > 0) {
+                    ArrayList<Integer> selectedIndices = new ArrayList<>();
+                    for (int i = 0; i < tableList.getModel().getSize(); i++) {
+                        if (selectedTables.contains(tableList.getModel().getElementAt(i))) {
+                            selectedIndices.add(i);
+                        }
+                    }
+                    int[] selectedIndicesArray = selectedIndices.stream().mapToInt(i -> i).toArray();
+                    tableList.setSelectedIndices(selectedIndicesArray);
+                }
+            }
+
             tables = createListPanel( "tables", tableList);
         }
 
@@ -404,14 +444,16 @@ public class ProjectsCreatorPanel extends JFrame {
         // TODO - how to restrict to a list of comma separated values??????
         // FOr now, strip any spaces, check on other chracters apart form numbers and commas. If there are - error.
         // Otherwise, parse
-        JPanel selectedLabelIDs = createTextPanel( "selected label ids");
+        ArrayList<Double> currentSelectedLabelIds = imageProperties.selectedLabelIds;
+        String currentIdsString = currentSelectedLabelIds.stream().map(Object::toString).collect(Collectors.joining(","));
+        JPanel selectedLabelIDs = createTextPanel( "selected label ids", currentIdsString);
 
 
         JCheckBox showSelectedSegmentsIn3d = new JCheckBox("Show selected segments in 3d");
-        transparent.setSelected( false );
+        transparent.setSelected( imageProperties.showSelectedSegmentsIn3d );
 
         JCheckBox showImageIn3d = new JCheckBox("Show image in 3d");
-        transparent.setSelected( false );
+        transparent.setSelected( imageProperties.showImageIn3d );
 
         JPanel editPropertiesPanel = new JPanel();
         editPropertiesPanel.setLayout( new BoxLayout(editPropertiesPanel, BoxLayout.PAGE_AXIS) );
