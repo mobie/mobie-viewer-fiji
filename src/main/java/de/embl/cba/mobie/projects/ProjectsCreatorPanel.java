@@ -20,6 +20,7 @@ import ij.gui.GenericDialog;
 import net.imagej.ImageJ;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.compress.utils.FileNameUtils;
+import voltex.Mask;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -28,6 +29,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.lang.reflect.Field;
+import java.text.DecimalFormat;
 import java.text.Format;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -189,15 +191,27 @@ public class ProjectsCreatorPanel extends JFrame {
         comboBox.setPreferredSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
         comboBox.setMaximumSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
     }
-
     private JLabel getJLabel( String text )
     {
+        return getJLabel( text, 170, 10);
+    }
+
+    private JLabel getJLabel( String text, int width, int height )
+    {
         final JLabel comp = new JLabel( text );
-        comp.setPreferredSize( new Dimension( 170,10 ) );
+        comp.setPreferredSize( new Dimension( width, height ) );
         comp.setHorizontalAlignment( SwingConstants.LEFT );
         comp.setHorizontalTextPosition( SwingConstants.LEFT );
         comp.setAlignmentX( Component.LEFT_ALIGNMENT );
         return comp;
+    }
+
+    private JPanel createLabelPanel ( String label ) {
+        JPanel labelPanel = SwingUtils.horizontalLayoutPanel();
+        JLabel jlabel = getJLabel( label, 170, 20 );
+        jlabel.setBorder( BorderFactory.createEmptyBorder(10, 0, 10, 0) );
+        labelPanel.add( jlabel );
+        return labelPanel;
     }
 
     private JPanel createComboPanel (JComboBox<String> combo, String label) {
@@ -231,23 +245,6 @@ public class ProjectsCreatorPanel extends JFrame {
     }
 
     private JPanel createTextPanel ( String label, Format format) {
-        final JPanel textPanel = SwingUtils.horizontalLayoutPanel();
-        textPanel.add(getJLabel(label));
-
-        if (format == null) {
-            JTextField textField = new JTextField(20);
-            textPanel.add(textField);
-        } else {
-            JFormattedTextField textField = new JFormattedTextField( format );
-            textField.setFocusLostBehavior( JFormattedTextField.COMMIT_OR_REVERT );
-            textPanel.add(textField);
-        }
-
-        return textPanel;
-    }
-
-    // TODO - there must be a way to collapse this with the one above
-    private JPanel createTextPanel ( String label, MaskFormatter format, boolean aah) {
         final JPanel textPanel = SwingUtils.horizontalLayoutPanel();
         textPanel.add(getJLabel(label));
 
@@ -314,6 +311,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
         NumberFormat amountFormat = NumberFormat.getNumberInstance();
         amountFormat.setMaximumFractionDigits(5);
+        amountFormat.setGroupingUsed( false );
         final JPanel contrastLimitMin = createTextPanel( "contrast limit min", amountFormat);
         final JPanel contrastLimitMax = createTextPanel( "contrast limit max", amountFormat);
         final JPanel valueLimitMin = createTextPanel( "value limit min", amountFormat);
@@ -347,8 +345,12 @@ public class ProjectsCreatorPanel extends JFrame {
             tables = createListPanel( "tables", tableList);
         }
 
+
+
         // TODO - how to restrict to a list of comma separated values??????
-        JPanel selectedLabelIDs = createTextPanel( "selected label ids", amountFormat);
+        // FOr now, strip any spaces, check on other chracters apart form numbers and commas. If there are - error.
+        // Otherwise, parse
+        JPanel selectedLabelIDs = createTextPanel( "selected label ids");
 
 
         JCheckBox showSelectedSegmentsIn3d = new JCheckBox("Show selected segments in 3d");
@@ -368,7 +370,7 @@ public class ProjectsCreatorPanel extends JFrame {
         // public boolean showImageIn3d;
 
         JPanel editPropertiesPanel = new JPanel();
-        editPropertiesPanel.setLayout( new BoxLayout(editPropertiesPanel, BoxLayout.Y_AXIS) );
+        editPropertiesPanel.setLayout( new BoxLayout(editPropertiesPanel, BoxLayout.PAGE_AXIS) );
         editPropertiesPanel.add(colorComboPanel);
         if ( imageProperties.type.equals("segmentation")) {
             editPropertiesPanel.add(transparent);
@@ -380,6 +382,7 @@ public class ProjectsCreatorPanel extends JFrame {
             editPropertiesPanel.add(valueLimitMin);
             editPropertiesPanel.add(valueLimitMax);
             editPropertiesPanel.add(tables);
+            editPropertiesPanel.add(createLabelPanel( "List label ids e.g. 12,35,95,100"));
             editPropertiesPanel.add(selectedLabelIDs);
         }
         editPropertiesPanel.add(resolution3dView);
