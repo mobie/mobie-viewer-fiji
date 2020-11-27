@@ -16,7 +16,10 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.text.Format;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 // TODO - add some of this to swing utils?
@@ -189,6 +192,7 @@ public class ImagePropertiesEditor {
         JButton cancelButton = getButton( "Cancel");
 
         acceptButton.addActionListener( e -> {
+            updateImageProperties();
             // update properties
             // Make an imageproperties instance from current settings
             // Overwrite in currentImages
@@ -282,9 +286,6 @@ public class ImagePropertiesEditor {
         return tables;
     }
 
-
-
-
     public void editImagePropertiesDialog() {
         // TODO - only show ones relevant for that image type
         JFrame editImageFrame = new JFrame("Edit image properties...");
@@ -375,5 +376,54 @@ public class ImagePropertiesEditor {
 
         // TODO - checkbox to make default bookmark
 
+    }
+
+    public void updateImageProperties () {
+        // TODO - empties are valid, this may mean you want to erase a value, need to do this
+        // TODO - deal with transparency
+        imageProperties.color = (String) colorCombo.getSelectedItem();
+
+        String colorByColumn = colorByColumnField.getText().trim();
+        if ( !colorByColumn.equals("") ) {
+            imageProperties.colorByColumn = colorByColumn;
+        }
+
+        if ( !contrastLimitMinField.getText().equals("") && !contrastLimitMinField.getText().equals("") ) {
+            double contrastLimitMin = (double) contrastLimitMinField.getValue();
+            double contrastLimitMax = (double) contrastLimitMaxField.getValue();
+            imageProperties.contrastLimits = new double[] { contrastLimitMin, contrastLimitMax };
+        }
+
+        if ( !valueLimitMinField.getText().equals("") && !valueLimitMaxField.getText().equals("") ) {
+            double valueLimitMin = (double) valueLimitMinField.getValue();
+            double valueLimitMax = (double) valueLimitMaxField.getValue();
+            imageProperties.contrastLimits = new double[] { valueLimitMin, valueLimitMax };
+        }
+
+        if ( !resolution3dViewField.getText().equals("") ) {
+            imageProperties.resolution3dView = (double) resolution3dViewField.getValue();
+        }
+
+        if ( tablesList.getSelectedIndices().length > 0) {
+            imageProperties.tables = (ArrayList<String>) tablesList.getSelectedValuesList();
+        }
+
+        if ( !selectedLabelIdsField.getText().equals("") ) {
+            String selectedLabelIdsText = selectedLabelIdsField.getText().trim();
+            String selectedLabelIdsTextNoSpaces = selectedLabelIdsText.replaceAll("\\s+","");
+
+            // check contains nothing but numbers / . / ,
+            if ( Pattern.matches( "[0-9 | , | .]+", selectedLabelIdsTextNoSpaces )) {
+                String[] ids = selectedLabelIdsTextNoSpaces.split(",");
+                ArrayList<Double> selectedIds = new ArrayList<>();
+                for ( String id : ids ) {
+                    selectedIds.add( Double.valueOf( id ) );
+                }
+                imageProperties.selectedLabelIds = selectedIds;
+            }
+        }
+
+        imageProperties.showSelectedSegmentsIn3d = showSelectedSegmentsIn3dCheckbox.isSelected();
+        imageProperties.showImageIn3d = showImageIn3dCheckbox.isSelected();
     }
 }
