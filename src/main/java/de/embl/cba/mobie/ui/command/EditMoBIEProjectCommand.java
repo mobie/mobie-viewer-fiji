@@ -29,6 +29,7 @@ public class EditMoBIEProjectCommand implements Command
         ij.ui().showUI();
 
         ProjectsCreatorPanel panel = new ProjectsCreatorPanel( new File("C:\\Users\\meechan\\Documents\\temp\\mobie_test\\ruse" ));
+        // TODO - populate dialog from existing properites
         panel.editImagePropertiesDialog( "eldeer", "blah");
 
 

@@ -20,6 +20,7 @@ import ij.gui.GenericDialog;
 import net.imagej.ImageJ;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.compress.utils.FileNameUtils;
+import org.apache.commons.lang.WordUtils;
 import voltex.Mask;
 
 import javax.swing.*;
@@ -180,8 +181,13 @@ public class ProjectsCreatorPanel extends JFrame {
 
     private JButton getButton( String buttonLabel )
     {
+        return getButton( buttonLabel, BUTTON_DIMENSION );
+    }
+
+    private JButton getButton( String buttonLabel, Dimension dimension )
+    {
         final JButton button = new JButton( buttonLabel );
-        button.setPreferredSize( BUTTON_DIMENSION ); // TODO
+        button.setPreferredSize( dimension ); // TODO
         return button;
     }
 
@@ -232,7 +238,11 @@ public class ProjectsCreatorPanel extends JFrame {
     }
 
     private JPanel createTextPanel ( String label ) {
-        return createTextPanel( label, null);
+        return createTextPanel( label, null, null);
+    }
+
+    private JPanel createTextPanel ( String label, String defaultText ) {
+        return createTextPanel( label, null, defaultText);
     }
 
     private JPanel createListPanel ( String label, JList list ) {
@@ -244,15 +254,23 @@ public class ProjectsCreatorPanel extends JFrame {
         return listPanel;
     }
 
-    private JPanel createTextPanel ( String label, Format format) {
+    private JPanel createTextPanel ( String label, Format format, String defaultText) {
         final JPanel textPanel = SwingUtils.horizontalLayoutPanel();
         textPanel.add(getJLabel(label));
 
         if (format == null) {
-            JTextField textField = new JTextField(20);
+            JTextField textField;
+            if ( defaultText == null ) {
+                textField = new JTextField(20);
+            } else {
+                textField = new JTextField( defaultText, 20);
+            }
             textPanel.add(textField);
         } else {
-            JFormattedTextField textField = new JFormattedTextField( format );
+            JFormattedTextField textField = new JFormattedTextField(format);
+            if ( defaultText != null ) {
+                textField.setValue( defaultText );
+            }
             textField.setFocusLostBehavior( JFormattedTextField.COMMIT_OR_REVERT );
             textPanel.add(textField);
         }
@@ -279,13 +297,35 @@ public class ProjectsCreatorPanel extends JFrame {
         return colorButton;
     }
 
+    private JPanel createAcceptCancelPanel( JFrame frame ) {
+        final JPanel acceptCancelPanel = SwingUtils.horizontalLayoutPanel();
+        JButton acceptButton = getButton( "Update properties", new Dimension(160, 20));
+        JButton cancelButton = getButton( "Cancel");
+
+        acceptButton.addActionListener( e -> {
+            // update properties
+            // Make an imageproperties instance from current settings
+            // Overwrite in currentImages
+            // write to json
+        } );
+
+        cancelButton.addActionListener( e -> {
+            frame.dispose();
+        } );
+
+        acceptCancelPanel.add(acceptButton);
+        acceptCancelPanel.add(cancelButton);
+
+        return acceptCancelPanel;
+    }
+
 
 
     public void editImagePropertiesDialog( String datasetName, String imageName ) {
         // TODO - only show ones relevant for that image type
         ImageProperties imageProperties = projectsCreator.getCurrentImages( datasetName ).get( imageName );
 
-        JFrame editImageFrame = new JFrame();
+        JFrame editImageFrame = new JFrame("Edit image properties...");
         editImageFrame.getContentPane().setLayout( new BoxLayout(editImageFrame.getContentPane(), BoxLayout.Y_AXIS ) );
         editImageFrame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
@@ -293,30 +333,44 @@ public class ProjectsCreatorPanel extends JFrame {
         if ( imageProperties.type.equals("segmentation") ) {
             String[] colorOptions = new String[] { ColoringLuts.GLASBEY, ColoringLuts.BLUE_WHITE_RED, ColoringLuts.VIRIDIS,
                     ColoringLuts.ARGB_COLUMN };
-            colorComboPanel = createComboPanel( new JComboBox<>( colorOptions ), "color");
+            JComboBox<String> colorCombo = new JComboBox<>( colorOptions );
+            colorComboPanel = createComboPanel( colorCombo, "color");
+            colorCombo.setSelectedItem(WordUtils.capitalize( imageProperties.color ) );
             // TODO - deal with zero transparency
         } else {
-            String[] colorOptions = new String[] {"white", "randomFromGlasbey"};
-            JComboBox<String> colorCombo = new JComboBox<>( colorOptions );
+            ArrayList<String> colorOptions = new ArrayList<> ();
+            colorOptions.add("white");
+            colorOptions.add("randomFromGlasbey");
+            String currentColor = imageProperties.color;
+
+            if ( !colorOptions.contains( currentColor ) ) {
+                colorOptions.add(currentColor);
+            }
+
+            String[] colorArray = new String[ colorOptions.size() ];
+            colorOptions.toArray( colorArray );
+
+            JComboBox<String> colorCombo = new JComboBox<>( colorArray );
+            colorCombo.setSelectedItem( currentColor );
             JButton otherColorButton = createColorButton( colorCombo );
+
             colorComboPanel = createComboPanel( colorCombo, "color", otherColorButton );
         }
-
 
 
         JCheckBox transparent = new JCheckBox("Paint Zero Transparent");
         transparent.setSelected( false );
 
-        final JPanel colorByColumnPanel = createTextPanel( "colorByColumn" );
+        final JPanel colorByColumnPanel = createTextPanel( "colorByColumn", imageProperties.colorByColumn );
 
         NumberFormat amountFormat = NumberFormat.getNumberInstance();
         amountFormat.setMaximumFractionDigits(5);
         amountFormat.setGroupingUsed( false );
-        final JPanel contrastLimitMin = createTextPanel( "contrast limit min", amountFormat);
-        final JPanel contrastLimitMax = createTextPanel( "contrast limit max", amountFormat);
-        final JPanel valueLimitMin = createTextPanel( "value limit min", amountFormat);
-        final JPanel valueLimitMax = createTextPanel( "value limit max", amountFormat);
-        final JPanel resolution3dView = createTextPanel( "resolution 3d view", amountFormat);
+        final JPanel contrastLimitMin = createTextPanel( "contrast limit min", amountFormat, null);
+        final JPanel contrastLimitMax = createTextPanel( "contrast limit max", amountFormat, null);
+        final JPanel valueLimitMin = createTextPanel( "value limit min", amountFormat, null);
+        final JPanel valueLimitMax = createTextPanel( "value limit max", amountFormat, null);
+        final JPanel resolution3dView = createTextPanel( "resolution 3d view", amountFormat, null);
 
         JPanel tables = null;
         //TODO - remove default table, prehaps only show if there is more than one table here
@@ -359,16 +413,6 @@ public class ProjectsCreatorPanel extends JFrame {
         JCheckBox showImageIn3d = new JCheckBox("Show image in 3d");
         transparent.setSelected( false );
 
-        // need numeric entries for contrast limits and valuelimits
-        // public String colorByColumn;
-        // public double[] contrastLimits;
-        // public double[] valueLimits;
-        // public double resolution3dView;
-        // public ArrayList< String > tables;
-        // public ArrayList< Double > selectedLabelIds;
-        // public boolean showSelectedSegmentsIn3d;
-        // public boolean showImageIn3d;
-
         JPanel editPropertiesPanel = new JPanel();
         editPropertiesPanel.setLayout( new BoxLayout(editPropertiesPanel, BoxLayout.PAGE_AXIS) );
         editPropertiesPanel.add(colorComboPanel);
@@ -390,6 +434,7 @@ public class ProjectsCreatorPanel extends JFrame {
             editPropertiesPanel.add(showSelectedSegmentsIn3d);
         }
         editPropertiesPanel.add(showImageIn3d);
+        editPropertiesPanel.add( createAcceptCancelPanel( editImageFrame ));
         editImageFrame.add(editPropertiesPanel);
 
         editImageFrame.pack();
