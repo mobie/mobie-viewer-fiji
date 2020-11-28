@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.embl.cba.mobie.n5;
+package de.embl.cba.mobie.n5.zarr;
 
 import bdv.AbstractViewerSetupImgLoader;
 import bdv.ViewerImgLoader;
@@ -70,10 +70,9 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 
-import static bdv.img.n5.BdvN5Format.*;
-
 public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 {
+	public static final int C = 3;
 	protected final N5Reader n5;
 	protected AbstractSequenceDescription< ?, ?, ? > seq;
 	protected ViewRegistrations viewRegistrations;
@@ -87,19 +86,140 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	private volatile boolean isOpen = false;
 	private FetcherThreads fetchers;
 	private VolatileGlobalCellCache cache;
-	private Map< Integer, String > setupPathnames = new HashMap<>(  );
+	private Map< Integer, String > setupToPathname = new HashMap<>(  );
+	private Map< Integer, Multiscale > setupToMultiscale = new HashMap<>(  );
+	private Map< Integer, DatasetAttributes > setupToAttributes = new HashMap<>(  );
+	private Map< Integer, Integer > setupToChannel = new HashMap<>( );
 
+	/**
+	 * The sequenceDescription and viewRegistrations are known already, typically read from xml.
+	 *
+	 * @param n5Reader
+	 * @param sequenceDescription
+	 */
 	public N5OMEZarrImageLoader( N5Reader n5Reader, AbstractSequenceDescription< ?, ?, ? > sequenceDescription )
 	{
 		this.n5 = n5Reader;
 		this.seq = sequenceDescription;
 	}
 
-	public N5OMEZarrImageLoader( N5Reader n5Reader ) throws IOException
+	/**
+	 * The sequenceDescription and viewRegistrations are to be read from ome.zarr.
+	 *
+	 * @param n5Reader
+	 */
+	public N5OMEZarrImageLoader( N5Reader n5Reader )
 	{
 		this.n5 = n5Reader;
-		fetchSequenceDescription();
-		fetchViewRegistrations();
+		fetchSequenceDescriptionAndViewRegistrations();
+	}
+
+	private void fetchSequenceDescriptionAndViewRegistrations()
+	{
+		try
+		{
+			initSetups();
+
+			ArrayList< TimePoint > timePoints = new ArrayList<>();
+			ArrayList< ViewSetup > viewSetups = new ArrayList<>();
+
+			timePoints.add( new TimePoint( 0 ) ); // TODO: How many time points are there?
+
+			int numSetups = setupToMultiscale.size();
+
+			for ( int setupId = 0; setupId < numSetups; setupId++ )
+			{
+				multiscale = setupToMultiscale.get( setupId );
+				setupToAttributes.put( setupId, attributes );
+
+				ViewSetup viewSetup = getViewSetup( setupId, false, null );
+				viewSetups.add( viewSetup );
+				addLabelImagesViewSetup( viewSetups, ++setupId );
+
+				ArrayList< ViewRegistration > viewRegistrationList = new ArrayList<>();
+				viewRegistrationList.add( getViewRegistration( setupId, false, null ) );
+				addLabelImagesViewRegistration( viewRegistrationList, ++setupId );
+				viewRegistrations = new ViewRegistrations( viewRegistrationList );
+			}
+
+			seq = new SequenceDescription( new TimePoints( timePoints ), viewSetups );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( e );
+		}
+	}
+
+	@NotNull
+	private void initSetups() throws IOException
+	{
+		int setupId = -1;
+		Multiscale multiscale = getMultiscale( "" ); // returns multiscales[ 0 ]
+		DatasetAttributes attributes = getDatasetAttributes( multiscale.datasets[ 0 ].path );
+		long nC = attributes.getDimensions()[ C ];
+		for ( int c = 0; c < nC; c++ )
+		{
+			// each channel is one setup
+			setupId++;
+			setupToChannel.put( setupId, c );
+
+			// all channels have the same multiscale and attributes
+			setupToMultiscale.put( setupId, multiscale );
+			setupToAttributes.put( setupId, attributes );
+		}
+
+		List< String > labels = n5.getAttribute( "labels", "labels", List.class );
+		if ( labels != null)
+		{
+			for ( String label : labels )
+			{
+				setupId++;
+				setupToChannel.put( setupId, 0 ); // TODO: https://github.com/ome/ngff/issues/19
+				Multiscale labelMultiscale = getMultiscale( "labels/" + label );
+				DatasetAttributes labelAttributes = getDatasetAttributes( "labels/" + label + "/" + labelMultiscale.datasets[ 0 ].path );
+				setupToMultiscale.put( setupId, labelMultiscale );
+				setupToAttributes.put( setupId, labelAttributes );
+			}
+		}
+	}
+
+	/**
+	 * The dataType, number of channels and number of timepoints are stored
+	 * in the different pyramid levels (datasets).
+	 * According to the spec all datasets must be indentical in that sense
+	 * and we thus fetch this information from level 0.
+	 *
+	 * In addition, level 0 contains the information about the size of the full resolution image.
+	 *
+	 * @return
+	 * @throws IOException
+	 * @param pathName
+	 */
+	private DatasetAttributes getDatasetAttributes( String pathName ) throws IOException
+	{
+		return n5.getDatasetAttributes( pathName );
+	}
+
+	/**
+	 * The primary use case for multiple multiscales at the moment (the one listed in the spec)
+	 * is multiple different downsamplings.
+	 * A base image with two multiscales each with a different scale or a different method.
+	 *
+	 * I don't know a good logic right now how to deal with different pyramids,
+	 * thus I just fetch the first one, i.e. multiscales[ 0 ].
+	 *
+	 * ??? There's no need for the two multiscales to have the same base though.
+	 * ??? So it would also allow you to just have two pyramids (in our jargon) in the same zgroup.
+	 *
+	 * @return
+	 * @throws IOException
+	 * @param pathName
+	 */
+	private Multiscale getMultiscale( String pathName ) throws IOException
+	{
+		Multiscale[] multiscales = n5.getAttribute( pathName, "multiscales", Multiscale[].class );
+		return multiscales[ 0 ];
 	}
 
 	public AbstractSequenceDescription< ?, ?, ? > getSequenceDescription()
@@ -170,24 +290,6 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		String[] units;
 	}
 
-	private void fetchViewRegistrations()
-	{
-		try
-		{
-			ArrayList< ViewRegistration > viewRegistrationList = new ArrayList<>();
-			int setupId = 0;
-			viewRegistrationList.add( getViewRegistration( setupId, false, null ) );
-			addLabelImagesViewRegistration( viewRegistrationList, ++setupId );
-			viewRegistrations = new ViewRegistrations( viewRegistrationList );
-
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-			throw new RuntimeException( e );
-		}
-	}
-
 	private void addLabelImagesViewRegistration( ArrayList< ViewRegistration > viewRegistrationList, int setupId ) throws IOException
 	{
 		List< String > labels = n5.getAttribute( getLabelsPathName( setupId ), "labels", List.class );
@@ -215,39 +317,15 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		return viewRegistration;
 	}
 
-	// TODO: fetch sequenceDescription and viewSetup in one function
-	private void fetchSequenceDescription()
-	{
-		try
-		{
-			ArrayList< TimePoint > timePoints = new ArrayList<>();
-			timePoints.add( new TimePoint( 0 ) );
-
-			ArrayList< ViewSetup > viewSetups = new ArrayList<>();
-			int setupId = 0;
-			ViewSetup viewSetup = getViewSetup( setupId, false, null );
-			viewSetups.add( viewSetup );
-			addLabelImagesViewSetup( viewSetups, ++setupId );
-
-			seq = new SequenceDescription( new TimePoints( timePoints ), viewSetups );
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-			throw new RuntimeException( e );
-		}
-	}
-
-
 	@NotNull
 	private ViewSetup getViewSetup( int setupId, boolean isLabelImage, String labelImage ) throws IOException
 	{
 		String pathName = isLabelImage ? getLabelImagePathName( setupId, 0 ,labelImage ) : getPathName( setupId, 0 );
-		final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );  // only the levels have the data type
+		final DatasetAttributes attributes = getDatasetAttributes( pathName );  // only the levels have the data type
 		FinalDimensions dimensions = new FinalDimensions( attributes.getDimensions() );
 
 		pathName = isLabelImage ? getLabelImagePathName( setupId, labelImage ) : getPathName( setupId );
-		setupPathnames.put( setupId, pathName );
+		setupToPathname.put( setupId, pathName );
 		Multiscale[] multiscales = n5.getAttribute( pathName, "multiscales", Multiscale[].class );
 		VoxelDimensions voxelDimensions = new FinalVoxelDimensions( multiscales[ 0 ].transform.units[ 0 ], multiscales[ 0 ].transform.scale );
 		Tile tile = new Tile( 0 );
@@ -311,7 +389,6 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		return getLabelImagePathName( setupId, image ) + String.format( "/s%d", level );
 	}
 
-	// TODO
 	private String getPathName( int setupId, int level )
 	{
 		return String.format( "s%d", level );
@@ -331,11 +408,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 
 	private < T extends NativeType< T >, V extends Volatile< T > & NativeType< V > > SetupImgLoader< T, V > createSetupImgLoader( final int setupId ) throws IOException
 	{
-		final String pathName = setupPathnames.get( setupId ) + "/s0"; // only the levels have the data type
-
-		final DataType dataType = n5.getAttribute( pathName, DATA_TYPE_KEY, DataType.class );
-
-		switch ( dataType )
+		switch ( setupToAttributes.get( setupId ) )
 		{
 		case UINT8:
 			return Cast.unchecked( new SetupImgLoader<>( setupId, new UnsignedByteType(), new VolatileUnsignedByteType() ) );
@@ -397,7 +470,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		 */
 		private double[][] fetchMipmapResolutions() throws IOException
 		{
-			final String pathName = setupPathnames.get( setupId );
+			final String pathName = setupToPathname.get( setupId );
 			List< Map< String, Object > > multiscales = n5.getAttribute( pathName, "multiscales", List.class );
 			Map< String, Object > multiscale = multiscales.get(0);
 			if ( ! multiscale.get("version").equals( "0.1" ) )
@@ -433,8 +506,8 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		{
 			try
 			{
-				final String pathName = setupPathnames.get( setupId ) + "/" + getLevelName( level );
-				final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
+				final String pathName = setupToPathname.get( setupId ) + "/" + getLevelName( level );
+				final DatasetAttributes attributes = getDatasetAttributes( pathName );
 				return new FinalDimensions( attributes.getDimensions() );
 			}
 			catch( Exception e )
@@ -475,8 +548,8 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			try
 			{
 				// https://github.com/glencoesoftware/bioformats2raw/blob/master/src/test/java/com/glencoesoftware/bioformats2raw/test/ZarrTest.java#L554
-				final String pathName = setupPathnames.get( setupId ) + "/" + getLevelName( level );
-				final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
+				final String pathName = setupToPathname.get( setupId ) + "/" + getLevelName( level );
+				final DatasetAttributes attributes = getDatasetAttributes( pathName );
 				// ome.zarr is 5D but BDV expects 3D
 				final long[] dimensions = Arrays.stream( attributes.getDimensions() ).limit( 3 ).toArray();
 				final int[] cellDimensions = Arrays.stream( attributes.getBlockSize() ).limit( 3 ).toArray();
@@ -485,7 +558,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 				final int priority = numMipmapLevels() - 1 - level;
 				final CacheHints cacheHints = new CacheHints( loadingStrategy, priority, false );
 
-				final SimpleCacheArrayLoader< ? > loader = createCacheArrayLoader( n5, pathName, timepointId, grid );
+				final SimpleCacheArrayLoader< ? > loader = createCacheArrayLoader( n5, pathName, setupToChannel.get (setupId), timepointId, grid );
 				return cache.createImg( grid, timepointId, setupId, level, cacheHints, loader, type );
 			}
 			catch ( IOException e )
@@ -596,28 +669,30 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	{
 		private final N5Reader n5;
 		private final String pathName;
+		private final int channel;
 		private final int timepoint;
 		private final DatasetAttributes attributes;
 		private final ArrayCreator< A, ? > arrayCreator;
 
-		N5OMEZarrCacheArrayLoader( final N5Reader n5, final String pathName, final int timepoint, final DatasetAttributes attributes, CellGrid grid )
+		N5OMEZarrCacheArrayLoader( final N5Reader n5, final String pathName, final int channel, final int timepoint, final DatasetAttributes attributes, CellGrid grid )
 		{
 			this.n5 = n5;
 			this.pathName = pathName; // includes the level
+			this.channel = channel;
 			this.timepoint = timepoint;
 			this.attributes = attributes;
 			this.arrayCreator = new ArrayCreator<>( grid, attributes.getDataType() );
 		}
 
 		@Override
-		public A loadArray( final long[] gridPosition ) throws IOException
+		public A loadArray( final long[] gridPosition3D ) throws IOException
 		{
 			DataBlock< ? > block = null;
 
 			long[] gridPosition5D = new long[ 5 ];
-			for ( int d = 0; d < 3; d++ ) gridPosition5D[ d ] = gridPosition[ d ];
+			for ( int d = 0; d < 3; d++ ) gridPosition5D[ d ] = gridPosition3D[ d ];
+			gridPosition5D[ 3 ] = channel;
 			gridPosition5D[ 4 ] = timepoint;
-			// TODO: add setupId <=> channel
 
 			try {
 				block = n5.readBlock( pathName, attributes, gridPosition5D );
@@ -630,25 +705,25 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			if ( debug )
 			{
 				if ( block != null )
-					System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " " + block.getNumElements() );
+					System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " " + block.getNumElements() );
 				else
-					System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " NaN" );
+					System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " NaN" );
 			}
 
 			if ( block == null )
 			{
-				return arrayCreator.createEmptyArray( gridPosition );
+				return arrayCreator.createEmptyArray( gridPosition3D );
 			}
 			else
 			{
-				return arrayCreator.createArray( block, gridPosition );
+				return arrayCreator.createArray( block, gridPosition3D );
 			}
 		}
 	}
 
-	public static SimpleCacheArrayLoader< ? > createCacheArrayLoader( final N5Reader n5, final String pathName, int timepointId, CellGrid grid ) throws IOException
+	public static SimpleCacheArrayLoader< ? > createCacheArrayLoader( final N5Reader n5, final String pathName, int channel, int timepointId, CellGrid grid ) throws IOException
 	{
 		final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
-		return new N5OMEZarrCacheArrayLoader<>( n5, pathName, timepointId, attributes, grid);
+		return new N5OMEZarrCacheArrayLoader<>( n5, pathName, channel, timepointId, attributes, grid);
 	}
 }

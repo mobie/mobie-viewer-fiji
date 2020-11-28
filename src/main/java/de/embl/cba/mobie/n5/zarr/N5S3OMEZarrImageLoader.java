@@ -27,11 +27,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.embl.cba.mobie.n5;
+package de.embl.cba.mobie.n5.zarr;
 
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import de.embl.cba.mobie.n5.S3Authentication;
+import de.embl.cba.mobie.n5.S3CredentialsCreator;
+import de.embl.cba.mobie.n5.zarr.N5OMEZarrImageLoader;
 import de.embl.cba.mobie.n5.zarr.N5S3ZarrReader;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 

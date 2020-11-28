@@ -1,7 +1,8 @@
-package de.embl.cba.mobie.n5;
+package de.embl.cba.mobie.n5.zarr;
 
 import bdv.util.BdvFunctions;
 import bdv.util.BdvStackSource;
+import de.embl.cba.mobie.n5.S3Authentication;
 import de.embl.cba.mobie.n5.source.Sources;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.util.Cast;
