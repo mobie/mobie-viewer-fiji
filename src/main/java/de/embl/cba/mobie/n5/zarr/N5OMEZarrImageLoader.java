@@ -73,6 +73,7 @@ import java.util.function.BiConsumer;
 public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 {
 	public static final int C = 3;
+	public static final int T = 4;
 	protected final N5Reader n5;
 	protected AbstractSequenceDescription< ?, ?, ? > seq;
 	protected ViewRegistrations viewRegistrations;
@@ -90,6 +91,8 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	private Map< Integer, Multiscale > setupToMultiscale = new HashMap<>(  );
 	private Map< Integer, DatasetAttributes > setupToAttributes = new HashMap<>(  );
 	private Map< Integer, Integer > setupToChannel = new HashMap<>( );
+	private int sequenceTimepoints = 0;
+
 
 	/**
 	 * The sequenceDescription and viewRegistrations are known already, typically read from xml.
@@ -120,29 +123,23 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		{
 			initSetups();
 
-			ArrayList< TimePoint > timePoints = new ArrayList<>();
 			ArrayList< ViewSetup > viewSetups = new ArrayList<>();
 
-			timePoints.add( new TimePoint( 0 ) ); // TODO: How many time points are there?
+			ArrayList< ViewRegistration > viewRegistrationList = new ArrayList<>();
 
 			int numSetups = setupToMultiscale.size();
-
 			for ( int setupId = 0; setupId < numSetups; setupId++ )
 			{
-				multiscale = setupToMultiscale.get( setupId );
-				setupToAttributes.put( setupId, attributes );
-
-				ViewSetup viewSetup = getViewSetup( setupId, false, null );
+				ViewSetup viewSetup = createViewSetup( setupId );
+				int setupTimepoints = ( int ) setupToAttributes.get( setupId ).getDimensions()[ T ];
+				sequenceTimepoints = setupTimepoints > sequenceTimepoints ?  setupTimepoints : sequenceTimepoints;
 				viewSetups.add( viewSetup );
-				addLabelImagesViewSetup( viewSetups, ++setupId );
-
-				ArrayList< ViewRegistration > viewRegistrationList = new ArrayList<>();
-				viewRegistrationList.add( getViewRegistration( setupId, false, null ) );
-				addLabelImagesViewRegistration( viewRegistrationList, ++setupId );
-				viewRegistrations = new ViewRegistrations( viewRegistrationList );
+				viewRegistrationList.addAll( createViewRegistrations( setupId, setupTimepoints ) );
 			}
 
-			seq = new SequenceDescription( new TimePoints( timePoints ), viewSetups );
+			viewRegistrations = new ViewRegistrations( viewRegistrationList );
+
+			seq = new SequenceDescription( new TimePoints( createTimePoints( sequenceTimepoints ) ), viewSetups );
 		}
 		catch ( IOException e )
 		{
@@ -152,12 +149,24 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	}
 
 	@NotNull
+	private ArrayList< TimePoint > createTimePoints( int sequenceTimepoints )
+	{
+		ArrayList< TimePoint > timePoints = new ArrayList<>();
+		for ( int t = 0; t < sequenceTimepoints; t++ )
+		{
+			timePoints.add( new TimePoint( t ) );
+		}
+		return timePoints;
+	}
+
+	@NotNull
 	private void initSetups() throws IOException
 	{
 		int setupId = -1;
 		Multiscale multiscale = getMultiscale( "" ); // returns multiscales[ 0 ]
 		DatasetAttributes attributes = getDatasetAttributes( multiscale.datasets[ 0 ].path );
 		long nC = attributes.getDimensions()[ C ];
+
 		for ( int c = 0; c < nC; c++ )
 		{
 			// each channel is one setup
@@ -182,6 +191,8 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 				setupToAttributes.put( setupId, labelAttributes );
 			}
 		}
+
+
 	}
 
 	/**
@@ -290,61 +301,38 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		String[] units;
 	}
 
-	private void addLabelImagesViewRegistration( ArrayList< ViewRegistration > viewRegistrationList, int setupId ) throws IOException
-	{
-		List< String > labels = n5.getAttribute( getLabelsPathName( setupId ), "labels", List.class );
-		if ( labels != null)
-		{
-			String labelImage = labels.get( 0 );
-			viewRegistrationList.add( getViewRegistration( setupId, true, labelImage ) );
-		}
-	}
-
 	@NotNull
-	private ViewRegistration getViewRegistration( int setupId, boolean isLabelImage, String labelImage ) throws IOException
+	private ArrayList< ViewRegistration > createViewRegistrations( int setupId, int setupTimepoints )
 	{
-		String pathName = getPathName( setupId );
-
-		if ( isLabelImage )
-			pathName = getLabelImagePathName( setupId, labelImage );
-
-		Multiscale[] multiscales = n5.getAttribute( pathName, "multiscales", Multiscale[].class );
+		Multiscale multiscale = setupToMultiscale.get( setupId );
 		AffineTransform3D transform = new AffineTransform3D();
-		double[] scale = multiscales[ 0 ].transform.scale;
+		double[] scale = multiscale.transform.scale;
 		transform.scale( scale[ 0 ], scale[ 1 ], scale[ 2  ]);
-		ViewRegistration viewRegistration = new ViewRegistration( 0, setupId, transform );
 
-		return viewRegistration;
+		ArrayList< ViewRegistration > viewRegistrations = new ArrayList<>();
+		for ( int t = 0; t < setupTimepoints; t++ )
+		{
+			viewRegistrations.add( new ViewRegistration( t, setupId, transform ) );
+		}
+
+
+		return viewRegistrations;
 	}
 
-	@NotNull
-	private ViewSetup getViewSetup( int setupId, boolean isLabelImage, String labelImage ) throws IOException
+	private ViewSetup createViewSetup( int setupId  )
 	{
-		String pathName = isLabelImage ? getLabelImagePathName( setupId, 0 ,labelImage ) : getPathName( setupId, 0 );
-		final DatasetAttributes attributes = getDatasetAttributes( pathName );  // only the levels have the data type
+		final DatasetAttributes attributes = setupToAttributes.get( setupId );
 		FinalDimensions dimensions = new FinalDimensions( attributes.getDimensions() );
-
-		pathName = isLabelImage ? getLabelImagePathName( setupId, labelImage ) : getPathName( setupId );
-		setupToPathname.put( setupId, pathName );
-		Multiscale[] multiscales = n5.getAttribute( pathName, "multiscales", Multiscale[].class );
-		VoxelDimensions voxelDimensions = new FinalVoxelDimensions( multiscales[ 0 ].transform.units[ 0 ], multiscales[ 0 ].transform.scale );
+		Multiscale multiscale = setupToMultiscale.get( setupId );
+		VoxelDimensions voxelDimensions = new FinalVoxelDimensions( multiscale.transform.units[ 0 ], multiscale.transform.scale );
 		Tile tile = new Tile( 0 );
-		Channel channel = new Channel( 0 );
+		Channel channel = new Channel( setupToChannel.get( setupId ) );
 		Angle angle = new Angle( 0 );
 		Illumination illumination = new Illumination( 0 );
-		ViewSetup viewSetup = new ViewSetup( setupId, multiscales[ 0 ].name, dimensions, voxelDimensions, tile, channel, angle, illumination );
+
+		ViewSetup viewSetup = new ViewSetup( setupId, multiscale.name, dimensions, voxelDimensions, tile, channel, angle, illumination );
 
 		return viewSetup;
-	}
-
-	private void addLabelImagesViewSetup( ArrayList< ViewSetup > viewSetups, int setupId ) throws IOException
-	{
-		List< String > labels = n5.getAttribute( getLabelsPathName( setupId ), "labels", List.class );
-		if ( labels != null)
-		{
-			String labelImage = labels.get( 0 );
-			viewSetups.add( getViewSetup( setupId, true, labelImage ) );
-		}
 	}
 
 	/**
@@ -408,7 +396,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 
 	private < T extends NativeType< T >, V extends Volatile< T > & NativeType< V > > SetupImgLoader< T, V > createSetupImgLoader( final int setupId ) throws IOException
 	{
-		switch ( setupToAttributes.get( setupId ) )
+		switch ( setupToAttributes.get( setupId ).getDataType() )
 		{
 		case UINT8:
 			return Cast.unchecked( new SetupImgLoader<>( setupId, new UnsignedByteType(), new VolatileUnsignedByteType() ) );
@@ -460,7 +448,6 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			for ( int level = 0; level < mipmapResolutions.length; level++ )
 				mipmapTransforms[ level ] = MipmapTransforms.getMipmapTransformDefault( mipmapResolutions[ level ] );
 		}
-
 
 		/**
 		 * TODO: Create classes for multiscales and multiscale such that the Json parser does below stuff.
