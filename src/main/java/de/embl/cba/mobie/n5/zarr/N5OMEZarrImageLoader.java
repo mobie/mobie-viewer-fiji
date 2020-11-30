@@ -72,12 +72,12 @@ import java.util.function.BiConsumer;
 
 public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 {
-	public static final int C = 3;
-	public static final int T = 4;
+	private static final int C = 3;
+	private static final int T = 4;
 	protected final N5Reader n5;
 	protected AbstractSequenceDescription< ?, ?, ? > seq;
 	protected ViewRegistrations viewRegistrations;
-	private static boolean debug = false;
+	public static boolean debugLogging = false;
 
 	/**
 	 * Maps setup id to {@link SetupImgLoader}.
@@ -285,7 +285,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		}
 	}
 
-	class Multiscale
+	private class Multiscale
 	{
 		String name;
 		double[][] scales;
@@ -293,12 +293,12 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		Dataset[] datasets;
 	}
 
-	class Dataset
+	private class Dataset
 	{
 		String path;
 	}
 
-	class Transform
+	private class Transform
 	{
 		String[] axes;
 		double[] scale;
@@ -434,7 +434,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		return cache;
 	}
 
-	public class SetupImgLoader< T extends NativeType< T >, V extends Volatile< T > & NativeType< V > >
+	private class SetupImgLoader< T extends NativeType< T >, V extends Volatile< T > & NativeType< V > >
 			extends AbstractViewerSetupImgLoader< T, V >
 			implements MultiResolutionSetupImgLoader< T >
 	{
@@ -685,7 +685,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 				System.err.println( e ); // this happens sometimes, not sure yet why...
 			}
 
-			if ( debug )
+			if ( debugLogging )
 			{
 				if ( block != null )
 					System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " " + block.getNumElements() );
@@ -704,7 +704,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		}
 	}
 
-	public static SimpleCacheArrayLoader< ? > createCacheArrayLoader( final N5Reader n5, final String pathName, int channel, int timepointId, CellGrid grid ) throws IOException
+	private static SimpleCacheArrayLoader< ? > createCacheArrayLoader( final N5Reader n5, final String pathName, int channel, int timepointId, CellGrid grid ) throws IOException
 	{
 		final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
 		return new N5OMEZarrCacheArrayLoader<>( n5, pathName, channel, timepointId, attributes, grid);
