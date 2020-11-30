@@ -100,10 +100,11 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	 * @param n5Reader
 	 * @param sequenceDescription
 	 */
+	@Deprecated
 	public N5OMEZarrImageLoader( N5Reader n5Reader, AbstractSequenceDescription< ?, ?, ? > sequenceDescription )
 	{
 		this.n5 = n5Reader;
-		this.seq = sequenceDescription;
+		this.seq = sequenceDescription; // TODO: it is better to fetch from within Zarr
 	}
 
 	/**
@@ -176,6 +177,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			// all channels have the same multiscale and attributes
 			setupToMultiscale.put( setupId, multiscale );
 			setupToAttributes.put( setupId, attributes );
+			setupToPathname.put( setupId, "" );
 		}
 
 		List< String > labels = n5.getAttribute( "labels", "labels", List.class );
@@ -185,10 +187,12 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			{
 				setupId++;
 				setupToChannel.put( setupId, 0 ); // TODO: https://github.com/ome/ngff/issues/19
-				Multiscale labelMultiscale = getMultiscale( "labels/" + label );
-				DatasetAttributes labelAttributes = getDatasetAttributes( "labels/" + label + "/" + labelMultiscale.datasets[ 0 ].path );
+				String pathName = "labels/" + label;
+				Multiscale labelMultiscale = getMultiscale( pathName );
+				DatasetAttributes labelAttributes = getDatasetAttributes( pathName + "/" + labelMultiscale.datasets[ 0 ].path );
 				setupToMultiscale.put( setupId, labelMultiscale );
 				setupToAttributes.put( setupId, labelAttributes );
+				setupToPathname.put( setupId, pathName );
 			}
 		}
 
@@ -284,6 +288,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	class Multiscale
 	{
 		String name;
+		double[][] scales;
 		Transform transform;
 		Dataset[] datasets;
 	}
@@ -450,28 +455,20 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		}
 
 		/**
-		 * TODO: Create classes for multiscales and multiscale such that the Json parser does below stuff.
 		 *
 		 * @return
 		 * @throws IOException
 		 */
-		private double[][] fetchMipmapResolutions() throws IOException
+		private double[][] fetchMipmapResolutions()
 		{
-			final String pathName = setupToPathname.get( setupId );
-			List< Map< String, Object > > multiscales = n5.getAttribute( pathName, "multiscales", List.class );
-			Map< String, Object > multiscale = multiscales.get(0);
-			if ( ! multiscale.get("version").equals( "0.1" ) )
-				throw new RuntimeException( "Version " + multiscale.get("version") + " of ome.zarr is not supported." );
-			List< List< Double > > scales = ( List< List< Double > > ) multiscale.get( "scales" );
-			double[][] mipmapResolutions = new double[ scales.size() ][];
+			Multiscale multiscale = setupToMultiscale.get( setupId );
+
+			double[][] mipmapResolutions = new double[ multiscale.scales.length ][];
 			for ( int r = 0; r < mipmapResolutions.length; r++ )
 			{
-				mipmapResolutions[ r ] = new double[ scales.get( r ).size() ];
-				for ( int d = 0; d < mipmapResolutions[ r ].length; d++ )
-				{
-					mipmapResolutions[ r ][ d ] = scales.get( r ).get( d );
-				}
+				mipmapResolutions[ r ] = multiscale.scales[ r ];
 			}
+
 			return mipmapResolutions;
 		}
 
@@ -534,8 +531,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		{
 			try
 			{
-				// https://github.com/glencoesoftware/bioformats2raw/blob/master/src/test/java/com/glencoesoftware/bioformats2raw/test/ZarrTest.java#L554
-				final String pathName = setupToPathname.get( setupId ) + "/" + getLevelName( level );
+				final String pathName = setupToPathname.get( setupId ) + "/" + setupToMultiscale.get( setupId ).datasets[ level ].path;
 				final DatasetAttributes attributes = getDatasetAttributes( pathName );
 				// ome.zarr is 5D but BDV expects 3D
 				final long[] dimensions = Arrays.stream( attributes.getDimensions() ).limit( 3 ).toArray();
