@@ -34,7 +34,7 @@ public class OMEZarrS3Reader
 
 	public static void main( String[] args ) throws IOException
 	{
-		int practical = 3;
+		int practical = 1;
 
 		switch ( practical )
 		{
@@ -85,6 +85,7 @@ public class OMEZarrS3Reader
 		SpimData em = reader.read( "em-raw.ome.zarr" );
 		List< BdvStackSource< ? > > sources = BdvFunctions.show( em, BdvOptions.options().addTo( myosinBdvSources.get( 0 ).getBdvHandle() ) );
 		Sources.showAsLabelMask( sources.get( 1 ) );
+		Sources.viewAsHyperstack( sources.get( 0 ), 4 );
 	}
 
 	public static void showMyosin() throws IOException

@@ -7,10 +7,15 @@ import bdv.util.BdvStackSource;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.Converter;
+import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.util.Cast;
+import net.imglib2.view.IntervalView;
+import net.imglib2.view.Views;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -61,5 +66,18 @@ public abstract class Sources
 		}
 
 
+	}
+
+	/**
+	 * TODO: add time
+	 *
+	 * @param bdvStackSource
+	 * @param level
+	 */
+	public static void viewAsHyperstack( BdvStackSource< ? > bdvStackSource, int level )
+	{
+		RandomAccessibleInterval< ? > rai = bdvStackSource.getSources().get( 0 ).getSpimSource().getSource( 0, level );
+		IntervalView< ? > permute = Views.permute( Views.addDimension( rai, 0, 0 ), 2, 3 );
+		ImageJFunctions.wrap( Cast.unchecked( permute ), "em" ).show();
 	}
 }
