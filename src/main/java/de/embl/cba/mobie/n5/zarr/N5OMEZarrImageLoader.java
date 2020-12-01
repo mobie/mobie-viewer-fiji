@@ -700,9 +700,11 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			gridPosition5D[ 3 ] = channel;
 			gridPosition5D[ 4 ] = timepoint;
 
+			long start = 0;
 			if ( debugLogging )
 			{
-				System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + "..." );
+				start = System.currentTimeMillis();
+				System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " ..." );
 			}
 
 			try {
@@ -716,7 +718,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			if ( debugLogging )
 			{
 				if ( block != null )
-					System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " fetched " + block.getNumElements() + " voxels." );
+					System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " fetched " + block.getNumElements() + " voxels in " + ( System.currentTimeMillis() - start ) + " ms." );
 				else
 					System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " is missing, returning zeros." );
 			}
