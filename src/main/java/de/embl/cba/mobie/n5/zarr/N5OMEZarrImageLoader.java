@@ -339,17 +339,17 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		Channel channel = new Channel( setupToChannel.get( setupId ) );
 		Angle angle = new Angle( 0 );
 		Illumination illumination = new Illumination( 0 );
-		String name = readName( multiscale );
+		String name = readName( multiscale, setupId );
 		ViewSetup viewSetup = new ViewSetup( setupId, name, dimensions, voxelDimensions, tile, channel, angle, illumination );
 		return viewSetup;
 	}
 
-	private String readName( Multiscale multiscale )
+	private String readName( Multiscale multiscale, int setupId )
 	{
 		if ( multiscale.name != null )
 			return multiscale.name;
 		else
-			return "image";
+			return "image " + setupId;
 	}
 
 	@NotNull
@@ -384,37 +384,6 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 				isOpen = false;
 			}
 		}
-	}
-
-	// TODO
-	private String getPathName( int setupId )
-	{
-		return "";
-	}
-
-	private String getLabelsPathName( int setupId )
-	{
-		return "labels";
-	}
-
-	private String getLabelImagePathName( int setupId, String image )
-	{
-		return "labels/" + image;
-	}
-
-	private String getLabelImagePathName( int setupId, int level, String image )
-	{
-		return getLabelImagePathName( setupId, image ) + String.format( "/s%d", level );
-	}
-
-	private String getPathName( int setupId, int level )
-	{
-		return String.format( "s%d", level );
-	}
-
-	private String getLevelName( int level )
-	{
-		return String.format( "s%d", level );
 	}
 
 	@Override
@@ -473,7 +442,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		{
 			super( type, volatileType );
 			this.setupId = setupId;
-			mipmapResolutions = fetchMipmapResolutions();
+			mipmapResolutions = readMipmapResolutions();
 			mipmapTransforms = new AffineTransform3D[ mipmapResolutions.length ];
 			for ( int level = 0; level < mipmapResolutions.length; level++ )
 				mipmapTransforms[ level ] = MipmapTransforms.getMipmapTransformDefault( mipmapResolutions[ level ] );
@@ -484,21 +453,31 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		 * @return
 		 * @throws IOException
 		 */
-		private double[][] fetchMipmapResolutions()
+		private double[][] readMipmapResolutions() throws IOException
 		{
 			Multiscale multiscale = setupToMultiscale.get( setupId );
-
 			double[][] mipmapResolutions = new double[ multiscale.datasets.length ][];
 
-			for ( int r = 0; r < mipmapResolutions.length; r++ )
+			try
 			{
-				try
+				for ( int level = 0; level < mipmapResolutions.length; level++ )
 				{
-					mipmapResolutions[ r ] = multiscale.scales[ r ];
+					mipmapResolutions[ level ] = multiscale.scales[ level ];
 				}
-				catch ( Exception e )
+			}
+			catch ( Exception e )
+			{
+				long[] dimensionsOfLevel0 = getDatasetAttributes( getPathName( setupId, 0 ) ).getDimensions();
+				mipmapResolutions[ 0 ] = new double[]{ 1.0, 1.0, 1.0 };
+
+				for ( int level = 1; level < mipmapResolutions.length; level++ )
 				{
-					mipmapResolutions[ r ] = new double[]{ 1.0, 1.0, 1.0 };
+					long[] dimensions = getDatasetAttributes( getPathName( setupId, level ) ).getDimensions();
+					mipmapResolutions[ level ] = new double[ 3 ];
+					for ( int d = 0; d < 3; d++ )
+					{
+						mipmapResolutions[ level ][ d ] = 1.0 * dimensionsOfLevel0[ d ] / dimensions[ d ];
+					}
 				}
 			}
 
@@ -521,16 +500,22 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		@Override
 		public Dimensions getImageSize( final int timepointId, final int level )
 		{
+			final String pathName = getPathName( setupId, level );
 			try
 			{
-				final String pathName = setupToPathname.get( setupId ) + "/" + getLevelName( level );
 				final DatasetAttributes attributes = getDatasetAttributes( pathName );
 				return new FinalDimensions( attributes.getDimensions() );
 			}
 			catch( Exception e )
 			{
-				return null;
+				throw new RuntimeException( "Could not read from " + pathName );
 			}
+		}
+
+		@NotNull
+		public String getPathName( int setupId, int level )
+		{
+			return setupToPathname.get( setupId ) + "/" + setupToMultiscale.get( this.setupId ).datasets[ level ].path;
 		}
 
 		@Override
@@ -564,7 +549,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		{
 			try
 			{
-				final String pathName = setupToPathname.get( setupId ) + "/" + setupToMultiscale.get( setupId ).datasets[ level ].path;
+				final String pathName = getPathName( setupId, level );
 				final DatasetAttributes attributes = getDatasetAttributes( pathName );
 				// ome.zarr is 5D but BDV expects 3D
 				final long[] dimensions = Arrays.stream( attributes.getDimensions() ).limit( 3 ).toArray();
@@ -621,19 +606,22 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 					return ( A ) new VolatileShortArray( shorts , true );
 				case UINT32:
 				case INT32:
-					return null;
-					//return createArray.apply( new IntArrayDataBlock( blockSize, gridPosition, new int[ n ] ) );
+					int[] ints = new int[ n ];
+					copyFromBlock.accept( Cast.unchecked( ArrayImgs.ints( ints, cellDims ) ), dataBlock );
+					return ( A ) new VolatileIntArray( ints , true );
 				case UINT64:
 				case INT64:
 					long[] longs = new long[ n ];
 					copyFromBlock.accept( Cast.unchecked( ArrayImgs.longs( longs, cellDims ) ), dataBlock );
 					return ( A ) new VolatileLongArray( longs , true );
 				case FLOAT32:
-					return null;
-					//return createArray.apply( new FloatArrayDataBlock( blockSize, gridPosition, new float[ n ] ) );
+					float[] floats = new float[ n ];
+					copyFromBlock.accept( Cast.unchecked( ArrayImgs.floats( floats, cellDims ) ), dataBlock );
+					return ( A ) new VolatileFloatArray( floats , true );
 				case FLOAT64:
-					return null;
-					//return createArray.apply( new DoubleArrayDataBlock( blockSize, gridPosition, new double[ n ] ) );
+					double[] doubles = new double[ n ];
+					copyFromBlock.accept( Cast.unchecked( ArrayImgs.doubles( doubles, cellDims ) ), dataBlock );
+					return ( A ) new VolatileDoubleArray( doubles , true );
 				default:
 					throw new IllegalArgumentException();
 			}
@@ -653,18 +641,14 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 					return Cast.unchecked( new VolatileShortArray( new short[ n ], true ) );
 				case UINT32:
 				case INT32:
-					return null;
-					//return createArray.apply( new IntArrayDataBlock( blockSize, gridPosition, new int[ n ] ) );
+					return Cast.unchecked( new VolatileIntArray( new int[ n ], true ) );
 				case UINT64:
 				case INT64:
 					return Cast.unchecked( new VolatileLongArray( new long[ n ], true ) );
-					//return createArray.apply( new LongArrayDataBlock( blockSize, gridPosition, new long[ n ] ) );
 				case FLOAT32:
-					return null;
-					//return createArray.apply( new FloatArrayDataBlock( blockSize, gridPosition, new float[ n ] ) );
+					return Cast.unchecked( new VolatileFloatArray( new float[ n ], true ) );
 				case FLOAT64:
-					return null;
-					//return createArray.apply( new DoubleArrayDataBlock( blockSize, gridPosition, new double[ n ] ) );
+					return Cast.unchecked( new VolatileDoubleArray( new double[ n ], true ) );
 				default:
 					throw new IllegalArgumentException();
 			}
