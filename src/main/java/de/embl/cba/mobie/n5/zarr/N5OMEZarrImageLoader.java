@@ -551,6 +551,12 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			{
 				final String pathName = getPathName( setupId, level );
 				final DatasetAttributes attributes = getDatasetAttributes( pathName );
+
+				if ( debugLogging )
+				{
+					System.out.println( "Preparing image " + pathName + " of data type " + attributes.getDataType() );
+				}
+
 				// ome.zarr is 5D but BDV expects 3D
 				final long[] dimensions = Arrays.stream( attributes.getDimensions() ).limit( 3 ).toArray();
 				final int[] cellDimensions = Arrays.stream( attributes.getBlockSize() ).limit( 3 ).toArray();
@@ -694,6 +700,11 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			gridPosition5D[ 3 ] = channel;
 			gridPosition5D[ 4 ] = timepoint;
 
+			if ( debugLogging )
+			{
+				System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + "..." );
+			}
+
 			try {
 				block = n5.readBlock( pathName, attributes, gridPosition5D );
 			}
@@ -705,9 +716,9 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			if ( debugLogging )
 			{
 				if ( block != null )
-					System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " " + block.getNumElements() );
+					System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " fetched " + block.getNumElements() + " voxels." );
 				else
-					System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " NaN" );
+					System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " is missing, returning zeros." );
 			}
 
 			if ( block == null )

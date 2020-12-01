@@ -61,9 +61,8 @@ public class OMEZarrS3Reader
 				sources.get( 2 ).setDisplayRange( 0, 3000 );
 				sources.get( 3 ).setColor( new ARGBType( ARGBType.rgba( 255,255,255,255 ) ) );
 				sources.get( 3 ).setDisplayRange( 0, 3000 );
-				sources.get( 4 ).setDisplayRange( 0, 100 );
-
-				//Sources.showAsLabelMask( sources.get( 4 ) );
+				//sources.get( 4 ).setDisplayRange( 0, 100 );
+				Sources.showAsLabelMask( sources.get( 4 ) );
 				break;
 		}
 	}
