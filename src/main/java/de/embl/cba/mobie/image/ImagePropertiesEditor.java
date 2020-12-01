@@ -31,19 +31,20 @@ public class ImagePropertiesEditor {
     private String imageName;
     private ProjectsCreator projectsCreator;
     private ImageProperties imageProperties;
+    private NumberFormat amountFormat;
 
-    JComboBox<String> colorCombo;
-    JCheckBox transparencyCheckBox;
-    JTextField colorByColumnField;
-    JFormattedTextField contrastLimitMinField;
-    JFormattedTextField contrastLimitMaxField;
-    JFormattedTextField valueLimitMinField;
-    JFormattedTextField valueLimitMaxField;
-    JFormattedTextField resolution3dViewField;
-    JList tablesList;
-    JTextField selectedLabelIdsField;
-    JCheckBox showSelectedSegmentsIn3dCheckbox;
-    JCheckBox showImageIn3dCheckbox;
+    private JComboBox<String> colorCombo;
+    private JCheckBox transparencyCheckBox;
+    private JTextField colorByColumnField;
+    private JFormattedTextField contrastLimitMinField;
+    private JFormattedTextField contrastLimitMaxField;
+    private JFormattedTextField valueLimitMinField;
+    private JFormattedTextField valueLimitMaxField;
+    private JFormattedTextField resolution3dViewField;
+    private JList tablesList;
+    private JTextField selectedLabelIdsField;
+    private JCheckBox showSelectedSegmentsIn3dCheckbox;
+    private JCheckBox showImageIn3dCheckbox;
 
 
     public ImagePropertiesEditor(String datasetName, String imageName, ProjectsCreator projectsCreator) {
@@ -52,6 +53,11 @@ public class ImagePropertiesEditor {
         this.projectsCreator = projectsCreator;
         imageProperties = projectsCreator.getCurrentImages( datasetName ).get( imageName );
         editImagePropertiesDialog();
+
+        // Format to only accept numbers in text fields
+        amountFormat = NumberFormat.getNumberInstance();
+        amountFormat.setMaximumFractionDigits(5);
+        amountFormat.setGroupingUsed( false );
     }
 
     private JButton getButton(String buttonLabel )
@@ -192,11 +198,13 @@ public class ImagePropertiesEditor {
         JButton cancelButton = getButton( "Cancel");
 
         acceptButton.addActionListener( e -> {
-            updateImageProperties();
-            // update properties
-            // Make an imageproperties instance from current settings
-            // Overwrite in currentImages
-            // write to json
+            try {
+                updateImageProperties();
+                projectsCreator.writeImagesJson( this.datasetName );
+                frame.dispose();
+            } catch (ParseException parseException) {
+                parseException.printStackTrace();
+            }
         } );
 
         cancelButton.addActionListener( e -> {
@@ -300,11 +308,6 @@ public class ImagePropertiesEditor {
         colorByColumnField = createTextField( imageProperties.colorByColumn );
         final JPanel colorByColumnPanel = createTextPanel( "colorByColumn", colorByColumnField );
 
-        // Format to only accept numbers
-        NumberFormat amountFormat = NumberFormat.getNumberInstance();
-        amountFormat.setMaximumFractionDigits(5);
-        amountFormat.setGroupingUsed( false );
-
         double[] currentContrastLimits = imageProperties.contrastLimits;
         if ( currentContrastLimits != null ) {
             contrastLimitMinField = createFormattedTextField( amountFormat, currentContrastLimits[0]);
@@ -378,9 +381,25 @@ public class ImagePropertiesEditor {
 
     }
 
-    public void updateImageProperties () {
+    private void commitAllEdits() {
+        // ensure all edited values are commited in text fields, otherwise can have unexpected behaviour if
+        // user types and immediately clicks the accept button
+        try {
+            contrastLimitMinField.commitEdit();
+            contrastLimitMaxField.commitEdit();
+            valueLimitMinField.commitEdit();
+            valueLimitMaxField.commitEdit();
+            resolution3dViewField.commitEdit();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void updateImageProperties () throws ParseException {
         // TODO - empties are valid, this may mean you want to erase a value, need to do this
         // TODO - deal with transparency
+        commitAllEdits();
         imageProperties.color = (String) colorCombo.getSelectedItem();
 
         String colorByColumn = colorByColumnField.getText().trim();
@@ -389,19 +408,19 @@ public class ImagePropertiesEditor {
         }
 
         if ( !contrastLimitMinField.getText().equals("") && !contrastLimitMinField.getText().equals("") ) {
-            double contrastLimitMin = (double) contrastLimitMinField.getValue();
-            double contrastLimitMax = (double) contrastLimitMaxField.getValue();
+            double contrastLimitMin = amountFormat.parse( contrastLimitMinField.getText() ).doubleValue();
+            double contrastLimitMax = amountFormat.parse( contrastLimitMaxField.getText() ).doubleValue();
             imageProperties.contrastLimits = new double[] { contrastLimitMin, contrastLimitMax };
         }
 
         if ( !valueLimitMinField.getText().equals("") && !valueLimitMaxField.getText().equals("") ) {
-            double valueLimitMin = (double) valueLimitMinField.getValue();
-            double valueLimitMax = (double) valueLimitMaxField.getValue();
-            imageProperties.contrastLimits = new double[] { valueLimitMin, valueLimitMax };
+            double valueLimitMin = amountFormat.parse( valueLimitMinField.getText() ).doubleValue();
+            double valueLimitMax = amountFormat.parse( valueLimitMaxField.getText() ).doubleValue();
+            imageProperties.valueLimits = new double[] { valueLimitMin, valueLimitMax };
         }
 
         if ( !resolution3dViewField.getText().equals("") ) {
-            imageProperties.resolution3dView = (double) resolution3dViewField.getValue();
+            imageProperties.resolution3dView = amountFormat.parse( resolution3dViewField.getText() ).doubleValue();
         }
 
         if ( tablesList.getSelectedIndices().length > 0) {
@@ -412,7 +431,7 @@ public class ImagePropertiesEditor {
             String selectedLabelIdsText = selectedLabelIdsField.getText().trim();
             String selectedLabelIdsTextNoSpaces = selectedLabelIdsText.replaceAll("\\s+","");
 
-            // check contains nothing but numbers / . / ,
+            // check contains nothing but numbers or . or ,
             if ( Pattern.matches( "[0-9 | , | .]+", selectedLabelIdsTextNoSpaces )) {
                 String[] ids = selectedLabelIdsTextNoSpaces.split(",");
                 ArrayList<Double> selectedIds = new ArrayList<>();
