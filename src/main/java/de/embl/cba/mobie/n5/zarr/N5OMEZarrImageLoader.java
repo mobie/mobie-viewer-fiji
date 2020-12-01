@@ -311,15 +311,20 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	{
 		Multiscale multiscale = setupToMultiscale.get( setupId );
 		AffineTransform3D transform = new AffineTransform3D();
-		double[] scale = multiscale.transform.scale;
-		transform.scale( scale[ 0 ], scale[ 1 ], scale[ 2  ]);
+
+		try
+		{
+			double[] scale = multiscale.transform.scale;
+			transform.scale( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
+		}
+		catch ( Exception e )
+		{
+			// no scale given
+		}
 
 		ArrayList< ViewRegistration > viewRegistrations = new ArrayList<>();
 		for ( int t = 0; t < setupTimepoints; t++ )
-		{
 			viewRegistrations.add( new ViewRegistration( t, setupId, transform ) );
-		}
-
 
 		return viewRegistrations;
 	}
@@ -329,15 +334,35 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		final DatasetAttributes attributes = setupToAttributes.get( setupId );
 		FinalDimensions dimensions = new FinalDimensions( attributes.getDimensions() );
 		Multiscale multiscale = setupToMultiscale.get( setupId );
-		VoxelDimensions voxelDimensions = new FinalVoxelDimensions( multiscale.transform.units[ 0 ], multiscale.transform.scale );
+		VoxelDimensions voxelDimensions = readVoxelDimensions( multiscale );
 		Tile tile = new Tile( 0 );
 		Channel channel = new Channel( setupToChannel.get( setupId ) );
 		Angle angle = new Angle( 0 );
 		Illumination illumination = new Illumination( 0 );
-
-		ViewSetup viewSetup = new ViewSetup( setupId, multiscale.name, dimensions, voxelDimensions, tile, channel, angle, illumination );
-
+		String name = readName( multiscale );
+		ViewSetup viewSetup = new ViewSetup( setupId, name, dimensions, voxelDimensions, tile, channel, angle, illumination );
 		return viewSetup;
+	}
+
+	private String readName( Multiscale multiscale )
+	{
+		if ( multiscale.name != null )
+			return multiscale.name;
+		else
+			return "image";
+	}
+
+	@NotNull
+	private VoxelDimensions readVoxelDimensions( Multiscale multiscale )
+	{
+		try
+		{
+			return new FinalVoxelDimensions( multiscale.transform.units[ 0 ], multiscale.transform.scale );
+		}
+		catch ( Exception e )
+		{
+			return new DefaultVoxelDimensions( 3 );
+		}
 	}
 
 	/**
@@ -463,10 +488,18 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		{
 			Multiscale multiscale = setupToMultiscale.get( setupId );
 
-			double[][] mipmapResolutions = new double[ multiscale.scales.length ][];
+			double[][] mipmapResolutions = new double[ multiscale.datasets.length ][];
+
 			for ( int r = 0; r < mipmapResolutions.length; r++ )
 			{
-				mipmapResolutions[ r ] = multiscale.scales[ r ];
+				try
+				{
+					mipmapResolutions[ r ] = multiscale.scales[ r ];
+				}
+				catch ( Exception e )
+				{
+					mipmapResolutions[ r ] = new double[]{ 1.0, 1.0, 1.0 };
+				}
 			}
 
 			return mipmapResolutions;

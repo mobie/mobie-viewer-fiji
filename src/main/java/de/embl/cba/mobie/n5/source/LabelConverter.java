@@ -95,9 +95,7 @@ public class LabelConverter implements Converter< RealType, ARGBType >, ColorCon
 
 	@Override
 	public void setColor( ARGBType c )
-	{
-
-	}
+	{ }
 
 	@Override
 	public boolean supportsColor()

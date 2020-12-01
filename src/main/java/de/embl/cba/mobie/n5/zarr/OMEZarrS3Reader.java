@@ -6,7 +6,6 @@ import bdv.util.BdvStackSource;
 import de.embl.cba.mobie.n5.S3Authentication;
 import de.embl.cba.mobie.n5.source.Sources;
 import mpicbg.spim.data.SpimData;
-import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Cast;
 
 import java.io.IOException;
@@ -34,7 +33,7 @@ public class OMEZarrS3Reader
 
 	public static void main( String[] args ) throws IOException
 	{
-		int practical = 1;
+		int practical = 2;
 
 		switch ( practical )
 		{
@@ -44,6 +43,11 @@ public class OMEZarrS3Reader
 			case 1: // show myosin and add em and labels
 				showAll();
 				break;
+			case 2:
+				// https://play.minio.io:9000/i2k2020/gif.zarr
+				OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://play.minio.io:9000", "us-west-2", "i2k2020" );
+				SpimData image = reader.read( "gif.zarr" );
+				List< BdvStackSource< ? > > myosinBdvSources = BdvFunctions.show( image );
 		}
 	}
 
@@ -59,7 +63,7 @@ public class OMEZarrS3Reader
 
 	public static void showMyosin() throws IOException
 	{
-		// N5OMEZarrImageLoader.debugLogging = true;
+		N5OMEZarrImageLoader.debugLogging = true;
 		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://s3.embl.de", "us-west-2", "i2k-2020" );
 		SpimData myosin = reader.read( "prospr-myosin.ome.zarr" );
 		BdvFunctions.show( myosin );

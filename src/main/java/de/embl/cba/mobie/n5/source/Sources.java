@@ -11,6 +11,9 @@ import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
+import org.scijava.ui.behaviour.ClickBehaviour;
+import org.scijava.ui.behaviour.io.InputTriggerConfig;
+import org.scijava.ui.behaviour.util.Behaviours;
 
 import java.lang.reflect.Method;
 
@@ -27,7 +30,8 @@ public abstract class Sources
 
 	public static < R extends NumericType< R > & RealType< R > > BdvStackSource< R > showAsLabelMask( BdvStackSource< ? > bdvStackSource )
 	{
-		SourceAndConverter< R > sac = replaceConverter( bdvStackSource.getSources().get( 0 ), new LabelConverter() );
+		LabelConverter converter = new LabelConverter();
+		SourceAndConverter< R > sac = replaceConverter( bdvStackSource.getSources().get( 0 ), converter );
 		BdvHandle bdvHandle = bdvStackSource.getBdvHandle();
 		bdvStackSource.removeFromBdv();
 
@@ -38,11 +42,24 @@ public abstract class Sources
 			Method method = BdvFunctions.class.getDeclaredMethod("addSpimDataSource", BdvHandle.class, SourceAndConverter.class, int.class );
 			method.setAccessible( true );
 			BdvStackSource< R > newBdvStackSource = (BdvStackSource< R >) method.invoke( "addSpimDataSource", bdvHandle, sac, 1 );
+
+			Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
+			behaviours.install( bdvHandle.getTriggerbindings(), "label source " + sac.getSpimSource().getName() );
+			behaviours.behaviour( ( ClickBehaviour ) ( x, y ) ->
+							new Thread( () -> {
+								converter.getColoringModel().incRandomSeed();
+								bdvHandle.getViewerPanel().requestRepaint();
+							} ).start(),
+					"shuffle random colors " + sac.getSpimSource().getName(),
+					"ctrl L" );
+
 			return newBdvStackSource;
 		}
 		catch ( Exception e )
 		{
 			throw new RuntimeException( e );
 		}
+
+
 	}
 }
