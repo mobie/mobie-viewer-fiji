@@ -313,8 +313,9 @@ public class ImagePropertiesEditor {
             contrastLimitMinField = createFormattedTextField( amountFormat, currentContrastLimits[0]);
             contrastLimitMaxField = createFormattedTextField( amountFormat, currentContrastLimits[1] );
         } else {
-            contrastLimitMinField = createFormattedTextField( amountFormat, null);
-            contrastLimitMaxField = createFormattedTextField( amountFormat, null);
+            // if no contrast limits, suggest reasonable defaults
+            contrastLimitMinField = createFormattedTextField( amountFormat, 0.0);
+            contrastLimitMaxField = createFormattedTextField( amountFormat, 255.0);
         }
         JPanel contrastLimitMinPanel = createNumberPanel( "contrast limit min", contrastLimitMinField );
         JPanel contrastLimitMaxPanel = createNumberPanel( "contrast limit max", contrastLimitMaxField );
@@ -324,8 +325,8 @@ public class ImagePropertiesEditor {
             valueLimitMinField = createFormattedTextField( amountFormat, currentValueLimits[0] );
             valueLimitMaxField = createFormattedTextField( amountFormat, currentValueLimits[1] );
         } else {
-            valueLimitMinField = createFormattedTextField( amountFormat, null );
-            valueLimitMaxField = createFormattedTextField( amountFormat, null );
+            valueLimitMinField = createFormattedTextField( amountFormat, 0.0 );
+            valueLimitMaxField = createFormattedTextField( amountFormat, 0.0 );
         }
         JPanel valueLimitMinPanel = createNumberPanel( "value limit min", valueLimitMinField );
         JPanel valueLimitMaxPanel = createNumberPanel( "value limit max", valueLimitMaxField );
@@ -335,13 +336,14 @@ public class ImagePropertiesEditor {
 
         JPanel tablesPanel = createTablesPanel();
 
-        // TODO - how to restrict to a list of comma separated values??????
-        // FOr now, strip any spaces, check on other chracters apart form numbers and commas. If there are - error.
-        // Otherwise, parse
-        ArrayList<Double> currentSelectedLabelIds = imageProperties.selectedLabelIds;
-        String currentIdsString = currentSelectedLabelIds.stream().map(Object::toString).collect(Collectors.joining(","));
-        selectedLabelIdsField = createTextField( currentIdsString );
-        JPanel selectedLabelIDsPanel = createTextPanel( "selected label ids", selectedLabelIdsField);
+        if ( imageProperties.selectedLabelIds != null ) {
+            ArrayList<Double> currentSelectedLabelIds = imageProperties.selectedLabelIds;
+            String currentIdsString = currentSelectedLabelIds.stream().map(Object::toString).collect(Collectors.joining(","));
+            selectedLabelIdsField = createTextField(currentIdsString);
+        } else {
+            selectedLabelIdsField = createTextField( "" );
+        }
+        JPanel selectedLabelIDsPanel = createTextPanel("selected label ids", selectedLabelIdsField);
 
 
         showSelectedSegmentsIn3dCheckbox = new JCheckBox("Show selected segments in 3d");
@@ -397,7 +399,6 @@ public class ImagePropertiesEditor {
     }
 
     public void updateImageProperties () throws ParseException {
-        // TODO - empties are valid, this may mean you want to erase a value, need to do this
         // TODO - deal with transparency
         commitAllEdits();
         imageProperties.color = (String) colorCombo.getSelectedItem();
@@ -405,26 +406,30 @@ public class ImagePropertiesEditor {
         String colorByColumn = colorByColumnField.getText().trim();
         if ( !colorByColumn.equals("") ) {
             imageProperties.colorByColumn = colorByColumn;
+        } else {
+            imageProperties.colorByColumn = null;
         }
 
-        if ( !contrastLimitMinField.getText().equals("") && !contrastLimitMinField.getText().equals("") ) {
-            double contrastLimitMin = amountFormat.parse( contrastLimitMinField.getText() ).doubleValue();
-            double contrastLimitMax = amountFormat.parse( contrastLimitMaxField.getText() ).doubleValue();
-            imageProperties.contrastLimits = new double[] { contrastLimitMin, contrastLimitMax };
+        double contrastLimitMin = amountFormat.parse( contrastLimitMinField.getText() ).doubleValue();
+        double contrastLimitMax = amountFormat.parse( contrastLimitMaxField.getText() ).doubleValue();
+        imageProperties.contrastLimits = new double[] { contrastLimitMin, contrastLimitMax };
+
+        double valueLimitMin = amountFormat.parse( valueLimitMinField.getText() ).doubleValue();
+        double valueLimitMax = amountFormat.parse( valueLimitMaxField.getText() ).doubleValue();
+        if ( valueLimitMin != 0.0 && valueLimitMax != 0.0 ) {
+            imageProperties.valueLimits = new double[]{valueLimitMin, valueLimitMax};
+        } else {
+            // 0 is the default value in the text field, if both are left at zero, then this means no value limits
+            // are set i.e. null
+            imageProperties.valueLimits = null;
         }
 
-        if ( !valueLimitMinField.getText().equals("") && !valueLimitMaxField.getText().equals("") ) {
-            double valueLimitMin = amountFormat.parse( valueLimitMinField.getText() ).doubleValue();
-            double valueLimitMax = amountFormat.parse( valueLimitMaxField.getText() ).doubleValue();
-            imageProperties.valueLimits = new double[] { valueLimitMin, valueLimitMax };
-        }
-
-        if ( !resolution3dViewField.getText().equals("") ) {
-            imageProperties.resolution3dView = amountFormat.parse( resolution3dViewField.getText() ).doubleValue();
-        }
+        imageProperties.resolution3dView = amountFormat.parse( resolution3dViewField.getText() ).doubleValue();
 
         if ( tablesList.getSelectedIndices().length > 0) {
             imageProperties.tables = (ArrayList<String>) tablesList.getSelectedValuesList();
+        } else {
+            imageProperties.tables = null;
         }
 
         if ( !selectedLabelIdsField.getText().equals("") ) {
@@ -440,6 +445,8 @@ public class ImagePropertiesEditor {
                 }
                 imageProperties.selectedLabelIds = selectedIds;
             }
+        } else {
+            imageProperties.selectedLabelIds = null;
         }
 
         imageProperties.showSelectedSegmentsIn3d = showSelectedSegmentsIn3dCheckbox.isSelected();

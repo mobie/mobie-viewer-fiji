@@ -48,6 +48,8 @@ public class AddCurrentImageToProject implements Command {
     @Parameter (label= "Add to:", choices={"existing dataset", "new dataset"}, style="listBox")
     public String datasetType;
 
+    // TODO - add a way to add existing mobie files also e.g. link to current location, copy to project, move to project
+
     @Override
     public void run()
     {
