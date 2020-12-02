@@ -45,6 +45,7 @@ public class ImagePropertiesEditor {
     private JTextField selectedLabelIdsField;
     private JCheckBox showSelectedSegmentsIn3dCheckbox;
     private JCheckBox showImageIn3dCheckbox;
+    private boolean zeroTransparent;
 
 
     public ImagePropertiesEditor(String datasetName, String imageName, ProjectsCreator projectsCreator) {
@@ -58,6 +59,8 @@ public class ImagePropertiesEditor {
         amountFormat = NumberFormat.getNumberInstance();
         amountFormat.setMaximumFractionDigits(5);
         amountFormat.setGroupingUsed( false );
+
+        zeroTransparent = false;
     }
 
     private JButton getButton(String buttonLabel )
@@ -224,9 +227,17 @@ public class ImagePropertiesEditor {
             String[] colorOptions = new String[] { ColoringLuts.GLASBEY, ColoringLuts.BLUE_WHITE_RED, ColoringLuts.VIRIDIS,
                     ColoringLuts.ARGB_COLUMN };
             colorCombo = new JComboBox<>( colorOptions );
-            colorCombo.setSelectedItem(WordUtils.capitalize( imageProperties.color ) );
+            String capitalisedColor = WordUtils.capitalize( imageProperties.color );
+
+            // deal with any 'zero transparent' options
+            if ( capitalisedColor.contains( ColoringLuts.ZERO_TRANSPARENT ) ) {
+                capitalisedColor = capitalisedColor.split( ColoringLuts.ZERO_TRANSPARENT )[0];
+                zeroTransparent = true;
+            }
+
+            colorCombo.setSelectedItem( capitalisedColor );
             colorPanel = createComboPanel( colorCombo, "color");
-            // TODO - deal with zero transparency
+
         } else {
             ArrayList<String> colorOptions = new ArrayList<> ();
             colorOptions.add("white");
@@ -319,7 +330,7 @@ public class ImagePropertiesEditor {
         JPanel colorComboPanel = createColorPanel();
 
         transparencyCheckBox = new JCheckBox("Paint Zero Transparent");
-        transparencyCheckBox.setSelected( false );
+        transparencyCheckBox.setSelected( zeroTransparent );
 
         colorByColumnField = createTextField( imageProperties.colorByColumn );
         final JPanel colorByColumnPanel = createTextPanel( "colorByColumn", colorByColumnField );
@@ -417,9 +428,14 @@ public class ImagePropertiesEditor {
     }
 
     public void updateImageProperties () throws ParseException {
-        // TODO - deal with transparency
+
         commitAllEdits();
-        imageProperties.color = (String) colorCombo.getSelectedItem();
+
+        String selectedColor = (String) colorCombo.getSelectedItem();
+        if ( transparencyCheckBox.isSelected() ) {
+            selectedColor = selectedColor + ColoringLuts.ZERO_TRANSPARENT;
+        }
+        imageProperties.color = selectedColor;
 
         String colorByColumn = colorByColumnField.getText().trim();
         if ( !colorByColumn.equals("") ) {
