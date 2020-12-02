@@ -437,53 +437,59 @@ public class ImagePropertiesEditor {
         }
         imageProperties.color = selectedColor;
 
-        String colorByColumn = colorByColumnField.getText().trim();
-        if ( !colorByColumn.equals("") ) {
-            imageProperties.colorByColumn = colorByColumn;
-        } else {
-            imageProperties.colorByColumn = null;
-        }
-
         double contrastLimitMin = amountFormat.parse( contrastLimitMinField.getText() ).doubleValue();
         double contrastLimitMax = amountFormat.parse( contrastLimitMaxField.getText() ).doubleValue();
         imageProperties.contrastLimits = new double[] { contrastLimitMin, contrastLimitMax };
 
-        double valueLimitMin = amountFormat.parse( valueLimitMinField.getText() ).doubleValue();
-        double valueLimitMax = amountFormat.parse( valueLimitMaxField.getText() ).doubleValue();
-        if ( valueLimitMin != 0.0 && valueLimitMax != 0.0 ) {
-            imageProperties.valueLimits = new double[]{valueLimitMin, valueLimitMax};
-        } else {
-            // 0 is the default value in the text field, if both are left at zero, then this means no value limits
-            // are set i.e. null
-            imageProperties.valueLimits = null;
-        }
-
         imageProperties.resolution3dView = amountFormat.parse( resolution3dViewField.getText() ).doubleValue();
-
-        if ( tablesList.getSelectedIndices().length > 0) {
-            imageProperties.tables = (ArrayList<String>) tablesList.getSelectedValuesList();
-        } else {
-            imageProperties.tables = null;
-        }
-
-        if ( !selectedLabelIdsField.getText().equals("") ) {
-            String selectedLabelIdsText = selectedLabelIdsField.getText().trim();
-            String selectedLabelIdsTextNoSpaces = selectedLabelIdsText.replaceAll("\\s+","");
-
-            // check contains nothing but numbers or . or ,
-            if ( Pattern.matches( "[0-9 | , | .]+", selectedLabelIdsTextNoSpaces )) {
-                String[] ids = selectedLabelIdsTextNoSpaces.split(",");
-                ArrayList<Double> selectedIds = new ArrayList<>();
-                for ( String id : ids ) {
-                    selectedIds.add( Double.valueOf( id ) );
-                }
-                imageProperties.selectedLabelIds = selectedIds;
-            }
-        } else {
-            imageProperties.selectedLabelIds = null;
-        }
-
-        imageProperties.showSelectedSegmentsIn3d = showSelectedSegmentsIn3dCheckbox.isSelected();
         imageProperties.showImageIn3d = showImageIn3dCheckbox.isSelected();
+
+        if ( imageProperties.type.equals("segmentation") ) {
+            String colorByColumn = colorByColumnField.getText().trim();
+            if ( !colorByColumn.equals("") ) {
+                imageProperties.colorByColumn = colorByColumn;
+            } else {
+                imageProperties.colorByColumn = null;
+            }
+
+            double valueLimitMin = amountFormat.parse( valueLimitMinField.getText() ).doubleValue();
+            double valueLimitMax = amountFormat.parse( valueLimitMaxField.getText() ).doubleValue();
+            if ( valueLimitMin != 0.0 && valueLimitMax != 0.0 ) {
+                imageProperties.valueLimits = new double[]{valueLimitMin, valueLimitMax};
+            } else {
+                // 0 is the default value in the text field, if both are left at zero, then this means no value limits
+                // are set i.e. null
+                imageProperties.valueLimits = null;
+            }
+
+            if ( tablesList != null ) {
+                if (tablesList.getSelectedIndices().length > 0) {
+                    imageProperties.tables = (ArrayList<String>) tablesList.getSelectedValuesList();
+                } else {
+                    imageProperties.tables = null;
+                }
+            } else {
+                imageProperties.tables = null;
+            }
+
+            if ( !selectedLabelIdsField.getText().equals("") ) {
+                String selectedLabelIdsText = selectedLabelIdsField.getText().trim();
+                String selectedLabelIdsTextNoSpaces = selectedLabelIdsText.replaceAll("\\s+","");
+
+                // check contains nothing but numbers or . or ,
+                if ( Pattern.matches( "[0-9 | , | .]+", selectedLabelIdsTextNoSpaces )) {
+                    String[] ids = selectedLabelIdsTextNoSpaces.split(",");
+                    ArrayList<Double> selectedIds = new ArrayList<>();
+                    for ( String id : ids ) {
+                        selectedIds.add( Double.valueOf( id ) );
+                    }
+                    imageProperties.selectedLabelIds = selectedIds;
+                }
+            } else {
+                imageProperties.selectedLabelIds = null;
+            }
+
+            imageProperties.showSelectedSegmentsIn3d = showSelectedSegmentsIn3dCheckbox.isSelected();
+        }
     }
 }
