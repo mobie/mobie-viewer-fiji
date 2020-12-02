@@ -252,7 +252,6 @@ public class ImagePropertiesEditor {
 
     private JPanel createTablesPanel() {
         JPanel tables = null;
-        //TODO - remove default table, prehaps only show if there is more than one table here
         if ( imageProperties.type.equals("segmentation") ) {
             File tableFolder = new File(FileAndUrlUtils.combinePath(projectsCreator.getDatasetPath(datasetName), imageProperties.tableFolder) );
             File[] tableFiles = tableFolder.listFiles(new FilenameFilter() {
@@ -261,15 +260,32 @@ public class ImagePropertiesEditor {
                 }
             });
 
-            String[] tableNames = new String[tableFiles.length];
-            for (int i = 0; i< tableFiles.length; i++) {
-                tableNames[i] = FileNameUtils.getBaseName( tableFiles[i].getAbsolutePath() );
+            if ( !(tableFiles.length > 0) ) {
+                return null;
             }
-            tablesList = new JList( tableNames );
+
+            // we don't include the default table here, as it is always shown
+            ArrayList<String> tableNames = new ArrayList<>();
+            for (int i = 0; i< tableFiles.length; i++) {
+                String tableName = FileNameUtils.getBaseName( tableFiles[i].getAbsolutePath() );
+                if (!tableName.equals("default")) {
+                    tableNames.add( tableName );
+                }
+            }
+
+            if ( !(tableNames.size() > 0) ) {
+                return null;
+            }
+
+            // JList needs String[] vs ArrayList<String>
+            String[] tableNamesArray = new String[tableNames.size()];
+            tableNamesArray = tableNames.toArray( tableNamesArray );
+
+            tablesList = new JList( tableNamesArray );
             tablesList.setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
             tablesList.setLayoutOrientation( JList.VERTICAL );
-            if ( tableNames.length < 3) {
-                tablesList.setVisibleRowCount( tableNames.length );
+            if ( tableNames.size() < 3) {
+                tablesList.setVisibleRowCount( tableNames.size() );
             } else {
                 tablesList.setVisibleRowCount(3);
             }
@@ -364,7 +380,9 @@ public class ImagePropertiesEditor {
         if ( imageProperties.type.equals("segmentation")) {
             editPropertiesPanel.add(valueLimitMinPanel);
             editPropertiesPanel.add(valueLimitMaxPanel);
-            editPropertiesPanel.add(tablesPanel);
+            if ( tablesPanel != null ) {
+                editPropertiesPanel.add(tablesPanel);
+            }
             editPropertiesPanel.add(createLabelPanel( "List label ids e.g. 12,35,95,100"));
             editPropertiesPanel.add(selectedLabelIDsPanel);
         }
