@@ -109,58 +109,7 @@ public class AddCurrentImageToProject implements Command {
         final ImageJ ij = new ImageJ();
         ij.ui().showUI();
 
-        String[] columnNames = { "label_id", "anchor_x", "anchor_y",
-                "anchor_z", "bb_min_x", "bb_min_y", "bb_min_z", "bb_max_x",
-                "bb_max_y", "bb_max_z" };
 
-        final LazySpimSource labelsSource = new LazySpimSource( "labelImage", "C:\\Users\\meechan\\Documents\\temp\\mobie_test\\ruse\\data\\eldeer\\images\\local\\ahoy_label.xml" );
-        // has to already be as a labeling type
-        // warn needs to be integer, 0 counted as background
-        final RandomAccessibleInterval< IntType > rai = labelsSource.getNonVolatileSource( 0, 0);
-        ImgLabeling< Integer, IntType > imgLabeling = labelMapAsImgLabeling( rai );
-
-        LabelRegions labelRegions = new LabelRegions( imgLabeling );
-        Iterator<LabelRegion> labelRegionIterator = labelRegions.iterator();
-
-        ArrayList<Object[]> rows = new ArrayList<>();
-        // ArrayList<Integer> labelIds = new ArrayList<>();
-        // ArrayList<double[]> centres = new ArrayList<>();
-        // ArrayList<double[]> bbMins = new ArrayList<>();
-        // ArrayList<double[]> bbMaxs = new ArrayList<>();
-        while ( labelRegionIterator.hasNext() ) {
-            Object[] row = new Object[columnNames.length ];
-            LabelRegion labelRegion = labelRegionIterator.next();
-
-
-            double[] centre = new double[rai.numDimensions()];
-            labelRegion.getCenterOfMass().localize( centre );
-            double[] bbMin = new double[rai.numDimensions()];
-            double[] bbMax = new double[rai.numDimensions()];
-            labelRegion.realMin( bbMin );
-            labelRegion.realMax( bbMax );
-
-            row[0] =  labelRegion.getLabel();
-            row[1] = centre[0];
-            row[2] = centre[1];
-            row[3] = centre[2];
-            row[4] = bbMin[0];
-            row[5] = bbMin[1];
-            row[6] = bbMin[2];
-            row[7] = bbMax[0];
-            row[8] = bbMax[1];
-            row[9] = bbMax[2];
-
-            rows.add( row );
-
-        }
-
-        Object[][] rowArray = new Object[ rows.size() ] [ columnNames.length ];
-        rowArray = rows.toArray( rowArray );
-        // compensate for spacing
-
-        // make a Jtable
-        JTable table = new JTable( rowArray, columnNames);
-        Tables.saveTable( table, new File ("C:\\Users\\meechan\\Documents\\temp\\mobie_test\\ruse\\data\\eldeer\\images\\local\\test_output.csv"));
 
     }
 
