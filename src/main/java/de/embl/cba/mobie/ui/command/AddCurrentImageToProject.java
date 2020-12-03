@@ -90,16 +90,6 @@ public class AddCurrentImageToProject implements Command {
 
             // update images.json
             projectsCreatorPanel.getProjectsCreator().addToImagesJson( imageName, imageType, chosenDataset );
-
-            // check it's a label image
-
-
-
-
-            // open xml as rai, at 0 resolution layer
-            // make labelRegions
-            // get centres and bbs
-            // make table, save table
         }
 
 
@@ -108,8 +98,6 @@ public class AddCurrentImageToProject implements Command {
     public static void main(final String... args) {
         final ImageJ ij = new ImageJ();
         ij.ui().showUI();
-
-
 
     }
 
