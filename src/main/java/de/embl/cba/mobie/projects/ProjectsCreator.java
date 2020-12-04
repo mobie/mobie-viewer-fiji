@@ -20,10 +20,7 @@ import net.imglib2.type.numeric.integer.IntType;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import static de.embl.cba.morphometry.Utils.labelMapAsImgLabeling;
 
@@ -65,7 +62,6 @@ public class ProjectsCreator {
             new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "images", "remote")).mkdirs();
             new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "misc", "bookmarks")).mkdirs();
 
-            File datasetJSON = new File(dataLocation, "datasets.json");
 
             // if this is the first dataset, then make this the default
             if (currentDatasets.datasets.size() == 0) {
@@ -73,7 +69,7 @@ public class ProjectsCreator {
             }
             currentDatasets.datasets.add(name);
             try {
-                new DatasetsParser().datasetsToFile(datasetJSON.getAbsolutePath(), currentDatasets);
+                writeDatasetsJson();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -128,6 +124,36 @@ public class ProjectsCreator {
         return FileAndUrlUtils.combinePath( dataLocation.getAbsolutePath(), datasetName, "images");
     }
 
+    public boolean isInDatasets ( String datasetName ) {
+        return Arrays.stream( getCurrentDatasets() ).anyMatch(datasetName::equals);
+    }
+
+    public void renameDataset( String oldName, String newName ) {
+        updateCurrentDatasets();
+
+        File oldDatasetDir = new File ( dataLocation, oldName );
+        File newDatasetDir = new File ( dataLocation, newName );
+
+        if ( oldDatasetDir.exists() ) {
+            if (oldDatasetDir.renameTo(newDatasetDir)) {
+                // update json
+                if ( currentDatasets.defaultDataset.equals(oldName) ) {
+                    currentDatasets.defaultDataset = newName;
+                }
+
+                int indexOld = currentDatasets.datasets.indexOf( oldName );
+                currentDatasets.datasets.set( indexOld, newName );
+
+                try {
+                    writeDatasetsJson();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+
     public void updateCurrentImages( String datasetName ) {
         File imagesJSON = new File( getImagesJsonPath( datasetName ) );
 
@@ -138,6 +164,7 @@ public class ProjectsCreator {
         }
     }
 
+    // TODO - is this efficient for big images?
     private void addDefaultTableForImage ( String imageName, String datasetName ) {
         File tableFolder = new File( FileAndUrlUtils.combinePath( getDatasetPath( datasetName ), "tables", imageName));
         File defaultTable = new File( tableFolder, "default.csv");
@@ -226,5 +253,8 @@ public class ProjectsCreator {
                 currentImages);
     }
 
-
+    public void writeDatasetsJson () throws IOException {
+        File datasetJSON = new File(dataLocation, "datasets.json");
+        new DatasetsParser().datasetsToFile(datasetJSON.getAbsolutePath(), currentDatasets);
+    }
 }

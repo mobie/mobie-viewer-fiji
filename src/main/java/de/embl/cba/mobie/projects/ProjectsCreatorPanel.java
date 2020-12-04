@@ -103,13 +103,16 @@ public class ProjectsCreatorPanel extends JFrame {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
         final JButton addButton = getButton("Add");
+        final JButton renameButton = getButton("Rename");
 
         createDatasetComboBox();
         addButton.addActionListener(e -> addDatasetDialog());
+        renameButton.addActionListener(e -> renameDatasetDialog());
 
         horizontalLayoutPanel.add(getJLabel("dataset"));
         horizontalLayoutPanel.add(datasetComboBox);
         horizontalLayoutPanel.add(addButton);
+        horizontalLayoutPanel.add(renameButton);
 
         this.getContentPane().add(horizontalLayoutPanel);
     }
@@ -162,13 +165,36 @@ public class ProjectsCreatorPanel extends JFrame {
         if ( !gd.wasCanceled() ) {
             String datasetName = gd.getNextString();
             // check not already in datasets
-            boolean contains = Arrays.stream( projectsCreator.getCurrentDatasets() ).anyMatch(datasetName::equals);
+            boolean contains = projectsCreator.isInDatasets( datasetName );
             if ( !contains ) {
                 projectsCreator.addDataset( datasetName );
                 updateDatasetsComboBox();
             }
 
             return datasetName;
+
+        } else {
+            return null;
+        }
+    }
+
+    private String renameDatasetDialog() {
+        final GenericDialog gd = new GenericDialog( "Rename dataset" );
+        String oldName = (String) datasetComboBox.getSelectedItem();
+        gd.addMessage( "Old name: " + oldName );
+        gd.addStringField( "New name", "");
+        gd.showDialog();
+
+        if ( !gd.wasCanceled() ) {
+            String newName = gd.getNextString();
+            // check not already in datasets
+            boolean contains = projectsCreator.isInDatasets( newName );
+            if ( !contains ) {
+                projectsCreator.renameDataset( oldName, newName );
+                updateDatasetsComboBox();
+            }
+
+            return newName;
 
         } else {
             return null;

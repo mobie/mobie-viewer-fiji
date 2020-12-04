@@ -30,8 +30,9 @@ public class EditMoBIEProjectCommand implements Command
         ij.ui().showUI();
 
         ProjectsCreatorPanel panel = new ProjectsCreatorPanel( new File("C:\\Users\\meechan\\Documents\\temp\\mobie_test\\ruse" ));
+        panel.showProjectsCreatorPanel();
         // TODO - populate dialog from existing properites
-        ImagePropertiesEditor editor = new ImagePropertiesEditor( "eldeer", "blah", panel.getProjectsCreator());
+        // ImagePropertiesEditor editor = new ImagePropertiesEditor( "eldeer", "blah", panel.getProjectsCreator());
 
 
         // final MoBIEViewer moBIEViewer = new MoBIEViewer(
