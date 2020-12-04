@@ -103,16 +103,16 @@ public class ProjectsCreatorPanel extends JFrame {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
         final JButton addButton = getButton("Add");
-        final JButton renameButton = getButton("Rename");
+        final JButton editButton = getButton("Edit");
 
         createDatasetComboBox();
         addButton.addActionListener(e -> addDatasetDialog());
-        renameButton.addActionListener(e -> renameDatasetDialog());
+        editButton.addActionListener(e -> editDatasetDialog());
 
         horizontalLayoutPanel.add(getJLabel("dataset"));
         horizontalLayoutPanel.add(datasetComboBox);
         horizontalLayoutPanel.add(addButton);
-        horizontalLayoutPanel.add(renameButton);
+        horizontalLayoutPanel.add(editButton);
 
         this.getContentPane().add(horizontalLayoutPanel);
     }
@@ -178,26 +178,37 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
-    private String renameDatasetDialog() {
-        final GenericDialog gd = new GenericDialog( "Rename dataset" );
+    private void editDatasetDialog() {
+        final GenericDialog gd = new GenericDialog( "Edit dataset..." );
         String oldName = (String) datasetComboBox.getSelectedItem();
-        gd.addMessage( "Old name: " + oldName );
-        gd.addStringField( "New name", "");
+        boolean isDefault = projectsCreator.isDefaultDataset( oldName );
+
+        gd.addStringField( "Dataset name", oldName);
+        if ( isDefault ) {
+            gd.addMessage( "This dataset is the default");
+        } else {
+            gd.addCheckbox("Make default dataset", false);
+        }
         gd.showDialog();
 
         if ( !gd.wasCanceled() ) {
-            String newName = gd.getNextString();
-            // check not already in datasets
-            boolean contains = projectsCreator.isInDatasets( newName );
-            if ( !contains ) {
-                projectsCreator.renameDataset( oldName, newName );
-                updateDatasetsComboBox();
+            String newName = gd.getNextString().trim();
+            if ( !newName.equals(oldName) ) {
+                // check not already in datasets
+                boolean contains = projectsCreator.isInDatasets(newName);
+                if (!contains) {
+                    projectsCreator.renameDataset(oldName, newName);
+                    updateDatasetsComboBox();
+                }
             }
 
-            return newName;
+            if ( !isDefault ) {
+                boolean makeDefault = gd.getNextBoolean();
+                if ( makeDefault ) {
+                    projectsCreator.makeDefaultDataset( newName );
+                }
+            }
 
-        } else {
-            return null;
         }
     }
 

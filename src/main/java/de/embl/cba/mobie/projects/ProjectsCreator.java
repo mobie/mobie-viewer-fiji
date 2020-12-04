@@ -78,6 +78,17 @@ public class ProjectsCreator {
 
     }
 
+    public void makeDefaultDataset ( String datasetName ) {
+        updateCurrentDatasets();
+
+        currentDatasets.defaultDataset = datasetName;
+        try {
+            writeDatasetsJson();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void updateCurrentDatasets() {
         File datasetJSON = new File( dataLocation, "datasets.json");
 
@@ -126,6 +137,10 @@ public class ProjectsCreator {
 
     public boolean isInDatasets ( String datasetName ) {
         return Arrays.stream( getCurrentDatasets() ).anyMatch(datasetName::equals);
+    }
+
+    public boolean isDefaultDataset( String datasetName ) {
+        return currentDatasets.defaultDataset.equals( datasetName );
     }
 
     public void renameDataset( String oldName, String newName ) {
