@@ -34,24 +34,26 @@ public class ImagesJsonParser
 		}
 	}
 
-	public void writeImagePropertiesMap( String path, Map<String, ImageProperties> imagePropertiesMap ) {
+	// TODO - maybe fix rest of parsers this way too?
+	public void writeImagePropertiesMap( String path, Map<String, ImageProperties> imagePropertiesMap ) throws IOException {
 
-		try {
-			final JsonWriter writer = getJsonWriter( path );
+		try( OutputStream outputStream = new FileOutputStream( path );
+			 JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8")) ) {
+			writer.setIndent("	");
 			writeJson( writer, imagePropertiesMap );
-			writer.close();
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 
 	private Map< String, ImageProperties > parseImagesJson() throws IOException
 	{
-		final JsonReader reader = getJsonReader();
+		final String imagesJsonLocation = FileAndUrlUtils.combinePath( imagesLocation, "images/images.json" );
 
-		Map< String, ImageProperties > nameToImageProperties = parseJson( reader );
-
-		return nameToImageProperties;
+		// swapped to using try-with-resources block, so streams don't remain open and interfere
+		// with file manipulation
+		try ( InputStream is = FileAndUrlUtils.getInputStream( imagesJsonLocation );
+			  JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) )) {
+				  return parseJson(reader);
+			  }
 	}
 
 	private Map< String, ImageProperties > parseJson( JsonReader reader )
@@ -67,21 +69,4 @@ public class ImagesJsonParser
 		gson.toJson( imagePropertiesMap, type, writer);
 	}
 
-	private JsonReader getJsonReader() throws IOException
-	{
-		final String imagesJsonLocation = FileAndUrlUtils.combinePath( imagesLocation, "images/images.json" );
-
-		InputStream is = FileAndUrlUtils.getInputStream( imagesJsonLocation );
-
-		return new JsonReader( new InputStreamReader( is, "UTF-8" ) );
-	}
-
-	private JsonWriter getJsonWriter( String path ) throws IOException
-	{
-		OutputStream outputStream = new FileOutputStream( path );
-		final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8"));
-		writer.setIndent("	");
-
-		return writer;
-	}
 }

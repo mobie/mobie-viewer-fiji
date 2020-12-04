@@ -10,14 +10,17 @@ import de.embl.cba.mobie.image.Storage;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.color.ColoringLuts;
+import ij.IJ;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.roi.labeling.ImgLabeling;
 import net.imglib2.roi.labeling.LabelRegion;
 import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.numeric.integer.IntType;
+import org.apache.commons.io.FileUtils;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -112,9 +115,21 @@ public class ProjectsCreator {
         }
     }
 
-    public Map< String, ImageProperties> getCurrentImages( String datasetName ) {
+    public ImageProperties getImageProperties ( String datasetName, String imageName ) {
         updateCurrentImages( datasetName );
-        return currentImages;
+        return currentImages.get( imageName );
+    }
+
+    public String[] getCurrentImages( String datasetName ) {
+        updateCurrentImages( datasetName );
+        if ( currentImages.size() > 0 ) {
+            Set<String> imageNames = currentImages.keySet();
+            String[] imageNamesArray = new String[imageNames.size()];
+            imageNames.toArray( imageNamesArray );
+            return imageNamesArray;
+        } else {
+            return new String[] {""};
+        }
     }
 
     public String getDatasetPath ( String datasetName ) {
@@ -164,6 +179,8 @@ public class ProjectsCreator {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            } else {
+                IJ.log( "Rename file failed");
             }
         }
 
@@ -264,8 +281,12 @@ public class ProjectsCreator {
     }
 
     public void writeImagesJson ( String datasetName ) {
-        new ImagesJsonParser( getDatasetPath( datasetName) ).writeImagePropertiesMap( getImagesJsonPath( datasetName),
-                currentImages);
+        try {
+            new ImagesJsonParser( getDatasetPath( datasetName) ).writeImagePropertiesMap( getImagesJsonPath( datasetName),
+                    currentImages);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void writeDatasetsJson () throws IOException {

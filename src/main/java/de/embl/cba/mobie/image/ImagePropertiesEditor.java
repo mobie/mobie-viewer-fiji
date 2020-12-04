@@ -52,7 +52,7 @@ public class ImagePropertiesEditor {
         this.datasetName = datasetName;
         this.imageName = imageName;
         this.projectsCreator = projectsCreator;
-        imageProperties = projectsCreator.getCurrentImages( datasetName ).get( imageName );
+        imageProperties = projectsCreator.getImageProperties( datasetName, imageName );
         editImagePropertiesDialog();
 
         // Format to only accept numbers in text fields
