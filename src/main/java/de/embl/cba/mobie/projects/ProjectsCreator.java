@@ -128,6 +128,11 @@ public class ProjectsCreator {
         }
     }
 
+    public Set<String> getCurrentImagesInDefaultBookmark( String datasetName ) {
+        updateCurrentDefaultBookmarks( datasetName );
+        return currentDefaultBookmarks.get( "default" ).layers.keySet();
+    }
+
     public ImageProperties getImageProperties ( String datasetName, String imageName ) {
         updateCurrentImageProperties( datasetName );
         return currentImagesProperties.get( imageName );
@@ -176,6 +181,10 @@ public class ProjectsCreator {
         return Arrays.stream( getCurrentImages( datasetName ) ).anyMatch(imageName::equals);
     }
 
+    public boolean isInDefaultBookmark ( String imageName, String datasetName ) {
+        return getCurrentImagesInDefaultBookmark( datasetName ).contains( imageName );
+    }
+
     public boolean isDefaultDataset( String datasetName ) {
         return currentDatasets.defaultDataset.equals( datasetName );
     }
@@ -221,7 +230,7 @@ public class ProjectsCreator {
     public void updateCurrentDefaultBookmarks( String datasetName ) {
         File defaultBookmarkJson = new File ( getDefaultBookmarkJsonPath( datasetName ) );
         if ( defaultBookmarkJson.exists() ) {
-            currentDefaultBookmarks = new BookmarksJsonParser( datasetName ).getDefaultBookmarks();
+            currentDefaultBookmarks = new BookmarksJsonParser( getDatasetPath( datasetName ) ).getDefaultBookmarks();
         } else {
             currentDefaultBookmarks = new HashMap<>();
         }
@@ -322,6 +331,21 @@ public class ProjectsCreator {
         defaultBookmark.layers = layers;
 
         currentDefaultBookmarks.put( "default", defaultBookmark );
+    }
+
+    public void addImageToDefaultBookmark( String imageName, String datasetName ) {
+        updateCurrentDefaultBookmarks( datasetName );
+        currentDefaultBookmarks.get( "default" ).layers.put( imageName, currentImagesProperties.get(imageName) );
+    }
+
+    public void setImagePropertiesInDefaultBookmark ( String imageName, String datasetName, ImageProperties imageProperties ) {
+        updateCurrentDefaultBookmarks( datasetName );
+        currentDefaultBookmarks.get( "default" ).layers.put( imageName, imageProperties );
+    }
+
+    public void removeImageFromDefaultBookmark( String imageName, String datasetName ) {
+        updateCurrentDefaultBookmarks( datasetName );
+        currentDefaultBookmarks.get( "default" ).layers.remove( imageName );
     }
 
     public void writeDefaultBookmarksJson ( String datasetName ) {

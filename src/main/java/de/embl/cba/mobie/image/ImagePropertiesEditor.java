@@ -46,6 +46,7 @@ public class ImagePropertiesEditor {
     private JTextField selectedLabelIdsField;
     private JCheckBox showSelectedSegmentsIn3dCheckbox;
     private JCheckBox showImageIn3dCheckbox;
+    private JCheckBox showByDefaultCheckbox;
     private boolean zeroTransparent;
 
 
@@ -380,6 +381,9 @@ public class ImagePropertiesEditor {
         showImageIn3dCheckbox = new JCheckBox("Show image in 3d");
         showImageIn3dCheckbox.setSelected( imageProperties.showImageIn3d );
 
+        showByDefaultCheckbox = new JCheckBox( "Show by default" );
+        showByDefaultCheckbox.setSelected( projectsCreator.isInDefaultBookmark( imageName, datasetName ) );
+
         JPanel editPropertiesPanel = new JPanel();
         editPropertiesPanel.setLayout( new BoxLayout(editPropertiesPanel, BoxLayout.PAGE_AXIS) );
         editPropertiesPanel.add(colorComboPanel);
@@ -403,13 +407,12 @@ public class ImagePropertiesEditor {
             editPropertiesPanel.add(showSelectedSegmentsIn3dCheckbox);
         }
         editPropertiesPanel.add(showImageIn3dCheckbox);
+        editPropertiesPanel.add(showByDefaultCheckbox);
         editPropertiesPanel.add( createAcceptCancelPanel( editImageFrame ));
         editImageFrame.add(editPropertiesPanel);
 
         editImageFrame.pack();
         editImageFrame.setVisible( true );
-
-        // TODO - checkbox to make default bookmark
 
     }
 
@@ -426,6 +429,17 @@ public class ImagePropertiesEditor {
             e.printStackTrace();
         }
 
+    }
+
+    private boolean updateDefaultBookmarkSettingsDialog() {
+        int result = JOptionPane.showConfirmDialog(null, "Update the default bookmark settings for this image?", "Update default bookmark too?",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+        if (result == JOptionPane.YES_OPTION) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public void updateImageProperties () throws ParseException {
@@ -491,6 +505,30 @@ public class ImagePropertiesEditor {
             }
 
             imageProperties.showSelectedSegmentsIn3d = showSelectedSegmentsIn3dCheckbox.isSelected();
+
+            boolean imageIsInDefaultBookmark = projectsCreator.isInDefaultBookmark( imageName, datasetName);
+            // if modifying an image that is shown in default bookmark, give option to update that metadata
+            if ( showByDefaultCheckbox.isSelected() && imageIsInDefaultBookmark ) {
+                if ( updateDefaultBookmarkSettingsDialog() ) {
+                    projectsCreator.setImagePropertiesInDefaultBookmark( imageName, datasetName, imageProperties);
+                    projectsCreator.writeDefaultBookmarksJson( datasetName );
+                }
+            }
+
+            // if show by default has changed, modify the bookmarks json
+            if ( !(showByDefaultCheckbox.isSelected() == imageIsInDefaultBookmark) ) {
+                if ( showByDefaultCheckbox.isSelected() ) {
+                    projectsCreator.addImageToDefaultBookmark(imageName, datasetName);
+                    projectsCreator.writeDefaultBookmarksJson(datasetName);
+                } else {
+                    if ( projectsCreator.getCurrentImagesInDefaultBookmark( datasetName ).size() > 1 ) {
+                        projectsCreator.removeImageFromDefaultBookmark( imageName, datasetName );
+                        projectsCreator.writeDefaultBookmarksJson( datasetName );
+                    } else {
+                    //    TODO - warn that it can't be removed because it's teh only one
+                    }
+                }
+            }
         }
     }
 }
