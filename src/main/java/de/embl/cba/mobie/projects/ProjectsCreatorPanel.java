@@ -56,12 +56,14 @@ public class ProjectsCreatorPanel extends JFrame {
         this.projectsCreator = new ProjectsCreator( projectLocation );
         addDatasetPanel();
         addImagesPanel();
+        this.setTitle( "Edit MoBIE Project...");
         this.getContentPane().setLayout( new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS ) );
         this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
     }
 
     public void showProjectsCreatorPanel() {
         this.pack();
+        this.setLocationRelativeTo(null);
         this.setVisible( true );
     }
 
@@ -112,10 +114,11 @@ public class ProjectsCreatorPanel extends JFrame {
         addButton.addActionListener(e -> addDatasetDialog());
         editButton.addActionListener(e -> editDatasetDialog());
 
-        horizontalLayoutPanel.add(getJLabel("dataset"));
+        horizontalLayoutPanel.add(getJLabel("dataset", 60, 10));
         horizontalLayoutPanel.add(datasetComboBox);
         horizontalLayoutPanel.add(addButton);
         horizontalLayoutPanel.add(editButton);
+        horizontalLayoutPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
         this.getContentPane().add(horizontalLayoutPanel);
     }
@@ -138,19 +141,17 @@ public class ProjectsCreatorPanel extends JFrame {
     private void addImagesPanel() {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-        // final JButton addButton = getButton("Add");
         final JButton editButton = getButton("Edit");
 
         imagesComboBox = new JComboBox<>( projectsCreator.getCurrentImages( (String) datasetComboBox.getSelectedItem()) );
         setComboBoxDimensions(imagesComboBox);
-        // addButton.addActionListener(e -> addImageDialog());
         editButton.addActionListener(e -> editImageDialog() );
         imagesComboBox.setPrototypeDisplayValue(MoBIEViewer.PROTOTYPE_DISPLAY_VALUE);
 
-        horizontalLayoutPanel.add(getJLabel("image"));
+        horizontalLayoutPanel.add(getJLabel("image", 60, 10));
         horizontalLayoutPanel.add(imagesComboBox);
-        // horizontalLayoutPanel.add(addButton);
         horizontalLayoutPanel.add( editButton );
+        horizontalLayoutPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
         this.getContentPane().add(horizontalLayoutPanel);
     }
@@ -227,42 +228,10 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
-    // TODO - if rename image, need to update image combobox accordingly
     private void editImageDialog() {
         ImagePropertiesEditor editor = new ImagePropertiesEditor( (String) datasetComboBox.getSelectedItem(),
                 (String) imagesComboBox.getSelectedItem(), projectsCreator);
     }
-
-    // private void addImageDialog () {
-    //
-    //     final JFileChooser jFileChooser = new JFileChooser();
-    //     if (jFileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-    //         String imagePath = jFileChooser.getSelectedFile().getAbsolutePath();
-    //
-    //         final GenericDialog gd = new GenericDialog("Add a new image");
-    //         gd.addMessage("Adding image to dataset: " + datasetComboBox.getSelectedItem());
-    //         gd.addStringField("Name of image", "");
-    //         gd.addChoice("Bdv format", new String[]{"n5", "h5"}, "n5");
-    //         gd.addStringField("Pixel size unit", "micrometer");
-    //         gd.addNumericField("x pixel size", 1);
-    //         gd.addNumericField("y pixel size", 1);
-    //         gd.addNumericField("z pixel size", 1);
-    //         gd.showDialog();
-    //
-    //         if (!gd.wasCanceled()) {
-    //             String imageName = gd.getNextString();
-    //             String datasetName = (String) datasetComboBox.getSelectedItem();
-    //             String bdvFormat = gd.getNextChoice();
-    //             String pixelSizeUnit = gd.getNextString();
-    //             double xPixelSize = gd.getNextNumber();
-    //             double yPixelSize = gd.getNextNumber();
-    //             double zPixelSize = gd.getNextNumber();
-    //             projectsCreator.addImage( imagePath, imageName, datasetName, bdvFormat, pixelSizeUnit,
-    //                     xPixelSize, yPixelSize, zPixelSize);
-    //
-    //         }
-    //     }
-    // }
 
     private void updateDatasetsComboBox( String selection ) {
         updateDatasetsComboBox();

@@ -1,5 +1,7 @@
 package de.embl.cba.mobie.ui.command;
 
+import de.embl.cba.mobie.projects.ProjectsCreator;
+import de.embl.cba.mobie.projects.ProjectsCreatorPanel;
 import de.embl.cba.mobie.ui.viewer.MoBIEOptions;
 import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
 import ij.IJ;
@@ -24,16 +26,15 @@ public class CreateNewMoBIEProjectCommand implements Command {
         if ( !dataDirectory.exists() ) {
             dataDirectory.mkdirs();
         }
-        IJ.log(projectLocation.toString());
+
+        ProjectsCreatorPanel panel = new ProjectsCreatorPanel( projectLocation );
+        panel.showProjectsCreatorPanel();
     }
 
     public static void main(final String... args)
     {
         final ImageJ ij = new ImageJ();
         ij.ui().showUI();
-
-
-
     }
 
 }

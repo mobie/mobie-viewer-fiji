@@ -55,7 +55,6 @@ public class ImagePropertiesEditor {
         this.imageName = imageName;
         this.projectsCreator = projectsCreator;
         imageProperties = projectsCreator.getImageProperties( datasetName, imageName );
-        editImagePropertiesDialog();
 
         // Format to only accept numbers in text fields
         amountFormat = NumberFormat.getNumberInstance();
@@ -63,6 +62,7 @@ public class ImagePropertiesEditor {
         amountFormat.setGroupingUsed( false );
 
         zeroTransparent = false;
+        editImagePropertiesDialog();
     }
 
     private JButton getButton(String buttonLabel )
@@ -412,6 +412,7 @@ public class ImagePropertiesEditor {
         editImageFrame.add(editPropertiesPanel);
 
         editImageFrame.pack();
+        editImageFrame.setLocationRelativeTo(null);
         editImageFrame.setVisible( true );
 
     }

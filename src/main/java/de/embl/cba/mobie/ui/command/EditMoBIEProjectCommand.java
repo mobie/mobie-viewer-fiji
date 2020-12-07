@@ -21,7 +21,8 @@ public class EditMoBIEProjectCommand implements Command
     @Override
     public void run()
     {
-        System.out.println(projectLocation);
+        ProjectsCreatorPanel panel = new ProjectsCreatorPanel( projectLocation );
+        panel.showProjectsCreatorPanel();
     }
 
     public static void main(final String... args)
@@ -31,12 +32,5 @@ public class EditMoBIEProjectCommand implements Command
 
         ProjectsCreatorPanel panel = new ProjectsCreatorPanel( new File("C:\\Users\\meechan\\Documents\\temp\\mobie_test\\ruse" ));
         panel.showProjectsCreatorPanel();
-        // TODO - populate dialog from existing properites
-        // ImagePropertiesEditor editor = new ImagePropertiesEditor( "eldeer", "blah", panel.getProjectsCreator());
-
-
-        // final MoBIEViewer moBIEViewer = new MoBIEViewer(
-        //         "https://github.com/mobie/covid-tomo-datasets",
-        //         MoBIEOptions.options().gitProjectBranch( "norm-bookmarks" ) );
     }
 }
