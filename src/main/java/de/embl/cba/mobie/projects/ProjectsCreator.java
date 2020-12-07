@@ -1,23 +1,23 @@
 package de.embl.cba.mobie.projects;
 
+import bdv.util.BdvHandle;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
+import de.embl.cba.mobie.bookmark.Bookmark;
+import de.embl.cba.mobie.bookmark.BookmarksJsonParser;
 import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.dataset.DatasetsParser;
-import de.embl.cba.mobie.image.ImageProperties;
-import de.embl.cba.mobie.image.ImagesJsonParser;
-import de.embl.cba.mobie.image.MutableImageProperties;
-import de.embl.cba.mobie.image.Storage;
+import de.embl.cba.mobie.image.*;
+import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.color.ColoringLuts;
 import ij.IJ;
-import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.roi.labeling.ImgLabeling;
 import net.imglib2.roi.labeling.LabelRegion;
 import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.numeric.integer.IntType;
-import org.apache.commons.io.FileUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,22 +31,35 @@ public class ProjectsCreator {
     private final File projectLocation;
     private final File dataLocation;
     private Datasets currentDatasets;
-    private Map< String, ImageProperties> currentImages;
+    // holds all image properties for one chosen dataset
+    private Map< String, ImageProperties> currentImagesProperties;
+    private Map<String, Bookmark> currentDefaultBookmarks;
 
     public ProjectsCreator ( File projectLocation ) {
         this.projectLocation = projectLocation;
         this.dataLocation = new File( projectLocation, "data");
     }
 
-    public void addImage ( String imagePath, String imageName, String datasetName, String bdvFormat,
-                           String pixelSizeUnit, double xPixelSize, double yPixelSize, double zPixelSize) {
-    //    https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusAsN5PlugIn.java
-    //    https://github.com/bigdataviewer/bigdataviewer-core/blob/master/src/main/java/bdv/export/n5/WriteSequenceToN5.java
-    //    Need an image loader https://javadoc.scijava.org/Fiji/mpicbg/spim/data/generic/sequence/BasicImgLoader.html
-    //    I'm curious if it might be easier to just open it in fiji as a virtual stack then run teh plugin....
-    // or liek this https://syn.mrc-lmb.cam.ac.uk/acardona/fiji-tutorial/#imglib2-n5
-    //    https://github.com/saalfeldlab/n5-imglib2
-    //    n5 imglib2 looks pretty promising - get it to randomaccessible itnermval then write
+    public void addImage ( String imageName, String datasetName, String bdvFormat, String imageType ) {
+        // TODO - add to project creator
+        String xmlPath = FileAndUrlUtils.combinePath(projectLocation.getAbsolutePath(), "data", datasetName, "images", "local", imageName + ".xml");
+        if (bdvFormat.equals("n5")) {
+            IJ.run("Export Current Image as XML/N5",
+                    "  export_path=" + xmlPath);
+        } else if ( bdvFormat.equals("h5") ) {
+            IJ.run("Export Current Image as XML/HDF5",
+                    "  export_path=" + xmlPath );
+        }
+
+        // update images.json
+        addToImagesJson( imageName, imageType, datasetName );
+
+        // if there's no default json, create one with this image
+        File defaultBookmarkJson = new File ( getDefaultBookmarkJsonPath( datasetName ));
+        if ( !defaultBookmarkJson.exists() ) {
+            createDefaultBookmark( imageName, datasetName );
+            writeDefaultBookmarksJson( datasetName );
+        }
     }
 
 
@@ -116,14 +129,14 @@ public class ProjectsCreator {
     }
 
     public ImageProperties getImageProperties ( String datasetName, String imageName ) {
-        updateCurrentImages( datasetName );
-        return currentImages.get( imageName );
+        updateCurrentImageProperties( datasetName );
+        return currentImagesProperties.get( imageName );
     }
 
     public String[] getCurrentImages( String datasetName ) {
-        updateCurrentImages( datasetName );
-        if ( currentImages.size() > 0 ) {
-            Set<String> imageNames = currentImages.keySet();
+        updateCurrentImageProperties( datasetName );
+        if ( currentImagesProperties.size() > 0 ) {
+            Set<String> imageNames = currentImagesProperties.keySet();
             String[] imageNamesArray = new String[imageNames.size()];
             imageNames.toArray( imageNamesArray );
             return imageNamesArray;
@@ -141,6 +154,11 @@ public class ProjectsCreator {
                 "images", "images.json");
     }
 
+    private String getDefaultBookmarkJsonPath ( String datasetName ) {
+        return FileAndUrlUtils.combinePath( dataLocation.getAbsolutePath(), datasetName, "misc", "bookmarks",
+                "default.json");
+    }
+
         // TODO - is this handled by one of tischi's projectlocation classes already???
     private String getLocalImageXmlPath ( String datasetName, String imageName ) {
         return FileAndUrlUtils.combinePath(dataLocation.getAbsolutePath(), datasetName, "images", "local", imageName + ".xml");
@@ -152,6 +170,10 @@ public class ProjectsCreator {
 
     public boolean isInDatasets ( String datasetName ) {
         return Arrays.stream( getCurrentDatasets() ).anyMatch(datasetName::equals);
+    }
+
+    public boolean isInImages ( String imageName, String datasetName ) {
+        return Arrays.stream( getCurrentImages( datasetName ) ).anyMatch(imageName::equals);
     }
 
     public boolean isDefaultDataset( String datasetName ) {
@@ -186,13 +208,22 @@ public class ProjectsCreator {
 
     }
 
-    public void updateCurrentImages( String datasetName ) {
+    public void updateCurrentImageProperties(String datasetName ) {
         File imagesJSON = new File( getImagesJsonPath( datasetName ) );
 
         if ( imagesJSON.exists() ) {
-            currentImages = new ImagesJsonParser( getDatasetPath( datasetName ) ).getImagePropertiesMap();
+            currentImagesProperties = new ImagesJsonParser( getDatasetPath( datasetName ) ).getImagePropertiesMap();
         } else {
-            currentImages = new HashMap<>();
+            currentImagesProperties = new HashMap<>();
+        }
+    }
+
+    public void updateCurrentDefaultBookmarks( String datasetName ) {
+        File defaultBookmarkJson = new File ( getDefaultBookmarkJsonPath( datasetName ) );
+        if ( defaultBookmarkJson.exists() ) {
+            currentDefaultBookmarks = new BookmarksJsonParser( datasetName ).getDefaultBookmarks();
+        } else {
+            currentDefaultBookmarks = new HashMap<>();
         }
     }
 
@@ -258,7 +289,7 @@ public class ProjectsCreator {
     }
 
     public void addToImagesJson ( String imageName, String imageType, String datasetName ) {
-        updateCurrentImages( datasetName );
+        updateCurrentImageProperties( datasetName );
         ImageProperties newImageProperties = new ImageProperties();
         newImageProperties.type = imageType;
         if ( imageType.equals("segmentation") ) {
@@ -275,15 +306,36 @@ public class ProjectsCreator {
         storage.local = "local/" + imageName + ".xml";
         newImageProperties.storage = storage;
 
-        currentImages.put( imageName, newImageProperties);
+        currentImagesProperties.put( imageName, newImageProperties);
 
         writeImagesJson( datasetName );
+    }
+
+    public void createDefaultBookmark ( String imageName, String datasetName ) {
+        updateCurrentImageProperties( datasetName );
+        updateCurrentDefaultBookmarks( datasetName );
+        HashMap< String, MutableImageProperties> layers = new HashMap<>();
+        layers.put( imageName, currentImagesProperties.get(imageName) );
+
+        Bookmark defaultBookmark = new Bookmark();
+        defaultBookmark.name = "default";
+        defaultBookmark.layers = layers;
+
+        currentDefaultBookmarks.put( "default", defaultBookmark );
+    }
+
+    public void writeDefaultBookmarksJson ( String datasetName ) {
+        try {
+            new BookmarksJsonParser( getDatasetPath( datasetName) ).saveBookmarksToFile( currentDefaultBookmarks, new File (getDefaultBookmarkJsonPath( datasetName )) );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void writeImagesJson ( String datasetName ) {
         try {
             new ImagesJsonParser( getDatasetPath( datasetName) ).writeImagePropertiesMap( getImagesJsonPath( datasetName),
-                    currentImages);
+                    currentImagesProperties);
         } catch (IOException e) {
             e.printStackTrace();
         }

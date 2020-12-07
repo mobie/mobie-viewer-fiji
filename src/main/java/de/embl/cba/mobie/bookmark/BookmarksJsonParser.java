@@ -103,7 +103,8 @@ public class BookmarksJsonParser {
 		ExclusionStrategy strategy = new ExclusionStrategy() {
 			@Override
 			public boolean shouldSkipField(FieldAttributes f) {
-				if (f.getName().equals("name")) {
+				if (f.getName().equals("name") || f.getName().equals("type") ||
+						f.getName().equals("storage") || f.getName().equals("tableFolder")) {
 					return true;
 				}
 				return false;
@@ -124,15 +125,10 @@ public class BookmarksJsonParser {
 		return gson;
 	}
 
-	public void saveBookmarksToFile(ArrayList<Bookmark> bookmarks, FileLocation fileLocation) throws IOException {
-		HashMap<String, Bookmark> namesToBookmarks = new HashMap<>();
-		for (Bookmark bookmark : bookmarks) {
-			namesToBookmarks.put(bookmark.name, bookmark);
-		}
-
+	private String  chooseJsonLocation( FileLocation fileLocation ) {
 		String jsonPath = null;
 		final JFileChooser jFileChooser;
-		if ( fileLocation.equals( FileLocation.File_system )) {
+		if (fileLocation.equals(FileLocation.File_system)) {
 			jFileChooser = new JFileChooser();
 		} else {
 			String bookmarksDirectory = FileAndUrlUtils.combinePath(datasetLocation, "misc", "bookmarks");
@@ -151,21 +147,38 @@ public class BookmarksJsonParser {
 
 			File jsonFile = new File(jsonPath);
 			if (jsonFile.exists()) {
+				// check if want to append to existing file, otherwise abort
 				if (!appendToFileDialog()) {
-					jsonFile = null;
+					jsonPath = null;
 				}
-			}
-
-			if (jsonFile != null) {
-
-				Gson gson = createGsonBuilder(false);
-				Type type = new TypeToken<Map<String, Bookmark>>() {
-				}.getType();
-
-				writeBookmarksToFile(gson, type, jsonFile, namesToBookmarks);
 			}
 		}
 
+		return jsonPath;
+	}
+
+	public void saveBookmarksToFile(ArrayList<Bookmark> bookmarks, FileLocation fileLocation) throws IOException {
+		HashMap<String, Bookmark> namesToBookmarks = new HashMap<>();
+		for (Bookmark bookmark : bookmarks) {
+			namesToBookmarks.put(bookmark.name, bookmark);
+		}
+
+		String jsonPath = chooseJsonLocation( fileLocation );
+
+		if ( jsonPath != null ) {
+			File jsonFile = new File( jsonPath );
+
+			saveBookmarksToFile( namesToBookmarks, jsonFile );
+		}
+
+	}
+
+	public void saveBookmarksToFile( Map<String, Bookmark> bookmarks, File jsonFile ) throws IOException {
+		Gson gson = createGsonBuilder(false);
+		Type type = new TypeToken<Map<String, Bookmark>>() {
+		}.getType();
+
+		writeBookmarksToFile(gson, type, jsonFile, bookmarks);
 	}
 
 	public boolean appendToFileDialog () {

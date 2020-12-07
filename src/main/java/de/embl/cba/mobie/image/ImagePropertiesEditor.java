@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 // TODO - add some of this to swing utils?
+// TODO - add option to rename images? (more difficult as need to edit path inside the xml too)
 public class ImagePropertiesEditor {
     public static final int TEXT_FIELD_HEIGHT = 20;
     public static final int COMBOBOX_WIDTH = 270;

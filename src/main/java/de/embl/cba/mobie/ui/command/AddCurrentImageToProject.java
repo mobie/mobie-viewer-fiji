@@ -79,20 +79,8 @@ public class AddCurrentImageToProject implements Command {
         }
 
         if ( chosenDataset != null ) {
-            String xmlPath = FileAndUrlUtils.combinePath(projectLocation.getAbsolutePath(), "data", chosenDataset, "images", "local", imageName + ".xml");
-            if (bdvFormat.equals("n5")) {
-                IJ.run("Export Current Image as XML/N5",
-                        "  export_path=" + xmlPath);
-            } else if ( bdvFormat.equals("h5") ) {
-                IJ.run("Export Current Image as XML/HDF5",
-                        "  export_path=" + xmlPath );
-            }
-
-            // update images.json
-            projectsCreatorPanel.getProjectsCreator().addToImagesJson( imageName, imageType, chosenDataset );
+            projectsCreatorPanel.getProjectsCreator().addImage( imageName, chosenDataset, bdvFormat, imageType );
         }
-
-
     }
 
     public static void main(final String... args) {
