@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
+
 // TODO - add some of this to swing utils?
 // TODO - add option to rename images? (more difficult as need to edit path inside the xml too)
 public class ImagePropertiesEditor {
@@ -63,39 +65,6 @@ public class ImagePropertiesEditor {
 
         zeroTransparent = false;
         editImagePropertiesDialog();
-    }
-
-    private JButton getButton(String buttonLabel )
-    {
-        return getButton( buttonLabel, BUTTON_DIMENSION );
-    }
-
-    private JButton getButton( String buttonLabel, Dimension dimension )
-    {
-        final JButton button = new JButton( buttonLabel );
-        button.setPreferredSize( dimension ); // TODO
-        return button;
-    }
-
-    private void setComboBoxDimensions( JComboBox< String > comboBox )
-    {
-        comboBox.setPrototypeDisplayValue( MoBIEViewer.PROTOTYPE_DISPLAY_VALUE );
-        comboBox.setPreferredSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
-        comboBox.setMaximumSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
-    }
-    private JLabel getJLabel( String text )
-    {
-        return getJLabel( text, 170, 10);
-    }
-
-    private JLabel getJLabel( String text, int width, int height )
-    {
-        final JLabel comp = new JLabel( text );
-        comp.setPreferredSize( new Dimension( width, height ) );
-        comp.setHorizontalAlignment( SwingConstants.LEFT );
-        comp.setHorizontalTextPosition( SwingConstants.LEFT );
-        comp.setAlignmentX( Component.LEFT_ALIGNMENT );
-        return comp;
     }
 
     private JPanel createLabelPanel ( String label ) {
@@ -154,10 +123,6 @@ public class ImagePropertiesEditor {
 
         return textPanel;
     }
-
-    // private JPanel createNumberPanel (String label, Format format) {
-    //     return createNumberPanel( label, format, "");
-    // }
 
     private JFormattedTextField createFormattedTextField ( Format format, Object defaultValue ) {
         JFormattedTextField textField = new JFormattedTextField(format);

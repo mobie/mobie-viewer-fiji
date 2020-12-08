@@ -30,7 +30,7 @@ public class EditMoBIEProjectCommand implements Command
         final ImageJ ij = new ImageJ();
         ij.ui().showUI();
 
-        ProjectsCreatorPanel panel = new ProjectsCreatorPanel( new File("C:\\Users\\meechan\\Documents\\temp\\mobie_test\\ruse" ));
-        panel.showProjectsCreatorPanel();
+        // ProjectsCreatorPanel panel = new ProjectsCreatorPanel( new File("C:\\Users\\meechan\\Documents\\temp\\mobie_test\\ruse" ));
+        // panel.showProjectsCreatorPanel();
     }
 }
