@@ -40,22 +40,27 @@ public class ProjectsCreator {
 
     public void addImage ( String imageName, String datasetName, String bdvFormat, String imageType ) {
         String xmlPath = FileAndUrlUtils.combinePath(projectLocation.getAbsolutePath(), "data", datasetName, "images", "local", imageName + ".xml");
-        if (bdvFormat.equals("n5")) {
-            IJ.run("Export Current Image as XML/N5",
-                    "  export_path=" + xmlPath);
-        } else if ( bdvFormat.equals("h5") ) {
-            IJ.run("Export Current Image as XML/HDF5",
-                    "  export_path=" + xmlPath );
-        }
 
-        // update images.json
-        addToImagesJson( imageName, imageType, datasetName );
+        if ( !new File(xmlPath).exists()) {
+            if (bdvFormat.equals("n5")) {
+                IJ.run("Export Current Image as XML/N5",
+                        "  export_path=" + xmlPath);
+            } else if (bdvFormat.equals("h5")) {
+                IJ.run("Export Current Image as XML/HDF5",
+                        "  export_path=" + xmlPath);
+            }
 
-        // if there's no default json, create one with this image
-        File defaultBookmarkJson = new File ( getDefaultBookmarkJsonPath( datasetName ));
-        if ( !defaultBookmarkJson.exists() ) {
-            createDefaultBookmark( imageName, datasetName );
-            writeDefaultBookmarksJson( datasetName );
+            // update images.json
+            addToImagesJson(imageName, imageType, datasetName);
+
+            // if there's no default json, create one with this image
+            File defaultBookmarkJson = new File(getDefaultBookmarkJsonPath(datasetName));
+            if (!defaultBookmarkJson.exists()) {
+                createDefaultBookmark(imageName, datasetName);
+                writeDefaultBookmarksJson(datasetName);
+            }
+        } else {
+            Utils.log( "Adding image to project failed - this image name already exists" );
         }
     }
 
