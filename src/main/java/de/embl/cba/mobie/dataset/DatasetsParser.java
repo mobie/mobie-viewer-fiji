@@ -38,32 +38,30 @@ public class DatasetsParser
 
 	private Datasets datasetsFromFile( String path ) throws IOException
 	{
-		InputStream is = FileAndUrlUtils.getInputStream( path );
+		try (InputStream is = FileAndUrlUtils.getInputStream(path);
+			 final JsonReader reader = new JsonReader(new InputStreamReader(is, "UTF-8")) ) {
 
-		try{
-			final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
-			GsonBuilder builder = new GsonBuilder();
-			Datasets datasets = builder.create().fromJson( reader, Datasets.class);
-			return datasets;
-		}
-		catch ( Exception e )
-		{
-			// old version
-			final Datasets datasets = new Datasets();
-			datasets.datasets = JsonUtils.readStringArray( is );
-			datasets.defaultDataset = datasets.datasets.get( 0 );
-			return datasets;
+			try {
+				GsonBuilder builder = new GsonBuilder();
+				Datasets datasets = builder.create().fromJson(reader, Datasets.class);
+				return datasets;
+			} catch ( Exception e ) {
+				// old version
+				final Datasets datasets = new Datasets();
+				datasets.datasets = JsonUtils.readStringArray( reader );
+				datasets.defaultDataset = datasets.datasets.get(0);
+				return datasets;
+			}
 		}
 	}
 
 	public void datasetsToFile( String path, Datasets datasets ) throws IOException
 	{
-		Gson gson = new GsonBuilder().create();
-		OutputStream outputStream = new FileOutputStream( path );
-		final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8"));
-		writer.setIndent("	");
-		gson.toJson(datasets, Datasets.class, writer);
-		writer.close();
-		outputStream.close();
+		try ( OutputStream outputStream = new FileOutputStream( path );
+			  final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8")) ) {
+			Gson gson = new GsonBuilder().create();
+			writer.setIndent("	");
+			gson.toJson(datasets, Datasets.class, writer);
+		}
 	}
 }

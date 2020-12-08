@@ -195,12 +195,11 @@ public class BookmarksJsonParser {
 
 	private Map< String, Bookmark > readBookmarksFromFile( Gson gson, Type type, String bookmarksLocation ) throws IOException
 	{
-		InputStream inputStream = FileAndUrlUtils.getInputStream( bookmarksLocation );
-		final JsonReader reader = new JsonReader( new InputStreamReader( inputStream, "UTF-8" ) );
-		final Map< String, Bookmark > stringBookmarkMap = gson.fromJson( reader, type );
-		reader.close();
-		inputStream.close();
-		return stringBookmarkMap;
+		try ( InputStream inputStream = FileAndUrlUtils.getInputStream( bookmarksLocation );
+			  final JsonReader reader = new JsonReader( new InputStreamReader( inputStream, "UTF-8" )) ) {
+			final Map<String, Bookmark> stringBookmarkMap = gson.fromJson(reader, type);
+			return stringBookmarkMap;
+		}
 	}
 
 	private void writeBookmarksToFile (Gson gson, Type type, File jsonFile, Map< String, Bookmark > bookmarks) throws IOException
@@ -212,12 +211,11 @@ public class BookmarksJsonParser {
 		}
 		bookmarksInFile.putAll(bookmarks);
 
-		OutputStream outputStream = new FileOutputStream( jsonFile );
-		final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8"));
-		writer.setIndent("	");
-		gson.toJson(bookmarksInFile, type, writer);
-		writer.close();
-		outputStream.close();
+		try ( OutputStream outputStream = new FileOutputStream( jsonFile );
+			  final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8")) ) {
+			writer.setIndent("	");
+			gson.toJson(bookmarksInFile, type, writer);
+		}
 	}
 
 	public String writeBookmarksToBase64String (Map<String, Bookmark> bookmarks) {
