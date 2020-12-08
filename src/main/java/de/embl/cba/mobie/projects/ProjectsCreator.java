@@ -1,7 +1,5 @@
 package de.embl.cba.mobie.projects;
 
-import bdv.util.BdvHandle;
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.bookmark.BookmarksJsonParser;
@@ -20,7 +18,6 @@ import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.numeric.integer.IntType;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -33,6 +30,7 @@ public class ProjectsCreator {
     private Datasets currentDatasets;
     // holds all image properties for one chosen dataset
     private Map< String, ImageProperties> currentImagesProperties;
+    // holds default bookmarks for one chosen dataset
     private Map<String, Bookmark> currentDefaultBookmarks;
 
     public ProjectsCreator ( File projectLocation ) {
@@ -164,7 +162,6 @@ public class ProjectsCreator {
                 "default.json");
     }
 
-        // TODO - is this handled by one of tischi's projectlocation classes already???
     private String getLocalImageXmlPath ( String datasetName, String imageName ) {
         return FileAndUrlUtils.combinePath(dataLocation.getAbsolutePath(), datasetName, "images", "local", imageName + ".xml");
     }
@@ -186,6 +183,7 @@ public class ProjectsCreator {
     }
 
     public boolean isDefaultDataset( String datasetName ) {
+        updateCurrentDatasets();
         return currentDatasets.defaultDataset.equals( datasetName );
     }
 
@@ -248,14 +246,14 @@ public class ProjectsCreator {
 
         if ( !defaultTable.exists() ) {
 
+            Utils.log( " Creating default table... 0 label is counted as background" );
+
             String[] columnNames = {"label_id", "anchor_x", "anchor_y",
                     "anchor_z", "bb_min_x", "bb_min_y", "bb_min_z", "bb_max_x",
                     "bb_max_y", "bb_max_z"};
 
             final LazySpimSource labelsSource = new LazySpimSource("labelImage", getLocalImageXmlPath(datasetName, imageName));
 
-            // has to already be as a labeling type
-            // TODO - warn needs to be integer, 0 counted as background
             final RandomAccessibleInterval<IntType> rai = labelsSource.getNonVolatileSource(0, 0);
             double[] dimensions = new double[ rai.numDimensions() ];
             labelsSource.getVoxelDimensions().dimensions( dimensions );

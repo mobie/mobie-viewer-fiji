@@ -1,45 +1,14 @@
 package de.embl.cba.mobie.projects;
 
-import bdv.tools.brightness.ConverterSetup;
-import bdv.tools.brightness.SliderPanelDouble;
-import bdv.util.BoundedValueDouble;
-import de.embl.cba.bdv.utils.BrightnessUpdateListener;
-import de.embl.cba.mobie.dataset.DatasetsParser;
-import de.embl.cba.mobie.image.ImageProperties;
 import de.embl.cba.mobie.image.ImagePropertiesEditor;
-import de.embl.cba.mobie.image.MutableImageProperties;
-import de.embl.cba.mobie.ui.command.OpenMoBIEPublishedProjectCommand;
 import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
-import de.embl.cba.tables.FileAndUrlUtils;
-import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.SwingUtils;
-import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.color.ColoringLuts;
-import de.embl.cba.tables.image.SourceAndMetadata;
-import ij.Prefs;
 import ij.gui.GenericDialog;
-import net.imagej.ImageJ;
-import net.imglib2.ops.parse.token.Int;
-import net.imglib2.type.numeric.ARGBType;
-import org.apache.commons.compress.utils.FileNameUtils;
-import org.apache.commons.lang.WordUtils;
-import voltex.Mask;
-
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FilenameFilter;
-import java.lang.reflect.Field;
-import java.text.DecimalFormat;
-import java.text.Format;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 

@@ -221,68 +221,78 @@ public class ImagePropertiesEditor {
         return colorPanel;
     }
 
+    private String[] getTableNames() {
+        File tableFolder = new File(FileAndUrlUtils.combinePath(projectsCreator.getDatasetPath(datasetName), imageProperties.tableFolder) );
+        File[] tableFiles = tableFolder.listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.toLowerCase().endsWith(".csv") || name.toLowerCase().endsWith(".tsv");
+            }
+        });
+
+        if ( !(tableFiles.length > 0) ) {
+            return null;
+        }
+
+        // we don't include the default table here, as it is always shown
+        ArrayList<String> tableNames = new ArrayList<>();
+        for (int i = 0; i< tableFiles.length; i++) {
+            String tableName = FileNameUtils.getBaseName( tableFiles[i].getAbsolutePath() );
+            if (!tableName.equals("default")) {
+                tableNames.add( tableName );
+            }
+        }
+
+        if ( !(tableNames.size() > 0) ) {
+            return null;
+        }
+
+        String[] tableNamesArray = new String[tableNames.size()];
+        tableNamesArray = tableNames.toArray( tableNamesArray );
+
+        return tableNamesArray;
+    }
+
+    private void makeTablesList ( String[] tableNamesArray ) {
+        tablesList = new JList(tableNamesArray);
+        tablesList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        tablesList.setLayoutOrientation(JList.VERTICAL);
+        if ( tableNamesArray.length < 3) {
+            tablesList.setVisibleRowCount(tableNamesArray.length);
+        } else {
+            tablesList.setVisibleRowCount(3);
+        }
+
+        ArrayList<String> selectedTables = imageProperties.tables;
+        if (selectedTables != null) {
+            if (selectedTables.size() > 0) {
+                ArrayList<Integer> selectedIndices = new ArrayList<>();
+                for (int i = 0; i < tablesList.getModel().getSize(); i++) {
+                    if (selectedTables.contains(tablesList.getModel().getElementAt(i))) {
+                        selectedIndices.add(i);
+                    }
+                }
+                int[] selectedIndicesArray = selectedIndices.stream().mapToInt(i -> i).toArray();
+                tablesList.setSelectedIndices(selectedIndicesArray);
+            }
+        }
+    }
+
     private JPanel createTablesPanel() {
         JPanel tables = null;
         if ( imageProperties.type.equals("segmentation") ) {
-            File tableFolder = new File(FileAndUrlUtils.combinePath(projectsCreator.getDatasetPath(datasetName), imageProperties.tableFolder) );
-            File[] tableFiles = tableFolder.listFiles(new FilenameFilter() {
-                public boolean accept(File dir, String name) {
-                    return name.toLowerCase().endsWith(".csv") || name.toLowerCase().endsWith(".tsv");
-                }
-            });
 
-            if ( !(tableFiles.length > 0) ) {
-                return null;
+            String[] tableNamesArray = getTableNames();
+
+            if ( tableNamesArray != null) {
+                makeTablesList( tableNamesArray );
+                tables = createListPanel("tables", tablesList);
             }
-
-            // we don't include the default table here, as it is always shown
-            ArrayList<String> tableNames = new ArrayList<>();
-            for (int i = 0; i< tableFiles.length; i++) {
-                String tableName = FileNameUtils.getBaseName( tableFiles[i].getAbsolutePath() );
-                if (!tableName.equals("default")) {
-                    tableNames.add( tableName );
-                }
-            }
-
-            if ( !(tableNames.size() > 0) ) {
-                return null;
-            }
-
-            // JList needs String[] vs ArrayList<String>
-            String[] tableNamesArray = new String[tableNames.size()];
-            tableNamesArray = tableNames.toArray( tableNamesArray );
-
-            tablesList = new JList( tableNamesArray );
-            tablesList.setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
-            tablesList.setLayoutOrientation( JList.VERTICAL );
-            if ( tableNames.size() < 3) {
-                tablesList.setVisibleRowCount( tableNames.size() );
-            } else {
-                tablesList.setVisibleRowCount(3);
-            }
-
-            ArrayList<String> selectedTables = imageProperties.tables;
-            if ( selectedTables != null ) {
-                if (selectedTables.size() > 0) {
-                    ArrayList<Integer> selectedIndices = new ArrayList<>();
-                    for (int i = 0; i < tablesList.getModel().getSize(); i++) {
-                        if (selectedTables.contains(tablesList.getModel().getElementAt(i))) {
-                            selectedIndices.add(i);
-                        }
-                    }
-                    int[] selectedIndicesArray = selectedIndices.stream().mapToInt(i -> i).toArray();
-                    tablesList.setSelectedIndices(selectedIndicesArray);
-                }
-            }
-
-            tables = createListPanel( "tables", tablesList);
         }
 
         return tables;
     }
 
     public void editImagePropertiesDialog() {
-        // TODO - only show ones relevant for that image type
         JFrame editImageFrame = new JFrame("Edit image properties...");
         editImageFrame.getContentPane().setLayout( new BoxLayout(editImageFrame.getContentPane(), BoxLayout.Y_AXIS ) );
         editImageFrame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
@@ -402,6 +412,51 @@ public class ImagePropertiesEditor {
         }
     }
 
+    private void updateSelectecLabelIds () {
+        if ( !selectedLabelIdsField.getText().equals("") ) {
+            String selectedLabelIdsText = selectedLabelIdsField.getText().trim();
+            String selectedLabelIdsTextNoSpaces = selectedLabelIdsText.replaceAll("\\s+","");
+
+            // check contains nothing but numbers or . or ,
+            if ( Pattern.matches( "[0-9 | , | .]+", selectedLabelIdsTextNoSpaces )) {
+                String[] ids = selectedLabelIdsTextNoSpaces.split(",");
+                ArrayList<Double> selectedIds = new ArrayList<>();
+                for ( String id : ids ) {
+                    selectedIds.add( Double.valueOf( id ) );
+                }
+                imageProperties.selectedLabelIds = selectedIds;
+            }
+        } else {
+            imageProperties.selectedLabelIds = null;
+        }
+    }
+
+    private void updateDefaultBookmarkSettings () {
+        boolean imageIsInDefaultBookmark = projectsCreator.isInDefaultBookmark( imageName, datasetName);
+        // if modifying an image that is shown in default bookmark, give option to update that metadata
+        if ( showByDefaultCheckbox.isSelected() && imageIsInDefaultBookmark ) {
+            if ( updateDefaultBookmarkSettingsDialog() ) {
+                projectsCreator.setImagePropertiesInDefaultBookmark( imageName, datasetName, imageProperties);
+                projectsCreator.writeDefaultBookmarksJson( datasetName );
+            }
+        }
+
+        // if show by default has changed, modify the bookmarks json
+        if ( !(showByDefaultCheckbox.isSelected() == imageIsInDefaultBookmark) ) {
+            if ( showByDefaultCheckbox.isSelected() ) {
+                projectsCreator.addImageToDefaultBookmark(imageName, datasetName);
+                projectsCreator.writeDefaultBookmarksJson(datasetName);
+            } else {
+                if ( projectsCreator.getCurrentImagesInDefaultBookmark( datasetName ).size() > 1 ) {
+                    projectsCreator.removeImageFromDefaultBookmark( imageName, datasetName );
+                    projectsCreator.writeDefaultBookmarksJson( datasetName );
+                } else {
+                    Utils.log( "can't make image non-default - you need at least one default image" );
+                }
+            }
+        }
+    }
+
     public void updateImageProperties () throws ParseException {
 
         commitAllEdits();
@@ -447,48 +502,9 @@ public class ImagePropertiesEditor {
                 imageProperties.tables = null;
             }
 
-            if ( !selectedLabelIdsField.getText().equals("") ) {
-                String selectedLabelIdsText = selectedLabelIdsField.getText().trim();
-                String selectedLabelIdsTextNoSpaces = selectedLabelIdsText.replaceAll("\\s+","");
-
-                // check contains nothing but numbers or . or ,
-                if ( Pattern.matches( "[0-9 | , | .]+", selectedLabelIdsTextNoSpaces )) {
-                    String[] ids = selectedLabelIdsTextNoSpaces.split(",");
-                    ArrayList<Double> selectedIds = new ArrayList<>();
-                    for ( String id : ids ) {
-                        selectedIds.add( Double.valueOf( id ) );
-                    }
-                    imageProperties.selectedLabelIds = selectedIds;
-                }
-            } else {
-                imageProperties.selectedLabelIds = null;
-            }
-
+            updateSelectecLabelIds();
             imageProperties.showSelectedSegmentsIn3d = showSelectedSegmentsIn3dCheckbox.isSelected();
-
-            boolean imageIsInDefaultBookmark = projectsCreator.isInDefaultBookmark( imageName, datasetName);
-            // if modifying an image that is shown in default bookmark, give option to update that metadata
-            if ( showByDefaultCheckbox.isSelected() && imageIsInDefaultBookmark ) {
-                if ( updateDefaultBookmarkSettingsDialog() ) {
-                    projectsCreator.setImagePropertiesInDefaultBookmark( imageName, datasetName, imageProperties);
-                    projectsCreator.writeDefaultBookmarksJson( datasetName );
-                }
-            }
-
-            // if show by default has changed, modify the bookmarks json
-            if ( !(showByDefaultCheckbox.isSelected() == imageIsInDefaultBookmark) ) {
-                if ( showByDefaultCheckbox.isSelected() ) {
-                    projectsCreator.addImageToDefaultBookmark(imageName, datasetName);
-                    projectsCreator.writeDefaultBookmarksJson(datasetName);
-                } else {
-                    if ( projectsCreator.getCurrentImagesInDefaultBookmark( datasetName ).size() > 1 ) {
-                        projectsCreator.removeImageFromDefaultBookmark( imageName, datasetName );
-                        projectsCreator.writeDefaultBookmarksJson( datasetName );
-                    } else {
-                        Utils.log( "can't make image non-default - you need at least one default image" );
-                    }
-                }
-            }
+            updateDefaultBookmarkSettings();
         }
     }
 }
