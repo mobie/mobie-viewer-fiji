@@ -504,7 +504,8 @@ public class ImagePropertiesEditor {
 
             updateSelectecLabelIds();
             imageProperties.showSelectedSegmentsIn3d = showSelectedSegmentsIn3dCheckbox.isSelected();
-            updateDefaultBookmarkSettings();
         }
+
+        updateDefaultBookmarkSettings();
     }
 }
