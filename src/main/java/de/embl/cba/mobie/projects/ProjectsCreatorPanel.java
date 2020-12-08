@@ -41,13 +41,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-// TODO - move some of this to swingutils
-// TODO - remove duplicates with other classes e.g imagepropertieseditor
+import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 
 public class ProjectsCreatorPanel extends JFrame {
-    public static final int TEXT_FIELD_HEIGHT = 20;
-    public static final int COMBOBOX_WIDTH = 270;
-    public static final Dimension BUTTON_DIMENSION = new Dimension( 80, TEXT_FIELD_HEIGHT );
     private ProjectsCreator projectsCreator;
     private JComboBox<String> datasetComboBox;
     private JComboBox<String> imagesComboBox;
@@ -69,39 +65,6 @@ public class ProjectsCreatorPanel extends JFrame {
 
     public ProjectsCreator getProjectsCreator() {
         return projectsCreator;
-    }
-
-    private JButton getButton(String buttonLabel )
-    {
-        return getButton( buttonLabel, BUTTON_DIMENSION );
-    }
-
-    private JButton getButton( String buttonLabel, Dimension dimension )
-    {
-        final JButton button = new JButton( buttonLabel );
-        button.setPreferredSize( dimension ); // TODO
-        return button;
-    }
-
-    private void setComboBoxDimensions( JComboBox< String > comboBox )
-    {
-        comboBox.setPrototypeDisplayValue( MoBIEViewer.PROTOTYPE_DISPLAY_VALUE );
-        comboBox.setPreferredSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
-        comboBox.setMaximumSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
-    }
-    private JLabel getJLabel( String text )
-    {
-        return getJLabel( text, 170, 10);
-    }
-
-    private JLabel getJLabel( String text, int width, int height )
-    {
-        final JLabel comp = new JLabel( text );
-        comp.setPreferredSize( new Dimension( width, height ) );
-        comp.setHorizontalAlignment( SwingConstants.LEFT );
-        comp.setHorizontalTextPosition( SwingConstants.LEFT );
-        comp.setAlignmentX( Component.LEFT_ALIGNMENT );
-        return comp;
     }
 
     private void addDatasetPanel() {
@@ -169,7 +132,6 @@ public class ProjectsCreatorPanel extends JFrame {
             return null;
         }
 
-
     }
 
     public String addDatasetDialog () {
@@ -229,7 +191,7 @@ public class ProjectsCreatorPanel extends JFrame {
     }
 
     private void editImageDialog() {
-        ImagePropertiesEditor editor = new ImagePropertiesEditor( (String) datasetComboBox.getSelectedItem(),
+        new ImagePropertiesEditor( (String) datasetComboBox.getSelectedItem(),
                 (String) imagesComboBox.getSelectedItem(), projectsCreator);
     }
 

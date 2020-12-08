@@ -41,7 +41,6 @@ public class ProjectsCreator {
     }
 
     public void addImage ( String imageName, String datasetName, String bdvFormat, String imageType ) {
-        // TODO - add to project creator
         String xmlPath = FileAndUrlUtils.combinePath(projectLocation.getAbsolutePath(), "data", datasetName, "images", "local", imageName + ".xml");
         if (bdvFormat.equals("n5")) {
             IJ.run("Export Current Image as XML/N5",
@@ -89,8 +88,9 @@ public class ProjectsCreator {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        } else {
+            Utils.log( "Dataset creation failed - this name already exists" );
         }
-
 
     }
 
@@ -211,8 +211,10 @@ public class ProjectsCreator {
                     e.printStackTrace();
                 }
             } else {
-                IJ.log( "Rename file failed");
+                Utils.log( "Rename directory failed" );
             }
+        } else {
+            Utils.log( "Rename dataset failed - that dataset doesn't exist" );
         }
 
     }

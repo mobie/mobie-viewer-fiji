@@ -2,6 +2,7 @@ package de.embl.cba.mobie.image;
 
 import de.embl.cba.mobie.projects.ProjectsCreator;
 import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
@@ -24,12 +25,8 @@ import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 
-// TODO - add some of this to swing utils?
 // TODO - add option to rename images? (more difficult as need to edit path inside the xml too)
 public class ImagePropertiesEditor {
-    public static final int TEXT_FIELD_HEIGHT = 20;
-    public static final int COMBOBOX_WIDTH = 270;
-    public static final Dimension BUTTON_DIMENSION = new Dimension( 80, TEXT_FIELD_HEIGHT );
     private String datasetName;
     private String imageName;
     private ProjectsCreator projectsCreator;
@@ -90,10 +87,6 @@ public class ImagePropertiesEditor {
         comboPanel.add( button );
 
         return comboPanel;
-    }
-
-    private JPanel createTextPanel ( String label ) {
-        return createTextPanel( label, null );
     }
 
     private JPanel createListPanel ( String label, JList list ) {
@@ -398,7 +391,8 @@ public class ImagePropertiesEditor {
     }
 
     private boolean updateDefaultBookmarkSettingsDialog() {
-        int result = JOptionPane.showConfirmDialog(null, "Update the default bookmark settings for this image?", "Update default bookmark too?",
+        int result = JOptionPane.showConfirmDialog(null,
+                "Update the default bookmark settings for this image?", "Update default bookmark too?",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
         if (result == JOptionPane.YES_OPTION) {
@@ -491,7 +485,7 @@ public class ImagePropertiesEditor {
                         projectsCreator.removeImageFromDefaultBookmark( imageName, datasetName );
                         projectsCreator.writeDefaultBookmarksJson( datasetName );
                     } else {
-                    //    TODO - warn that it can't be removed because it's teh only one
+                        Utils.log( "can't make image non-default - you need at least one default image" );
                     }
                 }
             }
