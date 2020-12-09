@@ -9,10 +9,8 @@ import java.util.ArrayList;
 
 public abstract class JsonUtils
 {
-	public static ArrayList< String > readStringArray( InputStream is ) throws IOException
+	public static ArrayList< String > readStringArray( JsonReader reader ) throws IOException
 	{
-		final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
-
 		reader.beginArray();
 		final ArrayList< String > strings = new ArrayList< String >();
 		while ( reader.hasNext() )
