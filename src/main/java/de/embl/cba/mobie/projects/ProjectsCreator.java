@@ -1,5 +1,9 @@
 package de.embl.cba.mobie.projects;
 
+import bdv.img.hdf5.Hdf5ImageLoader;
+import bdv.img.n5.N5ImageLoader;
+import bdv.spimdata.SpimDataMinimal;
+import bdv.spimdata.XmlIoSpimDataMinimal;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.bookmark.BookmarksJsonParser;
@@ -11,11 +15,14 @@ import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.color.ColoringLuts;
 import ij.IJ;
+import mpicbg.spim.data.SpimDataException;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.roi.labeling.ImgLabeling;
 import net.imglib2.roi.labeling.LabelRegion;
 import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.numeric.integer.IntType;
+import org.apache.commons.compress.utils.FileNameUtils;
+import org.apache.commons.io.FileUtils;
 
 import javax.swing.*;
 import java.io.File;
@@ -38,6 +45,73 @@ public class ProjectsCreator {
         this.dataLocation = new File( projectLocation, "data");
     }
 
+    private void copyN5Image( SpimDataMinimal spimDataMinimal, File directory, String imageName ) throws IOException, SpimDataException {
+        File newN5File = new File(directory, imageName + ".n5");
+        // get image loader to find absolute image location, and copy it
+        N5ImageLoader n5ImageLoader = (N5ImageLoader) spimDataMinimal.getSequenceDescription().getImgLoader();
+        File imageLocation = n5ImageLoader.getN5File();
+        FileUtils.copyDirectory(imageLocation, newN5File);
+
+        // write xml
+        spimDataMinimal.setBasePath( directory );
+        final N5ImageLoader n5Loader = new N5ImageLoader( newN5File, null);
+        spimDataMinimal.getSequenceDescription().setImgLoader(n5Loader);
+        new XmlIoSpimDataMinimal().save(spimDataMinimal, new File( directory, imageName + ".xml").getAbsolutePath() );
+    }
+
+    private void copyH5Image( SpimDataMinimal spimDataMinimal, File directory, String imageName ) throws IOException, SpimDataException {
+        File newH5File = new File(directory, imageName + ".h5");
+        // get image loader to find absolute image location, and copy it
+        Hdf5ImageLoader h5ImageLoader = (Hdf5ImageLoader) spimDataMinimal.getSequenceDescription().getImgLoader();
+        File imageLocation = h5ImageLoader.getHdf5File();
+        FileUtils.copyFile( imageLocation, newH5File );
+
+        // write xml
+        spimDataMinimal.setBasePath( directory );
+        final Hdf5ImageLoader h5Loader = new Hdf5ImageLoader( newH5File, null,null, false);
+        spimDataMinimal.getSequenceDescription().setImgLoader(h5Loader);
+        new XmlIoSpimDataMinimal().save(spimDataMinimal, new File( directory, imageName + ".xml").getAbsolutePath() );
+    }
+
+    private void copyImage ( String bdvFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
+        if (bdvFormat.equals("n5")) {
+            copyN5Image( spimDataMinimal, newXmlDirectory, imageName );
+        } else if ( bdvFormat.equals("h5") ) {
+            copyH5Image( spimDataMinimal, newXmlDirectory, imageName );
+        }
+    }
+
+    private void updateJsonsForNewImage ( String imageName, String imageType, String datasetName ) {
+        // update images.json
+        addToImagesJson(imageName, imageType, datasetName);
+
+        // if there's no default json, create one with this image
+        File defaultBookmarkJson = new File(getDefaultBookmarkJsonPath(datasetName));
+        if (!defaultBookmarkJson.exists()) {
+            createDefaultBookmark(imageName, datasetName);
+            writeDefaultBookmarksJson(datasetName);
+        }
+    }
+
+    public void addBdvFormatImage ( File xmlLocation, String datasetName, String bdvFormat, String imageType, String addMethod ) throws SpimDataException, IOException {
+        SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(xmlLocation.getAbsolutePath());
+        String imageName = FileNameUtils.getBaseName(xmlLocation.getAbsolutePath());
+        File newXmlDirectory = new File(FileAndUrlUtils.combinePath(getImagesPath(datasetName), "local"));
+        File newXmlFile = new File( newXmlDirectory, imageName + ".xml" );
+
+        if (!newXmlFile.exists()) {
+            if (addMethod.equals("link to current image location")) {
+                new XmlIoSpimDataMinimal().save( spimDataMinimal, newXmlFile.getAbsolutePath() );
+                updateJsonsForNewImage( imageName, imageType, datasetName );
+            } else if (addMethod.equals("copy image")) {
+                copyImage( bdvFormat, spimDataMinimal, newXmlDirectory, imageName );
+                updateJsonsForNewImage( imageName, imageType, datasetName );
+            }
+        } else {
+            Utils.log("Adding image to project failed - this image name already exists");
+        }
+    }
+
     public void addImage ( String imageName, String datasetName, String bdvFormat, String imageType ) {
         String xmlPath = FileAndUrlUtils.combinePath(projectLocation.getAbsolutePath(), "data", datasetName, "images", "local", imageName + ".xml");
 
@@ -49,16 +123,7 @@ public class ProjectsCreator {
                 IJ.run("Export Current Image as XML/HDF5",
                         "  export_path=" + xmlPath);
             }
-
-            // update images.json
-            addToImagesJson(imageName, imageType, datasetName);
-
-            // if there's no default json, create one with this image
-            File defaultBookmarkJson = new File(getDefaultBookmarkJsonPath(datasetName));
-            if (!defaultBookmarkJson.exists()) {
-                createDefaultBookmark(imageName, datasetName);
-                writeDefaultBookmarksJson(datasetName);
-            }
+            updateJsonsForNewImage( imageName, imageType, datasetName );
         } else {
             Utils.log( "Adding image to project failed - this image name already exists" );
         }
