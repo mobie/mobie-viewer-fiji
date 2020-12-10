@@ -31,4 +31,5 @@ myosinBdvSources = BdvFunctions.show( myosin );
 emAndLabels = reader.read( "em-raw.ome.zarr" );
 emAndLabelSources = BdvFunctions.show( emAndLabels, BdvOptions.options().addTo( myosinBdvSources.get( 0 ).getBdvHandle() ) );
 Sources.showAsLabelMask( emAndLabelSources.get( 1 ) );
-Sources.viewAsHyperstack( emAndLabelSources.get( 0 ), 4 );
+
+//Sources.viewAsHyperstack( emAndLabelSources.get( 0 ), 4 );

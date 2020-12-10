@@ -34,37 +34,30 @@ public class OMEZarrS3Reader
 
 	public static void main( String[] args ) throws IOException
 	{
-		int practical = 1;
+		//showMyosin();
+		//showAll();
+		//readI2KGif();
+		//showIDR0();
+		showIDR1();
+	}
 
-		switch ( practical )
-		{
-			case 0: // show myosin
-				showMyosin();
-				break;
-			case 1: // show myosin and add em and labels
-				showAll();
-				break;
-			case 2:
-				readI2KGif();
-				break;
-			case 3:
-				//  /idr/zarr/v0.1/6001237.zarr
-				N5OMEZarrImageLoader.debugLogging = true;
-				OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://s3.embassy.ebi.ac.uk", "us-west-2", "idr" );
-				SpimData image = reader.read( "zarr/v0.1/6001237.zarr" );
-				List< BdvStackSource< ? > > sources = BdvFunctions.show( image );
-				sources.get( 0 ).setColor( new ARGBType( ARGBType.rgba( 0,0,255,255 ) ) );
-				sources.get( 0 ).setDisplayRange( 0, 3000 );
-				sources.get( 1 ).setColor( new ARGBType( ARGBType.rgba( 0,255,0,255 ) ) );
-				sources.get( 1 ).setDisplayRange( 0, 3000 );
-				sources.get( 2 ).setColor( new ARGBType( ARGBType.rgba( 255,0,0,255 ) ) );
-				sources.get( 2 ).setDisplayRange( 0, 3000 );
-				sources.get( 3 ).setColor( new ARGBType( ARGBType.rgba( 255,255,255,255 ) ) );
-				sources.get( 3 ).setDisplayRange( 0, 3000 );
-				//sources.get( 4 ).setDisplayRange( 0, 100 );
-				Sources.showAsLabelMask( sources.get( 4 ) );
-				break;
-		}
+	public static void showIDR0() throws IOException
+	{
+		//  /idr/zarr/v0.1/6001237.zarr
+		N5OMEZarrImageLoader.debugLogging = true;
+		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://s3.embassy.ebi.ac.uk", "us-west-2", "idr" );
+		SpimData image = reader.read( "zarr/v0.1/6001237.zarr" );
+		List< BdvStackSource< ? > > sources = BdvFunctions.show( image );
+		sources.get( 0 ).setColor( new ARGBType( ARGBType.rgba( 0,0,255,255 ) ) );
+		sources.get( 0 ).setDisplayRange( 0, 3000 );
+		sources.get( 1 ).setColor( new ARGBType( ARGBType.rgba( 0,255,0,255 ) ) );
+		sources.get( 1 ).setDisplayRange( 0, 3000 );
+		sources.get( 2 ).setColor( new ARGBType( ARGBType.rgba( 255,0,0,255 ) ) );
+		sources.get( 2 ).setDisplayRange( 0, 3000 );
+		sources.get( 3 ).setColor( new ARGBType( ARGBType.rgba( 255,255,255,255 ) ) );
+		sources.get( 3 ).setDisplayRange( 0, 3000 );
+		//sources.get( 4 ).setDisplayRange( 0, 100 );
+		Sources.showAsLabelMask( sources.get( 4 ) );
 	}
 
 	public static void readI2KGif() throws IOException
@@ -94,5 +87,13 @@ public class OMEZarrS3Reader
 		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://s3.embl.de", "us-west-2", "i2k-2020" );
 		SpimData myosin = reader.read( "prospr-myosin.ome.zarr" );
 		BdvFunctions.show( myosin );
+	}
+
+	public static void showIDR1() throws IOException
+	{
+		N5OMEZarrImageLoader.debugLogging = true;
+		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://s3.embassy.ebi.ac.uk", "us-west-2", "idr" );
+		SpimData data = reader.read( "zarr/v0.1/9822151.zarr" );
+		BdvFunctions.show( data, BdvOptions.options().is2D() ).get( 0 ).setDisplayRange( 3000, 15000 );
 	}
 }
