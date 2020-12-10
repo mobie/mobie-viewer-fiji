@@ -8,7 +8,7 @@
 	</parent>
 
 	<artifactId>mobie</artifactId>
-	<version>0.5.3</version>
+	<version>0.5.4-SNAPSHOT</version>
 
 	<url>https://github.com/mobie/mobie-viewer-fiji</url>
 	<name>MoBIE Fiji Viewer</name>
@@ -69,7 +69,7 @@
 		<scijava.app.directory>/Users/tischer/Desktop/Fiji-MoBIE.app</scijava.app.directory>
 		<enforcer.skip>true</enforcer.skip>
 
-		<imagej-utils.version>0.5.6</imagej-utils.version>
+		<imagej-utils.version>0.5.7-SNAPSHOT</imagej-utils.version>
 
 		<!--  Version 9.1.0 of BDV contains a critical fix for loading n5 data -->
 		<bigdataviewer-core.version>9.1.0</bigdataviewer-core.version>

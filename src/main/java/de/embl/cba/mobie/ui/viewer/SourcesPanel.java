@@ -49,12 +49,14 @@ public class SourcesPanel extends JPanel
     private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndCurrentMetadata;
     private BdvHandle bdv;
     private final SourcesModel imageSourcesModel;
+    private final String projectName;
     private Image3DUniverse universe;
     private int meshSmoothingIterations = 5;
 
-    public SourcesPanel( SourcesModel imageSourcesModel )
+    public SourcesPanel( SourcesModel imageSourcesModel, String projectName )
     {
         this.imageSourcesModel = imageSourcesModel;
+        this.projectName = projectName;
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelViews = new LinkedHashMap<>();
         sourceNameToSourceAndCurrentMetadata = new LinkedHashMap<>();
@@ -428,7 +430,7 @@ public class SourcesPanel extends JPanel
     private void addSourceToViewer( SourceAndMetadata< ? > sam )
     {
         Prefs.showScaleBar( true );
-        Prefs.showMultibox( false );
+        //Prefs.showMultibox( true );
 
         final Metadata metadata = sam.metadata();
 
@@ -519,7 +521,7 @@ public class SourcesPanel extends JPanel
         sam.metadata().bdvStackSource = BdvFunctions.show(
                 source,
                 1,
-                BdvOptions.options().addTo( bdv ) );
+                BdvOptions.options().addTo( bdv ).frameTitle( projectName ) );
 
         setDisplayRange( sam.metadata().bdvStackSource, sam.metadata() );
 

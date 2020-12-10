@@ -26,6 +26,7 @@ public class SourcesModel implements ImageSourcesModel
 	public static final String EM_ID = "em-";
 	public static final String XRAY_ID = "xray-";
 	public static final String MASK_FILE_ID = "mask-";
+	private final String imageDataLocation;
 	private final MoBIEOptions.ImageDataStorageModality imageDataStorageModality;
 
 	private Map< String, SourceAndMetadata< ? > > nameToSourceAndDefaultMetadata;
@@ -36,6 +37,7 @@ public class SourcesModel implements ImageSourcesModel
 
 	public SourcesModel( String imageDataLocation, MoBIEOptions.ImageDataStorageModality imageDataStorageModality, String tableDataLocation )
 	{
+		this.imageDataLocation = imageDataLocation;
 		this.imageDataStorageModality = imageDataStorageModality;
 		this.tableDataLocation = tableDataLocation;
 
@@ -44,6 +46,8 @@ public class SourcesModel implements ImageSourcesModel
 
 		fetchSources( imageDataLocation );
 	}
+
+
 
 	@Override
 	public Map< String, SourceAndMetadata< ? > > sources()

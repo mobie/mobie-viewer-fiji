@@ -27,7 +27,6 @@ import net.imglib2.realtransform.Scale3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.io.*;
@@ -425,7 +424,6 @@ public class Utils
 		return collect;
 	}
 
-	@NotNull
 	public static AffineTransform3D createNormalisedViewerTransform( BdvHandle bdv, double[] position )
 	{
 		final AffineTransform3D view = new AffineTransform3D();
@@ -453,7 +451,6 @@ public class Utils
 		return doubles;
 	}
 
-	@NotNull
 	public static AffineTransform3D createUnnormalizedViewerTransform( AffineTransform3D normalisedTransform, BdvHandle bdv )
 	{
 		final AffineTransform3D transform = normalisedTransform.copy();

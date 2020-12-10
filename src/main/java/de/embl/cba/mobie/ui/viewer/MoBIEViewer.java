@@ -73,7 +73,7 @@ public class MoBIEViewer
 		appendSpecificDatasetLocations();
 
 		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageModality(), tablesLocation );
-		sourcesPanel = new SourcesPanel( sourcesModel );
+		sourcesPanel = new SourcesPanel( sourcesModel, projectName );
 
 		bookmarksManager = fetchBookmarks( projectLocation );
 		levelingVector = fetchLeveling( imagesLocation );
