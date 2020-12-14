@@ -156,7 +156,6 @@ public class ProjectsCreatorPanel extends JFrame {
             String[] bdvFormats = new String[] {"n5", "h5"};
             gd.addChoice( "Bdv format", bdvFormats, "n5" );
 
-            // TODO - add a way to add existing bdv xml files also e.g. link to current location, copy to project, move to project
             gd.showDialog();
 
             if ( !gd.wasCanceled() ) {
@@ -183,14 +182,13 @@ public class ProjectsCreatorPanel extends JFrame {
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File xmlLocation = new File( chooser.getSelectedFile().getAbsolutePath() );
                 final GenericDialog gd = new GenericDialog("Add Bdv Format Image To Project...");
-                String[] addMethods = new String[]{"link to current image location", "copy image"};
+                String[] addMethods = new String[]{"link to current image location", "copy image", "move image"};
                 gd.addChoice("Add method:", addMethods, "link to current image location");
                 String[] imageTypes = new String[]{"image", "segmentation", "mask"};
                 gd.addChoice("Image Type", imageTypes, "image");
                 String[] bdvFormats = new String[]{"n5", "h5"};
                 gd.addChoice("Bdv format", bdvFormats, "n5");
 
-                // TODO - add a way to add existing bdv xml files also e.g. link to current location, copy to project, move to project
                 gd.showDialog();
 
                 if (!gd.wasCanceled()) {
@@ -208,8 +206,6 @@ public class ProjectsCreatorPanel extends JFrame {
         } else {
             Utils.log( "Add image failed - create a dataset first" );
         }
-
-        // TODO - add possiblity to move image too (if don't want to copy it)
     }
 
     public String addDatasetDialog () {

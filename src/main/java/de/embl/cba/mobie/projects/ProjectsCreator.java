@@ -16,6 +16,8 @@ import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.color.ColoringLuts;
 import ij.IJ;
 import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.generic.sequence.BasicImgLoader;
+import mpicbg.spim.data.sequence.ImgLoader;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.roi.labeling.ImgLabeling;
 import net.imglib2.roi.labeling.LabelRegion;
@@ -45,40 +47,70 @@ public class ProjectsCreator {
         this.dataLocation = new File( projectLocation, "data");
     }
 
-    private void copyN5Image( SpimDataMinimal spimDataMinimal, File directory, String imageName ) throws IOException, SpimDataException {
-        File newN5File = new File(directory, imageName + ".n5");
-        // get image loader to find absolute image location, and copy it
-        N5ImageLoader n5ImageLoader = (N5ImageLoader) spimDataMinimal.getSequenceDescription().getImgLoader();
-        File imageLocation = n5ImageLoader.getN5File();
-        FileUtils.copyDirectory(imageLocation, newN5File);
+    private File getImageLocation ( SpimDataMinimal spimDataMinimal, String bdvFormat) {
+        File imageLocation = null;
+        if ( bdvFormat.equals("n5") ) {
+            // get image loader to find absolute image location
+            N5ImageLoader n5ImageLoader = (N5ImageLoader) spimDataMinimal.getSequenceDescription().getImgLoader();
+            imageLocation = n5ImageLoader.getN5File();
+        } else if ( bdvFormat.equals("h5") ) {
+            Hdf5ImageLoader h5ImageLoader = (Hdf5ImageLoader) spimDataMinimal.getSequenceDescription().getImgLoader();
+            imageLocation = h5ImageLoader.getHdf5File();
+        }
 
-        // write xml
-        spimDataMinimal.setBasePath( directory );
-        final N5ImageLoader n5Loader = new N5ImageLoader( newN5File, null);
-        spimDataMinimal.getSequenceDescription().setImgLoader(n5Loader);
-        new XmlIoSpimDataMinimal().save(spimDataMinimal, new File( directory, imageName + ".xml").getAbsolutePath() );
+        return imageLocation;
     }
 
-    private void copyH5Image( SpimDataMinimal spimDataMinimal, File directory, String imageName ) throws IOException, SpimDataException {
-        File newH5File = new File(directory, imageName + ".h5");
-        // get image loader to find absolute image location, and copy it
-        Hdf5ImageLoader h5ImageLoader = (Hdf5ImageLoader) spimDataMinimal.getSequenceDescription().getImgLoader();
-        File imageLocation = h5ImageLoader.getHdf5File();
-        FileUtils.copyFile( imageLocation, newH5File );
+    private void writeNewBdvXml ( SpimDataMinimal spimDataMinimal, File imageFile, File saveDirectory, String imageName, String bdvFormat ) throws SpimDataException {
 
-        // write xml
-        spimDataMinimal.setBasePath( directory );
-        final Hdf5ImageLoader h5Loader = new Hdf5ImageLoader( newH5File, null,null, false);
-        spimDataMinimal.getSequenceDescription().setImgLoader(h5Loader);
-        new XmlIoSpimDataMinimal().save(spimDataMinimal, new File( directory, imageName + ".xml").getAbsolutePath() );
+        ImgLoader imgLoader = null;
+        if ( bdvFormat.equals("n5") ) {
+            imgLoader = new N5ImageLoader( imageFile, null);
+
+        } else if ( bdvFormat.equals("h5") ) {
+            imgLoader = new Hdf5ImageLoader( imageFile, null,null, false);
+        }
+
+        spimDataMinimal.setBasePath( saveDirectory );
+        spimDataMinimal.getSequenceDescription().setImgLoader(imgLoader);
+        new XmlIoSpimDataMinimal().save(spimDataMinimal, new File( saveDirectory, imageName + ".xml").getAbsolutePath() );
     }
 
     private void copyImage ( String bdvFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
-        if (bdvFormat.equals("n5")) {
-            copyN5Image( spimDataMinimal, newXmlDirectory, imageName );
-        } else if ( bdvFormat.equals("h5") ) {
-            copyH5Image( spimDataMinimal, newXmlDirectory, imageName );
+        File newImageFile = new File( newXmlDirectory, imageName + "." + bdvFormat );
+        File imageLocation = getImageLocation( spimDataMinimal, bdvFormat );
+        if ( bdvFormat.equals("n5") ) {
+            FileUtils.copyDirectory(imageLocation, newImageFile );
+        } else if (bdvFormat.equals("h5") ) {
+            FileUtils.copyFile( imageLocation, newImageFile );
         }
+        writeNewBdvXml( spimDataMinimal, newImageFile, newXmlDirectory, imageName, bdvFormat);
+    }
+
+    private void closeImgLoader ( SpimDataMinimal spimDataMinimal, String bdvFormat ) {
+        BasicImgLoader imgLoader = spimDataMinimal.getSequenceDescription().getImgLoader();
+        if ( bdvFormat.equals("n5") ) {
+            N5ImageLoader n5ImageLoader = (N5ImageLoader) imgLoader;
+            n5ImageLoader.close();
+        } else if ( bdvFormat.equals("h5") ) {
+            Hdf5ImageLoader h5ImageLoader = (Hdf5ImageLoader) imgLoader;
+            h5ImageLoader.close();
+        }
+    }
+
+    private void moveImage ( String bdvFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
+        File newImageFile = new File( newXmlDirectory, imageName + "." + bdvFormat );
+        File imageLocation = getImageLocation( spimDataMinimal, bdvFormat );
+
+        // have to explicitly close the image loader, so we can delete the original file
+        closeImgLoader( spimDataMinimal, bdvFormat );
+
+        if ( bdvFormat.equals("n5") ) {
+            FileUtils.moveDirectory( imageLocation, newImageFile );
+        } else if (bdvFormat.equals("h5") ) {
+            FileUtils.moveFile( imageLocation, newImageFile );
+        }
+        writeNewBdvXml( spimDataMinimal, newImageFile, newXmlDirectory, imageName, bdvFormat );
     }
 
     private void updateJsonsForNewImage ( String imageName, String imageType, String datasetName ) {
@@ -103,11 +135,12 @@ public class ProjectsCreator {
             if (!newXmlFile.exists()) {
                 if (addMethod.equals("link to current image location")) {
                     new XmlIoSpimDataMinimal().save(spimDataMinimal, newXmlFile.getAbsolutePath());
-                    updateJsonsForNewImage(imageName, imageType, datasetName);
                 } else if (addMethod.equals("copy image")) {
                     copyImage(bdvFormat, spimDataMinimal, newXmlDirectory, imageName);
-                    updateJsonsForNewImage(imageName, imageType, datasetName);
+                } else if ( addMethod.equals("move image") ) {
+                    moveImage( bdvFormat, spimDataMinimal, newXmlDirectory, imageName );
                 }
+                updateJsonsForNewImage(imageName, imageType, datasetName);
             } else {
                 Utils.log("Adding image to project failed - this image name already exists");
             }
