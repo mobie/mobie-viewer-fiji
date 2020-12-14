@@ -8,6 +8,8 @@ import org.scijava.plugin.Plugin;
 
 import java.io.File;
 
+import static de.embl.cba.mobie.utils.ui.SwingUtils.resetSwingLookAndFeel;
+
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Create new MoBIE Project..." )
 public class CreateNewMoBIEProjectCommand implements Command {
 
@@ -22,6 +24,9 @@ public class CreateNewMoBIEProjectCommand implements Command {
         if ( !dataDirectory.exists() ) {
             dataDirectory.mkdirs();
         }
+
+        // using File script parameter changes the look and feel of swing, reset it to default here
+        resetSwingLookAndFeel();
 
         ProjectsCreatorPanel panel = new ProjectsCreatorPanel( projectLocation );
         panel.showProjectsCreatorPanel();

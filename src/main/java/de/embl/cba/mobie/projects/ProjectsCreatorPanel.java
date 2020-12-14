@@ -2,13 +2,18 @@ package de.embl.cba.mobie.projects;
 
 import de.embl.cba.mobie.image.ImagePropertiesEditor;
 import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.SwingUtils;
 import ij.gui.GenericDialog;
+import mpicbg.spim.data.SpimDataException;
+
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 
 import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 
@@ -43,8 +48,15 @@ public class ProjectsCreatorPanel extends JFrame {
         final JButton editButton = getButton("Edit");
 
         createDatasetComboBox();
-        addButton.addActionListener(e -> addDatasetDialog());
-        editButton.addActionListener(e -> editDatasetDialog());
+        addButton.addActionListener( e ->
+        {
+            new Thread( () -> { addDatasetDialog(); } ).start();
+        } );
+
+        editButton.addActionListener( e ->
+        {
+            new Thread( () -> { editDatasetDialog(); } ).start();
+        } );
 
         horizontalLayoutPanel.add(getJLabel("dataset", 60, 10));
         horizontalLayoutPanel.add(datasetComboBox);
@@ -73,15 +85,26 @@ public class ProjectsCreatorPanel extends JFrame {
     private void addImagesPanel() {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
+        final JButton addButton = getButton( "Add" );
         final JButton editButton = getButton("Edit");
 
         imagesComboBox = new JComboBox<>( projectsCreator.getCurrentImages( (String) datasetComboBox.getSelectedItem()) );
         setComboBoxDimensions(imagesComboBox);
-        editButton.addActionListener(e -> editImageDialog() );
+        addButton.addActionListener( e ->
+        {
+            new Thread( () -> { addImageDialog(); } ).start();
+        } );
+
+        editButton.addActionListener( e ->
+        {
+            new Thread( () -> { editImageDialog(); } ).start();
+        } );
+
         imagesComboBox.setPrototypeDisplayValue(MoBIEViewer.PROTOTYPE_DISPLAY_VALUE);
 
         horizontalLayoutPanel.add(getJLabel("image", 60, 10));
         horizontalLayoutPanel.add(imagesComboBox);
+        horizontalLayoutPanel.add( addButton );
         horizontalLayoutPanel.add( editButton );
         horizontalLayoutPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
@@ -101,6 +124,90 @@ public class ProjectsCreatorPanel extends JFrame {
             return null;
         }
 
+    }
+
+    public void addImageDialog() {
+        final GenericDialog gd = new GenericDialog( "Add..." );
+        String[] addMethods = new String[] {"current open image", "bdv format image"};
+        gd.addChoice("Add:", addMethods, "current open image");
+        gd.showDialog();
+
+        if ( !gd.wasCanceled() ) {
+            String addMethod = gd.getNextChoice();
+            if (addMethod.equals("current open image")) {
+                addCurrentOpenImageDialog();
+            } else if (addMethod.equals("bdv format image")) {
+                addBdvFormatImageDialog();
+            }
+
+        }
+    }
+
+    public void addCurrentOpenImageDialog() {
+        String datasetName = (String) datasetComboBox.getSelectedItem();
+
+        if (!datasetName.equals("")) {
+
+            final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
+            gd.addMessage( "Make sure your pixel size, and unit,\n are set properly under Image > Properties...");
+            gd.addStringField( "Image Name", "" );
+            String[] imageTypes = new String[] {"image", "segmentation", "mask"};
+            gd.addChoice( "Image Type", imageTypes, "image" );
+            String[] bdvFormats = new String[] {"n5", "h5"};
+            gd.addChoice( "Bdv format", bdvFormats, "n5" );
+
+            gd.showDialog();
+
+            if ( !gd.wasCanceled() ) {
+                String imageName = gd.getNextString();
+                String imageType = gd.getNextChoice();
+                String bdvFormat = gd.getNextChoice();
+                projectsCreator.addImage( imageName, datasetName, bdvFormat, imageType );
+                updateDatasetsComboBox( datasetName );
+            }
+
+        } else {
+            Utils.log( "Add image failed - create a dataset first" );
+        }
+    }
+
+    public void addBdvFormatImageDialog() {
+        String datasetName = (String) datasetComboBox.getSelectedItem();
+
+        if (!datasetName.equals("")) {
+
+            JFileChooser chooser = new JFileChooser();
+            chooser.setFileFilter(new FileNameExtensionFilter("xml", "xml"));
+            chooser.setDialogTitle( "Select bdv xml..." );
+            int returnVal = chooser.showOpenDialog(null );
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File xmlLocation = new File( chooser.getSelectedFile().getAbsolutePath() );
+                final GenericDialog gd = new GenericDialog("Add Bdv Format Image To Project...");
+                String[] addMethods = new String[]{"link to current image location", "copy image", "move image"};
+                gd.addChoice("Add method:", addMethods, "link to current image location");
+                String[] imageTypes = new String[]{"image", "segmentation", "mask"};
+                gd.addChoice("Image Type", imageTypes, "image");
+                String[] bdvFormats = new String[]{"n5", "h5"};
+                gd.addChoice("Bdv format", bdvFormats, "n5");
+
+                gd.showDialog();
+
+                if (!gd.wasCanceled()) {
+                    String addMethod = gd.getNextChoice();
+                    String imageType = gd.getNextChoice();
+                    String bdvFormat = gd.getNextChoice();
+
+                    try {
+                        projectsCreator.addBdvFormatImage( xmlLocation, datasetName, bdvFormat, imageType, addMethod );
+                        updateDatasetsComboBox( datasetName );
+                    } catch (SpimDataException | IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } else {
+            Utils.log( "Add image failed - create a dataset first" );
+        }
     }
 
     public String addDatasetDialog () {
@@ -128,40 +235,47 @@ public class ProjectsCreatorPanel extends JFrame {
     private void editDatasetDialog() {
         final GenericDialog gd = new GenericDialog( "Edit dataset..." );
         String oldName = (String) datasetComboBox.getSelectedItem();
-        boolean isDefault = projectsCreator.isDefaultDataset( oldName );
+        if (!oldName.equals("")) {
+            boolean isDefault = projectsCreator.isDefaultDataset(oldName);
 
-        gd.addStringField( "Dataset name", oldName);
-        if ( isDefault ) {
-            gd.addMessage( "This dataset is the default");
-        } else {
-            gd.addCheckbox("Make default dataset", false);
-        }
-        gd.showDialog();
-
-        if ( !gd.wasCanceled() ) {
-            String newName = gd.getNextString().trim();
-            if ( !newName.equals(oldName) ) {
-                // check not already in datasets
-                boolean contains = projectsCreator.isInDatasets(newName);
-                if (!contains) {
-                    projectsCreator.renameDataset(oldName, newName);
-                    updateDatasetsComboBox( newName );
-                }
+            gd.addStringField("Dataset name", oldName);
+            if (isDefault) {
+                gd.addMessage("This dataset is the default");
+            } else {
+                gd.addCheckbox("Make default dataset", false);
             }
+            gd.showDialog();
 
-            if ( !isDefault ) {
-                boolean makeDefault = gd.getNextBoolean();
-                if ( makeDefault ) {
-                    projectsCreator.makeDefaultDataset( newName );
+            if (!gd.wasCanceled()) {
+                String newName = gd.getNextString().trim();
+                if (!newName.equals(oldName)) {
+                    // check not already in datasets
+                    boolean contains = projectsCreator.isInDatasets(newName);
+                    if (!contains) {
+                        projectsCreator.renameDataset(oldName, newName);
+                        updateDatasetsComboBox(newName);
+                    }
                 }
-            }
 
+                if (!isDefault) {
+                    boolean makeDefault = gd.getNextBoolean();
+                    if (makeDefault) {
+                        projectsCreator.makeDefaultDataset(newName);
+                    }
+                }
+
+            }
         }
     }
 
     private void editImageDialog() {
-        new ImagePropertiesEditor( (String) datasetComboBox.getSelectedItem(),
-                (String) imagesComboBox.getSelectedItem(), projectsCreator);
+        String datasetName = (String) datasetComboBox.getSelectedItem();
+        String imageName = (String) imagesComboBox.getSelectedItem();
+
+        if (!datasetName.equals("") && !imageName.equals("")) {
+            new ImagePropertiesEditor(datasetName,
+                    imageName, projectsCreator);
+        }
     }
 
     private void updateDatasetsComboBox( String selection ) {

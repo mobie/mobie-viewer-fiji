@@ -8,6 +8,8 @@ import org.scijava.plugin.Plugin;
 
 import java.io.File;
 
+import static de.embl.cba.mobie.utils.ui.SwingUtils.resetSwingLookAndFeel;
+
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Edit MoBIE Project..." )
 public class EditMoBIEProjectCommand implements Command
 {
@@ -17,6 +19,9 @@ public class EditMoBIEProjectCommand implements Command
     @Override
     public void run()
     {
+        // using File script parameter changes the look and feel of swing, reset it to default here
+        resetSwingLookAndFeel();
+
         ProjectsCreatorPanel panel = new ProjectsCreatorPanel( projectLocation );
         panel.showProjectsCreatorPanel();
     }
@@ -25,8 +30,5 @@ public class EditMoBIEProjectCommand implements Command
     {
         final ImageJ ij = new ImageJ();
         ij.ui().showUI();
-
-        // ProjectsCreatorPanel panel = new ProjectsCreatorPanel( new File("C:\\Users\\meechan\\Documents\\temp\\mobie_test\\ruse" ));
-        // panel.showProjectsCreatorPanel();
     }
 }

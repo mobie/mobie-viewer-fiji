@@ -141,15 +141,17 @@ public class ImagePropertiesEditor {
         JButton colorButton;
         colorButton = new JButton( "other color" );
 
-        colorButton.addActionListener( e -> {
-            Color color = JColorChooser.showDialog( null, "", null );
+        colorButton.addActionListener( e ->
+        {
+            new Thread( () -> {
+                Color color = JColorChooser.showDialog( null, "", null );
 
-            if ( color == null ) return;
+                if ( color == null ) return;
 
-            ARGBType colorARGB = ColorUtils.getARGBType( color );
-            colorCombo.addItem( colorARGB.toString() );
-            colorCombo.setSelectedItem( colorARGB.toString() );
-
+                ARGBType colorARGB = ColorUtils.getARGBType( color );
+                colorCombo.addItem( colorARGB.toString() );
+                colorCombo.setSelectedItem( colorARGB.toString() );
+            } ).start();
         } );
 
         return colorButton;
@@ -160,18 +162,24 @@ public class ImagePropertiesEditor {
         JButton acceptButton = getButton( "Update properties", new Dimension(160, 20));
         JButton cancelButton = getButton( "Cancel");
 
-        acceptButton.addActionListener( e -> {
-            try {
-                updateImageProperties();
-                projectsCreator.writeImagesJson( this.datasetName );
-                frame.dispose();
-            } catch (ParseException parseException) {
-                parseException.printStackTrace();
-            }
+        acceptButton.addActionListener( e ->
+        {
+            new Thread( () -> {
+                try {
+                    updateImageProperties();
+                    projectsCreator.writeImagesJson( this.datasetName );
+                    frame.dispose();
+                } catch (ParseException parseException) {
+                    parseException.printStackTrace();
+                }
+            } ).start();
         } );
 
-        cancelButton.addActionListener( e -> {
-            frame.dispose();
+        cancelButton.addActionListener( e ->
+        {
+            new Thread( () -> {
+                frame.dispose();
+            } ).start();
         } );
 
         acceptCancelPanel.add(acceptButton);

@@ -22,6 +22,15 @@ public class SwingUtils
 		return panel;
 	}
 
+	public static void resetSwingLookAndFeel() {
+		try {
+			UIManager.setLookAndFeel(
+					UIManager.getCrossPlatformLookAndFeelClassName());
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public static JLabel getJLabel( String text )
 	{
 		return getJLabel( text, 170, 10);
