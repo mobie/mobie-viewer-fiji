@@ -94,21 +94,25 @@ public class ProjectsCreator {
     }
 
     public void addBdvFormatImage ( File xmlLocation, String datasetName, String bdvFormat, String imageType, String addMethod ) throws SpimDataException, IOException {
-        SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(xmlLocation.getAbsolutePath());
-        String imageName = FileNameUtils.getBaseName(xmlLocation.getAbsolutePath());
-        File newXmlDirectory = new File(FileAndUrlUtils.combinePath(getImagesPath(datasetName), "local"));
-        File newXmlFile = new File( newXmlDirectory, imageName + ".xml" );
+        if ( xmlLocation.exists() ) {
+            SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(xmlLocation.getAbsolutePath());
+            String imageName = FileNameUtils.getBaseName(xmlLocation.getAbsolutePath());
+            File newXmlDirectory = new File(FileAndUrlUtils.combinePath(getImagesPath(datasetName), "local"));
+            File newXmlFile = new File(newXmlDirectory, imageName + ".xml");
 
-        if (!newXmlFile.exists()) {
-            if (addMethod.equals("link to current image location")) {
-                new XmlIoSpimDataMinimal().save( spimDataMinimal, newXmlFile.getAbsolutePath() );
-                updateJsonsForNewImage( imageName, imageType, datasetName );
-            } else if (addMethod.equals("copy image")) {
-                copyImage( bdvFormat, spimDataMinimal, newXmlDirectory, imageName );
-                updateJsonsForNewImage( imageName, imageType, datasetName );
+            if (!newXmlFile.exists()) {
+                if (addMethod.equals("link to current image location")) {
+                    new XmlIoSpimDataMinimal().save(spimDataMinimal, newXmlFile.getAbsolutePath());
+                    updateJsonsForNewImage(imageName, imageType, datasetName);
+                } else if (addMethod.equals("copy image")) {
+                    copyImage(bdvFormat, spimDataMinimal, newXmlDirectory, imageName);
+                    updateJsonsForNewImage(imageName, imageType, datasetName);
+                }
+            } else {
+                Utils.log("Adding image to project failed - this image name already exists");
             }
         } else {
-            Utils.log("Adding image to project failed - this image name already exists");
+            Utils.log( "Adding image to project failed - xml does not exist" );
         }
     }
 
@@ -128,7 +132,6 @@ public class ProjectsCreator {
             Utils.log( "Adding image to project failed - this image name already exists" );
         }
     }
-
 
     public void addDataset ( String name ) {
         File datasetDir = new File ( dataLocation, name );

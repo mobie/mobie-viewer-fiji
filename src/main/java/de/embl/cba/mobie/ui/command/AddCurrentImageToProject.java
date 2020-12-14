@@ -6,6 +6,8 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import java.io.File;
+
+import static de.embl.cba.mobie.utils.ui.SwingUtils.resetSwingLookAndFeel;
 import static org.scijava.ItemVisibility.MESSAGE;
 
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Add Current Image To MoBIE Project..." )
@@ -42,6 +44,9 @@ public class AddCurrentImageToProject implements Command {
         } else {
             chosenDataset = projectsCreatorPanel.chooseDatasetDialog();
         }
+
+        // using File script parameter changes the look and feel of swing, reset it to default here
+        resetSwingLookAndFeel();
 
         if ( chosenDataset != null ) {
             projectsCreatorPanel.getProjectsCreator().addImage( imageName, chosenDataset, bdvFormat, imageType );

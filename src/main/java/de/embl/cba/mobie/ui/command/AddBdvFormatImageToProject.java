@@ -26,17 +26,11 @@ import static org.scijava.ItemVisibility.MESSAGE;
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Add Bdv Format Image To MoBIE Project..." )
 public class AddBdvFormatImageToProject implements Command {
 
-
-
     @Parameter( label = "Select Project Location", style="directory" )
     public File projectLocation;
 
     @Parameter( label = "Select image xml" )
     public File xmlLocation;
-
-    @Parameter (visibility=MESSAGE, required=false)
-    public String message = "Linking to current image location will use an absolute path - this will break if you move " +
-            "the project or image.";
 
     // TODO - add possiblity to move image too (if don't want to copy it)
     @Parameter (label= "Add method:", choices={"link to current image location", "copy image"}, style="listBox")
@@ -54,31 +48,31 @@ public class AddBdvFormatImageToProject implements Command {
     @Override
     public void run()
     {
-        if ( xmlLocation.exists() ) {
-            if (FileNameUtils.getExtension(xmlLocation.getAbsolutePath()).equals("xml")) {
-
-                ProjectsCreatorPanel projectsCreatorPanel = new ProjectsCreatorPanel(projectLocation);
-                String chosenDataset;
-                if (datasetType.equals("new dataset")) {
-                    chosenDataset = projectsCreatorPanel.addDatasetDialog();
-                } else {
-                    chosenDataset = projectsCreatorPanel.chooseDatasetDialog();
-                }
-
-                if (chosenDataset != null) {
-                    try {
-                        projectsCreatorPanel.getProjectsCreator().addBdvFormatImage( xmlLocation, chosenDataset, bdvFormat, imageType, addMethod );
-                    } catch (SpimDataException | IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-            } else {
-                Utils.log("Add image failed - not an xml file");
-            }
-        } else {
-            Utils.log("Add image failed - xml file does not exist");
-        }
+        // if ( xmlLocation.exists() ) {
+        //     if (FileNameUtils.getExtension(xmlLocation.getAbsolutePath()).equals("xml")) {
+        //
+        //         ProjectsCreatorPanel projectsCreatorPanel = new ProjectsCreatorPanel(projectLocation);
+        //         String chosenDataset;
+        //         if (datasetType.equals("new dataset")) {
+        //             chosenDataset = projectsCreatorPanel.addDatasetDialog();
+        //         } else {
+        //             chosenDataset = projectsCreatorPanel.chooseDatasetDialog();
+        //         }
+        //
+        //         if (chosenDataset != null) {
+        //             try {
+        //                 projectsCreatorPanel.getProjectsCreator().addBdvFormatImage( xmlLocation, chosenDataset, bdvFormat, imageType, addMethod );
+        //             } catch (SpimDataException | IOException e) {
+        //                 e.printStackTrace();
+        //             }
+        //         }
+        //
+        //     } else {
+        //         Utils.log("Add image failed - not an xml file");
+        //     }
+        // } else {
+        //     Utils.log("Add image failed - xml file does not exist");
+        // }
     }
 
     public static void main(final String... args) {
