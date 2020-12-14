@@ -163,6 +163,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 String imageType = gd.getNextChoice();
                 String bdvFormat = gd.getNextChoice();
                 projectsCreator.addImage( imageName, datasetName, bdvFormat, imageType );
+                updateDatasetsComboBox( datasetName );
             }
 
         } else {
@@ -198,6 +199,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
                     try {
                         projectsCreator.addBdvFormatImage( xmlLocation, datasetName, bdvFormat, imageType, addMethod );
+                        updateDatasetsComboBox( datasetName );
                     } catch (SpimDataException | IOException e) {
                         e.printStackTrace();
                     }
