@@ -162,6 +162,10 @@ public class ProjectsCreatorPanel extends JFrame {
                 String imageName = gd.getNextString();
                 String imageType = gd.getNextChoice();
                 String bdvFormat = gd.getNextChoice();
+
+                // tidy up image name, remove any spaces
+                imageName = tidyStringInput( imageName );
+
                 projectsCreator.addImage( imageName, datasetName, bdvFormat, imageType );
                 updateDatasetsComboBox( datasetName );
             }
@@ -169,6 +173,12 @@ public class ProjectsCreatorPanel extends JFrame {
         } else {
             Utils.log( "Add image failed - create a dataset first" );
         }
+    }
+
+    private String tidyStringInput ( String input ) {
+        input = input.trim();
+        input = input.replaceAll("\\s+","_");
+        return input;
     }
 
     public void addBdvFormatImageDialog() {
@@ -218,11 +228,15 @@ public class ProjectsCreatorPanel extends JFrame {
 
         if ( !gd.wasCanceled() ) {
             String datasetName = gd.getNextString();
+            datasetName = tidyStringInput( datasetName );
+
             // check not already in datasets
             boolean contains = projectsCreator.isInDatasets( datasetName );
             if ( !contains ) {
                 projectsCreator.addDataset( datasetName );
                 updateDatasetsComboBox( datasetName );
+            } else {
+                Utils.log( "Add dataset failed - dataset already exists" );
             }
 
             return datasetName;
@@ -247,7 +261,8 @@ public class ProjectsCreatorPanel extends JFrame {
             gd.showDialog();
 
             if (!gd.wasCanceled()) {
-                String newName = gd.getNextString().trim();
+                String newName = gd.getNextString();
+                newName = tidyStringInput( newName );
                 if (!newName.equals(oldName)) {
                     // check not already in datasets
                     boolean contains = projectsCreator.isInDatasets(newName);
