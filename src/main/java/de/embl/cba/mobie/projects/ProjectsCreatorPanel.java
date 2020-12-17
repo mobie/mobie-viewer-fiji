@@ -164,10 +164,12 @@ public class ProjectsCreatorPanel extends JFrame {
                 String bdvFormat = gd.getNextChoice();
 
                 // tidy up image name, remove any spaces
-                imageName = tidyStringInput( imageName );
+                imageName = tidyString( imageName );
 
-                projectsCreator.addImage( imageName, datasetName, bdvFormat, imageType );
-                updateDatasetsComboBox( datasetName );
+                if ( imageName != null ) {
+                    projectsCreator.addImage(imageName, datasetName, bdvFormat, imageType);
+                    updateDatasetsComboBox(datasetName);
+                }
             }
 
         } else {
@@ -175,10 +177,22 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
-    private String tidyStringInput ( String input ) {
-        input = input.trim();
-        input = input.replaceAll("\\s+","_");
-        return input;
+    private String tidyString( String string ) {
+        string = string.trim();
+        String tidyString = string.replaceAll("\\s+","_");
+
+        if ( !string.equals(tidyString) ) {
+            Utils.log( "Spaces were removed from name, and replaced by _");
+        }
+
+        // check only contains alphanumerics, or _ -
+        if ( !tidyString.matches("^[a-zA-Z0-9_-]+$") ) {
+            Utils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
+                    "with a different name.");
+            tidyString = null;
+        }
+
+        return tidyString;
     }
 
     public void addBdvFormatImageDialog() {
@@ -220,29 +234,25 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
-    public String addDatasetDialog () {
+    public void addDatasetDialog () {
         final GenericDialog gd = new GenericDialog( "Create a new dataset" );
-
         gd.addStringField( "Name of dataset", "");
         gd.showDialog();
 
         if ( !gd.wasCanceled() ) {
             String datasetName = gd.getNextString();
-            datasetName = tidyStringInput( datasetName );
+            datasetName = tidyString( datasetName );
 
-            // check not already in datasets
-            boolean contains = projectsCreator.isInDatasets( datasetName );
-            if ( !contains ) {
-                projectsCreator.addDataset( datasetName );
-                updateDatasetsComboBox( datasetName );
-            } else {
-                Utils.log( "Add dataset failed - dataset already exists" );
+            if ( datasetName != null ) {
+                // check not already in datasets
+                boolean contains = projectsCreator.isInDatasets(datasetName);
+                if (!contains) {
+                    projectsCreator.addDataset(datasetName);
+                    updateDatasetsComboBox(datasetName);
+                } else {
+                    Utils.log("Add dataset failed - dataset already exists");
+                }
             }
-
-            return datasetName;
-
-        } else {
-            return null;
         }
     }
 
@@ -262,8 +272,8 @@ public class ProjectsCreatorPanel extends JFrame {
 
             if (!gd.wasCanceled()) {
                 String newName = gd.getNextString();
-                newName = tidyStringInput( newName );
-                if (!newName.equals(oldName)) {
+                newName = tidyString( newName );
+                if ( newName != null && !newName.equals(oldName) ) {
                     // check not already in datasets
                     boolean contains = projectsCreator.isInDatasets(newName);
                     if (!contains) {
