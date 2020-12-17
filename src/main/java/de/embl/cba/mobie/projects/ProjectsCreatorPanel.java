@@ -162,13 +162,37 @@ public class ProjectsCreatorPanel extends JFrame {
                 String imageName = gd.getNextString();
                 String imageType = gd.getNextChoice();
                 String bdvFormat = gd.getNextChoice();
-                projectsCreator.addImage( imageName, datasetName, bdvFormat, imageType );
-                updateDatasetsComboBox( datasetName );
+
+                // tidy up image name, remove any spaces
+                imageName = tidyString( imageName );
+
+                if ( imageName != null ) {
+                    projectsCreator.addImage(imageName, datasetName, bdvFormat, imageType);
+                    updateDatasetsComboBox(datasetName);
+                }
             }
 
         } else {
             Utils.log( "Add image failed - create a dataset first" );
         }
+    }
+
+    private String tidyString( String string ) {
+        string = string.trim();
+        String tidyString = string.replaceAll("\\s+","_");
+
+        if ( !string.equals(tidyString) ) {
+            Utils.log( "Spaces were removed from name, and replaced by _");
+        }
+
+        // check only contains alphanumerics, or _ -
+        if ( !tidyString.matches("^[a-zA-Z0-9_-]+$") ) {
+            Utils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
+                    "with a different name.");
+            tidyString = null;
+        }
+
+        return tidyString;
     }
 
     public void addBdvFormatImageDialog() {
@@ -210,25 +234,25 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
-    public String addDatasetDialog () {
+    public void addDatasetDialog () {
         final GenericDialog gd = new GenericDialog( "Create a new dataset" );
-
         gd.addStringField( "Name of dataset", "");
         gd.showDialog();
 
         if ( !gd.wasCanceled() ) {
             String datasetName = gd.getNextString();
-            // check not already in datasets
-            boolean contains = projectsCreator.isInDatasets( datasetName );
-            if ( !contains ) {
-                projectsCreator.addDataset( datasetName );
-                updateDatasetsComboBox( datasetName );
+            datasetName = tidyString( datasetName );
+
+            if ( datasetName != null ) {
+                // check not already in datasets
+                boolean contains = projectsCreator.isInDatasets(datasetName);
+                if (!contains) {
+                    projectsCreator.addDataset(datasetName);
+                    updateDatasetsComboBox(datasetName);
+                } else {
+                    Utils.log("Add dataset failed - dataset already exists");
+                }
             }
-
-            return datasetName;
-
-        } else {
-            return null;
         }
     }
 
@@ -247,8 +271,9 @@ public class ProjectsCreatorPanel extends JFrame {
             gd.showDialog();
 
             if (!gd.wasCanceled()) {
-                String newName = gd.getNextString().trim();
-                if (!newName.equals(oldName)) {
+                String newName = gd.getNextString();
+                newName = tidyString( newName );
+                if ( newName != null && !newName.equals(oldName) ) {
                     // check not already in datasets
                     boolean contains = projectsCreator.isInDatasets(newName);
                     if (!contains) {
