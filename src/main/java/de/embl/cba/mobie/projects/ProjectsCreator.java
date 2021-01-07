@@ -151,8 +151,9 @@ public class ProjectsCreator {
 
     public void addImage ( String imageName, String datasetName, String bdvFormat, String imageType ) {
         String xmlPath = FileAndUrlUtils.combinePath(projectLocation.getAbsolutePath(), "data", datasetName, "images", "local", imageName + ".xml");
+        File xmlFile = new File( xmlPath );
 
-        if ( !new File(xmlPath).exists()) {
+        if ( !xmlFile.exists() ) {
             if (bdvFormat.equals("n5")) {
                 IJ.run("Export Current Image as XML/N5",
                         "  export_path=" + xmlPath);
@@ -160,7 +161,11 @@ public class ProjectsCreator {
                 IJ.run("Export Current Image as XML/HDF5",
                         "  export_path=" + xmlPath);
             }
-            updateJsonsForNewImage( imageName, imageType, datasetName );
+
+            // check image written successfully, before writing jsons
+            if ( xmlFile.exists() ) {
+                updateJsonsForNewImage(imageName, imageType, datasetName);
+            }
         } else {
             Utils.log( "Adding image to project failed - this image name already exists" );
         }

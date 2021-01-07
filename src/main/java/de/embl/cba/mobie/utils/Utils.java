@@ -287,8 +287,11 @@ public class Utils
 	{
 		log( "Opening table: " + tablePath );
 
-		if ( tablePath.startsWith( "http" ) )
-			tablePath = FileUtils.resolveTableURL( URI.create( tablePath ) );
+		if ( tablePath.startsWith( "http" ) ) {
+			tablePath = FileUtils.resolveTableURL(URI.create(tablePath));
+		} else {
+			tablePath = FileUtils.resolveTablePath( tablePath );
+		}
 
 		Map< String, List< String > > columns =
 						TableColumns.stringColumnsFromTableFile( tablePath );
