@@ -214,13 +214,6 @@ public class Utils
 		return new ARGBType( ARGBType.rgba( color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha() ) );
 	}
 
-
-	public static void wait(int msecs)
-	{
-		try {Thread.sleep(msecs);}
-		catch (InterruptedException e) { }
-	}
-
 	public static void logVector( String preText, double[] vector )
 	{
 		String text = preText + ": ";
