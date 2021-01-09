@@ -4,7 +4,7 @@ The MoBIE Fiji viewer is a Fiji plugin for the exploration of big multi-modal im
 
 ## History
 
-The MoBIE was initially develped to explore a cellular atlas for the biological model system _Platynereis dumerilii_, see: [Whole-body integration of gene expression and single-cell morphology](https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1). However, the framework turned out to be so useful and generalisable that it is now used for other projects as well, e.g. see all the repositories ending on "-datasets" [here](https://github.com/mobie).
+The MoBIE was initially developed to explore a cellular atlas for the biological model system _Platynereis dumerilii_, see: [Whole-body integration of gene expression and single-cell morphology](https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1). However, the framework turned out to be so useful and generalisable that it is now used for other projects as well, e.g. see all the repositories ending on "-datasets" [here](https://github.com/mobie).
 
 ## Cite
 
@@ -26,6 +26,8 @@ TODO we should also list important dependencies, FIJI, BDV, ?
 3. Restart Fiji
 
 #### Expert usage (testing latest features)
+
+To build the project from source, you will need Maven 3.3.9 or higher.
 
 Perform step 1 as described above and then:
 
