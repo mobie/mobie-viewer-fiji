@@ -141,5 +141,10 @@
 			<artifactId>imagej-utils</artifactId>
 			<version>${imagej-utils.version}</version>
 		</dependency>
+		<dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>16.0.2</version>
+        </dependency>
 	</dependencies>
 </project>
