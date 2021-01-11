@@ -82,9 +82,9 @@
 
 		Alternatively, as the fix included in 1.6.0-scijava-3-SNAPSHOT is not critical,
 		the easiest is to use version 1.6.0-scijava-2 instead, which is available
-		on a central repository
+		on a central repository, and which we will use here for the ome.zarr branch
 		-->
-		<j3dcore.version>1.6.0-scijava-3-SNAPSHOT</j3dcore.version>
+		<j3dcore.version>1.6.0-scijava-2</j3dcore.version>
 
 	</properties>
 	<build>
