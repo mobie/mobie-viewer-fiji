@@ -77,7 +77,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	protected final N5Reader n5;
 	protected AbstractSequenceDescription< ?, ?, ? > seq;
 	protected ViewRegistrations viewRegistrations;
-	public static boolean debugLogging = false;
+	public static boolean logChunkLoading = false;
 
 	/**
 	 * Maps setup id to {@link SetupImgLoader}.
@@ -554,7 +554,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 				final String pathName = getPathName( setupId, level );
 				final DatasetAttributes attributes = getDatasetAttributes( pathName );
 
-				if ( debugLogging )
+				if ( logChunkLoading )
 				{
 					System.out.println( "Preparing image " + pathName + " of data type " + attributes.getDataType() );
 				}
@@ -703,7 +703,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			gridPosition5D[ 4 ] = timepoint;
 
 			long start = 0;
-			if ( debugLogging )
+			if ( logChunkLoading )
 			{
 				start = System.currentTimeMillis();
 				System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " ..." );
@@ -717,7 +717,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 				System.err.println( e ); // this happens sometimes, not sure yet why...
 			}
 
-			if ( debugLogging )
+			if ( logChunkLoading )
 			{
 				if ( block != null )
 					System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " fetched " + block.getNumElements() + " voxels in " + ( System.currentTimeMillis() - start ) + " ms." );

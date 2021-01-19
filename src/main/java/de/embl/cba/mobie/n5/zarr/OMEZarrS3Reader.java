@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 
 public class OMEZarrS3Reader
 {
+	private static boolean logChunkLoading;
+
 	private final String serviceEndpoint;
 	private final String signingRegion;
 	private final String bucketName;
@@ -27,8 +29,14 @@ public class OMEZarrS3Reader
 		this.bucketName = bucketName;
 	}
 
+	public static void setLogChunkLoading( boolean logChunkLoading )
+	{
+		OMEZarrS3Reader.logChunkLoading = logChunkLoading;
+	}
+
 	public SpimData readKey( String key ) throws IOException
 	{
+		N5OMEZarrImageLoader.logChunkLoading = logChunkLoading;
 		N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader( serviceEndpoint, signingRegion, bucketName, key, S3Authentication.Anonymous );
 		SpimData spimData = new SpimData( null, Cast.unchecked( imageLoader.getSequenceDescription() ), imageLoader.getViewRegistrations() );
 		return spimData;
@@ -40,8 +48,9 @@ public class OMEZarrS3Reader
 		String serviceEndpoint = Arrays.stream( split ).limit( 3 ).collect( Collectors.joining( "/" ) );
 		String signingRegion = "us-west-2";
 		String bucketName = split[ 3 ];
-		final String key = split[ 4 ];
+		final String key = Arrays.stream( split ).skip( 4 ).collect( Collectors.joining( "/") );
 
+		N5OMEZarrImageLoader.logChunkLoading = logChunkLoading;
 		final OMEZarrS3Reader reader = new OMEZarrS3Reader( serviceEndpoint, signingRegion, bucketName );
 		return reader.readKey( key );
 	}
@@ -58,7 +67,7 @@ public class OMEZarrS3Reader
 	public static void showIDR0() throws IOException
 	{
 		//  /idr/zarr/v0.1/6001237.zarr
-		N5OMEZarrImageLoader.debugLogging = true;
+		N5OMEZarrImageLoader.logChunkLoading = true;
 		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://s3.embassy.ebi.ac.uk", "us-west-2", "idr" );
 		SpimData image = reader.readURL( "zarr/v0.1/6001237.zarr" );
 		List< BdvStackSource< ? > > sources = BdvFunctions.show( image );
@@ -77,7 +86,7 @@ public class OMEZarrS3Reader
 	public static void readI2KGif() throws IOException
 	{
 		// https://play.minio.io:9000/i2k2020/gif.zarr
-		N5OMEZarrImageLoader.debugLogging = true;
+		N5OMEZarrImageLoader.logChunkLoading = true;
 		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://play.minio.io:9000", "us-west-2", "i2k2020" );
 		SpimData image = reader.readURL( "gif.zarr" );
 		BdvFunctions.show( image );
@@ -85,7 +94,7 @@ public class OMEZarrS3Reader
 
 	public static void showAll() throws IOException
 	{
-		N5OMEZarrImageLoader.debugLogging = true;
+		N5OMEZarrImageLoader.logChunkLoading = true;
 		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://s3.embl.de", "us-west-2", "i2k-2020" );
 		SpimData myosin = reader.readURL( "prospr-myosin.ome.zarr" );
 		List< BdvStackSource< ? > > myosinBdvSources = BdvFunctions.show( myosin );
@@ -97,7 +106,7 @@ public class OMEZarrS3Reader
 
 	public static void showMyosin() throws IOException
 	{
-		N5OMEZarrImageLoader.debugLogging = true;
+		N5OMEZarrImageLoader.logChunkLoading = true;
 		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://s3.embl.de", "us-west-2", "i2k-2020" );
 		SpimData myosin = reader.readURL( "prospr-myosin.ome.zarr" );
 		BdvFunctions.show( myosin );
@@ -105,7 +114,7 @@ public class OMEZarrS3Reader
 
 	public static void showIDR1() throws IOException
 	{
-		N5OMEZarrImageLoader.debugLogging = true;
+		N5OMEZarrImageLoader.logChunkLoading = true;
 		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://s3.embassy.ebi.ac.uk", "us-west-2", "idr" );
 		SpimData data = reader.readURL( "zarr/v0.1/9822151.zarr" );
 		BdvFunctions.show( data, BdvOptions.options().is2D() ).get( 0 ).setDisplayRange( 3000, 15000 );

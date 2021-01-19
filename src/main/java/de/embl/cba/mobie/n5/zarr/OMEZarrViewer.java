@@ -22,14 +22,10 @@ public class OMEZarrViewer
 	public void show()
 	{
 		final List< ViewSetup > viewSetups = spimData.getSequenceDescription().getViewSetupsOrdered();
-		// check whether all are 2D
-		for ( ViewSetup viewSetup : viewSetups )
-		{
-			final Dimensions size = viewSetup.getSize();
-			int a = 1;
-		}
 
-		List< BdvStackSource< ? > > sources = BdvFunctions.show( spimData );
+		BdvOptions bdvOptions = getBdvOptions( viewSetups );
+
+		List< BdvStackSource< ? > > sources = BdvFunctions.show( spimData, bdvOptions );
 
 		for ( int i = 0; i < viewSetups.size(); i++ )
 		{
@@ -37,5 +33,27 @@ public class OMEZarrViewer
 			if ( name.contains( "labels" ) )
 				Sources.showAsLabelMask( sources.get( i ) );
 		}
+	}
+
+	public BdvOptions getBdvOptions( List< ViewSetup > viewSetups )
+	{
+		boolean is2D = is2D( viewSetups );
+
+		BdvOptions bdvOptions = new BdvOptions();
+		if ( is2D )
+			bdvOptions = bdvOptions.is2D();
+		return bdvOptions;
+	}
+
+	public boolean is2D( List< ViewSetup > viewSetups )
+	{
+		for ( ViewSetup viewSetup : viewSetups )
+		{
+			final Dimensions size = viewSetup.getSize();
+
+			if ( size.dimension( 3 ) > 1 )
+				return false;
+		}
+		return true;
 	}
 }
