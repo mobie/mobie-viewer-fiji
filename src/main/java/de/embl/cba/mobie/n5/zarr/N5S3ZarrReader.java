@@ -60,7 +60,7 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 	final protected boolean mapN5DatasetAttributes;
 	final protected String dimensionSeparator;
 
-	public N5S3ZarrReader(AmazonS3 s3, String bucketName, String containerPath) throws IOException
+	public N5S3ZarrReader( AmazonS3 s3, String bucketName, String containerPath ) throws IOException
 	{
 		super(s3, bucketName, containerPath, initGsonBuilder(new GsonBuilder()));
 		dimensionSeparator = ".";

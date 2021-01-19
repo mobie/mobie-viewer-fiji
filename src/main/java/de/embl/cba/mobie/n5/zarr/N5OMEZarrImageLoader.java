@@ -125,7 +125,6 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			initSetups();
 
 			ArrayList< ViewSetup > viewSetups = new ArrayList<>();
-
 			ArrayList< ViewRegistration > viewRegistrationList = new ArrayList<>();
 
 			int numSetups = setupToMultiscale.size();
@@ -188,15 +187,14 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 				setupId++;
 				setupToChannel.put( setupId, 0 ); // TODO: https://github.com/ome/ngff/issues/19
 				String pathName = "labels/" + label;
-				Multiscale labelMultiscale = getMultiscale( pathName );
-				DatasetAttributes labelAttributes = getDatasetAttributes( pathName + "/" + labelMultiscale.datasets[ 0 ].path );
-				setupToMultiscale.put( setupId, labelMultiscale );
-				setupToAttributes.put( setupId, labelAttributes );
+				multiscale = getMultiscale( pathName );
+				attributes = getDatasetAttributes( pathName + "/" + multiscale.datasets[ 0 ].path );
+
+				setupToMultiscale.put( setupId, multiscale );
+				setupToAttributes.put( setupId, attributes );
 				setupToPathname.put( setupId, pathName );
 			}
 		}
-
-
 	}
 
 	/**
@@ -336,11 +334,19 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		Multiscale multiscale = setupToMultiscale.get( setupId );
 		VoxelDimensions voxelDimensions = readVoxelDimensions( multiscale );
 		Tile tile = new Tile( 0 );
-		Channel channel = new Channel( setupToChannel.get( setupId ) );
+
+		Channel channel;
+		if ( setupToPathname.get( setupId ).contains( "labels" ))
+			channel = new Channel( setupToChannel.get( setupId ), "labels" );
+		else
+			channel = new Channel( setupToChannel.get( setupId ) );
+
 		Angle angle = new Angle( 0 );
 		Illumination illumination = new Illumination( 0 );
 		String name = readName( multiscale, setupId );
 		ViewSetup viewSetup = new ViewSetup( setupId, name, dimensions, voxelDimensions, tile, channel, angle, illumination );
+		//if ( setupToPathname.get( setupId ).contains( "labels" ))
+		//	viewSetup.setAttribute( new ImageType( ImageType.Type.IntensityImage ) );
 		return viewSetup;
 	}
 
@@ -461,9 +467,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			try
 			{
 				for ( int level = 0; level < mipmapResolutions.length; level++ )
-				{
 					mipmapResolutions[ level ] = multiscale.scales[ level ];
-				}
 			}
 			catch ( Exception e )
 			{
@@ -474,16 +478,14 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 				{
 					long[] dimensions = getDatasetAttributes( getPathName( setupId, level ) ).getDimensions();
 					mipmapResolutions[ level ] = new double[ 3 ];
+
 					for ( int d = 0; d < 3; d++ )
-					{
 						mipmapResolutions[ level ][ d ] = 1.0 * dimensionsOfLevel0[ d ] / dimensions[ d ];
-					}
 				}
 			}
 
 			return mipmapResolutions;
 		}
-
 
 		@Override
 		public RandomAccessibleInterval< V > getVolatileImage( final int timepointId, final int level, final ImgLoaderHint... hints )

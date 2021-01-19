@@ -26,9 +26,9 @@ import bdv.util.*;
 
 N5OMEZarrImageLoader.debugLogging = true;
 reader = new OMEZarrS3Reader( "https://s3.embl.de", "us-west-2", "i2k-2020" );
-myosin = reader.read( "prospr-myosin.ome.zarr" );
+myosin = reader.readKey( "prospr-myosin.ome.zarr" );
 myosinBdvSources = BdvFunctions.show( myosin );
-emAndLabels = reader.read( "em-raw.ome.zarr" );
+emAndLabels = reader.readKey( "em-raw.ome.zarr" );
 emAndLabelSources = BdvFunctions.show( emAndLabels, BdvOptions.options().addTo( myosinBdvSources.get( 0 ).getBdvHandle() ) );
 Sources.showAsLabelMask( emAndLabelSources.get( 1 ) );
 
