@@ -26,15 +26,15 @@ import java.awt.*;
 import java.net.URL;
 import java.util.*;
 
+import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
+
 public class ActionPanel extends JPanel
 {
-	public static final int TEXT_FIELD_HEIGHT = 20;
-	public static final int COMBOBOX_WIDTH = 270;
+
 	public static final String BUTTON_LABEL_VIEW = "view";
 	public static final String BUTTON_LABEL_MOVE = "move";
 	public static final String BUTTON_LABEL_HELP = "show";
 	public static final String BUTTON_LABEL_SWITCH = "switch";
-	public static final Dimension BUTTON_DIMENSION = new Dimension( 80, TEXT_FIELD_HEIGHT );
 	public static final String BUTTON_LABEL_LEVEL = "level";
 	public static final String BUTTON_LABEL_ADD = "add";
 	public static final String RESTORE_DEFAULT_VIEW_TRIGGER = "ctrl R";
@@ -462,16 +462,6 @@ public class ActionPanel extends JPanel
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private JLabel getJLabel( String text )
-	{
-		final JLabel comp = new JLabel( text );
-		comp.setPreferredSize( new Dimension( 170,10 ) );
-		comp.setHorizontalAlignment( SwingConstants.LEFT );
-		comp.setHorizontalTextPosition( SwingConstants.LEFT );
-		comp.setAlignmentX( Component.LEFT_ALIGNMENT );
-		return comp;
-	}
-
 	private void addLevelingUI( JPanel panel )
 	{
 		if ( levelingVector == null ) return;
@@ -523,13 +513,6 @@ public class ActionPanel extends JPanel
 		panel.add( horizontalLayoutPanel );
 
 		return comboBox;
-	}
-
-	private JButton getButton( String buttonLabel )
-	{
-		final JButton button = new JButton( buttonLabel );
-		button.setPreferredSize( BUTTON_DIMENSION ); // TODO
-		return button;
 	}
 
 	private void addMoveToLocationUI( JPanel panel )
@@ -611,13 +594,6 @@ public class ActionPanel extends JPanel
 		// TODO: make sure the Swing UI (sources panel is fully visible before instantiating the new BDV)
 		moBIEViewer.close();
 		new MoBIEViewer( moBIEViewer.getProjectLocation(), moBIEViewer.getOptions().dataset( dataset ) );
-	}
-
-	private void setComboBoxDimensions( JComboBox< String > comboBox )
-	{
-		comboBox.setPrototypeDisplayValue( MoBIEViewer.PROTOTYPE_DISPLAY_VALUE );
-		comboBox.setPreferredSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
-		comboBox.setMaximumSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
 	}
 
 	// TODO simplify code below

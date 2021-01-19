@@ -40,7 +40,7 @@ import java.io.IOException;
 
 import static mpicbg.spim.data.XmlKeys.IMGLOADER_FORMAT_ATTRIBUTE_NAME;
 
-@ImgLoaderIo( format = "bdv.n5.s3", type = N5FSImageLoader.class )
+@ImgLoaderIo( format = "bdv.n5.s3", type = N5S3ImageLoader.class )
 public class XmlIoN5S3ImageLoader implements XmlIoBasicImgLoader< N5S3ImageLoader >
 {
 	public static final String SERVICE_ENDPOINT = "ServiceEndpoint";

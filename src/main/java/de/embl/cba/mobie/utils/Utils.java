@@ -23,16 +23,11 @@ import net.imglib2.RandomAccess;
 import net.imglib2.algorithm.neighborhood.HyperSphereShape;
 import net.imglib2.algorithm.neighborhood.Neighborhood;
 import net.imglib2.algorithm.neighborhood.Shape;
-import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.util.Cast;
-import net.imglib2.view.IntervalView;
-import net.imglib2.view.Views;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.io.*;
@@ -220,13 +215,6 @@ public class Utils
 		return new ARGBType( ARGBType.rgba( color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha() ) );
 	}
 
-
-	public static void wait(int msecs)
-	{
-		try {Thread.sleep(msecs);}
-		catch (InterruptedException e) { }
-	}
-
 	public static void logVector( String preText, double[] vector )
 	{
 		String text = preText + ": ";
@@ -300,8 +288,11 @@ public class Utils
 	{
 		log( "Opening table: " + tablePath );
 
-		if ( tablePath.startsWith( "http" ) )
-			tablePath = FileUtils.resolveTableURL( URI.create( tablePath ) );
+		if ( tablePath.startsWith( "http" ) ) {
+			tablePath = FileUtils.resolveTableURL(URI.create(tablePath));
+		} else {
+			tablePath = FileUtils.resolveTablePath( tablePath );
+		}
 
 		Map< String, List< String > > columns =
 						TableColumns.stringColumnsFromTableFile( tablePath );
@@ -430,7 +421,6 @@ public class Utils
 		return collect;
 	}
 
-	@NotNull
 	public static AffineTransform3D createNormalisedViewerTransform( BdvHandle bdv, double[] position )
 	{
 		final AffineTransform3D view = new AffineTransform3D();
@@ -458,7 +448,6 @@ public class Utils
 		return doubles;
 	}
 
-	@NotNull
 	public static AffineTransform3D createUnnormalizedViewerTransform( AffineTransform3D normalisedTransform, BdvHandle bdv )
 	{
 		final AffineTransform3D transform = normalisedTransform.copy();
