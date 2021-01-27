@@ -42,7 +42,7 @@ Perform step 1 as described above and then:
 3. Restart Fiji
 
 ## Tutorials
-Tutorials for using MoBIE are available at [http://mobie.github.io/](http://mobie.github.io/)
+Tutorials for using MoBIE are available at [http://mobie.github.io/](http://mobie.github.io/).  
 For a quick start - see below:
 
 ## Starting up
