@@ -148,36 +148,36 @@ public class ProjectsCreatorPanel extends JFrame {
 
         if (!datasetName.equals("")) {
 
-            // String defaultAffineTransform = projectsCreator.getDefaultAffineForCurrentImage();
+            String defaultAffineTransform = projectsCreator.getDefaultAffineForCurrentImage();
 
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
             gd.addMessage( "Make sure your pixel size, and unit,\n are set properly under Image > Properties...");
             gd.addStringField( "Image Name", "" );
             String[] imageTypes = new String[] {"image", "segmentation", "mask"};
             gd.addChoice( "Image Type", imageTypes, "image" );
-            // gd.addStringField("Affine", defaultAffineTransform );
             String[] bdvFormats = new String[] {"n5", "h5"};
             gd.addChoice( "Bdv format", bdvFormats, "n5" );
+            gd.addStringField("Affine", defaultAffineTransform, 32 );
 
             gd.showDialog();
 
             if ( !gd.wasCanceled() ) {
                 String imageName = gd.getNextString();
                 String imageType = gd.getNextChoice();
-                // String affineTransform = gd.getNextString().trim();
                 String bdvFormat = gd.getNextChoice();
+                String affineTransform = gd.getNextString().trim();
 
                 // tidy up image name, remove any spaces
                 imageName = tidyString( imageName );
 
-                // if ( imageName != null && isValidAffine( affineTransform ) ) {
-                //     if ( !affineTransform.equals(defaultAffineTransform) ) {
-                //         projectsCreator.addImage(imageName, datasetName, bdvFormat, imageType, affineTransform);
-                //     } else {
+                if ( imageName != null && isValidAffine( affineTransform ) ) {
+                    if ( !affineTransform.equals(defaultAffineTransform) ) {
+                        projectsCreator.addImage(imageName, datasetName, bdvFormat, imageType, affineTransform);
+                    } else {
                         projectsCreator.addImage(imageName, datasetName, bdvFormat, imageType, null);
-                    // }
+                    }
                     updateDatasetsComboBox(datasetName);
-                // }
+                }
             }
 
         } else {
