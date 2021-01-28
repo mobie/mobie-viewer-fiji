@@ -15,6 +15,7 @@ import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.color.ColoringLuts;
 import ij.IJ;
+import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.sequence.ImgLoader;
@@ -149,7 +150,17 @@ public class ProjectsCreator {
         }
     }
 
-    public void addImage ( String imageName, String datasetName, String bdvFormat, String imageType ) {
+    public String getDefaultAffineForCurrentImage () {
+        ImagePlus imp = IJ.getImage();
+        final double pixelWidth = imp.getCalibration().pixelWidth;
+        final double pixelHeight = imp.getCalibration().pixelHeight;
+        final double pixelDepth = imp.getCalibration().pixelDepth;
+
+        String defaultAffine = pixelWidth + " 0.0 0.0 0.0 0.0 " + pixelHeight + " 0.0 0.0 0.0 0.0 " + pixelDepth + " 0.0";
+        return defaultAffine;
+    }
+
+    public void addImage ( String imageName, String datasetName, String bdvFormat, String imageType, String affineTransform ) {
         String xmlPath = FileAndUrlUtils.combinePath(projectLocation.getAbsolutePath(), "data", datasetName, "images", "local", imageName + ".xml");
         File xmlFile = new File( xmlPath );
 
@@ -164,6 +175,10 @@ public class ProjectsCreator {
 
             // check image written successfully, before writing jsons
             if ( xmlFile.exists() ) {
+                // if an affine transform is provided, re-open the xml and add the affine
+                // if ( affineTransform != null ) {
+                //     // DO STUFF
+                // }
                 updateJsonsForNewImage(imageName, imageType, datasetName);
             }
         } else {

@@ -148,11 +148,14 @@ public class ProjectsCreatorPanel extends JFrame {
 
         if (!datasetName.equals("")) {
 
+            // String defaultAffineTransform = projectsCreator.getDefaultAffineForCurrentImage();
+
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
             gd.addMessage( "Make sure your pixel size, and unit,\n are set properly under Image > Properties...");
             gd.addStringField( "Image Name", "" );
             String[] imageTypes = new String[] {"image", "segmentation", "mask"};
             gd.addChoice( "Image Type", imageTypes, "image" );
+            // gd.addStringField("Affine", defaultAffineTransform );
             String[] bdvFormats = new String[] {"n5", "h5"};
             gd.addChoice( "Bdv format", bdvFormats, "n5" );
 
@@ -161,20 +164,40 @@ public class ProjectsCreatorPanel extends JFrame {
             if ( !gd.wasCanceled() ) {
                 String imageName = gd.getNextString();
                 String imageType = gd.getNextChoice();
+                // String affineTransform = gd.getNextString().trim();
                 String bdvFormat = gd.getNextChoice();
 
                 // tidy up image name, remove any spaces
                 imageName = tidyString( imageName );
 
-                if ( imageName != null ) {
-                    projectsCreator.addImage(imageName, datasetName, bdvFormat, imageType);
+                // if ( imageName != null && isValidAffine( affineTransform ) ) {
+                //     if ( !affineTransform.equals(defaultAffineTransform) ) {
+                //         projectsCreator.addImage(imageName, datasetName, bdvFormat, imageType, affineTransform);
+                //     } else {
+                        projectsCreator.addImage(imageName, datasetName, bdvFormat, imageType, null);
+                    // }
                     updateDatasetsComboBox(datasetName);
-                }
+                // }
             }
 
         } else {
             Utils.log( "Add image failed - create a dataset first" );
         }
+    }
+
+    private boolean isValidAffine ( String affine ) {
+        if ( !affine.matches("^[0-9. ]+$") ) {
+            Utils.log( "Invalid affine transform - must contain only numbers and spaces");
+            return false;
+        }
+
+        String[] splitAffine = affine.split(" ");
+        if ( splitAffine.length != 12) {
+            Utils.log( "Invalid affine transform - must be of length 12");
+            return false;
+        }
+
+        return true;
     }
 
     private String tidyString( String string ) {
