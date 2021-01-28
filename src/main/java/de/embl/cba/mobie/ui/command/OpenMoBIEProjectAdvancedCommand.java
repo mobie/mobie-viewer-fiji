@@ -32,7 +32,7 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 	@Override
 	public void run()
 	{
-		final MoBIEViewer moBIEViewer = new MoBIEViewer(
+		new MoBIEViewer(
 				projectLocation,
 				MoBIEOptions.options()
 						.gitProjectBranch( projectBranch )

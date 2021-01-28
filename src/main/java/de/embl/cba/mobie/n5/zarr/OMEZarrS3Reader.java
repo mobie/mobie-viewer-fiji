@@ -5,6 +5,7 @@ import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
 import de.embl.cba.mobie.n5.S3Authentication;
 import de.embl.cba.mobie.n5.source.Sources;
+import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Cast;
@@ -32,6 +33,7 @@ public class OMEZarrS3Reader
 	public static void setLogChunkLoading( boolean logChunkLoading )
 	{
 		OMEZarrS3Reader.logChunkLoading = logChunkLoading;
+		if ( logChunkLoading ) IJ.run("Console");
 	}
 
 	public SpimData readKey( String key ) throws IOException

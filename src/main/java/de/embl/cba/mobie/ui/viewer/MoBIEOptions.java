@@ -4,7 +4,6 @@ public class MoBIEOptions
 {
 	public final Values values = new Values();
 
-
 	public enum ImageDataStorageModality
 	{
 		FileSystem,

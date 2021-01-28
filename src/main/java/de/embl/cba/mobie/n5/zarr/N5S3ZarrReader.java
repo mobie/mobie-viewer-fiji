@@ -171,7 +171,6 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 		return readJson(path) != null;
 	}
 
-
 	/**
 	 * CHANGE: rename to not overwrite the AWS list objects version
 	 * @returns false if the group or dataset does not exist but also if the

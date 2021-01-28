@@ -3,6 +3,7 @@ package de.embl.cba.mobie.n5.zarr.ui;
 import bdv.util.BdvFunctions;
 import de.embl.cba.mobie.n5.zarr.OMEZarrS3Reader;
 import de.embl.cba.mobie.n5.zarr.OMEZarrViewer;
+import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
@@ -24,16 +25,12 @@ public class OpenOMEZARRFromS3AdvancedCommand extends OpenOMEZARRFromS3Command
 		try
 		{
 			OMEZarrS3Reader.setLogChunkLoading( logChunkLoading );
-			SpimData spimData = OMEZarrS3Reader.readURL( s3URL );
-			BdvFunctions.show( spimData );
+			openAndShow( s3URL );
 		}
 		catch ( IOException e )
 		{
 			e.printStackTrace();
 		}
-
-		// emAndLabelSources = BdvFunctions.show( emAndLabels, BdvOptions.options().addTo( myosinBdvSources.get( 0 ).getBdvHandle() ) );
-		// Sources.showAsLabelMask( emAndLabelSources.get( 1 ) );
 	}
 
 	public static void main( String[] args ) throws IOException
@@ -41,11 +38,12 @@ public class OpenOMEZARRFromS3AdvancedCommand extends OpenOMEZARRFromS3Command
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		OMEZarrS3Reader.setLogChunkLoading( true );
-		// SpimData spimData = OMEZarrS3Reader.readURL( "https://s3.embl.de/i2k-2020/em-raw.ome.zarr" );
-		SpimData spimData = OMEZarrS3Reader.readURL( "https://s3.embassy.ebi.ac.uk/idr/zarr/v0.1/4495402.zarr" );
-
-		final OMEZarrViewer viewer = new OMEZarrViewer( spimData );
-		viewer.show();
+//		OMEZarrS3Reader.setLogChunkLoading( true );
+//
+//		// SpimData spimData = OMEZarrS3Reader.readURL( "https://s3.embl.de/i2k-2020/em-raw.ome.zarr" );
+//		SpimData spimData = OMEZarrS3Reader.readURL( "https://s3.embassy.ebi.ac.uk/idr/zarr/v0.1/4495402.zarr" );
+//
+//		final OMEZarrViewer viewer = new OMEZarrViewer( spimData );
+//		viewer.show();
 	}
 }

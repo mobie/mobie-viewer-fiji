@@ -40,8 +40,10 @@ public class OMEZarrViewer
 		boolean is2D = is2D( viewSetups );
 
 		BdvOptions bdvOptions = new BdvOptions();
+
 		if ( is2D )
 			bdvOptions = bdvOptions.is2D();
+
 		return bdvOptions;
 	}
 
@@ -51,7 +53,7 @@ public class OMEZarrViewer
 		{
 			final Dimensions size = viewSetup.getSize();
 
-			if ( size.dimension( 3 ) > 1 )
+			if ( size.dimension( 2 ) > 1 )
 				return false;
 		}
 		return true;
