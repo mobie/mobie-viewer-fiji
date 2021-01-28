@@ -41,6 +41,10 @@ Perform step 1 as described above and then:
    - [ Close ]
 3. Restart Fiji
 
+## Tutorials
+Tutorials for using MoBIE are available at [http://mobie.github.io/](http://mobie.github.io/).  
+For a quick start - see below:
+
 ## Starting up
 
 1. In the Fiji search bar, type: "mobie"<br> <img width="460" alt="image" src="https://user-images.githubusercontent.com/2157566/86445323-79dfea00-bd12-11ea-8884-5e50a08660d0.png"> <br> ...and click [ Run ]
@@ -103,4 +107,4 @@ Moreover, the table has its own menu. Important menu entries include:
 
 ### Advanced options
 
-By default the PlatyBrowser plugin fetches the data from [github](https://github.com/platybrowser/platybrowser) and a publicly accessible object store. However it can also be configured to fetch the data from other locations, such as a local file-server. To access this functionality please type in Fiji’s search bar: "CustomBrowser". You can find a minimal example for setting up data for the MMB [here](https://github.com/platybrowser/mmb-python).
+By default the MoBIE plugin fetches the data from [github](https://github.com/platybrowser/platybrowser) and a publicly accessible object store. However it can also be configured to fetch the data from other locations, such as a local file-server. To access this functionality please type in Fiji’s search bar: "Open MoBIE Project Expert Mode". You can find a minimal example for setting up data for MoBIE [here](https://github.com/mobie/mobie-utils-python).
