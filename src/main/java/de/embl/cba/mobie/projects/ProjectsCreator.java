@@ -189,17 +189,18 @@ public class ProjectsCreator {
         new XmlIoSpimDataMinimal().save( updatedSpimDataMinimial, xmlPath);
     }
 
-    public void addImage ( String imageName, String datasetName, String bdvFormat, String imageType, String affineTransform ) {
-        String xmlPath = FileAndUrlUtils.combinePath(projectLocation.getAbsolutePath(), "data", datasetName, "images", "local", imageName + ".xml");
+    public void addImage ( String imageName, String datasetName, String bdvFormat, String imageType,
+                           String affineTransform, String options ) {
+        String xmlPath = getLocalImageXmlPath( datasetName, imageName);
         File xmlFile = new File( xmlPath );
 
         if ( !xmlFile.exists() ) {
             if (bdvFormat.equals("n5")) {
                 IJ.run("Export Current Image as XML/N5",
-                        "  export_path=" + xmlPath);
+                        options);
             } else if (bdvFormat.equals("h5")) {
                 IJ.run("Export Current Image as XML/HDF5",
-                        "  export_path=" + xmlPath);
+                        options);
             }
 
             // check image written successfully, before writing jsons
@@ -323,7 +324,7 @@ public class ProjectsCreator {
                 "default.json");
     }
 
-    private String getLocalImageXmlPath ( String datasetName, String imageName ) {
+    public String getLocalImageXmlPath ( String datasetName, String imageName ) {
         return FileAndUrlUtils.combinePath(dataLocation.getAbsolutePath(), datasetName, "images", "local", imageName + ".xml");
     }
 
