@@ -231,7 +231,22 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	 */
 	private Multiscale getMultiscale( String pathName ) throws IOException
 	{
-		Multiscale[] multiscales = n5.getAttribute( pathName, "multiscales", Multiscale[].class );
+		final String key = "multiscales";
+		Multiscale[] multiscales = n5.getAttribute( pathName, key, Multiscale[].class );
+		if ( multiscales == null )
+		{
+			String location = "";
+			if ( n5 instanceof N5S3ZarrReader )
+			{
+				final N5S3ZarrReader s3ZarrReader = ( N5S3ZarrReader ) n5;
+				location += "service endpoint: " + s3ZarrReader.getServiceEndpoint();
+				location += "; bucket: " + s3ZarrReader.getBucketName();
+				location += "; container path: " + s3ZarrReader.getContainerPath();
+				location += "; path: " + pathName;
+				location += "; attribute: " + key;
+			}
+			throw new UnsupportedOperationException( "Could not find multiscales at " + location );
+		}
 		return multiscales[ 0 ];
 	}
 

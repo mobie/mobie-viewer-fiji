@@ -59,12 +59,40 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 
 	final protected boolean mapN5DatasetAttributes;
 	final protected String dimensionSeparator;
+	private final AmazonS3 s3;
+	private final String serviceEndpoint;
+	private final String bucketName;
+	private final String containerPath;
 
-	public N5S3ZarrReader( AmazonS3 s3, String bucketName, String containerPath ) throws IOException
+	public N5S3ZarrReader( AmazonS3 s3, String serviceEndpoint, String bucketName, String containerPath ) throws IOException
 	{
 		super(s3, bucketName, containerPath, initGsonBuilder(new GsonBuilder()));
+		this.s3 = s3;
+		this.serviceEndpoint = serviceEndpoint; // for debugging
+		this.bucketName = bucketName;
+		this.containerPath = containerPath;
 		dimensionSeparator = ".";
 		mapN5DatasetAttributes = true;
+	}
+
+	public AmazonS3 getS3()
+	{
+		return s3;
+	}
+
+	public String getBucketName()
+	{
+		return bucketName;
+	}
+
+	public String getContainerPath()
+	{
+		return containerPath;
+	}
+
+	public String getServiceEndpoint()
+	{
+		return serviceEndpoint;
 	}
 
 	//
@@ -96,7 +124,6 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 	//
 	// Methods from N5ZarrReader which could be extracted
 	//
-
 	static private GsonBuilder initGsonBuilder(final GsonBuilder gsonBuilder)
 	{
 		gsonBuilder.registerTypeAdapter(DType.class, new DType.JsonAdapter());

@@ -63,7 +63,7 @@ public class N5S3OMEZarrImageLoader extends N5OMEZarrImageLoader
 					.withCredentials( S3CredentialsCreator.getCredentialsProvider( authentication ) )
 					.build();
 
-			return new N5S3ZarrReader( s3, bucketName, key );
+			return new N5S3ZarrReader( s3, serviceEndpoint, bucketName, key );
 		}
 	}
 
