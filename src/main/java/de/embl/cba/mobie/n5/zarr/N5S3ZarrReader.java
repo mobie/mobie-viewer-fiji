@@ -59,18 +59,12 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 
 	final protected boolean mapN5DatasetAttributes;
 	final protected String dimensionSeparator;
-	private final AmazonS3 s3;
 	private final String serviceEndpoint;
-	private final String bucketName;
-	private final String containerPath;
 
 	public N5S3ZarrReader( AmazonS3 s3, String serviceEndpoint, String bucketName, String containerPath ) throws IOException
 	{
 		super(s3, bucketName, containerPath, initGsonBuilder(new GsonBuilder()));
-		this.s3 = s3;
 		this.serviceEndpoint = serviceEndpoint; // for debugging
-		this.bucketName = bucketName;
-		this.containerPath = containerPath;
 		dimensionSeparator = ".";
 		mapN5DatasetAttributes = true;
 	}
@@ -386,8 +380,9 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 	 */
 	public HashMap< String, JsonElement> readJson(String objectPath) throws IOException
 	{
-		if (!this.s3.doesObjectExist(this.bucketName, objectPath)) {
+		if (! this.s3.doesObjectExist(this.bucketName, objectPath)) {
 			return null;
+//			throw new UnsupportedOperationException( this.bucketName + " " + objectPath + " does not exist." );
 		} else {
 			InputStream in = this.readS3Object(objectPath);
 			Throwable var4 = null;

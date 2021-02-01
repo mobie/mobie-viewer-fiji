@@ -46,9 +46,7 @@ public class OpenOMEZARRFromS3Command implements Command
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		//openAndShow( "https://s3.embl.de/i2k-2020/em-raw.ome.zarr" );
-		//openAndShow( "https://s3.embassy.ebi.ac.uk/idr/zarr/v0.1/4495402.zarr" );
-		//openAndShow( "https://s3.embassy.ebi.ac.uk/idr/zarr/v0.1/9836832.zarr" );
-		openAndShow( "https://s3.embassy.ebi.ac.uk/idr/zarr/v0.1/bbbb.zarr" );
+		openAndShow( "https://s3.embl.de/i2k-2020/em-raw.ome.zarr" );
+		//openAndShow( "https://s3.embassy.ebi.ac.uk/idr/zarr/v0.1/bbbb.zarr" );
 	}
 }
