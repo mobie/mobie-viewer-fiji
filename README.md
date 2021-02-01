@@ -16,32 +16,13 @@ TODO we should also list important dependencies, FIJI, BDV, ?
 
 ## Install
 
-#### Normal usage
-
 1. Please [install Fiji](https://fiji.sc) on your computer.
 2. Restart Fiji and install the `MoBIE` update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).
-   - Make sure you do **not** have added the following conflicing update sites:
-      - `EMBL-CBA`
-      - `MoBIE-beta`
-3. Restart Fiji
-
-#### Expert usage (testing latest features)
-
-To build the project from source, you will need Maven 3.3.9 or higher.
-
-Perform step 1 as described above and then:
-
-2. Restart Fiji and add the Update Site `MoBIE-beta` like this:
-   - [ Help > Update.. ]
-   - [ Manage update sites ]
-   - [ Add update site ] and manually fill in the following fields:
-      - Name: `MoBIE-beta` 
-      - URL: `https://sites.imagej.net/MoBIE-beta`
-      - It should look like this: <img width="350" alt="image" src="images/mobie-beta-update-site.png">
-   - [ Close ]
+    - `MoBIE`
 3. Restart Fiji
 
 ## Tutorials
+
 Tutorials for using MoBIE are available at [http://mobie.github.io/](http://mobie.github.io/).  
 For a quick start - see below:
 
