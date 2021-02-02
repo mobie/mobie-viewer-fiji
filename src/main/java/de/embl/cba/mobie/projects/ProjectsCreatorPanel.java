@@ -1,6 +1,8 @@
 package de.embl.cba.mobie.projects;
 
+import bdv.ij.ExportImagePlusAsN5PlugIn;
 import de.embl.cba.mobie.image.ImagePropertiesEditor;
+import de.embl.cba.mobie.n5.ExportImagePlusAsN5;
 import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.SwingUtils;
@@ -202,7 +204,7 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
-    private String getN5ManualExportOptions( String datasetName, String imageName ) {
+    private ExportImagePlusAsN5.Parameters getN5ManualExportOptions(String datasetName, String imageName ) {
 
         final GenericDialog manualSettings = new GenericDialog( "Manual Settings for BigDataViewer XML/N5" );
 
@@ -221,8 +223,8 @@ public class ProjectsCreatorPanel extends JFrame {
             String subsamplingFactors = manualSettings.getNextString();
             String chunkSizes = manualSettings.getNextString();
             String compression = manualSettings.getNextChoice();
-            return "manual_mipmap_setup subsampling_factors=[" + subsamplingFactors + "] n5_chunk_sizes=[" + chunkSizes +
-                    "] compression=[" + compression + "] export_path=" + xmlPath;
+
+            return new ExportImagePlusAsN5().getManualParameters( subsamplingFactors, chunkSizes, compression, xmlPath );
         } else {
             return null;
         }
@@ -265,22 +267,21 @@ public class ProjectsCreatorPanel extends JFrame {
 
                 if ( imageName != null && isValidAffine( affineTransform ) ) {
 
-                    String options = getDefaultExportOptions( datasetName, imageName );
-                    if ( !useDefaultSettings && bdvFormat.equals("h5") ) {
-                        options = getH5ManualExportOptions( datasetName, imageName );
-                    } else if ( !useDefaultSettings && bdvFormat.equals("n5") ) {
-                        options = getN5ManualExportOptions( datasetName, imageName );
-                    }
-
-                    if ( options != null ) {
+                    if ( bdvFormat.equals("h5") ) {
+                        // pass
+                    } else if ( bdvFormat.equals("n5") ) {
+                        ExportImagePlusAsN5.Parameters parameters = null;
+                        if ( !useDefaultSettings ) {
+                            parameters = getN5ManualExportOptions( datasetName, imageName);
+                        }
 
                         if (!affineTransform.equals(defaultAffineTransform)) {
-                            projectsCreator.addImage(imageName, datasetName, bdvFormat, imageType, affineTransform, options);
+                            projectsCreator.addN5Image(imageName, datasetName, imageType, affineTransform, parameters);
                         } else {
-                            projectsCreator.addImage(imageName, datasetName, bdvFormat, imageType, null, options);
+                            projectsCreator.addN5Image(imageName, datasetName, imageType, null, parameters);
                         }
-                        updateDatasetsComboBox(datasetName);
                     }
+                    updateDatasetsComboBox(datasetName);
                 }
             }
 
