@@ -205,10 +205,7 @@ public class WriteImgPlusToN5 {
         final int numTimepoints = imp.getNFrames();
         final int numSetups = imp.getNChannels();
 
-        // create SourceTransform from the images calibration
-        final AffineTransform3D sourceTransform = new AffineTransform3D();
-        sourceTransform.set( voxelSize.dimension(0), 0, 0, 0, 0, voxelSize.dimension(1),
-                0, 0, 0, 0, voxelSize.dimension(2), 0 );
+        final AffineTransform3D sourceTransform = params.sourceTransform;
 
         // write n5
         final HashMap< Integer, BasicViewSetup> setups = new HashMap<>( numSetups );

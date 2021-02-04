@@ -15,6 +15,7 @@ import bdv.img.virtualstack.VirtualStackImageLoader;
 import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
+import de.embl.cba.mobie.utils.Utils;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImageJ;
@@ -101,6 +102,15 @@ public class ExportImagePlusAsN5PlugIn implements Command
         getParameters( imp, autoMipmapSettings);
     }
 
+    public String generateDefaultAffine ( ImagePlus imp ) {
+        final double pixelWidth = imp.getCalibration().pixelWidth;
+        final double pixelHeight = imp.getCalibration().pixelHeight;
+        final double pixelDepth = imp.getCalibration().pixelDepth;
+
+        String defaultAffine = pixelWidth + " 0.0 0.0 0.0 0.0 " + pixelHeight + " 0.0 0.0 0.0 0.0 " + pixelDepth + " 0.0";
+        return defaultAffine;
+    }
+
     static boolean lastSetMipmapManual = false;
 
     static String lastSubsampling = "";
@@ -134,7 +144,7 @@ public class ExportImagePlusAsN5PlugIn implements Command
             gd.addCheckbox( "default settings", lastCompressionDefaultSettings );
 
             gd.addMessage( "" );
-            gd.addStringField( "Affine Transform", "placeholder", 25);
+            gd.addStringField( "Affine Transform", generateDefaultAffine( imp ), 25);
             final String[] downsamplingModeChoices = new String[] { "average", "nearest neighbour" };
             gd.addChoice( "Downsampling Mode", downsamplingModeChoices, downsamplingModeChoices[ lastDownsamplingModeChoice ] );
 
@@ -181,6 +191,8 @@ public class ExportImagePlusAsN5PlugIn implements Command
             lastChunkSizes = gd.getNextString();
             lastCompressionChoice = gd.getNextChoiceIndex();
             lastCompressionDefaultSettings = gd.getNextBoolean();
+            // don't store this affine, want to recalculate for each image
+            String sourceTransformString = gd.getNextString();
             lastDownsamplingModeChoice = gd.getNextChoiceIndex();
             lastExportPath = gd.getNextString();
 
@@ -233,6 +245,25 @@ public class ExportImagePlusAsN5PlugIn implements Command
                     downsamplingMode = "nearest neighbour";
                     break;
             }
+
+            // check affine
+            if ( !sourceTransformString.matches("^[0-9. ]+$") ) {
+                IJ.showMessage( "Invalid affine transform - must contain only numbers and spaces" );
+                return;
+            }
+
+            String[] splitAffine = sourceTransformString.split(" ");
+            if ( splitAffine.length != 12) {
+                IJ.showMessage( "Invalid affine transform - must be of length 12" );
+                return;
+            }
+
+            AffineTransform3D sourceTransform = new AffineTransform3D();
+            double[] doubleAffineTransform = new double[splitAffine.length];
+            for ( int i = 0; i < splitAffine.length; i++ ) {
+                doubleAffineTransform[i] = Double.parseDouble( splitAffine[i] );
+            }
+            sourceTransform.set( doubleAffineTransform );
 
             new WriteImgPlusToN5().export( imp, resolutions, subdivisions, lastExportPath, sourceTransform,
                     downsamplingMode, compression );
