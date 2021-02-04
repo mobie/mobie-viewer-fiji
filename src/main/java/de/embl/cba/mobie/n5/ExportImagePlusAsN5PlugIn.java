@@ -1,21 +1,8 @@
 package de.embl.cba.mobie.n5;
 
 import bdv.export.ExportMipmapInfo;
-import bdv.export.ExportScalePyramid.AfterEachPlane;
-import bdv.export.ExportScalePyramid.LoopbackHeuristic;
-import bdv.export.ProgressWriter;
 import bdv.export.ProposeMipmaps;
-import bdv.export.SubTaskProgressWriter;
-import bdv.export.n5.WriteSequenceToN5;
 import bdv.ij.util.PluginHelper;
-import bdv.ij.util.ProgressWriterIJ;
-import bdv.img.imagestack.ImageStackImageLoader;
-import bdv.img.n5.N5ImageLoader;
-import bdv.img.virtualstack.VirtualStackImageLoader;
-import bdv.spimdata.SequenceDescriptionMinimal;
-import bdv.spimdata.SpimDataMinimal;
-import bdv.spimdata.XmlIoSpimDataMinimal;
-import de.embl.cba.mobie.utils.Utils;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImageJ;
@@ -24,24 +11,10 @@ import ij.WindowManager;
 import java.awt.Checkbox;
 import java.awt.TextField;
 import java.awt.event.ItemEvent;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
-import mpicbg.spim.data.generic.sequence.TypedBasicImgLoader;
-import mpicbg.spim.data.registration.ViewRegistration;
-import mpicbg.spim.data.registration.ViewRegistrations;
-import mpicbg.spim.data.sequence.Channel;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
-import mpicbg.spim.data.sequence.TimePoint;
-import mpicbg.spim.data.sequence.TimePoints;
 import net.imglib2.FinalDimensions;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.util.Intervals;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.janelia.saalfeldlab.n5.Bzip2Compression;
 import org.janelia.saalfeldlab.n5.Compression;
@@ -60,7 +33,7 @@ import static de.embl.cba.mobie.utils.ExportUtils.*;
  * @author Tobias Pietzsch
  */
 @Plugin(type = Command.class,
-        menuPath = "Plugins>BigDataViewer>Export Current Image as XML/N5")
+        menuPath = "Plugins>BigDataViewer>Export Current Image as XML/N5 (experimental)")
 public class ExportImagePlusAsN5PlugIn implements Command
 {
     public static void main( final String[] args )
@@ -159,6 +132,8 @@ public class ExportImagePlusAsN5PlugIn implements Command
                 gd.getNextString();
                 gd.getNextChoiceIndex();
                 gd.getNextBoolean();
+                gd.getNextString();
+                gd.getNextChoiceIndex();
                 gd.getNextString();
                 if ( e instanceof ItemEvent && e.getID() == ItemEvent.ITEM_STATE_CHANGED && e.getSource() == cManualMipmap )
                 {
@@ -267,6 +242,7 @@ public class ExportImagePlusAsN5PlugIn implements Command
 
             new WriteImgPlusToN5().export( imp, resolutions, subdivisions, lastExportPath, sourceTransform,
                     downsamplingMode, compression );
+            return;
         }
     }
 

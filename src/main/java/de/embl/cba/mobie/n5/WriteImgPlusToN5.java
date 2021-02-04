@@ -30,7 +30,6 @@ import org.janelia.saalfeldlab.n5.RawCompression;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.ParameterMetaData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
