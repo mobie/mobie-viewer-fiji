@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.projects;
 
 import bdv.ij.ExportImagePlusAsN5PlugIn;
+import de.embl.cba.mobie.h5.ExportImagePlusAsH5;
 import de.embl.cba.mobie.image.ImagePropertiesEditor;
 import de.embl.cba.mobie.n5.ExportImagePlusAsN5;
 import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
@@ -145,7 +146,7 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
-    private String getH5ManualExportOptions( String datasetName, String imageName ) {
+    private ExportImagePlusAsH5.H5Parameters getH5ManualExportParameters ( String datasetName, String imageName ) {
 
         final GenericDialog manualSettings = new GenericDialog( "Manual Settings for BigDataViewer XML/H5" );
 
@@ -175,36 +176,23 @@ public class ProjectsCreatorPanel extends JFrame {
             String xmlPath = projectsCreator.getLocalImageXmlPath( datasetName, imageName );
             String subsamplingFactors = manualSettings.getNextString();
             String chunkSizes = manualSettings.getNextString();
-            String valueRange = manualSettings.getNextChoice();
+            int minMaxChoice = manualSettings.getNextChoiceIndex();
             double min = manualSettings.getNextNumber();
             double max = manualSettings.getNextNumber();
             boolean splitHdf5 = manualSettings.getNextBoolean();
-            double timePointsPerPartition = manualSettings.getNextNumber();
-            double setupsPerPartition = manualSettings.getNextNumber();
+            int timePointsPerPartition = (int) manualSettings.getNextNumber();
+            int setupsPerPartition = (int) manualSettings.getNextNumber();
             boolean useDeflateCompression = manualSettings.getNextBoolean();
 
-            String optionsString = "manual_mipmap_setup subsampling_factors=[" + subsamplingFactors + "] hdf5_chunk_sizes=[" + chunkSizes +
-                    "] value_range=[" + valueRange + "] min=" + min + " max=" + max;
-            if ( splitHdf5 ) {
-                optionsString += " split_hdf5";
-            }
-
-            optionsString += " timepoints_per_partition=" + timePointsPerPartition + " setups_per_partition=" +
-                    setupsPerPartition;
-
-            if (useDeflateCompression) {
-                optionsString+= " use_deflate_compression";
-            }
-
-            optionsString += " export_path=" + xmlPath;
-            return optionsString;
+            return new ExportImagePlusAsH5().getManualParameters( subsamplingFactors, chunkSizes, minMaxChoice,
+                    min, max, splitHdf5, timePointsPerPartition, setupsPerPartition, useDeflateCompression, xmlPath );
 
         } else {
             return null;
         }
     }
 
-    private ExportImagePlusAsN5.Parameters getN5ManualExportOptions(String datasetName, String imageName ) {
+    private ExportImagePlusAsN5.N5Parameters getN5ManualExportParameters(String datasetName, String imageName ) {
 
         final GenericDialog manualSettings = new GenericDialog( "Manual Settings for BigDataViewer XML/N5" );
 
@@ -222,9 +210,9 @@ public class ProjectsCreatorPanel extends JFrame {
             String xmlPath = projectsCreator.getLocalImageXmlPath( datasetName, imageName );
             String subsamplingFactors = manualSettings.getNextString();
             String chunkSizes = manualSettings.getNextString();
-            String compression = manualSettings.getNextChoice();
+            int compressionChoice = manualSettings.getNextChoiceIndex();
 
-            return new ExportImagePlusAsN5().getManualParameters( subsamplingFactors, chunkSizes, compression, xmlPath );
+            return new ExportImagePlusAsN5().getManualParameters( subsamplingFactors, chunkSizes, compressionChoice, xmlPath );
         } else {
             return null;
         }
@@ -270,9 +258,9 @@ public class ProjectsCreatorPanel extends JFrame {
                     if ( bdvFormat.equals("h5") ) {
                         // pass
                     } else if ( bdvFormat.equals("n5") ) {
-                        ExportImagePlusAsN5.Parameters parameters = null;
+                        ExportImagePlusAsN5.N5Parameters parameters = null;
                         if ( !useDefaultSettings ) {
-                            parameters = getN5ManualExportOptions( datasetName, imageName);
+                            parameters = getN5ManualExportParameters( datasetName, imageName);
                         }
 
                         if (!affineTransform.equals(defaultAffineTransform)) {

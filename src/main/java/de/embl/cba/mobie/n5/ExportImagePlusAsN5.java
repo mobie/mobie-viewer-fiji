@@ -1,7 +1,7 @@
 package de.embl.cba.mobie.n5;
 
 // copy of https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusAsN5PlugIn.java
-// removing GUI calls
+// with GUI removed and some refactoring
 
 import bdv.export.ExportMipmapInfo;
 import bdv.export.ExportScalePyramid.AfterEachPlane;
@@ -54,50 +54,12 @@ import org.janelia.saalfeldlab.n5.XzCompression;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 
+import static de.embl.cba.mobie.utils.ExportUtils.*;
+
 public class ExportImagePlusAsN5
 {
 
-    private boolean isImageSuitable ( ImagePlus imp ) {
-        // check the image type
-        switch ( imp.getType() )
-        {
-            case ImagePlus.GRAY8:
-            case ImagePlus.GRAY16:
-            case ImagePlus.GRAY32:
-                break;
-            default:
-                IJ.showMessage( "Only 8, 16, 32-bit images are supported currently!" );
-                return false;
-        }
 
-        // check the image dimensionality
-        if ( imp.getNDimensions() < 2 )
-        {
-            IJ.showMessage( "Image must be at least 2-dimensional!" );
-            return false;
-        }
-
-        return true;
-    }
-
-    private FinalVoxelDimensions getVoxelSize ( ImagePlus imp ) {
-        final double pw = imp.getCalibration().pixelWidth;
-        final double ph = imp.getCalibration().pixelHeight;
-        final double pd = imp.getCalibration().pixelDepth;
-        String punit = imp.getCalibration().getUnit();
-        if ( punit == null || punit.isEmpty() )
-            punit = "px";
-        final FinalVoxelDimensions voxelSize = new FinalVoxelDimensions( punit, pw, ph, pd );
-        return voxelSize;
-    }
-
-    private FinalDimensions getSize ( ImagePlus imp ) {
-        final int w = imp.getWidth();
-        final int h = imp.getHeight();
-        final int d = imp.getNSlices();
-        final FinalDimensions size = new FinalDimensions( w, h, d );
-        return size;
-    }
 
     public void export ( ImagePlus imp, String xmlPath ) {
 
@@ -115,7 +77,7 @@ public class ExportImagePlusAsN5
                 maxNumElements );
 
         // use default parameters
-        final Parameters params = getDefaultParameters( autoMipmapSettings, xmlPath );
+        final N5Parameters params = getDefaultParameters( autoMipmapSettings, xmlPath );
         if ( params == null )
             return;
 
@@ -123,8 +85,8 @@ public class ExportImagePlusAsN5
 
     }
 
-    public void export ( ImagePlus imp, String subsamplingFactors, String n5ChunkSizes, String compressionName, String xmlPath ) {
-        final Parameters params = getManualParameters( subsamplingFactors, n5ChunkSizes, compressionName, xmlPath );
+    public void export ( ImagePlus imp, String subsamplingFactors, String n5ChunkSizes, int compressionChoice, String xmlPath ) {
+        final N5Parameters params = getManualParameters( subsamplingFactors, n5ChunkSizes, compressionChoice, xmlPath );
 
         if ( params != null ) {
             export(imp, params);
@@ -132,7 +94,7 @@ public class ExportImagePlusAsN5
 
     }
 
-    public void export ( ImagePlus imp, Parameters params )
+    public void export ( ImagePlus imp, N5Parameters params )
     {
         if ( !isImageSuitable(imp) ) {
             return;
@@ -292,7 +254,7 @@ public class ExportImagePlusAsN5
         progressWriter.out().println( "done" );
     }
 
-    public static class Parameters
+    public static class N5Parameters
     {
         final boolean setMipmapManual;
 
@@ -306,7 +268,7 @@ public class ExportImagePlusAsN5
 
         final Compression compression;
 
-        public Parameters(
+        public N5Parameters(
                 final boolean setMipmapManual, final int[][] resolutions, final int[][] subdivisions,
                 final File seqFile, final File n5File,
                 final Compression compression )
@@ -320,43 +282,25 @@ public class ExportImagePlusAsN5
         }
     }
 
-    private File getSeqFileFromPath ( String xmlPath ) {
-        String seqFilename = xmlPath;
-        if ( !seqFilename.endsWith( ".xml" ) )
-            seqFilename += ".xml";
-        final File seqFile = new File( seqFilename );
-        final File parent = seqFile.getParentFile();
-        if ( parent == null || !parent.exists() || !parent.isDirectory() )
-        {
-            IJ.showMessage( "Invalid export filename " + seqFilename );
-            return null;
-        }
-        return seqFile;
-    }
+
 
     private File getN5File ( String xmlPath ) {
         final String n5Filename = xmlPath.substring( 0, xmlPath.length() - 4 ) + ".n5";
         return new File( n5Filename );
     }
 
-    public Parameters getManualParameters( String subsamplingFactors, String n5ChunkSizes, String compressionName, String exportPath ) {
+    static String lastSubsampling = "{ {1,1,1} }";
+
+    static String lastChunkSizes = "{ {64,64,64} }";
+
+    static String lastCompressionChoice = "raw (no compression)";
+
+    public N5Parameters getManualParameters( String subsamplingFactors, String n5ChunkSizes, int compressionChoice, String exportPath ) {
 
         // parse mipmap resolutions and cell sizes
         final int[][] resolutions = PluginHelper.parseResolutionsString( subsamplingFactors );
         final int[][] subdivisions = PluginHelper.parseResolutionsString( n5ChunkSizes );
-        if ( resolutions.length == 0 )
-        {
-            IJ.showMessage( "Cannot parse subsampling factors " + subsamplingFactors );
-            return null;
-        }
-        if ( subdivisions.length == 0 )
-        {
-            IJ.showMessage( "Cannot parse n5 chunk sizes " + n5ChunkSizes );
-            return null;
-        }
-        else if ( resolutions.length != subdivisions.length )
-        {
-            IJ.showMessage( "subsampling factors and n5 chunk sizes must have the same number of elements" );
+        if ( !isResolutionsAndSubdivisionsSuitable( resolutions, subdivisions, subsamplingFactors, n5ChunkSizes )) {
             return null;
         }
 
@@ -368,36 +312,36 @@ public class ExportImagePlusAsN5
         File n5File = getN5File( exportPath );
 
         final Compression compression;
-        switch ( compressionName )
+        switch ( compressionChoice )
         {
             default:
-            case "raw (no compression)":
+            case 0: // raw (no compression)
                 compression = new RawCompression();
                 break;
-            case "bzip":
+            case 1: // bzip
                 compression = getBzip2Settings();
                 break;
-            case "gzip":
+            case 2: // gzip
                 compression = getGzipSettings();
                 break;
-            case "lz4":
+            case 3:// lz4
                 compression = getLz4Settings();
                 break;
-            case "xz":
+            case 4:// xz
                 compression = getXzSettings();
                 break;
         }
         if ( compression == null )
             return null;
 
-        return new Parameters( true, resolutions, subdivisions, seqFile, n5File, compression );
+        return new N5Parameters( true, resolutions, subdivisions, seqFile, n5File, compression );
     }
 
-    protected Parameters getDefaultParameters ( final ExportMipmapInfo autoMipmapSettings, String exportPath ) {
+    protected N5Parameters getDefaultParameters ( final ExportMipmapInfo autoMipmapSettings, String exportPath ) {
         final String autoSubsampling = ProposeMipmaps.getArrayString( autoMipmapSettings.getExportResolutions() );
         final String autoChunkSizes = ProposeMipmaps.getArrayString( autoMipmapSettings.getSubdivisions() );
 
-        return getManualParameters( autoSubsampling, autoChunkSizes, "raw (no compression)", exportPath );
+        return getManualParameters( autoSubsampling, autoChunkSizes, 0, exportPath );
     }
 
     static int lastBzip2BlockSize = BZip2CompressorOutputStream.MAX_BLOCKSIZE;

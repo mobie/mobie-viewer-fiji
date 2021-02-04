@@ -200,7 +200,7 @@ public class ProjectsCreator {
     }
 
     public void addN5Image ( String imageName, String datasetName, String imageType,
-                                                  String affineTransform, ExportImagePlusAsN5.Parameters parameters ) {
+                                                  String affineTransform, ExportImagePlusAsN5.N5Parameters parameters ) {
         ImagePlus imp = IJ.getImage();
         String xmlPath = getLocalImageXmlPath( datasetName, imageName);
         File xmlFile = new File( xmlPath );
