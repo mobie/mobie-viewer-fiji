@@ -5,6 +5,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.FinalDimensions;
+import net.imglib2.realtransform.AffineTransform3D;
 
 import java.io.File;
 
@@ -73,10 +74,7 @@ public class ExportUtils {
         return size;
     }
 
-    public static File getSeqFileFromPath (String xmlPath ) {
-        String seqFilename = xmlPath;
-        if ( !seqFilename.endsWith( ".xml" ) )
-            seqFilename += ".xml";
+    public static File getSeqFileFromPath ( String seqFilename ) {
         final File seqFile = new File( seqFilename );
         final File parent = seqFile.getParentFile();
         if ( parent == null || !parent.exists() || !parent.isDirectory() )
@@ -87,6 +85,18 @@ public class ExportUtils {
         return seqFile;
     }
 
+    public static AffineTransform3D generateSourceTransform ( FinalVoxelDimensions  voxelSize ) {
+        // create SourceTransform from the images calibration
+        final AffineTransform3D sourceTransform = new AffineTransform3D();
+        sourceTransform.set( voxelSize.dimension(0), 0, 0, 0, 0, voxelSize.dimension(1),
+                0, 0, 0, 0, voxelSize.dimension(2), 0 );
+        return sourceTransform;
+    }
+
+    public static File getN5FileFromXmlPath ( String xmlPath ) {
+        final String n5Filename = xmlPath.substring( 0, xmlPath.length() - 4 ) + ".n5";
+        return new File( n5Filename );
+    }
 
 
 }
