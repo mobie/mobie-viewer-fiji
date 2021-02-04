@@ -257,27 +257,59 @@ public class ExportImagePlusAsH5 {
         return new File(hdf5Filename);
     }
 
-    static boolean lastSetMipmapManual = false;
+    static String lastManualSubsampling = "{ {1,1,1} }";
 
-    static String lastSubsampling = "{1,1,1}, {2,2,1}, {4,4,2}";
+    static String lastManualChunkSizes = "{ {64,64,64} }";
 
-    static String lastChunkSizes = "{32,32,4}, {16,16,8}, {8,8,8}";
+    static int lastManualMinMaxChoice = 2;
 
-    static int lastMinMaxChoice = 2;
+    static double lastManualMin = 0;
 
-    static double lastMin = 0;
+    static double lastManualMax = 65535;
 
-    static double lastMax = 65535;
+    static boolean lastManualSplit = false;
 
-    static boolean lastSplit = false;
+    static int lastManualTimepointsPerPartition = 0;
 
-    static int lastTimepointsPerPartition = 0;
+    static int lastManualSetupsPerPartition = 0;
 
-    static int lastSetupsPerPartition = 0;
+    static boolean lastManualDeflate = true;
 
-    static boolean lastDeflate = true;
+    public static double getLastManualMax() {
+        return lastManualMax;
+    }
 
-    static String lastExportPath = "./export.xml";
+    public static double getLastManualMin() {
+        return lastManualMin;
+    }
+
+    public static int getLastManualMinMaxChoice() {
+        return lastManualMinMaxChoice;
+    }
+
+    public static int getLastManualSetupsPerPartition() {
+        return lastManualSetupsPerPartition;
+    }
+
+    public static int getLastManualTimepointsPerPartition() {
+        return lastManualTimepointsPerPartition;
+    }
+
+    public static String getLastManualChunkSizes() {
+        return lastManualChunkSizes;
+    }
+
+    public static String getLastManualSubsampling() {
+        return lastManualSubsampling;
+    }
+
+    public static boolean getLastManualDeflate() {
+        return lastManualDeflate;
+    }
+
+    public static boolean getLastManualSplit() {
+        return lastManualSplit;
+    }
 
     public H5Parameters getManualParameters(String subsamplingFactors, String h5ChunkSizes, int minMaxChoice,
                                             double min, double max, boolean splitHdf5, int timepointsPerPartition, int setupsPerPartition, boolean useDeflateCompression,

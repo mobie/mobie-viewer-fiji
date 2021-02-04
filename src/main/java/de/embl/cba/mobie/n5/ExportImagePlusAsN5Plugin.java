@@ -1,8 +1,5 @@
 package de.embl.cba.mobie.n5;
 
-// copy of https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusAsN5PlugIn.java
-// with GUI removed and some refactoring
-
 import bdv.export.ExportMipmapInfo;
 import bdv.export.ExportScalePyramid.AfterEachPlane;
 import bdv.export.ExportScalePyramid.LoopbackHeuristic;
@@ -56,14 +53,38 @@ import org.scijava.plugin.Plugin;
 
 import static de.embl.cba.mobie.utils.ExportUtils.*;
 
-public class ExportImagePlusAsN5
+/**
+ * ImageJ plugin to export the current image to xml/n5.
+ *
+ * @author Tobias Pietzsch
+ */
+@Plugin(type = Command.class,
+        menuPath = "Plugins>BigDataViewer>Export Current Image as XML/N5")
+public class ExportImagePlusAsN5PlugIn implements Command
 {
+    public static void main( final String[] args )
+    {
+        new ImageJ();
+        final ImagePlus imp = IJ.openImage( "/Users/pietzsch/workspace/data/confocal-series.tif" );
+        imp.show();
+        new bdv.ij.ExportImagePlusAsN5PlugIn().run();
+    }
 
+    @Override
+    public void run() {
+        if (ij.Prefs.setIJMenuBar)
+            System.setProperty("apple.laf.useScreenMenuBar", "true");
 
+        // get the current image
+        final ImagePlus imp = WindowManager.getCurrentImage();
 
-    public void export ( ImagePlus imp, String xmlPath ) {
+        // make sure there is one
+        if (imp == null) {
+            IJ.showMessage("Please open an image first.");
+            return;
+        }
 
-        if ( !isImageSuitable(imp) ) {
+        if ( !isImageSuitable( imp ) ) {
             return;
         }
 
@@ -73,40 +94,29 @@ public class ExportImagePlusAsN5
         // propose reasonable mipmap settings
         final int maxNumElements = 64 * 64 * 64;
         final ExportMipmapInfo autoMipmapSettings = ProposeMipmaps.proposeMipmaps(
-                new BasicViewSetup( 0, "", size, voxelSize ),
-                maxNumElements );
+                new BasicViewSetup(0, "", size, voxelSize),
+                maxNumElements);
 
-        // use default parameters
-        final N5Parameters params = getDefaultParameters( autoMipmapSettings, xmlPath );
-        if ( params == null )
+        // show dialog to get output paths, resolutions, subdivisions, min-max option
+        final Parameters params = getParameters(autoMipmapSettings);
+        if (params == null)
             return;
 
         export( imp, params );
-
     }
 
-    public void export ( ImagePlus imp, String subsamplingFactors, String n5ChunkSizes, int compressionChoice, String xmlPath ) {
-        final N5Parameters params = getManualParameters( subsamplingFactors, n5ChunkSizes, compressionChoice, xmlPath );
-
-        if ( params != null ) {
-            // keep track of these manual settings, so can display in dialog if user wants to add
-            // multiple images in one session
-            lastManualSubsampling = subsamplingFactors;
-            lastManualChunkSizes = n5ChunkSizes;
-            lastManualCompressionChoice = compressionChoice;
-            export(imp, params);
-        }
-
-    }
-
-    public void export ( ImagePlus imp, N5Parameters params )
-    {
-        if ( !isImageSuitable(imp) ) {
+    public void export( ImagePlus imp, Parameters params ) {
+        if ( !isImageSuitable( imp ) ) {
             return;
         }
 
-        final FinalVoxelDimensions voxelSize = getVoxelSize( imp );
-        final FinalDimensions size = getSize( imp );
+        FinalVoxelDimensions voxelSize = getVoxelSize( imp );
+        FinalDimensions size = getSize( imp );
+
+        export( imp, params, voxelSize, size );
+    }
+
+    protected void export( ImagePlus imp, Parameters params, FinalVoxelDimensions voxelSize, FinalDimensions size ) {
 
         final ProgressWriter progressWriter = new ProgressWriterIJ();
         progressWriter.out().println( "starting export..." );
@@ -157,8 +167,8 @@ public class ExportImagePlusAsN5
 
         // create SourceTransform from the images calibration
         final AffineTransform3D sourceTransform = new AffineTransform3D();
-        sourceTransform.set( voxelSize.dimension(0), 0, 0, 0, 0,
-                voxelSize.dimension(1), 0, 0, 0, 0, voxelSize.dimension(2), 0 );
+        sourceTransform.set( voxelSize.dimension(0), 0, 0, 0, 0, voxelSize.dimension(1),
+                0, 0, 0, 0, voxelSize.dimension(2), 0 );
 
         // write n5
         final HashMap< Integer, BasicViewSetup > setups = new HashMap<>( numSetups );
@@ -259,7 +269,8 @@ public class ExportImagePlusAsN5
         progressWriter.out().println( "done" );
     }
 
-    public static class N5Parameters
+
+    public static class Parameters
     {
         final boolean setMipmapManual;
 
@@ -271,62 +282,151 @@ public class ExportImagePlusAsN5
 
         final File n5File;
 
+        final AffineTransform3D sourceTransform;
+
+        final String downsamplingMode;
+
         final Compression compression;
 
-        public N5Parameters(
+        public Parameters(
                 final boolean setMipmapManual, final int[][] resolutions, final int[][] subdivisions,
-                final File seqFile, final File n5File,
-                final Compression compression )
+                final File seqFile, final File n5File, final AffineTransform3D sourceTransform,
+                final String downsamplingMode, final Compression compression )
         {
             this.setMipmapManual = setMipmapManual;
             this.resolutions = resolutions;
             this.subdivisions = subdivisions;
             this.seqFile = seqFile;
             this.n5File = n5File;
+            this.sourceTransform = sourceTransform;
+            this.downsamplingMode = downsamplingMode;
             this.compression = compression;
         }
     }
 
+    static boolean lastSetMipmapManual = false;
 
+    static String lastSubsampling = "";
 
-    private File getN5File ( String xmlPath ) {
-        final String n5Filename = xmlPath.substring( 0, xmlPath.length() - 4 ) + ".n5";
-        return new File( n5Filename );
+    static String lastChunkSizes = "";
+
+    static int lastCompressionChoice = 0;
+
+    static boolean lastCompressionDefaultSettings = true;
+
+    static int lastDownsamplingModeChoice = 0;
+
+    static String lastExportPath = "./export.xml";
+
+    protected Parameters getParameters(final ExportMipmapInfo autoMipmapSettings  )
+    {
+        while ( true )
+        {
+            final GenericDialogPlus gd = new GenericDialogPlus( "Export for BigDataViewer as XML/N5" );
+
+            gd.addCheckbox( "manual_mipmap_setup", lastSetMipmapManual );
+            final Checkbox cManualMipmap = ( Checkbox ) gd.getCheckboxes().lastElement();
+            gd.addStringField( "Subsampling_factors", lastSubsampling, 25 );
+            final TextField tfSubsampling = ( TextField ) gd.getStringFields().lastElement();
+            gd.addStringField( "N5_chunk_sizes", lastChunkSizes, 25 );
+            final TextField tfChunkSizes = ( TextField ) gd.getStringFields().lastElement();
+
+            gd.addMessage( "" );
+            final String[] compressionChoices = new String[] { "raw (no compression)", "bzip", "gzip", "lz4", "xz" };
+            gd.addChoice( "compression", compressionChoices, compressionChoices[ lastCompressionChoice ] );
+            gd.addCheckbox( "default settings", lastCompressionDefaultSettings );
+
+            gd.addMessage( "" );
+            gd.addStringField( "Affine Transform", "placeholder", 25);
+            final String[] downsamplingModeChoices = new String[] { "average", "nearest neighbour" };
+            gd.addChoice( "Downsampling Mode", downsamplingModeChoices, downsamplingModeChoices[ lastDownsamplingModeChoice ] );
+
+            gd.addMessage( "" );
+            PluginHelper.addSaveAsFileField( gd, "Export_path", lastExportPath, 25 );
+
+            final String autoSubsampling = ProposeMipmaps.getArrayString( autoMipmapSettings.getExportResolutions() );
+            final String autoChunkSizes = ProposeMipmaps.getArrayString( autoMipmapSettings.getSubdivisions() );
+            gd.addDialogListener( ( dialog, e ) -> {
+                gd.getNextBoolean();
+                gd.getNextString();
+                gd.getNextString();
+                gd.getNextChoiceIndex();
+                gd.getNextBoolean();
+                gd.getNextString();
+                if ( e instanceof ItemEvent && e.getID() == ItemEvent.ITEM_STATE_CHANGED && e.getSource() == cManualMipmap )
+                {
+                    final boolean useManual = cManualMipmap.getState();
+                    tfSubsampling.setEnabled( useManual );
+                    tfChunkSizes.setEnabled( useManual );
+                    if ( !useManual )
+                    {
+                        tfSubsampling.setText( autoSubsampling );
+                        tfChunkSizes.setText( autoChunkSizes );
+                    }
+                }
+                return true;
+            } );
+
+            tfSubsampling.setEnabled( lastSetMipmapManual );
+            tfChunkSizes.setEnabled( lastSetMipmapManual );
+            if ( !lastSetMipmapManual )
+            {
+                tfSubsampling.setText( autoSubsampling );
+                tfChunkSizes.setText( autoChunkSizes );
+            }
+
+            gd.showDialog();
+            if ( gd.wasCanceled() )
+                return null;
+
+            lastSetMipmapManual = gd.getNextBoolean();
+            lastSubsampling = gd.getNextString();
+            lastChunkSizes = gd.getNextString();
+            lastCompressionChoice = gd.getNextChoiceIndex();
+            lastCompressionDefaultSettings = gd.getNextBoolean();
+            lastDownsamplingModeChoice = gd.getNextChoiceIndex();
+            lastExportPath = gd.getNextString();
+
+            return parseN5Input( lastSetMipmapManual, lastSubsampling, lastChunkSizes, lastCompressionChoice,
+                    lastCompressionDefaultSettings, lastDownsamplingModeChoice, sourceTransform, lastExportPath );
+        }
     }
 
-    static String lastManualSubsampling = "{ {1,1,1} }";
-
-    static String lastManualChunkSizes = "{ {64,64,64} }";
-
-    static int lastManualCompressionChoice = 0;
-
-    public static String getLastManualSubsampling () {
-        return lastManualSubsampling;
-    }
-
-    public static String getLastManualChunkSizes () {
-        return lastManualChunkSizes;
-    }
-
-    public static int getLastManualCompressionChoice () {
-        return lastManualCompressionChoice;
-    }
-
-    public N5Parameters getManualParameters( String subsamplingFactors, String n5ChunkSizes, int compressionChoice, String exportPath ) {
-
+    public ExportImagePlusAsN5PlugIn.Parameters parseN5Input ( boolean setMipmapManual, String subsampling, String chunkSizes,
+                                                                      int compressionChoice, boolean compressionDefaultSetttings,
+                                                                      int downsamplingModeChoice, AffineTransform3D sourceTransform,
+                                                                      String exportPath) {
         // parse mipmap resolutions and cell sizes
-        final int[][] resolutions = PluginHelper.parseResolutionsString( subsamplingFactors );
-        final int[][] subdivisions = PluginHelper.parseResolutionsString( n5ChunkSizes );
-        if ( !isResolutionsAndSubdivisionsSuitable( resolutions, subdivisions, subsamplingFactors, n5ChunkSizes )) {
+        final int[][] resolutions = PluginHelper.parseResolutionsString( subsampling );
+        final int[][] subdivisions = PluginHelper.parseResolutionsString( chunkSizes );
+        if ( resolutions.length == 0 )
+        {
+            IJ.showMessage( "Cannot parse subsampling factors " + subsampling );
+            return null;
+        }
+        if ( subdivisions.length == 0 )
+        {
+            IJ.showMessage( "Cannot parse n5 chunk sizes " + chunkSizes );
+            return null;
+        }
+        else if ( resolutions.length != subdivisions.length )
+        {
+            IJ.showMessage( "subsampling factors and n5 chunk sizes must have the same number of elements" );
             return null;
         }
 
-        final File seqFile = getSeqFileFromPath( exportPath );
-        if ( seqFile == null ) {
+        String seqFilename = exportPath;
+        if ( !seqFilename.endsWith( ".xml" ) )
+            seqFilename += ".xml";
+        final File seqFile = new File( seqFilename );
+        final File parent = seqFile.getParentFile();
+        if ( parent == null || !parent.exists() || !parent.isDirectory() )
+        {
+            IJ.showMessage( "Invalid export filename " + seqFilename );
             return null;
         }
-
-        File n5File = getN5File( exportPath );
+        final String n5Filename = seqFilename.substring( 0, seqFilename.length() - 4 ) + ".n5";
+        final File n5File = new File( n5Filename );
 
         final Compression compression;
         switch ( compressionChoice )
@@ -336,29 +436,47 @@ public class ExportImagePlusAsN5
                 compression = new RawCompression();
                 break;
             case 1: // bzip
-                compression = getBzip2Settings();
+                compression = compressionDefaultSetttings
+                        ? new Bzip2Compression()
+                        : getBzip2Settings();
                 break;
             case 2: // gzip
-                compression = getGzipSettings();
+                compression = compressionDefaultSetttings
+                        ? new GzipCompression()
+                        : getGzipSettings();
                 break;
             case 3:// lz4
-                compression = getLz4Settings();
+                compression = compressionDefaultSetttings
+                        ? new Lz4Compression()
+                        : getLz4Settings();
                 break;
-            case 4:// xz
-                compression = getXzSettings();
+            case 4:// xz" };
+                compression = compressionDefaultSetttings
+                        ? new XzCompression()
+                        : getXzSettings();
                 break;
         }
         if ( compression == null )
             return null;
 
-        return new N5Parameters( true, resolutions, subdivisions, seqFile, n5File, compression );
-    }
+        if ( downsamplingModeChoice != 0 && downsamplingModeChoice != 1 ) {
+            return null;
+        }
 
-    protected N5Parameters getDefaultParameters ( final ExportMipmapInfo autoMipmapSettings, String exportPath ) {
-        final String autoSubsampling = ProposeMipmaps.getArrayString( autoMipmapSettings.getExportResolutions() );
-        final String autoChunkSizes = ProposeMipmaps.getArrayString( autoMipmapSettings.getSubdivisions() );
+        String downsamplingMode;
+        switch ( downsamplingModeChoice ) {
+            default:
+            case 0: // average
+                downsamplingMode = "average";
+                break;
+            case 1: // nearest neighbour
+                downsamplingMode = "nearest neighbour";
+                break;
+        }
 
-        return getManualParameters( autoSubsampling, autoChunkSizes, 0, exportPath );
+        return new Parameters( setMipmapManual, resolutions, subdivisions, seqFile, n5File, sourceTransform,
+                downsamplingMode, compression );
+
     }
 
     static int lastBzip2BlockSize = BZip2CompressorOutputStream.MAX_BLOCKSIZE;
@@ -477,3 +595,4 @@ public class ExportImagePlusAsN5
     }
 
 }
+

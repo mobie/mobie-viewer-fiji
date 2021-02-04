@@ -153,22 +153,22 @@ public class ProjectsCreatorPanel extends JFrame {
         // same settings as https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusPlugIn.java#L357
         // but hiding settings like e.g. export location that shouldn't be set manually
 
-        manualSettings.addStringField( "Subsampling_factors", "{ {1,1,1} }", 25 );
-        manualSettings.addStringField( "Hdf5_chunk_sizes", "{ {64,64,64} }", 25 );
+        manualSettings.addStringField( "Subsampling_factors", ExportImagePlusAsH5.getLastManualSubsampling(), 25 );
+        manualSettings.addStringField( "Hdf5_chunk_sizes", ExportImagePlusAsH5.getLastManualChunkSizes(), 25 );
 
         manualSettings.addMessage( "" );
         final String[] minMaxChoices = new String[] { "Use ImageJ's current min/max setting", "Compute min/max of the (hyper-)stack", "Use values specified below" };
-        manualSettings.addChoice( "Value_range", minMaxChoices, minMaxChoices[ 2 ] );
-        manualSettings.addNumericField( "Min", 0, 0 );
-        manualSettings.addNumericField( "Max", 65535, 0 );
+        manualSettings.addChoice( "Value_range", minMaxChoices, minMaxChoices[ ExportImagePlusAsH5.getLastManualMinMaxChoice() ] );
+        manualSettings.addNumericField( "Min", ExportImagePlusAsH5.getLastManualMin(), 0 );
+        manualSettings.addNumericField( "Max", ExportImagePlusAsH5.getLastManualMax(), 0 );
 
         manualSettings.addMessage( "" );
-        manualSettings.addCheckbox( "split_hdf5", false );
-        manualSettings.addNumericField( "timepoints_per_partition", 0, 0, 25, "" );
-        manualSettings.addNumericField( "setups_per_partition", 0, 0, 25, "" );
+        manualSettings.addCheckbox( "split_hdf5", ExportImagePlusAsH5.getLastManualSplit() );
+        manualSettings.addNumericField( "timepoints_per_partition", ExportImagePlusAsH5.getLastManualTimepointsPerPartition(), 0, 25, "" );
+        manualSettings.addNumericField( "setups_per_partition", ExportImagePlusAsH5.getLastManualSetupsPerPartition(), 0, 25, "" );
 
         manualSettings.addMessage( "" );
-        manualSettings.addCheckbox( "use_deflate_compression", true );
+        manualSettings.addCheckbox( "use_deflate_compression", ExportImagePlusAsH5.getLastManualDeflate() );
 
         manualSettings.showDialog();
 
@@ -199,10 +199,10 @@ public class ProjectsCreatorPanel extends JFrame {
         // same settings as https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusAsN5PlugIn.java#L345
         // but hiding settings like e.g. export location that shouldn't be set manually
 
-        manualSettings.addStringField( "Subsampling_factors", "{ {1,1,1} }", 25 );
-        manualSettings.addStringField( "N5_chunk_sizes", "{ {64,64,64} }", 25 );
+        manualSettings.addStringField( "Subsampling_factors", ExportImagePlusAsN5.getLastManualSubsampling(), 25 );
+        manualSettings.addStringField( "N5_chunk_sizes", ExportImagePlusAsN5.getLastManualChunkSizes(), 25 );
         final String[] compressionChoices = new String[] { "raw (no compression)", "bzip", "gzip", "lz4", "xz" };
-        manualSettings.addChoice( "compression", compressionChoices, compressionChoices[ 0 ] );
+        manualSettings.addChoice( "compression", compressionChoices, compressionChoices[ ExportImagePlusAsN5.getLastManualCompressionChoice() ] );
 
         manualSettings.showDialog();
 
@@ -217,11 +217,6 @@ public class ProjectsCreatorPanel extends JFrame {
             return null;
         }
 
-    }
-
-    private String getDefaultExportOptions( String datasetName, String imageName ) {
-        String xmlPath = projectsCreator.getLocalImageXmlPath( datasetName, imageName );
-        return "  export_path=" + xmlPath;
     }
 
     public void addCurrentOpenImageDialog() {

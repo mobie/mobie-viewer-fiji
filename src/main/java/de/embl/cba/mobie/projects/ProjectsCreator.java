@@ -199,6 +199,31 @@ public class ProjectsCreator {
         }
     }
 
+    public void addH5Image ( String imageName, String datasetName, String imageType,
+                             String affineTransform, ExportImagePlusAsN5.N5Parameters parameters ) {
+        ImagePlus imp = IJ.getImage();
+        String xmlPath = getLocalImageXmlPath( datasetName, imageName);
+        File xmlFile = new File( xmlPath );
+
+        if ( !xmlFile.exists() ) {
+            ExportImagePlusAsN5 exporter = new ExportImagePlusAsN5();
+            if ( parameters != null ) {
+                exporter.export(imp, parameters);
+            } else {
+                exporter.export( imp, xmlPath );
+            }
+
+            // check image written successfully, before writing jsons
+            if ( xmlFile.exists() ) {
+                addAffineTransformToXml( xmlPath, affineTransform );
+                updateJsonsForNewImage( imageName, imageType, datasetName );
+            }
+
+        } else {
+            Utils.log( "Adding image to project failed - this image name already exists" );
+        }
+    }
+
     public void addN5Image ( String imageName, String datasetName, String imageType,
                                                   String affineTransform, ExportImagePlusAsN5.N5Parameters parameters ) {
         ImagePlus imp = IJ.getImage();
