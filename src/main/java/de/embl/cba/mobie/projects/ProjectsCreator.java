@@ -10,14 +10,16 @@ import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.bookmark.BookmarksJsonParser;
 import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.dataset.DatasetsParser;
+import de.embl.cba.mobie.h5.ExportImagePlusAsH5;
 import de.embl.cba.mobie.image.*;
-import de.embl.cba.mobie.n5.ExportImagePlusAsN5;
+import de.embl.cba.mobie.n5.WriteImgPlusToN5;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.color.ColoringLuts;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.registration.ViewRegistration;
@@ -31,6 +33,8 @@ import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.numeric.integer.IntType;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FileUtils;
+import org.janelia.saalfeldlab.n5.Compression;
+import org.janelia.saalfeldlab.n5.RawCompression;
 
 import javax.swing.*;
 import java.io.File;
@@ -165,6 +169,36 @@ public class ProjectsCreator {
         return defaultAffine;
     }
 
+    private boolean isValidAffine ( String affine ) {
+        if ( !affine.matches("^[0-9. ]+$") ) {
+            Utils.log( "Invalid affine transform - must contain only numbers and spaces");
+            return false;
+        }
+
+        String[] splitAffine = affine.split(" ");
+        if ( splitAffine.length != 12) {
+            Utils.log( "Invalid affine transform - must be of length 12");
+            return false;
+        }
+
+        return true;
+    }
+
+    public AffineTransform3D parseAffineString( String affine ) {
+        if ( isValidAffine( affine )) {
+            AffineTransform3D sourceTransform = new AffineTransform3D();
+            String[] splitAffineTransform = affine.split(" ");
+            double[] doubleAffineTransform = new double[splitAffineTransform.length];
+            for (int i = 0; i < splitAffineTransform.length; i++) {
+                doubleAffineTransform[i] = Double.parseDouble(splitAffineTransform[i]);
+            }
+            sourceTransform.set(doubleAffineTransform);
+            return sourceTransform;
+        } else {
+            return null;
+        }
+    }
+
     private void addAffineTransformToXml ( String xmlPath, String affineTransform )  {
         if ( affineTransform != null ) {
             try {
@@ -199,48 +233,101 @@ public class ProjectsCreator {
         }
     }
 
-    public void addH5Image ( String imageName, String datasetName, String imageType,
-                             String affineTransform, ExportImagePlusAsN5.N5Parameters parameters ) {
+    // private ExportImagePlusAsH5.H5Parameters getH5ManualExportParameters (String datasetName, String imageName ) {
+    //
+    //     final GenericDialog manualSettings = new GenericDialog( "Manual Settings for BigDataViewer XML/H5" );
+    //
+    //     // same settings as https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusPlugIn.java#L357
+    //     // but hiding settings like e.g. export location that shouldn't be set manually
+    //
+    //     manualSettings.addStringField( "Subsampling_factors", ExportImagePlusAsH5.getLastManualSubsampling(), 25 );
+    //     manualSettings.addStringField( "Hdf5_chunk_sizes", ExportImagePlusAsH5.getLastManualChunkSizes(), 25 );
+    //
+    //     manualSettings.addMessage( "" );
+    //     final String[] minMaxChoices = new String[] { "Use ImageJ's current min/max setting", "Compute min/max of the (hyper-)stack", "Use values specified below" };
+    //     manualSettings.addChoice( "Value_range", minMaxChoices, minMaxChoices[ ExportImagePlusAsH5.getLastManualMinMaxChoice() ] );
+    //     manualSettings.addNumericField( "Min", ExportImagePlusAsH5.getLastManualMin(), 0 );
+    //     manualSettings.addNumericField( "Max", ExportImagePlusAsH5.getLastManualMax(), 0 );
+    //
+    //     manualSettings.addMessage( "" );
+    //     manualSettings.addCheckbox( "split_hdf5", ExportImagePlusAsH5.getLastManualSplit() );
+    //     manualSettings.addNumericField( "timepoints_per_partition", ExportImagePlusAsH5.getLastManualTimepointsPerPartition(), 0, 25, "" );
+    //     manualSettings.addNumericField( "setups_per_partition", ExportImagePlusAsH5.getLastManualSetupsPerPartition(), 0, 25, "" );
+    //
+    //     manualSettings.addMessage( "" );
+    //     manualSettings.addCheckbox( "use_deflate_compression", ExportImagePlusAsH5.getLastManualDeflate() );
+    //
+    //     manualSettings.showDialog();
+    //
+    //     if ( !manualSettings.wasCanceled() ) {
+    //         String xmlPath = projectsCreator.getLocalImageXmlPath( datasetName, imageName );
+    //         String subsamplingFactors = manualSettings.getNextString();
+    //         String chunkSizes = manualSettings.getNextString();
+    //         int minMaxChoice = manualSettings.getNextChoiceIndex();
+    //         double min = manualSettings.getNextNumber();
+    //         double max = manualSettings.getNextNumber();
+    //         boolean splitHdf5 = manualSettings.getNextBoolean();
+    //         int timePointsPerPartition = (int) manualSettings.getNextNumber();
+    //         int setupsPerPartition = (int) manualSettings.getNextNumber();
+    //         boolean useDeflateCompression = manualSettings.getNextBoolean();
+    //
+    //         return new ExportImagePlusAsH5().getManualParameters( subsamplingFactors, chunkSizes, minMaxChoice,
+    //                 min, max, splitHdf5, timePointsPerPartition, setupsPerPartition, useDeflateCompression, xmlPath );
+    //
+    //     } else {
+    //         return null;
+    //     }
+    // }
+    //
+    // public void addH5Image ( String imageName, String datasetName, String imageType,
+    //                          String affineTransform, ExportImagePlusAsN5.N5Parameters parameters ) {
+    //     ImagePlus imp = IJ.getImage();
+    //     String xmlPath = getLocalImageXmlPath( datasetName, imageName);
+    //     File xmlFile = new File( xmlPath );
+    //
+    //     if ( !xmlFile.exists() ) {
+    //         ExportImagePlusAsN5 exporter = new ExportImagePlusAsN5();
+    //         if ( parameters != null ) {
+    //             exporter.export(imp, parameters);
+    //         } else {
+    //             exporter.export( imp, xmlPath );
+    //         }
+    //
+    //         // check image written successfully, before writing jsons
+    //         if ( xmlFile.exists() ) {
+    //             addAffineTransformToXml( xmlPath, affineTransform );
+    //             updateJsonsForNewImage( imageName, imageType, datasetName );
+    //         }
+    //
+    //     } else {
+    //         Utils.log( "Adding image to project failed - this image name already exists" );
+    //     }
+    // }
+
+    public void addN5Image ( String imageName, String datasetName, String imageType, AffineTransform3D sourceTransform, boolean useDefaultSettings ) {
         ImagePlus imp = IJ.getImage();
         String xmlPath = getLocalImageXmlPath( datasetName, imageName);
         File xmlFile = new File( xmlPath );
 
-        if ( !xmlFile.exists() ) {
-            ExportImagePlusAsN5 exporter = new ExportImagePlusAsN5();
-            if ( parameters != null ) {
-                exporter.export(imp, parameters);
-            } else {
-                exporter.export( imp, xmlPath );
-            }
-
-            // check image written successfully, before writing jsons
-            if ( xmlFile.exists() ) {
-                addAffineTransformToXml( xmlPath, affineTransform );
-                updateJsonsForNewImage( imageName, imageType, datasetName );
-            }
-
+        String downsamplingMode;
+        if ( imageType.equals( "image" ) ) {
+            downsamplingMode = "average";
         } else {
-            Utils.log( "Adding image to project failed - this image name already exists" );
+            downsamplingMode = "nearest neighbour";
         }
-    }
-
-    public void addN5Image ( String imageName, String datasetName, String imageType,
-                                                  String affineTransform, ExportImagePlusAsN5.N5Parameters parameters ) {
-        ImagePlus imp = IJ.getImage();
-        String xmlPath = getLocalImageXmlPath( datasetName, imageName);
-        File xmlFile = new File( xmlPath );
 
         if ( !xmlFile.exists() ) {
-            ExportImagePlusAsN5 exporter = new ExportImagePlusAsN5();
-            if ( parameters != null ) {
-                exporter.export(imp, parameters);
+
+            if ( !useDefaultSettings ) {
+                new ManualN5ExportPanel( imp, xmlPath, sourceTransform, downsamplingMode ).getManualExportParameters();
             } else {
-                exporter.export( imp, xmlPath );
+                // raw compresssion by default
+                new WriteImgPlusToN5().export( imp, xmlPath, sourceTransform, downsamplingMode,
+                        new RawCompression() );
             }
 
             // check image written successfully, before writing jsons
             if ( xmlFile.exists() ) {
-                addAffineTransformToXml( xmlPath, affineTransform );
                 updateJsonsForNewImage( imageName, imageType, datasetName );
             }
 

@@ -206,10 +206,6 @@ public class ExportImagePlusAsN5PlugIn implements Command
             if ( compression == null )
                 return;
 
-            if ( lastDownsamplingModeChoice != 0 && lastDownsamplingModeChoice != 1 ) {
-                return;
-            }
-
             String downsamplingMode;
             switch ( lastDownsamplingModeChoice ) {
                 default:

@@ -28,6 +28,7 @@ import net.imglib2.util.Intervals;
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.RawCompression;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -69,44 +70,32 @@ public class WriteImgPlusToN5 {
         }
     }
 
-    // export with default parameters
-    public void export( ImagePlus imp, String xmlPath ) {
+    // export, generating default source transform, and default resolutions / subdivisions
+    public void export( ImagePlus imp, String xmlPath, String downsamplingMode, Compression compression ) {
         if ( !isImageSuitable( imp ) ) {
             return;
         }
 
         FinalVoxelDimensions voxelSize = getVoxelSize( imp );
-        FinalDimensions size = getSize( imp );
-
-        // propose reasonable mipmap settings
-        final int maxNumElements = 64 * 64 * 64;
-        final ExportMipmapInfo autoMipmapSettings = ProposeMipmaps.proposeMipmaps(
-                new BasicViewSetup(0, "", size, voxelSize),
-                maxNumElements);
-
-        int[][] resolutions = autoMipmapSettings.getExportResolutions();
-        int[][] subdivisions = autoMipmapSettings.getSubdivisions();
-
-        if ( resolutions.length == 0 || subdivisions.length == 0 || resolutions.length != subdivisions.length ) {
-            IJ.showMessage( "Error with calculating default subdivisions and resolutions");
-            return;
-        }
-
-        String seqFilename = xmlPath;
-        if ( !seqFilename.endsWith( ".xml" ) )
-            seqFilename += ".xml";
-        final File seqFile = getSeqFileFromPath( seqFilename );
-        if ( seqFile == null ) {
-            return;
-        }
-
-        final File n5File = getN5FileFromXmlPath( seqFilename );
         final AffineTransform3D sourceTransform = generateSourceTransform( voxelSize );
 
-        Parameters defaultParameters = new Parameters( resolutions, subdivisions, seqFile, n5File, sourceTransform,
-                "average", new RawCompression() );
+        Parameters defaultParameters = generateDefaultParameters( imp, xmlPath, sourceTransform, downsamplingMode,
+                compression );
 
-        export( imp, defaultParameters, voxelSize, size );
+        export( imp, defaultParameters );
+    }
+
+    // export, generating default resolutions / subdivisions
+    public void export( ImagePlus imp, String xmlPath, AffineTransform3D sourceTransform, String downsamplingMode,
+                        Compression compression ) {
+        if ( !isImageSuitable( imp ) ) {
+            return;
+        }
+
+        Parameters defaultParameters = generateDefaultParameters( imp, xmlPath, sourceTransform,
+                downsamplingMode, compression );
+
+        export( imp, defaultParameters );
     }
 
     public void export( ImagePlus imp, int[][] resolutions, int[][] subdivisions, String xmlPath,
@@ -144,18 +133,43 @@ public class WriteImgPlusToN5 {
         export( imp, exportParameters );
     }
 
-    protected void export( ImagePlus imp, Parameters params ) {
-        if ( !isImageSuitable( imp ) ) {
-            return;
-        }
-
+    protected Parameters generateDefaultParameters( ImagePlus imp, String xmlPath, AffineTransform3D sourceTransform,
+                                                    String downsamplingMode, Compression compression ) {
         FinalVoxelDimensions voxelSize = getVoxelSize( imp );
         FinalDimensions size = getSize( imp );
 
-        export( imp, params, voxelSize, size );
+        // propose reasonable mipmap settings
+        final int maxNumElements = 64 * 64 * 64;
+        final ExportMipmapInfo autoMipmapSettings = ProposeMipmaps.proposeMipmaps(
+                new BasicViewSetup(0, "", size, voxelSize),
+                maxNumElements);
+
+        int[][] resolutions = autoMipmapSettings.getExportResolutions();
+        int[][] subdivisions = autoMipmapSettings.getSubdivisions();
+
+        if ( resolutions.length == 0 || subdivisions.length == 0 || resolutions.length != subdivisions.length ) {
+            IJ.showMessage( "Error with calculating default subdivisions and resolutions");
+            return null;
+        }
+
+        String seqFilename = xmlPath;
+        if ( !seqFilename.endsWith( ".xml" ) )
+            seqFilename += ".xml";
+        final File seqFile = getSeqFileFromPath( seqFilename );
+        if ( seqFile == null ) {
+            return null;
+        }
+
+        final File n5File = getN5FileFromXmlPath( seqFilename );
+
+        return new Parameters( resolutions, subdivisions, seqFile, n5File, sourceTransform,
+                downsamplingMode, compression );
     }
 
-    protected void export( ImagePlus imp, Parameters params, FinalVoxelDimensions voxelSize, FinalDimensions size ) {
+    protected void export( ImagePlus imp, Parameters params ) {
+
+        FinalVoxelDimensions voxelSize = getVoxelSize( imp );
+        FinalDimensions size = getSize( imp );
 
         final ProgressWriter progressWriter = new ProgressWriterIJ();
         progressWriter.out().println( "starting export..." );
