@@ -1,16 +1,13 @@
 package de.embl.cba.mobie.projects;
 
-import bdv.ij.ExportImagePlusAsN5PlugIn;
-import de.embl.cba.mobie.h5.ExportImagePlusAsH5;
 import de.embl.cba.mobie.image.ImagePropertiesEditor;
-import de.embl.cba.mobie.n5.WriteImgPlusToN5;
 import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.SwingUtils;
+import ij.IJ;
 import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimDataException;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.janelia.saalfeldlab.n5.RawCompression;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -20,6 +17,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 
+import static de.embl.cba.mobie.utils.ExportUtils.generateDefaultAffine;
+import static de.embl.cba.mobie.utils.ExportUtils.parseAffineString;
 import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 
 public class ProjectsCreatorPanel extends JFrame {
@@ -153,7 +152,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
         if (!datasetName.equals("")) {
 
-            String defaultAffineTransform = projectsCreator.getDefaultAffineForCurrentImage();
+            String defaultAffineTransform = generateDefaultAffine( IJ.getImage() );
 
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
             gd.addMessage( "Make sure your pixel size, and unit,\n are set properly under Image > Properties...");
@@ -178,15 +177,10 @@ public class ProjectsCreatorPanel extends JFrame {
                 imageName = tidyString( imageName );
 
                 // parse affine transform
-                AffineTransform3D sourceTransform = projectsCreator.parseAffineString( affineTransform );
+                AffineTransform3D sourceTransform = parseAffineString( affineTransform );
 
                 if ( imageName != null && sourceTransform != null ) {
-
-                    if ( bdvFormat.equals("h5") ) {
-                        // pass
-                    } else if ( bdvFormat.equals("n5") ) {
-                        projectsCreator.addN5Image( imageName, datasetName, imageType, sourceTransform, useDefaultSettings );
-                    }
+                    projectsCreator.addImage( imageName, datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings );
                     updateDatasetsComboBox(datasetName);
                 }
             }

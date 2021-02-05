@@ -75,15 +75,6 @@ public class ExportImagePlusAsN5PlugIn implements Command
         getParameters( imp, autoMipmapSettings);
     }
 
-    public String generateDefaultAffine ( ImagePlus imp ) {
-        final double pixelWidth = imp.getCalibration().pixelWidth;
-        final double pixelHeight = imp.getCalibration().pixelHeight;
-        final double pixelDepth = imp.getCalibration().pixelDepth;
-
-        String defaultAffine = pixelWidth + " 0.0 0.0 0.0 0.0 " + pixelHeight + " 0.0 0.0 0.0 0.0 " + pixelDepth + " 0.0";
-        return defaultAffine;
-    }
-
     static boolean lastSetMipmapManual = false;
 
     static String lastSubsampling = "";
@@ -217,24 +208,10 @@ public class ExportImagePlusAsN5PlugIn implements Command
                     break;
             }
 
-            // check affine
-            if ( !sourceTransformString.matches("^[0-9. ]+$") ) {
-                IJ.showMessage( "Invalid affine transform - must contain only numbers and spaces" );
+            AffineTransform3D sourceTransform = parseAffineString( sourceTransformString );
+            if ( sourceTransform == null ) {
                 return;
             }
-
-            String[] splitAffine = sourceTransformString.split(" ");
-            if ( splitAffine.length != 12) {
-                IJ.showMessage( "Invalid affine transform - must be of length 12" );
-                return;
-            }
-
-            AffineTransform3D sourceTransform = new AffineTransform3D();
-            double[] doubleAffineTransform = new double[splitAffine.length];
-            for ( int i = 0; i < splitAffine.length; i++ ) {
-                doubleAffineTransform[i] = Double.parseDouble( splitAffine[i] );
-            }
-            sourceTransform.set( doubleAffineTransform );
 
             new WriteImgPlusToN5().export( imp, resolutions, subdivisions, lastExportPath, sourceTransform,
                     downsamplingMode, compression );
