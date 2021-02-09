@@ -327,10 +327,10 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 				System.err.println( e ); // this happens sometimes, not sure yet why...
 			}
 
-			if ( block != null )
-				System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " " + block.getNumElements() );
-			else
-				System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " NaN" );
+//			if ( block != null )
+//				System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " " + block.getNumElements() );
+//			else
+//				System.out.println( pathName + " " + Arrays.toString( gridPosition ) + " NaN" );
 
 
 			if ( block == null )
