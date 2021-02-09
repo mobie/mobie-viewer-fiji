@@ -17,8 +17,8 @@ TODO we should also list important dependencies, FIJI, BDV, ?
 ## Install
 
 1. Please [install Fiji](https://fiji.sc) on your computer.
-2. Restart Fiji and install the `MoBIE` update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).
-    - `MoBIE`
+2. Restart Fiji and install the MoBIE update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).
+    - [X] `MoBIE`
 3. Restart Fiji
 
 ## Tutorials
