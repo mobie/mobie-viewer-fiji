@@ -322,9 +322,9 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 			try {
 				block = n5.readBlock( pathName, attributes, gridPosition );
 			}
-			catch ( SdkClientException e )
+			catch ( Exception e )
 			{
-				System.err.println( e ); // this happens sometimes, not sure yet why...
+				System.err.println( "Error loading " + pathName + " at block " + Arrays.toString( gridPosition ) + ": " + e );
 			}
 
 //			if ( block != null )
