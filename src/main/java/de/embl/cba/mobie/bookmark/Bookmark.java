@@ -11,4 +11,5 @@ public class Bookmark
 	public double[] view; // ViewerTransform
 	public String[] normView; // ViewerTransform, normalised for BDV window size
 	public double[] position;
+	public double[] sourceTransform;
 }

@@ -1,5 +1,6 @@
 package de.embl.cba.mobie.bookmark;
 
+import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
@@ -13,6 +14,7 @@ import de.embl.cba.tables.image.SourceAndMetadata;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.TableRowsTableView;
 import ij.gui.GenericDialog;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
@@ -174,6 +176,11 @@ public class BookmarksManager
 
 		final ImagePropertiesToMetadataAdapter adapter = new ImagePropertiesToMetadataAdapter();
 		adapter.setMutableImagePropertiesFromMetadata( sourceImageProperties, sourceMetadata );
+
+		final int t = 0; // TODO: Once we have data with multiple time points we may have to rethink this...
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+		sourcesPanel.getSourceAndCurrentMetadata( sourceName ).source().getSourceTransform( t, 0, affineTransform3D );
+		sourceImageProperties.sourceTransform = affineTransform3D.getRowPackedCopy();
 
 		return sourceImageProperties;
 	}

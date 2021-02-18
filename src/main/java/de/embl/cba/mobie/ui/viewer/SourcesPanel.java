@@ -656,7 +656,7 @@ public class SourcesPanel extends JPanel
 
         segments3dView.setObjectsName( sam.metadata().imageId );
         segments3dView.setSegmentFocusZoomLevel( 0.1 );
-        segments3dView.setMaxNumSegmentVoxels( Long.MAX_VALUE );
+        segments3dView.setMaxNumSegmentVoxels( 100 * 100 * 100 );
 
         if ( sam.metadata().imageId.contains( "nuclei" ) )
         {
