@@ -13,5 +13,5 @@ public class MutableImageProperties
 	public ArrayList< Double > selectedLabelIds;
 	public boolean showSelectedSegmentsIn3d;
 	public boolean showImageIn3d;
-	public double[] sourceTransform;
+	public double[] addedTransform;
 }

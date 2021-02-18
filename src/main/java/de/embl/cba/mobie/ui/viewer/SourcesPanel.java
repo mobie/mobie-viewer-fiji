@@ -1,7 +1,9 @@
 package de.embl.cba.mobie.ui.viewer;
 
+import bdv.tools.transformation.TransformedSource;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
+import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
@@ -24,9 +26,9 @@ import de.embl.cba.tables.view.TableRowsTableView;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
 import ij3d.ContentConstants;
 import ij3d.Image3DUniverse;
-import net.imglib2.converter.Converters;
-import net.imglib2.display.ColorConverter;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
+import org.jetbrains.annotations.NotNull;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -473,12 +475,16 @@ public class SourcesPanel extends JPanel
     {
         final Metadata metadata = sam.metadata();
 
-        final BdvStackSource bdvStackSource = BdvFunctions.show(
-                sam.source(),
-                1,
-                BdvOptions.options().addTo( bdv ).numRenderingThreads( 1 ) );
-
+        final BdvStackSource< ? > bdvStackSource = addSourceToBDV( sam.source(), sam.metadata() );
         bdvStackSource.setActive( true );
+
+        if ( metadata.addedTransform != null )
+        {
+            final TransformedSource< ? > source = ( TransformedSource< ? > ) bdvStackSource.getSources().get( 0 ).getSpimSource();
+            final AffineTransform3D transform = new AffineTransform3D();
+            transform.set( metadata.addedTransform );
+            source.setFixedTransform( transform );
+        }
 
         setDisplayRange( bdvStackSource, metadata );
         setColor( bdvStackSource, metadata );
@@ -486,6 +492,18 @@ public class SourcesPanel extends JPanel
         bdv = bdvStackSource.getBdvHandle();
 
         metadata.bdvStackSource = bdvStackSource;
+    }
+
+    @NotNull
+    private BdvStackSource addSourceToBDV( Source< ? > source, Metadata metadata )
+    {
+        // TODO: Why do we have numRenderingThreads = 1?
+        BdvOptions options = BdvOptions.options().addTo( bdv ).frameTitle( projectName ).numRenderingThreads( 1 );
+
+        return BdvFunctions.show(
+                source,
+                1, // TODO: Why is this needed? How could we determine it?
+                options );
     }
 
     private void setColor( BdvStackSource bdvStackSource, Metadata metadata )
@@ -521,14 +539,7 @@ public class SourcesPanel extends JPanel
                 new ARGBConvertedRealSource( sam.source(),
                         lazyLabelsARGBConverter );
 
-        numRenderingThreads = 1;
-        sam.metadata().bdvStackSource = BdvFunctions.show(
-                source,
-                1,
-                BdvOptions.options()
-                        .addTo( bdv )
-                        .frameTitle( projectName )
-                        .numRenderingThreads( numRenderingThreads ) );
+        sam.metadata().bdvStackSource = addSourceToBDV( source, sam.metadata() );
 
         setDisplayRange( sam.metadata().bdvStackSource, sam.metadata() );
 
