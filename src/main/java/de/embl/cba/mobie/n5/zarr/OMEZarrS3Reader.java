@@ -60,10 +60,10 @@ public class OMEZarrS3Reader
 	public static void main( String[] args ) throws IOException
 	{
 		//showMyosin();
-		//showAll();
+		showAll();
 		//readI2KGif();
 		//showIDR0();
-		showIDR1();
+		//showIDR1();
 	}
 
 	public static void showIDR0() throws IOException
@@ -71,7 +71,7 @@ public class OMEZarrS3Reader
 		//  /idr/zarr/v0.1/6001237.zarr
 		N5OMEZarrImageLoader.logChunkLoading = true;
 		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://s3.embassy.ebi.ac.uk", "us-west-2", "idr" );
-		SpimData image = reader.readURL( "zarr/v0.1/6001237.zarr" );
+		SpimData image = reader.readKey( "zarr/v0.1/6001237.zarr" );
 		List< BdvStackSource< ? > > sources = BdvFunctions.show( image );
 		sources.get( 0 ).setColor( new ARGBType( ARGBType.rgba( 0,0,255,255 ) ) );
 		sources.get( 0 ).setDisplayRange( 0, 3000 );
@@ -90,7 +90,7 @@ public class OMEZarrS3Reader
 		// https://play.minio.io:9000/i2k2020/gif.zarr
 		N5OMEZarrImageLoader.logChunkLoading = true;
 		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://play.minio.io:9000", "us-west-2", "i2k2020" );
-		SpimData image = reader.readURL( "gif.zarr" );
+		SpimData image = reader.readKey( "gif.zarr" );
 		BdvFunctions.show( image );
 	}
 
@@ -98,9 +98,9 @@ public class OMEZarrS3Reader
 	{
 		N5OMEZarrImageLoader.logChunkLoading = true;
 		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://s3.embl.de", "us-west-2", "i2k-2020" );
-		SpimData myosin = reader.readURL( "prospr-myosin.ome.zarr" );
+		SpimData myosin = reader.readKey( "prospr-myosin.ome.zarr" );
 		List< BdvStackSource< ? > > myosinBdvSources = BdvFunctions.show( myosin );
-		SpimData em = reader.readURL( "em-raw.ome.zarr" );
+		SpimData em = reader.readKey( "em-raw.ome.zarr" );
 		List< BdvStackSource< ? > > sources = BdvFunctions.show( em, BdvOptions.options().addTo( myosinBdvSources.get( 0 ).getBdvHandle() ) );
 		Sources.showAsLabelMask( sources.get( 1 ) );
 		Sources.viewAsHyperstack( sources.get( 0 ), 4 );
@@ -110,7 +110,7 @@ public class OMEZarrS3Reader
 	{
 		N5OMEZarrImageLoader.logChunkLoading = true;
 		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://s3.embl.de", "us-west-2", "i2k-2020" );
-		SpimData myosin = reader.readURL( "prospr-myosin.ome.zarr" );
+		SpimData myosin = reader.readKey( "prospr-myosin.ome.zarr" );
 		BdvFunctions.show( myosin );
 	}
 
@@ -118,7 +118,7 @@ public class OMEZarrS3Reader
 	{
 		N5OMEZarrImageLoader.logChunkLoading = true;
 		OMEZarrS3Reader reader = new OMEZarrS3Reader( "https://s3.embassy.ebi.ac.uk", "us-west-2", "idr" );
-		SpimData data = reader.readURL( "zarr/v0.1/9822151.zarr" );
+		SpimData data = reader.readKey( "zarr/v0.1/9822151.zarr" );
 		BdvFunctions.show( data, BdvOptions.options().is2D() ).get( 0 ).setDisplayRange( 3000, 15000 );
 	}
 }
