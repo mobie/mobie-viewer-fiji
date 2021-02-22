@@ -10,16 +10,11 @@ import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileUtils.FileLocation;
 import de.embl.cba.tables.image.SourceAndMetadata;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import de.embl.cba.tables.view.TableRowsTableView;
 import ij.gui.GenericDialog;
-import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
-
-import static de.embl.cba.bdv.utils.BdvUtils.getConverterSetups;
 
 public class BookmarksManager
 {
@@ -81,9 +76,7 @@ public class BookmarksManager
 
 	public void adaptViewerTransform( Bookmark bookmark )
 	{
-		final BdvHandle bdv = sourcesPanel.getBdv();
-
-		final Location location = getLocationFromBookmark( bookmark, bdv );
+		final Location location = getLocationFromBookmark( bookmark );
 
 		if ( location != null )
 		{
@@ -150,8 +143,9 @@ public class BookmarksManager
 		Set<String> visibleSourceNames = sourcesPanel.getVisibleSourceNames();
 
 		for (String sourceName : visibleSourceNames) {
-			MutableImageProperties sourceImageProperties = fetchMutableSourceProperties(sourceName);
-			layers.put(sourceName, sourceImageProperties);
+			sourcesPanel.updateCurrentMetadata( sourceName );
+			MutableImageProperties imageProperties = getMutableImagePropertiesFromCurrentMetadata(sourceName);
+			layers.put(sourceName, imageProperties);
 		}
 
 		BdvHandle bdv = sourcesPanel.getBdv();
@@ -167,18 +161,18 @@ public class BookmarksManager
 		return currentBookmark;
 	}
 
-	private MutableImageProperties fetchMutableSourceProperties(String sourceName) {
-		MutableImageProperties sourceImageProperties = new MutableImageProperties();
-		sourcesPanel.updateCurrentMetadata( sourceName );
-		Metadata sourceMetadata = sourcesPanel.getSourceAndCurrentMetadata( sourceName ).metadata();
+	private MutableImageProperties getMutableImagePropertiesFromCurrentMetadata( String sourceName )
+	{
+		Metadata metadata = sourcesPanel.getSourceAndCurrentMetadata( sourceName ).metadata();
 
+		MutableImageProperties imageProperties = new MutableImageProperties();
 		final ImagePropertiesToMetadataAdapter adapter = new ImagePropertiesToMetadataAdapter();
-		adapter.setMutableImagePropertiesFromMetadata( sourceImageProperties, sourceMetadata );
+		adapter.setMutableImagePropertiesFromMetadata( imageProperties, metadata );
 
-		return sourceImageProperties;
+		return imageProperties;
 	}
 
-	public static Location getLocationFromBookmark( Bookmark bookmark, BdvHandle bdv )
+	public static Location getLocationFromBookmark( Bookmark bookmark )
 	{
 		if ( bookmark.normView != null )
 		{

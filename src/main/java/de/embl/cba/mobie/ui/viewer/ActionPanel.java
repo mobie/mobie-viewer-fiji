@@ -106,14 +106,14 @@ public class ActionPanel extends JPanel
 		BdvPopupMenus.addAction(bdv, "Load Additional Bookmarks",
 				() -> {
 					new Thread( () -> {
-						bookmarksManager.loadAdditionalBookmarks();
+						SwingUtilities.invokeLater( () -> bookmarksManager.loadAdditionalBookmarks() );
 					} ).start();
 				});
 
 		BdvPopupMenus.addAction(bdv, "Save Current Settings As Bookmark",
 				() -> {
 					new Thread( () -> {
-						bookmarksManager.saveCurrentSettingsAsBookmark();
+						SwingUtilities.invokeLater( () -> bookmarksManager.saveCurrentSettingsAsBookmark() );
 						} ).start();
 				});
 

@@ -1,14 +1,9 @@
 package de.embl.cba.mobie.image;
 
-import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.tables.color.ColorUtils;
-import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.lang.WordUtils;
 
 import java.util.ArrayList;
-
-import static de.embl.cba.mobie.utils.Utils.createRandom;
 
 public class ImagePropertiesToMetadataAdapter
 {
@@ -34,17 +29,20 @@ public class ImagePropertiesToMetadataAdapter
 		metadata.showImageIn3d = imageProperties.showImageIn3d;
 		metadata.showSelectedSegmentsIn3d = imageProperties.showSelectedSegmentsIn3d;
 		metadata.additionalSegmentTableNames = imageProperties.tables;
+		metadata.addedTransform = imageProperties.addedTransform;
 	}
 
-	public void setMutableImagePropertiesFromMetadata(MutableImageProperties imageProperties, Metadata metadata) {
+	public void setMutableImagePropertiesFromMetadata( MutableImageProperties imageProperties, Metadata metadata ) {
 		imageProperties.contrastLimits = metadata.contrastLimits != null
 				? metadata.contrastLimits : imageProperties.contrastLimits;
 		imageProperties.color = metadata.color != null
 				? metadata.color : imageProperties.color;
 		imageProperties.valueLimits = metadata.valueLimits != null
 				? metadata.valueLimits : imageProperties.valueLimits;
-		imageProperties.resolution3dView = metadata.resolution3dView;
+		imageProperties.addedTransform = metadata.addedTransform != null
+				? metadata.addedTransform : imageProperties.addedTransform;
 
+		imageProperties.resolution3dView = metadata.resolution3dView;
 		imageProperties.colorByColumn = metadata.colorByColumn;
 		imageProperties.selectedLabelIds = metadata.selectedSegmentIds != null
 				? new ArrayList<>(metadata.selectedSegmentIds) : imageProperties.selectedLabelIds;

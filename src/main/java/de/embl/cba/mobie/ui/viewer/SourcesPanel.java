@@ -1,7 +1,9 @@
 package de.embl.cba.mobie.ui.viewer;
 
+import bdv.tools.transformation.TransformedSource;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
+import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
@@ -24,9 +26,9 @@ import de.embl.cba.tables.view.TableRowsTableView;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
 import ij3d.ContentConstants;
 import ij3d.Image3DUniverse;
-import net.imglib2.converter.Converters;
-import net.imglib2.display.ColorConverter;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
+import org.jetbrains.annotations.NotNull;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -185,19 +187,22 @@ public class SourcesPanel extends JPanel
         }
     }
 
-    public void updateCurrentMetadata (String sourceName) {
-        Metadata sourceMetadata = sourceNameToSourceAndCurrentMetadata.get( sourceName ).metadata();
+    public void updateCurrentMetadata( String sourceName )
+    {
+        final Metadata metadata = sourceNameToSourceAndCurrentMetadata.get( sourceName ).metadata();
+        final Source< ? > source = sourceNameToSourceAndCurrentMetadata.get( sourceName ).source();
+        final BdvStackSource< ? > bdvStackSource = metadata.bdvStackSource;
 
-        ARGBType color = sourceMetadata.bdvStackSource.getConverterSetups().get(0).getColor();
-        sourceMetadata.color = color.toString();
+        metadata.color = bdvStackSource.getConverterSetups().get( 0 ).getColor().toString();
+        metadata.addedTransform = getAddedSourceTransform( bdvStackSource, source ).getRowPackedCopy();
 
         if (sourceNameToLabelViews.containsKey(sourceName)) {
-            TableRowsTableView<TableRowImageSegment> sourceTableRowsTableView = sourceMetadata.views.getTableRowsTableView();
+            TableRowsTableView<TableRowImageSegment> sourceTableRowsTableView = metadata.views.getTableRowsTableView();
 
-            if (!sourceMetadata.views.getSegmentsBdvView().isLabelMaskShownAsBinaryMask()) {
-                sourceMetadata.color = sourceTableRowsTableView.getColoringLUTName();
-                sourceMetadata.colorByColumn = sourceTableRowsTableView.getColoringColumnName();
-                sourceMetadata.valueLimits = sourceTableRowsTableView.getColorByColumnValueLimits();
+            if (!metadata.views.getSegmentsBdvView().isLabelMaskShownAsBinaryMask()) {
+                metadata.color = sourceTableRowsTableView.getColoringLUTName();
+                metadata.colorByColumn = sourceTableRowsTableView.getColoringColumnName();
+                metadata.valueLimits = sourceTableRowsTableView.getColorByColumnValueLimits();
             }
 
             ArrayList<TableRowImageSegment> selectedSegments = sourceTableRowsTableView.getSelectedLabelIds();
@@ -206,37 +211,48 @@ public class SourcesPanel extends JPanel
                 for (TableRowImageSegment segment : selectedSegments) {
                     selectedLabelIds.add(segment.labelId());
                 }
-                sourceMetadata.selectedSegmentIds = selectedLabelIds;
+                metadata.selectedSegmentIds = selectedLabelIds;
             }
 
             ArrayList<String> additionalTables = sourceTableRowsTableView.getAdditionalTables();
             if (additionalTables != null & additionalTables.size() > 0 ) {
-                sourceMetadata.additionalSegmentTableNames = new ArrayList<>();
+                metadata.additionalSegmentTableNames = new ArrayList<>();
                 // ensure tables are unique
                 for (String tableName : sourceTableRowsTableView.getAdditionalTables()) {
-                    if (!sourceMetadata.additionalSegmentTableNames.contains(tableName)) {
-                        sourceMetadata.additionalSegmentTableNames.add(tableName);
+                    if (!metadata.additionalSegmentTableNames.contains(tableName)) {
+                        metadata.additionalSegmentTableNames.add(tableName);
                     }
                 }
             }
 
-            sourceMetadata.showSelectedSegmentsIn3d = sourceMetadata.views.getSegments3dView().showSelectedSegments();
+            metadata.showSelectedSegmentsIn3d = metadata.views.getSegments3dView().showSelectedSegments();
         }
 
-        if (sourceMetadata.content != null) {
-            if (sourceMetadata.content.isVisible()) {
-                sourceMetadata.showImageIn3d = true;
+        if (metadata.content != null) {
+            if (metadata.content.isVisible()) {
+                metadata.showImageIn3d = true;
             } else {
-                sourceMetadata.showImageIn3d = false;
+                metadata.showImageIn3d = false;
             }
         } else {
-            sourceMetadata.showImageIn3d = false;
+            metadata.showImageIn3d = false;
         }
 
         double[] currentContrastLimits = new double[2];
-        currentContrastLimits[0] = getConverterSetups( sourceMetadata.bdvStackSource ).get(0).getDisplayRangeMin();
-        currentContrastLimits[1] = getConverterSetups( sourceMetadata.bdvStackSource ).get(0).getDisplayRangeMax();
-        sourceMetadata.contrastLimits = currentContrastLimits;
+        currentContrastLimits[0] = getConverterSetups( bdvStackSource ).get(0).getDisplayRangeMin();
+        currentContrastLimits[1] = getConverterSetups( bdvStackSource ).get(0).getDisplayRangeMax();
+        metadata.contrastLimits = currentContrastLimits;
+    }
+
+    @NotNull
+    protected AffineTransform3D getAddedSourceTransform( BdvStackSource< ? > bdvStackSource, Source< ? > source )
+    {
+        final int t = 0; // TODO: Once we have data with multiple time points we may have to rethink this...
+        final AffineTransform3D initialTransform = new AffineTransform3D();
+        source.getSourceTransform( t, 0, initialTransform );
+        final AffineTransform3D currentTransform = new AffineTransform3D();
+        bdvStackSource.getSources().get( 0 ).getSpimSource().getSourceTransform( t, 0, currentTransform );
+        return currentTransform.copy().preConcatenate( initialTransform.inverse() );
     }
 
     public void showSourceInVolumeViewer( SourceAndMetadata< ? > sam, boolean forceRepaint )
@@ -456,6 +472,19 @@ public class SourcesPanel extends JPanel
         {
             showIntensitySource( sam );
         }
+
+        adjustSourceTransform( sam );
+    }
+
+    private void adjustSourceTransform( SourceAndMetadata< ? > sam )
+    {
+        if ( sam.metadata().addedTransform != null )
+        {
+            final TransformedSource< ? > source = ( TransformedSource< ? > ) sam.metadata().bdvStackSource.getSources().get( 0 ).getSpimSource();
+            final AffineTransform3D transform = new AffineTransform3D();
+            transform.set( sam.metadata().addedTransform );
+            source.setFixedTransform( transform );
+        }
     }
 
     public void setBdvWindowPositionAndSize( Component component )
@@ -473,11 +502,7 @@ public class SourcesPanel extends JPanel
     {
         final Metadata metadata = sam.metadata();
 
-        final BdvStackSource bdvStackSource = BdvFunctions.show(
-                sam.source(),
-                1,
-                BdvOptions.options().addTo( bdv ).numRenderingThreads( 1 ) );
-
+        final BdvStackSource< ? > bdvStackSource = addSourceToBDV( sam );
         bdvStackSource.setActive( true );
 
         setDisplayRange( bdvStackSource, metadata );
@@ -486,6 +511,18 @@ public class SourcesPanel extends JPanel
         bdv = bdvStackSource.getBdvHandle();
 
         metadata.bdvStackSource = bdvStackSource;
+    }
+
+    @NotNull
+    private BdvStackSource addSourceToBDV( SourceAndMetadata< ? > sam )
+    {
+        // TODO: Why do we have numRenderingThreads = 1?
+        BdvOptions options = BdvOptions.options().addTo( bdv ).frameTitle( projectName ).numRenderingThreads( 1 );
+
+        return BdvFunctions.show(
+                sam.source(),
+                1, // TODO: Why is this needed? How could we determine it?
+                options );
     }
 
     private void setColor( BdvStackSource bdvStackSource, Metadata metadata )
@@ -521,14 +558,7 @@ public class SourcesPanel extends JPanel
                 new ARGBConvertedRealSource( sam.source(),
                         lazyLabelsARGBConverter );
 
-        numRenderingThreads = 1;
-        sam.metadata().bdvStackSource = BdvFunctions.show(
-                source,
-                1,
-                BdvOptions.options()
-                        .addTo( bdv )
-                        .frameTitle( projectName )
-                        .numRenderingThreads( numRenderingThreads ) );
+        sam.metadata().bdvStackSource = addSourceToBDV( sam );
 
         setDisplayRange( sam.metadata().bdvStackSource, sam.metadata() );
 
@@ -656,7 +686,7 @@ public class SourcesPanel extends JPanel
 
         segments3dView.setObjectsName( sam.metadata().imageId );
         segments3dView.setSegmentFocusZoomLevel( 0.1 );
-        segments3dView.setMaxNumSegmentVoxels( Long.MAX_VALUE );
+        segments3dView.setMaxNumSegmentVoxels( 100 * 100 * 100 );
 
         if ( sam.metadata().imageId.contains( "nuclei" ) )
         {

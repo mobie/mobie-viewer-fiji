@@ -1,4 +1,4 @@
-package commands;
+package run;
 
 import de.embl.cba.mobie.ui.command.OpenPlatyBrowserCommand;
 import net.imagej.ImageJ;

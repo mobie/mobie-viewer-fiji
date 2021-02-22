@@ -1,4 +1,4 @@
-package commands;
+package run;
 
 import de.embl.cba.mobie.ui.command.OpenMoBIEProjectCommand;
 import net.imagej.ImageJ;
