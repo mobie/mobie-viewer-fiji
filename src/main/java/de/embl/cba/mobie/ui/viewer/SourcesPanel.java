@@ -3,6 +3,7 @@ package de.embl.cba.mobie.ui.viewer;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
+import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
@@ -186,19 +187,22 @@ public class SourcesPanel extends JPanel
         }
     }
 
-    public void updateCurrentMetadata (String sourceName) {
-        Metadata sourceMetadata = sourceNameToSourceAndCurrentMetadata.get( sourceName ).metadata();
+    public void updateCurrentMetadata( String sourceName )
+    {
+        final Metadata metadata = sourceNameToSourceAndCurrentMetadata.get( sourceName ).metadata();
+        final Source< ? > source = sourceNameToSourceAndCurrentMetadata.get( sourceName ).source();
+        final BdvStackSource< ? > bdvStackSource = metadata.bdvStackSource;
 
-        ARGBType color = sourceMetadata.bdvStackSource.getConverterSetups().get(0).getColor();
-        sourceMetadata.color = color.toString();
+        metadata.color = bdvStackSource.getConverterSetups().get( 0 ).getColor().toString();
+        metadata.addedTransform = getAddedSourceTransform( bdvStackSource, source ).getRowPackedCopy();
 
         if (sourceNameToLabelViews.containsKey(sourceName)) {
-            TableRowsTableView<TableRowImageSegment> sourceTableRowsTableView = sourceMetadata.views.getTableRowsTableView();
+            TableRowsTableView<TableRowImageSegment> sourceTableRowsTableView = metadata.views.getTableRowsTableView();
 
-            if (!sourceMetadata.views.getSegmentsBdvView().isLabelMaskShownAsBinaryMask()) {
-                sourceMetadata.color = sourceTableRowsTableView.getColoringLUTName();
-                sourceMetadata.colorByColumn = sourceTableRowsTableView.getColoringColumnName();
-                sourceMetadata.valueLimits = sourceTableRowsTableView.getColorByColumnValueLimits();
+            if (!metadata.views.getSegmentsBdvView().isLabelMaskShownAsBinaryMask()) {
+                metadata.color = sourceTableRowsTableView.getColoringLUTName();
+                metadata.colorByColumn = sourceTableRowsTableView.getColoringColumnName();
+                metadata.valueLimits = sourceTableRowsTableView.getColorByColumnValueLimits();
             }
 
             ArrayList<TableRowImageSegment> selectedSegments = sourceTableRowsTableView.getSelectedLabelIds();
@@ -207,37 +211,48 @@ public class SourcesPanel extends JPanel
                 for (TableRowImageSegment segment : selectedSegments) {
                     selectedLabelIds.add(segment.labelId());
                 }
-                sourceMetadata.selectedSegmentIds = selectedLabelIds;
+                metadata.selectedSegmentIds = selectedLabelIds;
             }
 
             ArrayList<String> additionalTables = sourceTableRowsTableView.getAdditionalTables();
             if (additionalTables != null & additionalTables.size() > 0 ) {
-                sourceMetadata.additionalSegmentTableNames = new ArrayList<>();
+                metadata.additionalSegmentTableNames = new ArrayList<>();
                 // ensure tables are unique
                 for (String tableName : sourceTableRowsTableView.getAdditionalTables()) {
-                    if (!sourceMetadata.additionalSegmentTableNames.contains(tableName)) {
-                        sourceMetadata.additionalSegmentTableNames.add(tableName);
+                    if (!metadata.additionalSegmentTableNames.contains(tableName)) {
+                        metadata.additionalSegmentTableNames.add(tableName);
                     }
                 }
             }
 
-            sourceMetadata.showSelectedSegmentsIn3d = sourceMetadata.views.getSegments3dView().showSelectedSegments();
+            metadata.showSelectedSegmentsIn3d = metadata.views.getSegments3dView().showSelectedSegments();
         }
 
-        if (sourceMetadata.content != null) {
-            if (sourceMetadata.content.isVisible()) {
-                sourceMetadata.showImageIn3d = true;
+        if (metadata.content != null) {
+            if (metadata.content.isVisible()) {
+                metadata.showImageIn3d = true;
             } else {
-                sourceMetadata.showImageIn3d = false;
+                metadata.showImageIn3d = false;
             }
         } else {
-            sourceMetadata.showImageIn3d = false;
+            metadata.showImageIn3d = false;
         }
 
         double[] currentContrastLimits = new double[2];
-        currentContrastLimits[0] = getConverterSetups( sourceMetadata.bdvStackSource ).get(0).getDisplayRangeMin();
-        currentContrastLimits[1] = getConverterSetups( sourceMetadata.bdvStackSource ).get(0).getDisplayRangeMax();
-        sourceMetadata.contrastLimits = currentContrastLimits;
+        currentContrastLimits[0] = getConverterSetups( bdvStackSource ).get(0).getDisplayRangeMin();
+        currentContrastLimits[1] = getConverterSetups( bdvStackSource ).get(0).getDisplayRangeMax();
+        metadata.contrastLimits = currentContrastLimits;
+    }
+
+    @NotNull
+    protected AffineTransform3D getAddedSourceTransform( BdvStackSource< ? > bdvStackSource, Source< ? > source )
+    {
+        final int t = 0; // TODO: Once we have data with multiple time points we may have to rethink this...
+        final AffineTransform3D initialTransform = new AffineTransform3D();
+        source.getSourceTransform( t, 0, initialTransform );
+        final AffineTransform3D currentTransform = new AffineTransform3D();
+        bdvStackSource.getSources().get( 0 ).getSpimSource().getSourceTransform( t, 0, currentTransform );
+        return currentTransform.copy().preConcatenate( initialTransform.inverse() );
     }
 
     public void showSourceInVolumeViewer( SourceAndMetadata< ? > sam, boolean forceRepaint )

@@ -32,15 +32,17 @@ public class ImagePropertiesToMetadataAdapter
 		metadata.addedTransform = imageProperties.addedTransform;
 	}
 
-	public void setMutableImagePropertiesFromMetadata(MutableImageProperties imageProperties, Metadata metadata) {
+	public void setMutableImagePropertiesFromMetadata( MutableImageProperties imageProperties, Metadata metadata ) {
 		imageProperties.contrastLimits = metadata.contrastLimits != null
 				? metadata.contrastLimits : imageProperties.contrastLimits;
 		imageProperties.color = metadata.color != null
 				? metadata.color : imageProperties.color;
 		imageProperties.valueLimits = metadata.valueLimits != null
 				? metadata.valueLimits : imageProperties.valueLimits;
-		imageProperties.resolution3dView = metadata.resolution3dView;
+		imageProperties.addedTransform = metadata.addedTransform != null
+				? metadata.addedTransform : imageProperties.addedTransform;
 
+		imageProperties.resolution3dView = metadata.resolution3dView;
 		imageProperties.colorByColumn = metadata.colorByColumn;
 		imageProperties.selectedLabelIds = metadata.selectedSegmentIds != null
 				? new ArrayList<>(metadata.selectedSegmentIds) : imageProperties.selectedLabelIds;

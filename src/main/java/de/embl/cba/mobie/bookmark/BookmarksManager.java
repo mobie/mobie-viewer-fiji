@@ -1,7 +1,6 @@
 package de.embl.cba.mobie.bookmark;
 
 import bdv.util.BdvHandle;
-import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
@@ -12,7 +11,6 @@ import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileUtils.FileLocation;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import ij.gui.GenericDialog;
-import net.imglib2.realtransform.AffineTransform3D;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -145,8 +143,9 @@ public class BookmarksManager
 		Set<String> visibleSourceNames = sourcesPanel.getVisibleSourceNames();
 
 		for (String sourceName : visibleSourceNames) {
-			MutableImageProperties sourceImageProperties = fetchMutableSourceProperties(sourceName);
-			layers.put(sourceName, sourceImageProperties);
+			sourcesPanel.updateCurrentMetadata( sourceName );
+			MutableImageProperties imageProperties = getMutableImagePropertiesFromCurrentMetadata(sourceName);
+			layers.put(sourceName, imageProperties);
 		}
 
 		BdvHandle bdv = sourcesPanel.getBdv();
@@ -162,27 +161,15 @@ public class BookmarksManager
 		return currentBookmark;
 	}
 
-	private MutableImageProperties fetchMutableSourceProperties(String sourceName) {
-		MutableImageProperties sourceImageProperties = new MutableImageProperties();
-		sourcesPanel.updateCurrentMetadata( sourceName );
+	private MutableImageProperties getMutableImagePropertiesFromCurrentMetadata( String sourceName )
+	{
 		Metadata metadata = sourcesPanel.getSourceAndCurrentMetadata( sourceName ).metadata();
-		Source< ? > source = sourcesPanel.getSourceAndCurrentMetadata( sourceName ).source();
 
+		MutableImageProperties imageProperties = new MutableImageProperties();
 		final ImagePropertiesToMetadataAdapter adapter = new ImagePropertiesToMetadataAdapter();
-		adapter.setMutableImagePropertiesFromMetadata( sourceImageProperties, metadata );
+		adapter.setMutableImagePropertiesFromMetadata( imageProperties, metadata );
 
-		final int t = 0; // TODO: Once we have data with multiple time points we may have to rethink this...
-
-		final AffineTransform3D initialTransform = new AffineTransform3D();
-		source.getSourceTransform( t, 0, initialTransform );
-
-		final AffineTransform3D currentTransform = new AffineTransform3D();
-		metadata.bdvStackSource.getSources().get( 0 ).getSpimSource().getSourceTransform( t, 0, currentTransform );
-		final AffineTransform3D addedTransform = currentTransform.copy().preConcatenate( initialTransform.inverse() );
-
-		sourceImageProperties.addedTransform = addedTransform.getRowPackedCopy();
-
-		return sourceImageProperties;
+		return imageProperties;
 	}
 
 	public static Location getLocationFromBookmark( Bookmark bookmark )
