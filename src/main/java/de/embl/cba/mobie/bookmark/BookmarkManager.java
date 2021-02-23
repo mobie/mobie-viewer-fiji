@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.bookmark;
 
 import bdv.util.BdvHandle;
+import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.bookmark.write.BookmarkFileWriter;
@@ -58,24 +59,41 @@ public class BookmarkManager
 
 	public void addSourcesToPanelAndViewer( Bookmark bookmark )
 	{
-		for ( Map.Entry< String, MutableImageProperties> entry : bookmark.layers.entrySet() )
+		if ( bookmark.layout.equals( Layout.AutoGrid ) )
 		{
-			final String sourceName = entry.getKey();
-			if ( ! sourcesPanel.getVisibleSourceNames().contains( sourceName ) )
-			{
-				final SourceAndMetadata< ? > samDefault = sourcesPanel.getSourceAndDefaultMetadata( sourceName );
-				final SourceAndMetadata< ? > sam = new SourceAndMetadata(samDefault.source(), samDefault.metadata().copy());
-				updateSourceMetadata(entry, sam.metadata());
+			final int numSources = bookmark.layers.size();
 
-				sourcesPanel.addSourceToPanelAndViewer( sam );
-			}
+			// bookmark.layers. // adjust the addedTransform
+		}
+
+
+		for ( String sourceName : bookmark.layers.keySet() )
+		{
+			if ( sourcesPanel.getVisibleSourceNames().contains( sourceName ) )
+				return;
+
+			final Source< ? > source
+					= sourcesPanel.getSourceAndDefaultMetadata( sourceName ).source();
+
+			final Metadata metadata
+					= sourcesPanel.getSourceAndDefaultMetadata( sourceName ).metadata().copy();
+			final MutableImageProperties mutableImageProperties
+					= bookmark.layers.get( sourceName );
+
+			// write mutable image properties from bookmark into default metadata
+			updateSourceMetadata( metadata, mutableImageProperties );
+
+			final SourceAndMetadata< ? > sam
+					= new SourceAndMetadata( source, metadata );
+
+			sourcesPanel.addSourceToPanelAndViewer( sam );
 		}
 	}
 
-	public void updateSourceMetadata( Map.Entry< String, MutableImageProperties > entry, Metadata sourceMetadata )
+	public void updateSourceMetadata( Metadata sourceMetadata, MutableImageProperties value )
 	{
 		final ImagePropertiesToMetadataAdapter adapter = new ImagePropertiesToMetadataAdapter();
-		adapter.setMetadataFromMutableImageProperties( sourceMetadata, entry.getValue() );
+		adapter.setMetadataFromMutableImageProperties( sourceMetadata, value );
 	}
 
 	public void adaptViewerTransform( Bookmark bookmark )
