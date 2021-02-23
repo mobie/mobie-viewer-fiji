@@ -14,6 +14,8 @@ import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileUtils.FileLocation;
 import de.embl.cba.tables.image.SourceAndMetadata;
+import net.imglib2.FinalRealInterval;
+import net.imglib2.realtransform.AffineTransform3D;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -59,24 +61,81 @@ public class BookmarkManager
 
 	public void addSourcesToPanelAndViewer( Bookmark bookmark )
 	{
-		if ( bookmark.layout.equals( Layout.AutoGrid ) )
-		{
-			final int numSources = bookmark.layers.size();
+		final HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata = createSourcesAndMetadata( bookmark );
 
-			// bookmark.layers. // adjust the addedTransform
+		if ( sourceNameToSourceAndMetadata.size() == 0 ) return;
+
+		if ( bookmark.layouts != null  )
+		{
+			for ( String layoutName : bookmark.layouts.keySet() )
+			{
+				final Layout layout = bookmark.layouts.get( layoutName );
+				adjustSourceTransforms( sourceNameToSourceAndMetadata, layout );
+			}
 		}
 
+		for ( SourceAndMetadata< ? > sam : sourceNameToSourceAndMetadata.values() )
+		{
+			sourcesPanel.addSourceToPanelAndViewer( sam );
+		}
+	}
 
+	protected void adjustSourceTransforms( HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata, Layout layout )
+	{
+		if ( layout.layoutType.equals( LayoutType.AutoGrid ) )
+		{
+			final int numSources = layout.layers.size();
+			final int numColumns = ( int ) Math.ceil( Math.sqrt( numSources ) );
+			FinalRealInterval bounds = estimateBounds( 0, layout, sourceNameToSourceAndMetadata );
+			final double spacingFactor = 1.1;
+			double offsetX = spacingFactor * bounds.realMax( 0 );
+			double offsetY = 0;
+			for ( int sourceIndex = 1, columnIndex = 1; sourceIndex < numSources; sourceIndex++ )
+			{
+				final SourceAndMetadata sam = sourceNameToSourceAndMetadata.get( layout.layers.get( sourceIndex ) );
+
+				final AffineTransform3D transform3D = new AffineTransform3D();
+				transform3D.translate( offsetX, offsetY, 0 );
+				sam.metadata().addedTransform = transform3D.getRowPackedCopy();
+
+				if ( ++columnIndex == numColumns )
+				{
+					offsetY += spacingFactor * bounds.realMax( 1 );
+					offsetX = 0;
+					columnIndex = 0;
+				}
+				else
+				{
+					offsetX += spacingFactor * bounds.realMax( 0 );
+				}
+			}
+		}
+	}
+
+	protected FinalRealInterval estimateBounds( int sourceIndex, Layout layout, HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata )
+	{
+		final String sourceName = layout.layers.get( sourceIndex );
+		final Source< ? > source = sourceNameToSourceAndMetadata.get( sourceName ).source();
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+		source.getSourceTransform( 0, 0, affineTransform3D );
+		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
+		return bounds;
+	}
+
+	private HashMap< String, SourceAndMetadata > createSourcesAndMetadata( Bookmark bookmark )
+	{
+		final HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata = new HashMap<>();
 		for ( String sourceName : bookmark.layers.keySet() )
 		{
 			if ( sourcesPanel.getVisibleSourceNames().contains( sourceName ) )
-				return;
+				continue;
 
 			final Source< ? > source
 					= sourcesPanel.getSourceAndDefaultMetadata( sourceName ).source();
 
 			final Metadata metadata
 					= sourcesPanel.getSourceAndDefaultMetadata( sourceName ).metadata().copy();
+
 			final MutableImageProperties mutableImageProperties
 					= bookmark.layers.get( sourceName );
 
@@ -86,8 +145,10 @@ public class BookmarkManager
 			final SourceAndMetadata< ? > sam
 					= new SourceAndMetadata( source, metadata );
 
-			sourcesPanel.addSourceToPanelAndViewer( sam );
+			sourceNameToSourceAndMetadata.put( sourceName, sam );
 		}
+
+		return sourceNameToSourceAndMetadata;
 	}
 
 	public void updateSourceMetadata( Metadata sourceMetadata, MutableImageProperties value )

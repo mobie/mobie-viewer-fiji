@@ -1,6 +1,9 @@
 package de.embl.cba.mobie.bookmark;
 
-public enum Layout
+import java.util.ArrayList;
+
+public class Layout
 {
-	AutoGrid
+	public ArrayList< String > layers;
+	public LayoutType layoutType;
 }
