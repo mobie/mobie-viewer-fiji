@@ -1,9 +1,11 @@
 package de.embl.cba.mobie.bookmark;
 
 import bdv.util.BdvHandle;
-import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.mobie.bookmark.write.BookmarkFileWriter;
+import de.embl.cba.mobie.bookmark.write.BookmarkWriter;
+import de.embl.cba.mobie.bookmark.write.NameAndFileLocation;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.MutableImageProperties;
 import de.embl.cba.mobie.ui.viewer.SourcesPanel;
@@ -11,25 +13,26 @@ import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileUtils.FileLocation;
 import de.embl.cba.tables.image.SourceAndMetadata;
-import ij.gui.GenericDialog;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
 
-public class BookmarksManager
+public class BookmarkManager
 {
 	private final SourcesPanel sourcesPanel;
 	private Map< String, Bookmark > nameToBookmark;
-	private BookmarksJsonParser bookmarksJsonParser;
+	private final BookmarkReader bookmarkReader;
 	private JComboBox<String> bookmarkDropDown;
+	private final String datasetLocation;
 
-	public BookmarksManager( SourcesPanel sourcesPanel, Map< String, Bookmark > nameToBookmark,
-							 BookmarksJsonParser bookmarksJsonParser )
+	public BookmarkManager( SourcesPanel sourcesPanel, Map< String, Bookmark > nameToBookmark,
+							BookmarkReader bookmarkReader )
 	{
 		this.sourcesPanel = sourcesPanel;
 		this.nameToBookmark = nameToBookmark;
-		this.bookmarksJsonParser = bookmarksJsonParser;
+		this.bookmarkReader = bookmarkReader;
+		this.datasetLocation = bookmarkReader.getDatasetLocation();
 	}
 
 	public void setBookmarkDropDown (JComboBox<String> bookmarkDropDown) {
@@ -86,7 +89,7 @@ public class BookmarksManager
 	}
 
 	public void loadAdditionalBookmarks() {
-			Map<String, Bookmark> additionalBookmarks = bookmarksJsonParser.selectAndLoadBookmarks();
+			Map<String, Bookmark> additionalBookmarks = bookmarkReader.selectAndReadBookmarks();
 			if (additionalBookmarks != null) {
 				nameToBookmark.putAll(additionalBookmarks);
 				bookmarkDropDown.removeAllItems();
@@ -96,47 +99,22 @@ public class BookmarksManager
 			}
 	}
 
-	public void saveCurrentSettingsAsBookmark () {
-		NameAndLocation bookmarkNameAndLocation = bookmarkSaveDialog();
-		Bookmark currentBookmark = createBookmarkFromCurrentSettings(bookmarkNameAndLocation.name);
+	public void saveCurrentSettingsAsBookmark() {
+		NameAndFileLocation bookmarkNameAndFileLocation = BookmarkWriter.bookmarkSaveDialog();
+		Bookmark currentBookmark = createBookmarkFromCurrentSettings( bookmarkNameAndFileLocation.name);
 		ArrayList<Bookmark> bookmarks = new ArrayList<>();
 		bookmarks.add(currentBookmark);
 
-		if ( bookmarkNameAndLocation.location.equals( FileLocation.Project ) &&
-				bookmarksJsonParser.getDatasetLocation().contains( "raw.githubusercontent" )) {
-			bookmarksJsonParser.saveBookmarksToGithub(bookmarks);
+		if ( bookmarkNameAndFileLocation.location.equals( FileLocation.Project ) &&
+				datasetLocation.contains( "raw.githubusercontent" )) {
+			BookmarkWriter.saveBookmarksToGithub(bookmarks, bookmarkReader );
 		} else {
 			try {
-				bookmarksJsonParser.saveBookmarksToFile(bookmarks, bookmarkNameAndLocation.location);
+				BookmarkFileWriter.saveBookmarksToFile(bookmarks, bookmarkNameAndFileLocation.location, datasetLocation );
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	class NameAndLocation {
-		String name;
-		FileLocation location;
-	}
-
-	private NameAndLocation bookmarkSaveDialog () {
-		FileLocation fileLocation = null;
-		String bookmarkName = null;
-		final GenericDialog gd = new GenericDialog( "Choose save location" );
-		gd.addStringField("Bookmark Name", "name");
-		gd.addChoice( "Save to", new String[]{ FileLocation.Project.toString(),
-				FileLocation.File_system.toString() }, FileLocation.Project.toString() );
-		gd.showDialog();
-
-		if ( gd.wasCanceled() ) return null;
-		bookmarkName = gd.getNextString();
-		fileLocation = FileLocation.valueOf( gd.getNextChoice() );
-
-		NameAndLocation bookmarkNameAndLocation = new NameAndLocation();
-		bookmarkNameAndLocation.name = bookmarkName;
-		bookmarkNameAndLocation.location = fileLocation;
-
-		return bookmarkNameAndLocation;
 	}
 
 	public Bookmark createBookmarkFromCurrentSettings(String bookmarkName) {

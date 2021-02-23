@@ -6,7 +6,8 @@ import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.mobie.bookmark.Bookmark;
-import de.embl.cba.mobie.bookmark.BookmarksJsonParser;
+import de.embl.cba.mobie.bookmark.write.BookmarkFileWriter;
+import de.embl.cba.mobie.bookmark.BookmarkReader;
 import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.dataset.DatasetsParser;
 import de.embl.cba.mobie.image.*;
@@ -392,7 +393,7 @@ public class ProjectsCreator {
     public void updateCurrentDefaultBookmarks( String datasetName ) {
         File defaultBookmarkJson = new File ( getDefaultBookmarkJsonPath( datasetName ) );
         if ( defaultBookmarkJson.exists() ) {
-            currentDefaultBookmarks = new BookmarksJsonParser( getDatasetPath( datasetName ) ).getDefaultBookmarks();
+            currentDefaultBookmarks = new BookmarkReader( getDatasetPath( datasetName ) ).readDefaultBookmarks();
         } else {
             currentDefaultBookmarks = new HashMap<>();
         }
@@ -512,7 +513,7 @@ public class ProjectsCreator {
 
     public void writeDefaultBookmarksJson ( String datasetName ) {
         try {
-            new BookmarksJsonParser( getDatasetPath( datasetName) ).saveBookmarksToFile( currentDefaultBookmarks, new File (getDefaultBookmarkJsonPath( datasetName )) );
+            BookmarkFileWriter.saveBookmarksToFile( currentDefaultBookmarks, new File (getDefaultBookmarkJsonPath( datasetName )) );
         } catch (IOException e) {
             e.printStackTrace();
         }

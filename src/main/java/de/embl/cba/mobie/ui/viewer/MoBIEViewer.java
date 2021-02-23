@@ -8,12 +8,11 @@ import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.dataset.DatasetsParser;
 import de.embl.cba.mobie.image.SourcesModel;
 import de.embl.cba.mobie.bookmark.Bookmark;
-import de.embl.cba.mobie.bookmark.BookmarksJsonParser;
-import de.embl.cba.mobie.bookmark.BookmarksManager;
+import de.embl.cba.mobie.bookmark.BookmarkReader;
+import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.mobie.utils.Utils;
 import ij.WindowManager;
-import ij.gui.NonBlockingGenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import javax.swing.*;
@@ -40,7 +39,7 @@ public class MoBIEViewer
 	private String tablesLocation;
 
 	private int frameWidth;
-	private BookmarksManager bookmarksManager;
+	private BookmarkManager bookmarkManager;
 	private Datasets datasets;
 	private final double[] levelingVector;
 	private final JFrame jFrame;
@@ -75,7 +74,7 @@ public class MoBIEViewer
 		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageModality(), tablesLocation );
 		sourcesPanel = new SourcesPanel( sourcesModel, projectName );
 
-		bookmarksManager = fetchBookmarks( projectLocation );
+		bookmarkManager = fetchBookmarks( projectLocation );
 		levelingVector = fetchLeveling( imagesLocation );
 
 		actionPanel = new ActionPanel( this );
@@ -83,7 +82,7 @@ public class MoBIEViewer
 		jFrame = new JFrame( "MoBIE: " + projectName + "-" + dataset );
 
 		// open bdv and show default bookmark (this will also initialise the bdv in sourcesPanel)
-		bookmarksManager.setView( "default" );
+		bookmarkManager.setView( "default" );
 		actionPanel.setBdvAndInstallBehavioursAndPopupMenu( sourcesPanel.getBdv() );
 		defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( sourcesPanel.getBdv(), BdvUtils.getBdvWindowCenter( sourcesPanel.getBdv() ) );
 
@@ -130,9 +129,9 @@ public class MoBIEViewer
 		return datasets.datasets;
 	}
 
-	public BookmarksManager getBookmarksManager()
+	public BookmarkManager getBookmarkManager()
 	{
-		return bookmarksManager;
+		return bookmarkManager;
 	}
 
 	private double[] fetchLeveling( String dataLocation )
@@ -199,12 +198,12 @@ public class MoBIEViewer
 		return url;
 	}
 
-	public BookmarksManager fetchBookmarks( String location )
+	public BookmarkManager fetchBookmarks( String location )
 	{
-		BookmarksJsonParser bookmarkParser = new BookmarksJsonParser(location);
-		Map< String, Bookmark > nameToBookmark = bookmarkParser.getDefaultBookmarks();
+		BookmarkReader bookmarkParser = new BookmarkReader(location);
+		Map< String, Bookmark > nameToBookmark = bookmarkParser.readDefaultBookmarks();
 
-		return new BookmarksManager( sourcesPanel, nameToBookmark, bookmarkParser);
+		return new BookmarkManager( sourcesPanel, nameToBookmark, bookmarkParser);
 	}
 
 	public void setLogWindowPositionAndSize( JFrame jFrame )

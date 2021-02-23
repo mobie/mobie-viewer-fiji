@@ -1,7 +1,11 @@
-package de.embl.cba.mobie.bookmark;
+package de.embl.cba.mobie.bookmark.write;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
+import de.embl.cba.mobie.bookmark.Bookmark;
+import de.embl.cba.mobie.bookmark.BookmarkReader;
 import de.embl.cba.tables.github.GitHubContentGetter;
 import de.embl.cba.tables.github.GitHubFileCommitter;
 import de.embl.cba.tables.github.GitLocation;
@@ -10,10 +14,9 @@ import ij.gui.GenericDialog;
 import org.apache.commons.compress.utils.FileNameUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public class BookmarkGithubWriter {
 
@@ -21,11 +24,21 @@ public class BookmarkGithubWriter {
     private String accessToken;
     private String bookmarkFileName;
     private GitLocation bookmarkGitLocation;
-    private BookmarksJsonParser bookmarksJsonParser;
+    private BookmarkReader bookmarkReader;
 
-    BookmarkGithubWriter(GitLocation bookmarkGitLocation, BookmarksJsonParser bookmarksJsonParser) {
+    BookmarkGithubWriter(GitLocation bookmarkGitLocation, BookmarkReader bookmarkReader ) {
         this.bookmarkGitLocation = bookmarkGitLocation;
-        this.bookmarksJsonParser = bookmarksJsonParser;
+        this.bookmarkReader = bookmarkReader;
+    }
+
+    private static String writeBookmarksToBase64String ( Map<String, Bookmark > bookmarks) {
+        Gson gson = BookmarkGsonBuilderCreator.createGsonBuilder(true);
+        Type type = new TypeToken<Map<String, Bookmark>>() {
+        }.getType();
+        String jsonString = gson.toJson(bookmarks, type);
+        byte[] jsonBytes = jsonString.getBytes( StandardCharsets.UTF_8);
+        return Base64.getEncoder().encodeToString(jsonBytes);
+        // TODO - add new line at end?
     }
 
     private Map< String, String > getFilePathsToSha()
@@ -90,7 +103,7 @@ public class BookmarkGithubWriter {
 
                 boolean appendToFile = false;
                 if (matchingFilePathAndSha != null) {
-                    appendToFile = bookmarksJsonParser.appendToFileDialog();
+                    appendToFile = BookmarkFileWriter.appendToFileDialog();
                 }
 
                 // don't continue if matching file was found, but user does not want to append to it
@@ -101,12 +114,12 @@ public class BookmarkGithubWriter {
                     if (appendToFile) {
                         ArrayList<String> matchingFilePathsFromGithub = new ArrayList<>();
                         matchingFilePathsFromGithub.add(matchingFilePathAndSha.filePath);
-                        Map<String, Bookmark> existingBookmarks = bookmarksJsonParser.parseBookmarks(matchingFilePathsFromGithub);
+                        Map<String, Bookmark> existingBookmarks = bookmarkReader.parseBookmarks(matchingFilePathsFromGithub);
                         bookmarksInFile.putAll(existingBookmarks);
                     }
                     bookmarksInFile.putAll(namesToBookmarks);
 
-                    final String bookmarkJsonBase64String = bookmarksJsonParser.writeBookmarksToBase64String(bookmarksInFile);
+                    final String bookmarkJsonBase64String = writeBookmarksToBase64String(bookmarksInFile);
 
                     final GitHubFileCommitter fileCommitter;
                     if (appendToFile) {

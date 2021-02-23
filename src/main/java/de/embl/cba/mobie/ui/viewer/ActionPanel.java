@@ -9,7 +9,7 @@ import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.bookmark.LocationType;
 import de.embl.cba.mobie.platybrowser.GeneSearch;
 import de.embl.cba.mobie.platybrowser.GeneSearchResults;
-import de.embl.cba.mobie.bookmark.BookmarksManager;
+import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.ui.UniverseConfigurationDialog;
 import de.embl.cba.mobie.utils.Utils;
@@ -43,7 +43,7 @@ public class ActionPanel extends JPanel
 	private BdvHandle bdv;
 	private final MoBIEViewer moBIEViewer;
 	private final ArrayList< String > datasets;
-	private final BookmarksManager bookmarksManager;
+	private final BookmarkManager bookmarkManager;
 	private Behaviours behaviours;
 
 	private double[] levelingVector;
@@ -58,7 +58,7 @@ public class ActionPanel extends JPanel
 		this.moBIEViewer = moBIEViewer;
 		this.sourcesPanel = moBIEViewer.getSourcesPanel();
 		this.datasets = moBIEViewer.getDatasets();
-		this.bookmarksManager = moBIEViewer.getBookmarksManager();
+		this.bookmarkManager = moBIEViewer.getBookmarkManager();
 		this.levelingVector = moBIEViewer.getLevelingVector();
 		this.projectLocation = moBIEViewer.getProjectLocation();
 
@@ -68,7 +68,7 @@ public class ActionPanel extends JPanel
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addSourceSelectionUI( this );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		bookmarksManager.setBookmarkDropDown( addBookmarksUI( this  ) );
+		bookmarkManager.setBookmarkDropDown( addBookmarksUI( this  ) );
 		addMoveToLocationUI( this );
 		addLevelingUI( this );
 		configPanel();
@@ -106,14 +106,14 @@ public class ActionPanel extends JPanel
 		BdvPopupMenus.addAction(bdv, "Load Additional Bookmarks",
 				() -> {
 					new Thread( () -> {
-						SwingUtilities.invokeLater( () -> bookmarksManager.loadAdditionalBookmarks() );
+						SwingUtilities.invokeLater( () -> bookmarkManager.loadAdditionalBookmarks() );
 					} ).start();
 				});
 
 		BdvPopupMenus.addAction(bdv, "Save Current Settings As Bookmark",
 				() -> {
 					new Thread( () -> {
-						SwingUtilities.invokeLater( () -> bookmarksManager.saveCurrentSettingsAsBookmark() );
+						SwingUtilities.invokeLater( () -> bookmarkManager.saveCurrentSettingsAsBookmark() );
 						} ).start();
 				});
 
@@ -504,7 +504,7 @@ public class ActionPanel extends JPanel
 
 		final JComboBox< String > comboBox = new JComboBox<>( bookmarkNames );
 		setComboBoxDimensions( comboBox );
-		button.addActionListener( e -> bookmarksManager.setView( ( String ) comboBox.getSelectedItem() ) );
+		button.addActionListener( e -> bookmarkManager.setView( ( String ) comboBox.getSelectedItem() ) );
 
 		horizontalLayoutPanel.add( getJLabel( "bookmark" ) );
 		horizontalLayoutPanel.add( comboBox );
@@ -599,7 +599,7 @@ public class ActionPanel extends JPanel
 	// TODO simplify code below
 	private String[] getBookmarkNames()
 	{
-		final Set< String > viewNames = bookmarksManager.getBookmarkNames();
+		final Set< String > viewNames = bookmarkManager.getBookmarkNames();
 		final String[] positionsAndViews = new String[ viewNames.size() ];
 //		positionsAndViews[ 0 ] = "...type here...";
 		final Iterator< String > iterator = viewNames.iterator();
