@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.bookmark;
 
 import bdv.util.BdvHandle;
+import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
@@ -60,10 +61,10 @@ public class BookmarksManager
 			if ( ! sourcesPanel.getVisibleSourceNames().contains( sourceName ) )
 			{
 				final SourceAndMetadata< ? > samDefault = sourcesPanel.getSourceAndDefaultMetadata( sourceName );
-				final SourceAndMetadata< ? > samBookmark = new SourceAndMetadata(samDefault.source(), samDefault.metadata().copy());
-				updateSourceMetadata(entry, samBookmark.metadata());
+				final SourceAndMetadata< ? > sam = new SourceAndMetadata(samDefault.source(), samDefault.metadata().copy());
+				updateSourceMetadata(entry, sam.metadata());
 
-				sourcesPanel.addSourceToPanelAndViewer( samBookmark );
+				sourcesPanel.addSourceToPanelAndViewer( sam );
 			}
 		}
 	}

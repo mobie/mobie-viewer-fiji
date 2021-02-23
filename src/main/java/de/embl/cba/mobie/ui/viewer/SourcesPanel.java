@@ -4,6 +4,7 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
+import bdv.viewer.SourceGroup;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
@@ -52,15 +53,14 @@ public class SourcesPanel extends JPanel
     private Map< String, JPanel > sourceNameToPanel;
     private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndCurrentMetadata;
     private BdvHandle bdv;
-    private final SourcesModel imageSourcesModel;
+    private final SourcesModel sourcesModel;
     private final String projectName;
     private Image3DUniverse universe;
-    private int meshSmoothingIterations = 5;
-    private int numRenderingThreads;
+    private int meshSmoothingIterations = 5; // TODO: Why is this here?
 
-    public SourcesPanel( SourcesModel imageSourcesModel, String projectName )
+    public SourcesPanel( SourcesModel sourcesModel, String projectName )
     {
-        this.imageSourcesModel = imageSourcesModel;
+        this.sourcesModel = sourcesModel;
         this.projectName = projectName;
         sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelViews = new LinkedHashMap<>();
@@ -98,11 +98,9 @@ public class SourcesPanel extends JPanel
 
     private JButton createColorButton( JPanel panel, int[] buttonDimensions, SourceAndMetadata< ? > sam )
     {
-        JButton colorButton;
-        colorButton = new JButton( "C" );
+        JButton colorButton = new JButton( "C" );
 
-        colorButton.setPreferredSize(
-                new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
+        colorButton.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
 
         colorButton.addActionListener( e -> {
             Color color = JColorChooser.showDialog( null, "", null );
@@ -110,7 +108,6 @@ public class SourcesPanel extends JPanel
             if ( color == null ) return;
 
             setSourceColor( sam, color, panel );
-
         } );
 
         return colorButton;
@@ -397,7 +394,7 @@ public class SourcesPanel extends JPanel
 
     public SourceAndMetadata< ? > getSourceAndDefaultMetadata( String sourceName )
     {
-        return imageSourcesModel.sources().get( sourceName );
+        return sourcesModel.sources().get( sourceName );
     }
 
     // necessary as loading from bookmark creates a new sourceAndMetadata that is separate from the default
@@ -408,7 +405,7 @@ public class SourcesPanel extends JPanel
 
     public ArrayList< String > getSourceNames()
     {
-        return new ArrayList<>( imageSourcesModel.sources().keySet() );
+        return new ArrayList<>( sourcesModel.sources().keySet() );
     }
 
     public Set< String > getVisibleSourceNames()
@@ -416,9 +413,9 @@ public class SourcesPanel extends JPanel
         return Collections.unmodifiableSet( new HashSet<>( sourceNameToPanel.keySet() ) );
     }
 
-    public SourcesModel getImageSourcesModel()
+    public SourcesModel getSourcesModel()
     {
-        return imageSourcesModel;
+        return sourcesModel;
     }
 
     private void configPanel()
@@ -442,11 +439,13 @@ public class SourcesPanel extends JPanel
             sourceNameToSourceAndCurrentMetadata.put( sourceName, sam );
 
             addSourceToViewer( sam );
+            //bdv.getViewerPanel().state().addSourcesToGroup(  )
+
             SwingUtilities.invokeLater( () -> addSourceToPanel( sam ) );
         }
     }
 
-    private void addSourceToViewer( SourceAndMetadata< ? > sam )
+    public void addSourceToViewer( SourceAndMetadata< ? > sam )
     {
         Prefs.showScaleBar( true );
         Prefs.showMultibox( false );
@@ -808,18 +807,9 @@ public class SourcesPanel extends JPanel
             int[] buttonDimensions )
     {
         JButton removeButton = new JButton( "X" );
-        removeButton.setPreferredSize(
-                new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
+        removeButton.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
 
-        removeButton.addActionListener(
-                new ActionListener()
-                {
-                    @Override
-                    public void actionPerformed( ActionEvent e )
-                    {
-                        removeSourceFromPanelAndViewers( sam );
-                    }
-                } );
+        removeButton.addActionListener( e -> removeSourceFromPanelAndViewers( sam ) );
 
         return removeButton;
     }

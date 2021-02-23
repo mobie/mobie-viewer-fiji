@@ -262,7 +262,7 @@ public class ActionPanel extends JPanel
 		GeneSearch geneSearch = new GeneSearch(
 				micrometerRadius,
 				micrometerPosition,
-				sourcesPanel.getImageSourcesModel() );
+				sourcesPanel.getSourcesModel() );
 
 		final Map< String, Double > geneExpressionLevels = geneSearch.runSearchAndGetLocalExpression();
 

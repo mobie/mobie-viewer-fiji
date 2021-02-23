@@ -20,34 +20,24 @@ import java.util.Set;
 
 public class SourcesModel implements ImageSourcesModel
 {
-	public static final String SEGMENTATION_ID = "-segmented" ;
-	public static final String BDV_XML_SUFFIX = ".xml";
-	public static final String EM_RAW_FILE_ID = "-raw";
 	public static final String EM_ID = "em-";
 	public static final String XRAY_ID = "xray-";
-	public static final String MASK_FILE_ID = "mask-";
-	private final String imageDataLocation;
 	private final MoBIEOptions.ImageDataStorageModality imageDataStorageModality;
 
 	private Map< String, SourceAndMetadata< ? > > nameToSourceAndDefaultMetadata;
 	private final String tableDataLocation;
-	private GlasbeyARGBLut glasbeyARGBLut;
 	private String storageModality;
 	private String imageRootLocation;
 
 	public SourcesModel( String imageDataLocation, MoBIEOptions.ImageDataStorageModality imageDataStorageModality, String tableDataLocation )
 	{
-		this.imageDataLocation = imageDataLocation;
 		this.imageDataStorageModality = imageDataStorageModality;
 		this.tableDataLocation = tableDataLocation;
 
 		nameToSourceAndDefaultMetadata = new HashMap<>();
-		glasbeyARGBLut = new GlasbeyARGBLut();
 
 		fetchSources( imageDataLocation );
 	}
-
-
 
 	@Override
 	public Map< String, SourceAndMetadata< ? > > sources()
