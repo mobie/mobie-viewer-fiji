@@ -75,12 +75,16 @@
 		<scijava.app.directory>/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app</scijava.app.directory>
 		<enforcer.skip>true</enforcer.skip>
 
-		<imagej-utils.version>0.5.10-SNAPSHOT</imagej-utils.version>
+		<!-- Java 8	Update Site	-->
+		<imglib2.version>5.11.1</imglib2.version>
+		<imglib2-cache.version>1.0.0-beta-16</imglib2-cache.version>
+		<bigdataviewer-core.version>10.2.0</bigdataviewer-core.version>
+		<bigdataviewer-vistools.version>1.0.0-beta-28</bigdataviewer-vistools.version>
 
-		<!--  Version 9.1.0 of BDV contains a critical fix for loading n5 data -->
-		<bigdataviewer-core.version>9.1.0</bigdataviewer-core.version>
-		<!-- https://forum.image.sc/t/error-when-visualizing-a-cachedcellimg-with-bigdataviewer/45872/5 -->
-		<bigdataviewer-vistools.version>1.0.0-beta-21</bigdataviewer-vistools.version>
+		<!-- BIOP -->
+
+		<!-- EMBL CBA -->
+		<imagej-utils.version>0.6.0</imagej-utils.version>
 
 		<!-- Version 1.6.0-scijava-3-SNAPSHOT of j3dcore addresses a minor issue
 		https://github.com/fiji/3D_Viewer/issues/26
@@ -114,6 +118,16 @@
 		</repository>
 	</repositories>
 	<dependencies>
+		<dependency>
+			<groupId>net.imglib2</groupId>
+			<artifactId>imglib2</artifactId>
+			<version>${imglib2.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.imglib2</groupId>
+			<artifactId>imglib2-cache</artifactId>
+			<version>${imglib2-cache.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>

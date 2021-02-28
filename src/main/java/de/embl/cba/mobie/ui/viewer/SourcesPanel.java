@@ -4,7 +4,6 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.*;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import bdv.viewer.SourceGroup;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
@@ -37,13 +36,10 @@ import org.scijava.vecmath.Color3f;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.net.URI;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
-import static de.embl.cba.bdv.utils.BdvUtils.getConverterSetups;
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
 import static de.embl.cba.mobie.utils.Utils.createRandom;
 
@@ -236,8 +232,8 @@ public class SourcesPanel extends JPanel
         }
 
         double[] currentContrastLimits = new double[2];
-        currentContrastLimits[0] = getConverterSetups( bdvStackSource ).get(0).getDisplayRangeMin();
-        currentContrastLimits[1] = getConverterSetups( bdvStackSource ).get(0).getDisplayRangeMax();
+        currentContrastLimits[0] = bdvStackSource.getConverterSetups().get(0).getDisplayRangeMin();
+        currentContrastLimits[1] = bdvStackSource.getConverterSetups().get(0).getDisplayRangeMax();
         metadata.contrastLimits = currentContrastLimits;
     }
 

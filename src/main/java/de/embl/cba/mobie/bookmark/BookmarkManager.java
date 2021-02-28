@@ -87,8 +87,9 @@ public class BookmarkManager
 			final int numSources = layout.layers.size();
 			final int numColumns = ( int ) Math.ceil( Math.sqrt( numSources ) );
 			FinalRealInterval bounds = estimateBounds( 0, layout, sourceNameToSourceAndMetadata );
-			final double spacingFactor = 1.1;
-			double offsetX = spacingFactor * bounds.realMax( 0 );
+			final double spacingFactor = 0.1;
+			double border = spacingFactor * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
+			double offsetX = bounds.realMax( 0 ) + border;
 			double offsetY = 0;
 			for ( int sourceIndex = 1, columnIndex = 1; sourceIndex < numSources; sourceIndex++ )
 			{
@@ -100,13 +101,13 @@ public class BookmarkManager
 
 				if ( ++columnIndex == numColumns )
 				{
-					offsetY += spacingFactor * bounds.realMax( 1 );
+					offsetY += bounds.realMax( 1 ) + border;
 					offsetX = 0;
 					columnIndex = 0;
 				}
 				else
 				{
-					offsetX += spacingFactor * bounds.realMax( 0 );
+					offsetX += bounds.realMax( 1 ) + border;
 				}
 			}
 		}

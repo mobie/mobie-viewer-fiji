@@ -8,9 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-
-import static de.embl.cba.bdv.utils.BdvUtils.getConverterSetups;
+import java.util.List;
 
 public class SourcesDisplayUI
 {
@@ -76,8 +74,7 @@ public class SourcesDisplayUI
 
 		button.addActionListener( e ->
 		{
-			final ArrayList< ConverterSetup > converterSetups
-					= getConverterSetups( sam.metadata().bdvStackSource );
+			final List< ConverterSetup > converterSetups = sam.metadata().bdvStackSource.getConverterSetups();
 
 			BdvDialogs.showBrightnessDialog(
 					sam.metadata().displayName,

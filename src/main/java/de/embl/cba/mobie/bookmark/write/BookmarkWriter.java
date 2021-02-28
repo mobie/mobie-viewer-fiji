@@ -25,7 +25,7 @@ public class BookmarkWriter
 		final GenericDialog gd = new GenericDialog( "Choose save location" );
 		gd.addStringField("Bookmark Name", "name");
 		gd.addChoice( "Save to", new String[]{ FileUtils.FileLocation.Project.toString(),
-				FileUtils.FileLocation.File_system.toString() }, FileUtils.FileLocation.Project.toString() );
+				FileUtils.FileLocation.FileSystem.toString() }, FileUtils.FileLocation.Project.toString() );
 		gd.showDialog();
 
 		if ( gd.wasCanceled() ) return null;

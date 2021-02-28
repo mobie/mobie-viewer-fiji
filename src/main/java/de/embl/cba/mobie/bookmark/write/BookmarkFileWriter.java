@@ -58,7 +58,7 @@ public class BookmarkFileWriter
 	public static String chooseJsonFileLocation( FileUtils.FileLocation fileLocation, String datasetLocation ) {
 		String jsonPath = null;
 		final JFileChooser jFileChooser;
-		if (fileLocation.equals( FileUtils.FileLocation.File_system)) {
+		if (fileLocation.equals( FileUtils.FileLocation.FileSystem )) {
 			jFileChooser = new JFileChooser();
 		} else {
 			String bookmarksDirectory = FileAndUrlUtils.combinePath( datasetLocation, "misc", "bookmarks");
