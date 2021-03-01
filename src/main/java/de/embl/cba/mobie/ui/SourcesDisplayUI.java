@@ -35,7 +35,7 @@ public class SourcesDisplayUI
 	}
 
 	public static JCheckBox createVolumeViewVisibilityCheckbox(
-			SourcesManager sourcesManager,
+			SourcesDisplayManager sourcesDisplayManager,
 			int[] dims,
 			SourceAndMetadata< ? > sam,
 			boolean isVisible )
@@ -52,8 +52,8 @@ public class SourcesDisplayUI
 				new Thread( () -> {
 					sam.metadata().showImageIn3d = checkBox.isSelected();
 					sam.metadata().showSelectedSegmentsIn3d = checkBox.isSelected();
-					sourcesManager.updateSegments3dView( sam, sourcesManager );
-					sourcesManager.updateSource3dView( sam, sourcesManager, false );
+					sourcesDisplayManager.updateSegments3dView( sam, sourcesDisplayManager );
+					sourcesDisplayManager.updateSource3dView( sam, sourcesDisplayManager, false );
 				}).start();
 			}
 		} );

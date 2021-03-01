@@ -1,6 +1,6 @@
 package projects;
 
-import de.embl.cba.mobie.ui.ProjectManager;
+import de.embl.cba.mobie.ui.MoBIE;
 import net.imagej.ImageJ;
 
 public class OpenLocalAutophagosomesEM
@@ -9,6 +9,6 @@ public class OpenLocalAutophagosomesEM
 	{
 		new ImageJ().ui().showUI();
 
-		final ProjectManager projectManager = new ProjectManager("/g/kreshuk/pape/work/my_projects/autophagosoms-clem/data");
+		final MoBIE moBIE = new MoBIE("/g/kreshuk/pape/work/my_projects/autophagosoms-clem/data");
 	}
 }

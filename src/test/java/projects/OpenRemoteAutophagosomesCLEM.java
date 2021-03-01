@@ -1,11 +1,11 @@
 package projects;
 
-import de.embl.cba.mobie.ui.ProjectManager;
+import de.embl.cba.mobie.ui.MoBIE;
 
 public class OpenRemoteAutophagosomesCLEM
 {
 	public static void main( String[] args )
 	{
-		new ProjectManager( "https://github.com/mobie-org/autophagosomes-clem-datasets");
+		new MoBIE( "https://github.com/mobie-org/autophagosomes-clem-datasets");
 	}
 }

@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class GeneSearch < T extends RealType< T > & NativeType< T > >
+public class GeneSearch
 {
 	private final double micrometerRadius;
 	private final double[] micrometerPosition;
@@ -32,14 +32,9 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 		this.imageSourcesModel = imageSourcesModel;
 	}
 
-	public void searchGenes( double[] micrometerPosition, double micrometerRadius )
+	public void searchGenes( )
 	{
-		GeneSearch geneSearch = new GeneSearch(
-				micrometerRadius,
-				micrometerPosition,
-				imageSourcesModel );
-
-		final Map< String, Double > geneExpressionLevels = geneSearch.runSearchAndGetLocalExpression();
+		final Map< String, Double > geneExpressionLevels = runSearchAndGetLocalExpression();
 
 		GeneSearchResults.addRowToGeneExpressionTable(
 				micrometerPosition, micrometerRadius, geneExpressionLevels );
@@ -48,14 +43,14 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 				micrometerPosition, micrometerRadius, geneExpressionLevels );
 	}
 
-	public Map< String, Double > getExpressionLevelsSortedByValue()
+	private Map< String, Double > getExpressionLevelsSortedByValue()
 	{
 		Map< String, Double > localSortedExpression = Utils.sortByValue( localExpression );
 		removeGenesWithZeroExpression( localSortedExpression );
 		return localSortedExpression;
 	}
 
-	public Map< String, Double > runSearchAndGetLocalExpression()
+	private Map< String, Double > runSearchAndGetLocalExpression()
 	{
 		final Map< String, SourceAndMetadata< ? > > sources = imageSourcesModel.sources();
 
@@ -107,6 +102,4 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 			}
 		}
 	}
-
-
 }

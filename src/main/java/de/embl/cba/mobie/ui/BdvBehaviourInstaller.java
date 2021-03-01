@@ -8,6 +8,8 @@ import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.bookmark.LocationType;
+import de.embl.cba.mobie.platybrowser.GeneSearch;
+import de.embl.cba.mobie.universe.UniverseConfigurationDialog;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie.utils.ui.BdvTextOverlay;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -16,21 +18,29 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 import javax.swing.*;
 
-public class BdvBehaviourAndContextMenuManager
+public class BdvBehaviourInstaller
 {
 	private static final String RESTORE_DEFAULT_VIEW_TRIGGER = "ctrl R";
 
-	private final ProjectManager projectManager;
+	private final MoBIE moBIE;
 	private final BdvHandle bdv;
+	private final BookmarkManager bookmarkManager;
 
-	public BdvBehaviourAndContextMenuManager( ProjectManager projectManager, BdvHandle bdv )
+	public BdvBehaviourInstaller( MoBIE moBIE, BdvHandle bdv )
 	{
-		this.projectManager = projectManager;
+		this.moBIE = moBIE;
+		this.bookmarkManager = moBIE.getBookmarkManager();
 		this.bdv = bdv;
+
+		install();
 	}
 
-	private static void installBdvBehavioursAndPopupMenu( BdvHandle bdv, BookmarkManager bookmarkManager, String projectLocation )
+	private void install( )
 	{
+		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
+		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "MoBIE behaviours" );
+
+		// TODO: Use BDV-Playground instead
 		BdvPopupMenus.addScreenshotAction( bdv );
 
 		BdvPopupMenus.addAction( bdv, "Log Current Location",
@@ -60,9 +70,9 @@ public class BdvBehaviourAndContextMenuManager
 				() -> new Thread( () -> restoreDefaultView() ).start() );
 
 		BdvPopupMenus.addAction( bdv, "Configure 3D View...",
-				() -> new Thread( () -> new UniverseConfigurationDialog( sourcesDisplaySettingsPanel ).showDialog() ).start() );
+				() -> new Thread( () -> new UniverseConfigurationDialog( moBIE.getSourcesDisplayManager() ).showDialog() ).start() );
 
-		if ( projectLocation.contains( "platybrowser" ) )
+		if ( moBIE.getProjectLocation().contains( "platybrowser" ) )
 		{
 			BdvPopupMenus.addAction( bdv, "Search Genes...", ( x, y ) ->
 			{
@@ -75,32 +85,24 @@ public class BdvBehaviourAndContextMenuManager
 
 				new Thread( () ->
 				{
-					searchGenes( micrometerPosition, 3.0 );
+					final GeneSearch geneSearch = new GeneSearch( 3.0, micrometerPosition, moBIE.getSourcesModel() );
+					geneSearch.searchGenes();
 					bdvTextOverlay.setText( "" );
 				}
 				).start();
 			} );
 		}
 
-		behaviours = new Behaviours( new InputTriggerConfig() );
-		behaviours.install( bdv.getTriggerbindings(), "behaviours" );
-
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			(new Thread( () -> {
 				restoreDefaultView();
 			} )).start();
 		}, "Toggle point overlays", RESTORE_DEFAULT_VIEW_TRIGGER ) ;
-
-		//addLocalGeneSearchBehaviour();
-		//BdvBehaviours.addPositionAndViewLoggingBehaviour( bdv, behaviours, "P" );
-		//BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "C", false );
-		//BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "shift C", true );
 	}
 
 	private void restoreDefaultView()
 	{
-		final Location location = new Location( LocationType.NormalisedViewerTransform, projectManager.getDefaultNormalisedViewerTransform().getRowPackedCopy() );
+		final Location location = new Location( LocationType.NormalisedViewerTransform, moBIE.getDefaultNormalisedViewerTransform().getRowPackedCopy() );
 		BdvViewChanger.moveToLocation( bdv, location );
 	}
-
 }

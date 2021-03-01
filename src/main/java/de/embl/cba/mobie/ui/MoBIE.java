@@ -24,12 +24,12 @@ import java.util.Map;
 
 import static de.embl.cba.mobie.utils.FileAndUrlUtils.getName;
 
-public class ProjectManager
+public class MoBIE
 {
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 
-	private final SourcesManager sourcesManager;
-	private final UserInterfacePanelsProvider UserInterfacePanelsProvider;
+	private final SourcesDisplayManager sourcesDisplayManager;
+	private final UserInterfacePanelsProvider userInterfacePanelsProvider;
 	private final SourcesModel sourcesModel;
 	private final MoBIEOptions options;
 	private String dataset;
@@ -46,20 +46,20 @@ public class ProjectManager
 	private String projectName;
 	private AffineTransform3D defaultNormalisedViewerTransform;
 
-	public ProjectManager( String projectLocation ) throws HeadlessException
+	public MoBIE( String projectLocation ) throws HeadlessException
 	{
 		this( projectLocation, MoBIEOptions.options() );
 	}
 
 	@Deprecated
-	public ProjectManager(
+	public MoBIE(
 			String projectLocation,
 			String tablesLocation ) throws HeadlessException
 	{
 		this( projectLocation, MoBIEOptions.options().tableDataLocation( tablesLocation ) );
 	}
 
-	public ProjectManager(
+	public MoBIE(
 			String projectBaseLocation,
 			MoBIEOptions options )
 	{
@@ -72,25 +72,26 @@ public class ProjectManager
 		appendSpecificDatasetLocations();
 
 		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageModality(), tablesLocation );
-		sourcesManager = new SourcesManager( sourcesModel, projectName );
+		sourcesDisplayManager = new SourcesDisplayManager( sourcesModel, projectName );
 
 		bookmarkManager = fetchBookmarks( projectLocation );
 		levelingVector = fetchLeveling( imagesLocation );
 
-		UserInterfacePanelsProvider = new UserInterfacePanelsProvider( this );
+
+		userInterfacePanelsProvider = new UserInterfacePanelsProvider( this );
 
 		jFrame = new JFrame( "MoBIE: " + projectName + "-" + dataset );
 
 		// open bdv and show default bookmark (this will also initialise the bdv in sourcesPanel)
 		bookmarkManager.setView( "default" );
-		UserInterfacePanelsProvider.addUserInterfaceToBDV( sourcesManager.getBdv() );
-		defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( sourcesManager.getBdv(), BdvUtils.getBdvWindowCenter( sourcesManager.getBdv() ) );
+		userInterfacePanelsProvider.addUserInterfaceToBDV( sourcesDisplayManager.getBdv() );
+		defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( sourcesDisplayManager.getBdv(), BdvUtils.getBdvWindowCenter( sourcesDisplayManager.getBdv() ) );
 
 		SwingUtilities.invokeLater( () ->
 		{
 			showFrame( jFrame );
 			setLogWindowPositionAndSize( jFrame );
-			sourcesManager.setBdvWindowPositionAndSize( jFrame );
+			sourcesDisplayManager.setBdvWindowPositionAndSize( jFrame );
 		});
 	}
 
@@ -133,6 +134,8 @@ public class ProjectManager
 	{
 		return bookmarkManager;
 	}
+
+
 
 	private double[] fetchLeveling( String dataLocation )
 	{
@@ -198,12 +201,12 @@ public class ProjectManager
 		return url;
 	}
 
-	public BookmarkManager fetchBookmarks( String location )
+	private BookmarkManager fetchBookmarks( String location )
 	{
 		BookmarkReader bookmarkParser = new BookmarkReader(location);
 		Map< String, Bookmark > nameToBookmark = bookmarkParser.readDefaultBookmarks();
 
-		return new BookmarkManager( sourcesManager, nameToBookmark, bookmarkParser);
+		return new BookmarkManager( sourcesDisplayManager, nameToBookmark, bookmarkParser);
 	}
 
 	public void setLogWindowPositionAndSize( JFrame jFrame )
@@ -221,11 +224,11 @@ public class ProjectManager
 	{
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		final int numModalities = UserInterfacePanelsProvider.getSortedModalities().size();
+		final int numModalities = userInterfacePanelsProvider.getSortedModalities().size();
 		final int actionPanelHeight = ( numModalities + 7 ) * 40;
 		splitPane.setDividerLocation( actionPanelHeight );
-		splitPane.setTopComponent( UserInterfacePanelsProvider );
-		splitPane.setBottomComponent( sourcesManager );
+		splitPane.setTopComponent( userInterfacePanelsProvider );
+		splitPane.setBottomComponent( sourcesDisplayManager );
 		splitPane.setAutoscrolls( true );
 		frameWidth = 600;
 		frame.setPreferredSize( new Dimension( frameWidth, actionPanelHeight + 200 ) );
@@ -238,20 +241,20 @@ public class ProjectManager
 	}
 
 	// TODO: This should be dataset dependent?
-	public SourcesManager getSourcesManager()
+	public SourcesDisplayManager getSourcesDisplayManager()
 	{
-		return sourcesManager;
+		return sourcesDisplayManager;
 	}
 
 	public UserInterfacePanelsProvider getUserInterfacePanelsProvider()
 	{
-		return UserInterfacePanelsProvider;
+		return userInterfacePanelsProvider;
 	}
 
 	public void close()
 	{
-		sourcesManager.removeAllSourcesFromPanelAndViewers();
-		sourcesManager.getBdv().close();
+		sourcesDisplayManager.removeAllSourcesFromPanelAndViewers();
+		sourcesDisplayManager.getBdv().close();
 		jFrame.dispose();
 	}
 }

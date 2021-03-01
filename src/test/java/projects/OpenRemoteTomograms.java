@@ -1,6 +1,6 @@
 package projects;
 
-import de.embl.cba.mobie.ui.ProjectManager;
+import de.embl.cba.mobie.ui.MoBIE;
 import net.imagej.ImageJ;
 
 public class OpenRemoteTomograms
@@ -10,6 +10,6 @@ public class OpenRemoteTomograms
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		new ProjectManager("https://github.com/mobie/covid-tomo-datasets" );
+		new MoBIE("https://github.com/mobie/covid-tomo-datasets" );
 	}
 }

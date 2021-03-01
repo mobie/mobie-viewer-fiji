@@ -1,7 +1,7 @@
 package de.embl.cba.mobie.image;
 
 import de.embl.cba.mobie.projects.ProjectsCreator;
-import de.embl.cba.mobie.ui.ProjectManager;
+import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.SwingUtils;
@@ -74,7 +74,7 @@ public class ImagePropertiesEditor {
     private JPanel createComboPanel (JComboBox<String> combo, String label) {
         final JPanel comboPanel = SwingUtils.horizontalLayoutPanel();
         setComboBoxDimensions( combo );
-        combo.setPrototypeDisplayValue( ProjectManager.PROTOTYPE_DISPLAY_VALUE);
+        combo.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
         comboPanel.add(getJLabel(label));
         comboPanel.add(combo);
 

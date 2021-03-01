@@ -1,8 +1,6 @@
 package de.embl.cba.mobie.ui;
 
-import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
@@ -29,20 +27,20 @@ public class UserInterfacePanelsProvider
 	public static final String BUTTON_LABEL_LEVEL = "level";
 	public static final String BUTTON_LABEL_ADD = "add";
 
-	private final SourcesManager sourcesManager;
-	private final ProjectManager projectManager;
+	private final SourcesDisplayManager sourcesDisplayManager;
+	private final MoBIE moBIE;
 	private final ArrayList< String > datasets;
 	private final BookmarkManager bookmarkManager;
 
 	private HashMap< String, String > selectionNameAndModalityToSourceName;
 	private ArrayList< String > sortedModalities;
 
-	public UserInterfacePanelsProvider( ProjectManager projectManager )
+	public UserInterfacePanelsProvider( MoBIE moBIE )
 	{
-		this.projectManager = projectManager;
-		this.sourcesManager = projectManager.getSourcesManager();
-		this.datasets = projectManager.getDatasets();
-		this.bookmarkManager = projectManager.getBookmarkManager();
+		this.moBIE = moBIE;
+		this.sourcesDisplayManager = moBIE.getSourcesDisplayManager();
+		this.datasets = moBIE.getDatasets();
+		this.bookmarkManager = moBIE.getBookmarkManager();
 	}
 
 	public JPanel createSourceSelectionPanel()
@@ -50,13 +48,13 @@ public class UserInterfacePanelsProvider
 		selectionNameAndModalityToSourceName = new HashMap<>();
 		HashMap< String, ArrayList< String > > modalityToSelectionNames = new HashMap<>();
 
-		for ( String sourceName : sourcesManager.getSourceNames() )
+		for ( String sourceName : sourcesDisplayManager.getSourceNames() )
 		{
 			String modality = sourceName.split( "-" )[ 0 ];
 
 			String selectionName = sourceName.replace( modality + "-", "" );
 
-			final Metadata metadata = sourcesManager.getSourceAndDefaultMetadata( sourceName ).metadata();
+			final Metadata metadata = sourcesDisplayManager.getSourceAndDefaultMetadata( sourceName ).metadata();
 
 			if ( metadata.type.equals( Metadata.Type.Segmentation ) )
 			{
@@ -115,7 +113,7 @@ public class UserInterfacePanelsProvider
 			{
 				final String selectedSource = ( String ) comboBox.getSelectedItem();
 				final String sourceName = selectionNameAndModalityToSourceName.get( selectedSource + "-" + modality );
-				sourcesManager.addSourceToPanelAndViewer( sourceName );
+				sourcesDisplayManager.addSourceToPanelAndViewer( sourceName );
 			} );
 		} );
 
@@ -208,7 +206,7 @@ public class UserInterfacePanelsProvider
 		button.addActionListener( e -> {
 			moBIEInfo.showInfo( ( String ) comboBox.getSelectedItem() );
 		} );
-		comboBox.setPrototypeDisplayValue( ProjectManager.PROTOTYPE_DISPLAY_VALUE  );
+		comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE  );
 
 		horizontalLayoutPanel.setSize( 0, 80 );
 		final ImageIcon icon = createMobieIcon( 80 );
@@ -238,10 +236,10 @@ public class UserInterfacePanelsProvider
 
 		final String[] choices = datasets.stream().toArray( String[]::new );
 		final JComboBox< String > comboBox = new JComboBox<>( choices );
-		comboBox.setSelectedItem( projectManager.getDataset() );
+		comboBox.setSelectedItem( moBIE.getDataset() );
 		setComboBoxDimensions( comboBox );
 		button.addActionListener( e -> switchDataset( ( String ) comboBox.getSelectedItem() ) );
-		comboBox.setPrototypeDisplayValue( ProjectManager.PROTOTYPE_DISPLAY_VALUE  );
+		comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE  );
 
 		horizontalLayoutPanel.add( getJLabel( "dataset" ) );
 		horizontalLayoutPanel.add( comboBox );
@@ -254,8 +252,8 @@ public class UserInterfacePanelsProvider
 	private void switchDataset( String dataset )
 	{
 		// TODO: make sure the Swing UI sources panel is fully visible before instantiating the new BDV
-		projectManager.close();
-		new ProjectManager( projectManager.getProjectLocation(), projectManager.getOptions().dataset( dataset ) );
+		moBIE.close();
+		new MoBIE( moBIE.getProjectLocation(), moBIE.getOptions().dataset( dataset ) );
 	}
 
 	@Deprecated

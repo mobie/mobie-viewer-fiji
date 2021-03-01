@@ -1,7 +1,7 @@
 package de.embl.cba.mobie.ui.command;
 
 import de.embl.cba.mobie.ui.MoBIEOptions;
-import de.embl.cba.mobie.ui.ProjectManager;
+import de.embl.cba.mobie.ui.MoBIE;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -21,6 +21,6 @@ public class OpenMoBIEProjectCommand implements Command
 		if ( ! projectLocation.startsWith( "http" ) )
 			options = options.imageDataStorageModality( MoBIEOptions.ImageDataStorageModality.FileSystem );
 
-		new ProjectManager( projectLocation, options );
+		new MoBIE( projectLocation, options );
 	}
 }

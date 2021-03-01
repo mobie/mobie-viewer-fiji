@@ -1,6 +1,6 @@
 package develop;
 
-import de.embl.cba.mobie.ui.ProjectManager;
+import de.embl.cba.mobie.ui.MoBIE;
 import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
@@ -14,7 +14,7 @@ public class DevelopNormalisedViewerTransforms
 
 		testNormalisationAndReversion();
 
-		final ProjectManager projectManager = new ProjectManager( "https://github.com/mobie-org/covid-em-datasets" );
+		final MoBIE moBIE = new MoBIE( "https://github.com/mobie-org/covid-em-datasets" );
 	}
 
 	public static void testNormalisationAndReversion()

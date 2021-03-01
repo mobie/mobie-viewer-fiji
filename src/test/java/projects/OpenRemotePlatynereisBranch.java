@@ -1,11 +1,11 @@
 package projects;
 
-import de.embl.cba.mobie.ui.ProjectManager;
+import de.embl.cba.mobie.ui.MoBIE;
 
 public class OpenRemotePlatynereisBranch
 {
 	public static void main( String[] args )
 	{
-		new ProjectManager( "https://github.com/platybrowser/platybrowser" );
+		new MoBIE( "https://github.com/platybrowser/platybrowser" );
 	}
 }
