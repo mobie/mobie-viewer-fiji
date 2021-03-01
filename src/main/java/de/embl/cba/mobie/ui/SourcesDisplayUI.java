@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.ui.viewer;
+package de.embl.cba.mobie.ui;
 
 import bdv.tools.brightness.ConverterSetup;
 import de.embl.cba.bdv.utils.BdvDialogs;

@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.ui.viewer;
+package de.embl.cba.mobie.ui;
 
 import bdv.tools.HelpDialog;
 import de.embl.cba.tables.FileAndUrlUtils;
@@ -67,7 +67,7 @@ public class MoBIEInfo
 
 	public void showBdvHelp()
 	{
-		HelpDialog helpDialog = new HelpDialog( null, MoBIEViewer.class.getResource( "/BdvHelp.html" ) );
+		HelpDialog helpDialog = new HelpDialog( null, ProjectManager.class.getResource( "/BdvHelp.html" ) );
 		helpDialog.setVisible( true );
 	}
 }

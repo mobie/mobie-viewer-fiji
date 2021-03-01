@@ -1,7 +1,8 @@
 package publication.platybrowser;
 
-import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
-import de.embl.cba.mobie.ui.viewer.SourcesManager;
+import de.embl.cba.mobie.ui.ProjectManager;
+import de.embl.cba.mobie.ui.SourcesManager;
+import de.embl.cba.mobie.utils.UniverseUtils;
 import net.imagej.ImageJ;
 
 import java.awt.*;
@@ -12,11 +13,11 @@ public class RegistrationVisualisationNeuropil
 	{
 		new ImageJ().ui().showUI();
 
-		final MoBIEViewer moBIEViewer = new MoBIEViewer(
+		final ProjectManager projectManager = new ProjectManager(
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data" );
 
-		final SourcesManager sourcesManager = moBIEViewer.getSourcesManager();
+		final SourcesManager sourcesManager = projectManager.getSourcesManager();
 
 		sourcesManager.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-segmented-aridane-Neuropil" );
 		sourcesManager.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-Glt1-MED" );
@@ -27,14 +28,14 @@ public class RegistrationVisualisationNeuropil
 
 		// OVERVIEW
 
-		moBIEViewer.getUserInterfaceProvider().setView( "View: (-0.7478710175280877, -0.6676436522042725, 2.086953854660592, 291.5334749475883, 1.4642245659643176, -1.7927905904117467, -0.048824338475451055, 337.95348110873744, 1.6300830832316395, 1.3040664665853117, 1.0013367511280067, -516.0999606550258)" );
+		projectManager.getUserInterfacePanelsProvider().setView( "View: (-0.7478710175280877, -0.6676436522042725, 2.086953854660592, 291.5334749475883, 1.4642245659643176, -1.7927905904117467, -0.048824338475451055, 337.95348110873744, 1.6300830832316395, 1.3040664665853117, 1.0013367511280067, -516.0999606550258)" );
 
 		// TODO: get this via keyboard shortcut
-		moBIEViewer.getUserInterfaceProvider().setVolumeView("center =  1.0 0.0 0.0 122.88 0.0 1.0 0.0 122.88 0.0 0.0 1.0 140.40001 0.0 0.0 0.0 1.0\n" +
+		UniverseUtils.setVolumeView("center =  1.0 0.0 0.0 122.88 0.0 1.0 0.0 122.88 0.0 0.0 1.0 140.40001 0.0 0.0 0.0 1.0\n" +
 				"translate =  1.0 0.0 0.0 0.117842264 0.0 1.0 0.0 0.15685147 0.0 0.0 1.0 -0.52159584 0.0 0.0 0.0 1.0\n" +
 				"rotate =  -0.22049984 -0.6480566 -0.72897357 0.0 -0.22329058 0.76105946 -0.60904 0.0 0.94948465 0.028479699 -0.31251845 0.0 0.0 0.0 0.0 1.0\n" +
 				"zoom =  1.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 1.0 358.10345 0.0 0.0 0.0 1.0\n" +
-				"animate =  1.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 1.0\n"
+				"animate =  1.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 1.0\n", projectManager.getUserInterfacePanelsProvider().sourcesManager.getUniverse()
 		);
 
 

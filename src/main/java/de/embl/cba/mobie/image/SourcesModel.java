@@ -2,11 +2,10 @@ package de.embl.cba.mobie.image;
 
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
-import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.bdv.utils.sources.Sources;
-import de.embl.cba.mobie.ui.viewer.MoBIEOptions;
+import de.embl.cba.mobie.ui.MoBIEOptions;
 import de.embl.cba.mobie.utils.Enums;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.mobie.utils.Utils;

@@ -18,7 +18,6 @@ import java.util.Map;
 
 public class GeneSearch < T extends RealType< T > & NativeType< T > >
 {
-
 	private final double micrometerRadius;
 	private final double[] micrometerPosition;
 	private final ImageSourcesModel imageSourcesModel;
@@ -31,6 +30,22 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 		this.micrometerRadius = micrometerRadius;
 		this.micrometerPosition = micrometerPosition;
 		this.imageSourcesModel = imageSourcesModel;
+	}
+
+	public void searchGenes( double[] micrometerPosition, double micrometerRadius )
+	{
+		GeneSearch geneSearch = new GeneSearch(
+				micrometerRadius,
+				micrometerPosition,
+				imageSourcesModel );
+
+		final Map< String, Double > geneExpressionLevels = geneSearch.runSearchAndGetLocalExpression();
+
+		GeneSearchResults.addRowToGeneExpressionTable(
+				micrometerPosition, micrometerRadius, geneExpressionLevels );
+
+		GeneSearchResults.logGeneExpression(
+				micrometerPosition, micrometerRadius, geneExpressionLevels );
 	}
 
 	public Map< String, Double > getExpressionLevelsSortedByValue()
@@ -74,7 +89,6 @@ public class GeneSearch < T extends RealType< T > & NativeType< T > >
 		}
 
 		return localExpression;
-
 	}
 
 	private void removeGenesWithZeroExpression( Map< String, Double > localSortedExpression)

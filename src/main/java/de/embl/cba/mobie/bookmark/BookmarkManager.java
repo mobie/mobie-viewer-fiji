@@ -9,7 +9,7 @@ import de.embl.cba.mobie.bookmark.write.BookmarkWriter;
 import de.embl.cba.mobie.bookmark.write.NameAndFileLocation;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.MutableImageProperties;
-import de.embl.cba.mobie.ui.viewer.SourcesManager;
+import de.embl.cba.mobie.ui.SourcesManager;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileUtils.FileLocation;
@@ -38,7 +38,7 @@ public class BookmarkManager
 		this.datasetLocation = bookmarkReader.getDatasetLocation();
 	}
 
-	public void setBookmarkDropDown (JComboBox<String> bookmarkDropDown) {
+	public void setBookmarkDropDown ( JComboBox<String> bookmarkDropDown) {
 		this.bookmarkDropDown = bookmarkDropDown;
 	}
 
@@ -173,7 +173,7 @@ public class BookmarkManager
 			if (additionalBookmarks != null) {
 				nameToBookmark.putAll(additionalBookmarks);
 				bookmarkDropDown.removeAllItems();
-				for (String bookmarkName : nameToBookmark.keySet()) {
+				for ( String bookmarkName : nameToBookmark.keySet()) {
 					bookmarkDropDown.addItem(bookmarkName);
 				}
 			}

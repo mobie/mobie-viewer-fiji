@@ -1,6 +1,5 @@
 package de.embl.cba.mobie.ui;
 
-import de.embl.cba.mobie.ui.viewer.SourcesManager;
 import ij.gui.NonBlockingGenericDialog;
 
 import java.util.ArrayList;

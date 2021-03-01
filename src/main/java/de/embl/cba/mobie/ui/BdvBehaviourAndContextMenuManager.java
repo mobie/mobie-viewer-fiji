@@ -8,7 +8,6 @@ import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.bookmark.LocationType;
-import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie.utils.ui.BdvTextOverlay;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -21,12 +20,12 @@ public class BdvBehaviourAndContextMenuManager
 {
 	private static final String RESTORE_DEFAULT_VIEW_TRIGGER = "ctrl R";
 
-	private final MoBIEViewer moBIEViewer;
+	private final ProjectManager projectManager;
 	private final BdvHandle bdv;
 
-	public BdvBehaviourAndContextMenuManager( MoBIEViewer moBIEViewer, BdvHandle bdv )
+	public BdvBehaviourAndContextMenuManager( ProjectManager projectManager, BdvHandle bdv )
 	{
-		this.moBIEViewer = moBIEViewer;
+		this.projectManager = projectManager;
 		this.bdv = bdv;
 	}
 
@@ -100,7 +99,7 @@ public class BdvBehaviourAndContextMenuManager
 
 	private void restoreDefaultView()
 	{
-		final Location location = new Location( LocationType.NormalisedViewerTransform, moBIEViewer.getDefaultNormalisedViewerTransform().getRowPackedCopy() );
+		final Location location = new Location( LocationType.NormalisedViewerTransform, projectManager.getDefaultNormalisedViewerTransform().getRowPackedCopy() );
 		BdvViewChanger.moveToLocation( bdv, location );
 	}
 

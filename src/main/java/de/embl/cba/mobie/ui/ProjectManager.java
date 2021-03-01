@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.ui.viewer;
+package de.embl.cba.mobie.ui;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
@@ -24,12 +24,12 @@ import java.util.Map;
 
 import static de.embl.cba.mobie.utils.FileAndUrlUtils.getName;
 
-public class MoBIEViewer
+public class ProjectManager
 {
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 
 	private final SourcesManager sourcesManager;
-	private final UserInterfaceProvider userInterfaceProvider;
+	private final UserInterfacePanelsProvider UserInterfacePanelsProvider;
 	private final SourcesModel sourcesModel;
 	private final MoBIEOptions options;
 	private String dataset;
@@ -46,20 +46,20 @@ public class MoBIEViewer
 	private String projectName;
 	private AffineTransform3D defaultNormalisedViewerTransform;
 
-	public MoBIEViewer( String projectLocation ) throws HeadlessException
+	public ProjectManager( String projectLocation ) throws HeadlessException
 	{
 		this( projectLocation, MoBIEOptions.options() );
 	}
 
 	@Deprecated
-	public MoBIEViewer(
+	public ProjectManager(
 			String projectLocation,
 			String tablesLocation ) throws HeadlessException
 	{
 		this( projectLocation, MoBIEOptions.options().tableDataLocation( tablesLocation ) );
 	}
 
-	public MoBIEViewer(
+	public ProjectManager(
 			String projectBaseLocation,
 			MoBIEOptions options )
 	{
@@ -77,13 +77,13 @@ public class MoBIEViewer
 		bookmarkManager = fetchBookmarks( projectLocation );
 		levelingVector = fetchLeveling( imagesLocation );
 
-		userInterfaceProvider = new UserInterfaceProvider( this );
+		UserInterfacePanelsProvider = new UserInterfacePanelsProvider( this );
 
 		jFrame = new JFrame( "MoBIE: " + projectName + "-" + dataset );
 
 		// open bdv and show default bookmark (this will also initialise the bdv in sourcesPanel)
 		bookmarkManager.setView( "default" );
-		userInterfaceProvider.addUserInterfaceToBDV( sourcesManager.getBdv() );
+		UserInterfacePanelsProvider.addUserInterfaceToBDV( sourcesManager.getBdv() );
 		defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( sourcesManager.getBdv(), BdvUtils.getBdvWindowCenter( sourcesManager.getBdv() ) );
 
 		SwingUtilities.invokeLater( () ->
@@ -221,10 +221,10 @@ public class MoBIEViewer
 	{
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		final int numModalities = userInterfaceProvider.getSortedModalities().size();
+		final int numModalities = UserInterfacePanelsProvider.getSortedModalities().size();
 		final int actionPanelHeight = ( numModalities + 7 ) * 40;
 		splitPane.setDividerLocation( actionPanelHeight );
-		splitPane.setTopComponent( userInterfaceProvider );
+		splitPane.setTopComponent( UserInterfacePanelsProvider );
 		splitPane.setBottomComponent( sourcesManager );
 		splitPane.setAutoscrolls( true );
 		frameWidth = 600;
@@ -237,14 +237,15 @@ public class MoBIEViewer
 		frame.setVisible( true );
 	}
 
+	// TODO: This should be dataset dependent?
 	public SourcesManager getSourcesManager()
 	{
 		return sourcesManager;
 	}
 
-	public UserInterfaceProvider getUserInterfaceProvider()
+	public UserInterfacePanelsProvider getUserInterfacePanelsProvider()
 	{
-		return userInterfaceProvider;
+		return UserInterfacePanelsProvider;
 	}
 
 	public void close()

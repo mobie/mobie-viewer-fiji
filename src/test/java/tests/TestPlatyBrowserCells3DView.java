@@ -1,7 +1,7 @@
 package tests;
 
-import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
-import de.embl.cba.mobie.ui.viewer.SourcesManager;
+import de.embl.cba.mobie.ui.ProjectManager;
+import de.embl.cba.mobie.ui.SourcesManager;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.view.combined.SegmentsTableBdvAnd3dViews;
@@ -16,7 +16,7 @@ public class TestPlatyBrowserCells3DView
 	{
 		new ImageJ().ui().showUI();
 
-		final MoBIEViewer mainFrame = new MoBIEViewer(
+		final ProjectManager mainFrame = new ProjectManager(
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data" );
 

@@ -1,6 +1,6 @@
 package tests;
 
-import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.ProjectManager;
 import net.imagej.ImageJ;
 
 public class TestPlatyBrowserMoveTo
@@ -10,11 +10,11 @@ public class TestPlatyBrowserMoveTo
 	{
 		new ImageJ().ui().showUI();
 
-		final MoBIEViewer moBIEViewer = new MoBIEViewer(
+		final ProjectManager projectManager = new ProjectManager(
 				"/Volumes/arendt/EM_6dpf_segmentation/platy-browser-data/data",
 				"https://git.embl.de/tischer/platy-browser-tables/raw/dev/data" );
 
-		moBIEViewer.getUserInterfaceProvider().setView( "177.46666666666667,214.46666666666667,67.0" );
+		projectManager.getUserInterfacePanelsProvider().setView( "177.46666666666667,214.46666666666667,67.0" );
 	}
 
 
