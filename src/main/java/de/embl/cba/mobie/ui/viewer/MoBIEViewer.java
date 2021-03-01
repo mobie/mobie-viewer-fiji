@@ -28,8 +28,8 @@ public class MoBIEViewer
 {
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 
-	private final SourcesPanel sourcesPanel;
-	private final ActionPanel actionPanel;
+	private final SourcesManager sourcesManager;
+	private final UserInterfaceProvider userInterfaceProvider;
 	private final SourcesModel sourcesModel;
 	private final MoBIEOptions options;
 	private String dataset;
@@ -72,25 +72,25 @@ public class MoBIEViewer
 		appendSpecificDatasetLocations();
 
 		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageModality(), tablesLocation );
-		sourcesPanel = new SourcesPanel( sourcesModel, projectName );
+		sourcesManager = new SourcesManager( sourcesModel, projectName );
 
 		bookmarkManager = fetchBookmarks( projectLocation );
 		levelingVector = fetchLeveling( imagesLocation );
 
-		actionPanel = new ActionPanel( this );
+		userInterfaceProvider = new UserInterfaceProvider( this );
 
 		jFrame = new JFrame( "MoBIE: " + projectName + "-" + dataset );
 
 		// open bdv and show default bookmark (this will also initialise the bdv in sourcesPanel)
 		bookmarkManager.setView( "default" );
-		actionPanel.setBdvAndInstallBehavioursAndPopupMenu( sourcesPanel.getBdv() );
-		defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( sourcesPanel.getBdv(), BdvUtils.getBdvWindowCenter( sourcesPanel.getBdv() ) );
+		userInterfaceProvider.addUserInterfaceToBDV( sourcesManager.getBdv() );
+		defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( sourcesManager.getBdv(), BdvUtils.getBdvWindowCenter( sourcesManager.getBdv() ) );
 
 		SwingUtilities.invokeLater( () ->
 		{
 			showFrame( jFrame );
 			setLogWindowPositionAndSize( jFrame );
-			sourcesPanel.setBdvWindowPositionAndSize( jFrame );
+			sourcesManager.setBdvWindowPositionAndSize( jFrame );
 		});
 	}
 
@@ -203,7 +203,7 @@ public class MoBIEViewer
 		BookmarkReader bookmarkParser = new BookmarkReader(location);
 		Map< String, Bookmark > nameToBookmark = bookmarkParser.readDefaultBookmarks();
 
-		return new BookmarkManager( sourcesPanel, nameToBookmark, bookmarkParser);
+		return new BookmarkManager( sourcesManager, nameToBookmark, bookmarkParser);
 	}
 
 	public void setLogWindowPositionAndSize( JFrame jFrame )
@@ -221,11 +221,11 @@ public class MoBIEViewer
 	{
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		final int numModalities = actionPanel.getSortedModalities().size();
+		final int numModalities = userInterfaceProvider.getSortedModalities().size();
 		final int actionPanelHeight = ( numModalities + 7 ) * 40;
 		splitPane.setDividerLocation( actionPanelHeight );
-		splitPane.setTopComponent( actionPanel );
-		splitPane.setBottomComponent( sourcesPanel );
+		splitPane.setTopComponent( userInterfaceProvider );
+		splitPane.setBottomComponent( sourcesManager );
 		splitPane.setAutoscrolls( true );
 		frameWidth = 600;
 		frame.setPreferredSize( new Dimension( frameWidth, actionPanelHeight + 200 ) );
@@ -237,20 +237,20 @@ public class MoBIEViewer
 		frame.setVisible( true );
 	}
 
-	public SourcesPanel getSourcesPanel()
+	public SourcesManager getSourcesManager()
 	{
-		return sourcesPanel;
+		return sourcesManager;
 	}
 
-	public ActionPanel getActionPanel()
+	public UserInterfaceProvider getUserInterfaceProvider()
 	{
-		return actionPanel;
+		return userInterfaceProvider;
 	}
 
 	public void close()
 	{
-		sourcesPanel.removeAllSourcesFromPanelAndViewers();
-		sourcesPanel.getBdv().close();
+		sourcesManager.removeAllSourcesFromPanelAndViewers();
+		sourcesManager.getBdv().close();
 		jFrame.dispose();
 	}
 }

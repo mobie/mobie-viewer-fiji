@@ -9,7 +9,7 @@ import de.embl.cba.mobie.bookmark.write.BookmarkWriter;
 import de.embl.cba.mobie.bookmark.write.NameAndFileLocation;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.MutableImageProperties;
-import de.embl.cba.mobie.ui.viewer.SourcesPanel;
+import de.embl.cba.mobie.ui.viewer.SourcesManager;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileUtils.FileLocation;
@@ -23,16 +23,16 @@ import java.util.*;
 
 public class BookmarkManager
 {
-	private final SourcesPanel sourcesPanel;
+	private final SourcesManager sourcesManager;
 	private Map< String, Bookmark > nameToBookmark;
 	private final BookmarkReader bookmarkReader;
 	private JComboBox<String> bookmarkDropDown;
 	private final String datasetLocation;
 
-	public BookmarkManager( SourcesPanel sourcesPanel, Map< String, Bookmark > nameToBookmark,
+	public BookmarkManager( SourcesManager sourcesManager, Map< String, Bookmark > nameToBookmark,
 							BookmarkReader bookmarkReader )
 	{
-		this.sourcesPanel = sourcesPanel;
+		this.sourcesManager = sourcesManager;
 		this.nameToBookmark = nameToBookmark;
 		this.bookmarkReader = bookmarkReader;
 		this.datasetLocation = bookmarkReader.getDatasetLocation();
@@ -48,7 +48,7 @@ public class BookmarkManager
 
 		if ( bookmark.layers != null && bookmark.layers.size() > 0 )
 		{
-			sourcesPanel.removeAllSourcesFromPanelAndViewers();
+			sourcesManager.removeAllSourcesFromPanelAndViewers();
 			addSourcesToPanelAndViewer( bookmark );
 		}
 
@@ -76,7 +76,7 @@ public class BookmarkManager
 
 		for ( SourceAndMetadata< ? > sam : sourceNameToSourceAndMetadata.values() )
 		{
-			sourcesPanel.addSourceToPanelAndViewer( sam );
+			sourcesManager.addSourceToPanelAndViewer( sam );
 		}
 	}
 
@@ -128,14 +128,14 @@ public class BookmarkManager
 		final HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata = new HashMap<>();
 		for ( String sourceName : bookmark.layers.keySet() )
 		{
-			if ( sourcesPanel.getVisibleSourceNames().contains( sourceName ) )
+			if ( sourcesManager.getVisibleSourceNames().contains( sourceName ) )
 				continue;
 
 			final Source< ? > source
-					= sourcesPanel.getSourceAndDefaultMetadata( sourceName ).source();
+					= sourcesManager.getSourceAndDefaultMetadata( sourceName ).source();
 
 			final Metadata metadata
-					= sourcesPanel.getSourceAndDefaultMetadata( sourceName ).metadata().copy();
+					= sourcesManager.getSourceAndDefaultMetadata( sourceName ).metadata().copy();
 
 			final MutableImageProperties mutableImageProperties
 					= bookmark.layers.get( sourceName );
@@ -164,7 +164,7 @@ public class BookmarkManager
 
 		if ( location != null )
 		{
-			BdvViewChanger.moveToLocation( sourcesPanel.getBdv(), location );
+			BdvViewChanger.moveToLocation( sourcesManager.getBdv(), location );
 		}
 	}
 
@@ -199,15 +199,15 @@ public class BookmarkManager
 
 	public Bookmark createBookmarkFromCurrentSettings(String bookmarkName) {
 		HashMap< String, MutableImageProperties > layers = new HashMap<>();
-		Set<String> visibleSourceNames = sourcesPanel.getVisibleSourceNames();
+		Set<String> visibleSourceNames = sourcesManager.getVisibleSourceNames();
 
 		for (String sourceName : visibleSourceNames) {
-			sourcesPanel.updateCurrentMetadata( sourceName );
+			sourcesManager.updateCurrentMetadata( sourceName );
 			MutableImageProperties imageProperties = getMutableImagePropertiesFromCurrentMetadata(sourceName);
 			layers.put(sourceName, imageProperties);
 		}
 
-		BdvHandle bdv = sourcesPanel.getBdv();
+		BdvHandle bdv = sourcesManager.getBdv();
 		Bookmark currentBookmark = new Bookmark();
 		currentBookmark.name = bookmarkName;
 		currentBookmark.layers = layers;
@@ -222,7 +222,7 @@ public class BookmarkManager
 
 	private MutableImageProperties getMutableImagePropertiesFromCurrentMetadata( String sourceName )
 	{
-		Metadata metadata = sourcesPanel.getSourceAndCurrentMetadata( sourceName ).metadata();
+		Metadata metadata = sourcesManager.getSourceAndCurrentMetadata( sourceName ).metadata();
 
 		MutableImageProperties imageProperties = new MutableImageProperties();
 		final ImagePropertiesToMetadataAdapter adapter = new ImagePropertiesToMetadataAdapter();

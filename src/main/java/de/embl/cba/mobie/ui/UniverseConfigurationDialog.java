@@ -1,19 +1,17 @@
 package de.embl.cba.mobie.ui;
 
-import de.embl.cba.mobie.ui.viewer.SourcesPanel;
-import de.embl.cba.tables.image.SourceAndMetadata;
+import de.embl.cba.mobie.ui.viewer.SourcesManager;
 import ij.gui.NonBlockingGenericDialog;
 
 import java.util.ArrayList;
-import java.util.Set;
 
 public class UniverseConfigurationDialog
 {
-	private final SourcesPanel sourcesPanel;
+	private final SourcesManager sourcesManager;
 
-	public UniverseConfigurationDialog( SourcesPanel sourcesPanel )
+	public UniverseConfigurationDialog( SourcesManager sourcesManager )
 	{
-		this.sourcesPanel = sourcesPanel;
+		this.sourcesManager = sourcesManager;
 	}
 
 	public void showDialog()
@@ -21,13 +19,13 @@ public class UniverseConfigurationDialog
 		new Thread( () -> {
 			final NonBlockingGenericDialog gd = new NonBlockingGenericDialog( "3D View Preferences" );
 
-			ArrayList< String > sourceNames = new ArrayList< String >( sourcesPanel.getVisibleSourceNames() );
+			ArrayList< String > sourceNames = new ArrayList< String >( sourcesManager.getVisibleSourceNames() );
 			gd.addMessage( "Resolution for 3D view [micrometer]" );
 			gd.addMessage( "Put 0 for an automated resolution choice." );
 
 			for ( String sourceName : sourceNames )
 			{
-				gd.addNumericField( sourceName,  sourcesPanel.getSourceAndCurrentMetadata( sourceName ).metadata().resolution3dView, 2 );
+				gd.addNumericField( sourceName,  sourcesManager.getSourceAndCurrentMetadata( sourceName ).metadata().resolution3dView, 2 );
 			}
 
 			gd.showDialog();
@@ -35,7 +33,7 @@ public class UniverseConfigurationDialog
 
 			for ( String sourceName : sourceNames )
 			{
-				sourcesPanel.setVoxelSpacing3DView( sourceName, gd.getNextNumber() );
+				sourcesManager.setVoxelSpacing3DView( sourceName, gd.getNextNumber() );
 			}
 		} ).start();
 	}

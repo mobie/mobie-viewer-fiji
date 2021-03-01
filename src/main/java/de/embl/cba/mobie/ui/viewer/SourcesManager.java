@@ -43,7 +43,7 @@ import java.util.*;
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
 import static de.embl.cba.mobie.utils.Utils.createRandom;
 
-public class SourcesPanel extends JPanel
+public class SourcesManager extends JPanel
 {
     private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelViews;
     private Map< String, JPanel > sourceNameToPanel;
@@ -54,7 +54,7 @@ public class SourcesPanel extends JPanel
     private Image3DUniverse universe;
     private int meshSmoothingIterations = 5; // TODO: Why is this here?
 
-    public SourcesPanel( SourcesModel sourcesModel, String projectName )
+    public SourcesManager( SourcesModel sourcesModel, String projectName )
     {
         this.sourcesModel = sourcesModel;
         this.projectName = projectName;
@@ -65,13 +65,13 @@ public class SourcesPanel extends JPanel
         configPanel();
     }
 
-    public static void updateSource3dView( SourceAndMetadata< ? > sam, SourcesPanel sourcesPanel, boolean forceRepaint )
+    public static void updateSource3dView( SourceAndMetadata< ? > sam, SourcesManager sourcesManager, boolean forceRepaint )
     {
         if ( sam.metadata().type.equals( Metadata.Type.Segmentation ) ) return;
 
         if ( sam.metadata().showImageIn3d )
         {
-            sourcesPanel.showSourceInVolumeViewer( sam, forceRepaint );
+            sourcesManager.showSourceInVolumeViewer( sam, forceRepaint );
         }
         else
         {
@@ -80,7 +80,7 @@ public class SourcesPanel extends JPanel
         }
     }
 
-    public static void updateSegments3dView( SourceAndMetadata< ? > sam, SourcesPanel sourcesPanel )
+    public static void updateSegments3dView( SourceAndMetadata< ? > sam, SourcesManager sourcesManager )
     {
         if ( sam.metadata().views != null )
         {
@@ -88,7 +88,7 @@ public class SourcesPanel extends JPanel
             segments3dView.setVoxelSpacing( sam.metadata().resolution3dView );
             segments3dView.showSelectedSegments( sam.metadata().showSelectedSegmentsIn3d, false );
 
-            if ( sam.metadata().showSelectedSegmentsIn3d ) sourcesPanel.setUniverse( segments3dView.getUniverse() );
+            if ( sam.metadata().showSelectedSegmentsIn3d ) sourcesManager.setUniverse( segments3dView.getUniverse() );
         }
     }
 

@@ -3,22 +3,17 @@ package de.embl.cba.mobie.ui.viewer;
 import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
-import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.bookmark.Location;
-import de.embl.cba.mobie.bookmark.LocationType;
 import de.embl.cba.mobie.platybrowser.GeneSearch;
 import de.embl.cba.mobie.platybrowser.GeneSearchResults;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
-import de.embl.cba.mobie.ui.UniverseConfigurationDialog;
 import de.embl.cba.mobie.utils.Utils;
-import de.embl.cba.mobie.utils.ui.BdvTextOverlay;
 import de.embl.cba.tables.SwingUtils;
 import ij3d.Image3DUniverse;
 import org.scijava.java3d.Transform3D;
 import org.scijava.ui.behaviour.ClickBehaviour;
-import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
 import javax.swing.*;
@@ -28,18 +23,16 @@ import java.util.*;
 
 import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 
-public class ActionPanel extends JPanel
+public class UserInterfaceProvider extends JPanel
 {
-
 	public static final String BUTTON_LABEL_VIEW = "view";
 	public static final String BUTTON_LABEL_MOVE = "move";
 	public static final String BUTTON_LABEL_HELP = "show";
 	public static final String BUTTON_LABEL_SWITCH = "switch";
 	public static final String BUTTON_LABEL_LEVEL = "level";
 	public static final String BUTTON_LABEL_ADD = "add";
-	public static final String RESTORE_DEFAULT_VIEW_TRIGGER = "ctrl R";
 
-	private final SourcesPanel sourcesPanel;
+	private final SourcesManager sourcesManager;
 	private BdvHandle bdv;
 	private final MoBIEViewer moBIEViewer;
 	private final ArrayList< String > datasets;
@@ -48,15 +41,15 @@ public class ActionPanel extends JPanel
 
 	private double[] levelingVector;
 	private double[] targetNormalVector;
-	private double geneSearchRadiusInMicrometer;
 	private HashMap< String, String > selectionNameAndModalityToSourceName;
 	private ArrayList< String > sortedModalities;
 	private final String projectLocation;
+	private JPanel sourcesSelectionPanel;
 
-	public ActionPanel( MoBIEViewer moBIEViewer )
+	public UserInterfaceProvider( MoBIEViewer moBIEViewer )
 	{
 		this.moBIEViewer = moBIEViewer;
-		this.sourcesPanel = moBIEViewer.getSourcesPanel();
+		this.sourcesManager = moBIEViewer.getSourcesManager();
 		this.datasets = moBIEViewer.getDatasets();
 		this.bookmarkManager = moBIEViewer.getBookmarkManager();
 		this.levelingVector = moBIEViewer.getLevelingVector();
@@ -66,7 +59,9 @@ public class ActionPanel extends JPanel
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addDatasetSelectionUI( this );
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		addSourceSelectionUI( this );
+
+		createSourceSelectionPanel();
+
 		this.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		bookmarkManager.setBookmarkDropDown( addBookmarksUI( this  ) );
 		addMoveToLocationUI( this );
@@ -74,111 +69,19 @@ public class ActionPanel extends JPanel
 		configPanel();
 	}
 
-	public void setBdvAndInstallBehavioursAndPopupMenu( BdvHandle bdv )
+	public void addUserInterfaceToBDV( BdvHandle bdv )
 	{
 		this.bdv = bdv;
-		installBdvBehavioursAndPopupMenu();
+		installBdvBehavioursAndPopupMenu( bdv, bookmarkManager, projectLocation );
+
+		bdv.getCardPanel().addCard( "MoBIE Sources", sourcesSelectionPanel, true, new Insets( 4, 4, 0, 0 ) );
 	}
 
-	public double getGeneSearchRadiusInMicrometer()
-	{
-		return geneSearchRadiusInMicrometer;
-	}
 
-	public void setGeneSearchRadiusInMicrometer( double geneSearchRadiusInMicrometer )
-	{
-		this.geneSearchRadiusInMicrometer = geneSearchRadiusInMicrometer;
-	}
-
-	private void installBdvBehavioursAndPopupMenu()
-	{
-		BdvPopupMenus.addScreenshotAction( bdv );
-
-		BdvPopupMenus.addAction( bdv, "Log Current Location",
-				() -> {
-					new Thread( () -> {
-						Logger.log( "\nPosition:\n" + BdvUtils.getGlobalMousePositionString( bdv ) );
-						Logger.log( "View:\n" + BdvUtils.getBdvViewerTransformString( bdv ) );
-						Logger.log( "Normalised view:\n" + Utils.createNormalisedViewerTransformString( bdv, Utils.getMousePosition( bdv ) ) );
-					} ).start();
-				});
-
-		BdvPopupMenus.addAction(bdv, "Load Additional Bookmarks",
-				() -> {
-					new Thread( () -> {
-						SwingUtilities.invokeLater( () -> bookmarkManager.loadAdditionalBookmarks() );
-					} ).start();
-				});
-
-		BdvPopupMenus.addAction(bdv, "Save Current Settings As Bookmark",
-				() -> {
-					new Thread( () -> {
-						SwingUtilities.invokeLater( () -> bookmarkManager.saveCurrentSettingsAsBookmark() );
-						} ).start();
-				});
-
-		BdvPopupMenus.addAction( bdv, "Restore Default View" + BdvUtils.getShortCutString( RESTORE_DEFAULT_VIEW_TRIGGER ) ,
-				() -> {
-					new Thread( () -> {
-						restoreDefaultView();
-					} ).start();
-
-				});
-
-		BdvPopupMenus.addAction( bdv, "Configure 3D View...",
-				() -> {
-					new Thread( () -> {
-						new UniverseConfigurationDialog( sourcesPanel ).showDialog();
-					} ).start();
-				});
-
-
-		if ( projectLocation.contains( "platybrowser" ) )
-		{
-			BdvPopupMenus.addAction( bdv, "Search Genes...", ( x, y ) ->
-			{
-				double[] micrometerPosition = new double[ 3 ];
-				BdvUtils.getGlobalMouseCoordinates( bdv ).localize( micrometerPosition );
-
-				final BdvTextOverlay bdvTextOverlay
-						= new BdvTextOverlay( bdv,
-						"Searching expressed genes; please wait...", micrometerPosition );
-
-				new Thread( () ->
-				{
-					searchGenes( micrometerPosition, geneSearchRadiusInMicrometer );
-					bdvTextOverlay.setText( "" );
-				}
-				).start();
-			} );
-		}
-
-		behaviours = new Behaviours( new InputTriggerConfig() );
-		behaviours.install( bdv.getTriggerbindings(), "behaviours" );
-
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-			(new Thread( () -> {
-				restoreDefaultView();
-			} )).start();
-		}, "Toggle point overlays", RESTORE_DEFAULT_VIEW_TRIGGER ) ;
-
-		//addLocalGeneSearchBehaviour();
-		//BdvBehaviours.addPositionAndViewLoggingBehaviour( bdv, behaviours, "P" );
-		//BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "C", false );
-		//BdvBehaviours.addViewCaptureBehaviour( bdv, behaviours, "shift C", true );
-	}
-
-	private void restoreDefaultView()
-	{
-		final Location location = new Location( LocationType.NormalisedViewerTransform, moBIEViewer.getDefaultNormalisedViewerTransform().getRowPackedCopy() );
-		BdvViewChanger.moveToLocation( bdv, location );
-	}
 
 	private void configPanel()
 	{
 		this.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
-		//this.revalidate();
-		//this.repaint();
 	}
 
 	private void addPointOverlayTogglingBehaviour(  )
@@ -233,36 +136,13 @@ public class ActionPanel extends JPanel
 //		return resolutionComboBox;
 //	}
 
-	private void addLocalGeneSearchBehaviour()
-	{
-		geneSearchRadiusInMicrometer = 3;
-
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) ->
-		{
-			double[] micrometerPosition = new double[ 3 ];
-			BdvUtils.getGlobalMouseCoordinates( bdv ).localize( micrometerPosition );
-
-			final BdvTextOverlay bdvTextOverlay
-					= new BdvTextOverlay( bdv,
-					"Searching expressed genes; please wait...", micrometerPosition );
-
-			new Thread( () ->
-			{
-				searchGenes( micrometerPosition, geneSearchRadiusInMicrometer );
-				bdvTextOverlay.setText( "" );
-			}
-			).start();
-
-		}, "discover genes", "D" );
-
-	}
-
+	// TODO: move to gene search
 	public void searchGenes( double[] micrometerPosition, double micrometerRadius )
 	{
 		GeneSearch geneSearch = new GeneSearch(
 				micrometerRadius,
 				micrometerPosition,
-				sourcesPanel.getSourcesModel() );
+				sourcesManager.getSourcesModel() );
 
 		final Map< String, Double > geneExpressionLevels = geneSearch.runSearchAndGetLocalExpression();
 
@@ -297,7 +177,7 @@ public class ActionPanel extends JPanel
 	// TODO: refactor to UniverseUtils
 	public void setVolumeView( HashMap<String, String> transforms)
 	{
-		final Image3DUniverse universe = sourcesPanel.getUniverse();
+		final Image3DUniverse universe = sourcesManager.getUniverse();
 
 		String tmp;
 		// Set up new Content
@@ -331,7 +211,7 @@ public class ActionPanel extends JPanel
 
 	String getVolumeViewerTransform()
 	{
-		final Image3DUniverse universe = sourcesPanel.getUniverse();
+		final Image3DUniverse universe = sourcesManager.getUniverse();
 
 		if ( universe == null ) return "";
 
@@ -375,18 +255,18 @@ public class ActionPanel extends JPanel
 //		return appropriateLevel;
 //	}
 
-	private void addSourceSelectionUI( JPanel panel )
+	private void createSourceSelectionPanel( )
 	{
 		selectionNameAndModalityToSourceName = new HashMap<>();
 		HashMap< String, ArrayList< String > > modalityToSelectionNames = new HashMap<>();
 
-		for ( String sourceName : sourcesPanel.getSourceNames() )
+		for ( String sourceName : sourcesManager.getSourceNames() )
 		{
 			String modality = sourceName.split( "-" )[ 0 ];
 
 			String selectionName = sourceName.replace( modality + "-", "" );
 
-			final Metadata metadata = sourcesPanel.getSourceAndDefaultMetadata( sourceName ).metadata();
+			final Metadata metadata = sourcesManager.getSourceAndDefaultMetadata( sourceName ).metadata();
 
 			if ( metadata.type.equals( Metadata.Type.Segmentation ) )
 			{
@@ -411,12 +291,14 @@ public class ActionPanel extends JPanel
 
 		sortedModalities = Utils.getSortedList( modalityToSelectionNames.keySet() );
 
+		sourcesSelectionPanel = new JPanel( new BorderLayout() );
+		sourcesSelectionPanel.setLayout( new BoxLayout( sourcesSelectionPanel, BoxLayout.Y_AXIS ) );
 		for ( String modality : sortedModalities )
 		{
 			final String[] names = Utils.getSortedList( modalityToSelectionNames.get( modality ) ).toArray( new String[ 0 ] );
 			final JComboBox< String > comboBox = new JComboBox<>( names );
 			setComboBoxDimensions( comboBox );
-			addSourceSelectionComboBoxAndButton( panel, comboBox, modality );
+			addSourceSelectionComboBoxAndButton( sourcesSelectionPanel, comboBox, modality );
 		}
 	}
 
@@ -448,7 +330,7 @@ public class ActionPanel extends JPanel
 				final String selectedSource = ( String ) comboBox.getSelectedItem();
 				final String sourceName = selectionNameAndModalityToSourceName.get( selectedSource + "-" + modality );
 
-				sourcesPanel.addSourceToPanelAndViewer( sourceName );
+				sourcesManager.addSourceToPanelAndViewer( sourceName );
 			} );
 		} );
 
@@ -563,7 +445,7 @@ public class ActionPanel extends JPanel
 
 	private ImageIcon getMobieIcon( int size )
 	{
-		final URL resource = ActionPanel.class.getResource( "/mobie.jpeg" );
+		final URL resource = UserInterfaceProvider.class.getResource( "/mobie.jpeg" );
 		final ImageIcon imageIcon = new ImageIcon( resource );
 		final Image scaledInstance = imageIcon.getImage().getScaledInstance( size, size, Image.SCALE_SMOOTH );
 		return new ImageIcon( scaledInstance );
@@ -612,5 +494,4 @@ public class ActionPanel extends JPanel
 	{
 		BdvViewChanger.moveToLocation( bdv, new Location( view ) );
 	}
-
 }
