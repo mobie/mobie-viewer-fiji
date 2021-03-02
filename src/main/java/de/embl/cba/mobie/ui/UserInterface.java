@@ -28,13 +28,11 @@ public class UserInterface implements SourceAndMetadataChangedListener
 
 		componentsProvider = new UserInterfaceComponentsProvider( moBIE );
 
-		final BdvHandle bdv = displayManager.getBdv();
-		actionPanel = createActionsPanel( moBIE, bdv );
+		actionPanel = createActionsPanel( moBIE );
 		displaySettingsPanel = createDisplaySettingsPanel();
 
 		frame = createAndShowFrame( moBIE, actionPanel, displaySettingsPanel );
 		setImageJLogWindowPositionAndSize( frame );
-		setBdvWindowPositionAndSize( bdv, frame );
 	}
 
 	public void dispose()
@@ -53,7 +51,7 @@ public class UserInterface implements SourceAndMetadataChangedListener
 		return panel;
 	}
 
-	private JPanel createActionsPanel( MoBIE moBIE, BdvHandle bdv )
+	private JPanel createActionsPanel( MoBIE moBIE )
 	{
 		final JPanel actionPanel = new JPanel();
 		actionPanel.setLayout( new BoxLayout( actionPanel, BoxLayout.Y_AXIS ) );
@@ -68,11 +66,11 @@ public class UserInterface implements SourceAndMetadataChangedListener
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 
 		actionPanel.add( componentsProvider.createBookmarksPanel( moBIE.getBookmarkManager() )  );
-		actionPanel.add( componentsProvider.createMoveToLocationPanel( bdv )  );
+		actionPanel.add( componentsProvider.createMoveToLocationPanel( )  );
 
 		if ( moBIE.getLevelingVector() != null )
 		{
-			actionPanel.add( componentsProvider.createLevelingPanel( bdv, moBIE.getLevelingVector() ) );
+			actionPanel.add( componentsProvider.createLevelingPanel( moBIE.getLevelingVector() ) );
 		}
 		return actionPanel;
 	}
@@ -84,16 +82,15 @@ public class UserInterface implements SourceAndMetadataChangedListener
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
 		final int sourceSelectionPanelHeight = componentsProvider.getSourceSelectionPanelHeight();
-		final int actionPanelHeight = sourceSelectionPanelHeight + 3 * 40;
+		final int actionPanelHeight = sourceSelectionPanelHeight + 7 * 40;
 
 		splitPane.setDividerLocation( actionPanelHeight );
 		splitPane.setTopComponent( actionPanel );
 		splitPane.setBottomComponent( displaySettingsPanel );
 		splitPane.setAutoscrolls( true );
-		int frameWidth = 600;
 
 		// show frame
-		frame.setPreferredSize( new Dimension( frameWidth, actionPanelHeight + 200 ) );
+		frame.setPreferredSize( new Dimension( 600, actionPanelHeight + 200 ) );
 		frame.getContentPane().setLayout( new GridLayout() );
 		frame.getContentPane().add( splitPane );
 
@@ -115,13 +112,13 @@ public class UserInterface implements SourceAndMetadataChangedListener
 		}
 	}
 
-	private void setBdvWindowPositionAndSize( BdvHandle bdvHandle, JFrame parentComponent )
+	public void setBdvWindowPositionAndSize( BdvHandle bdvHandle )
 	{
 		BdvUtils.getViewerFrame( bdvHandle ).setLocation(
-				parentComponent.getLocationOnScreen().x + parentComponent.getWidth(),
-				parentComponent.getLocationOnScreen().y );
+				frame.getLocationOnScreen().x + frame.getWidth(),
+				frame.getLocationOnScreen().y );
 
-		BdvUtils.getViewerFrame( bdvHandle ).setSize( parentComponent.getHeight(), parentComponent.getHeight() );
+		BdvUtils.getViewerFrame( bdvHandle ).setSize( frame.getHeight(), frame.getHeight() );
 
 		bdvHandle.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
 	}

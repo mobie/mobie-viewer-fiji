@@ -35,7 +35,7 @@ public class UserInterfaceComponentsProvider
 	public static final String BUTTON_LABEL_LEVEL = "level";
 	public static final String BUTTON_LABEL_ADD = "add";
 
-	private final SourcesDisplayManager sourcesDisplayManager;
+	private final SourcesDisplayManager displayManager;
 	private final MoBIE moBIE;
 	private final ArrayList< String > datasets;
 	private ArrayList< String > sortedModalities;
@@ -44,7 +44,7 @@ public class UserInterfaceComponentsProvider
 	public UserInterfaceComponentsProvider( MoBIE moBIE )
 	{
 		this.moBIE = moBIE;
-		this.sourcesDisplayManager = moBIE.getSourcesDisplayManager();
+		this.displayManager = moBIE.getSourcesDisplayManager();
 		this.datasets = moBIE.getDatasets();
 	}
 
@@ -122,7 +122,7 @@ public class UserInterfaceComponentsProvider
 			{
 				final String selectedSource = ( String ) comboBox.getSelectedItem();
 				final String sourceName = selectionNameAndModalityToSourceName.get( selectedSource + "-" + modality );
-				sourcesDisplayManager.show( sourceName );
+				displayManager.show( sourceName );
 			} );
 		} );
 
@@ -135,7 +135,7 @@ public class UserInterfaceComponentsProvider
 		return horizontalLayoutPanel;
 	}
 
-	public JPanel createLevelingPanel( BdvHandle bdvHandle, double[] levelingVector )
+	public JPanel createLevelingPanel( double[] levelingVector )
 	{
 		final double[] targetNormalVector = Arrays.copyOf( levelingVector, 3 );
 
@@ -161,7 +161,7 @@ public class UserInterfaceComponentsProvider
 //			Utils.logVector( "New reference normal vector (default): ", levelingVector );
 //		} );
 
-		button.addActionListener( e -> BdvUtils.levelCurrentView( bdvHandle, targetNormalVector ) );
+		button.addActionListener( e -> BdvUtils.levelCurrentView( displayManager.getBdv(), targetNormalVector ) );
 
 		return horizontalLayoutPanel;
 	}
@@ -183,7 +183,7 @@ public class UserInterfaceComponentsProvider
 		return horizontalLayoutPanel;
 	}
 
-	public JPanel createMoveToLocationPanel( BdvHandle bdv )
+	public JPanel createMoveToLocationPanel( )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
@@ -192,7 +192,7 @@ public class UserInterfaceComponentsProvider
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		button.addActionListener( e -> BdvViewChanger.moveToLocation( bdv, new Location( jTextField.getText() ) ) );
+		button.addActionListener( e -> BdvViewChanger.moveToLocation( displayManager.getBdv(), new Location( jTextField.getText() ) ) );
 
 		horizontalLayoutPanel.add( getJLabel( "location" ) );
 		horizontalLayoutPanel.add( jTextField );

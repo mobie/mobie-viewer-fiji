@@ -399,7 +399,6 @@ public class SourcesDisplayManager extends JPanel
         Logger.log( "Adding source: " + sourceName + "..." );
         sourceNameToSourceAndCurrentMetadata.put( sourceName, sam );
 
-
         Prefs.showScaleBar( true );
         Prefs.showMultibox( false );
 
@@ -426,6 +425,11 @@ public class SourcesDisplayManager extends JPanel
         }
 
         adjustSourceTransform( sam );
+
+        for ( SourceAndMetadataChangedListener listener : listeners )
+        {
+            listener.addedToBDV( sam );
+        }
     }
 
     private void adjustSourceTransform( SourceAndMetadata< ? > sam )
@@ -690,7 +694,6 @@ public class SourcesDisplayManager extends JPanel
         updateSegments3dView( sam, this );
         updateSource3dView( sam, this, false );
 
-        removeSourceFromPanel( sam.metadata().displayName );
 		removeLabelViews( sam.metadata().displayName );
 		sourceNameToSourceAndCurrentMetadata.remove( sam.metadata().displayName );
 

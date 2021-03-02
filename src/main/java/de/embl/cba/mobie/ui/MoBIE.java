@@ -73,15 +73,15 @@ public class MoBIE
 		bookmarkManager = fetchBookmarks( projectLocation );
 		levelingVector = fetchLeveling( imagesLocation );
 
-		// show default bookmark
-		// (this will also initialise the bdv in the sourcesDisplayManager)
-		bookmarkManager.setView( "default" );
-		final BdvHandle bdvHandle = sourcesDisplayManager.getBdv();
-		defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( bdvHandle, BdvUtils.getBdvWindowCenter( bdvHandle ) );
-
-		// show main UI
 		SwingUtilities.invokeLater( () -> {
+			// show main UI
 			userInterface = new UserInterface( this );
+			// show default bookmark
+			// (this will also initialise the bdv in the sourcesDisplayManager)
+			bookmarkManager.setView( "default" );
+			final BdvHandle bdvHandle = sourcesDisplayManager.getBdv();
+			userInterface.setBdvWindowPositionAndSize( bdvHandle );
+			defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( bdvHandle, BdvUtils.getBdvWindowCenter( bdvHandle ) );
 		} );
 	}
 

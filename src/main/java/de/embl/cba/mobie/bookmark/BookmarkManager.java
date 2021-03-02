@@ -76,7 +76,7 @@ public class BookmarkManager
 
 		for ( SourceAndMetadata< ? > sam : sourceNameToSourceAndMetadata.values() )
 		{
-			sourcesDisplayManager.addSourceToViewer( sam );
+			sourcesDisplayManager.show( sam );
 		}
 	}
 
