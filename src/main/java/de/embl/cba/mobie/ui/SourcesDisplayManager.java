@@ -482,16 +482,7 @@ public class SourcesDisplayManager extends JPanel
         }
     }
 
-    public void setBdvWindowPositionAndSize( Component component )
-    {
-        BdvUtils.getViewerFrame( bdv ).setLocation(
-                component.getLocationOnScreen().x + component.getWidth(),
-                component.getLocationOnScreen().y );
 
-        BdvUtils.getViewerFrame( bdv ).setSize( component.getHeight(), component.getHeight() );
-
-        bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
-    }
 
     private void showIntensitySource( SourceAndMetadata< ? > sam )
     {

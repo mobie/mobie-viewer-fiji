@@ -1,5 +1,6 @@
 package de.embl.cba.mobie.ui;
 
+import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
@@ -30,22 +31,20 @@ public class UserInterfacePanelsProvider
 	private final SourcesDisplayManager sourcesDisplayManager;
 	private final MoBIE moBIE;
 	private final ArrayList< String > datasets;
-	private final BookmarkManager bookmarkManager;
-
-	private HashMap< String, String > selectionNameAndModalityToSourceName;
 	private ArrayList< String > sortedModalities;
+	private int sourceSelectionPanelHeight;
 
 	public UserInterfacePanelsProvider( MoBIE moBIE )
 	{
 		this.moBIE = moBIE;
 		this.sourcesDisplayManager = moBIE.getSourcesDisplayManager();
 		this.datasets = moBIE.getDatasets();
-		this.bookmarkManager = moBIE.getBookmarkManager();
 	}
 
-	public JPanel createSourceSelectionPanel()
+	// TODO: too complex, make own source selection class
+	public JPanel createSourceSelectionPanel( SourcesDisplayManager sourcesDisplayManager )
 	{
-		selectionNameAndModalityToSourceName = new HashMap<>();
+		HashMap< String, String > selectionNameAndModalityToSourceName = new HashMap<>();
 		HashMap< String, ArrayList< String > > modalityToSelectionNames = new HashMap<>();
 
 		for ( String sourceName : sourcesDisplayManager.getSourceNames() )
@@ -86,18 +85,21 @@ public class UserInterfacePanelsProvider
 			final String[] names = Utils.getSortedList( modalityToSelectionNames.get( modality ) ).toArray( new String[ 0 ] );
 			final JComboBox< String > comboBox = new JComboBox<>( names );
 			setComboBoxDimensions( comboBox );
-			addSourceSelectionComboBoxAndButton( sourcesSelectionPanel, comboBox, modality );
+			addSourceSelectionComboBoxAndButton( selectionNameAndModalityToSourceName, sourcesSelectionPanel, comboBox, modality );
 		}
+
+		sourceSelectionPanelHeight = sortedModalities.size() * 40;
 
 		return sourcesSelectionPanel;
 	}
 
-	public ArrayList< String > getSortedModalities()
+	public int getSourceSelectionPanelHeight()
 	{
-		return sortedModalities;
+		return sourceSelectionPanelHeight;
 	}
 
 	private void addSourceSelectionComboBoxAndButton(
+			HashMap< String, String > selectionNameAndModalityToSourceName,
 			final JPanel panel,
 			final JComboBox comboBox,
 			final String modality )
@@ -126,7 +128,7 @@ public class UserInterfacePanelsProvider
 		panel.add( horizontalLayoutPanel );
 	}
 
-	public JPanel createLevelingPanel( double[] levelingVector )
+	public JPanel createLevelingPanel( BdvHandle bdvHandle, double[] levelingVector )
 	{
 		final double[] targetNormalVector = Arrays.copyOf( levelingVector, 3 );
 
@@ -152,12 +154,12 @@ public class UserInterfacePanelsProvider
 //			Utils.logVector( "New reference normal vector (default): ", levelingVector );
 //		} );
 
-		button.addActionListener( e -> BdvUtils.levelCurrentView( bdv, targetNormalVector ) );
+		button.addActionListener( e -> BdvUtils.levelCurrentView( bdvHandle, targetNormalVector ) );
 
 		return horizontalLayoutPanel;
 	}
 
-	public JPanel createBookmarksPanel( )
+	public JPanel createBookmarksPanel( final BookmarkManager bookmarkManager )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 		final JButton button = getButton( BUTTON_LABEL_VIEW );
@@ -174,7 +176,7 @@ public class UserInterfacePanelsProvider
 		return horizontalLayoutPanel;
 	}
 
-	public JPanel createMoveToLocationPanel( )
+	public JPanel createMoveToLocationPanel( BdvHandle bdv )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
@@ -254,12 +256,5 @@ public class UserInterfacePanelsProvider
 		// TODO: make sure the Swing UI sources panel is fully visible before instantiating the new BDV
 		moBIE.close();
 		new MoBIE( moBIE.getProjectLocation(), moBIE.getOptions().dataset( dataset ) );
-	}
-
-	@Deprecated
-	// Use BdvViewChanger directly instead
-	public void setView( String view )
-	{
-		BdvViewChanger.moveToLocation( bdv, new Location( view ) );
 	}
 }

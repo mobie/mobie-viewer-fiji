@@ -1,5 +1,6 @@
 package de.embl.cba.mobie.ui;
 
+import bdv.util.BdvHandle;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
@@ -12,7 +13,6 @@ import de.embl.cba.mobie.bookmark.BookmarkReader;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.mobie.utils.Utils;
-import ij.WindowManager;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import javax.swing.*;
@@ -65,34 +65,29 @@ public class MoBIE
 	{
 		this.projectBaseLocation = projectBaseLocation;
 		this.options = options;
+		projectName = getName( this.projectBaseLocation );
 
-		this.projectName = getName( this.projectBaseLocation );
-
-		configureRootLocations();
-		appendSpecificDatasetLocations();
+		configureDatasetsRootLocations();
+		appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be reinstantiated
 
 		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageModality(), tablesLocation );
 		sourcesDisplayManager = new SourcesDisplayManager( sourcesModel, projectName );
-
 		bookmarkManager = fetchBookmarks( projectLocation );
 		levelingVector = fetchLeveling( imagesLocation );
 
-
-		userInterfacePanelsProvider = new UserInterfacePanelsProvider( this );
-
-		jFrame = new JFrame( "MoBIE: " + projectName + "-" + dataset );
-
-		// open bdv and show default bookmark (this will also initialise the bdv in sourcesPanel)
+		// show default bookmark
+		// (this will also initialise the bdv in the sourcesDisplayManager)
 		bookmarkManager.setView( "default" );
-		userInterfacePanelsProvider.addUserInterfaceToBDV( sourcesDisplayManager.getBdv() );
-		defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( sourcesDisplayManager.getBdv(), BdvUtils.getBdvWindowCenter( sourcesDisplayManager.getBdv() ) );
+		final BdvHandle bdvHandle = sourcesDisplayManager.getBdv();
+		defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( bdvHandle, BdvUtils.getBdvWindowCenter( bdvHandle ) );
 
-		SwingUtilities.invokeLater( () ->
-		{
-			showFrame( jFrame );
-			setLogWindowPositionAndSize( jFrame );
-			sourcesDisplayManager.setBdvWindowPositionAndSize( jFrame );
-		});
+		// show main UI
+		SwingUtilities.invokeLater( () -> new UserInterface( this, getSourcesDisplayManager().getBdv() ) );
+	}
+
+	public String getProjectName()
+	{
+		return projectName;
 	}
 
 	public MoBIEOptions getOptions()
@@ -135,8 +130,6 @@ public class MoBIE
 		return bookmarkManager;
 	}
 
-
-
 	private double[] fetchLeveling( String dataLocation )
 	{
 		final String levelingFile = FileAndUrlUtils.combinePath( dataLocation, "misc/leveling.json" );
@@ -156,7 +149,7 @@ public class MoBIE
 		}
 	}
 
-	public void appendSpecificDatasetLocations()
+	private void appendSpecificDatasetLocations()
 	{
 		this.datasets = new DatasetsParser().fetchProjectDatasets( projectLocation );
 		this.dataset = options.values.getDataset();
@@ -176,7 +169,7 @@ public class MoBIE
 		Utils.log( "Fetching tables from: " + tablesLocation );
 	}
 
-	public void configureRootLocations( )
+	private void configureDatasetsRootLocations( )
 	{
 		this.projectLocation = projectBaseLocation;
 		this.imagesLocation = options.values.getImageDataLocation() != null ? options.values.getImageDataLocation() : projectBaseLocation;
@@ -191,7 +184,7 @@ public class MoBIE
 		tablesLocation = adaptUrl( tablesLocation, options.values.getTableDataBranch() ) + "/data";
 	}
 
-	public String adaptUrl( String url, String projectBranch )
+	private String adaptUrl( String url, String projectBranch )
 	{
 		if ( url.contains( "github.com" ) )
 		{
@@ -209,46 +202,10 @@ public class MoBIE
 		return new BookmarkManager( sourcesDisplayManager, nameToBookmark, bookmarkParser);
 	}
 
-	public void setLogWindowPositionAndSize( JFrame jFrame )
-	{
-		final Frame log = WindowManager.getFrame( "Log" );
-		if (log != null) {
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			final int logWindowHeight = screenSize.height - ( jFrame.getLocationOnScreen().y + jFrame.getHeight() + 20 );
-			log.setSize( jFrame.getWidth(), logWindowHeight  );
-			log.setLocation( jFrame.getLocationOnScreen().x, jFrame.getLocationOnScreen().y + jFrame.getHeight() );
-		}
-	}
-
-	public void showFrame( JFrame frame )
-	{
-		JSplitPane splitPane = new JSplitPane();
-		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		final int numModalities = userInterfacePanelsProvider.getSortedModalities().size();
-		final int actionPanelHeight = ( numModalities + 7 ) * 40;
-		splitPane.setDividerLocation( actionPanelHeight );
-		splitPane.setTopComponent( userInterfacePanelsProvider );
-		splitPane.setBottomComponent( sourcesDisplayManager );
-		splitPane.setAutoscrolls( true );
-		frameWidth = 600;
-		frame.setPreferredSize( new Dimension( frameWidth, actionPanelHeight + 200 ) );
-		frame.getContentPane().setLayout( new GridLayout() );
-		frame.getContentPane().add( splitPane );
-
-		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-		frame.pack();
-		frame.setVisible( true );
-	}
-
 	// TODO: This should be dataset dependent?
 	public SourcesDisplayManager getSourcesDisplayManager()
 	{
 		return sourcesDisplayManager;
-	}
-
-	public UserInterfacePanelsProvider getUserInterfacePanelsProvider()
-	{
-		return userInterfacePanelsProvider;
 	}
 
 	public void close()

@@ -10,8 +10,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
+@Deprecated
 public class SourcesDisplayUI
 {
+	// TODO: move this stuff to the UserInterfacePanelsProvider
 	public static JCheckBox createBigDataViewerVisibilityCheckbox(
 			int[] dims,
 			SourceAndMetadata< ? > sam,
@@ -61,7 +63,6 @@ public class SourcesDisplayUI
 		return checkBox;
 	}
 
-
 	public static JButton createBrightnessButton( int[] buttonDimensions,
 												  SourceAndMetadata< ? > sam,
 												  final double rangeMin,
@@ -87,6 +88,4 @@ public class SourcesDisplayUI
 
 		return button;
 	}
-
-
 }
