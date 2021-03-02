@@ -63,15 +63,10 @@ public class BookmarkManager
 	{
 		final HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata = createSourcesAndMetadata( bookmark );
 
-		if ( sourceNameToSourceAndMetadata.size() == 0 ) return;
-
-		if ( bookmark.layouts != null  )
+		for ( String layoutName : bookmark.layouts.keySet() )
 		{
-			for ( String layoutName : bookmark.layouts.keySet() )
-			{
-				final Layout layout = bookmark.layouts.get( layoutName );
-				adjustSourceTransforms( sourceNameToSourceAndMetadata, layout );
-			}
+			final Layout layout = bookmark.layouts.get( layoutName );
+			adjustSourceTransforms( sourceNameToSourceAndMetadata, layout );
 		}
 
 		for ( SourceAndMetadata< ? > sam : sourceNameToSourceAndMetadata.values() )
