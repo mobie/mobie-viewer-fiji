@@ -385,6 +385,17 @@ public class UserInterfaceComponentsProvider
 		panel.add( volumeVisibilityCheckbox );
 		panel.add( sliceViewVisibilityCheckbox );
 
+		sam.metadata().bdvStackSource.getConverterSetups().get( 0 ).setupChangeListeners().add( setup -> {
+			// color changed listener
+			sam.metadata().color  = setup.getColor().toString();
+			final Color color = ColorUtils.getColor( sam.metadata().color );
+			if ( color != null )
+			{
+				panel.setOpaque( true );
+				panel.setBackground( color );
+			}
+		} );
+
 		return panel;
 	}
 
