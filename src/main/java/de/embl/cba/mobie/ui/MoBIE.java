@@ -29,20 +29,18 @@ public class MoBIE
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 
 	private final SourcesDisplayManager sourcesDisplayManager;
-	private final UserInterfacePanelsProvider userInterfacePanelsProvider;
 	private final SourcesModel sourcesModel;
 	private final MoBIEOptions options;
+	private UserInterface userInterface;
 	private String dataset;
 	private final String projectBaseLocation; // without branch, pure github address
 	private String projectLocation; // with branch, actual url to data
 	private String imagesLocation; // selected dataset
 	private String tablesLocation;
 
-	private int frameWidth;
 	private BookmarkManager bookmarkManager;
 	private Datasets datasets;
 	private final double[] levelingVector;
-	private final JFrame jFrame;
 	private String projectName;
 	private AffineTransform3D defaultNormalisedViewerTransform;
 
@@ -82,7 +80,9 @@ public class MoBIE
 		defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( bdvHandle, BdvUtils.getBdvWindowCenter( bdvHandle ) );
 
 		// show main UI
-		SwingUtilities.invokeLater( () -> new UserInterface( this, getSourcesDisplayManager().getBdv() ) );
+		SwingUtilities.invokeLater( () -> {
+			userInterface = new UserInterface( this );
+		} );
 	}
 
 	public String getProjectName()
@@ -210,8 +210,8 @@ public class MoBIE
 
 	public void close()
 	{
-		sourcesDisplayManager.removeAllSourcesFromPanelAndViewers();
+		sourcesDisplayManager.removeAllSourcesFromViewers();
 		sourcesDisplayManager.getBdv().close();
-		jFrame.dispose();
+		userInterface.dispose();
 	}
 }

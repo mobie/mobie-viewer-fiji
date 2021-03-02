@@ -22,7 +22,7 @@ public class TestPlatyBrowserCells3DView
 
 		final SourcesDisplayManager sourcesDisplayManager = mainFrame.getSourcesDisplayManager();
 
-		sourcesDisplayManager.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-cells-labels" );
+		sourcesDisplayManager.show( "sbem-6dpf-1-whole-segmented-cells-labels" );
 		final SegmentsTableBdvAnd3dViews views = sourcesDisplayManager.getSourceNameToLabelViews().values().iterator().next();
 
 		final SelectionModel< TableRowImageSegment > selectionModel = views.getSelectionModel();

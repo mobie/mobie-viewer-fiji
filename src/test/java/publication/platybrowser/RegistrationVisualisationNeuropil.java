@@ -21,8 +21,8 @@ public class RegistrationVisualisationNeuropil
 
 		final SourcesDisplayManager sourcesDisplayManager = moBIE.getSourcesDisplayManager();
 
-		sourcesDisplayManager.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-segmented-aridane-Neuropil" );
-		sourcesDisplayManager.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-Glt1-MED" );
+		sourcesDisplayManager.show( "prospr-6dpf-1-whole-segmented-aridane-Neuropil" );
+		sourcesDisplayManager.show( "prospr-6dpf-1-whole-Glt1-MED" );
 
 		sourcesDisplayManager.setSourceColor( "prospr-6dpf-1-whole-segmented-aridane-Neuropil", new Color( 255,0,255,255) );
 		sourcesDisplayManager.setSourceColor( "prospr-6dpf-1-whole-Glt1-MED", new Color( 0,255,0,255) );

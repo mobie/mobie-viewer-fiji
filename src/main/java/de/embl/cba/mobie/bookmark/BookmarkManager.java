@@ -48,7 +48,7 @@ public class BookmarkManager
 
 		if ( bookmark.layers != null && bookmark.layers.size() > 0 )
 		{
-			sourcesDisplayManager.removeAllSourcesFromPanelAndViewers();
+			sourcesDisplayManager.removeAllSourcesFromViewers();
 			addSourcesToPanelAndViewer( bookmark );
 		}
 
@@ -76,7 +76,7 @@ public class BookmarkManager
 
 		for ( SourceAndMetadata< ? > sam : sourceNameToSourceAndMetadata.values() )
 		{
-			sourcesDisplayManager.addSourceToPanelAndViewer( sam );
+			sourcesDisplayManager.addSourceToViewer( sam );
 		}
 	}
 

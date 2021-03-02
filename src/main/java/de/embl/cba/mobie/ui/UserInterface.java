@@ -3,63 +3,92 @@ package de.embl.cba.mobie.ui;
 import bdv.util.BdvHandle;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.mobie.image.SourceAndMetadataChangedListener;
+import de.embl.cba.tables.color.ColorUtils;
+import de.embl.cba.tables.image.SourceAndMetadata;
 import ij.WindowManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashMap;
 
-public class UserInterface extends JPanel
+public class UserInterface implements SourceAndMetadataChangedListener
 {
-	private final UserInterfacePanelsProvider panelsProvider;
+	private final UserInterfaceComponentsProvider componentsProvider;
+	private final JPanel displaySettingsPanel;
+	private final SourcesDisplayManager displayManager;
+	private HashMap< SourceAndMetadata< ? >, JPanel > sourceToPanel;
+	private final JFrame frame;
+	private final JPanel actionPanel;
 
-	public UserInterface( MoBIE moBIE, BdvHandle bdv )
+	public UserInterface( MoBIE moBIE )
 	{
-		panelsProvider = new UserInterfacePanelsProvider( moBIE );
+		displayManager = moBIE.getSourcesDisplayManager();
+		displayManager.listeners().add( this );
 
-		final JPanel actionPanel = createActionPanel( moBIE, bdv );
-		// TODO createSourcesDisplaySettingsPanel
+		componentsProvider = new UserInterfaceComponentsProvider( moBIE );
 
-		final JFrame frame = createFrame( moBIE, actionPanel );
+		final BdvHandle bdv = displayManager.getBdv();
+		actionPanel = createActionsPanel( moBIE, bdv );
+		displaySettingsPanel = createDisplaySettingsPanel();
+
+		frame = createAndShowFrame( moBIE, actionPanel, displaySettingsPanel );
 		setImageJLogWindowPositionAndSize( frame );
 		setBdvWindowPositionAndSize( bdv, frame );
 	}
 
-	protected JPanel createActionPanel( MoBIE moBIE, BdvHandle bdv )
+	public void dispose()
+	{
+		frame.dispose();
+	}
+
+	private JPanel createDisplaySettingsPanel()
+	{
+		final JPanel panel = new JPanel();
+		panel.setLayout( new BoxLayout(panel, BoxLayout.Y_AXIS ) );
+		panel.setAlignmentX( Component.LEFT_ALIGNMENT );
+
+		sourceToPanel = new HashMap<>();
+
+		return panel;
+	}
+
+	private JPanel createActionsPanel( MoBIE moBIE, BdvHandle bdv )
 	{
 		final JPanel actionPanel = new JPanel();
-		actionPanel.setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
+		actionPanel.setLayout( new BoxLayout( actionPanel, BoxLayout.Y_AXIS ) );
 
-		actionPanel.add( panelsProvider.createInfoPanel( moBIE.getProjectLocation(), moBIE.getOptions().values.getPublicationURL() ) );
+		actionPanel.add( componentsProvider.createInfoPanel( moBIE.getProjectLocation(), moBIE.getOptions().values.getPublicationURL() ) );
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 
-		actionPanel.add( panelsProvider.createDatasetSelectionPanel() );
+		actionPanel.add( componentsProvider.createDatasetSelectionPanel() );
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 
-		actionPanel.add( panelsProvider.createSourceSelectionPanel( moBIE.getSourcesDisplayManager() ) );
+		actionPanel.add( componentsProvider.createSourceSelectionPanel( moBIE.getSourcesDisplayManager() ) );
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 
-		actionPanel.add( panelsProvider.createBookmarksPanel( moBIE.getBookmarkManager() )  );
-		actionPanel.add( panelsProvider.createMoveToLocationPanel( bdv )  );
+		actionPanel.add( componentsProvider.createBookmarksPanel( moBIE.getBookmarkManager() )  );
+		actionPanel.add( componentsProvider.createMoveToLocationPanel( bdv )  );
 
 		if ( moBIE.getLevelingVector() != null )
 		{
-			actionPanel.add( panelsProvider.createLevelingPanel( bdv, moBIE.getLevelingVector() ) );
+			actionPanel.add( componentsProvider.createLevelingPanel( bdv, moBIE.getLevelingVector() ) );
 		}
 		return actionPanel;
 	}
 
-	private JFrame createFrame( MoBIE moBIE, JPanel actionPanel )
+	private JFrame createAndShowFrame( MoBIE moBIE, JPanel actionPanel, JPanel displaySettingsPanel )
 	{
 		JFrame frame = new JFrame( "MoBIE: " + moBIE.getProjectName() + "-" + moBIE.getDataset() );
 
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		final int sourceSelectionPanelHeight = panelsProvider.getSourceSelectionPanelHeight();
+		final int sourceSelectionPanelHeight = componentsProvider.getSourceSelectionPanelHeight();
 		final int actionPanelHeight = sourceSelectionPanelHeight + 3 * 40;
 
 		splitPane.setDividerLocation( actionPanelHeight );
 		splitPane.setTopComponent( actionPanel );
-		splitPane.setBottomComponent( sourcesDisplayManager );
+		splitPane.setBottomComponent( displaySettingsPanel );
 		splitPane.setAutoscrolls( true );
 		int frameWidth = 600;
 
@@ -95,5 +124,44 @@ public class UserInterface extends JPanel
 		BdvUtils.getViewerFrame( bdvHandle ).setSize( parentComponent.getHeight(), parentComponent.getHeight() );
 
 		bdvHandle.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
+	}
+
+	private void refresh()
+	{
+		displaySettingsPanel.revalidate();
+		displaySettingsPanel.repaint();
+		frame.revalidate();
+		frame.repaint();
+	}
+
+	@Override
+	public void addedToBDV( SourceAndMetadata< ? > sam )
+	{
+		final JPanel panel = componentsProvider.createDisplaySettingsPanel( sam, displayManager );
+		displaySettingsPanel.add( panel );
+
+		sourceToPanel.put( sam, panel );
+		refresh();
+	}
+
+	@Override
+	public void removedFromBDV( SourceAndMetadata< ? > sam )
+	{
+		final JPanel panel = sourceToPanel.get( sam );
+		displaySettingsPanel.remove( panel );
+		sourceToPanel.remove( panel );
+		refresh();
+	}
+
+	@Override
+	public void colorChanged( SourceAndMetadata< ? > sam )
+	{
+		final Color color = ColorUtils.getColor( sam.metadata().color );
+		final JPanel panel = sourceToPanel.get( sam );
+		if ( color != null )
+		{
+			panel.setOpaque( true );
+			panel.setBackground( color );
+		}
 	}
 }

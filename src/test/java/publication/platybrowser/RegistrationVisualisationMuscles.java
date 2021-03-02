@@ -21,9 +21,9 @@ public class RegistrationVisualisationMuscles
 
 		final SourcesDisplayManager sourcesDisplayManager = moBIE.getSourcesDisplayManager();
 
-		sourcesDisplayManager.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-muscles" );
-		sourcesDisplayManager.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-MHCL4-MED" );
-		sourcesDisplayManager.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-ENR22-MED" );
+		sourcesDisplayManager.show( "sbem-6dpf-1-whole-segmented-muscles" );
+		sourcesDisplayManager.show( "prospr-6dpf-1-whole-MHCL4-MED" );
+		sourcesDisplayManager.show( "prospr-6dpf-1-whole-ENR22-MED" );
 
 		sourcesDisplayManager.setSourceColor( "sbem-6dpf-1-whole-segmented-muscles", new Color( 255,0,255,255) );
 		sourcesDisplayManager.setSourceColor( "prospr-6dpf-1-whole-MHCL4-MED", new Color( 0,255,0,255) );

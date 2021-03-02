@@ -21,8 +21,8 @@ public class RegistrationVisualisationNuclei
 
 		final SourcesDisplayManager sourcesDisplayManager = moBIE.getSourcesDisplayManager();
 
-		sourcesDisplayManager.addSourceToPanelAndViewer( "sbem-6dpf-1-whole-segmented-nuclei-labels" );
-		sourcesDisplayManager.addSourceToPanelAndViewer( "prospr-6dpf-1-whole-Ref-SPM" );
+		sourcesDisplayManager.show( "sbem-6dpf-1-whole-segmented-nuclei-labels" );
+		sourcesDisplayManager.show( "prospr-6dpf-1-whole-Ref-SPM" );
 
 		sourcesDisplayManager.setSourceColor( "sbem-6dpf-1-whole-segmented-nuclei-labels", new Color( 255,0,255,255) );
 		sourcesDisplayManager.setSourceColor( "prospr-6dpf-1-whole-Ref-SPM", new Color( 0,255,0,255) );
