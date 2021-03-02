@@ -1,6 +1,5 @@
 package de.embl.cba.mobie.ui;
 
-import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;

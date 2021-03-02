@@ -66,7 +66,7 @@ public class MoBIE
 		projectName = getName( this.projectBaseLocation );
 
 		configureDatasetsRootLocations();
-		appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be reinstantiated
+		appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be re-instantiated
 
 		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageModality(), tablesLocation );
 		sourcesDisplayManager = new SourcesDisplayManager( sourcesModel, projectName );
@@ -74,14 +74,12 @@ public class MoBIE
 		levelingVector = fetchLeveling( imagesLocation );
 
 		SwingUtilities.invokeLater( () -> {
-			// show main UI
 			userInterface = new UserInterface( this );
-			// show default bookmark
-			// (this will also initialise the bdv in the sourcesDisplayManager)
 			bookmarkManager.setView( "default" );
 			final BdvHandle bdvHandle = sourcesDisplayManager.getBdv();
 			userInterface.setBdvWindowPositionAndSize( bdvHandle );
 			defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( bdvHandle, BdvUtils.getBdvWindowCenter( bdvHandle ) );
+			new BdvBehaviourInstaller( this ).run();
 		} );
 	}
 

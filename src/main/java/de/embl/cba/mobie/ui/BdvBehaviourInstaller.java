@@ -26,16 +26,14 @@ public class BdvBehaviourInstaller
 	private final BdvHandle bdv;
 	private final BookmarkManager bookmarkManager;
 
-	public BdvBehaviourInstaller( MoBIE moBIE, BdvHandle bdv )
+	public BdvBehaviourInstaller( MoBIE moBIE )
 	{
 		this.moBIE = moBIE;
 		this.bookmarkManager = moBIE.getBookmarkManager();
-		this.bdv = bdv;
-
-		install();
+		this.bdv = moBIE.getSourcesDisplayManager().getBdv();
 	}
 
-	private void install( )
+	public void run( )
 	{
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "MoBIE behaviours" );
