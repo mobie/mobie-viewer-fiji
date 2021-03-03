@@ -1,25 +1,27 @@
 package de.embl.cba.mobie.ui;
 
+import bdv.tools.brightness.ConverterSetup;
+import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BdvHandle;
+import bdv.util.BoundedValueDouble;
 import bdv.viewer.Interpolation;
-import bdv.viewer.SourceGroup;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.mobie.image.SourceAndMetadataChangedListener;
-import de.embl.cba.mobie.image.SourceGroupings;
-import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import ij.WindowManager;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
+import java.util.List;
 
 public class UserInterface implements SourceAndMetadataChangedListener
 {
 	private final UserInterfaceComponentsProvider componentsProvider;
 	private final JPanel displaySettingsPanel;
 	private final SourcesDisplayManager displayManager;
-	private HashMap< SourceAndMetadata< ? >, JPanel > sourceToPanel;
+	private HashMap< Object, JPanel > sourceToPanel;
 	private final JFrame frame;
 	private final JPanel actionPanel;
 
@@ -134,40 +136,99 @@ public class UserInterface implements SourceAndMetadataChangedListener
 	}
 
 	@Override
-	public void addedToBDV( SourceAndMetadata< ? > sam )
+	public synchronized void addedToBDV( SourceAndMetadata< ? > sam )
 	{
-		if ( sam.metadata().groupId != null )
+		Object panelKey = getPanelKey( sam );
+
+		if ( sourceToPanel.containsKey( panelKey ) )
 		{
-			final SourceGroup sourceGroup = SourceGroupings.addSourceToGroup( sam );
-			// TODO: create a panel for the sourceGroup
+			return;
 		}
 		else
 		{
 			final JPanel panel = componentsProvider.createDisplaySettingsPanel( sam, displayManager );
 			displaySettingsPanel.add( panel );
-			sourceToPanel.put( sam, panel );
+			sourceToPanel.put( panelKey, panel );
+			refresh();
 		}
-		refresh();
+	}
+
+	protected Object getPanelKey( SourceAndMetadata< ? > sam )
+	{
+		Object panelKey;
+		if ( sam.metadata().groupId != null )
+			panelKey = sam.metadata().groupId;
+		else
+			panelKey = sam.metadata();
+		return panelKey;
 	}
 
 	@Override
 	public void removedFromBDV( SourceAndMetadata< ? > sam )
 	{
-		final JPanel panel = sourceToPanel.get( sam );
+		final JPanel panel = sourceToPanel.get( getPanelKey( sam ) );
 		displaySettingsPanel.remove( panel );
-		sourceToPanel.remove( panel );
+		sourceToPanel.remove( sam );
 		refresh();
 	}
 
-	@Override
-	public void colorChanged( SourceAndMetadata< ? > sam )
+	public static void showBrightnessDialog(
+			String name,
+			List< ConverterSetup > converterSetups,
+			double rangeMin,
+			double rangeMax )
 	{
-		final Color color = ColorUtils.getColor( sam.metadata().color );
-		final JPanel panel = sourceToPanel.get( sam );
-		if ( color != null )
-		{
-			panel.setOpaque( true );
-			panel.setBackground( color );
-		}
+		JFrame frame = new JFrame( name );
+		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+
+		final double currentRangeMin = converterSetups.get( 0 ).getDisplayRangeMin();
+		final double currentRangeMax = converterSetups.get( 0 ).getDisplayRangeMax();
+
+		final BoundedValueDouble min =
+				new BoundedValueDouble(
+						rangeMin,
+						rangeMax,
+						currentRangeMin );
+
+		final BoundedValueDouble max =
+				new BoundedValueDouble(
+						rangeMin,
+						rangeMax,
+						currentRangeMax );
+
+		double spinnerStepSize = ( currentRangeMax - currentRangeMin ) / 100.0;
+
+		JPanel panel = new JPanel();
+		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
+		final SliderPanelDouble minSlider =
+				new SliderPanelDouble( "Min", min, spinnerStepSize );
+		minSlider.setNumColummns( 7 );
+		minSlider.setDecimalFormat( "####E0" );
+
+		final SliderPanelDouble maxSlider =
+				new SliderPanelDouble( "Max", max, spinnerStepSize );
+		maxSlider.setNumColummns( 7 );
+		maxSlider.setDecimalFormat( "####E0" );
+
+		final BrightnessUpdateListener brightnessUpdateListener =
+				new BrightnessUpdateListener(
+						min, max, minSlider, maxSlider, converterSetups );
+
+		min.setUpdateListener( brightnessUpdateListener );
+		max.setUpdateListener( brightnessUpdateListener );
+
+		panel.add( minSlider );
+		panel.add( maxSlider );
+
+		frame.setContentPane( panel );
+
+		//Display the window.
+		frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
+				MouseInfo.getPointerInfo().getLocation().y,
+				120, 10);
+		frame.setResizable( false );
+		frame.pack();
+		frame.setVisible( true );
+
 	}
 }

@@ -9,6 +9,7 @@ import de.embl.cba.mobie.bookmark.write.BookmarkWriter;
 import de.embl.cba.mobie.bookmark.write.NameAndFileLocation;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.MutableImageProperties;
+import de.embl.cba.mobie.image.SourceGroupings;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
@@ -75,6 +76,8 @@ public class BookmarkManager
 		for ( SourceAndMetadata< ? > sam : sourceNameToSourceAndMetadata.values() )
 		{
 			sourcesDisplayManager.show( sam );
+			if ( sam.metadata().groupId != null )
+				SourceGroupings.addSourceToGroup( sam );
 		}
 	}
 

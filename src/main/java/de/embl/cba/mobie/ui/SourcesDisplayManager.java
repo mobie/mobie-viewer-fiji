@@ -96,10 +96,6 @@ public class SourcesDisplayManager extends JPanel
     {
         sam.metadata().bdvStackSource.setColor( ColorUtils.getARGBType( color ) );
 
-        for ( SourceAndMetadataChangedListener listener : listeners )
-        {
-            listener.colorChanged( sam );
-        }
         if ( sam.metadata().content != null )
             sam.metadata().content.setColor( new Color3f( color ));
 

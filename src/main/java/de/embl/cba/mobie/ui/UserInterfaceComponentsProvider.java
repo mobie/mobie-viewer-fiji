@@ -2,12 +2,13 @@ package de.embl.cba.mobie.ui;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;
-import de.embl.cba.bdv.utils.BdvDialogs;
+import bdv.viewer.SourceGroup;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.bookmark.Location;
+import de.embl.cba.mobie.image.SourceGroupings;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
@@ -268,7 +269,7 @@ public class UserInterfaceComponentsProvider
 	// TODO: move this stuff to the UserInterfacePanelsProvider
 	public static JCheckBox createBigDataViewerVisibilityCheckbox(
 			int[] dims,
-			SourceAndMetadata< ? > sam,
+			List< SourceAndMetadata< ? > > sourceAndMetadataList,
 			boolean isVisible )
 	{
 		JCheckBox checkBox = new JCheckBox( "S" );
@@ -280,8 +281,29 @@ public class UserInterfaceComponentsProvider
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				if ( sam.metadata().bdvStackSource != null )
-					sam.metadata().bdvStackSource.setActive( checkBox.isSelected() );
+				final String groupId = sourceAndMetadataList.get( 0 ).metadata().groupId;
+
+				if ( groupId != null )
+				{
+					final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroupings.getSourceAndMetadataList( groupId );
+					for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataGroupList )
+					{
+						sourceAndMetadata.metadata().bdvStackSource.setActive( checkBox.isSelected() );
+					}
+
+					// TODO: below is not working...
+//					final SourceGroup sourceGroup = SourceGroupings.getSourceGroup( sourceAndMetadataList.get( 0 ).metadata().groupId );
+//
+//					final BdvHandle bdvHandle = sourceAndMetadataList.get( 0 ).metadata().bdvStackSource.getBdvHandle();
+//					bdvHandle.getViewerPanel().state().setGroupActive( sourceGroup, checkBox.isSelected() );
+				}
+				else
+				{
+					for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataList )
+					{
+						sourceAndMetadata.metadata().bdvStackSource.setActive( checkBox.isSelected() );
+					}
+				}
 			}
 		} );
 
@@ -315,10 +337,7 @@ public class UserInterfaceComponentsProvider
 		return checkBox;
 	}
 
-	public static JButton createBrightnessButton( int[] buttonDimensions,
-												  SourceAndMetadata< ? > sam,
-												  final double rangeMin,
-												  final double rangeMax )
+	public static JButton createBrightnessButton( String sourceName, int[] buttonDimensions, List< SourceAndMetadata< ? > > sourceAndMetadataList, final double rangeMin, final double rangeMax )
 	{
 		JButton button = new JButton( "B" );
 		button.setPreferredSize( new Dimension(
@@ -327,15 +346,39 @@ public class UserInterfaceComponentsProvider
 
 		button.addActionListener( e ->
 		{
-			final List< ConverterSetup > converterSetups = sam.metadata().bdvStackSource.getConverterSetups();
+			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
 
-			BdvDialogs.showBrightnessDialog(
-					sam.metadata().displayName,
+			final String groupId = sourceAndMetadataList.get( 0 ).metadata().groupId;
+
+			if ( groupId != null )
+			{
+				final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroupings.getSourceAndMetadataList( groupId );
+				for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataGroupList )
+				{
+					final List< ConverterSetup > setups = sourceAndMetadata.metadata().bdvStackSource.getConverterSetups();
+					for ( ConverterSetup setup : setups )
+					{
+						converterSetups.add( setup );
+					}
+				}
+			}
+			else
+			{
+				for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataList )
+				{
+					final List< ConverterSetup > setups = sourceAndMetadata.metadata().bdvStackSource.getConverterSetups();
+					for ( ConverterSetup setup : setups )
+					{
+						converterSetups.add( setup );
+					}
+				}
+			}
+
+			UserInterface.showBrightnessDialog(
+					sourceName,
 					converterSetups,
 					rangeMin,
 					rangeMax );
-
-			// TODO: Can this be done for the content as well?
 		} );
 
 		return button;
@@ -343,17 +386,22 @@ public class UserInterfaceComponentsProvider
 
 	public JPanel createDisplaySettingsPanel( SourceAndMetadata< ? > sam, SourcesDisplayManager displayManager )
 	{
-		final Metadata metadata = sam.metadata();
-		final String sourceName = metadata.displayName;
+		return createDisplaySettingsPanel( Arrays.asList( sam ), displayManager );
+	}
+
+	public JPanel createDisplaySettingsPanel( List< SourceAndMetadata< ? > > sourceAndMetadataList, SourcesDisplayManager displayManager )
+	{
+		final Metadata metadataFirstSource = sourceAndMetadataList.get( 0 ).metadata();
+		final String panelName = metadataFirstSource.groupId != null ? metadataFirstSource.groupId : metadataFirstSource.displayName;
 
 		JPanel panel = new JPanel();
 
 		panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
 		panel.setBorder( BorderFactory.createEmptyBorder( 0, 10, 0, 10 ) );
 		panel.add( Box.createHorizontalGlue() );
-		setPanelColor( metadata, panel );
+		setPanelColor( metadataFirstSource, panel );
 
-		JLabel sourceNameLabel = new JLabel( sourceName );
+		JLabel sourceNameLabel = new JLabel( panelName );
 		sourceNameLabel.setHorizontalAlignment( SwingUtilities.CENTER );
 
 		int[] buttonDimensions = new int[]{ 50, 30 };
@@ -361,45 +409,45 @@ public class UserInterfaceComponentsProvider
 
 		panel.add( sourceNameLabel );
 
-		JButton colorButton = createColorButton( displayManager, panel, buttonDimensions, sam );
+		JButton colorButton = createColorButton( displayManager, panel, buttonDimensions, sourceAndMetadataList );
 
-		final JButton brightnessButton = createBrightnessButton(
-						buttonDimensions, sam,
-						0.0, 65535.0);
+		final JButton brightnessButton = createBrightnessButton( panelName, buttonDimensions, sourceAndMetadataList, 0.0, 65535.0);
 
-		final JButton removeButton = createRemoveButton( displayManager, sam, buttonDimensions );
+		final JButton removeButton = createRemoveButton( displayManager, sourceAndMetadataList, buttonDimensions );
 
-		final JCheckBox sliceViewVisibilityCheckbox =
-				createBigDataViewerVisibilityCheckbox( viewSelectionDimensions, sam, true );
+		final JCheckBox bigDataViewerVisibilityCheckbox = createBigDataViewerVisibilityCheckbox( viewSelectionDimensions, sourceAndMetadataList, true );
 
+		// TODO: Can we adapt this for source groups?
 		final JCheckBox volumeVisibilityCheckbox =
 			    createVolumeViewVisibilityCheckbox(
 						displayManager,
 						viewSelectionDimensions,
-						sam,
-						sam.metadata().showImageIn3d || sam.metadata().showSelectedSegmentsIn3d );
+						sourceAndMetadataList.get( 0 ),
+						sourceAndMetadataList.get( 0 ).metadata().showImageIn3d || sourceAndMetadataList.get( 0 ).metadata().showSelectedSegmentsIn3d );
 
 		panel.add( colorButton );
 		panel.add( brightnessButton );
 		panel.add( removeButton );
 		panel.add( volumeVisibilityCheckbox );
-		panel.add( sliceViewVisibilityCheckbox );
+		panel.add( bigDataViewerVisibilityCheckbox );
 
-		sam.metadata().bdvStackSource.getConverterSetups().get( 0 ).setupChangeListeners().add( setup -> {
-			// color changed listener
-			sam.metadata().color  = setup.getColor().toString();
-			final Color color = ColorUtils.getColor( sam.metadata().color );
-			if ( color != null )
-			{
-				panel.setOpaque( true );
-				panel.setBackground( color );
-			}
-		} );
-
+		for ( SourceAndMetadata< ? > sam : sourceAndMetadataList )
+		{
+			sam.metadata().bdvStackSource.getConverterSetups().get( 0 ).setupChangeListeners().add( setup -> {
+				// color changed listener
+				sam.metadata().color = setup.getColor().toString();
+				final Color color = ColorUtils.getColor( sam.metadata().color );
+				if ( color != null )
+				{
+					panel.setOpaque( true );
+					panel.setBackground( color );
+				}
+			} );
+		}
 		return panel;
 	}
 
-	private JButton createColorButton( SourcesDisplayManager displayManager, JPanel parentPanel, int[] buttonDimensions, SourceAndMetadata< ? > sam )
+	private JButton createColorButton( SourcesDisplayManager displayManager, JPanel parentPanel, int[] buttonDimensions, List< SourceAndMetadata< ? > > sams )
 	{
 		JButton colorButton = new JButton( "C" );
 
@@ -410,14 +458,29 @@ public class UserInterfaceComponentsProvider
 
 			if ( color == null ) return;
 
-			displayManager.setSourceColor( sam, color );
+			final String groupId = sams.get( 0 ).metadata().groupId;
 
-			parentPanel.setBackground( color ); // TODO: I'd need a sourceColorChanged listener on the bdvStackSource, I think
+			if ( groupId != null )
+			{
+				final List< SourceAndMetadata< ? > > sourceAndMetadataList = SourceGroupings.getSourceAndMetadataList( groupId );
+				for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataList )
+				{
+					displayManager.setSourceColor( sourceAndMetadata, color );
+				}
+			}
+			else
+			{
+				for ( SourceAndMetadata< ? > sam : sams )
+				{
+					displayManager.setSourceColor( sam, color );
+				}
+			}
+
+			parentPanel.setBackground( color );
 		} );
 
 		return colorButton;
 	}
-
 
 	private void setPanelColor( Metadata metadata, JPanel panel )
 	{
@@ -431,7 +494,7 @@ public class UserInterfaceComponentsProvider
 
 	private JButton createRemoveButton(
 			SourcesDisplayManager displayManager,
-			SourceAndMetadata sam,
+			List< SourceAndMetadata< ? > > sourceAndMetadataList,
 			int[] buttonDimensions )
 	{
 		JButton removeButton = new JButton( "X" );
@@ -439,8 +502,23 @@ public class UserInterfaceComponentsProvider
 
 		removeButton.addActionListener( e ->
 		{
-			displayManager.removeSourceFromViewers( sam );
-			// TODO Parent panel must be removed from user interface; probably by some listener
+			final String groupId = sourceAndMetadataList.get( 0 ).metadata().groupId;
+
+			if ( groupId != null )
+			{
+				final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroupings.getSourceAndMetadataList( groupId );
+				for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataGroupList )
+				{
+					displayManager.removeSourceFromViewers( sourceAndMetadata );
+				}
+			}
+			else
+			{
+				for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataList )
+				{
+					displayManager.removeSourceFromViewers( sourceAndMetadata );
+				}
+			}
 		} );
 
 		return removeButton;
