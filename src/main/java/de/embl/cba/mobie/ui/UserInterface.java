@@ -2,8 +2,10 @@ package de.embl.cba.mobie.ui;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.Interpolation;
+import bdv.viewer.SourceGroup;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.image.SourceAndMetadataChangedListener;
+import de.embl.cba.mobie.image.SourceGroupings;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import ij.WindowManager;
@@ -134,9 +136,17 @@ public class UserInterface implements SourceAndMetadataChangedListener
 	@Override
 	public void addedToBDV( SourceAndMetadata< ? > sam )
 	{
-		final JPanel panel = componentsProvider.createDisplaySettingsPanel( sam, displayManager );
-		displaySettingsPanel.add( panel );
-		sourceToPanel.put( sam, panel );
+		if ( sam.metadata().groupId != null )
+		{
+			final SourceGroup sourceGroup = SourceGroupings.addSourceToGroup( sam );
+			// TODO: create a panel for the sourceGroup
+		}
+		else
+		{
+			final JPanel panel = componentsProvider.createDisplaySettingsPanel( sam, displayManager );
+			displaySettingsPanel.add( panel );
+			sourceToPanel.put( sam, panel );
+		}
 		refresh();
 	}
 

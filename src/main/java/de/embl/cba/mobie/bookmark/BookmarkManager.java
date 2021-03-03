@@ -63,10 +63,13 @@ public class BookmarkManager
 	{
 		final HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata = createSourcesAndMetadata( bookmark );
 
-		for ( String layoutName : bookmark.layouts.keySet() )
+		if ( bookmark.layouts != null )
 		{
-			final Layout layout = bookmark.layouts.get( layoutName );
-			adjustSourceTransforms( sourceNameToSourceAndMetadata, layout );
+			for ( String layoutName : bookmark.layouts.keySet() )
+			{
+				final Layout layout = bookmark.layouts.get( layoutName );
+				adjustMetadata( sourceNameToSourceAndMetadata, layout, layoutName );
+			}
 		}
 
 		for ( SourceAndMetadata< ? > sam : sourceNameToSourceAndMetadata.values() )
@@ -75,13 +78,20 @@ public class BookmarkManager
 		}
 	}
 
-	protected void adjustSourceTransforms( HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata, Layout layout )
+	// TODO: Make own Layout class
+	protected void adjustMetadata( HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata, Layout layout, String layoutName )
 	{
+		for ( String layer : layout.layers )
+		{
+			final SourceAndMetadata sourceAndMetadata = sourceNameToSourceAndMetadata.get( layer );
+			sourceAndMetadata.metadata().groupId = layoutName;
+		}
+
 		if ( layout.layoutType.equals( LayoutType.AutoGrid ) )
 		{
 			final int numSources = layout.layers.size();
 			final int numColumns = ( int ) Math.ceil( Math.sqrt( numSources ) );
-			FinalRealInterval bounds = estimateBounds( 0, layout, sourceNameToSourceAndMetadata );
+			FinalRealInterval bounds = estimateBounds( sourceNameToSourceAndMetadata.get( layout.layers.get( 0 ) ).source() );
 			final double spacingFactor = 0.1;
 			double border = spacingFactor * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
 			double offsetX = bounds.realMax( 0 ) + border;
@@ -108,10 +118,8 @@ public class BookmarkManager
 		}
 	}
 
-	protected FinalRealInterval estimateBounds( int sourceIndex, Layout layout, HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata )
+	protected FinalRealInterval estimateBounds( Source< ? > source )
 	{
-		final String sourceName = layout.layers.get( sourceIndex );
-		final Source< ? > source = sourceNameToSourceAndMetadata.get( sourceName ).source();
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		source.getSourceTransform( 0, 0, affineTransform3D );
 		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );

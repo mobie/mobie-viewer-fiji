@@ -425,7 +425,6 @@ public class SourcesDisplayManager extends JPanel
         }
 
         adjustSourceTransform( sam );
-
         for ( SourceAndMetadataChangedListener listener : listeners )
         {
             listener.addedToBDV( sam );
