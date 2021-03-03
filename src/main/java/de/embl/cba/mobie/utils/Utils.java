@@ -2,6 +2,7 @@ package de.embl.cba.mobie.utils;
 
 import bdv.util.BdvHandle;
 import bdv.util.BdvStackSource;
+import bdv.viewer.Source;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
@@ -471,4 +472,11 @@ public class Utils
 		return view;
 	}
 
+	public static FinalRealInterval estimateBounds( Source< ? > source )
+	{
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+		source.getSourceTransform( 0, 0, affineTransform3D );
+		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
+		return bounds;
+	}
 }

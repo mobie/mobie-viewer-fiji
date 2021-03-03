@@ -9,6 +9,7 @@ import de.embl.cba.mobie.bookmark.write.BookmarkWriter;
 import de.embl.cba.mobie.bookmark.write.NameAndFileLocation;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.MutableImageProperties;
+import de.embl.cba.mobie.image.SourceGroupLabelSourceCreator;
 import de.embl.cba.mobie.image.SourceGroupings;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
@@ -17,6 +18,7 @@ import de.embl.cba.tables.FileUtils.FileLocation;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.integer.IntType;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -50,7 +52,7 @@ public class BookmarkManager
 		if ( bookmark.layers != null && bookmark.layers.size() > 0 )
 		{
 			sourcesDisplayManager.removeAllSourcesFromViewers();
-			addSourcesToPanelAndViewer( bookmark );
+			show( bookmark );
 		}
 
 		// note: if this is trying to restore the default bookmark
@@ -60,41 +62,49 @@ public class BookmarkManager
 		adaptViewerTransform( bookmark );
 	}
 
-	public void addSourcesToPanelAndViewer( Bookmark bookmark )
+	public void show( Bookmark bookmark )
 	{
-		final HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata = createSourcesAndMetadata( bookmark );
+		final HashMap< String, SourceAndMetadata > sourcesAndMetadata = createSourcesAndMetadata( bookmark );
 
 		if ( bookmark.layouts != null )
 		{
 			for ( String layoutName : bookmark.layouts.keySet() )
 			{
 				final Layout layout = bookmark.layouts.get( layoutName );
-				adjustMetadata( sourceNameToSourceAndMetadata, layout, layoutName );
+
+				final String name = bookmark.name + "-" + layoutName;
+				adjustMetadata( sourcesAndMetadata, layout, name );
+
+				final SourceGroupLabelSourceCreator creator = new SourceGroupLabelSourceCreator( sourcesAndMetadata, name, layout.layers );
+				final SourceAndMetadata< IntType > sourceAndMetadata = creator.create();
+				sourcesDisplayManager.show( sourceAndMetadata );
 			}
 		}
 
-		for ( SourceAndMetadata< ? > sam : sourceNameToSourceAndMetadata.values() )
+		for ( SourceAndMetadata< ? > sam : sourcesAndMetadata.values() )
 		{
+			// display the source
 			sourcesDisplayManager.show( sam );
+
 			if ( sam.metadata().groupId != null )
 				SourceGroupings.addSourceToGroup( sam );
 		}
 	}
 
 	// TODO: Make own Layout class
-	protected void adjustMetadata( HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata, Layout layout, String layoutName )
+	protected void adjustMetadata( HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata, Layout layout, String groupName )
 	{
 		for ( String layer : layout.layers )
 		{
 			final SourceAndMetadata sourceAndMetadata = sourceNameToSourceAndMetadata.get( layer );
-			sourceAndMetadata.metadata().groupId = layoutName;
+			sourceAndMetadata.metadata().groupId = groupName;
 		}
 
 		if ( layout.layoutType.equals( LayoutType.AutoGrid ) )
 		{
 			final int numSources = layout.layers.size();
 			final int numColumns = ( int ) Math.ceil( Math.sqrt( numSources ) );
-			FinalRealInterval bounds = estimateBounds( sourceNameToSourceAndMetadata.get( layout.layers.get( 0 ) ).source() );
+			FinalRealInterval bounds = Utils.estimateBounds( sourceNameToSourceAndMetadata.get( layout.layers.get( 0 ) ).source() );
 			final double spacingFactor = 0.1;
 			double border = spacingFactor * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
 			double offsetX = bounds.realMax( 0 ) + border;
@@ -119,14 +129,6 @@ public class BookmarkManager
 				}
 			}
 		}
-	}
-
-	protected FinalRealInterval estimateBounds( Source< ? > source )
-	{
-		final AffineTransform3D affineTransform3D = new AffineTransform3D();
-		source.getSourceTransform( 0, 0, affineTransform3D );
-		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
-		return bounds;
 	}
 
 	private HashMap< String, SourceAndMetadata > createSourcesAndMetadata( Bookmark bookmark )
