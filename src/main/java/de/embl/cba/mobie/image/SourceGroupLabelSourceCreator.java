@@ -1,9 +1,7 @@
 package de.embl.cba.mobie.image;
 
 import bdv.util.RandomAccessibleIntervalSource;
-import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.mobie.bookmark.Layout;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import net.imglib2.*;
@@ -72,7 +70,7 @@ public class SourceGroupLabelSourceCreator
 
 		metadata = new Metadata( name );
 
-		final SourceGroupLabelImageMetadata labelImageMetadata = new SourceGroupLabelImageMetadata();
+		final SourceGroupLabelSourceMetadata labelImageMetadata = new SourceGroupLabelSourceMetadata();
 		labelImageMetadata.sourceNameToInterval = sourceNameToInterval;
 		labelImageMetadata.sourceNameToLabelIndex = sourceNameToLabelIndex;
 		metadata.misc.put( SOURCE_GROUP_LABEL_IMAGE_METADATA, labelImageMetadata );

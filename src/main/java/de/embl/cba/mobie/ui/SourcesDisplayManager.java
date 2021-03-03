@@ -10,6 +10,8 @@ import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.image.SourceAndMetadataChangedListener;
+import de.embl.cba.mobie.image.SourceGroupLabelSourceMetadata;
+import de.embl.cba.mobie.image.SourceGroupLabelSourceCreator;
 import de.embl.cba.mobie.image.SourcesModel;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils;
@@ -40,8 +42,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.*;
 
-import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
-import static de.embl.cba.mobie.utils.Utils.createRandom;
+import static de.embl.cba.mobie.utils.Utils.*;
 
 public class SourcesDisplayManager extends JPanel
 {
@@ -515,10 +516,22 @@ public class SourcesDisplayManager extends JPanel
 
     private void showAnnotatedLabelsSource( SourceAndMetadata< ? > sam )
     {
-        final List< TableRowImageSegment > segments
-                = createAnnotatedImageSegmentsFromTableFile(
-                     sam.metadata().segmentsTablePath,
-                     sam.metadata().imageId );
+
+        List< TableRowImageSegment > segments;
+        if ( sam.metadata().misc.containsKey( SourceGroupLabelSourceCreator.SOURCE_GROUP_LABEL_IMAGE_METADATA ) )
+        {
+            segments = createGroupedSourcesSegmentsFromTableFile(
+                    sam.metadata().segmentsTablePath,
+                    sam.metadata().groupId,
+                    ( SourceGroupLabelSourceMetadata ) sam.metadata().misc.get( SourceGroupLabelSourceCreator.SOURCE_GROUP_LABEL_IMAGE_METADATA )
+                    );
+        }
+        else
+        {
+            segments = createAnnotatedImageSegmentsFromTableFile(
+                    sam.metadata().segmentsTablePath,
+                    sam.metadata().imageId );
+        }
 
 		setUniverse();
 

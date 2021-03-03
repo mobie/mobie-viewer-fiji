@@ -8,11 +8,10 @@ import de.embl.cba.tables.image.SourceAndMetadata;
 
 import java.util.*;
 
-public abstract class SourceGroupings
+public abstract class SourceGroups
 {
 	private static Map< String, SourceGroup > groupIdToSourceGroup = new HashMap<>();
 	private static Map< String, List< SourceAndMetadata< ? > > > groupIdToSourceAndMetadataList = new HashMap<>();
-
 
 	public static synchronized SourceGroup addSourceToGroup( SourceAndMetadata< ? > sourceAndMetadata )
 	{

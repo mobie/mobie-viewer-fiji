@@ -1,14 +1,12 @@
 package de.embl.cba.mobie.ui;
 
 import bdv.tools.brightness.ConverterSetup;
-import bdv.util.BdvHandle;
-import bdv.viewer.SourceGroup;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.bookmark.Location;
-import de.embl.cba.mobie.image.SourceGroupings;
+import de.embl.cba.mobie.image.SourceGroups;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
@@ -285,7 +283,7 @@ public class UserInterfaceComponentsProvider
 
 				if ( groupId != null )
 				{
-					final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroupings.getSourceAndMetadataList( groupId );
+					final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroups.getSourceAndMetadataList( groupId );
 					for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataGroupList )
 					{
 						sourceAndMetadata.metadata().bdvStackSource.setActive( checkBox.isSelected() );
@@ -352,7 +350,7 @@ public class UserInterfaceComponentsProvider
 
 			if ( groupId != null )
 			{
-				final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroupings.getSourceAndMetadataList( groupId );
+				final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroups.getSourceAndMetadataList( groupId );
 				for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataGroupList )
 				{
 					final List< ConverterSetup > setups = sourceAndMetadata.metadata().bdvStackSource.getConverterSetups();
@@ -462,7 +460,7 @@ public class UserInterfaceComponentsProvider
 
 			if ( groupId != null )
 			{
-				final List< SourceAndMetadata< ? > > sourceAndMetadataList = SourceGroupings.getSourceAndMetadataList( groupId );
+				final List< SourceAndMetadata< ? > > sourceAndMetadataList = SourceGroups.getSourceAndMetadataList( groupId );
 				for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataList )
 				{
 					displayManager.setSourceColor( sourceAndMetadata, color );
@@ -506,7 +504,7 @@ public class UserInterfaceComponentsProvider
 
 			if ( groupId != null )
 			{
-				final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroupings.getSourceAndMetadataList( groupId );
+				final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroups.getSourceAndMetadataList( groupId );
 				for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataGroupList )
 				{
 					displayManager.removeSourceFromViewers( sourceAndMetadata );
