@@ -46,7 +46,6 @@ import static de.embl.cba.mobie.utils.Utils.createRandom;
 public class SourcesDisplayManager extends JPanel
 {
     private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelViews;
-    private Map< String, JPanel > sourceNameToPanel;
     private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndCurrentMetadata;
     private BdvHandle bdv;
     private final SourcesModel sourcesModel;
@@ -60,7 +59,6 @@ public class SourcesDisplayManager extends JPanel
     {
         this.sourcesModel = sourcesModel;
         this.projectName = projectName;
-        sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelViews = new LinkedHashMap<>();
         sourceNameToSourceAndCurrentMetadata = new LinkedHashMap<>();
     }
@@ -110,7 +108,7 @@ public class SourcesDisplayManager extends JPanel
 
     public void setSourceColor( String sourceName, Color color )
     {
-        if ( ! sourceNameToPanel.containsKey( sourceName ) )
+        if ( ! sourceNameToSourceAndCurrentMetadata.containsKey( sourceName ) )
         {
             System.err.println( "Source not displayed: " + sourceName );
             return;
@@ -379,7 +377,7 @@ public class SourcesDisplayManager extends JPanel
 
     public Set< String > getVisibleSourceNames()
     {
-        return Collections.unmodifiableSet( new HashSet<>( sourceNameToPanel.keySet() ) );
+        return Collections.unmodifiableSet( new HashSet<>( sourceNameToSourceAndCurrentMetadata.keySet() ) );
     }
 
     public void show( SourceAndMetadata< ? > sam )
@@ -726,12 +724,6 @@ public class SourcesDisplayManager extends JPanel
             removeSourceFromViewers( sam );
         }
     }
-
-	private void removeSourceFromPanel( String sourceName )
-	{
-		remove( sourceNameToPanel.get( sourceName ) );
-		sourceNameToPanel.remove( sourceName );
-	}
 
     public BdvHandle getBdv()
     {
