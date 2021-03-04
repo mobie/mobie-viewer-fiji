@@ -83,6 +83,11 @@ public class MoBIE
 		} );
 	}
 
+	public String getTablesLocation()
+	{
+		return tablesLocation;
+	}
+
 	public String getProjectName()
 	{
 		return projectName;
@@ -197,7 +202,7 @@ public class MoBIE
 		BookmarkReader bookmarkParser = new BookmarkReader(location);
 		Map< String, Bookmark > nameToBookmark = bookmarkParser.readDefaultBookmarks();
 
-		return new BookmarkManager( sourcesDisplayManager, nameToBookmark, bookmarkParser);
+		return new BookmarkManager( this, nameToBookmark, bookmarkParser);
 	}
 
 	// TODO: This should be dataset dependent?

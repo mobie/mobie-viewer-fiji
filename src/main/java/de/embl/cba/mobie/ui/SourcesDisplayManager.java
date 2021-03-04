@@ -467,7 +467,7 @@ public class SourcesDisplayManager extends JPanel
     private void setColor( BdvStackSource bdvStackSource, Metadata metadata )
     {
         ARGBType argbType;
-        if ( metadata.color.equals("RandomFromGlasbey") )
+        if ( metadata.color.equals( Constants.RANDOM_FROM_GLASBEY ) )
         {
             final GlasbeyARGBLut glasbeyARGBLut = new GlasbeyARGBLut();
             final int argb = glasbeyARGBLut.getARGB( createRandom( metadata.imageId ) );
@@ -516,7 +516,6 @@ public class SourcesDisplayManager extends JPanel
 
     private void showAnnotatedLabelsSource( SourceAndMetadata< ? > sam )
     {
-
         List< TableRowImageSegment > segments;
         if ( sam.metadata().misc.containsKey( SourceGroupLabelSourceCreator.SOURCE_GROUP_LABEL_IMAGE_METADATA ) )
         {
@@ -577,7 +576,7 @@ public class SourcesDisplayManager extends JPanel
 
         final String tablesLocation = FileAndUrlUtils.getParentLocation( sam.metadata().segmentsTablePath );
         tableRowsTableView.setTablesDirectory( tablesLocation );
-        tableRowsTableView.setMergeByColumnName( Constants.COLUMN_NAME_SEGMENT_LABEL_ID );
+        tableRowsTableView.setMergeByColumnName( Constants.SEGMENT_LABEL_ID );
         //tableRowsTableView.setSelectionMode( TableRowsTableView.SelectionMode.FocusOnly );
 
         mergeDefaultTableWithAdditionalTables( sam, tableRowsTableView, tablesLocation );
@@ -623,10 +622,10 @@ public class SourcesDisplayManager extends JPanel
             final Map< String, List< String > > newColumns =
                     TableColumns.openAndOrderNewColumns(
                         tableRowsTableView.getTable(),
-                        Constants.COLUMN_NAME_SEGMENT_LABEL_ID,
+                        Constants.SEGMENT_LABEL_ID,
                         newTablePath );
 
-            newColumns.remove( Constants.COLUMN_NAME_SEGMENT_LABEL_ID );
+            newColumns.remove( Constants.SEGMENT_LABEL_ID );
             tableRowsTableView.addColumns( newColumns );
         }
     }

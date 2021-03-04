@@ -11,9 +11,11 @@ import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.MutableImageProperties;
 import de.embl.cba.mobie.image.SourceGroupLabelSourceCreator;
 import de.embl.cba.mobie.image.SourceGroups;
+import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
+import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils.FileLocation;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import net.imglib2.FinalRealInterval;
@@ -27,15 +29,16 @@ import java.util.*;
 public class BookmarkManager
 {
 	private final SourcesDisplayManager sourcesDisplayManager;
-	private Map< String, Bookmark > nameToBookmark;
+	private final MoBIE moBIE;
+	private final Map< String, Bookmark > nameToBookmark;
 	private final BookmarkReader bookmarkReader;
 	private JComboBox<String> bookmarkDropDown;
 	private final String datasetLocation;
 
-	public BookmarkManager( SourcesDisplayManager sourcesDisplayManager, Map< String, Bookmark > nameToBookmark,
-							BookmarkReader bookmarkReader )
+	public BookmarkManager( MoBIE moBIE, Map< String, Bookmark > nameToBookmark, BookmarkReader bookmarkReader )
 	{
-		this.sourcesDisplayManager = sourcesDisplayManager;
+		this.moBIE = moBIE;
+		this.sourcesDisplayManager = moBIE.getSourcesDisplayManager();
 		this.nameToBookmark = nameToBookmark;
 		this.bookmarkReader = bookmarkReader;
 		this.datasetLocation = bookmarkReader.getDatasetLocation();
@@ -75,9 +78,12 @@ public class BookmarkManager
 				final String name = bookmark.name + "-" + layoutName;
 				adjustMetadata( sourcesAndMetadata, layout, name );
 
-				final SourceGroupLabelSourceCreator creator = new SourceGroupLabelSourceCreator( sourcesAndMetadata, name, layout.layers );
-				final SourceAndMetadata< IntType > sourceAndMetadata = creator.create();
-				sourcesDisplayManager.show( sourceAndMetadata );
+				final SourceGroupLabelSourceCreator creator = new SourceGroupLabelSourceCreator( sourcesAndMetadata, name + "-labels", layout );
+				final SourceAndMetadata< IntType > sam = creator.create();
+				// FileAndUrlUtils.combinePath( tableDataLocation,
+				sam.metadata().segmentsTablePath = FileAndUrlUtils.combinePath( moBIE.getTablesLocation(), layout.sourceTable );
+
+				sourcesDisplayManager.show( sam );
 			}
 		}
 
@@ -107,9 +113,10 @@ public class BookmarkManager
 			FinalRealInterval bounds = Utils.estimateBounds( sourceNameToSourceAndMetadata.get( layout.layers.get( 0 ) ).source() );
 			final double spacingFactor = 0.1;
 			double border = spacingFactor * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
-			double offsetX = bounds.realMax( 0 ) + border;
+			double offsetX = 0;
 			double offsetY = 0;
-			for ( int sourceIndex = 1, columnIndex = 1; sourceIndex < numSources; sourceIndex++ )
+
+			for ( int sourceIndex = 0, columnIndex = 0; sourceIndex < numSources; sourceIndex++ )
 			{
 				final SourceAndMetadata sam = sourceNameToSourceAndMetadata.get( layout.layers.get( sourceIndex ) );
 

@@ -42,7 +42,6 @@ import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
 public class Utils
 {
-
 	public static double[] delimitedStringToDoubleArray( String s, String delimiter) {
 
 		String[] sA = s.split(delimiter);
@@ -298,11 +297,40 @@ public class Utils
 
 		TableColumns.addLabelImageIdColumn(
 				columns,
-				Constants.COLUMN_NAME_LABEL_IMAGE_ID,
+				Constants.LABEL_IMAGE_ID,
 				imageId );
 
 		// Add anchor columns, using the metadata
+		final ArrayList< List< String > > anchorColumns = new ArrayList<>();
+		for ( int d = 0; d < 3; d++ )
+		{
+			final ArrayList< String > list = new ArrayList<>();
+			anchorColumns.add( list );
+		}
 
+		final ArrayList< String > labelIds = new ArrayList<>();
+		final ArrayList< String > labelImageIds = new ArrayList<>();
+
+		final List< String > sourceNames = columns.get( Constants.SOURCE_NAME );
+
+		int labelId = 1;
+		for ( String sourceName : sourceNames )
+		{
+			final RealInterval interval = metadata.sourceNameToInterval.get( sourceName );
+			for ( int d = 0; d < 3; d++ )
+			{
+				anchorColumns.get( d ).add( String.valueOf( ( interval.realMax( d ) - interval.realMin( d ) ) / 2 ) );
+			}
+
+			labelIds.add( String.valueOf( labelId++ ) );
+			labelImageIds.add( imageId );
+		}
+
+		columns.put( Constants.ANCHOR_X, anchorColumns.get( 0 ) );
+		columns.put( Constants.ANCHOR_Y, anchorColumns.get( 1 ) );
+		columns.put( Constants.ANCHOR_Z, anchorColumns.get( 2 ) );
+		columns.put( Constants.SEGMENT_LABEL_ID, labelIds );
+		columns.put( Constants.LABEL_IMAGE_ID, labelImageIds );
 
 		final Map< SegmentProperty, List< String > > segmentPropertyToColumn
 				= createSegmentPropertyToColumn( columns );
@@ -327,7 +355,7 @@ public class Utils
 
 		TableColumns.addLabelImageIdColumn(
 				columns,
-				Constants.COLUMN_NAME_LABEL_IMAGE_ID,
+				Constants.LABEL_IMAGE_ID,
 				imageId );
 
 		final Map< SegmentProperty, List< String > > segmentPropertyToColumn
@@ -390,11 +418,11 @@ public class Utils
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.LabelImage,
-				columns.get( Constants.COLUMN_NAME_LABEL_IMAGE_ID ));
+				columns.get( Constants.LABEL_IMAGE_ID ));
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.ObjectLabel,
-				columns.get( Constants.COLUMN_NAME_SEGMENT_LABEL_ID ) );
+				columns.get( Constants.SEGMENT_LABEL_ID ) );
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.X,

@@ -6,4 +6,5 @@ public class Layout
 {
 	public ArrayList< String > layers;
 	public LayoutType layoutType;
+	public String sourceTable;
 }

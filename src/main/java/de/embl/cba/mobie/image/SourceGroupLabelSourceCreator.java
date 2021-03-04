@@ -2,7 +2,10 @@ package de.embl.cba.mobie.image;
 
 import bdv.util.RandomAccessibleIntervalSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.mobie.Constants;
+import de.embl.cba.mobie.bookmark.Layout;
 import de.embl.cba.mobie.utils.Utils;
+import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import net.imglib2.*;
 import net.imglib2.position.FunctionRandomAccessible;
@@ -19,23 +22,23 @@ public class SourceGroupLabelSourceCreator
 {
 	public static final String SOURCE_GROUP_LABEL_IMAGE_METADATA = "SourceGroupLabelImageMetadata";
 	private final String name;
-	private final ArrayList< String > sourceNames;
+	private final Layout layout;
 	private final HashMap< String, SourceAndMetadata > sourcesAndMetadata;
 	private Map< String, RealInterval > sourceNameToInterval;
 	private Map< String, Integer > sourceNameToLabelIndex;
 	private RandomAccessibleIntervalSource< IntType > labelSource;
 	private Metadata metadata;
 
-	public SourceGroupLabelSourceCreator( HashMap< String, SourceAndMetadata > sourcesAndMetadata, String name, ArrayList< String > sourceNames )
+	public SourceGroupLabelSourceCreator( HashMap< String, SourceAndMetadata > sourcesAndMetadata, String name, Layout layout )
 	{
 		this.sourcesAndMetadata = sourcesAndMetadata;
 		this.name = name;
-		this.sourceNames = sourceNames;
+		this.layout = layout;
 	}
 
 	private void prepare()
 	{
-		sourceNameToInterval = createIntervalMap( sourcesAndMetadata, sourceNames );
+		sourceNameToInterval = createIntervalMap( sourcesAndMetadata, layout.layers );
 
 		sourceNameToLabelIndex = new HashMap<>();
 
@@ -69,6 +72,9 @@ public class SourceGroupLabelSourceCreator
 		labelSource = new RandomAccessibleIntervalSource<>( rai, Util.getTypeFromInterval( rai ), name );
 
 		metadata = new Metadata( name );
+		metadata.type = Metadata.Type.Segmentation;
+		metadata.displayName = name;
+		metadata.color = Constants.RANDOM_FROM_GLASBEY;
 
 		final SourceGroupLabelSourceMetadata labelImageMetadata = new SourceGroupLabelSourceMetadata();
 		labelImageMetadata.sourceNameToInterval = sourceNameToInterval;
@@ -100,15 +106,15 @@ public class SourceGroupLabelSourceCreator
 		return sourceAndMetadata;
 	}
 
-	private static HashMap< String, RealInterval > createIntervalMap( HashMap< String, SourceAndMetadata > sourcesAndMetadata, ArrayList< String > sourceNames )
+	private static HashMap< String, RealInterval > createIntervalMap( HashMap< String, SourceAndMetadata > sourceNameToSAM, ArrayList< String > sourceNames )
 	{
 		final HashMap< String, RealInterval > sourceNameToInterval = new HashMap<>();
 		for ( String sourceName : sourceNames )
 		{
-			final SourceAndMetadata< ? > sourceAndMetadata = sourcesAndMetadata.get( sourceName );
-			final FinalRealInterval sourceInterval = Utils.estimateBounds( sourceAndMetadata.source() );
+			final SourceAndMetadata< ? > sam = sourceNameToSAM.get( sourceName );
+			final FinalRealInterval sourceInterval = Utils.estimateBounds( sam.source() );
 			final AffineTransform3D transform3D = new AffineTransform3D();
-			transform3D.set( sourceAndMetadata.metadata().addedTransform );
+			transform3D.set( sam.metadata().addedTransform );
 
 			final FinalRealInterval translatedSourceInterval = transform3D.estimateBounds( sourceInterval );
 			sourceNameToInterval.put( sourceName, translatedSourceInterval );
