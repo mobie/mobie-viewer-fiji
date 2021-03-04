@@ -82,6 +82,7 @@ public class SourceGroupLabelSourceCreator
 		metadata.type = Metadata.Type.Segmentation;
 		metadata.displayName = name;
 		metadata.color = Constants.RANDOM_FROM_GLASBEY;
+		metadata.contrastLimits = new double[]{ 0, 1000 }; // TODO: this is was we currently need for label overlay to be slightly transparent
 
 		final SourceGroupLabelSourceMetadata labelImageMetadata = new SourceGroupLabelSourceMetadata();
 		labelImageMetadata.sourceNameToInterval = sourceNameToInterval;

@@ -295,22 +295,15 @@ public class Utils
 		Map< String, List< String > > columns =
 				TableColumns.stringColumnsFromTableFile( tablePath );
 
-		TableColumns.addLabelImageIdColumn(
-				columns,
-				Constants.LABEL_IMAGE_ID,
-				imageId );
-
 		// Add anchor columns, using the metadata
 		final ArrayList< List< String > > anchorColumns = new ArrayList<>();
 		for ( int d = 0; d < 3; d++ )
 		{
-			final ArrayList< String > list = new ArrayList<>();
-			anchorColumns.add( list );
+			anchorColumns.add( new ArrayList<>() );
 		}
 
 		final ArrayList< String > labelIds = new ArrayList<>();
 		final ArrayList< String > labelImageIds = new ArrayList<>();
-
 		final List< String > sourceNames = columns.get( Constants.SOURCE_NAME );
 
 		int labelId = 1;
@@ -319,7 +312,7 @@ public class Utils
 			final RealInterval interval = metadata.sourceNameToInterval.get( sourceName );
 			for ( int d = 0; d < 3; d++ )
 			{
-				anchorColumns.get( d ).add( String.valueOf( ( interval.realMax( d ) - interval.realMin( d ) ) / 2 ) );
+				anchorColumns.get( d ).add( String.valueOf( ( interval.realMax( d ) + interval.realMin( d ) ) / 2 ) );
 			}
 
 			labelIds.add( String.valueOf( labelId++ ) );

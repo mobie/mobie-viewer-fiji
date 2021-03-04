@@ -520,7 +520,7 @@ public class SourcesDisplayManager extends JPanel
         {
             List< TableRowImageSegment > segments = createGroupedSourcesSegmentsFromTableFile(
                     sam.metadata().segmentsTablePath,
-                    sam.metadata().groupId,
+                    sam.metadata().imageId,
                     ( SourceGroupLabelSourceMetadata ) sam.metadata().misc.get( SourceGroupLabelSourceCreator.SOURCE_GROUP_LABEL_IMAGE_METADATA )
                     );
 
