@@ -516,46 +516,68 @@ public class SourcesDisplayManager extends JPanel
 
     private void showAnnotatedLabelsSource( SourceAndMetadata< ? > sam )
     {
-        List< TableRowImageSegment > segments;
         if ( sam.metadata().misc.containsKey( SourceGroupLabelSourceCreator.SOURCE_GROUP_LABEL_IMAGE_METADATA ) )
         {
-            segments = createGroupedSourcesSegmentsFromTableFile(
+            List< TableRowImageSegment > segments = createGroupedSourcesSegmentsFromTableFile(
                     sam.metadata().segmentsTablePath,
                     sam.metadata().groupId,
                     ( SourceGroupLabelSourceMetadata ) sam.metadata().misc.get( SourceGroupLabelSourceCreator.SOURCE_GROUP_LABEL_IMAGE_METADATA )
                     );
-        }
-        else
-        {
-            segments = createAnnotatedImageSegmentsFromTableFile(
-                    sam.metadata().segmentsTablePath,
-                    sam.metadata().imageId );
-        }
 
-		setUniverse();
-
-        final SegmentsTableBdvAnd3dViews views
-                = new SegmentsTableBdvAnd3dViews(
+            final SegmentsTableBdvAnd3dViews views
+                    = new SegmentsTableBdvAnd3dViews(
                     segments,
                     createLabelsSourceModel( sam ),
                     sam.metadata().imageId,
                     bdv,
                     universe );
 
-        sam.metadata().views = views;
-        configureSegments3dView( views, sam );
-        configureTableView( views, sam );
+            sam.metadata().views = views;
+            configureSegments3dView( views, sam );
+            configureTableView( views, sam );
 
-        bdv = views.getSegmentsBdvView().getBdv();
+            bdv = views.getSegmentsBdvView().getBdv();
 
-        sam.metadata().bdvStackSource = views
-                .getSegmentsBdvView()
-                .getCurrentSources().get( 0 )
-                .metadata().bdvStackSource;
+            sam.metadata().bdvStackSource = views
+                    .getSegmentsBdvView()
+                    .getCurrentSources().get( 0 )
+                    .metadata().bdvStackSource;
 
-        setDisplayRange( sam.metadata().bdvStackSource, sam.metadata() );
+            setDisplayRange( sam.metadata().bdvStackSource, sam.metadata() );
 
-        sourceNameToLabelViews.put( sam.metadata().displayName, views );
+            sourceNameToLabelViews.put( sam.metadata().displayName, views );
+        }
+        else
+        {
+            List< TableRowImageSegment > segments = createAnnotatedImageSegmentsFromTableFile(
+                    sam.metadata().segmentsTablePath,
+                    sam.metadata().imageId );
+
+            final SegmentsTableBdvAnd3dViews views
+                    = new SegmentsTableBdvAnd3dViews(
+                    segments,
+                    createLabelsSourceModel( sam ),
+                    sam.metadata().imageId,
+                    bdv,
+                    universe );
+
+            sam.metadata().views = views;
+            configureSegments3dView( views, sam );
+            configureTableView( views, sam );
+
+            bdv = views.getSegmentsBdvView().getBdv();
+
+            sam.metadata().bdvStackSource = views
+                    .getSegmentsBdvView()
+                    .getCurrentSources().get( 0 )
+                    .metadata().bdvStackSource;
+
+            setDisplayRange( sam.metadata().bdvStackSource, sam.metadata() );
+
+            sourceNameToLabelViews.put( sam.metadata().displayName, views );
+
+            setUniverse();
+        }
     }
 
 	private void setUniverse()

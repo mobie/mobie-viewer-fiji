@@ -1,6 +1,8 @@
 package de.embl.cba.mobie.image;
 
 import bdv.util.RandomAccessibleIntervalSource;
+import bdv.util.RandomAccessibleIntervalSource4D;
+import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.bookmark.Layout;
@@ -26,7 +28,7 @@ public class SourceGroupLabelSourceCreator
 	private final HashMap< String, SourceAndMetadata > sourcesAndMetadata;
 	private Map< String, RealInterval > sourceNameToInterval;
 	private Map< String, Integer > sourceNameToLabelIndex;
-	private RandomAccessibleIntervalSource< IntType > labelSource;
+	private Source< IntType > labelSource;
 	private Metadata metadata;
 
 	public SourceGroupLabelSourceCreator( HashMap< String, SourceAndMetadata > sourcesAndMetadata, String name, Layout layout )
@@ -58,7 +60,8 @@ public class SourceGroupLabelSourceCreator
 			{
 				if ( Intervals.contains( entry.getValue(), l ) )
 				{
-					t.setInteger( sourceNameToLabelIndex.get( entry.getKey() ) );
+					final Integer integer = sourceNameToLabelIndex.get( entry.getKey() );
+					t.setInteger( integer );
 					return;
 				}
 			}
@@ -69,7 +72,11 @@ public class SourceGroupLabelSourceCreator
 
 		RandomAccessibleInterval< IntType > rai = Views.interval( randomAccessible, Intervals.smallestContainingInterval( union ) );
 
-		labelSource = new RandomAccessibleIntervalSource<>( rai, Util.getTypeFromInterval( rai ), name );
+		// make 4D such that it is clear how many time points it has
+		// if this is not done things break during visualisation
+		rai = Views.addDimension( rai, 0 ,0  );
+
+		labelSource = new RandomAccessibleIntervalSource4D<>( rai, Util.getTypeFromInterval( rai ), name );
 
 		metadata = new Metadata( name );
 		metadata.type = Metadata.Type.Segmentation;
