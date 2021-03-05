@@ -315,7 +315,7 @@ public class Utils
 				anchorColumns.get( d ).add( String.valueOf( ( interval.realMax( d ) + interval.realMin( d ) ) / 2 ) );
 			}
 
-			labelIds.add( String.valueOf( labelId++ ) );
+			labelIds.add( String.valueOf( metadata.sourceNameToLabelIndex.get( sourceName ) ) );
 			labelImageIds.add( imageId );
 		}
 
