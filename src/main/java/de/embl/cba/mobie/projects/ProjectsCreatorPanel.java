@@ -1,7 +1,7 @@
 package de.embl.cba.mobie.projects;
 
 import de.embl.cba.mobie.image.ImagePropertiesEditor;
-import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.SwingUtils;
 import ij.gui.GenericDialog;
@@ -70,7 +70,7 @@ public class ProjectsCreatorPanel extends JFrame {
     private void createDatasetComboBox() {
         datasetComboBox = new JComboBox<>( projectsCreator.getCurrentDatasets() );
         setComboBoxDimensions(datasetComboBox);
-        datasetComboBox.setPrototypeDisplayValue(MoBIEViewer.PROTOTYPE_DISPLAY_VALUE);
+        datasetComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
         datasetComboBox.addActionListener( new SyncImageAndDatasetComboBox() );
     }
 
@@ -100,7 +100,7 @@ public class ProjectsCreatorPanel extends JFrame {
             new Thread( () -> { editImageDialog(); } ).start();
         } );
 
-        imagesComboBox.setPrototypeDisplayValue(MoBIEViewer.PROTOTYPE_DISPLAY_VALUE);
+        imagesComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
 
         horizontalLayoutPanel.add(getJLabel("image", 60, 10));
         horizontalLayoutPanel.add(imagesComboBox);

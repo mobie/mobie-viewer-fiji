@@ -1,8 +1,7 @@
-package de.embl.cba.mobie.ui.viewer;
+package de.embl.cba.mobie.ui;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.*;
-import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
@@ -10,6 +9,9 @@ import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.Constants;
+import de.embl.cba.mobie.image.SourceAndMetadataChangedListener;
+import de.embl.cba.mobie.image.SourceGroupLabelSourceMetadata;
+import de.embl.cba.mobie.image.SourceGroupLabelSourceCreator;
 import de.embl.cba.mobie.image.SourcesModel;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils;
@@ -40,13 +42,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.*;
 
-import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
-import static de.embl.cba.mobie.utils.Utils.createRandom;
+import static de.embl.cba.mobie.utils.Utils.*;
 
-public class SourcesPanel extends JPanel
+public class SourcesDisplayManager extends JPanel
 {
     private final Map< String, SegmentsTableBdvAnd3dViews > sourceNameToLabelViews;
-    private Map< String, JPanel > sourceNameToPanel;
     private Map< String, SourceAndMetadata< ? > > sourceNameToSourceAndCurrentMetadata;
     private BdvHandle bdv;
     private final SourcesModel sourcesModel;
@@ -54,24 +54,23 @@ public class SourcesPanel extends JPanel
     private Image3DUniverse universe;
     private int meshSmoothingIterations = 5; // TODO: Why is this here?
 
-    public SourcesPanel( SourcesModel sourcesModel, String projectName )
+    private List< SourceAndMetadataChangedListener > listeners = new ArrayList<>(  );
+
+    public SourcesDisplayManager( SourcesModel sourcesModel, String projectName )
     {
         this.sourcesModel = sourcesModel;
         this.projectName = projectName;
-        sourceNameToPanel = new LinkedHashMap<>();
         sourceNameToLabelViews = new LinkedHashMap<>();
         sourceNameToSourceAndCurrentMetadata = new LinkedHashMap<>();
-
-        configPanel();
     }
 
-    public static void updateSource3dView( SourceAndMetadata< ? > sam, SourcesPanel sourcesPanel, boolean forceRepaint )
+    public static void updateSource3dView( SourceAndMetadata< ? > sam, SourcesDisplayManager sourcesDisplayManager, boolean forceRepaint )
     {
         if ( sam.metadata().type.equals( Metadata.Type.Segmentation ) ) return;
 
         if ( sam.metadata().showImageIn3d )
         {
-            sourcesPanel.showSourceInVolumeViewer( sam, forceRepaint );
+            sourcesDisplayManager.showSourceInVolumeViewer( sam, forceRepaint );
         }
         else
         {
@@ -80,7 +79,7 @@ public class SourcesPanel extends JPanel
         }
     }
 
-    public static void updateSegments3dView( SourceAndMetadata< ? > sam, SourcesPanel sourcesPanel )
+    public static void updateSegments3dView( SourceAndMetadata< ? > sam, SourcesDisplayManager sourcesDisplayManager )
     {
         if ( sam.metadata().views != null )
         {
@@ -88,34 +87,16 @@ public class SourcesPanel extends JPanel
             segments3dView.setVoxelSpacing( sam.metadata().resolution3dView );
             segments3dView.showSelectedSegments( sam.metadata().showSelectedSegmentsIn3d, false );
 
-            if ( sam.metadata().showSelectedSegmentsIn3d ) sourcesPanel.setUniverse( segments3dView.getUniverse() );
+            if ( sam.metadata().showSelectedSegmentsIn3d ) sourcesDisplayManager.setUniverse( segments3dView.getUniverse() );
         }
     }
 
-    private JButton createColorButton( JPanel panel, int[] buttonDimensions, SourceAndMetadata< ? > sam )
-    {
-        JButton colorButton = new JButton( "C" );
-
-        colorButton.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
-
-        colorButton.addActionListener( e -> {
-            Color color = JColorChooser.showDialog( null, "", null );
-
-            if ( color == null ) return;
-
-            setSourceColor( sam, color, panel );
-        } );
-
-        return colorButton;
-    }
-
-    private void setSourceColor( SourceAndMetadata< ? > sam, Color color, JPanel panel )
+    public void setSourceColor( SourceAndMetadata< ? > sam, Color color )
     {
         sam.metadata().bdvStackSource.setColor( ColorUtils.getARGBType( color ) );
 
         if ( sam.metadata().content != null )
             sam.metadata().content.setColor( new Color3f( color ));
-
 
         if ( sourceNameToLabelViews.containsKey( sam.metadata().displayName ) )
         {
@@ -124,22 +105,19 @@ public class SourcesPanel extends JPanel
 
             segmentsBdvView.setLabelSourceSingleColor( ColorUtils.getARGBType( color ) );
         }
-
-        panel.setBackground( color );
     }
 
     public void setSourceColor( String sourceName, Color color )
     {
-        if ( ! sourceNameToPanel.containsKey( sourceName ) )
+        if ( ! sourceNameToSourceAndCurrentMetadata.containsKey( sourceName ) )
         {
             System.err.println( "Source not displayed: " + sourceName );
             return;
         }
 
         final SourceAndMetadata< ? > sam = sourceNameToSourceAndCurrentMetadata.get(sourceName);
-        final JPanel jPanel = sourceNameToPanel.get( sourceName );
 
-        setSourceColor( sam, color, jPanel );
+        setSourceColor( sam, color );
     }
 
     public Image3DUniverse getUniverse()
@@ -371,21 +349,15 @@ public class SourcesPanel extends JPanel
         return settings;
     }
 
-    public void addSourceToPanelAndViewer( String sourceName )
+    public void show( String sourceName )
     {
-        if ( ! getSourceNames().contains( sourceName ) )
-        {
-            Logger.error( "Source not present: " + sourceName );
-            return;
-        }
-        else
-        {
-            final SourceAndMetadata< ? > samDefault = getSourceAndDefaultMetadata( sourceName );
-            // make a copy here so that changes to the current metadata, don't affect the default
-            // this means any changes to current metadata won't persist when sources are removed and added again
-            final SourceAndMetadata< ? > samCurrent = new SourceAndMetadata( samDefault.source(), samDefault.metadata().copy() );
-            addSourceToPanelAndViewer( samCurrent );
-        }
+        final SourceAndMetadata< ? > samDefault = getSourceAndDefaultMetadata( sourceName );
+
+        // make a copy here so that changes to the current metadata, don't affect the default
+        // this means any changes to current metadata won't persist when sources are removed and added again
+        final SourceAndMetadata< ? > samCurrent = new SourceAndMetadata( samDefault.source(), samDefault.metadata().copy() );
+
+        show( samCurrent );
     }
 
     public SourceAndMetadata< ? > getSourceAndDefaultMetadata( String sourceName )
@@ -406,43 +378,22 @@ public class SourcesPanel extends JPanel
 
     public Set< String > getVisibleSourceNames()
     {
-        return Collections.unmodifiableSet( new HashSet<>( sourceNameToPanel.keySet() ) );
+        return Collections.unmodifiableSet( new HashSet<>( sourceNameToSourceAndCurrentMetadata.keySet() ) );
     }
 
-    public SourcesModel getSourcesModel()
-    {
-        return sourcesModel;
-    }
-
-    private void configPanel()
-    {
-        this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
-        this.setAlignmentX( Component.LEFT_ALIGNMENT );
-    }
-
-    public void addSourceToPanelAndViewer( SourceAndMetadata< ? > sam )
+    public void show( SourceAndMetadata< ? > sam )
     {
         final String sourceName = sam.metadata().displayName;
 
-        if ( sourceNameToPanel.containsKey( sourceName ) )
+        if ( sam.metadata().bdvStackSource != null  )
         {
             Logger.log( "Source is already shown: " + sourceName + "" );
             return;
         }
-        else
-        {
-            Logger.log( "Adding source: " + sourceName + "..." );
-            sourceNameToSourceAndCurrentMetadata.put( sourceName, sam );
 
-            addSourceToViewer( sam );
-            //bdv.getViewerPanel().state().addSourcesToGroup(  )
+        Logger.log( "Adding source: " + sourceName + "..." );
+        sourceNameToSourceAndCurrentMetadata.put( sourceName, sam );
 
-            SwingUtilities.invokeLater( () -> addSourceToPanel( sam ) );
-        }
-    }
-
-    public void addSourceToViewer( SourceAndMetadata< ? > sam )
-    {
         Prefs.showScaleBar( true );
         Prefs.showMultibox( false );
 
@@ -469,6 +420,10 @@ public class SourcesPanel extends JPanel
         }
 
         adjustSourceTransform( sam );
+        for ( SourceAndMetadataChangedListener listener : listeners )
+        {
+            listener.addedToBDV( sam );
+        }
     }
 
     private void adjustSourceTransform( SourceAndMetadata< ? > sam )
@@ -480,17 +435,6 @@ public class SourcesPanel extends JPanel
             transform.set( sam.metadata().addedTransform );
             source.setFixedTransform( transform );
         }
-    }
-
-    public void setBdvWindowPositionAndSize( Component component )
-    {
-        BdvUtils.getViewerFrame( bdv ).setLocation(
-                component.getLocationOnScreen().x + component.getWidth(),
-                component.getLocationOnScreen().y );
-
-        BdvUtils.getViewerFrame( bdv ).setSize( component.getHeight(), component.getHeight() );
-
-        bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
     }
 
     private void showIntensitySource( SourceAndMetadata< ? > sam )
@@ -523,7 +467,7 @@ public class SourcesPanel extends JPanel
     private void setColor( BdvStackSource bdvStackSource, Metadata metadata )
     {
         ARGBType argbType;
-        if ( metadata.color.equals("RandomFromGlasbey") )
+        if ( metadata.color.equals( Constants.RANDOM_FROM_GLASBEY ) )
         {
             final GlasbeyARGBLut glasbeyARGBLut = new GlasbeyARGBLut();
             final int argb = glasbeyARGBLut.getARGB( createRandom( metadata.imageId ) );
@@ -572,35 +516,68 @@ public class SourcesPanel extends JPanel
 
     private void showAnnotatedLabelsSource( SourceAndMetadata< ? > sam )
     {
-        final List< TableRowImageSegment > segments
-                = createAnnotatedImageSegmentsFromTableFile(
-                     sam.metadata().segmentsTablePath,
-                     sam.metadata().imageId );
+        if ( sam.metadata().misc.containsKey( SourceGroupLabelSourceCreator.SOURCE_GROUP_LABEL_IMAGE_METADATA ) )
+        {
+            List< TableRowImageSegment > segments = createGroupedSourcesSegmentsFromTableFile(
+                    sam.metadata().segmentsTablePath,
+                    sam.metadata().imageId,
+                    ( SourceGroupLabelSourceMetadata ) sam.metadata().misc.get( SourceGroupLabelSourceCreator.SOURCE_GROUP_LABEL_IMAGE_METADATA )
+                    );
 
-		setUniverse();
-
-        final SegmentsTableBdvAnd3dViews views
-                = new SegmentsTableBdvAnd3dViews(
+            final SegmentsTableBdvAnd3dViews views
+                    = new SegmentsTableBdvAnd3dViews(
                     segments,
                     createLabelsSourceModel( sam ),
                     sam.metadata().imageId,
                     bdv,
                     universe );
 
-        sam.metadata().views = views;
-        configureSegments3dView( views, sam );
-        configureTableView( views, sam );
+            sam.metadata().views = views;
+            configureSegments3dView( views, sam );
+            configureTableView( views, sam );
 
-        bdv = views.getSegmentsBdvView().getBdv();
+            bdv = views.getSegmentsBdvView().getBdv();
 
-        sam.metadata().bdvStackSource = views
-                .getSegmentsBdvView()
-                .getCurrentSources().get( 0 )
-                .metadata().bdvStackSource;
+            sam.metadata().bdvStackSource = views
+                    .getSegmentsBdvView()
+                    .getCurrentSources().get( 0 )
+                    .metadata().bdvStackSource;
 
-        setDisplayRange( sam.metadata().bdvStackSource, sam.metadata() );
+            setDisplayRange( sam.metadata().bdvStackSource, sam.metadata() );
 
-        sourceNameToLabelViews.put( sam.metadata().displayName, views );
+            sourceNameToLabelViews.put( sam.metadata().displayName, views );
+        }
+        else
+        {
+            List< TableRowImageSegment > segments = createAnnotatedImageSegmentsFromTableFile(
+                    sam.metadata().segmentsTablePath,
+                    sam.metadata().imageId );
+
+            final SegmentsTableBdvAnd3dViews views
+                    = new SegmentsTableBdvAnd3dViews(
+                    segments,
+                    createLabelsSourceModel( sam ),
+                    sam.metadata().imageId,
+                    bdv,
+                    universe );
+
+            sam.metadata().views = views;
+            configureSegments3dView( views, sam );
+            configureTableView( views, sam );
+
+            bdv = views.getSegmentsBdvView().getBdv();
+
+            sam.metadata().bdvStackSource = views
+                    .getSegmentsBdvView()
+                    .getCurrentSources().get( 0 )
+                    .metadata().bdvStackSource;
+
+            setDisplayRange( sam.metadata().bdvStackSource, sam.metadata() );
+
+            sourceNameToLabelViews.put( sam.metadata().displayName, views );
+
+            setUniverse();
+        }
     }
 
 	private void setUniverse()
@@ -621,7 +598,7 @@ public class SourcesPanel extends JPanel
 
         final String tablesLocation = FileAndUrlUtils.getParentLocation( sam.metadata().segmentsTablePath );
         tableRowsTableView.setTablesDirectory( tablesLocation );
-        tableRowsTableView.setMergeByColumnName( Constants.COLUMN_NAME_SEGMENT_LABEL_ID );
+        tableRowsTableView.setMergeByColumnName( Constants.SEGMENT_LABEL_ID );
         //tableRowsTableView.setSelectionMode( TableRowsTableView.SelectionMode.FocusOnly );
 
         mergeDefaultTableWithAdditionalTables( sam, tableRowsTableView, tablesLocation );
@@ -667,10 +644,10 @@ public class SourcesPanel extends JPanel
             final Map< String, List< String > > newColumns =
                     TableColumns.openAndOrderNewColumns(
                         tableRowsTableView.getTable(),
-                        Constants.COLUMN_NAME_SEGMENT_LABEL_ID,
+                        Constants.SEGMENT_LABEL_ID,
                         newTablePath );
 
-            newColumns.remove( Constants.COLUMN_NAME_SEGMENT_LABEL_ID );
+            newColumns.remove( Constants.SEGMENT_LABEL_ID );
             tableRowsTableView.addColumns( newColumns );
         }
     }
@@ -737,100 +714,27 @@ public class SourcesPanel extends JPanel
         return imageSourcesModel;
     }
 
-    private void addSourceToPanel( SourceAndMetadata< ? > sam )
-    {
-        final Metadata metadata = sam.metadata();
-        final String sourceName = metadata.displayName;
-
-        JPanel panel = new JPanel();
-
-        panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
-        panel.setBorder( BorderFactory.createEmptyBorder( 0, 10, 0, 10 ) );
-        panel.add( Box.createHorizontalGlue() );
-        setPanelColor( metadata, panel );
-
-        JLabel sourceNameLabel = new JLabel( sourceName );
-        sourceNameLabel.setHorizontalAlignment( SwingUtilities.CENTER );
-
-        int[] buttonDimensions = new int[]{ 50, 30 };
-        int[] viewSelectionDimensions = new int[]{ 50, 30 };
-
-        panel.add( sourceNameLabel );
-
-        JButton colorButton = createColorButton( panel, buttonDimensions, sam );
-
-        final JButton brightnessButton =
-                SourcesDisplayUI.createBrightnessButton(
-                        buttonDimensions, sam,
-                        0.0, 65535.0);
-
-        final JButton removeButton = createRemoveButton( sam, buttonDimensions );
-
-        final JCheckBox sliceViewVisibilityCheckbox =
-                SourcesDisplayUI.createBigDataViewerVisibilityCheckbox( viewSelectionDimensions, sam, true );
-
-        final JCheckBox volumeVisibilityCheckbox =
-                SourcesDisplayUI.createVolumeViewVisibilityCheckbox(
-                        this,
-                        viewSelectionDimensions,
-                        sam,
-                        sam.metadata().showImageIn3d || sam.metadata().showSelectedSegmentsIn3d );
-
-        panel.add( colorButton );
-        panel.add( brightnessButton );
-        panel.add( removeButton );
-        panel.add( volumeVisibilityCheckbox );
-        panel.add( sliceViewVisibilityCheckbox );
-
-        add( panel );
-        refreshGui();
-
-        sourceNameToPanel.put( sourceName, panel );
-    }
-
-    private void setPanelColor( Metadata metadata, JPanel panel )
-    {
-        final Color color = ColorUtils.getColor( metadata.color );
-        if ( color != null )
-        {
-            panel.setOpaque( true );
-            panel.setBackground( color );
-        }
-    }
-
-    private JButton createRemoveButton(
-            SourceAndMetadata sam,
-            int[] buttonDimensions )
-    {
-        JButton removeButton = new JButton( "X" );
-        removeButton.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
-
-        removeButton.addActionListener( e -> removeSourceFromPanelAndViewers( sam ) );
-
-        return removeButton;
-    }
-
-    public void removeSourceFromPanelAndViewers( String sourceName )
-    {
-        removeSourceFromPanelAndViewers( sourceNameToSourceAndCurrentMetadata.get( sourceName ) );
-    }
-
-    private void removeSourceFromPanelAndViewers( SourceAndMetadata< ? > sam )
+    public void removeSourceFromViewers( SourceAndMetadata< ? > sam )
     {
         sam.metadata().showImageIn3d = false;
         sam.metadata().showSelectedSegmentsIn3d = false;
         updateSegments3dView( sam, this );
         updateSource3dView( sam, this, false );
 
-        removeSourceFromPanel( sam.metadata().displayName );
 		removeLabelViews( sam.metadata().displayName );
 		sourceNameToSourceAndCurrentMetadata.remove( sam.metadata().displayName );
 
-		BdvUtils.removeSource( bdv, ( BdvStackSource ) sam.metadata().bdvStackSource );
+		sam.metadata().bdvStackSource.removeFromBdv();
 
-		if ( sam.metadata().content != null ) universe.removeContent( sam.metadata().content.getName() );
+        for ( SourceAndMetadataChangedListener listener : listeners )
+        {
+            listener.removedFromBDV( sam );
+        }
 
-        refreshGui();
+		if ( sam.metadata().content != null )
+        {
+            universe.removeContent( sam.metadata().content.getName() );
+        }
     }
 
 	private void removeLabelViews( String sourceName )
@@ -844,28 +748,24 @@ public class SourcesPanel extends JPanel
         }
 	}
 
-    public void removeAllSourcesFromPanelAndViewers()
+    public void removeAllSourcesFromViewers()
     {
         final Set< String > visibleSourceNames = getVisibleSourceNames();
 
         for ( String visibleSourceName : visibleSourceNames )
-            removeSourceFromPanelAndViewers( visibleSourceName );
-    }
-
-	private void removeSourceFromPanel( String sourceName )
-	{
-		remove( sourceNameToPanel.get( sourceName ) );
-		sourceNameToPanel.remove( sourceName );
-	}
-
-	private void refreshGui()
-    {
-        this.revalidate();
-        this.repaint();
+        {
+            final SourceAndMetadata< ? > sam = getSourceAndCurrentMetadata( visibleSourceName );
+            removeSourceFromViewers( sam );
+        }
     }
 
     public BdvHandle getBdv()
     {
         return bdv;
+    }
+
+    public List< SourceAndMetadataChangedListener > listeners()
+    {
+        return listeners;
     }
 }

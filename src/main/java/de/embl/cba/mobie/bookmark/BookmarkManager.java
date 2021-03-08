@@ -9,13 +9,18 @@ import de.embl.cba.mobie.bookmark.write.BookmarkWriter;
 import de.embl.cba.mobie.bookmark.write.NameAndFileLocation;
 import de.embl.cba.mobie.image.ImagePropertiesToMetadataAdapter;
 import de.embl.cba.mobie.image.MutableImageProperties;
-import de.embl.cba.mobie.ui.viewer.SourcesPanel;
+import de.embl.cba.mobie.image.SourceGroupLabelSourceCreator;
+import de.embl.cba.mobie.image.SourceGroups;
+import de.embl.cba.mobie.ui.MoBIE;
+import de.embl.cba.mobie.ui.SourcesDisplayManager;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.utils.Utils;
+import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils.FileLocation;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.integer.IntType;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -23,22 +28,23 @@ import java.util.*;
 
 public class BookmarkManager
 {
-	private final SourcesPanel sourcesPanel;
-	private Map< String, Bookmark > nameToBookmark;
+	private final SourcesDisplayManager sourcesDisplayManager;
+	private final MoBIE moBIE;
+	private final Map< String, Bookmark > nameToBookmark;
 	private final BookmarkReader bookmarkReader;
 	private JComboBox<String> bookmarkDropDown;
 	private final String datasetLocation;
 
-	public BookmarkManager( SourcesPanel sourcesPanel, Map< String, Bookmark > nameToBookmark,
-							BookmarkReader bookmarkReader )
+	public BookmarkManager( MoBIE moBIE, Map< String, Bookmark > nameToBookmark, BookmarkReader bookmarkReader )
 	{
-		this.sourcesPanel = sourcesPanel;
+		this.moBIE = moBIE;
+		this.sourcesDisplayManager = moBIE.getSourcesDisplayManager();
 		this.nameToBookmark = nameToBookmark;
 		this.bookmarkReader = bookmarkReader;
 		this.datasetLocation = bookmarkReader.getDatasetLocation();
 	}
 
-	public void setBookmarkDropDown (JComboBox<String> bookmarkDropDown) {
+	public void setBookmarkDropDown ( JComboBox<String> bookmarkDropDown) {
 		this.bookmarkDropDown = bookmarkDropDown;
 	}
 
@@ -48,8 +54,8 @@ public class BookmarkManager
 
 		if ( bookmark.layers != null && bookmark.layers.size() > 0 )
 		{
-			sourcesPanel.removeAllSourcesFromPanelAndViewers();
-			addSourcesToPanelAndViewer( bookmark );
+			sourcesDisplayManager.removeAllSourcesFromViewers();
+			show( bookmark );
 		}
 
 		// note: if this is trying to restore the default bookmark
@@ -59,39 +65,58 @@ public class BookmarkManager
 		adaptViewerTransform( bookmark );
 	}
 
-	public void addSourcesToPanelAndViewer( Bookmark bookmark )
+	public void show( Bookmark bookmark )
 	{
-		final HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata = createSourcesAndMetadata( bookmark );
+		final HashMap< String, SourceAndMetadata > sourcesAndMetadata = createSourcesAndMetadata( bookmark );
 
-		if ( sourceNameToSourceAndMetadata.size() == 0 ) return;
-
-		if ( bookmark.layouts != null  )
+		if ( bookmark.layouts != null )
 		{
 			for ( String layoutName : bookmark.layouts.keySet() )
 			{
 				final Layout layout = bookmark.layouts.get( layoutName );
-				adjustSourceTransforms( sourceNameToSourceAndMetadata, layout );
+
+				final String name = bookmark.name + "-" + layoutName;
+				adjustMetadata( sourcesAndMetadata, layout, name );
+
+				final SourceGroupLabelSourceCreator creator = new SourceGroupLabelSourceCreator( sourcesAndMetadata, name + "-labels", layout );
+				final SourceAndMetadata< IntType > sam = creator.create();
+				// FileAndUrlUtils.combinePath( tableDataLocation,
+				sam.metadata().segmentsTablePath = FileAndUrlUtils.combinePath( moBIE.getTablesLocation(), layout.sourceTable );
+
+				sourcesDisplayManager.show( sam );
 			}
 		}
 
-		for ( SourceAndMetadata< ? > sam : sourceNameToSourceAndMetadata.values() )
+		for ( SourceAndMetadata< ? > sam : sourcesAndMetadata.values() )
 		{
-			sourcesPanel.addSourceToPanelAndViewer( sam );
+			// display the source
+			sourcesDisplayManager.show( sam );
+
+			if ( sam.metadata().groupId != null )
+				SourceGroups.addSourceToGroup( sam );
 		}
 	}
 
-	protected void adjustSourceTransforms( HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata, Layout layout )
+	// TODO: Make own Layout class
+	protected void adjustMetadata( HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata, Layout layout, String groupName )
 	{
+		for ( String layer : layout.layers )
+		{
+			final SourceAndMetadata sourceAndMetadata = sourceNameToSourceAndMetadata.get( layer );
+			sourceAndMetadata.metadata().groupId = groupName;
+		}
+
 		if ( layout.layoutType.equals( LayoutType.AutoGrid ) )
 		{
 			final int numSources = layout.layers.size();
 			final int numColumns = ( int ) Math.ceil( Math.sqrt( numSources ) );
-			FinalRealInterval bounds = estimateBounds( 0, layout, sourceNameToSourceAndMetadata );
+			FinalRealInterval bounds = Utils.estimateBounds( sourceNameToSourceAndMetadata.get( layout.layers.get( 0 ) ).source() );
 			final double spacingFactor = 0.1;
 			double border = spacingFactor * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
-			double offsetX = bounds.realMax( 0 ) + border;
+			double offsetX = 0;
 			double offsetY = 0;
-			for ( int sourceIndex = 1, columnIndex = 1; sourceIndex < numSources; sourceIndex++ )
+
+			for ( int sourceIndex = 0, columnIndex = 0; sourceIndex < numSources; sourceIndex++ )
 			{
 				final SourceAndMetadata sam = sourceNameToSourceAndMetadata.get( layout.layers.get( sourceIndex ) );
 
@@ -113,29 +138,19 @@ public class BookmarkManager
 		}
 	}
 
-	protected FinalRealInterval estimateBounds( int sourceIndex, Layout layout, HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata )
-	{
-		final String sourceName = layout.layers.get( sourceIndex );
-		final Source< ? > source = sourceNameToSourceAndMetadata.get( sourceName ).source();
-		final AffineTransform3D affineTransform3D = new AffineTransform3D();
-		source.getSourceTransform( 0, 0, affineTransform3D );
-		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
-		return bounds;
-	}
-
 	private HashMap< String, SourceAndMetadata > createSourcesAndMetadata( Bookmark bookmark )
 	{
 		final HashMap< String, SourceAndMetadata > sourceNameToSourceAndMetadata = new HashMap<>();
 		for ( String sourceName : bookmark.layers.keySet() )
 		{
-			if ( sourcesPanel.getVisibleSourceNames().contains( sourceName ) )
+			if ( sourcesDisplayManager.getVisibleSourceNames().contains( sourceName ) )
 				continue;
 
 			final Source< ? > source
-					= sourcesPanel.getSourceAndDefaultMetadata( sourceName ).source();
+					= sourcesDisplayManager.getSourceAndDefaultMetadata( sourceName ).source();
 
 			final Metadata metadata
-					= sourcesPanel.getSourceAndDefaultMetadata( sourceName ).metadata().copy();
+					= sourcesDisplayManager.getSourceAndDefaultMetadata( sourceName ).metadata().copy();
 
 			final MutableImageProperties mutableImageProperties
 					= bookmark.layers.get( sourceName );
@@ -164,7 +179,7 @@ public class BookmarkManager
 
 		if ( location != null )
 		{
-			BdvViewChanger.moveToLocation( sourcesPanel.getBdv(), location );
+			BdvViewChanger.moveToLocation( sourcesDisplayManager.getBdv(), location );
 		}
 	}
 
@@ -173,7 +188,7 @@ public class BookmarkManager
 			if (additionalBookmarks != null) {
 				nameToBookmark.putAll(additionalBookmarks);
 				bookmarkDropDown.removeAllItems();
-				for (String bookmarkName : nameToBookmark.keySet()) {
+				for ( String bookmarkName : nameToBookmark.keySet()) {
 					bookmarkDropDown.addItem(bookmarkName);
 				}
 			}
@@ -199,15 +214,15 @@ public class BookmarkManager
 
 	public Bookmark createBookmarkFromCurrentSettings(String bookmarkName) {
 		HashMap< String, MutableImageProperties > layers = new HashMap<>();
-		Set<String> visibleSourceNames = sourcesPanel.getVisibleSourceNames();
+		Set<String> visibleSourceNames = sourcesDisplayManager.getVisibleSourceNames();
 
 		for (String sourceName : visibleSourceNames) {
-			sourcesPanel.updateCurrentMetadata( sourceName );
+			sourcesDisplayManager.updateCurrentMetadata( sourceName );
 			MutableImageProperties imageProperties = getMutableImagePropertiesFromCurrentMetadata(sourceName);
 			layers.put(sourceName, imageProperties);
 		}
 
-		BdvHandle bdv = sourcesPanel.getBdv();
+		BdvHandle bdv = sourcesDisplayManager.getBdv();
 		Bookmark currentBookmark = new Bookmark();
 		currentBookmark.name = bookmarkName;
 		currentBookmark.layers = layers;
@@ -222,7 +237,7 @@ public class BookmarkManager
 
 	private MutableImageProperties getMutableImagePropertiesFromCurrentMetadata( String sourceName )
 	{
-		Metadata metadata = sourcesPanel.getSourceAndCurrentMetadata( sourceName ).metadata();
+		Metadata metadata = sourcesDisplayManager.getSourceAndCurrentMetadata( sourceName ).metadata();
 
 		MutableImageProperties imageProperties = new MutableImageProperties();
 		final ImagePropertiesToMetadataAdapter adapter = new ImagePropertiesToMetadataAdapter();

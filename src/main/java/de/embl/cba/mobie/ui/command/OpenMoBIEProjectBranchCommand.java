@@ -1,7 +1,7 @@
 package de.embl.cba.mobie.ui.command;
 
-import de.embl.cba.mobie.ui.viewer.MoBIEOptions;
-import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.MoBIEOptions;
+import de.embl.cba.mobie.ui.MoBIE;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -19,7 +19,7 @@ public class OpenMoBIEProjectBranchCommand implements Command
 	@Override
 	public void run()
 	{
-		final MoBIEViewer moBIEViewer = new MoBIEViewer(
+		final MoBIE moBIE = new MoBIE(
 				projectLocation,
 				MoBIEOptions.options().gitProjectBranch( projectBranch ) );
 	}
@@ -29,7 +29,7 @@ public class OpenMoBIEProjectBranchCommand implements Command
 		final ImageJ ij = new ImageJ();
 		ij.ui().showUI();
 
-		final MoBIEViewer moBIEViewer = new MoBIEViewer(
+		final MoBIE moBIE = new MoBIE(
 				"https://github.com/mobie/covid-tomo-datasets",
 				MoBIEOptions.options().gitProjectBranch( "norm-bookmarks" ) );
 	}

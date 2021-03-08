@@ -1,7 +1,7 @@
 package de.embl.cba.mobie.ui.command;
 
-import de.embl.cba.mobie.ui.viewer.MoBIEOptions;
-import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.MoBIEOptions;
+import de.embl.cba.mobie.ui.MoBIE;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -32,7 +32,7 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 	@Override
 	public void run()
 	{
-		new MoBIEViewer(
+		new MoBIE(
 				projectLocation,
 				MoBIEOptions.options()
 						.gitProjectBranch( projectBranch )
@@ -75,7 +75,7 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 		 * Table data branch (for github): "xray"
 		 */
 
-		new MoBIEViewer(
+		new MoBIE(
 				"https://github.com/mobie/platybrowser-datasets",
 				MoBIEOptions.options()
 						.gitProjectBranch( "xray" )

@@ -1,12 +1,13 @@
 package de.embl.cba.mobie.utils;
 
 import bdv.util.BdvHandle;
-import bdv.util.BdvStackSource;
+import bdv.viewer.Source;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.Constants;
+import de.embl.cba.mobie.image.SourceGroupLabelSourceMetadata;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.Tables;
@@ -282,24 +283,72 @@ public class Utils
 		return sb.toString();
 	}
 
+	public static List< TableRowImageSegment > createGroupedSourcesSegmentsFromTableFile(
+			String tablePath,
+			String imageId,
+			SourceGroupLabelSourceMetadata metadata )
+	{
+		log( "Opening table: " + tablePath );
+
+		tablePath = resolveTablePath( tablePath );
+
+		Map< String, List< String > > columns =
+				TableColumns.stringColumnsFromTableFile( tablePath );
+
+		// Add anchor columns, using the metadata
+		final ArrayList< List< String > > anchorColumns = new ArrayList<>();
+		for ( int d = 0; d < 3; d++ )
+		{
+			anchorColumns.add( new ArrayList<>() );
+		}
+
+		final ArrayList< String > labelIds = new ArrayList<>();
+		final ArrayList< String > labelImageIds = new ArrayList<>();
+		final List< String > sourceNames = columns.get( Constants.SOURCE_NAME );
+
+		int labelId = 1;
+		for ( String sourceName : sourceNames )
+		{
+			final RealInterval interval = metadata.sourceNameToInterval.get( sourceName );
+			for ( int d = 0; d < 3; d++ )
+			{
+				anchorColumns.get( d ).add( String.valueOf( ( interval.realMax( d ) + interval.realMin( d ) ) / 2 ) );
+			}
+
+			labelIds.add( String.valueOf( metadata.sourceNameToLabelIndex.get( sourceName ) ) );
+			labelImageIds.add( imageId );
+		}
+
+		columns.put( Constants.ANCHOR_X, anchorColumns.get( 0 ) );
+		columns.put( Constants.ANCHOR_Y, anchorColumns.get( 1 ) );
+		columns.put( Constants.ANCHOR_Z, anchorColumns.get( 2 ) );
+		columns.put( Constants.SEGMENT_LABEL_ID, labelIds );
+		columns.put( Constants.LABEL_IMAGE_ID, labelImageIds );
+
+		final Map< SegmentProperty, List< String > > segmentPropertyToColumn
+				= createSegmentPropertyToColumn( columns );
+
+		final List< TableRowImageSegment > segments
+				= SegmentUtils.tableRowImageSegmentsFromColumns(
+				columns, segmentPropertyToColumn, false );
+
+		return segments;
+	}
+
 	public static List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
 			String tablePath,
 			String imageId )
 	{
 		log( "Opening table: " + tablePath );
 
-		if ( tablePath.startsWith( "http" ) ) {
-			tablePath = FileUtils.resolveTableURL(URI.create(tablePath));
-		} else {
-			tablePath = FileUtils.resolveTablePath( tablePath );
-		}
+		tablePath = resolveTablePath( tablePath );
 
 		Map< String, List< String > > columns =
-						TableColumns.stringColumnsFromTableFile( tablePath );
+				TableColumns.stringColumnsFromTableFile( tablePath );
 
 		TableColumns.addLabelImageIdColumn(
 				columns,
-				Constants.COLUMN_NAME_LABEL_IMAGE_ID,
+				Constants.LABEL_IMAGE_ID,
 				imageId );
 
 		final Map< SegmentProperty, List< String > > segmentPropertyToColumn
@@ -310,6 +359,16 @@ public class Utils
 						columns, segmentPropertyToColumn, false );
 
 		return segments;
+	}
+
+	public static String resolveTablePath( String tablePath )
+	{
+		if ( tablePath.startsWith( "http" ) ) {
+			tablePath = FileUtils.resolveTableURL( URI.create(tablePath) );
+		} else {
+			tablePath = FileUtils.resolveTablePath( tablePath );
+		}
+		return tablePath;
 	}
 
 	public static boolean isRelativePath( String tablePath )
@@ -352,23 +411,23 @@ public class Utils
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.LabelImage,
-				columns.get( Constants.COLUMN_NAME_LABEL_IMAGE_ID ));
+				columns.get( Constants.LABEL_IMAGE_ID ));
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.ObjectLabel,
-				columns.get( Constants.COLUMN_NAME_SEGMENT_LABEL_ID ) );
+				columns.get( Constants.SEGMENT_LABEL_ID ) );
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.X,
-				columns.get( "anchor_x" ) );
+				columns.get( Constants.ANCHOR_X ) );
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.Y,
-				columns.get( "anchor_y" ) );
+				columns.get( Constants.ANCHOR_Y ) );
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.Z,
-				columns.get( "anchor_z" ) );
+				columns.get( Constants.ANCHOR_Z ) );
 
 		SegmentUtils.putDefaultBoundingBoxMapping( segmentPropertyToColumn, columns );
 
@@ -471,4 +530,11 @@ public class Utils
 		return view;
 	}
 
+	public static FinalRealInterval estimateBounds( Source< ? > source )
+	{
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+		source.getSourceTransform( 0, 0, affineTransform3D );
+		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
+		return bounds;
+	}
 }

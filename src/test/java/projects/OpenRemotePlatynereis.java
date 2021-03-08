@@ -1,6 +1,6 @@
 package projects;
 
-import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.MoBIE;
 import net.imagej.ImageJ;
 
 public class OpenRemotePlatynereis
@@ -10,6 +10,6 @@ public class OpenRemotePlatynereis
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		new MoBIEViewer("https://github.com/platybrowser/platybrowser" );
+		new MoBIE("https://github.com/platybrowser/platybrowser" );
 	}
 }

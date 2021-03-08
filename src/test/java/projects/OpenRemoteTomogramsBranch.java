@@ -1,7 +1,7 @@
 package projects;
 
-import de.embl.cba.mobie.ui.viewer.MoBIEOptions;
-import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.MoBIEOptions;
+import de.embl.cba.mobie.ui.MoBIE;
 import net.imagej.ImageJ;
 
 public class OpenRemoteTomogramsBranch
@@ -11,6 +11,6 @@ public class OpenRemoteTomogramsBranch
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		new MoBIEViewer("https://github.com/mobie/covid-tomo-datasets", MoBIEOptions.options().gitProjectBranch( "grid-test" )  );
+		new MoBIE("https://github.com/mobie/covid-tomo-datasets", MoBIEOptions.options().gitProjectBranch( "grid-test" )  );
 	}
 }

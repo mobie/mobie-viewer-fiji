@@ -1,11 +1,11 @@
 package projects;
 
-import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.MoBIE;
 
 public class OpenRemoteCovidEM
 {
 	public static void main( String[] args )
 	{
-		new MoBIEViewer( "https://github.com/mobie-org/covid-em-datasets");
+		new MoBIE( "https://github.com/mobie-org/covid-em-datasets");
 	}
 }

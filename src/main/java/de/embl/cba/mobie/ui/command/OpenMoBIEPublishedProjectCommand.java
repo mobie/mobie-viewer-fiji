@@ -2,8 +2,8 @@ package de.embl.cba.mobie.ui.command;
 
 import de.embl.cba.mobie.projects.PublishedProject;
 import de.embl.cba.mobie.projects.PublishedProjectsCreator;
-import de.embl.cba.mobie.ui.viewer.MoBIEOptions;
-import de.embl.cba.mobie.ui.viewer.MoBIEViewer;
+import de.embl.cba.mobie.ui.MoBIEOptions;
+import de.embl.cba.mobie.ui.MoBIE;
 import ij.gui.GenericDialog;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
@@ -38,7 +38,7 @@ public class OpenMoBIEPublishedProjectCommand implements Command
 
 		final PublishedProject project = projects.get( choice );
 
-		final MoBIEViewer moBIEViewer = new MoBIEViewer( project.location, MoBIEOptions.options().pulicationURL( project.pulicationURL ) );
+		final MoBIE moBIE = new MoBIE( project.location, MoBIEOptions.options().pulicationURL( project.pulicationURL ) );
 	}
 
 	public static void main( String[] args )

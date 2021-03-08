@@ -1,5 +1,6 @@
-package de.embl.cba.mobie.ui.viewer;
+package de.embl.cba.mobie.ui;
 
+import bdv.util.BdvHandle;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
@@ -12,7 +13,6 @@ import de.embl.cba.mobie.bookmark.BookmarkReader;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.mobie.utils.Utils;
-import ij.WindowManager;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import javax.swing.*;
@@ -24,74 +24,73 @@ import java.util.Map;
 
 import static de.embl.cba.mobie.utils.FileAndUrlUtils.getName;
 
-public class MoBIEViewer
+public class MoBIE
 {
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 
-	private final SourcesPanel sourcesPanel;
-	private final ActionPanel actionPanel;
+	private final SourcesDisplayManager sourcesDisplayManager;
 	private final SourcesModel sourcesModel;
 	private final MoBIEOptions options;
+	private UserInterface userInterface;
 	private String dataset;
 	private final String projectBaseLocation; // without branch, pure github address
 	private String projectLocation; // with branch, actual url to data
 	private String imagesLocation; // selected dataset
 	private String tablesLocation;
 
-	private int frameWidth;
 	private BookmarkManager bookmarkManager;
 	private Datasets datasets;
 	private final double[] levelingVector;
-	private final JFrame jFrame;
 	private String projectName;
 	private AffineTransform3D defaultNormalisedViewerTransform;
 
-	public MoBIEViewer( String projectLocation ) throws HeadlessException
+	public MoBIE( String projectLocation ) throws HeadlessException
 	{
 		this( projectLocation, MoBIEOptions.options() );
 	}
 
 	@Deprecated
-	public MoBIEViewer(
+	public MoBIE(
 			String projectLocation,
 			String tablesLocation ) throws HeadlessException
 	{
 		this( projectLocation, MoBIEOptions.options().tableDataLocation( tablesLocation ) );
 	}
 
-	public MoBIEViewer(
+	public MoBIE(
 			String projectBaseLocation,
 			MoBIEOptions options )
 	{
 		this.projectBaseLocation = projectBaseLocation;
 		this.options = options;
+		projectName = getName( this.projectBaseLocation );
 
-		this.projectName = getName( this.projectBaseLocation );
-
-		configureRootLocations();
-		appendSpecificDatasetLocations();
+		configureDatasetsRootLocations();
+		appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be re-instantiated
 
 		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageModality(), tablesLocation );
-		sourcesPanel = new SourcesPanel( sourcesModel, projectName );
-
+		sourcesDisplayManager = new SourcesDisplayManager( sourcesModel, projectName );
 		bookmarkManager = fetchBookmarks( projectLocation );
 		levelingVector = fetchLeveling( imagesLocation );
 
-		actionPanel = new ActionPanel( this );
+		SwingUtilities.invokeLater( () -> {
+			userInterface = new UserInterface( this );
+			bookmarkManager.setView( "default" );
+			final BdvHandle bdvHandle = sourcesDisplayManager.getBdv();
+			userInterface.setBdvWindowPositionAndSize( bdvHandle );
+			defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( bdvHandle, BdvUtils.getBdvWindowCenter( bdvHandle ) );
+			new BdvBehaviourInstaller( this ).run();
+		} );
+	}
 
-		jFrame = new JFrame( "MoBIE: " + projectName + "-" + dataset );
+	public String getTablesLocation()
+	{
+		return tablesLocation;
+	}
 
-		// open bdv and show default bookmark (this will also initialise the bdv in sourcesPanel)
-		bookmarkManager.setView( "default" );
-		actionPanel.setBdvAndInstallBehavioursAndPopupMenu( sourcesPanel.getBdv() );
-		defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( sourcesPanel.getBdv(), BdvUtils.getBdvWindowCenter( sourcesPanel.getBdv() ) );
-
-		SwingUtilities.invokeLater( () ->
-		{
-			showFrame( jFrame );
-			setLogWindowPositionAndSize( jFrame );
-			sourcesPanel.setBdvWindowPositionAndSize( jFrame );
-		});
+	public String getProjectName()
+	{
+		return projectName;
 	}
 
 	public MoBIEOptions getOptions()
@@ -153,7 +152,7 @@ public class MoBIEViewer
 		}
 	}
 
-	public void appendSpecificDatasetLocations()
+	private void appendSpecificDatasetLocations()
 	{
 		this.datasets = new DatasetsParser().fetchProjectDatasets( projectLocation );
 		this.dataset = options.values.getDataset();
@@ -173,7 +172,7 @@ public class MoBIEViewer
 		Utils.log( "Fetching tables from: " + tablesLocation );
 	}
 
-	public void configureRootLocations( )
+	private void configureDatasetsRootLocations( )
 	{
 		this.projectLocation = projectBaseLocation;
 		this.imagesLocation = options.values.getImageDataLocation() != null ? options.values.getImageDataLocation() : projectBaseLocation;
@@ -188,7 +187,7 @@ public class MoBIEViewer
 		tablesLocation = adaptUrl( tablesLocation, options.values.getTableDataBranch() ) + "/data";
 	}
 
-	public String adaptUrl( String url, String projectBranch )
+	private String adaptUrl( String url, String projectBranch )
 	{
 		if ( url.contains( "github.com" ) )
 		{
@@ -198,59 +197,24 @@ public class MoBIEViewer
 		return url;
 	}
 
-	public BookmarkManager fetchBookmarks( String location )
+	private BookmarkManager fetchBookmarks( String location )
 	{
 		BookmarkReader bookmarkParser = new BookmarkReader(location);
 		Map< String, Bookmark > nameToBookmark = bookmarkParser.readDefaultBookmarks();
 
-		return new BookmarkManager( sourcesPanel, nameToBookmark, bookmarkParser);
+		return new BookmarkManager( this, nameToBookmark, bookmarkParser);
 	}
 
-	public void setLogWindowPositionAndSize( JFrame jFrame )
+	// TODO: This should be dataset dependent?
+	public SourcesDisplayManager getSourcesDisplayManager()
 	{
-		final Frame log = WindowManager.getFrame( "Log" );
-		if (log != null) {
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			final int logWindowHeight = screenSize.height - ( jFrame.getLocationOnScreen().y + jFrame.getHeight() + 20 );
-			log.setSize( jFrame.getWidth(), logWindowHeight  );
-			log.setLocation( jFrame.getLocationOnScreen().x, jFrame.getLocationOnScreen().y + jFrame.getHeight() );
-		}
-	}
-
-	public void showFrame( JFrame frame )
-	{
-		JSplitPane splitPane = new JSplitPane();
-		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		final int numModalities = actionPanel.getSortedModalities().size();
-		final int actionPanelHeight = ( numModalities + 7 ) * 40;
-		splitPane.setDividerLocation( actionPanelHeight );
-		splitPane.setTopComponent( actionPanel );
-		splitPane.setBottomComponent( sourcesPanel );
-		splitPane.setAutoscrolls( true );
-		frameWidth = 600;
-		frame.setPreferredSize( new Dimension( frameWidth, actionPanelHeight + 200 ) );
-		frame.getContentPane().setLayout( new GridLayout() );
-		frame.getContentPane().add( splitPane );
-
-		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-		frame.pack();
-		frame.setVisible( true );
-	}
-
-	public SourcesPanel getSourcesPanel()
-	{
-		return sourcesPanel;
-	}
-
-	public ActionPanel getActionPanel()
-	{
-		return actionPanel;
+		return sourcesDisplayManager;
 	}
 
 	public void close()
 	{
-		sourcesPanel.removeAllSourcesFromPanelAndViewers();
-		sourcesPanel.getBdv().close();
-		jFrame.dispose();
+		sourcesDisplayManager.removeAllSourcesFromViewers();
+		sourcesDisplayManager.getBdv().close();
+		userInterface.dispose();
 	}
 }
