@@ -1,6 +1,6 @@
 package de.embl.cba.mobie.ui.command;
 
-import de.embl.cba.mobie.projects.projectsCreator.ProjectsCreatorPanel;
+import de.embl.cba.mobie.projects.projectsCreator.ui.ProjectsCreatorPanel;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;

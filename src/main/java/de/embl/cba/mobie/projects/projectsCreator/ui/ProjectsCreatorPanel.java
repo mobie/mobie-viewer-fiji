@@ -1,5 +1,6 @@
-package de.embl.cba.mobie.projects.projectsCreator;
+package de.embl.cba.mobie.projects.projectsCreator.ui;
 
+import de.embl.cba.mobie.projects.projectsCreator.ProjectsCreator;
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.SwingUtils;

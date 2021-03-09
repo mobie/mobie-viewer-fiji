@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.projects.projectsCreator;
+package de.embl.cba.mobie.projects.projectsCreator.ui;
 
 import bdv.ij.util.PluginHelper;
 import de.embl.cba.mobie.n5.DownsampleBlock;

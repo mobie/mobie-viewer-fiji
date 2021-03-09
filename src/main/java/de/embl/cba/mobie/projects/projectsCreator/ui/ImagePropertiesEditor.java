@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.projects.projectsCreator;
+package de.embl.cba.mobie.projects.projectsCreator.ui;
 
 import de.embl.cba.mobie.image.ImageProperties;
 import de.embl.cba.mobie.projects.projectsCreator.ProjectsCreator;
@@ -230,7 +230,7 @@ public class ImagePropertiesEditor {
     }
 
     private String[] getTableNames() {
-        File tableFolder = new File(FileAndUrlUtils.combinePath(projectsCreator.getDatasetPath(datasetName), imageProperties.tableFolder) );
+        File tableFolder = new File(FileAndUrlUtils.combinePath(projectsCreator.getDatasetDirectoryPath(datasetName), imageProperties.tableFolder) );
         File[] tableFiles = tableFolder.listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.toLowerCase().endsWith(".csv") || name.toLowerCase().endsWith(".tsv");
