@@ -306,7 +306,6 @@ public class Utils
 		final ArrayList< String > labelImageIds = new ArrayList<>();
 		final List< String > sourceNames = columns.get( Constants.SOURCE_NAME );
 
-		int labelId = 1;
 		for ( String sourceName : sourceNames )
 		{
 			final RealInterval interval = metadata.sourceNameToInterval.get( sourceName );
