@@ -152,7 +152,7 @@ public class ProjectsCreator {
     }
 
     // TODO - check n5 format
-    public void addBdvFormatImage ( File xmlLocation, String datasetName, BdvFormat bdvFormat,
+    public void addBdvFormatImage ( File xmlLocation, String datasetName,
                                     ImageType imageType, AddMethod addMethod ) throws SpimDataException, IOException {
         if ( xmlLocation.exists() ) {
             SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(xmlLocation.getAbsolutePath());
@@ -160,26 +160,40 @@ public class ProjectsCreator {
             File newXmlDirectory = new File(FileAndUrlUtils.combinePath(getImagesPath(datasetName), "local"));
             File newXmlFile = new File(newXmlDirectory, imageName + ".xml");
 
-            if (!newXmlFile.exists()) {
-                switch ( addMethod ) {
-                    case link:
-                        new XmlIoSpimDataMinimal().save(spimDataMinimal, newXmlFile.getAbsolutePath());
-                        break;
-                    case copy:
-                        copyImage(bdvFormat, spimDataMinimal, newXmlDirectory, imageName);
-                        break;
-                    case move:
-                        moveImage( bdvFormat, spimDataMinimal, newXmlDirectory, imageName );
-                        break;
+            if ( !newXmlFile.exists() ) {
+                // check n5 format (e.g. we no longer support hdf5)
+                BdvFormat bdvFormat = getBdvFormatFromSpimDataMinimal( spimDataMinimal );
+                if ( bdvFormat != null ) {
+                    switch (addMethod) {
+                        case link:
+                            new XmlIoSpimDataMinimal().save(spimDataMinimal, newXmlFile.getAbsolutePath());
+                            break;
+                        case copy:
+                            copyImage(bdvFormat, spimDataMinimal, newXmlDirectory, imageName);
+                            break;
+                        case move:
+                            moveImage(bdvFormat, spimDataMinimal, newXmlDirectory, imageName);
+                            break;
+                    }
+                    updateJsonsForNewImage(imageName, imageType, datasetName);
+                } else {
+                    Utils.log( "Image is of unsupported type. Must be n5.");
                 }
-
-                updateJsonsForNewImage(imageName, imageType, datasetName);
             } else {
                 Utils.log("Adding image to project failed - this image name already exists");
             }
         } else {
             Utils.log( "Adding image to project failed - xml does not exist" );
         }
+    }
+
+    private BdvFormat getBdvFormatFromSpimDataMinimal( SpimDataMinimal spimDataMinimal ) {
+        BdvFormat bdvFormat = null;
+        if ( spimDataMinimal.getSequenceDescription().getImgLoader() instanceof N5ImageLoader ) {
+            bdvFormat = BdvFormat.n5;
+        }
+
+        return bdvFormat;
     }
 
     private void addAffineTransformToXml ( String xmlPath, String affineTransform )  {

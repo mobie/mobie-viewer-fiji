@@ -227,18 +227,15 @@ public class ProjectsCreatorPanel extends JFrame {
                 String[] imageTypes = new String[]{ ProjectsCreator.ImageType.image.toString(),
                         ProjectsCreator.ImageType.segmentation.toString(), ProjectsCreator.ImageType.mask.toString() };
                 gd.addChoice("Image Type", imageTypes, imageTypes[0]);
-                String[] bdvFormats = new String[]{ ProjectsCreator.BdvFormat.n5.toString() };
-                gd.addChoice("Bdv format", bdvFormats, bdvFormats[0] );
 
                 gd.showDialog();
 
                 if (!gd.wasCanceled()) {
                     ProjectsCreator.AddMethod addMethod = ProjectsCreator.AddMethod.valueOf( gd.getNextChoice() );
                     ProjectsCreator.ImageType imageType = ProjectsCreator.ImageType.valueOf( gd.getNextChoice() );
-                    ProjectsCreator.BdvFormat bdvFormat = ProjectsCreator.BdvFormat.valueOf( gd.getNextChoice() );
 
                     try {
-                        projectsCreator.addBdvFormatImage( xmlLocation, datasetName, bdvFormat, imageType, addMethod );
+                        projectsCreator.addBdvFormatImage( xmlLocation, datasetName, imageType, addMethod );
                         updateDatasetsComboBox( datasetName );
                     } catch (SpimDataException | IOException e) {
                         e.printStackTrace();
