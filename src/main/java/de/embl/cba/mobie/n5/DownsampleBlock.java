@@ -67,6 +67,7 @@ class DownsampleBlockInstances
 {
     @SuppressWarnings( "rawtypes" )
     private static ClassCopyProvider< DownsampleBlock > provider;
+    private static DownsampleBlock.DownsamplingMethod lastDownsamplingMethod;
 
     @SuppressWarnings( "unchecked" )
     public static < T extends RealType< T > > DownsampleBlock< T > create(
@@ -76,11 +77,12 @@ class DownsampleBlockInstances
             final Class< ? > pixelTypeClass,
             final Class< ? > inAccessClass )
     {
-        if ( provider == null )
+
+        if ( provider == null || !(lastDownsamplingMethod == downsamplingMethod) )
         {
             synchronized ( DownsampleBlockInstances.class )
             {
-                if ( provider == null )
+                if ( provider == null || !(lastDownsamplingMethod == downsamplingMethod)  )
                 {
                     switch ( downsamplingMethod )
                     {
@@ -94,6 +96,7 @@ class DownsampleBlockInstances
                             provider = new ClassCopyProvider<>( ModeDownsampler.class, DownsampleBlock.class, int[].class, int[].class );
                             break;
                     }
+                    lastDownsamplingMethod = downsamplingMethod;
                 }
             }
         }
