@@ -151,7 +151,6 @@ public class ProjectsCreator {
         }
     }
 
-    // TODO - check n5 format
     public void addBdvFormatImage ( File xmlLocation, String datasetName,
                                     ImageType imageType, AddMethod addMethod ) throws SpimDataException, IOException {
         if ( xmlLocation.exists() ) {
