@@ -32,6 +32,7 @@ import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.numeric.integer.IntType;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FileUtils;
+import org.janelia.saalfeldlab.n5.GzipCompression;
 import org.janelia.saalfeldlab.n5.RawCompression;
 
 import javax.swing.*;
@@ -210,9 +211,9 @@ public class ProjectsCreator {
                 if (!useDefaultSettings) {
                     new ManualN5ExportPanel(imp, xmlPath, sourceTransform, downsamplingMethod).getManualExportParameters();
                 } else {
-                    // raw compresssion by default
+                    // gzip compression by default
                     new WriteImgPlusToN5().export(imp, xmlPath, sourceTransform, downsamplingMethod,
-                            new RawCompression());
+                            new GzipCompression());
                 }
             }
 
