@@ -11,6 +11,7 @@ import de.embl.cba.mobie.bookmark.BookmarkReader;
 import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.dataset.DatasetsParser;
 import de.embl.cba.mobie.image.*;
+import de.embl.cba.mobie.n5.WriteImgPlusToN5;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
@@ -30,6 +31,7 @@ import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.numeric.integer.IntType;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FileUtils;
+import org.janelia.saalfeldlab.n5.RawCompression;
 
 import javax.swing.*;
 import java.io.File;
@@ -130,6 +132,7 @@ public class ProjectsCreator {
         }
     }
 
+    // TODO - check n5 format
     public void addBdvFormatImage ( File xmlLocation, String datasetName, String bdvFormat, String imageType, String addMethod ) throws SpimDataException, IOException {
         if ( xmlLocation.exists() ) {
             SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(xmlLocation.getAbsolutePath());
@@ -154,70 +157,69 @@ public class ProjectsCreator {
         }
     }
 
-    public String getDefaultAffineForCurrentImage () {
-        ImagePlus imp = IJ.getImage();
-        final double pixelWidth = imp.getCalibration().pixelWidth;
-        final double pixelHeight = imp.getCalibration().pixelHeight;
-        final double pixelDepth = imp.getCalibration().pixelDepth;
+    private void addAffineTransformToXml ( String xmlPath, String affineTransform )  {
+        if ( affineTransform != null ) {
+            try {
+                SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load( xmlPath );
+                int numTimepoints = spimDataMinimal.getSequenceDescription().getTimePoints().size();
+                int numSetups = spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().size();
 
-        String defaultAffine = pixelWidth + " 0.0 0.0 0.0 0.0 " + pixelHeight + " 0.0 0.0 0.0 0.0 " + pixelDepth + " 0.0";
-        return defaultAffine;
-    }
+                AffineTransform3D sourceTransform = new AffineTransform3D();
+                String[] splitAffineTransform = affineTransform.split(" ");
+                double[] doubleAffineTransform = new double[splitAffineTransform.length];
+                for ( int i = 0; i < splitAffineTransform.length; i++ ) {
+                    doubleAffineTransform[i] = Double.parseDouble( splitAffineTransform[i] );
+                }
+                sourceTransform.set( doubleAffineTransform );
 
-    private void addAffineTransformToXml ( String xmlPath, String affineTransform ) throws SpimDataException {
-        SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load( xmlPath );
-        int numTimepoints = spimDataMinimal.getSequenceDescription().getTimePoints().size();
-        int numSetups = spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().size();
+                final ArrayList<ViewRegistration> registrations = new ArrayList<>();
+                for ( int t = 0; t < numTimepoints; ++t ) {
+                    for (int s = 0; s < numSetups; ++s) {
+                        registrations.add(new ViewRegistration(t, s, sourceTransform));
+                    }
+                }
 
-        AffineTransform3D sourceTransform = new AffineTransform3D();
-        String[] splitAffineTransform = affineTransform.split(" ");
-        double[] doubleAffineTransform = new double[splitAffineTransform.length];
-        for ( int i = 0; i < splitAffineTransform.length; i++ ) {
-            doubleAffineTransform[i] = Double.parseDouble( splitAffineTransform[i] );
-        }
-        sourceTransform.set( doubleAffineTransform );
+                SpimDataMinimal updatedSpimDataMinimial = new SpimDataMinimal(spimDataMinimal.getBasePath(),
+                        spimDataMinimal.getSequenceDescription(), new ViewRegistrations( registrations) );
 
-        final ArrayList<ViewRegistration> registrations = new ArrayList<>();
-        for ( int t = 0; t < numTimepoints; ++t ) {
-            for (int s = 0; s < numSetups; ++s) {
-                registrations.add(new ViewRegistration(t, s, sourceTransform));
+                new XmlIoSpimDataMinimal().save( updatedSpimDataMinimial, xmlPath);
+            } catch (SpimDataException e) {
+                Utils.log( "Error adding affine transform to xml file. Check xml manually.");
+                e.printStackTrace();
             }
+
         }
-
-        SpimDataMinimal updatedSpimDataMinimial = new SpimDataMinimal(spimDataMinimal.getBasePath(),
-                spimDataMinimal.getSequenceDescription(), new ViewRegistrations( registrations) );
-
-        new XmlIoSpimDataMinimal().save( updatedSpimDataMinimial, xmlPath);
     }
 
     public void addImage ( String imageName, String datasetName, String bdvFormat, String imageType,
-                           String affineTransform, String options ) {
+                           AffineTransform3D sourceTransform, boolean useDefaultSettings ) {
+        ImagePlus imp = IJ.getImage();
         String xmlPath = getLocalImageXmlPath( datasetName, imageName);
         File xmlFile = new File( xmlPath );
 
+        String downsamplingMode;
+        if ( imageType.equals( "image" ) ) {
+            downsamplingMode = "average";
+        } else {
+            downsamplingMode = "nearest neighbour";
+        }
+
         if ( !xmlFile.exists() ) {
-            if (bdvFormat.equals("n5")) {
-                IJ.run("Export Current Image as XML/N5",
-                        options);
-            } else if (bdvFormat.equals("h5")) {
-                IJ.run("Export Current Image as XML/HDF5",
-                        options);
+            if ( bdvFormat.equals("n5") ) {
+                if (!useDefaultSettings) {
+                    new ManualN5ExportPanel(imp, xmlPath, sourceTransform, downsamplingMode).getManualExportParameters();
+                } else {
+                    // raw compresssion by default
+                    new WriteImgPlusToN5().export(imp, xmlPath, sourceTransform, downsamplingMode,
+                            new RawCompression());
+                }
             }
 
             // check image written successfully, before writing jsons
             if ( xmlFile.exists() ) {
-                // if an affine transform is provided, re-open the xml and add the affine
-                if ( affineTransform != null ) {
-                    try {
-                        addAffineTransformToXml( xmlPath, affineTransform );
-                    } catch (SpimDataException e) {
-                        Utils.log( "Error adding affine transform to xml file. Check xml manually.");
-                        e.printStackTrace();
-                    }
-
-                }
-                updateJsonsForNewImage(imageName, imageType, datasetName);
+                updateJsonsForNewImage( imageName, imageType, datasetName );
             }
+
         } else {
             Utils.log( "Adding image to project failed - this image name already exists" );
         }

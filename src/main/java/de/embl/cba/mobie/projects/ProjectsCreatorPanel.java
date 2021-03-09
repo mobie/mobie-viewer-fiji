@@ -143,103 +143,12 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
-    private String getH5ManualExportOptions( String datasetName, String imageName ) {
-
-        final GenericDialog manualSettings = new GenericDialog( "Manual Settings for BigDataViewer XML/H5" );
-
-        // same settings as https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusPlugIn.java#L357
-        // but hiding settings like e.g. export location that shouldn't be set manually
-
-        manualSettings.addStringField( "Subsampling_factors", "{ {1,1,1} }", 25 );
-        manualSettings.addStringField( "Hdf5_chunk_sizes", "{ {64,64,64} }", 25 );
-
-        manualSettings.addMessage( "" );
-        final String[] minMaxChoices = new String[] { "Use ImageJ's current min/max setting", "Compute min/max of the (hyper-)stack", "Use values specified below" };
-        manualSettings.addChoice( "Value_range", minMaxChoices, minMaxChoices[ 2 ] );
-        manualSettings.addNumericField( "Min", 0, 0 );
-        manualSettings.addNumericField( "Max", 65535, 0 );
-
-        manualSettings.addMessage( "" );
-        manualSettings.addCheckbox( "split_hdf5", false );
-        manualSettings.addNumericField( "timepoints_per_partition", 0, 0, 25, "" );
-        manualSettings.addNumericField( "setups_per_partition", 0, 0, 25, "" );
-
-        manualSettings.addMessage( "" );
-        manualSettings.addCheckbox( "use_deflate_compression", true );
-
-        manualSettings.showDialog();
-
-        if ( !manualSettings.wasCanceled() ) {
-            String xmlPath = projectsCreator.getLocalImageXmlPath( datasetName, imageName );
-            String subsamplingFactors = manualSettings.getNextString();
-            String chunkSizes = manualSettings.getNextString();
-            String valueRange = manualSettings.getNextChoice();
-            double min = manualSettings.getNextNumber();
-            double max = manualSettings.getNextNumber();
-            boolean splitHdf5 = manualSettings.getNextBoolean();
-            double timePointsPerPartition = manualSettings.getNextNumber();
-            double setupsPerPartition = manualSettings.getNextNumber();
-            boolean useDeflateCompression = manualSettings.getNextBoolean();
-
-            String optionsString = "manual_mipmap_setup subsampling_factors=[" + subsamplingFactors + "] hdf5_chunk_sizes=[" + chunkSizes +
-                    "] value_range=[" + valueRange + "] min=" + min + " max=" + max;
-            if ( splitHdf5 ) {
-                optionsString += " split_hdf5";
-            }
-
-            optionsString += " timepoints_per_partition=" + timePointsPerPartition + " setups_per_partition=" +
-                    setupsPerPartition;
-
-            if (useDeflateCompression) {
-                optionsString+= " use_deflate_compression";
-            }
-
-            optionsString += " export_path=" + xmlPath;
-            return optionsString;
-
-        } else {
-            return null;
-        }
-    }
-
-    private String getN5ManualExportOptions( String datasetName, String imageName ) {
-
-        final GenericDialog manualSettings = new GenericDialog( "Manual Settings for BigDataViewer XML/N5" );
-
-        // same settings as https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusAsN5PlugIn.java#L345
-        // but hiding settings like e.g. export location that shouldn't be set manually
-
-        manualSettings.addStringField( "Subsampling_factors", "{ {1,1,1} }", 25 );
-        manualSettings.addStringField( "N5_chunk_sizes", "{ {64,64,64} }", 25 );
-        final String[] compressionChoices = new String[] { "raw (no compression)", "bzip", "gzip", "lz4", "xz" };
-        manualSettings.addChoice( "compression", compressionChoices, compressionChoices[ 0 ] );
-
-        manualSettings.showDialog();
-
-        if ( !manualSettings.wasCanceled() ) {
-            String xmlPath = projectsCreator.getLocalImageXmlPath( datasetName, imageName );
-            String subsamplingFactors = manualSettings.getNextString();
-            String chunkSizes = manualSettings.getNextString();
-            String compression = manualSettings.getNextChoice();
-            return "manual_mipmap_setup subsampling_factors=[" + subsamplingFactors + "] n5_chunk_sizes=[" + chunkSizes +
-                    "] compression=[" + compression + "] export_path=" + xmlPath;
-        } else {
-            return null;
-        }
-
-    }
-
-    private String getDefaultExportOptions( String datasetName, String imageName ) {
-        String xmlPath = projectsCreator.getLocalImageXmlPath( datasetName, imageName );
-        return "  export_path=" + xmlPath;
-    }
-
     public void addCurrentOpenImageDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
         if (!datasetName.equals("")) {
 
-            String defaultAffineTransform = projectsCreator.getDefaultAffineForCurrentImage();
+            String defaultAffineTransform = generateDefaultAffine( IJ.getImage() );
 
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
             gd.addMessage( "Make sure your pixel size, and unit,\n are set properly under Image > Properties...");
@@ -263,45 +172,17 @@ public class ProjectsCreatorPanel extends JFrame {
                 // tidy up image name, remove any spaces
                 imageName = tidyString( imageName );
 
-                if ( imageName != null && isValidAffine( affineTransform ) ) {
+                AffineTransform3D sourceTransform = parseAffineString( affineTransform );
 
-                    String options = getDefaultExportOptions( datasetName, imageName );
-                    if ( !useDefaultSettings && bdvFormat.equals("h5") ) {
-                        options = getH5ManualExportOptions( datasetName, imageName );
-                    } else if ( !useDefaultSettings && bdvFormat.equals("n5") ) {
-                        options = getN5ManualExportOptions( datasetName, imageName );
-                    }
-
-                    if ( options != null ) {
-
-                        if (!affineTransform.equals(defaultAffineTransform)) {
-                            projectsCreator.addImage(imageName, datasetName, bdvFormat, imageType, affineTransform, options);
-                        } else {
-                            projectsCreator.addImage(imageName, datasetName, bdvFormat, imageType, null, options);
-                        }
-                        updateDatasetsComboBox(datasetName);
-                    }
+                if ( imageName != null && sourceTransform != null ) {
+                    projectsCreator.addImage( imageName, datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings );
+                    updateDatasetsComboBox(datasetName);
                 }
             }
 
         } else {
             Utils.log( "Add image failed - create a dataset first" );
         }
-    }
-
-    private boolean isValidAffine ( String affine ) {
-        if ( !affine.matches("^[0-9. ]+$") ) {
-            Utils.log( "Invalid affine transform - must contain only numbers and spaces");
-            return false;
-        }
-
-        String[] splitAffine = affine.split(" ");
-        if ( splitAffine.length != 12) {
-            Utils.log( "Invalid affine transform - must be of length 12");
-            return false;
-        }
-
-        return true;
     }
 
     private String tidyString( String string ) {
