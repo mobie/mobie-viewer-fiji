@@ -1,6 +1,7 @@
-package de.embl.cba.mobie.image;
+package de.embl.cba.mobie.projects.projectsCreator;
 
-import de.embl.cba.mobie.projects.ProjectsCreator;
+import de.embl.cba.mobie.image.ImageProperties;
+import de.embl.cba.mobie.projects.projectsCreator.ProjectsCreator;
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileAndUrlUtils;

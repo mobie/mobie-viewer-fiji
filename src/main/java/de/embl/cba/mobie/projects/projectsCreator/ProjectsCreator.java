@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.projects;
+package de.embl.cba.mobie.projects.projectsCreator;
 
 import bdv.img.n5.N5ImageLoader;
 import bdv.spimdata.SpimDataMinimal;

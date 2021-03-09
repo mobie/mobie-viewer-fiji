@@ -1,6 +1,5 @@
-package de.embl.cba.mobie.projects;
+package de.embl.cba.mobie.projects.projectsCreator;
 
-import de.embl.cba.mobie.image.ImagePropertiesEditor;
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.SwingUtils;
