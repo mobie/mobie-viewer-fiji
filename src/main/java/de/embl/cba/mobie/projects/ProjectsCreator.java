@@ -500,6 +500,8 @@ public class ProjectsCreator {
 
             JTable table = new JTable(rowArray, columnNames);
             Tables.saveTable(table, new File(FileAndUrlUtils.combinePath(tableFolder.getAbsolutePath(), "default.csv")));
+
+            Utils.log( "Default table complete" );
         }
     }
 
