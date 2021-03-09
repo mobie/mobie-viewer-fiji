@@ -4,8 +4,10 @@ import de.embl.cba.mobie.image.ImagePropertiesEditor;
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.SwingUtils;
+import ij.IJ;
 import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimDataException;
+import net.imglib2.realtransform.AffineTransform3D;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -15,6 +17,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 
+import static de.embl.cba.mobie.utils.ExportUtils.generateDefaultAffine;
+import static de.embl.cba.mobie.utils.ExportUtils.parseAffineString;
 import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 
 public class ProjectsCreatorPanel extends JFrame {

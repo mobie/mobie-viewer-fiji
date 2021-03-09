@@ -1,7 +1,6 @@
 package de.embl.cba.mobie.n5;
 
 import bdv.export.*;
-import bdv.export.n5.WriteSequenceToN5;
 import bdv.ij.util.PluginHelper;
 import bdv.ij.util.ProgressWriterIJ;
 import bdv.img.imagestack.ImageStackImageLoader;
@@ -52,27 +51,28 @@ public class WriteImgPlusToN5 {
 
         final AffineTransform3D sourceTransform;
 
-        final String downsamplingMode;
+        final DownsampleBlock.DownsamplingMethod downsamplingMethod;
 
         final Compression compression;
 
         public Parameters(
                 final int[][] resolutions, final int[][] subdivisions,
                 final File seqFile, final File n5File, final AffineTransform3D sourceTransform,
-                final String downsamplingMode, final Compression compression )
+                final DownsampleBlock.DownsamplingMethod downsamplingMethod, final Compression compression )
         {
             this.resolutions = resolutions;
             this.subdivisions = subdivisions;
             this.seqFile = seqFile;
             this.n5File = n5File;
             this.sourceTransform = sourceTransform;
-            this.downsamplingMode = downsamplingMode;
+            this.downsamplingMethod = downsamplingMethod;
             this.compression = compression;
         }
     }
 
     // export, generating default source transform, and default resolutions / subdivisions
-    public void export( ImagePlus imp, String xmlPath, String downsamplingMode, Compression compression ) {
+    public void export( ImagePlus imp, String xmlPath, DownsampleBlock.DownsamplingMethod downsamplingMethod,
+                        Compression compression ) {
         if ( !isImageSuitable( imp ) ) {
             return;
         }
@@ -80,27 +80,28 @@ public class WriteImgPlusToN5 {
         FinalVoxelDimensions voxelSize = getVoxelSize( imp );
         final AffineTransform3D sourceTransform = generateSourceTransform( voxelSize );
 
-        Parameters defaultParameters = generateDefaultParameters( imp, xmlPath, sourceTransform, downsamplingMode,
+        Parameters defaultParameters = generateDefaultParameters( imp, xmlPath, sourceTransform, downsamplingMethod,
                 compression );
 
         export( imp, defaultParameters );
     }
 
     // export, generating default resolutions / subdivisions
-    public void export( ImagePlus imp, String xmlPath, AffineTransform3D sourceTransform, String downsamplingMode,
-                        Compression compression ) {
+    public void export( ImagePlus imp, String xmlPath, AffineTransform3D sourceTransform,
+                        DownsampleBlock.DownsamplingMethod downsamplingMethod, Compression compression ) {
         if ( !isImageSuitable( imp ) ) {
             return;
         }
 
         Parameters defaultParameters = generateDefaultParameters( imp, xmlPath, sourceTransform,
-                downsamplingMode, compression );
+                downsamplingMethod, compression );
 
         export( imp, defaultParameters );
     }
 
     public void export( ImagePlus imp, int[][] resolutions, int[][] subdivisions, String xmlPath,
-                        AffineTransform3D sourceTransform, String downsamplingMode, Compression compression ) {
+                        AffineTransform3D sourceTransform, DownsampleBlock.DownsamplingMethod downsamplingMethod,
+                        Compression compression ) {
         if ( resolutions.length == 0 ) {
             IJ.showMessage( "Invalid resolutions - length 0" );
             return;
@@ -129,13 +130,13 @@ public class WriteImgPlusToN5 {
         // TODO - check transform and downsampling mode
 
         Parameters exportParameters = new Parameters( resolutions, subdivisions, seqFile, n5File, sourceTransform,
-                downsamplingMode, compression );
+                downsamplingMethod, compression );
 
         export( imp, exportParameters );
     }
 
     protected Parameters generateDefaultParameters( ImagePlus imp, String xmlPath, AffineTransform3D sourceTransform,
-                                                    String downsamplingMode, Compression compression ) {
+                                                    DownsampleBlock.DownsamplingMethod downsamplingMethod, Compression compression ) {
         FinalVoxelDimensions voxelSize = getVoxelSize( imp );
         FinalDimensions size = getSize( imp );
 
@@ -164,7 +165,7 @@ public class WriteImgPlusToN5 {
         final File n5File = getN5FileFromXmlPath( seqFilename );
 
         return new Parameters( resolutions, subdivisions, seqFile, n5File, sourceTransform,
-                downsamplingMode, compression );
+                downsamplingMethod, compression );
     }
 
     protected void export( ImagePlus imp, Parameters params ) {
@@ -294,6 +295,7 @@ public class WriteImgPlusToN5 {
         try
         {
             WriteSequenceToN5.writeN5File( seq, perSetupExportMipmapInfo,
+                    params.downsamplingMethod,
                     params.compression, params.n5File,
                     loopbackHeuristic, afterEachPlane, numCellCreatorThreads,
                     new SubTaskProgressWriter( progressWriter, 0, 0.95 ) );

@@ -11,6 +11,7 @@ import de.embl.cba.mobie.bookmark.BookmarkReader;
 import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.dataset.DatasetsParser;
 import de.embl.cba.mobie.image.*;
+import de.embl.cba.mobie.n5.DownsampleBlock;
 import de.embl.cba.mobie.n5.WriteImgPlusToN5;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileAndUrlUtils;
@@ -197,20 +198,20 @@ public class ProjectsCreator {
         String xmlPath = getLocalImageXmlPath( datasetName, imageName);
         File xmlFile = new File( xmlPath );
 
-        String downsamplingMode;
+        DownsampleBlock.DownsamplingMethod downsamplingMethod;
         if ( imageType.equals( "image" ) ) {
-            downsamplingMode = "average";
+            downsamplingMethod = DownsampleBlock.DownsamplingMethod.Average;
         } else {
-            downsamplingMode = "nearest neighbour";
+            downsamplingMethod = DownsampleBlock.DownsamplingMethod.Mode;
         }
 
         if ( !xmlFile.exists() ) {
             if ( bdvFormat.equals("n5") ) {
                 if (!useDefaultSettings) {
-                    new ManualN5ExportPanel(imp, xmlPath, sourceTransform, downsamplingMode).getManualExportParameters();
+                    new ManualN5ExportPanel(imp, xmlPath, sourceTransform, downsamplingMethod).getManualExportParameters();
                 } else {
                     // raw compresssion by default
-                    new WriteImgPlusToN5().export(imp, xmlPath, sourceTransform, downsamplingMode,
+                    new WriteImgPlusToN5().export(imp, xmlPath, sourceTransform, downsamplingMethod,
                             new RawCompression());
                 }
             }

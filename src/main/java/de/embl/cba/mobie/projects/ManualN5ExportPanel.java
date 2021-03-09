@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.projects;
 
 import bdv.ij.util.PluginHelper;
+import de.embl.cba.mobie.n5.DownsampleBlock;
 import de.embl.cba.mobie.n5.WriteImgPlusToN5;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
@@ -18,20 +19,19 @@ public class ManualN5ExportPanel {
     ImagePlus imp;
     String xmlPath;
     AffineTransform3D sourceTransform;
-    String downsamplingMode;
+    DownsampleBlock.DownsamplingMethod downsamplingMethod;
 
     static String lastSubsampling = "{ {1,1,1} }";
     static String lastChunkSizes = "{ {64,64,64} }";
     static int lastCompressionChoice = 0;
     static boolean lastCompressionDefaultSettings = true;
-    static int lastDownsamplingModeChoice = 0;
 
     public ManualN5ExportPanel ( ImagePlus imp, String xmlPath, AffineTransform3D sourceTransform,
-                                 String downsamplingMode ) {
+                                 DownsampleBlock.DownsamplingMethod downsamplingMethod ) {
         this.imp = imp;
         this.xmlPath = xmlPath;
         this.sourceTransform = sourceTransform;
-        this.downsamplingMode = downsamplingMode;
+        this.downsamplingMethod = downsamplingMethod;
     }
 
     public void getManualExportParameters() {
@@ -96,19 +96,8 @@ public class ManualN5ExportPanel {
         if ( compression == null )
             return;
 
-        String downsamplingMode;
-        switch ( lastDownsamplingModeChoice ) {
-            default:
-            case 0: // average
-                downsamplingMode = "average";
-                break;
-            case 1: // nearest neighbour
-                downsamplingMode = "nearest neighbour";
-                break;
-        }
-
         new WriteImgPlusToN5().export( imp, resolutions, subdivisions, xmlPath, sourceTransform,
-                downsamplingMode, compression );
+                downsamplingMethod, compression );
     }
 
 
