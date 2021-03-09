@@ -1,6 +1,5 @@
 package de.embl.cba.mobie.projects;
 
-import bdv.img.hdf5.Hdf5ImageLoader;
 import bdv.img.n5.N5ImageLoader;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
@@ -33,7 +32,6 @@ import net.imglib2.type.numeric.integer.IntType;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.GzipCompression;
-import org.janelia.saalfeldlab.n5.RawCompression;
 
 import javax.swing.*;
 import java.io.File;
@@ -51,33 +49,49 @@ public class ProjectsCreator {
     // holds default bookmarks for one chosen dataset
     private Map<String, Bookmark> currentDefaultBookmarks;
 
+    public enum BdvFormat {
+        // TODO - add OME.ZARR
+        n5
+    }
+
+    public enum ImageType {
+        image,
+        segmentation,
+        mask
+    }
+
+    public enum AddMethod {
+        link,
+        copy,
+        move
+    }
+
     public ProjectsCreator ( File projectLocation ) {
         this.projectLocation = projectLocation;
         this.dataLocation = new File( projectLocation, "data");
     }
 
-    private File getImageLocation ( SpimDataMinimal spimDataMinimal, String bdvFormat) {
+    private File getImageLocation ( SpimDataMinimal spimDataMinimal, BdvFormat bdvFormat) {
         File imageLocation = null;
-        if ( bdvFormat.equals("n5") ) {
-            // get image loader to find absolute image location
-            N5ImageLoader n5ImageLoader = (N5ImageLoader) spimDataMinimal.getSequenceDescription().getImgLoader();
-            imageLocation = n5ImageLoader.getN5File();
-        } else if ( bdvFormat.equals("h5") ) {
-            Hdf5ImageLoader h5ImageLoader = (Hdf5ImageLoader) spimDataMinimal.getSequenceDescription().getImgLoader();
-            imageLocation = h5ImageLoader.getHdf5File();
+
+        switch ( bdvFormat ) {
+            case n5:
+                // get image loader to find absolute image location
+                N5ImageLoader n5ImageLoader = (N5ImageLoader) spimDataMinimal.getSequenceDescription().getImgLoader();
+                imageLocation = n5ImageLoader.getN5File();
+                break;
         }
 
         return imageLocation;
     }
 
-    private void writeNewBdvXml ( SpimDataMinimal spimDataMinimal, File imageFile, File saveDirectory, String imageName, String bdvFormat ) throws SpimDataException {
+    private void writeNewBdvXml ( SpimDataMinimal spimDataMinimal, File imageFile, File saveDirectory, String imageName, BdvFormat bdvFormat ) throws SpimDataException {
 
         ImgLoader imgLoader = null;
-        if ( bdvFormat.equals("n5") ) {
-            imgLoader = new N5ImageLoader( imageFile, null);
-
-        } else if ( bdvFormat.equals("h5") ) {
-            imgLoader = new Hdf5ImageLoader( imageFile, null,null, false);
+        switch ( bdvFormat ) {
+            case n5:
+                imgLoader = new N5ImageLoader( imageFile, null);
+                break;
         }
 
         spimDataMinimal.setBasePath( saveDirectory );
@@ -85,44 +99,47 @@ public class ProjectsCreator {
         new XmlIoSpimDataMinimal().save(spimDataMinimal, new File( saveDirectory, imageName + ".xml").getAbsolutePath() );
     }
 
-    private void copyImage ( String bdvFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
+    private void copyImage ( BdvFormat bdvFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
         File newImageFile = new File( newXmlDirectory, imageName + "." + bdvFormat );
         File imageLocation = getImageLocation( spimDataMinimal, bdvFormat );
-        if ( bdvFormat.equals("n5") ) {
-            FileUtils.copyDirectory(imageLocation, newImageFile );
-        } else if (bdvFormat.equals("h5") ) {
-            FileUtils.copyFile( imageLocation, newImageFile );
+
+        switch ( bdvFormat ) {
+            case n5:
+                FileUtils.copyDirectory(imageLocation, newImageFile );
+                break;
         }
+
         writeNewBdvXml( spimDataMinimal, newImageFile, newXmlDirectory, imageName, bdvFormat);
     }
 
-    private void closeImgLoader ( SpimDataMinimal spimDataMinimal, String bdvFormat ) {
+    private void closeImgLoader ( SpimDataMinimal spimDataMinimal, BdvFormat bdvFormat ) {
         BasicImgLoader imgLoader = spimDataMinimal.getSequenceDescription().getImgLoader();
-        if ( bdvFormat.equals("n5") ) {
-            N5ImageLoader n5ImageLoader = (N5ImageLoader) imgLoader;
-            n5ImageLoader.close();
-        } else if ( bdvFormat.equals("h5") ) {
-            Hdf5ImageLoader h5ImageLoader = (Hdf5ImageLoader) imgLoader;
-            h5ImageLoader.close();
+
+        switch ( bdvFormat ) {
+            case n5:
+                N5ImageLoader n5ImageLoader = (N5ImageLoader) imgLoader;
+                n5ImageLoader.close();
+                break;
         }
     }
 
-    private void moveImage ( String bdvFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
+    private void moveImage ( BdvFormat bdvFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
         File newImageFile = new File( newXmlDirectory, imageName + "." + bdvFormat );
         File imageLocation = getImageLocation( spimDataMinimal, bdvFormat );
 
         // have to explicitly close the image loader, so we can delete the original file
         closeImgLoader( spimDataMinimal, bdvFormat );
 
-        if ( bdvFormat.equals("n5") ) {
-            FileUtils.moveDirectory( imageLocation, newImageFile );
-        } else if (bdvFormat.equals("h5") ) {
-            FileUtils.moveFile( imageLocation, newImageFile );
+        switch ( bdvFormat ) {
+            case n5:
+                FileUtils.moveDirectory( imageLocation, newImageFile );
+                break;
         }
+
         writeNewBdvXml( spimDataMinimal, newImageFile, newXmlDirectory, imageName, bdvFormat );
     }
 
-    private void updateJsonsForNewImage ( String imageName, String imageType, String datasetName ) {
+    private void updateJsonsForNewImage ( String imageName, ImageType imageType, String datasetName ) {
         // update images.json
         addToImagesJson(imageName, imageType, datasetName);
 
@@ -135,7 +152,8 @@ public class ProjectsCreator {
     }
 
     // TODO - check n5 format
-    public void addBdvFormatImage ( File xmlLocation, String datasetName, String bdvFormat, String imageType, String addMethod ) throws SpimDataException, IOException {
+    public void addBdvFormatImage ( File xmlLocation, String datasetName, BdvFormat bdvFormat,
+                                    ImageType imageType, AddMethod addMethod ) throws SpimDataException, IOException {
         if ( xmlLocation.exists() ) {
             SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(xmlLocation.getAbsolutePath());
             String imageName = FileNameUtils.getBaseName(xmlLocation.getAbsolutePath());
@@ -143,13 +161,18 @@ public class ProjectsCreator {
             File newXmlFile = new File(newXmlDirectory, imageName + ".xml");
 
             if (!newXmlFile.exists()) {
-                if (addMethod.equals("link to current image location")) {
-                    new XmlIoSpimDataMinimal().save(spimDataMinimal, newXmlFile.getAbsolutePath());
-                } else if (addMethod.equals("copy image")) {
-                    copyImage(bdvFormat, spimDataMinimal, newXmlDirectory, imageName);
-                } else if ( addMethod.equals("move image") ) {
-                    moveImage( bdvFormat, spimDataMinimal, newXmlDirectory, imageName );
+                switch ( addMethod ) {
+                    case link:
+                        new XmlIoSpimDataMinimal().save(spimDataMinimal, newXmlFile.getAbsolutePath());
+                        break;
+                    case copy:
+                        copyImage(bdvFormat, spimDataMinimal, newXmlDirectory, imageName);
+                        break;
+                    case move:
+                        moveImage( bdvFormat, spimDataMinimal, newXmlDirectory, imageName );
+                        break;
                 }
+
                 updateJsonsForNewImage(imageName, imageType, datasetName);
             } else {
                 Utils.log("Adding image to project failed - this image name already exists");
@@ -193,28 +216,31 @@ public class ProjectsCreator {
         }
     }
 
-    public void addImage ( String imageName, String datasetName, String bdvFormat, String imageType,
+    public void addImage ( String imageName, String datasetName, BdvFormat bdvFormat, ImageType imageType,
                            AffineTransform3D sourceTransform, boolean useDefaultSettings ) {
         ImagePlus imp = IJ.getImage();
         String xmlPath = getLocalImageXmlPath( datasetName, imageName);
         File xmlFile = new File( xmlPath );
 
         DownsampleBlock.DownsamplingMethod downsamplingMethod;
-        if ( imageType.equals( "image" ) ) {
-            downsamplingMethod = DownsampleBlock.DownsamplingMethod.Average;
-        } else {
-            downsamplingMethod = DownsampleBlock.DownsamplingMethod.Mode;
+        switch( imageType ) {
+            case image:
+                downsamplingMethod = DownsampleBlock.DownsamplingMethod.Average;
+                break;
+            default:
+                downsamplingMethod = DownsampleBlock.DownsamplingMethod.Mode;
         }
 
         if ( !xmlFile.exists() ) {
-            if ( bdvFormat.equals("n5") ) {
-                if (!useDefaultSettings) {
-                    new ManualN5ExportPanel(imp, xmlPath, sourceTransform, downsamplingMethod).getManualExportParameters();
-                } else {
-                    // gzip compression by default
-                    new WriteImgPlusToN5().export(imp, xmlPath, sourceTransform, downsamplingMethod,
-                            new GzipCompression());
-                }
+            switch( bdvFormat ) {
+                case n5:
+                    if (!useDefaultSettings) {
+                        new ManualN5ExportPanel(imp, xmlPath, sourceTransform, downsamplingMethod).getManualExportParameters();
+                    } else {
+                        // gzip compression by default
+                        new WriteImgPlusToN5().export(imp, xmlPath, sourceTransform, downsamplingMethod,
+                                new GzipCompression());
+                    }
             }
 
             // check image written successfully, before writing jsons
@@ -464,16 +490,19 @@ public class ProjectsCreator {
         }
     }
 
-    public void addToImagesJson ( String imageName, String imageType, String datasetName ) {
+    public void addToImagesJson ( String imageName, ImageType imageType, String datasetName ) {
         updateCurrentImageProperties( datasetName );
         ImageProperties newImageProperties = new ImageProperties();
-        newImageProperties.type = imageType;
-        if ( imageType.equals("segmentation") ) {
-            newImageProperties.color = ColoringLuts.GLASBEY;
-            newImageProperties.tableFolder = "tables/" + imageName;
-            addDefaultTableForImage( imageName, datasetName );
-        } else {
-            newImageProperties.color = "white";
+        newImageProperties.type = imageType.toString();
+
+        switch( imageType ) {
+            case segmentation:
+                newImageProperties.color = ColoringLuts.GLASBEY;
+                newImageProperties.tableFolder = "tables/" + imageName;
+                addDefaultTableForImage( imageName, datasetName );
+                break;
+            default:
+                newImageProperties.color = "white";
         }
 
         newImageProperties.contrastLimits = new double[] {0, 255};

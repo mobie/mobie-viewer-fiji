@@ -157,10 +157,12 @@ public class ProjectsCreatorPanel extends JFrame {
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
             gd.addMessage( "Make sure your pixel size, and unit,\n are set properly under Image > Properties...");
             gd.addStringField( "Image Name", "" );
-            String[] imageTypes = new String[] {"image", "segmentation", "mask"};
-            gd.addChoice( "Image Type", imageTypes, "image" );
-            String[] bdvFormats = new String[] {"n5", "h5"};
-            gd.addChoice( "Bdv format", bdvFormats, "n5" );
+            String[] imageTypes = new String[]{ ProjectsCreator.ImageType.image.toString(),
+                    ProjectsCreator.ImageType.segmentation.toString(), ProjectsCreator.ImageType.mask.toString() };
+            gd.addChoice( "Image Type", imageTypes, imageTypes[0] );
+            // TODO - add OME.ZARR
+            String[] bdvFormats = new String[]{ ProjectsCreator.BdvFormat.n5.toString() };
+            gd.addChoice( "Bdv format", bdvFormats, bdvFormats[0] );
             gd.addStringField("Affine", defaultAffineTransform, 32 );
             gd.addCheckbox("Use default export settings", true);
 
@@ -168,8 +170,8 @@ public class ProjectsCreatorPanel extends JFrame {
 
             if ( !gd.wasCanceled() ) {
                 String imageName = gd.getNextString();
-                String imageType = gd.getNextChoice();
-                String bdvFormat = gd.getNextChoice();
+                ProjectsCreator.ImageType imageType = ProjectsCreator.ImageType.valueOf( gd.getNextChoice() );
+                ProjectsCreator.BdvFormat bdvFormat = ProjectsCreator.BdvFormat.valueOf( gd.getNextChoice() );
                 String affineTransform = gd.getNextString().trim();
                 boolean useDefaultSettings = gd.getNextBoolean();
 
@@ -219,19 +221,21 @@ public class ProjectsCreatorPanel extends JFrame {
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File xmlLocation = new File( chooser.getSelectedFile().getAbsolutePath() );
                 final GenericDialog gd = new GenericDialog("Add Bdv Format Image To Project...");
-                String[] addMethods = new String[]{"link to current image location", "copy image", "move image"};
-                gd.addChoice("Add method:", addMethods, "link to current image location");
-                String[] imageTypes = new String[]{"image", "segmentation", "mask"};
-                gd.addChoice("Image Type", imageTypes, "image");
-                String[] bdvFormats = new String[]{"n5", "h5"};
-                gd.addChoice("Bdv format", bdvFormats, "n5");
+                String[] addMethods = new String[]{ ProjectsCreator.AddMethod.link.toString(),
+                        ProjectsCreator.AddMethod.copy.toString(), ProjectsCreator.AddMethod.move.toString() };
+                gd.addChoice("Add method:", addMethods, addMethods[0]);
+                String[] imageTypes = new String[]{ ProjectsCreator.ImageType.image.toString(),
+                        ProjectsCreator.ImageType.segmentation.toString(), ProjectsCreator.ImageType.mask.toString() };
+                gd.addChoice("Image Type", imageTypes, imageTypes[0]);
+                String[] bdvFormats = new String[]{ ProjectsCreator.BdvFormat.n5.toString() };
+                gd.addChoice("Bdv format", bdvFormats, bdvFormats[0] );
 
                 gd.showDialog();
 
                 if (!gd.wasCanceled()) {
-                    String addMethod = gd.getNextChoice();
-                    String imageType = gd.getNextChoice();
-                    String bdvFormat = gd.getNextChoice();
+                    ProjectsCreator.AddMethod addMethod = ProjectsCreator.AddMethod.valueOf( gd.getNextChoice() );
+                    ProjectsCreator.ImageType imageType = ProjectsCreator.ImageType.valueOf( gd.getNextChoice() );
+                    ProjectsCreator.BdvFormat bdvFormat = ProjectsCreator.BdvFormat.valueOf( gd.getNextChoice() );
 
                     try {
                         projectsCreator.addBdvFormatImage( xmlLocation, datasetName, bdvFormat, imageType, addMethod );
