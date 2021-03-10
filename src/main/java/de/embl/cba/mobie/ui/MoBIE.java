@@ -17,10 +17,13 @@ import net.imglib2.realtransform.AffineTransform3D;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Map;
+import java.net.URI;
 
 import static de.embl.cba.mobie.utils.FileAndUrlUtils.getName;
 
@@ -172,6 +175,24 @@ public class MoBIE
 		Utils.log( "Fetching tables from: " + tablesLocation );
 	}
 
+	// TODO this should probably be refactored somewhere else, e.g. to FileAndUrlUtils
+	// TODO for s3 we need to go through the s3 api instead
+	private boolean fileOrUrlExists(String uri) {
+		if(projectLocation.contains("http")) {
+			try {
+				HttpURLConnection con = (HttpURLConnection) new URL(uri).openConnection();
+				con.setRequestMethod("HEAD");
+				return (con.getResponseCode() == HttpURLConnection.HTTP_OK);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+		} else {
+			File f = new File(uri);
+			return f.exists() && f.isDirectory();
+		}
+	}
+
 	private void configureDatasetsRootLocations( )
 	{
 		this.projectLocation = projectBaseLocation;
@@ -182,9 +203,24 @@ public class MoBIE
 		imagesLocation = FileAndUrlUtils.removeTrailingSlash( imagesLocation );
 		tablesLocation = FileAndUrlUtils.removeTrailingSlash( tablesLocation );
 
-		projectLocation = adaptUrl( projectLocation, options.values.getProjectBranch() ) + "/data";
-		imagesLocation = adaptUrl( imagesLocation, options.values.getProjectBranch() ) + "/data";
-		tablesLocation = adaptUrl( tablesLocation, options.values.getTableDataBranch() ) + "/data";
+		projectLocation = adaptUrl( projectLocation, options.values.getProjectBranch() );
+		imagesLocation = adaptUrl( imagesLocation, options.values.getProjectBranch() );
+		tablesLocation = adaptUrl( tablesLocation, options.values.getProjectBranch() );
+
+		// two different locations of the data w.r.t someLocation are supported:
+		// the data can either be directly underneath someLocation
+		// or in someLocation/data
+		// test if someLocation/data exists and set if to the new location if it does
+		// NOTE this produces a corner case for nested "data" folders, i.e. "data/data", but it's the best solution I came up with so far
+		if(fileOrUrlExists(projectLocation + "/data/datasets.json")) {
+			projectLocation = projectLocation + "/data";
+		}
+		if(fileOrUrlExists(imagesLocation + "/data/datasets.json")) {
+			imagesLocation = imagesLocation + "/data";
+		}
+		if(fileOrUrlExists(tablesLocation + "/data/datasets.json")) {
+			tablesLocation = tablesLocation + "/data";
+		}
 	}
 
 	private String adaptUrl( String url, String projectBranch )
