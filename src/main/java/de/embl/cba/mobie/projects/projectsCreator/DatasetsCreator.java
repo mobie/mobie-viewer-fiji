@@ -7,45 +7,17 @@ import de.embl.cba.tables.FileAndUrlUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class DatasetsCreator {
 
-    // location of 'data' folder of project
     private Project project;
-    private Datasets currentDatasets;
 
     public DatasetsCreator( Project project ) {
         this.project = project;
     }
 
-    private void updateCurrentDatasets() {
-        File datasetJSON = new File( project.getDatasetsJsonPath() );
-
-        if ( datasetJSON.exists() ) {
-            currentDatasets = new DatasetsParser().fetchProjectDatasets( project.getDataLocation().getAbsolutePath() );
-        } else {
-            currentDatasets = new Datasets();
-            currentDatasets.datasets = new ArrayList<>();
-        }
-    }
-
-    public String[] getCurrentDatasetNames() {
-        updateCurrentDatasets();
-        if ( currentDatasets.datasets.size() > 0 ) {
-            ArrayList<String> datasetNames = currentDatasets.datasets;
-            String[] datasetNamesArray = new String[datasetNames.size()];
-            datasetNames.toArray( datasetNamesArray );
-            return datasetNamesArray;
-        } else {
-            return new String[] {""};
-        }
-    }
-
     public void addDataset ( String datasetName ) {
         File datasetDir = new File ( project.getDatasetDirectoryPath( datasetName ) );
-        updateCurrentDatasets();
 
         if ( !datasetDir.exists() ) {
             datasetDir.mkdirs();
@@ -60,12 +32,13 @@ public class DatasetsCreator {
 
 
             // if this is the first dataset, then make this the default
-            if (currentDatasets.datasets.size() == 0) {
+            Datasets currentDatasets = project.getCurrentDatasets();
+            if ( currentDatasets.datasets.size() == 0) {
                 currentDatasets.defaultDataset = datasetName;
             }
             currentDatasets.datasets.add(datasetName);
             try {
-                writeDatasetsJson();
+                writeDatasetsJson( currentDatasets );
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -76,13 +49,13 @@ public class DatasetsCreator {
     }
 
     public void renameDataset( String oldName, String newName ) {
-        updateCurrentDatasets();
-
         File oldDatasetDir = new File ( project.getDatasetDirectoryPath(oldName) );
         File newDatasetDir = new File ( project.getDatasetDirectoryPath(newName) );
 
         if ( oldDatasetDir.exists() ) {
             if ( oldDatasetDir.renameTo(newDatasetDir)) {
+
+                Datasets currentDatasets = project.getCurrentDatasets();
                 // update json
                 if ( currentDatasets.defaultDataset.equals(oldName) ) {
                     currentDatasets.defaultDataset = newName;
@@ -92,7 +65,7 @@ public class DatasetsCreator {
                 currentDatasets.datasets.set( indexOld, newName );
 
                 try {
-                    writeDatasetsJson();
+                    writeDatasetsJson( currentDatasets );
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -106,27 +79,19 @@ public class DatasetsCreator {
     }
 
     public void makeDefaultDataset ( String datasetName ) {
-        updateCurrentDatasets();
-
+        Datasets currentDatasets = project.getCurrentDatasets();
         currentDatasets.defaultDataset = datasetName;
         try {
-            writeDatasetsJson();
+            writeDatasetsJson( currentDatasets );
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public boolean isInDatasets ( String datasetName ) {
-        return Arrays.stream( getCurrentDatasetNames() ).anyMatch(datasetName::equals);
-    }
 
-    public boolean isDefaultDataset( String datasetName ) {
-        updateCurrentDatasets();
-        return currentDatasets.defaultDataset.equals( datasetName );
-    }
 
-    public void writeDatasetsJson () throws IOException {
-        new DatasetsParser().datasetsToFile( project.getDatasetsJsonPath(), currentDatasets);
+    private void writeDatasetsJson( Datasets datasets ) throws IOException {
+        new DatasetsParser().datasetsToFile( project.getDatasetsJsonPath(), datasets);
     }
 
 }

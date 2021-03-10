@@ -6,6 +6,7 @@ import de.embl.cba.mobie.image.Storage;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.color.ColoringLuts;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -13,33 +14,15 @@ import java.util.Map;
 
 public class ImagesJsonCreator {
 
-    String datasetName;
-    Map<String, ImageProperties> currentImageProperties;
+    Project project;
 
-    public ImagesJsonCreator( String datasetName ) {
-        this.datasetname = datasetName;
+    public ImagesJsonCreator( Project project ) {
+        this.project = project;
     }
 
-    public Map<String, ImageProperties> getCurrentImageProperties() {
-        updateCurrentImageProperties();
-        return currentImageProperties;
-    }
+    public void addToImagesJson (String imageName, String datasetName, ProjectsCreator.ImageType imageType ) {
 
-    private void updateCurrentImageProperties() {
-        File imagesJSON = new File( getImagesJsonPath( datasetName ) );
-
-        if ( imagesJSON.exists() ) {
-            currentImageProperties = new ImagesJsonParser( getDatasetPath( datasetName ) ).getImagePropertiesMap();
-        } else {
-            currentImageProperties = new HashMap<>();
-        }
-    }
-
-
-
-
-    public void addToImagesJson (String imageName, ProjectsCreator.ImageType imageType, String datasetName ) {
-        updateCurrentImageProperties( datasetName );
+        Map<String, ImageProperties> currentImageProperties = project.getDataset( datasetName ).getImagePropertiesMap();
         ImageProperties newImageProperties = new ImageProperties();
         newImageProperties.type = imageType.toString();
 
@@ -47,7 +30,6 @@ public class ImagesJsonCreator {
             case segmentation:
                 newImageProperties.color = ColoringLuts.GLASBEY;
                 newImageProperties.tableFolder = "tables/" + imageName;
-                addDefaultTableForImage( imageName, datasetName );
                 break;
             default:
                 newImageProperties.color = "white";
@@ -61,32 +43,16 @@ public class ImagesJsonCreator {
 
         currentImageProperties.put( imageName, newImageProperties);
 
-        writeImagesJson( datasetName );
+        writeImagesJson( datasetName, currentImageProperties );
     }
 
-    public void writeImagesJson ( String datasetName ) {
+    private void writeImagesJson ( String datasetName, Map<String, ImageProperties> imagePropertiesMap ) {
         try {
-            new ImagesJsonParser( getDatasetPath( datasetName) ).writeImagePropertiesMap( getImagesJsonPath( datasetName),
-                    currentImageProperties);
+            new ImagesJsonParser( project.getDatasetDirectoryPath( datasetName) ).writeImagePropertiesMap(
+                    project.getImagesJsonPath( datasetName),
+                    imagePropertiesMap );
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    public ImageProperties getImageProperties ( String datasetName, String imageName ) {
-        updateCurrentImageProperties( datasetName );
-        return currentImageProperties.get( imageName );
-    }
-
-    private void updateJsonsForNewImage (String imageName, ProjectsCreator.ImageType imageType, String datasetName ) {
-        // update images.json
-        addToImagesJson(imageName, imageType, datasetName);
-
-        // if there's no default json, create one with this image
-        File defaultBookmarkJson = new File(getDefaultBookmarkJsonPath(datasetName));
-        if (!defaultBookmarkJson.exists()) {
-            createDefaultBookmark(imageName, datasetName);
-            writeDefaultBookmarksJson(datasetName);
         }
     }
 }

@@ -3,6 +3,7 @@ package de.embl.cba.mobie.projects.projectsCreator;
 import bdv.img.n5.N5ImageLoader;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
+import bdv.util.BdvFunctions;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.bookmark.write.BookmarkFileWriter;
@@ -44,6 +45,7 @@ import static de.embl.cba.morphometry.Utils.labelMapAsImgLabeling;
 public class ProjectsCreator {
     private final Project project;
     private final DatasetsCreator datasetsCreator;
+    private final ImagesCreator imagesCreator;
 
     public enum BdvFormat {
         // TODO - add OME.ZARR
@@ -64,7 +66,45 @@ public class ProjectsCreator {
 
     public ProjectsCreator ( File projectLocation ) {
         this.project = new Project( projectLocation );
-        this.datasetsCreator = new DatasetsCreator( dataLocation );
+        this.datasetsCreator = new DatasetsCreator( project );
+        this.imagesCreator = new ImagesCreator( project );
+    }
+
+    public void addImage( String imageName, String datasetName, BdvFormat bdvFormat, ImageType imageType,
+                    AffineTransform3D sourceTransform, boolean useDefaultSettings ) {
+        imagesCreator.addImage( imageName, datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings );
+    }
+
+    public void addBdvFormatImage( File xmlLocation, String datasetName, ImageType imageType, AddMethod addMethod ) {
+        try {
+            imagesCreator.addBdvFormatImage( xmlLocation, datasetName, imageType, addMethod ) ;
+        } catch (SpimDataException | IOException e ) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addDataset( String datasetName ) {
+        datasetsCreator.addDataset( datasetName );
+    }
+
+    public void renameDataset( String oldName, String newName ) {
+        datasetsCreator.renameDataset( oldName, newName );
+    }
+
+    public void makeDefaultDataset( String datasetName ) {
+        datasetsCreator.makeDefaultDataset( datasetName );
+    }
+
+    public boolean isDefaultDataset( String datasetName ) {
+        return project.isDefaultDataset( datasetName );
+    }
+
+    public String[] getDatasetNames() {
+        project.getDatasetNames();
+    }
+
+    public String[] getImageNames( String datasetName ) {
+        return project.getDataset( datasetName ).getCurrentImageNames();
     }
 
 

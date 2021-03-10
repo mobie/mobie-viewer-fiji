@@ -11,6 +11,7 @@ import de.embl.cba.mobie.projects.projectsCreator.ui.ManualN5ExportPanel;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
+import de.embl.cba.tables.color.ColoringLuts;
 import ij.IJ;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
@@ -37,32 +38,21 @@ import static de.embl.cba.morphometry.Utils.labelMapAsImgLabeling;
 
 public class ImagesCreator {
 
-    ProjectsCreator projectsCreator;
-    String datasetName;
+    Project project;
     ImagesJsonCreator imagesJsonCreator;
+    DefaultBookmarkCreator defaultBookmarkCreator;
 
-    public ImagesCreator( ProjectsCreator projectsCreator, String datasetName ) {
-        this.projectsCreator = projectsCreator;
-        this.datasetName = datasetName;
-        this.imagesJsonCreator = new ImagesJsonCreator();
+    public ImagesCreator( Project project ) {
+        this.project = project;
+        this.imagesJsonCreator = new ImagesJsonCreator( project );
+        this.defaultBookmarkCreator = new DefaultBookmarkCreator( project );
     }
 
-    public String[] getCurrentImageNames() {
-        Map<String, ImageProperties> currentImagesProperties = imagesJsonCreator.getCurrentImageProperties();
-        if ( currentImagesProperties.size() > 0 ) {
-            Set<String> imageNames = currentImagesProperties.keySet();
-            String[] imageNamesArray = new String[imageNames.size()];
-            imageNames.toArray( imageNamesArray );
-            return imageNamesArray;
-        } else {
-            return new String[] {""};
-        }
-    }
-
-    public void addImage ( String imageName, ProjectsCreator.BdvFormat bdvFormat, ProjectsCreator.ImageType imageType,
+    public void addImage ( String imageName, String datasetName,
+                           ProjectsCreator.BdvFormat bdvFormat, ProjectsCreator.ImageType imageType,
                           AffineTransform3D sourceTransform, boolean useDefaultSettings ) {
         ImagePlus imp = IJ.getImage();
-        String xmlPath = projectsCreator.getLocalImageXmlPath( datasetName, imageName);
+        String xmlPath = project.getLocalImageXmlPath( datasetName, imageName);
         File xmlFile = new File( xmlPath );
 
         DownsampleBlock.DownsamplingMethod downsamplingMethod;
@@ -88,20 +78,19 @@ public class ImagesCreator {
 
             // check image written successfully, before writing jsons
             if ( xmlFile.exists() ) {
-                updateJsonsForNewImage( imageName, imageType, datasetName );
+                updateTableAndJsonsForNewImage( imageName, imageType, datasetName );
             }
-
         } else {
             Utils.log( "Adding image to project failed - this image name already exists" );
         }
     }
 
-    public void addBdvFormatImage (File xmlLocation, ProjectsCreator.ImageType imageType,
+    public void addBdvFormatImage ( File xmlLocation, String datasetName, ProjectsCreator.ImageType imageType,
                                    ProjectsCreator.AddMethod addMethod ) throws SpimDataException, IOException {
         if ( xmlLocation.exists() ) {
             SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(xmlLocation.getAbsolutePath());
             String imageName = FileNameUtils.getBaseName(xmlLocation.getAbsolutePath());
-            File newXmlDirectory = new File(FileAndUrlUtils.combinePath(projectsCreator.getImagesDirectoryPath( datasetName ), "local"));
+            File newXmlDirectory = new File(FileAndUrlUtils.combinePath(project.getImagesDirectoryPath( datasetName ), "local"));
             File newXmlFile = new File(newXmlDirectory, imageName + ".xml");
 
             if ( !newXmlFile.exists() ) {
@@ -119,7 +108,7 @@ public class ImagesCreator {
                             moveImage(bdvFormat, spimDataMinimal, newXmlDirectory, imageName);
                             break;
                     }
-                    updateJsonsForNewImage(imageName, imageType, datasetName);
+                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName );
                 } else {
                     Utils.log( "Image is of unsupported type. Must be n5.");
                 }
@@ -133,7 +122,7 @@ public class ImagesCreator {
 
     // TODO - is this efficient for big images?
     private void addDefaultTableForImage ( String imageName, String datasetName ) {
-        File tableFolder = new File( projectsCreator.getTablesDirectoryPath( datasetName, imageName ));
+        File tableFolder = new File( project.getTablesDirectoryPath( datasetName, imageName ));
         File defaultTable = new File( tableFolder, "default.csv");
         if ( !tableFolder.exists() ){
             tableFolder.mkdirs();
@@ -148,7 +137,7 @@ public class ImagesCreator {
                     "bb_max_y", "bb_max_z"};
 
             final LazySpimSource labelsSource = new LazySpimSource("labelImage",
-                    projectsCreator.getLocalImageXmlPath(datasetName, imageName));
+                    project.getLocalImageXmlPath(datasetName, imageName));
 
             final RandomAccessibleInterval<IntType> rai = labelsSource.getNonVolatileSource(0, 0);
             double[] dimensions = new double[ rai.numDimensions() ];
@@ -193,6 +182,16 @@ public class ImagesCreator {
 
             Utils.log( "Default table complete" );
         }
+    }
+
+    private void updateTableAndJsonsForNewImage ( String imageName, ProjectsCreator.ImageType imageType,
+                                          String datasetName ) {
+        if ( imageType == ProjectsCreator.ImageType.segmentation) {
+            addDefaultTableForImage( imageName, datasetName );
+        }
+        imagesJsonCreator.addToImagesJson( imageName, datasetName, imageType );
+        // if there's no default json, create one with this image
+        defaultBookmarkCreator.createDefaultBookmark( imageName, datasetName );
     }
 
     private void copyImage (ProjectsCreator.BdvFormat bdvFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
