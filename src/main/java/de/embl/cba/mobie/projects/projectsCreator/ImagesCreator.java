@@ -10,7 +10,6 @@ import de.embl.cba.mobie.projects.projectsCreator.ui.ManualN5ExportPanel;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
-import ij.IJ;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
@@ -255,7 +254,8 @@ public class ImagesCreator {
         return bdvFormat;
     }
 
-    private void writeNewBdvXml ( SpimDataMinimal spimDataMinimal, File imageFile, File saveDirectory, String imageName, ProjectsCreator.BdvFormat bdvFormat ) throws SpimDataException {
+    private void writeNewBdvXml ( SpimDataMinimal spimDataMinimal, File imageFile, File saveDirectory, String imageName,
+                                  ProjectsCreator.BdvFormat bdvFormat ) throws SpimDataException {
 
         ImgLoader imgLoader = null;
         switch ( bdvFormat ) {
@@ -268,8 +268,6 @@ public class ImagesCreator {
         spimDataMinimal.getSequenceDescription().setImgLoader(imgLoader);
         new XmlIoSpimDataMinimal().save(spimDataMinimal, new File( saveDirectory, imageName + ".xml").getAbsolutePath() );
     }
-
-
 
     private void addAffineTransformToXml ( String xmlPath, String affineTransform )  {
         if ( affineTransform != null ) {
@@ -304,10 +302,5 @@ public class ImagesCreator {
 
         }
     }
-
-    // public boolean isInImages ( String imageName, String datasetName ) {
-    //     return Arrays.stream( getCurrentImageNames( datasetName ) ).anyMatch(imageName::equals);
-    // }
-
 
 }

@@ -74,6 +74,7 @@ public class Dataset {
     }
 
     public Map<String, Bookmark> getDefaultBookmarks() {
+        updateDefaultBookmarks();
         return defaultBookmarks;
     }
 

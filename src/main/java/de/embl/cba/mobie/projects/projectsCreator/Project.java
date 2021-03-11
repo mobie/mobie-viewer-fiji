@@ -60,12 +60,13 @@ public class Project {
     }
 
     public Datasets getCurrentDatasets() {
+        updateDatasets();
         return currentDatasets;
     }
 
     public int getNumberOfDatasets() {
         updateDatasets();
-         return currentDatasets.datasets.size();
+        return currentDatasets.datasets.size();
     }
 
     public boolean isInDatasets ( String datasetName ) {

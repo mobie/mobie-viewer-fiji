@@ -103,8 +103,6 @@ public class DatasetsCreator {
         }
     }
 
-
-
     private void writeDatasetsJson( Datasets datasets ) throws IOException {
         new DatasetsParser().datasetsToFile( project.getDatasetsJsonPath(), datasets);
     }
