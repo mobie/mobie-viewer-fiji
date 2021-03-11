@@ -47,10 +47,9 @@ public class ImagesCreator {
         this.defaultBookmarkCreator = defaultBookmarkCreator;
     }
 
-    public void addImage ( String imageName, String datasetName,
+    public void addImage ( ImagePlus imp, String imageName, String datasetName,
                            ProjectsCreator.BdvFormat bdvFormat, ProjectsCreator.ImageType imageType,
                           AffineTransform3D sourceTransform, boolean useDefaultSettings ) {
-        ImagePlus imp = IJ.getImage();
         String xmlPath = project.getLocalImageXmlPath( datasetName, imageName);
         File xmlFile = new File( xmlPath );
 

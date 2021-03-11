@@ -6,6 +6,7 @@ import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
+import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimDataException;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -167,9 +168,9 @@ public class ProjectsCreatorPanel extends JFrame {
     public void addCurrentOpenImageDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
-        if (!datasetName.equals("")) {
-
-            String defaultAffineTransform = generateDefaultAffine( IJ.getImage() );
+        if ( !datasetName.equals("") ) {
+            ImagePlus currentImage = IJ.getImage();
+            String defaultAffineTransform = generateDefaultAffine( currentImage );
 
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
             gd.addMessage( "Make sure your pixel size, and unit,\n are set properly under Image > Properties...");
@@ -198,8 +199,8 @@ public class ProjectsCreatorPanel extends JFrame {
                 AffineTransform3D sourceTransform = parseAffineString( affineTransform );
 
                 if ( imageName != null && sourceTransform != null ) {
-                    projectsCreator.getImagesCreator().addImage(
-                            imageName, datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings );
+                    projectsCreator.getImagesCreator().addImage( currentImage, imageName,
+                            datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings );
                     updateImagesComboBox( imageName );
                 }
             }
