@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import static de.embl.cba.mobie.utils.ExportUtils.generateDefaultAffine;
 import static de.embl.cba.mobie.utils.ExportUtils.parseAffineString;
+import static de.embl.cba.mobie.utils.Utils.tidyString;
 import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 
 public class ProjectsCreatorPanel extends JFrame {
@@ -99,6 +100,13 @@ public class ProjectsCreatorPanel extends JFrame {
         imagesComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
     }
 
+    public static void setComboBoxDimensions( JComboBox< String > comboBox )
+    {
+        comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE );
+        comboBox.setPreferredSize( new Dimension( 350, 20 ) );
+        comboBox.setMaximumSize( new Dimension( 350, 20 ) );
+    }
+
     private class SyncImageAndDatasetComboBox implements ActionListener {
 
         @Override
@@ -174,14 +182,14 @@ public class ProjectsCreatorPanel extends JFrame {
 
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
             gd.addMessage( "Make sure your pixel size, and unit,\n are set properly under Image > Properties...");
-            gd.addStringField( "Image Name", "" );
+            gd.addStringField( "Image Name", "", 35 );
             String[] imageTypes = new String[]{ ProjectsCreator.ImageType.image.toString(),
                     ProjectsCreator.ImageType.segmentation.toString(), ProjectsCreator.ImageType.mask.toString() };
             gd.addChoice( "Image Type", imageTypes, imageTypes[0] );
             // TODO - add OME.ZARR
             String[] bdvFormats = new String[]{ ProjectsCreator.BdvFormat.n5.toString() };
             gd.addChoice( "Bdv format", bdvFormats, bdvFormats[0] );
-            gd.addStringField("Affine", defaultAffineTransform, 32 );
+            gd.addStringField("Affine", defaultAffineTransform, 35 );
             gd.addCheckbox("Use default export settings", true);
 
             gd.showDialog();
@@ -208,24 +216,6 @@ public class ProjectsCreatorPanel extends JFrame {
         } else {
             Utils.log( "Add image failed - create a dataset first" );
         }
-    }
-
-    private String tidyString( String string ) {
-        string = string.trim();
-        String tidyString = string.replaceAll("\\s+","_");
-
-        if ( !string.equals(tidyString) ) {
-            Utils.log( "Spaces were removed from name, and replaced by _");
-        }
-
-        // check only contains alphanumerics, or _ -
-        if ( !tidyString.matches("^[a-zA-Z0-9_-]+$") ) {
-            Utils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
-                    "with a different name.");
-            tidyString = null;
-        }
-
-        return tidyString;
     }
 
     public void addBdvFormatImageDialog() {
@@ -271,7 +261,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
     public void addDatasetDialog () {
         final GenericDialog gd = new GenericDialog( "Create a new dataset" );
-        gd.addStringField( "Name of dataset", "");
+        gd.addStringField( "Name of dataset", "", 35 );
         gd.showDialog();
 
         if ( !gd.wasCanceled() ) {
@@ -291,9 +281,9 @@ public class ProjectsCreatorPanel extends JFrame {
         if ( !oldName.equals("") ) {
             boolean isDefault = project.isDefaultDataset(oldName);
 
-            gd.addStringField("Dataset name", oldName);
+            gd.addStringField("Dataset name", oldName, 35);
             if (isDefault) {
-                gd.addMessage("This dataset is the default");
+                gd.addMessage("     This dataset is the default");
             } else {
                 gd.addCheckbox("Make default dataset", false);
             }

@@ -17,6 +17,10 @@ public class Project {
     private Datasets currentDatasets;
     private Map<String, Dataset> datasetNameToDataset;
 
+    // TODO - make more efficient. At the moment it reads from the dataset JSON for all operations to ensure
+    // it is up to date. We could instead only updateDatasets() when we do operations that modify this e.g.
+    // adding dataset / renaming dataset etc. (Same for Dataset class)
+
     public Project( File projectLocation ) {
         this.projectLocation = projectLocation;
         this.dataLocation = new File( projectLocation, "data");

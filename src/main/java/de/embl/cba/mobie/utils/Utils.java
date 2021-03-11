@@ -537,4 +537,22 @@ public class Utils
 		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
 		return bounds;
 	}
+
+	public static String tidyString( String string ) {
+		string = string.trim();
+		String tidyString = string.replaceAll("\\s+","_");
+
+		if ( !string.equals(tidyString) ) {
+			Utils.log( "Spaces were removed from name, and replaced by _");
+		}
+
+		// check only contains alphanumerics, or _ -
+		if ( !tidyString.matches("^[a-zA-Z0-9_-]+$") ) {
+			Utils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
+					"with a different name.");
+			tidyString = null;
+		}
+
+		return tidyString;
+	}
 }
