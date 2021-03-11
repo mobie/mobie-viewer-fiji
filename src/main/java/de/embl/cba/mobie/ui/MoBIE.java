@@ -175,24 +175,6 @@ public class MoBIE
 		Utils.log( "Fetching tables from: " + tablesLocation );
 	}
 
-	// TODO this should probably be refactored somewhere else, e.g. to FileAndUrlUtils
-	// TODO for s3 we need to go through the s3 api instead
-	private boolean fileOrUrlExists(String uri) {
-		if(projectLocation.contains("http")) {
-			try {
-				HttpURLConnection con = (HttpURLConnection) new URL(uri).openConnection();
-				con.setRequestMethod("HEAD");
-				return (con.getResponseCode() == HttpURLConnection.HTTP_OK);
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
-		} else {
-			File f = new File(uri);
-			return f.exists() && f.isDirectory();
-		}
-	}
-
 	private void configureDatasetsRootLocations( )
 	{
 		this.projectLocation = projectBaseLocation;
@@ -212,13 +194,13 @@ public class MoBIE
 		// or in someLocation/data
 		// test if someLocation/data exists and set if to the new location if it does
 		// NOTE this produces a corner case for nested "data" folders, i.e. "data/data", but it's the best solution I came up with so far
-		if(fileOrUrlExists(projectLocation + "/data/datasets.json")) {
+		if(FileAndUrlUtils.exists(projectLocation + "/data/datasets.json")) {
 			projectLocation = projectLocation + "/data";
 		}
-		if(fileOrUrlExists(imagesLocation + "/data/datasets.json")) {
+		if(FileAndUrlUtils.exists(imagesLocation + "/data/datasets.json")) {
 			imagesLocation = imagesLocation + "/data";
 		}
-		if(fileOrUrlExists(tablesLocation + "/data/datasets.json")) {
+		if(FileAndUrlUtils.exists(tablesLocation + "/data/datasets.json")) {
 			tablesLocation = tablesLocation + "/data";
 		}
 	}
