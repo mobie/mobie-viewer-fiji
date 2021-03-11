@@ -53,6 +53,7 @@ public class ImagesJsonCreator {
             new ImagesJsonParser( project.getDatasetDirectoryPath( datasetName) ).writeImagePropertiesMap(
                     project.getImagesJsonPath( datasetName),
                     imagePropertiesMap );
+            project.getDataset( datasetName ).updateImageProperties();
         } catch (IOException e) {
             e.printStackTrace();
         }

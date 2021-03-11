@@ -65,6 +65,7 @@ public class DefaultBookmarkCreator {
         try {
             BookmarkFileWriter.saveBookmarksToFile( defaultBookmarks,
                     new File ( project.getDefaultBookmarkJsonPath( datasetName )) );
+            project.getDataset( datasetName ).updateDefaultBookmarks();
         } catch (IOException e) {
             e.printStackTrace();
         }

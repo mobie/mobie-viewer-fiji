@@ -25,9 +25,11 @@ public class Dataset {
         this.name = name;
         this.imagePropertiesMap = new HashMap<>();
         this.defaultBookmarks = new HashMap<>();
+        updateImageProperties();
+        updateDefaultBookmarks();
     }
 
-    private void updateImageProperties() {
+    public void updateImageProperties() {
         File imagesJSON = new File( project.getImagesJsonPath( name ) );
 
         if ( imagesJSON.exists() ) {
@@ -37,7 +39,7 @@ public class Dataset {
         }
     }
 
-    private void updateDefaultBookmarks() {
+    public void updateDefaultBookmarks() {
         File defaultBookmarkJson = new File ( project.getDefaultBookmarkJsonPath( name ) );
         if ( defaultBookmarkJson.exists() ) {
             defaultBookmarks = new BookmarkReader( project.getDatasetDirectoryPath( name ) ).readDefaultBookmarks();
@@ -47,17 +49,14 @@ public class Dataset {
     }
 
     public ImageProperties getImageProperties( String imageName ) {
-        updateImageProperties();
         return imagePropertiesMap.get(imageName);
     }
 
     public Map<String, ImageProperties> getImagePropertiesMap () {
-        updateImageProperties();
         return imagePropertiesMap;
     }
 
     public String[] getImageNames() {
-        updateImageProperties();
         if ( imagePropertiesMap.size() > 0 ) {
             Set<String> imageNames = imagePropertiesMap.keySet();
             String[] imageNamesArray = new String[imageNames.size()];
@@ -69,12 +68,10 @@ public class Dataset {
     }
 
     public Set<String> getImageNamesInDefaultBookmark() {
-        updateDefaultBookmarks();
         return defaultBookmarks.get( "default" ).layers.keySet();
     }
 
     public Map<String, Bookmark> getDefaultBookmarks() {
-        updateDefaultBookmarks();
         return defaultBookmarks;
     }
 
@@ -112,8 +109,5 @@ public class Dataset {
 
         return tableNamesArray;
     }
-
-
-
 
 }

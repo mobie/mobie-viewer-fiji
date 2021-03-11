@@ -17,17 +17,14 @@ public class Project {
     private Datasets currentDatasets;
     private Map<String, Dataset> datasetNameToDataset;
 
-    // TODO - make more efficient. At the moment it reads from the dataset JSON for all operations to ensure
-    // it is up to date. We could instead only updateDatasets() when we do operations that modify this e.g.
-    // adding dataset / renaming dataset etc. (Same for Dataset class)
-
     public Project( File projectLocation ) {
         this.projectLocation = projectLocation;
         this.dataLocation = new File( projectLocation, "data");
         this.datasetNameToDataset = new HashMap<>();
+        updateDatasets();
     }
 
-    private void updateDatasets() {
+    public void updateDatasets() {
         File datasetJSON = new File( getDatasetsJsonPath() );
 
         if ( datasetJSON.exists() ) {
@@ -39,7 +36,6 @@ public class Project {
     }
 
     public Dataset getDataset( String datasetName ) {
-        updateDatasets();
         if ( currentDatasets.datasets.contains(datasetName) ) {
             // Datasets are created lazily, so only create if not already there
             if ( !datasetNameToDataset.containsKey(datasetName) ) {
@@ -52,7 +48,6 @@ public class Project {
     }
 
     public String[] getDatasetNames() {
-        updateDatasets();
         if ( currentDatasets.datasets.size() > 0 ) {
             ArrayList<String> datasetNames = currentDatasets.datasets;
             String[] datasetNamesArray = new String[datasetNames.size()];
@@ -64,12 +59,10 @@ public class Project {
     }
 
     public Datasets getCurrentDatasets() {
-        updateDatasets();
         return currentDatasets;
     }
 
     public int getNumberOfDatasets() {
-        updateDatasets();
         return currentDatasets.datasets.size();
     }
 
@@ -78,7 +71,6 @@ public class Project {
     }
 
     public boolean isDefaultDataset( String datasetName ) {
-        updateDatasets();
         return currentDatasets.defaultDataset.equals( datasetName );
     }
 
