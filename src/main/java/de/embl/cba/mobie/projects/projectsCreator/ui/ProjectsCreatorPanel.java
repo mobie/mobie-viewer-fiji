@@ -1,5 +1,6 @@
 package de.embl.cba.mobie.projects.projectsCreator.ui;
 
+import de.embl.cba.mobie.projects.projectsCreator.Project;
 import de.embl.cba.mobie.projects.projectsCreator.ProjectsCreator;
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.utils.Utils;
@@ -23,11 +24,13 @@ import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 
 public class ProjectsCreatorPanel extends JFrame {
     private ProjectsCreator projectsCreator;
+    private Project project;
     private JComboBox<String> datasetComboBox;
     private JComboBox<String> imagesComboBox;
 
     public ProjectsCreatorPanel ( File projectLocation ) {
         this.projectsCreator = new ProjectsCreator( projectLocation );
+        this.project = projectsCreator.getProject();
         addDatasetPanel();
         addImagesPanel();
         this.setTitle( "Edit MoBIE Project...");
@@ -72,10 +75,26 @@ public class ProjectsCreatorPanel extends JFrame {
     }
 
     private void createDatasetComboBox() {
-        datasetComboBox = new JComboBox<>( projectsCreator.getCurrentDatasets() );
+        String[] datasetNames = project.getDatasetNames();
+        datasetComboBox = new JComboBox<>( datasetNames );
+        datasetComboBox.setSelectedItem( datasetNames[0] );
         setComboBoxDimensions(datasetComboBox);
         datasetComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
         datasetComboBox.addActionListener( new SyncImageAndDatasetComboBox() );
+    }
+
+    private void createImagesCombobox() {
+        String selectedDataset = (String) datasetComboBox.getSelectedItem();
+        if ( !selectedDataset.equals("") ) {
+            String[] imageNames = project.getDataset( selectedDataset ).getImageNames();
+            imagesComboBox = new JComboBox<>( imageNames );
+            imagesComboBox.setSelectedItem( imageNames[0] );
+        } else {
+            imagesComboBox = new JComboBox<>( new String[] {""} );
+            imagesComboBox.setSelectedItem( "" );
+        }
+        setComboBoxDimensions(imagesComboBox);
+        imagesComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
     }
 
     private class SyncImageAndDatasetComboBox implements ActionListener {
@@ -92,8 +111,7 @@ public class ProjectsCreatorPanel extends JFrame {
         final JButton addButton = getButton( "Add" );
         final JButton editButton = getButton("Edit");
 
-        imagesComboBox = new JComboBox<>( projectsCreator.getCurrentImages( (String) datasetComboBox.getSelectedItem()) );
-        setComboBoxDimensions(imagesComboBox);
+        createImagesCombobox();
         addButton.addActionListener( e ->
         {
             new Thread( () -> { addImageDialog(); } ).start();
@@ -103,8 +121,6 @@ public class ProjectsCreatorPanel extends JFrame {
         {
             new Thread( () -> { editImageDialog(); } ).start();
         } );
-
-        imagesComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
 
         horizontalLayoutPanel.add(getJLabel("image", 60, 10));
         horizontalLayoutPanel.add(imagesComboBox);
@@ -117,7 +133,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
     public String chooseDatasetDialog() {
         final GenericDialog gd = new GenericDialog( "Choose a dataset" );
-        String[] currentDatasets = projectsCreator.getCurrentDatasets();
+        String[] currentDatasets = project.getDatasetNames();
         gd.addChoice("Dataset", currentDatasets, currentDatasets[0]);
         gd.showDialog();
 
@@ -181,8 +197,9 @@ public class ProjectsCreatorPanel extends JFrame {
                 AffineTransform3D sourceTransform = parseAffineString( affineTransform );
 
                 if ( imageName != null && sourceTransform != null ) {
-                    projectsCreator.addImage( imageName, datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings );
-                    updateDatasetsComboBox(datasetName);
+                    projectsCreator.getImagesCreator().addImage(
+                            imageName, datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings );
+                    updateImagesComboBox( imageName );
                 }
             }
 
@@ -236,11 +253,11 @@ public class ProjectsCreatorPanel extends JFrame {
                     ProjectsCreator.ImageType imageType = ProjectsCreator.ImageType.valueOf( gd.getNextChoice() );
 
                     try {
-                        projectsCreator.addBdvFormatImage( xmlLocation, datasetName, imageType, addMethod );
-                        updateDatasetsComboBox( datasetName );
+                        projectsCreator.getImagesCreator().addBdvFormatImage( xmlLocation, datasetName, imageType, addMethod );
                     } catch (SpimDataException | IOException e) {
                         e.printStackTrace();
                     }
+                    updateDatasetsComboBox( datasetName );
                 }
             }
         } else {
@@ -258,14 +275,8 @@ public class ProjectsCreatorPanel extends JFrame {
             datasetName = tidyString( datasetName );
 
             if ( datasetName != null ) {
-                // check not already in datasets
-                boolean contains = projectsCreator.isInDatasets(datasetName);
-                if (!contains) {
-                    projectsCreator.addDataset(datasetName);
-                    updateDatasetsComboBox(datasetName);
-                } else {
-                    Utils.log("Add dataset failed - dataset already exists");
-                }
+                projectsCreator.getDatasetsCreator().addDataset(datasetName);
+                updateDatasetsComboBox( datasetName );
             }
         }
     }
@@ -273,8 +284,8 @@ public class ProjectsCreatorPanel extends JFrame {
     private void editDatasetDialog() {
         final GenericDialog gd = new GenericDialog( "Edit dataset..." );
         String oldName = (String) datasetComboBox.getSelectedItem();
-        if (!oldName.equals("")) {
-            boolean isDefault = projectsCreator.isDefaultDataset(oldName);
+        if ( !oldName.equals("") ) {
+            boolean isDefault = project.isDefaultDataset(oldName);
 
             gd.addStringField("Dataset name", oldName);
             if (isDefault) {
@@ -287,19 +298,15 @@ public class ProjectsCreatorPanel extends JFrame {
             if (!gd.wasCanceled()) {
                 String newName = gd.getNextString();
                 newName = tidyString( newName );
-                if ( newName != null && !newName.equals(oldName) ) {
-                    // check not already in datasets
-                    boolean contains = projectsCreator.isInDatasets(newName);
-                    if (!contains) {
-                        projectsCreator.renameDataset(oldName, newName);
-                        updateDatasetsComboBox(newName);
-                    }
+                if ( newName != null ) {
+                    projectsCreator.getDatasetsCreator().renameDataset( oldName, newName );
+                    updateDatasetsComboBox( newName );
                 }
 
                 if (!isDefault) {
                     boolean makeDefault = gd.getNextBoolean();
                     if (makeDefault) {
-                        projectsCreator.makeDefaultDataset(newName);
+                        projectsCreator.getDatasetsCreator().makeDefaultDataset( newName );
                     }
                 }
 
@@ -311,7 +318,7 @@ public class ProjectsCreatorPanel extends JFrame {
         String datasetName = (String) datasetComboBox.getSelectedItem();
         String imageName = (String) imagesComboBox.getSelectedItem();
 
-        if (!datasetName.equals("") && !imageName.equals("")) {
+        if ( !datasetName.equals("") && !imageName.equals("") ) {
             new ImagePropertiesEditor(datasetName,
                     imageName, projectsCreator);
         }
@@ -323,16 +330,12 @@ public class ProjectsCreatorPanel extends JFrame {
     }
 
     private void updateDatasetsComboBox () {
-        if ( datasetComboBox != null ) {
-            datasetComboBox.removeAllItems();
-            for (String datasetName : projectsCreator.getCurrentDatasets()) {
-                datasetComboBox.addItem(datasetName);
-            }
-
-            if ( imagesComboBox != null ) {
-                updateImagesComboBox();
-            }
+        datasetComboBox.removeAllItems();
+        for ( String datasetName : project.getDatasetNames() ) {
+            datasetComboBox.addItem(datasetName);
         }
+
+        updateImagesComboBox();
     }
 
     private void updateImagesComboBox( String selection ) {
@@ -341,10 +344,11 @@ public class ProjectsCreatorPanel extends JFrame {
     }
 
     private void updateImagesComboBox () {
-        if ( datasetComboBox != null && imagesComboBox != null ) {
+        String currentDataset = (String) datasetComboBox.getSelectedItem();
+
+        if ( currentDataset != null && !currentDataset.equals("") ) {
             imagesComboBox.removeAllItems();
-            String currentDataset = (String) datasetComboBox.getSelectedItem();
-            for (String imageName : projectsCreator.getCurrentImages( currentDataset )) {
+            for ( String imageName : project.getDataset(currentDataset).getImageNames() ) {
                 imagesComboBox.addItem(imageName);
             }
         }

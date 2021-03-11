@@ -3,13 +3,9 @@ package de.embl.cba.mobie.projects.projectsCreator;
 import de.embl.cba.mobie.image.ImageProperties;
 import de.embl.cba.mobie.image.ImagesJsonParser;
 import de.embl.cba.mobie.image.Storage;
-import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.color.ColoringLuts;
 
-import java.awt.*;
-import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 public class ImagesJsonCreator {
@@ -43,6 +39,12 @@ public class ImagesJsonCreator {
 
         currentImageProperties.put( imageName, newImageProperties);
 
+        writeImagesJson( datasetName, currentImageProperties );
+    }
+
+    public void setImagePropertiesInImagesJson( String imageName, String datasetName, ImageProperties imageProperties ) {
+        Map<String, ImageProperties> currentImageProperties = project.getDataset( datasetName ).getImagePropertiesMap();
+        currentImageProperties.put( imageName, imageProperties );
         writeImagesJson( datasetName, currentImageProperties );
     }
 

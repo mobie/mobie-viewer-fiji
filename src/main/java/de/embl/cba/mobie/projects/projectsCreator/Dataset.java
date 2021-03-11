@@ -4,8 +4,11 @@ import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.bookmark.BookmarkReader;
 import de.embl.cba.mobie.image.ImageProperties;
 import de.embl.cba.mobie.image.ImagesJsonParser;
+import org.apache.commons.compress.utils.FileNameUtils;
 
 import java.io.File;
+import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +23,8 @@ public class Dataset {
     public Dataset( Project project, String name ) {
         this.project = project;
         this.name = name;
+        this.imagePropertiesMap = new HashMap<>();
+        this.defaultBookmarks = new HashMap<>();
     }
 
     private void updateImageProperties() {
@@ -51,7 +56,7 @@ public class Dataset {
         return imagePropertiesMap;
     }
 
-    public String[] getCurrentImageNames() {
+    public String[] getImageNames() {
         updateImageProperties();
         if ( imagePropertiesMap.size() > 0 ) {
             Set<String> imageNames = imagePropertiesMap.keySet();
@@ -63,7 +68,7 @@ public class Dataset {
         }
     }
 
-    public Set<String> getCurrentImagesInDefaultBookmark() {
+    public Set<String> getImageNamesInDefaultBookmark() {
         updateDefaultBookmarks();
         return defaultBookmarks.get( "default" ).layers.keySet();
     }
@@ -73,8 +78,41 @@ public class Dataset {
     }
 
     public boolean isInDefaultBookmark (String imageName ) {
-        return getCurrentImagesInDefaultBookmark().contains( imageName );
+        return getImageNamesInDefaultBookmark().contains( imageName );
     }
+
+    public String[] getTableNames( String imageName ) {
+        File tableFolder = new File( project.getTablesDirectoryPath( name, imageName ) );
+        File[] tableFiles = tableFolder.listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.toLowerCase().endsWith(".csv") || name.toLowerCase().endsWith(".tsv");
+            }
+        });
+
+        if ( !(tableFiles.length > 0) ) {
+            return null;
+        }
+
+        // we don't include the default table here, as it is always shown
+        ArrayList<String> tableNames = new ArrayList<>();
+        for (int i = 0; i< tableFiles.length; i++) {
+            String tableName = FileNameUtils.getBaseName( tableFiles[i].getAbsolutePath() );
+            if (!tableName.equals("default")) {
+                tableNames.add( tableName );
+            }
+        }
+
+        if ( !(tableNames.size() > 0) ) {
+            return null;
+        }
+
+        String[] tableNamesArray = new String[tableNames.size()];
+        tableNamesArray = tableNames.toArray( tableNamesArray );
+
+        return tableNamesArray;
+    }
+
+
 
 
 }

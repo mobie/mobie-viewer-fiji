@@ -4,14 +4,12 @@ import bdv.img.n5.N5ImageLoader;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
-import de.embl.cba.mobie.image.ImageProperties;
 import de.embl.cba.mobie.n5.DownsampleBlock;
 import de.embl.cba.mobie.n5.WriteImgPlusToN5;
 import de.embl.cba.mobie.projects.projectsCreator.ui.ManualN5ExportPanel;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
-import de.embl.cba.tables.color.ColoringLuts;
 import ij.IJ;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
@@ -42,10 +40,11 @@ public class ImagesCreator {
     ImagesJsonCreator imagesJsonCreator;
     DefaultBookmarkCreator defaultBookmarkCreator;
 
-    public ImagesCreator( Project project ) {
+    public ImagesCreator( Project project, ImagesJsonCreator imagesJsonCreator,
+                          DefaultBookmarkCreator defaultBookmarkCreator ) {
         this.project = project;
-        this.imagesJsonCreator = new ImagesJsonCreator( project );
-        this.defaultBookmarkCreator = new DefaultBookmarkCreator( project );
+        this.imagesJsonCreator = imagesJsonCreator;
+        this.defaultBookmarkCreator = defaultBookmarkCreator;
     }
 
     public void addImage ( String imageName, String datasetName,
@@ -307,9 +306,9 @@ public class ImagesCreator {
         }
     }
 
-    public boolean isInImages ( String imageName, String datasetName ) {
-        return Arrays.stream( getCurrentImageNames( datasetName ) ).anyMatch(imageName::equals);
-    }
+    // public boolean isInImages ( String imageName, String datasetName ) {
+    //     return Arrays.stream( getCurrentImageNames( datasetName ) ).anyMatch(imageName::equals);
+    // }
 
 
 }

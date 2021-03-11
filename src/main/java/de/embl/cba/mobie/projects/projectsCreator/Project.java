@@ -7,6 +7,7 @@ import de.embl.cba.tables.FileAndUrlUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Project {
@@ -19,6 +20,7 @@ public class Project {
     public Project( File projectLocation ) {
         this.projectLocation = projectLocation;
         this.dataLocation = new File( projectLocation, "data");
+        this.datasetNameToDataset = new HashMap<>();
     }
 
     private void updateDatasets() {

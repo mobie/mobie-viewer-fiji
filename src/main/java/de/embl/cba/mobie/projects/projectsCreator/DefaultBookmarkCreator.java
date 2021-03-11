@@ -1,12 +1,10 @@
 package de.embl.cba.mobie.projects.projectsCreator;
 
 import de.embl.cba.mobie.bookmark.Bookmark;
-import de.embl.cba.mobie.bookmark.BookmarkReader;
 import de.embl.cba.mobie.bookmark.write.BookmarkFileWriter;
 import de.embl.cba.mobie.image.ImageProperties;
 import de.embl.cba.mobie.image.MutableImageProperties;
 import de.embl.cba.mobie.utils.Utils;
-import de.embl.cba.tables.FileAndUrlUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +50,7 @@ public class DefaultBookmarkCreator {
     }
 
     public void removeImageFromDefaultBookmark( String imageName, String datasetName ) {
-        Set<String> currentImages = project.getDataset(datasetName).getCurrentImagesInDefaultBookmark();
+        Set<String> currentImages = project.getDataset(datasetName).getImageNamesInDefaultBookmark();
         if ( currentImages.size() > 1 ) {
             Map<String, Bookmark> defaultBookmarks = project.getDataset(datasetName).getDefaultBookmarks();
             defaultBookmarks.get( "default" ).layers.remove( imageName );
