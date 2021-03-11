@@ -1,8 +1,15 @@
 package de.embl.cba.mobie.utils;
 
+import bdv.img.n5.N5ImageLoader;
+import bdv.spimdata.SpimDataMinimal;
+import de.embl.cba.mobie.n5.N5FSImageLoader;
+import de.embl.cba.mobie.n5.N5S3ImageLoader;
+import de.embl.cba.mobie.projects.projectsCreator.ProjectsCreator;
 import ij.IJ;
 import ij.ImagePlus;
+import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
+import mpicbg.spim.data.sequence.ImgLoader;
 import net.imglib2.FinalDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 
@@ -111,5 +118,17 @@ public class ExportUtils {
     public static File getN5FileFromXmlPath ( String xmlPath ) {
         final String n5Filename = xmlPath.substring( 0, xmlPath.length() - 4 ) + ".n5";
         return new File( n5Filename );
+    }
+
+    public static ProjectsCreator.BdvFormat getBdvFormatFromSpimDataMinimal( SpimDataMinimal spimDataMinimal ) {
+        ProjectsCreator.BdvFormat bdvFormat = null;
+        BasicImgLoader imgLoader = spimDataMinimal.getSequenceDescription().getImgLoader();
+        if ( imgLoader instanceof N5ImageLoader | imgLoader instanceof N5FSImageLoader |
+                imgLoader instanceof N5S3ImageLoader | imgLoader instanceof de.embl.cba.mobie.n5.N5ImageLoader )
+        {
+            bdvFormat = ProjectsCreator.BdvFormat.n5;
+        }
+
+        return bdvFormat;
     }
 }

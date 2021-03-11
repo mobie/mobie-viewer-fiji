@@ -104,6 +104,10 @@ public class Project {
         return FileAndUrlUtils.combinePath(dataLocation.getAbsolutePath(), datasetName, "images", "local", imageName + ".xml");
     }
 
+    public String getRemoteImageXmlPath( String datasetName, String imageName ) {
+        return FileAndUrlUtils.combinePath(dataLocation.getAbsolutePath(), datasetName, "images", "remote", imageName + ".xml");
+    }
+
     public String getTablesDirectoryPath( String datasetName, String imageName ) {
         return FileAndUrlUtils.combinePath( getDatasetDirectoryPath( datasetName ), "tables", imageName);
     }

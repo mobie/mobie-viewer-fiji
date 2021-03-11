@@ -1,5 +1,6 @@
 package de.embl.cba.mobie.ui.command;
 
+import de.embl.cba.mobie.n5.S3Authentication;
 import de.embl.cba.mobie.projects.projectsCreator.ProjectsCreator;
 import de.embl.cba.mobie.projects.projectsCreator.RemoteMetadataCreator;
 import de.embl.cba.mobie.projects.projectsCreator.ui.ProjectsCreatorPanel;
@@ -68,10 +69,10 @@ public class AddRemoteToMoBIEProjectCommand implements Command {
 
                 if (authentication.equals("Anonymous")) {
                     remoteMetadataCreator.createRemoteMetadata( signingRegion, serviceEndpoint, bucketName,
-                            ProjectsCreator.Authentication.Anonymous );
+                            S3Authentication.Anonymous );
                 } else {
                     remoteMetadataCreator.createRemoteMetadata( signingRegion, serviceEndpoint, bucketName,
-                            ProjectsCreator.Authentication.Protected );
+                            S3Authentication.Protected );
                 }
             }
         }

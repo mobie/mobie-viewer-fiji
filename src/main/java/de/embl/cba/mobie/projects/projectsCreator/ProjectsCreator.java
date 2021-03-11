@@ -28,11 +28,6 @@ public class ProjectsCreator {
         move
     }
 
-    public enum Authentication {
-        Anonymous,
-        Protected
-    }
-
     public ProjectsCreator ( File projectLocation ) {
         this.project = new Project( projectLocation );
         this.datasetsCreator = new DatasetsCreator( project );

@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static de.embl.cba.mobie.utils.ExportUtils.getBdvFormatFromSpimDataMinimal;
 import static de.embl.cba.morphometry.Utils.labelMapAsImgLabeling;
 
 public class ImagesCreator {
@@ -243,15 +244,6 @@ public class ImagesCreator {
         }
 
         return imageLocation;
-    }
-
-    private ProjectsCreator.BdvFormat getBdvFormatFromSpimDataMinimal(SpimDataMinimal spimDataMinimal ) {
-        ProjectsCreator.BdvFormat bdvFormat = null;
-        if ( spimDataMinimal.getSequenceDescription().getImgLoader() instanceof N5ImageLoader ) {
-            bdvFormat = ProjectsCreator.BdvFormat.n5;
-        }
-
-        return bdvFormat;
     }
 
     private void writeNewBdvXml ( SpimDataMinimal spimDataMinimal, File imageFile, File saveDirectory, String imageName,
