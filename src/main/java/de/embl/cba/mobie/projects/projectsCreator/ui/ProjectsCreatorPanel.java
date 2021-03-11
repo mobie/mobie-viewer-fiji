@@ -36,7 +36,11 @@ public class ProjectsCreatorPanel extends JFrame {
         this.project = projectsCreator.getProject();
         addDatasetPanel();
         addImagesPanel();
-        this.setTitle( "Edit MoBIE Project...");
+        String shortenedProjectName = projectLocation.getName();
+        if ( shortenedProjectName.length() > 50 ) {
+            shortenedProjectName = shortenedProjectName.substring( 0, 47 ) + "...";
+        }
+        this.setTitle( "Editing MoBIE Project: " + shortenedProjectName );
         this.getContentPane().setLayout( new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS ) );
         this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
     }
