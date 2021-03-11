@@ -428,6 +428,10 @@ public class Utils
 				SegmentProperty.Z,
 				columns.get( Constants.ANCHOR_Z ) );
 
+		segmentPropertyToColumn.put(
+				SegmentProperty.T,
+				columns.get( Constants.TIMEPOINT ) );
+
 		SegmentUtils.putDefaultBoundingBoxMapping( segmentPropertyToColumn, columns );
 
 		return segmentPropertyToColumn;
@@ -536,4 +540,12 @@ public class Utils
 		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
 		return bounds;
 	}
+
+	public static int getNumTimePoints( Source< ? > source )
+	{
+		int numTimePoints = 0;
+		while ( source.isPresent( numTimePoints++ ) ){}
+		return numTimePoints - 1;
+	}
+
 }
