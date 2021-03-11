@@ -9,6 +9,7 @@ import ij.IJ;
 import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimDataException;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.apache.commons.compress.utils.FileNameUtils;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -257,7 +258,9 @@ public class ProjectsCreatorPanel extends JFrame {
                     } catch (SpimDataException | IOException e) {
                         e.printStackTrace();
                     }
-                    updateDatasetsComboBox( datasetName );
+
+                    String imageName = FileNameUtils.getBaseName(xmlLocation.getAbsolutePath());
+                    updateImagesComboBox( imageName );
                 }
             }
         } else {
