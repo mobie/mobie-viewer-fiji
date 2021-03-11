@@ -87,8 +87,6 @@ public class DatasetsCreator {
             } else {
                 Utils.log( "Rename dataset failed - there is already a dataset of that name" );
             }
-        } else {
-            Utils.log("Rename dataset failed - new name is the same as old name");
         }
 
     }

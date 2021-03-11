@@ -477,7 +477,7 @@ public class ImagePropertiesEditor {
             updateSelectedLabelIds();
             imageProperties.showSelectedSegmentsIn3d = showSelectedSegmentsIn3dCheckbox.isSelected();
         }
-        updateDefaultBookmarkSettings();
         projectsCreator.getImagesJsonCreator().setImagePropertiesInImagesJson( imageName, datasetName, imageProperties );
+        updateDefaultBookmarkSettings();
     }
 }
