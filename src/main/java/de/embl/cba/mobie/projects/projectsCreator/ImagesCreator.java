@@ -58,7 +58,7 @@ public class ImagesCreator {
                 downsamplingMethod = DownsampleBlock.DownsamplingMethod.Average;
                 break;
             default:
-                downsamplingMethod = DownsampleBlock.DownsamplingMethod.Mode;
+                downsamplingMethod = DownsampleBlock.DownsamplingMethod.Centre;
         }
 
         if ( !xmlFile.exists() ) {
