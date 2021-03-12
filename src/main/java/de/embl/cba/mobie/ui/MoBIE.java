@@ -44,7 +44,7 @@ public class MoBIE
 	private String projectName;
 	private AffineTransform3D defaultNormalisedViewerTransform;
 
-	public MoBIE( String projectLocation ) throws HeadlessException
+	public MoBIE( String projectLocation )
 	{
 		this( projectLocation, MoBIEOptions.options() );
 	}
@@ -52,7 +52,7 @@ public class MoBIE
 	@Deprecated
 	public MoBIE(
 			String projectLocation,
-			String tablesLocation ) throws HeadlessException
+			String tablesLocation )
 	{
 		this( projectLocation, MoBIEOptions.options().tableDataLocation( tablesLocation ) );
 	}

@@ -25,7 +25,7 @@ public class SourcesModel implements ImageSourcesModel
 
 	private Map< String, SourceAndMetadata< ? > > nameToSourceAndDefaultMetadata;
 	private final String tableDataLocation;
-	private String storageModality;
+	private String imageStorageModality;
 	private String imageRootLocation;
 
 	public SourcesModel( String imageDataLocation, MoBIEOptions.ImageDataStorageModality imageDataStorageModality, String tableDataLocation )
@@ -66,7 +66,9 @@ public class SourcesModel implements ImageSourcesModel
 
 	private void addSources( String imageDataLocation, Map< String, ImageProperties > nameToImageProperties )
 	{
-		storageModality = imageDataStorageModality.equals( MoBIEOptions.ImageDataStorageModality.S3 ) ? "remote" : "local";
+		// TODO: this can probably be simplified somehow...
+		imageStorageModality = imageDataStorageModality.equals( MoBIEOptions.ImageDataStorageModality.S3 ) ? "remote" : "local";
+
 		imageRootLocation = FileAndUrlUtils.combinePath( imageDataLocation, "images" );
 
 		final Set< String > names = nameToImageProperties.keySet();
@@ -93,7 +95,7 @@ public class SourcesModel implements ImageSourcesModel
 		if ( nameToSourceAndDefaultMetadata.size() == 0)
 		{
 			throw new UnsupportedOperationException( "No image data found in: "
-					+ FileAndUrlUtils.combinePath( imageDataLocation, "images", storageModality ) );
+					+ FileAndUrlUtils.combinePath( imageDataLocation, "images", imageStorageModality ) );
 		}
 
 		Utils.log("Found " + nameToSourceAndDefaultMetadata.size() + " image sources." );
@@ -109,7 +111,7 @@ public class SourcesModel implements ImageSourcesModel
 
 	private void setXmlLocation( ImageProperties properties, Metadata metadata )
 	{
-		if ( storageModality == "remote")
+		if ( imageStorageModality == "remote")
 			metadata.xmlLocation = FileAndUrlUtils.combinePath( imageRootLocation, properties.storage.remote );
 		else
 			metadata.xmlLocation = FileAndUrlUtils.combinePath( imageRootLocation, properties.storage.local );
@@ -121,130 +123,6 @@ public class SourcesModel implements ImageSourcesModel
 		{
 			metadata.segmentsTablePath = FileAndUrlUtils.combinePath( tableDataLocation, properties.tableFolder, "default.csv" );
 		}
-	}
-
-	// TODO: remove this. Should an LayerPropertiesToMetadataAdaptor
-	public Metadata getMetadata( String imageId, LinkedTreeMap imageAttributes )
-	{
-		final Metadata metadata = initMetadata( imageId );
-		setModality( imageId, metadata );
-
-		final Set< String > metadataKeys = imageAttributes.keySet();
-		for ( String key : metadataKeys )
-			addImageMetadata( metadata, key, imageAttributes.get( key ) );
-
-		return metadata;
-	}
-
-	@Deprecated
-	public void addImageMetadata( Metadata metadata, String key, Object value )
-	{
-//		if ( key.equals( "TableFolder" ) )
-//		{
-//			metadata.segmentsTablePath = FileAndUrlUtils.combinePath( tableDataLocation, (String) value, "default.csv");
-//		}
-//		else if ( key.equals( "Color" ) )
-//		{
-//			final String colorString = ( String ) value;
-//
-//			if ( colorString.equals("RandomFromGlasbey") )
-//			{
-//				metadata.color = ColorUtils.getColor(
-//						new ARGBType( glasbeyARGBLut.getARGB(
-//								createRandom( metadata.imageId ) ) ) );
-//			}
-//			else
-//			{
-//				metadata.color = Utils.getColor( colorString );
-//			}
-//		}
-//		if ( key.equals( "Tables" ) )
-//		{
-//			final ArrayList< String > tableNames = ( ArrayList< String > ) value ;
-//			for ( String tableName : tableNames )
-//				metadata.additionalSegmentTableNames.add( tableName );
-//		}
-//		else if ( key.equals( "ColorMap" ) )
-//		{
-//			metadata.colorMap = (String) value;
-//		}
-//		else if ( key.equals( "ColorByColumn" ) )
-//		{
-//			metadata.colorByColumn = (String) value;
-//		}
-//		else if ( key.equals( "Type" ) )
-//		{
-//			metadata.type = Metadata.Type.valueOf( (String) value );
-//		}
-//		else if ( key.equals( "MinValue" ) )
-//		{
-//			metadata.displayRangeMin = (double) value;
-//		}
-//		else if ( key.equals( "MaxValue" ) )
-//		{
-//			metadata.displayRangeMax = (double) value;
-//		}
-//		else if ( key.equals( "ColorMapMinValue" ) )
-//		{
-//			metadata.colorMapMin = (double) value;
-//		}
-//		else if ( key.equals( "ColorMapMaxValue" ) )
-//		{
-//			metadata.colorMapMax = (double) value;
-//		}
-//		else if ( key.equals( "Storage" ) )
-//		{
-//			final LinkedTreeMap treeMap = ( LinkedTreeMap ) value;
-//			metadata.xmlLocation = FileAndUrlUtils.combinePath( imageRootLocation, (String) treeMap.get( storageModality ) );
-//		}
-//		else if ( key.equals( "SelectedLabelIds" ) )
-//		{
-//			metadata.selectedSegmentIds = ( ArrayList<Double> ) value;
-//		}
-//		else if ( key.equals( "ShowSelectedSegmentsIn3d" ) )
-//		{
-//			metadata.showSelectedSegmentsIn3d = (boolean) value;
-//		}
-//		else if ( key.equals( "ShowImageIn3d" ) )
-//		{
-//			metadata.showImageIn3d = (boolean) value;
-//		}
-//		else
-//		{
-//			// skip unknown key
-//		}
-	}
-
-
-	@Deprecated
-	public void addImageMetadataOldStyle( JsonReader reader, Metadata metadata ) throws IOException
-	{
-//		final String nextName = reader.nextName();
-//		if ( nextName.equals( "TableFolder" ) )
-//		{
-//			metadata.segmentsTablePath = FileAndUrlUtils.combinePath( tableDataLocation, reader.nextString(), "default.csv");
-//		}
-//		else if ( nextName.equals( "Color" ) )
-//		{
-//			metadata.color = Utils.getColor( reader.nextString() );
-//		}
-//		else if ( nextName.equals( "MinValue" ) )
-//		{
-//			metadata.displayRangeMin = reader.nextDouble();
-//		}
-//		else if ( nextName.equals( "MaxValue" ) )
-//		{
-//			metadata.displayRangeMax = reader.nextDouble();
-//		}
-//		else if ( nextName.equals( "PainteraProject" ) )
-//		{
-//			reader.nextString();
-//		}
-//		else
-//		{
-//			reader.nextNull();
-//			throw new UnsupportedOperationException( "Unexpected key in images.json: " + nextName );
-//		}
 	}
 
 	private void setModality( String imageId, Metadata metadata )

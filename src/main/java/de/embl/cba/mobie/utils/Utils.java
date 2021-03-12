@@ -306,7 +306,6 @@ public class Utils
 		final ArrayList< String > labelImageIds = new ArrayList<>();
 		final List< String > sourceNames = columns.get( Constants.SOURCE_NAME );
 
-		int labelId = 1;
 		for ( String sourceName : sourceNames )
 		{
 			final RealInterval interval = metadata.sourceNameToInterval.get( sourceName );
@@ -428,6 +427,10 @@ public class Utils
 		segmentPropertyToColumn.put(
 				SegmentProperty.Z,
 				columns.get( Constants.ANCHOR_Z ) );
+
+		segmentPropertyToColumn.put(
+				SegmentProperty.T,
+				columns.get( Constants.TIMEPOINT ) );
 
 		SegmentUtils.putDefaultBoundingBoxMapping( segmentPropertyToColumn, columns );
 
@@ -555,4 +558,12 @@ public class Utils
 
 		return tidyString;
 	}
+
+	public static int getNumTimePoints( Source< ? > source )
+	{
+		int numTimePoints = 0;
+		while ( source.isPresent( numTimePoints++ ) ){}
+		return numTimePoints - 1;
+	}
+
 }

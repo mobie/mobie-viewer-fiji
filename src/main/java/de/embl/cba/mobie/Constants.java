@@ -17,6 +17,8 @@ public class Constants
 	public static final String ANCHOR_X = "anchor_x";
 	public static final String ANCHOR_Y = "anchor_y";
 	public static final String ANCHOR_Z = "anchor_z";
+	public static final String TIMEPOINT = "timepoint";
+
 	public static final String SOURCE_NAME = "source_name";
 
 	// TODO: move somewhere else, where are the other LUTs?

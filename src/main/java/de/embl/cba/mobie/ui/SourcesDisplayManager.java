@@ -13,6 +13,7 @@ import de.embl.cba.mobie.image.SourceAndMetadataChangedListener;
 import de.embl.cba.mobie.image.SourceGroupLabelSourceMetadata;
 import de.embl.cba.mobie.image.SourceGroupLabelSourceCreator;
 import de.embl.cba.mobie.image.SourcesModel;
+import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.TableColumns;
@@ -35,6 +36,7 @@ import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 import org.scijava.vecmath.Color3f;
+import weka.Run;
 
 import javax.swing.*;
 import java.awt.*;
@@ -407,7 +409,8 @@ public class SourcesDisplayManager extends JPanel
             }
             else
             {
-                showLabelsSource( sam );
+                throw new RuntimeException( "Visualisation of label images without tables is not supported." );
+                //showLabelsSource( sam );
             }
         }
         else if ( metadata.type.equals( Metadata.Type.Image ) )
@@ -452,7 +455,6 @@ public class SourcesDisplayManager extends JPanel
         metadata.bdvStackSource = bdvStackSource;
     }
 
-    @NotNull
     private BdvStackSource addSourceToBDV( SourceAndMetadata< ? > sam )
     {
         // TODO: Why do we have numRenderingThreads = 1?
@@ -460,7 +462,7 @@ public class SourcesDisplayManager extends JPanel
 
         return BdvFunctions.show(
                 sam.source(),
-                1, // TODO: Why is this needed? How could we determine it?
+                Utils.getNumTimePoints( sam.source() ),
                 options );
     }
 
@@ -489,13 +491,14 @@ public class SourcesDisplayManager extends JPanel
         }
     }
 
-    // TODO: probably this should be an own class, part of the table-utils views framework
+    // TODO: remove?!
+    @Deprecated
     private void showLabelsSource( SourceAndMetadata< ? > sam )
     {
         final LazyLabelsARGBConverter lazyLabelsARGBConverter = new LazyLabelsARGBConverter();
+        // TODO: Bug: this is not used!!
         final ARGBConvertedRealSource source =
-                new ARGBConvertedRealSource( sam.source(),
-                        lazyLabelsARGBConverter );
+                new ARGBConvertedRealSource( sam.source(), lazyLabelsARGBConverter );
 
         sam.metadata().bdvStackSource = addSourceToBDV( sam );
 
@@ -504,14 +507,14 @@ public class SourcesDisplayManager extends JPanel
         final Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
         behaviours.install( bdv.getBdvHandle().getTriggerbindings(), sam.metadata().displayName + "-bdv-select-handler" );
 
-        behaviours.behaviour( ( ClickBehaviour ) ( x, y ) ->
-                new Thread( () ->
-                {
-                    lazyLabelsARGBConverter.getColoringModel().incRandomSeed();
-                    BdvUtils.repaint( bdv );
-                } ).start(),
-                sam.metadata().displayName + "-change-color-random-seed",
-                "ctrl L" );
+    behaviours.behaviour( ( ClickBehaviour ) ( x, y ) ->
+            new Thread( () ->
+            {
+                lazyLabelsARGBConverter.getColoringModel().incRandomSeed();
+                BdvUtils.repaint( bdv );
+            } ).start(),
+            sam.metadata().displayName + "-change-color-random-seed",
+            "ctrl L" );
     }
 
     private void showAnnotatedLabelsSource( SourceAndMetadata< ? > sam )
