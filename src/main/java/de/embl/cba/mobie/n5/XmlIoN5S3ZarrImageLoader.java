@@ -30,6 +30,7 @@
 package de.embl.cba.mobie.n5;
 
 import de.embl.cba.mobie.n5.zarr.N5S3OMEZarrImageLoader;
+import de.embl.cba.tables.S3CredentialsCreator;
 import mpicbg.spim.data.XmlHelpers;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.ImgLoaderIo;
@@ -76,7 +77,7 @@ public class XmlIoN5S3ZarrImageLoader implements XmlIoBasicImgLoader< N5S3OMEZar
 		final String signingRegion = XmlHelpers.getText( elem, SIGNING_REGION );
 		final String bucketName = XmlHelpers.getText( elem, BUCKET_NAME );
 		final String key = XmlHelpers.getText( elem, KEY );
-		final S3Authentication authentication = S3Authentication.valueOf( XmlHelpers.getText( elem, AUTHENTICATION ) );
+		final S3CredentialsCreator.S3Authentication authentication = S3CredentialsCreator.S3Authentication.valueOf( XmlHelpers.getText( elem, AUTHENTICATION ) );
 
 		try
 		{
