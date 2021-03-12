@@ -17,10 +17,13 @@ import net.imglib2.realtransform.AffineTransform3D;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Map;
+import java.net.URI;
 
 import static de.embl.cba.mobie.utils.FileAndUrlUtils.getName;
 
@@ -182,9 +185,24 @@ public class MoBIE
 		imagesLocation = FileAndUrlUtils.removeTrailingSlash( imagesLocation );
 		tablesLocation = FileAndUrlUtils.removeTrailingSlash( tablesLocation );
 
-		projectLocation = adaptUrl( projectLocation, options.values.getProjectBranch() ) + "/data";
-		imagesLocation = adaptUrl( imagesLocation, options.values.getProjectBranch() ) + "/data";
-		tablesLocation = adaptUrl( tablesLocation, options.values.getTableDataBranch() ) + "/data";
+		projectLocation = adaptUrl( projectLocation, options.values.getProjectBranch() );
+		imagesLocation = adaptUrl( imagesLocation, options.values.getProjectBranch() );
+		tablesLocation = adaptUrl( tablesLocation, options.values.getProjectBranch() );
+
+		// two different locations of the data w.r.t someLocation are supported:
+		// the data can either be directly underneath someLocation
+		// or in someLocation/data
+		// test if someLocation/data exists and set if to the new location if it does
+		// NOTE this produces a corner case for nested "data" folders, i.e. "data/data", but it's the best solution I came up with so far
+		if(FileAndUrlUtils.exists(projectLocation + "/data/datasets.json")) {
+			projectLocation = projectLocation + "/data";
+		}
+		if(FileAndUrlUtils.exists(imagesLocation + "/data/datasets.json")) {
+			imagesLocation = imagesLocation + "/data";
+		}
+		if(FileAndUrlUtils.exists(tablesLocation + "/data/datasets.json")) {
+			tablesLocation = tablesLocation + "/data";
+		}
 	}
 
 	private String adaptUrl( String url, String projectBranch )

@@ -36,6 +36,7 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import de.embl.cba.tables.S3CredentialsCreator;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import org.janelia.saalfeldlab.n5.s3.N5AmazonS3Reader;
 
@@ -47,12 +48,12 @@ public class N5S3ImageLoader extends N5ImageLoader
 	private final String signingRegion;
 	private final String bucketName;
 	private final String key;
-	private final S3Authentication authentication;
+	private final S3CredentialsCreator.S3Authentication authentication;
 
 	static class N5AmazonS3ReaderCreator
 	{
 
-		public N5AmazonS3Reader create( String serviceEndpoint, String signingRegion, String bucketName, String key, S3Authentication authentication ) throws IOException
+		public N5AmazonS3Reader create( String serviceEndpoint, String signingRegion, String bucketName, String key, S3CredentialsCreator.S3Authentication authentication ) throws IOException
 		{
 			final AwsClientBuilder.EndpointConfiguration endpoint = new AwsClientBuilder.EndpointConfiguration( serviceEndpoint, signingRegion );
 
@@ -60,41 +61,14 @@ public class N5S3ImageLoader extends N5ImageLoader
 					.standard()
 					.withPathStyleAccessEnabled( true )
 					.withEndpointConfiguration( endpoint )
-					.withCredentials( getCredentialsProvider( authentication ) )
+					.withCredentials( S3CredentialsCreator.getCredentialsProvider( authentication ) )
 					.build();
 
 			return new N5AmazonS3Reader( s3, bucketName, key );
 		}
-
-		private AWSCredentialsProvider getCredentialsProvider( S3Authentication authentication )
-		{
-			switch ( authentication )
-			{
-				case Anonymous:
-					return new AWSStaticCredentialsProvider( new AnonymousAWSCredentials() );
-				case Protected:
-					final DefaultAWSCredentialsProviderChain credentialsProvider = new DefaultAWSCredentialsProviderChain();
-					checkCredentialsExistence( credentialsProvider );
-					return credentialsProvider;
-				default:
-					throw new UnsupportedOperationException( "Authentication not supported: " + authentication );
-			}
-		}
-
-		private void checkCredentialsExistence( AWSCredentialsProvider credentialsProvider )
-		{
-			try
-			{
-				credentialsProvider.getCredentials();
-			}
-			catch ( Exception e )
-			{
-				throw  new RuntimeException( e ); // No credentials could be found
-			}
-		}
 	}
 
-	public N5S3ImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key, S3Authentication authentication, AbstractSequenceDescription< ?, ?, ? > sequenceDescription ) throws IOException
+	public N5S3ImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key, S3CredentialsCreator.S3Authentication authentication, AbstractSequenceDescription< ?, ?, ? > sequenceDescription ) throws IOException
 	{
 		super( new N5AmazonS3ReaderCreator().create( serviceEndpoint, signingRegion, bucketName, key, authentication ), sequenceDescription );
 		this.serviceEndpoint = serviceEndpoint;
@@ -124,7 +98,7 @@ public class N5S3ImageLoader extends N5ImageLoader
 		return key;
 	}
 
-	public S3Authentication getAuthentication()
+	public S3CredentialsCreator.S3Authentication getAuthentication()
 	{
 		return authentication;
 	}

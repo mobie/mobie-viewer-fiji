@@ -34,6 +34,7 @@ import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.ImgLoaderIo;
 import mpicbg.spim.data.generic.sequence.XmlIoBasicImgLoader;
 import org.jdom2.Element;
+import de.embl.cba.tables.S3CredentialsCreator;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,7 +75,7 @@ public class XmlIoN5S3ImageLoader implements XmlIoBasicImgLoader< N5S3ImageLoade
 		final String signingRegion = XmlHelpers.getText( elem, SIGNING_REGION );
 		final String bucketName = XmlHelpers.getText( elem, BUCKET_NAME );
 		final String key = XmlHelpers.getText( elem, KEY );
-		final S3Authentication authentication = S3Authentication.valueOf( XmlHelpers.getText( elem, AUTHENTICATION ) );
+		final S3CredentialsCreator.S3Authentication authentication = S3CredentialsCreator.S3Authentication.valueOf( XmlHelpers.getText( elem, AUTHENTICATION ) );
 
 		try
 		{

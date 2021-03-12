@@ -32,8 +32,7 @@ package de.embl.cba.mobie.n5.zarr;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import de.embl.cba.mobie.n5.S3Authentication;
-import de.embl.cba.mobie.n5.S3CredentialsCreator;
+import de.embl.cba.tables.S3CredentialsCreator;
 import de.embl.cba.mobie.n5.zarr.N5OMEZarrImageLoader;
 import de.embl.cba.mobie.n5.zarr.N5S3ZarrReader;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
@@ -48,11 +47,11 @@ public class N5S3OMEZarrImageLoader extends N5OMEZarrImageLoader
 	private final String signingRegion;
 	private final String bucketName;
 	private final String key;
-	private final S3Authentication authentication;
+	private final S3CredentialsCreator.S3Authentication authentication;
 
 	static class  N5S3ZarrReaderCreator
 	{
-		public N5S3ZarrReader create( String serviceEndpoint, String signingRegion, String bucketName, String key, S3Authentication authentication ) throws IOException
+		public N5S3ZarrReader create( String serviceEndpoint, String signingRegion, String bucketName, String key, S3CredentialsCreator.S3Authentication authentication ) throws IOException
 		{
 			final AwsClientBuilder.EndpointConfiguration endpoint = new AwsClientBuilder.EndpointConfiguration( serviceEndpoint, signingRegion );
 
@@ -68,7 +67,7 @@ public class N5S3OMEZarrImageLoader extends N5OMEZarrImageLoader
 	}
 
 	// sequenceDescription has been read from xml
-	public N5S3OMEZarrImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key, S3Authentication authentication, AbstractSequenceDescription< ?, ?, ? > sequenceDescription ) throws IOException
+	public N5S3OMEZarrImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key, S3CredentialsCreator.S3Authentication authentication, AbstractSequenceDescription< ?, ?, ? > sequenceDescription ) throws IOException
 	{
 		super( new N5S3ZarrReaderCreator().create( serviceEndpoint, signingRegion, bucketName, key, authentication ), sequenceDescription );
 		this.serviceEndpoint = serviceEndpoint;
@@ -79,7 +78,7 @@ public class N5S3OMEZarrImageLoader extends N5OMEZarrImageLoader
 	}
 
 	// sequenceDescription will be read from zarr
-	public N5S3OMEZarrImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key, S3Authentication authentication ) throws IOException
+	public N5S3OMEZarrImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key, S3CredentialsCreator.S3Authentication authentication ) throws IOException
 	{
 		super( new N5S3ZarrReaderCreator().create( serviceEndpoint, signingRegion, bucketName, key, authentication ) );
 		this.serviceEndpoint = serviceEndpoint;
@@ -109,7 +108,7 @@ public class N5S3OMEZarrImageLoader extends N5OMEZarrImageLoader
 		return key;
 	}
 
-	public S3Authentication getAuthentication()
+	public S3CredentialsCreator.S3Authentication getAuthentication()
 	{
 		return authentication;
 	}
