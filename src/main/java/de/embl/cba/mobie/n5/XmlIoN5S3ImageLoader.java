@@ -34,7 +34,6 @@ import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.ImgLoaderIo;
 import mpicbg.spim.data.generic.sequence.XmlIoBasicImgLoader;
 import org.jdom2.Element;
-import de.embl.cba.tables.S3CredentialsCreator;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +47,6 @@ public class XmlIoN5S3ImageLoader implements XmlIoBasicImgLoader< N5S3ImageLoade
 	public static final String SIGNING_REGION = "SigningRegion";
 	public static final String BUCKET_NAME = "BucketName";
 	public static final String KEY = "Key";
-	public static final String AUTHENTICATION = "Authentication";
 
 
 	@Override
@@ -61,7 +59,6 @@ public class XmlIoN5S3ImageLoader implements XmlIoBasicImgLoader< N5S3ImageLoade
 		elem.setAttribute( SIGNING_REGION, imgLoader.getSigningRegion() );
 		elem.setAttribute( BUCKET_NAME, imgLoader.getBucketName() );
 		elem.setAttribute( KEY, imgLoader.getKey() );
-		elem.setAttribute( AUTHENTICATION, imgLoader.getAuthentication().toString() );
 
 		return elem;
 	}
@@ -75,11 +72,10 @@ public class XmlIoN5S3ImageLoader implements XmlIoBasicImgLoader< N5S3ImageLoade
 		final String signingRegion = XmlHelpers.getText( elem, SIGNING_REGION );
 		final String bucketName = XmlHelpers.getText( elem, BUCKET_NAME );
 		final String key = XmlHelpers.getText( elem, KEY );
-		final S3CredentialsCreator.S3Authentication authentication = S3CredentialsCreator.S3Authentication.valueOf( XmlHelpers.getText( elem, AUTHENTICATION ) );
 
 		try
 		{
-			return new N5S3ImageLoader( serviceEndpoint, signingRegion, bucketName, key, authentication, sequenceDescription );
+			return new N5S3ImageLoader( serviceEndpoint, signingRegion, bucketName, key, sequenceDescription );
 		}
 		catch ( IOException e )
 		{
