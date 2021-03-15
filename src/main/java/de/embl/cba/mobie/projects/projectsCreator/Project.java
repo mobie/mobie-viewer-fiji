@@ -86,6 +86,10 @@ public class Project {
         return FileAndUrlUtils.combinePath( dataLocation.getAbsolutePath(), datasetName, "images");
     }
 
+    public String getLocalImagesDirectoryPath( String datasetName ) {
+        return FileAndUrlUtils.combinePath( dataLocation.getAbsolutePath(), datasetName, "images", "local" );
+    }
+
     public String getRemoteImagesDirectoryPath( String datasetName ) {
         return FileAndUrlUtils.combinePath( dataLocation.getAbsolutePath(), datasetName, "images", "remote" );
     }

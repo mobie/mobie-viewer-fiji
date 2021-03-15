@@ -131,4 +131,18 @@ public class ExportUtils {
 
         return bdvFormat;
     }
+
+    public static File getImageLocationFromSpimDataMinimal( SpimDataMinimal spimDataMinimal, ProjectsCreator.BdvFormat bdvFormat) {
+        File imageLocation = null;
+
+        switch ( bdvFormat ) {
+            case n5:
+                // get image loader to find absolute image location
+                N5ImageLoader n5ImageLoader = (N5ImageLoader) spimDataMinimal.getSequenceDescription().getImgLoader();
+                imageLocation = n5ImageLoader.getN5File();
+                break;
+        }
+
+        return imageLocation;
+    }
 }

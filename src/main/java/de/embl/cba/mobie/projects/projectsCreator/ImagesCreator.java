@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static de.embl.cba.mobie.utils.ExportUtils.getBdvFormatFromSpimDataMinimal;
+import static de.embl.cba.mobie.utils.ExportUtils.getImageLocationFromSpimDataMinimal;
 import static de.embl.cba.morphometry.Utils.labelMapAsImgLabeling;
 
 public class ImagesCreator {
@@ -230,20 +231,6 @@ public class ImagesCreator {
                 n5ImageLoader.close();
                 break;
         }
-    }
-
-    private File getImageLocationFromSpimDataMinimal( SpimDataMinimal spimDataMinimal, ProjectsCreator.BdvFormat bdvFormat) {
-        File imageLocation = null;
-
-        switch ( bdvFormat ) {
-            case n5:
-                // get image loader to find absolute image location
-                N5ImageLoader n5ImageLoader = (N5ImageLoader) spimDataMinimal.getSequenceDescription().getImgLoader();
-                imageLocation = n5ImageLoader.getN5File();
-                break;
-        }
-
-        return imageLocation;
     }
 
     private void writeNewBdvXml ( SpimDataMinimal spimDataMinimal, File imageFile, File saveDirectory, String imageName,
