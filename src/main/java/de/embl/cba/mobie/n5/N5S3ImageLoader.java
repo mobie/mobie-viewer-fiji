@@ -29,14 +29,8 @@
  */
 package de.embl.cba.mobie.n5;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.AnonymousAWSCredentials;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import de.embl.cba.tables.S3CredentialsCreator;
+import de.embl.cba.tables.S3Utils;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import org.janelia.saalfeldlab.n5.s3.N5AmazonS3Reader;
 
@@ -48,34 +42,24 @@ public class N5S3ImageLoader extends N5ImageLoader
 	private final String signingRegion;
 	private final String bucketName;
 	private final String key;
-	private final S3CredentialsCreator.S3Authentication authentication;
 
 	static class N5AmazonS3ReaderCreator
 	{
 
-		public N5AmazonS3Reader create( String serviceEndpoint, String signingRegion, String bucketName, String key, S3CredentialsCreator.S3Authentication authentication ) throws IOException
+		public N5AmazonS3Reader create( String serviceEndpoint, String signingRegion, String bucketName, String key ) throws IOException
 		{
-			final AwsClientBuilder.EndpointConfiguration endpoint = new AwsClientBuilder.EndpointConfiguration( serviceEndpoint, signingRegion );
-
-			final AmazonS3 s3 = AmazonS3ClientBuilder
-					.standard()
-					.withPathStyleAccessEnabled( true )
-					.withEndpointConfiguration( endpoint )
-					.withCredentials( S3CredentialsCreator.getCredentialsProvider( authentication ) )
-					.build();
-
+			final AmazonS3 s3 = S3Utils.getS3Client( serviceEndpoint, signingRegion, bucketName );
 			return new N5AmazonS3Reader( s3, bucketName, key );
 		}
 	}
 
-	public N5S3ImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key, S3CredentialsCreator.S3Authentication authentication, AbstractSequenceDescription< ?, ?, ? > sequenceDescription ) throws IOException
+	public N5S3ImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key, AbstractSequenceDescription< ?, ?, ? > sequenceDescription ) throws IOException
 	{
-		super( new N5AmazonS3ReaderCreator().create( serviceEndpoint, signingRegion, bucketName, key, authentication ), sequenceDescription );
+		super( new N5AmazonS3ReaderCreator().create( serviceEndpoint, signingRegion, bucketName, key ), sequenceDescription );
 		this.serviceEndpoint = serviceEndpoint;
 		this.signingRegion = signingRegion;
 		this.bucketName = bucketName;
 		this.key = key;
-		this.authentication = authentication;
 	}
 
 	public String getServiceEndpoint()
@@ -98,8 +82,4 @@ public class N5S3ImageLoader extends N5ImageLoader
 		return key;
 	}
 
-	public S3CredentialsCreator.S3Authentication getAuthentication()
-	{
-		return authentication;
-	}
 }

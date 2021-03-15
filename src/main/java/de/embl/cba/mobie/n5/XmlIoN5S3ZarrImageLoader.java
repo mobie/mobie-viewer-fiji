@@ -30,7 +30,6 @@
 package de.embl.cba.mobie.n5;
 
 import de.embl.cba.mobie.n5.zarr.N5S3OMEZarrImageLoader;
-import de.embl.cba.tables.S3CredentialsCreator;
 import mpicbg.spim.data.XmlHelpers;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.ImgLoaderIo;
@@ -51,7 +50,6 @@ public class XmlIoN5S3ZarrImageLoader implements XmlIoBasicImgLoader< N5S3OMEZar
 	public static final String SIGNING_REGION = "SigningRegion";
 	public static final String BUCKET_NAME = "BucketName";
 	public static final String KEY = "Key";
-	public static final String AUTHENTICATION = "Authentication";
 
 	@Override
 	public Element toXml( final N5S3OMEZarrImageLoader imgLoader, final File basePath )
@@ -63,7 +61,6 @@ public class XmlIoN5S3ZarrImageLoader implements XmlIoBasicImgLoader< N5S3OMEZar
 		elem.setAttribute( SIGNING_REGION, imgLoader.getSigningRegion() );
 		elem.setAttribute( BUCKET_NAME, imgLoader.getBucketName() );
 		elem.setAttribute( KEY, imgLoader.getKey() );
-		elem.setAttribute( AUTHENTICATION, imgLoader.getAuthentication().toString() );
 
 		return elem;
 	}
@@ -77,11 +74,10 @@ public class XmlIoN5S3ZarrImageLoader implements XmlIoBasicImgLoader< N5S3OMEZar
 		final String signingRegion = XmlHelpers.getText( elem, SIGNING_REGION );
 		final String bucketName = XmlHelpers.getText( elem, BUCKET_NAME );
 		final String key = XmlHelpers.getText( elem, KEY );
-		final S3CredentialsCreator.S3Authentication authentication = S3CredentialsCreator.S3Authentication.valueOf( XmlHelpers.getText( elem, AUTHENTICATION ) );
 
 		try
 		{
-			return new N5S3OMEZarrImageLoader( serviceEndpoint, signingRegion, bucketName, key, authentication, sequenceDescription );
+			return new N5S3OMEZarrImageLoader( serviceEndpoint, signingRegion, bucketName, key, sequenceDescription );
 		}
 		catch ( IOException e )
 		{
