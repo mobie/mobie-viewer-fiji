@@ -240,7 +240,9 @@ public class ProjectsCreatorPanel extends JFrame {
                 String[] imageTypes = new String[]{ ProjectsCreator.ImageType.image.toString(),
                         ProjectsCreator.ImageType.segmentation.toString(), ProjectsCreator.ImageType.mask.toString() };
                 gd.addChoice("Image Type", imageTypes, imageTypes[0]);
-                gd.addMessage( "Note: You can only use 'link' for local projects. \n 'copy' or 'move' if you wish to upload to s3");
+                gd.addMessage( "Note: You can only 'link' to images outside \n" +
+                        "the project folder for local projects. \n " +
+                        "'copy' or 'move' if you wish to upload to s3");
 
                 gd.showDialog();
 

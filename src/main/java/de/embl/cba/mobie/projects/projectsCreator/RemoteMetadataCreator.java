@@ -7,7 +7,9 @@ import de.embl.cba.mobie.n5.XmlIoN5S3ImageLoader;
 import de.embl.cba.mobie.utils.Utils;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.SpimDataIOException;
+import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
@@ -28,8 +30,6 @@ public class RemoteMetadataCreator {
     String bucketName;
     S3Authentication authentication;
 
-    // TODO - deal with relative links inside project folder!!
-
     public RemoteMetadataCreator( Project project ) {
         this.project = project;
     }
@@ -43,25 +43,43 @@ public class RemoteMetadataCreator {
         }
     }
 
-    public Element createImageLoaderXmlElement ( ProjectsCreator.BdvFormat bdvFormat, String datasetName, String imageName )
-    {
+    public String getRelativeKey( SpimDataMinimal spimDataMinimal, String datasetName, String imageName,
+                                  ProjectsCreator.BdvFormat bdvFormat ) throws IOException {
+        // check image is within the project folder (if people 'link' to bdv format images they may be outside)
+        Path imagePath = Paths.get( getImageLocationFromSpimDataMinimal( spimDataMinimal, bdvFormat ).getAbsolutePath() ).normalize();
+        Path projectDataFolder = Paths.get( project.getDataLocation().getAbsolutePath() ).normalize();
+
+        if ( !imagePath.startsWith( projectDataFolder )) {
+            String errorMesage = "Image: " + imageName + " for dataset:" + datasetName + " is not in project folder. \n" +
+                    "You can't 'link' to bdv images outside the project folder, when uploading to s3";
+            Utils.log( errorMesage );
+            throw new IOException( errorMesage );
+        }
+
+        Path relativeKey = projectDataFolder.relativize( imagePath );
+
+        return FilenameUtils.separatorsToUnix( relativeKey.toString() );
+    }
+
+    public Element createImageLoaderXmlElement ( SpimDataMinimal spimDataMinimal,
+                                                 ProjectsCreator.BdvFormat bdvFormat,
+                                                 String datasetName, String imageName ) throws IOException {
         String key = null;
         switch (bdvFormat) {
             case n5:
-                key = datasetName + "/images/local/" + imageName + ".n5";
+                key = getRelativeKey( spimDataMinimal, datasetName, imageName, bdvFormat );
         }
 
          return new XmlIoN5S3ImageLoader().toXml( serviceEndpoint, signingRegion, bucketName, key, authentication );
     }
 
     public void saveXml( final SpimDataMinimal spimData, String datasetName, String imagename,
-                         final String xmlFile, ProjectsCreator.BdvFormat bdvFormat ) throws SpimDataException
-    {
+                         final String xmlFile, ProjectsCreator.BdvFormat bdvFormat ) throws SpimDataException, IOException {
         XmlIoSpimDataMinimal io = new XmlIoSpimDataMinimal();
         final File xmlFileDirectory = new File( xmlFile ).getParentFile();
         final Document doc = new Document( io.toXml( spimData, xmlFileDirectory ) );
         // remove default image loader, and replace with custom one
-        Element imageLoaderElement = createImageLoaderXmlElement( bdvFormat, datasetName, imagename );
+        Element imageLoaderElement = createImageLoaderXmlElement( spimData, bdvFormat, datasetName, imagename );
         Element baseElement = (Element) doc.getContent( 0 );
         ((Element) baseElement.getContent( 1 )).setContent( 0, imageLoaderElement );
         final XMLOutputter xout = new XMLOutputter( Format.getPrettyFormat() );
@@ -87,17 +105,6 @@ public class RemoteMetadataCreator {
             Utils.log( errorMesage );
             throw new IOException( errorMesage );
         } else {
-            // check image is within the project folder (if people 'link' to bdv format images they may be outside)
-            Path imagePath = Paths.get( getImageLocationFromSpimDataMinimal( spimDataMinimal, bdvFormat ).getAbsolutePath() ).normalize();
-            Path projectDataFolder = Paths.get( project.getDataLocation().getAbsolutePath() ).normalize();
-
-            if ( !imagePath.startsWith( projectDataFolder )) {
-                String errorMesage = "Image: " + imageName + " for dataset:" + datasetName + " is not in project folder. \n" +
-                        "You can't 'link' to bdv images outside the project folder, when uploading to s3";
-                Utils.log( errorMesage );
-                throw new IOException( errorMesage );
-            }
-
             spimDataMinimal.setBasePath( new File( remoteXmlLocation ) );
             saveXml( spimDataMinimal, datasetName, imageName,
                     new File(remoteXmlLocation, imageName + ".xml").getAbsolutePath(),
