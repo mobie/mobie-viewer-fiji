@@ -1,31 +1,22 @@
 package de.embl.cba.mobie.projects.projectsCreator;
 
-import bdv.img.n5.N5ImageLoader;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
-import de.embl.cba.mobie.n5.N5S3ImageLoader;
 import de.embl.cba.mobie.n5.S3Authentication;
 import de.embl.cba.mobie.n5.XmlIoN5S3ImageLoader;
 import de.embl.cba.mobie.utils.Utils;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.SpimDataIOException;
-import mpicbg.spim.data.sequence.ImgLoader;
 import org.apache.commons.io.FileUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
-
-import static de.embl.cba.mobie.n5.XmlIoN5S3ImageLoader.*;
-import static mpicbg.spim.data.XmlKeys.IMGLOADER_FORMAT_ATTRIBUTE_NAME;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 import static de.embl.cba.mobie.utils.ExportUtils.getBdvFormatFromSpimDataMinimal;
-import static de.embl.cba.mobie.utils.ExportUtils.getN5FileFromXmlPath;
-import static mpicbg.spim.data.XmlKeys.IMGLOADER_FORMAT_ATTRIBUTE_NAME;
 
 public class RemoteMetadataCreator {
     Project project;
@@ -37,8 +28,6 @@ public class RemoteMetadataCreator {
     public RemoteMetadataCreator( Project project ) {
         this.project = project;
     }
-
-
 
     private void deleteAllRemoteMetadata() throws IOException {
         for ( String datasetName: project.getDatasetNames() ) {
@@ -52,23 +41,12 @@ public class RemoteMetadataCreator {
     public Element createImageLoaderXmlElement ( ProjectsCreator.BdvFormat bdvFormat, String datasetName, String imageName )
     {
         String key = null;
-        String format = null;
         switch (bdvFormat) {
             case n5:
                 key = datasetName + "/images/local/" + imageName + ".n5";
-                format = "bdv.n5.s3";
         }
 
-        final Element elem = new Element("ImageLoader");
-        elem.setAttribute(IMGLOADER_FORMAT_ATTRIBUTE_NAME, format);
-
-        elem.addContent( new Element(KEY).addContent( key ));
-        elem.addContent( new Element(SIGNING_REGION).addContent( signingRegion ));
-        elem.addContent( new Element( SERVICE_ENDPOINT ).addContent( serviceEndpoint ) );
-        elem.addContent( new Element(BUCKET_NAME).addContent( bucketName ));
-        elem.addContent( new Element(AUTHENTICATION).addContent( authentication.toString() ));
-
-        return elem;
+         return new XmlIoN5S3ImageLoader().toXml( serviceEndpoint, signingRegion, bucketName, key, authentication );
     }
 
     public void saveXml( final SpimDataMinimal spimData, String datasetName, String imagename,
@@ -92,7 +70,7 @@ public class RemoteMetadataCreator {
         }
     }
 
-    private boolean addRemoteMetadataForImage( String datasetName, String imageName ) throws SpimDataException, IOException {
+    private void addRemoteMetadataForImage( String datasetName, String imageName ) throws SpimDataException, IOException {
         String localXmlLocation = project.getLocalImageXmlPath( datasetName, imageName );
         String remoteXmlLocation = project.getRemoteImagesDirectoryPath( datasetName );
 
@@ -100,9 +78,9 @@ public class RemoteMetadataCreator {
         ProjectsCreator.BdvFormat bdvFormat = getBdvFormatFromSpimDataMinimal( spimDataMinimal );
 
         if ( bdvFormat == null ) {
-            Utils.log( "Image: " + imageName + " in dataset:" + datasetName + " is of an unsupported format. \n" +
-                    "Aborting, and removing all remote metadata" );
-            return false;
+            String errorMesage = "Image: " + imageName + " in dataset:" + datasetName + " is of an unsupported format";
+            Utils.log( errorMesage );
+            throw new IOException( errorMesage );
         } else {
             spimDataMinimal.setBasePath( new File( remoteXmlLocation ) );
             saveXml( spimDataMinimal, datasetName, imageName,
@@ -110,33 +88,24 @@ public class RemoteMetadataCreator {
                     bdvFormat );
         }
 
-        return true;
     }
 
-    private boolean addRemoteMetadataForDataset( String datasetName ) throws SpimDataException, IOException {
+    private void addRemoteMetadataForDataset( String datasetName ) throws SpimDataException, IOException {
         for ( String imageName: project.getDataset( datasetName ).getImageNames() ) {
             if ( !imageName.equals("") ) {
                 Utils.log("Adding metadata for image: " + imageName );
-                boolean addedSuccessfully = addRemoteMetadataForImage( datasetName, imageName );
-                if ( !addedSuccessfully ) {
-                    return false;
-                }
+                addRemoteMetadataForImage( datasetName, imageName );
             }
         }
-        return true;
     }
 
-    private boolean addAllRemoteMetadata() throws SpimDataException, IOException {
+    private void addAllRemoteMetadata() throws SpimDataException, IOException {
         for ( String datasetName: project.getDatasetNames() ) {
             if ( !datasetName.equals("") ) {
                 Utils.log("Adding metadata for dataset: " + datasetName );
-                boolean addedSuccessfully = addRemoteMetadataForDataset( datasetName );
-                if ( !addedSuccessfully ) {
-                    return false;
-                }
+                addRemoteMetadataForDataset( datasetName );
             }
         }
-        return true;
     }
 
     public void createRemoteMetadata( String signingRegion, String serviceEndpoint, String bucketName,
@@ -147,13 +116,11 @@ public class RemoteMetadataCreator {
         this.authentication = authentication;
 
         try {
+            // clean any old remote metadata
             deleteAllRemoteMetadata();
 
             try {
-                // If some issue occurs, delete the remote metadata
-                if (!addAllRemoteMetadata()) {
-                    deleteAllRemoteMetadata();
-                }
+               addAllRemoteMetadata();
             } catch (SpimDataException | IOException e) {
                 Utils.log( "Error - aborting, and removing all remote metadata" );
                 deleteAllRemoteMetadata();

@@ -53,14 +53,21 @@ public class XmlIoN5S3ImageLoader implements XmlIoBasicImgLoader< N5S3ImageLoade
 	@Override
 	public Element toXml( final N5S3ImageLoader imgLoader, final File basePath )
 	{
-		final Element elem = new Element( "ImageLoader" );
+		return toXml( imgLoader.getServiceEndpoint(), imgLoader.getSigningRegion(), imgLoader.getBucketName(),
+				imgLoader.getKey(), imgLoader.getAuthentication() );
+	}
+
+	public Element toXml( String serviceEndpoint, String signingRegion, String bucketName, String key,
+						  S3Authentication authentication )
+	{
+		final Element elem = new Element("ImageLoader");
 		elem.setAttribute( IMGLOADER_FORMAT_ATTRIBUTE_NAME, "bdv.n5.s3" );
-		elem.setAttribute( "version", "1.0" );
-		elem.setAttribute( SERVICE_ENDPOINT, imgLoader.getServiceEndpoint() );
-		elem.setAttribute( SIGNING_REGION, imgLoader.getSigningRegion() );
-		elem.setAttribute( BUCKET_NAME, imgLoader.getBucketName() );
-		elem.setAttribute( KEY, imgLoader.getKey() );
-		elem.setAttribute( AUTHENTICATION, imgLoader.getAuthentication().toString() );
+
+		elem.addContent( new Element( KEY ).addContent( key ));
+		elem.addContent( new Element( SIGNING_REGION ).addContent( signingRegion ));
+		elem.addContent( new Element( SERVICE_ENDPOINT ).addContent( serviceEndpoint ) );
+		elem.addContent( new Element( BUCKET_NAME ).addContent( bucketName ));
+		elem.addContent( new Element( AUTHENTICATION ).addContent( authentication.toString() ));
 
 		return elem;
 	}
