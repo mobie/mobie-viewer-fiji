@@ -8,6 +8,7 @@ import de.embl.cba.mobie.projects.projectsCreator.ProjectsCreator;
 import ij.IJ;
 import ij.ImagePlus;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
+import mpicbg.spim.data.generic.sequence.BasicSetupImgLoader;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imglib2.FinalDimensions;
@@ -138,8 +139,14 @@ public class ExportUtils {
         switch ( bdvFormat ) {
             case n5:
                 // get image loader to find absolute image location
-                N5ImageLoader n5ImageLoader = (N5ImageLoader) spimDataMinimal.getSequenceDescription().getImgLoader();
-                imageLocation = n5ImageLoader.getN5File();
+                BasicImgLoader imgLoader = spimDataMinimal.getSequenceDescription().getImgLoader();
+                if ( imgLoader instanceof N5ImageLoader ) {
+                    N5ImageLoader n5ImageLoader = (N5ImageLoader) imgLoader;
+                    imageLocation = n5ImageLoader.getN5File();
+                } else if ( imgLoader instanceof N5FSImageLoader ) {
+                    N5FSImageLoader n5ImageLoader = (N5FSImageLoader) imgLoader;
+                    imageLocation = n5ImageLoader.getN5File();
+                }
                 break;
         }
 
