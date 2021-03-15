@@ -457,8 +457,7 @@ public class SourcesDisplayManager extends JPanel
 
     private BdvStackSource addSourceToBDV( SourceAndMetadata< ? > sam )
     {
-        // TODO: Why do we have numRenderingThreads = 1?
-        BdvOptions options = BdvOptions.options().addTo( bdv ).frameTitle( projectName ).numRenderingThreads( 1 );
+        BdvOptions options = BdvOptions.options().addTo( bdv ).frameTitle( projectName ); //.numRenderingThreads( 1 );
 
         return BdvFunctions.show(
                 sam.source(),

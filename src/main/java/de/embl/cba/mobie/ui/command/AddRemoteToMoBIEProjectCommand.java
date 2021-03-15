@@ -1,11 +1,8 @@
 package de.embl.cba.mobie.ui.command;
 
-import de.embl.cba.mobie.n5.S3Authentication;
 import de.embl.cba.mobie.projects.projectsCreator.ProjectsCreator;
 import de.embl.cba.mobie.projects.projectsCreator.RemoteMetadataCreator;
-import de.embl.cba.mobie.projects.projectsCreator.ui.ProjectsCreatorPanel;
 import de.embl.cba.mobie.utils.Utils;
-import ij.gui.GenericDialog;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -15,7 +12,6 @@ import javax.swing.*;
 import java.io.File;
 
 import static de.embl.cba.mobie.utils.ui.SwingUtils.resetSwingLookAndFeel;
-import static org.scijava.ItemVisibility.MESSAGE;
 
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Add/Update MoBIE Project remote..." )
 public class AddRemoteToMoBIEProjectCommand implements Command {
@@ -31,9 +27,6 @@ public class AddRemoteToMoBIEProjectCommand implements Command {
 
     @Parameter( label = "Bucket Name" )
     public String bucketName;
-
-    @Parameter( label= "Authentication", choices={"Anonymous", "Protected"}, style="listBox")
-    public String authentication = "Anonymous";
 
     private boolean continueDialog() {
         int result = JOptionPane.showConfirmDialog(null,
@@ -66,14 +59,7 @@ public class AddRemoteToMoBIEProjectCommand implements Command {
             if ( continueDialog() ) {
                 ProjectsCreator projectsCreator = new ProjectsCreator(projectLocation);
                 RemoteMetadataCreator remoteMetadataCreator = projectsCreator.getRemoteMetadataCreator();
-
-                if (authentication.equals("Anonymous")) {
-                    remoteMetadataCreator.createRemoteMetadata( signingRegion, serviceEndpoint, bucketName,
-                            S3Authentication.Anonymous );
-                } else {
-                    remoteMetadataCreator.createRemoteMetadata( signingRegion, serviceEndpoint, bucketName,
-                            S3Authentication.Protected );
-                }
+                remoteMetadataCreator.createRemoteMetadata( signingRegion, serviceEndpoint, bucketName );
             }
         }
     }

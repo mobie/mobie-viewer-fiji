@@ -2,12 +2,10 @@ package de.embl.cba.mobie.projects.projectsCreator;
 
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
-import de.embl.cba.mobie.n5.S3Authentication;
 import de.embl.cba.mobie.n5.XmlIoN5S3ImageLoader;
 import de.embl.cba.mobie.utils.Utils;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.SpimDataIOException;
-import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.jdom2.Document;
@@ -28,7 +26,6 @@ public class RemoteMetadataCreator {
     String signingRegion;
     String serviceEndpoint;
     String bucketName;
-    S3Authentication authentication;
 
     public RemoteMetadataCreator( Project project ) {
         this.project = project;
@@ -70,7 +67,7 @@ public class RemoteMetadataCreator {
                 key = getRelativeKey( spimDataMinimal, datasetName, imageName, bdvFormat );
         }
 
-         return new XmlIoN5S3ImageLoader().toXml( serviceEndpoint, signingRegion, bucketName, key, authentication );
+         return new XmlIoN5S3ImageLoader().toXml( serviceEndpoint, signingRegion, bucketName, key );
     }
 
     public void saveXml( final SpimDataMinimal spimData, String datasetName, String imagename,
@@ -131,12 +128,10 @@ public class RemoteMetadataCreator {
         }
     }
 
-    public void createRemoteMetadata( String signingRegion, String serviceEndpoint, String bucketName,
-                                      S3Authentication authentication ) {
+    public void createRemoteMetadata( String signingRegion, String serviceEndpoint, String bucketName ) {
         this.signingRegion = signingRegion;
         this.serviceEndpoint = serviceEndpoint;
         this.bucketName = bucketName;
-        this.authentication = authentication;
 
         try {
             // clean any old remote metadata

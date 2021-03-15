@@ -47,27 +47,23 @@ public class XmlIoN5S3ImageLoader implements XmlIoBasicImgLoader< N5S3ImageLoade
 	public static final String SIGNING_REGION = "SigningRegion";
 	public static final String BUCKET_NAME = "BucketName";
 	public static final String KEY = "Key";
-	public static final String AUTHENTICATION = "Authentication";
 
 
 	@Override
 	public Element toXml( final N5S3ImageLoader imgLoader, final File basePath )
 	{
 		return toXml( imgLoader.getServiceEndpoint(), imgLoader.getSigningRegion(), imgLoader.getBucketName(),
-				imgLoader.getKey(), imgLoader.getAuthentication() );
+				imgLoader.getKey() );
 	}
 
-	public Element toXml( String serviceEndpoint, String signingRegion, String bucketName, String key,
-						  S3Authentication authentication )
+	public Element toXml( String serviceEndpoint, String signingRegion, String bucketName, String key )
 	{
 		final Element elem = new Element("ImageLoader");
 		elem.setAttribute( IMGLOADER_FORMAT_ATTRIBUTE_NAME, "bdv.n5.s3" );
-
 		elem.addContent( new Element( KEY ).addContent( key ));
 		elem.addContent( new Element( SIGNING_REGION ).addContent( signingRegion ));
 		elem.addContent( new Element( SERVICE_ENDPOINT ).addContent( serviceEndpoint ) );
 		elem.addContent( new Element( BUCKET_NAME ).addContent( bucketName ));
-		elem.addContent( new Element( AUTHENTICATION ).addContent( authentication.toString() ));
 
 		return elem;
 	}
@@ -81,11 +77,10 @@ public class XmlIoN5S3ImageLoader implements XmlIoBasicImgLoader< N5S3ImageLoade
 		final String signingRegion = XmlHelpers.getText( elem, SIGNING_REGION );
 		final String bucketName = XmlHelpers.getText( elem, BUCKET_NAME );
 		final String key = XmlHelpers.getText( elem, KEY );
-		final S3Authentication authentication = S3Authentication.valueOf( XmlHelpers.getText( elem, AUTHENTICATION ) );
 
 		try
 		{
-			return new N5S3ImageLoader( serviceEndpoint, signingRegion, bucketName, key, authentication, sequenceDescription );
+			return new N5S3ImageLoader( serviceEndpoint, signingRegion, bucketName, key, sequenceDescription );
 		}
 		catch ( IOException e )
 		{
