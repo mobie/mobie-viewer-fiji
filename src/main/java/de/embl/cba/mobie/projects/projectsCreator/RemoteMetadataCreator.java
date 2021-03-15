@@ -5,18 +5,27 @@ import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import de.embl.cba.mobie.n5.N5S3ImageLoader;
 import de.embl.cba.mobie.n5.S3Authentication;
+import de.embl.cba.mobie.n5.XmlIoN5S3ImageLoader;
 import de.embl.cba.mobie.utils.Utils;
-import de.embl.cba.tables.FileAndUrlUtils;
 import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.SpimDataIOException;
 import mpicbg.spim.data.sequence.ImgLoader;
-import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FileUtils;
-import org.scijava.plugin.Parameter;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+
+import static de.embl.cba.mobie.n5.XmlIoN5S3ImageLoader.*;
+import static mpicbg.spim.data.XmlKeys.IMGLOADER_FORMAT_ATTRIBUTE_NAME;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import static de.embl.cba.mobie.utils.ExportUtils.getBdvFormatFromSpimDataMinimal;
+import static de.embl.cba.mobie.utils.ExportUtils.getN5FileFromXmlPath;
+import static mpicbg.spim.data.XmlKeys.IMGLOADER_FORMAT_ATTRIBUTE_NAME;
 
 public class RemoteMetadataCreator {
     Project project;
@@ -29,12 +38,57 @@ public class RemoteMetadataCreator {
         this.project = project;
     }
 
+
+
     private void deleteAllRemoteMetadata() throws IOException {
         for ( String datasetName: project.getDatasetNames() ) {
             if ( !datasetName.equals("") ) {
                 File remoteDir = new File( project.getRemoteImagesDirectoryPath( datasetName ) );
                 FileUtils.cleanDirectory( remoteDir );
             }
+        }
+    }
+
+    public Element createImageLoaderXmlElement ( ProjectsCreator.BdvFormat bdvFormat, String datasetName, String imageName )
+    {
+        String key = null;
+        String format = null;
+        switch (bdvFormat) {
+            case n5:
+                key = datasetName + "/images/local/" + imageName + ".n5";
+                format = "bdv.n5.s3";
+        }
+
+        final Element elem = new Element("ImageLoader");
+        elem.setAttribute(IMGLOADER_FORMAT_ATTRIBUTE_NAME, format);
+
+        elem.addContent( new Element(KEY).addContent( key ));
+        elem.addContent( new Element(SIGNING_REGION).addContent( signingRegion ));
+        elem.addContent( new Element( SERVICE_ENDPOINT ).addContent( serviceEndpoint ) );
+        elem.addContent( new Element(BUCKET_NAME).addContent( bucketName ));
+        elem.addContent( new Element(AUTHENTICATION).addContent( authentication.toString() ));
+
+        return elem;
+    }
+
+    public void saveXml( final SpimDataMinimal spimData, String datasetName, String imagename,
+                         final String xmlFile, ProjectsCreator.BdvFormat bdvFormat ) throws SpimDataException
+    {
+        XmlIoSpimDataMinimal io = new XmlIoSpimDataMinimal();
+        final File xmlFileDirectory = new File( xmlFile ).getParentFile();
+        final Document doc = new Document( io.toXml( spimData, xmlFileDirectory ) );
+        // remove default image loader, and replace with custom one
+        Element imageLoaderElement = createImageLoaderXmlElement( bdvFormat, datasetName, imagename );
+        Element baseElement = (Element) doc.getContent( 0 );
+        ((Element) baseElement.getContent( 1 )).setContent( 0, imageLoaderElement );
+        final XMLOutputter xout = new XMLOutputter( Format.getPrettyFormat() );
+        try
+        {
+            xout.output( doc, new FileOutputStream( xmlFile ) );
+        }
+        catch ( final IOException e )
+        {
+            throw new SpimDataIOException( e );
         }
     }
 
@@ -50,19 +104,10 @@ public class RemoteMetadataCreator {
                     "Aborting, and removing all remote metadata" );
             return false;
         } else {
-            ImgLoader imgLoader = null;
-
-            switch (bdvFormat) {
-                case n5:
-                    String key = datasetName + "/images/remote/" + imageName + ".n5";
-                    imgLoader = new N5S3ImageLoader( serviceEndpoint, signingRegion, bucketName, key,
-                            authentication, spimDataMinimal.getSequenceDescription() );
-                    break;
-            }
-
             spimDataMinimal.setBasePath( new File( remoteXmlLocation ) );
-            spimDataMinimal.getSequenceDescription().setImgLoader(imgLoader);
-            new XmlIoSpimDataMinimal().save(spimDataMinimal, new File(remoteXmlLocation, imageName + ".xml").getAbsolutePath());
+            saveXml( spimDataMinimal, datasetName, imageName,
+                    new File(remoteXmlLocation, imageName + ".xml").getAbsolutePath(),
+                    bdvFormat );
         }
 
         return true;
