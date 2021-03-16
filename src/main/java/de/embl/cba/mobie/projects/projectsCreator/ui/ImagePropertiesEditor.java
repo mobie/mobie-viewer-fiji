@@ -1,20 +1,19 @@
-package de.embl.cba.mobie.image;
+package de.embl.cba.mobie.projects.projectsCreator.ui;
 
-import de.embl.cba.mobie.projects.ProjectsCreator;
+import de.embl.cba.mobie.image.ImageProperties;
+import de.embl.cba.mobie.projects.projectsCreator.Dataset;
+import de.embl.cba.mobie.projects.projectsCreator.DefaultBookmarkCreator;
+import de.embl.cba.mobie.projects.projectsCreator.Project;
+import de.embl.cba.mobie.projects.projectsCreator.ProjectsCreator;
 import de.embl.cba.mobie.ui.MoBIE;
-import de.embl.cba.mobie.utils.Utils;
-import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringLuts;
 import net.imglib2.type.numeric.ARGBType;
-import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.lang.WordUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.FilenameFilter;
 import java.text.Format;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -29,6 +28,8 @@ public class ImagePropertiesEditor {
     private String datasetName;
     private String imageName;
     private ProjectsCreator projectsCreator;
+    private Project project;
+    private Dataset dataset;
     private ImageProperties imageProperties;
     private NumberFormat amountFormat;
 
@@ -48,11 +49,13 @@ public class ImagePropertiesEditor {
     private boolean zeroTransparent;
 
 
-    public ImagePropertiesEditor(String datasetName, String imageName, ProjectsCreator projectsCreator) {
+    public ImagePropertiesEditor( String datasetName, String imageName, ProjectsCreator projectsCreator ) {
         this.datasetName = datasetName;
         this.imageName = imageName;
         this.projectsCreator = projectsCreator;
-        imageProperties = projectsCreator.getImageProperties( datasetName, imageName );
+        this.project = projectsCreator.getProject();
+        this.dataset = project.getDataset( datasetName );
+        imageProperties = dataset.getImageProperties( imageName );
 
         // Format to only accept numbers in text fields
         amountFormat = NumberFormat.getNumberInstance();
@@ -134,7 +137,6 @@ public class ImagePropertiesEditor {
         return textPanel;
     }
 
-
     private JButton createColorButton( JComboBox<String> colorCombo )
     {
         JButton colorButton;
@@ -166,7 +168,6 @@ public class ImagePropertiesEditor {
             new Thread( () -> {
                 try {
                     updateImageProperties();
-                    projectsCreator.writeImagesJson( this.datasetName );
                     frame.dispose();
                 } catch (ParseException parseException) {
                     parseException.printStackTrace();
@@ -228,37 +229,6 @@ public class ImagePropertiesEditor {
         return colorPanel;
     }
 
-    private String[] getTableNames() {
-        File tableFolder = new File(FileAndUrlUtils.combinePath(projectsCreator.getDatasetPath(datasetName), imageProperties.tableFolder) );
-        File[] tableFiles = tableFolder.listFiles(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".csv") || name.toLowerCase().endsWith(".tsv");
-            }
-        });
-
-        if ( !(tableFiles.length > 0) ) {
-            return null;
-        }
-
-        // we don't include the default table here, as it is always shown
-        ArrayList<String> tableNames = new ArrayList<>();
-        for (int i = 0; i< tableFiles.length; i++) {
-            String tableName = FileNameUtils.getBaseName( tableFiles[i].getAbsolutePath() );
-            if (!tableName.equals("default")) {
-                tableNames.add( tableName );
-            }
-        }
-
-        if ( !(tableNames.size() > 0) ) {
-            return null;
-        }
-
-        String[] tableNamesArray = new String[tableNames.size()];
-        tableNamesArray = tableNames.toArray( tableNamesArray );
-
-        return tableNamesArray;
-    }
-
     private void makeTablesList ( String[] tableNamesArray ) {
         tablesList = new JList(tableNamesArray);
         tablesList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -288,7 +258,7 @@ public class ImagePropertiesEditor {
         JPanel tables = null;
         if ( imageProperties.type.equals("segmentation") ) {
 
-            String[] tableNamesArray = getTableNames();
+            String[] tableNamesArray = dataset.getTableNames( imageName );
 
             if ( tableNamesArray != null) {
                 makeTablesList( tableNamesArray );
@@ -357,7 +327,7 @@ public class ImagePropertiesEditor {
         showImageIn3dCheckbox.setSelected( imageProperties.showImageIn3d );
 
         showByDefaultCheckbox = new JCheckBox( "Show by default" );
-        showByDefaultCheckbox.setSelected( projectsCreator.isInDefaultBookmark( imageName, datasetName ) );
+        showByDefaultCheckbox.setSelected( dataset.isInDefaultBookmark( imageName ));
 
         JPanel editPropertiesPanel = new JPanel();
         editPropertiesPanel.setLayout( new BoxLayout(editPropertiesPanel, BoxLayout.PAGE_AXIS) );
@@ -419,7 +389,7 @@ public class ImagePropertiesEditor {
         }
     }
 
-    private void updateSelectecLabelIds () {
+    private void updateSelectedLabelIds() {
         if ( !selectedLabelIdsField.getText().equals("") ) {
             String selectedLabelIdsText = selectedLabelIdsField.getText().trim();
             String selectedLabelIdsTextNoSpaces = selectedLabelIdsText.replaceAll("\\s+","");
@@ -439,27 +409,22 @@ public class ImagePropertiesEditor {
     }
 
     private void updateDefaultBookmarkSettings () {
-        boolean imageIsInDefaultBookmark = projectsCreator.isInDefaultBookmark( imageName, datasetName);
+
+        DefaultBookmarkCreator defaultBookmarkCreator = projectsCreator.getDefaultBookmarkCreator();
+        boolean imageIsInDefaultBookmark = dataset.isInDefaultBookmark( imageName );
         // if modifying an image that is shown in default bookmark, give option to update that metadata
         if ( showByDefaultCheckbox.isSelected() && imageIsInDefaultBookmark ) {
             if ( updateDefaultBookmarkSettingsDialog() ) {
-                projectsCreator.setImagePropertiesInDefaultBookmark( imageName, datasetName, imageProperties);
-                projectsCreator.writeDefaultBookmarksJson( datasetName );
+                defaultBookmarkCreator.setImagePropertiesInDefaultBookmark( imageName, datasetName, imageProperties);
             }
         }
 
         // if show by default has changed, modify the bookmarks json
         if ( !(showByDefaultCheckbox.isSelected() == imageIsInDefaultBookmark) ) {
             if ( showByDefaultCheckbox.isSelected() ) {
-                projectsCreator.addImageToDefaultBookmark(imageName, datasetName);
-                projectsCreator.writeDefaultBookmarksJson(datasetName);
+                defaultBookmarkCreator.addImageToDefaultBookmark(imageName, datasetName);
             } else {
-                if ( projectsCreator.getCurrentImagesInDefaultBookmark( datasetName ).size() > 1 ) {
-                    projectsCreator.removeImageFromDefaultBookmark( imageName, datasetName );
-                    projectsCreator.writeDefaultBookmarksJson( datasetName );
-                } else {
-                    Utils.log( "can't make image non-default - you need at least one default image" );
-                }
+                defaultBookmarkCreator.removeImageFromDefaultBookmark( imageName, datasetName );
             }
         }
     }
@@ -509,10 +474,10 @@ public class ImagePropertiesEditor {
                 imageProperties.tables = null;
             }
 
-            updateSelectecLabelIds();
+            updateSelectedLabelIds();
             imageProperties.showSelectedSegmentsIn3d = showSelectedSegmentsIn3dCheckbox.isSelected();
         }
-
+        projectsCreator.getImagesJsonCreator().setImagePropertiesInImagesJson( imageName, datasetName, imageProperties );
         updateDefaultBookmarkSettings();
     }
 }
