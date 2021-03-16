@@ -264,7 +264,6 @@ public class UserInterfaceComponentsProvider
 		new MoBIE( moBIE.getProjectLocation(), moBIE.getOptions().dataset( dataset ) );
 	}
 
-	// TODO: move this stuff to the UserInterfacePanelsProvider
 	public static JCheckBox createBigDataViewerVisibilityCheckbox(
 			int[] dims,
 			List< SourceAndMetadata< ? > > sourceAndMetadataList,
@@ -283,7 +282,7 @@ public class UserInterfaceComponentsProvider
 
 				if ( groupId != null )
 				{
-					final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroups.getSourceAndMetadataList( groupId );
+					final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroups.getSourcesAndMetadata( groupId );
 					for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataGroupList )
 					{
 						sourceAndMetadata.metadata().bdvStackSource.setActive( checkBox.isSelected() );
@@ -335,6 +334,8 @@ public class UserInterfaceComponentsProvider
 		return checkBox;
 	}
 
+	// TODO: currently I am in fact not using the List< SourceAndMetadata< ? >  >
+	//   at all, but rely entirely on the groupId
 	public static JButton createBrightnessButton( String sourceName, int[] buttonDimensions, List< SourceAndMetadata< ? > > sourceAndMetadataList, final double rangeMin, final double rangeMax )
 	{
 		JButton button = new JButton( "B" );
@@ -350,7 +351,7 @@ public class UserInterfaceComponentsProvider
 
 			if ( groupId != null )
 			{
-				final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroups.getSourceAndMetadataList( groupId );
+				final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroups.getSourcesAndMetadata( groupId );
 				for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataGroupList )
 				{
 					final List< ConverterSetup > setups = sourceAndMetadata.metadata().bdvStackSource.getConverterSetups();
@@ -460,7 +461,7 @@ public class UserInterfaceComponentsProvider
 
 			if ( groupId != null )
 			{
-				final List< SourceAndMetadata< ? > > sourceAndMetadataList = SourceGroups.getSourceAndMetadataList( groupId );
+				final List< SourceAndMetadata< ? > > sourceAndMetadataList = SourceGroups.getSourcesAndMetadata( groupId );
 				for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataList )
 				{
 					displayManager.setSourceColor( sourceAndMetadata, color );
@@ -504,7 +505,7 @@ public class UserInterfaceComponentsProvider
 
 			if ( groupId != null )
 			{
-				final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroups.getSourceAndMetadataList( groupId );
+				final List< SourceAndMetadata< ? > > sourceAndMetadataGroupList = SourceGroups.getSourcesAndMetadata( groupId );
 				for ( SourceAndMetadata< ? > sourceAndMetadata : sourceAndMetadataGroupList )
 				{
 					displayManager.removeSourceFromViewers( sourceAndMetadata );

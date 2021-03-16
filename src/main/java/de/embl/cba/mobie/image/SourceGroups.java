@@ -47,7 +47,7 @@ public abstract class SourceGroups
 		return groupIdToSourceGroup.get( groupId );
 	}
 
-	public static List< SourceAndMetadata< ? > > getSourceAndMetadataList( String groupId )
+	public static synchronized List< SourceAndMetadata< ? > > getSourcesAndMetadata( String groupId )
 	{
 		return Collections.unmodifiableList( groupIdToSourceAndMetadataList.get( groupId ) );
 	}

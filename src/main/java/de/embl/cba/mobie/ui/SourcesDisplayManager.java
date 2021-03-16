@@ -423,8 +423,12 @@ public class SourcesDisplayManager extends JPanel
         }
 
         adjustSourceTransform( sam );
+
         for ( SourceAndMetadataChangedListener listener : listeners )
         {
+            // triggers (potentially among other things)
+            // the creation of a new display settings
+            // user interface
             listener.addedToBDV( sam );
         }
     }
