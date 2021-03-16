@@ -2,7 +2,6 @@ package develop;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import javafx.scene.transform.Affine;
 
 import javax.xml.transform.Source;
 import java.lang.reflect.Type;
@@ -54,7 +53,7 @@ public class DevelopJsonViewsParsing
 		}
 	}
 
-	public static class TransformGroups
+	public static class SourcesTransformerProviders
 	{
 		public List< SourcesTransformerProvider > transformGroups;
 	}
@@ -63,9 +62,14 @@ public class DevelopJsonViewsParsing
 	{
 		Gson gson = new Gson();
 
-		Type type = new TypeToken< TransformGroups >() {}.getType();
-		TransformGroups transformGroups = gson.fromJson( json(), type );
-		transformGroups.transformGroups.get( 0 ).get().transform( null );
+		Type type = new TypeToken< SourcesTransformerProviders >() {}.getType();
+		SourcesTransformerProviders sourcesTransformerProviders = gson.fromJson( json(), type );
+
+		final ArrayList< SourcesTransformer > sourcesTransformers = new ArrayList<>();
+		for ( SourcesTransformerProvider transformerProvider : sourcesTransformerProviders.transformGroups )
+		{
+			sourcesTransformers.add( transformerProvider.get() );
+		}
 	}
 
 	public static String json()
@@ -74,7 +78,7 @@ public class DevelopJsonViewsParsing
 				"  \"transformGroups\": [\n" +
 				"    {\"affine\": {\"transform\" : [0,0,0], \"sources\": [\"imE\", \"imF\"]}},\n" +
 				"    {\"affine\": {\"transform\" : [1,0,0], \"sources\": [\"imG\", \"imH\"]}},\n" +
-				"    {\"autoGrid\": {\"gridType\" : \"something\", \"sources\": [ [\"imA\", \"imB\"], [\"imC\", \"imD\"] ]}},\n" +
+				"    {\"autoGrid\": {\"gridType\" : \"something\", \"sources\": [ [\"imA\", \"imB\"], [\"imC\", \"imD\"] ]}}\n" +
 				"  ]\n" +
 				"}";
 	}
