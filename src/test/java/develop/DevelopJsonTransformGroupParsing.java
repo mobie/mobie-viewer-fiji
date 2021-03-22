@@ -41,21 +41,12 @@ public class DevelopJsonTransformGroupParsing
 
 	public static class SourceTransformerSupplier
 	{
-		private SourceTransformer sourceTransformer;
+		AffineSourceTransformer affine;
+		AutoGridSourceTransformer autoGrid;
 
 		public SourceTransformer get()
 		{
-			return sourceTransformer;
-		}
-
-		public void setAffine( AffineSourceTransformer sourceTransformer )
-		{
-			this.sourceTransformer = sourceTransformer;
-		}
-
-		public void setAutoGrid( AutoGridSourceTransformer sourceTransformer )
-		{
-			this.sourceTransformer = sourceTransformer;
+			return null;
 		}
 	}
 

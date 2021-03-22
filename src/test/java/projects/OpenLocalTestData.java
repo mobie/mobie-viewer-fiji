@@ -9,8 +9,6 @@ public class OpenLocalTestData
 {
 	public static void main( String[] args ) throws IOException
 	{
-		new ImageJ().ui().showUI();
-
 		final MoBIE moBIE = new MoBIE("/g/kreshuk/pape/Work/data/mobie/example-project");
 	}
 }

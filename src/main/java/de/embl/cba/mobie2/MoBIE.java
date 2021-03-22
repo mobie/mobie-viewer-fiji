@@ -3,9 +3,7 @@ package de.embl.cba.mobie2;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
-import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
-import de.embl.cba.mobie.bookmark.BookmarkReader;
 import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.dataset.DatasetsParser;
 import de.embl.cba.mobie.image.SourcesModel;
@@ -13,6 +11,7 @@ import de.embl.cba.mobie.ui.MoBIEOptions;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
 import de.embl.cba.mobie.ui.UserInterface;
 import de.embl.cba.mobie.utils.Utils;
+import de.embl.cba.mobie2.json.DatasetJsonParser;
 import de.embl.cba.mobie2.json.ProjectJsonParser;
 import de.embl.cba.tables.FileAndUrlUtils;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -21,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Map;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
 
@@ -54,7 +52,10 @@ public class MoBIE
 		this.options = options;
 		projectName = getName( projectLocation );
 
-		new ProjectJsonParser().parse( FileAndUrlUtils.combinePath( projectLocation, "project.json" ) );
+		final Project project = new ProjectJsonParser().getProject( FileAndUrlUtils.combinePath( projectLocation, "project.json" ) );
+		final String datasetName = project.datasets.get( 0 );
+
+		final Dataset dataset = new DatasetJsonParser().getDataset( FileAndUrlUtils.combinePath( projectLocation, datasetName, "dataset.json" ) );
 		//configureDatasetsRootLocations();
 		//appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be re-instantiated
 
