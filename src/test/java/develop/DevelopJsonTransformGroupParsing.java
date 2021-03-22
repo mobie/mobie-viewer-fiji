@@ -43,7 +43,6 @@ public class DevelopJsonTransformGroupParsing
 	{
 		private SourceTransformer sourceTransformer;
 
-		@Override
 		public SourceTransformer get()
 		{
 			return sourceTransformer;

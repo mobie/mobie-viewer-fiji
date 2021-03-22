@@ -566,4 +566,16 @@ public class Utils
 		return numTimePoints - 1;
 	}
 
+	public static String getName( String path )
+	{
+		if ( path.startsWith( "http" ) )
+		{
+			final String[] split = path.split( "/" );
+			return split[ split.length - 1 ];
+		}
+		else
+		{
+			return new File( path ).getName();
+		}
+	}
 }

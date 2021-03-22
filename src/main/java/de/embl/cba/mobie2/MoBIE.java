@@ -1,22 +1,25 @@
-package de.embl.cba.mobie.ui;
+package de.embl.cba.mobie2;
 
-import bdv.util.BdvHandle;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
-import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.mobie.bookmark.Bookmark;
+import de.embl.cba.mobie.bookmark.BookmarkManager;
+import de.embl.cba.mobie.bookmark.BookmarkReader;
 import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.dataset.DatasetsParser;
 import de.embl.cba.mobie.image.SourcesModel;
-import de.embl.cba.mobie.bookmark.Bookmark;
-import de.embl.cba.mobie.bookmark.BookmarkReader;
-import de.embl.cba.mobie.bookmark.BookmarkManager;
-import de.embl.cba.tables.FileAndUrlUtils;
+import de.embl.cba.mobie.ui.MoBIEOptions;
+import de.embl.cba.mobie.ui.SourcesDisplayManager;
+import de.embl.cba.mobie.ui.UserInterface;
 import de.embl.cba.mobie.utils.Utils;
+import de.embl.cba.mobie2.json.ProjectJsonParser;
+import de.embl.cba.tables.FileAndUrlUtils;
 import net.imglib2.realtransform.AffineTransform3D;
 
-import javax.swing.*;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -24,61 +27,52 @@ import static de.embl.cba.mobie.utils.Utils.getName;
 
 public class MoBIE
 {
-	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
-
-	private final SourcesDisplayManager sourcesDisplayManager;
-	private final SourcesModel sourcesModel;
+	private SourcesDisplayManager sourcesDisplayManager;
+	private SourcesModel sourcesModel;
 	private final MoBIEOptions options;
 	private UserInterface userInterface;
 	private String dataset;
-	private final String projectBaseLocation; // without branch, pure github address
-	private String projectLocation; // with branch, actual url to data
+	private String projectLocation; // without branch, pure github address
+	private String datasetLocation; // without branch, pure github address
 	private String imagesLocation; // selected dataset
 	private String tablesLocation;
 
 	private BookmarkManager bookmarkManager;
 	private Datasets datasets;
-	private final double[] levelingVector;
+	private double[] levelingVector;
 	private String projectName;
 	private AffineTransform3D defaultNormalisedViewerTransform;
 
-	public MoBIE( String projectLocation )
+	public MoBIE( String projectLocation ) throws IOException
 	{
 		this( projectLocation, MoBIEOptions.options() );
 	}
 
-	@Deprecated
-	public MoBIE(
-			String projectLocation,
-			String tablesLocation )
+	public MoBIE( String projectLocation, MoBIEOptions options ) throws IOException
 	{
-		this( projectLocation, MoBIEOptions.options().tableDataLocation( tablesLocation ) );
-	}
-
-	public MoBIE(
-			String projectBaseLocation,
-			MoBIEOptions options )
-	{
-		this.projectBaseLocation = projectBaseLocation;
+		this.projectLocation = projectLocation;
 		this.options = options;
-		projectName = getName( this.projectBaseLocation );
+		projectName = getName( projectLocation );
 
-		configureDatasetsRootLocations();
-		appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be re-instantiated
+		new ProjectJsonParser().parse( FileAndUrlUtils.combinePath( projectLocation, "project.json" ) );
+		//configureDatasetsRootLocations();
+		//appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be re-instantiated
 
-		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageModality(), tablesLocation );
-		sourcesDisplayManager = new SourcesDisplayManager( sourcesModel, projectName );
-		bookmarkManager = fetchBookmarks( projectLocation );
-		levelingVector = fetchLeveling( imagesLocation );
 
-		SwingUtilities.invokeLater( () -> {
-			userInterface = new UserInterface( this );
-			bookmarkManager.setView( "default" );
-			final BdvHandle bdvHandle = sourcesDisplayManager.getBdv();
-			userInterface.setBdvWindowPositionAndSize( bdvHandle );
-			defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( bdvHandle, BdvUtils.getBdvWindowCenter( bdvHandle ) );
-			new BdvBehaviourInstaller( this ).run();
-		} );
+//
+//		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageModality(), tablesLocation );
+//		sourcesDisplayManager = new SourcesDisplayManager( sourcesModel, projectName );
+//		bookmarkManager = fetchBookmarks( this.projectLocation );
+//		levelingVector = fetchLeveling( imagesLocation );
+//
+//		SwingUtilities.invokeLater( () -> {
+//			userInterface = new UserInterface( this );
+//			bookmarkManager.setView( "default" );
+//			final BdvHandle bdvHandle = sourcesDisplayManager.getBdv();
+//			userInterface.setBdvWindowPositionAndSize( bdvHandle );
+//			defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( bdvHandle, BdvUtils.getBdvWindowCenter( bdvHandle ) );
+//			new BdvBehaviourInstaller( this ).run();
+//		} );
 	}
 
 	public String getTablesLocation()
@@ -111,9 +105,9 @@ public class MoBIE
 		return sourcesModel;
 	}
 
-	public String getProjectLocation()
+	public String getDatasetLocation()
 	{
-		return projectBaseLocation; // without branch information, which is stored in the options
+		return datasetLocation; // without branch information, which is stored in the options
 	}
 
 	public String getDataset()
@@ -152,7 +146,7 @@ public class MoBIE
 
 	private void appendSpecificDatasetLocations()
 	{
-		this.datasets = new DatasetsParser().fetchProjectDatasets( projectLocation );
+		this.datasets = new DatasetsParser().fetchProjectDatasets( datasetLocation );
 		this.dataset = options.values.getDataset();
 
 		if ( dataset == null )
@@ -160,11 +154,11 @@ public class MoBIE
 			dataset = datasets.defaultDataset;
 		}
 
-		projectLocation = FileAndUrlUtils.combinePath( projectLocation, dataset );
+		String datasetLocation = FileAndUrlUtils.combinePath( this.datasetLocation, dataset );
 		imagesLocation = FileAndUrlUtils.combinePath( imagesLocation, dataset );
 		tablesLocation = FileAndUrlUtils.combinePath( tablesLocation, dataset );
 
-		Utils.log( "Fetching project from: " + projectLocation );
+		Utils.log( "Fetching project from: " + this.datasetLocation );
 		Utils.log( "Fetching images from: " + imagesLocation );
 		Utils.log( "Image data storage modality: " + options.values.getImageDataStorageModality() );
 		Utils.log( "Fetching tables from: " + tablesLocation );
@@ -172,15 +166,15 @@ public class MoBIE
 
 	private void configureDatasetsRootLocations( )
 	{
-		this.projectLocation = projectBaseLocation;
-		this.imagesLocation = options.values.getImageDataLocation() != null ? options.values.getImageDataLocation() : projectBaseLocation;
-		this.tablesLocation = options.values.getTableDataLocation() != null ? options.values.getTableDataLocation() : projectBaseLocation;
+		this.datasetLocation = datasetLocation;
+		this.imagesLocation = options.values.getImageDataLocation() != null ? options.values.getImageDataLocation() : datasetLocation;
+		this.tablesLocation = options.values.getTableDataLocation() != null ? options.values.getTableDataLocation() : datasetLocation;
 
-		projectLocation = FileAndUrlUtils.removeTrailingSlash( projectLocation );
+		datasetLocation = FileAndUrlUtils.removeTrailingSlash( datasetLocation );
 		imagesLocation = FileAndUrlUtils.removeTrailingSlash( imagesLocation );
 		tablesLocation = FileAndUrlUtils.removeTrailingSlash( tablesLocation );
 
-		projectLocation = adaptUrl( projectLocation, options.values.getProjectBranch() );
+		datasetLocation = adaptUrl( datasetLocation, options.values.getProjectBranch() );
 		imagesLocation = adaptUrl( imagesLocation, options.values.getProjectBranch() );
 		tablesLocation = adaptUrl( tablesLocation, options.values.getProjectBranch() );
 
@@ -189,8 +183,8 @@ public class MoBIE
 		// or in someLocation/data
 		// test if someLocation/data exists and set if to the new location if it does
 		// NOTE this produces a corner case for nested "data" folders, i.e. "data/data", but it's the best solution I came up with so far
-		if(FileAndUrlUtils.exists(projectLocation + "/data/datasets.json")) {
-			projectLocation = projectLocation + "/data";
+		if(FileAndUrlUtils.exists( datasetLocation + "/data/datasets.json")) {
+			datasetLocation = datasetLocation + "/data";
 		}
 		if(FileAndUrlUtils.exists(imagesLocation + "/data/datasets.json")) {
 			imagesLocation = imagesLocation + "/data";
@@ -210,13 +204,13 @@ public class MoBIE
 		return url;
 	}
 
-	private BookmarkManager fetchBookmarks( String location )
-	{
-		BookmarkReader bookmarkParser = new BookmarkReader(location);
-		Map< String, Bookmark > nameToBookmark = bookmarkParser.readDefaultBookmarks();
-
-		return new BookmarkManager( this, nameToBookmark, bookmarkParser);
-	}
+//	private BookmarkManager fetchBookmarks( String location )
+//	{
+//		BookmarkReader bookmarkParser = new BookmarkReader(location);
+//		Map< String, Bookmark > nameToBookmark = bookmarkParser.readDefaultBookmarks();
+//
+//		return new BookmarkManager( this, nameToBookmark, bookmarkParser);
+//	}
 
 	// TODO: This should be dataset dependent?
 	public SourcesDisplayManager getSourcesDisplayManager()
