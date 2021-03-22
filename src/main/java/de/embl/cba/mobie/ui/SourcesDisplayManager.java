@@ -357,9 +357,9 @@ public class SourcesDisplayManager extends JPanel
 
         // make a copy here so that changes to the current metadata, don't affect the default
         // this means any changes to current metadata won't persist when sources are removed and added again
-        final SourceAndMetadata< ? > samCurrent = new SourceAndMetadata( samDefault.source(), samDefault.metadata().copy() );
+        final SourceAndMetadata< ? > currentSAM = new SourceAndMetadata( samDefault.source(), samDefault.metadata().copy() );
 
-        show( samCurrent );
+        show( currentSAM );
     }
 
     public SourceAndMetadata< ? > getSourceAndDefaultMetadata( String sourceName )

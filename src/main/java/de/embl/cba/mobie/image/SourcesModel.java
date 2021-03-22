@@ -1,7 +1,5 @@
 package de.embl.cba.mobie.image;
 
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.stream.JsonReader;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.bdv.utils.sources.Sources;
@@ -12,7 +10,6 @@ import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.SourceAndMetadata;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -64,6 +61,8 @@ public class SourcesModel implements ImageSourcesModel
 		}
 	}
 
+	// TODO: Simplify this: directly create a List< MoBIESource >
+	//   by means of JSON parsing
 	private void addSources( String imageDataLocation, Map< String, ImageProperties > nameToImageProperties )
 	{
 		// TODO: this can probably be simplified somehow...

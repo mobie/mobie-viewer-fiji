@@ -452,7 +452,8 @@ public class UserInterfaceComponentsProvider
 
 		colorButton.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
 
-		colorButton.addActionListener( e -> {
+		colorButton.addActionListener( e ->
+		{
 			Color color = JColorChooser.showDialog( null, "", null );
 
 			if ( color == null ) return;
