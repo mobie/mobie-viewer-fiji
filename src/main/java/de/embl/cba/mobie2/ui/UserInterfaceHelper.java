@@ -1,9 +1,12 @@
 package de.embl.cba.mobie2.ui;
 
 import bdv.tools.brightness.ConverterSetup;
+import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BdvHandle;
+import bdv.util.BoundedValueDouble;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.bookmark.Location;
@@ -71,6 +74,66 @@ public class UserInterfaceHelper
 				frame.getLocationOnScreen().y );
 
 		BdvUtils.getViewerFrame( bdvHandle ).setSize( frame.getHeight(), frame.getHeight() );
+	}
+
+	public static void showBrightnessDialog(
+			String name,
+			List< ConverterSetup > converterSetups,
+			double rangeMin,
+			double rangeMax )
+	{
+		JFrame frame = new JFrame( name );
+		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+
+		final double currentRangeMin = converterSetups.get( 0 ).getDisplayRangeMin();
+		final double currentRangeMax = converterSetups.get( 0 ).getDisplayRangeMax();
+
+		final BoundedValueDouble min =
+				new BoundedValueDouble(
+						rangeMin,
+						rangeMax,
+						currentRangeMin );
+
+		final BoundedValueDouble max =
+				new BoundedValueDouble(
+						rangeMin,
+						rangeMax,
+						currentRangeMax );
+
+		double spinnerStepSize = ( currentRangeMax - currentRangeMin ) / 100.0;
+
+		JPanel panel = new JPanel();
+		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
+		final SliderPanelDouble minSlider =
+				new SliderPanelDouble( "Min", min, spinnerStepSize );
+		minSlider.setNumColummns( 7 );
+		minSlider.setDecimalFormat( "####E0" );
+
+		final SliderPanelDouble maxSlider =
+				new SliderPanelDouble( "Max", max, spinnerStepSize );
+		maxSlider.setNumColummns( 7 );
+		maxSlider.setDecimalFormat( "####E0" );
+
+		final BrightnessUpdateListener brightnessUpdateListener =
+				new BrightnessUpdateListener(
+						min, max, minSlider, maxSlider, converterSetups );
+
+		min.setUpdateListener( brightnessUpdateListener );
+		max.setUpdateListener( brightnessUpdateListener );
+
+		panel.add( minSlider );
+		panel.add( maxSlider );
+
+		frame.setContentPane( panel );
+
+		//Display the window.
+		frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
+				MouseInfo.getPointerInfo().getLocation().y,
+				120, 10);
+		frame.setResizable( false );
+		frame.pack();
+		frame.setVisible( true );
+
 	}
 
 	public JPanel createActionPanel()
@@ -238,7 +301,7 @@ public class UserInterfaceHelper
 //			Utils.logVector( "New reference normal vector (default): ", levelingVector );
 //		} );
 
-		button.addActionListener( e -> BdvUtils.levelCurrentView( displayManager.getBdv(), targetNormalVector ) );
+		button.addActionListener( e -> BdvUtils.levelCurrentView( moBIE2.getViewer().getImageViewer().getBdvHandle(), targetNormalVector ) );
 
 		return horizontalLayoutPanel;
 	}
@@ -269,7 +332,7 @@ public class UserInterfaceHelper
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		button.addActionListener( e -> BdvViewChanger.moveToLocation( displayManager.getBdv(), new Location( jTextField.getText() ) ) );
+		button.addActionListener( e -> BdvViewChanger.moveToLocation( moBIE2.getViewer().getImageViewer().getBdvHandle(), new Location( jTextField.getText() ) ) );
 
 		horizontalLayoutPanel.add( getJLabel( "location" ) );
 		horizontalLayoutPanel.add( jTextField );
@@ -412,7 +475,7 @@ public class UserInterfaceHelper
 				converterSetups.add( SourceAndConverterServices.getSourceAndConverterDisplayService().getConverterSetup( sourceAndConverter ) );
 			}
 
-			UserInterface.showBrightnessDialog(
+			UserInterfaceHelper.showBrightnessDialog(
 					imageDisplay.name,
 					converterSetups,
 					0,   // TODO: determine somehow...

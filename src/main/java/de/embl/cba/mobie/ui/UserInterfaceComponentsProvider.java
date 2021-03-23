@@ -8,6 +8,7 @@ import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.image.SourceGroups;
 import de.embl.cba.mobie.utils.Utils;
+import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
@@ -373,7 +374,7 @@ public class UserInterfaceComponentsProvider
 				}
 			}
 
-			UserInterface.showBrightnessDialog(
+			UserInterfaceHelper.showBrightnessDialog(
 					sourceName,
 					converterSetups,
 					rangeMin,
