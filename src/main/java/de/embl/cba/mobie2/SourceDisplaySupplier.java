@@ -2,13 +2,13 @@ package de.embl.cba.mobie2;
 
 public class SourceDisplaySupplier
 {
-	private ImageDisplays imageDisplays;
-	private SegmentationDisplays segmentationDisplays;
+	private ImageDisplay imageDisplay;
+	private SegmentationDisplay segmentationDisplay;
 
-	public SourceDisplays get()
+	public SourceDisplay get()
 	{
-		if ( imageDisplays != null ) return imageDisplays;
-		else if ( segmentationDisplays != null ) return segmentationDisplays;
-		else throw new RuntimeException( "Unsupported SourceDisplay" );
+		if ( imageDisplay != null ) return imageDisplay;
+		else if ( segmentationDisplay != null ) return segmentationDisplay;
+		else throw new RuntimeException( "No SourceDisplay set" );
 	}
 }

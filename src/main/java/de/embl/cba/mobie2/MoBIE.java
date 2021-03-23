@@ -12,7 +12,6 @@ import de.embl.cba.mobie.ui.UserInterface;
 import de.embl.cba.mobie2.json.DatasetJsonParser;
 import de.embl.cba.mobie2.json.ProjectJsonParser;
 import de.embl.cba.tables.FileAndUrlUtils;
-import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.io.IOException;
@@ -232,6 +231,6 @@ public class MoBIE
 
 	public String getAbsoluteDefaultTableLocation( SegmentationSource source )
 	{
-		return FileAndUrlUtils.combinePath( getProjectLocation(), getCurrentDatasetName(), source.tableDataRootLocation, "default.tsv"  );
+		return FileAndUrlUtils.combinePath( getProjectLocation(), getCurrentDatasetName(), source.tableDataLocation, "default.tsv"  );
 	}
 }
