@@ -64,7 +64,6 @@ public class MoBIE
 		final Viewer viewer = new Viewer( this, dataset.is2D );
 		viewer.show( dataset.views.get( viewName ) );
 
-
 		//configureDatasetsRootLocations();
 		//appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be re-instantiated
 
