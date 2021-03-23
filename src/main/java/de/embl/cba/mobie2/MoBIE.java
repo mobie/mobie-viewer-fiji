@@ -61,10 +61,8 @@ public class MoBIE
 
 		imageDataLocation = "local";
 
-		final Viewer viewer = new Viewer( this );
+		final Viewer viewer = new Viewer( this, dataset.is2D );
 		viewer.show( dataset.views.get( viewName ) );
-
-
 
 
 		//configureDatasetsRootLocations();

@@ -40,7 +40,7 @@ import net.imglib2.type.numeric.RealType;
 
 import java.util.Map;
 
-public class SegmentsConverter< T extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, ColorConverter
+public class LabelConverter< T extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, ColorConverter
 {
 	private final Map< LabelFrameAndImage, T > labelFrameAndImageToSegment;
 	private final String imageId;
@@ -50,12 +50,12 @@ public class SegmentsConverter< T extends ImageSegment > implements Converter< R
 	private int frame;
 	private double max = 300;
 
-	public SegmentsConverter(
-			Map< LabelFrameAndImage, T > labelFrameAndImageToSegment,
+	public LabelConverter(
+			Map< LabelFrameAndImage, T > labelToSegment,
 			String imageId,
 			ColoringModel coloringModel )
 	{
-		this.labelFrameAndImageToSegment = labelFrameAndImageToSegment;
+		this.labelFrameAndImageToSegment = labelToSegment;
 		this.imageId = imageId;
 		this.coloringModel = coloringModel;
 		this.singleColor = null;

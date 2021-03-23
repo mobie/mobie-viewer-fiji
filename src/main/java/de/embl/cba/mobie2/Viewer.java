@@ -3,6 +3,7 @@ package de.embl.cba.mobie2;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie2.color.ColoringModelWrapper;
+import de.embl.cba.mobie2.select.SelectionModelAndLabelAdapter;
 import de.embl.cba.mobie2.view.ImageViewer;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.imagesegment.LabelFrameAndImage;
@@ -22,10 +23,10 @@ public class Viewer
 	private final MoBIE moBIE;
 	private final ImageViewer imageViewer;
 
-	public Viewer( MoBIE moBIE )
+	public Viewer( MoBIE moBIE, boolean is2D )
 	{
 		this.moBIE = moBIE;
-		this.imageViewer = new ImageViewer( moBIE );
+		this.imageViewer = new ImageViewer( moBIE, is2D );
 	}
 
 	public void show( View view )
@@ -56,7 +57,7 @@ public class Viewer
 		final List< SourceAndConverter< ? > > sourceAndConverters = imageViewer.show( sourceDisplays );
 
 		new BrightnessAutoAdjuster( sourceAndConverters.get( 0 ),0  ).run();
-		new ViewerTransformAdjuster( BdvPlaygroundHelpers.getBdvHandle( sourceAndConverters ), sourceAndConverters.get( 0 ) ).run();
+		new ViewerTransformAdjuster( imageViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).run();
 	}
 
 	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
@@ -72,9 +73,10 @@ public class Viewer
 				sourceName );
 		final HashMap< LabelFrameAndImage, TableRowImageSegment > labelMap = SegmentUtils.createSegmentMap( segments );
 
-
 		// show in imageViewer
-		final List< SourceAndConverter< ? > > sourceAndConverters = imageViewer.show( segmentationDisplay, coloringModel, labelMap );
+
+		final SelectionModelAndLabelAdapter selectionModelAndAdapter = new SelectionModelAndLabelAdapter( selectionModel, labelMap );
+		final List< SourceAndConverter< ? > > sourceAndConverters = imageViewer.show( segmentationDisplay, coloringModel, selectionModelAndAdapter );
 		coloringModel.listeners().add( imageViewer );
 		selectionModel.listeners().add( imageViewer );
 
