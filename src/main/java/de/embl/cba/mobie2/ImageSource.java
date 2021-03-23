@@ -4,7 +4,7 @@ import java.util.Map;
 
 public class ImageSource implements MoBIESource
 {
-	Map< String, String > imageDataLocations;
-	String menuItem;
-	View view;
+	public Map< String, String > imageDataLocations;
+	public String menuItem;
+	public View view;
 }

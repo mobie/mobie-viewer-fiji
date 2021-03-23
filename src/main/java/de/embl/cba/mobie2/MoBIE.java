@@ -5,12 +5,10 @@ import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.dataset.Datasets;
-import de.embl.cba.mobie.dataset.DatasetsParser;
 import de.embl.cba.mobie.image.SourcesModel;
 import de.embl.cba.mobie.ui.MoBIEOptions;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
 import de.embl.cba.mobie.ui.UserInterface;
-import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.json.DatasetJsonParser;
 import de.embl.cba.mobie2.json.ProjectJsonParser;
 import de.embl.cba.tables.FileAndUrlUtils;
@@ -29,7 +27,6 @@ public class MoBIE
 	private SourcesModel sourcesModel;
 	private final MoBIEOptions options;
 	private UserInterface userInterface;
-	private String dataset;
 	private String projectLocation; // without branch, pure github address
 	private String datasetLocation; // without branch, pure github address
 	private String imagesLocation; // selected dataset
@@ -40,6 +37,8 @@ public class MoBIE
 	private double[] levelingVector;
 	private String projectName;
 	private AffineTransform3D defaultNormalisedViewerTransform;
+	private Dataset dataset;
+	private String imageDataLocation;
 
 	public MoBIE( String projectLocation ) throws IOException
 	{
@@ -55,7 +54,18 @@ public class MoBIE
 		final Project project = new ProjectJsonParser().getProject( FileAndUrlUtils.combinePath( projectLocation, "project.json" ) );
 		final String datasetName = project.datasets.get( 0 );
 
-		final Dataset dataset = new DatasetJsonParser().getDataset( FileAndUrlUtils.combinePath( projectLocation, datasetName, "dataset.json" ) );
+		dataset = new DatasetJsonParser().getDataset( FileAndUrlUtils.combinePath( projectLocation, datasetName, "dataset.json" ) );
+
+		final String viewName = dataset.views.keySet().iterator().next();
+
+		imageDataLocation = "local";
+
+		final Viewer viewer = new Viewer( this );
+		viewer.show( dataset.views.get( viewName ) );
+
+
+
+
 		//configureDatasetsRootLocations();
 		//appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be re-instantiated
 
@@ -111,11 +121,6 @@ public class MoBIE
 		return datasetLocation; // without branch information, which is stored in the options
 	}
 
-	public String getDataset()
-	{
-		return dataset;
-	}
-
 	public ArrayList< String > getDatasets()
 	{
 		return datasets.datasets;
@@ -145,25 +150,6 @@ public class MoBIE
 		}
 	}
 
-	private void appendSpecificDatasetLocations()
-	{
-		this.datasets = new DatasetsParser().fetchProjectDatasets( datasetLocation );
-		this.dataset = options.values.getDataset();
-
-		if ( dataset == null )
-		{
-			dataset = datasets.defaultDataset;
-		}
-
-		String datasetLocation = FileAndUrlUtils.combinePath( this.datasetLocation, dataset );
-		imagesLocation = FileAndUrlUtils.combinePath( imagesLocation, dataset );
-		tablesLocation = FileAndUrlUtils.combinePath( tablesLocation, dataset );
-
-		Utils.log( "Fetching project from: " + this.datasetLocation );
-		Utils.log( "Fetching images from: " + imagesLocation );
-		Utils.log( "Image data storage modality: " + options.values.getImageDataStorageModality() );
-		Utils.log( "Fetching tables from: " + tablesLocation );
-	}
 
 	private void configureDatasetsRootLocations( )
 	{
@@ -224,5 +210,15 @@ public class MoBIE
 		sourcesDisplayManager.removeAllSourcesFromViewers();
 		sourcesDisplayManager.getBdv().close();
 		userInterface.dispose();
+	}
+
+	public MoBIESource getSource( String sourceName )
+	{
+		return dataset.sources.get( sourceName ).get();
+	}
+
+	public String getImageDataLocation()
+	{
+		return imageDataLocation;
 	}
 }

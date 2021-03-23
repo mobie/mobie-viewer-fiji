@@ -1,11 +1,11 @@
 package de.embl.cba.mobie2;
 
-public class SourceSupplier // TODO: make it a supplier
+public class SourceSupplier
 {
-	public ImageSource image;
-	public SegmentationSource segmentation;
+	private ImageSource image;
+	private SegmentationSource segmentation;
 
-	public MoBIESource getSource()
+	public MoBIESource get()
 	{
 		if ( image != null ) return image;
 		else if ( segmentation != null ) return segmentation;
