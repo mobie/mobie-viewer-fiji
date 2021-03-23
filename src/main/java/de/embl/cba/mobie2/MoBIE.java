@@ -12,6 +12,7 @@ import de.embl.cba.mobie.ui.UserInterface;
 import de.embl.cba.mobie2.json.DatasetJsonParser;
 import de.embl.cba.mobie2.json.ProjectJsonParser;
 import de.embl.cba.tables.FileAndUrlUtils;
+import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.io.IOException;
@@ -39,6 +40,7 @@ public class MoBIE
 	private AffineTransform3D defaultNormalisedViewerTransform;
 	private Dataset dataset;
 	private String imageDataLocation;
+	private String currentDatasetName;
 
 	public MoBIE( String projectLocation ) throws IOException
 	{
@@ -52,9 +54,9 @@ public class MoBIE
 		projectName = getName( projectLocation );
 
 		final Project project = new ProjectJsonParser().getProject( FileAndUrlUtils.combinePath( projectLocation, "project.json" ) );
-		final String datasetName = project.datasets.get( 0 );
+		currentDatasetName = project.datasets.get( 0 );
 
-		dataset = new DatasetJsonParser().getDataset( FileAndUrlUtils.combinePath( projectLocation, datasetName, "dataset.json" ) );
+		dataset = new DatasetJsonParser().getDataset( FileAndUrlUtils.combinePath( projectLocation, currentDatasetName, "dataset.json" ) );
 
 		final String viewName = dataset.views.keySet().iterator().next();
 
@@ -116,9 +118,15 @@ public class MoBIE
 		return sourcesModel;
 	}
 
-	public String getDatasetLocation()
+
+	public String getProjectLocation()
 	{
-		return datasetLocation; // without branch information, which is stored in the options
+		return projectLocation;
+	}
+
+	public String getCurrentDatasetName()
+	{
+		return currentDatasetName;
 	}
 
 	public ArrayList< String > getDatasets()
@@ -181,7 +189,7 @@ public class MoBIE
 		}
 	}
 
-	private String adaptUrl( String url, String projectBranch )
+	public static String adaptUrl( String url, String projectBranch )
 	{
 		if ( url.contains( "github.com" ) )
 		{
@@ -217,8 +225,13 @@ public class MoBIE
 		return dataset.sources.get( sourceName ).get();
 	}
 
-	public String getImageDataLocation()
+	public String getAbsoluteImageLocation( ImageSource source )
 	{
-		return imageDataLocation;
+		return FileAndUrlUtils.combinePath( getProjectLocation(), getCurrentDatasetName(), source.imageDataLocations.get( imageDataLocation ) );
+	}
+
+	public String getAbsoluteDefaultTableLocation( SegmentationSource source )
+	{
+		return FileAndUrlUtils.combinePath( getProjectLocation(), getCurrentDatasetName(), source.tableDataRootLocation, "default.tsv"  );
 	}
 }
