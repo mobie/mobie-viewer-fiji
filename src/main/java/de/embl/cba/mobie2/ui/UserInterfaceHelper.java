@@ -1,24 +1,20 @@
 package de.embl.cba.mobie2.ui;
 
 import bdv.tools.brightness.ConverterSetup;
+import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.ui.MoBIEInfo;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
-import de.embl.cba.mobie.ui.UserInterface;
-import de.embl.cba.mobie.utils.Utils;
-import de.embl.cba.mobie2.ImageDisplay;
-import de.embl.cba.mobie2.MoBIE2;
-import de.embl.cba.mobie2.SegmentationDisplay;
-import de.embl.cba.mobie2.SourceDisplay;
+import de.embl.cba.mobie2.*;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
+import ij.WindowManager;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
@@ -28,36 +24,53 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
 import java.util.*;
+import java.util.List;
 
 import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 
-public class UIComponentsProvider
+public class UserInterfaceHelper
 {
 	public static final String BUTTON_LABEL_VIEW = "view";
 	public static final String BUTTON_LABEL_MOVE = "move";
 	public static final String BUTTON_LABEL_HELP = "show";
 	public static final String BUTTON_LABEL_SWITCH = "switch";
 	public static final String BUTTON_LABEL_LEVEL = "level";
-	public static final String BUTTON_LABEL_ADD = "add";
+	public static final String ADD = "add";
 
-	private final ArrayList< String > datasets;
 	private final MoBIE2 moBIE2;
-	private ArrayList< String > sortedModalities;
-	private int sourceSelectionPanelHeight;
+	private int viewsSelectionPanelHeight;
 
-	public UIComponentsProvider( MoBIE2 moBIE2 )
+	public UserInterfaceHelper( MoBIE2 moBIE2 )
 	{
 		this.moBIE2 = moBIE2;
-		this.displayManager = moBIE2.getVi();
-		this.datasets = moBIE2.getDatasets();
 	}
 
-	static JPanel createDisplaySettingsPanel()
+	public static JPanel createDisplaySettingsPanel()
 	{
 		final JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout(panel, BoxLayout.Y_AXIS ) );
 		panel.setAlignmentX( Component.LEFT_ALIGNMENT );
 		return panel;
+	}
+
+	public static void setLogWindowPositionAndSize( JFrame parentComponent )
+	{
+		final Frame log = WindowManager.getFrame( "Log" );
+		if (log != null) {
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			final int logWindowHeight = screenSize.height - ( parentComponent.getLocationOnScreen().y + parentComponent.getHeight() + 20 );
+			log.setSize( parentComponent.getWidth(), logWindowHeight  );
+			log.setLocation( parentComponent.getLocationOnScreen().x, parentComponent.getLocationOnScreen().y + parentComponent.getHeight() );
+		}
+	}
+
+	public static void setBdvWindowPositionAndSize( BdvHandle bdvHandle, JFrame frame )
+	{
+		BdvUtils.getViewerFrame( bdvHandle ).setLocation(
+				frame.getLocationOnScreen().x + frame.getWidth(),
+				frame.getLocationOnScreen().y );
+
+		BdvUtils.getViewerFrame( bdvHandle ).setSize( frame.getHeight(), frame.getHeight() );
 	}
 
 	public JPanel createActionPanel()
@@ -67,24 +80,21 @@ public class UIComponentsProvider
 
 		actionPanel.add( createInfoPanel( moBIE2.getProjectLocation(), moBIE2.getOptions().values.getPublicationURL() ) );
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-
 		actionPanel.add( createDatasetSelectionPanel() );
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-
-		actionPanel.add( createSourceSelectionPanel( moBIE2.getSourcesDisplayManager() ) );
+		actionPanel.add( createViewsSelectionPanel( moBIE2.getViews(), moBIE2.getViewer() ) );
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-
-		actionPanel.add( createBookmarksPanel( moBIE2.getBookmarkManager() )  );
 		actionPanel.add( createMoveToLocationPanel( )  );
 
 		if ( moBIE2.getLevelingVector() != null )
 		{
 			actionPanel.add( createLevelingPanel( moBIE2.getLevelingVector() ) );
 		}
+
 		return actionPanel;
 	}
 
-	public JPanel createImageDisplaySettingsPanel( ImageDisplay imageDisplay )
+	public void addImageDisplaySettings( de.embl.cba.mobie2.ui.UserInterface userInterface, ImageDisplay imageDisplay )
 	{
 		JPanel panel = new JPanel();
 
@@ -105,7 +115,7 @@ public class UIComponentsProvider
 
 		final JButton brightnessButton = createBrightnessButton( imageDisplay, buttonDimensions );
 
-		final JButton removeButton = createRemoveButton( imageDisplay, buttonDimensions );
+		final JButton removeButton = createRemoveButton( userInterface, panel, imageDisplay, buttonDimensions );
 
 		final JCheckBox bigDataViewerVisibilityCheckbox = createVisibilityCheckbox( imageDisplay, buttonDimensions, true );
 
@@ -131,7 +141,8 @@ public class UIComponentsProvider
 				setPanelColor( panel, setup.getColor().toString());
 			} );
 		}
-		return panel;
+
+		userInterface.addDisplaySettings( panel );
 	}
 
 	public JPanel createDisplaySettingsPanel( SegmentationDisplay segmentationDisplay )
@@ -140,88 +151,61 @@ public class UIComponentsProvider
 		return null;
 	}
 
-	// TODO: too complex, make own source selection class
-	public JPanel createSourceSelectionPanel( SourcesDisplayManager sourcesDisplayManager )
+	public JPanel createViewsSelectionPanel( List< View > views, Viewer viewer )
 	{
-		HashMap< String, String > selectionNameAndModalityToSourceName = new HashMap<>();
-		HashMap< String, ArrayList< String > > modalityToSelectionNames = new HashMap<>();
+		Map< String, List< View > > groupingsToViews = new HashMap<>(  );
 
-		for ( String sourceName : sourcesDisplayManager.getSourceNames() )
+		for ( View view : views )
 		{
-			String modality = sourceName.split( "-" )[ 0 ];
-
-			String selectionName = sourceName.replace( modality + "-", "" );
-
-			final Metadata metadata = sourcesDisplayManager.getSourceAndDefaultMetadata( sourceName ).metadata();
-
-			if ( metadata.type.equals( Metadata.Type.Segmentation ) )
-			{
-				if ( ! modality.contains( " segmentation" ) )
-					modality += " segmentation";
-			}
-			else if ( metadata.type.equals( Metadata.Type.Mask ) )
-			{
-				if ( ! modality.contains( " segmentation" ) )
-					modality += " segmentation";
-			}
-
-			selectionName = Utils.getSimplifiedSourceName( selectionName, false );
-
-			selectionNameAndModalityToSourceName.put( selectionName + "-" + modality, sourceName  );
-
-			if ( ! modalityToSelectionNames.containsKey( modality ) )
-				modalityToSelectionNames.put( modality, new ArrayList<>(  ) );
-
-			modalityToSelectionNames.get( modality ).add( selectionName);
+			final String group = view.menuItem.split( "/" )[ 0 ];
+			if ( ! groupingsToViews.containsKey( group ) )
+				groupingsToViews.put( group, new ArrayList<>( ));
+			groupingsToViews.get( group ).add( view );
 		}
 
-		sortedModalities = Utils.getSortedList( modalityToSelectionNames.keySet() );
+		JPanel containerPanel = new JPanel( new BorderLayout() );
+		containerPanel.setLayout( new BoxLayout( containerPanel, BoxLayout.Y_AXIS ) );
 
-		JPanel sourcesSelectionPanel = new JPanel( new BorderLayout() );
-		sourcesSelectionPanel.setLayout( new BoxLayout( sourcesSelectionPanel, BoxLayout.Y_AXIS ) );
-		for ( String modality : sortedModalities )
+		for ( Map.Entry< String, List< View > > groupingToViews : groupingsToViews.entrySet() )
 		{
-			final String[] names = Utils.getSortedList( modalityToSelectionNames.get( modality ) ).toArray( new String[ 0 ] );
-			final JComboBox< String > comboBox = new JComboBox<>( names );
-			setComboBoxDimensions( comboBox );
-			final JPanel selectionComboBoxAndButtonPanel = createSourceSelectionComboBoxAndButtonPanel( selectionNameAndModalityToSourceName, comboBox, modality );
-			sourcesSelectionPanel.add( selectionComboBoxAndButtonPanel );
+			final JPanel selectionPanel = createSelectionPanel( viewer, groupingToViews.getKey(), groupingToViews.getValue() );
+			containerPanel.add( selectionPanel );
 		}
 
-		sourceSelectionPanelHeight = sortedModalities.size() * 40;
+		viewsSelectionPanelHeight = groupingsToViews.keySet().size() * 40;
 
-		return sourcesSelectionPanel;
+		return containerPanel;
 	}
 
-	public int getSourceSelectionPanelHeight()
+	public int getViewsSelectionPanelHeight()
 	{
-		return sourceSelectionPanelHeight;
+		return viewsSelectionPanelHeight;
 	}
 
-	private JPanel createSourceSelectionComboBoxAndButtonPanel(
-			HashMap< String, String > selectionNameAndModalityToSourceName,
-			final JComboBox comboBox,
-			final String modality )
+	private JPanel createSelectionPanel( Viewer viewer, String name, List< View > views )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		if ( comboBox.getModel().getSize() == 0 ) return horizontalLayoutPanel;
+		final HashMap< String, View > nameToView = new HashMap<>();
+		for ( View view : views )
+		{
+			nameToView.put( view.menuItem.split( "/" )[ 1 ], view );
+		}
 
-		final JButton button = getButton( BUTTON_LABEL_ADD );
+		final JComboBox< String > comboBox = new JComboBox<>( nameToView.keySet().toArray( new String[ 0 ] ) );
+
+		final JButton button = getButton( ADD );
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
 			{
-				final String selectedSource = ( String ) comboBox.getSelectedItem();
-				final String sourceName = selectionNameAndModalityToSourceName.get( selectedSource + "-" + modality );
-
-				displayManager.show( sourceName );
+				final String viewName = ( String ) comboBox.getSelectedItem();
+				final View view = nameToView.get( viewName );
+				viewer.show( view );
 			} );
 		} );
 
-		final JLabel comp = getJLabel( modality );
-
-		horizontalLayoutPanel.add( comp );
+		horizontalLayoutPanel.add( getJLabel( name ) );
 		horizontalLayoutPanel.add( comboBox );
 		horizontalLayoutPanel.add( button );
 
@@ -324,7 +308,7 @@ public class UIComponentsProvider
 
 	public ImageIcon createMobieIcon( int size )
 	{
-		final URL resource = UIComponentsProvider.class.getResource( "/mobie.jpeg" );
+		final URL resource = UserInterfaceHelper.class.getResource( "/mobie.jpeg" );
 		final ImageIcon imageIcon = new ImageIcon( resource );
 		final Image scaledInstance = imageIcon.getImage().getScaledInstance( size, size, Image.SCALE_SMOOTH );
 		return new ImageIcon( scaledInstance );
@@ -472,6 +456,8 @@ public class UIComponentsProvider
 
 	// TODO: this should also close the table a.s.o. if it is a segmentation source
 	private static JButton createRemoveButton(
+			final de.embl.cba.mobie2.ui.UserInterface userInterface,
+			JPanel panel,
 			SourceDisplay sourceDisplay,
 			int[] buttonDimensions )
 	{
@@ -484,6 +470,8 @@ public class UIComponentsProvider
 			{
 				SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
 			}
+
+			userInterface.removeDisplaySettings( panel );
 		} );
 
 		return removeButton;

@@ -31,18 +31,16 @@ package de.embl.cba.mobie2.view;
 import bdv.tools.HelpDialog;
 import de.embl.cba.bdv.utils.lut.ARGBLut;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
+import de.embl.cba.mobie2.annotate.Annotator;
+import de.embl.cba.mobie2.color.MoBIEColoringModel;
 import de.embl.cba.tables.*;
-import de.embl.cba.tables.annotate.Annotator;
 import de.embl.cba.tables.color.*;
-import de.embl.cba.tables.measure.MeasureDistance;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
-import de.embl.cba.tables.plot.TableRowsScatterPlot;
 
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowListener;
-import ij.IJ;
 import ij.gui.GenericDialog;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.io.FilenameUtils;
@@ -54,6 +52,8 @@ import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,30 +64,30 @@ import static de.embl.cba.tables.FileUtils.selectPathFromProjectOrFileSystem;
 import static de.embl.cba.tables.TableRows.setTableCell;
 import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_GREY;
 
-public class TableViewer< T extends TableRow > extends JPanel implements SelectionListener< T >, ColoringListener, TableRowListener
+public class TableViewer< T extends TableRow > implements SelectionListener< T >, ColoringListener, TableRowListener
 {
 	private final List< T > tableRows;
 	private final SelectionModel< T > selectionModel;
-	private final SelectionColoringModel< T > selectionColoringModel;
+	private final MoBIEColoringModel< T > coloringModel;
 	private final String tableName;
 
-	private JFrame frame;
-    private JScrollPane scrollPane;
-    private JMenuBar menuBar;
 	private JTable table;
 
 	private int recentlySelectedRowInView;
 	private ColumnColoringModelCreator< T > columnColoringModelCreator;
-	private MeasureDistance< T > measureDistance;
 	private Component parentComponent;
 	private String mergeByColumnName; // for loading additional columns
 	private String tablesDirectory; // for loading additional columns
 	private ArrayList<String> additionalTables; // tables from which additional columns are loaded
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
-	private Map< String, ColoringModel< T > > columnNameToColoringModel = new HashMap<>(  );
-	private boolean controlDown;
 
-	public enum TableRowSelectionMode
+	// TODO: this is only for the annotator (maybe move it there)
+	private Map< String, CategoryTableRowColumnColoringModel< T > > columnNameToColoringModel = new HashMap<>(  );
+
+	private boolean controlDown;
+	private JFrame frame;
+
+	private enum TableRowSelectionMode
 	{
 		None,
 		FocusOnly,
@@ -95,35 +95,13 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 	}
 
 	public TableViewer(
-			final List< T > tableRows )
-	{
-		this( tableRows, null, null, "" );
-	}
-
-	public TableViewer(
-			final List< T > tableRows,
-			final SelectionModel< T > selectionModel )
-	{
-		this( tableRows, selectionModel, null, "" );
-	}
-
-	public TableViewer(
 			final List< T > tableRows,
 			final SelectionModel< T > selectionModel,
-			final SelectionColoringModel< T > selectionColoringModel )
-	{
-		this( tableRows, selectionModel, selectionColoringModel, "" );
-	}
-
-	public TableViewer(
-			final List< T > tableRows,
-			final SelectionModel< T > selectionModel,
-			final SelectionColoringModel< T > selectionColoringModel,
+			final MoBIEColoringModel< T > moBIEColoringModel,
 			String tableName )
 	{
-		super( new GridLayout(1, 0 ) );
 		this.tableRows = tableRows;
-		this.selectionColoringModel = selectionColoringModel;
+		this.coloringModel = moBIEColoringModel;
 		this.selectionModel = selectionModel;
 		this.tableName = tableName;
 		this.recentlySelectedRowInView = -1;
@@ -166,7 +144,7 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 		if ( selectionModel != null )
 			installSelectionModelNotification();
 
-		if ( selectionColoringModel != null)
+		if ( coloringModel != null)
 			configureTableRowColoring();
 
 		createAndShowMenu();
@@ -291,7 +269,7 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 //		}
 
 		final ARGBType argbType = new ARGBType();
-		selectionColoringModel.convert( tableRows.get( row ), argbType );
+		coloringModel.convert( tableRows.get( row ), argbType );
 
 		if ( ARGBType.alpha( argbType.get() ) == 0 )
 			return Color.WHITE;
@@ -318,39 +296,25 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 		table.setRowSelectionAllowed( true );
 		table.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
 
-		scrollPane = new JScrollPane(
-				table,
-				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
-		add( scrollPane );
-
-		table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
-
 		columnColoringModelCreator = new ColumnColoringModelCreator( table );
-
-		updateUI();
 	}
 
-	// TODO: factor out the whole menu into an own class
-	private void createMenuBar()
+	private JMenuBar createMenuBar()
 	{
-		menuBar = new JMenuBar();
+		JMenuBar menuBar = new JMenuBar();
 		menuBar.add( createTableMenu() );
 
 		if ( selectionModel != null )
 			menuBar.add( createSelectionMenu() );
 
-		if ( selectionColoringModel != null )
+		if ( coloringModel != null )
 		{
 			menuBar.add( createColoringMenu() );
 			menuBar.add( createAnnotateMenu() );
 			menuBar.add( createPlotMenu() );
 		}
 
-		// menuBar.add( createMeasureMenu() ); // TODO: finish implementing this
-
-		menuBar.add( createHelpMenu() );
+		return menuBar;
 	}
 
 	private JMenu createSelectionMenu()
@@ -382,44 +346,8 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 		return menu;
 	}
 
-	private JMenu createMeasureMenu()
-	{
-		JMenu menu = new JMenu( "Measure" );
-
-		addMeasureSimilarityMenuItem( menu );
-
-		return menu;
-	}
-
-	private JMenu createHelpMenu()
-	{
-		JMenu menu = new JMenu( "Help" );
-
-		menu.add( createShowSegmentationHelpMenuItem() );
-		menu.add( createShowNavigationHelpMenuItem() );
-
-		return menu;
-	}
-
-	private JMenuItem createShowSegmentationHelpMenuItem()
-	{
-		initHelpDialog();
-		final JMenuItem menuItem = new JMenuItem( "Show Segmentation Image Help" );
-		menuItem.addActionListener( e ->
-			{
-				final HelpDialog helpDialog = new HelpDialog(
-					frame,
-					Tables.class.getResource( "/SegmentationImageActionsHelp.html" ) );
-				helpDialog.setVisible( true );
-			}
-		);
-		return menuItem;
-	}
-
-
 	private JMenuItem createScatterPlotMenuItem()
 	{
-		initHelpDialog();
 		final JMenuItem menuItem = new JMenuItem( "2D Scatter Plot..." );
 		menuItem.addActionListener( e ->
 			{
@@ -430,8 +358,8 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 
 					if ( dialog.show() )
 					{
-						TableRowsScatterPlot< T > scatterPlot = new TableRowsScatterPlot<>( tableRows, selectionColoringModel, dialog.getSelectedColumns(), dialog.getScaleFactors(), dialog.getDotSizeScaleFactor() );
-						scatterPlot.show( null );
+//						TableRowsScatterPlot< T > scatterPlot = new TableRowsScatterPlot<>( tableRows, coloringModel, dialog.getSelectedColumns(), dialog.getScaleFactors(), dialog.getDotSizeScaleFactor() );
+//						scatterPlot.show( null );
 					}
 				});
 			}
@@ -441,7 +369,6 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 	// TODO: This does not always make sense. Should be added only on demand
 	private JMenuItem createShowNavigationHelpMenuItem()
 	{
-		initHelpDialog();
 		final JMenuItem menuItem = new JMenuItem( "Show Navigation Help" );
 		menuItem.addActionListener( e ->
 		{
@@ -452,15 +379,6 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 			}
 		);
 		return menuItem;
-	}
-
-	public void addMenu( JMenuItem menuItem )
-	{
-		SwingUtilities.invokeLater( () ->
-		{
-			menuBar.add( menuItem );
-			if ( frame != null ) SwingUtilities.updateComponentTreeUI( frame );
-		});
 	}
 
 	private JMenu createTableMenu()
@@ -520,7 +438,7 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 	}
 
 	public double[] getColorByColumnValueLimits() {
-		ColoringModel coloringModel = selectionColoringModel.getColoringModel();
+		ColoringModel coloringModel = this.coloringModel.getColoringModel();
 		if (coloringModel instanceof NumericColoringModel ) {
 			double[] valueLimits = new double[2];
 			NumericColoringModel numericColoringModel = ( NumericColoringModel ) coloringModel;
@@ -644,14 +562,15 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 			columnNameToColoringModel.put( columnName, categoricalColoringModel );
 		}
 
-		selectionColoringModel.setSelectionColoringMode( SelectionColoringModel.SelectionColoringMode.DimNotSelected );
-		selectionColoringModel.setColoringModel( columnNameToColoringModel.get( columnName ) );
+		coloringModel.setSelectionColoringMode( MoBIEColoringModel.SelectionColoringMode.DimNotSelected );
+		coloringModel.setColoringModel( columnNameToColoringModel.get( columnName ) );
 		final RowSorter< ? extends TableModel > rowSorter = table.getRowSorter();
 
 		final Annotator annotator = new Annotator(
 				columnName,
 				tableRows,
-				selectionColoringModel,
+				selectionModel,
+				columnNameToColoringModel.get( columnName ),
 				rowSorter
 		);
 
@@ -660,12 +579,21 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 
 	private void createAndShowMenu()
 	{
-		frame = new JFrame( tableName );
-		createMenuBar();
-		frame.setJMenuBar( menuBar );
+		final JPanel panel = new JPanel( new GridLayout( 1, 0 ) );
+		JScrollPane scrollPane = new JScrollPane(
+				table,
+				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED );
+		panel.add( scrollPane );
 
-		this.setOpaque( true );
-		frame.setContentPane( this );
+		table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
+		panel.updateUI(); // TODO do we need this?
+		panel.setOpaque( true );
+
+		frame = new JFrame( tableName );
+		final JMenuBar menuBar = createMenuBar();
+		frame.setJMenuBar( menuBar );
+		frame.setContentPane( panel );
 
 		if ( parentComponent != null )
 		{
@@ -684,6 +612,15 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 
 		//Display the window.
 		frame.pack();
+
+		// Disable closing
+		frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		frame.addWindowListener( new WindowAdapter() {
+			public void windowClosing( WindowEvent ev) {
+				//frame.dispose();
+			}
+		});
+
 		SwingUtilities.invokeLater( () -> frame.setVisible( true ) );
 	}
 
@@ -842,7 +779,7 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 			final String value = tableRow.getCell( coloringColumnName );
 
 			final ARGBType argbType = new ARGBType();
-			selectionColoringModel.convert( tableRow, argbType );
+			coloringModel.convert( tableRow, argbType );
 			final int colorIndex = argbType.get();
 			Logger.info( value + ": " + ARGBType.red( colorIndex ) + ", " + ARGBType.green( colorIndex ) + ", " + ARGBType.blue( colorIndex ) );
 		}
@@ -850,7 +787,7 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 
 	public String getColoringColumnName()
 	{
-		final ColoringModel< T > coloringModel = selectionColoringModel.getColoringModel();
+		final ColoringModel< T > coloringModel = this.coloringModel.getColoringModel();
 
 		if ( coloringModel instanceof ColumnColoringModel )
 		{
@@ -863,7 +800,7 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 	}
 
 	public String getColoringLUTName () {
-		final ColoringModel< T > coloringModel = selectionColoringModel.getColoringModel();
+		final ColoringModel< T > coloringModel = this.coloringModel.getColoringModel();
 		if (coloringModel instanceof ColumnColoringModel ) {
 			ARGBLut lut = (( ColumnColoringModel ) coloringModel).getARGBLut();
 			if (lut == null) {
@@ -893,7 +830,7 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 		final ColoringModel< T > coloringModel = columnColoringModelCreator.showDialog();
 
 		if ( coloringModel != null )
-			selectionColoringModel.setColoringModel( coloringModel );
+			this.coloringModel.setColoringModel( coloringModel );
 	}
 
 	/**
@@ -920,61 +857,18 @@ public class TableViewer< T extends TableRow > extends JPanel implements Selecti
 		final ColoringModel< T > coloringModel =
 				columnColoringModelCreator.createColoringModel( columnName, coloringLut, min, max );
 		if ( coloringModel != null )
-			selectionColoringModel.setColoringModel( coloringModel );
+			this.coloringModel.setColoringModel( coloringModel );
 	}
 
-	private void addMeasureSimilarityMenuItem( JMenu menu )
-	{
-		final JMenuItem menuItem = new JMenuItem( "Measure Distance to Selected Rows..." );
-
-		this.measureDistance = new MeasureDistance( table, tableRows );
-
-		menuItem.addActionListener( e ->
-				new Thread( () ->
-				{
-					if ( selectionModel.isEmpty() )
-					{
-						IJ.showMessage( "Please select one or more objects." );
-						return;
-					}
-					else
-					{
-						if ( measureDistance.showDialog( selectionModel.getSelected() ) )
-						{
-							final ColoringModel< T > coloringModel = columnColoringModelCreator.createColoringModel(
-									measureDistance.getNewColumnName(),
-									ColoringLuts.BLUE_WHITE_RED, null, null );
-
-							if ( coloringModel == null ) return;
-
-							selectionColoringModel.setColoringModel( coloringModel );
-							selectionColoringModel.setSelectionColoringMode( SelectionColoringModel.SelectionColoringMode.SelectionColor );
-						}
-					}
-				}
- 				).start() );
-
-		menu.add( menuItem );
-	}
-
-	public MeasureDistance< T > getMeasureDistance()
-	{
-		return measureDistance;
-	}
-
-	public void initHelpDialog()
-	{
-		new HelpDialog(
-				frame,
-				Tables.class.getResource( "/MultiImageSetNavigationHelp.html" ) );
-	}
-
-	public void close()
+	public void dispose()
 	{
 		frame.dispose();
-		this.setVisible( false );
 	}
 
+	public void setVisible( boolean visible )
+	{
+		frame.setVisible( visible );
+	}
 
 	@Override
 	public synchronized void selectionChanged()

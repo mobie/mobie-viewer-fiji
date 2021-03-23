@@ -5,7 +5,7 @@ public class SourceSupplier
 	private ImageSource image;
 	private SegmentationSource segmentation;
 
-	public MoBIESource get()
+	public ImageSource get()
 	{
 		if ( image != null ) return image;
 		else if ( segmentation != null ) return segmentation;

@@ -7,7 +7,7 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie2.*;
-import de.embl.cba.mobie2.color.ColoringModelWrapper;
+import de.embl.cba.mobie2.color.MoBIEColoringModel;
 import de.embl.cba.mobie2.color.LabelConverter;
 import de.embl.cba.mobie2.select.SelectionModelAndLabelAdapter;
 import de.embl.cba.tables.color.ColorUtils;
@@ -34,16 +34,16 @@ import java.util.stream.Collectors;
 
 public class ImageViewer< T extends ImageSegment > implements ColoringListener, SelectionListener< T >
 {
-	private final MoBIE moBIE;
+	private final MoBIE2 moBIE2;
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final BdvHandle bdvHandle;
 	private final boolean is2D;
 	private ArrayList< SourceAndConverter > labelSources;
 	private List< SelectionModelAndLabelAdapter< T > > selectionModels;
 
-	public ImageViewer( MoBIE moBIE, boolean is2D )
+	public ImageViewer( MoBIE2 moBIE2, boolean is2D )
 	{
-		this.moBIE = moBIE;
+		this.moBIE2 = moBIE2;
 		this.is2D = is2D;
 		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
 		bdvHandle = createBdv();
@@ -120,15 +120,14 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		return creator.get();
 	}
 
-
 	public List< SourceAndConverter< ? > > show( ImageDisplay imageDisplays )
 	{
 		final ArrayList< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
 
 		for ( String sourceName : imageDisplays.sources )
 		{
-			final ImageSource source = ( ImageSource ) moBIE.getSource( sourceName );
-			final SpimData spimData = BdvUtils.openSpimData( moBIE.getAbsoluteImageLocation( source ) );
+			final ImageSource source = moBIE2.getSource( sourceName );
+			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getAbsoluteImageLocation( source ) );
 			final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
 
 			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  imageDisplays.color ) ).run();
@@ -150,14 +149,14 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		return sourceAndConverters;
 	}
 
-	public List< SourceAndConverter< ? > > show( SegmentationDisplay segmentationDisplay, ColoringModelWrapper coloringModel, SelectionModelAndLabelAdapter selectionModelAndAdapter )
+	public List< SourceAndConverter< ? > > show( SegmentationDisplay segmentationDisplay, MoBIEColoringModel coloringModel, SelectionModelAndLabelAdapter selectionModelAndAdapter )
 	{
 		final ArrayList< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
 
 		for ( String sourceName : segmentationDisplay.sources )
 		{
-			final SegmentationSource source = ( SegmentationSource ) moBIE.getSource( sourceName );
-			final SpimData spimData = BdvUtils.openSpimData( moBIE.getAbsoluteImageLocation( source ) );
+			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
+			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getAbsoluteImageLocation( source ) );
 			final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
 
 			LabelConverter labelConverter = new LabelConverter(

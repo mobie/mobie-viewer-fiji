@@ -36,7 +36,7 @@ import net.imglib2.type.numeric.ARGBType;
 import java.util.Arrays;
 import java.util.List;
 
-public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
+public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 {
 	private ColoringModel< T > coloringModel;
 	private SelectionModel< T > selectionModel;
@@ -56,7 +56,7 @@ public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
 		DimNotSelected
 	}
 
-	public ColoringModelWrapper(
+	public MoBIEColoringModel(
 			ColoringModel< T > coloringModel,
 			SelectionModel< T > selectionModel )
 	{

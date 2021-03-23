@@ -26,13 +26,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.embl.cba.tables.annotate;
+package de.embl.cba.mobie2.annotate;
 
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.CategoryTableRowColumnColoringModel;
 import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
@@ -46,7 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-public class Annotator < T extends TableRow > extends JFrame
+public class Annotator< T extends TableRow > extends JFrame
 {
 	public static final String LAST = "You are already at the last object in table.";
 	public static final String NO_MORE_SEGMENTS = "No more segments.";
@@ -56,7 +55,6 @@ public class Annotator < T extends TableRow > extends JFrame
 	private final CategoryTableRowColumnColoringModel< T > coloringModel;
 	private final RowSorter< ? extends TableModel > rowSorter;
 	private final JPanel panel;
-	private final SelectionColoringModel< T > selectionColoringModel;
 	private boolean skipNone;
 	private boolean isSingleRowBrowsingMode = false; // TODO: think about how to get out of this mode!
 	private JTextField goToRowIndexTextField;
@@ -65,21 +63,16 @@ public class Annotator < T extends TableRow > extends JFrame
 	private JScrollPane annotationButtonsScrollPane;
 	private T currentlySelectedRow;
 
-	public Annotator(
-			String annotationColumnName,
-			List< T > tableRows,
-			SelectionColoringModel< T > selectionColoringModel,
-			RowSorter< ? extends TableModel > rowSorter )
+	public Annotator( String columnName, List< T > tableRows, SelectionModel< T > selectionModel, CategoryTableRowColumnColoringModel< T > coloringModel, RowSorter< ? extends TableModel > rowSorter )
 	{
 		super("");
-		this.annotationColumnName = annotationColumnName;
+		this.annotationColumnName = columnName;
 		this.tableRows = tableRows;
-		this.selectionColoringModel = selectionColoringModel;
-		this.selectionModel = selectionColoringModel.getSelectionModel();
-		this.coloringModel = ( CategoryTableRowColumnColoringModel ) selectionColoringModel.getColoringModel();
+		this.selectionModel = selectionModel;
+		this.coloringModel = coloringModel;
 		this.rowSorter = rowSorter;
 		this.currentlySelectedRow = tableRows.get( rowSorter.convertRowIndexToModel( 0 ) );
-		coloringModel.fixedColorMode( true );
+		this.coloringModel.fixedColorMode( true );
 		this.panel = new JPanel();
 	}
 

@@ -1,32 +1,28 @@
 package de.embl.cba.mobie2;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.stream.JsonReader;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.image.SourcesModel;
 import de.embl.cba.mobie.ui.MoBIEOptions;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
-import de.embl.cba.mobie.ui.UserInterface;
 import de.embl.cba.mobie2.json.DatasetJsonParser;
 import de.embl.cba.mobie2.json.ProjectJsonParser;
+import de.embl.cba.mobie2.ui.UserInterface;
+import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.tables.FileAndUrlUtils;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
 
-public class MoBIE
+public class MoBIE2
 {
 	private SourcesDisplayManager sourcesDisplayManager;
 	private SourcesModel sourcesModel;
 	private final MoBIEOptions options;
-	private UserInterface userInterface;
 	private String projectLocation; // without branch, pure github address
 	private String datasetLocation; // without branch, pure github address
 	private String imagesLocation; // selected dataset
@@ -40,13 +36,14 @@ public class MoBIE
 	private Dataset dataset;
 	private String imageDataLocation;
 	private String currentDatasetName;
+	private Viewer viewer;
 
-	public MoBIE( String projectLocation ) throws IOException
+	public MoBIE2( String projectLocation ) throws IOException
 	{
 		this( projectLocation, MoBIEOptions.options() );
 	}
 
-	public MoBIE( String projectLocation, MoBIEOptions options ) throws IOException
+	public MoBIE2( String projectLocation, MoBIEOptions options ) throws IOException
 	{
 		this.projectLocation = projectLocation;
 		this.options = options;
@@ -61,8 +58,14 @@ public class MoBIE
 
 		imageDataLocation = "local";
 
-		final Viewer viewer = new Viewer( this, dataset.is2D );
+		final UserInterface userInterface = new UserInterface( this );
+
+		UserInterfaceHelper.setLogWindowPositionAndSize( userInterface.getFrame() );
+
+		viewer = new Viewer( this, userInterface, dataset.is2D );
 		viewer.show( dataset.views.get( viewName ) );
+
+		UserInterfaceHelper.setBdvWindowPositionAndSize( viewer.getImageViewer().getBdvHandle(), userInterface.getFrame() );
 
 		//configureDatasetsRootLocations();
 		//appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be re-instantiated
@@ -84,9 +87,9 @@ public class MoBIE
 //		} );
 	}
 
-	public String getTablesLocation()
+	public Viewer getViewer()
 	{
-		return tablesLocation;
+		return viewer;
 	}
 
 	public String getProjectName()
@@ -109,12 +112,6 @@ public class MoBIE
 		return levelingVector;
 	}
 
-	public SourcesModel getSourcesModel()
-	{
-		return sourcesModel;
-	}
-
-
 	public String getProjectLocation()
 	{
 		return projectLocation;
@@ -135,90 +132,37 @@ public class MoBIE
 		return bookmarkManager;
 	}
 
-	private double[] fetchLeveling( String dataLocation )
-	{
-		final String levelingFile = FileAndUrlUtils.combinePath( dataLocation, "misc/leveling.json" );
-		try
-		{
-			InputStream is = FileAndUrlUtils.getInputStream( levelingFile );
-			final JsonReader reader = new JsonReader( new InputStreamReader( is, "UTF-8" ) );
-			final GsonBuilder gsonBuilder = new GsonBuilder();
-			LinkedTreeMap linkedTreeMap = gsonBuilder.create().fromJson( reader, Object.class );
-			ArrayList< Double >  normalVector = ( ArrayList< Double > ) linkedTreeMap.get( "NormalVector" );
-			final double[] doubles = normalVector.stream().mapToDouble( Double::doubleValue ).toArray();
-			return doubles;
-		}
-		catch ( Exception e )
-		{
-			return null; // new double[]{0.70,0.56,0.43};
-		}
-	}
-
-
-	private void configureDatasetsRootLocations( )
-	{
-		this.datasetLocation = datasetLocation;
-		this.imagesLocation = options.values.getImageDataLocation() != null ? options.values.getImageDataLocation() : datasetLocation;
-		this.tablesLocation = options.values.getTableDataLocation() != null ? options.values.getTableDataLocation() : datasetLocation;
-
-		datasetLocation = FileAndUrlUtils.removeTrailingSlash( datasetLocation );
-		imagesLocation = FileAndUrlUtils.removeTrailingSlash( imagesLocation );
-		tablesLocation = FileAndUrlUtils.removeTrailingSlash( tablesLocation );
-
-		datasetLocation = adaptUrl( datasetLocation, options.values.getProjectBranch() );
-		imagesLocation = adaptUrl( imagesLocation, options.values.getProjectBranch() );
-		tablesLocation = adaptUrl( tablesLocation, options.values.getProjectBranch() );
-
-		// two different locations of the data w.r.t someLocation are supported:
-		// the data can either be directly underneath someLocation
-		// or in someLocation/data
-		// test if someLocation/data exists and set if to the new location if it does
-		// NOTE this produces a corner case for nested "data" folders, i.e. "data/data", but it's the best solution I came up with so far
-		if(FileAndUrlUtils.exists( datasetLocation + "/data/datasets.json")) {
-			datasetLocation = datasetLocation + "/data";
-		}
-		if(FileAndUrlUtils.exists(imagesLocation + "/data/datasets.json")) {
-			imagesLocation = imagesLocation + "/data";
-		}
-		if(FileAndUrlUtils.exists(tablesLocation + "/data/datasets.json")) {
-			tablesLocation = tablesLocation + "/data";
-		}
-	}
-
-	public static String adaptUrl( String url, String projectBranch )
-	{
-		if ( url.contains( "github.com" ) )
-		{
-			url = url.replace( "github.com", "raw.githubusercontent.com" );
-			url += "/" + projectBranch;
-		}
-		return url;
-	}
-
-//	private BookmarkManager fetchBookmarks( String location )
-//	{
-//		BookmarkReader bookmarkParser = new BookmarkReader(location);
-//		Map< String, Bookmark > nameToBookmark = bookmarkParser.readDefaultBookmarks();
-//
-//		return new BookmarkManager( this, nameToBookmark, bookmarkParser);
-//	}
-
-	// TODO: This should be dataset dependent?
-	public SourcesDisplayManager getSourcesDisplayManager()
-	{
-		return sourcesDisplayManager;
-	}
-
 	public void close()
 	{
-		sourcesDisplayManager.removeAllSourcesFromViewers();
-		sourcesDisplayManager.getBdv().close();
-		userInterface.dispose();
+		// TODO
+//		sourcesDisplayManager.removeAllSourcesFromViewers();
+//		sourcesDisplayManager.getBdv().close();
+//		userInterface.dispose();
 	}
 
-	public MoBIESource getSource( String sourceName )
+	public ImageSource getSource( String sourceName )
 	{
 		return dataset.sources.get( sourceName ).get();
+	}
+
+	public Dataset getDataset()
+	{
+		return dataset;
+	}
+
+	public List< View > getViews()
+	{
+		// combine the individual source views...
+		final ArrayList< View > views = new ArrayList<>();
+		for ( SourceSupplier sourceSupplier : dataset.sources.values() )
+		{
+			views.add( sourceSupplier.get().view );
+		}
+
+		// ...with the additional views
+		views.addAll( dataset.views.values() );
+
+		return views;
 	}
 
 	public String getAbsoluteImageLocation( ImageSource source )

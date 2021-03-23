@@ -4,7 +4,7 @@ import java.util.Map;
 
 public class Dataset
 {
-	boolean is2D;
-	Map< String, SourceSupplier > sources;
-	Map< String, View > views;
+	public boolean is2D;
+	public Map< String, SourceSupplier > sources;
+	public Map< String, View > views;
 }

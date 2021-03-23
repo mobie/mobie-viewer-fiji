@@ -4,7 +4,7 @@ import java.util.List;
 
 public class View
 {
-	String menuItem;
+	public String menuItem;
 	public List< SourceDisplaySupplier > sourceDisplays;
 	public List< SourceTransformSupplier > sourceTransforms;
 }
