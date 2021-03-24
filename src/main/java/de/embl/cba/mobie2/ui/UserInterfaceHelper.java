@@ -483,6 +483,25 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
+	private static JCheckBox createScatterPlotViewerVisibilityCheckbox(
+			SegmentationDisplay sourceDisplay,
+			boolean isVisible )
+	{
+		JCheckBox checkBox = new JCheckBox( "P" );
+		checkBox.setSelected( isVisible );
+		checkBox.setPreferredSize( PREFERRED_BUTTON_SIZE );
+		checkBox.addActionListener( e -> sourceDisplay.scatterPlotViewer.getWindow().setVisible( checkBox.isSelected() ) );
+
+		sourceDisplay.scatterPlotViewer.getWindow().addWindowListener(
+				new WindowAdapter() {
+					public void windowClosing( WindowEvent ev) {
+						checkBox.setSelected( false );
+					}
+				});
+
+		return checkBox;
+	}
+
 	public static JCheckBox createVolumeViewVisibilityCheckbox(
 			SourcesDisplayManager sourcesDisplayManager,
 			int[] dims,

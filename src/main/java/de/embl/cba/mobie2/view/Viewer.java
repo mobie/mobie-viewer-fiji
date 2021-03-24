@@ -1,6 +1,8 @@
 package de.embl.cba.mobie2.view;
 
+import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie2.MoBIE2;
+import de.embl.cba.mobie2.plot.ScatterPlotViewer;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.color.ColoringModelWrapper;
 import de.embl.cba.mobie2.display.ImageDisplay;
@@ -103,10 +105,15 @@ public class Viewer
 		//
 		display.tableViewer = new TableViewer<>( segments, display.selectionModel, display.coloringModel, display.name );
 		display.tableViewer.show( imageViewer.getBdvHandle().getViewerPanel() );
-
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 
-
+		// show in scatterPlotViewer
+		//
+		display.scatterPlotViewer = new ScatterPlotViewer<>( segments, display.selectionModel, display.coloringModel, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, new double[]{1.0, 1.0}, 1.0 );
+		display.scatterPlotViewer.show( imageViewer.getBdvHandle().getViewerPanel() );
+		display.selectionModel.listeners().add( display.scatterPlotViewer );
+		display.coloringModel.listeners().add( display.scatterPlotViewer );
+		imageViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
 	}
 }
