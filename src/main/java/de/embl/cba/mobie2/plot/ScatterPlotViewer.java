@@ -33,6 +33,7 @@ import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.Prefs;
 import bdv.viewer.TimePointListener;
+import com.sun.tools.doclets.formats.html.SingleIndexWriter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import de.embl.cba.tables.SwingUtils;
@@ -150,11 +151,11 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		window = SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 		window.setLocation( x, y );
 		window.addWindowListener(
-				new WindowAdapter() {
-					public void windowClosing( WindowEvent ev) {
-						window.setVisible( false );
-					}
-				});
+			new WindowAdapter() {
+				public void windowClosing( WindowEvent ev) {
+					SwingUtilities.invokeLater( () -> window.setVisible( false ) );
+				}
+			});
 	}
 
 	private void installBdvBehaviours( NearestNeighborSearchOnKDTree< T > search )
@@ -167,7 +168,6 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		);
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> focusAndSelectClosestPoint( search, true ), "Focus closest point", "button1" ) ;
-
 
 		BdvPopupMenus.addAction( bdvHandle,"Select closest point [ Ctrl Left-Click ]",
 				( x, y ) -> focusAndSelectClosestPoint( search, false )
@@ -242,27 +242,6 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private static String createPlotName( String[] selectedColumns )
 	{
 		return "x: " + selectedColumns[ 0 ] + ", y: " + selectedColumns[ 1 ];
-	}
-
-	public void setWindowPosition( int x, int y )
-	{
-
-
-	}
-
-	public List< T > getTableRows()
-	{
-		return tableRows;
-	}
-
-	public BdvHandle getBdvHandle()
-	{
-		return bdvHandle;
-	}
-
-	public SelectionModel< T > getSelectionModel()
-	{
-		return selectionModel;
 	}
 
 	public String[] getSelectedColumns()

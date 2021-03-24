@@ -466,7 +466,7 @@ public class UserInterfaceHelper
 		JCheckBox checkBox = new JCheckBox( "T" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_BUTTON_SIZE );
-		checkBox.addActionListener( e -> sourceDisplay.tableViewer.getFrame().setVisible( checkBox.isSelected() ) );
+		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> sourceDisplay.tableViewer.getFrame().setVisible( checkBox.isSelected() ) ) );
 
 		sourceDisplay.tableViewer.getFrame().addWindowListener(
 				new WindowAdapter() {
@@ -485,12 +485,13 @@ public class UserInterfaceHelper
 		JCheckBox checkBox = new JCheckBox( "P" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_BUTTON_SIZE );
-		checkBox.addActionListener( e -> sourceDisplay.scatterPlotViewer.getWindow().setVisible( checkBox.isSelected() ) );
+		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> sourceDisplay.scatterPlotViewer.getWindow().setVisible( checkBox.isSelected() ) )
+				 );
 
 		sourceDisplay.scatterPlotViewer.getWindow().addWindowListener(
 				new WindowAdapter() {
 					public void windowClosing( WindowEvent ev) {
-						checkBox.setSelected( false );
+						SwingUtilities.invokeLater( () -> checkBox.setSelected( false ) );
 					}
 				});
 
