@@ -14,6 +14,9 @@ import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.ui.MoBIEInfo;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
 import de.embl.cba.mobie2.*;
+import de.embl.cba.mobie2.display.ImageDisplay;
+import de.embl.cba.mobie2.display.SegmentationDisplay;
+import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
@@ -143,7 +146,7 @@ public class UserInterfaceHelper
 
 		actionPanel.add( createInfoPanel( moBIE2.getProjectLocation(), moBIE2.getOptions().values.getPublicationURL() ) );
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		actionPanel.add( createDatasetSelectionPanel() );
+		// actionPanel.add( createDatasetSelectionPanel() );
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		actionPanel.add( createViewsSelectionPanel( moBIE2.getViews(), moBIE2.getViewer() ) );
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
@@ -214,24 +217,25 @@ public class UserInterfaceHelper
 		return null;
 	}
 
-	public JPanel createViewsSelectionPanel( List< View > views, Viewer viewer )
+	public JPanel createViewsSelectionPanel( HashMap< String, View > views, Viewer viewer )
 	{
-		Map< String, List< View > > groupingsToViews = new HashMap<>(  );
 
-		for ( View view : views )
+		Map< String, Map< String, View > > groupingsToViews = new HashMap<>(  );
+
+		for ( String viewName : views.keySet() )
 		{
-			final String group = view.menuItem.split( "/" )[ 0 ];
-			if ( ! groupingsToViews.containsKey( group ) )
-				groupingsToViews.put( group, new ArrayList<>( ));
-			groupingsToViews.get( group ).add( view );
+			final View view = views.get( viewName );
+			if ( ! groupingsToViews.containsKey(  view.uiSelectionGroup ) )
+				groupingsToViews.put( view.uiSelectionGroup, new HashMap<>( ));
+			groupingsToViews.get( view.uiSelectionGroup ).put( viewName, view );
 		}
 
 		JPanel containerPanel = new JPanel( new BorderLayout() );
 		containerPanel.setLayout( new BoxLayout( containerPanel, BoxLayout.Y_AXIS ) );
 
-		for ( Map.Entry< String, List< View > > groupingToViews : groupingsToViews.entrySet() )
+		for ( String grouping : groupingsToViews.keySet() )
 		{
-			final JPanel selectionPanel = createSelectionPanel( viewer, groupingToViews.getKey(), groupingToViews.getValue() );
+			final JPanel selectionPanel = createSelectionPanel( viewer, grouping, groupingsToViews.get( grouping ) );
 			containerPanel.add( selectionPanel );
 		}
 
@@ -245,17 +249,11 @@ public class UserInterfaceHelper
 		return viewsSelectionPanelHeight;
 	}
 
-	private JPanel createSelectionPanel( Viewer viewer, String name, List< View > views )
+	private JPanel createSelectionPanel( Viewer viewer, String panelName, Map< String, View > views )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final HashMap< String, View > nameToView = new HashMap<>();
-		for ( View view : views )
-		{
-			nameToView.put( view.menuItem.split( "/" )[ 1 ], view );
-		}
-
-		final JComboBox< String > comboBox = new JComboBox<>( nameToView.keySet().toArray( new String[ 0 ] ) );
+		final JComboBox< String > comboBox = new JComboBox<>( views.keySet().toArray( new String[ 0 ] ) );
 
 		final JButton button = getButton( ADD );
 		button.addActionListener( e ->
@@ -263,12 +261,12 @@ public class UserInterfaceHelper
 			SwingUtilities.invokeLater( () ->
 			{
 				final String viewName = ( String ) comboBox.getSelectedItem();
-				final View view = nameToView.get( viewName );
+				final View view = views.get( viewName );
 				viewer.show( view );
 			} );
 		} );
 
-		horizontalLayoutPanel.add( getJLabel( name ) );
+		horizontalLayoutPanel.add( getJLabel( panelName ) );
 		horizontalLayoutPanel.add( comboBox );
 		horizontalLayoutPanel.add( button );
 

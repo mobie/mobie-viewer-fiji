@@ -14,7 +14,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
 
@@ -150,17 +150,17 @@ public class MoBIE2
 		return dataset;
 	}
 
-	public List< View > getViews()
+	public HashMap< String, View > getViews()
 	{
 		// combine the individual source views...
-		final ArrayList< View > views = new ArrayList<>();
-		for ( SourceSupplier sourceSupplier : dataset.sources.values() )
+		final HashMap< String, View > views = new HashMap<>();
+		for ( String sourceName : dataset.sources.keySet() )
 		{
-			views.add( sourceSupplier.get().view );
+			views.put( sourceName, dataset.sources.get( sourceName ).get().view );
 		}
 
 		// ...with the additional views
-		views.addAll( dataset.views.values() );
+		views.putAll( dataset.views );
 
 		return views;
 	}

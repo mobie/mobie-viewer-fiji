@@ -1,8 +1,8 @@
 package de.embl.cba.mobie2.ui;
 
-import de.embl.cba.mobie2.ImageDisplay;
+import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.MoBIE2;
-import de.embl.cba.mobie2.SourceDisplay;
+import de.embl.cba.mobie2.display.SourceDisplay;
 
 import javax.swing.*;
 import java.awt.*;
@@ -66,7 +66,7 @@ public class UserInterface
 		frame.repaint();
 	}
 
-	private void addDisplaySettingsPanel( SourceDisplay sourceDisplay )
+	public void addDisplaySettings( SourceDisplay sourceDisplay )
 	{
 		if ( sourceDisplay instanceof ImageDisplay )
 		{
@@ -75,13 +75,13 @@ public class UserInterface
 		}
 	}
 
-	public void removeDisplaySettings( JPanel panel )
+	protected void removeDisplaySettings( JPanel panel )
 	{
 		displaySettingsContainer.remove( panel );
 		refresh();
 	}
 
-	public void addDisplaySettings( JPanel panel )
+	protected void addDisplaySettings( JPanel panel )
 	{
 		displaySettingsContainer.remove( panel );
 		refresh();

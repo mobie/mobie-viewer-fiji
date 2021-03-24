@@ -9,6 +9,8 @@ import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie2.*;
 import de.embl.cba.mobie2.color.MoBIEColoringModel;
 import de.embl.cba.mobie2.color.LabelConverter;
+import de.embl.cba.mobie2.display.ImageDisplay;
+import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.select.SelectionModelAndLabelAdapter;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringListener;

@@ -1,4 +1,4 @@
-package de.embl.cba.mobie2;
+package de.embl.cba.mobie2.display;
 
 public class SourceDisplaySupplier
 {

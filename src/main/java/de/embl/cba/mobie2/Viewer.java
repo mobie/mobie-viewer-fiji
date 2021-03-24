@@ -2,6 +2,10 @@ package de.embl.cba.mobie2;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie2.color.MoBIEColoringModel;
+import de.embl.cba.mobie2.display.ImageDisplay;
+import de.embl.cba.mobie2.display.SegmentationDisplay;
+import de.embl.cba.mobie2.display.SourceDisplay;
+import de.embl.cba.mobie2.display.SourceDisplaySupplier;
 import de.embl.cba.mobie2.select.SelectionModelAndLabelAdapter;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.ui.UserInterface;
@@ -60,8 +64,7 @@ public class Viewer
 				showSegmentationDisplay( segmentationDisplay );
 			}
 
-			userInterface.addDisplaySettingsPanel( sourceDisplay );
-
+			userInterface.addDisplaySettings( sourceDisplay );
 		}
 	}
 
@@ -73,15 +76,18 @@ public class Viewer
 		new ViewerTransformAdjuster( imageViewer.getBdvHandle(), imageDisplay.sourceAndConverters.get( 0 ) ).run();
 	}
 
-	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
+	private void showSegmentationDisplay( SegmentationDisplay display )
 	{
-		segmentationDisplay.selectionModel = new DefaultSelectionModel< TableRowImageSegment >();
-		segmentationDisplay.coloringModel = new MoBIEColoringModel<>( new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) ), segmentationDisplay.selectionModel );
+		display.selectionModel = new DefaultSelectionModel< TableRowImageSegment >();
+		display.coloringModel = new MoBIEColoringModel<>( new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) ), display.selectionModel );
 
+		if ( display.sources.size() > 1 )
+		{
+			throw new UnsupportedOperationException( "Multiple segmentation sources are not yet implemented." );
+			// TODO: make a list of the segments from all sources (loop)
+		}
 
-
-		// TODO: make a list of the segments from all sources (loop)
-		String sourceName = segmentationDisplay.sources.get( 0 );
+		String sourceName = display.sources.get( 0 );
 		final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
 		List< TableRowImageSegment > segments = createAnnotatedImageSegmentsFromTableFile(
 				moBIE2.getAbsoluteDefaultTableLocation( source ),
@@ -90,16 +96,16 @@ public class Viewer
 
 		// show in imageViewer
 		//
-		final SelectionModelAndLabelAdapter selectionModelAndAdapter = new SelectionModelAndLabelAdapter( segmentationDisplay.selectionModel, labelToSegmentAdapter );
-		segmentationDisplay.sourceAndConverters = imageViewer.show( segmentationDisplay, segmentationDisplay.coloringModel, selectionModelAndAdapter );
-		segmentationDisplay.coloringModel.listeners().add( imageViewer );
-		segmentationDisplay.coloringModel.listeners().add( imageViewer );
+		final SelectionModelAndLabelAdapter selectionModelAndAdapter = new SelectionModelAndLabelAdapter( display.selectionModel, labelToSegmentAdapter );
+		display.sourceAndConverters = imageViewer.show( display, display.coloringModel, selectionModelAndAdapter );
+		display.coloringModel.listeners().add( imageViewer );
+		display.coloringModel.listeners().add( imageViewer );
 
 		// show in tableViewer
 		//
-		final TableViewer< TableRowImageSegment > tableViewer = new TableViewer<>( segments, selectionModel, coloringModel, segmentationDisplay.name );
+		final TableViewer< TableRowImageSegment > tableViewer = new TableViewer<>( segments, display.selectionModel, display.coloringModel, display.name );
 		tableViewer.showTableAndMenu();
-		coloringModel.listeners().add( tableViewer );
-		selectionModel.listeners().add( tableViewer );
+		display.coloringModel.listeners().add( tableViewer );
+		display.selectionModel.listeners().add( tableViewer );
 	}
 }
