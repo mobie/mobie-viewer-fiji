@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.embl.cba.mobie2.plot;
+package de.embl.cba.mobie2.view;
 
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;

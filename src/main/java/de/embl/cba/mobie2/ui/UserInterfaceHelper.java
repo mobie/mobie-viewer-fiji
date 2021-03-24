@@ -19,6 +19,7 @@ import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.view.View;
 import de.embl.cba.mobie2.view.Viewer;
+import de.embl.cba.mobie2.view.ViewerHelper;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
@@ -35,6 +36,7 @@ import java.awt.event.WindowEvent;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 
@@ -479,19 +481,40 @@ public class UserInterfaceHelper
 	}
 
 	private static JCheckBox createScatterPlotViewerVisibilityCheckbox(
-			SegmentationDisplay sourceDisplay,
+			SegmentationDisplay display,
 			boolean isVisible )
 	{
+		final AtomicBoolean recreate = new AtomicBoolean( false );
+
 		JCheckBox checkBox = new JCheckBox( "P" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_BUTTON_SIZE );
-		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> sourceDisplay.scatterPlotViewer.getWindow().setVisible( checkBox.isSelected() ) )
-				 );
+		checkBox.addActionListener( e ->
+			SwingUtilities.invokeLater( () ->
+				{
+					if ( recreate.get() )
+					{
+						ViewerHelper.showInScatterPlotViewer( display );
+					}
+					else
+					{
+						display.scatterPlotViewer.getWindow().setVisible( checkBox.isSelected() );
+					}
+				} ) );
 
-		sourceDisplay.scatterPlotViewer.getWindow().addWindowListener(
+		display.scatterPlotViewer.getWindow().addWindowListener(
 				new WindowAdapter() {
 					public void windowClosing( WindowEvent ev) {
-						SwingUtilities.invokeLater( () -> checkBox.setSelected( false ) );
+						// BDV Window has been closed.
+						// Simply setting it visible again does not work,
+						// probably because BDV itself is listening to the
+						// window closing and releases some resources.
+						// Thus we need to recreate it from scratch
+						SwingUtilities.invokeLater( () ->
+						{
+							checkBox.setSelected( false );
+							recreate.set( true );
+						} );
 					}
 				});
 

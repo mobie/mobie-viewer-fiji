@@ -1,26 +1,18 @@
 package de.embl.cba.mobie2.view;
 
-import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie2.MoBIE2;
-import de.embl.cba.mobie2.plot.ScatterPlotViewer;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.color.ColoringModelWrapper;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.display.SourceDisplaySupplier;
-import de.embl.cba.mobie2.select.SelectionModelAndLabelAdapter;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.ui.UserInterface;
-import de.embl.cba.tables.imagesegment.LabelFrameAndImage;
-import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.sourceandconverter.display.BrightnessAutoAdjuster;
-
-import java.util.HashMap;
-import java.util.List;
 
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
 
@@ -55,13 +47,11 @@ public class Viewer
 
 			if ( sourceDisplay instanceof ImageDisplay )
 			{
-				final ImageDisplay imageDisplay = ( ImageDisplay ) sourceDisplay;
-				showImageDisplay( imageDisplay );
+				showImageDisplay( ( ImageDisplay ) sourceDisplay );
 			}
 			else if ( sourceDisplay instanceof SegmentationDisplay )
 			{
-				final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) sourceDisplay;
-				showSegmentationDisplay( segmentationDisplay );
+				showSegmentationDisplay( ( SegmentationDisplay ) sourceDisplay );
 			}
 
 			userInterface.addDisplaySettings( sourceDisplay );
@@ -70,6 +60,7 @@ public class Viewer
 
 	private void showImageDisplay( ImageDisplay display )
 	{
+		display.imageViewer = imageViewer;
 		display.sourceAndConverters = imageViewer.show( display );
 
 		new BrightnessAutoAdjuster( display.sourceAndConverters.get( 0 ),0  ).run();
@@ -78,6 +69,8 @@ public class Viewer
 
 	private void showSegmentationDisplay( SegmentationDisplay display )
 	{
+		display.imageViewer = imageViewer;
+
 		display.selectionModel = new DefaultSelectionModel< TableRowImageSegment >();
 		display.coloringModel = new ColoringModelWrapper<>( display.selectionModel );
 
@@ -89,31 +82,13 @@ public class Viewer
 
 		String sourceName = display.sources.get( 0 );
 		final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
-		List< TableRowImageSegment > segments = createAnnotatedImageSegmentsFromTableFile(
+		display.segments = createAnnotatedImageSegmentsFromTableFile(
 				moBIE2.getAbsoluteDefaultTableLocation( source ),
 				sourceName );
-		final HashMap< LabelFrameAndImage, TableRowImageSegment > labelToSegmentAdapter = SegmentUtils.createSegmentMap( segments );
 
-		// show in imageViewer
-		//
-		final SelectionModelAndLabelAdapter selectionModelAndAdapter = new SelectionModelAndLabelAdapter( display.selectionModel, labelToSegmentAdapter );
-		display.sourceAndConverters = imageViewer.show( display, display.coloringModel, selectionModelAndAdapter );
-		display.selectionModel.listeners().add( imageViewer );
-		display.coloringModel.listeners().add( imageViewer );
-
-		// show in tableViewer
-		//
-		display.tableViewer = new TableViewer<>( segments, display.selectionModel, display.coloringModel, display.name );
-		display.tableViewer.show( imageViewer.getBdvHandle().getViewerPanel() );
-		display.selectionModel.listeners().add( display.tableViewer );
-		display.coloringModel.listeners().add( display.tableViewer );
-
-		// show in scatterPlotViewer
-		//
-		display.scatterPlotViewer = new ScatterPlotViewer<>( segments, display.selectionModel, display.coloringModel, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, new double[]{1.0, 1.0}, 1.0 );
-		display.scatterPlotViewer.show( imageViewer.getBdvHandle().getViewerPanel() );
-		display.selectionModel.listeners().add( display.scatterPlotViewer );
-		display.coloringModel.listeners().add( display.scatterPlotViewer );
-		imageViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
+		ViewerHelper.showInImageViewer( display );
+		ViewerHelper.showInTableViewer( display );
+		ViewerHelper.showInScatterPlotViewer( display );
 	}
+
 }

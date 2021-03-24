@@ -1,10 +1,13 @@
 package de.embl.cba.mobie2.display;
 
 import de.embl.cba.mobie2.color.ColoringModelWrapper;
-import de.embl.cba.mobie2.plot.ScatterPlotViewer;
+import de.embl.cba.mobie2.view.ImageViewer;
+import de.embl.cba.mobie2.view.ScatterPlotViewer;
 import de.embl.cba.mobie2.view.TableViewer;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+
+import java.util.List;
 
 public class SegmentationDisplay extends SourceDisplay
 {
@@ -15,4 +18,5 @@ public class SegmentationDisplay extends SourceDisplay
 	public transient ColoringModelWrapper< TableRowImageSegment > coloringModel;
 	public transient TableViewer< TableRowImageSegment > tableViewer;
 	public transient ScatterPlotViewer< TableRowImageSegment > scatterPlotViewer;
+	public transient List< TableRowImageSegment > segments;
 }
