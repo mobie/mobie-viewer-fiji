@@ -9,6 +9,8 @@ import de.embl.cba.mobie2.json.DatasetJsonParser;
 import de.embl.cba.mobie2.json.ProjectJsonParser;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
+import de.embl.cba.mobie2.view.View;
+import de.embl.cba.mobie2.view.Viewer;
 import de.embl.cba.tables.FileAndUrlUtils;
 import net.imglib2.realtransform.AffineTransform3D;
 

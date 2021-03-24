@@ -1,6 +1,8 @@
-package de.embl.cba.mobie2;
+package de.embl.cba.mobie2.view;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
+import de.embl.cba.mobie2.MoBIE2;
+import de.embl.cba.mobie2.SegmentationSource;
 import de.embl.cba.mobie2.color.MoBIEColoringModel;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
@@ -11,6 +13,7 @@ import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.mobie2.view.ImageViewer;
 import de.embl.cba.mobie2.view.TableViewer;
+import de.embl.cba.mobie2.view.View;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.imagesegment.LabelFrameAndImage;
 import de.embl.cba.tables.imagesegment.SegmentUtils;
@@ -68,12 +71,12 @@ public class Viewer
 		}
 	}
 
-	private void showImageDisplay( ImageDisplay imageDisplay )
+	private void showImageDisplay( ImageDisplay display )
 	{
-		imageDisplay.sourceAndConverters = imageViewer.show( imageDisplay );
+		display.sourceAndConverters = imageViewer.show( display );
 
-		new BrightnessAutoAdjuster( imageDisplay.sourceAndConverters.get( 0 ),0  ).run();
-		new ViewerTransformAdjuster( imageViewer.getBdvHandle(), imageDisplay.sourceAndConverters.get( 0 ) ).run();
+		new BrightnessAutoAdjuster( display.sourceAndConverters.get( 0 ),0  ).run();
+		new ViewerTransformAdjuster( imageViewer.getBdvHandle(), display.sourceAndConverters.get( 0 ) ).run();
 	}
 
 	private void showSegmentationDisplay( SegmentationDisplay display )
@@ -98,14 +101,14 @@ public class Viewer
 		//
 		final SelectionModelAndLabelAdapter selectionModelAndAdapter = new SelectionModelAndLabelAdapter( display.selectionModel, labelToSegmentAdapter );
 		display.sourceAndConverters = imageViewer.show( display, display.coloringModel, selectionModelAndAdapter );
-		display.coloringModel.listeners().add( imageViewer );
+		display.selectionModel.listeners().add( imageViewer );
 		display.coloringModel.listeners().add( imageViewer );
 
 		// show in tableViewer
 		//
 		final TableViewer< TableRowImageSegment > tableViewer = new TableViewer<>( segments, display.selectionModel, display.coloringModel, display.name );
-		tableViewer.showTableAndMenu();
-		display.coloringModel.listeners().add( tableViewer );
+		tableViewer.show( imageViewer.getBdvHandle().getViewerPanel() );
 		display.selectionModel.listeners().add( tableViewer );
+		display.coloringModel.listeners().add( tableViewer );
 	}
 }

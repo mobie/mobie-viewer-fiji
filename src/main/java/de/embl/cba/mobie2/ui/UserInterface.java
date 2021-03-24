@@ -2,6 +2,7 @@ package de.embl.cba.mobie2.ui;
 
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.MoBIE2;
+import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
 
 import javax.swing.*;
@@ -11,7 +12,6 @@ import java.util.HashMap;
 public class UserInterface
 {
 	private final JPanel displaySettingsContainer;
-	private HashMap< Object, JPanel > displayToPanel;
 	private final JFrame frame;
 	private final JPanel actionContainer;
 	private final UserInterfaceHelper userInterfaceHelper;
@@ -19,7 +19,6 @@ public class UserInterface
 	public UserInterface( MoBIE2 moBIE )
 	{
 		userInterfaceHelper = new UserInterfaceHelper( moBIE );
-		displayToPanel = new HashMap<>();
 
 		actionContainer = userInterfaceHelper.createActionPanel();
 		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsPanel();
@@ -73,6 +72,11 @@ public class UserInterface
 			userInterfaceHelper.addImageDisplaySettings( this, ( ImageDisplay ) sourceDisplay );
 			refresh();
 		}
+		else if ( sourceDisplay instanceof SegmentationDisplay )
+		{
+			userInterfaceHelper.addSegmentationDisplaySettings( this, ( SegmentationDisplay ) sourceDisplay );
+			refresh();
+		}
 	}
 
 	protected void removeDisplaySettings( JPanel panel )
@@ -83,7 +87,7 @@ public class UserInterface
 
 	protected void addDisplaySettings( JPanel panel )
 	{
-		displaySettingsContainer.remove( panel );
+		displaySettingsContainer.add( panel );
 		refresh();
 	}
 

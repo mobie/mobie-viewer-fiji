@@ -65,7 +65,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		this.selectionColoringModes = Arrays.asList( SelectionColoringMode.values() );
 
 		this.selectionColor = YELLOW;
-		this.brightnessNotSelected = 0.2;
+		this.brightnessNotSelected = 0.1;
 		this.selectionColoringMode = SelectionColoringMode.DimNotSelected;
 	}
 

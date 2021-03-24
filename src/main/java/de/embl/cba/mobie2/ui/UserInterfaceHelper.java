@@ -17,6 +17,8 @@ import de.embl.cba.mobie2.*;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
+import de.embl.cba.mobie2.view.View;
+import de.embl.cba.mobie2.view.Viewer;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
@@ -36,11 +38,12 @@ import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 
 public class UserInterfaceHelper
 {
-	public static final String BUTTON_LABEL_VIEW = "view";
-	public static final String BUTTON_LABEL_MOVE = "move";
-	public static final String BUTTON_LABEL_HELP = "show";
-	public static final String BUTTON_LABEL_SWITCH = "switch";
-	public static final String BUTTON_LABEL_LEVEL = "level";
+	private static final int[] BUTTON_DIMENSIONS = new int[]{ 50, 30 };
+	private static final String VIEW = "view";
+	private static final String MOVE = "move";
+	private static final String HELP = "show";
+	private static final String SWITCH = "switch";
+	private static final String LEVEL = "level";
 	public static final String ADD = "add";
 
 	private final MoBIE2 moBIE2;
@@ -160,30 +163,19 @@ public class UserInterfaceHelper
 		return actionPanel;
 	}
 
-	public void addImageDisplaySettings( de.embl.cba.mobie2.ui.UserInterface userInterface, ImageDisplay imageDisplay )
+	public void addImageDisplaySettings( UserInterface userInterface, ImageDisplay display )
 	{
-		JPanel panel = new JPanel();
+		JPanel panel = createDisplayPanel( display.name );
 
-		panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
-		panel.setBorder( BorderFactory.createEmptyBorder( 0, 10, 0, 10 ) );
-		panel.add( Box.createHorizontalGlue() );
+		setPanelColor( panel, display.color );
 
-		setPanelColor( panel, imageDisplay.color );
+		JButton colorButton = createColorButton( display, panel, BUTTON_DIMENSIONS );
 
-		JLabel sourceNameLabel = new JLabel( imageDisplay.name );
-		sourceNameLabel.setHorizontalAlignment( SwingUtilities.CENTER );
-		panel.add( sourceNameLabel );
+		final JButton brightnessButton = createImageDisplayBrightnessButton( display, BUTTON_DIMENSIONS );
 
-		int[] buttonDimensions = new int[]{ 50, 30 };
-		int[] viewSelectionDimensions = new int[]{ 50, 30 };
+		final JButton removeButton = createRemoveButton( userInterface, panel, display, BUTTON_DIMENSIONS );
 
-		JButton colorButton = createColorButton( imageDisplay, panel, buttonDimensions );
-
-		final JButton brightnessButton = createBrightnessButton( imageDisplay, buttonDimensions );
-
-		final JButton removeButton = createRemoveButton( userInterface, panel, imageDisplay, buttonDimensions );
-
-		final JCheckBox bigDataViewerVisibilityCheckbox = createVisibilityCheckbox( imageDisplay, buttonDimensions, true );
+		final JCheckBox bigDataViewerVisibilityCheckbox = createVisibilityCheckbox( display, BUTTON_DIMENSIONS, true );
 
 		// TODO: Can we adapt this for source groups?
 //		final JCheckBox volumeVisibilityCheckbox =
@@ -200,7 +192,7 @@ public class UserInterfaceHelper
 		panel.add( bigDataViewerVisibilityCheckbox );
 
 		// make the panel color listen to color changes of the sources
-		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
 		{
 			SourceAndConverterServices.getSourceAndConverterDisplayService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
 				// color changed listener
@@ -211,11 +203,46 @@ public class UserInterfaceHelper
 		userInterface.addDisplaySettings( panel );
 	}
 
-	public JPanel createDisplaySettingsPanel( SegmentationDisplay segmentationDisplay )
+	private JPanel createDisplayPanel( String name )
 	{
-		// TODO: this is quite different because of the different coloring
-		return null;
+		JPanel panel = new JPanel();
+		panel.setLayout( new BoxLayout( panel, BoxLayout.LINE_AXIS ) );
+		panel.setBorder( BorderFactory.createEmptyBorder( 0, 10, 0, 10 ) );
+		panel.add( Box.createHorizontalGlue() );
+		JLabel label = new JLabel(name );
+		label.setHorizontalAlignment( SwingUtilities.CENTER );
+		panel.add( label );
+
+		return panel;
 	}
+
+	public void addSegmentationDisplaySettings( UserInterface userInterface, SegmentationDisplay display )
+	{
+		JPanel panel = createDisplayPanel( display.name );
+
+		// TODO: make use of alpha
+//		final JButton brightnessButton = createImageDisplayBrightnessButton( display, BUTTON_DIMENSIONS );
+
+		final JButton removeButton = createRemoveButton( userInterface, panel, display, BUTTON_DIMENSIONS );
+
+		final JCheckBox bigDataViewerVisibilityCheckbox = createVisibilityCheckbox( display, BUTTON_DIMENSIONS, true );
+
+		// TODO: Can we adapt this for source groups?
+//		final JCheckBox volumeVisibilityCheckbox =
+//				createVolumeViewVisibilityCheckbox(
+//						displayManager,
+//						viewSelectionDimensions,
+//						sourceAndMetadataList.get( 0 ),
+//						sourceAndMetadataList.get( 0 ).metadata().showImageIn3d || sourceAndMetadataList.get( 0 ).metadata().showSelectedSegmentsIn3d );
+
+		//panel.add( brightnessButton );
+		panel.add( removeButton );
+		//panel.add( volumeVisibilityCheckbox );
+		panel.add( bigDataViewerVisibilityCheckbox );
+
+		userInterface.addDisplaySettings( panel );
+	}
+
 
 	public JPanel createViewsSelectionPanel( HashMap< String, View > views, Viewer viewer )
 	{
@@ -279,7 +306,7 @@ public class UserInterfaceHelper
 
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = getButton( BUTTON_LABEL_LEVEL );
+		final JButton button = getButton( LEVEL );
 		horizontalLayoutPanel.add( button );
 
 		// TODO: if below code is needed make an own Levelling class
@@ -307,7 +334,7 @@ public class UserInterfaceHelper
 	public JPanel createBookmarksPanel( final BookmarkManager bookmarkManager )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-		final JButton button = getButton( BUTTON_LABEL_VIEW );
+		final JButton button = getButton( VIEW );
 		final Set< String > bookmarkNames = bookmarkManager.getBookmarkNames();
 		JComboBox comboBox = new JComboBox<>( bookmarkNames.toArray( new String[bookmarkNames.size()] ) );
 		setComboBoxDimensions( comboBox );
@@ -325,7 +352,7 @@ public class UserInterfaceHelper
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = getButton( BUTTON_LABEL_MOVE );
+		final JButton button = getButton( MOVE );
 
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
@@ -343,7 +370,7 @@ public class UserInterfaceHelper
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = getButton( BUTTON_LABEL_HELP );
+		final JButton button = getButton( HELP );
 
 		final MoBIEInfo moBIEInfo = new MoBIEInfo( projectLocation, publicationURL );
 
@@ -458,7 +485,7 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JButton createBrightnessButton( ImageDisplay imageDisplay, int[] buttonDimensions )
+	public static JButton createImageDisplayBrightnessButton( ImageDisplay imageDisplay, int[] buttonDimensions )
 	{
 		JButton button = new JButton( "B" );
 		button.setPreferredSize( new Dimension(
@@ -529,6 +556,7 @@ public class UserInterfaceHelper
 		{
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
 			{
+				final Set< BdvHandle > bdvHandles = SourceAndConverterServices.getSourceAndConverterDisplayService().getDisplaysOf( sourceAndConverter );
 				SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
 			}
 

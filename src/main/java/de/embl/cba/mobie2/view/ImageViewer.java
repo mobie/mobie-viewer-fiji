@@ -113,8 +113,6 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		}
 	}
 
-
-
 	private BdvHandle createBdv()
 	{
 		BdvCreator creator = new BdvCreator( BdvOptions.options(), true, 1 );
@@ -137,6 +135,8 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 			sourceAndConverters.add( sourceAndConverter );
 
 			displayService.show( bdvHandle, sourceAndConverter );
+			// TODO: BUG in BDV-PL?
+			final Set< BdvHandle > bdvHandles = displayService.getDisplaysOf( sourceAndConverter );
 
 			if ( imageDisplays.contrastLimits != null )
 			{

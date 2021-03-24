@@ -111,6 +111,25 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		registerAsTableRowListener( tableRows );
 	}
 
+	public void show( Component parentComponent )
+	{
+		this.parentComponent = SwingUtilities.getWindowAncestor( parentComponent );
+		show();
+	}
+
+	public void show()
+	{
+		configureJTable();
+
+		if ( selectionModel != null )
+			installSelectionModelNotification();
+
+		if ( coloringModel != null)
+			configureTableRowColoring();
+
+		createAndShowMenu();
+	}
+
 	public void registerAsTableRowListener( List< T > tableRows )
 	{
 		for ( T tableRow : tableRows )
@@ -131,24 +150,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		return tableRows;
 	}
 
-	public void showTableAndMenu( Component parentComponent )
-	{
-		this.parentComponent = SwingUtilities.getWindowAncestor( parentComponent );
-		showTableAndMenu();
-	}
-
-	public void showTableAndMenu()
-	{
-		configureJTable();
-
-		if ( selectionModel != null )
-			installSelectionModelNotification();
-
-		if ( coloringModel != null)
-			configureTableRowColoring();
-
-		createAndShowMenu();
-	}
 
 	private void configureTableRowColoring()
 	{
