@@ -226,13 +226,7 @@ public class UserInterfaceHelper
 		// TODO: make use of alpha
 //		final JButton brightnessButton = createImageDisplayBrightnessButton( display, BUTTON_DIMENSIONS );
 
-		final JButton removeButton = createRemoveButton( userInterface, panel, display );
-
-		final JCheckBox imageViewerVisibilityCheckbox = createImageViewerVisibilityCheckbox( display, true );
-
-		final JCheckBox tableViewerVisibilityCheckbox = createTableViewerVisibilityCheckbox( display, true );
-
-		// TODO: Can we adapt this for source groups?
+		// TODO:
 //		final JCheckBox volumeVisibilityCheckbox =
 //				createVolumeViewVisibilityCheckbox(
 //						displayManager,
@@ -241,10 +235,11 @@ public class UserInterfaceHelper
 //						sourceAndMetadataList.get( 0 ).metadata().showImageIn3d || sourceAndMetadataList.get( 0 ).metadata().showSelectedSegmentsIn3d );
 
 		//panel.add( brightnessButton );
-		panel.add( removeButton );
+		panel.add( createRemoveButton( userInterface, panel, display ) );
 		//panel.add( volumeVisibilityCheckbox );
-		panel.add( imageViewerVisibilityCheckbox );
-		panel.add( tableViewerVisibilityCheckbox );
+		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
+		panel.add( createTableViewerVisibilityCheckbox( display, true ) );
+		panel.add( createScatterPlotViewerVisibilityCheckbox( display, true ) );
 
 		userInterface.addDisplaySettings( panel );
 	}

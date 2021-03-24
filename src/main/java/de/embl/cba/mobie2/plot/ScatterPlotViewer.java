@@ -147,8 +147,8 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 	private void configureWindow( int x, int y )
 	{
-		setWindowPosition( x, y );
 		window = SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
+		window.setLocation( x, y );
 		window.addWindowListener(
 				new WindowAdapter() {
 					public void windowClosing( WindowEvent ev) {
@@ -236,7 +236,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 				randomAccessible,
 				interval,
 				createPlotName( selectedColumns ),
-				BdvOptions.options().is2D().frameTitle( createPlotName( selectedColumns ) ) ).getBdvHandle();
+				BdvOptions.options().is2D().frameTitle( createPlotName( selectedColumns ) ).preferredSize( 600, 600 ) ).getBdvHandle();
 	}
 
 	private static String createPlotName( String[] selectedColumns )
@@ -246,7 +246,8 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 	public void setWindowPosition( int x, int y )
 	{
-		BdvUtils.getViewerFrame( bdvHandle ).setLocation( x, y );
+
+
 	}
 
 	public List< T > getTableRows()
