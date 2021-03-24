@@ -7,6 +7,8 @@ import de.embl.cba.mobie.ui.MoBIEOptions;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
 import de.embl.cba.mobie2.json.DatasetJsonParser;
 import de.embl.cba.mobie2.json.ProjectJsonParser;
+import de.embl.cba.mobie2.source.ImageSource;
+import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.view.View;

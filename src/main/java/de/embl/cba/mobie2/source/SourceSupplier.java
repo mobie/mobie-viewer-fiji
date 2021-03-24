@@ -1,4 +1,7 @@
-package de.embl.cba.mobie2;
+package de.embl.cba.mobie2.source;
+
+import de.embl.cba.mobie2.source.ImageSource;
+import de.embl.cba.mobie2.source.SegmentationSource;
 
 public class SourceSupplier
 {

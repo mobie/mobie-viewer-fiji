@@ -28,15 +28,17 @@
  */
 package de.embl.cba.mobie2.color;
 
+import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.tables.color.AbstractColoringModel;
 import de.embl.cba.tables.color.ColoringModel;
+import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.select.SelectionModel;
 import net.imglib2.type.numeric.ARGBType;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
+public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
 {
 	private ColoringModel< T > coloringModel;
 	private SelectionModel< T > selectionModel;
@@ -56,11 +58,9 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		DimNotSelected
 	}
 
-	public MoBIEColoringModel(
-			ColoringModel< T > coloringModel,
-			SelectionModel< T > selectionModel )
+	public ColoringModelWrapper( SelectionModel< T > selectionModel )
 	{
-		setColoringModel( coloringModel );
+		setColoringModel( new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) ) );
 		this.selectionModel = selectionModel;
 		this.selectionColoringModes = Arrays.asList( SelectionColoringMode.values() );
 

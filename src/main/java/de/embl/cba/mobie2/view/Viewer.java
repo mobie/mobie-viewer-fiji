@@ -1,9 +1,8 @@
 package de.embl.cba.mobie2.view;
 
-import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie2.MoBIE2;
-import de.embl.cba.mobie2.SegmentationSource;
-import de.embl.cba.mobie2.color.MoBIEColoringModel;
+import de.embl.cba.mobie2.source.SegmentationSource;
+import de.embl.cba.mobie2.color.ColoringModelWrapper;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
@@ -11,10 +10,6 @@ import de.embl.cba.mobie2.display.SourceDisplaySupplier;
 import de.embl.cba.mobie2.select.SelectionModelAndLabelAdapter;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.ui.UserInterface;
-import de.embl.cba.mobie2.view.ImageViewer;
-import de.embl.cba.mobie2.view.TableViewer;
-import de.embl.cba.mobie2.view.View;
-import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.imagesegment.LabelFrameAndImage;
 import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.select.DefaultSelectionModel;
@@ -82,7 +77,7 @@ public class Viewer
 	private void showSegmentationDisplay( SegmentationDisplay display )
 	{
 		display.selectionModel = new DefaultSelectionModel< TableRowImageSegment >();
-		display.coloringModel = new MoBIEColoringModel<>( new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) ), display.selectionModel );
+		display.coloringModel = new ColoringModelWrapper<>( display.selectionModel );
 
 		if ( display.sources.size() > 1 )
 		{
@@ -106,9 +101,12 @@ public class Viewer
 
 		// show in tableViewer
 		//
-		final TableViewer< TableRowImageSegment > tableViewer = new TableViewer<>( segments, display.selectionModel, display.coloringModel, display.name );
-		tableViewer.show( imageViewer.getBdvHandle().getViewerPanel() );
-		display.selectionModel.listeners().add( tableViewer );
-		display.coloringModel.listeners().add( tableViewer );
+		display.tableViewer = new TableViewer<>( segments, display.selectionModel, display.coloringModel, display.name );
+		display.tableViewer.show( imageViewer.getBdvHandle().getViewerPanel() );
+
+		display.selectionModel.listeners().add( display.tableViewer );
+		display.coloringModel.listeners().add( display.tableViewer );
+
+
 	}
 }

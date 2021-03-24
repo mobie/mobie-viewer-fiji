@@ -1,17 +1,18 @@
 package de.embl.cba.mobie2.view;
 
 import bdv.util.BdvHandle;
-import bdv.util.BdvOptions;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie2.*;
-import de.embl.cba.mobie2.color.MoBIEColoringModel;
+import de.embl.cba.mobie2.color.ColoringModelWrapper;
 import de.embl.cba.mobie2.color.LabelConverter;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.select.SelectionModelAndLabelAdapter;
+import de.embl.cba.mobie2.source.ImageSource;
+import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.imagesegment.ImageSegment;
@@ -23,9 +24,10 @@ import net.imglib2.RealPoint;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
-import sc.fiji.bdvpg.bdv.BdvCreator;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
+import sc.fiji.bdvpg.bdv.projector.Projection;
+import sc.fiji.bdvpg.scijava.command.bdv.BdvWindowCreatorCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
@@ -115,9 +117,15 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 
 	private BdvHandle createBdv()
 	{
-		BdvCreator creator = new BdvCreator( BdvOptions.options(), true, 1 );
-		creator.run();
-		return creator.get();
+		final BdvWindowCreatorCommand command = new BdvWindowCreatorCommand();
+		command.is2D = is2D;
+		command.interpolate = true;
+		command.nTimepoints = 1; // TODO
+		command.windowTitle = "MoBIE"; // TODO
+		command.projector = Projection.MIXED_PROJECTOR;
+		command.run();
+
+		return command.bdvh;
 	}
 
 	public List< SourceAndConverter< ? > > show( ImageDisplay imageDisplays )
@@ -151,7 +159,7 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		return sourceAndConverters;
 	}
 
-	public List< SourceAndConverter< ? > > show( SegmentationDisplay segmentationDisplay, MoBIEColoringModel coloringModel, SelectionModelAndLabelAdapter selectionModelAndAdapter )
+	public List< SourceAndConverter< ? > > show( SegmentationDisplay segmentationDisplay, ColoringModelWrapper coloringModel, SelectionModelAndLabelAdapter selectionModelAndAdapter )
 	{
 		final ArrayList< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
 

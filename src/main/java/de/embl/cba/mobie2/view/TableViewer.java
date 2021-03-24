@@ -32,7 +32,7 @@ import bdv.tools.HelpDialog;
 import de.embl.cba.bdv.utils.lut.ARGBLut;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie2.annotate.Annotator;
-import de.embl.cba.mobie2.color.MoBIEColoringModel;
+import de.embl.cba.mobie2.color.ColoringModelWrapper;
 import de.embl.cba.tables.*;
 import de.embl.cba.tables.color.*;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
@@ -68,7 +68,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 {
 	private final List< T > tableRows;
 	private final SelectionModel< T > selectionModel;
-	private final MoBIEColoringModel< T > coloringModel;
+	private final ColoringModelWrapper< T > coloringModel;
 	private final String tableName;
 
 	private JTable table;
@@ -97,11 +97,11 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	public TableViewer(
 			final List< T > tableRows,
 			final SelectionModel< T > selectionModel,
-			final MoBIEColoringModel< T > moBIEColoringModel,
+			final ColoringModelWrapper< T > coloringModelWrapper,
 			String tableName )
 	{
 		this.tableRows = tableRows;
-		this.coloringModel = moBIEColoringModel;
+		this.coloringModel = coloringModelWrapper;
 		this.selectionModel = selectionModel;
 		this.tableName = tableName;
 		this.recentlySelectedRowInView = -1;
@@ -563,7 +563,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			columnNameToColoringModel.put( columnName, categoricalColoringModel );
 		}
 
-		coloringModel.setSelectionColoringMode( MoBIEColoringModel.SelectionColoringMode.DimNotSelected );
+		coloringModel.setSelectionColoringMode( ColoringModelWrapper.SelectionColoringMode.DimNotSelected );
 		coloringModel.setColoringModel( columnNameToColoringModel.get( columnName ) );
 		final RowSorter< ? extends TableModel > rowSorter = table.getRowSorter();
 
@@ -611,14 +611,14 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 					screenSize.height - ( parentComponent.getHeight() + parentComponent.getLocationOnScreen().y ) - 50  ) );
 		}
 
-		//Display the window.
+		// Display the window.
 		frame.pack();
 
-		// Disable closing
-		frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		// Replace closing by making it invisible
+		frame.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
 		frame.addWindowListener( new WindowAdapter() {
 			public void windowClosing( WindowEvent ev) {
-				//frame.dispose();
+				frame.setVisible( false );
 			}
 		});
 
@@ -866,9 +866,9 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		frame.dispose();
 	}
 
-	public void setVisible( boolean visible )
+	public JFrame getFrame()
 	{
-		frame.setVisible( visible );
+		return frame;
 	}
 
 	@Override

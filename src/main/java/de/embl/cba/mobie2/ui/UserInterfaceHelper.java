@@ -30,6 +30,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -39,6 +41,7 @@ import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 public class UserInterfaceHelper
 {
 	private static final int[] BUTTON_DIMENSIONS = new int[]{ 50, 30 };
+	public static final Dimension PREFERRED_BUTTON_SIZE = new Dimension( BUTTON_DIMENSIONS[ 0 ], BUTTON_DIMENSIONS[ 1 ] );
 	private static final String VIEW = "view";
 	private static final String MOVE = "move";
 	private static final String HELP = "show";
@@ -169,13 +172,13 @@ public class UserInterfaceHelper
 
 		setPanelColor( panel, display.color );
 
-		JButton colorButton = createColorButton( display, panel, BUTTON_DIMENSIONS );
+		JButton colorButton = createColorButton( display, panel );
 
-		final JButton brightnessButton = createImageDisplayBrightnessButton( display, BUTTON_DIMENSIONS );
+		final JButton brightnessButton = createImageDisplayBrightnessButton( display );
 
-		final JButton removeButton = createRemoveButton( userInterface, panel, display, BUTTON_DIMENSIONS );
+		final JButton removeButton = createRemoveButton( userInterface, panel, display );
 
-		final JCheckBox bigDataViewerVisibilityCheckbox = createVisibilityCheckbox( display, BUTTON_DIMENSIONS, true );
+		final JCheckBox bigDataViewerVisibilityCheckbox = createImageViewerVisibilityCheckbox( display, true );
 
 		// TODO: Can we adapt this for source groups?
 //		final JCheckBox volumeVisibilityCheckbox =
@@ -223,9 +226,11 @@ public class UserInterfaceHelper
 		// TODO: make use of alpha
 //		final JButton brightnessButton = createImageDisplayBrightnessButton( display, BUTTON_DIMENSIONS );
 
-		final JButton removeButton = createRemoveButton( userInterface, panel, display, BUTTON_DIMENSIONS );
+		final JButton removeButton = createRemoveButton( userInterface, panel, display );
 
-		final JCheckBox bigDataViewerVisibilityCheckbox = createVisibilityCheckbox( display, BUTTON_DIMENSIONS, true );
+		final JCheckBox imageViewerVisibilityCheckbox = createImageViewerVisibilityCheckbox( display, true );
+
+		final JCheckBox tableViewerVisibilityCheckbox = createTableViewerVisibilityCheckbox( display, true );
 
 		// TODO: Can we adapt this for source groups?
 //		final JCheckBox volumeVisibilityCheckbox =
@@ -238,7 +243,8 @@ public class UserInterfaceHelper
 		//panel.add( brightnessButton );
 		panel.add( removeButton );
 		//panel.add( volumeVisibilityCheckbox );
-		panel.add( bigDataViewerVisibilityCheckbox );
+		panel.add( imageViewerVisibilityCheckbox );
+		panel.add( tableViewerVisibilityCheckbox );
 
 		userInterface.addDisplaySettings( panel );
 	}
@@ -431,14 +437,13 @@ public class UserInterfaceHelper
 		new MoBIE( moBIE2.getProjectLocation(), moBIE2.getOptions().dataset( dataset ) );
 	}
 
-	public static JCheckBox createVisibilityCheckbox(
+	private static JCheckBox createImageViewerVisibilityCheckbox(
 			SourceDisplay sourceDisplay,
-			int[] buttonDimensions,
 			boolean isVisible )
 	{
 		JCheckBox checkBox = new JCheckBox( "S" );
 		checkBox.setSelected( isVisible );
-		checkBox.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
+		checkBox.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		checkBox.addActionListener( new ActionListener()
 		{
@@ -447,6 +452,7 @@ public class UserInterfaceHelper
 			{
 				for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
 				{
+					// TODO: replace by new API: isVisible
 					if ( checkBox.isSelected() )
 						SourceAndConverterServices.getSourceAndConverterDisplayService().makeVisible( sourceAndConverter );
 					else
@@ -454,6 +460,25 @@ public class UserInterfaceHelper
 				}
 			}
 		} );
+
+		return checkBox;
+	}
+
+	private static JCheckBox createTableViewerVisibilityCheckbox(
+			SegmentationDisplay sourceDisplay,
+			boolean isVisible )
+	{
+		JCheckBox checkBox = new JCheckBox( "T" );
+		checkBox.setSelected( isVisible );
+		checkBox.setPreferredSize( PREFERRED_BUTTON_SIZE );
+		checkBox.addActionListener( e -> sourceDisplay.tableViewer.getFrame().setVisible( checkBox.isSelected() ) );
+
+		sourceDisplay.tableViewer.getFrame().addWindowListener(
+				new WindowAdapter() {
+					public void windowClosing( WindowEvent ev) {
+						checkBox.setSelected( false );
+					}
+		});
 
 		return checkBox;
 	}
@@ -485,12 +510,10 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JButton createImageDisplayBrightnessButton( ImageDisplay imageDisplay, int[] buttonDimensions )
+	public static JButton createImageDisplayBrightnessButton( ImageDisplay imageDisplay )
 	{
 		JButton button = new JButton( "B" );
-		button.setPreferredSize( new Dimension(
-				buttonDimensions[ 0 ],
-				buttonDimensions[ 1 ] ) );
+		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
 		{
@@ -510,11 +533,11 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	private static JButton createColorButton( ImageDisplay imageDisplay, JPanel parentPanel, int[] buttonDimensions )
+	private static JButton createColorButton( ImageDisplay imageDisplay, JPanel parentPanel )
 	{
 		JButton colorButton = new JButton( "C" );
 
-		colorButton.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
+		colorButton.setPreferredSize( PREFERRED_BUTTON_SIZE);
 
 		colorButton.addActionListener( e ->
 		{
@@ -546,11 +569,10 @@ public class UserInterfaceHelper
 	private static JButton createRemoveButton(
 			final de.embl.cba.mobie2.ui.UserInterface userInterface,
 			JPanel panel,
-			SourceDisplay sourceDisplay,
-			int[] buttonDimensions )
+			SourceDisplay sourceDisplay )
 	{
 		JButton removeButton = new JButton( "X" );
-		removeButton.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
+		removeButton.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		removeButton.addActionListener( e ->
 		{
