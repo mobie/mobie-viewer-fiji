@@ -24,8 +24,10 @@ import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import ij.WindowManager;
+import net.imglib2.type.numeric.RealType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
+import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -156,7 +158,7 @@ public class UserInterfaceHelper
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		// actionPanel.add( createDatasetSelectionPanel() );
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		actionPanel.add( createViewsSelectionPanel( moBIE2.getViews(), moBIE2.getViewer() ) );
+		actionPanel.add( createViewsSelectionPanel( ) );
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		actionPanel.add( createMoveToLocationPanel( )  );
 
@@ -246,9 +248,9 @@ public class UserInterfaceHelper
 		userInterface.addDisplaySettings( panel );
 	}
 
-
-	public JPanel createViewsSelectionPanel( HashMap< String, View > views, Viewer viewer )
+	public JPanel createViewsSelectionPanel( )
 	{
+		final HashMap< String, View > views = moBIE2.getViews();
 
 		Map< String, Map< String, View > > groupingsToViews = new HashMap<>(  );
 
@@ -265,7 +267,7 @@ public class UserInterfaceHelper
 
 		for ( String grouping : groupingsToViews.keySet() )
 		{
-			final JPanel selectionPanel = createSelectionPanel( viewer, grouping, groupingsToViews.get( grouping ) );
+			final JPanel selectionPanel = createSelectionPanel( moBIE2, grouping, groupingsToViews.get( grouping ) );
 			containerPanel.add( selectionPanel );
 		}
 
@@ -279,7 +281,7 @@ public class UserInterfaceHelper
 		return viewsSelectionPanelHeight;
 	}
 
-	private JPanel createSelectionPanel( Viewer viewer, String panelName, Map< String, View > views )
+	private JPanel createSelectionPanel( MoBIE2 moBIE2, String panelName, Map< String, View > views )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
@@ -292,7 +294,7 @@ public class UserInterfaceHelper
 			{
 				final String viewName = ( String ) comboBox.getSelectedItem();
 				final View view = views.get( viewName );
-				viewer.show( view );
+				moBIE2.getViewer().show( view );
 			} );
 		} );
 
@@ -495,6 +497,7 @@ public class UserInterfaceHelper
 					if ( recreate.get() )
 					{
 						ViewerHelper.showInScatterPlotViewer( display );
+						recreate.set( false );
 					}
 					else
 					{
@@ -505,14 +508,16 @@ public class UserInterfaceHelper
 		display.scatterPlotViewer.getWindow().addWindowListener(
 				new WindowAdapter() {
 					public void windowClosing( WindowEvent ev) {
-						// BDV Window has been closed.
-						// Simply setting it visible again does not work,
-						// probably because BDV itself is listening to the
-						// window closing and releases some resources.
-						// Thus we need to recreate it from scratch
 						SwingUtilities.invokeLater( () ->
 						{
 							checkBox.setSelected( false );
+
+							// The scatterPlot BDV Window has been closed.
+							// Simply setting it visible again does not work,
+							// but leads to an empty window.
+							// Probably because BDV itself is listening to the
+							// window closing and releases some resources?!
+							// Thus we need to recreate it from scratch.
 							recreate.set( true );
 						} );
 					}
@@ -521,6 +526,10 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
+	// TODO: Not clear what we want here... close the whole window
+	//   or remove the segments? Probably remove segments, because it can be
+	//   interesting to see segments from different segmentation sources
+	//   together in the same volume rendering
 	public static JCheckBox createVolumeViewVisibilityCheckbox(
 			SourcesDisplayManager sourcesDisplayManager,
 			int[] dims,
@@ -537,6 +546,7 @@ public class UserInterfaceHelper
 			public void actionPerformed( ActionEvent e )
 			{
 				new Thread( () -> {
+					// TODO: Old code, will not work
 					sam.metadata().showImageIn3d = checkBox.isSelected();
 					sam.metadata().showSelectedSegmentsIn3d = checkBox.isSelected();
 					sourcesDisplayManager.updateSegments3dView( sam, sourcesDisplayManager );

@@ -64,11 +64,11 @@ public class MoBIE2
 
 		final UserInterface userInterface = new UserInterface( this );
 
-		UserInterfaceHelper.setLogWindowPositionAndSize( userInterface.getFrame() );
-
 		viewer = new Viewer( this, userInterface, dataset.is2D );
 		viewer.show( dataset.views.get( viewName ) );
 
+		// arrange windows
+		UserInterfaceHelper.setLogWindowPositionAndSize( userInterface.getFrame() );
 		UserInterfaceHelper.setBdvWindowPositionAndSize( viewer.getImageViewer().getBdvHandle(), userInterface.getFrame() );
 
 		//configureDatasetsRootLocations();

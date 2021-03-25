@@ -7,12 +7,15 @@ import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.display.SourceDisplaySupplier;
+import de.embl.cba.mobie2.transform.SourceTransformerSupplier;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.sourceandconverter.display.BrightnessAutoAdjuster;
+
+import java.util.List;
 
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
 
@@ -37,34 +40,35 @@ public class Viewer
 
 	public void show( View view )
 	{
-		// Apply all sourceTransforms
-		// ...
-
 		// Show the sources
-		for ( SourceDisplaySupplier displaySupplier : view.sourceDisplays )
+		if ( view.sourceDisplays != null )
 		{
-			final SourceDisplay sourceDisplay = displaySupplier.get();
-
-			if ( sourceDisplay instanceof ImageDisplay )
+			for ( SourceDisplaySupplier displaySupplier : view.sourceDisplays )
 			{
-				showImageDisplay( ( ImageDisplay ) sourceDisplay );
-			}
-			else if ( sourceDisplay instanceof SegmentationDisplay )
-			{
-				showSegmentationDisplay( ( SegmentationDisplay ) sourceDisplay );
-			}
+				final SourceDisplay sourceDisplay = displaySupplier.get();
 
-			userInterface.addDisplaySettings( sourceDisplay );
+				if ( sourceDisplay instanceof ImageDisplay )
+				{
+					showImageDisplay( ( ImageDisplay ) sourceDisplay, view.sourceTransforms );
+				} else if ( sourceDisplay instanceof SegmentationDisplay )
+				{
+					showSegmentationDisplay( ( SegmentationDisplay ) sourceDisplay );
+				}
+
+				userInterface.addDisplaySettings( sourceDisplay );
+			}
 		}
+
+		// Adjust the viewer transform
 	}
 
-	private void showImageDisplay( ImageDisplay display )
+	private void showImageDisplay( ImageDisplay sourceDisplay, List< SourceTransformerSupplier > sourceTransforms )
 	{
-		display.imageViewer = imageViewer;
-		display.sourceAndConverters = imageViewer.show( display );
+		sourceDisplay.imageViewer = imageViewer;
+		sourceDisplay.sourceAndConverters = imageViewer.show( sourceDisplay, sourceTransforms );
 
-		new BrightnessAutoAdjuster( display.sourceAndConverters.get( 0 ),0  ).run();
-		new ViewerTransformAdjuster( imageViewer.getBdvHandle(), display.sourceAndConverters.get( 0 ) ).run();
+		new BrightnessAutoAdjuster( sourceDisplay.sourceAndConverters.get( 0 ),0  ).run();
+		new ViewerTransformAdjuster( imageViewer.getBdvHandle(), sourceDisplay.sourceAndConverters.get( 0 ) ).run();
 	}
 
 	private void showSegmentationDisplay( SegmentationDisplay display )

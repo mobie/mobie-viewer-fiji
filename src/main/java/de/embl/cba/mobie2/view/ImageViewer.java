@@ -13,6 +13,7 @@ import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.select.SelectionModelAndLabelAdapter;
 import de.embl.cba.mobie2.source.ImageSource;
 import de.embl.cba.mobie2.source.SegmentationSource;
+import de.embl.cba.mobie2.transform.SourceTransformerSupplier;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.imagesegment.ImageSegment;
@@ -32,6 +33,7 @@ import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
+import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -128,29 +130,43 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		return command.bdvh;
 	}
 
-	public List< SourceAndConverter< ? > > show( ImageDisplay imageDisplays )
+	public List< SourceAndConverter< ? > > show( ImageDisplay sourceDisplay, List< SourceTransformerSupplier > sourceTransforms )
 	{
-		final ArrayList< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
+		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
 
-		for ( String sourceName : imageDisplays.sources )
+		// open
+		for ( String sourceName : sourceDisplay.sources )
 		{
 			final ImageSource source = moBIE2.getSource( sourceName );
 			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getAbsoluteImageLocation( source ) );
 			final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
-
-			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  imageDisplays.color ) ).run();
-
 			sourceAndConverters.add( sourceAndConverter );
+		}
+
+		// transform
+		if ( sourceTransforms != null )
+		{
+			for ( SourceTransformerSupplier sourceTransform : sourceTransforms )
+			{
+				sourceAndConverters = sourceTransform.get().transform( sourceAndConverters );
+			}
+		}
+
+		// show
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		{
+			// TODO: register the bdvHandle
+
+			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  sourceDisplay.color ) ).run();
 
 			displayService.show( bdvHandle, sourceAndConverter );
-			// TODO: BUG in BDV-PL?
-			final Set< BdvHandle > bdvHandles = displayService.getDisplaysOf( sourceAndConverter );
 
-			if ( imageDisplays.contrastLimits != null )
+			// TODO: are they always there?
+			if ( sourceDisplay.contrastLimits != null )
 			{
-				displayService.getConverterSetup( sourceAndConverter ).setDisplayRange( imageDisplays.contrastLimits[ 0 ], imageDisplays.contrastLimits[ 1 ] );
-			}
-			else
+				displayService.getConverterSetup( sourceAndConverter ).setDisplayRange( sourceDisplay.contrastLimits[ 0 ], sourceDisplay.contrastLimits[ 1 ] );
+
+			} else
 			{
 				// TODO: auto adjust contrast? may be expensive...
 			}
