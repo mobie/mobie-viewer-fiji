@@ -4,6 +4,8 @@ import de.embl.cba.mobie2.transform.AffineSourceTransformer;
 import de.embl.cba.mobie2.transform.AutoGridSourceTransformer;
 import de.embl.cba.mobie2.transform.SourceTransformer;
 
+import java.io.Serializable;
+
 public class SourceTransformerSupplier
 {
 	private AffineSourceTransformer affine;

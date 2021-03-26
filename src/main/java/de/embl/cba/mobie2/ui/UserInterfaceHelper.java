@@ -25,11 +25,13 @@ import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import ij.WindowManager;
 import net.imglib2.type.numeric.RealType;
+import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
 
 import javax.swing.*;
+import javax.xml.transform.Source;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -176,14 +178,6 @@ public class UserInterfaceHelper
 
 		setPanelColor( panel, display.color );
 
-		JButton colorButton = createColorButton( display, panel );
-
-		final JButton brightnessButton = createImageDisplayBrightnessButton( display );
-
-		final JButton removeButton = createRemoveButton( userInterface, panel, display );
-
-		final JCheckBox bigDataViewerVisibilityCheckbox = createImageViewerVisibilityCheckbox( display, true );
-
 		// TODO: Can we adapt this for source groups?
 //		final JCheckBox volumeVisibilityCheckbox =
 //				createVolumeViewVisibilityCheckbox(
@@ -192,11 +186,12 @@ public class UserInterfaceHelper
 //						sourceAndMetadataList.get( 0 ),
 //						sourceAndMetadataList.get( 0 ).metadata().showImageIn3d || sourceAndMetadataList.get( 0 ).metadata().showSelectedSegmentsIn3d );
 
-		panel.add( colorButton );
-		panel.add( brightnessButton );
-		panel.add( removeButton );
+		panel.add( createFocusButton( display ) );
+		panel.add( createColorButton( display, panel ) );
+		panel.add( createImageDisplayBrightnessButton( display ) );
+		panel.add( createRemoveButton( userInterface, panel, display ) );
 		//panel.add( volumeVisibilityCheckbox );
-		panel.add( bigDataViewerVisibilityCheckbox );
+		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
 
 		// make the panel color listen to color changes of the sources
 		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
@@ -239,6 +234,7 @@ public class UserInterfaceHelper
 //						sourceAndMetadataList.get( 0 ).metadata().showImageIn3d || sourceAndMetadataList.get( 0 ).metadata().showSelectedSegmentsIn3d );
 
 		//panel.add( brightnessButton );
+		panel.add( createFocusButton( display ) );
 		panel.add( createRemoveButton( userInterface, panel, display ) );
 		//panel.add( volumeVisibilityCheckbox );
 		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
@@ -558,6 +554,24 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
+	public static JButton createFocusButton( SourceDisplay sourceDisplay )
+	{
+		JButton button = new JButton( "F" );
+		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
+
+		button.addActionListener( e ->
+		{
+			for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
+			{
+				// TODO: make this work for multiple!
+				new ViewerTransformAdjuster( sourceDisplay.imageViewer.getBdvHandle(), sourceAndConverter ).run();
+			}
+		} );
+
+		return button;
+	}
+
+
 	public static JButton createImageDisplayBrightnessButton( ImageDisplay imageDisplay )
 	{
 		JButton button = new JButton( "B" );
@@ -628,6 +642,12 @@ public class UserInterfaceHelper
 			{
 				final Set< BdvHandle > bdvHandles = SourceAndConverterServices.getSourceAndConverterDisplayService().getDisplaysOf( sourceAndConverter );
 				SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+			}
+
+			if ( sourceDisplay instanceof SegmentationDisplay )
+			{
+				( ( SegmentationDisplay ) sourceDisplay ).tableViewer.getFrame().dispose();
+				( ( SegmentationDisplay ) sourceDisplay ).scatterPlotViewer.getWindow().dispose();
 			}
 
 			userInterface.removeDisplaySettings( panel );

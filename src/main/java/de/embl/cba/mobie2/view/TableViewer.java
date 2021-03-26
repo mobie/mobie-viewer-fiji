@@ -861,11 +861,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			this.coloringModel.setColoringModel( coloringModel );
 	}
 
-	public void dispose()
-	{
-		frame.dispose();
-	}
-
 	public JFrame getFrame()
 	{
 		return frame;

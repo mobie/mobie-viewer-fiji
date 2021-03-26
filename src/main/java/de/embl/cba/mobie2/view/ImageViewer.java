@@ -156,20 +156,9 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			// TODO: register the bdvHandle
-
 			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  sourceDisplay.color ) ).run();
-
 			displayService.show( bdvHandle, sourceAndConverter );
-
-			// TODO: are they always there?
-			if ( sourceDisplay.contrastLimits != null )
-			{
-				displayService.getConverterSetup( sourceAndConverter ).setDisplayRange( sourceDisplay.contrastLimits[ 0 ], sourceDisplay.contrastLimits[ 1 ] );
-
-			} else
-			{
-				// TODO: auto adjust contrast? may be expensive...
-			}
+			displayService.getConverterSetup( sourceAndConverter ).setDisplayRange( sourceDisplay.contrastLimits[ 0 ], sourceDisplay.contrastLimits[ 1 ] );
 		}
 
 		return sourceAndConverters;

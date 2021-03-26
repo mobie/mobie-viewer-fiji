@@ -50,7 +50,8 @@ public class Viewer
 				if ( sourceDisplay instanceof ImageDisplay )
 				{
 					showImageDisplay( ( ImageDisplay ) sourceDisplay, view.sourceTransforms );
-				} else if ( sourceDisplay instanceof SegmentationDisplay )
+				}
+				else if ( sourceDisplay instanceof SegmentationDisplay )
 				{
 					showSegmentationDisplay( ( SegmentationDisplay ) sourceDisplay );
 				}
@@ -78,13 +79,13 @@ public class Viewer
 		display.selectionModel = new DefaultSelectionModel< TableRowImageSegment >();
 		display.coloringModel = new ColoringModelWrapper<>( display.selectionModel );
 
-		if ( display.sources.size() > 1 )
+		if ( display.getSources().size() > 1 )
 		{
 			throw new UnsupportedOperationException( "Multiple segmentation sources are not yet implemented." );
 			// TODO: make a list of the segments from all sources (loop)
 		}
 
-		String sourceName = display.sources.get( 0 );
+		String sourceName = display.getSources().get( 0 );
 		final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
 		display.segments = createAnnotatedImageSegmentsFromTableFile(
 				moBIE2.getAbsoluteDefaultTableLocation( source ),
