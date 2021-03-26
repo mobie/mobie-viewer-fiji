@@ -1,6 +1,7 @@
 package de.embl.cba.mobie2.display;
 
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie2.color.BlendingMode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,13 +10,15 @@ public class ImageDisplay extends SourceDisplay
 {
 	private final String color;
 	private final double[] contrastLimits;
+	private final BlendingMode blendingMode;
 
 	// For serialisation
-	public ImageDisplay( String name, List< String > sources, String color, double[] contrastLimits )
+	public ImageDisplay( String name, List< String > sources, String color, double[] contrastLimits, BlendingMode blendingMode )
 	{
 		super( name, sources );
 		this.color = color;
 		this.contrastLimits = contrastLimits;
+		this.blendingMode = blendingMode;
 	}
 
 	public ImageDisplay createSerializableCopy()
@@ -39,5 +42,10 @@ public class ImageDisplay extends SourceDisplay
 	public double[] getContrastLimits()
 	{
 		return contrastLimits;
+	}
+
+	public BlendingMode getBlendingMode()
+	{
+		return blendingMode;
 	}
 }

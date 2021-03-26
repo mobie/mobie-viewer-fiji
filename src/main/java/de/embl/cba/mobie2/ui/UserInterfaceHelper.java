@@ -92,9 +92,6 @@ public class UserInterfaceHelper
 
 		if ( adjustHeight )
 			window.setSize( window.getWidth(), reference.getHeight() );
-
-
-
 	}
 
 	public static void bottomAlignWindow( Window reference, Window window )

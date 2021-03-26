@@ -141,12 +141,12 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		return command.bdvh;
 	}
 
-	public List< SourceAndConverter< ? > > show( ImageDisplay sourceDisplay, List< SourceTransformerSupplier > sourceTransforms )
+	public List< SourceAndConverter< ? > > show( ImageDisplay imageDisplay, List< SourceTransformerSupplier > sourceTransforms )
 	{
 		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
 
 		// open
-		for ( String sourceName : sourceDisplay.getSources() )
+		for ( String sourceName : imageDisplay.getSources() )
 		{
 			final ImageSource source = moBIE2.getSource( sourceName );
 			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getAbsoluteImageLocation( source ) );
@@ -166,10 +166,12 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		// show
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			// TODO: register the bdvHandle
-			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  sourceDisplay.getColor() ) ).run();
+			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  imageDisplay.getColor() ) ).run();
+			if ( imageDisplay.getBlendingMode() != null )
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, Projection.PROJECTION_MODE, imageDisplay.getBlendingMode().toString() );
+
 			displayService.show( bdvHandle, sourceAndConverter );
-			displayService.getConverterSetup( sourceAndConverter ).setDisplayRange( sourceDisplay.getContrastLimits()[ 0 ], sourceDisplay.getContrastLimits()[ 1 ] );
+			displayService.getConverterSetup( sourceAndConverter ).setDisplayRange( imageDisplay.getContrastLimits()[ 0 ], imageDisplay.getContrastLimits()[ 1 ] );
 		}
 
 		return sourceAndConverters;
