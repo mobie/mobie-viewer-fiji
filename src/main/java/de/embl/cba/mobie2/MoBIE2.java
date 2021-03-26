@@ -16,6 +16,7 @@ import de.embl.cba.mobie2.view.Viewer;
 import de.embl.cba.tables.FileAndUrlUtils;
 import net.imglib2.realtransform.AffineTransform3D;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,18 +59,16 @@ public class MoBIE2
 
 		dataset = new DatasetJsonParser().getDataset( FileAndUrlUtils.combinePath( projectLocation, currentDatasetName, "dataset.json" ) );
 
-		final String viewName = dataset.views.keySet().iterator().next();
-
 		imageDataLocation = "local";
 
 		final UserInterface userInterface = new UserInterface( this );
 
 		viewer = new Viewer( this, userInterface, dataset.is2D );
-		viewer.show( dataset.views.get( viewName ) );
+		viewer.show( dataset.views.get( "default" ) );
 
 		// arrange windows
-		UserInterfaceHelper.setLogWindowPositionAndSize( userInterface.getFrame() );
-		UserInterfaceHelper.setBdvWindowPositionAndSize( viewer.getImageViewer().getBdvHandle(), userInterface.getFrame() );
+		UserInterfaceHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
+		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), viewer.getImageViewer().getWindow(), false, true );
 
 		//configureDatasetsRootLocations();
 		//appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be re-instantiated

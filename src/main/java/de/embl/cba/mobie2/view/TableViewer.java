@@ -75,7 +75,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private int recentlySelectedRowInView;
 	private ColumnColoringModelCreator< T > columnColoringModelCreator;
-	private Component parentComponent;
 	private String mergeByColumnName; // for loading additional columns
 	private String tablesDirectory; // for loading additional columns
 	private ArrayList<String> additionalTables; // tables from which additional columns are loaded
@@ -111,13 +110,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		registerAsTableRowListener( tableRows );
 	}
 
-	public void show( Component parentComponent )
-	{
-		this.parentComponent = SwingUtilities.getWindowAncestor( parentComponent );
-		show();
-	}
-
-	public void show()
+	public TableViewer< T > show()
 	{
 		configureJTable();
 
@@ -128,6 +121,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			configureTableRowColoring();
 
 		createAndShowMenu();
+
+		return this;
 	}
 
 	public void registerAsTableRowListener( List< T > tableRows )
@@ -596,21 +591,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		frame.setJMenuBar( menuBar );
 		frame.setContentPane( panel );
 
-		if ( parentComponent != null )
-		{
-			frame.setLocation(
-					parentComponent.getLocationOnScreen().x,
-					parentComponent.getLocationOnScreen().y + parentComponent.getHeight() + 30
-			);
-
-
-			final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-			frame.setPreferredSize( new Dimension(
-					parentComponent.getWidth(),
-					screenSize.height - ( parentComponent.getHeight() + parentComponent.getLocationOnScreen().y ) - 50  ) );
-		}
-
 		// Display the window.
 		frame.pack();
 
@@ -861,7 +841,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			this.coloringModel.setColoringModel( coloringModel );
 	}
 
-	public JFrame getFrame()
+	public Window getWindow()
 	{
 		return frame;
 	}

@@ -30,4 +30,14 @@ public class ImageDisplay extends SourceDisplay
 
 		return null;
 	}
+
+	public String getColor()
+	{
+		return color;
+	}
+
+	public double[] getContrastLimits()
+	{
+		return contrastLimits;
+	}
 }

@@ -2,7 +2,6 @@ package de.embl.cba.mobie2.ui;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SliderPanelDouble;
-import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
@@ -18,20 +17,18 @@ import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.view.View;
-import de.embl.cba.mobie2.view.Viewer;
 import de.embl.cba.mobie2.view.ViewerHelper;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import ij.WindowManager;
-import net.imglib2.type.numeric.RealType;
+import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
+import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
-import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
 
 import javax.swing.*;
-import javax.xml.transform.Source;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -71,24 +68,47 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public static void setLogWindowPositionAndSize( JFrame parentComponent )
+	public static void setLogWindowPositionAndSize( Window reference )
 	{
 		final Frame log = WindowManager.getFrame( "Log" );
 		if (log != null) {
 			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			final int logWindowHeight = screenSize.height - ( parentComponent.getLocationOnScreen().y + parentComponent.getHeight() + 20 );
-			log.setSize( parentComponent.getWidth(), logWindowHeight  );
-			log.setLocation( parentComponent.getLocationOnScreen().x, parentComponent.getLocationOnScreen().y + parentComponent.getHeight() );
+			final int logWindowHeight = screenSize.height - ( reference.getLocationOnScreen().y + reference.getHeight() + 20 );
+			log.setSize( reference.getWidth(), logWindowHeight  );
+			log.setLocation( reference.getLocationOnScreen().x, reference.getLocationOnScreen().y + reference.getHeight() );
 		}
 	}
 
-	public static void setBdvWindowPositionAndSize( BdvHandle bdvHandle, JFrame frame )
+	public static void rightAlignWindow( Window reference, Window window, boolean adjustWidth, boolean adjustHeight )
 	{
-		BdvUtils.getViewerFrame( bdvHandle ).setLocation(
-				frame.getLocationOnScreen().x + frame.getWidth(),
-				frame.getLocationOnScreen().y );
+		window.setLocation(
+				reference.getLocationOnScreen().x + reference.getWidth() + 10,
+				reference.getLocationOnScreen().y );
 
-		BdvUtils.getViewerFrame( bdvHandle ).setSize( frame.getHeight(), frame.getHeight() );
+		final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+		if ( adjustWidth )
+			window.setSize( reference.getWidth(), window.getHeight() );
+
+		if ( adjustHeight )
+			window.setSize( window.getWidth(), reference.getHeight() );
+
+
+
+	}
+
+	public static void bottomAlignWindow( Window reference, Window window )
+	{
+		window.setLocation(
+				reference.getLocationOnScreen().x,
+				reference.getLocationOnScreen().y + reference.getHeight() + 10
+		);
+
+		final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+		window.setPreferredSize( new Dimension(
+				reference.getWidth(),
+				screenSize.height - ( reference.getHeight() + reference.getLocationOnScreen().y ) ) );
 	}
 
 	public static void showBrightnessDialog(
@@ -174,9 +194,9 @@ public class UserInterfaceHelper
 
 	public void addImageDisplaySettings( UserInterface userInterface, ImageDisplay display )
 	{
-		JPanel panel = createDisplayPanel( display.name );
+		JPanel panel = createDisplayPanel( display.getName() );
 
-		setPanelColor( panel, display.color );
+		setPanelColor( panel, display.getColor() );
 
 		// TODO: Can we adapt this for source groups?
 //		final JCheckBox volumeVisibilityCheckbox =
@@ -220,7 +240,7 @@ public class UserInterfaceHelper
 
 	public void addSegmentationDisplaySettings( UserInterface userInterface, SegmentationDisplay display )
 	{
-		JPanel panel = createDisplayPanel( display.name );
+		JPanel panel = createDisplayPanel( display.getName() );
 
 		// TODO: make use of alpha
 //		final JButton brightnessButton = createImageDisplayBrightnessButton( display, BUTTON_DIMENSIONS );
@@ -447,11 +467,7 @@ public class UserInterfaceHelper
 			{
 				for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
 				{
-					// TODO: replace by new API: isVisible
-					if ( checkBox.isSelected() )
-						SourceAndConverterServices.getSourceAndConverterDisplayService().makeVisible( sourceAndConverter );
-					else
-						SourceAndConverterServices.getSourceAndConverterDisplayService().makeInvisible( sourceAndConverter );
+					SourceAndConverterServices.getSourceAndConverterDisplayService().setVisible( sourceAndConverter, checkBox.isSelected() );
 				}
 			}
 		} );
@@ -466,9 +482,9 @@ public class UserInterfaceHelper
 		JCheckBox checkBox = new JCheckBox( "T" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_BUTTON_SIZE );
-		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> sourceDisplay.tableViewer.getFrame().setVisible( checkBox.isSelected() ) ) );
+		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> sourceDisplay.tableViewer.getWindow().setVisible( checkBox.isSelected() ) ) );
 
-		sourceDisplay.tableViewer.getFrame().addWindowListener(
+		sourceDisplay.tableViewer.getWindow().addWindowListener(
 				new WindowAdapter() {
 					public void windowClosing( WindowEvent ev) {
 						checkBox.setSelected( false );
@@ -564,7 +580,8 @@ public class UserInterfaceHelper
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
 			{
 				// TODO: make this work for multiple!
-				new ViewerTransformAdjuster( sourceDisplay.imageViewer.getBdvHandle(), sourceAndConverter ).run();
+				final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.imageViewer.getBdvHandle(), sourceAndConverter ).getTransform();
+				new ViewerTransformChanger( sourceDisplay.imageViewer.getBdvHandle(), transform, false, 1000 ).run();
 			}
 		} );
 
@@ -586,7 +603,7 @@ public class UserInterfaceHelper
 			}
 
 			UserInterfaceHelper.showBrightnessDialog(
-					imageDisplay.name,
+					imageDisplay.getName(),
 					converterSetups,
 					0,   // TODO: determine somehow...
 					65535 );
@@ -640,13 +657,12 @@ public class UserInterfaceHelper
 		{
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
 			{
-				final Set< BdvHandle > bdvHandles = SourceAndConverterServices.getSourceAndConverterDisplayService().getDisplaysOf( sourceAndConverter );
 				SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
 			}
 
 			if ( sourceDisplay instanceof SegmentationDisplay )
 			{
-				( ( SegmentationDisplay ) sourceDisplay ).tableViewer.getFrame().dispose();
+				( ( SegmentationDisplay ) sourceDisplay ).tableViewer.getWindow().dispose();
 				( ( SegmentationDisplay ) sourceDisplay ).scatterPlotViewer.getWindow().dispose();
 			}
 

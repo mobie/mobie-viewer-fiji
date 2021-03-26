@@ -91,7 +91,7 @@ public class UserInterface
 		refresh();
 	}
 
-	public JFrame getFrame()
+	public Window getWindow()
 	{
 		return frame;
 	}

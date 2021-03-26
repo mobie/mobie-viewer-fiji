@@ -10,8 +10,8 @@ import java.util.List;
 
 public class SegmentationDisplay extends SourceDisplay
 {
-	public double alpha;
-	public String lut;
+	private final double alpha;
+	private final String lut;
 
 	public transient SelectionModel< TableRowImageSegment > selectionModel;
 	public transient ColoringModelWrapper< TableRowImageSegment > coloringModel;
@@ -19,8 +19,10 @@ public class SegmentationDisplay extends SourceDisplay
 	public transient ScatterPlotViewer< TableRowImageSegment > scatterPlotViewer;
 	public transient List< TableRowImageSegment > segments;
 
-	public SegmentationDisplay()
+	public SegmentationDisplay( String name, List< String > sources, double alpha, String lut )
 	{
 		super( name, sources );
+		this.alpha = alpha;
+		this.lut = lut;
 	}
 }

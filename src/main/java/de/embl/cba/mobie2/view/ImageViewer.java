@@ -29,13 +29,17 @@ import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.bdv.projector.Projection;
 import sc.fiji.bdvpg.scijava.command.bdv.BdvWindowCreatorCommand;
+import sc.fiji.bdvpg.scijava.command.bdv.ScreenShotMakerCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 
+import javax.swing.*;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class ImageViewer< T extends ImageSegment > implements ColoringListener, SelectionListener< T >
@@ -52,8 +56,12 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		this.moBIE2 = moBIE2;
 		this.is2D = is2D;
 		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
+
+		// init Bdv
 		bdvHandle = createBdv();
+		displayService.registerBdvHandle( bdvHandle );
 		installBehaviours( bdvHandle );
+
 		labelSources = new ArrayList<>();
 		selectionModels = new ArrayList<>();
 	}
@@ -127,6 +135,9 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		command.projector = Projection.MIXED_PROJECTOR;
 		command.run();
 
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		SwingUtilities.getWindowAncestor( command.bdvh.getViewerPanel() ).setSize( screenSize.width / 3, (int) ( screenSize.height * 0.7 ) );
+
 		return command.bdvh;
 	}
 
@@ -135,7 +146,7 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
 
 		// open
-		for ( String sourceName : sourceDisplay.sources )
+		for ( String sourceName : sourceDisplay.getSources() )
 		{
 			final ImageSource source = moBIE2.getSource( sourceName );
 			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getAbsoluteImageLocation( source ) );
@@ -156,9 +167,9 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			// TODO: register the bdvHandle
-			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  sourceDisplay.color ) ).run();
+			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  sourceDisplay.getColor() ) ).run();
 			displayService.show( bdvHandle, sourceAndConverter );
-			displayService.getConverterSetup( sourceAndConverter ).setDisplayRange( sourceDisplay.contrastLimits[ 0 ], sourceDisplay.contrastLimits[ 1 ] );
+			displayService.getConverterSetup( sourceAndConverter ).setDisplayRange( sourceDisplay.getContrastLimits()[ 0 ], sourceDisplay.getContrastLimits()[ 1 ] );
 		}
 
 		return sourceAndConverters;
@@ -168,7 +179,7 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 	{
 		final ArrayList< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
 
-		for ( String sourceName : segmentationDisplay.sources )
+		for ( String sourceName : segmentationDisplay.getSources() )
 		{
 			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
 			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getAbsoluteImageLocation( source ) );
@@ -231,4 +242,10 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 	{
 		return bdvHandle;
 	}
+
+	public Window getWindow()
+	{
+		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
+	}
+
 }

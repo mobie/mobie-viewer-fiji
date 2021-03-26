@@ -22,8 +22,7 @@ public class ViewerHelper
 
 	public static void showInTableViewer( SegmentationDisplay display  )
 	{
-		display.tableViewer = new TableViewer<>( display.segments, display.selectionModel, display.coloringModel, display.name );
-		display.tableViewer.show( display.imageViewer.getBdvHandle().getViewerPanel() );
+		display.tableViewer = new TableViewer<>( display.segments, display.selectionModel, display.coloringModel, display.getName() ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}

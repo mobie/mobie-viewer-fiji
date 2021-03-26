@@ -12,9 +12,11 @@ import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import ij.IJ;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.sourceandconverter.display.BrightnessAutoAdjuster;
 
+import javax.swing.*;
 import java.util.List;
 
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
@@ -30,7 +32,9 @@ public class Viewer
 	{
 		this.moBIE2 = moBIE2;
 		this.userInterface = userInterface;
+
 		imageViewer = new ImageViewer( moBIE2, is2D );
+		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), imageViewer.getWindow(), false, true );
 	}
 
 	public ImageViewer getImageViewer()
@@ -94,6 +98,11 @@ public class Viewer
 		ViewerHelper.showInImageViewer( display );
 		ViewerHelper.showInTableViewer( display );
 		ViewerHelper.showInScatterPlotViewer( display );
-	}
 
+		SwingUtilities.invokeLater( () ->
+		{
+			UserInterfaceHelper.bottomAlignWindow( display.imageViewer.getWindow(), display.tableViewer.getWindow() );
+			UserInterfaceHelper.rightAlignWindow( display.imageViewer.getWindow(), display.scatterPlotViewer.getWindow(), true, true );
+		} );
+	}
 }
