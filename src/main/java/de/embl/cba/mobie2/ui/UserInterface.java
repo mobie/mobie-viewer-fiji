@@ -46,7 +46,7 @@ public class UserInterface
 		splitPane.setAutoscrolls( true );
 
 		// show frame
-		frame.setPreferredSize( new Dimension( 600, actionPanelHeight + 200 ) );
+		frame.setPreferredSize( new Dimension( Toolkit.getDefaultToolkit().getScreenSize().width / 3, actionPanelHeight + 200 ) );
 		frame.getContentPane().setLayout( new GridLayout() );
 		frame.getContentPane().add( splitPane );
 

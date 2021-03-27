@@ -2,6 +2,7 @@ package de.embl.cba.mobie2.ui;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SliderPanelDouble;
+import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
@@ -106,7 +107,7 @@ public class UserInterfaceHelper
 
 		window.setPreferredSize( new Dimension(
 				reference.getWidth(),
-				screenSize.height - ( reference.getHeight() + reference.getLocationOnScreen().y ) ) );
+				( screenSize.height - 30 ) - ( reference.getHeight() + reference.getLocationOnScreen().y ) )  );
 	}
 
 	public static void showBrightnessDialog(
@@ -169,7 +170,7 @@ public class UserInterfaceHelper
 	public static void showTransparencyDialog(
 			String name,
 			List< LabelConverter< ? > > converters,
-			double alpha )
+			BdvHandle bdvHandle )
 	{
 		JFrame frame = new JFrame( name );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
@@ -187,11 +188,11 @@ public class UserInterfaceHelper
 		JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
 		final SliderPanelDouble alphaSlider = new SliderPanelDouble( "Alpha", selection, spinnerStepSize );
-		alphaSlider.setNumColummns( 7 );
-		alphaSlider.setDecimalFormat( "####E0" );
+		alphaSlider.setNumColummns( 3 );
+		alphaSlider.setDecimalFormat( "#.##" );
 
 		final AlphaUpdateListener alphaUpdateListener =
-				new AlphaUpdateListener( selection, alphaSlider, converters );
+				new AlphaUpdateListener( selection, alphaSlider, converters, bdvHandle );
 
 		selection.setUpdateListener( alphaUpdateListener );
 		panel.add( alphaSlider );
@@ -211,16 +212,18 @@ public class UserInterfaceHelper
 	public static class AlphaUpdateListener implements BoundedValueDouble.UpdateListener
 	{
 		final private List< LabelConverter< ? > > labelConverters;
+		private final BdvHandle bdvHandle;
 		final private BoundedValueDouble value;
 		private final SliderPanelDouble slider;
 
 		public AlphaUpdateListener( BoundedValueDouble value,
 									SliderPanelDouble slider,
-									List< LabelConverter< ? > > labelConverters )
+									List< LabelConverter< ? > > labelConverters, 									BdvHandle bdvHandle )
 		{
 			this.value = value;
 			this.slider = slider;
 			this.labelConverters = labelConverters;
+			this.bdvHandle = bdvHandle;
 		}
 
 		@Override
@@ -232,6 +235,8 @@ public class UserInterfaceHelper
 			{
 				labelConverter.setAlpha( value.getCurrentValue() );
 			}
+
+			bdvHandle.getViewerPanel().requestRepaint();
 		}
 	}
 
@@ -697,7 +702,7 @@ public class UserInterfaceHelper
 			UserInterfaceHelper.showTransparencyDialog(
 					segmentationDisplay.getName(),
 					labelConverters,
-					segmentationDisplay.getAlpha() );
+					segmentationDisplay.imageViewer.getBdvHandle() );
 		} );
 
 		return button;

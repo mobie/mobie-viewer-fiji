@@ -89,10 +89,8 @@ public class LabelConverter< T extends ImageSegment > implements Converter< Real
 		else
 		{
 			coloringModel.convert( imageSegment, color );
-
 			final int alpha = ARGBType.alpha( color.get() );
-			if( alpha < 255 )
-				color.mul( alpha / 255.0 );
+			color.mul( alpha / 255.0 );
 		}
 
 		color.mul( alpha );
