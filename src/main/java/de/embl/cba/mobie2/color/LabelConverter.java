@@ -29,19 +29,16 @@
 package de.embl.cba.mobie2.color;
 
 import bdv.viewer.TimePointListener;
+import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.tables.imagesegment.ImageSegment;
-import de.embl.cba.tables.imagesegment.LabelFrameAndImage;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
-import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 
-import java.util.Map;
-
 public class LabelConverter< T extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, Transparency
 {
-	private final Map< LabelFrameAndImage, T > labelFrameAndImageToSegment;
+	private final SegmentAdapter< T > segmentAdapter;
 	private final String imageId;
 	private final ColoringModelWrapper< T > coloringModel;
 
@@ -49,11 +46,11 @@ public class LabelConverter< T extends ImageSegment > implements Converter< Real
 	private double alpha = 1.0;
 
 	public LabelConverter(
-			Map< LabelFrameAndImage, T > labelToSegment,
+			SegmentAdapter< T > segmentAdapter,
 			String imageId,
-			ColoringModelWrapper< T > coloringModel )
+			ColoringModelWrapper coloringModel )
 	{
-		this.labelFrameAndImageToSegment = labelToSegment;
+		this.segmentAdapter = segmentAdapter;
 		this.imageId = imageId;
 		this.coloringModel = coloringModel;
 		this.frame = 0;
@@ -77,9 +74,7 @@ public class LabelConverter< T extends ImageSegment > implements Converter< Real
 			return;
 		}
 
-		final LabelFrameAndImage labelFrameAndImage = new LabelFrameAndImage( label.getRealDouble(), frame, imageId  );
-
-		final T imageSegment = labelFrameAndImageToSegment.get( labelFrameAndImage );
+		final T imageSegment = segmentAdapter.getSegment( label.getRealDouble(), frame, imageId );
 
 		if ( imageSegment == null )
 		{

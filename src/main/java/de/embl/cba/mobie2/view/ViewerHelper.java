@@ -2,12 +2,7 @@ package de.embl.cba.mobie2.view;
 
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
-import de.embl.cba.mobie2.select.SelectionModelAndLabelAdapter;
-import de.embl.cba.tables.imagesegment.LabelFrameAndImage;
-import de.embl.cba.tables.imagesegment.SegmentUtils;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
-
-import java.util.HashMap;
+import de.embl.cba.tables.imagesegment.ImageSegment;
 
 public class ViewerHelper
 {
@@ -27,11 +22,9 @@ public class ViewerHelper
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
 
-	public static void showInImageViewer( SegmentationDisplay display )
+	public static < T extends ImageSegment > void showInImageViewer( SegmentationDisplay< T > display )
 	{
-		final HashMap< LabelFrameAndImage, TableRowImageSegment > labelToSegmentAdapter = SegmentUtils.createSegmentMap( display.segments );
-		final SelectionModelAndLabelAdapter selectionModelAndAdapter = new SelectionModelAndLabelAdapter( display.selectionModel, labelToSegmentAdapter );
-		display.sourceAndConverters = display.imageViewer.show( display, display.coloringModel, selectionModelAndAdapter );
+		display.sourceAndConverters = display.imageViewer.show( display );
 		display.selectionModel.listeners().add( display.imageViewer );
 		display.coloringModel.listeners().add( display.imageViewer );
 	}

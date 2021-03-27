@@ -1,6 +1,7 @@
 package de.embl.cba.mobie2.view;
 
 import de.embl.cba.mobie2.MoBIE2;
+import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.color.ColoringModelWrapper;
 import de.embl.cba.mobie2.display.ImageDisplay;
@@ -93,6 +94,9 @@ public class Viewer
 		display.segments = createAnnotatedImageSegmentsFromTableFile(
 				moBIE2.getAbsoluteDefaultTableLocation( source ),
 				sourceName );
+
+		display.segmentAdapter = new SegmentAdapter( display.segments );
+		display.segmentAdapter.getSegments( display.getSelectedSegmentIds() );
 
 		ViewerHelper.showInImageViewer( display );
 		ViewerHelper.showInTableViewer( display );
