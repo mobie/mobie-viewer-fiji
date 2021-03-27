@@ -13,6 +13,7 @@ import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.ui.MoBIEInfo;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
 import de.embl.cba.mobie2.*;
+import de.embl.cba.mobie2.color.LabelConverter;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
@@ -146,9 +147,7 @@ public class UserInterfaceHelper
 		maxSlider.setNumColummns( 7 );
 		maxSlider.setDecimalFormat( "####E0" );
 
-		final BrightnessUpdateListener brightnessUpdateListener =
-				new BrightnessUpdateListener(
-						min, max, minSlider, maxSlider, converterSetups );
+		final BrightnessUpdateListener brightnessUpdateListener = new BrightnessUpdateListener( min, max, minSlider, maxSlider, converterSetups );
 
 		min.setUpdateListener( brightnessUpdateListener );
 		max.setUpdateListener( brightnessUpdateListener );
@@ -165,7 +164,75 @@ public class UserInterfaceHelper
 		frame.setResizable( false );
 		frame.pack();
 		frame.setVisible( true );
+	}
 
+	public static void showTransparencyDialog(
+			String name,
+			List< LabelConverter< ? > > converters,
+			double alpha )
+	{
+		JFrame frame = new JFrame( name );
+		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+
+		final double currentAlpha = converters.get( 0 ).getAlpha();
+
+		final BoundedValueDouble selection =
+				new BoundedValueDouble(
+						0.0,
+						1.0,
+						currentAlpha );
+
+		double spinnerStepSize = 0.05;
+
+		JPanel panel = new JPanel();
+		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
+		final SliderPanelDouble alphaSlider = new SliderPanelDouble( "Alpha", selection, spinnerStepSize );
+		alphaSlider.setNumColummns( 7 );
+		alphaSlider.setDecimalFormat( "####E0" );
+
+		final AlphaUpdateListener alphaUpdateListener =
+				new AlphaUpdateListener( selection, alphaSlider, converters );
+
+		selection.setUpdateListener( alphaUpdateListener );
+		panel.add( alphaSlider );
+
+		frame.setContentPane( panel );
+
+		//Display the window.
+		frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
+				MouseInfo.getPointerInfo().getLocation().y,
+				120, 10);
+		frame.setResizable( false );
+		frame.pack();
+		frame.setVisible( true );
+
+	}
+
+	public static class AlphaUpdateListener implements BoundedValueDouble.UpdateListener
+	{
+		final private List< LabelConverter< ? > > labelConverters;
+		final private BoundedValueDouble value;
+		private final SliderPanelDouble slider;
+
+		public AlphaUpdateListener( BoundedValueDouble value,
+									SliderPanelDouble slider,
+									List< LabelConverter< ? > > labelConverters )
+		{
+			this.value = value;
+			this.slider = slider;
+			this.labelConverters = labelConverters;
+		}
+
+		@Override
+		public void update()
+		{
+			slider.update();
+
+			for ( LabelConverter< ? > labelConverter : labelConverters )
+			{
+				labelConverter.setAlpha( value.getCurrentValue() );
+			}
+		}
 	}
 
 	public JPanel createActionPanel()
@@ -239,9 +306,6 @@ public class UserInterfaceHelper
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
-		// TODO: make use of alpha
-//		final JButton brightnessButton = createImageDisplayBrightnessButton( display, BUTTON_DIMENSIONS );
-
 		// TODO:
 //		final JCheckBox volumeVisibilityCheckbox =
 //				createVolumeViewVisibilityCheckbox(
@@ -252,6 +316,7 @@ public class UserInterfaceHelper
 
 		//panel.add( brightnessButton );
 		panel.add( createFocusButton( display ) );
+		panel.add( createTransparencyButton( display ) );
 		panel.add( createRemoveButton( userInterface, panel, display ) );
 		//panel.add( volumeVisibilityCheckbox );
 		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
@@ -585,7 +650,6 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-
 	public static JButton createImageDisplayBrightnessButton( ImageDisplay imageDisplay )
 	{
 		JButton button = new JButton( "B" );
@@ -604,6 +668,36 @@ public class UserInterfaceHelper
 					converterSetups,
 					0,   // TODO: determine somehow...
 					65535 );
+		} );
+
+		return button;
+	}
+
+	public static JButton createTransparencyButton( SegmentationDisplay segmentationDisplay )
+	{
+		JButton button = new JButton( "B" );
+		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
+
+		button.addActionListener( e ->
+		{
+			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
+			for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )
+			{
+				converterSetups.add( SourceAndConverterServices.getSourceAndConverterDisplayService().getConverterSetup( sourceAndConverter ) );
+			}
+
+			// TODO: above probably this will return dummy setups
+
+			final ArrayList< LabelConverter< ? > > labelConverters = new ArrayList<>();
+			for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )
+			{
+				labelConverters.add( (LabelConverter<?> ) sourceAndConverter.getConverter() );
+			}
+
+			UserInterfaceHelper.showTransparencyDialog(
+					segmentationDisplay.getName(),
+					labelConverters,
+					segmentationDisplay.getAlpha() );
 		} );
 
 		return button;

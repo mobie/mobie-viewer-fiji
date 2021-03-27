@@ -5,7 +5,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.n5.source.LabelSource;
-import de.embl.cba.mobie2.*;
+import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.color.ColoringModelWrapper;
 import de.embl.cba.mobie2.color.LabelConverter;
 import de.embl.cba.mobie2.display.ImageDisplay;
@@ -27,19 +27,20 @@ import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
-import sc.fiji.bdvpg.bdv.projector.Projection;
+import sc.fiji.bdvpg.bdv.projector.BlendingMode;
+import sc.fiji.bdvpg.bdv.projector.Projector;
 import sc.fiji.bdvpg.scijava.command.bdv.BdvWindowCreatorCommand;
-import sc.fiji.bdvpg.scijava.command.bdv.ScreenShotMakerCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
-import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ImageViewer< T extends ImageSegment > implements ColoringListener, SelectionListener< T >
@@ -132,7 +133,7 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		command.interpolate = true;
 		command.nTimepoints = 1; // TODO
 		command.windowTitle = "MoBIE"; // TODO
-		command.projector = Projection.MIXED_PROJECTOR;
+		command.projector = Projector.MIXED_PROJECTOR;
 		command.run();
 
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -168,8 +169,7 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		{
 			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  imageDisplay.getColor() ) ).run();
 			if ( imageDisplay.getBlendingMode() != null )
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, Projection.PROJECTION_MODE, imageDisplay.getBlendingMode().toString() );
-
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, imageDisplay.getBlendingMode());
 			displayService.show( bdvHandle, sourceAndConverter );
 			displayService.getConverterSetup( sourceAndConverter ).setDisplayRange( imageDisplay.getContrastLimits()[ 0 ], imageDisplay.getContrastLimits()[ 1 ] );
 		}
@@ -197,8 +197,6 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 			sourceAndConverters.add( labelSourceAndConverter );
 
 			displayService.show( bdvHandle, labelSourceAndConverter );
-
-			// TODO: think about the alpha!
 		}
 
 		labelSources.addAll( sourceAndConverters );

@@ -45,7 +45,8 @@ public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
 
 	private SelectionColoringMode selectionColoringMode;
 	private ARGBType selectionColor;
-	private double brightnessNotSelected;
+	private double alphaNotSelected;
+
 
 	public static final ARGBType YELLOW = new ARGBType( ARGBType.rgba( 255, 255, 0, 255 ) );
 
@@ -65,7 +66,7 @@ public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
 		this.selectionColoringModes = Arrays.asList( SelectionColoringMode.values() );
 
 		this.selectionColor = YELLOW;
-		this.brightnessNotSelected = 0.1;
+		this.alphaNotSelected = 0.1;
 		this.selectionColoringMode = SelectionColoringMode.DimNotSelected;
 	}
 
@@ -84,7 +85,7 @@ public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
 		{
 			case DimNotSelected:
 				if ( ! isSelected )
-					dim( output );
+					dim( output, alphaNotSelected );
 				break;
 
 			case SelectionColor:
@@ -96,7 +97,7 @@ public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
 				if ( isSelected )
 					output.set( selectionColor );
 				else
-					dim( output );
+					dim( output, alphaNotSelected );
 				break;
 
 			default:
@@ -108,8 +109,9 @@ public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
 	 * Implements dimming via alpha
 	 *
 	 * @param output
+	 * @param alpha
 	 */
-	private void dim( ARGBType output )
+	private void dim( ARGBType output, double alpha )
 	{
 		final int colorIndex = output.get();
 
@@ -118,7 +120,7 @@ public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
 						ARGBType.red( colorIndex ),
 						ARGBType.green( colorIndex ),
 						ARGBType.blue( colorIndex ),
-						brightnessNotSelected * 255 )
+						alpha * 255 )
 		);
 	}
 
@@ -135,7 +137,7 @@ public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
 		// ensure value between 0 and 1
 		brightnessNotSelected = Math.min( 1.0, brightnessNotSelected );
 		brightnessNotSelected = Math.max( 0.0, brightnessNotSelected );
-		this.brightnessNotSelected = brightnessNotSelected;
+		this.alphaNotSelected = brightnessNotSelected;
 
 		notifyColoringListeners();
 	}
@@ -184,8 +186,9 @@ public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
 		return selectionModel;
 	}
 
-	public double getBrightnessNotSelected()
+	public double getAlphaNotSelected()
 	{
-		return brightnessNotSelected;
+		return alphaNotSelected;
 	}
+
 }

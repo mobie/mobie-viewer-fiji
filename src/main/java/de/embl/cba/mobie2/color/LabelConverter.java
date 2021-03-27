@@ -29,7 +29,6 @@
 package de.embl.cba.mobie2.color;
 
 import bdv.viewer.TimePointListener;
-import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.imagesegment.LabelFrameAndImage;
 import net.imglib2.Volatile;
@@ -40,25 +39,23 @@ import net.imglib2.type.numeric.RealType;
 
 import java.util.Map;
 
-public class LabelConverter< T extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, ColorConverter
+public class LabelConverter< T extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, Transparency
 {
 	private final Map< LabelFrameAndImage, T > labelFrameAndImageToSegment;
 	private final String imageId;
-	private final ColoringModel< T > coloringModel;
-	private ARGBType singleColor;
+	private final ColoringModelWrapper< T > coloringModel;
 
 	private int frame;
-	private double max = 300;
+	private double alpha = 1.0;
 
 	public LabelConverter(
 			Map< LabelFrameAndImage, T > labelToSegment,
 			String imageId,
-			ColoringModel coloringModel )
+			ColoringModelWrapper< T > coloringModel )
 	{
 		this.labelFrameAndImageToSegment = labelToSegment;
 		this.imageId = imageId;
 		this.coloringModel = coloringModel;
-		this.singleColor = null;
 		this.frame = 0;
 	}
 
@@ -80,12 +77,6 @@ public class LabelConverter< T extends ImageSegment > implements Converter< Real
 			return;
 		}
 
-		if ( singleColor != null )
-		{
-			color.set( singleColor.get() );
-			return;
-		}
-
 		final LabelFrameAndImage labelFrameAndImage = new LabelFrameAndImage( label.getRealDouble(), frame, imageId  );
 
 		final T imageSegment = labelFrameAndImageToSegment.get( labelFrameAndImage );
@@ -93,6 +84,7 @@ public class LabelConverter< T extends ImageSegment > implements Converter< Real
 		if ( imageSegment == null )
 		{
 			color.set( 0 );
+			return;
 		}
 		else
 		{
@@ -103,7 +95,7 @@ public class LabelConverter< T extends ImageSegment > implements Converter< Real
 				color.mul( alpha / 255.0 );
 		}
 
-		color.mul( 100 / max ); // changes the intensity
+		color.mul( alpha );
 	}
 
 	public void timePointChanged( int timePointIndex )
@@ -111,51 +103,15 @@ public class LabelConverter< T extends ImageSegment > implements Converter< Real
 		this.frame = timePointIndex;
 	}
 
-	// TODO: could one use the setColor function?
-	public void setSingleColor( ARGBType argbType )
+	@Override
+	public void setAlpha( double alpha )
 	{
-		singleColor = argbType;
+		this.alpha = alpha;
 	}
 
 	@Override
-	public ARGBType getColor()
+	public double getAlpha()
 	{
-		return null;
-	}
-
-	@Override
-	public void setColor( ARGBType c )
-	{
-
-	}
-
-	@Override
-	public boolean supportsColor()
-	{
-		return false;
-	}
-
-	@Override
-	public double getMin()
-	{
-		return 0;
-	}
-
-	@Override
-	public double getMax()
-	{
-		return max;
-	}
-
-	@Override
-	public void setMin( double min )
-	{
-
-	}
-
-	@Override
-	public void setMax( double max )
-	{
-		this.max = max;
+		return alpha;
 	}
 }

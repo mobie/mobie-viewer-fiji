@@ -13,6 +13,7 @@ public class SegmentationDisplay extends SourceDisplay
 	private final double alpha;
 	private final String lut;
 
+	// TODO: rework according to ImageDisplay
 	public transient SelectionModel< TableRowImageSegment > selectionModel;
 	public transient ColoringModelWrapper< TableRowImageSegment > coloringModel;
 	public transient TableViewer< TableRowImageSegment > tableViewer;
@@ -24,5 +25,15 @@ public class SegmentationDisplay extends SourceDisplay
 		super( name, sources );
 		this.alpha = alpha;
 		this.lut = lut;
+	}
+
+	public double getAlpha()
+	{
+		return alpha;
+	}
+
+	public String getLut()
+	{
+		return lut;
 	}
 }
