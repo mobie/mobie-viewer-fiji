@@ -8,7 +8,7 @@
 	</parent>
 
 	<artifactId>mobie</artifactId>
-	<version>0.6.2-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 
 	<url>https://github.com/mobie/mobie-viewer-fiji</url>
 	<name>MoBIE Fiji Viewer</name>
@@ -82,6 +82,7 @@
 		<bigdataviewer-vistools.version>1.0.0-beta-28</bigdataviewer-vistools.version>
 
 		<!-- BIOP -->
+		<bigdataviewer-playground.version>0.2.14-SNAPSHOT</bigdataviewer-playground.version>
 
 		<!-- EMBL CBA -->
 		<imagej-utils.version>0.6.3-SNAPSHOT</imagej-utils.version>
@@ -118,6 +119,11 @@
 		</repository>
 	</repositories>
 	<dependencies>
+		<dependency>
+			<groupId>sc.fiji</groupId>
+			<artifactId>bigdataviewer-playground</artifactId>
+			<version>${bigdataviewer-playground.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>

@@ -7,22 +7,23 @@ import de.embl.cba.mobie2.view.TableViewer;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 
 import java.util.List;
 
-public class SegmentationDisplay< T extends ImageSegment & TableRow > extends SourceDisplay
+public class SegmentationDisplay extends SourceDisplay
 {
 	private final double alpha;
 	private final String lut;
 	private final List< String > selectedSegmentIds;
 
 	// TODO: rework according to ImageDisplay
-	public transient SelectionModel< T > selectionModel;
-	public transient ColoringModelWrapper< T > coloringModel;
-	public transient TableViewer< T > tableViewer;
-	public transient ScatterPlotViewer< T > scatterPlotViewer;
-	public transient List< T > segments;
-	public transient SegmentAdapter< T > segmentAdapter;
+	public transient SelectionModel< TableRowImageSegment > selectionModel;
+	public transient ColoringModelWrapper< TableRowImageSegment > coloringModel;
+	public transient TableViewer< ? extends TableRow > tableViewer;
+	public transient ScatterPlotViewer< ? extends TableRow > scatterPlotViewer;
+	public transient List< TableRowImageSegment > segments;
+	public transient SegmentAdapter< ? extends ImageSegment > segmentAdapter;
 
 	// For serialization
 	public SegmentationDisplay( String name, List< String > sources, double alpha, String lut, List< String > selectedSegmentIds )

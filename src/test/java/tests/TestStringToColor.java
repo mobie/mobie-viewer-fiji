@@ -13,6 +13,7 @@ public class TestStringToColor
 	{
 		final Color green = Utils.getColor("green");
 		final Color blue = Utils.getColor("blue");
+		System.out.println("Test");
 
 		//new N5AmazonS3Reader(  )
 	}

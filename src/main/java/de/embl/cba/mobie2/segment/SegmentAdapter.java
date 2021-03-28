@@ -3,6 +3,7 @@ package de.embl.cba.mobie2.segment;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.imagesegment.LabelFrameAndImage;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import net.imglib2.type.numeric.ARGBType;
 
 import java.util.ArrayList;
 import java.util.HashMap;

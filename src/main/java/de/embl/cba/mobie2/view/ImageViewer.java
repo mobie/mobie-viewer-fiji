@@ -39,14 +39,14 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ImageViewer< T extends ImageSegment > implements ColoringListener, SelectionListener< T >
+public class ImageViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
 	private final MoBIE2 moBIE2;
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final BdvHandle bdvHandle;
 	private final boolean is2D;
-	private ArrayList< SourceAndConverter > labelSources;
-	private Map< SelectionModel< T >, SegmentAdapter< T > > selectionModelToConverter;
+	private ArrayList< SourceAndConverter< ? > > labelSources;
+	private Map< SelectionModel< S >, SegmentAdapter< S > > selectionModelToConverter;
 
 	public ImageViewer( MoBIE2 moBIE2, boolean is2D )
 	{
@@ -101,9 +101,9 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 
 				if ( labelIndex == 0 ) return;
 
-				for ( SelectionModel< T > selectionModel : selectionModelToConverter.keySet() )
+				for ( SelectionModel< S > selectionModel : selectionModelToConverter.keySet() )
 				{
-					final T segment = selectionModelToConverter.get( selectionModel ).getSegment( labelIndex, timepoint, source.getName() );
+					final S segment = selectionModelToConverter.get( selectionModel ).getSegment( labelIndex, timepoint, source.getName() );
 
 					if ( segment != null)
 					{
@@ -179,7 +179,7 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getAbsoluteImageLocation( source ) );
 			final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
 
-			LabelConverter< T > labelConverter = new LabelConverter(
+			LabelConverter< S > labelConverter = new LabelConverter(
 					display.segmentAdapter,
 					sourceName,
 					display.coloringModel );
@@ -192,12 +192,13 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 		}
 
 		labelSources.addAll( sourceAndConverters );
-		selectionModelToConverter.put( display.selectionModel, display.segmentAdapter );
+		// TODO: Figure out how to avoid the casting
+		selectionModelToConverter.put( ( SelectionModel<S>  ) display.selectionModel, ( SegmentAdapter<S> ) display.segmentAdapter );
 
 		return sourceAndConverters;
 	}
 
-	private SourceAndConverter asLabelSourceAndConverter( SourceAndConverter sourceAndConverter, LabelConverter labelConverter )
+	private SourceAndConverter asLabelSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, LabelConverter labelConverter )
 	{
 		LabelSource volatileLabelSource = new LabelSource( sourceAndConverter.asVolatile().getSpimSource() );
 		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileLabelSource, labelConverter );
@@ -218,7 +219,7 @@ public class ImageViewer< T extends ImageSegment > implements ColoringListener, 
 	}
 
 	@Override
-	public synchronized void focusEvent( T selection )
+	public synchronized void focusEvent( S selection )
 	{
 		final double[] position = new double[ 3 ];
 		selection.localize( position );
