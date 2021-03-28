@@ -18,6 +18,7 @@ import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.RealPoint;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -46,7 +47,7 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 	private final BdvHandle bdvHandle;
 	private final boolean is2D;
 	private ArrayList< SourceAndConverter< ? > > labelSources;
-	private Map< SelectionModel< S >, SegmentAdapter< S > > selectionModelToConverter;
+	private Map< SelectionModel< TableRowImageSegment >, SegmentAdapter< TableRowImageSegment > > selectionModelToAdapter;
 
 	public ImageViewer( MoBIE2 moBIE2, boolean is2D )
 	{
@@ -60,7 +61,7 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		installBehaviours( bdvHandle );
 
 		labelSources = new ArrayList<>();
-		selectionModelToConverter = new HashMap<>();
+		selectionModelToAdapter = new HashMap<>();
 	}
 
 	private void installBehaviours( BdvHandle bdvHandle )
@@ -101,9 +102,16 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 
 				if ( labelIndex == 0 ) return;
 
-				for ( SelectionModel< S > selectionModel : selectionModelToConverter.keySet() )
+				// The image viewer can show several sources that
+				// are associated with selection models. (In fact already
+				// one selection model can be associated to several sources
+				// that are shown in parallel, and which share the same
+				// feature table).
+				// We thus check in all models whether the
+				// selected segment is a part of that model.
+				for ( SelectionModel< TableRowImageSegment > selectionModel : selectionModelToAdapter.keySet() )
 				{
-					final S segment = selectionModelToConverter.get( selectionModel ).getSegment( labelIndex, timepoint, source.getName() );
+					final TableRowImageSegment segment = selectionModelToAdapter.get( selectionModel ).getSegment( labelIndex, timepoint, source.getName() );
 
 					if ( segment != null)
 					{
@@ -184,7 +192,7 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 					sourceName,
 					display.coloringModel );
 
-			SourceAndConverter labelSourceAndConverter = asLabelSourceAndConverter( sourceAndConverter, labelConverter );
+			SourceAndConverter< ? > labelSourceAndConverter = asLabelSourceAndConverter( sourceAndConverter, labelConverter );
 
 			sourceAndConverters.add( labelSourceAndConverter );
 
@@ -192,8 +200,7 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		}
 
 		labelSources.addAll( sourceAndConverters );
-		// TODO: Figure out how to avoid the casting
-		selectionModelToConverter.put( ( SelectionModel<S>  ) display.selectionModel, ( SegmentAdapter<S> ) display.segmentAdapter );
+		selectionModelToAdapter.put( display.selectionModel, display.segmentAdapter );
 
 		return sourceAndConverters;
 	}

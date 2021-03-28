@@ -20,10 +20,10 @@ public class SegmentationDisplay extends SourceDisplay
 	// TODO: rework according to ImageDisplay
 	public transient SelectionModel< TableRowImageSegment > selectionModel;
 	public transient ColoringModelWrapper< TableRowImageSegment > coloringModel;
-	public transient TableViewer< ? extends TableRow > tableViewer;
-	public transient ScatterPlotViewer< ? extends TableRow > scatterPlotViewer;
+	public transient TableViewer< TableRowImageSegment > tableViewer;
+	public transient ScatterPlotViewer< TableRowImageSegment > scatterPlotViewer;
 	public transient List< TableRowImageSegment > segments;
-	public transient SegmentAdapter< ? extends ImageSegment > segmentAdapter;
+	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
 
 	// For serialization
 	public SegmentationDisplay( String name, List< String > sources, double alpha, String lut, List< String > selectedSegmentIds )

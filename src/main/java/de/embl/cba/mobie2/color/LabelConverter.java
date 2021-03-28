@@ -36,19 +36,19 @@ import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 
-public class LabelConverter< T extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, Transparency
+public class LabelConverter< S extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, Transparency
 {
-	private final SegmentAdapter< T > segmentAdapter;
+	private final SegmentAdapter< S > segmentAdapter;
 	private final String imageId;
-	private final ColoringModelWrapper< T > coloringModel;
+	private final ColoringModelWrapper< S > coloringModel;
 
 	private int frame;
 	private double alpha = 1.0;
 
 	public LabelConverter(
-			SegmentAdapter< T > segmentAdapter,
+			SegmentAdapter< S > segmentAdapter,
 			String imageId,
-			ColoringModelWrapper coloringModel )
+			ColoringModelWrapper< S > coloringModel )
 	{
 		this.segmentAdapter = segmentAdapter;
 		this.imageId = imageId;
@@ -74,7 +74,7 @@ public class LabelConverter< T extends ImageSegment > implements Converter< Real
 			return;
 		}
 
-		final T imageSegment = segmentAdapter.getSegment( label.getRealDouble(), frame, imageId );
+		final S imageSegment = segmentAdapter.getSegment( label.getRealDouble(), frame, imageId );
 
 		if ( imageSegment == null )
 		{
