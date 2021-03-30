@@ -29,15 +29,18 @@
 package de.embl.cba.mobie2.color;
 
 import net.imglib2.converter.Converter;
+import net.imglib2.display.ColorConverter;
+import net.imglib2.display.RealARGBColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import sun.plugin2.util.ColorUtil;
 
-public class AdjustableOpacityConverterWrapper implements Converter< RealType, ARGBType >, OpacityAdjuster
+public class AdjustableOpacityColorConverter implements OpacityAdjuster, ColorConverter, Converter< RealType, ARGBType >
 {
 	private final Converter< RealType, ARGBType > converter;
 	private double opacity = 1.0;
 
-	public AdjustableOpacityConverterWrapper( Converter< RealType, ARGBType > converter )
+	public AdjustableOpacityColorConverter( Converter< RealType, ARGBType > converter )
 	{
 		this.converter = converter;
 	}
@@ -59,5 +62,47 @@ public class AdjustableOpacityConverterWrapper implements Converter< RealType, A
 	public double getOpacity()
 	{
 		return opacity;
+	}
+
+	@Override
+	public ARGBType getColor()
+	{
+		return (( ColorConverter ) converter).getColor();
+	}
+
+	@Override
+	public void setColor( ARGBType c )
+	{
+		(( ColorConverter ) converter).setColor( c );
+	}
+
+	@Override
+	public boolean supportsColor()
+	{
+		return (( ColorConverter ) converter).supportsColor();
+	}
+
+	@Override
+	public double getMin()
+	{
+		return (( ColorConverter ) converter).getMin();
+	}
+
+	@Override
+	public double getMax()
+	{
+		return (( ColorConverter ) converter).getMax();
+	}
+
+	@Override
+	public void setMin( double min )
+	{
+		(( ColorConverter ) converter).setMin( min );
+	}
+
+	@Override
+	public void setMax( double max )
+	{
+		(( ColorConverter ) converter).setMax( max );
 	}
 }

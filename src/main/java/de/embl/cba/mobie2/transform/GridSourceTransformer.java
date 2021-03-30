@@ -58,17 +58,19 @@ public class GridSourceTransformer implements SourceTransformer
 	private void autoSetPositions()
 	{
 		final int numPositions = sources.size();
-		final int numColumns = ( int ) Math.ceil( Math.sqrt( numPositions ) );
+		final int numX = ( int ) Math.ceil( Math.sqrt( numPositions ) );
 		positions = new ArrayList<>();
-		int columnIndex = 0;
-		int rowIndex = 0;
+		int xIndex = 0;
+		int yIndex = 0;
 		for ( int i = 0; i < numPositions; i++ )
 		{
-			if ( ++columnIndex == numColumns )
+			if ( xIndex == numX )
 			{
-				rowIndex++;
+				xIndex = 0;
+				yIndex++;
 			}
-			positions.add( new int[]{ rowIndex, columnIndex }  );
+			positions.add( new int[]{ xIndex, yIndex }  );
+			xIndex++;
 		}
 	}
 }

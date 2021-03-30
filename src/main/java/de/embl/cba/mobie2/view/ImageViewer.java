@@ -6,8 +6,10 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie2.MoBIE2;
-import de.embl.cba.mobie2.color.AdjustableOpacityConverterWrapper;
+import de.embl.cba.mobie2.color.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie2.color.LabelConverter;
+import de.embl.cba.mobie2.color.VolatileAdjustableOpacityColorConverter;
+import de.embl.cba.mobie2.color.VolatileRealARGBColorConverter;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
@@ -22,7 +24,11 @@ import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.RealPoint;
+import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
+import net.imglib2.display.RealARGBColorConverter;
+import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.RealType;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -169,14 +175,18 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 
 		// show
 		List< SourceAndConverter< ? > > displayedSourceAndConverters = new ArrayList<>();
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : transformedSourceAndConverters )
 		{
-			// adapt color
-			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  imageDisplay.getColor() ) ).run();
-
 			// replace converter such that one can change the opacity
 			// (this changes the hash-code of the sourceAndConverter)
-			sourceAndConverter = new ConverterChanger( sourceAndConverter, new AdjustableOpacityConverterWrapper( ( Converter ) sourceAndConverter.getConverter() ), new AdjustableOpacityConverterWrapper( ( Converter ) sourceAndConverter.asVolatile().getConverter() ) ).get();
+
+			// TODO: understand this madness
+			final Converter< RealType, ARGBType > converter = ( Converter< RealType, ARGBType > ) sourceAndConverter.getConverter();
+			final Converter< ? extends Volatile< ? >, ARGBType > volatileConverter = sourceAndConverter.asVolatile().getConverter();
+//			sourceAndConverter = new ConverterChanger( sourceAndConverter, new AdjustableOpacityColorConverter(  converter ), new VolatileAdjustableOpacityColorConverter( volatileConverter ) ).get();
+
+			// adapt color
+			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  imageDisplay.getColor() ) ).run();
 
 			// set blending mode
 			if ( imageDisplay.getBlendingMode() != null )
