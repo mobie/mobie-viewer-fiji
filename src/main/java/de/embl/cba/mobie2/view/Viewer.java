@@ -3,7 +3,7 @@ package de.embl.cba.mobie2.view;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.source.SegmentationSource;
-import de.embl.cba.mobie2.color.ColoringModelWrapper;
+import de.embl.cba.mobie2.color.MoBIEColoringModel;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
@@ -14,7 +14,6 @@ import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.sourceandconverter.display.BrightnessAutoAdjuster;
 
@@ -82,8 +81,9 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 	{
 		display.imageViewer = imageViewer;
 
+		display.coloringModel = new MoBIEColoringModel<>( display.getLut() );
 		display.selectionModel = new DefaultSelectionModel<>();
-		display.coloringModel = new ColoringModelWrapper<>( display.selectionModel );
+		display.coloringModel.setSelectionModel(  display.selectionModel );
 
 		if ( display.getSources().size() > 1 )
 		{

@@ -28,83 +28,36 @@
  */
 package de.embl.cba.mobie2.color;
 
-import bdv.viewer.TimePointListener;
-import de.embl.cba.mobie2.segment.SegmentAdapter;
-import de.embl.cba.tables.imagesegment.ImageSegment;
-import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 
-public class LabelConverter< S extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, OpacityAdjuster
+public class AdjustableOpacityConverterWrapper implements Converter< RealType, ARGBType >, OpacityAdjuster
 {
-	private final SegmentAdapter< S > segmentAdapter;
-	private final String imageId;
-	private final MoBIEColoringModel< S > coloringModel;
+	private final Converter< RealType, ARGBType > converter;
+	private double opacity = 1.0;
 
-	private int frame;
-	private double alpha = 1.0;
-
-	public LabelConverter(
-			SegmentAdapter< S > segmentAdapter,
-			String imageId,
-			MoBIEColoringModel< S > coloringModel )
+	public AdjustableOpacityConverterWrapper( Converter< RealType, ARGBType > converter )
 	{
-		this.segmentAdapter = segmentAdapter;
-		this.imageId = imageId;
-		this.coloringModel = coloringModel;
-		this.frame = 0;
+		this.converter = converter;
 	}
 
 	@Override
-	public void convert( RealType label, ARGBType color )
+	public void convert( RealType realType, ARGBType output )
 	{
-		if ( label instanceof Volatile )
-		{
-			if ( ! ( ( Volatile ) label ).isValid() )
-			{
-				color.set( 0 );
-				return;
-			}
-		}
-
-		if ( label.getRealDouble() == 0 )
-		{
-			color.set( 0 );
-			return;
-		}
-
-		final S imageSegment = segmentAdapter.getSegment( label.getRealDouble(), frame, imageId );
-
-		if ( imageSegment == null )
-		{
-			color.set( 0 );
-			return;
-		}
-		else
-		{
-			coloringModel.convert( imageSegment, color );
-			final int alpha = ARGBType.alpha( color.get() );
-			color.mul( alpha / 255.0 );
-		}
-
-		color.mul( alpha );
-	}
-
-	public void timePointChanged( int timePointIndex )
-	{
-		this.frame = timePointIndex;
+		converter.convert( realType, output );
+		output.mul( opacity );
 	}
 
 	@Override
 	public void setOpacity( double opacity )
 	{
-		this.alpha = opacity;
+		this.opacity = opacity;
 	}
 
 	@Override
 	public double getOpacity()
 	{
-		return alpha;
+		return opacity;
 	}
 }

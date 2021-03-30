@@ -38,7 +38,7 @@ import net.imglib2.type.numeric.ARGBType;
 import java.util.Arrays;
 import java.util.List;
 
-public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
+public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 {
 	private ColoringModel< T > coloringModel;
 	private SelectionModel< T > selectionModel;
@@ -46,7 +46,6 @@ public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
 	private SelectionColoringMode selectionColoringMode;
 	private ARGBType selectionColor;
 	private double alphaNotSelected;
-
 
 	public static final ARGBType YELLOW = new ARGBType( ARGBType.rgba( 255, 255, 0, 255 ) );
 
@@ -59,21 +58,28 @@ public class ColoringModelWrapper< T > extends AbstractColoringModel< T >
 		DimNotSelected
 	}
 
-	public ColoringModelWrapper( SelectionModel< T > selectionModel )
+	// TODO: Can I not make this a wrapper but rather configurable (in terms of table column coloring)
+	public MoBIEColoringModel( String lut )
 	{
-		setColoringModel( new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) ) );
-		this.selectionModel = selectionModel;
-		this.selectionColoringModes = Arrays.asList( SelectionColoringMode.values() );
+		setColoringModel( new LazyCategoryColoringModel<>( new LutFactory().get( lut ) ) );
 
+		this.selectionColoringModes = Arrays.asList( SelectionColoringMode.values() );
 		this.selectionColor = YELLOW;
-		this.alphaNotSelected = 0.1;
+		this.alphaNotSelected = 0.15;
 		this.selectionColoringMode = SelectionColoringMode.DimNotSelected;
+	}
+
+	public void setSelectionModel( SelectionModel< T > selectionModel )
+	{
+		this.selectionModel = selectionModel;
 	}
 
 	@Override
 	public void convert( T input, ARGBType output )
 	{
 		coloringModel.convert( input, output );
+
+		if ( selectionModel == null ) return;
 
 		// TODO: this is very inefficient as it recomputes the colors all the time
 		//   implement a selectionChanged Listener!

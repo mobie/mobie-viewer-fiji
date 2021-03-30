@@ -32,7 +32,7 @@ import bdv.tools.HelpDialog;
 import de.embl.cba.bdv.utils.lut.ARGBLut;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie2.annotate.Annotator;
-import de.embl.cba.mobie2.color.ColoringModelWrapper;
+import de.embl.cba.mobie2.color.MoBIEColoringModel;
 import de.embl.cba.tables.*;
 import de.embl.cba.tables.color.*;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
@@ -68,7 +68,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 {
 	private final List< T > tableRows;
 	private final SelectionModel< T > selectionModel;
-	private final ColoringModelWrapper< T > coloringModel;
+	private final MoBIEColoringModel< T > coloringModel;
 	private final String tableName;
 
 	private JTable table;
@@ -96,11 +96,11 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	public TableViewer(
 			final List< T > tableRows,
 			final SelectionModel< T > selectionModel,
-			final ColoringModelWrapper< T > coloringModelWrapper,
+			final MoBIEColoringModel< T > moBIEColoringModel,
 			String tableName )
 	{
 		this.tableRows = tableRows;
-		this.coloringModel = coloringModelWrapper;
+		this.coloringModel = moBIEColoringModel;
 		this.selectionModel = selectionModel;
 		this.tableName = tableName;
 		this.recentlySelectedRowInView = -1;
@@ -558,7 +558,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			columnNameToColoringModel.put( columnName, categoricalColoringModel );
 		}
 
-		coloringModel.setSelectionColoringMode( ColoringModelWrapper.SelectionColoringMode.DimNotSelected );
+		coloringModel.setSelectionColoringMode( MoBIEColoringModel.SelectionColoringMode.DimNotSelected );
 		coloringModel.setColoringModel( columnNameToColoringModel.get( columnName ) );
 		final RowSorter< ? extends TableModel > rowSorter = table.getRowSorter();
 

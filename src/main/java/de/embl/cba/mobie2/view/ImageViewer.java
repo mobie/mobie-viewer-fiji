@@ -6,6 +6,7 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie2.MoBIE2;
+import de.embl.cba.mobie2.color.AdjustableOpacityConverterWrapper;
 import de.embl.cba.mobie2.color.LabelConverter;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
@@ -21,6 +22,7 @@ import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.RealPoint;
+import net.imglib2.converter.Converter;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -33,6 +35,7 @@ import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
+import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -144,9 +147,8 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 
 	public List< SourceAndConverter< ? > > show( ImageDisplay imageDisplay, List< SourceTransformerSupplier > sourceTransforms )
 	{
-		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
-
 		// open
+		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
 		for ( String sourceName : imageDisplay.getSources() )
 		{
 			final ImageSource source = moBIE2.getSource( sourceName );
@@ -156,25 +158,40 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		}
 
 		// transform
+		List< SourceAndConverter< ? > > transformedSourceAndConverters = new ArrayList<>( sourceAndConverters );
 		if ( sourceTransforms != null )
 		{
 			for ( SourceTransformerSupplier sourceTransform : sourceTransforms )
 			{
-				sourceAndConverters = sourceTransform.get().transform( sourceAndConverters );
+				transformedSourceAndConverters = sourceTransform.get().transform( transformedSourceAndConverters );
 			}
 		}
 
 		// show
+		List< SourceAndConverter< ? > > displayedSourceAndConverters = new ArrayList<>();
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
+			// adapt color
 			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  imageDisplay.getColor() ) ).run();
+
+			// replace converter such that one can change the opacity
+			// (this changes the hash-code of the sourceAndConverter)
+			sourceAndConverter = new ConverterChanger( sourceAndConverter, new AdjustableOpacityConverterWrapper( ( Converter ) sourceAndConverter.getConverter() ), new AdjustableOpacityConverterWrapper( ( Converter ) sourceAndConverter.asVolatile().getConverter() ) ).get();
+
+			// set blending mode
 			if ( imageDisplay.getBlendingMode() != null )
 				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, imageDisplay.getBlendingMode());
+
+			// show
 			displayService.show( bdvHandle, sourceAndConverter );
+
+			// adapt contrast limits
 			displayService.getConverterSetup( sourceAndConverter ).setDisplayRange( imageDisplay.getContrastLimits()[ 0 ], imageDisplay.getContrastLimits()[ 1 ] );
+
+			displayedSourceAndConverters.add( sourceAndConverter );
 		}
 
-		return sourceAndConverters;
+		return displayedSourceAndConverters;
 	}
 
 	public List< SourceAndConverter< ? > > show( SegmentationDisplay display )

@@ -14,7 +14,7 @@ import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.ui.MoBIEInfo;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
 import de.embl.cba.mobie2.*;
-import de.embl.cba.mobie2.color.LabelConverter;
+import de.embl.cba.mobie2.color.OpacityAdjuster;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
@@ -46,13 +46,13 @@ import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
 public class UserInterfaceHelper
 {
 	private static final int[] BUTTON_DIMENSIONS = new int[]{ 50, 30 };
-	public static final Dimension PREFERRED_BUTTON_SIZE = new Dimension( BUTTON_DIMENSIONS[ 0 ], BUTTON_DIMENSIONS[ 1 ] );
+	private static final Dimension PREFERRED_BUTTON_SIZE = new Dimension( BUTTON_DIMENSIONS[ 0 ], BUTTON_DIMENSIONS[ 1 ] );
 	private static final String VIEW = "view";
 	private static final String MOVE = "move";
 	private static final String HELP = "show";
 	private static final String SWITCH = "switch";
 	private static final String LEVEL = "level";
-	public static final String ADD = "add";
+	private static final String ADD = "add";
 
 	private final MoBIE2 moBIE2;
 	private int viewsSelectionPanelHeight;
@@ -167,35 +167,37 @@ public class UserInterfaceHelper
 		frame.setVisible( true );
 	}
 
-	public static void showTransparencyDialog(
+	public static void showOpacityDialog(
 			String name,
-			List< LabelConverter< ? > > converters,
+			List< SourceAndConverter< ? > > sourceAndConverters,
 			BdvHandle bdvHandle )
 	{
 		JFrame frame = new JFrame( name );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
-		final double currentAlpha = converters.get( 0 ).getAlpha();
+		// TODO: This cast requires that the sourceAndConverter implements
+		//   an OpacityAdjuster; how to do this more cleanly?
+		final double current = ( (OpacityAdjuster) sourceAndConverters.get( 0 ).asVolatile().getConverter()).getOpacity();
 
 		final BoundedValueDouble selection =
 				new BoundedValueDouble(
 						0.0,
 						1.0,
-						currentAlpha );
+						current );
 
 		double spinnerStepSize = 0.05;
 
 		JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
-		final SliderPanelDouble alphaSlider = new SliderPanelDouble( "Alpha", selection, spinnerStepSize );
-		alphaSlider.setNumColummns( 3 );
-		alphaSlider.setDecimalFormat( "#.##" );
+		final SliderPanelDouble slider = new SliderPanelDouble( "Opacity", selection, spinnerStepSize );
+		slider.setNumColummns( 3 );
+		slider.setDecimalFormat( "#.##" );
 
-		final AlphaUpdateListener alphaUpdateListener =
-				new AlphaUpdateListener( selection, alphaSlider, converters, bdvHandle );
+		final OpacityUpdateListener opacityUpdateListener =
+				new OpacityUpdateListener( selection, slider, sourceAndConverters, bdvHandle );
 
-		selection.setUpdateListener( alphaUpdateListener );
-		panel.add( alphaSlider );
+		selection.setUpdateListener( opacityUpdateListener );
+		panel.add( slider );
 
 		frame.setContentPane( panel );
 
@@ -209,20 +211,20 @@ public class UserInterfaceHelper
 
 	}
 
-	public static class AlphaUpdateListener implements BoundedValueDouble.UpdateListener
+	public static class OpacityUpdateListener implements BoundedValueDouble.UpdateListener
 	{
-		final private List< LabelConverter< ? > > labelConverters;
+		final private List< SourceAndConverter< ? > > sourceAndConverters;
 		private final BdvHandle bdvHandle;
 		final private BoundedValueDouble value;
 		private final SliderPanelDouble slider;
 
-		public AlphaUpdateListener( BoundedValueDouble value,
-									SliderPanelDouble slider,
-									List< LabelConverter< ? > > labelConverters, 									BdvHandle bdvHandle )
+		public OpacityUpdateListener( BoundedValueDouble value,
+									  SliderPanelDouble slider,
+									  List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
 		{
 			this.value = value;
 			this.slider = slider;
-			this.labelConverters = labelConverters;
+			this.sourceAndConverters = sourceAndConverters;
 			this.bdvHandle = bdvHandle;
 		}
 
@@ -231,9 +233,15 @@ public class UserInterfaceHelper
 		{
 			slider.update();
 
-			for ( LabelConverter< ? > labelConverter : labelConverters )
+			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{
-				labelConverter.setAlpha( value.getCurrentValue() );
+				final double currentValue = value.getCurrentValue();
+
+				if ( sourceAndConverter.getConverter() instanceof OpacityAdjuster )
+					( ( OpacityAdjuster ) sourceAndConverter.getConverter() ).setOpacity( currentValue );
+
+				if ( sourceAndConverter.asVolatile().getConverter() instanceof OpacityAdjuster )
+					( ( OpacityAdjuster ) sourceAndConverter.asVolatile().getConverter() ).setOpacity( currentValue );
 			}
 
 			bdvHandle.getViewerPanel().requestRepaint();
@@ -276,6 +284,7 @@ public class UserInterfaceHelper
 //						sourceAndMetadataList.get( 0 ).metadata().showImageIn3d || sourceAndMetadataList.get( 0 ).metadata().showSelectedSegmentsIn3d );
 
 		panel.add( createFocusButton( display ) );
+		panel.add( createOpacityButton( display ) );
 		panel.add( createColorButton( display, panel ) );
 		panel.add( createImageDisplayBrightnessButton( display ) );
 		panel.add( createRemoveButton( userInterface, panel, display ) );
@@ -319,9 +328,8 @@ public class UserInterfaceHelper
 //						sourceAndMetadataList.get( 0 ),
 //						sourceAndMetadataList.get( 0 ).metadata().showImageIn3d || sourceAndMetadataList.get( 0 ).metadata().showSelectedSegmentsIn3d );
 
-		//panel.add( brightnessButton );
 		panel.add( createFocusButton( display ) );
-		panel.add( createTransparencyButton( display ) );
+		panel.add( createOpacityButton( display ) );
 		panel.add( createRemoveButton( userInterface, panel, display ) );
 		//panel.add( volumeVisibilityCheckbox );
 		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
@@ -678,31 +686,17 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	public static JButton createTransparencyButton( SegmentationDisplay segmentationDisplay )
+	public static JButton createOpacityButton( SourceDisplay sourceDisplay )
 	{
-		JButton button = new JButton( "B" );
+		JButton button = new JButton( "O" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
 		{
-			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
-			for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )
-			{
-				converterSetups.add( SourceAndConverterServices.getSourceAndConverterDisplayService().getConverterSetup( sourceAndConverter ) );
-			}
-
-			// TODO: above probably this will return dummy setups
-
-			final ArrayList< LabelConverter< ? > > labelConverters = new ArrayList<>();
-			for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )
-			{
-				labelConverters.add( (LabelConverter<?> ) sourceAndConverter.getConverter() );
-			}
-
-			UserInterfaceHelper.showTransparencyDialog(
-					segmentationDisplay.getName(),
-					labelConverters,
-					segmentationDisplay.imageViewer.getBdvHandle() );
+			UserInterfaceHelper.showOpacityDialog(
+					sourceDisplay.getName(),
+					sourceDisplay.sourceAndConverters,
+					sourceDisplay.imageViewer.getBdvHandle() );
 		} );
 
 		return button;

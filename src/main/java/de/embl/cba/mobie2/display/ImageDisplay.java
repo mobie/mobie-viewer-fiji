@@ -13,9 +13,9 @@ public class ImageDisplay extends SourceDisplay
 	private final BlendingMode blendingMode;
 
 	// For serialisation
-	public ImageDisplay( String name, List< String > sources, String color, double[] contrastLimits, BlendingMode blendingMode )
+	public ImageDisplay( String name, double alpha, List< String > sources, String color, double[] contrastLimits, BlendingMode blendingMode )
 	{
-		super( name, sources );
+		super( name, alpha, sources );
 		this.color = color;
 		this.contrastLimits = contrastLimits;
 		this.blendingMode = blendingMode;
