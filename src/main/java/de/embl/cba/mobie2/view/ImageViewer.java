@@ -1,5 +1,6 @@
 package de.embl.cba.mobie2.view;
 
+import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -183,7 +184,7 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 			// TODO: understand this madness
 			final Converter< RealType, ARGBType > converter = ( Converter< RealType, ARGBType > ) sourceAndConverter.getConverter();
 			final Converter< ? extends Volatile< ? >, ARGBType > volatileConverter = sourceAndConverter.asVolatile().getConverter();
-//			sourceAndConverter = new ConverterChanger( sourceAndConverter, new AdjustableOpacityColorConverter(  converter ), new VolatileAdjustableOpacityColorConverter( volatileConverter ) ).get();
+			sourceAndConverter = new ConverterChanger( sourceAndConverter, new AdjustableOpacityColorConverter(  converter ), new VolatileAdjustableOpacityColorConverter( volatileConverter ) ).get();
 
 			// adapt color
 			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  imageDisplay.getColor() ) ).run();
@@ -196,7 +197,8 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 			displayService.show( bdvHandle, sourceAndConverter );
 
 			// adapt contrast limits
-			displayService.getConverterSetup( sourceAndConverter ).setDisplayRange( imageDisplay.getContrastLimits()[ 0 ], imageDisplay.getContrastLimits()[ 1 ] );
+			final ConverterSetup converterSetup = displayService.getConverterSetup( sourceAndConverter );
+			converterSetup.setDisplayRange( imageDisplay.getContrastLimits()[ 0 ], imageDisplay.getContrastLimits()[ 1 ] );
 
 			displayedSourceAndConverters.add( sourceAndConverter );
 		}
