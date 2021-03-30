@@ -62,7 +62,6 @@ public class MoBIE2
 		imageDataLocation = "local";
 
 		final UserInterface userInterface = new UserInterface( this );
-
 		viewer = new Viewer( this, userInterface, dataset.is2D );
 		viewer.show( dataset.views.get( "default" ) );
 

@@ -9,6 +9,7 @@ import java.util.List;
 
 public class SourceDisplay
 {
+	private final boolean isExclusive;
 	private final String name;
 	private final double opacity;
 	private final List< String > sources;
@@ -16,8 +17,9 @@ public class SourceDisplay
 	public transient List< SourceAndConverter< ? > > sourceAndConverters;
 	public transient ImageViewer< ? extends ImageSegment > imageViewer;
 
-	public SourceDisplay( String name, double opacity, List< String > sources )
+	public SourceDisplay( boolean isExclusive, String name, double opacity, List< String > sources )
 	{
+		this.isExclusive = isExclusive;
 		this.name = name;
 		this.opacity = opacity;
 		this.sources = sources;
@@ -36,5 +38,10 @@ public class SourceDisplay
 	public double getOpacity()
 	{
 		return opacity;
+	}
+
+	public boolean isExclusive()
+	{
+		return isExclusive;
 	}
 }

@@ -25,7 +25,7 @@ public class SegmentationDisplay extends SourceDisplay
 	// For serialization
 	public SegmentationDisplay( String name, List< String > sources, double alpha, String lut, List< String > selectedSegmentIds )
 	{
-		super( name, alpha, sources );
+		super( isExclusive, name, alpha, sources );
 		this.lut = lut;
 		this.selectedSegmentIds = selectedSegmentIds;
 	}

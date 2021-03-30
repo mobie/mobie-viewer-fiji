@@ -1,5 +1,6 @@
 package de.embl.cba.mobie2.view;
 
+import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.source.SegmentationSource;
@@ -15,9 +16,10 @@ import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
-import sc.fiji.bdvpg.sourceandconverter.display.BrightnessAutoAdjuster;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
@@ -28,12 +30,13 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 	private final UserInterface userInterface;
 	private final ImageViewer imageViewer;
 	private UserInterfaceHelper userInterfaceHelper;
+	private ArrayList< SourceDisplay > sourceDisplays;
 
 	public Viewer( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D )
 	{
 		this.moBIE2 = moBIE2;
 		this.userInterface = userInterface;
-
+		sourceDisplays = new ArrayList<>();
 		imageViewer = new ImageViewer( moBIE2, is2D );
 		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), imageViewer.getWindow(), false, true );
 	}
@@ -50,31 +53,49 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 		{
 			for ( SourceDisplaySupplier displaySupplier : view.sourceDisplays )
 			{
-				final SourceDisplay sourceDisplay = displaySupplier.get();
-
-				if ( sourceDisplay instanceof ImageDisplay )
-				{
-					showImageDisplay( ( ImageDisplay ) sourceDisplay, view.sourceTransforms );
-				}
-				else if ( sourceDisplay instanceof SegmentationDisplay )
-				{
-					showSegmentationDisplay( ( SegmentationDisplay ) sourceDisplay );
-				}
-
-				userInterface.addDisplaySettings( sourceDisplay );
+				showSourceDisplay( view, displaySupplier.get() );
 			}
 		}
+
 
 		// Adjust the viewer transform
 	}
 
-	private void showImageDisplay( ImageDisplay sourceDisplay, List< SourceTransformerSupplier > sourceTransforms )
+	private void showSourceDisplay( View view, SourceDisplay sourceDisplay )
 	{
-		sourceDisplay.imageViewer = imageViewer;
-		sourceDisplay.sourceAndConverters = imageViewer.show( sourceDisplay, sourceTransforms );
+		if ( sourceDisplay.isExclusive() )
+		{
+			removeAllSourceDisplays();
+		}
 
-		new BrightnessAutoAdjuster( sourceDisplay.sourceAndConverters.get( 0 ),0  ).run();
-		new ViewerTransformAdjuster( imageViewer.getBdvHandle(), sourceDisplay.sourceAndConverters.get( 0 ) ).run();
+		if ( sourceDisplay instanceof ImageDisplay )
+		{
+			showImageDisplay( ( ImageDisplay ) sourceDisplay, view.sourceTransforms );
+		}
+		else if ( sourceDisplay instanceof SegmentationDisplay )
+		{
+			showSegmentationDisplay( ( SegmentationDisplay ) sourceDisplay );
+
+		}
+
+		userInterface.addSourceDisplay( sourceDisplay );
+		sourceDisplays.add( sourceDisplay );
+	}
+
+	private void removeAllSourceDisplays()
+	{
+		for ( SourceDisplay display : sourceDisplays )
+		{
+			remove( display );
+		}
+	}
+
+	private void showImageDisplay( ImageDisplay imageDisplay, List< SourceTransformerSupplier > sourceTransforms )
+	{
+		imageDisplay.imageViewer = imageViewer;
+		imageDisplay.sourceAndConverters = imageViewer.show( imageDisplay, sourceTransforms );
+
+		new ViewerTransformAdjuster( imageViewer.getBdvHandle(), imageDisplay.sourceAndConverters.get( 0 ) ).run();
 	}
 
 	private void showSegmentationDisplay( SegmentationDisplay display )
@@ -109,5 +130,22 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 			UserInterfaceHelper.bottomAlignWindow( display.imageViewer.getWindow(), display.tableViewer.getWindow() );
 			UserInterfaceHelper.rightAlignWindow( display.imageViewer.getWindow(), display.scatterPlotViewer.getWindow(), true, true );
 		} );
+	}
+
+	public void remove( SourceDisplay sourceDisplay )
+	{
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
+		{
+			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+		}
+
+		if ( sourceDisplay instanceof SegmentationDisplay )
+		{
+			( ( SegmentationDisplay ) sourceDisplay ).tableViewer.getWindow().dispose();
+			( ( SegmentationDisplay ) sourceDisplay ).scatterPlotViewer.getWindow().dispose();
+		}
+
+		userInterface.removeSourceDisplay( sourceDisplay );
+		sourceDisplays.remove( sourceDisplay );
 	}
 }

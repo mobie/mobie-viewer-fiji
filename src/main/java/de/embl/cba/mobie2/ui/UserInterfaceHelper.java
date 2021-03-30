@@ -269,7 +269,7 @@ public class UserInterfaceHelper
 		return actionPanel;
 	}
 
-	public void addImageDisplaySettings( UserInterface userInterface, ImageDisplay display )
+	public void addImageDisplaySettingsPanel( UserInterface userInterface, ImageDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
@@ -300,7 +300,7 @@ public class UserInterfaceHelper
 			} );
 		}
 
-		userInterface.addDisplaySettings( panel );
+		userInterface.showDisplaySettingsPanel( display, panel );
 	}
 
 	private JPanel createDisplayPanel( String name )
@@ -316,7 +316,7 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public void addSegmentationDisplaySettings( UserInterface userInterface, SegmentationDisplay display )
+	public void addSegmentationDisplaySettingsPanel( UserInterface userInterface, SegmentationDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
@@ -336,7 +336,7 @@ public class UserInterfaceHelper
 		panel.add( createTableViewerVisibilityCheckbox( display, true ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display, true ) );
 
-		userInterface.addDisplaySettings( panel );
+		userInterface.showDisplaySettingsPanel( display, panel );
 	}
 
 	public JPanel createViewsSelectionPanel( )
@@ -735,7 +735,7 @@ public class UserInterfaceHelper
 	}
 
 	// TODO: this should also close the table a.s.o. if it is a segmentation source
-	private static JButton createRemoveButton(
+	private JButton createRemoveButton(
 			final de.embl.cba.mobie2.ui.UserInterface userInterface,
 			JPanel panel,
 			SourceDisplay sourceDisplay )
@@ -745,18 +745,7 @@ public class UserInterfaceHelper
 
 		removeButton.addActionListener( e ->
 		{
-			for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
-			{
-				SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
-			}
-
-			if ( sourceDisplay instanceof SegmentationDisplay )
-			{
-				( ( SegmentationDisplay ) sourceDisplay ).tableViewer.getWindow().dispose();
-				( ( SegmentationDisplay ) sourceDisplay ).scatterPlotViewer.getWindow().dispose();
-			}
-
-			userInterface.removeDisplaySettings( panel );
+			moBIE2.getViewer().remove( sourceDisplay );
 		} );
 
 		return removeButton;

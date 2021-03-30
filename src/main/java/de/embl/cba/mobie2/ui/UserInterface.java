@@ -4,10 +4,12 @@ import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
+import io.scif.DefaultMetaTable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
+import java.util.Map;
 
 public class UserInterface
 {
@@ -15,6 +17,7 @@ public class UserInterface
 	private final JFrame frame;
 	private final JPanel actionContainer;
 	private final UserInterfaceHelper userInterfaceHelper;
+	private Map< SourceDisplay, JPanel > sourceDisplayToPanel;
 
 	public UserInterface( MoBIE2 moBIE )
 	{
@@ -22,13 +25,9 @@ public class UserInterface
 
 		actionContainer = userInterfaceHelper.createActionPanel();
 		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsPanel();
+		sourceDisplayToPanel = new HashMap<>();
 
 		frame = createAndShowFrame( actionContainer, displaySettingsContainer, moBIE.getProjectName() + "-" + moBIE.getCurrentDatasetName() );
-	}
-
-	public void dispose()
-	{
-		frame.dispose();
 	}
 
 	private JFrame createAndShowFrame( JPanel actionPanel, JPanel displaySettingsPanel, String panelName )
@@ -65,28 +64,30 @@ public class UserInterface
 		frame.repaint();
 	}
 
-	public void addDisplaySettings( SourceDisplay sourceDisplay )
+	public void addSourceDisplay( SourceDisplay sourceDisplay )
 	{
 		if ( sourceDisplay instanceof ImageDisplay )
 		{
-			userInterfaceHelper.addImageDisplaySettings( this, ( ImageDisplay ) sourceDisplay );
+			userInterfaceHelper.addImageDisplaySettingsPanel( this, ( ImageDisplay ) sourceDisplay );
 			refresh();
 		}
 		else if ( sourceDisplay instanceof SegmentationDisplay )
 		{
-			userInterfaceHelper.addSegmentationDisplaySettings( this, ( SegmentationDisplay ) sourceDisplay );
+			userInterfaceHelper.addSegmentationDisplaySettingsPanel( this, ( SegmentationDisplay ) sourceDisplay );
 			refresh();
 		}
 	}
 
-	protected void removeDisplaySettings( JPanel panel )
+	public void removeSourceDisplay( SourceDisplay display )
 	{
-		displaySettingsContainer.remove( panel );
-		refresh();
+		final JPanel jPanel = sourceDisplayToPanel.get( display );
+		displaySettingsContainer.remove( jPanel );
+		sourceDisplayToPanel.remove( display );
 	}
 
-	protected void addDisplaySettings( JPanel panel )
+	protected void showDisplaySettingsPanel( SourceDisplay display, JPanel panel )
 	{
+		sourceDisplayToPanel.put( display, panel );
 		displaySettingsContainer.add( panel );
 		refresh();
 	}
