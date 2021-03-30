@@ -2,6 +2,7 @@ package de.embl.cba.mobie.utils;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
@@ -40,8 +41,19 @@ import java.util.stream.Collectors;
 import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
 import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
-public class Utils
+public abstract class Utils
 {
+	public static SourceAndConverter< ? > getSource( List< SourceAndConverter< ? > > sourceAndConverters, String name )
+	{
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		{
+			if ( sourceAndConverter.getSpimSource().getName().equals( name ) )
+				return sourceAndConverter;
+		}
+
+		return null;
+	}
+
 	public static double[] delimitedStringToDoubleArray( String s, String delimiter) {
 
 		String[] sA = s.split(delimiter);
