@@ -519,7 +519,7 @@ public class UserInterfaceHelper
 		throw new RuntimeException(  );
 	}
 
-	// TODO: The project manager should do this!
+	// TODO: Move to UserInterface
 	private void switchDataset( String dataset )
 	{
 		// TODO: make sure the Swing UI sources panel is fully visible before instantiating the new BDV

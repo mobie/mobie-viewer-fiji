@@ -20,6 +20,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
@@ -57,12 +58,14 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 			}
 		}
 
-
 		// Adjust the viewer transform
+		// TODO
 	}
 
 	private void showSourceDisplay( View view, SourceDisplay sourceDisplay )
 	{
+		if ( sourceDisplays.contains( sourceDisplay ) ) return;
+
 		if ( sourceDisplay.isExclusive() )
 		{
 			removeAllSourceDisplays();
@@ -84,11 +87,20 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 
 	private void removeAllSourceDisplays()
 	{
-		for ( SourceDisplay display : sourceDisplays )
+		// create a copy of the currently shown displays...
+		final ArrayList< SourceDisplay > currentDisplays = new ArrayList<>( sourceDisplays ) ;
+
+		// ...such that we can remove them without
+		// modifying the list that we iterate over
+		for ( SourceDisplay display : currentDisplays )
 		{
+			// removes from all viewers and
+			// also from sourceDisplays
 			remove( display );
 		}
 	}
+
+
 
 	private void showImageDisplay( ImageDisplay imageDisplay, List< SourceTransformerSupplier > sourceTransforms )
 	{
@@ -132,7 +144,7 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 		} );
 	}
 
-	public void remove( SourceDisplay sourceDisplay )
+	public synchronized void remove( SourceDisplay sourceDisplay )
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
 		{

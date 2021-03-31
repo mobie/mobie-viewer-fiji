@@ -5,8 +5,8 @@ import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.image.SourcesModel;
 import de.embl.cba.mobie.ui.MoBIEOptions;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
-import de.embl.cba.mobie2.json.DatasetJsonParser;
-import de.embl.cba.mobie2.json.ProjectJsonParser;
+import de.embl.cba.mobie2.serialize.DatasetJsonParser;
+import de.embl.cba.mobie2.serialize.ProjectJsonParser;
 import de.embl.cba.mobie2.source.ImageSource;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.ui.UserInterface;
@@ -16,7 +16,6 @@ import de.embl.cba.mobie2.view.Viewer;
 import de.embl.cba.tables.FileAndUrlUtils;
 import net.imglib2.realtransform.AffineTransform3D;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;

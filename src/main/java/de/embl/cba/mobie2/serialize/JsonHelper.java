@@ -1,4 +1,4 @@
-package de.embl.cba.mobie2.json;
+package de.embl.cba.mobie2.serialize;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
