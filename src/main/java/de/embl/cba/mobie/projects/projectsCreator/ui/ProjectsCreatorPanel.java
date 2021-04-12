@@ -23,7 +23,7 @@ import java.io.IOException;
 import static de.embl.cba.mobie.utils.ExportUtils.generateDefaultAffine;
 import static de.embl.cba.mobie.utils.ExportUtils.parseAffineString;
 import static de.embl.cba.mobie.utils.Utils.tidyString;
-import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
+import static de.embl.cba.mobie2.ui.SwingHelper.*;
 
 public class ProjectsCreatorPanel extends JFrame {
     private ProjectsCreator projectsCreator;
@@ -58,8 +58,8 @@ public class ProjectsCreatorPanel extends JFrame {
     private void addDatasetPanel() {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-        final JButton addButton = getButton("Add");
-        final JButton editButton = getButton("Edit");
+        final JButton addButton = createButton("Add");
+        final JButton editButton = createButton("Edit");
 
         createDatasetComboBox();
         addButton.addActionListener( e ->
@@ -122,8 +122,8 @@ public class ProjectsCreatorPanel extends JFrame {
     private void addImagesPanel() {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-        final JButton addButton = getButton( "Add" );
-        final JButton editButton = getButton("Edit");
+        final JButton addButton = createButton( "Add" );
+        final JButton editButton = createButton("Edit");
 
         createImagesCombobox();
         addButton.addActionListener( e ->

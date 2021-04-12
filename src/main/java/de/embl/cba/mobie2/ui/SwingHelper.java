@@ -1,11 +1,11 @@
-package de.embl.cba.mobie.utils.ui;
+package de.embl.cba.mobie2.ui;
 
 import de.embl.cba.mobie.ui.MoBIE;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class SwingUtils
+public class SwingHelper
 {
 	public static final int TEXT_FIELD_HEIGHT = 20;
 	public static final int COMBOBOX_WIDTH = 270;
@@ -20,15 +20,6 @@ public class SwingUtils
 		panel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
 		return panel;
-	}
-
-	public static void resetSwingLookAndFeel() {
-		try {
-			UIManager.setLookAndFeel(
-					UIManager.getCrossPlatformLookAndFeelClassName());
-		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-			e.printStackTrace();
-		}
 	}
 
 	public static JLabel getJLabel( String text )
@@ -46,12 +37,12 @@ public class SwingUtils
 		return comp;
 	}
 
-	public static JButton getButton( String buttonLabel )
+	public static JButton createButton( String buttonLabel )
 	{
-		return getButton( buttonLabel, BUTTON_DIMENSION );
+		return createButton( buttonLabel, BUTTON_DIMENSION );
 	}
 
-	public static JButton getButton( String buttonLabel, Dimension dimension )
+	public static JButton createButton( String buttonLabel, Dimension dimension )
 	{
 		final JButton button = new JButton( buttonLabel );
 		button.setPreferredSize( dimension );

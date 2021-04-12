@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
+import static de.embl.cba.mobie2.ui.SwingHelper.*;
 
 public class UserInterfaceComponentsProvider
 {
@@ -115,7 +115,7 @@ public class UserInterfaceComponentsProvider
 
 		if ( comboBox.getModel().getSize() == 0 ) return horizontalLayoutPanel;
 
-		final JButton button = getButton( BUTTON_LABEL_ADD );
+		final JButton button = createButton( BUTTON_LABEL_ADD );
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -141,7 +141,7 @@ public class UserInterfaceComponentsProvider
 
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = getButton( BUTTON_LABEL_LEVEL );
+		final JButton button = createButton( BUTTON_LABEL_LEVEL );
 		horizontalLayoutPanel.add( button );
 
 		// TODO: if below code is needed make an own Levelling class
@@ -169,7 +169,7 @@ public class UserInterfaceComponentsProvider
 	public JPanel createBookmarksPanel( final BookmarkManager bookmarkManager )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-		final JButton button = getButton( BUTTON_LABEL_VIEW );
+		final JButton button = createButton( BUTTON_LABEL_VIEW );
 		final Set< String > bookmarkNames = bookmarkManager.getBookmarkNames();
 		JComboBox comboBox = new JComboBox<>( bookmarkNames.toArray( new String[bookmarkNames.size()] ) );
 		setComboBoxDimensions( comboBox );
@@ -187,7 +187,7 @@ public class UserInterfaceComponentsProvider
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = getButton( BUTTON_LABEL_MOVE );
+		final JButton button = createButton( BUTTON_LABEL_MOVE );
 
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
@@ -205,7 +205,7 @@ public class UserInterfaceComponentsProvider
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = getButton( BUTTON_LABEL_HELP );
+		final JButton button = createButton( BUTTON_LABEL_HELP );
 
 		final MoBIEInfo moBIEInfo = new MoBIEInfo( projectLocation, publicationURL );
 
@@ -241,7 +241,7 @@ public class UserInterfaceComponentsProvider
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = getButton( BUTTON_LABEL_SWITCH );
+		final JButton button = createButton( BUTTON_LABEL_SWITCH );
 
 		final String[] choices = datasets.stream().toArray( String[]::new );
 		final JComboBox< String > comboBox = new JComboBox<>( choices );

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setSwingLookAndFeel;
 
 public class MoBIE2
 {
@@ -52,6 +53,8 @@ public class MoBIE2
 		this.projectLocation = projectLocation;
 		this.options = options;
 		projectName = getName( projectLocation );
+
+		setSwingLookAndFeel();
 
 		final Project project = new ProjectJsonParser().getProject( FileAndUrlUtils.combinePath( projectLocation, "project.json" ) );
 		currentDatasetName = project.datasets.get( 0 );

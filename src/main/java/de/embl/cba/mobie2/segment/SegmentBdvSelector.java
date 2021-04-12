@@ -8,7 +8,11 @@ import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie2.bdv.SourcesAtMousePositionSupplier;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
+import net.imglib2.type.numeric.RealType;
+import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.Collection;
 import java.util.Map;
@@ -44,8 +48,7 @@ public class SegmentBdvSelector implements Runnable
 				if ( source instanceof LabelSource )
 					source = ( ( LabelSource ) source ).getWrappedSource();
 
-				// TODO: the getPixelValue method could probably be simplified now
-				final Double labelIndex = BdvUtils.getPixelValue( source, position, timePoint );
+				final double labelIndex = getPixelValue( timePoint, position, source );
 
 				if ( labelIndex == 0 ) return;
 
@@ -70,6 +73,15 @@ public class SegmentBdvSelector implements Runnable
 				}
 			}
 		}
+	}
+
+	private static double getPixelValue( int timePoint, RealPoint position, Source< ? > source )
+	{
+		final RandomAccess< RealType > randomAccess = ( RandomAccess< RealType > ) source.getSource( timePoint, 0 ).randomAccess();
+		final long[] positionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, position, timePoint, 0 );
+		randomAccess.setPosition( positionInSource );
+		final double labelIndex = randomAccess.get().getRealDouble();
+		return labelIndex;
 	}
 
 	@Override

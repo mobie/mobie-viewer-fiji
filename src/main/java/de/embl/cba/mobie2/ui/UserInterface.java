@@ -4,7 +4,6 @@ import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
-import io.scif.DefaultMetaTable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -37,7 +36,7 @@ public class UserInterface
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
 		final int sourceSelectionPanelHeight = userInterfaceHelper.getViewsSelectionPanelHeight();
-		final int actionPanelHeight = sourceSelectionPanelHeight + 7 * 40;
+		final int actionPanelHeight = sourceSelectionPanelHeight + 3 * 40;
 
 		splitPane.setDividerLocation( actionPanelHeight );
 		splitPane.setTopComponent( actionPanel );
@@ -45,7 +44,7 @@ public class UserInterface
 		splitPane.setAutoscrolls( true );
 
 		// show frame
-		frame.setPreferredSize( new Dimension( Toolkit.getDefaultToolkit().getScreenSize().width / 3, actionPanelHeight + 200 ) );
+		frame.setPreferredSize( new Dimension( (int) UserInterfaceHelper.getDefaultWindowWidth(), actionPanelHeight + 200 ) );
 		frame.getContentPane().setLayout( new GridLayout() );
 		frame.getContentPane().add( splitPane );
 

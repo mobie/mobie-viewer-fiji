@@ -78,7 +78,6 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 		else if ( sourceDisplay instanceof SegmentationDisplay )
 		{
 			showSegmentationDisplay( ( SegmentationDisplay ) sourceDisplay );
-
 		}
 
 		userInterface.addSourceDisplay( sourceDisplay );

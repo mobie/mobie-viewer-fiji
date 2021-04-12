@@ -6,7 +6,6 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie2.MoBIE2;
-import de.embl.cba.mobie2.bdv.BdvCreator;
 import de.embl.cba.mobie2.bdv.BdvLocationLogger;
 import de.embl.cba.mobie2.bdv.SourcesAtMousePositionSupplier;
 import de.embl.cba.mobie2.color.AdjustableOpacityColorConverter;
@@ -19,6 +18,7 @@ import de.embl.cba.mobie2.segment.SegmentBdvSelector;
 import de.embl.cba.mobie2.source.ImageSource;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.transform.SourceTransformerSupplier;
+import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.imagesegment.ImageSegment;
@@ -34,6 +34,7 @@ import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
+import sc.fiji.bdvpg.bdv.MinimalBdvCreator;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.bdv.projector.BlendingMode;
 import sc.fiji.bdvpg.bdv.projector.Projector;
@@ -100,16 +101,15 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 				"Toggle selection", "ctrl button1" ) ;
 	}
 
-
 	private BdvHandle createBdv( int numTimepoints )
 	{
 		// create Bdv
-		final BdvCreator bdvCreator = new BdvCreator( "MoBIE", is2D, Projector.MIXED_PROJECTOR, true, numTimepoints );
+		final MinimalBdvCreator bdvCreator = new MinimalBdvCreator( "MoBIE", is2D, Projector.MIXED_PROJECTOR, true, numTimepoints );
 		final BdvHandle bdvHandle = bdvCreator.get();
 
 		// configure size and location on screen
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() ).setSize( screenSize.width / 3, (int) ( screenSize.height * 0.7 ) );
+		SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() ).setSize( UserInterfaceHelper.getDefaultWindowWidth(), (int) ( screenSize.height * 0.7 ) );
 
 		return bdvHandle;
 	}

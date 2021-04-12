@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
+import static de.embl.cba.mobie2.ui.SwingHelper.*;
 
 // TODO - add option to rename images? (more difficult as need to edit path inside the xml too)
 public class ImagePropertiesEditor {
@@ -160,8 +160,8 @@ public class ImagePropertiesEditor {
 
     private JPanel createAcceptCancelPanel( JFrame frame ) {
         final JPanel acceptCancelPanel = SwingUtils.horizontalLayoutPanel();
-        JButton acceptButton = getButton( "Update properties", new Dimension(160, 20));
-        JButton cancelButton = getButton( "Cancel");
+        JButton acceptButton = createButton( "Update properties", new Dimension(160, 20));
+        JButton cancelButton = createButton( "Cancel");
 
         acceptButton.addActionListener( e ->
         {

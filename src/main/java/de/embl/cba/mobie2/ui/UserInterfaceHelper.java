@@ -5,6 +5,7 @@ import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
 import bdv.viewer.SourceAndConverter;
+import com.formdev.flatlaf.FlatLightLaf;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.mobie.bdv.BdvViewChanger;
@@ -41,18 +42,20 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static de.embl.cba.mobie.utils.ui.SwingUtils.*;
+import static de.embl.cba.mobie2.ui.SwingHelper.*;
 
 public class UserInterfaceHelper
 {
-	private static final int[] BUTTON_DIMENSIONS = new int[]{ 50, 30 };
-	private static final Dimension PREFERRED_BUTTON_SIZE = new Dimension( BUTTON_DIMENSIONS[ 0 ], BUTTON_DIMENSIONS[ 1 ] );
+	private static final Dimension PREFERRED_BUTTON_SIZE = new Dimension( 30, 30 );
+	private static final Dimension PREFERRED_CHECKBOX_SIZE = new Dimension( 40, 30 );
+	private static final Dimension PREFERRED_SPACE_SIZE = new Dimension( 10, 30 );
 	private static final String VIEW = "view";
 	private static final String MOVE = "move";
 	private static final String HELP = "show";
 	private static final String SWITCH = "switch";
 	private static final String LEVEL = "level";
-	private static final String ADD = "add";
+	private static final String ADD = "view";
+	public static final int SPACING = 20;
 
 	private final MoBIE2 moBIE2;
 	private int viewsSelectionPanelHeight;
@@ -75,19 +78,17 @@ public class UserInterfaceHelper
 		final Frame log = WindowManager.getFrame( "Log" );
 		if (log != null) {
 			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			final int logWindowHeight = screenSize.height - ( reference.getLocationOnScreen().y + reference.getHeight() + 20 );
+			final int logWindowHeight = screenSize.height - ( reference.getLocationOnScreen().y + reference.getHeight() + 2 * SPACING );
 			log.setSize( reference.getWidth(), logWindowHeight  );
-			log.setLocation( reference.getLocationOnScreen().x, reference.getLocationOnScreen().y + reference.getHeight() );
+			log.setLocation( reference.getLocationOnScreen().x, reference.getLocationOnScreen().y + SPACING + reference.getHeight() );
 		}
 	}
 
 	public static void rightAlignWindow( Window reference, Window window, boolean adjustWidth, boolean adjustHeight )
 	{
 		window.setLocation(
-				reference.getLocationOnScreen().x + reference.getWidth() + 10,
+				reference.getLocationOnScreen().x + reference.getWidth() + SPACING,
 				reference.getLocationOnScreen().y );
-
-		final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
 		if ( adjustWidth )
 			window.setSize( reference.getWidth(), window.getHeight() );
@@ -100,14 +101,14 @@ public class UserInterfaceHelper
 	{
 		window.setLocation(
 				reference.getLocationOnScreen().x,
-				reference.getLocationOnScreen().y + reference.getHeight() + 10
+				reference.getLocationOnScreen().y + reference.getHeight() + SPACING
 		);
 
 		final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
 		window.setPreferredSize( new Dimension(
 				reference.getWidth(),
-				( screenSize.height - 30 ) - ( reference.getHeight() + reference.getLocationOnScreen().y ) )  );
+				( screenSize.height - SPACING ) - ( reference.getHeight() + reference.getLocationOnScreen().y ) )  );
 	}
 
 	public static void showBrightnessDialog(
@@ -211,6 +212,22 @@ public class UserInterfaceHelper
 
 	}
 
+	public static int getDefaultWindowWidth()
+	{
+		return (int) ( Toolkit.getDefaultToolkit().getScreenSize().width / 3.1 );
+	}
+
+	public static void setSwingLookAndFeel() {
+		FlatLightLaf.install();
+		try {
+			UIManager.setLookAndFeel( new FlatLightLaf() );
+//			UIManager.setLookAndFeel(
+//					UIManager.getCrossPlatformLookAndFeelClassName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	public static class OpacityUpdateListener implements BoundedValueDouble.UpdateListener
 	{
 		final private List< SourceAndConverter< ? > > sourceAndConverters;
@@ -254,7 +271,7 @@ public class UserInterfaceHelper
 		actionPanel.setLayout( new BoxLayout( actionPanel, BoxLayout.Y_AXIS ) );
 
 		actionPanel.add( createInfoPanel( moBIE2.getProjectLocation(), moBIE2.getOptions().values.getPublicationURL() ) );
-		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
+		// actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		// actionPanel.add( createDatasetSelectionPanel() );
 		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		actionPanel.add( createViewsSelectionPanel( ) );
@@ -283,13 +300,18 @@ public class UserInterfaceHelper
 //						sourceAndMetadataList.get( 0 ),
 //						sourceAndMetadataList.get( 0 ).metadata().showImageIn3d || sourceAndMetadataList.get( 0 ).metadata().showSelectedSegmentsIn3d );
 
+		panel.add( createSpace() );
 		panel.add( createFocusButton( display ) );
 		panel.add( createOpacityButton( display ) );
 		panel.add( createColorButton( display, panel ) );
 		panel.add( createImageDisplayBrightnessButton( display ) );
 		panel.add( createRemoveButton( userInterface, panel, display ) );
+		panel.add( createSpace() );
 		//panel.add( volumeVisibilityCheckbox );
 		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
+		panel.add( createCheckboxPlaceholder() );
+		panel.add( createCheckboxPlaceholder() );
+
 
 		// make the panel color listen to color changes of the sources
 		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
@@ -328,9 +350,13 @@ public class UserInterfaceHelper
 //						sourceAndMetadataList.get( 0 ),
 //						sourceAndMetadataList.get( 0 ).metadata().showImageIn3d || sourceAndMetadataList.get( 0 ).metadata().showSelectedSegmentsIn3d );
 
+		panel.add( createSpace() );
 		panel.add( createFocusButton( display ) );
 		panel.add( createOpacityButton( display ) );
+		panel.add( createButtonPlaceholder() );
+		panel.add( createButtonPlaceholder() );
 		panel.add( createRemoveButton( userInterface, panel, display ) );
+		panel.add( createSpace() );
 		//panel.add( volumeVisibilityCheckbox );
 		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
 		panel.add( createTableViewerVisibilityCheckbox( display, true ) );
@@ -378,7 +404,7 @@ public class UserInterfaceHelper
 
 		final JComboBox< String > comboBox = new JComboBox<>( views.keySet().toArray( new String[ 0 ] ) );
 
-		final JButton button = getButton( ADD );
+		final JButton button = createButton( ADD );
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -388,6 +414,8 @@ public class UserInterfaceHelper
 				moBIE2.getViewer().show( view );
 			} );
 		} );
+
+		setComboBoxDimensions( comboBox );
 
 		horizontalLayoutPanel.add( getJLabel( panelName ) );
 		horizontalLayoutPanel.add( comboBox );
@@ -402,7 +430,7 @@ public class UserInterfaceHelper
 
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = getButton( LEVEL );
+		final JButton button = createButton( LEVEL );
 		horizontalLayoutPanel.add( button );
 
 		// TODO: if below code is needed make an own Levelling class
@@ -430,7 +458,7 @@ public class UserInterfaceHelper
 	public JPanel createBookmarksPanel( final BookmarkManager bookmarkManager )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-		final JButton button = getButton( VIEW );
+		final JButton button = createButton( VIEW );
 		final Set< String > bookmarkNames = bookmarkManager.getBookmarkNames();
 		JComboBox comboBox = new JComboBox<>( bookmarkNames.toArray( new String[bookmarkNames.size()] ) );
 		setComboBoxDimensions( comboBox );
@@ -447,8 +475,7 @@ public class UserInterfaceHelper
 	public JPanel createMoveToLocationPanel( )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-
-		final JButton button = getButton( MOVE );
+		final JButton button = createButton( MOVE );
 
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
@@ -466,7 +493,7 @@ public class UserInterfaceHelper
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = getButton( HELP );
+		final JButton button = createButton( HELP );
 
 		final MoBIEInfo moBIEInfo = new MoBIEInfo( projectLocation, publicationURL );
 
@@ -527,13 +554,27 @@ public class UserInterfaceHelper
 		new MoBIE( moBIE2.getProjectLocation(), moBIE2.getOptions().dataset( dataset ) );
 	}
 
+	private static Component createSpace()
+	{
+		return Box.createRigidArea( PREFERRED_SPACE_SIZE );
+	}
+	private static Component createButtonPlaceholder()
+	{
+		return Box.createRigidArea( PREFERRED_BUTTON_SIZE );
+	}
+
+	private static Component createCheckboxPlaceholder()
+	{
+		return Box.createRigidArea( PREFERRED_CHECKBOX_SIZE );
+	}
+
 	private static JCheckBox createImageViewerVisibilityCheckbox(
 			SourceDisplay sourceDisplay,
 			boolean isVisible )
 	{
 		JCheckBox checkBox = new JCheckBox( "S" );
 		checkBox.setSelected( isVisible );
-		checkBox.setPreferredSize( PREFERRED_BUTTON_SIZE );
+		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
 		checkBox.addActionListener( new ActionListener()
 		{
@@ -556,7 +597,7 @@ public class UserInterfaceHelper
 	{
 		JCheckBox checkBox = new JCheckBox( "T" );
 		checkBox.setSelected( isVisible );
-		checkBox.setPreferredSize( PREFERRED_BUTTON_SIZE );
+		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> sourceDisplay.tableViewer.getWindow().setVisible( checkBox.isSelected() ) ) );
 
 		sourceDisplay.tableViewer.getWindow().addWindowListener(
@@ -577,7 +618,7 @@ public class UserInterfaceHelper
 
 		JCheckBox checkBox = new JCheckBox( "P" );
 		checkBox.setSelected( isVisible );
-		checkBox.setPreferredSize( PREFERRED_BUTTON_SIZE );
+		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 		checkBox.addActionListener( e ->
 			SwingUtilities.invokeLater( () ->
 				{
@@ -681,6 +722,18 @@ public class UserInterfaceHelper
 					converterSetups,
 					0,   // TODO: determine somehow...
 					65535 );
+		} );
+
+		return button;
+	}
+
+	public static JButton createDummyButton(  )
+	{
+		JButton button = new JButton( " " );
+		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
+
+		button.addActionListener( e ->
+		{
 		} );
 
 		return button;

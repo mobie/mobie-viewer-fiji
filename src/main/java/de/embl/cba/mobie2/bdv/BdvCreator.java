@@ -18,6 +18,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.function.Supplier;
 
+@Deprecated
 public class BdvCreator implements Supplier< BdvHandle  >
 {
 	private String windowTitle;
@@ -105,5 +106,4 @@ public class BdvCreator implements Supplier< BdvHandle  >
 				return opts;
 		}
 	}
-
 }
