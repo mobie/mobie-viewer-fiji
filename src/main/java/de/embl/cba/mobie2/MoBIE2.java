@@ -21,7 +21,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setDefaultSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setLafSwingLookAndFeel;
 
 public class MoBIE2
 {
@@ -54,7 +55,7 @@ public class MoBIE2
 		this.options = options;
 		projectName = getName( projectLocation );
 
-		setSwingLookAndFeel();
+		setLafSwingLookAndFeel();
 
 		final Project project = new ProjectJsonParser().getProject( FileAndUrlUtils.combinePath( projectLocation, "project.json" ) );
 		currentDatasetName = project.datasets.get( 0 );
@@ -70,6 +71,8 @@ public class MoBIE2
 		// arrange windows
 		UserInterfaceHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
 		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), viewer.getImageViewer().getWindow(), false, true );
+
+		setDefaultSwingLookAndFeel(); // To prevent other applications being affected
 
 		//configureDatasetsRootLocations();
 		//appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be re-instantiated

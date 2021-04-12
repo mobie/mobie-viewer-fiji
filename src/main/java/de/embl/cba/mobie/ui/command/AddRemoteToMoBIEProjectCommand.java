@@ -11,7 +11,7 @@ import org.scijava.plugin.Plugin;
 import javax.swing.*;
 import java.io.File;
 
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setLafSwingLookAndFeel;
 
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Add/Update MoBIE Project remote..." )
 public class AddRemoteToMoBIEProjectCommand implements Command {
@@ -45,7 +45,7 @@ public class AddRemoteToMoBIEProjectCommand implements Command {
     {
 
         // using File script parameter changes the look and feel of swing, reset it to default here
-        setSwingLookAndFeel();
+        setLafSwingLookAndFeel();
 
         File dataLocation = new File( projectLocation, "data" );
 

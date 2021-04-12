@@ -217,12 +217,19 @@ public class UserInterfaceHelper
 		return (int) ( Toolkit.getDefaultToolkit().getScreenSize().width / 3.1 );
 	}
 
-	public static void setSwingLookAndFeel() {
+	public static void setLafSwingLookAndFeel() {
 		FlatLightLaf.install();
 		try {
 			UIManager.setLookAndFeel( new FlatLightLaf() );
-//			UIManager.setLookAndFeel(
-//					UIManager.getCrossPlatformLookAndFeelClassName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void setDefaultSwingLookAndFeel() {
+		FlatLightLaf.install();
+		try {
+			UIManager.setLookAndFeel( UIManager.getCrossPlatformLookAndFeelClassName() );
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

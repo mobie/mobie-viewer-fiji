@@ -10,7 +10,7 @@ public class ViewerHelper
 	public static void showInScatterPlotViewer( SegmentationDisplay display )
 	{
 		display.scatterPlotViewer = new ScatterPlotViewer<>( display.segments, display.selectionModel, display.coloringModel, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, new double[]{1.0, 1.0}, 0.5 );
-		display.scatterPlotViewer.show( display.imageViewer.getBdvHandle().getViewerPanel() );
+		display.scatterPlotViewer.show();
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
 		display.coloringModel.listeners().add( display.scatterPlotViewer );
 		display.imageViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );

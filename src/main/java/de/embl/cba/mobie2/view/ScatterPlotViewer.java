@@ -31,17 +31,16 @@ package de.embl.cba.mobie2.view;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
+import bdv.util.BdvStackSource;
 import bdv.util.Prefs;
+import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
-import com.sun.tools.doclets.formats.html.SingleIndexWriter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
-import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.plot.RealPointARGBTypeBiConsumerSupplier;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
-import de.embl.cba.tables.plot.SelectedPointOverlay;
 import de.embl.cba.tables.plot.TableRowKDTreeSupplier;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
@@ -66,6 +65,9 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setDefaultSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setLafSwingLookAndFeel;
+
 public class ScatterPlotViewer< T extends TableRow > implements SelectionListener< T >, ColoringListener, TimePointListener
 {
 	private final List< T > tableRows;
@@ -79,6 +81,8 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private Map< T, RealPoint > tableRowToRealPoint;
 	private T recentFocus;
 	private Window window;
+	private NearestNeighborSearchOnKDTree< T > search;
+	private BdvStackSource< ARGBType > source;
 
 	public ScatterPlotViewer(
 			List< T > tableRows,
@@ -98,25 +102,12 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 	public void show()
 	{
-		show( null );
+		showScatterPlotSource();
+		installBdvBehaviours();
+		configureWindow();
 	}
 
-	public void show( JComponent parentComponent )
-	{
-		if ( parentComponent != null )
-		{
-			JFrame topFrame = ( JFrame ) SwingUtilities.getWindowAncestor( parentComponent );
-			final int x = topFrame.getLocationOnScreen().x + parentComponent.getWidth() + 10;
-			final int y = topFrame.getLocationOnScreen().y;
-			createAndShowScatterPlot( x, y );
-		}
-		else
-		{
-			createAndShowScatterPlot( 10, 10 );
-		}
-	}
-
-	private void createAndShowScatterPlot( int x, int y )
+	private void showScatterPlotSource()
 	{
 		TableRowKDTreeSupplier< T > kdTreeSupplier = new TableRowKDTreeSupplier<>( tableRows, selectedColumns, scaleFactors );
 
@@ -135,21 +126,18 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 					"\nand selecting \"Reconfigure...\"" );
 		}
 
-		Supplier< BiConsumer< RealPoint, ARGBType > > biConsumerSupplier = new RealPointARGBTypeBiConsumerSupplier<>( kdTree, coloringModel, dotSizeScaleFactor * ( min[ 0 ] - max[ 0 ] ) / 100.0 );
+		Supplier< BiConsumer< RealPoint, ARGBType > > biConsumerSupplier = new RealPointARGBTypeBiConsumerSupplier<>( kdTree, coloringModel, dotSizeScaleFactor * ( min[ 0 ] - max[ 0 ] ) / 100.0, ARGBType.rgba( 100,  100, 100, 255 ) );
 
 		FunctionRealRandomAccessible< ARGBType > randomAccessible = new FunctionRealRandomAccessible( 2, biConsumerSupplier, ARGBType::new );
 
-		bdvHandle = show( randomAccessible, FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 ), selectedColumns );
+		show( randomAccessible, FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 ), selectedColumns );
 
-		installBdvBehaviours( new NearestNeighborSearchOnKDTree< T >( kdTree ) );
-
-		configureWindow( x, y );
+		search = new NearestNeighborSearchOnKDTree<>( kdTree );
 	}
 
-	private void configureWindow( int x, int y )
+	private void configureWindow()
 	{
-		window = SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
-		window.setLocation( x, y );
+
 		window.addWindowListener(
 			new WindowAdapter() {
 				public void windowClosing( WindowEvent ev) {
@@ -158,11 +146,11 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 			});
 	}
 
-	private void installBdvBehaviours( NearestNeighborSearchOnKDTree< T > search )
+	private void installBdvBehaviours( )
 	{
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
-		behaviours.install( bdvHandle.getTriggerbindings(), "scatterplot" + selectedColumns[ 0 ] + selectedColumns[ 1 ] );
-
+		behaviours.install( bdvHandle.getTriggerbindings(), getBehavioursName() );
+		behaviours.getBehaviourMap().clear();
 		BdvPopupMenus.addAction( bdvHandle,"Focus closest point [Left-Click ]",
 				( x, y ) -> focusAndSelectClosestPoint( search, true )
 		);
@@ -176,22 +164,27 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> focusAndSelectClosestPoint( search, false ), "Select closest point", "ctrl button1" ) ;
 
 		BdvPopupMenus.addAction( bdvHandle,"Reconfigure...",
-				( x, y ) -> {
+			( x, y ) -> {
+				SwingUtilities.invokeLater( () ->  {
 
 					ScatterPlotDialog dialog = new ScatterPlotDialog( tableRows.get( 0 ).getColumnNames().stream().toArray( String[]::new ), selectedColumns, scaleFactors, dotSizeScaleFactor );
+
 					if ( dialog.show() )
 					{
 						selectedColumns = dialog.getSelectedColumns();
 						scaleFactors = dialog.getScaleFactors();
 						dotSizeScaleFactor = dialog.getDotSizeScaleFactor();
-
-						final int xLoc = SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() ).getLocationOnScreen().x;
-						final int yLoc = SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() ).getLocationOnScreen().y;
-						bdvHandle.close();
-						createAndShowScatterPlot( xLoc, yLoc );
+						source.removeFromBdv();
+						showScatterPlotSource();
 					}
-				}
+				});
+			}
 		);
+	}
+
+	private String getBehavioursName()
+	{
+		return "scatterplot" + selectedColumns[ 0 ] + selectedColumns[ 1 ];
 	}
 
 	private synchronized void focusAndSelectClosestPoint( NearestNeighborSearchOnKDTree< T > search, boolean focusOnly )
@@ -228,15 +221,22 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		return search.getSampler().get();
 	}
 
-	private static BdvHandle show( FunctionRealRandomAccessible< ARGBType > randomAccessible, FinalInterval interval, String[] selectedColumns )
+	private void show( FunctionRealRandomAccessible< ARGBType > randomAccessible, FinalInterval interval, String[] selectedColumns )
 	{
 		Prefs.showMultibox( false );
+		Prefs.showScaleBar( false );
 
-		return BdvFunctions.show(
+		final BdvOptions bdvOptions = BdvOptions.options().is2D().frameTitle( createPlotName( selectedColumns ) ).addTo( bdvHandle );
+
+		source = BdvFunctions.show(
 				randomAccessible,
 				interval,
 				createPlotName( selectedColumns ),
-				BdvOptions.options().is2D().frameTitle( createPlotName( selectedColumns ) ).preferredSize( 600, 600 ) ).getBdvHandle();
+				bdvOptions );
+
+		bdvHandle = source.getBdvHandle();
+
+		window = SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 	}
 
 	private static String createPlotName( String[] selectedColumns )
