@@ -17,7 +17,7 @@ public class SourceDisplay
 	public transient List< SourceAndConverter< ? > > sourceAndConverters;
 	public transient ImageViewer< ? extends ImageSegment > imageViewer;
 
-	public SourceDisplay( boolean isExclusive, String name, double opacity, List< String > sources )
+	public SourceDisplay( String name, double opacity, List< String > sources, boolean isExclusive )
 	{
 		this.isExclusive = isExclusive;
 		this.name = name;

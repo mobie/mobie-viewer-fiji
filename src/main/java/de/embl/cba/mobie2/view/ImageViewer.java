@@ -2,18 +2,20 @@ package de.embl.cba.mobie2.view;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;
-import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie2.MoBIE2;
+import de.embl.cba.mobie2.bdv.BdvCreator;
+import de.embl.cba.mobie2.bdv.BdvLocationLogger;
+import de.embl.cba.mobie2.bdv.SourcesAtMousePositionSupplier;
 import de.embl.cba.mobie2.color.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie2.color.LabelConverter;
 import de.embl.cba.mobie2.color.VolatileAdjustableOpacityColorConverter;
-import de.embl.cba.mobie2.color.VolatileRealARGBColorConverter;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
+import de.embl.cba.mobie2.segment.SegmentBdvSelector;
 import de.embl.cba.mobie2.source.ImageSource;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.transform.SourceTransformerSupplier;
@@ -24,10 +26,8 @@ import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import mpicbg.spim.data.SpimData;
-import net.imglib2.RealPoint;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
-import net.imglib2.display.RealARGBColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -37,8 +37,9 @@ import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.bdv.projector.BlendingMode;
 import sc.fiji.bdvpg.bdv.projector.Projector;
-import sc.fiji.bdvpg.scijava.command.bdv.BdvWindowCreatorCommand;
+import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
@@ -48,7 +49,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ImageViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
@@ -56,8 +57,9 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final BdvHandle bdvHandle;
 	private final boolean is2D;
-	private ArrayList< SourceAndConverter< ? > > labelSources;
+	private Collection< SourceAndConverter< ? > > labelSources;
 	private Map< SelectionModel< TableRowImageSegment >, SegmentAdapter< TableRowImageSegment > > selectionModelToAdapter;
+	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 
 	public ImageViewer( MoBIE2 moBIE2, boolean is2D )
 	{
@@ -66,90 +68,50 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
 
 		// init Bdv
-		bdvHandle = createBdv();
+		bdvHandle = createBdv( 1 );
 		displayService.registerBdvHandle( bdvHandle );
-		installBehaviours( bdvHandle );
 
+		// init other stuff
 		labelSources = new ArrayList<>();
-		selectionModelToAdapter = new HashMap<>();
+		selectionModelToAdapter = new ConcurrentHashMap<>();
+
+		// register context menu actions
+		installContextMenu();
 	}
 
-	private void installBehaviours( BdvHandle bdvHandle )
+	private void installContextMenu( )
 	{
+		final SourceAndConverterService sourceAndConverterService;
+		sourceAndConverterService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
+		//sourceAndConverterService.registerScijavaCommand( BdvLocationLogger.class );
+
+		final Set< String > actionsKeys = sourceAndConverterService.getActionsKeys();
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
-		behaviours.install( bdvHandle.getBdvHandle().getTriggerbindings(), "MoBIE" );
-		addSelectionBehaviour( behaviours );
-	}
+		final String[] actions = { "BDV - Screenshot", BdvLocationLogger.NAME  };
 
-	private void addSelectionBehaviour( Behaviours behaviours )
-	{
+		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions );
+		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
+		behaviours.install( bdvHandle.getTriggerbindings(), "MoBIE" );
+		final SegmentBdvSelector segmentBdvSelector = new SegmentBdvSelector( bdvHandle, is2D, labelSources, selectionModelToAdapter );
+
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
-						new Thread( () -> toggleSelectionAtMousePosition() ).start(),
-				"-toggle-select", "ctrl button1" ); ;
+						new Thread( () -> segmentBdvSelector.run() ).start(),
+				"Toggle selection", "ctrl button1" ) ;
 	}
 
-	private synchronized void toggleSelectionAtMousePosition()
+
+	private BdvHandle createBdv( int numTimepoints )
 	{
-		// TODO: Replace by function
-		final RealPoint globalMouseCoordinates = BdvUtils.getGlobalMouseCoordinates( bdvHandle );
-		List< SourceAndConverter< ? > > sources = bdvHandle.getViewerPanel().state().getSources();
-		final int timepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
+		// create Bdv
+		final BdvCreator bdvCreator = new BdvCreator( "MoBIE", is2D, Projector.MIXED_PROJECTOR, true, numTimepoints );
+		final BdvHandle bdvHandle = bdvCreator.get();
 
-		Set< SourceAndConverter< ? > > sourcesAtMousePosition = sources.stream()
-				.filter( source -> SourceAndConverterHelper.isPositionWithinSourceInterval( source, globalMouseCoordinates, timepoint, is2D ) )
-				.collect( Collectors.toSet() );
-
-		for ( SourceAndConverter< ? > sourceAndConverter : sourcesAtMousePosition )
-		{
-			if ( labelSources.contains( sourceAndConverter ) )
-			{
-				Source< ? > source = sourceAndConverter.getSpimSource();
-				if ( source instanceof LabelSource )
-					source = ( ( LabelSource ) source ).getWrappedSource();
-
-				final Double labelIndex = BdvUtils.getPixelValue( source, globalMouseCoordinates, timepoint );
-
-				if ( labelIndex == 0 ) return;
-
-				// The image viewer can show several sources that
-				// are associated with selection models. (In fact already
-				// one selection model can be associated to several sources
-				// that are shown in parallel, and which share the same
-				// feature table).
-				// We thus check in all models whether the
-				// selected segment is a part of that model.
-				for ( SelectionModel< TableRowImageSegment > selectionModel : selectionModelToAdapter.keySet() )
-				{
-					final TableRowImageSegment segment = selectionModelToAdapter.get( selectionModel ).getSegment( labelIndex, timepoint, source.getName() );
-
-					if ( segment != null)
-					{
-						selectionModel.toggle( segment );
-						if ( selectionModel.isSelected( segment ) )
-						{
-							selectionModel.focus( segment );
-						}
-					}
-				}
-			}
-		}
-	}
-
-	private BdvHandle createBdv()
-	{
-		final BdvWindowCreatorCommand command = new BdvWindowCreatorCommand();
-		command.is2D = is2D;
-		command.interpolate = true;
-		command.nTimepoints = 1; // TODO
-		command.windowTitle = "MoBIE"; // TODO
-		command.projector = Projector.MIXED_PROJECTOR;
-		command.run();
-
+		// configure size and location on screen
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		SwingUtilities.getWindowAncestor( command.bdvh.getViewerPanel() ).setSize( screenSize.width / 3, (int) ( screenSize.height * 0.7 ) );
+		SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() ).setSize( screenSize.width / 3, (int) ( screenSize.height * 0.7 ) );
 
-		return command.bdvh;
+		return bdvHandle;
 	}
 
 	public List< SourceAndConverter< ? > > show( ImageDisplay imageDisplay, List< SourceTransformerSupplier > sourceTransforms )

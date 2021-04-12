@@ -23,9 +23,9 @@ public class SegmentationDisplay extends SourceDisplay
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
 
 	// For serialization
-	public SegmentationDisplay( String name, List< String > sources, double alpha, String lut, List< String > selectedSegmentIds )
+	public SegmentationDisplay( String name, List< String > sources, boolean isExclusive, double alpha, String lut, List< String > selectedSegmentIds )
 	{
-		super( isExclusive, name, alpha, sources );
+		super( name, alpha, sources, isExclusive );
 		this.lut = lut;
 		this.selectedSegmentIds = selectedSegmentIds;
 	}
