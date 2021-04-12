@@ -33,10 +33,10 @@ import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
 import bdv.util.Prefs;
-import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
+import de.embl.cba.mobie.Constants;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.plot.RealPointARGBTypeBiConsumerSupplier;
@@ -64,9 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
-
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setDefaultSwingLookAndFeel;
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setLafSwingLookAndFeel;
+import java.util.stream.Collectors;
 
 public class ScatterPlotViewer< T extends TableRow > implements SelectionListener< T >, ColoringListener, TimePointListener
 {
@@ -82,7 +80,8 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private T recentFocus;
 	private Window window;
 	private NearestNeighborSearchOnKDTree< T > search;
-	private BdvStackSource< ARGBType > source;
+	private BdvStackSource< ARGBType > scatterPlotSource;
+	private int timepoint;
 
 	public ScatterPlotViewer(
 			List< T > tableRows,
@@ -98,23 +97,26 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		this.selectedColumns = selectedColumns;
 		this.scaleFactors = scaleFactors;
 		this.dotSizeScaleFactor = dotSizeScaleFactor;
+		this.timepoint = 0;
 	}
 
 	public void show()
 	{
-		showScatterPlotSource();
+		showScatterPlotSource(  );
 		installBdvBehaviours();
 		configureWindow();
 	}
 
-	private void showScatterPlotSource()
+	private void showScatterPlotSource( )
 	{
-		TableRowKDTreeSupplier< T > kdTreeSupplier = new TableRowKDTreeSupplier<>( tableRows, selectedColumns, scaleFactors );
+		List< T > tableRows = getTableRows( );
 
+		TableRowKDTreeSupplier< T > kdTreeSupplier = new TableRowKDTreeSupplier<>( tableRows, selectedColumns, scaleFactors );
 		KDTree< T > kdTree = kdTreeSupplier.get();
 		double[] min = kdTreeSupplier.getMin();
 		double[] max = kdTreeSupplier.getMax();
 		tableRowToRealPoint = kdTreeSupplier.getTableRowToRealPoint();
+		search = new NearestNeighborSearchOnKDTree<>( kdTree );
 
 		double aspectRatio = ( max[ 1 ] - min[ 1 ] ) / ( max[ 0 ] - min[ 0 ] );
 		if ( aspectRatio > 10 || aspectRatio < 0.1 )
@@ -130,13 +132,25 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 		FunctionRealRandomAccessible< ARGBType > randomAccessible = new FunctionRealRandomAccessible( 2, biConsumerSupplier, ARGBType::new );
 
-		show( randomAccessible, FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 ), selectedColumns );
+		showInBdv( randomAccessible, FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 ), selectedColumns );
 
-		search = new NearestNeighborSearchOnKDTree<>( kdTree );
+	}
+
+	private List< T > getTableRows( )
+	{
+		if ( tableRows.get( 0 ).getColumnNames().contains( Constants.TIMEPOINT  ) )
+		{
+			return tableRows.stream().filter( t -> Integer.parseInt( t.getCell( Constants.TIMEPOINT ) ) == timepoint ).collect( Collectors.toList() );
+		}
+		else
+		{
+			return tableRows;
+		}
 	}
 
 	private void configureWindow()
 	{
+		window = SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 
 		window.addWindowListener(
 			new WindowAdapter() {
@@ -174,12 +188,17 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 						selectedColumns = dialog.getSelectedColumns();
 						scaleFactors = dialog.getScaleFactors();
 						dotSizeScaleFactor = dialog.getDotSizeScaleFactor();
-						source.removeFromBdv();
-						showScatterPlotSource();
+						updateScatterPlot();
 					}
 				});
 			}
 		);
+	}
+
+	private void updateScatterPlot()
+	{
+		scatterPlotSource.removeFromBdv();
+		showScatterPlotSource();
 	}
 
 	private String getBehavioursName()
@@ -221,22 +240,20 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		return search.getSampler().get();
 	}
 
-	private void show( FunctionRealRandomAccessible< ARGBType > randomAccessible, FinalInterval interval, String[] selectedColumns )
+	private void showInBdv( FunctionRealRandomAccessible< ARGBType > randomAccessible, FinalInterval interval, String[] selectedColumns )
 	{
 		Prefs.showMultibox( false );
 		Prefs.showScaleBar( false );
 
 		final BdvOptions bdvOptions = BdvOptions.options().is2D().frameTitle( createPlotName( selectedColumns ) ).addTo( bdvHandle );
 
-		source = BdvFunctions.show(
+		scatterPlotSource = BdvFunctions.show(
 				randomAccessible,
 				interval,
 				createPlotName( selectedColumns ),
 				bdvOptions );
 
-		bdvHandle = source.getBdvHandle();
-
-		window = SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
+		bdvHandle = scatterPlotSource.getBdvHandle();
 	}
 
 	private static String createPlotName( String[] selectedColumns )
@@ -250,9 +267,10 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	}
 
 	@Override
-	public void timePointChanged( int timePointIndex )
+	public void timePointChanged( int timepoint )
 	{
-		bdvHandle.getViewerPanel().setTimepoint( timePointIndex );
+		this.timepoint = timepoint;
+		updateScatterPlot();
 	}
 
 	@Override
