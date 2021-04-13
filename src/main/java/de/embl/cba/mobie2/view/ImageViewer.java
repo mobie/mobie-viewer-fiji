@@ -13,6 +13,7 @@ import de.embl.cba.mobie2.color.LabelConverter;
 import de.embl.cba.mobie2.color.VolatileAdjustableOpacityColorConverter;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
+import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.segment.SegmentBdvSelector;
 import de.embl.cba.mobie2.source.ImageSource;
@@ -41,7 +42,6 @@ import sc.fiji.bdvpg.bdv.projector.Projector;
 import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
-import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
@@ -59,10 +59,10 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final BdvHandle bdvHandle;
 	private final boolean is2D;
-	private Collection< SourceAndConverter< ? > > labelSources;
 	private Map< SelectionModel< TableRowImageSegment >, SegmentAdapter< TableRowImageSegment > > selectionModelToAdapter;
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sourceAndConverterService;
+	private List< SourceDisplay > sourceDisplays;
 
 	public ImageViewer( MoBIE2 moBIE2, boolean is2D, int timepoints )
 	{
@@ -76,7 +76,7 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		displayService.registerBdvHandle( bdvHandle );
 
 		// init other stuff
-		labelSources = new ArrayList<>();
+		sourceDisplays = new ArrayList<>();
 		selectionModelToAdapter = new ConcurrentHashMap<>();
 
 		// register context menu actions
@@ -117,8 +117,10 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		return bdvHandle;
 	}
 
-	public List< SourceAndConverter< ? > > show( ImageDisplay imageDisplay, List< SourceTransformerSupplier > sourceTransforms )
+	public void show( ImageDisplay imageDisplay, List< SourceTransformerSupplier > sourceTransforms )
 	{
+		addSourceDisplay( imageDisplay );
+
 		// open
 		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
 		for ( String sourceName : imageDisplay.getSources() )
@@ -170,11 +172,22 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 
 		sourceAndConverterService.getUI().hide();
 
-		return displayedSourceAndConverters;
+		imageDisplay.sourceAndConverters = displayedSourceAndConverters;
 	}
 
-	public List< SourceAndConverter< ? > > show( SegmentationDisplay display )
+	private void addSourceDisplay( SourceDisplay imageDisplay )
 	{
+		imageDisplay.imageViewer = this;
+		sourceDisplays.add( imageDisplay );
+	}
+
+	public void show( SegmentationDisplay display )
+	{
+		addSourceDisplay( display );
+
+		display.selectionModel.listeners().add( this );
+		display.coloringModel.listeners().add( this );
+
 		final ArrayList< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
 
 		for ( String sourceName : display.getSources() )
@@ -195,12 +208,13 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 			displayService.show( bdvHandle, labelSourceAndConverter );
 		}
 
+		// TODO: maybe I should not keep track of this but on the fly filter
+		//    all sources currently visible in BDV
 		labelSources.addAll( sourceAndConverters );
 		selectionModelToAdapter.put( display.selectionModel, display.segmentAdapter );
 
 		sourceAndConverterService.getUI().hide();
-
-		return sourceAndConverters;
+		display.sourceAndConverters = sourceAndConverters;
 	}
 
 	private SourceAndConverter asLabelSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, LabelConverter labelConverter )

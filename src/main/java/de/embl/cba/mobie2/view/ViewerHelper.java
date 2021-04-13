@@ -22,11 +22,4 @@ public class ViewerHelper
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
-
-	public static void showInImageViewer( SegmentationDisplay display )
-	{
-		display.sourceAndConverters = display.imageViewer.show( display );
-		display.selectionModel.listeners().add( display.imageViewer );
-		display.coloringModel.listeners().add( display.imageViewer );
-	}
 }

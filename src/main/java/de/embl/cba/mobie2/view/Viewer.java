@@ -98,20 +98,15 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 		}
 	}
 
-
-
 	private void showImageDisplay( ImageDisplay imageDisplay, List< SourceTransformerSupplier > sourceTransforms )
 	{
-		imageDisplay.imageViewer = imageViewer;
-		imageDisplay.sourceAndConverters = imageViewer.show( imageDisplay, sourceTransforms );
+		imageViewer.show( imageDisplay, sourceTransforms );
 
 		new ViewerTransformAdjuster( imageViewer.getBdvHandle(), imageDisplay.sourceAndConverters.get( 0 ) ).run();
 	}
 
 	private void showSegmentationDisplay( SegmentationDisplay display )
 	{
-		display.imageViewer = imageViewer;
-
 		display.coloringModel = new MoBIEColoringModel<>( display.getLut() );
 		display.selectionModel = new DefaultSelectionModel<>();
 		display.coloringModel.setSelectionModel(  display.selectionModel );
@@ -135,7 +130,7 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 			display.segmentAdapter.getSegments( display.getSelectedSegmentIds() );
 		}
 
-		ViewerHelper.showInImageViewer( display );
+		display.imageViewer.show( display );
 		ViewerHelper.showInTableViewer( display );
 		ViewerHelper.showInScatterPlotViewer( display );
 
@@ -157,6 +152,7 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 		{
 			( ( SegmentationDisplay ) sourceDisplay ).tableViewer.getWindow().dispose();
 			( ( SegmentationDisplay ) sourceDisplay ).scatterPlotViewer.getWindow().dispose();
+			sourceDisplay.imageViewer.removeSelectionModel( sourceDisplay. )
 		}
 
 		userInterface.removeSourceDisplay( sourceDisplay );

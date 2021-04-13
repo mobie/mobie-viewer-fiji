@@ -312,7 +312,7 @@ public class UserInterfaceHelper
 		panel.add( createOpacityButton( display ) );
 		panel.add( createColorButton( display, panel ) );
 		panel.add( createImageDisplayBrightnessButton( display ) );
-		panel.add( createRemoveButton( userInterface, panel, display ) );
+		panel.add( createRemoveButton( userInterface, display ) );
 		panel.add( createSpace() );
 		//panel.add( volumeVisibilityCheckbox );
 		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
@@ -362,7 +362,7 @@ public class UserInterfaceHelper
 		panel.add( createOpacityButton( display ) );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createButtonPlaceholder() );
-		panel.add( createRemoveButton( userInterface, panel, display ) );
+		panel.add( createRemoveButton( userInterface, display ) );
 		panel.add( createSpace() );
 		//panel.add( volumeVisibilityCheckbox );
 		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
@@ -797,7 +797,6 @@ public class UserInterfaceHelper
 	// TODO: this should also close the table a.s.o. if it is a segmentation source
 	private JButton createRemoveButton(
 			final de.embl.cba.mobie2.ui.UserInterface userInterface,
-			JPanel panel,
 			SourceDisplay sourceDisplay )
 	{
 		JButton removeButton = new JButton( "X" );
