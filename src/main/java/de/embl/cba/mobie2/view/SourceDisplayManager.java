@@ -20,7 +20,9 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
 
@@ -148,7 +150,6 @@ public class SourceDisplayManager< T extends TableRow, S extends ImageSegment >
 
 	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay )
 	{
-
 		sourceDisplay.imageViewer.removeSourceDisplay( sourceDisplay );
 
 		if ( sourceDisplay instanceof SegmentationDisplay )
@@ -160,5 +161,12 @@ public class SourceDisplayManager< T extends TableRow, S extends ImageSegment >
 
 		userInterface.removeSourceDisplay( sourceDisplay );
 		sourceDisplays.remove( sourceDisplay );
+	}
+
+	public Collection< SegmentationDisplay > getSegmentationDisplays()
+	{
+		final List< SegmentationDisplay > segmentationDisplays = getSourceDisplays().stream().filter( s -> s instanceof SegmentationDisplay ).map( s -> ( SegmentationDisplay ) s ).collect( Collectors.toList() );
+
+		return segmentationDisplays;
 	}
 }

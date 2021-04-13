@@ -15,7 +15,7 @@ import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
-import de.embl.cba.mobie2.segment.SegmentBdvSelector;
+import de.embl.cba.mobie2.segment.BdvSegmentSelector;
 import de.embl.cba.mobie2.source.ImageSource;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.transform.SourceTransformerSupplier;
@@ -94,26 +94,17 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 
 		final Set< String > actionsKeys = sourceAndConverterService.getActionsKeys();
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
-		final String[] actions = { "BDV - Screenshot", BdvLocationLogger.NAME  };
+		final String[] actions = { "BDV - Screenshot", BdvLocationLogger.NAME, "Set Sources Projection Mode"  };
 
 		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions );
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
 		behaviours.install( bdvHandle.getTriggerbindings(), "MoBIE" );
-		final SegmentBdvSelector segmentBdvSelector = new SegmentBdvSelector( bdvHandle, is2D, () -> getLabelSources(), selectionModelToAdapter );
+		final BdvSegmentSelector segmentBdvSelector = new BdvSegmentSelector( bdvHandle, is2D, () -> sourceDisplayManager.getSegmentationDisplays() );
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
 						new Thread( () -> segmentBdvSelector.run() ).start(),
 				"Toggle selection", "ctrl button1" ) ;
-	}
-
-	private List< SourceAndConverter< ? > > getLabelSources()
-	{
-		final List< SegmentationDisplay > segmentationDisplays = sourceDisplayManager.getSourceDisplays().stream().filter( s -> s instanceof SegmentationDisplay ).map( s -> ( SegmentationDisplay ) s ).collect( Collectors.toList() );
-
-		final List< SourceAndConverter< ? > > sourceAndConverters = segmentationDisplays.stream().map( display -> display.sourceAndConverters ).flatMap( List::stream ).filter( sac -> sac.getSpimSource() instanceof LabelSource< ? > ).collect( Collectors.toList() );
-
-		return sourceAndConverters;
 	}
 
 	private BdvHandle createBdv( int numTimepoints )
