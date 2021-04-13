@@ -40,6 +40,8 @@ import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.bdv.projector.BlendingMode;
 import sc.fiji.bdvpg.bdv.projector.Projector;
 import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
+import sc.fiji.bdvpg.scijava.command.bdv.ScreenShotMakerCommand;
+import sc.fiji.bdvpg.scijava.command.source.SourceAndConverterBlendingModeChangerCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -52,7 +54,6 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class ImageViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
@@ -63,7 +64,7 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 	private final SourceDisplayManager< ?, ? > sourceDisplayManager;
 	private Map< SelectionModel< TableRowImageSegment >, SegmentAdapter< TableRowImageSegment > > selectionModelToAdapter;
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
-	private final SourceAndConverterService sourceAndConverterService;
+	private final SourceAndConverterService sacService;
 	private List< SourceDisplay > sourceDisplays;
 
 	public ImageViewer( MoBIE2 moBIE2, boolean is2D, SourceDisplayManager sourceDisplayManager,  int timepoints )
@@ -72,7 +73,7 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		this.is2D = is2D;
 		this.sourceDisplayManager = sourceDisplayManager;
 		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
-		sourceAndConverterService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
+		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 
 		// init Bdv
 		bdvHandle = createBdv( timepoints );
@@ -88,13 +89,12 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 
 	private void installContextMenu( )
 	{
-		final SourceAndConverterService sourceAndConverterService;
-		sourceAndConverterService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-		//sourceAndConverterService.registerScijavaCommand( BdvLocationLogger.class );
-
-		final Set< String > actionsKeys = sourceAndConverterService.getActionsKeys();
+		final Set< String > actionsKeys = sacService.getActionsKeys();
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
-		final String[] actions = { "BDV - Screenshot", BdvLocationLogger.NAME, "Set Sources Projection Mode"  };
+		final String[] actions = {
+				sacService.getCommandName( ScreenShotMakerCommand.class ),
+				sacService.getCommandName( BdvLocationLogger.class ),
+				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ) };
 
 		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions );
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
@@ -173,7 +173,7 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 			displayedSourceAndConverters.add( sourceAndConverter );
 		}
 
-		sourceAndConverterService.getUI().hide();
+		sacService.getUI().hide();
 
 		imageDisplay.sourceAndConverters = displayedSourceAndConverters;
 	}
@@ -215,7 +215,7 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		//    all sources currently visible in BDV
 		selectionModelToAdapter.put( display.selectionModel, display.segmentAdapter );
 
-		sourceAndConverterService.getUI().hide();
+		sacService.getUI().hide();
 		display.sourceAndConverters = sourceAndConverters;
 	}
 

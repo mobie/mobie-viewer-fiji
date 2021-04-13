@@ -16,7 +16,7 @@ import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
+
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -31,7 +31,6 @@ public class SourceDisplayManager< T extends TableRow, S extends ImageSegment >
 	private final MoBIE2 moBIE2;
 	private final UserInterface userInterface;
 	private final ImageViewer imageViewer;
-	private UserInterfaceHelper userInterfaceHelper;
 	private ArrayList< SourceDisplay > sourceDisplays;
 
 	public SourceDisplayManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
