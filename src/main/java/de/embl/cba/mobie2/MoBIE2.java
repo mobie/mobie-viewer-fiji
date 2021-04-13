@@ -206,8 +206,9 @@ public class MoBIE2
 		return location;
 	}
 
-	public String getAbsoluteDefaultTableLocation( SegmentationSource source )
+	public String getDefaultTableLocation( SegmentationSource source )
 	{
-		return FileAndUrlUtils.combinePath( getProjectLocation(), getCurrentDatasetName(), source.tableDataLocation, "default.tsv"  );
+		final String location = getPath( getCurrentDatasetName(), source.tableDataLocation, "default.tsv" );
+		return location;
 	}
 }

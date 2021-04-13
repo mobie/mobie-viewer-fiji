@@ -300,7 +300,7 @@ public abstract class Utils
 			String imageId,
 			SourceGroupLabelSourceMetadata metadata )
 	{
-		log( "Opening table: " + tablePath );
+		log( "Opening table:\n" + tablePath );
 
 		tablePath = resolveTablePath( tablePath );
 
@@ -350,7 +350,7 @@ public abstract class Utils
 			String tablePath,
 			String imageId )
 	{
-		log( "Opening table: " + tablePath );
+		log( "Opening table:\n" + tablePath );
 
 		tablePath = resolveTablePath( tablePath );
 

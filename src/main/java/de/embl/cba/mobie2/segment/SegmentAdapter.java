@@ -19,7 +19,6 @@ public class SegmentAdapter< T extends ImageSegment >
 
 		for ( T segment : segments )
 			labelFrameAndImageToSegment.put( new LabelFrameAndImage( segment ), segment );
-
 	}
 
 	public T getSegment( double label, int t, String imageId )

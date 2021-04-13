@@ -81,7 +81,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private Window window;
 	private NearestNeighborSearchOnKDTree< T > search;
 	private BdvStackSource< ARGBType > scatterPlotSource;
-	private int timepoint;
+	private int currentTimepoint;
 
 	public ScatterPlotViewer(
 			List< T > tableRows,
@@ -97,17 +97,17 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		this.selectedColumns = selectedColumns;
 		this.scaleFactors = scaleFactors;
 		this.dotSizeScaleFactor = dotSizeScaleFactor;
-		this.timepoint = 0;
+		this.currentTimepoint = 0;
 	}
 
 	public void show()
 	{
-		showScatterPlotSource(  );
+		updateScatterPlotSource(  );
 		installBdvBehaviours();
 		configureWindow();
 	}
 
-	private void showScatterPlotSource( )
+	private void updateScatterPlotSource( )
 	{
 		List< T > tableRows = getTableRows( );
 
@@ -140,7 +140,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	{
 		if ( tableRows.get( 0 ).getColumnNames().contains( Constants.TIMEPOINT  ) )
 		{
-			return tableRows.stream().filter( t -> Integer.parseInt( t.getCell( Constants.TIMEPOINT ) ) == timepoint ).collect( Collectors.toList() );
+			return tableRows.stream().filter( t -> Double.parseDouble( t.getCell( Constants.TIMEPOINT ) ) == currentTimepoint ).collect( Collectors.toList() );
 		}
 		else
 		{
@@ -198,7 +198,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private void updateScatterPlot()
 	{
 		scatterPlotSource.removeFromBdv();
-		showScatterPlotSource();
+		updateScatterPlotSource();
 	}
 
 	private String getBehavioursName()
@@ -269,7 +269,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	@Override
 	public void timePointChanged( int timepoint )
 	{
-		this.timepoint = timepoint;
+		this.currentTimepoint = timepoint;
 		updateScatterPlot();
 	}
 
@@ -288,6 +288,16 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	@Override
 	public void focusEvent( T selection )
 	{
+		if ( selection.getColumnNames().contains( Constants.TIMEPOINT  ) )
+		{
+			int selectedTimepoint = (int) Double.parseDouble( selection.getCell( Constants.TIMEPOINT ) );
+			if ( selectedTimepoint != currentTimepoint )
+			{
+				currentTimepoint = selectedTimepoint;
+				updateScatterPlotSource();
+			}
+		}
+
 		if ( selection == recentFocus )
 		{
 			return;

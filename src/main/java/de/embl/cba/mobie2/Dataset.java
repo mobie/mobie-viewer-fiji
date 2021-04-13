@@ -7,8 +7,8 @@ import java.util.Map;
 
 public class Dataset
 {
-	public boolean is2D;
-	public int timepoints = 20;
+	public boolean is2D = false;
+	public int timepoints = 1;
 	public Map< String, SourceSupplier > sources;
 	public Map< String, View > views;
 }

@@ -20,7 +20,6 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
@@ -126,11 +125,15 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 		String sourceName = display.getSources().get( 0 );
 		final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
 		display.segments = createAnnotatedImageSegmentsFromTableFile(
-				moBIE2.getAbsoluteDefaultTableLocation( source ),
+				moBIE2.getDefaultTableLocation( source ),
 				sourceName );
 
 		display.segmentAdapter = new SegmentAdapter( display.segments );
-		display.segmentAdapter.getSegments( display.getSelectedSegmentIds() );
+		if ( display.getSelectedSegmentIds() != null )
+		{
+			// TODO: add to selection model
+			display.segmentAdapter.getSegments( display.getSelectedSegmentIds() );
+		}
 
 		ViewerHelper.showInImageViewer( display );
 		ViewerHelper.showInTableViewer( display );

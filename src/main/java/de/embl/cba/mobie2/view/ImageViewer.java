@@ -41,6 +41,7 @@ import sc.fiji.bdvpg.bdv.projector.Projector;
 import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
+import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
@@ -61,12 +62,14 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 	private Collection< SourceAndConverter< ? > > labelSources;
 	private Map< SelectionModel< TableRowImageSegment >, SegmentAdapter< TableRowImageSegment > > selectionModelToAdapter;
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
+	private final SourceAndConverterService sourceAndConverterService;
 
 	public ImageViewer( MoBIE2 moBIE2, boolean is2D, int timepoints )
 	{
 		this.moBIE2 = moBIE2;
 		this.is2D = is2D;
 		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
+		sourceAndConverterService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 
 		// init Bdv
 		bdvHandle = createBdv( timepoints );
@@ -165,6 +168,8 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 			displayedSourceAndConverters.add( sourceAndConverter );
 		}
 
+		sourceAndConverterService.getUI().hide();
+
 		return displayedSourceAndConverters;
 	}
 
@@ -193,6 +198,8 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		labelSources.addAll( sourceAndConverters );
 		selectionModelToAdapter.put( display.selectionModel, display.segmentAdapter );
 
+		sourceAndConverterService.getUI().hide();
+
 		return sourceAndConverters;
 	}
 
@@ -219,6 +226,11 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 	@Override
 	public synchronized void focusEvent( S selection )
 	{
+		if ( selection.timePoint() != getBdvHandle().getViewerPanel().state().getCurrentTimepoint() )
+		{
+			getBdvHandle().getViewerPanel().state().setCurrentTimepoint( selection.timePoint() );
+		}
+
 		final double[] position = new double[ 3 ];
 		selection.localize( position );
 
