@@ -14,6 +14,7 @@ import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.view.View;
 import de.embl.cba.mobie2.view.Viewer;
 import de.embl.cba.tables.FileAndUrlUtils;
+import de.embl.cba.tables.github.GitHubUtils;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.io.IOException;
@@ -40,7 +41,6 @@ public class MoBIE2
 	private String projectName;
 	private AffineTransform3D defaultNormalisedViewerTransform;
 	private Dataset dataset;
-	private String imageDataLocation;
 	private String currentDatasetName;
 	private Viewer viewer;
 
@@ -57,15 +57,13 @@ public class MoBIE2
 
 		setLafSwingLookAndFeel();
 
-		final Project project = new ProjectJsonParser().getProject( FileAndUrlUtils.combinePath( projectLocation, "project.json" ) );
+		final Project project = new ProjectJsonParser().getProject( getPath( "project.json" ) );
 		currentDatasetName = project.datasets.get( 0 );
 
-		dataset = new DatasetJsonParser().getDataset( FileAndUrlUtils.combinePath( projectLocation, currentDatasetName, "dataset.json" ) );
-
-		imageDataLocation = "local";
+		dataset = new DatasetJsonParser().getDataset( getPath( getCurrentDatasetName(), "dataset.json" ) );
 
 		final UserInterface userInterface = new UserInterface( this );
-		viewer = new Viewer( this, userInterface, dataset.is2D );
+		viewer = new Viewer( this, userInterface, dataset.is2D, dataset.timepoints );
 		viewer.show( dataset.views.get( "default" ) );
 
 		// arrange windows
@@ -92,6 +90,36 @@ public class MoBIE2
 //			defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( bdvHandle, BdvUtils.getBdvWindowCenter( bdvHandle ) );
 //			new BdvBehaviourInstaller( this ).run();
 //		} );
+	}
+
+	private String getImageDataStorageModality()
+	{
+		if ( options.values.getImageDataStorageModality().equals( MoBIEOptions.ImageDataStorageModality.S3 ) )
+			return "remote";
+		else
+			return "local";
+	}
+
+	private String getPath( String... files )
+	{
+		String location = projectLocation;
+
+		if ( projectLocation.contains( "github.com" ) )
+		{
+			location = GitHubUtils.createRawUrl( location, options.values.getProjectBranch() );
+		}
+
+		final String[] strings = new String[ files.length + 2 ];
+		strings[ 0 ] = location;
+		strings[ 1 ] = "data";
+		for ( int i = 0; i < files.length; i++ )
+		{
+			strings[ i + 2] = files[ i ];
+		}
+
+		location = FileAndUrlUtils.combinePath( strings );
+
+		return location;
 	}
 
 	public Viewer getViewer()
@@ -172,9 +200,10 @@ public class MoBIE2
 		return views;
 	}
 
-	public String getAbsoluteImageLocation( ImageSource source )
+	public String getImageLocation( ImageSource source )
 	{
-		return FileAndUrlUtils.combinePath( getProjectLocation(), getCurrentDatasetName(), source.imageDataLocations.get( imageDataLocation ) );
+		final String location = getPath( getCurrentDatasetName(), source.imageDataLocations.get( getImageDataStorageModality() ) );
+		return location;
 	}
 
 	public String getAbsoluteDefaultTableLocation( SegmentationSource source )

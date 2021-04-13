@@ -62,14 +62,14 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 	private Map< SelectionModel< TableRowImageSegment >, SegmentAdapter< TableRowImageSegment > > selectionModelToAdapter;
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 
-	public ImageViewer( MoBIE2 moBIE2, boolean is2D )
+	public ImageViewer( MoBIE2 moBIE2, boolean is2D, int timepoints )
 	{
 		this.moBIE2 = moBIE2;
 		this.is2D = is2D;
 		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
 
 		// init Bdv
-		bdvHandle = createBdv( 1 );
+		bdvHandle = createBdv( timepoints );
 		displayService.registerBdvHandle( bdvHandle );
 
 		// init other stuff
@@ -121,7 +121,7 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		for ( String sourceName : imageDisplay.getSources() )
 		{
 			final ImageSource source = moBIE2.getSource( sourceName );
-			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getAbsoluteImageLocation( source ) );
+			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getImageLocation( source ) );
 			final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
 			sourceAndConverters.add( sourceAndConverter );
 		}
@@ -175,7 +175,7 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		for ( String sourceName : display.getSources() )
 		{
 			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
-			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getAbsoluteImageLocation( source ) );
+			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getImageLocation( source ) );
 			final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
 
 			LabelConverter< S > labelConverter = new LabelConverter(

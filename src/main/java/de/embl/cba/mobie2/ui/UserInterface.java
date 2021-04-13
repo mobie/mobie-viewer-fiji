@@ -10,6 +10,9 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setDefaultSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setLafSwingLookAndFeel;
+
 public class UserInterface
 {
 	private final JPanel displaySettingsContainer;
@@ -65,6 +68,8 @@ public class UserInterface
 
 	public void addSourceDisplay( SourceDisplay sourceDisplay )
 	{
+		setLafSwingLookAndFeel();
+
 		if ( sourceDisplay instanceof ImageDisplay )
 		{
 			userInterfaceHelper.addImageDisplaySettingsPanel( this, ( ImageDisplay ) sourceDisplay );
@@ -75,6 +80,8 @@ public class UserInterface
 			userInterfaceHelper.addSegmentationDisplaySettingsPanel( this, ( SegmentationDisplay ) sourceDisplay );
 			refresh();
 		}
+
+		setDefaultSwingLookAndFeel();
 	}
 
 	public void removeSourceDisplay( SourceDisplay display )

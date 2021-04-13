@@ -33,12 +33,12 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 	private UserInterfaceHelper userInterfaceHelper;
 	private ArrayList< SourceDisplay > sourceDisplays;
 
-	public Viewer( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D )
+	public Viewer( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
 	{
 		this.moBIE2 = moBIE2;
 		this.userInterface = userInterface;
 		sourceDisplays = new ArrayList<>();
-		imageViewer = new ImageViewer( moBIE2, is2D );
+		imageViewer = new ImageViewer( moBIE2, is2D, timepoints );
 		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), imageViewer.getWindow(), false, true );
 	}
 
