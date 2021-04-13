@@ -46,19 +46,16 @@ public class LabelSource< T extends NumericType< T > & RealType< T > > implement
 		this.boundaryWidth = boundaryWidth;
 	}
 
-//	@Override
-//	public boolean doBoundingBoxCulling()
-//	{
-////		System.out.println( "Source " + source.getName() + " culling: " + source.doBoundingBoxCulling() );
-//		return source.doBoundingBoxCulling();
-//	}
-
+	@Override
+	public boolean doBoundingBoxCulling()
+	{
+		return source.doBoundingBoxCulling();
+	}
 
 	@Override
 	public synchronized void getSourceTransform( final int t, final int level, final AffineTransform3D transform )
 	{
 		source.getSourceTransform( t, level, transform );
-//		System.out.println( "Source " + source.getName() + " transform: " + transform.toString() );
 	}
 
 	@Override
@@ -70,21 +67,24 @@ public class LabelSource< T extends NumericType< T > & RealType< T > > implement
 	@Override
 	public RandomAccessibleInterval< T > getSource( final int t, final int level )
 	{
-		RandomAccessibleInterval< T > source = this.source.getSource( t, level );
+		return source.getSource( t, level );
 
-		if ( showAsBoundaries )
-		{
-			NeighborhoodNonZeroBoundariesConverter2< T > boundariesConverter = new NeighborhoodNonZeroBoundariesConverter2< T >( source );
-			RandomAccessibleInterval boundaries = NeighborhoodViews.neighborhoodConvertedView(
-					source,
-					boundariesConverter,
-					new HyperSphereShape( boundaryWidth ) );
-			return boundaries;
-		}
-		else
-		{
-			return source;
-		}
+		// below code is not needed, because BDV (I think) always shows the interpolated source
+//		RandomAccessibleInterval< T > source = this.source.getSource( t, level );
+//
+//		if ( showAsBoundaries )
+//		{
+//			NeighborhoodNonZeroBoundariesConverter2< T > boundariesConverter = new NeighborhoodNonZeroBoundariesConverter2< T >( source );
+//			RandomAccessibleInterval boundaries = NeighborhoodViews.neighborhoodConvertedView(
+//					source,
+//					boundariesConverter,
+//					new HyperSphereShape( boundaryWidth ) );
+//			return boundaries;
+//		}
+//		else
+//		{
+//			return source;
+//		}
 	}
 
 	@Override

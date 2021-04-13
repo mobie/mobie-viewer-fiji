@@ -34,6 +34,12 @@ public class MeshCreator < S extends ImageSegment >
 	private int meshSmoothingIterations;
 	private double maxNumSegmentVoxels;
 
+	public MeshCreator( int meshSmoothingIterations, double maxNumSegmentVoxels )
+	{
+		this.meshSmoothingIterations = meshSmoothingIterations;
+		this.maxNumSegmentVoxels = maxNumSegmentVoxels;
+	}
+
 	private float[] createMesh( ImageSegment segment, double voxelSpacing, Source< ? > labelsSource )
 	{
 		Integer level = getLevel( segment, labelsSource, voxelSpacing );
@@ -89,7 +95,7 @@ public class MeshCreator < S extends ImageSegment >
 		return meshCoordinates;
 	}
 
-	private CustomTriangleMesh createSmoothCustomTriangleMesh( S segment, double voxelSpacing, boolean recomputeMesh, Source< ? > source )
+	public CustomTriangleMesh createSmoothCustomTriangleMesh( S segment, double voxelSpacing, boolean recomputeMesh, Source< ? > source )
 	{
 		CustomTriangleMesh triangleMesh = createCustomTriangleMesh( segment, voxelSpacing, recomputeMesh, source );
 		MeshEditor.smooth2( triangleMesh, meshSmoothingIterations );

@@ -12,6 +12,7 @@ public class ImageDisplay extends SourceDisplay
 	private String color;
 	private double[] contrastLimits;
 	private BlendingMode blendingMode;
+	private boolean showImagesIn3d;
 
 	public ImageDisplay createSerializableCopy()
 	{

@@ -10,7 +10,7 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setDefaultSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setSystemSwingLookAndFeel;
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setLafSwingLookAndFeel;
 
 public class UserInterface
@@ -81,7 +81,7 @@ public class UserInterface
 			refresh();
 		}
 
-		setDefaultSwingLookAndFeel();
+		setSystemSwingLookAndFeel();
 	}
 
 	public void removeSourceDisplay( SourceDisplay display )

@@ -45,13 +45,8 @@ public class BdvSegmentSelector implements Runnable
 			{
 				if ( SourceAndConverterHelper.isPositionWithinSourceInterval( sourceAndConverter, position, timePoint, is2D ) )
 				{
-					if ( ! ( sourceAndConverter.getSpimSource() instanceof LabelSource< ? > ) )
-						throw new UnsupportedOperationException( "SpimSources in a SegmentationDisplay must be of type LabelSource");
-
-					final Source< ? > source = ( ( LabelSource< ? > ) sourceAndConverter.getSpimSource() ).getWrappedSource();
-
+					final Source< ? > source = sourceAndConverter.getSpimSource();
 					final double labelIndex = getPixelValue( timePoint, position, source );
-
 					if ( labelIndex == 0 ) return;
 
 					final TableRowImageSegment segment = segmentationDisplay.segmentAdapter.getSegment( labelIndex, timePoint, source.getName() );

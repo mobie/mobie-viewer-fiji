@@ -62,18 +62,17 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final BdvHandle bdvHandle;
 	private final boolean is2D;
-	private final SourceDisplayManager< ?, ? > sourceDisplayManager;
+	private final ViewerManager< ?, ? > viewerManager;
 	private Map< SelectionModel< TableRowImageSegment >, SegmentAdapter< TableRowImageSegment > > selectionModelToAdapter;
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
 	private List< SourceDisplay > sourceDisplays;
-	private Image3DUniverse universe;
 
-	public BdvViewer( MoBIE2 moBIE2, boolean is2D, SourceDisplayManager sourceDisplayManager, int timepoints )
+	public BdvViewer( MoBIE2 moBIE2, boolean is2D, ViewerManager viewerManager, int timepoints )
 	{
 		this.moBIE2 = moBIE2;
 		this.is2D = is2D;
-		this.sourceDisplayManager = sourceDisplayManager;
+		this.viewerManager = viewerManager;
 		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 
@@ -101,7 +100,7 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions );
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
 		behaviours.install( bdvHandle.getTriggerbindings(), "MoBIE" );
-		final BdvSegmentSelector segmentBdvSelector = new BdvSegmentSelector( bdvHandle, is2D, () -> sourceDisplayManager.getSegmentationDisplays() );
+		final BdvSegmentSelector segmentBdvSelector = new BdvSegmentSelector( bdvHandle, is2D, () -> viewerManager.getSegmentationDisplays() );
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
@@ -275,18 +274,5 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 		{
 			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
 		}
-	}
-
-	public void showSelectedSegmentsIn3D( SegmentationDisplay display, boolean show )
-	{
-		if ( show )
-		{
-			if ( universe == null )
-			{
-				universe = new Image3DUniverse();
-				universe.show();
-			}
-
-			display.selectionModel.getSelected()
 	}
 }

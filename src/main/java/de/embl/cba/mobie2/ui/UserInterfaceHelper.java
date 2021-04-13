@@ -18,7 +18,7 @@ import de.embl.cba.mobie2.color.OpacityAdjuster;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
-import de.embl.cba.mobie2.view.SourceDisplayManager;
+import de.embl.cba.mobie2.view.ViewerManager;
 import de.embl.cba.mobie2.serialize.View;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
@@ -224,10 +224,10 @@ public class UserInterfaceHelper
 		}
 	}
 
-	public static void setDefaultSwingLookAndFeel() {
+	public static void setSystemSwingLookAndFeel() {
 		FlatLightLaf.install();
 		try {
-			UIManager.setLookAndFeel( UIManager.getCrossPlatformLookAndFeelClassName() );
+			UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -297,14 +297,6 @@ public class UserInterfaceHelper
 
 		setPanelColor( panel, display.getColor() );
 
-		// TODO: Can we adapt this for source groups?
-//		final JCheckBox volumeVisibilityCheckbox =
-//				createVolumeViewVisibilityCheckbox(
-//						displayManager,
-//						viewSelectionDimensions,
-//						sourceAndMetadataList.get( 0 ),
-//						sourceAndMetadataList.get( 0 ).metadata().showImageIn3d || sourceAndMetadataList.get( 0 ).metadata().showSelectedSegmentsIn3d );
-
 		panel.add( createSpace() );
 		panel.add( createFocusButton( display ) );
 		panel.add( createOpacityButton( display ) );
@@ -312,8 +304,8 @@ public class UserInterfaceHelper
 		panel.add( createImageDisplayBrightnessButton( display ) );
 		panel.add( createRemoveButton( userInterface, display ) );
 		panel.add( createSpace() );
-
 		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
+		panel.add( createCheckboxPlaceholder() ); // TODO: createVolume...
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createCheckboxPlaceholder() );
 
@@ -346,14 +338,6 @@ public class UserInterfaceHelper
 	public void addSegmentationDisplaySettingsPanel( UserInterface userInterface, SegmentationDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
-
-		// TODO:
-//		final JCheckBox volumeVisibilityCheckbox =
-//				createVolumeViewVisibilityCheckbox(
-//						displayManager,
-//						viewSelectionDimensions,
-//						sourceAndMetadataList.get( 0 ),
-//						sourceAndMetadataList.get( 0 ).metadata().showImageIn3d || sourceAndMetadataList.get( 0 ).metadata().showSelectedSegmentsIn3d );
 
 		panel.add( createSpace() );
 		panel.add( createFocusButton( display ) );
@@ -629,7 +613,7 @@ public class UserInterfaceHelper
 				{
 					if ( recreate.get() )
 					{
-						SourceDisplayManager.showInScatterPlotViewer( display );
+						ViewerManager.showInScatterPlotViewer( display );
 						recreate.set( false );
 					}
 					else
@@ -674,11 +658,11 @@ public class UserInterfaceHelper
 				new Thread( () -> {
 					if ( checkBox.isSelected() )
 					{
-						display.bdvViewer.showSelectedSegmentsIn3D( display, true );
+						display.segments3DViewer.setShowSelectedSegments( true );
 					}
 					else
 					{
-						display.bdvViewer.showSelectedSegmentsIn3D( display, false );
+						display.segments3DViewer.setShowSelectedSegments( false );
 					}
 				}).start();
 			}

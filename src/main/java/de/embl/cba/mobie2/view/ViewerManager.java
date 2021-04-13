@@ -16,6 +16,7 @@ import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
+import ij3d.Image3DUniverse;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 
@@ -27,14 +28,15 @@ import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
 
-public class SourceDisplayManager< T extends TableRow, S extends ImageSegment >
+public class ViewerManager< T extends TableRow, S extends ImageSegment >
 {
 	private final MoBIE2 moBIE2;
 	private final UserInterface userInterface;
 	private final BdvViewer bdvViewer;
 	private ArrayList< SourceDisplay > sourceDisplays;
+	private Image3DUniverse universe;
 
-	public SourceDisplayManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
+	public ViewerManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
 	{
 		this.moBIE2 = moBIE2;
 		this.userInterface = userInterface;
@@ -76,7 +78,7 @@ public class SourceDisplayManager< T extends TableRow, S extends ImageSegment >
 		{
 			for ( SourceDisplaySupplier displaySupplier : view.sourceDisplays )
 			{
-				showSourceDisplay( view, displaySupplier.get() );
+				showSourceDisplay( displaySupplier.get(), view.sourceTransforms );
 			}
 		}
 
@@ -84,7 +86,7 @@ public class SourceDisplayManager< T extends TableRow, S extends ImageSegment >
 		// TODO
 	}
 
-	private void showSourceDisplay( View view, SourceDisplay sourceDisplay )
+	private void showSourceDisplay( SourceDisplay sourceDisplay, List< SourceTransformerSupplier > sourceTransforms )
 	{
 		if ( sourceDisplays.contains( sourceDisplay ) ) return;
 
@@ -95,15 +97,31 @@ public class SourceDisplayManager< T extends TableRow, S extends ImageSegment >
 
 		if ( sourceDisplay instanceof ImageDisplay )
 		{
-			showImageDisplay( ( ImageDisplay ) sourceDisplay, view.sourceTransforms );
+			showImageDisplay( ( ImageDisplay ) sourceDisplay, sourceTransforms );
 		}
 		else if ( sourceDisplay instanceof SegmentationDisplay )
 		{
-			showSegmentationDisplay( ( SegmentationDisplay ) sourceDisplay );
+			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) sourceDisplay;
+			showSegmentationDisplay( segmentationDisplay );
+			segmentationDisplay.segments3DViewer = new Segments3DViewer<>( segmentationDisplay.selectionModel, segmentationDisplay.coloringModel, segmentationDisplay.sourceAndConverters, ()  -> getUniverse()  );
 		}
+
 
 		userInterface.addSourceDisplay( sourceDisplay );
 		sourceDisplays.add( sourceDisplay );
+	}
+
+	private Image3DUniverse getUniverse()
+	{
+		if ( universe == null )
+		{
+			universe = new Image3DUniverse();
+			universe.show();
+			// Bug on MAC causes crash if users try to resize
+			//universe.getWindow().setResizable( false );
+		}
+
+		return universe;
 	}
 
 	private void removeAllSourceDisplays()

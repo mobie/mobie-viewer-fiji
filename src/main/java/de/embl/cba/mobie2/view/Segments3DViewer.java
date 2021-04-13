@@ -29,45 +29,40 @@
 package de.embl.cba.mobie2.view;
 
 import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
 import customnode.CustomTriangleMesh;
-import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.tables.Logger;
-import de.embl.cba.tables.Utils;
+import de.embl.cba.mobie.n5.source.LabelSource;
+import de.embl.cba.mobie2.mesh.MeshCreator;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.color.SelectionColoringModel;
+import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.ij3d.AnimatedViewAdjuster;
-import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import ij3d.Content;
 import ij3d.Image3DUniverse;
 import ij3d.UniverseListener;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 
-public class VolumeViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
+public class Segments3DViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
 	private final SelectionModel< S > selectionModel;
-	private final SelectionColoringModel< S > selectionColoringModel;
-	private final ImageSourcesModel imageSourcesModel;
+	private final ColoringModel< S > coloringModel;
 
-	private Image3DUniverse universe;
+	private final Collection< SourceAndConverter< ? > > sourceAndConverters;
+	private Supplier< Image3DUniverse > universeSupplier;
 	private S recentFocus;
 	private ConcurrentHashMap< S, Content > segmentToContent;
 	private ConcurrentHashMap< Content, S > contentToSegment;
@@ -86,17 +81,18 @@ public class VolumeViewer< S extends ImageSegment > implements ColoringListener,
 	private boolean recomputeMeshes = false;
 	private double voxelSpacing = 0; // 0 = auto
 	private int currentTimePoint = 0;
+	private final MeshCreator< ImageSegment > meshCreator;
 
-	public VolumeViewer(
+	public Segments3DViewer(
 			final SelectionModel< S > selectionModel,
-			final SelectionColoringModel< S > selectionColoringModel,
-			ImageSourcesModel imageSourcesModel,
-			Image3DUniverse universe )
+			final ColoringModel< S > coloringModel,
+			final Collection< SourceAndConverter< ? > > sourceAndConverters,
+			Supplier< Image3DUniverse > universeSupplier )
 	{
 		this.selectionModel = selectionModel;
-		this.selectionColoringModel = selectionColoringModel;
-		this.imageSourcesModel = imageSourcesModel;
-		this.universe = universe;
+		this.coloringModel = coloringModel;
+		this.sourceAndConverters = sourceAndConverters;
+		this.universeSupplier = universeSupplier;
 
 		this.transparency = 0.0;
 		this.meshSmoothingIterations = 5;
@@ -106,10 +102,10 @@ public class VolumeViewer< S extends ImageSegment > implements ColoringListener,
 		this.segmentFocusDzMin = 20.0;
 		this.maxNumSegmentVoxels = 100 * 100 * 100;
 		this.objectsName = "";
-		this.executorService = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors() );
 		this.segmentToContent = new ConcurrentHashMap<>();
 		this.contentToSegment = new ConcurrentHashMap<>();
 
+		this.meshCreator = new MeshCreator<>( meshSmoothingIterations, maxNumSegmentVoxels );
 	}
 
 	public void setObjectsName( String objectsName )
@@ -160,11 +156,6 @@ public class VolumeViewer< S extends ImageSegment > implements ColoringListener,
 		this.maxNumSegmentVoxels = maxNumSegmentVoxels;
 	}
 
-	public Image3DUniverse getUniverse()
-	{
-		return universe;
-	}
-
 	private void updateSegmentColors()
 	{
 		for ( S segment : segmentToContent.keySet() )
@@ -213,8 +204,8 @@ public class VolumeViewer< S extends ImageSegment > implements ColoringListener,
 
 				if ( ! segmentToContent.containsKey( segment ) )
 				{
-					// create segment mesh (cheap if it has been done before)
-					final CustomTriangleMesh mesh = createSmoothCustomTriangleMesh( segment, voxelSpacing, recomputeMeshes );
+					final Source< ? extends RealType< ? > > source = getSource( segment );
+					final CustomTriangleMesh mesh = meshCreator.createSmoothCustomTriangleMesh( segment, voxelSpacing, recomputeMeshes, source );
 					mesh.setColor( getColor3f( segment ) );
 					addSegmentMeshToUniverse( segment, mesh );
 				}
@@ -226,21 +217,36 @@ public class VolumeViewer< S extends ImageSegment > implements ColoringListener,
 		}
 	}
 
+	private Source< ? extends RealType< ? > > getSource( S segment )
+	{
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		{
+			if ( sourceAndConverter.getSpimSource().getName().equals( segment.imageId() ))
+			{
+				return ( Source< ? extends RealType< ? > > ) sourceAndConverter.getSpimSource();
+			}
+		}
+
+		throw new UnsupportedOperationException( "An image segment from " + segment.imageId() + " did not have a corresponding image source."  );
+	}
+
 	private synchronized void removeSegment( S segment )
 	{
 		final Content content = segmentToContent.get( segment );
-		if ( content != null && universe != null )
-		{
-			universe.removeContent( content.getName() );
-			segmentToContent.remove( segment );
-			contentToSegment.remove( content );
-			System.out.println( "Removed " + getSegmentIdentifier( segment ) );
-		}
+		universeSupplier.get().removeContent( content.getName() );
+		segmentToContent.remove( segment );
+		contentToSegment.remove( content );
+		System.out.println( "Removed " + getSegmentIdentifier( segment ) );
 	}
 
 	private String getSegmentIdentifier( S segment )
 	{
 		return segment.labelId() + "-" + segment.timePoint();
+	}
+
+	public void setShowSelectedSegments( boolean showSelectedSegments )
+	{
+		this.showSelectedSegments = showSelectedSegments;
 	}
 
 	public synchronized void showSelectedSegments( boolean showSelectedSegments, boolean recomputeMeshes )
@@ -272,10 +278,10 @@ public class VolumeViewer< S extends ImageSegment > implements ColoringListener,
 		if ( mesh == null )
 			throw new RuntimeException( "Mesh of segment " + objectsName + "_" + segment.labelId() + " is null." );
 
-		if ( universe == null )
+		if ( universeSupplier == null )
 			throw new RuntimeException( "Universe is null." );
 
-		final Content content = universe.addCustomMesh( mesh, objectsName + "_" + segment.labelId() );
+		final Content content = universeSupplier.get().addCustomMesh( mesh, objectsName + "_" + segment.labelId() );
 
 		content.setTransparency( ( float ) transparency );
 		content.setLocked( true );
@@ -286,12 +292,12 @@ public class VolumeViewer< S extends ImageSegment > implements ColoringListener,
 		System.out.println( "Added " + getSegmentIdentifier( segment ) );
 
 
-		universe.setAutoAdjustView( false );
+		universeSupplier.get().setAutoAdjustView( false );
 	}
 
 	private boolean addUniverseListener()
 	{
-		universe.addUniverseListener( new UniverseListener()
+		universeSupplier.get().addUniverseListener( new UniverseListener()
 		{
 
 			@Override
@@ -391,7 +397,7 @@ public class VolumeViewer< S extends ImageSegment > implements ColoringListener,
 	private Color3f getColor3f( S imageSegment )
 	{
 		final ARGBType argbType = new ARGBType();
-		selectionColoringModel.convert( imageSegment, argbType );
+		coloringModel.convert( imageSegment, argbType );
 		return new Color3f( ColorUtils.getColor( argbType ) );
 	}
 
@@ -438,7 +444,7 @@ public class VolumeViewer< S extends ImageSegment > implements ColoringListener,
 			}
 		}).start();
 
-		if ( universe.getContents().size() == 0 ) return;
+		if ( universeSupplier.get().getContents().size() == 0 ) return;
 		if ( selection == recentFocus ) return;
 		if ( ! segmentToContent.containsKey( selection ) ) return;
 
@@ -446,7 +452,7 @@ public class VolumeViewer< S extends ImageSegment > implements ColoringListener,
 
 		final AnimatedViewAdjuster adjuster =
 				new AnimatedViewAdjuster(
-						universe,
+						universeSupplier.get(),
 						AnimatedViewAdjuster.ADJUST_BOTH );
 
 		adjuster.apply(

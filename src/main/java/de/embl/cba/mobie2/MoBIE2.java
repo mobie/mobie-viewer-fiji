@@ -12,7 +12,7 @@ import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.serialize.View;
-import de.embl.cba.mobie2.view.SourceDisplayManager;
+import de.embl.cba.mobie2.view.ViewerManager;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.github.GitHubUtils;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setDefaultSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setSystemSwingLookAndFeel;
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setLafSwingLookAndFeel;
 
 public class MoBIE2
@@ -42,7 +42,7 @@ public class MoBIE2
 	private AffineTransform3D defaultNormalisedViewerTransform;
 	private Dataset dataset;
 	private String currentDatasetName;
-	private SourceDisplayManager sourceDisplayManager;
+	private ViewerManager viewerManager;
 
 	public MoBIE2( String projectLocation ) throws IOException
 	{
@@ -63,14 +63,14 @@ public class MoBIE2
 		dataset = new DatasetJsonParser().getDataset( getPath( getCurrentDatasetName(), "dataset.json" ) );
 
 		final UserInterface userInterface = new UserInterface( this );
-		sourceDisplayManager = new SourceDisplayManager( this, userInterface, dataset.is2D, dataset.timepoints );
-		sourceDisplayManager.show( dataset.views.get( "default" ) );
+		viewerManager = new ViewerManager( this, userInterface, dataset.is2D, dataset.timepoints );
+		viewerManager.show( dataset.views.get( "default" ) );
 
 		// arrange windows
 		UserInterfaceHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
-		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), sourceDisplayManager.getImageViewer().getWindow(), false, true );
+		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), viewerManager.getImageViewer().getWindow(), false, true );
 
-		setDefaultSwingLookAndFeel(); // To prevent other applications being affected
+		setSystemSwingLookAndFeel(); // To prevent other applications being affected
 
 		//configureDatasetsRootLocations();
 		//appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be re-instantiated
@@ -122,9 +122,9 @@ public class MoBIE2
 		return location;
 	}
 
-	public SourceDisplayManager getViewer()
+	public ViewerManager getViewer()
 	{
-		return sourceDisplayManager;
+		return viewerManager;
 	}
 
 	public String getProjectName()
