@@ -1,7 +1,7 @@
 package de.embl.cba.mobie2.display;
 
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.mobie2.view.ImageViewer;
+import de.embl.cba.mobie2.view.BdvViewer;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 
 import java.util.Collections;
@@ -9,21 +9,15 @@ import java.util.List;
 
 public class SourceDisplay
 {
-	private final boolean isExclusive;
-	private final String name;
-	private final double opacity;
-	private final List< String > sources;
+	// Serialization
+	private boolean isExclusive;
+	private String name;
+	private double opacity;
+	private List< String > sources;
 
+	// Runtime
 	public transient List< SourceAndConverter< ? > > sourceAndConverters;
-	public transient ImageViewer< ? extends ImageSegment > imageViewer;
-
-	public SourceDisplay( String name, double opacity, List< String > sources, boolean isExclusive )
-	{
-		this.isExclusive = isExclusive;
-		this.name = name;
-		this.opacity = opacity;
-		this.sources = sources;
-	}
+	public transient BdvViewer< ? extends ImageSegment > bdvViewer;
 
 	public String getName()
 	{

@@ -13,17 +13,15 @@ import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.ui.MoBIEInfo;
-import de.embl.cba.mobie.ui.SourcesDisplayManager;
 import de.embl.cba.mobie2.*;
 import de.embl.cba.mobie2.color.OpacityAdjuster;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
-import de.embl.cba.mobie2.view.View;
-import de.embl.cba.mobie2.view.ViewerHelper;
+import de.embl.cba.mobie2.view.SourceDisplayManager;
+import de.embl.cba.mobie2.serialize.View;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.image.SourceAndMetadata;
 import ij.WindowManager;
 import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
@@ -314,7 +312,7 @@ public class UserInterfaceHelper
 		panel.add( createImageDisplayBrightnessButton( display ) );
 		panel.add( createRemoveButton( userInterface, display ) );
 		panel.add( createSpace() );
-		//panel.add( volumeVisibilityCheckbox );
+
 		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createCheckboxPlaceholder() );
@@ -364,8 +362,8 @@ public class UserInterfaceHelper
 		panel.add( createButtonPlaceholder() );
 		panel.add( createRemoveButton( userInterface, display ) );
 		panel.add( createSpace() );
-		//panel.add( volumeVisibilityCheckbox );
 		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
+		panel.add( createVolumeViewerVisibilityCheckbox( display ) );
 		panel.add( createTableViewerVisibilityCheckbox( display, true ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display, true ) );
 
@@ -631,7 +629,7 @@ public class UserInterfaceHelper
 				{
 					if ( recreate.get() )
 					{
-						ViewerHelper.showInScatterPlotViewer( display );
+						SourceDisplayManager.showInScatterPlotViewer( display );
 						recreate.set( false );
 					}
 					else
@@ -661,19 +659,12 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	// TODO: Not clear what we want here... close the whole window
-	//   or remove the segments? Probably remove segments, because it can be
-	//   interesting to see segments from different segmentation sources
-	//   together in the same volume rendering
-	public static JCheckBox createVolumeViewVisibilityCheckbox(
-			SourcesDisplayManager sourcesDisplayManager,
-			int[] dims,
-			SourceAndMetadata< ? > sam,
-			boolean isVisible )
+	public static JCheckBox createVolumeViewerVisibilityCheckbox(
+			SegmentationDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "V" );
-		checkBox.setSelected( isVisible );
-		checkBox.setPreferredSize( new Dimension( dims[ 0 ], dims[ 1 ] ) );
+		checkBox.setSelected( display.isShowSelectedSegmentsIn3d() );
+		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
 		checkBox.addActionListener( new ActionListener()
 		{
@@ -681,11 +672,14 @@ public class UserInterfaceHelper
 			public void actionPerformed( ActionEvent e )
 			{
 				new Thread( () -> {
-					// TODO: Old code, will not work
-					sam.metadata().showImageIn3d = checkBox.isSelected();
-					sam.metadata().showSelectedSegmentsIn3d = checkBox.isSelected();
-					sourcesDisplayManager.updateSegments3dView( sam, sourcesDisplayManager );
-					sourcesDisplayManager.updateSource3dView( sam, sourcesDisplayManager, false );
+					if ( checkBox.isSelected() )
+					{
+						display.bdvViewer.showSelectedSegmentsIn3D( display, true );
+					}
+					else
+					{
+						display.bdvViewer.showSelectedSegmentsIn3D( display, false );
+					}
 				}).start();
 			}
 		} );
@@ -703,8 +697,8 @@ public class UserInterfaceHelper
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
 			{
 				// TODO: make this work for multiple!
-				final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.imageViewer.getBdvHandle(), sourceAndConverter ).getTransform();
-				new ViewerTransformChanger( sourceDisplay.imageViewer.getBdvHandle(), transform, false, 1000 ).run();
+				final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.bdvViewer.getBdvHandle(), sourceAndConverter ).getTransform();
+				new ViewerTransformChanger( sourceDisplay.bdvViewer.getBdvHandle(), transform, false, 1000 ).run();
 			}
 		} );
 
@@ -756,7 +750,7 @@ public class UserInterfaceHelper
 			UserInterfaceHelper.showOpacityDialog(
 					sourceDisplay.getName(),
 					sourceDisplay.sourceAndConverters,
-					sourceDisplay.imageViewer.getBdvHandle() );
+					sourceDisplay.bdvViewer.getBdvHandle() );
 		} );
 
 		return button;

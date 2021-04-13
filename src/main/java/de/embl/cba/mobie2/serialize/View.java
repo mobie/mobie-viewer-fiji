@@ -1,4 +1,4 @@
-package de.embl.cba.mobie2.view;
+package de.embl.cba.mobie2.serialize;
 
 import de.embl.cba.mobie2.display.SourceDisplaySupplier;
 import de.embl.cba.mobie2.transform.SourceTransformerSupplier;

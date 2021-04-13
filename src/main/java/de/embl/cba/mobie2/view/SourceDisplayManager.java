@@ -1,8 +1,9 @@
 package de.embl.cba.mobie2.view;
 
-import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
+import de.embl.cba.mobie2.serialize.View;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.color.MoBIEColoringModel;
 import de.embl.cba.mobie2.display.ImageDisplay;
@@ -30,7 +31,7 @@ public class SourceDisplayManager< T extends TableRow, S extends ImageSegment >
 {
 	private final MoBIE2 moBIE2;
 	private final UserInterface userInterface;
-	private final ImageViewer imageViewer;
+	private final BdvViewer bdvViewer;
 	private ArrayList< SourceDisplay > sourceDisplays;
 
 	public SourceDisplayManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
@@ -38,8 +39,24 @@ public class SourceDisplayManager< T extends TableRow, S extends ImageSegment >
 		this.moBIE2 = moBIE2;
 		this.userInterface = userInterface;
 		sourceDisplays = new ArrayList<>();
-		imageViewer = new ImageViewer( moBIE2, is2D, this, timepoints );
-		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), imageViewer.getWindow(), false, true );
+		bdvViewer = new BdvViewer( moBIE2, is2D, this, timepoints );
+		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), bdvViewer.getWindow(), false, true );
+	}
+
+	public static void showInScatterPlotViewer( SegmentationDisplay display )
+	{
+		display.scatterPlotViewer = new ScatterPlotViewer<>( display.segments, display.selectionModel, display.coloringModel, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, new double[]{1.0, 1.0}, 0.5 );
+		display.scatterPlotViewer.show();
+		display.selectionModel.listeners().add( display.scatterPlotViewer );
+		display.coloringModel.listeners().add( display.scatterPlotViewer );
+		display.bdvViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
+	}
+
+	public static void showInTableViewer( SegmentationDisplay display  )
+	{
+		display.tableViewer = new TableViewer<>( display.segments, display.selectionModel, display.coloringModel, display.getName() ).show();
+		display.selectionModel.listeners().add( display.tableViewer );
+		display.coloringModel.listeners().add( display.tableViewer );
 	}
 
 	public ArrayList< SourceDisplay > getSourceDisplays()
@@ -47,9 +64,9 @@ public class SourceDisplayManager< T extends TableRow, S extends ImageSegment >
 		return sourceDisplays;
 	}
 
-	public ImageViewer getImageViewer()
+	public BdvViewer getImageViewer()
 	{
-		return imageViewer;
+		return bdvViewer;
 	}
 
 	public void show( View view )
@@ -106,9 +123,9 @@ public class SourceDisplayManager< T extends TableRow, S extends ImageSegment >
 
 	private void showImageDisplay( ImageDisplay imageDisplay, List< SourceTransformerSupplier > sourceTransforms )
 	{
-		imageViewer.show( imageDisplay, sourceTransforms );
+		bdvViewer.show( imageDisplay, sourceTransforms );
 
-		new ViewerTransformAdjuster( imageViewer.getBdvHandle(), imageDisplay.sourceAndConverters.get( 0 ) ).run();
+		new ViewerTransformAdjuster( bdvViewer.getBdvHandle(), imageDisplay.sourceAndConverters.get( 0 ) ).run();
 	}
 
 	private void showSegmentationDisplay( SegmentationDisplay display )
@@ -136,20 +153,20 @@ public class SourceDisplayManager< T extends TableRow, S extends ImageSegment >
 			display.segmentAdapter.getSegments( display.getSelectedSegmentIds() );
 		}
 
-		imageViewer.show( display );
-		ViewerHelper.showInTableViewer( display );
-		ViewerHelper.showInScatterPlotViewer( display );
+		bdvViewer.show( display );
+		showInTableViewer( display );
+		showInScatterPlotViewer( display );
 
 		SwingUtilities.invokeLater( () ->
 		{
-			UserInterfaceHelper.bottomAlignWindow( display.imageViewer.getWindow(), display.tableViewer.getWindow() );
-			UserInterfaceHelper.rightAlignWindow( display.imageViewer.getWindow(), display.scatterPlotViewer.getWindow(), true, true );
+			UserInterfaceHelper.bottomAlignWindow( display.bdvViewer.getWindow(), display.tableViewer.getWindow() );
+			UserInterfaceHelper.rightAlignWindow( display.bdvViewer.getWindow(), display.scatterPlotViewer.getWindow(), true, true );
 		} );
 	}
 
 	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay )
 	{
-		sourceDisplay.imageViewer.removeSourceDisplay( sourceDisplay );
+		sourceDisplay.bdvViewer.removeSourceDisplay( sourceDisplay );
 
 		if ( sourceDisplay instanceof SegmentationDisplay )
 		{

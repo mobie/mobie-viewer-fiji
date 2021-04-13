@@ -8,18 +8,10 @@ import java.util.List;
 
 public class ImageDisplay extends SourceDisplay
 {
-	private final String color;
-	private final double[] contrastLimits;
-	private final BlendingMode blendingMode;
-
-	// For serialisation
-	public ImageDisplay( String name, double alpha, List< String > sources,  boolean isExclusive, String color, double[] contrastLimits, BlendingMode blendingMode )
-	{
-		super( name, alpha, sources, isExclusive );
-		this.color = color;
-		this.contrastLimits = contrastLimits;
-		this.blendingMode = blendingMode;
-	}
+	// Serialization
+	private String color;
+	private double[] contrastLimits;
+	private BlendingMode blendingMode;
 
 	public ImageDisplay createSerializableCopy()
 	{

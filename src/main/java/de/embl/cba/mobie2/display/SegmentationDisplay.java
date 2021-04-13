@@ -11,8 +11,9 @@ import java.util.List;
 
 public class SegmentationDisplay extends SourceDisplay
 {
-	private final String lut; // property of coloringModelWrapper
-	private final List< String > selectedSegmentIds;
+	private String lut; // property of coloringModelWrapper
+	private List< String > selectedSegmentIds;
+	private boolean showSelectedSegmentsIn3d;
 
 	// The actual classes needed at runtime
 	public transient SelectionModel< TableRowImageSegment > selectionModel;
@@ -21,14 +22,6 @@ public class SegmentationDisplay extends SourceDisplay
 	public transient ScatterPlotViewer< TableRowImageSegment > scatterPlotViewer;
 	public transient List< TableRowImageSegment > segments;
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
-
-	// For serialization
-	public SegmentationDisplay( String name, List< String > sources, boolean isExclusive, double alpha, String lut, List< String > selectedSegmentIds )
-	{
-		super( name, alpha, sources, isExclusive );
-		this.lut = lut;
-		this.selectedSegmentIds = selectedSegmentIds;
-	}
 
 	public String getLut()
 	{
@@ -39,4 +32,11 @@ public class SegmentationDisplay extends SourceDisplay
 	{
 		return selectedSegmentIds;
 	}
+
+	public boolean isShowSelectedSegmentsIn3d()
+	{
+		return showSelectedSegmentsIn3d;
+	}
+
+
 }

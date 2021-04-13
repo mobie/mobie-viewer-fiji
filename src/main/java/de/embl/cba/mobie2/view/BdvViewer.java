@@ -26,6 +26,7 @@ import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import ij3d.Image3DUniverse;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
@@ -55,7 +56,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ImageViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
+public class BdvViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
 	private final MoBIE2 moBIE2;
 	private final SourceAndConverterBdvDisplayService displayService;
@@ -66,8 +67,9 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
 	private List< SourceDisplay > sourceDisplays;
+	private Image3DUniverse universe;
 
-	public ImageViewer( MoBIE2 moBIE2, boolean is2D, SourceDisplayManager sourceDisplayManager,  int timepoints )
+	public BdvViewer( MoBIE2 moBIE2, boolean is2D, SourceDisplayManager sourceDisplayManager, int timepoints )
 	{
 		this.moBIE2 = moBIE2;
 		this.is2D = is2D;
@@ -180,7 +182,7 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 
 	private void addSourceDisplay( SourceDisplay imageDisplay )
 	{
-		imageDisplay.imageViewer = this;
+		imageDisplay.bdvViewer = this;
 		sourceDisplays.add( imageDisplay );
 	}
 
@@ -273,5 +275,18 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		{
 			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
 		}
+	}
+
+	public void showSelectedSegmentsIn3D( SegmentationDisplay display, boolean show )
+	{
+		if ( show )
+		{
+			if ( universe == null )
+			{
+				universe = new Image3DUniverse();
+				universe.show();
+			}
+
+			display.selectionModel.getSelected()
 	}
 }

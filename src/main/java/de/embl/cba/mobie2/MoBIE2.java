@@ -11,7 +11,7 @@ import de.embl.cba.mobie2.source.ImageSource;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
-import de.embl.cba.mobie2.view.View;
+import de.embl.cba.mobie2.serialize.View;
 import de.embl.cba.mobie2.view.SourceDisplayManager;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.github.GitHubUtils;
