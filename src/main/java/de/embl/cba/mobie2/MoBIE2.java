@@ -12,7 +12,7 @@ import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.view.View;
-import de.embl.cba.mobie2.view.Viewer;
+import de.embl.cba.mobie2.view.SourceDisplayManager;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.github.GitHubUtils;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -42,7 +42,7 @@ public class MoBIE2
 	private AffineTransform3D defaultNormalisedViewerTransform;
 	private Dataset dataset;
 	private String currentDatasetName;
-	private Viewer viewer;
+	private SourceDisplayManager sourceDisplayManager;
 
 	public MoBIE2( String projectLocation ) throws IOException
 	{
@@ -63,12 +63,12 @@ public class MoBIE2
 		dataset = new DatasetJsonParser().getDataset( getPath( getCurrentDatasetName(), "dataset.json" ) );
 
 		final UserInterface userInterface = new UserInterface( this );
-		viewer = new Viewer( this, userInterface, dataset.is2D, dataset.timepoints );
-		viewer.show( dataset.views.get( "default" ) );
+		sourceDisplayManager = new SourceDisplayManager( this, userInterface, dataset.is2D, dataset.timepoints );
+		sourceDisplayManager.show( dataset.views.get( "default" ) );
 
 		// arrange windows
 		UserInterfaceHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
-		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), viewer.getImageViewer().getWindow(), false, true );
+		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), sourceDisplayManager.getImageViewer().getWindow(), false, true );
 
 		setDefaultSwingLookAndFeel(); // To prevent other applications being affected
 
@@ -122,9 +122,9 @@ public class MoBIE2
 		return location;
 	}
 
-	public Viewer getViewer()
+	public SourceDisplayManager getViewer()
 	{
-		return viewer;
+		return sourceDisplayManager;
 	}
 
 	public String getProjectName()

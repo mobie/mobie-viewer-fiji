@@ -3,46 +3,47 @@ package de.embl.cba.mobie2.segment;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.n5.source.LabelSource;
+import de.embl.cba.mobie2.bdv.BdvMousePositionProvider;
 import de.embl.cba.mobie2.bdv.SourcesAtMousePositionSupplier;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.type.numeric.RealType;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class SegmentBdvSelector implements Runnable
 {
 	private BdvHandle bdvHandle;
 	private boolean is2D;
-	Collection< SourceAndConverter< ? > > labelSources;
+	Supplier< Collection< SourceAndConverter< ? > > > labelSourceSupplier;
 	private Map< SelectionModel< TableRowImageSegment >, SegmentAdapter< TableRowImageSegment > > selectionModelToAdapter;
 
-	public SegmentBdvSelector( BdvHandle bdvHandle, boolean is2D, Collection< SourceAndConverter< ? > > labelSources, Map< SelectionModel< TableRowImageSegment >, SegmentAdapter< TableRowImageSegment > > selectionModelToAdapter )
+	public SegmentBdvSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< SourceAndConverter< ? > > > labelSourceSupplier, Map< SelectionModel< TableRowImageSegment >, SegmentAdapter< TableRowImageSegment > > selectionModelToAdapter )
 	{
 		this.bdvHandle = bdvHandle;
 		this.is2D = is2D;
-		this.labelSources = labelSources;
+		this.labelSourceSupplier = labelSourceSupplier;
 		this.selectionModelToAdapter = selectionModelToAdapter;
 	}
 
+
 	private synchronized void toggleSelectionAtMousePosition()
 	{
-		final SourcesAtMousePositionSupplier sourcesAtMousePositionSupplier = new SourcesAtMousePositionSupplier( bdvHandle, is2D );
+		final BdvMousePositionProvider positionProvider = new BdvMousePositionProvider( bdvHandle );
+		final int timePoint = positionProvider.getTimePoint();
+		final RealPoint position = positionProvider.getPosition();
 
-		final Collection< SourceAndConverter< ? > > sourceAndConverters = sourcesAtMousePositionSupplier.get();
-		final int timePoint = sourcesAtMousePositionSupplier.getTimePoint();
-		final RealPoint position = sourcesAtMousePositionSupplier.getPosition();
+		final Collection< SourceAndConverter< ? > > labelSources = labelSourceSupplier.get();
 
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : labelSources )
 		{
-			if ( labelSources.contains( sourceAndConverter ) )
+			if ( SourceAndConverterHelper.isPositionWithinSourceInterval( sourceAndConverter, position, timePoint, is2D ) )
 			{
 				Source< ? > source = sourceAndConverter.getSpimSource();
 				if ( source instanceof LabelSource )

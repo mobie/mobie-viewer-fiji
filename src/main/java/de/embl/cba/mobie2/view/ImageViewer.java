@@ -52,6 +52,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class ImageViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
@@ -59,15 +60,17 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final BdvHandle bdvHandle;
 	private final boolean is2D;
+	private final SourceDisplayManager< ?, ? > sourceDisplayManager;
 	private Map< SelectionModel< TableRowImageSegment >, SegmentAdapter< TableRowImageSegment > > selectionModelToAdapter;
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sourceAndConverterService;
 	private List< SourceDisplay > sourceDisplays;
 
-	public ImageViewer( MoBIE2 moBIE2, boolean is2D, int timepoints )
+	public ImageViewer( MoBIE2 moBIE2, boolean is2D, SourceDisplayManager sourceDisplayManager,  int timepoints )
 	{
 		this.moBIE2 = moBIE2;
 		this.is2D = is2D;
+		this.sourceDisplayManager = sourceDisplayManager;
 		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
 		sourceAndConverterService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 
@@ -96,12 +99,21 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions );
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
 		behaviours.install( bdvHandle.getTriggerbindings(), "MoBIE" );
-		final SegmentBdvSelector segmentBdvSelector = new SegmentBdvSelector( bdvHandle, is2D, labelSources, selectionModelToAdapter );
+		final SegmentBdvSelector segmentBdvSelector = new SegmentBdvSelector( bdvHandle, is2D, () -> getLabelSources(), selectionModelToAdapter );
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
 						new Thread( () -> segmentBdvSelector.run() ).start(),
 				"Toggle selection", "ctrl button1" ) ;
+	}
+
+	private List< SourceAndConverter< ? > > getLabelSources()
+	{
+		final List< SegmentationDisplay > segmentationDisplays = sourceDisplayManager.getSourceDisplays().stream().filter( s -> s instanceof SegmentationDisplay ).map( s -> ( SegmentationDisplay ) s ).collect( Collectors.toList() );
+
+		final List< SourceAndConverter< ? > > sourceAndConverters = segmentationDisplays.stream().map( display -> display.sourceAndConverters ).flatMap( List::stream ).filter( sac -> sac.getSpimSource() instanceof LabelSource< ? > ).collect( Collectors.toList() );
+
+		return sourceAndConverters;
 	}
 
 	private BdvHandle createBdv( int numTimepoints )
@@ -210,7 +222,6 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 
 		// TODO: maybe I should not keep track of this but on the fly filter
 		//    all sources currently visible in BDV
-		labelSources.addAll( sourceAndConverters );
 		selectionModelToAdapter.put( display.selectionModel, display.segmentAdapter );
 
 		sourceAndConverterService.getUI().hide();
@@ -265,4 +276,11 @@ public class ImageViewer< S extends ImageSegment > implements ColoringListener, 
 		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 	}
 
+	public void removeSourceDisplay( SourceDisplay sourceDisplay )
+	{
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
+		{
+			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+		}
+	}
 }

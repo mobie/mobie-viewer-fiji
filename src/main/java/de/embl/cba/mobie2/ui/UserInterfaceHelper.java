@@ -804,7 +804,7 @@ public class UserInterfaceHelper
 
 		removeButton.addActionListener( e ->
 		{
-			moBIE2.getViewer().remove( sourceDisplay );
+			moBIE2.getViewer().removeSourceDisplay( sourceDisplay );
 		} );
 
 		return removeButton;

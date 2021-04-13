@@ -24,7 +24,7 @@ import java.util.List;
 
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
 
-public class Viewer< T extends TableRow, S extends ImageSegment >
+public class SourceDisplayManager< T extends TableRow, S extends ImageSegment >
 {
 	private final MoBIE2 moBIE2;
 	private final UserInterface userInterface;
@@ -32,13 +32,18 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 	private UserInterfaceHelper userInterfaceHelper;
 	private ArrayList< SourceDisplay > sourceDisplays;
 
-	public Viewer( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
+	public SourceDisplayManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
 	{
 		this.moBIE2 = moBIE2;
 		this.userInterface = userInterface;
 		sourceDisplays = new ArrayList<>();
-		imageViewer = new ImageViewer( moBIE2, is2D, timepoints );
+		imageViewer = new ImageViewer( moBIE2, is2D, this, timepoints );
 		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), imageViewer.getWindow(), false, true );
+	}
+
+	public ArrayList< SourceDisplay > getSourceDisplays()
+	{
+		return sourceDisplays;
 	}
 
 	public ImageViewer getImageViewer()
@@ -94,7 +99,7 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 		{
 			// removes from all viewers and
 			// also from sourceDisplays
-			remove( display );
+			removeSourceDisplay( display );
 		}
 	}
 
@@ -130,7 +135,7 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 			display.segmentAdapter.getSegments( display.getSelectedSegmentIds() );
 		}
 
-		display.imageViewer.show( display );
+		imageViewer.show( display );
 		ViewerHelper.showInTableViewer( display );
 		ViewerHelper.showInScatterPlotViewer( display );
 
@@ -141,18 +146,16 @@ public class Viewer< T extends TableRow, S extends ImageSegment >
 		} );
 	}
 
-	public synchronized void remove( SourceDisplay sourceDisplay )
+	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay )
 	{
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
-		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
-		}
+
+		sourceDisplay.imageViewer.removeSourceDisplay( sourceDisplay );
 
 		if ( sourceDisplay instanceof SegmentationDisplay )
 		{
 			( ( SegmentationDisplay ) sourceDisplay ).tableViewer.getWindow().dispose();
 			( ( SegmentationDisplay ) sourceDisplay ).scatterPlotViewer.getWindow().dispose();
-			sourceDisplay.imageViewer.removeSelectionModel( sourceDisplay. )
+
 		}
 
 		userInterface.removeSourceDisplay( sourceDisplay );
