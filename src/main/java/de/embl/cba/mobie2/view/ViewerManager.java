@@ -16,6 +16,7 @@ import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij3d.Image3DUniverse;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
@@ -108,7 +109,7 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		else if ( sourceDisplay instanceof SegmentationDisplay )
 		{
 			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) sourceDisplay;
-			showSegmentationDisplay( segmentationDisplay );
+			showSegmentationDisplay( segmentationDisplay, sourceTransforms );
 		}
 
 		userInterface.addSourceDisplay( sourceDisplay );
@@ -150,23 +151,22 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		new ViewerTransformAdjuster( bdvViewer.getBdvHandle(), imageDisplay.sourceAndConverters.get( 0 ) ).run();
 	}
 
-	private void showSegmentationDisplay( SegmentationDisplay display )
+	private void showSegmentationDisplay( SegmentationDisplay display, List< SourceTransformerSupplier > sourceTransforms )
 	{
 		display.coloringModel = new MoBIEColoringModel<>( display.getLut() );
 		display.selectionModel = new DefaultSelectionModel<>();
 		display.coloringModel.setSelectionModel(  display.selectionModel );
 
-		if ( display.getSources().size() > 1 )
+		display.segments = new ArrayList<>();
+		for ( String sourceName : display.getSources() )
 		{
-			throw new UnsupportedOperationException( "Multiple segmentation sources are not yet implemented." );
-			// TODO: make a list of the segments from all sources (loop)
-		}
+			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
+			final List< TableRowImageSegment > segmentsFromTableFile = createAnnotatedImageSegmentsFromTableFile(
+					moBIE2.getDefaultTableLocation( source ),
+					sourceName );
 
-		String sourceName = display.getSources().get( 0 );
-		final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
-		display.segments = createAnnotatedImageSegmentsFromTableFile(
-				moBIE2.getDefaultTableLocation( source ),
-				sourceName );
+			display.segments.addAll( segmentsFromTableFile );
+		}
 
 		display.segmentAdapter = new SegmentAdapter( display.segments );
 		if ( display.getSelectedSegmentIds() != null )
@@ -175,7 +175,7 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 			display.segmentAdapter.getSegments( display.getSelectedSegmentIds() );
 		}
 
-		bdvViewer.show( display );
+		bdvViewer.show( display, sourceTransforms );
 		showInTableViewer( display );
 		showInScatterPlotViewer( display );
 		initSegmentsVolumeViewer( display );

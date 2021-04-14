@@ -372,7 +372,7 @@ public class UserInterfaceHelper
 
 		for ( String grouping : groupingsToViews.keySet() )
 		{
-			final JPanel selectionPanel = createSelectionPanel( moBIE2, grouping, groupingsToViews.get( grouping ) );
+			final JPanel selectionPanel = createViewSelectionPanel( moBIE2, grouping, groupingsToViews.get( grouping ) );
 			containerPanel.add( selectionPanel );
 		}
 
@@ -386,7 +386,7 @@ public class UserInterfaceHelper
 		return viewsSelectionPanelHeight;
 	}
 
-	private JPanel createSelectionPanel( MoBIE2 moBIE2, String panelName, Map< String, View > views )
+	private JPanel createViewSelectionPanel( MoBIE2 moBIE2, String panelName, Map< String, View > views )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 

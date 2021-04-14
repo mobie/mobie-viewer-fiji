@@ -26,7 +26,6 @@ import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import ij3d.Image3DUniverse;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
@@ -63,7 +62,7 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 	private final BdvHandle bdvHandle;
 	private final boolean is2D;
 	private final ViewerManager< ?, ? > viewerManager;
-	private Map< SelectionModel< TableRowImageSegment >, SegmentAdapter< TableRowImageSegment > > selectionModelToAdapter;
+
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
 	private List< SourceDisplay > sourceDisplays;
@@ -82,7 +81,6 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 
 		// init other stuff
 		sourceDisplays = new ArrayList<>();
-		selectionModelToAdapter = new ConcurrentHashMap<>();
 
 		// register context menu actions
 		installContextMenu();
@@ -136,18 +134,11 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 		}
 
 		// transform
-		List< SourceAndConverter< ? > > transformedSourceAndConverters = new ArrayList<>( sourceAndConverters );
-		if ( sourceTransforms != null )
-		{
-			for ( SourceTransformerSupplier sourceTransform : sourceTransforms )
-			{
-				transformedSourceAndConverters = sourceTransform.get().transform( transformedSourceAndConverters );
-			}
-		}
+		sourceAndConverters = transformSourceAndConverters( sourceTransforms, sourceAndConverters );
 
 		// show
 		List< SourceAndConverter< ? > > displayedSourceAndConverters = new ArrayList<>();
-		for ( SourceAndConverter< ? > sourceAndConverter : transformedSourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			// replace converter such that one can change the opacity
 			// (this changes the hash-code of the sourceAndConverter)
@@ -179,42 +170,60 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 		imageDisplay.sourceAndConverters = displayedSourceAndConverters;
 	}
 
+	private List< SourceAndConverter< ? > > transformSourceAndConverters( List< SourceTransformerSupplier > sourceTransforms, List< SourceAndConverter< ? > > sourceAndConverters )
+	{
+		List< SourceAndConverter< ? > > transformedSourceAndConverters = new ArrayList<>( sourceAndConverters );
+		if ( sourceTransforms != null )
+		{
+			for ( SourceTransformerSupplier sourceTransform : sourceTransforms )
+			{
+				transformedSourceAndConverters = sourceTransform.get().transform( transformedSourceAndConverters );
+			}
+		}
+		return transformedSourceAndConverters;
+	}
+
 	private void addSourceDisplay( SourceDisplay imageDisplay )
 	{
 		imageDisplay.bdvViewer = this;
 		sourceDisplays.add( imageDisplay );
 	}
 
-	public void show( SegmentationDisplay display )
+	public void show( SegmentationDisplay display, List< SourceTransformerSupplier > sourceTransforms )
 	{
 		addSourceDisplay( display );
 
 		display.selectionModel.listeners().add( this );
 		display.coloringModel.listeners().add( this );
 
-		final ArrayList< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
+		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
 
+		// open
 		for ( String sourceName : display.getSources() )
 		{
 			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
 			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getImageLocation( source ) );
-			final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
+			sourceAndConverters.add( SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 ) );
+		}
 
+		// transform
+		sourceAndConverters = transformSourceAndConverters( sourceTransforms, sourceAndConverters );
+
+		// convert to labelSource
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		{
 			LabelConverter< S > labelConverter = new LabelConverter(
 					display.segmentAdapter,
-					sourceName,
+					sourceAndConverter.getSpimSource().getName(),
 					display.coloringModel );
 
 			SourceAndConverter< ? > labelSourceAndConverter = asLabelSourceAndConverter( sourceAndConverter, labelConverter );
 
+			sourceAndConverters.remove( sourceAndConverter );
 			sourceAndConverters.add( labelSourceAndConverter );
 
 			displayService.show( bdvHandle, labelSourceAndConverter );
 		}
-
-		// TODO: maybe I should not keep track of this but on the fly filter
-		//    all sources currently visible in BDV
-		selectionModelToAdapter.put( display.selectionModel, display.segmentAdapter );
 
 		sacService.getUI().hide();
 		display.sourceAndConverters = sourceAndConverters;

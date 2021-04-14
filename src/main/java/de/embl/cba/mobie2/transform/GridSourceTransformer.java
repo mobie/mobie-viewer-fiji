@@ -44,6 +44,17 @@ public class GridSourceTransformer implements SourceTransformer
 				transform3D.translate( spacingX * positions.get( i )[ 0 ], spacingY * positions.get( i )[ 1 ], 0 );
 
 				final SourceAndConverter< ? > sourceAndConverter = Utils.getSource( sourceAndConverters, sourceName );
+
+				if ( sourceAndConverter == null )
+				{
+					// This is OK, because the field `List< List< String > > sources`
+					// can contain more sources than the ones that should be
+					// transformed with `transform( List< SourceAndConverter< ? > > sourceAndConverters )`
+					// Examples are multi-color images where there is a separate imageDisplay
+					// for each color.
+					continue;
+				}
+
 				final SourceAndConverter< ? > transformedSource = new SourceAffineTransformer( sourceAndConverter, transform3D ).getSourceOut();
 
 				// replace original by the transformed source
