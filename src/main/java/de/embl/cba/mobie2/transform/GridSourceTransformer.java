@@ -6,6 +6,7 @@ import de.embl.cba.tables.image.SourceAndMetadata;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
+import org.apache.commons.lang.ArrayUtils;
 import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 
 import javax.xml.transform.Source;
@@ -27,8 +28,9 @@ public class GridSourceTransformer implements SourceTransformer
 			autoSetPositions();
 		}
 
+		final SourceAndConverter< ? > reference = getReferenceSource( sourceAndConverters );
+
 		// TODO: make this work on the union of the sources
-		final SourceAndConverter< ? > reference = Utils.getSource( sourceAndConverters, sources.get( 0 ).get( 0 ) );
 		FinalRealInterval bounds = Utils.estimateBounds( reference.getSpimSource() );
 		final double spacingFactor = 0.1;
 		double spacingX = ( 1.0 + spacingFactor ) * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
@@ -64,6 +66,22 @@ public class GridSourceTransformer implements SourceTransformer
 		}
 
 		return transformedSources;
+	}
+
+	private SourceAndConverter< ? > getReferenceSource( List< SourceAndConverter< ? > > sourceAndConverters )
+	{
+		final List< String > sourcesAtFirstGridPosition = sources.get( 0 );
+
+		for ( String name : sourcesAtFirstGridPosition )
+		{
+			final SourceAndConverter< ? > source = Utils.getSource( sourceAndConverters, name );
+			if ( source != null )
+			{
+				return source;
+			}
+		}
+
+		throw new UnsupportedOperationException( "None of the sources specified at the first grid position could be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourcesAtFirstGridPosition ) );
 	}
 
 	private void autoSetPositions()

@@ -31,6 +31,7 @@ import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import org.fife.rsta.ac.js.Logger;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -128,6 +129,7 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 		for ( String sourceName : imageDisplay.getSources() )
 		{
 			final ImageSource source = moBIE2.getSource( sourceName );
+			new Thread( () -> Logger.log( "Opening: " + sourceName ) ).start();
 			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getImageLocation( source ) );
 			final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
 			sourceAndConverters.add( sourceAndConverter );
@@ -172,15 +174,16 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 
 	private List< SourceAndConverter< ? > > transformSourceAndConverters( List< SourceTransformerSupplier > sourceTransforms, List< SourceAndConverter< ? > > sourceAndConverters )
 	{
-		List< SourceAndConverter< ? > > transformedSourceAndConverters = new ArrayList<>( sourceAndConverters );
+		List< SourceAndConverter< ? > > transformed = new ArrayList<>( sourceAndConverters );
 		if ( sourceTransforms != null )
 		{
 			for ( SourceTransformerSupplier sourceTransform : sourceTransforms )
 			{
-				transformedSourceAndConverters = sourceTransform.get().transform( transformedSourceAndConverters );
+				transformed = sourceTransform.get().transform( transformed );
 			}
 		}
-		return transformedSourceAndConverters;
+
+		return transformed;
 	}
 
 	private void addSourceDisplay( SourceDisplay imageDisplay )
@@ -207,10 +210,10 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 		}
 
 		// transform
-		sourceAndConverters = transformSourceAndConverters( sourceTransforms, sourceAndConverters );
+		List< SourceAndConverter< ? > > transformedSourceAndConverters = transformSourceAndConverters( sourceTransforms, sourceAndConverters );
 
 		// convert to labelSource
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : transformedSourceAndConverters )
 		{
 			LabelConverter< S > labelConverter = new LabelConverter(
 					display.segmentAdapter,
