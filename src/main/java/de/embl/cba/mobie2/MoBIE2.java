@@ -95,9 +95,9 @@ public class MoBIE2
 	private String getImageDataStorageModality()
 	{
 		if ( options.values.getImageDataStorageModality().equals( MoBIEOptions.ImageDataStorageModality.S3 ) )
-			return "remote";
+			return "s3store";
 		else
-			return "local";
+			return "fileSystem";
 	}
 
 	private String getPath( String... files )

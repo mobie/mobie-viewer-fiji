@@ -31,7 +31,6 @@ package de.embl.cba.mobie2.view;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import customnode.CustomTriangleMesh;
-import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie2.mesh.MeshCreator;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringListener;
@@ -48,26 +47,23 @@ import net.imglib2.type.numeric.RealType;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
 
-import java.awt.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 public class Segments3DViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
 	private final SelectionModel< S > selectionModel;
 	private final ColoringModel< S > coloringModel;
-
 	private final Collection< SourceAndConverter< ? > > sourceAndConverters;
+
 	private Supplier< Image3DUniverse > universeSupplier;
 	private S recentFocus;
 	private ConcurrentHashMap< S, Content > segmentToContent;
 	private ConcurrentHashMap< Content, S > contentToSegment;
 	private double transparency;
-	private boolean isListeningToUniverse;
 	private int meshSmoothingIterations;
 	private int segmentFocusAnimationDurationMillis;
 	private double segmentFocusZoomLevel;
@@ -75,10 +71,7 @@ public class Segments3DViewer< S extends ImageSegment > implements ColoringListe
 	private double segmentFocusDzMin;
 	private long maxNumSegmentVoxels;
 	private String objectsName;
-	private Component parentComponent;
-	private boolean showSelectedSegments = true;
-	private ExecutorService executorService;
-	private boolean recomputeMeshes = false;
+	private boolean showSegments = false;
 	private double voxelSpacing = 0; // 0 = auto
 	private int currentTimePoint = 0;
 	private final MeshCreator< ImageSegment > meshCreator;
@@ -114,11 +107,6 @@ public class Segments3DViewer< S extends ImageSegment > implements ColoringListe
 			throw new RuntimeException( "Cannot set objects name in Segments3dView to null." );
 
 		this.objectsName = objectsName;
-	}
-
-	public void setParentComponent( Component parentComponent )
-	{
-		this.parentComponent = parentComponent;
 	}
 
 	public void setTransparency( double transparency )
@@ -160,22 +148,17 @@ public class Segments3DViewer< S extends ImageSegment > implements ColoringListe
 	{
 		for ( S segment : segmentToContent.keySet() )
 		{
-			executorService.submit( () ->
-			{
-				final Color3f color3f = getColor3f( segment );
-				final Content content = segmentToContent.get( segment );
-				content.setColor( color3f );
-			});
+			final Color3f color3f = getColor3f( segment );
+			final Content content = segmentToContent.get( segment );
+			content.setColor( color3f );
 		}
 	}
 
 	private synchronized void updateView( boolean recomputeMeshes )
 	{
-		System.out.println( "Updating view...");
 		// TODO: It feels that below functions should be merged...
 		updateSelectedSegments( recomputeMeshes );
 		removeUnselectedSegments();
-		System.out.println( "Updating view: Done.");
 	}
 
 	private void removeUnselectedSegments( )
@@ -236,7 +219,6 @@ public class Segments3DViewer< S extends ImageSegment > implements ColoringListe
 		universeSupplier.get().removeContent( content.getName() );
 		segmentToContent.remove( segment );
 		contentToSegment.remove( content );
-		System.out.println( "Removed " + getSegmentIdentifier( segment ) );
 	}
 
 	private String getSegmentIdentifier( S segment )
@@ -244,30 +226,23 @@ public class Segments3DViewer< S extends ImageSegment > implements ColoringListe
 		return segment.labelId() + "-" + segment.timePoint();
 	}
 
-	public void setShowSelectedSegments( boolean showSelectedSegments )
+	public void setShowSegments( boolean showSegments )
 	{
-		this.showSelectedSegments = showSelectedSegments;
-	}
-
-	public synchronized void showSelectedSegments( boolean showSelectedSegments, boolean recomputeMeshes )
-	{
-		this.showSelectedSegments = showSelectedSegments;
-
-		if ( showSelectedSegments )
+		if ( showSegments != this.showSegments )
 		{
-			updateView( recomputeMeshes );
-		}
-		else
-		{
-			removeSelectedSegments();
+			this.showSegments = showSegments;
+			if ( showSegments )
+				updateView( false );
+			else
+				removeSegments();
 		}
 	}
 
-	private void removeSelectedSegments()
+	private void removeSegments()
 	{
-		final Set< S > selected = selectionModel.getSelected();
+		final Set< S > segments = selectionModel.getSelected();
 
-		for ( S segment : selected )
+		for ( S segment : segments )
 		{
 			removeSegment( segment );
 		}
@@ -288,9 +263,6 @@ public class Segments3DViewer< S extends ImageSegment > implements ColoringListe
 
 		segmentToContent.put( segment, content );
 		contentToSegment.put( content, segment );
-
-		System.out.println( "Added " + getSegmentIdentifier( segment ) );
-
 
 		universeSupplier.get().setAutoAdjustView( false );
 	}
@@ -425,7 +397,7 @@ public class Segments3DViewer< S extends ImageSegment > implements ColoringListe
 	@Override
 	public synchronized void selectionChanged()
 	{
-		if ( ! showSelectedSegments ) return;
+		if ( ! showSegments ) return;
 
 		updateView( false );
 	}
@@ -433,7 +405,7 @@ public class Segments3DViewer< S extends ImageSegment > implements ColoringListe
 	@Override
 	public synchronized void focusEvent( S selection )
 	{
-		if ( ! showSelectedSegments ) return;
+		if ( ! showSegments ) return;
 
 		new Thread( () ->
 		{

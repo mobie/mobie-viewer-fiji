@@ -24,7 +24,7 @@ public class SegmentationDisplay extends SourceDisplay
 	public transient ScatterPlotViewer< TableRowImageSegment > scatterPlotViewer;
 	public transient List< TableRowImageSegment > segments;
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
-	public transient Segments3DViewer< TableRowImageSegment > segments3DViewer;
+	public transient Segments3DViewer< TableRowImageSegment > segmentsVolumeViewer;
 
 	public String getLut()
 	{
@@ -36,10 +36,8 @@ public class SegmentationDisplay extends SourceDisplay
 		return selectedSegmentIds;
 	}
 
-	public boolean isShowSelectedSegmentsIn3d()
+	public boolean showSelectedSegmentsIn3d()
 	{
 		return showSelectedSegmentsIn3d;
 	}
-
-
 }

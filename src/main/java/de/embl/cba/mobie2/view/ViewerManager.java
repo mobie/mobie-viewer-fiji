@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setLafSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setSystemSwingLookAndFeel;
 
 public class ViewerManager< T extends TableRow, S extends ImageSegment >
 {
@@ -74,6 +76,7 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 	public void show( View view )
 	{
 		// Show the sources
+		setLafSwingLookAndFeel();
 		if ( view.sourceDisplays != null )
 		{
 			for ( SourceDisplaySupplier displaySupplier : view.sourceDisplays )
@@ -81,9 +84,12 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 				showSourceDisplay( displaySupplier.get(), view.sourceTransforms );
 			}
 		}
+		setSystemSwingLookAndFeel();
 
 		// Adjust the viewer transform
 		// TODO
+
+
 	}
 
 	private void showSourceDisplay( SourceDisplay sourceDisplay, List< SourceTransformerSupplier > sourceTransforms )
@@ -103,9 +109,7 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		{
 			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) sourceDisplay;
 			showSegmentationDisplay( segmentationDisplay );
-			segmentationDisplay.segments3DViewer = new Segments3DViewer<>( segmentationDisplay.selectionModel, segmentationDisplay.coloringModel, segmentationDisplay.sourceAndConverters, ()  -> getUniverse()  );
 		}
-
 
 		userInterface.addSourceDisplay( sourceDisplay );
 		sourceDisplays.add( sourceDisplay );
@@ -174,12 +178,21 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		bdvViewer.show( display );
 		showInTableViewer( display );
 		showInScatterPlotViewer( display );
+		initSegmentsVolumeViewer( display );
 
 		SwingUtilities.invokeLater( () ->
 		{
 			UserInterfaceHelper.bottomAlignWindow( display.bdvViewer.getWindow(), display.tableViewer.getWindow() );
 			UserInterfaceHelper.rightAlignWindow( display.bdvViewer.getWindow(), display.scatterPlotViewer.getWindow(), true, true );
 		} );
+	}
+
+	private void initSegmentsVolumeViewer( SegmentationDisplay display )
+	{
+		display.segmentsVolumeViewer = new Segments3DViewer<>( display.selectionModel, display.coloringModel, display.sourceAndConverters, ()  -> getUniverse()  );
+		display.segmentsVolumeViewer.setShowSegments( display.showSelectedSegmentsIn3d() );
+		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
+		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
 	}
 
 	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay )

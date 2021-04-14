@@ -225,7 +225,6 @@ public class UserInterfaceHelper
 	}
 
 	public static void setSystemSwingLookAndFeel() {
-		FlatLightLaf.install();
 		try {
 			UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
 		} catch (Exception e) {
@@ -643,11 +642,10 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JCheckBox createVolumeViewerVisibilityCheckbox(
-			SegmentationDisplay display )
+	public static JCheckBox createVolumeViewerVisibilityCheckbox( SegmentationDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "V" );
-		checkBox.setSelected( display.isShowSelectedSegmentsIn3d() );
+		checkBox.setSelected( display.showSelectedSegmentsIn3d() );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
 		checkBox.addActionListener( new ActionListener()
@@ -658,11 +656,11 @@ public class UserInterfaceHelper
 				new Thread( () -> {
 					if ( checkBox.isSelected() )
 					{
-						display.segments3DViewer.setShowSelectedSegments( true );
+						display.segmentsVolumeViewer.setShowSegments( true );
 					}
 					else
 					{
-						display.segments3DViewer.setShowSelectedSegments( false );
+						display.segmentsVolumeViewer.setShowSegments( false );
 					}
 				}).start();
 			}
