@@ -30,10 +30,8 @@ package de.embl.cba.mobie2.color;
 
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
-import net.imglib2.display.RealARGBColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import sun.plugin2.util.ColorUtil;
 
 public class AdjustableOpacityColorConverter implements OpacityAdjuster, ColorConverter, Converter< RealType, ARGBType >
 {

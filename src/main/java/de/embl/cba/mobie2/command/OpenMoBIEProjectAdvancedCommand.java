@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.ui.command;
+package de.embl.cba.mobie2.command;
 
 import de.embl.cba.mobie.ui.MoBIEOptions;
 import de.embl.cba.mobie.ui.MoBIE;
