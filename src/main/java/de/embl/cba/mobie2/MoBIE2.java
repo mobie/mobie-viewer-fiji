@@ -1,5 +1,7 @@
 package de.embl.cba.mobie2;
 
+import bdv.viewer.SourceAndConverter;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.dataset.Datasets;
 import de.embl.cba.mobie.image.SourcesModel;
@@ -15,7 +17,10 @@ import de.embl.cba.mobie2.serialize.View;
 import de.embl.cba.mobie2.view.ViewerManager;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.github.GitHubUtils;
+import mpicbg.spim.data.SpimData;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.fife.rsta.ac.js.Logger;
+import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -68,7 +73,7 @@ public class MoBIE2
 
 		// arrange windows
 		UserInterfaceHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
-		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), viewerManager.getImageViewer().getWindow(), false, true );
+		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), viewerManager.getSliceViewer().getWindow(), false, true );
 
 		setSystemSwingLookAndFeel(); // To prevent other applications being affected
 
@@ -122,7 +127,7 @@ public class MoBIE2
 		return location;
 	}
 
-	public ViewerManager getViewer()
+	public ViewerManager getViewerManager()
 	{
 		return viewerManager;
 	}
@@ -178,6 +183,16 @@ public class MoBIE2
 	public ImageSource getSource( String sourceName )
 	{
 		return dataset.sources.get( sourceName ).get();
+	}
+
+	public SourceAndConverter getSourceAndConverter( String sourceName )
+	{
+		final ImageSource source = getSource( sourceName );
+		new Thread( () -> Logger.log( "Opening: " + sourceName ) ).start();
+		final SpimData spimData = BdvUtils.openSpimData( getImageLocation( source ) );
+		final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
+		// TODO: think about keeping them in a list to avoid reopening
+		return sourceAndConverter;
 	}
 
 	public Dataset getDataset()

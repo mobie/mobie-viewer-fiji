@@ -53,7 +53,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public class Segments3DViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
+public class Segments3DView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
 	private final SelectionModel< S > selectionModel;
 	private final ColoringModel< S > coloringModel;
@@ -76,7 +76,7 @@ public class Segments3DViewer< S extends ImageSegment > implements ColoringListe
 	private int currentTimePoint = 0;
 	private final MeshCreator< ImageSegment > meshCreator;
 
-	public Segments3DViewer(
+	public Segments3DView(
 			final SelectionModel< S > selectionModel,
 			final ColoringModel< S > coloringModel,
 			final Collection< SourceAndConverter< ? > > sourceAndConverters,

@@ -18,7 +18,6 @@ import de.embl.cba.mobie2.segment.BdvSegmentSelector;
 import de.embl.cba.mobie2.source.ImageSource;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.transform.SourceTransformer;
-import de.embl.cba.mobie2.transform.SourceTransformerSupplier;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringListener;
@@ -52,36 +51,44 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.Supplier;
 
-public class BdvViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
+public class SliceViewerCreator< S extends ImageSegment > implements Supplier< BdvHandle >
 {
 	private final MoBIE2 moBIE2;
 	private final SourceAndConverterBdvDisplayService displayService;
-	private final BdvHandle bdvHandle;
+	private BdvHandle bdvHandle;
 	private final boolean is2D;
 	private final ViewerManager< ?, ? > viewerManager;
+	private final int timepoints;
 
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
 	private List< SourceDisplay > sourceDisplays;
 
-	public BdvViewer( MoBIE2 moBIE2, boolean is2D, ViewerManager viewerManager, int timepoints )
+	public SliceViewerCreator( MoBIE2 moBIE2, boolean is2D, ViewerManager viewerManager, int timepoints )
 	{
 		this.moBIE2 = moBIE2;
 		this.is2D = is2D;
 		this.viewerManager = viewerManager;
+		this.timepoints = timepoints;
+
 		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-
-		// init Bdv
-		bdvHandle = createBdv( timepoints );
-		displayService.registerBdvHandle( bdvHandle );
 
 		// init other stuff
 		sourceDisplays = new ArrayList<>();
 
 		// register context menu actions
 		installContextMenu();
+	}
+
+	@Override
+	public BdvHandle get()
+	{
+		bdvHandle = createBdv( timepoints );
+		displayService.registerBdvHandle( bdvHandle );
+		return bdvHandle;
 	}
 
 	private void installContextMenu( )
@@ -233,7 +240,7 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 
 	private void registerSourceDisplay( SourceDisplay imageDisplay )
 	{
-		imageDisplay.bdvViewer = this;
+		imageDisplay.sliceViewer = this;
 		sourceDisplays.add( imageDisplay );
 	}
 

@@ -399,7 +399,7 @@ public class UserInterfaceHelper
 			{
 				final String viewName = ( String ) comboBox.getSelectedItem();
 				final View view = views.get( viewName );
-				moBIE2.getViewer().show( view );
+				moBIE2.getViewerManager().show( view );
 			} );
 		} );
 
@@ -438,7 +438,7 @@ public class UserInterfaceHelper
 //			Utils.logVector( "New reference normal vector (default): ", levelingVector );
 //		} );
 
-		button.addActionListener( e -> BdvUtils.levelCurrentView( moBIE2.getViewer().getImageViewer().getBdvHandle(), targetNormalVector ) );
+		button.addActionListener( e -> BdvUtils.levelCurrentView( moBIE2.getViewerManager().getSliceViewer().getBdvHandle(), targetNormalVector ) );
 
 		return horizontalLayoutPanel;
 	}
@@ -468,7 +468,7 @@ public class UserInterfaceHelper
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		button.addActionListener( e -> BdvViewChanger.moveToLocation( moBIE2.getViewer().getImageViewer().getBdvHandle(), new Location( jTextField.getText() ) ) );
+		button.addActionListener( e -> BdvViewChanger.moveToLocation( moBIE2.getViewerManager().getSliceViewer().getBdvHandle(), new Location( jTextField.getText() ) ) );
 
 		horizontalLayoutPanel.add( getJLabel( "location" ) );
 		horizontalLayoutPanel.add( jTextField );
@@ -679,8 +679,8 @@ public class UserInterfaceHelper
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
 			{
 				// TODO: make this work for multiple!
-				final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.bdvViewer.getBdvHandle(), sourceAndConverter ).getTransform();
-				new ViewerTransformChanger( sourceDisplay.bdvViewer.getBdvHandle(), transform, false, 1000 ).run();
+				final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverter ).getTransform();
+				new ViewerTransformChanger( sourceDisplay.sliceViewer.getBdvHandle(), transform, false, 1000 ).run();
 			}
 		} );
 
@@ -732,7 +732,7 @@ public class UserInterfaceHelper
 			UserInterfaceHelper.showOpacityDialog(
 					sourceDisplay.getName(),
 					sourceDisplay.sourceAndConverters,
-					sourceDisplay.bdvViewer.getBdvHandle() );
+					sourceDisplay.sliceViewer.getBdvHandle() );
 		} );
 
 		return button;
@@ -780,7 +780,7 @@ public class UserInterfaceHelper
 
 		removeButton.addActionListener( e ->
 		{
-			moBIE2.getViewer().removeSourceDisplay( sourceDisplay );
+			moBIE2.getViewerManager().removeSourceDisplay( sourceDisplay );
 		} );
 
 		return removeButton;

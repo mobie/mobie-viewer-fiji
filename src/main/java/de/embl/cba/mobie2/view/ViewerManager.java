@@ -1,5 +1,6 @@
 package de.embl.cba.mobie2.view;
 
+import bdv.util.BdvHandle;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
@@ -10,7 +11,6 @@ import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.display.SourceDisplaySupplier;
-import de.embl.cba.mobie2.transform.SourceTransformerSupplier;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.tables.imagesegment.ImageSegment;
@@ -35,17 +35,19 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 {
 	private final MoBIE2 moBIE2;
 	private final UserInterface userInterface;
-	private final BdvViewer bdvViewer;
+	private final SliceViewerCreator sliceViewer;
 	private ArrayList< SourceDisplay > sourceDisplays;
 	private Image3DUniverse universe;
+	private final BdvHandle bdvHandle;
 
 	public ViewerManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
 	{
 		this.moBIE2 = moBIE2;
 		this.userInterface = userInterface;
 		sourceDisplays = new ArrayList<>();
-		bdvViewer = new BdvViewer( moBIE2, is2D, this, timepoints );
-		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), bdvViewer.getWindow(), false, true );
+		sliceViewer = new SliceViewerCreator( moBIE2, is2D, this, timepoints );
+		bdvHandle = sliceViewer.get();
+		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), sliceViewer.getWindow(), false, true );
 	}
 
 	public static void showInScatterPlotViewer( SegmentationDisplay display )
@@ -54,7 +56,7 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		display.scatterPlotViewer.show();
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
 		display.coloringModel.listeners().add( display.scatterPlotViewer );
-		display.bdvViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
+		display.sliceViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
 	}
 
 	public static void showInTableViewer( SegmentationDisplay display  )
@@ -69,9 +71,9 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		return sourceDisplays;
 	}
 
-	public BdvViewer getImageViewer()
+	public SliceViewerCreator getSliceViewer()
 	{
-		return bdvViewer;
+		return sliceViewer;
 	}
 
 	public void show( View view )
@@ -91,8 +93,6 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 
 		// Adjust the viewer transform
 		// TODO
-
-
 	}
 
 	private void showSourceDisplay( SourceDisplay sourceDisplay )
@@ -123,10 +123,11 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		if ( universe == null )
 		{
 			universe = new Image3DUniverse();
-			universe.show();
 			// Bug on MAC causes crash if users try to resize
 			//universe.getWindow().setResizable( false );
 		}
+
+		universe.show();
 
 		return universe;
 	}
@@ -148,9 +149,11 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 
 	private void showImageDisplay( ImageDisplay imageDisplay )
 	{
-		bdvViewer.show( imageDisplay );
+		final ImageSliceView imageSliceView = new ImageSliceView( imageDisplay, bdvHandle, ( String name ) -> moBIE2.getSourceAndConverter( name ) );
+		imageSliceView.show();
+		imageDisplay.imageSliceView = imageSliceView;
 
-		new ViewerTransformAdjuster( bdvViewer.getBdvHandle(), imageDisplay.sourceAndConverters.get( 0 ) ).run();
+		new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), imageDisplay.sourceAndConverters.get( 0 ) ).run();
 	}
 
 	private void showSegmentationDisplay( SegmentationDisplay display )
@@ -177,21 +180,21 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 			display.segmentAdapter.getSegments( display.getSelectedSegmentIds() );
 		}
 
-		bdvViewer.show( display );
+		sliceViewer.show( display );
 		showInTableViewer( display );
 		showInScatterPlotViewer( display );
 		initSegmentsVolumeViewer( display );
 
 		SwingUtilities.invokeLater( () ->
 		{
-			UserInterfaceHelper.bottomAlignWindow( display.bdvViewer.getWindow(), display.tableViewer.getWindow() );
-			UserInterfaceHelper.rightAlignWindow( display.bdvViewer.getWindow(), display.scatterPlotViewer.getWindow(), true, true );
+			UserInterfaceHelper.bottomAlignWindow( display.sliceViewer.getWindow(), display.tableViewer.getWindow() );
+			UserInterfaceHelper.rightAlignWindow( display.sliceViewer.getWindow(), display.scatterPlotViewer.getWindow(), true, true );
 		} );
 	}
 
 	private void initSegmentsVolumeViewer( SegmentationDisplay display )
 	{
-		display.segmentsVolumeViewer = new Segments3DViewer<>( display.selectionModel, display.coloringModel, display.sourceAndConverters, ()  -> getUniverse()  );
+		display.segmentsVolumeViewer = new Segments3DView<>( display.selectionModel, display.coloringModel, display.sourceAndConverters, () -> getUniverse()  );
 		display.segmentsVolumeViewer.setShowSegments( display.showSelectedSegmentsIn3d() );
 		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
@@ -199,7 +202,7 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 
 	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay )
 	{
-		sourceDisplay.bdvViewer.removeSourceDisplay( sourceDisplay );
+		sourceDisplay.sliceViewer.removeSourceDisplay( sourceDisplay );
 
 		if ( sourceDisplay instanceof SegmentationDisplay )
 		{
