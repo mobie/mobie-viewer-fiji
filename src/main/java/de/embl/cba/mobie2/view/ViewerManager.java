@@ -82,7 +82,9 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		{
 			for ( SourceDisplaySupplier displaySupplier : view.sourceDisplays )
 			{
-				showSourceDisplay( displaySupplier.get(), view.sourceTransforms );
+				final SourceDisplay sourceDisplay = displaySupplier.get();
+				sourceDisplay.sourceTransformers = view.sourceTransforms.stream().map( s -> s.get() ).collect( Collectors.toList() );
+				showSourceDisplay( sourceDisplay );
 			}
 		}
 		setSystemSwingLookAndFeel();
@@ -93,7 +95,7 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 
 	}
 
-	private void showSourceDisplay( SourceDisplay sourceDisplay, List< SourceTransformerSupplier > sourceTransforms )
+	private void showSourceDisplay( SourceDisplay sourceDisplay )
 	{
 		if ( sourceDisplays.contains( sourceDisplay ) ) return;
 
@@ -104,12 +106,12 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 
 		if ( sourceDisplay instanceof ImageDisplay )
 		{
-			showImageDisplay( ( ImageDisplay ) sourceDisplay, sourceTransforms );
+			showImageDisplay( ( ImageDisplay ) sourceDisplay );
 		}
 		else if ( sourceDisplay instanceof SegmentationDisplay )
 		{
 			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) sourceDisplay;
-			showSegmentationDisplay( segmentationDisplay, sourceTransforms );
+			showSegmentationDisplay( segmentationDisplay );
 		}
 
 		userInterface.addSourceDisplay( sourceDisplay );
@@ -144,14 +146,14 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		}
 	}
 
-	private void showImageDisplay( ImageDisplay imageDisplay, List< SourceTransformerSupplier > sourceTransforms )
+	private void showImageDisplay( ImageDisplay imageDisplay )
 	{
-		bdvViewer.show( imageDisplay, sourceTransforms );
+		bdvViewer.show( imageDisplay );
 
 		new ViewerTransformAdjuster( bdvViewer.getBdvHandle(), imageDisplay.sourceAndConverters.get( 0 ) ).run();
 	}
 
-	private void showSegmentationDisplay( SegmentationDisplay display, List< SourceTransformerSupplier > sourceTransforms )
+	private void showSegmentationDisplay( SegmentationDisplay display )
 	{
 		display.coloringModel = new MoBIEColoringModel<>( display.getLut() );
 		display.selectionModel = new DefaultSelectionModel<>();
@@ -175,7 +177,7 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 			display.segmentAdapter.getSegments( display.getSelectedSegmentIds() );
 		}
 
-		bdvViewer.show( display, sourceTransforms );
+		bdvViewer.show( display );
 		showInTableViewer( display );
 		showInScatterPlotViewer( display );
 		initSegmentsVolumeViewer( display );

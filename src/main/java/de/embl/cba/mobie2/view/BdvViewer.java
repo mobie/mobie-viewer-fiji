@@ -14,18 +14,16 @@ import de.embl.cba.mobie2.color.VolatileAdjustableOpacityColorConverter;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
-import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.segment.BdvSegmentSelector;
 import de.embl.cba.mobie2.source.ImageSource;
 import de.embl.cba.mobie2.source.SegmentationSource;
+import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.mobie2.transform.SourceTransformerSupplier;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.SelectionListener;
-import de.embl.cba.tables.select.SelectionModel;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
@@ -54,7 +52,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class BdvViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
@@ -120,9 +117,9 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 		return bdvHandle;
 	}
 
-	public void show( ImageDisplay imageDisplay, List< SourceTransformerSupplier > sourceTransforms )
+	public void show( ImageDisplay imageDisplay )
 	{
-		addSourceDisplay( imageDisplay );
+		registerSourceDisplay( imageDisplay );
 
 		// open
 		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
@@ -136,7 +133,7 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 		}
 
 		// transform
-		sourceAndConverters = transformSourceAndConverters( sourceTransforms, sourceAndConverters );
+		sourceAndConverters = transformSourceAndConverters( sourceAndConverters, imageDisplay.sourceTransformers );
 
 		// show
 		List< SourceAndConverter< ? > > displayedSourceAndConverters = new ArrayList<>();
@@ -172,29 +169,9 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 		imageDisplay.sourceAndConverters = displayedSourceAndConverters;
 	}
 
-	private List< SourceAndConverter< ? > > transformSourceAndConverters( List< SourceTransformerSupplier > sourceTransforms, List< SourceAndConverter< ? > > sourceAndConverters )
+	public void show( SegmentationDisplay display )
 	{
-		List< SourceAndConverter< ? > > transformed = new ArrayList<>( sourceAndConverters );
-		if ( sourceTransforms != null )
-		{
-			for ( SourceTransformerSupplier sourceTransform : sourceTransforms )
-			{
-				transformed = sourceTransform.get().transform( transformed );
-			}
-		}
-
-		return transformed;
-	}
-
-	private void addSourceDisplay( SourceDisplay imageDisplay )
-	{
-		imageDisplay.bdvViewer = this;
-		sourceDisplays.add( imageDisplay );
-	}
-
-	public void show( SegmentationDisplay display, List< SourceTransformerSupplier > sourceTransforms )
-	{
-		addSourceDisplay( display );
+		registerSourceDisplay( display );
 
 		display.selectionModel.listeners().add( this );
 		display.coloringModel.listeners().add( this );
@@ -210,7 +187,7 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 		}
 
 		// transform
-		List< SourceAndConverter< ? > > transformedSourceAndConverters = transformSourceAndConverters( sourceTransforms, sourceAndConverters );
+		List< SourceAndConverter< ? > > transformedSourceAndConverters = transformSourceAndConverters( sourceAndConverters, display.sourceTransformers );
 
 		// convert to labelSource
 		for ( SourceAndConverter< ? > sourceAndConverter : transformedSourceAndConverters )
@@ -238,6 +215,26 @@ public class BdvViewer< S extends ImageSegment > implements ColoringListener, Se
 		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileLabelSource, labelConverter );
 		LabelSource labelSource = new LabelSource( sourceAndConverter.getSpimSource() );
 		return new SourceAndConverter( labelSource, labelConverter, volatileSourceAndConverter );
+	}
+
+	private List< SourceAndConverter< ? > > transformSourceAndConverters( List< SourceAndConverter< ? > > sourceAndConverters, List< SourceTransformer > sourceTransformers )
+	{
+		List< SourceAndConverter< ? > > transformed = new ArrayList<>( sourceAndConverters );
+		if ( sourceTransformers != null )
+		{
+			for ( SourceTransformer sourceTransformer : sourceTransformers )
+			{
+				transformed = sourceTransformer.transform( transformed );
+			}
+		}
+
+		return transformed;
+	}
+
+	private void registerSourceDisplay( SourceDisplay imageDisplay )
+	{
+		imageDisplay.bdvViewer = this;
+		sourceDisplays.add( imageDisplay );
 	}
 
 	@Override

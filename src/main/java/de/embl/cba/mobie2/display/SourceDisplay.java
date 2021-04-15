@@ -1,6 +1,7 @@
 package de.embl.cba.mobie2.display;
 
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.mobie2.view.BdvViewer;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 
@@ -18,6 +19,7 @@ public class SourceDisplay
 	// Runtime
 	public transient List< SourceAndConverter< ? > > sourceAndConverters;
 	public transient BdvViewer< ? extends ImageSegment > bdvViewer;
+	public transient List< SourceTransformer > sourceTransformers;
 
 	public String getName()
 	{

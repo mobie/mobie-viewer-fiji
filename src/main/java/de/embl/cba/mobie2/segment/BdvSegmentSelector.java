@@ -3,10 +3,8 @@ package de.embl.cba.mobie2.segment;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie2.bdv.BdvMousePositionProvider;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
-import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import net.imglib2.RandomAccess;
 import net.imglib2.RealPoint;
@@ -14,7 +12,6 @@ import net.imglib2.type.numeric.RealType;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.function.Supplier;
 
 public class BdvSegmentSelector implements Runnable
@@ -29,7 +26,6 @@ public class BdvSegmentSelector implements Runnable
 		this.is2D = is2D;
 		this.segmentationDisplaySupplier = segmentationDisplaySupplier;
 	}
-
 
 	private synchronized void toggleSelectionAtMousePosition()
 	{
