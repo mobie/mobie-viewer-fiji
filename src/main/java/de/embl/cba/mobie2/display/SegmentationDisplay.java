@@ -26,7 +26,7 @@ public class SegmentationDisplay extends SourceDisplay
 	public transient List< TableRowImageSegment > segments;
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
 	public transient Segments3DView< TableRowImageSegment > segmentsVolumeViewer;
-	public SegmentationSliceView< TableRowImageSegment > segmentationSliceView;
+	public transient SegmentationSliceView< TableRowImageSegment > segmentationSliceView;
 
 	public String getLut()
 	{

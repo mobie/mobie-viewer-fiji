@@ -45,7 +45,7 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		this.moBIE2 = moBIE2;
 		this.userInterface = userInterface;
 		sourceDisplays = new ArrayList<>();
-		sliceViewer = new SliceViewer( moBIE2, is2D, this, timepoints );
+		sliceViewer = new SliceViewer( is2D, this, timepoints );
 		bdvHandle = sliceViewer.get();
 		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), sliceViewer.getWindow(), false, true );
 	}
@@ -76,6 +76,12 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		return sliceViewer;
 	}
 
+	/**
+	 *
+	 *
+	 * @param view
+	 * 					Serialised view
+	 */
 	public void show( View view )
 	{
 		// Show the sources
@@ -85,7 +91,10 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 			for ( SourceDisplaySupplier displaySupplier : view.sourceDisplays )
 			{
 				final SourceDisplay sourceDisplay = displaySupplier.get();
-				sourceDisplay.sourceTransformers = view.sourceTransforms.stream().map( s -> s.get() ).collect( Collectors.toList() );
+
+				if ( sourceDisplay.sourceTransformers != null )
+					sourceDisplay.sourceTransformers = view.sourceTransforms.stream().map( s -> s.get() ).collect( Collectors.toList() );
+
 				showSourceDisplay( sourceDisplay );
 			}
 		}
@@ -103,6 +112,8 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		{
 			removeAllSourceDisplays();
 		}
+
+		sourceDisplay.sliceViewer = sliceViewer;
 
 		if ( sourceDisplay instanceof ImageDisplay )
 		{
@@ -208,13 +219,15 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 
 	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay )
 	{
-		sourceDisplay.sliceViewer.removeSourceDisplay( sourceDisplay );
-
 		if ( sourceDisplay instanceof SegmentationDisplay )
 		{
+			( ( SegmentationDisplay ) sourceDisplay ).segmentationSliceView.close();
 			( ( SegmentationDisplay ) sourceDisplay ).tableViewer.getWindow().dispose();
 			( ( SegmentationDisplay ) sourceDisplay ).scatterPlotViewer.getWindow().dispose();
-
+		}
+		else
+		{
+			( ( ImageDisplay ) sourceDisplay ).imageSliceView.close();
 		}
 
 		userInterface.removeSourceDisplay( sourceDisplay );

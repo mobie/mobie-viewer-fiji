@@ -53,9 +53,8 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class SliceViewer< S extends ImageSegment > implements Supplier< BdvHandle >
+public class SliceViewer implements Supplier< BdvHandle >
 {
-	private final MoBIE2 moBIE2;
 	private final SourceAndConverterBdvDisplayService displayService;
 	private BdvHandle bdvHandle;
 	private final boolean is2D;
@@ -66,18 +65,17 @@ public class SliceViewer< S extends ImageSegment > implements Supplier< BdvHandl
 	private final SourceAndConverterService sacService;
 	private List< SourceDisplay > sourceDisplays;
 
-	public SliceViewer( MoBIE2 moBIE2, boolean is2D, ViewerManager viewerManager, int timepoints )
+	public SliceViewer( boolean is2D, ViewerManager viewerManager, int timepoints )
 	{
-		this.moBIE2 = moBIE2;
 		this.is2D = is2D;
 		this.viewerManager = viewerManager;
 		this.timepoints = timepoints;
 
 		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-
-		// init other stuff
 		sourceDisplays = new ArrayList<>();
+		bdvHandle = createBdv( timepoints );
+		displayService.registerBdvHandle( bdvHandle );
 
 		// register context menu actions
 		installContextMenu();
@@ -86,8 +84,11 @@ public class SliceViewer< S extends ImageSegment > implements Supplier< BdvHandl
 	@Override
 	public BdvHandle get()
 	{
-		bdvHandle = createBdv( timepoints );
-		displayService.registerBdvHandle( bdvHandle );
+		if ( bdvHandle == null )
+		{
+			bdvHandle = createBdv( timepoints );
+			displayService.registerBdvHandle( bdvHandle );
+		}
 		return bdvHandle;
 	}
 
@@ -124,87 +125,6 @@ public class SliceViewer< S extends ImageSegment > implements Supplier< BdvHandl
 		return bdvHandle;
 	}
 
-	public void show( ImageDisplay imageDisplay )
-	{
-		registerSourceDisplay( imageDisplay );
-
-		// open
-		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
-		for ( String sourceName : imageDisplay.getSources() )
-		{
-			final ImageSource source = moBIE2.getSource( sourceName );
-			new Thread( () -> Logger.log( "Opening: " + sourceName ) ).start();
-			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getImageLocation( source ) );
-			final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
-			sourceAndConverters.add( sourceAndConverter );
-		}
-
-		// transform
-		sourceAndConverters = transformSourceAndConverters( sourceAndConverters, imageDisplay.sourceTransformers );
-
-		// show
-		List< SourceAndConverter< ? > > displayedSourceAndConverters = new ArrayList<>();
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
-		{
-			// replace converter such that one can change the opacity
-			// (this changes the hash-code of the sourceAndConverter)
-
-			// TODO: understand this madness
-			final Converter< RealType, ARGBType > converter = ( Converter< RealType, ARGBType > ) sourceAndConverter.getConverter();
-			final Converter< ? extends Volatile< ? >, ARGBType > volatileConverter = sourceAndConverter.asVolatile().getConverter();
-			sourceAndConverter = new ConverterChanger( sourceAndConverter, new AdjustableOpacityColorConverter(  converter ), new VolatileAdjustableOpacityColorConverter( volatileConverter ) ).get();
-
-			// adapt color
-			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  imageDisplay.getColor() ) ).run();
-
-			// set blending mode
-			if ( imageDisplay.getBlendingMode() != null )
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, imageDisplay.getBlendingMode());
-
-			// show
-			displayService.show( bdvHandle, sourceAndConverter );
-
-			// adapt contrast limits
-			final ConverterSetup converterSetup = displayService.getConverterSetup( sourceAndConverter );
-			converterSetup.setDisplayRange( imageDisplay.getContrastLimits()[ 0 ], imageDisplay.getContrastLimits()[ 1 ] );
-
-			displayedSourceAndConverters.add( sourceAndConverter );
-		}
-
-		sacService.getUI().hide();
-
-		imageDisplay.sourceAndConverters = displayedSourceAndConverters;
-	}
-
-
-	private SourceAndConverter asLabelSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, LabelConverter labelConverter )
-	{
-		LabelSource volatileLabelSource = new LabelSource( sourceAndConverter.asVolatile().getSpimSource() );
-		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileLabelSource, labelConverter );
-		LabelSource labelSource = new LabelSource( sourceAndConverter.getSpimSource() );
-		return new SourceAndConverter( labelSource, labelConverter, volatileSourceAndConverter );
-	}
-
-	private List< SourceAndConverter< ? > > transformSourceAndConverters( List< SourceAndConverter< ? > > sourceAndConverters, List< SourceTransformer > sourceTransformers )
-	{
-		List< SourceAndConverter< ? > > transformed = new ArrayList<>( sourceAndConverters );
-		if ( sourceTransformers != null )
-		{
-			for ( SourceTransformer sourceTransformer : sourceTransformers )
-			{
-				transformed = sourceTransformer.transform( transformed );
-			}
-		}
-
-		return transformed;
-	}
-
-	private void registerSourceDisplay( SourceDisplay imageDisplay )
-	{
-		imageDisplay.sliceViewer = this;
-		sourceDisplays.add( imageDisplay );
-	}
-
 	public BdvHandle getBdvHandle()
 	{
 		return bdvHandle;
@@ -213,13 +133,5 @@ public class SliceViewer< S extends ImageSegment > implements Supplier< BdvHandl
 	public Window getWindow()
 	{
 		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
-	}
-
-	public void removeSourceDisplay( SourceDisplay sourceDisplay )
-	{
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
-		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
-		}
 	}
 }

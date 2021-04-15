@@ -18,8 +18,8 @@ public class SourceDisplay
 
 	// Runtime
 	public transient List< SourceAndConverter< ? > > sourceAndConverters;
-	public transient SliceViewer< ? extends ImageSegment > sliceViewer;
 	public transient List< SourceTransformer > sourceTransformers;
+	public transient SliceViewer sliceViewer;
 
 	public String getName()
 	{

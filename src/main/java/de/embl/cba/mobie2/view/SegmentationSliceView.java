@@ -128,6 +128,11 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		return transformed;
 	}
 
+	public void close()
+	{
+		// TODO
+	};
+
 	@Override
 	public synchronized void coloringChanged()
 	{

@@ -16,7 +16,7 @@ public class ImageDisplay extends SourceDisplay
 	private boolean showImagesIn3d;
 
 	// Runtime
-	public ImageSliceView imageSliceView;
+	public transient ImageSliceView imageSliceView;
 
 	public ImageDisplay createSerializableCopy()
 	{
