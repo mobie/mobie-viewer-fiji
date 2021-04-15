@@ -8,10 +8,9 @@ import de.embl.cba.tables.imagesegment.ImageSegment;
 import java.util.Collections;
 import java.util.List;
 
-public class SourceDisplay
+public class Display
 {
 	// Serialization
-	private boolean isExclusive;
 	private String name;
 	private double opacity;
 	private List< String > sources;
@@ -34,10 +33,5 @@ public class SourceDisplay
 	public double getOpacity()
 	{
 		return opacity;
-	}
-
-	public boolean isExclusive()
-	{
-		return isExclusive;
 	}
 }

@@ -6,7 +6,7 @@ public class SourceDisplaySupplier
 	private ImageDisplay imageDisplay;
 	private SegmentationDisplay segmentationDisplay;
 
-	public SourceDisplay get()
+	public Display get()
 	{
 		if ( imageDisplay != null ) return imageDisplay;
 		else if ( segmentationDisplay != null ) return segmentationDisplay;

@@ -1,58 +1,27 @@
 package de.embl.cba.mobie2.view;
 
-import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.n5.source.LabelSource;
-import de.embl.cba.mobie2.MoBIE2;
-import de.embl.cba.mobie2.bdv.BdvLocationLogger;
-import de.embl.cba.mobie2.bdv.SourcesAtMousePositionSupplier;
-import de.embl.cba.mobie2.color.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie2.color.LabelConverter;
-import de.embl.cba.mobie2.color.VolatileAdjustableOpacityColorConverter;
-import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
-import de.embl.cba.mobie2.display.SourceDisplay;
+import de.embl.cba.mobie2.display.Display;
 import de.embl.cba.mobie2.open.SourceAndConverterSupplier;
-import de.embl.cba.mobie2.segment.BdvSegmentSelector;
-import de.embl.cba.mobie2.source.ImageSource;
-import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.transform.SourceTransformer;
-import de.embl.cba.mobie2.ui.UserInterfaceHelper;
-import de.embl.cba.tables.color.ColorUtils;
+import de.embl.cba.mobie2.transform.TransformerHelper;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.SelectionListener;
-import mpicbg.spim.data.SpimData;
-import net.imglib2.Volatile;
-import net.imglib2.converter.Converter;
-import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.RealType;
-import org.fife.rsta.ac.js.Logger;
-import org.scijava.ui.behaviour.ClickBehaviour;
-import org.scijava.ui.behaviour.io.InputTriggerConfig;
-import org.scijava.ui.behaviour.util.Behaviours;
+import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
-import sc.fiji.bdvpg.bdv.MinimalBdvCreator;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
-import sc.fiji.bdvpg.bdv.projector.BlendingMode;
-import sc.fiji.bdvpg.bdv.projector.Projector;
-import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
-import sc.fiji.bdvpg.scijava.command.bdv.ScreenShotMakerCommand;
-import sc.fiji.bdvpg.scijava.command.source.SourceAndConverterBlendingModeChangerCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
-import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
-import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class SegmentationSliceView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
@@ -85,10 +54,18 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		}
 
 		// transform
-		List< SourceAndConverter< ? > > transformedSourceAndConverters = transformSourceAndConverters( sourceAndConverters, segmentationDisplay.sourceTransformers );
+		sourceAndConverters = TransformerHelper.transformSourceAndConverters( sourceAndConverters, segmentationDisplay.sourceTransformers );
 
 		// convert to labelSource
-		for ( SourceAndConverter< ? > sourceAndConverter : transformedSourceAndConverters )
+		sourceAndConverters = asLabelSources( sourceAndConverters );
+
+		segmentationDisplay.sourceAndConverters = sourceAndConverters;
+	}
+
+	private List< SourceAndConverter< ? > > asLabelSources( List< SourceAndConverter< ? > > sourceAndConverters )
+	{
+		List< SourceAndConverter< ? > > labelSourceAndConverters = new ArrayList<>( );
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			LabelConverter< S > labelConverter = new LabelConverter(
 					segmentationDisplay.segmentAdapter,
@@ -97,13 +74,12 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 
 			SourceAndConverter< ? > labelSourceAndConverter = asLabelSourceAndConverter( sourceAndConverter, labelConverter );
 
-			sourceAndConverters.remove( sourceAndConverter );
-			sourceAndConverters.add( labelSourceAndConverter );
+			labelSourceAndConverters.add( sourceAndConverter );
 
 			displayService.show( bdvHandle, labelSourceAndConverter );
 		}
 
-		segmentationDisplay.sourceAndConverters = sourceAndConverters;
+		return labelSourceAndConverters;
 	}
 
 	private SourceAndConverter asLabelSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, LabelConverter labelConverter )
@@ -112,20 +88,6 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileLabelSource, labelConverter );
 		LabelSource labelSource = new LabelSource( sourceAndConverter.getSpimSource() );
 		return new SourceAndConverter( labelSource, labelConverter, volatileSourceAndConverter );
-	}
-
-	private List< SourceAndConverter< ? > > transformSourceAndConverters( List< SourceAndConverter< ? > > sourceAndConverters, List< SourceTransformer > sourceTransformers )
-	{
-		List< SourceAndConverter< ? > > transformed = new ArrayList<>( sourceAndConverters );
-		if ( sourceTransformers != null )
-		{
-			for ( SourceTransformer sourceTransformer : sourceTransformers )
-			{
-				transformed = sourceTransformer.transform( transformed );
-			}
-		}
-
-		return transformed;
 	}
 
 	public void close()
@@ -156,11 +118,25 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		final double[] position = new double[ 3 ];
 		selection.localize( position );
 
+		adaptPosition( position, selection.imageId() );
+
 		new ViewerTransformChanger(
 				bdvHandle,
 				BdvHandleHelper.getViewerTransformWithNewCenter( bdvHandle, position ),
 				false,
 				500 ).run();
+	}
+
+	private void adaptPosition( double[] position, String sourceName )
+	{
+		if ( segmentationDisplay.sourceTransformers != null )
+		{
+			for ( SourceTransformer sourceTransformer : segmentationDisplay.sourceTransformers )
+			{
+				final AffineTransform3D transform = sourceTransformer.getTransform( sourceName );
+				transform.apply( position, position );
+			}
+		}
 	}
 
 	public BdvHandle getBdvHandle()
@@ -173,9 +149,9 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 	}
 
-	public void removeSourceDisplay( SourceDisplay sourceDisplay )
+	public void removeSourceDisplay( Display display )
 	{
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
 		{
 			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
 		}

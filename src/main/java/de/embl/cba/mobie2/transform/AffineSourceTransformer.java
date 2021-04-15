@@ -8,7 +8,7 @@ import javax.xml.transform.Source;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AffineSourceTransformer implements SourceTransformer
+public class AffineSourceTransformer extends AbstractSourceTransformer
 {
 	private List< String > sources;
 	private double[] parameters;
@@ -24,12 +24,14 @@ public class AffineSourceTransformer implements SourceTransformer
 
 		for ( SourceAndConverter< ? > source : sources )
 		{
-			if ( this.sources.contains( source.getSpimSource().getName() ) )
+			final String name = source.getSpimSource().getName();
+			if ( this.sources.contains( name ) )
 			{
 				final SourceAndConverter transformedSource = transformer.apply( source );
 				// replace the source in the list
 				transformedSources.remove( source );
 				transformedSources.add( transformedSource );
+				sourceNameToTransform.put( name, affineTransform3D );
 			}
 		}
 

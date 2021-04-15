@@ -4,12 +4,11 @@ import bdv.util.BdvHandle;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
-import de.embl.cba.mobie2.serialize.View;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.color.MoBIEColoringModel;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
-import de.embl.cba.mobie2.display.SourceDisplay;
+import de.embl.cba.mobie2.display.Display;
 import de.embl.cba.mobie2.display.SourceDisplaySupplier;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.ui.UserInterface;
@@ -31,12 +30,12 @@ import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTabl
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setLafSwingLookAndFeel;
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setSystemSwingLookAndFeel;
 
-public class ViewerManager< T extends TableRow, S extends ImageSegment >
+public class ViewerManager
 {
 	private final MoBIE2 moBIE2;
 	private final UserInterface userInterface;
 	private final SliceViewer sliceViewer;
-	private ArrayList< SourceDisplay > sourceDisplays;
+	private ArrayList< Display > displays;
 	private Image3DUniverse universe;
 	private final BdvHandle bdvHandle;
 
@@ -44,7 +43,7 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 	{
 		this.moBIE2 = moBIE2;
 		this.userInterface = userInterface;
-		sourceDisplays = new ArrayList<>();
+		displays = new ArrayList<>();
 		sliceViewer = new SliceViewer( is2D, this, timepoints );
 		bdvHandle = sliceViewer.get();
 		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), sliceViewer.getWindow(), false, true );
@@ -66,9 +65,9 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
 
-	public ArrayList< SourceDisplay > getSourceDisplays()
+	public ArrayList< Display > getSourceDisplays()
 	{
-		return sourceDisplays;
+		return displays;
 	}
 
 	public SliceViewer getSliceViewer()
@@ -84,49 +83,52 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 	 */
 	public void show( View view )
 	{
+		if ( view.isExclusive() )
+		{
+			removeAllSourceDisplays();
+		}
+
 		// Show the sources
 		setLafSwingLookAndFeel();
-		if ( view.sourceDisplays != null )
+		final List< SourceDisplaySupplier > sourceDisplays = view.getSourceDisplays();
+		if ( sourceDisplays != null )
 		{
-			for ( SourceDisplaySupplier displaySupplier : view.sourceDisplays )
+			for ( SourceDisplaySupplier displaySupplier : sourceDisplays )
 			{
-				final SourceDisplay sourceDisplay = displaySupplier.get();
+				final Display display = displaySupplier.get();
 
-				if ( sourceDisplay.sourceTransformers != null )
-					sourceDisplay.sourceTransformers = view.sourceTransforms.stream().map( s -> s.get() ).collect( Collectors.toList() );
+				if ( view.getSourceTransforms() != null )
+					display.sourceTransformers = view.getSourceTransforms().stream().map( s -> s.get() ).collect( Collectors.toList() );
 
-				showSourceDisplay( sourceDisplay );
+				showSourceDisplay( display );
 			}
 		}
 		setSystemSwingLookAndFeel();
 
 		// Adjust the viewer transform
 		// TODO
+		//
+		new ViewerTransformAdjuster( bdvHandle, displays.get( displays.size() - 1 ).sourceAndConverters.get( 0 ) ).run();
 	}
 
-	private void showSourceDisplay( SourceDisplay sourceDisplay )
+	private void showSourceDisplay( Display display )
 	{
-		if ( sourceDisplays.contains( sourceDisplay ) ) return;
+		if ( displays.contains( display ) ) return;
 
-		if ( sourceDisplay.isExclusive() )
+		display.sliceViewer = sliceViewer;
+
+		if ( display instanceof ImageDisplay )
 		{
-			removeAllSourceDisplays();
+			showImageDisplay( ( ImageDisplay ) display );
 		}
-
-		sourceDisplay.sliceViewer = sliceViewer;
-
-		if ( sourceDisplay instanceof ImageDisplay )
+		else if ( display instanceof SegmentationDisplay )
 		{
-			showImageDisplay( ( ImageDisplay ) sourceDisplay );
-		}
-		else if ( sourceDisplay instanceof SegmentationDisplay )
-		{
-			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) sourceDisplay;
+			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
 			showSegmentationDisplay( segmentationDisplay );
 		}
 
-		userInterface.addSourceDisplay( sourceDisplay );
-		sourceDisplays.add( sourceDisplay );
+		userInterface.addSourceDisplay( display );
+		displays.add( display );
 	}
 
 	private Image3DUniverse getUniverse()
@@ -146,25 +148,21 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 	private void removeAllSourceDisplays()
 	{
 		// create a copy of the currently shown displays...
-		final ArrayList< SourceDisplay > currentDisplays = new ArrayList<>( sourceDisplays ) ;
+		final ArrayList< Display > currentDisplays = new ArrayList<>( displays ) ;
 
-		// ...such that we can remove them without
+		// ...such that we can remove the displays without
 		// modifying the list that we iterate over
-		for ( SourceDisplay display : currentDisplays )
+		for ( Display display : currentDisplays )
 		{
-			// removes from all viewers and
-			// also from sourceDisplays
+			// removes display from all viewers and
+			// also from the list of currently shown sourceDisplays
 			removeSourceDisplay( display );
 		}
 	}
 
 	private void showImageDisplay( ImageDisplay imageDisplay )
 	{
-		final ImageSliceView imageSliceView = new ImageSliceView( imageDisplay, bdvHandle, ( String name ) -> moBIE2.getSourceAndConverter( name ) );
-		imageSliceView.show();
-		imageDisplay.imageSliceView = imageSliceView;
-
-		new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), imageDisplay.sourceAndConverters.get( 0 ) ).run();
+		imageDisplay.imageSliceView = new ImageSliceView( imageDisplay, bdvHandle, ( String name ) -> moBIE2.getSourceAndConverter( name ) );
 	}
 
 	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
@@ -217,21 +215,21 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
 	}
 
-	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay )
+	public synchronized void removeSourceDisplay( Display display )
 	{
-		if ( sourceDisplay instanceof SegmentationDisplay )
+		if ( display instanceof SegmentationDisplay )
 		{
-			( ( SegmentationDisplay ) sourceDisplay ).segmentationSliceView.close();
-			( ( SegmentationDisplay ) sourceDisplay ).tableViewer.getWindow().dispose();
-			( ( SegmentationDisplay ) sourceDisplay ).scatterPlotViewer.getWindow().dispose();
+			( ( SegmentationDisplay ) display ).segmentationSliceView.close();
+			( ( SegmentationDisplay ) display ).tableViewer.getWindow().dispose();
+			( ( SegmentationDisplay ) display ).scatterPlotViewer.getWindow().dispose();
 		}
 		else
 		{
-			( ( ImageDisplay ) sourceDisplay ).imageSliceView.close();
+			( ( ImageDisplay ) display ).imageSliceView.close();
 		}
 
-		userInterface.removeSourceDisplay( sourceDisplay );
-		sourceDisplays.remove( sourceDisplay );
+		userInterface.removeSourceDisplay( display );
+		displays.remove( display );
 	}
 
 	public Collection< SegmentationDisplay > getSegmentationDisplays()

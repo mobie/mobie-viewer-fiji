@@ -5,9 +5,8 @@ import de.embl.cba.mobie2.view.ImageSliceView;
 import sc.fiji.bdvpg.bdv.projector.BlendingMode;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class ImageDisplay extends SourceDisplay
+public class ImageDisplay extends Display
 {
 	// Serialization
 	private String color;

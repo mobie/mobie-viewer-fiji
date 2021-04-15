@@ -3,7 +3,7 @@ package de.embl.cba.mobie2.ui;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
-import de.embl.cba.mobie2.display.SourceDisplay;
+import de.embl.cba.mobie2.display.Display;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +19,7 @@ public class UserInterface
 	private final JFrame frame;
 	private final JPanel actionContainer;
 	private final UserInterfaceHelper userInterfaceHelper;
-	private Map< SourceDisplay, JPanel > sourceDisplayToPanel;
+	private Map< Display, JPanel > sourceDisplayToPanel;
 
 	public UserInterface( MoBIE2 moBIE )
 	{
@@ -66,32 +66,32 @@ public class UserInterface
 		frame.repaint();
 	}
 
-	public void addSourceDisplay( SourceDisplay sourceDisplay )
+	public void addSourceDisplay( Display display )
 	{
 		setLafSwingLookAndFeel();
 
-		if ( sourceDisplay instanceof ImageDisplay )
+		if ( display instanceof ImageDisplay )
 		{
-			userInterfaceHelper.addImageDisplaySettingsPanel( this, ( ImageDisplay ) sourceDisplay );
+			userInterfaceHelper.addImageDisplaySettingsPanel( this, ( ImageDisplay ) display );
 			refresh();
 		}
-		else if ( sourceDisplay instanceof SegmentationDisplay )
+		else if ( display instanceof SegmentationDisplay )
 		{
-			userInterfaceHelper.addSegmentationDisplaySettingsPanel( this, ( SegmentationDisplay ) sourceDisplay );
+			userInterfaceHelper.addSegmentationDisplaySettingsPanel( this, ( SegmentationDisplay ) display );
 			refresh();
 		}
 
 		setSystemSwingLookAndFeel();
 	}
 
-	public void removeSourceDisplay( SourceDisplay display )
+	public void removeSourceDisplay( Display display )
 	{
 		final JPanel jPanel = sourceDisplayToPanel.get( display );
 		displaySettingsContainer.remove( jPanel );
 		sourceDisplayToPanel.remove( display );
 	}
 
-	protected void showDisplaySettingsPanel( SourceDisplay display, JPanel panel )
+	protected void showDisplaySettingsPanel( Display display, JPanel panel )
 	{
 		sourceDisplayToPanel.put( display, panel );
 		displaySettingsContainer.add( panel );

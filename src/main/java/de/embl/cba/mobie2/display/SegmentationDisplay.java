@@ -11,7 +11,7 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 
 import java.util.List;
 
-public class SegmentationDisplay extends SourceDisplay
+public class SegmentationDisplay extends Display
 {
 	// Serialization
 	private String lut;

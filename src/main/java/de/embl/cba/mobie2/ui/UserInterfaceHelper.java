@@ -17,9 +17,9 @@ import de.embl.cba.mobie2.*;
 import de.embl.cba.mobie2.color.OpacityAdjuster;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
-import de.embl.cba.mobie2.display.SourceDisplay;
+import de.embl.cba.mobie2.display.Display;
 import de.embl.cba.mobie2.view.ViewerManager;
-import de.embl.cba.mobie2.serialize.View;
+import de.embl.cba.mobie2.view.View;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.WindowManager;
@@ -362,9 +362,10 @@ public class UserInterfaceHelper
 		for ( String viewName : views.keySet() )
 		{
 			final View view = views.get( viewName );
-			if ( ! groupingsToViews.containsKey(  view.uiSelectionGroup ) )
-				groupingsToViews.put( view.uiSelectionGroup, new HashMap<>( ));
-			groupingsToViews.get( view.uiSelectionGroup ).put( viewName, view );
+			final String uiSelectionGroup = view.getUiSelectionGroup();
+			if ( ! groupingsToViews.containsKey( uiSelectionGroup ) )
+				groupingsToViews.put( uiSelectionGroup, new HashMap<>( ));
+			groupingsToViews.get( uiSelectionGroup ).put( viewName, view );
 		}
 
 		JPanel containerPanel = new JPanel( new BorderLayout() );
@@ -557,7 +558,7 @@ public class UserInterfaceHelper
 	}
 
 	private static JCheckBox createImageViewerVisibilityCheckbox(
-			SourceDisplay sourceDisplay,
+			Display display,
 			boolean isVisible )
 	{
 		JCheckBox checkBox = new JCheckBox( "S" );
@@ -569,7 +570,7 @@ public class UserInterfaceHelper
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
+				for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
 				{
 					SourceAndConverterServices.getSourceAndConverterDisplayService().setVisible( sourceAndConverter, checkBox.isSelected() );
 				}
@@ -669,18 +670,18 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JButton createFocusButton( SourceDisplay sourceDisplay )
+	public static JButton createFocusButton( Display display )
 	{
 		JButton button = new JButton( "F" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
 		{
-			for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
+			for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
 			{
 				// TODO: make this work for multiple!
-				final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverter ).getTransform();
-				new ViewerTransformChanger( sourceDisplay.sliceViewer.getBdvHandle(), transform, false, 1000 ).run();
+				final AffineTransform3D transform = new ViewerTransformAdjuster( display.sliceViewer.getBdvHandle(), sourceAndConverter ).getTransform();
+				new ViewerTransformChanger( display.sliceViewer.getBdvHandle(), transform, false, 1000 ).run();
 			}
 		} );
 
@@ -722,7 +723,7 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	public static JButton createOpacityButton( SourceDisplay sourceDisplay )
+	public static JButton createOpacityButton( Display display )
 	{
 		JButton button = new JButton( "O" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -730,9 +731,9 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			UserInterfaceHelper.showOpacityDialog(
-					sourceDisplay.getName(),
-					sourceDisplay.sourceAndConverters,
-					sourceDisplay.sliceViewer.getBdvHandle() );
+					display.getName(),
+					display.sourceAndConverters,
+					display.sliceViewer.getBdvHandle() );
 		} );
 
 		return button;
@@ -773,14 +774,14 @@ public class UserInterfaceHelper
 	// TODO: this should also close the table a.s.o. if it is a segmentation source
 	private JButton createRemoveButton(
 			final de.embl.cba.mobie2.ui.UserInterface userInterface,
-			SourceDisplay sourceDisplay )
+			Display display )
 	{
 		JButton removeButton = new JButton( "X" );
 		removeButton.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		removeButton.addActionListener( e ->
 		{
-			moBIE2.getViewerManager().removeSourceDisplay( sourceDisplay );
+			moBIE2.getViewerManager().removeSourceDisplay( display );
 		} );
 
 		return removeButton;

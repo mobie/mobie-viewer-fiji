@@ -1,41 +1,14 @@
 package de.embl.cba.mobie2.view;
 
-import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;
-import bdv.viewer.SourceAndConverter;
-import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.mobie.n5.source.LabelSource;
-import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.bdv.BdvLocationLogger;
 import de.embl.cba.mobie2.bdv.SourcesAtMousePositionSupplier;
-import de.embl.cba.mobie2.color.AdjustableOpacityColorConverter;
-import de.embl.cba.mobie2.color.LabelConverter;
-import de.embl.cba.mobie2.color.VolatileAdjustableOpacityColorConverter;
-import de.embl.cba.mobie2.display.ImageDisplay;
-import de.embl.cba.mobie2.display.SegmentationDisplay;
-import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.segment.BdvSegmentSelector;
-import de.embl.cba.mobie2.source.ImageSource;
-import de.embl.cba.mobie2.source.SegmentationSource;
-import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
-import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.imagesegment.ImageSegment;
-import de.embl.cba.tables.select.SelectionListener;
-import mpicbg.spim.data.SpimData;
-import net.imglib2.Volatile;
-import net.imglib2.converter.Converter;
-import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.RealType;
-import org.fife.rsta.ac.js.Logger;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.MinimalBdvCreator;
-import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
-import sc.fiji.bdvpg.bdv.projector.BlendingMode;
 import sc.fiji.bdvpg.bdv.projector.Projector;
 import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
 import sc.fiji.bdvpg.scijava.command.bdv.ScreenShotMakerCommand;
@@ -43,27 +16,22 @@ import sc.fiji.bdvpg.scijava.command.source.SourceAndConverterBlendingModeChange
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
-import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
-import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
-import java.util.List;
 import java.util.function.Supplier;
 
 public class SliceViewer implements Supplier< BdvHandle >
 {
-	private final SourceAndConverterBdvDisplayService displayService;
+	private final SourceAndConverterBdvDisplayService sacDisplayService;
 	private BdvHandle bdvHandle;
 	private final boolean is2D;
-	private final ViewerManager< ?, ? > viewerManager;
+	private final ViewerManager viewerManager;
 	private final int timepoints;
 
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
-	private List< SourceDisplay > sourceDisplays;
 
 	public SliceViewer( boolean is2D, ViewerManager viewerManager, int timepoints )
 	{
@@ -71,13 +39,12 @@ public class SliceViewer implements Supplier< BdvHandle >
 		this.viewerManager = viewerManager;
 		this.timepoints = timepoints;
 
-		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-		sourceDisplays = new ArrayList<>();
-		bdvHandle = createBdv( timepoints );
-		displayService.registerBdvHandle( bdvHandle );
+		sacDisplayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
 
-		// register context menu actions
+		bdvHandle = createBdv( timepoints );
+		sacDisplayService.registerBdvHandle( bdvHandle );
+
 		installContextMenu();
 	}
 
@@ -87,7 +54,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		if ( bdvHandle == null )
 		{
 			bdvHandle = createBdv( timepoints );
-			displayService.registerBdvHandle( bdvHandle );
+			sacDisplayService.registerBdvHandle( bdvHandle );
 		}
 		return bdvHandle;
 	}

@@ -13,7 +13,7 @@ import javax.xml.transform.Source;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GridSourceTransformer implements SourceTransformer
+public class GridSourceTransformer extends AbstractSourceTransformer
 {
 	private List< List< String > > sources;
 	private List< int[] > positions;
@@ -62,6 +62,8 @@ public class GridSourceTransformer implements SourceTransformer
 				// replace original by the transformed source
 				transformedSources.remove( sourceAndConverter );
 				transformedSources.add( transformedSource );
+
+				sourceNameToTransform.put( sourceName, transform3D );
 			}
 		}
 
