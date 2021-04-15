@@ -35,7 +35,7 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 {
 	private final MoBIE2 moBIE2;
 	private final UserInterface userInterface;
-	private final SliceViewerCreator sliceViewer;
+	private final SliceViewer sliceViewer;
 	private ArrayList< SourceDisplay > sourceDisplays;
 	private Image3DUniverse universe;
 	private final BdvHandle bdvHandle;
@@ -45,7 +45,7 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		this.moBIE2 = moBIE2;
 		this.userInterface = userInterface;
 		sourceDisplays = new ArrayList<>();
-		sliceViewer = new SliceViewerCreator( moBIE2, is2D, this, timepoints );
+		sliceViewer = new SliceViewer( moBIE2, is2D, this, timepoints );
 		bdvHandle = sliceViewer.get();
 		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), sliceViewer.getWindow(), false, true );
 	}
@@ -71,7 +71,7 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		return sourceDisplays;
 	}
 
-	public SliceViewerCreator getSliceViewer()
+	public SliceViewer getSliceViewer()
 	{
 		return sliceViewer;
 	}
@@ -156,40 +156,46 @@ public class ViewerManager< T extends TableRow, S extends ImageSegment >
 		new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), imageDisplay.sourceAndConverters.get( 0 ) ).run();
 	}
 
-	private void showSegmentationDisplay( SegmentationDisplay display )
+	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
 	{
-		display.coloringModel = new MoBIEColoringModel<>( display.getLut() );
-		display.selectionModel = new DefaultSelectionModel<>();
-		display.coloringModel.setSelectionModel(  display.selectionModel );
+		segmentationDisplay.coloringModel = new MoBIEColoringModel<>( segmentationDisplay.getLut() );
+		segmentationDisplay.selectionModel = new DefaultSelectionModel<>();
+		segmentationDisplay.coloringModel.setSelectionModel(  segmentationDisplay.selectionModel );
 
-		display.segments = new ArrayList<>();
-		for ( String sourceName : display.getSources() )
+		segmentationDisplay.segments = new ArrayList<>();
+		for ( String sourceName : segmentationDisplay.getSources() )
 		{
 			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
 			final List< TableRowImageSegment > segmentsFromTableFile = createAnnotatedImageSegmentsFromTableFile(
 					moBIE2.getDefaultTableLocation( source ),
 					sourceName );
 
-			display.segments.addAll( segmentsFromTableFile );
+			segmentationDisplay.segments.addAll( segmentsFromTableFile );
 		}
 
-		display.segmentAdapter = new SegmentAdapter( display.segments );
-		if ( display.getSelectedSegmentIds() != null )
+		segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.segments );
+		if ( segmentationDisplay.getSelectedSegmentIds() != null )
 		{
 			// TODO: add to selection model
-			display.segmentAdapter.getSegments( display.getSelectedSegmentIds() );
+			segmentationDisplay.segmentAdapter.getSegments( segmentationDisplay.getSelectedSegmentIds() );
 		}
 
-		sliceViewer.show( display );
-		showInTableViewer( display );
-		showInScatterPlotViewer( display );
-		initSegmentsVolumeViewer( display );
+		showInSliceViewer( segmentationDisplay );
+		showInTableViewer( segmentationDisplay );
+		showInScatterPlotViewer( segmentationDisplay );
+		initSegmentsVolumeViewer( segmentationDisplay );
 
 		SwingUtilities.invokeLater( () ->
 		{
-			UserInterfaceHelper.bottomAlignWindow( display.sliceViewer.getWindow(), display.tableViewer.getWindow() );
-			UserInterfaceHelper.rightAlignWindow( display.sliceViewer.getWindow(), display.scatterPlotViewer.getWindow(), true, true );
+			UserInterfaceHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
+			UserInterfaceHelper.rightAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.scatterPlotViewer.getWindow(), true, true );
 		} );
+	}
+
+	private void showInSliceViewer( SegmentationDisplay segmentationDisplay )
+	{
+		final SegmentationSliceView segmentationSliceView = new SegmentationSliceView<>( segmentationDisplay, bdvHandle, ( String name ) -> moBIE2.getSourceAndConverter( name ) );
+		segmentationDisplay.segmentationSliceView = segmentationSliceView;
 	}
 
 	private void initSegmentsVolumeViewer( SegmentationDisplay display )

@@ -53,7 +53,7 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class SliceViewerCreator< S extends ImageSegment > implements Supplier< BdvHandle >
+public class SliceViewer< S extends ImageSegment > implements Supplier< BdvHandle >
 {
 	private final MoBIE2 moBIE2;
 	private final SourceAndConverterBdvDisplayService displayService;
@@ -66,7 +66,7 @@ public class SliceViewerCreator< S extends ImageSegment > implements Supplier< B
 	private final SourceAndConverterService sacService;
 	private List< SourceDisplay > sourceDisplays;
 
-	public SliceViewerCreator( MoBIE2 moBIE2, boolean is2D, ViewerManager viewerManager, int timepoints )
+	public SliceViewer( MoBIE2 moBIE2, boolean is2D, ViewerManager viewerManager, int timepoints )
 	{
 		this.moBIE2 = moBIE2;
 		this.is2D = is2D;
@@ -176,45 +176,6 @@ public class SliceViewerCreator< S extends ImageSegment > implements Supplier< B
 		imageDisplay.sourceAndConverters = displayedSourceAndConverters;
 	}
 
-	public void show( SegmentationDisplay display )
-	{
-		registerSourceDisplay( display );
-
-		display.selectionModel.listeners().add( this );
-		display.coloringModel.listeners().add( this );
-
-		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
-
-		// open
-		for ( String sourceName : display.getSources() )
-		{
-			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
-			final SpimData spimData = BdvUtils.openSpimData( moBIE2.getImageLocation( source ) );
-			sourceAndConverters.add( SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 ) );
-		}
-
-		// transform
-		List< SourceAndConverter< ? > > transformedSourceAndConverters = transformSourceAndConverters( sourceAndConverters, display.sourceTransformers );
-
-		// convert to labelSource
-		for ( SourceAndConverter< ? > sourceAndConverter : transformedSourceAndConverters )
-		{
-			LabelConverter< S > labelConverter = new LabelConverter(
-					display.segmentAdapter,
-					sourceAndConverter.getSpimSource().getName(),
-					display.coloringModel );
-
-			SourceAndConverter< ? > labelSourceAndConverter = asLabelSourceAndConverter( sourceAndConverter, labelConverter );
-
-			sourceAndConverters.remove( sourceAndConverter );
-			sourceAndConverters.add( labelSourceAndConverter );
-
-			displayService.show( bdvHandle, labelSourceAndConverter );
-		}
-
-		sacService.getUI().hide();
-		display.sourceAndConverters = sourceAndConverters;
-	}
 
 	private SourceAndConverter asLabelSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, LabelConverter labelConverter )
 	{
@@ -242,36 +203,6 @@ public class SliceViewerCreator< S extends ImageSegment > implements Supplier< B
 	{
 		imageDisplay.sliceViewer = this;
 		sourceDisplays.add( imageDisplay );
-	}
-
-	@Override
-	public synchronized void coloringChanged()
-	{
-		bdvHandle.getViewerPanel().requestRepaint();
-	}
-
-	@Override
-	public synchronized void selectionChanged()
-	{
-		bdvHandle.getViewerPanel().requestRepaint();
-	}
-
-	@Override
-	public synchronized void focusEvent( S selection )
-	{
-		if ( selection.timePoint() != getBdvHandle().getViewerPanel().state().getCurrentTimepoint() )
-		{
-			getBdvHandle().getViewerPanel().state().setCurrentTimepoint( selection.timePoint() );
-		}
-
-		final double[] position = new double[ 3 ];
-		selection.localize( position );
-
-		new ViewerTransformChanger(
-				bdvHandle,
-				BdvHandleHelper.getViewerTransformWithNewCenter( bdvHandle, position ),
-				false,
-				500 ).run();
 	}
 
 	public BdvHandle getBdvHandle()
