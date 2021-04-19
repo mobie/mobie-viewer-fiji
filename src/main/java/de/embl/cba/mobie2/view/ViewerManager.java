@@ -146,7 +146,7 @@ public class ViewerManager
 
 					if ( tableDataLocation != null )
 					{
-						new GridView( moBIE2, display.getName(), tableDataLocation );
+						new GridView( moBIE2, display.getName(), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
 					}
 				}
 			}
