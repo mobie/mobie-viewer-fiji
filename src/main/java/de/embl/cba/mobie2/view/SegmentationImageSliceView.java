@@ -23,14 +23,14 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SegmentationSliceView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
+public class SegmentationImageSliceView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final SegmentationDisplay segmentationDisplay;
 	private BdvHandle bdvHandle;
 	private final SourceAndConverterSupplier sourceAndConverterSupplier;
 
-	public SegmentationSliceView( SegmentationDisplay segmentationDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
+	public SegmentationImageSliceView( SegmentationDisplay segmentationDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
 	{
 		this.segmentationDisplay = segmentationDisplay;
 		this.bdvHandle = bdvHandle;

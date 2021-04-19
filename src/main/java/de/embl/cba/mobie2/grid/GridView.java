@@ -1,5 +1,6 @@
 package de.embl.cba.mobie2.grid;
 
+import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.MoBIE2;
@@ -11,6 +12,7 @@ import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import net.imglib2.type.numeric.integer.IntType;
 
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,7 @@ public class GridView
 {
 	private final MoBIEColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel;
 	private final DefaultSelectionModel< DefaultAnnotatedIntervalTableRow > selectionModel;
+	private final SourceAndConverter< IntType > sourceAndConverter;
 
 	public GridView( MoBIE2 moBIE2, String name, String tableDataFolder, GridSourceTransformer sourceTransformer )
 	{
@@ -34,11 +37,15 @@ public class GridView
 		selectionModel = new DefaultSelectionModel< DefaultAnnotatedIntervalTableRow >();
 		coloringModel.setSelectionModel( selectionModel );
 
-		final TableViewer< DefaultAnnotatedIntervalTableRow > tableViewer = new TableViewer<>( tableRows, selectionModel, coloringModel, getImageName( name ) ).show();
+		final TableViewer< DefaultAnnotatedIntervalTableRow > tableViewer = new TableViewer<>( tableRows, selectionModel, coloringModel, name ).show();
+
+		final TableRowsIntervalImage< DefaultAnnotatedIntervalTableRow > intervalImage = new TableRowsIntervalImage<>( tableRows, coloringModel, name );
+
+		sourceAndConverter = intervalImage.getSourceAndConverter();
 	}
 
-	private String getImageName( String name )
+	public SourceAndConverter< IntType > getSourceAndConverter()
 	{
-		return name + "-grid-features";
+		return sourceAndConverter;
 	}
 }

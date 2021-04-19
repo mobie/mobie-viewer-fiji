@@ -26,8 +26,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.embl.cba.mobie2.color;
+package de.embl.cba.mobie2.color.opacity;
 
+import de.embl.cba.mobie2.color.OpacityAdjuster;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;

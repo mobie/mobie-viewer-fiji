@@ -1,6 +1,7 @@
 package de.embl.cba.mobie2.view;
 
 import bdv.util.BdvHandle;
+import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.grid.GridView;
@@ -18,7 +19,9 @@ import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij3d.Image3DUniverse;
+import net.imglib2.type.numeric.integer.IntType;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
 import javax.swing.*;
@@ -39,6 +42,7 @@ public class ViewerManager
 	private ArrayList< Display > displays;
 	private Image3DUniverse universe;
 	private final BdvHandle bdvHandle;
+	private GridView gridView;
 
 	public ViewerManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
 	{
@@ -146,7 +150,9 @@ public class ViewerManager
 
 					if ( tableDataLocation != null )
 					{
-						new GridView( moBIE2, display.getName(), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
+						gridView = new GridView( moBIE2, display.getName() + "-grid", tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
+						final SourceAndConverter< IntType > sourceAndConverter = gridView.getSourceAndConverter();
+						SourceAndConverterServices.getSourceAndConverterDisplayService().show( bdvHandle, sourceAndConverter );
 					}
 				}
 			}
@@ -225,8 +231,8 @@ public class ViewerManager
 
 	private void showInSliceViewer( SegmentationDisplay segmentationDisplay )
 	{
-		final SegmentationSliceView segmentationSliceView = new SegmentationSliceView<>( segmentationDisplay, bdvHandle, ( String name ) -> moBIE2.getSourceAndConverter( name ) );
-		segmentationDisplay.segmentationSliceView = segmentationSliceView;
+		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( segmentationDisplay, bdvHandle, ( String name ) -> moBIE2.getSourceAndConverter( name ) );
+		segmentationDisplay.segmentationImageSliceView = segmentationImageSliceView;
 	}
 
 	private void initSegmentsVolumeViewer( SegmentationDisplay display )
@@ -241,7 +247,7 @@ public class ViewerManager
 	{
 		if ( display instanceof SegmentationDisplay )
 		{
-			( ( SegmentationDisplay ) display ).segmentationSliceView.close();
+			( ( SegmentationDisplay ) display ).segmentationImageSliceView.close();
 			( ( SegmentationDisplay ) display ).tableViewer.getWindow().dispose();
 			( ( SegmentationDisplay ) display ).scatterPlotViewer.getWindow().dispose();
 		}

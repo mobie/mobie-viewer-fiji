@@ -2,13 +2,10 @@ package de.embl.cba.mobie2.grid;
 
 import bdv.util.BdvOverlay;
 import bdv.util.RandomAccessibleIntervalSource;
-import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
-import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.plateviewer.image.channel.AbstractBdvViewable;
 import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.color.SelectionColoringModel;
-import de.embl.cba.tables.view.TableRowsTableView;
+import de.embl.cba.tables.color.ColoringModel;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
@@ -24,31 +21,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow > extends AbstractBdvViewable
+public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 {
 	private final List< T > tableRows;
-	private final SelectionColoringModel< T > coloringModel;
+	private final ColoringModel< T > coloringModel;
 	private Interval plateInterval;
 	private RandomAccessibleInterval< IntType > rai;
 	private double[] contrastLimits;
-	private final TableRowsTableView< T > tableView;
 	private HashMap< String, T > nameToTableRow;
 	private HashMap< String, Integer > nameToTableRowIndex;
 	private ARGBConvertedRealSource argbSource;
 	private String name;
+	private SourceAndConverter< IntType > sourceAndConverter;
 
 	public TableRowsIntervalImage(
 			List< T > tableRows,
-			SelectionColoringModel< T > coloringModel,
-			TableRowsTableView< T > tableView,
-			Interval plateInterval,
+			ColoringModel< T > coloringModel,
 			String name )
 	{
 		this.tableRows = tableRows;
 		this.coloringModel = coloringModel;
-
-		this.plateInterval = plateInterval;
-		this.tableView = tableView;
 		this.name = name;
 
 		createSiteNameToTableRowMap( tableRows );
@@ -56,11 +48,6 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow > exten
 		contrastLimits = new double[ 2 ];
 
 		createImage();
-	}
-
-	public TableRowsTableView< T > getTableView()
-	{
-		return tableView;
 	}
 
 	public void createSiteNameToTableRowMap( List< T > tableRows )
@@ -107,57 +94,44 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow > exten
 		final ListItemsARGBConverter< T > argbConverter =
 				new ListItemsARGBConverter<>( tableRows, coloringModel );
 
-		argbSource = new ARGBConvertedRealSource( tableRowIndexSource , argbConverter );
+		sourceAndConverter = new SourceAndConverter( tableRowIndexSource, argbConverter );
 
 		contrastLimits[ 0 ] = 0;
 		contrastLimits[ 1 ] = 255;
 	}
 
-	@Override
 	public String getName()
 	{
 		return name;
 	}
 
-	@Override
 	public ARGBType getColor()
 	{
 		return ColorUtils.getARGBType( Color.GRAY );
 	}
 
-	@Override
 	public double[] getContrastLimits()
 	{
 		return contrastLimits;
 	}
 
-	@Override
 	public RandomAccessibleInterval< ? > getRAI()
 	{
 		return rai;
 	}
 
-	@Override
-	public Source< ? > getSource()
+	public SourceAndConverter< IntType > getSourceAndConverter()
 	{
-		return argbSource;
+		return sourceAndConverter;
 	}
 
-	@Override
 	public BdvOverlay getOverlay()
 	{
 		return null;
 	}
 
-	@Override
 	public boolean isInitiallyVisible()
 	{
 		return true;
-	}
-
-	@Override
-	public Metadata.Type getType()
-	{
-		return Metadata.Type.Image;
 	}
 }
