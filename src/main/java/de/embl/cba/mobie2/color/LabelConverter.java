@@ -43,7 +43,7 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	private final MoBIEColoringModel< S > coloringModel;
 
 	private int frame;
-	private double alpha = 1.0;
+	private double opacity = 1.0;
 
 	public LabelConverter(
 			SegmentAdapter< S > segmentAdapter,
@@ -88,7 +88,7 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 			color.mul( alpha / 255.0 );
 		}
 
-		color.mul( alpha );
+		color.mul( opacity );
 	}
 
 	public void timePointChanged( int timePointIndex )
@@ -99,12 +99,12 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	@Override
 	public void setOpacity( double opacity )
 	{
-		this.alpha = opacity;
+		this.opacity = opacity;
 	}
 
 	@Override
 	public double getOpacity()
 	{
-		return alpha;
+		return opacity;
 	}
 }

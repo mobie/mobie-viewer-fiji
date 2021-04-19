@@ -10,13 +10,14 @@ import net.imglib2.type.volatiles.VolatileARGBType;
 import java.util.HashMap;
 import java.util.List;
 
-public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBType >
+public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBType >, OpacityAdjuster
 {
 	public static final int OUT_OF_BOUNDS_ROW_INDEX = -1;
 	private final ColoringModel< T > coloringModel;
 	private final List< T > list;
 	private int backgroundARGBIndex; // default, background color
 	private final HashMap< Integer, Integer > indexToColor;
+	private double opacity = 0.5;
 
 	public ListItemsARGBConverter(
 			List< T > list,
@@ -57,10 +58,20 @@ public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBTyp
 		else
 		{
 			coloringModel.convert( item, color );
-
-			final int alpha = ARGBType.alpha( color.get() );
-			if( alpha < 255 )
-				color.mul( alpha / 255.0 );
 		}
+
+		color.mul( opacity );
+	}
+
+	@Override
+	public void setOpacity( double opacity )
+	{
+		this.opacity = opacity;
+	}
+
+	@Override
+	public double getOpacity()
+	{
+		return opacity;
 	}
 }

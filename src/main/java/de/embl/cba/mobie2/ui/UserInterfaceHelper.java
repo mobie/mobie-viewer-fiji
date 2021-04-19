@@ -18,6 +18,7 @@ import de.embl.cba.mobie2.color.OpacityAdjuster;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.Display;
+import de.embl.cba.mobie2.grid.GridView;
 import de.embl.cba.mobie2.view.ViewerManager;
 import de.embl.cba.mobie2.view.View;
 import de.embl.cba.tables.SwingUtils;
@@ -176,7 +177,7 @@ public class UserInterfaceHelper
 
 		// TODO: This cast requires that the sourceAndConverter implements
 		//   an OpacityAdjuster; how to do this more cleanly?
-		final double current = ( (OpacityAdjuster) sourceAndConverters.get( 0 ).asVolatile().getConverter()).getOpacity();
+		final double current = ( (OpacityAdjuster) sourceAndConverters.get( 0 ).getConverter()).getOpacity();
 
 		final BoundedValueDouble selection =
 				new BoundedValueDouble(
@@ -232,6 +233,26 @@ public class UserInterfaceHelper
 		}
 	}
 
+	public JPanel createGridViewDisplaySettingsPanel( GridView gridView )
+	{
+		JPanel panel = createDisplayPanel( gridView.getName() );
+
+		// Buttons
+		panel.add( createSpace() );
+		panel.add( createButtonPlaceholder() );
+		panel.add( createOpacityButton( Arrays.asList( gridView.getSourceAndConverter() ), gridView.getName(), gridView.getBdvHandle() ) );
+		panel.add( createButtonPlaceholder() );
+		panel.add( createButtonPlaceholder() );
+		panel.add( createButtonPlaceholder() ); //panel.add( createRemoveButton( display ) );
+		// Checkboxes
+		panel.add( createSpace() );
+		panel.add( createImageViewerVisibilityCheckbox( true, Arrays.asList( gridView.getSourceAndConverter() ) ) );
+		panel.add( createCheckboxPlaceholder() );
+		panel.add( createWindowVisibilityCheckbox( true, gridView.getTableViewer().getWindow() ) );
+		panel.add( createCheckboxPlaceholder() ); //panel.add( createScatterPlotViewerVisibilityCheckbox( display, true ) );
+		return panel;
+	}
+
 	public static class OpacityUpdateListener implements BoundedValueDouble.UpdateListener
 	{
 		final private List< SourceAndConverter< ? > > sourceAndConverters;
@@ -258,10 +279,8 @@ public class UserInterfaceHelper
 			{
 				final double currentValue = value.getCurrentValue();
 
-				if ( sourceAndConverter.getConverter() instanceof OpacityAdjuster )
-					( ( OpacityAdjuster ) sourceAndConverter.getConverter() ).setOpacity( currentValue );
-
-				if ( sourceAndConverter.asVolatile().getConverter() instanceof OpacityAdjuster )
+				( ( OpacityAdjuster ) sourceAndConverter.getConverter() ).setOpacity( currentValue );
+				if ( sourceAndConverter.asVolatile() != null )
 					( ( OpacityAdjuster ) sourceAndConverter.asVolatile().getConverter() ).setOpacity( currentValue );
 			}
 
@@ -290,20 +309,22 @@ public class UserInterfaceHelper
 		return actionPanel;
 	}
 
-	public void addImageDisplaySettingsPanel( UserInterface userInterface, ImageDisplay display )
+	public JPanel createImageDisplaySettingsPanel( ImageDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
 		setPanelColor( panel, display.getColor() );
 
+		// Buttons
 		panel.add( createSpace() );
-		panel.add( createFocusButton( display ) );
-		panel.add( createOpacityButton( display ) );
-		panel.add( createColorButton( display, panel ) );
+		panel.add( createFocusButton( display, display.sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
+		panel.add( createOpacityButton( display.sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
+		panel.add( createColorButton( panel, display.sourceAndConverters ) );
 		panel.add( createImageDisplayBrightnessButton( display ) );
-		panel.add( createRemoveButton( userInterface, display ) );
+		panel.add( createRemoveButton( display ) );
+		// Checkboxes
 		panel.add( createSpace() );
-		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
+		panel.add( createImageViewerVisibilityCheckbox( true, display.sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() ); // TODO: createVolume...
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createCheckboxPlaceholder() );
@@ -318,7 +339,7 @@ public class UserInterfaceHelper
 			} );
 		}
 
-		userInterface.showDisplaySettingsPanel( display, panel );
+		return panel;
 	}
 
 	private JPanel createDisplayPanel( String name )
@@ -328,29 +349,29 @@ public class UserInterfaceHelper
 		panel.setBorder( BorderFactory.createEmptyBorder( 0, 10, 0, 10 ) );
 		panel.add( Box.createHorizontalGlue() );
 		JLabel label = new JLabel(name );
-		label.setHorizontalAlignment( SwingUtilities.CENTER );
+		label.setHorizontalAlignment( SwingUtilities.LEFT );
 		panel.add( label );
 
 		return panel;
 	}
 
-	public void addSegmentationDisplaySettingsPanel( UserInterface userInterface, SegmentationDisplay display )
+	public JPanel addSegmentationDisplaySettingsPanel( SegmentationDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
 		panel.add( createSpace() );
-		panel.add( createFocusButton( display ) );
-		panel.add( createOpacityButton( display ) );
+		panel.add( createFocusButton( display, display.sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
+		panel.add( createOpacityButton( display.sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createButtonPlaceholder() );
-		panel.add( createRemoveButton( userInterface, display ) );
+		panel.add( createRemoveButton( display ) );
 		panel.add( createSpace() );
-		panel.add( createImageViewerVisibilityCheckbox( display, true ) );
+		panel.add( createImageViewerVisibilityCheckbox( true, display.sourceAndConverters ) );
 		panel.add( createVolumeViewerVisibilityCheckbox( display ) );
-		panel.add( createTableViewerVisibilityCheckbox( display, true ) );
+		panel.add( createWindowVisibilityCheckbox( true, display.tableViewer.getWindow() ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display, true ) );
 
-		userInterface.showDisplaySettingsPanel( display, panel );
+		return panel;
 	}
 
 	public JPanel createViewsSelectionPanel( )
@@ -558,8 +579,8 @@ public class UserInterfaceHelper
 	}
 
 	private static JCheckBox createImageViewerVisibilityCheckbox(
-			Display display,
-			boolean isVisible )
+			boolean isVisible,
+			final List< SourceAndConverter< ? > > sourceAndConverters )
 	{
 		JCheckBox checkBox = new JCheckBox( "S" );
 		checkBox.setSelected( isVisible );
@@ -570,7 +591,7 @@ public class UserInterfaceHelper
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
+				for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 				{
 					SourceAndConverterServices.getSourceAndConverterDisplayService().setVisible( sourceAndConverter, checkBox.isSelected() );
 				}
@@ -580,16 +601,16 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	private static JCheckBox createTableViewerVisibilityCheckbox(
-			SegmentationDisplay sourceDisplay,
-			boolean isVisible )
+	private static JCheckBox createWindowVisibilityCheckbox(
+			boolean isVisible,
+			Window window )
 	{
 		JCheckBox checkBox = new JCheckBox( "T" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
-		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> sourceDisplay.tableViewer.getWindow().setVisible( checkBox.isSelected() ) ) );
+		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> window.setVisible( checkBox.isSelected() ) ) );
 
-		sourceDisplay.tableViewer.getWindow().addWindowListener(
+		window.addWindowListener(
 				new WindowAdapter() {
 					public void windowClosing( WindowEvent ev) {
 						checkBox.setSelected( false );
@@ -670,18 +691,18 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JButton createFocusButton( Display display )
+	public static JButton createFocusButton( Display display, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
 	{
 		JButton button = new JButton( "F" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
 		{
-			for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
+			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{
 				// TODO: make this work for multiple!
 				final AffineTransform3D transform = new ViewerTransformAdjuster( display.sliceViewer.getBdvHandle(), sourceAndConverter ).getTransform();
-				new ViewerTransformChanger( display.sliceViewer.getBdvHandle(), transform, false, 1000 ).run();
+				new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
 			}
 		} );
 
@@ -723,7 +744,7 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	public static JButton createOpacityButton( Display display )
+	public static JButton createOpacityButton( List< SourceAndConverter< ? > > sourceAndConverters, String name, BdvHandle bdvHandle )
 	{
 		JButton button = new JButton( "O" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -731,15 +752,15 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			UserInterfaceHelper.showOpacityDialog(
-					display.getName(),
-					display.sourceAndConverters,
-					display.sliceViewer.getBdvHandle() );
+					name,
+					sourceAndConverters,
+					bdvHandle );
 		} );
 
 		return button;
 	}
 
-	private static JButton createColorButton( ImageDisplay imageDisplay, JPanel parentPanel )
+	private static JButton createColorButton( JPanel parentPanel, List< SourceAndConverter< ? > > sourceAndConverters )
 	{
 		JButton colorButton = new JButton( "C" );
 
@@ -752,7 +773,7 @@ public class UserInterfaceHelper
 
 			parentPanel.setBackground( color );
 
-			for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )
+			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{
 				new ColorChanger( sourceAndConverter, ColorUtils.getARGBType( color ) ).run();
 			}
@@ -772,9 +793,7 @@ public class UserInterfaceHelper
 	}
 
 	// TODO: this should also close the table a.s.o. if it is a segmentation source
-	private JButton createRemoveButton(
-			final de.embl.cba.mobie2.ui.UserInterface userInterface,
-			Display display )
+	private JButton createRemoveButton( Display display )
 	{
 		JButton removeButton = new JButton( "X" );
 		removeButton.setPreferredSize( PREFERRED_BUTTON_SIZE );

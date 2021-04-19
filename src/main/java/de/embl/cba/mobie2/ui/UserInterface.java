@@ -4,6 +4,7 @@ import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.Display;
+import de.embl.cba.mobie2.grid.GridView;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +20,7 @@ public class UserInterface
 	private final JFrame frame;
 	private final JPanel actionContainer;
 	private final UserInterfaceHelper userInterfaceHelper;
-	private Map< Display, JPanel > sourceDisplayToPanel;
+	private Map< Object, JPanel > displayToPanel;
 
 	public UserInterface( MoBIE2 moBIE )
 	{
@@ -27,7 +28,7 @@ public class UserInterface
 
 		actionContainer = userInterfaceHelper.createActionPanel();
 		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsPanel();
-		sourceDisplayToPanel = new HashMap<>();
+		displayToPanel = new HashMap<>();
 
 		frame = createAndShowFrame( actionContainer, displaySettingsContainer, moBIE.getProjectName() + "-" + moBIE.getCurrentDatasetName() );
 	}
@@ -68,32 +69,43 @@ public class UserInterface
 
 	public void addSourceDisplay( Display display )
 	{
-		setLafSwingLookAndFeel();
+		final JPanel panel = createDisplaySettingPanel( display );
+		showDisplaySettingsPanel( display, panel );
+		refresh();
+	}
 
+	private JPanel createDisplaySettingPanel( Display display )
+	{
 		if ( display instanceof ImageDisplay )
 		{
-			userInterfaceHelper.addImageDisplaySettingsPanel( this, ( ImageDisplay ) display );
-			refresh();
+			return userInterfaceHelper.createImageDisplaySettingsPanel( ( ImageDisplay ) display );
 		}
 		else if ( display instanceof SegmentationDisplay )
 		{
-			userInterfaceHelper.addSegmentationDisplaySettingsPanel( this, ( SegmentationDisplay ) display );
-			refresh();
+			return userInterfaceHelper.addSegmentationDisplaySettingsPanel( ( SegmentationDisplay ) display );
 		}
-
-		setSystemSwingLookAndFeel();
+		else
+		{
+			throw new UnsupportedOperationException();
+		}
 	}
 
-	public void removeSourceDisplay( Display display )
+	public void addGridView( GridView gridView )
 	{
-		final JPanel jPanel = sourceDisplayToPanel.get( display );
+		final JPanel panel = userInterfaceHelper.createGridViewDisplaySettingsPanel( gridView );
+		showDisplaySettingsPanel( gridView, panel );
+	}
+
+	public void removeDisplay( Object display )
+	{
+		final JPanel jPanel = displayToPanel.get( display );
 		displaySettingsContainer.remove( jPanel );
-		sourceDisplayToPanel.remove( display );
+		displayToPanel.remove( display );
 	}
 
-	protected void showDisplaySettingsPanel( Display display, JPanel panel )
+	protected void showDisplaySettingsPanel( Object display, JPanel panel )
 	{
-		sourceDisplayToPanel.put( display, panel );
+		displayToPanel.put( display, panel );
 		displaySettingsContainer.add( panel );
 		refresh();
 	}
@@ -102,4 +114,5 @@ public class UserInterface
 	{
 		return frame;
 	}
+
 }

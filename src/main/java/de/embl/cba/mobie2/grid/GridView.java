@@ -29,10 +29,13 @@ public class GridView implements ColoringListener, SelectionListener< DefaultAnn
 	private final DefaultSelectionModel< DefaultAnnotatedIntervalTableRow > selectionModel;
 	private final TableViewer< DefaultAnnotatedIntervalTableRow > tableViewer;
 	private final BdvHandle bdvHandle;
+	private final String name;
+	private SourceAndConverter< IntType > sourceAndConverter;
 
 	public GridView( MoBIE2 moBIE2, BdvHandle bdvHandle, String name, String tableDataFolder, GridSourceTransformer sourceTransformer )
 	{
 		this.bdvHandle = bdvHandle;
+		this.name = name;
 
 		String tablePath = moBIE2.getDefaultTableLocation( tableDataFolder );
 		tablePath = Utils.resolveTablePath( tablePath );
@@ -59,13 +62,23 @@ public class GridView implements ColoringListener, SelectionListener< DefaultAnn
 	private void showGridImage( BdvHandle bdvHandle, String name, List< DefaultAnnotatedIntervalTableRow > tableRows )
 	{
 		final TableRowsIntervalImage< DefaultAnnotatedIntervalTableRow > intervalImage = new TableRowsIntervalImage<>( tableRows, coloringModel, name );
-		SourceAndConverter< IntType > sourceAndConverter = intervalImage.getSourceAndConverter();
+		sourceAndConverter = intervalImage.getSourceAndConverter();
 		SourceAndConverterServices.getSourceAndConverterDisplayService().show( bdvHandle, sourceAndConverter );
 	}
 
 	public TableViewer< DefaultAnnotatedIntervalTableRow > getTableViewer()
 	{
 		return tableViewer;
+	}
+
+	public BdvHandle getBdvHandle()
+	{
+		return bdvHandle;
+	}
+
+	public SourceAndConverter< IntType > getSourceAndConverter()
+	{
+		return sourceAndConverter;
 	}
 
 	@Override
@@ -95,4 +108,8 @@ public class GridView implements ColoringListener, SelectionListener< DefaultAnn
 
 	}
 
+	public String getName()
+	{
+		return name;
+	}
 }

@@ -1,7 +1,6 @@
 package de.embl.cba.mobie2.view;
 
 import bdv.util.BdvHandle;
-import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.grid.GridView;
@@ -19,9 +18,7 @@ import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij3d.Image3DUniverse;
-import net.imglib2.type.numeric.integer.IntType;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
 import javax.swing.*;
@@ -94,7 +91,6 @@ public class ViewerManager
 			removeAllSourceDisplays();
 		}
 
-		// Show the sources
 		setLafSwingLookAndFeel();
 
 		final List< SourceDisplaySupplier > sourceDisplays = view.getSourceDisplays();
@@ -114,7 +110,9 @@ public class ViewerManager
 				showSourceDisplay( display );
 			}
 		}
-		createGridView( SwingUtilities.getWindowAncestor( sliceViewer.get().getViewerPanel() ), sourceTransformers );
+
+		createAndShowGridView( SwingUtilities.getWindowAncestor( sliceViewer.get().getViewerPanel() ), sourceTransformers );
+
 		setSystemSwingLookAndFeel();
 
 		// Adjust the viewer transform
@@ -143,7 +141,7 @@ public class ViewerManager
 		displays.add( display );
 	}
 
-	private void createGridView( Window window, List< SourceTransformer > sourceTransformers )
+	private void createAndShowGridView( Window window, List< SourceTransformer > sourceTransformers )
 	{
 		int i = 0; // TODO: can there be more than one?
 
@@ -159,11 +157,14 @@ public class ViewerManager
 					{
 						gridView = new GridView( moBIE2, bdvHandle,  "grid-view-" + (i++), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
 
+						userInterface.addGridView( gridView );
 
 						SwingUtilities.invokeLater( () ->
 						{
 							UserInterfaceHelper.bottomAlignWindow( window, gridView.getTableViewer().getWindow() );
 						} );
+
+
 					}
 				}
 			}
@@ -267,7 +268,7 @@ public class ViewerManager
 			( ( ImageDisplay ) display ).imageSliceView.close();
 		}
 
-		userInterface.removeSourceDisplay( display );
+		userInterface.removeDisplay( display );
 		displays.remove( display );
 	}
 

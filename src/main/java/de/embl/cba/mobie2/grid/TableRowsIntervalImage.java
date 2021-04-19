@@ -5,6 +5,7 @@ import bdv.util.RandomAccessibleIntervalSource4D;
 import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
+import de.embl.cba.mobie2.color.LabelConverter;
 import de.embl.cba.mobie2.color.ListItemsARGBConverter;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringModel;
