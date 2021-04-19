@@ -1,4 +1,4 @@
-package de.embl.cba.mobie2.grid;
+package de.embl.cba.mobie2.color;
 
 import de.embl.cba.tables.color.ColoringModel;
 import net.imglib2.Volatile;
@@ -10,8 +10,7 @@ import net.imglib2.type.volatiles.VolatileARGBType;
 import java.util.HashMap;
 import java.util.List;
 
-// TODO: move to table-utils
-public class ListItemsARGBConverter< T > implements Converter<RealType, ARGBType>
+public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBType >
 {
 	public static final int OUT_OF_BOUNDS_ROW_INDEX = -1;
 	private final ColoringModel< T > coloringModel;
@@ -43,12 +42,6 @@ public class ListItemsARGBConverter< T > implements Converter<RealType, ARGBType
 
 		final int index = ( int ) rowIndex.getRealDouble();
 
-		if ( indexToColor.containsKey( index ))
-		{
-			color.set( indexToColor.get( index ) );
-			return;
-		}
-
 		if ( index == OUT_OF_BOUNDS_ROW_INDEX )
 		{
 			color.set( backgroundARGBIndex );
@@ -59,7 +52,7 @@ public class ListItemsARGBConverter< T > implements Converter<RealType, ARGBType
 
 		if ( item == null )
 		{
-			color.set( backgroundARGBIndex );
+			throw new UnsupportedOperationException( "Item not found " + item );
 		}
 		else
 		{

@@ -1,17 +1,19 @@
 package de.embl.cba.mobie2.grid;
 
 import bdv.util.BdvOverlay;
-import bdv.util.RandomAccessibleIntervalSource;
 import bdv.util.RandomAccessibleIntervalSource4D;
+import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
+import de.embl.cba.mobie2.color.ListItemsARGBConverter;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringModel;
-import net.imglib2.Interval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
+import net.imglib2.RealLocalizable;
 import net.imglib2.position.FunctionRandomAccessible;
+import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.util.Intervals;
@@ -68,7 +70,7 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 
 	private void createImage( )
 	{
-		BiConsumer< Localizable, IntType > biConsumer = ( l, t ) ->
+		BiConsumer< RealLocalizable, IntType > biConsumer = ( l, t ) ->
 		{
 			t.setInteger( ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX );
 
@@ -78,25 +80,21 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 
 				if ( Intervals.contains( interval, l ) )
 				{
-					t.setInteger( annotatedIntervalTableRow.rowIndex() );
+					final int rowIndex = annotatedIntervalTableRow.rowIndex();
+					t.setInteger( rowIndex );
 				}
 			}
 		};
 
-		final FunctionRandomAccessible< IntType > randomAccessible = new FunctionRandomAccessible( 3, biConsumer, IntType::new );
+		final FunctionRealRandomAccessible< IntType > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, IntType::new );
 
-		rai = Views.interval( randomAccessible, Intervals.smallestContainingInterval( union ) );
-
-		// add time dimension
-		rai = Views.addDimension( rai, 0, 0 );
-
-		final RandomAccessibleIntervalSource4D< IntType > tableRowIndexSource
-				= new RandomAccessibleIntervalSource4D<>( rai, Util.getTypeFromInterval( rai ), "table row index" );
+		final IntType intType = randomAccessible.realRandomAccess().get();
+		final RealRandomAccessibleIntervalSource< IntType > source = new RealRandomAccessibleIntervalSource( randomAccessible, Intervals.smallestContainingInterval( union ), intType, name );
 
 		final ListItemsARGBConverter< T > argbConverter =
 				new ListItemsARGBConverter<>( tableRows, coloringModel );
 
-		sourceAndConverter = new SourceAndConverter( tableRowIndexSource, argbConverter );
+		sourceAndConverter = new SourceAndConverter( source, argbConverter );
 
 		contrastLimits = new double[]{ 0, 255 };
 	}

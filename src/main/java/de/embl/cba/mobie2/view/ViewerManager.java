@@ -25,6 +25,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -113,7 +114,7 @@ public class ViewerManager
 				showSourceDisplay( display );
 			}
 		}
-		createGridView( sourceTransformers );
+		createGridView( SwingUtilities.getWindowAncestor( sliceViewer.get().getViewerPanel() ), sourceTransformers );
 		setSystemSwingLookAndFeel();
 
 		// Adjust the viewer transform
@@ -142,7 +143,7 @@ public class ViewerManager
 		displays.add( display );
 	}
 
-	private void createGridView( List< SourceTransformer > sourceTransformers )
+	private void createGridView( Window window, List< SourceTransformer > sourceTransformers )
 	{
 		int i = 0; // TODO: can there be more than one?
 
@@ -159,6 +160,11 @@ public class ViewerManager
 						gridView = new GridView( moBIE2,  "grid-view-" + (i++), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
 						final SourceAndConverter< IntType > sourceAndConverter = gridView.getSourceAndConverter();
 						SourceAndConverterServices.getSourceAndConverterDisplayService().show( bdvHandle, sourceAndConverter );
+
+						SwingUtilities.invokeLater( () ->
+						{
+							UserInterfaceHelper.bottomAlignWindow( window, gridView.getTableViewer().getWindow() );
+						} );
 					}
 				}
 			}

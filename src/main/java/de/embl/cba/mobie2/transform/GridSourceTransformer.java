@@ -66,7 +66,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 				transformedSources.add( transformedSource );
 
 				sourceNameToTransform.put( sourceName, transform3D );
-				intervals.add( Utils.estimateBounds( sourceAndConverter.getSpimSource() ) );
+				intervals.add( Utils.estimateBounds( transformedSource.getSpimSource() ) );
 			}
 		}
 

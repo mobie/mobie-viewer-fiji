@@ -22,6 +22,7 @@ public class GridView
 	private final MoBIEColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel;
 	private final DefaultSelectionModel< DefaultAnnotatedIntervalTableRow > selectionModel;
 	private final SourceAndConverter< IntType > sourceAndConverter;
+	private final TableViewer< DefaultAnnotatedIntervalTableRow > tableViewer;
 
 	public GridView( MoBIE2 moBIE2, String name, String tableDataFolder, GridSourceTransformer sourceTransformer )
 	{
@@ -37,7 +38,9 @@ public class GridView
 		selectionModel = new DefaultSelectionModel< DefaultAnnotatedIntervalTableRow >();
 		coloringModel.setSelectionModel( selectionModel );
 
-		final TableViewer< DefaultAnnotatedIntervalTableRow > tableViewer = new TableViewer<>( tableRows, selectionModel, coloringModel, name ).show();
+		tableViewer = new TableViewer<>( tableRows, selectionModel, coloringModel, name ).show();
+		coloringModel.listeners().add( tableViewer );
+		selectionModel.listeners().add( tableViewer );
 
 		final TableRowsIntervalImage< DefaultAnnotatedIntervalTableRow > intervalImage = new TableRowsIntervalImage<>( tableRows, coloringModel, name );
 
@@ -47,5 +50,10 @@ public class GridView
 	public SourceAndConverter< IntType > getSourceAndConverter()
 	{
 		return sourceAndConverter;
+	}
+
+	public TableViewer< DefaultAnnotatedIntervalTableRow > getTableViewer()
+	{
+		return tableViewer;
 	}
 }
