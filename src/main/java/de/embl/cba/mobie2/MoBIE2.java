@@ -226,4 +226,11 @@ public class MoBIE2
 		final String location = getPath( getCurrentDatasetName(), source.tableDataLocation, "default.tsv" );
 		return location;
 	}
+
+	public String getDefaultTableLocation( String relativeTableLocation )
+	{
+		final String location = getPath( getCurrentDatasetName(), relativeTableLocation, "default.tsv" );
+		return location;
+	}
+
 }

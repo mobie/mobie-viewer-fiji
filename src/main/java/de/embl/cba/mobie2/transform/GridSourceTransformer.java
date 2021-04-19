@@ -17,6 +17,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 {
 	private List< List< String > > sources;
 	private List< int[] > positions;
+	private String tableDataLocation; // containing measurements for each grid position
 
 	@Override
 	public List< SourceAndConverter< ? > > transform( List< SourceAndConverter< ? > > sourceAndConverters )
@@ -103,5 +104,10 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 			positions.add( new int[]{ xIndex, yIndex }  );
 			xIndex++;
 		}
+	}
+
+	public String getTableDataLocation()
+	{
+		return tableDataLocation;
 	}
 }

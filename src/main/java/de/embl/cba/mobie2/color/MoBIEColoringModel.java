@@ -58,7 +58,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		DimNotSelected
 	}
 
-	// TODO: Can I not make this a wrapper but rather configurable (in terms of table column coloring)
+	// TODO: Could one *not* make this a wrapper but rather configurable (in terms of table column coloring)
 	public MoBIEColoringModel( String lut )
 	{
 		setColoringModel( new LazyCategoryColoringModel<>( new LutFactory().get( lut ) ) );

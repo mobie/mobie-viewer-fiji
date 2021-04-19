@@ -3,6 +3,7 @@ package de.embl.cba.mobie2.view;
 import bdv.util.BdvHandle;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie2.MoBIE2;
+import de.embl.cba.mobie2.grid.GridView;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.color.MoBIEColoringModel;
@@ -10,11 +11,11 @@ import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.Display;
 import de.embl.cba.mobie2.display.SourceDisplaySupplier;
+import de.embl.cba.mobie2.transform.GridSourceTransformer;
+import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.ui.UserInterface;
-import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.DefaultSelectionModel;
-import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij3d.Image3DUniverse;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
@@ -127,8 +128,29 @@ public class ViewerManager
 			showSegmentationDisplay( segmentationDisplay );
 		}
 
+		createGridViews( display );
+
 		userInterface.addSourceDisplay( display );
 		displays.add( display );
+	}
+
+	private void createGridViews( Display display )
+	{
+		if ( display.sourceTransformers != null )
+		{
+			for ( SourceTransformer sourceTransformer : display.sourceTransformers )
+			{
+				if ( sourceTransformer instanceof GridSourceTransformer )
+				{
+					final String tableDataLocation = ( ( GridSourceTransformer ) sourceTransformer ).getTableDataLocation();
+
+					if ( tableDataLocation != null )
+					{
+						new GridView( moBIE2, display.getName(), tableDataLocation );
+					}
+				}
+			}
+		}
 	}
 
 	private Image3DUniverse getUniverse()
