@@ -1,6 +1,6 @@
 package publication.platybrowser;
 
-import de.embl.cba.mobie.bdv.BdvViewChanger;
+import de.embl.cba.mobie2.bdv.BdvViewChanger;
 import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;

@@ -157,9 +157,8 @@ public class ViewerManager
 
 					if ( tableDataLocation != null )
 					{
-						gridView = new GridView( moBIE2,  "grid-view-" + (i++), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
-						final SourceAndConverter< IntType > sourceAndConverter = gridView.getSourceAndConverter();
-						SourceAndConverterServices.getSourceAndConverterDisplayService().show( bdvHandle, sourceAndConverter );
+						gridView = new GridView( moBIE2, bdvHandle,  "grid-view-" + (i++), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
+
 
 						SwingUtilities.invokeLater( () ->
 						{

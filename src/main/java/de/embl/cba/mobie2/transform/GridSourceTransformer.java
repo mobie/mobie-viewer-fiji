@@ -15,8 +15,8 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 {
 	private List< List< String > > sources;
 	private List< int[] > positions;
-	private String tableDataLocation; // containing measurements for each grid position
 	private ArrayList< FinalRealInterval > intervals;
+	String tableDataLocation;
 
 	@Override
 	public List< SourceAndConverter< ? > > transform( List< SourceAndConverter< ? > > sourceAndConverters )
@@ -28,7 +28,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 			autoSetPositions();
 		}
 
-		intervals = new ArrayList< FinalRealInterval >();
+		intervals = new ArrayList<  >();
 
 		final SourceAndConverter< ? > reference = getReferenceSource( sourceAndConverters );
 

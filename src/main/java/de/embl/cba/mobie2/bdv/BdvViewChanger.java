@@ -1,19 +1,14 @@
-package de.embl.cba.mobie.bdv;
+package de.embl.cba.mobie2.bdv;
 
 import bdv.util.*;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.mobie.bdv.BdvPointOverlay;
 import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.utils.Utils;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.Arrays;
 
-
-/**
- * TODO: probably move to bdv-utils
- *
- *
- */
 public abstract class BdvViewChanger
 {
 	public static int animationDurationMillis = 3000;
@@ -66,7 +61,7 @@ public abstract class BdvViewChanger
 		pointOverlaySource.setActive( pointOverlaySourceIsActive );
 	}
 
-	public static void addPointOverlay( Bdv bdv, double[] doubles )
+	private static void addPointOverlay( Bdv bdv, double[] doubles )
 	{
 		if ( bdvPointOverlay == null )
 		{

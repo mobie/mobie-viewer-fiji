@@ -8,7 +8,7 @@ import bdv.viewer.SourceAndConverter;
 import com.formdev.flatlaf.FlatLightLaf;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
-import de.embl.cba.mobie.bdv.BdvViewChanger;
+import de.embl.cba.mobie2.bdv.BdvViewChanger;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.ui.MoBIE;

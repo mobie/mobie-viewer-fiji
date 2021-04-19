@@ -3,7 +3,7 @@ package de.embl.cba.mobie.ui;
 import bdv.tools.brightness.ConverterSetup;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.mobie.bdv.BdvViewChanger;
+import de.embl.cba.mobie2.bdv.BdvViewChanger;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.bookmark.Location;
 import de.embl.cba.mobie.image.SourceGroups;
