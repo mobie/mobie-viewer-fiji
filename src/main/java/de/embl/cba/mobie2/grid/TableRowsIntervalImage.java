@@ -85,7 +85,7 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 
 		final FunctionRandomAccessible< IntType > randomAccessible = new FunctionRandomAccessible( 3, biConsumer, IntType::new );
 
-		rai = Views.interval( randomAccessible, union );
+		rai = Views.interval( randomAccessible, Intervals.smallestContainingInterval( union ) );
 
 		// add time dimension
 		rai = Views.addDimension( rai, 0, 0 );
