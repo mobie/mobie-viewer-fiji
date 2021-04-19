@@ -2,6 +2,7 @@ package de.embl.cba.mobie2.grid;
 
 import bdv.util.BdvOverlay;
 import bdv.util.RandomAccessibleIntervalSource;
+import bdv.util.RandomAccessibleIntervalSource4D;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.tables.color.ColorUtils;
@@ -9,6 +10,7 @@ import de.embl.cba.tables.color.ColoringModel;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealInterval;
 import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.IntType;
@@ -25,7 +27,6 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 {
 	private final List< T > tableRows;
 	private final ColoringModel< T > coloringModel;
-	private Interval plateInterval;
 	private RandomAccessibleInterval< IntType > rai;
 	private double[] contrastLimits;
 	private HashMap< String, T > nameToTableRow;
@@ -33,6 +34,7 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 	private ARGBConvertedRealSource argbSource;
 	private String name;
 	private SourceAndConverter< IntType > sourceAndConverter;
+	private RealInterval union;
 
 	public TableRowsIntervalImage(
 			List< T > tableRows,
@@ -43,14 +45,11 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 		this.coloringModel = coloringModel;
 		this.name = name;
 
-		createSiteNameToTableRowMap( tableRows );
-
-		contrastLimits = new double[ 2 ];
-
+		init( tableRows );
 		createImage();
 	}
 
-	public void createSiteNameToTableRowMap( List< T > tableRows )
+	public void init( List< T > tableRows )
 	{
 		nameToTableRow = new HashMap<>();
 		nameToTableRowIndex = new HashMap();
@@ -60,6 +59,10 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 		{
 			nameToTableRow.put( tableRow.getName(), tableRow );
 			nameToTableRowIndex.put( tableRow.getName(), rowIndex++ );
+			if ( union == null )
+				union = tableRow.getInterval();
+			else
+				union = Intervals.union( tableRow.getInterval(), union );
 		}
 	}
 
@@ -71,8 +74,7 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 
 			for ( T annotatedIntervalTableRow : tableRows )
 			{
-				final Interval interval = annotatedIntervalTableRow.getInterval();
-				if ( interval == null ) return;
+				final RealInterval interval = annotatedIntervalTableRow.getInterval();
 
 				if ( Intervals.contains( interval, l ) )
 				{
@@ -81,23 +83,22 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 			}
 		};
 
-		final FunctionRandomAccessible< IntType > randomAccessible =
-				new FunctionRandomAccessible( 2, biConsumer, IntType::new );
+		final FunctionRandomAccessible< IntType > randomAccessible = new FunctionRandomAccessible( 3, biConsumer, IntType::new );
 
-		rai = Views.interval( randomAccessible, plateInterval );
+		rai = Views.interval( randomAccessible, union );
 
+		// add time dimension
 		rai = Views.addDimension( rai, 0, 0 );
 
-		final RandomAccessibleIntervalSource< IntType > tableRowIndexSource
-				= new RandomAccessibleIntervalSource<>( rai, Util.getTypeFromInterval( rai ), "table row index" );
+		final RandomAccessibleIntervalSource4D< IntType > tableRowIndexSource
+				= new RandomAccessibleIntervalSource4D<>( rai, Util.getTypeFromInterval( rai ), "table row index" );
 
 		final ListItemsARGBConverter< T > argbConverter =
 				new ListItemsARGBConverter<>( tableRows, coloringModel );
 
 		sourceAndConverter = new SourceAndConverter( tableRowIndexSource, argbConverter );
 
-		contrastLimits[ 0 ] = 0;
-		contrastLimits[ 1 ] = 255;
+		contrastLimits = new double[]{ 0, 255 };
 	}
 
 	public String getName()

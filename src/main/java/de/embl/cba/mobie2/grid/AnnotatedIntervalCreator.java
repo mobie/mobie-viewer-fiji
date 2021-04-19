@@ -1,6 +1,7 @@
 package de.embl.cba.mobie2.grid;
 
 import de.embl.cba.mobie2.transform.GridSourceTransformer;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public class AnnotatedIntervalCreator
 	{
 		tableRows = new ArrayList<>();
 		final int numRows = columns.values().iterator().next().size();
-		final List< Interval > intervals = sourceTransformer.getIntervals();
+		final List< FinalRealInterval > intervals = sourceTransformer.getIntervals();
 		for ( int row = 0; row < numRows; row++ )
 		{
 			intervals.get( row );

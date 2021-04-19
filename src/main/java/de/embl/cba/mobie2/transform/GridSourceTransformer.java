@@ -3,7 +3,6 @@ package de.embl.cba.mobie2.transform;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.utils.Utils;
 import net.imglib2.FinalRealInterval;
-import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.lang.ArrayUtils;
 import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
@@ -17,7 +16,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 	private List< List< String > > sources;
 	private List< int[] > positions;
 	private String tableDataLocation; // containing measurements for each grid position
-	private ArrayList< Interval > intervals;
+	private ArrayList< FinalRealInterval > intervals;
 
 	@Override
 	public List< SourceAndConverter< ? > > transform( List< SourceAndConverter< ? > > sourceAndConverters )
@@ -29,7 +28,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 			autoSetPositions();
 		}
 
-		intervals = new ArrayList<>();
+		intervals = new ArrayList< FinalRealInterval >();
 
 		final SourceAndConverter< ? > reference = getReferenceSource( sourceAndConverters );
 
@@ -67,7 +66,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 				transformedSources.add( transformedSource );
 
 				sourceNameToTransform.put( sourceName, transform3D );
-				intervals.add( sourceAndConverter.getSpimSource().getSource( 0 ,0  ) );
+				intervals.add( Utils.estimateBounds( sourceAndConverter.getSpimSource() ) );
 			}
 		}
 
@@ -114,7 +113,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 		return tableDataLocation;
 	}
 
-	public List< Interval > getIntervals()
+	public List< FinalRealInterval > getIntervals()
 	{
 		return Collections.unmodifiableList( intervals );
 	}

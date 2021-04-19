@@ -90,8 +90,6 @@ public class ImageSliceView
 		imageDisplay.sourceAndConverters = displayedSourceAndConverters;
 	}
 
-
-
 	public void close( )
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )

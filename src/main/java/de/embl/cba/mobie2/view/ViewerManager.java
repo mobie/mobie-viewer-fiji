@@ -95,19 +95,25 @@ public class ViewerManager
 
 		// Show the sources
 		setLafSwingLookAndFeel();
+
 		final List< SourceDisplaySupplier > sourceDisplays = view.getSourceDisplays();
+
+		List< SourceTransformer > sourceTransformers = null;
+		if ( view.getSourceTransforms() != null )
+			sourceTransformers = view.getSourceTransforms().stream().map( s -> s.get() ).collect( Collectors.toList() );
+
 		if ( sourceDisplays != null )
 		{
 			for ( SourceDisplaySupplier displaySupplier : sourceDisplays )
 			{
 				final Display display = displaySupplier.get();
 
-				if ( view.getSourceTransforms() != null )
-					display.sourceTransformers = view.getSourceTransforms().stream().map( s -> s.get() ).collect( Collectors.toList() );
+				display.sourceTransformers = sourceTransformers;
 
 				showSourceDisplay( display );
 			}
 		}
+		createGridView( sourceTransformers );
 		setSystemSwingLookAndFeel();
 
 		// Adjust the viewer transform
@@ -132,17 +138,17 @@ public class ViewerManager
 			showSegmentationDisplay( segmentationDisplay );
 		}
 
-		createGridViews( display );
-
 		userInterface.addSourceDisplay( display );
 		displays.add( display );
 	}
 
-	private void createGridViews( Display display )
+	private void createGridView( List< SourceTransformer > sourceTransformers )
 	{
-		if ( display.sourceTransformers != null )
+		int i = 0; // TODO: can there be more than one?
+
+		if ( sourceTransformers != null )
 		{
-			for ( SourceTransformer sourceTransformer : display.sourceTransformers )
+			for ( SourceTransformer sourceTransformer : sourceTransformers )
 			{
 				if ( sourceTransformer instanceof GridSourceTransformer )
 				{
@@ -150,7 +156,7 @@ public class ViewerManager
 
 					if ( tableDataLocation != null )
 					{
-						gridView = new GridView( moBIE2, display.getName() + "-grid", tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
+						gridView = new GridView( moBIE2,  "grid-view-" + (i++), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
 						final SourceAndConverter< IntType > sourceAndConverter = gridView.getSourceAndConverter();
 						SourceAndConverterServices.getSourceAndConverterDisplayService().show( bdvHandle, sourceAndConverter );
 					}

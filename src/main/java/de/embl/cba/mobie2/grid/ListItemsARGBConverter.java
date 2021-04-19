@@ -25,7 +25,7 @@ public class ListItemsARGBConverter< T > implements Converter<RealType, ARGBType
 	{
 		this.list = list;
 		this.coloringModel = coloringModel;
-		backgroundARGBIndex = 0;
+		backgroundARGBIndex = ARGBType.rgba( 0,0,0,255 );
 		indexToColor = new HashMap<>();
 	}
 
