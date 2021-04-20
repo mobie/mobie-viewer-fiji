@@ -4,6 +4,7 @@ import bdv.util.BdvHandle;
 import de.embl.cba.mobie2.bdv.BdvLocationLogger;
 import de.embl.cba.mobie2.bdv.SourcesAtMousePositionSupplier;
 import de.embl.cba.mobie2.segment.BdvSegmentSelector;
+import de.embl.cba.mobie2.select.SelectionColoringModeChangerCommand;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -63,10 +64,14 @@ public class SliceViewer implements Supplier< BdvHandle >
 	{
 		final Set< String > actionsKeys = sacService.getActionsKeys();
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
+
 		final String[] actions = {
 				sacService.getCommandName( ScreenShotMakerCommand.class ),
 				sacService.getCommandName( BdvLocationLogger.class ),
-				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ) };
+				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
+				sacService.getCommandName( SelectionColoringModeChangerCommand.class )};
+
+
 
 		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions );
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
@@ -77,6 +82,16 @@ public class SliceViewer implements Supplier< BdvHandle >
 				( ClickBehaviour ) ( x, y ) ->
 						new Thread( () -> segmentBdvSelector.run() ).start(),
 				"Toggle selection", "ctrl button1" ) ;
+	}
+
+	public SourceAndConverterService getSacService()
+	{
+		return sacService;
+	}
+
+	public SourceAndConverterContextMenuClickBehaviour getContextMenu()
+	{
+		return contextMenu;
 	}
 
 	private BdvHandle createBdv( int numTimepoints )

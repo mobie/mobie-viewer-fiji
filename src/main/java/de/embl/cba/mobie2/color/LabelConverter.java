@@ -107,4 +107,9 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	{
 		return opacity;
 	}
+
+	public MoBIEColoringModel< S > getColoringModel()
+	{
+		return coloringModel;
+	}
 }

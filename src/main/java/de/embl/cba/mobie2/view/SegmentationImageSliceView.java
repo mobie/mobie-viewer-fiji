@@ -7,6 +7,7 @@ import de.embl.cba.mobie2.color.LabelConverter;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.Display;
 import de.embl.cba.mobie2.open.SourceAndConverterSupplier;
+import de.embl.cba.mobie2.select.SelectionColoringModeChangerCommand;
 import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.mobie2.transform.TransformerHelper;
 import de.embl.cba.tables.color.ColoringListener;

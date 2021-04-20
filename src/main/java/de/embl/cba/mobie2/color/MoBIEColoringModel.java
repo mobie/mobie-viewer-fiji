@@ -28,7 +28,6 @@
  */
 package de.embl.cba.mobie2.color;
 
-import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.tables.color.AbstractColoringModel;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
@@ -45,7 +44,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 
 	private SelectionColoringMode selectionColoringMode;
 	private ARGBType selectionColor;
-	private double alphaNotSelected;
+	private double opacityNotSelected;
 
 	public static final ARGBType YELLOW = new ARGBType( ARGBType.rgba( 255, 255, 0, 255 ) );
 
@@ -65,7 +64,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 
 		this.selectionColoringModes = Arrays.asList( SelectionColoringMode.values() );
 		this.selectionColor = YELLOW;
-		this.alphaNotSelected = 0.15;
+		this.opacityNotSelected = 0.15;
 		this.selectionColoringMode = SelectionColoringMode.DimNotSelected;
 	}
 
@@ -91,7 +90,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		{
 			case DimNotSelected:
 				if ( ! isSelected )
-					dim( output, alphaNotSelected );
+					dim( output, opacityNotSelected );
 				break;
 
 			case SelectionColor:
@@ -103,7 +102,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 				if ( isSelected )
 					output.set( selectionColor );
 				else
-					dim( output, alphaNotSelected );
+					dim( output, opacityNotSelected );
 				break;
 
 			default:
@@ -143,7 +142,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		// ensure value between 0 and 1
 		brightnessNotSelected = Math.min( 1.0, brightnessNotSelected );
 		brightnessNotSelected = Math.max( 0.0, brightnessNotSelected );
-		this.alphaNotSelected = brightnessNotSelected;
+		this.opacityNotSelected = brightnessNotSelected;
 
 		notifyColoringListeners();
 	}
@@ -192,9 +191,13 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		return selectionModel;
 	}
 
-	public double getAlphaNotSelected()
+	public double getOpacityNotSelected()
 	{
-		return alphaNotSelected;
+		return opacityNotSelected;
 	}
 
+	public void setOpacityNotSelected( double opacityNotSelected )
+	{
+		this.opacityNotSelected = opacityNotSelected;
+	}
 }
