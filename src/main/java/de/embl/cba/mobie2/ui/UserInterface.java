@@ -11,9 +11,6 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setSystemSwingLookAndFeel;
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setLafSwingLookAndFeel;
-
 public class UserInterface
 {
 	private final JPanel displaySettingsContainer;
@@ -82,7 +79,7 @@ public class UserInterface
 		}
 		else if ( display instanceof SegmentationDisplay )
 		{
-			return userInterfaceHelper.addSegmentationDisplaySettingsPanel( ( SegmentationDisplay ) display );
+			return userInterfaceHelper.createSegmentationDisplaySettingsPanel( ( SegmentationDisplay ) display );
 		}
 		else
 		{

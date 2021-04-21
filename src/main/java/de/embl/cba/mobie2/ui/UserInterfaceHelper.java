@@ -246,7 +246,7 @@ public class UserInterfaceHelper
 		panel.add( createButtonPlaceholder() ); //panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( createSpace() );
-		panel.add( createImageViewerVisibilityCheckbox( true, Arrays.asList( gridView.getSourceAndConverter() ) ) );
+		panel.add( createSliceViewerVisibilityCheckbox( true, Arrays.asList( gridView.getSourceAndConverter() ) ) );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createWindowVisibilityCheckbox( true, gridView.getTableViewer().getWindow() ) );
 		panel.add( createCheckboxPlaceholder() ); //panel.add( createScatterPlotViewerVisibilityCheckbox( display, true ) );
@@ -324,7 +324,7 @@ public class UserInterfaceHelper
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( createSpace() );
-		panel.add( createImageViewerVisibilityCheckbox( true, display.sourceAndConverters ) );
+		panel.add( createSliceViewerVisibilityCheckbox( true, display.sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() ); // TODO: createVolume...
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createCheckboxPlaceholder() );
@@ -355,7 +355,7 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public JPanel addSegmentationDisplaySettingsPanel( SegmentationDisplay display )
+	public JPanel createSegmentationDisplaySettingsPanel( SegmentationDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
@@ -366,7 +366,7 @@ public class UserInterfaceHelper
 		panel.add( createButtonPlaceholder() );
 		panel.add( createRemoveButton( display ) );
 		panel.add( createSpace() );
-		panel.add( createImageViewerVisibilityCheckbox( true, display.sourceAndConverters ) );
+		panel.add( createSliceViewerVisibilityCheckbox( true, display.sourceAndConverters ) );
 		panel.add( createVolumeViewerVisibilityCheckbox( display ) );
 		panel.add( createWindowVisibilityCheckbox( true, display.tableViewer.getWindow() ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display, true ) );
@@ -578,7 +578,7 @@ public class UserInterfaceHelper
 		return Box.createRigidArea( PREFERRED_CHECKBOX_SIZE );
 	}
 
-	private static JCheckBox createImageViewerVisibilityCheckbox(
+	private static JCheckBox createSliceViewerVisibilityCheckbox(
 			boolean isVisible,
 			final List< SourceAndConverter< ? > > sourceAndConverters )
 	{

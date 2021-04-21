@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Display>Set Selected Segments Coloring Mode")
 public class SelectionColoringModeChangerCommand implements BdvPlaygroundActionCommand
 {
-	// MoBIEColoringModel.SelectionColoringMode
+	// enum MoBIEColoringModel.SelectionColoringMode
 	@Parameter( label = "Selected segments coloring mode", choices = { "SelectionColor", "DimNotSelected" } )
 	String coloringMode = "DimNotSelected";
 

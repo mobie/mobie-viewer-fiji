@@ -60,6 +60,12 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		// convert to labelSource
 		sourceAndConverters = asLabelSources( sourceAndConverters );
 
+		// show
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		{
+			displayService.show( bdvHandle, sourceAndConverter );
+		}
+
 		segmentationDisplay.sourceAndConverters = sourceAndConverters;
 	}
 
@@ -75,9 +81,7 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 
 			SourceAndConverter< ? > labelSourceAndConverter = asLabelSourceAndConverter( sourceAndConverter, labelConverter );
 
-			labelSourceAndConverters.add( sourceAndConverter );
-
-			displayService.show( bdvHandle, labelSourceAndConverter );
+			labelSourceAndConverters.add( labelSourceAndConverter );
 		}
 
 		return labelSourceAndConverters;
