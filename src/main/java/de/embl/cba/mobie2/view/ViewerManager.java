@@ -267,7 +267,8 @@ public class ViewerManager
 			( ( ImageDisplay ) display ).imageSliceView.close();
 		}
 
-		userInterface.removeDisplay( display );
+
+		userInterface.removeDisplaySettingsPanel( display );
 		displays.remove( display );
 	}
 

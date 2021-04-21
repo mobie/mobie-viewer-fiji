@@ -93,18 +93,23 @@ public class UserInterface
 		showDisplaySettingsPanel( gridView, panel );
 	}
 
-	public void removeDisplay( Object display )
+	public void removeDisplaySettingsPanel( Object display )
 	{
-		final JPanel jPanel = displayToPanel.get( display );
-		displaySettingsContainer.remove( jPanel );
-		displayToPanel.remove( display );
+		SwingUtilities.invokeLater( () -> {
+			final JPanel jPanel = displayToPanel.get( display );
+			displaySettingsContainer.remove( jPanel );
+			displayToPanel.remove( display );
+			refresh();
+		} );
 	}
 
 	protected void showDisplaySettingsPanel( Object display, JPanel panel )
 	{
-		displayToPanel.put( display, panel );
-		displaySettingsContainer.add( panel );
-		refresh();
+		SwingUtilities.invokeLater( () -> {
+			displayToPanel.put( display, panel );
+			displaySettingsContainer.add( panel );
+			refresh();
+		});
 	}
 
 	public Window getWindow()

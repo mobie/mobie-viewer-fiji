@@ -97,7 +97,10 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 
 	public void close()
 	{
-		// TODO
+		for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )
+		{
+			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+		}
 	};
 
 	@Override
