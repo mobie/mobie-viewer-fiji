@@ -678,11 +678,11 @@ public class UserInterfaceHelper
 				new Thread( () -> {
 					if ( checkBox.isSelected() )
 					{
-						display.segmentsVolumeViewer.setShowSegments( true );
+						display.segmentsVolumeViewer.showSegments( true );
 					}
 					else
 					{
-						display.segmentsVolumeViewer.setShowSegments( false );
+						display.segmentsVolumeViewer.showSegments( false );
 					}
 				}).start();
 			}

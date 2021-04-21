@@ -171,16 +171,15 @@ public class ViewerManager
 		}
 	}
 
-	private Image3DUniverse getUniverse()
+	private synchronized Image3DUniverse getUniverse()
 	{
 		if ( universe == null )
 		{
 			universe = new Image3DUniverse();
+			universe.show();
 			// Bug on MAC causes crash if users try to resize
 			//universe.getWindow().setResizable( false );
 		}
-
-		universe.show();
 
 		return universe;
 	}
@@ -250,7 +249,7 @@ public class ViewerManager
 	private void initSegmentsVolumeViewer( SegmentationDisplay display )
 	{
 		display.segmentsVolumeViewer = new Segments3DView<>( display.selectionModel, display.coloringModel, display.sourceAndConverters, () -> getUniverse()  );
-		display.segmentsVolumeViewer.setShowSegments( display.showSelectedSegmentsIn3d() );
+		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d() );
 		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
 	}

@@ -226,7 +226,7 @@ public class Segments3DView< S extends ImageSegment > implements ColoringListene
 		return segment.labelId() + "-" + segment.timePoint();
 	}
 
-	public void setShowSegments( boolean showSegments )
+	public synchronized void showSegments( boolean showSegments )
 	{
 		if ( showSegments != this.showSegments )
 		{
@@ -248,7 +248,7 @@ public class Segments3DView< S extends ImageSegment > implements ColoringListene
 		}
 	}
 
-	private void addSegmentMeshToUniverse( S segment, CustomTriangleMesh mesh )
+	private synchronized void addSegmentMeshToUniverse( S segment, CustomTriangleMesh mesh )
 	{
 		if ( mesh == null )
 			throw new RuntimeException( "Mesh of segment " + objectsName + "_" + segment.labelId() + " is null." );
