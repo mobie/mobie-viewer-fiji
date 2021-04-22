@@ -107,15 +107,15 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 	public void show()
 	{
-		if ( window != null )
-		{
-			window.setVisible( true );
-		}
-		else
+		if ( window == null )
 		{
 			updateScatterPlotSource();
 			installBdvBehaviours();
 			configureWindow();
+		}
+		else
+		{
+			window.setVisible( true );
 		}
 	}
 
@@ -170,17 +170,18 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		window.addWindowListener(
 			new WindowAdapter() {
 				public void windowClosing( WindowEvent ev) {
-
-					SwingUtilities.invokeLater( () -> window.setVisible( false ) );
-
 					for ( VisibilityListener listener : listeners )
 					{
+						BdvPopupMenus.removePopupMenu( bdvHandle );
 						listener.visibility( false );
+						// The window needs to be recreated because
+						// BDV seems to close things...
+						window = null;
+						bdvHandle = null;
 					}
 				}
 			});
 	}
-
 
 	private void installBdvBehaviours( )
 	{
@@ -215,6 +216,8 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 				});
 			}
 		);
+
+
 	}
 
 	private void updateScatterPlot()
