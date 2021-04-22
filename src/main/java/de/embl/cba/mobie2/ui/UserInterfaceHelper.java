@@ -216,8 +216,9 @@ public class UserInterfaceHelper
 		return (int) ( Toolkit.getDefaultToolkit().getScreenSize().width / 3.1 );
 	}
 
-	public static void setLafSwingLookAndFeel() {
+	public static void setMoBIESwingLookAndFeel() {
 		FlatLightLaf.install();
+		System.setProperty("apple.laf.useScreenMenuBar", "false");
 		try {
 			UIManager.setLookAndFeel( new FlatLightLaf() );
 		} catch (Exception e) {
@@ -225,7 +226,8 @@ public class UserInterfaceHelper
 		}
 	}
 
-	public static void setSystemSwingLookAndFeel() {
+	public static void resetSystemSwingLookAndFeel() {
+		// TODO: reset where the menu bar is?
 		try {
 			UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
 		} catch (Exception e) {
@@ -369,7 +371,7 @@ public class UserInterfaceHelper
 		panel.add( createSliceViewerVisibilityCheckbox( true, display.sourceAndConverters ) );
 		panel.add( createVolumeViewerVisibilityCheckbox( display ) );
 		panel.add( createWindowVisibilityCheckbox( true, display.tableViewer.getWindow() ) );
-		panel.add( createScatterPlotViewerVisibilityCheckbox( display, true ) );
+		panel.add( createScatterPlotViewerVisibilityCheckbox( display,  display.showScatterPlot() ) );
 
 		return panel;
 	}
@@ -634,7 +636,7 @@ public class UserInterfaceHelper
 				{
 					if ( recreate.get() )
 					{
-						ViewerManager.showInScatterPlotViewer( display );
+						ViewerManager.showScatterPlotViewer( display );
 						recreate.set( false );
 					}
 					else
@@ -660,6 +662,10 @@ public class UserInterfaceHelper
 						} );
 					}
 				});
+
+		// update visibility
+		// TODO: it would be better to not create the window at all if not needed
+		display.scatterPlotViewer.getWindow().setVisible( checkBox.isSelected() );
 
 		return checkBox;
 	}

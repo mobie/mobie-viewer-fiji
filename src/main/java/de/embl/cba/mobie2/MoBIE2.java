@@ -20,6 +20,7 @@ import de.embl.cba.tables.github.GitHubUtils;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.fife.rsta.ac.js.Logger;
+import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.io.IOException;
@@ -27,8 +28,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setSystemSwingLookAndFeel;
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setLafSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
 
 public class MoBIE2
 {
@@ -60,7 +61,9 @@ public class MoBIE2
 		this.options = options;
 		projectName = getName( projectLocation );
 
-		setLafSwingLookAndFeel();
+		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
+
+		setMoBIESwingLookAndFeel();
 
 		final Project project = new ProjectJsonParser().getProject( getPath( "project.json" ) );
 		currentDatasetName = project.datasets.get( 0 );
@@ -75,7 +78,7 @@ public class MoBIE2
 		UserInterfaceHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
 		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), viewerManager.getSliceViewer().getWindow(), false, true );
 
-		setSystemSwingLookAndFeel(); // To prevent other applications being affected
+		resetSystemSwingLookAndFeel(); // To prevent other applications being affected
 
 		//configureDatasetsRootLocations();
 		//appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be re-instantiated

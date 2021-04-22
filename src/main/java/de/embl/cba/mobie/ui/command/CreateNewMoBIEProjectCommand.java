@@ -10,7 +10,7 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 
 import static de.embl.cba.mobie.utils.Utils.tidyString;
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setLafSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
 
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Create new MoBIE Project..." )
 public class CreateNewMoBIEProjectCommand implements Command {
@@ -36,7 +36,7 @@ public class CreateNewMoBIEProjectCommand implements Command {
                 dataDirectory.mkdirs();
 
                 // using File script parameter changes the look and feel of swing, reset it to default here
-                setLafSwingLookAndFeel();
+                setMoBIESwingLookAndFeel();
 
                 ProjectsCreatorPanel panel = new ProjectsCreatorPanel(projectLocation);
                 panel.showProjectsCreatorPanel();

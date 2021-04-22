@@ -85,8 +85,6 @@ public class ImageSliceView
 			displayedSourceAndConverters.add( sourceAndConverter );
 		}
 
-		sacService.getUI().hide();
-
 		imageDisplay.sourceAndConverters = displayedSourceAndConverters;
 	}
 

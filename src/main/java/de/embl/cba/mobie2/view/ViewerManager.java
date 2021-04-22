@@ -4,6 +4,7 @@ import bdv.util.BdvHandle;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.grid.GridView;
+import de.embl.cba.mobie2.plot.ScatterPlotViewer;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.color.MoBIEColoringModel;
@@ -29,8 +30,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setLafSwingLookAndFeel;
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setSystemSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
 
 public class ViewerManager
 {
@@ -52,7 +53,7 @@ public class ViewerManager
 		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), sliceViewer.getWindow(), false, true );
 	}
 
-	public static void showInScatterPlotViewer( SegmentationDisplay display )
+	public static void showScatterPlotViewer( SegmentationDisplay display )
 	{
 		display.scatterPlotViewer = new ScatterPlotViewer<>( display.segments, display.selectionModel, display.coloringModel, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, new double[]{1.0, 1.0}, 0.5 );
 		display.scatterPlotViewer.show();
@@ -91,7 +92,7 @@ public class ViewerManager
 			removeAllSourceDisplays();
 		}
 
-		setLafSwingLookAndFeel();
+		setMoBIESwingLookAndFeel();
 
 		final List< SourceDisplaySupplier > sourceDisplays = view.getSourceDisplays();
 
@@ -113,7 +114,7 @@ public class ViewerManager
 
 		createAndShowGridView( SwingUtilities.getWindowAncestor( sliceViewer.get().getViewerPanel() ), sourceTransformers );
 
-		setSystemSwingLookAndFeel();
+		resetSystemSwingLookAndFeel();
 
 		// Adjust the viewer transform
 		// TODO
@@ -230,7 +231,7 @@ public class ViewerManager
 
 		showInSliceViewer( segmentationDisplay );
 		showInTableViewer( segmentationDisplay );
-		showInScatterPlotViewer( segmentationDisplay );
+		showScatterPlotViewer( segmentationDisplay );
 		initSegmentsVolumeViewer( segmentationDisplay );
 
 		SwingUtilities.invokeLater( () ->

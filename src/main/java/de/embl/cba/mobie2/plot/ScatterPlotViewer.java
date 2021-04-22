@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.embl.cba.mobie2.view;
+package de.embl.cba.mobie2.plot;
 
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
@@ -102,7 +102,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 	public void show()
 	{
-		updateScatterPlotSource(  );
+		updateScatterPlotSource();
 		installBdvBehaviours();
 		configureWindow();
 	}
@@ -133,7 +133,6 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		FunctionRealRandomAccessible< ARGBType > randomAccessible = new FunctionRealRandomAccessible( 2, biConsumerSupplier, ARGBType::new );
 
 		showInBdv( randomAccessible, FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 ), selectedColumns );
-
 	}
 
 	private List< T > getTableRows( )
@@ -151,7 +150,6 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private void configureWindow()
 	{
 		window = SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
-
 		window.addWindowListener(
 			new WindowAdapter() {
 				public void windowClosing( WindowEvent ev) {
