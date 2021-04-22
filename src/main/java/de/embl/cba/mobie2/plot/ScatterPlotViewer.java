@@ -32,11 +32,14 @@ import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
+import bdv.util.PlaceHolderOverlayInfo;
 import bdv.util.Prefs;
 import bdv.viewer.TimePointListener;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import de.embl.cba.mobie.Constants;
+import de.embl.cba.mobie.image.SourceAndMetadataChangedListener;
+import de.embl.cba.mobie2.VisibilityListener;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.plot.RealPointARGBTypeBiConsumerSupplier;
@@ -60,6 +63,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -82,6 +86,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private NearestNeighborSearchOnKDTree< T > search;
 	private BdvStackSource< ARGBType > scatterPlotSource;
 	private int currentTimepoint;
+	private List< VisibilityListener > listeners = new ArrayList<>(  );
 
 	public ScatterPlotViewer(
 			List< T > tableRows,
@@ -102,9 +107,21 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 	public void show()
 	{
-		updateScatterPlotSource();
-		installBdvBehaviours();
-		configureWindow();
+		if ( window != null )
+		{
+			window.setVisible( true );
+		}
+		else
+		{
+			updateScatterPlotSource();
+			installBdvBehaviours();
+			configureWindow();
+		}
+	}
+
+	public List< VisibilityListener > getListeners()
+	{
+		return listeners;
 	}
 
 	private void updateScatterPlotSource( )
@@ -153,10 +170,17 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		window.addWindowListener(
 			new WindowAdapter() {
 				public void windowClosing( WindowEvent ev) {
+
 					SwingUtilities.invokeLater( () -> window.setVisible( false ) );
+
+					for ( VisibilityListener listener : listeners )
+					{
+						listener.visibility( false );
+					}
 				}
 			});
 	}
+
 
 	private void installBdvBehaviours( )
 	{
@@ -195,6 +219,8 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 	private void updateScatterPlot()
 	{
+		if ( window == null ) return;
+
 		scatterPlotSource.removeFromBdv();
 		updateScatterPlotSource();
 	}
@@ -312,5 +338,11 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	public Window getWindow()
 	{
 		return window;
+	}
+
+	public void hide()
+	{
+		if ( window != null )
+			window.setVisible( false );
 	}
 }

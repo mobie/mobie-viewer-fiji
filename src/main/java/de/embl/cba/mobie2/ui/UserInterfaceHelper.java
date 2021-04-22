@@ -634,38 +634,23 @@ public class UserInterfaceHelper
 		checkBox.addActionListener( e ->
 			SwingUtilities.invokeLater( () ->
 				{
-					if ( recreate.get() )
-					{
-						ViewerManager.showScatterPlotViewer( display );
-						recreate.set( false );
-					}
+					if ( checkBox.isSelected() )
+						display.scatterPlotViewer.show();
 					else
-					{
-						display.scatterPlotViewer.getWindow().setVisible( checkBox.isSelected() );
-					}
+						display.scatterPlotViewer.hide();
 				} ) );
 
-		display.scatterPlotViewer.getWindow().addWindowListener(
-				new WindowAdapter() {
-					public void windowClosing( WindowEvent ev) {
-						SwingUtilities.invokeLater( () ->
-						{
-							checkBox.setSelected( false );
-
-							// The scatterPlot BDV Window has been closed.
-							// Simply setting it visible again does not work,
-							// but leads to an empty window.
-							// Probably because BDV itself is listening to the
-							// window closing and releases some resources?!
-							// Thus we need to recreate it from scratch.
-							recreate.set( true );
-						} );
-					}
+		display.scatterPlotViewer.getListeners().add( new VisibilityListener()
+		{
+			@Override
+			public void visibility( boolean isVisible )
+			{
+				SwingUtilities.invokeLater( () ->
+				{
+					checkBox.setSelected( isVisible );
 				});
-
-		// update visibility
-		// TODO: it would be better to not create the window at all if not needed
-		display.scatterPlotViewer.getWindow().setVisible( checkBox.isSelected() );
+			}
+		} );
 
 		return checkBox;
 	}

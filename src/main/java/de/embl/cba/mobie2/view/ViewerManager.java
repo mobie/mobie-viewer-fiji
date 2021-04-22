@@ -56,10 +56,12 @@ public class ViewerManager
 	public static void showScatterPlotViewer( SegmentationDisplay display )
 	{
 		display.scatterPlotViewer = new ScatterPlotViewer<>( display.segments, display.selectionModel, display.coloringModel, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, new double[]{1.0, 1.0}, 0.5 );
-		display.scatterPlotViewer.show();
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
 		display.coloringModel.listeners().add( display.scatterPlotViewer );
 		display.sliceViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
+
+		if ( display.showScatterPlot() )
+			display.scatterPlotViewer.show();
 	}
 
 	public static void showInTableViewer( SegmentationDisplay display  )
@@ -237,7 +239,6 @@ public class ViewerManager
 		SwingUtilities.invokeLater( () ->
 		{
 			UserInterfaceHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
-			UserInterfaceHelper.rightAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.scatterPlotViewer.getWindow(), true, true );
 		} );
 	}
 
