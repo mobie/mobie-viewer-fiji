@@ -9,6 +9,7 @@ import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.bdv.BdvViewChanger;
 import de.embl.cba.mobie2.color.MoBIEColoringModel;
+import de.embl.cba.mobie2.display.Display;
 import de.embl.cba.mobie2.transform.GridSourceTransformer;
 import de.embl.cba.mobie2.view.TableViewer;
 import de.embl.cba.tables.TableColumns;
@@ -20,19 +21,20 @@ import net.imglib2.type.numeric.integer.IntType;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class GridView implements ColoringListener, SelectionListener< DefaultAnnotatedIntervalTableRow >
+public class GridOverlayDisplay extends Display implements ColoringListener, SelectionListener< DefaultAnnotatedIntervalTableRow >
 {
 	private final MoBIEColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel;
 	private final DefaultSelectionModel< DefaultAnnotatedIntervalTableRow > selectionModel;
 	private final TableViewer< DefaultAnnotatedIntervalTableRow > tableViewer;
 	private final BdvHandle bdvHandle;
 	private final String name;
-	private SourceAndConverter< IntType > sourceAndConverter;
 
-	public GridView( MoBIE2 moBIE2, BdvHandle bdvHandle, String name, String tableDataFolder, GridSourceTransformer sourceTransformer )
+	// TODO: split in two classes: the GridOverlayDisplay and the GridOverlayView
+	public GridOverlayDisplay( MoBIE2 moBIE2, BdvHandle bdvHandle, String name, String tableDataFolder, GridSourceTransformer sourceTransformer )
 	{
 		this.bdvHandle = bdvHandle;
 		this.name = name;
@@ -53,6 +55,7 @@ public class GridView implements ColoringListener, SelectionListener< DefaultAnn
 		coloringModel.listeners().add( tableViewer );
 		selectionModel.listeners().add( tableViewer );
 
+		sourceAndConverters = new ArrayList<>();
 		showGridImage( bdvHandle, name, tableRows );
 
 		coloringModel.listeners().add( this );
@@ -62,8 +65,9 @@ public class GridView implements ColoringListener, SelectionListener< DefaultAnn
 	private void showGridImage( BdvHandle bdvHandle, String name, List< DefaultAnnotatedIntervalTableRow > tableRows )
 	{
 		final TableRowsIntervalImage< DefaultAnnotatedIntervalTableRow > intervalImage = new TableRowsIntervalImage<>( tableRows, coloringModel, name );
-		sourceAndConverter = intervalImage.getSourceAndConverter();
+		SourceAndConverter< IntType > sourceAndConverter = intervalImage.getSourceAndConverter();
 		SourceAndConverterServices.getSourceAndConverterDisplayService().show( bdvHandle, sourceAndConverter );
+		sourceAndConverters.add( sourceAndConverter );
 	}
 
 	public TableViewer< DefaultAnnotatedIntervalTableRow > getTableViewer()
@@ -74,11 +78,6 @@ public class GridView implements ColoringListener, SelectionListener< DefaultAnn
 	public BdvHandle getBdvHandle()
 	{
 		return bdvHandle;
-	}
-
-	public SourceAndConverter< IntType > getSourceAndConverter()
-	{
-		return sourceAndConverter;
 	}
 
 	@Override
@@ -111,5 +110,13 @@ public class GridView implements ColoringListener, SelectionListener< DefaultAnn
 	public String getName()
 	{
 		return name;
+	}
+
+	public void close()
+	{
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		{
+			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+		}
 	}
 }

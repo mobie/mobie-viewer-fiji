@@ -29,9 +29,23 @@ public class Display
 	{
 		return Collections.unmodifiableList( sources );
 	}
-
 	public double getOpacity()
 	{
 		return opacity;
+	}
+
+	public List< SourceAndConverter< ? > > getSourceAndConverters()
+	{
+		return sourceAndConverters;
+	}
+
+	public List< SourceTransformer > getSourceTransformers()
+	{
+		return sourceTransformers;
+	}
+
+	public SliceViewer getSliceViewer()
+	{
+		return sliceViewer;
 	}
 }

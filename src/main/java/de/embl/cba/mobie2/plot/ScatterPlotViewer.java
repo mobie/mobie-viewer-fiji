@@ -216,8 +216,6 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 				});
 			}
 		);
-
-
 	}
 
 	private void updateScatterPlot()
@@ -347,5 +345,15 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	{
 		if ( window != null )
 			window.setVisible( false );
+	}
+
+	public void close()
+	{
+		if ( bdvHandle != null )
+		{
+			BdvPopupMenus.removePopupMenu( bdvHandle );
+			bdvHandle.close();
+			window = null;
+		}
 	}
 }

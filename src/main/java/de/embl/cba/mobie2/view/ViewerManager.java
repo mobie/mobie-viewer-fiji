@@ -3,7 +3,7 @@ package de.embl.cba.mobie2.view;
 import bdv.util.BdvHandle;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie2.MoBIE2;
-import de.embl.cba.mobie2.grid.GridView;
+import de.embl.cba.mobie2.grid.GridOverlayDisplay;
 import de.embl.cba.mobie2.plot.ScatterPlotViewer;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.source.SegmentationSource;
@@ -41,7 +41,7 @@ public class ViewerManager
 	private ArrayList< Display > displays;
 	private Image3DUniverse universe;
 	private final BdvHandle bdvHandle;
-	private GridView gridView;
+	private GridOverlayDisplay gridOverlayDisplay;
 
 	public ViewerManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
 	{
@@ -158,16 +158,15 @@ public class ViewerManager
 
 					if ( tableDataLocation != null )
 					{
-						gridView = new GridView( moBIE2, bdvHandle,  "grid-view-" + (i++), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
+						gridOverlayDisplay = new GridOverlayDisplay( moBIE2, bdvHandle,  "grid-" + (i++), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
 
-						userInterface.addGridView( gridView );
+						userInterface.addGridView( gridOverlayDisplay );
+						displays.add( gridOverlayDisplay );
 
 						SwingUtilities.invokeLater( () ->
 						{
-							UserInterfaceHelper.bottomAlignWindow( window, gridView.getTableViewer().getWindow() );
+							UserInterfaceHelper.bottomAlignWindow( window, gridOverlayDisplay.getTableViewer().getWindow() );
 						} );
-
-
 					}
 				}
 			}
@@ -260,15 +259,21 @@ public class ViewerManager
 	{
 		if ( display instanceof SegmentationDisplay )
 		{
-			( ( SegmentationDisplay ) display ).segmentationImageSliceView.close();
-			( ( SegmentationDisplay ) display ).tableViewer.getWindow().dispose();
-			( ( SegmentationDisplay ) display ).scatterPlotViewer.getWindow().dispose();
+			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
+			segmentationDisplay.segmentationImageSliceView.close();
+			segmentationDisplay.tableViewer.getWindow().dispose();
+			segmentationDisplay.scatterPlotViewer.close();
 		}
-		else
+		else if ( display instanceof ImageDisplay )
 		{
-			( ( ImageDisplay ) display ).imageSliceView.close();
+			final ImageDisplay imageDisplay = ( ImageDisplay ) display;
+			imageDisplay.imageSliceView.close();
 		}
-
+		else if ( display instanceof GridOverlayDisplay )
+		{
+			final GridOverlayDisplay gridOverlayDisplay = ( GridOverlayDisplay ) display;
+			gridOverlayDisplay.close();
+		}
 
 		userInterface.removeDisplaySettingsPanel( display );
 		displays.remove( display );

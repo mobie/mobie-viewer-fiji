@@ -18,8 +18,7 @@ import de.embl.cba.mobie2.color.OpacityAdjuster;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.Display;
-import de.embl.cba.mobie2.grid.GridView;
-import de.embl.cba.mobie2.view.ViewerManager;
+import de.embl.cba.mobie2.grid.GridOverlayDisplay;
 import de.embl.cba.mobie2.view.View;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
@@ -39,7 +38,6 @@ import java.awt.event.WindowEvent;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static de.embl.cba.mobie2.ui.SwingHelper.*;
 
@@ -235,25 +233,26 @@ public class UserInterfaceHelper
 		}
 	}
 
-	public JPanel createGridViewDisplaySettingsPanel( GridView gridView )
+	public JPanel createGridViewDisplaySettingsPanel( GridOverlayDisplay gridOverlayDisplay )
 	{
-		JPanel panel = createDisplayPanel( gridView.getName() );
+		JPanel panel = createDisplayPanel( gridOverlayDisplay.getName() );
 
 		// Buttons
 		panel.add( createSpace() );
 		panel.add( createButtonPlaceholder() );
-		panel.add( createOpacityButton( Arrays.asList( gridView.getSourceAndConverter() ), gridView.getName(), gridView.getBdvHandle() ) );
+		panel.add( createOpacityButton( gridOverlayDisplay.getSourceAndConverters(), gridOverlayDisplay.getName(), gridOverlayDisplay.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createButtonPlaceholder() );
-		panel.add( createButtonPlaceholder() ); //panel.add( createRemoveButton( display ) );
+		panel.add( createRemoveButton( gridOverlayDisplay ) );
 		// Checkboxes
 		panel.add( createSpace() );
-		panel.add( createSliceViewerVisibilityCheckbox( true, Arrays.asList( gridView.getSourceAndConverter() ) ) );
+		panel.add( createSliceViewerVisibilityCheckbox( true,  gridOverlayDisplay.getSourceAndConverters() ) );
 		panel.add( createCheckboxPlaceholder() );
-		panel.add( createWindowVisibilityCheckbox( true, gridView.getTableViewer().getWindow() ) );
+		panel.add( createWindowVisibilityCheckbox( true, gridOverlayDisplay.getTableViewer().getWindow() ) );
 		panel.add( createCheckboxPlaceholder() ); //panel.add( createScatterPlotViewerVisibilityCheckbox( display, true ) );
 		return panel;
 	}
+
 
 	public static class OpacityUpdateListener implements BoundedValueDouble.UpdateListener
 	{
@@ -626,8 +625,6 @@ public class UserInterfaceHelper
 			SegmentationDisplay display,
 			boolean isVisible )
 	{
-		final AtomicBoolean recreate = new AtomicBoolean( false );
-
 		JCheckBox checkBox = new JCheckBox( "P" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
@@ -783,7 +780,6 @@ public class UserInterfaceHelper
 		}
 	}
 
-	// TODO: this should also close the table a.s.o. if it is a segmentation source
 	private JButton createRemoveButton( Display display )
 	{
 		JButton removeButton = new JButton( "X" );

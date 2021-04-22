@@ -4,7 +4,7 @@ import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.Display;
-import de.embl.cba.mobie2.grid.GridView;
+import de.embl.cba.mobie2.grid.GridOverlayDisplay;
 
 import javax.swing.*;
 import java.awt.*;
@@ -87,10 +87,10 @@ public class UserInterface
 		}
 	}
 
-	public void addGridView( GridView gridView )
+	public void addGridView( GridOverlayDisplay gridOverlayDisplay )
 	{
-		final JPanel panel = userInterfaceHelper.createGridViewDisplaySettingsPanel( gridView );
-		showDisplaySettingsPanel( gridView, panel );
+		final JPanel panel = userInterfaceHelper.createGridViewDisplaySettingsPanel( gridOverlayDisplay );
+		showDisplaySettingsPanel( gridOverlayDisplay, panel );
 	}
 
 	public void removeDisplaySettingsPanel( Object display )
