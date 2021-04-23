@@ -35,7 +35,7 @@ public class MoBIE2
 {
 	private SourcesDisplayManager sourcesDisplayManager;
 	private SourcesModel sourcesModel;
-	private final MoBIEOptions options;
+	private MoBIEOptions options;
 	private String projectLocation; // without branch, pure github address
 	private String datasetLocation; // without branch, pure github address
 	private String imagesLocation; // selected dataset
@@ -58,17 +58,16 @@ public class MoBIE2
 	public MoBIE2( String projectLocation, MoBIEOptions options ) throws IOException
 	{
 		this.projectLocation = projectLocation;
-		this.options = options;
+		this.options = options.projectLocation( projectLocation );
+
 		projectName = getName( projectLocation );
 
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 
-		setMoBIESwingLookAndFeel();
-
-		final Project project = new ProjectJsonParser().getProject( getPath( "project.json" ) );
+		final Project project = new ProjectJsonParser().getProject( getPath( options.values.getProjectLocation(), "project.json" ) );
 		currentDatasetName = project.defaultDataset;
 
-		dataset = new DatasetJsonParser().getDataset( getPath( getCurrentDatasetName(), "dataset.json" ) );
+		dataset = new DatasetJsonParser().getDataset( getPath( options.values.getProjectLocation(), getCurrentDatasetName(), "dataset.json" ) );
 
 		final UserInterface userInterface = new UserInterface( this );
 		viewerManager = new ViewerManager( this, userInterface, dataset.is2D, dataset.timepoints );
@@ -78,13 +77,6 @@ public class MoBIE2
 		UserInterfaceHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
 		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), viewerManager.getSliceViewer().getWindow(), false, true );
 
-		resetSystemSwingLookAndFeel(); // To prevent other applications being affected
-
-		//configureDatasetsRootLocations();
-		//appendSpecificDatasetLocations(); // TODO: separate this such that this MoBIE class does not need to be re-instantiated
-
-
-//
 //		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageModality(), tablesLocation );
 //		sourcesDisplayManager = new SourcesDisplayManager( sourcesModel, projectName );
 //		bookmarkManager = fetchBookmarks( this.projectLocation );
@@ -108,26 +100,24 @@ public class MoBIE2
 			return "fileSystem";
 	}
 
-	private String getPath( String... files )
+	private String getPath( String rootLocation, String... files )
 	{
-		String location = projectLocation;
-
-		if ( projectLocation.contains( "github.com" ) )
+		if ( rootLocation.contains( "github.com" ) )
 		{
-			location = GitHubUtils.createRawUrl( location, options.values.getProjectBranch() );
+			rootLocation = GitHubUtils.createRawUrl( rootLocation, options.values.getProjectBranch() );
 		}
 
 		final String[] strings = new String[ files.length + 2 ];
-		strings[ 0 ] = location;
+		strings[ 0 ] = rootLocation;
 		strings[ 1 ] = "data";
 		for ( int i = 0; i < files.length; i++ )
 		{
 			strings[ i + 2] = files[ i ];
 		}
 
-		location = FileAndUrlUtils.combinePath( strings );
+		String path = FileAndUrlUtils.combinePath( strings );
 
-		return location;
+		return path;
 	}
 
 	public ViewerManager getViewerManager()
@@ -220,19 +210,19 @@ public class MoBIE2
 
 	public String getImageLocation( ImageSource source )
 	{
-		final String location = getPath( getCurrentDatasetName(), source.imageDataLocations.get( getImageDataStorageModality() ) );
+		final String location = getPath( options.values.getImageDataLocation(), getCurrentDatasetName(), source.imageDataLocations.get( getImageDataStorageModality() ) );
 		return location;
 	}
 
 	public String getDefaultTableLocation( SegmentationSource source )
 	{
-		final String location = getPath( getCurrentDatasetName(), source.tableDataLocation, "default.tsv" );
+		final String location = getPath( options.values.getTableDataLocation(), getCurrentDatasetName(), source.tableDataLocation, "default.tsv" );
 		return location;
 	}
 
 	public String getDefaultTableLocation( String relativeTableLocation )
 	{
-		final String location = getPath( getCurrentDatasetName(), relativeTableLocation, "default.tsv" );
+		final String location = getPath( options.values.getTableDataLocation(), getCurrentDatasetName(), relativeTableLocation, "default.tsv" );
 		return location;
 	}
 

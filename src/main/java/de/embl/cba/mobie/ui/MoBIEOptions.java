@@ -15,6 +15,12 @@ public class MoBIEOptions
 		return new MoBIEOptions();
 	}
 
+	public MoBIEOptions projectLocation( String projectLocation )
+	{
+		this.values.projectLocation = projectLocation;
+		return this;
+	}
+
 	public MoBIEOptions dataset( String dataset )
 	{
 		this.values.dataset = dataset;
@@ -64,6 +70,7 @@ public class MoBIEOptions
 		private String projectBranch = "master"; // project and images
 		private String tableDataBranch;
 		private ImageDataStorageModality imageDataStorageModality = ImageDataStorageModality.S3;
+		private String projectLocation;
 		private String imageDataLocation;
 		private String tableDataLocation;
 
@@ -79,12 +86,12 @@ public class MoBIEOptions
 
 		public String getImageDataLocation()
 		{
-			return imageDataLocation;
+			return imageDataLocation != null ? imageDataLocation : projectLocation;
 		}
 
 		public String getTableDataLocation()
 		{
-			return tableDataLocation;
+			return tableDataLocation != null ? tableDataLocation : projectLocation;
 		}
 
 		public String getTableDataBranch()
@@ -92,9 +99,19 @@ public class MoBIEOptions
 			return tableDataBranch != null ? tableDataBranch : projectBranch;
 		}
 
+		public String getImageDataBranch()
+		{
+			return projectBranch;
+		}
+
 		public String getPublicationURL()
 		{
 			return publicationURL;
+		}
+
+		public String getProjectLocation()
+		{
+			return projectLocation;
 		}
 	}
 }

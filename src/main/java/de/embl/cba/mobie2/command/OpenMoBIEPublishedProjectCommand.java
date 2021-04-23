@@ -1,23 +1,22 @@
-package de.embl.cba.mobie.ui.command;
+package de.embl.cba.mobie2.command;
 
 import de.embl.cba.mobie.projects.PublishedProject;
 import de.embl.cba.mobie.projects.PublishedProjectsCreator;
 import de.embl.cba.mobie.ui.MoBIEOptions;
 import de.embl.cba.mobie.ui.MoBIE;
+import de.embl.cba.mobie2.MoBIE2;
 import ij.gui.GenericDialog;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open>Open Published MoBIE Project..." )
+@Plugin(type = Command.class, menuPath = "Plugins>MoBIE2>Open>Open Published MoBIE Project..." )
 public class OpenMoBIEPublishedProjectCommand implements Command
 {
-	//@Parameter ( label = "Select Project", callback = "selectProject" )
-	//public Button selectProjectButton;
-
 	@Override
 	public void run()
 	{
@@ -38,7 +37,14 @@ public class OpenMoBIEPublishedProjectCommand implements Command
 
 		final PublishedProject project = projects.get( choice );
 
-		final MoBIE moBIE = new MoBIE( project.location, MoBIEOptions.options().pulicationURL( project.pulicationURL ) );
+		try
+		{
+			new MoBIE2( project.location, MoBIEOptions.options().pulicationURL( project.pulicationURL ) );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public static void main( String[] args )

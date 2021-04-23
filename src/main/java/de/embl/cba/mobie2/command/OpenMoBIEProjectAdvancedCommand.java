@@ -2,10 +2,13 @@ package de.embl.cba.mobie2.command;
 
 import de.embl.cba.mobie.ui.MoBIEOptions;
 import de.embl.cba.mobie.ui.MoBIE;
+import de.embl.cba.mobie2.MoBIE2;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+
+import java.io.IOException;
 
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open>Advanced>Open MoBIE Project Expert Mode..." )
 public class OpenMoBIEProjectAdvancedCommand implements Command
@@ -28,18 +31,24 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 	@Parameter ( label = "Table Data Branch" )
 	public String tableDataBranch = "master";
 
-
 	@Override
 	public void run()
 	{
-		new MoBIE(
-				projectLocation,
-				MoBIEOptions.options()
-						.gitProjectBranch( projectBranch )
-						.imageDataStorageModality( MoBIEOptions.ImageDataStorageModality.valueOf( imageDataStorageModality ) )
-						.imageDataLocation( imageDataLocation )
-						.tableDataLocation( tableDataLocation )
-						.gitTablesBranch( tableDataBranch ) );
+		try
+		{
+			new MoBIE2(
+					projectLocation,
+					MoBIEOptions.options()
+							.gitProjectBranch( projectBranch )
+							.imageDataStorageModality( MoBIEOptions.ImageDataStorageModality.valueOf( imageDataStorageModality ) )
+							.imageDataLocation( imageDataLocation )
+							.tableDataLocation( tableDataLocation )
+							.gitTablesBranch( tableDataBranch ) );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public static void main(final String... args)

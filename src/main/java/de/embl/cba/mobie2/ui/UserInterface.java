@@ -11,6 +11,9 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
+
 public class UserInterface
 {
 	private final JPanel displaySettingsContainer;
@@ -27,7 +30,9 @@ public class UserInterface
 		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsPanel();
 		displayToPanel = new HashMap<>();
 
+		setMoBIESwingLookAndFeel();
 		frame = createAndShowFrame( actionContainer, displaySettingsContainer, moBIE.getProjectName() + "-" + moBIE.getCurrentDatasetName() );
+		resetSystemSwingLookAndFeel();
 	}
 
 	private JFrame createAndShowFrame( JPanel actionPanel, JPanel displaySettingsPanel, String panelName )
