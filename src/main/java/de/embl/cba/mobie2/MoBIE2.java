@@ -26,6 +26,8 @@ import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
 
@@ -191,10 +193,10 @@ public class MoBIE2
 		return dataset;
 	}
 
-	public HashMap< String, View > getViews()
+	public Map< String, View > getViews()
 	{
 		// combine the individual source views...
-		final HashMap< String, View > views = new HashMap<>();
+		final HashMap< String, View > views = new LinkedHashMap<>();
 		for ( String sourceName : dataset.sources.keySet() )
 		{
 			views.put( sourceName, dataset.sources.get( sourceName ).get().view );

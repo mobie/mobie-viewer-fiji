@@ -377,7 +377,7 @@ public class UserInterfaceHelper
 
 	public JPanel createViewsSelectionPanel( )
 	{
-		final HashMap< String, View > views = moBIE2.getViews();
+		final Map< String, View > views = moBIE2.getViews();
 
 		Map< String, Map< String, View > > groupingsToViews = new HashMap<>(  );
 
@@ -386,7 +386,7 @@ public class UserInterfaceHelper
 			final View view = views.get( viewName );
 			final String uiSelectionGroup = view.getUiSelectionGroup();
 			if ( ! groupingsToViews.containsKey( uiSelectionGroup ) )
-				groupingsToViews.put( uiSelectionGroup, new HashMap<>( ));
+				groupingsToViews.put( uiSelectionGroup, new LinkedHashMap<>( ));
 			groupingsToViews.get( uiSelectionGroup ).put( viewName, view );
 		}
 

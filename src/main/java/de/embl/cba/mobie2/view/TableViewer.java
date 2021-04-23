@@ -86,6 +86,11 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private boolean controlDown;
 	private JFrame frame;
 
+	public void close()
+	{
+		frame.dispose();
+	}
+
 	private enum TableRowSelectionMode
 	{
 		None,

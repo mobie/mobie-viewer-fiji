@@ -261,7 +261,7 @@ public class ViewerManager
 		{
 			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
 			segmentationDisplay.segmentationImageSliceView.close();
-			segmentationDisplay.tableViewer.getWindow().dispose();
+			segmentationDisplay.tableViewer.close();
 			segmentationDisplay.scatterPlotViewer.close();
 		}
 		else if ( display instanceof ImageDisplay )

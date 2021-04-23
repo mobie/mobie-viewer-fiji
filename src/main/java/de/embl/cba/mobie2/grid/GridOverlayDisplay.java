@@ -118,5 +118,7 @@ public class GridOverlayDisplay extends Display implements ColoringListener, Sel
 		{
 			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
 		}
+
+		tableViewer.close();
 	}
 }
