@@ -66,7 +66,7 @@ public class MoBIE2
 		setMoBIESwingLookAndFeel();
 
 		final Project project = new ProjectJsonParser().getProject( getPath( "project.json" ) );
-		currentDatasetName = project.datasets.get( 0 );
+		currentDatasetName = project.defaultDataset;
 
 		dataset = new DatasetJsonParser().getDataset( getPath( getCurrentDatasetName(), "dataset.json" ) );
 
