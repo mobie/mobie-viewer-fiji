@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
-import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
 
 public class MoBIE2
 {
@@ -64,10 +62,10 @@ public class MoBIE2
 
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 
-		final Project project = new ProjectJsonParser().getProject( getPath( options.values.getProjectLocation(), "project.json" ) );
+		final Project project = new ProjectJsonParser().getProject( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" ) );
 		currentDatasetName = project.defaultDataset;
 
-		dataset = new DatasetJsonParser().getDataset( getPath( options.values.getProjectLocation(), getCurrentDatasetName(), "dataset.json" ) );
+		dataset = new DatasetJsonParser().getDataset( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), getCurrentDatasetName(), "dataset.json" ) );
 
 		final UserInterface userInterface = new UserInterface( this );
 		viewerManager = new ViewerManager( this, userInterface, dataset.is2D, dataset.timepoints );
@@ -100,11 +98,11 @@ public class MoBIE2
 			return "fileSystem";
 	}
 
-	private String getPath( String rootLocation, String... files )
+	private String getPath( String rootLocation, String githubBranch, String... files )
 	{
 		if ( rootLocation.contains( "github.com" ) )
 		{
-			rootLocation = GitHubUtils.createRawUrl( rootLocation, options.values.getProjectBranch() );
+			rootLocation = GitHubUtils.createRawUrl( rootLocation, githubBranch );
 		}
 
 		final String[] strings = new String[ files.length + 2 ];
@@ -210,19 +208,18 @@ public class MoBIE2
 
 	public String getImageLocation( ImageSource source )
 	{
-		final String location = getPath( options.values.getImageDataLocation(), getCurrentDatasetName(), source.imageDataLocations.get( getImageDataStorageModality() ) );
+		final String location = getPath( options.values.getImageDataLocation(), options.values.getProjectBranch(), getCurrentDatasetName(), source.imageDataLocations.get( getImageDataStorageModality() ) );
 		return location;
 	}
 
 	public String getDefaultTableLocation( SegmentationSource source )
 	{
-		final String location = getPath( options.values.getTableDataLocation(), getCurrentDatasetName(), source.tableDataLocation, "default.tsv" );
-		return location;
+		return getDefaultTableLocation(  source.tableDataLocation );
 	}
 
 	public String getDefaultTableLocation( String relativeTableLocation )
 	{
-		final String location = getPath( options.values.getTableDataLocation(), getCurrentDatasetName(), relativeTableLocation, "default.tsv" );
+		final String location = getPath( options.values.getTableDataLocation(), options.values.getTableDataBranch(), getCurrentDatasetName(), relativeTableLocation, "default.tsv" );
 		return location;
 	}
 
