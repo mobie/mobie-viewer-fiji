@@ -70,7 +70,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 
 	public MoBIEColoringModel( ColoringModel< T > coloringModel )
 	{
-		this.coloringModel = coloringModel;
+		setColoringModel( coloringModel );
 		init();
 	}
 
@@ -86,30 +86,6 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		this.selectionColor = YELLOW;
 		this.opacityNotSelected = 0.15;
 		this.selectionColoringMode = SelectionColoringMode.DimNotSelected;
-	}
-
-	// TODO: This is code duplication
-	//   the same code appears in the TableViewer
-	//   probably on should create a ColoringModelCreator class ...
-	//   But, the whole LUT and coloring model business needs a clean up at
-	//   some point, ideally merging with Mastodon et al.
-	private void populateColoringModelFromArgbColumn( List< ? extends TableRow > tableRows, String selectedColumnName, CategoryTableRowColumnColoringModel coloringModel ) {
-
-		final int numRows = tableRows.size();
-		for (int i = 0; i < numRows; i++) {
-			String argbString = tableRows.get( i ).getCell( selectedColumnName );
-			if ( !argbString.equals("NaN") & !argbString.equals("None") ) {
-				String[] splitArgbString = argbString.split("-");
-
-				int[] argbValues = new int[4];
-				for (int j = 0; j < splitArgbString.length; j++) {
-					argbValues[j] = Integer.parseInt(splitArgbString[j]);
-				}
-
-				coloringModel.putInputToFixedColor(argbString,
-						new ARGBType(ARGBType.rgba(argbValues[1], argbValues[2], argbValues[3], argbValues[0])));
-			}
-		}
 	}
 
 	public void setSelectionModel( SelectionModel< T > selectionModel )

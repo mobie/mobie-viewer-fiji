@@ -183,7 +183,9 @@ public class MoBIE2
 	public SourceAndConverter getSourceAndConverter( String sourceName )
 	{
 		final ImageSource source = getSource( sourceName );
-		final SpimData spimData = BdvUtils.openSpimData( getImagePath( source ) );
+		final String imagePath = getImagePath( source );
+		IJ.log( "Opening image:\n" + imagePath );
+		final SpimData spimData = BdvUtils.openSpimData( imagePath );
 		final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
 		return sourceAndConverter;
 	}
