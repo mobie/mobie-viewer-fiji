@@ -67,7 +67,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		DimNotSelected
 	}
 
-	public MoBIEColoringModel( String lut, String colorByColumn, List< ? extends TableRow > tableRows )
+	public MoBIEColoringModel( String colorByColumn, List< ? extends TableRow > tableRows )
 	{
 		final CategoryTableRowColumnColoringModel coloringModel = new CategoryTableRowColumnColoringModel(
 				colorByColumn,
@@ -100,6 +100,11 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		this.selectionColoringMode = SelectionColoringMode.DimNotSelected;
 	}
 
+	// TODO: This is code duplication
+	//   the same code appears in the TableViewer
+	//   probably on should create a ColoringModelCreator class ...
+	//   But, the whole LUT and coloring model business needs a clean up at
+	//   some point, ideally merging with Mastodon et al.
 	private void populateColoringModelFromArgbColumn( List< ? extends TableRow > tableRows, String selectedColumnName, CategoryTableRowColumnColoringModel coloringModel ) {
 
 		final int numRows = tableRows.size();

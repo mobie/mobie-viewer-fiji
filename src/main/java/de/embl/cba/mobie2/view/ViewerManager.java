@@ -206,24 +206,19 @@ public class ViewerManager
 		imageDisplay.imageSliceView = new ImageSliceView( imageDisplay, bdvHandle, ( String name ) -> moBIE2.getSourceAndConverter( name ) );
 	}
 
+	// TODO: own class: SegmentationDisplayConfigurator
 	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
 	{
-		// load segments from tables
-		segmentationDisplay.segments = new ArrayList<>();
-		for ( String sourceName : segmentationDisplay.getSources() )
-		{
-			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
-			final List< TableRowImageSegment > segmentsFromTableFile = createAnnotatedImageSegmentsFromTableFile(
-					moBIE2.getDefaultTableLocation( source ),
-					sourceName );
-			segmentationDisplay.segments.addAll( segmentsFromTableFile );
-		}
+		fetchSegmentsFromTables( segmentationDisplay );
 
 		segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.segments );
 
 		if ( segmentationDisplay.getColorByColumn() != null )
 		{
-			segmentationDisplay.coloringModel = new MoBIEColoringModel<>( segmentationDisplay.getLut(), segmentationDisplay.getColorByColumn(), segmentationDisplay.segments );
+			if ( segmentationDisplay.getLut().equals( "argbColumn" ) )
+			{
+				segmentationDisplay.coloringModel = new MoBIEColoringModel<>( segmentationDisplay.getColorByColumn(), segmentationDisplay.segments );
+			}
 		}
 		else
 		{
@@ -249,6 +244,31 @@ public class ViewerManager
 		{
 			WindowArrangementHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
 		} );
+	}
+
+	private void fetchSegmentsFromTables( SegmentationDisplay segmentationDisplay )
+	{
+		segmentationDisplay.segments = new ArrayList<>();
+
+		for ( String sourceName : segmentationDisplay.getSources() )
+		{
+			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
+
+			segmentationDisplay.segments.addAll( createAnnotatedImageSegmentsFromTableFile(
+					moBIE2.getDefaultTablePath( source ),
+					sourceName ) );
+
+			final List< String > tables = segmentationDisplay.getTables();
+			if ( tables != null )
+			{
+				for ( String table : tables )
+				{
+					segmentationDisplay.segments.addAll( 	  	 	createAnnotatedImageSegmentsFromTableFile(
+							moBIE2.getTablePath( source.tableDataLocation, table ),
+							sourceName ) );
+				}
+			}
+		}
 	}
 
 	private void showInSliceViewer( SegmentationDisplay segmentationDisplay )

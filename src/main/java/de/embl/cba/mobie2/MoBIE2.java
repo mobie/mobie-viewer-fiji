@@ -183,7 +183,7 @@ public class MoBIE2
 	public SourceAndConverter getSourceAndConverter( String sourceName )
 	{
 		final ImageSource source = getSource( sourceName );
-		final SpimData spimData = BdvUtils.openSpimData( getImageLocation( source ) );
+		final SpimData spimData = BdvUtils.openSpimData( getImagePath( source ) );
 		final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
 		return sourceAndConverter;
 	}
@@ -208,21 +208,26 @@ public class MoBIE2
 		return views;
 	}
 
-	public synchronized String getImageLocation( ImageSource source )
+	public synchronized String getImagePath( ImageSource source )
 	{
-		final String location = getPath( options.values.getImageDataLocation(), options.values.getProjectBranch(), getCurrentDatasetName(), source.imageDataLocations.get( getImageDataStorageModality() ) );
-		return location;
+		final String path = getPath( options.values.getImageDataLocation(), options.values.getProjectBranch(), getCurrentDatasetName(), source.imageDataLocations.get( getImageDataStorageModality() ) );
+		return path;
 	}
 
-	public String getDefaultTableLocation( SegmentationSource source )
+	public String getDefaultTablePath( SegmentationSource source )
 	{
-		return getDefaultTableLocation(  source.tableDataLocation );
+		return getTablePath( source.tableDataLocation, "default.tsv" );
 	}
 
-	public String getDefaultTableLocation( String relativeTableLocation )
+	public String getDefaultTablePath( String relativeTableLocation )
 	{
-		final String location = getPath( options.values.getTableDataLocation(), options.values.getTableDataBranch(), getCurrentDatasetName(), relativeTableLocation, "default.tsv" );
-		return location;
+		return getTablePath( relativeTableLocation, "default.tsv" );
+	}
+
+	public String getTablePath( String relativeTableLocation, String table )
+	{
+		final String path = getPath( options.values.getTableDataLocation(), options.values.getTableDataBranch(), getCurrentDatasetName(), relativeTableLocation, table );
+		return path;
 	}
 
 }

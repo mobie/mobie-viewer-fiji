@@ -38,7 +38,7 @@ public class GridOverlayDisplay extends Display implements ColoringListener, Sel
 		this.bdvHandle = bdvHandle;
 		this.name = name;
 
-		String tablePath = moBIE2.getDefaultTableLocation( tableDataFolder );
+		String tablePath = moBIE2.getDefaultTablePath( tableDataFolder );
 		tablePath = Utils.resolveTablePath( tablePath );
 		Logger.log( "Opening table:\n" + tablePath );
 

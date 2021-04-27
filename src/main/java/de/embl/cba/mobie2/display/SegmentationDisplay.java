@@ -20,6 +20,7 @@ public class SegmentationDisplay extends Display
 	private boolean showSelectedSegmentsIn3d = false;
 	private boolean showScatterPlot = false;
 	private List< String > scatterPlotAxes;
+	private List< String > tables;
 
 	// Runtime
 	public transient SelectionModel< TableRowImageSegment > selectionModel;
@@ -59,5 +60,10 @@ public class SegmentationDisplay extends Display
 	public List< String > getScatterPlotAxes()
 	{
 		return scatterPlotAxes;
+	}
+
+	public List< String > getTables()
+	{
+		return tables;
 	}
 }
