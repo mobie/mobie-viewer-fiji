@@ -1,6 +1,6 @@
-package de.embl.cba.mobie.bookmark;
+package de.embl.cba.mobie2.transform;
 
-public enum LocationType
+public enum BdvLocationType
 {
 	Position3d,
 	Position3dAndTime,

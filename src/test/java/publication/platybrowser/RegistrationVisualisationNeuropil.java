@@ -1,7 +1,7 @@
 package publication.platybrowser;
 
-import de.embl.cba.mobie2.bdv.BdvViewChanger;
-import de.embl.cba.mobie.bookmark.Location;
+import de.embl.cba.mobie2.transform.BdvLocationChanger;
+import de.embl.cba.mobie2.transform.BdvLocation;
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
 import de.embl.cba.mobie.utils.UniverseUtils;
@@ -30,7 +30,7 @@ public class RegistrationVisualisationNeuropil
 
 		// OVERVIEW
 
-		BdvViewChanger.moveToLocation( moBIE.getSourcesDisplayManager().getBdv(), new Location( "View: (-0.7478710175280877, -0.6676436522042725, 2.086953854660592, 291.5334749475883, 1.4642245659643176, -1.7927905904117467, -0.048824338475451055, 337.95348110873744, 1.6300830832316395, 1.3040664665853117, 1.0013367511280067, -516.0999606550258)" ) );
+		BdvLocationChanger.moveToLocation( moBIE.getSourcesDisplayManager().getBdv(), new BdvLocation( "View: (-0.7478710175280877, -0.6676436522042725, 2.086953854660592, 291.5334749475883, 1.4642245659643176, -1.7927905904117467, -0.048824338475451055, 337.95348110873744, 1.6300830832316395, 1.3040664665853117, 1.0013367511280067, -516.0999606550258)" ) );
 
 		// TODO: get this via keyboard shortcut
 		UniverseUtils.setVolumeView("center =  1.0 0.0 0.0 122.88 0.0 1.0 0.0 122.88 0.0 0.0 1.0 140.40001 0.0 0.0 0.0 1.0\n" +

@@ -18,7 +18,7 @@ public class UserInterface
 {
 	private final JPanel displaySettingsContainer;
 	private final JFrame frame;
-	private final JPanel actionContainer;
+	private final JPanel selectionContainer;
 	private final UserInterfaceHelper userInterfaceHelper;
 	private Map< Object, JPanel > displayToPanel;
 
@@ -26,12 +26,12 @@ public class UserInterface
 	{
 		userInterfaceHelper = new UserInterfaceHelper( moBIE );
 
-		actionContainer = userInterfaceHelper.createActionPanel();
+		selectionContainer = userInterfaceHelper.createSelectionPanel();
 		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsPanel();
 		displayToPanel = new HashMap<>();
 
 		setMoBIESwingLookAndFeel();
-		frame = createAndShowFrame( actionContainer, displaySettingsContainer, moBIE.getProjectName() + "-" + moBIE.getCurrentDatasetName() );
+		frame = createAndShowFrame( selectionContainer, displaySettingsContainer, moBIE.getProjectName() + "-" + moBIE.getCurrentDatasetName() );
 		resetSystemSwingLookAndFeel();
 	}
 

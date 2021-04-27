@@ -3,9 +3,9 @@ package de.embl.cba.mobie.ui;
 import bdv.tools.brightness.ConverterSetup;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.mobie2.bdv.BdvViewChanger;
+import de.embl.cba.mobie2.transform.BdvLocationChanger;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
-import de.embl.cba.mobie.bookmark.Location;
+import de.embl.cba.mobie2.transform.BdvLocation;
 import de.embl.cba.mobie.image.SourceGroups;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
@@ -192,7 +192,7 @@ public class UserInterfaceComponentsProvider
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		button.addActionListener( e -> BdvViewChanger.moveToLocation( displayManager.getBdv(), new Location( jTextField.getText() ) ) );
+		button.addActionListener( e -> BdvLocationChanger.moveToLocation( displayManager.getBdv(), new BdvLocation( jTextField.getText() ) ) );
 
 		horizontalLayoutPanel.add( getJLabel( "location" ) );
 		horizontalLayoutPanel.add( jTextField );

@@ -16,6 +16,7 @@ import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.Display;
 import de.embl.cba.mobie2.display.SourceDisplaySupplier;
 import de.embl.cba.mobie2.table.TableViewer;
+import de.embl.cba.mobie2.transform.BdvLocationChanger;
 import de.embl.cba.mobie2.transform.GridSourceTransformer;
 import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.mobie2.ui.UserInterface;
@@ -99,20 +100,19 @@ public class ViewerManager
 
 		setMoBIESwingLookAndFeel();
 
-		final List< SourceDisplaySupplier > sourceDisplays = view.getSourceDisplays();
-
+		// fetch the source transformers
 		List< SourceTransformer > sourceTransformers = null;
 		if ( view.getSourceTransforms() != null )
 			sourceTransformers = view.getSourceTransforms().stream().map( s -> s.get() ).collect( Collectors.toList() );
 
+		// show the displays
+		final List< SourceDisplaySupplier > sourceDisplays = view.getSourceDisplays();
 		if ( sourceDisplays != null )
 		{
 			for ( SourceDisplaySupplier displaySupplier : sourceDisplays )
 			{
 				final Display display = displaySupplier.get();
-
 				display.sourceTransformers = sourceTransformers;
-
 				showSourceDisplay( display );
 			}
 		}
@@ -121,10 +121,20 @@ public class ViewerManager
 
 		resetSystemSwingLookAndFeel();
 
-		// Adjust the viewer transform
-		// TODO
-		//
-		new ViewerTransformAdjuster( bdvHandle, displays.get( displays.size() - 1 ).sourceAndConverters.get( 0 ) ).run();
+		// adjust the viewer transform
+		if ( view.getViewerTransform() != null )
+		{
+			BdvLocationChanger.moveToLocation( bdvHandle, view.getViewerTransform().get() );
+		}
+		else
+		{
+			if ( view.isExclusive() || displays.size() == 1 )
+			{
+				// focus on the image that was added last
+				final Display display = displays.get( displays.size() - 1 );
+				new ViewerTransformAdjuster( bdvHandle, display.sourceAndConverters.get( 0 ) ).run();
+			}
+		}
 	}
 
 	private void showSourceDisplay( Display display )

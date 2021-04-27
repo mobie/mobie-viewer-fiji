@@ -8,9 +8,9 @@ import bdv.viewer.SourceAndConverter;
 import com.formdev.flatlaf.FlatLightLaf;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
-import de.embl.cba.mobie2.bdv.BdvViewChanger;
+import de.embl.cba.mobie2.transform.BdvLocationChanger;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
-import de.embl.cba.mobie.bookmark.Location;
+import de.embl.cba.mobie2.transform.BdvLocation;
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.ui.MoBIEInfo;
 import de.embl.cba.mobie2.*;
@@ -22,8 +22,10 @@ import de.embl.cba.mobie2.grid.GridOverlayDisplay;
 import de.embl.cba.mobie2.view.View;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
-import ij.WindowManager;
+import net.imglib2.converter.Converter;
+import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.ARGBType;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -246,32 +248,37 @@ public class UserInterfaceHelper
 		}
 	}
 
-	public JPanel createActionPanel()
+	public JPanel createSelectionPanel()
 	{
-		final JPanel actionPanel = new JPanel();
-		actionPanel.setLayout( new BoxLayout( actionPanel, BoxLayout.Y_AXIS ) );
+		final JPanel panel = new JPanel();
+		panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ) );
 
-		actionPanel.add( createInfoPanel( moBIE2.getProjectLocation(), moBIE2.getOptions().values.getPublicationURL() ) );
+		panel.add( createInfoPanel( moBIE2.getProjectLocation(), moBIE2.getOptions().values.getPublicationURL() ) );
 		// actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		// actionPanel.add( createDatasetSelectionPanel() );
-		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		actionPanel.add( createViewsSelectionPanel( ) );
-		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		actionPanel.add( createMoveToLocationPanel( )  );
+		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
+		panel.add( createViewsSelectionPanel( ) );
+		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
+		panel.add( createMoveToLocationPanel( )  );
 
 		if ( moBIE2.getLevelingVector() != null )
 		{
-			actionPanel.add( createLevelingPanel( moBIE2.getLevelingVector() ) );
+			panel.add( createLevelingPanel( moBIE2.getLevelingVector() ) );
 		}
 
-		return actionPanel;
+		return panel;
 	}
 
 	public JPanel createImageDisplaySettingsPanel( ImageDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
-		setPanelColor( panel, display.getColor() );
+		// Set panel background color
+		final Converter< ?, ARGBType > converter = display.sourceAndConverters.get( 0 ).getConverter();
+		if ( converter instanceof ColorConverter )
+		{
+			setPanelColor( panel, ( ( ColorConverter ) converter ).getColor() );
+		}
 
 		// Buttons
 		panel.add( createSpace() );
@@ -293,7 +300,7 @@ public class UserInterfaceHelper
 		{
 			SourceAndConverterServices.getSourceAndConverterDisplayService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
 				// color changed listener
-				setPanelColor( panel, setup.getColor().toString());
+				setPanelColor( panel, setup.getColor() );
 			} );
 		}
 
@@ -448,7 +455,7 @@ public class UserInterfaceHelper
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		button.addActionListener( e -> BdvViewChanger.moveToLocation( moBIE2.getViewerManager().getSliceViewer().getBdvHandle(), new Location( jTextField.getText() ) ) );
+		button.addActionListener( e -> BdvLocationChanger.moveToLocation( moBIE2.getViewerManager().getSliceViewer().getBdvHandle(), new BdvLocation( jTextField.getText() ) ) );
 
 		horizontalLayoutPanel.add( getJLabel( "location" ) );
 		horizontalLayoutPanel.add( jTextField );
@@ -738,6 +745,16 @@ public class UserInterfaceHelper
 		} );
 
 		return colorButton;
+	}
+
+	private void setPanelColor( JPanel panel, ARGBType argbType )
+	{
+		final Color color = ColorUtils.getColor( argbType );
+		if ( color != null )
+		{
+			panel.setOpaque( true );
+			panel.setBackground( color );
+		}
 	}
 
 	private void setPanelColor( JPanel panel, String colorString )

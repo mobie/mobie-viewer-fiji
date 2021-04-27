@@ -4,10 +4,10 @@ import bdv.util.BdvHandle;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
-import de.embl.cba.mobie2.bdv.BdvViewChanger;
+import de.embl.cba.mobie2.transform.BdvLocationChanger;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
-import de.embl.cba.mobie.bookmark.Location;
-import de.embl.cba.mobie.bookmark.LocationType;
+import de.embl.cba.mobie2.transform.BdvLocation;
+import de.embl.cba.mobie2.transform.BdvLocationType;
 import de.embl.cba.mobie.platybrowser.GeneSearch;
 import de.embl.cba.mobie.universe.UniverseConfigurationDialog;
 import de.embl.cba.mobie.utils.Utils;
@@ -100,7 +100,7 @@ public class BdvBehaviourInstaller
 
 	private void restoreDefaultView()
 	{
-		final Location location = new Location( LocationType.NormalisedViewerTransform, moBIE.getDefaultNormalisedViewerTransform().getRowPackedCopy() );
-		BdvViewChanger.moveToLocation( bdv, location );
+		final BdvLocation bdvLocation = new BdvLocation( BdvLocationType.NormalisedViewerTransform, moBIE.getDefaultNormalisedViewerTransform().getRowPackedCopy() );
+		BdvLocationChanger.moveToLocation( bdv, bdvLocation );
 	}
 }

@@ -1,19 +1,19 @@
-package de.embl.cba.mobie.bookmark;
+package de.embl.cba.mobie2.transform;
 
 import de.embl.cba.mobie.utils.Utils;
 
-public class Location
+public class BdvLocation
 {
-	public LocationType type;
+	public BdvLocationType type;
 	public double[] doubles;
 
-	public Location( LocationType type, double[] doubles )
+	public BdvLocation( BdvLocationType type, double[] doubles )
 	{
 		this.type = type;
 		this.doubles = doubles;
 	}
 
-	public Location( String location )
+	public BdvLocation( String location )
 	{
 		boolean isNormalised = false;
 
@@ -44,15 +44,15 @@ public class Location
 		this.doubles = Utils.delimitedStringToDoubleArray( location, "," );
 
 		if ( this.doubles.length == 3 )
-			this.type = LocationType.Position3d;
+			this.type = BdvLocationType.Position3d;
 		else if ( this.doubles.length == 4 )
-			this.type = LocationType.Position3d;
+			this.type = BdvLocationType.Position3d;
 		else if ( this.doubles.length == 12 )
 		{
 			if ( isNormalised )
-				this.type = LocationType.NormalisedViewerTransform;
+				this.type = BdvLocationType.NormalisedViewerTransform;
 			else
-				this.type = LocationType.ViewerTransform;
+				this.type = BdvLocationType.ViewerTransform;
 		}
 	}
 }

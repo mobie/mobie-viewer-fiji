@@ -13,8 +13,10 @@ import de.embl.cba.mobie.image.SourceGroupLabelSourceCreator;
 import de.embl.cba.mobie.image.SourceGroups;
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
-import de.embl.cba.mobie2.bdv.BdvViewChanger;
+import de.embl.cba.mobie2.transform.BdvLocationChanger;
 import de.embl.cba.mobie.utils.Utils;
+import de.embl.cba.mobie2.transform.BdvLocation;
+import de.embl.cba.mobie2.transform.BdvLocationType;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.FileUtils.FileLocation;
 import de.embl.cba.tables.image.SourceAndMetadata;
@@ -175,11 +177,11 @@ public class BookmarkManager
 
 	public void adaptViewerTransform( Bookmark bookmark )
 	{
-		final Location location = getLocationFromBookmark( bookmark );
+		final BdvLocation bdvLocation = getLocationFromBookmark( bookmark );
 
-		if ( location != null )
+		if ( bdvLocation != null )
 		{
-			BdvViewChanger.moveToLocation( sourcesDisplayManager.getBdv(), location );
+			BdvLocationChanger.moveToLocation( sourcesDisplayManager.getBdv(), bdvLocation );
 		}
 	}
 
@@ -246,21 +248,21 @@ public class BookmarkManager
 		return imageProperties;
 	}
 
-	public static Location getLocationFromBookmark( Bookmark bookmark )
+	public static BdvLocation getLocationFromBookmark( Bookmark bookmark )
 	{
 		if ( bookmark.normView != null )
 		{
 			final double[] doubles = Arrays.stream( bookmark.normView ).mapToDouble( x -> Double.parseDouble( x.replace( "n", "" ) ) ).toArray();
 
-			return new Location( LocationType.NormalisedViewerTransform, doubles );
+			return new BdvLocation( BdvLocationType.NormalisedViewerTransform, doubles );
 		}
 		else if ( bookmark.view != null  )
 		{
-			return new Location( LocationType.ViewerTransform, bookmark.view );
+			return new BdvLocation( BdvLocationType.ViewerTransform, bookmark.view );
 		}
 		else if ( bookmark.position != null )
 		{
-			return new Location( LocationType.Position3d, bookmark.position );
+			return new BdvLocation( BdvLocationType.Position3d, bookmark.position );
 		}
 		else
 		{

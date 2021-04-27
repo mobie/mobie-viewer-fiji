@@ -3,6 +3,7 @@ package de.embl.cba.mobie2.bdv;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie2.color.opacity.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie2.color.opacity.VolatileAdjustableOpacityColorConverter;
 import de.embl.cba.mobie2.display.ImageDisplay;
@@ -30,6 +31,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
+
 public class ImageSliceView
 {
 	private final SourceAndConverterBdvDisplayService displayService;
@@ -52,7 +55,7 @@ public class ImageSliceView
 
 	private void show( )
 	{
-		List< SourceAndConverter< ? > > sourceAndConverters = openParallel();
+		List< SourceAndConverter< ? > > sourceAndConverters = openSerial();
 
 		// transform
 		sourceAndConverters = TransformerHelper.transformSourceAndConverters( sourceAndConverters, imageDisplay.sourceTransformers );
@@ -70,7 +73,7 @@ public class ImageSliceView
 			sourceAndConverter = new ConverterChanger( sourceAndConverter, new AdjustableOpacityColorConverter(  converter ), new VolatileAdjustableOpacityColorConverter( volatileConverter ) ).get();
 
 			// adapt color
-			new ColorChanger( sourceAndConverter, ColorUtils.getARGBType(  imageDisplay.getColor() ) ).run();
+			adaptImageColor( sourceAndConverter );
 
 			// set blending mode
 			if ( imageDisplay.getBlendingMode() != null )
@@ -87,6 +90,34 @@ public class ImageSliceView
 		}
 
 		imageDisplay.sourceAndConverters = displayedSourceAndConverters;
+	}
+
+	private void adaptImageColor( SourceAndConverter< ? > sourceAndConverter )
+	{
+		if ( imageDisplay.getColor() != null )
+		{
+			final String color = imageDisplay.getColor();
+
+			if ( color.equals( "randomFromGlasbey" ) )
+			{
+				final GlasbeyARGBLut glasbeyARGBLut = new GlasbeyARGBLut();
+				double random = sourceAndConverter.getSpimSource().getName().hashCode() * goldenRatio;
+				random = random - ( long ) Math.floor( random );
+				final int argb = glasbeyARGBLut.getARGB( random );
+				new ColorChanger( sourceAndConverter, new ARGBType( argb ) ).run();
+			}
+			else
+			{
+				final ARGBType argbType = ColorUtils.getARGBType( color );
+				if ( argbType == null )
+				{
+					IJ.log( "[WARN] Could not parse color: " + color );
+				} else
+				{
+					new ColorChanger( sourceAndConverter, argbType ).run();
+				}
+			}
+		}
 	}
 
 	private List< SourceAndConverter< ? > > openSerial()
