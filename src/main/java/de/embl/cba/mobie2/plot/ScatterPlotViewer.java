@@ -38,7 +38,6 @@ import bdv.viewer.TimePointListener;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import de.embl.cba.mobie.Constants;
-import de.embl.cba.mobie.image.SourceAndMetadataChangedListener;
 import de.embl.cba.mobie2.VisibilityListener;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;

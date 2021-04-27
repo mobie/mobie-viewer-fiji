@@ -12,11 +12,12 @@ import de.embl.cba.mobie2.serialize.ProjectJsonParser;
 import de.embl.cba.mobie2.source.ImageSource;
 import de.embl.cba.mobie2.source.SegmentationSource;
 import de.embl.cba.mobie2.ui.UserInterface;
-import de.embl.cba.mobie2.ui.UserInterfaceHelper;
+import de.embl.cba.mobie2.ui.WindowArrangementHelper;
 import de.embl.cba.mobie2.view.View;
 import de.embl.cba.mobie2.view.ViewerManager;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.github.GitHubUtils;
+import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.PlaygroundPrefs;
@@ -63,6 +64,8 @@ public class MoBIE2
 
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 
+		IJ.log("MoBIE");
+
 		final Project project = new ProjectJsonParser().getProject( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" ) );
 		currentDatasetName = project.defaultDataset;
 
@@ -73,8 +76,8 @@ public class MoBIE2
 		viewerManager.show( dataset.views.get( "default" ) );
 
 		// arrange windows
-		UserInterfaceHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
-		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), viewerManager.getSliceViewer().getWindow(), false, true );
+		WindowArrangementHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
+		WindowArrangementHelper.rightAlignWindow( userInterface.getWindow(), viewerManager.getSliceViewer().getWindow(), false, true );
 
 //		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageModality(), tablesLocation );
 //		sourcesDisplayManager = new SourcesDisplayManager( sourcesModel, projectName );

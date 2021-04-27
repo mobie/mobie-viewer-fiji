@@ -31,6 +31,8 @@ package de.embl.cba.mobie2.view;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import customnode.CustomTriangleMesh;
+import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
+import de.embl.cba.mobie2.VisibilityListener;
 import de.embl.cba.mobie2.mesh.MeshCreator;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringListener;
@@ -47,19 +49,24 @@ import net.imglib2.type.numeric.RealType;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public class Segments3DView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
+public class SegmentsVolumeView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
 	private final SelectionModel< S > selectionModel;
 	private final ColoringModel< S > coloringModel;
 	private final Collection< SourceAndConverter< ? > > sourceAndConverters;
-
-	private Supplier< Image3DUniverse > universeSupplier;
+	
 	private S recentFocus;
 	private ConcurrentHashMap< S, Content > segmentToContent;
 	private ConcurrentHashMap< Content, S > contentToSegment;
@@ -75,17 +82,18 @@ public class Segments3DView< S extends ImageSegment > implements ColoringListene
 	private double voxelSpacing = 0; // 0 = auto
 	private int currentTimePoint = 0;
 	private final MeshCreator< ImageSegment > meshCreator;
+	private List< VisibilityListener > listeners = new ArrayList<>(  );
+	private Window window;
+	private Image3DUniverse universe;
 
-	public Segments3DView(
+	public SegmentsVolumeView(
 			final SelectionModel< S > selectionModel,
 			final ColoringModel< S > coloringModel,
-			final Collection< SourceAndConverter< ? > > sourceAndConverters,
-			Supplier< Image3DUniverse > universeSupplier )
+			final Collection< SourceAndConverter< ? > > sourceAndConverters )
 	{
 		this.selectionModel = selectionModel;
 		this.coloringModel = coloringModel;
 		this.sourceAndConverters = sourceAndConverters;
-		this.universeSupplier = universeSupplier;
 
 		this.transparency = 0.0;
 		this.meshSmoothingIterations = 5;
@@ -216,7 +224,7 @@ public class Segments3DView< S extends ImageSegment > implements ColoringListene
 	private synchronized void removeSegment( S segment )
 	{
 		final Content content = segmentToContent.get( segment );
-		universeSupplier.get().removeContent( content.getName() );
+		universe.removeContent( content.getName() );
 		segmentToContent.remove( segment );
 		contentToSegment.remove( content );
 	}
@@ -228,6 +236,29 @@ public class Segments3DView< S extends ImageSegment > implements ColoringListene
 
 	public synchronized void showSegments( boolean showSegments )
 	{
+		if ( showSegments && universe == null )
+		{
+			universe = new Image3DUniverse();
+			universe.show();
+			window = universe.getWindow();
+			window.addWindowListener(
+				new WindowAdapter()
+				{
+					public void windowClosing( WindowEvent ev )
+					{
+						window = null;
+						universe = null;
+						segmentToContent.clear();
+						contentToSegment.clear();
+						setShowSegments( false );
+						for ( VisibilityListener listener : listeners )
+						{
+							listener.visibility( false );
+						}
+					}
+				} );
+		}
+
 		if ( showSegments != this.showSegments )
 		{
 			this.showSegments = showSegments;
@@ -236,6 +267,11 @@ public class Segments3DView< S extends ImageSegment > implements ColoringListene
 			else
 				removeSegments();
 		}
+	}
+
+	private void setShowSegments( boolean b )
+	{
+		this.showSegments = b;
 	}
 
 	private void removeSegments()
@@ -253,10 +289,10 @@ public class Segments3DView< S extends ImageSegment > implements ColoringListene
 		if ( mesh == null )
 			throw new RuntimeException( "Mesh of segment " + objectsName + "_" + segment.labelId() + " is null." );
 
-		if ( universeSupplier == null )
+		if ( universe == null )
 			throw new RuntimeException( "Universe is null." );
 
-		final Content content = universeSupplier.get().addCustomMesh( mesh, objectsName + "_" + segment.labelId() );
+		final Content content = universe.addCustomMesh( mesh, objectsName + "_" + segment.labelId() );
 
 		content.setTransparency( ( float ) transparency );
 		content.setLocked( true );
@@ -264,12 +300,12 @@ public class Segments3DView< S extends ImageSegment > implements ColoringListene
 		segmentToContent.put( segment, content );
 		contentToSegment.put( content, segment );
 
-		universeSupplier.get().setAutoAdjustView( false );
+		universe.setAutoAdjustView( false );
 	}
 
 	private boolean addUniverseListener()
 	{
-		universeSupplier.get().addUniverseListener( new UniverseListener()
+		universe.addUniverseListener( new UniverseListener()
 		{
 
 			@Override
@@ -287,15 +323,15 @@ public class Segments3DView< S extends ImageSegment > implements ColoringListene
 //			   view.getUserHeadToVworld( transform3D );
 
 //				final Transform3D transform3D = new Transform3D();
-//			    universe.getVworldToCamera( transform3D );
+//			    .getVworldToCamera( transform3D );
 //				System.out.println( transform3D );
 
 //				final Transform3D transform3DInverse = new Transform3D();
-//				universe.getVworldToCameraInverse( transform3DInverse );
+//				.getVworldToCameraInverse( transform3DInverse );
 //				System.out.println( transform3DInverse );
 
 //				final TransformGroup transformGroup =
-//						universe.getViewingPlatform()
+//						.getViewingPlatform()
 //								.getMultiTransformGroup().getTransformGroup(
 //										DefaultUniverse.ZOOM_TG );
 //
@@ -359,7 +395,12 @@ public class Segments3DView< S extends ImageSegment > implements ColoringListene
 			@Override
 			public void universeClosed()
 			{
-
+				for ( VisibilityListener listener : listeners )
+				{
+					listener.visibility( false );
+				}
+				window = null;
+				universe = null;
 			}
 		} );
 
@@ -416,7 +457,7 @@ public class Segments3DView< S extends ImageSegment > implements ColoringListene
 			}
 		}).start();
 
-		if ( universeSupplier.get().getContents().size() == 0 ) return;
+		if ( universe.getContents().size() == 0 ) return;
 		if ( selection == recentFocus ) return;
 		if ( ! segmentToContent.containsKey( selection ) ) return;
 
@@ -424,7 +465,7 @@ public class Segments3DView< S extends ImageSegment > implements ColoringListene
 
 		final AnimatedViewAdjuster adjuster =
 				new AnimatedViewAdjuster(
-						universeSupplier.get(),
+						universe,
 						AnimatedViewAdjuster.ADJUST_BOTH );
 
 		adjuster.apply(
@@ -434,5 +475,10 @@ public class Segments3DView< S extends ImageSegment > implements ColoringListene
 				segmentFocusZoomLevel,
 				segmentFocusDxyMin,
 				segmentFocusDzMin );
+	}
+
+	public Collection< VisibilityListener > getListeners()
+	{
+		return listeners;
 	}
 }

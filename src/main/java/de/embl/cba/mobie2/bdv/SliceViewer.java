@@ -3,7 +3,7 @@ package de.embl.cba.mobie2.bdv;
 import bdv.util.BdvHandle;
 import de.embl.cba.mobie2.segment.BdvSegmentSelector;
 import de.embl.cba.mobie2.color.RandomColorSeedChangerCommand;
-import de.embl.cba.mobie2.ui.UserInterfaceHelper;
+import de.embl.cba.mobie2.ui.WindowArrangementHelper;
 import de.embl.cba.mobie2.view.ViewerManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -119,10 +119,6 @@ public class SliceViewer implements Supplier< BdvHandle >
 		// create Bdv
 		final MinimalBdvCreator bdvCreator = new MinimalBdvCreator( "MoBIE", is2D, Projector.MIXED_PROJECTOR, true, numTimepoints );
 		final BdvHandle bdvHandle = bdvCreator.get();
-
-		// configure size and location on screen
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() ).setSize( UserInterfaceHelper.getDefaultWindowWidth(), (int) ( screenSize.height * 0.7 ) );
 
 		return bdvHandle;
 	}

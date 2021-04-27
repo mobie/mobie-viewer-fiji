@@ -11,6 +11,7 @@ import de.embl.cba.mobie.image.SourcesModel;
 import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.bookmark.BookmarkReader;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
+import de.embl.cba.mobie2.ui.WindowArrangementHelper;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.mobie.utils.Utils;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -73,9 +74,10 @@ public class MoBIE
 
 		SwingUtilities.invokeLater( () -> {
 			userInterface = new UserInterface( this );
+			WindowArrangementHelper.setImageJLogWindowPositionAndSize( userInterface.getWindow() );
 			bookmarkManager.setView( "default" );
 			final BdvHandle bdvHandle = sourcesDisplayManager.getBdv();
-			userInterface.setBdvWindowPositionAndSize( bdvHandle );
+			WindowArrangementHelper.setBdvWindowPositionAndSize( bdvHandle, userInterface.getWindow() );
 			defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( bdvHandle, BdvUtils.getBdvWindowCenter( bdvHandle ) );
 			new BdvBehaviourInstaller( this ).run();
 		} );

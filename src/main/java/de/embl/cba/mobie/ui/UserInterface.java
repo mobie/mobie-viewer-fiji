@@ -1,20 +1,15 @@
 package de.embl.cba.mobie.ui;
 
-import bdv.tools.brightness.ConverterSetup;
-import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BdvHandle;
-import bdv.util.BoundedValueDouble;
 import bdv.viewer.Interpolation;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.mobie.image.SourceAndMetadataChangedListener;
+import de.embl.cba.mobie2.ui.WindowArrangementHelper;
 import de.embl.cba.tables.image.SourceAndMetadata;
-import ij.WindowManager;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
-import java.util.List;
 
 public class UserInterface implements SourceAndMetadataChangedListener
 {
@@ -32,11 +27,10 @@ public class UserInterface implements SourceAndMetadataChangedListener
 
 		componentsProvider = new UserInterfaceComponentsProvider( moBIE );
 
-		actionPanel = createActionsPanel( moBIE );
+		actionPanel = createActionPanel( moBIE );
 		displaySettingsPanel = createDisplaySettingsPanel();
 
 		frame = createAndShowFrame( moBIE, actionPanel, displaySettingsPanel );
-		setImageJLogWindowPositionAndSize( frame );
 	}
 
 	public void dispose()
@@ -55,7 +49,7 @@ public class UserInterface implements SourceAndMetadataChangedListener
 		return panel;
 	}
 
-	private JPanel createActionsPanel( MoBIE moBIE )
+	private JPanel createActionPanel( MoBIE moBIE )
 	{
 		final JPanel actionPanel = new JPanel();
 		actionPanel.setLayout( new BoxLayout( actionPanel, BoxLayout.Y_AXIS ) );
@@ -94,7 +88,7 @@ public class UserInterface implements SourceAndMetadataChangedListener
 		splitPane.setAutoscrolls( true );
 
 		// show frame
-		frame.setPreferredSize( new Dimension( 600, actionPanelHeight + 200 ) );
+		frame.setPreferredSize( new Dimension( 700, actionPanelHeight + 200 ) );
 		frame.getContentPane().setLayout( new GridLayout() );
 		frame.getContentPane().add( splitPane );
 
@@ -103,28 +97,6 @@ public class UserInterface implements SourceAndMetadataChangedListener
 		frame.setVisible( true );
 
 		return frame;
-	}
-
-	private void setImageJLogWindowPositionAndSize( JFrame parentComponent )
-	{
-		final Frame log = WindowManager.getFrame( "Log" );
-		if (log != null) {
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			final int logWindowHeight = screenSize.height - ( parentComponent.getLocationOnScreen().y + parentComponent.getHeight() + 20 );
-			log.setSize( parentComponent.getWidth(), logWindowHeight  );
-			log.setLocation( parentComponent.getLocationOnScreen().x, parentComponent.getLocationOnScreen().y + parentComponent.getHeight() );
-		}
-	}
-
-	public void setBdvWindowPositionAndSize( BdvHandle bdvHandle )
-	{
-		BdvUtils.getViewerFrame( bdvHandle ).setLocation(
-				frame.getLocationOnScreen().x + frame.getWidth(),
-				frame.getLocationOnScreen().y );
-
-		BdvUtils.getViewerFrame( bdvHandle ).setSize( frame.getHeight(), frame.getHeight() );
-
-		bdvHandle.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
 	}
 
 	private void refresh()
@@ -172,4 +144,8 @@ public class UserInterface implements SourceAndMetadataChangedListener
 		refresh();
 	}
 
+	public JFrame getWindow()
+	{
+		return frame;
+	}
 }

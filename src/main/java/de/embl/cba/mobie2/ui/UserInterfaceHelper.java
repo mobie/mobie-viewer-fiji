@@ -70,44 +70,6 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public static void setLogWindowPositionAndSize( Window reference )
-	{
-		final Frame log = WindowManager.getFrame( "Log" );
-		if (log != null) {
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			final int logWindowHeight = screenSize.height - ( reference.getLocationOnScreen().y + reference.getHeight() + 2 * SPACING );
-			log.setSize( reference.getWidth(), logWindowHeight  );
-			log.setLocation( reference.getLocationOnScreen().x, reference.getLocationOnScreen().y + SPACING + reference.getHeight() );
-		}
-	}
-
-	public static void rightAlignWindow( Window reference, Window window, boolean adjustWidth, boolean adjustHeight )
-	{
-		window.setLocation(
-				reference.getLocationOnScreen().x + reference.getWidth() + SPACING,
-				reference.getLocationOnScreen().y );
-
-		if ( adjustWidth )
-			window.setSize( reference.getWidth(), window.getHeight() );
-
-		if ( adjustHeight )
-			window.setSize( window.getWidth(), reference.getHeight() );
-	}
-
-	public static void bottomAlignWindow( Window reference, Window window )
-	{
-		window.setLocation(
-				reference.getLocationOnScreen().x,
-				reference.getLocationOnScreen().y + reference.getHeight() + SPACING
-		);
-
-		final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-		window.setPreferredSize( new Dimension(
-				reference.getWidth(),
-				( screenSize.height - SPACING ) - ( reference.getHeight() + reference.getLocationOnScreen().y ) )  );
-	}
-
 	public static void showBrightnessDialog(
 			String name,
 			List< ConverterSetup > converterSetups,
@@ -207,11 +169,6 @@ public class UserInterfaceHelper
 		frame.pack();
 		frame.setVisible( true );
 
-	}
-
-	public static int getDefaultWindowWidth()
-	{
-		return (int) ( Toolkit.getDefaultToolkit().getScreenSize().width / 3.1 );
 	}
 
 	public static void setMoBIESwingLookAndFeel() {
@@ -675,6 +632,19 @@ public class UserInterfaceHelper
 				}).start();
 			}
 		} );
+
+		display.segmentsVolumeViewer.getListeners().add( new VisibilityListener()
+		{
+			@Override
+			public void visibility( boolean isVisible )
+			{
+				SwingUtilities.invokeLater( () ->
+				{
+					checkBox.setSelected( isVisible );
+				});
+			}
+		} );
+
 
 		return checkBox;
 	}

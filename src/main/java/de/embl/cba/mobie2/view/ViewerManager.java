@@ -18,8 +18,8 @@ import de.embl.cba.mobie2.display.SourceDisplaySupplier;
 import de.embl.cba.mobie2.table.TableViewer;
 import de.embl.cba.mobie2.transform.GridSourceTransformer;
 import de.embl.cba.mobie2.transform.SourceTransformer;
-import de.embl.cba.mobie2.ui.UserInterfaceHelper;
 import de.embl.cba.mobie2.ui.UserInterface;
+import de.embl.cba.mobie2.ui.WindowArrangementHelper;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij3d.Image3DUniverse;
@@ -54,7 +54,6 @@ public class ViewerManager
 		displays = new ArrayList<>();
 		sliceViewer = new SliceViewer( is2D, this, timepoints );
 		bdvHandle = sliceViewer.get();
-		UserInterfaceHelper.rightAlignWindow( userInterface.getWindow(), sliceViewer.getWindow(), false, true );
 	}
 
 	public static void showScatterPlotViewer( SegmentationDisplay display )
@@ -169,25 +168,12 @@ public class ViewerManager
 
 						SwingUtilities.invokeLater( () ->
 						{
-							UserInterfaceHelper.bottomAlignWindow( window, gridOverlayDisplay.getTableViewer().getWindow() );
+							WindowArrangementHelper.bottomAlignWindow( window, gridOverlayDisplay.getTableViewer().getWindow() );
 						} );
 					}
 				}
 			}
 		}
-	}
-
-	private synchronized Image3DUniverse getUniverse()
-	{
-		if ( universe == null )
-		{
-			universe = new Image3DUniverse();
-			universe.show();
-			// Bug on MAC causes crash if users try to resize
-			//universe.getWindow().setResizable( false );
-		}
-
-		return universe;
 	}
 
 	private void removeAllSourceDisplays()
@@ -241,7 +227,7 @@ public class ViewerManager
 
 		SwingUtilities.invokeLater( () ->
 		{
-			UserInterfaceHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
+			WindowArrangementHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
 		} );
 	}
 
@@ -253,7 +239,7 @@ public class ViewerManager
 
 	private void initSegmentsVolumeViewer( SegmentationDisplay display )
 	{
-		display.segmentsVolumeViewer = new Segments3DView<>( display.selectionModel, display.coloringModel, display.sourceAndConverters, () -> getUniverse()  );
+		display.segmentsVolumeViewer = new SegmentsVolumeView<>( display.selectionModel, display.coloringModel, display.sourceAndConverters  );
 		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d() );
 		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );

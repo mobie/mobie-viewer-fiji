@@ -4,7 +4,7 @@ import de.embl.cba.mobie2.color.MoBIEColoringModel;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.plot.ScatterPlotViewer;
 import de.embl.cba.mobie2.bdv.SegmentationImageSliceView;
-import de.embl.cba.mobie2.view.Segments3DView;
+import de.embl.cba.mobie2.view.SegmentsVolumeView;
 import de.embl.cba.mobie2.table.TableViewer;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
@@ -27,7 +27,7 @@ public class SegmentationDisplay extends Display
 	public transient ScatterPlotViewer< TableRowImageSegment > scatterPlotViewer;
 	public transient List< TableRowImageSegment > segments;
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
-	public transient Segments3DView< TableRowImageSegment > segmentsVolumeViewer;
+	public transient SegmentsVolumeView< TableRowImageSegment > segmentsVolumeViewer;
 	public transient SegmentationImageSliceView< TableRowImageSegment > segmentationImageSliceView;
 
 	public String getLut()
