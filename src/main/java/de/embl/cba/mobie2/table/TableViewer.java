@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.embl.cba.mobie2.view;
+package de.embl.cba.mobie2.table;
 
 import bdv.tools.HelpDialog;
 import de.embl.cba.bdv.utils.lut.ARGBLut;
@@ -312,7 +312,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		{
 			menuBar.add( createColoringMenu() );
 			menuBar.add( createAnnotateMenu() );
-			menuBar.add( createPlotMenu() );
+			// menuBar.add( createPlotMenu() ); we have this already in the MoBIE UI
 		}
 
 		return menuBar;
@@ -341,9 +341,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private JMenu createPlotMenu()
 	{
 		JMenu menu = new JMenu( "Plot" );
-
 		menu.add( createScatterPlotMenuItem() );
-
 		return menu;
 	}
 

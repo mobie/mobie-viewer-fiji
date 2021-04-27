@@ -1,11 +1,10 @@
-package de.embl.cba.mobie2.view;
+package de.embl.cba.mobie2.bdv;
 
 import bdv.util.BdvHandle;
-import de.embl.cba.mobie2.bdv.BdvLocationLogger;
-import de.embl.cba.mobie2.bdv.SourcesAtMousePositionSupplier;
 import de.embl.cba.mobie2.segment.BdvSegmentSelector;
-import de.embl.cba.mobie2.select.SelectionColoringModeChangerCommand;
+import de.embl.cba.mobie2.color.RandomColorSeedChangerCommand;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
+import de.embl.cba.mobie2.view.ViewerManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -25,6 +24,8 @@ import java.util.function.Supplier;
 
 public class SliceViewer implements Supplier< BdvHandle >
 {
+	public static final String UNDO_SEGMENT_SELECTIONS = "Undo segment selections [ Ctrl Shift N ]";
+	public static final String CHANGE_RANDOM_COLOR_SEED = "Change random color seed";
 	private final SourceAndConverterBdvDisplayService sacDisplayService;
 	private BdvHandle bdvHandle;
 	private final boolean is2D;
@@ -46,7 +47,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		bdvHandle = createBdv( timepoints );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
-		installContextMenu();
+		installContextMenuAndKeyboardShortCuts();
 	}
 
 	@Override
@@ -60,28 +61,47 @@ public class SliceViewer implements Supplier< BdvHandle >
 		return bdvHandle;
 	}
 
-	private void installContextMenu( )
+	private void installContextMenuAndKeyboardShortCuts( )
 	{
+		final BdvSegmentSelector segmentBdvSelector = new BdvSegmentSelector( bdvHandle, is2D, () -> viewerManager.getSegmentationDisplays() );
+
 		final Set< String > actionsKeys = sacService.getActionsKeys();
-		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
+
+		sacService.registerAction( UNDO_SEGMENT_SELECTIONS, sourceAndConverters -> {
+			// TODO: Maybe only do this for the sacs at the mouse position
+			segmentBdvSelector.clearSelection();
+		} );
+
+		sacService.registerAction( CHANGE_RANDOM_COLOR_SEED, sourceAndConverters -> {
+			// TODO: Maybe only do this for the sacs at the mouse position
+			RandomColorSeedChangerCommand.incrementRandomColorSeed( sourceAndConverters );
+		} );
 
 		final String[] actions = {
 				sacService.getCommandName( ScreenShotMakerCommand.class ),
 				sacService.getCommandName( BdvLocationLogger.class ),
 				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
-				sacService.getCommandName( SelectionColoringModeChangerCommand.class )};
-
-
+				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
+				UNDO_SEGMENT_SELECTIONS };
 
 		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions );
+
+		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
 		behaviours.install( bdvHandle.getTriggerbindings(), "MoBIE" );
-		final BdvSegmentSelector segmentBdvSelector = new BdvSegmentSelector( bdvHandle, is2D, () -> viewerManager.getSegmentationDisplays() );
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
 						new Thread( () -> segmentBdvSelector.run() ).start(),
 				"Toggle selection", "ctrl button1" ) ;
+
+		behaviours.behaviour(
+				( ClickBehaviour ) ( x, y ) ->
+						new Thread( () ->
+						{
+							segmentBdvSelector.clearSelection();
+						}).start(),
+				"Clear selection", "ctrl shift N" ) ;
 	}
 
 	public SourceAndConverterService getSacService()

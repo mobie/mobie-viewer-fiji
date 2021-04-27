@@ -314,18 +314,24 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	@Override
 	public void coloringChanged()
 	{
+		if ( bdvHandle == null ) return;
+
 		bdvHandle.getViewerPanel().requestRepaint();
 	}
 
 	@Override
 	public void selectionChanged()
 	{
+		if ( bdvHandle == null ) return;
+
 		bdvHandle.getViewerPanel().requestRepaint();
 	}
 
 	@Override
 	public void focusEvent( T selection )
 	{
+		if ( bdvHandle == null ) return;
+
 		if ( selection.getColumnNames().contains( Constants.TIMEPOINT  ) )
 		{
 			int selectedTimepoint = (int) Double.parseDouble( selection.getCell( Constants.TIMEPOINT ) );

@@ -11,14 +11,13 @@ import de.embl.cba.mobie2.bdv.BdvViewChanger;
 import de.embl.cba.mobie2.color.MoBIEColoringModel;
 import de.embl.cba.mobie2.display.Display;
 import de.embl.cba.mobie2.transform.GridSourceTransformer;
-import de.embl.cba.mobie2.view.TableViewer;
+import de.embl.cba.mobie2.table.TableViewer;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.select.SelectionListener;
 import net.imglib2.type.numeric.integer.IntType;
-import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;

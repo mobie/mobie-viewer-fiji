@@ -29,6 +29,7 @@
 package de.embl.cba.mobie2.color;
 
 import de.embl.cba.tables.color.AbstractColoringModel;
+import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.select.SelectionModel;
@@ -172,20 +173,6 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		return coloringModel;
 	}
 
-	public void iterateSelectionMode()
-	{
-		final int selectionModeIndex = selectionColoringModes.indexOf( selectionColoringMode );
-
-		if ( selectionModeIndex < selectionColoringModes.size() - 1 )
-		{
-			setSelectionColoringMode( selectionColoringModes.get( selectionModeIndex + 1 ) );
-		}
-		else
-		{
-			setSelectionColoringMode( selectionColoringModes.get( 0 ) );
-		}
-	}
-
 	public SelectionModel< T > getSelectionModel()
 	{
 		return selectionModel;
@@ -199,5 +186,13 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	public void setOpacityNotSelected( double opacityNotSelected )
 	{
 		this.opacityNotSelected = opacityNotSelected;
+	}
+
+	public void incrementRandomColorSeed()
+	{
+		if ( coloringModel instanceof CategoryColoringModel )
+		{
+			( ( CategoryColoringModel<?> ) coloringModel ).incRandomSeed();
+		}
 	}
 }

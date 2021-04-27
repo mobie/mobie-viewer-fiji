@@ -18,9 +18,7 @@ import de.embl.cba.mobie2.view.ViewerManager;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.github.GitHubUtils;
 import mpicbg.spim.data.SpimData;
-import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.fife.rsta.ac.js.Logger;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 

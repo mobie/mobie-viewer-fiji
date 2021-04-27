@@ -2,8 +2,7 @@ package de.embl.cba.mobie2.display;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie2.transform.SourceTransformer;
-import de.embl.cba.mobie2.view.SliceViewer;
-import de.embl.cba.tables.imagesegment.ImageSegment;
+import de.embl.cba.mobie2.bdv.SliceViewer;
 
 import java.util.Collections;
 import java.util.List;

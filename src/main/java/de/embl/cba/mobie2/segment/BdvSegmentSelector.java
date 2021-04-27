@@ -27,6 +27,16 @@ public class BdvSegmentSelector implements Runnable
 		this.segmentationDisplaySupplier = segmentationDisplaySupplier;
 	}
 
+	public synchronized void clearSelection()
+	{
+		final Collection< SegmentationDisplay > segmentationDisplays = segmentationDisplaySupplier.get();
+
+		for ( SegmentationDisplay segmentationDisplay : segmentationDisplays )
+		{
+			segmentationDisplay.selectionModel.clearSelection();
+		}
+	}
+
 	private synchronized void toggleSelectionAtMousePosition()
 	{
 		final BdvMousePositionProvider positionProvider = new BdvMousePositionProvider( bdvHandle );

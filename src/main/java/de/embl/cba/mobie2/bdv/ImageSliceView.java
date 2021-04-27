@@ -1,4 +1,4 @@
-package de.embl.cba.mobie2.view;
+package de.embl.cba.mobie2.bdv;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;

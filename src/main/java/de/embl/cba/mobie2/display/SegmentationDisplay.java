@@ -3,9 +3,9 @@ package de.embl.cba.mobie2.display;
 import de.embl.cba.mobie2.color.MoBIEColoringModel;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.plot.ScatterPlotViewer;
-import de.embl.cba.mobie2.view.SegmentationImageSliceView;
+import de.embl.cba.mobie2.bdv.SegmentationImageSliceView;
 import de.embl.cba.mobie2.view.Segments3DView;
-import de.embl.cba.mobie2.view.TableViewer;
+import de.embl.cba.mobie2.table.TableViewer;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 
@@ -18,6 +18,7 @@ public class SegmentationDisplay extends Display
 	private List< String > selectedSegmentIds;
 	private boolean showSelectedSegmentsIn3d = false;
 	private boolean showScatterPlot = false;
+	private List< String > scatterPlotAxes;
 
 	// Runtime
 	public transient SelectionModel< TableRowImageSegment > selectionModel;
@@ -47,5 +48,10 @@ public class SegmentationDisplay extends Display
 	public boolean showScatterPlot()
 	{
 		return showScatterPlot;
+	}
+
+	public List< String > getScatterPlotAxes()
+	{
+		return scatterPlotAxes;
 	}
 }

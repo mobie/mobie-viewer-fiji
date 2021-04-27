@@ -1,7 +1,7 @@
 package de.embl.cba.mobie2.display;
 
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.mobie2.view.ImageSliceView;
+import de.embl.cba.mobie2.bdv.ImageSliceView;
 import sc.fiji.bdvpg.bdv.projector.BlendingMode;
 
 import java.util.ArrayList;
