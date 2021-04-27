@@ -33,6 +33,7 @@ import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.CategoryTableRowColumnColoringModel;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.ColoringModel;
+import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.select.SelectionModel;
@@ -67,22 +68,9 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		DimNotSelected
 	}
 
-	public MoBIEColoringModel( String colorByColumn, List< ? extends TableRow > tableRows )
+	public MoBIEColoringModel( ColoringModel< T > coloringModel )
 	{
-		final CategoryTableRowColumnColoringModel coloringModel = new CategoryTableRowColumnColoringModel(
-				colorByColumn,
-				null );
-
-		coloringModel.putInputToFixedColor( "Infinity", TRANSPARENT );
-		coloringModel.putInputToFixedColor( "NaN", TRANSPARENT );
-		coloringModel.putInputToFixedColor( "None", TRANSPARENT );
-		coloringModel.putInputToFixedColor( "0", TRANSPARENT );
-		coloringModel.putInputToFixedColor( "0.0", TRANSPARENT );
-
-		populateColoringModelFromArgbColumn( tableRows, colorByColumn, coloringModel );
-
 		this.coloringModel = coloringModel;
-
 		init();
 	}
 

@@ -6,11 +6,11 @@ import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.bdv.ImageSliceView;
 import de.embl.cba.mobie2.bdv.SegmentationImageSliceView;
 import de.embl.cba.mobie2.bdv.SliceViewer;
+import de.embl.cba.mobie2.color.ColoringModelHelper;
 import de.embl.cba.mobie2.grid.GridOverlayDisplay;
 import de.embl.cba.mobie2.plot.ScatterPlotViewer;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.source.SegmentationSource;
-import de.embl.cba.mobie2.color.MoBIEColoringModel;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.Display;
@@ -212,19 +212,7 @@ public class ViewerManager
 		fetchSegmentsFromTables( segmentationDisplay );
 
 		segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.segments );
-
-		if ( segmentationDisplay.getColorByColumn() != null )
-		{
-			if ( segmentationDisplay.getLut().equals( "argbColumn" ) )
-			{
-				segmentationDisplay.coloringModel = new MoBIEColoringModel<>( segmentationDisplay.getColorByColumn(), segmentationDisplay.segments );
-			}
-		}
-		else
-		{
-			segmentationDisplay.coloringModel = new MoBIEColoringModel<>( segmentationDisplay.getLut() );
-		}
-
+		ColoringModelHelper.configureMoBIEColoringModel( segmentationDisplay );
 		segmentationDisplay.selectionModel = new DefaultSelectionModel<>();
 		segmentationDisplay.coloringModel.setSelectionModel(  segmentationDisplay.selectionModel );
 
