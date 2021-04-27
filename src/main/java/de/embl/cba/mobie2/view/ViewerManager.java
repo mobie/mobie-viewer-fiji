@@ -208,10 +208,7 @@ public class ViewerManager
 
 	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
 	{
-		segmentationDisplay.coloringModel = new MoBIEColoringModel<>( segmentationDisplay.getLut() );
-		segmentationDisplay.selectionModel = new DefaultSelectionModel<>();
-		segmentationDisplay.coloringModel.setSelectionModel(  segmentationDisplay.selectionModel );
-
+		// load segments from tables
 		segmentationDisplay.segments = new ArrayList<>();
 		for ( String sourceName : segmentationDisplay.getSources() )
 		{
@@ -219,15 +216,28 @@ public class ViewerManager
 			final List< TableRowImageSegment > segmentsFromTableFile = createAnnotatedImageSegmentsFromTableFile(
 					moBIE2.getDefaultTableLocation( source ),
 					sourceName );
-
 			segmentationDisplay.segments.addAll( segmentsFromTableFile );
 		}
 
 		segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.segments );
+
+		if ( segmentationDisplay.getColorByColumn() != null )
+		{
+			segmentationDisplay.coloringModel = new MoBIEColoringModel<>( segmentationDisplay.getLut(), segmentationDisplay.getColorByColumn(), segmentationDisplay.segments );
+		}
+		else
+		{
+			segmentationDisplay.coloringModel = new MoBIEColoringModel<>( segmentationDisplay.getLut() );
+		}
+
+		segmentationDisplay.selectionModel = new DefaultSelectionModel<>();
+		segmentationDisplay.coloringModel.setSelectionModel(  segmentationDisplay.selectionModel );
+
+		// set selected segments
 		if ( segmentationDisplay.getSelectedSegmentIds() != null )
 		{
-			// TODO: add to selection model
-			segmentationDisplay.segmentAdapter.getSegments( segmentationDisplay.getSelectedSegmentIds() );
+			final List< TableRowImageSegment > segments = segmentationDisplay.segmentAdapter.getSegments( segmentationDisplay.getSelectedSegmentIds() );
+			segmentationDisplay.selectionModel.setSelected( segments, true );
 		}
 
 		showInSliceViewer( segmentationDisplay );
@@ -263,6 +273,7 @@ public class ViewerManager
 			segmentationDisplay.segmentationImageSliceView.close();
 			segmentationDisplay.tableViewer.close();
 			segmentationDisplay.scatterPlotViewer.close();
+			segmentationDisplay.segmentsVolumeViewer.close();
 		}
 		else if ( display instanceof ImageDisplay )
 		{

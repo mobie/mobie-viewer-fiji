@@ -263,9 +263,13 @@ public class SegmentsVolumeView< S extends ImageSegment > implements ColoringLis
 		{
 			this.showSegments = showSegments;
 			if ( showSegments )
-				updateView( false );
+			{
+				new Thread( () -> updateView( false ) ).start();
+			}
 			else
-				removeSegments();
+			{
+				new Thread( () -> removeSegments() ).start();
+			}
 		}
 	}
 
@@ -426,7 +430,7 @@ public class SegmentsVolumeView< S extends ImageSegment > implements ColoringLis
 
 	public void close()
 	{
-		// TODO
+		showSegments( false );
 	}
 
 	@Override

@@ -30,13 +30,21 @@ package de.embl.cba.mobie2.color;
 
 import de.embl.cba.tables.color.AbstractColoringModel;
 import de.embl.cba.tables.color.CategoryColoringModel;
+import de.embl.cba.tables.color.CategoryTableRowColumnColoringModel;
+import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
+import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.select.SelectionModel;
+import de.embl.cba.tables.tablerow.TableRow;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import javafx.scene.control.Tab;
 import net.imglib2.type.numeric.ARGBType;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.TRANSPARENT;
 
 public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 {
@@ -48,8 +56,9 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	private double opacityNotSelected;
 
 	public static final ARGBType YELLOW = new ARGBType( ARGBType.rgba( 255, 255, 0, 255 ) );
+	public static final ARGBType TRANSPARENT = new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) );
 
-	private final List< SelectionColoringMode > selectionColoringModes;
+	private List< SelectionColoringMode > selectionColoringModes;
 
 	public enum SelectionColoringMode
 	{
@@ -58,15 +67,56 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		DimNotSelected
 	}
 
-	// TODO: Could one *not* make this a wrapper but rather configurable (in terms of table column coloring)
+	public MoBIEColoringModel( String lut, String colorByColumn, List< ? extends TableRow > tableRows )
+	{
+		final CategoryTableRowColumnColoringModel coloringModel = new CategoryTableRowColumnColoringModel(
+				colorByColumn,
+				null );
+
+		coloringModel.putInputToFixedColor( "Infinity", TRANSPARENT );
+		coloringModel.putInputToFixedColor( "NaN", TRANSPARENT );
+		coloringModel.putInputToFixedColor( "None", TRANSPARENT );
+		coloringModel.putInputToFixedColor( "0", TRANSPARENT );
+		coloringModel.putInputToFixedColor( "0.0", TRANSPARENT );
+
+		populateColoringModelFromArgbColumn( tableRows, colorByColumn, coloringModel );
+
+		this.coloringModel = coloringModel;
+
+		init();
+	}
+
 	public MoBIEColoringModel( String lut )
 	{
 		setColoringModel( new LazyCategoryColoringModel<>( new LutFactory().get( lut ) ) );
+		init();
+	}
 
+	private void init()
+	{
 		this.selectionColoringModes = Arrays.asList( SelectionColoringMode.values() );
 		this.selectionColor = YELLOW;
 		this.opacityNotSelected = 0.15;
 		this.selectionColoringMode = SelectionColoringMode.DimNotSelected;
+	}
+
+	private void populateColoringModelFromArgbColumn( List< ? extends TableRow > tableRows, String selectedColumnName, CategoryTableRowColumnColoringModel coloringModel ) {
+
+		final int numRows = tableRows.size();
+		for (int i = 0; i < numRows; i++) {
+			String argbString = tableRows.get( i ).getCell( selectedColumnName );
+			if ( !argbString.equals("NaN") & !argbString.equals("None") ) {
+				String[] splitArgbString = argbString.split("-");
+
+				int[] argbValues = new int[4];
+				for (int j = 0; j < splitArgbString.length; j++) {
+					argbValues[j] = Integer.parseInt(splitArgbString[j]);
+				}
+
+				coloringModel.putInputToFixedColor(argbString,
+						new ARGBType(ARGBType.rgba(argbValues[1], argbValues[2], argbValues[3], argbValues[0])));
+			}
+		}
 	}
 
 	public void setSelectionModel( SelectionModel< T > selectionModel )

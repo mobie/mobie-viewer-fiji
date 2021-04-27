@@ -15,6 +15,7 @@ public class SegmentationDisplay extends Display
 {
 	// Serialization
 	private String lut;
+	private String colorByColumn;
 	private List< String > selectedSegmentIds;
 	private boolean showSelectedSegmentsIn3d = false;
 	private boolean showScatterPlot = false;
@@ -33,6 +34,11 @@ public class SegmentationDisplay extends Display
 	public String getLut()
 	{
 		return lut;
+	}
+
+	public String getColorByColumn()
+	{
+		return colorByColumn;
 	}
 
 	public List< String > getSelectedSegmentIds()
