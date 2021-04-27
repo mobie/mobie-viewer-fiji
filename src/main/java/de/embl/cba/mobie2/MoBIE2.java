@@ -18,6 +18,7 @@ import de.embl.cba.mobie2.view.ViewerManager;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.github.GitHubUtils;
 import mpicbg.spim.data.SpimData;
+import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.fife.rsta.ac.js.Logger;
 import sc.fiji.bdvpg.PlaygroundPrefs;
@@ -173,7 +174,7 @@ public class MoBIE2
 //		userInterface.dispose();
 	}
 
-	public ImageSource getSource( String sourceName )
+	public synchronized ImageSource getSource( String sourceName )
 	{
 		return dataset.sources.get( sourceName ).get();
 	}
@@ -181,10 +182,8 @@ public class MoBIE2
 	public SourceAndConverter getSourceAndConverter( String sourceName )
 	{
 		final ImageSource source = getSource( sourceName );
-		new Thread( () -> Logger.log( "Opening: " + sourceName ) ).start();
 		final SpimData spimData = BdvUtils.openSpimData( getImageLocation( source ) );
 		final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
-		// TODO: think about keeping them in a list to avoid reopening
 		return sourceAndConverter;
 	}
 
@@ -208,7 +207,7 @@ public class MoBIE2
 		return views;
 	}
 
-	public String getImageLocation( ImageSource source )
+	public synchronized String getImageLocation( ImageSource source )
 	{
 		final String location = getPath( options.values.getImageDataLocation(), options.values.getProjectBranch(), getCurrentDatasetName(), source.imageDataLocations.get( getImageDataStorageModality() ) );
 		return location;

@@ -21,6 +21,8 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 	@Override
 	public List< SourceAndConverter< ? > > transform( List< SourceAndConverter< ? > > sourceAndConverters )
 	{
+
+		// Make a copy because not all sources in the input list may be transformed
 		final ArrayList< SourceAndConverter< ? > > transformedSources = new ArrayList<>( sourceAndConverters );
 
 		if ( positions == null )
@@ -38,6 +40,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 		double spacingX = ( 1.0 + spacingFactor ) * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
 		double spacingY = ( 1.0 + spacingFactor ) * ( bounds.realMax( 1 ) - bounds.realMin( 1 ) );
 
+		final long start = System.currentTimeMillis();
 		for ( int i = 0; i < positions.size(); i++ )
 		{
 			final List< String > sources = this.sources.get( i );
@@ -61,7 +64,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 
 				final SourceAndConverter< ? > transformedSource = new SourceAffineTransformer( sourceAndConverter, transform3D ).getSourceOut();
 
-				// replace original by the transformed source
+				// Replace the original source by the transformed one
 				transformedSources.remove( sourceAndConverter );
 				transformedSources.add( transformedSource );
 
@@ -69,6 +72,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 				intervals.add( Utils.estimateBounds( transformedSource.getSpimSource() ) );
 			}
 		}
+		System.out.println( "Transformed " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms ");
 
 		return transformedSources;
 	}

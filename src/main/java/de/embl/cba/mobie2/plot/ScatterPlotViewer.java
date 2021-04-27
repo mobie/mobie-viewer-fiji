@@ -87,6 +87,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private BdvStackSource< ARGBType > scatterPlotSource;
 	private int currentTimepoint;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
+	private boolean showColumnSelectionUI = true;
 
 	public ScatterPlotViewer(
 			List< T > tableRows,
@@ -109,6 +110,20 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	{
 		if ( window == null )
 		{
+			if ( showColumnSelectionUI )
+			{
+				ScatterPlotDialog dialog = new ScatterPlotDialog( tableRows.get( 0 ).getColumnNames().stream().toArray( String[]::new ), selectedColumns, scaleFactors, dotSizeScaleFactor );
+
+				if ( dialog.show() )
+				{
+					selectedColumns = dialog.getSelectedColumns();
+					scaleFactors = dialog.getScaleFactors();
+					dotSizeScaleFactor = dialog.getDotSizeScaleFactor();
+				}
+			}
+
+			showColumnSelectionUI = false; // only show the first time
+
 			updateScatterPlotSource();
 			installBdvBehaviours();
 			configureWindow();
@@ -211,19 +226,13 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 						selectedColumns = dialog.getSelectedColumns();
 						scaleFactors = dialog.getScaleFactors();
 						dotSizeScaleFactor = dialog.getDotSizeScaleFactor();
-						updateScatterPlot();
+						if ( scatterPlotSource != null)
+							scatterPlotSource.removeFromBdv();
+						updateScatterPlotSource();
 					}
 				});
 			}
 		);
-	}
-
-	private void updateScatterPlot()
-	{
-		if ( window == null ) return;
-
-		scatterPlotSource.removeFromBdv();
-		updateScatterPlotSource();
 	}
 
 	private String getBehavioursName()
@@ -295,7 +304,11 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	public void timePointChanged( int timepoint )
 	{
 		this.currentTimepoint = timepoint;
-		updateScatterPlot();
+		if ( window == null )
+			return;
+		if ( scatterPlotSource != null)
+			scatterPlotSource.removeFromBdv();
+		updateScatterPlotSource();
 	}
 
 	@Override

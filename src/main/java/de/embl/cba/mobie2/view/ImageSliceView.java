@@ -9,6 +9,9 @@ import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.open.SourceAndConverterSupplier;
 import de.embl.cba.mobie2.transform.TransformerHelper;
 import de.embl.cba.tables.color.ColorUtils;
+import ij.IJ;
+import net.imagej.ops.OpEnvironment;
+import net.imagej.ops.Ops;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
@@ -22,6 +25,10 @@ import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class ImageSliceView
 {
@@ -45,13 +52,7 @@ public class ImageSliceView
 
 	private void show( )
 	{
-		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
-
-		// open
-		for ( String sourceName : imageDisplay.getSources() )
-		{
-			sourceAndConverters.add( sourceAndConverterSupplier.get( sourceName ) );
-		}
+		List< SourceAndConverter< ? > > sourceAndConverters = openParallel();
 
 		// transform
 		sourceAndConverters = TransformerHelper.transformSourceAndConverters( sourceAndConverters, imageDisplay.sourceTransformers );
@@ -86,6 +87,48 @@ public class ImageSliceView
 		}
 
 		imageDisplay.sourceAndConverters = displayedSourceAndConverters;
+	}
+
+	private List< SourceAndConverter< ? > > openSerial()
+	{
+		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
+
+		// open
+		final long start = System.currentTimeMillis();
+		for ( String sourceName : imageDisplay.getSources() )
+		{
+			sourceAndConverters.add( sourceAndConverterSupplier.get( sourceName ) );
+		}
+		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms ");
+		return sourceAndConverters;
+	}
+
+	private List< SourceAndConverter< ? > > openParallel()
+	{
+		List< SourceAndConverter< ? > > sourceAndConverters = new CopyOnWriteArrayList<>();
+
+		// open
+		final long start = System.currentTimeMillis();
+		final int nThreads = 1;
+		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
+		for ( String sourceName : imageDisplay.getSources() )
+		{
+			executorService.execute( () -> {
+				System.out.println( sourceName );
+				sourceAndConverters.add( sourceAndConverterSupplier.get( sourceName ) );
+				System.out.println( sourceName + " loaded." );
+			} );
+		}
+
+		executorService.shutdown();
+		try {
+			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		} catch (InterruptedException e) {
+		}
+
+		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) using " + nThreads + " threads in " + (System.currentTimeMillis() - start) + " ms ");
+
+		return sourceAndConverters;
 	}
 
 	public void close( )
