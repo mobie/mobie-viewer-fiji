@@ -216,17 +216,17 @@ public class MoBIE2
 
 	public String getDefaultTablePath( SegmentationSource source )
 	{
-		return getTablePath( source.tableDataLocation, "default.tsv" );
+		return getTablePath( source.tableDataLocation, "default" );
 	}
 
 	public String getDefaultTablePath( String relativeTableLocation )
 	{
-		return getTablePath( relativeTableLocation, "default.tsv" );
+		return getTablePath( relativeTableLocation, "default" );
 	}
 
 	public String getTablePath( String relativeTableLocation, String table )
 	{
-		final String path = getPath( options.values.getTableDataLocation(), options.values.getTableDataBranch(), getCurrentDatasetName(), relativeTableLocation, table );
+		final String path = getPath( options.values.getTableDataLocation(), options.values.getTableDataBranch(), getCurrentDatasetName(), relativeTableLocation, table+".tsv" );
 		return path;
 	}
 

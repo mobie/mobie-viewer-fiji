@@ -21,17 +21,21 @@ import de.embl.cba.mobie2.transform.GridSourceTransformer;
 import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.mobie2.ui.WindowArrangementHelper;
+import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij3d.Image3DUniverse;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 
+import javax.activation.UnsupportedDataTypeException;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.utils.Utils.createAnnotatedImageSegmentsFromTableFile;
@@ -238,6 +242,7 @@ public class ViewerManager
 	{
 		segmentationDisplay.segments = new ArrayList<>();
 
+		// load default tables
 		for ( String sourceName : segmentationDisplay.getSources() )
 		{
 			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
@@ -245,15 +250,36 @@ public class ViewerManager
 			segmentationDisplay.segments.addAll( createAnnotatedImageSegmentsFromTableFile(
 					moBIE2.getDefaultTablePath( source ),
 					sourceName ) );
+		}
+
+		// load additional tables
+		// TODO: This will not work like this for the grid view with multiple sources...
+		for ( String sourceName : segmentationDisplay.getSources() )
+		{
+			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
 
 			final List< String > tables = segmentationDisplay.getTables();
 			if ( tables != null )
 			{
 				for ( String table : tables )
 				{
-					segmentationDisplay.segments.addAll( 	  	 	createAnnotatedImageSegmentsFromTableFile(
-							moBIE2.getTablePath( source.tableDataLocation, table ),
-							sourceName ) );
+					final Map< String, List< String > > newColumns =
+							TableColumns.openAndOrderNewColumns(
+									segmentationDisplay.segments,
+									Constants.SEGMENT_LABEL_ID,
+									moBIE2.getTablePath( source.tableDataLocation, table ) );
+					newColumns.remove( Constants.SEGMENT_LABEL_ID );
+					for ( String columnName : newColumns.keySet() )
+					{
+						try
+						{
+							Object[] values = TableColumns.asTypedArray( newColumns.get( columnName ) );
+							TableRows.addColumn( segmentationDisplay.segments, columnName, values );
+						} catch ( UnsupportedDataTypeException e )
+						{
+							e.printStackTrace();
+						}
+					}
 				}
 			}
 		}

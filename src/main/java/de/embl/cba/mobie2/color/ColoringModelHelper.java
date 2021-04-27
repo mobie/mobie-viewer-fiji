@@ -6,6 +6,7 @@ import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import org.apache.commons.lang.WordUtils;
 
 public class ColoringModelHelper
 {
@@ -14,16 +15,20 @@ public class ColoringModelHelper
 		if ( segmentationDisplay.getColorByColumn() != null )
 		{
 			final ColumnColoringModelCreator< TableRowImageSegment > modelCreator = new ColumnColoringModelCreator( segmentationDisplay.segments );
+
 			final ColoringModel< TableRowImageSegment > coloringModel;
 
+			String coloringLut = getColoringLut( segmentationDisplay );
+
+			Double min = null;
+			Double max = null;
 			if ( segmentationDisplay.getValueLimits() != null )
 			{
-				coloringModel = modelCreator.createColoringModel( segmentationDisplay.getColorByColumn(), ColoringLuts.ARGB_COLUMN, segmentationDisplay.getValueLimits()[ 0 ], segmentationDisplay.getValueLimits()[ 1 ] );
+				min = segmentationDisplay.getValueLimits()[ 0 ];
+				max = segmentationDisplay.getValueLimits()[ 0 ];
 			}
-			else
-			{
-				coloringModel = modelCreator.createColoringModel( segmentationDisplay.getColorByColumn(), ColoringLuts.ARGB_COLUMN, segmentationDisplay.getValueLimits()[ 0 ], segmentationDisplay.getValueLimits()[ 1 ] );
-			}
+
+			coloringModel = modelCreator.createColoringModel( segmentationDisplay.getColorByColumn(), coloringLut, min, max );
 
 			segmentationDisplay.coloringModel = new MoBIEColoringModel( coloringModel );
 		}
@@ -31,5 +36,15 @@ public class ColoringModelHelper
 		{
 			segmentationDisplay.coloringModel = new MoBIEColoringModel<>( segmentationDisplay.getLut() );
 		}
+	}
+
+	private static String getColoringLut( SegmentationDisplay segmentationDisplay )
+	{
+		String coloringLut = segmentationDisplay.getLut() ;
+		if ( coloringLut.equals( "argbColumn" ) )
+			coloringLut = ColoringLuts.ARGB_COLUMN;
+		else
+			coloringLut = WordUtils.capitalize( coloringLut );
+		return coloringLut;
 	}
 }
