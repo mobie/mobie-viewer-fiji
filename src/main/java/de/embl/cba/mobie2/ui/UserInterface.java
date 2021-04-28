@@ -31,7 +31,7 @@ public class UserInterface
 		displayToPanel = new HashMap<>();
 
 		setMoBIESwingLookAndFeel();
-		frame = createAndShowFrame( selectionContainer, displaySettingsContainer, moBIE.getProjectName() + "-" + moBIE.getCurrentDatasetName() );
+		frame = createAndShowFrame( selectionContainer, displaySettingsContainer, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
 		resetSystemSwingLookAndFeel();
 	}
 
@@ -42,7 +42,7 @@ public class UserInterface
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
 		final int sourceSelectionPanelHeight = userInterfaceHelper.getViewsSelectionPanelHeight();
-		final int actionPanelHeight = sourceSelectionPanelHeight + 3 * 40;
+		final int actionPanelHeight = sourceSelectionPanelHeight + 4 * 40;
 
 		splitPane.setDividerLocation( actionPanelHeight );
 		splitPane.setTopComponent( actionPanel );
@@ -122,4 +122,8 @@ public class UserInterface
 		return frame;
 	}
 
+	public void close()
+	{
+		frame.dispose();
+	}
 }

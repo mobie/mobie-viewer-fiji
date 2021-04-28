@@ -3,10 +3,7 @@ package de.embl.cba.mobie2;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
-import de.embl.cba.mobie.dataset.Datasets;
-import de.embl.cba.mobie.image.SourcesModel;
 import de.embl.cba.mobie.ui.MoBIEOptions;
-import de.embl.cba.mobie.ui.SourcesDisplayManager;
 import de.embl.cba.mobie2.serialize.DatasetJsonParser;
 import de.embl.cba.mobie2.serialize.ProjectJsonParser;
 import de.embl.cba.mobie2.source.ImageSource;
@@ -24,31 +21,23 @@ import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
 
 public class MoBIE2
 {
-	private SourcesDisplayManager sourcesDisplayManager;
-	private SourcesModel sourcesModel;
+	private final String projectName;
 	private MoBIEOptions options;
 	private String projectLocation; // without branch, pure github address
-	private String datasetLocation; // without branch, pure github address
-	private String imagesLocation; // selected dataset
-	private String tablesLocation;
-
-	private BookmarkManager bookmarkManager;
-	private Datasets datasets;
-	private double[] levelingVector;
-	private String projectName;
-	private AffineTransform3D defaultNormalisedViewerTransform;
+	private String datasetName;
 	private Dataset dataset;
-	private String currentDatasetName;
 	private ViewerManager viewerManager;
+	private Project project;
+	private UserInterface userInterface;
 
 	public MoBIE2( String projectLocation ) throws IOException
 	{
@@ -59,39 +48,28 @@ public class MoBIE2
 	{
 		this.projectLocation = projectLocation;
 		this.options = options.projectLocation( projectLocation );
-
 		projectName = getName( projectLocation );
-
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 
 		IJ.log("MoBIE");
 
-		final Project project = new ProjectJsonParser().getProject( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" ) );
-		currentDatasetName = project.defaultDataset;
+		project = new ProjectJsonParser().getProject( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" ) );
 
-		dataset = new DatasetJsonParser().getDataset( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), getCurrentDatasetName(), "dataset.json" ) );
+		openDataset( project.getDefaultDataset() );
+	}
 
-		final UserInterface userInterface = new UserInterface( this );
+	private void openDataset( String datasetName ) throws IOException
+	{
+		this.datasetName = datasetName;
+		dataset = new DatasetJsonParser().getDataset( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), getDatasetName(), "dataset.json" ) );
+
+		userInterface = new UserInterface( this );
 		viewerManager = new ViewerManager( this, userInterface, dataset.is2D, dataset.timepoints );
 		viewerManager.show( dataset.views.get( "default" ) );
 
 		// arrange windows
 		WindowArrangementHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
 		WindowArrangementHelper.rightAlignWindow( userInterface.getWindow(), viewerManager.getSliceViewer().getWindow(), false, true );
-
-//		sourcesModel = new SourcesModel( imagesLocation, options.values.getImageDataStorageModality(), tablesLocation );
-//		sourcesDisplayManager = new SourcesDisplayManager( sourcesModel, projectName );
-//		bookmarkManager = fetchBookmarks( this.projectLocation );
-//		levelingVector = fetchLeveling( imagesLocation );
-//
-//		SwingUtilities.invokeLater( () -> {
-//			userInterface = new UserInterface( this );
-//			bookmarkManager.setView( "default" );
-//			final BdvHandle bdvHandle = sourcesDisplayManager.getBdv();
-//			userInterface.setBdvWindowPositionAndSize( bdvHandle );
-//			defaultNormalisedViewerTransform = Utils.createNormalisedViewerTransform( bdvHandle, BdvUtils.getBdvWindowCenter( bdvHandle ) );
-//			new BdvBehaviourInstaller( this ).run();
-//		} );
 	}
 
 	private String getImageDataStorageModality()
@@ -137,34 +115,19 @@ public class MoBIE2
 		return options;
 	}
 
-	public AffineTransform3D getDefaultNormalisedViewerTransform()
-	{
-		return defaultNormalisedViewerTransform;
-	}
-
-	public double[] getLevelingVector()
-	{
-		return levelingVector;
-	}
-
 	public String getProjectLocation()
 	{
 		return projectLocation;
 	}
 
-	public String getCurrentDatasetName()
+	public String getDatasetName()
 	{
-		return currentDatasetName;
+		return datasetName;
 	}
 
-	public ArrayList< String > getDatasets()
+	public List< String > getDatasets()
 	{
-		return datasets.datasets;
-	}
-
-	public BookmarkManager getBookmarkManager()
-	{
-		return bookmarkManager;
+		return project.getDatasets();
 	}
 
 	public void close()
@@ -190,15 +153,32 @@ public class MoBIE2
 		return sourceAndConverter;
 	}
 
-	public Dataset getDataset()
+	public String getDataset()
 	{
-		return dataset;
+		return datasetName;
+	}
+
+	public void setDataset( String dataset )
+	{
+		this.datasetName = dataset;
+		viewerManager.close();
+		userInterface.close();
+
+		try
+		{
+			openDataset( datasetName );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public Map< String, View > getViews()
 	{
-		// combine the individual source views...
 		final HashMap< String, View > views = new LinkedHashMap<>();
+
+		// combine the individual source views...
 		for ( String sourceName : dataset.sources.keySet() )
 		{
 			views.put( sourceName, dataset.sources.get( sourceName ).get().view );
@@ -212,7 +192,7 @@ public class MoBIE2
 
 	public synchronized String getImagePath( ImageSource source )
 	{
-		final String path = getPath( options.values.getImageDataLocation(), options.values.getProjectBranch(), getCurrentDatasetName(), source.imageDataLocations.get( getImageDataStorageModality() ) );
+		final String path = getPath( options.values.getImageDataLocation(), options.values.getProjectBranch(), getDatasetName(), source.imageDataLocations.get( getImageDataStorageModality() ) );
 
 		return path;
 	}
@@ -229,7 +209,7 @@ public class MoBIE2
 
 	public String getTablePath( String relativeTableLocation, String table )
 	{
-		final String path = getPath( options.values.getTableDataLocation(), options.values.getTableDataBranch(), getCurrentDatasetName(), relativeTableLocation, table ); //+".tsv"
+		final String path = getPath( options.values.getTableDataLocation(), options.values.getTableDataBranch(), getDatasetName(), relativeTableLocation, table ); //+".tsv"
 		return path;
 	}
 

@@ -63,7 +63,7 @@ public class SegmentsVolumeView< S extends ImageSegment > implements ColoringLis
 	private final SelectionModel< S > selectionModel;
 	private final ColoringModel< S > coloringModel;
 	private final Collection< SourceAndConverter< ? > > sourceAndConverters;
-	private final UniverseSupplier universeSupplier;
+	private final UniverseManager universeManager;
 
 	private S recentFocus;
 	private ConcurrentHashMap< S, Content > segmentToContent;
@@ -88,12 +88,12 @@ public class SegmentsVolumeView< S extends ImageSegment > implements ColoringLis
 			final SelectionModel< S > selectionModel,
 			final ColoringModel< S > coloringModel,
 			final Collection< SourceAndConverter< ? > > sourceAndConverters,
-			UniverseSupplier universeSupplier )
+			UniverseManager universeManager )
 	{
 		this.selectionModel = selectionModel;
 		this.coloringModel = coloringModel;
 		this.sourceAndConverters = sourceAndConverters;
-		this.universeSupplier = universeSupplier;
+		this.universeManager = universeManager;
 
 		this.transparency = 0.0;
 		this.meshSmoothingIterations = 5;
@@ -238,7 +238,7 @@ public class SegmentsVolumeView< S extends ImageSegment > implements ColoringLis
 	{
 		if ( showSegments && universe == null )
 		{
-			universe = universeSupplier.get();
+			universe = universeManager.get();
 			window = universe.getWindow();
 			window.addWindowListener(
 				new WindowAdapter()
@@ -250,7 +250,7 @@ public class SegmentsVolumeView< S extends ImageSegment > implements ColoringLis
 						segmentToContent.clear();
 						contentToSegment.clear();
 						setShowSegments( false );
-						universeSupplier.setUniverse( null );
+						universeManager.setUniverse( null );
 						for ( VisibilityListener listener : listeners )
 						{
 							listener.visibility( false );

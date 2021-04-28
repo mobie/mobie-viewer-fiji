@@ -2,7 +2,7 @@ package de.embl.cba.mobie2.volume;
 
 import ij3d.Image3DUniverse;
 
-public class UniverseSupplier
+public class UniverseManager
 {
 	private Image3DUniverse universe;
 
@@ -20,4 +20,13 @@ public class UniverseSupplier
 	{
 		this.universe = universe;
 	}
+
+	public void close()
+	{
+		if ( universe != null )
+		{
+			universe.close();
+		}
+	}
+
 }

@@ -254,17 +254,12 @@ public class UserInterfaceHelper
 		panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ) );
 
 		panel.add( createInfoPanel( moBIE2.getProjectLocation(), moBIE2.getOptions().values.getPublicationURL() ) );
-		// actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		// actionPanel.add( createDatasetSelectionPanel() );
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		panel.add( createViewsSelectionPanel( ) );
+		panel.add( createDatasetSelectionPanel() );
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		panel.add( createMoveToLocationPanel( )  );
-
-		if ( moBIE2.getLevelingVector() != null )
-		{
-			panel.add( createLevelingPanel( moBIE2.getLevelingVector() ) );
-		}
+		panel.add( createViewsSelectionPanel() );
+		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
+		panel.add( createMoveToLocationPanel()  );
 
 		return panel;
 	}
@@ -357,9 +352,11 @@ public class UserInterfaceHelper
 		JPanel containerPanel = new JPanel( new BorderLayout() );
 		containerPanel.setLayout( new BoxLayout( containerPanel, BoxLayout.Y_AXIS ) );
 
-		for ( String grouping : groupingsToViews.keySet() )
+		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );
+		Collections.sort( uiSelectionGroups );
+		for ( String uiSelectionGroup : uiSelectionGroups )
 		{
-			final JPanel selectionPanel = createViewSelectionPanel( moBIE2, grouping, groupingsToViews.get( grouping ) );
+			final JPanel selectionPanel = createViewSelectionPanel( moBIE2, uiSelectionGroup, groupingsToViews.get( uiSelectionGroup ) );
 			containerPanel.add( selectionPanel );
 		}
 
@@ -502,23 +499,28 @@ public class UserInterfaceHelper
 
 	public JPanel createDatasetSelectionPanel( )
 	{
-//		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-//
-//		final JButton button = getButton( BUTTON_LABEL_SWITCH );
-//
-//		final String[] choices = datasets.stream().toArray( String[]::new );
-//		final JComboBox< String > comboBox = new JComboBox<>( choices );
-//		comboBox.setSelectedItem( moBIE2.getDataset() );
-//		setComboBoxDimensions( comboBox );
-//		button.addActionListener( e -> switchDataset( ( String ) comboBox.getSelectedItem() ) );
-//		comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE  );
-//
-//		horizontalLayoutPanel.add( getJLabel( "dataset" ) );
-//		horizontalLayoutPanel.add( comboBox );
-//		horizontalLayoutPanel.add( button );
-//
-//		return horizontalLayoutPanel;
-		throw new RuntimeException(  );
+		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+
+		final JComboBox< String > comboBox = new JComboBox<>( moBIE2.getDatasets().toArray( new String[ 0 ] ) );
+
+		final JButton button = createButton( ADD );
+		button.addActionListener( e ->
+		{
+			SwingUtilities.invokeLater( () ->
+			{
+				final String dataset = ( String ) comboBox.getSelectedItem();
+				moBIE2.setDataset( dataset );
+			} );
+		} );
+
+		comboBox.setSelectedItem( moBIE2.getDataset() );
+		setComboBoxDimensions( comboBox );
+
+		panel.add( getJLabel( "dataset" ) );
+		panel.add( comboBox );
+		panel.add( button );
+
+		return panel;
 	}
 
 	// TODO: Move to UserInterface

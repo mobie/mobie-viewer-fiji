@@ -4,7 +4,22 @@ import java.util.List;
 
 public class Project
 {
-	public List< String > datasets;
-	public String defaultDataset;
-	public String specVersion;
+	private List< String > datasets;
+	private String defaultDataset;
+	private String specVersion;
+
+	public List< String > getDatasets()
+	{
+		return datasets;
+	}
+
+	public String getDefaultDataset()
+	{
+		return defaultDataset;
+	}
+
+	public String getSpecVersion()
+	{
+		return specVersion;
+	}
 }

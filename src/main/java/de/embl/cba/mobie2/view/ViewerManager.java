@@ -22,13 +22,12 @@ import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.mobie2.ui.WindowArrangementHelper;
 import de.embl.cba.mobie2.volume.SegmentsVolumeView;
-import de.embl.cba.mobie2.volume.UniverseSupplier;
+import de.embl.cba.mobie2.volume.UniverseManager;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
-import ij3d.Image3DUniverse;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 
@@ -51,10 +50,9 @@ public class ViewerManager
 	private final UserInterface userInterface;
 	private final SliceViewer sliceViewer;
 	private ArrayList< Display > displays;
-	private Image3DUniverse universe;
 	private final BdvHandle bdvHandle;
 	private GridOverlayDisplay gridOverlayDisplay;
-	private final UniverseSupplier universeSupplier;
+	private final UniverseManager universeManager;
 
 	public ViewerManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
 	{
@@ -62,7 +60,7 @@ public class ViewerManager
 		this.userInterface = userInterface;
 		displays = new ArrayList<>();
 		sliceViewer = new SliceViewer( is2D, this, timepoints );
-		universeSupplier = new UniverseSupplier();
+		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
 	}
 
@@ -300,7 +298,7 @@ public class ViewerManager
 
 	private void initVolumeViewer( SegmentationDisplay display )
 	{
-		display.segmentsVolumeViewer = new SegmentsVolumeView<>( display.selectionModel, display.coloringModel, display.sourceAndConverters, universeSupplier  );
+		display.segmentsVolumeViewer = new SegmentsVolumeView<>( display.selectionModel, display.coloringModel, display.sourceAndConverters, universeManager );
 		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d() );
 		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
@@ -336,5 +334,12 @@ public class ViewerManager
 		final List< SegmentationDisplay > segmentationDisplays = getSourceDisplays().stream().filter( s -> s instanceof SegmentationDisplay ).map( s -> ( SegmentationDisplay ) s ).collect( Collectors.toList() );
 
 		return segmentationDisplays;
+	}
+
+	public void close()
+	{
+		removeAllSourceDisplays();
+		sliceViewer.getBdvHandle().close();
+		universeManager.close();
 	}
 }
