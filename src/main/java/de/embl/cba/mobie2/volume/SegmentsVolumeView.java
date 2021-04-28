@@ -26,12 +26,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.embl.cba.mobie2.view;
+package de.embl.cba.mobie2.volume;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import customnode.CustomTriangleMesh;
-import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import de.embl.cba.mobie2.VisibilityListener;
 import de.embl.cba.mobie2.mesh.MeshCreator;
 import de.embl.cba.tables.color.ColorUtils;
@@ -49,7 +48,6 @@ import net.imglib2.type.numeric.RealType;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -59,14 +57,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 public class SegmentsVolumeView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
 	private final SelectionModel< S > selectionModel;
 	private final ColoringModel< S > coloringModel;
 	private final Collection< SourceAndConverter< ? > > sourceAndConverters;
-	
+	private final UniverseSupplier universeSupplier;
+
 	private S recentFocus;
 	private ConcurrentHashMap< S, Content > segmentToContent;
 	private ConcurrentHashMap< Content, S > contentToSegment;
@@ -89,11 +87,13 @@ public class SegmentsVolumeView< S extends ImageSegment > implements ColoringLis
 	public SegmentsVolumeView(
 			final SelectionModel< S > selectionModel,
 			final ColoringModel< S > coloringModel,
-			final Collection< SourceAndConverter< ? > > sourceAndConverters )
+			final Collection< SourceAndConverter< ? > > sourceAndConverters,
+			UniverseSupplier universeSupplier )
 	{
 		this.selectionModel = selectionModel;
 		this.coloringModel = coloringModel;
 		this.sourceAndConverters = sourceAndConverters;
+		this.universeSupplier = universeSupplier;
 
 		this.transparency = 0.0;
 		this.meshSmoothingIterations = 5;
@@ -238,8 +238,7 @@ public class SegmentsVolumeView< S extends ImageSegment > implements ColoringLis
 	{
 		if ( showSegments && universe == null )
 		{
-			universe = new Image3DUniverse();
-			universe.show();
+			universe = universeSupplier.get();
 			window = universe.getWindow();
 			window.addWindowListener(
 				new WindowAdapter()
@@ -251,6 +250,7 @@ public class SegmentsVolumeView< S extends ImageSegment > implements ColoringLis
 						segmentToContent.clear();
 						contentToSegment.clear();
 						setShowSegments( false );
+						universeSupplier.setUniverse( null );
 						for ( VisibilityListener listener : listeners )
 						{
 							listener.visibility( false );

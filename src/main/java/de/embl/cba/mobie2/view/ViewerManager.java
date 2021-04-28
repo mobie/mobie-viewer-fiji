@@ -21,10 +21,13 @@ import de.embl.cba.mobie2.transform.GridSourceTransformer;
 import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.mobie2.ui.WindowArrangementHelper;
+import de.embl.cba.mobie2.volume.SegmentsVolumeView;
+import de.embl.cba.mobie2.volume.UniverseSupplier;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import ij.IJ;
 import ij3d.Image3DUniverse;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
@@ -51,6 +54,7 @@ public class ViewerManager
 	private Image3DUniverse universe;
 	private final BdvHandle bdvHandle;
 	private GridOverlayDisplay gridOverlayDisplay;
+	private final UniverseSupplier universeSupplier;
 
 	public ViewerManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
 	{
@@ -58,10 +62,11 @@ public class ViewerManager
 		this.userInterface = userInterface;
 		displays = new ArrayList<>();
 		sliceViewer = new SliceViewer( is2D, this, timepoints );
+		universeSupplier = new UniverseSupplier();
 		bdvHandle = sliceViewer.get();
 	}
 
-	public static void showScatterPlotViewer( SegmentationDisplay display )
+	public static void initScatterPlotViewer( SegmentationDisplay display )
 	{
 		display.scatterPlotViewer = new ScatterPlotViewer<>( display.segments, display.selectionModel, display.coloringModel, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
@@ -72,7 +77,7 @@ public class ViewerManager
 			display.scatterPlotViewer.show();
 	}
 
-	public static void showInTableViewer( SegmentationDisplay display  )
+	public static void initTableViewer( SegmentationDisplay display  )
 	{
 		display.tableViewer = new TableViewer<>( display.segments, display.selectionModel, display.coloringModel, display.getName() ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
@@ -227,10 +232,10 @@ public class ViewerManager
 			segmentationDisplay.selectionModel.setSelected( segments, true );
 		}
 
-		showInSliceViewer( segmentationDisplay );
-		showInTableViewer( segmentationDisplay );
-		showScatterPlotViewer( segmentationDisplay );
-		initSegmentsVolumeViewer( segmentationDisplay );
+		initSliceViewer( segmentationDisplay );
+		initTableViewer( segmentationDisplay );
+		initScatterPlotViewer( segmentationDisplay );
+		initVolumeViewer( segmentationDisplay );
 
 		SwingUtilities.invokeLater( () ->
 		{
@@ -263,11 +268,13 @@ public class ViewerManager
 			{
 				for ( String table : tables )
 				{
+					final String tablePath = moBIE2.getTablePath( source.tableDataLocation, table );
+					IJ.log( "Opening table:\n" + tablePath );
 					final Map< String, List< String > > newColumns =
 							TableColumns.openAndOrderNewColumns(
 									segmentationDisplay.segments,
 									Constants.SEGMENT_LABEL_ID,
-									moBIE2.getTablePath( source.tableDataLocation, table ) );
+									tablePath );
 					newColumns.remove( Constants.SEGMENT_LABEL_ID );
 					for ( String columnName : newColumns.keySet() )
 					{
@@ -285,15 +292,15 @@ public class ViewerManager
 		}
 	}
 
-	private void showInSliceViewer( SegmentationDisplay segmentationDisplay )
+	private void initSliceViewer( SegmentationDisplay segmentationDisplay )
 	{
 		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( segmentationDisplay, bdvHandle, ( String name ) -> moBIE2.getSourceAndConverter( name ) );
 		segmentationDisplay.segmentationImageSliceView = segmentationImageSliceView;
 	}
 
-	private void initSegmentsVolumeViewer( SegmentationDisplay display )
+	private void initVolumeViewer( SegmentationDisplay display )
 	{
-		display.segmentsVolumeViewer = new SegmentsVolumeView<>( display.selectionModel, display.coloringModel, display.sourceAndConverters  );
+		display.segmentsVolumeViewer = new SegmentsVolumeView<>( display.selectionModel, display.coloringModel, display.sourceAndConverters, universeSupplier  );
 		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d() );
 		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );

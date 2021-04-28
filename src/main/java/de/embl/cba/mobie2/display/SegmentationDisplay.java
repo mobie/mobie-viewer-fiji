@@ -5,7 +5,7 @@ import de.embl.cba.mobie2.color.MoBIEColoringModel;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.plot.ScatterPlotViewer;
 import de.embl.cba.mobie2.bdv.SegmentationImageSliceView;
-import de.embl.cba.mobie2.view.SegmentsVolumeView;
+import de.embl.cba.mobie2.volume.SegmentsVolumeView;
 import de.embl.cba.mobie2.table.TableViewer;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.select.SelectionModel;
