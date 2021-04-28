@@ -1,5 +1,6 @@
 package de.embl.cba.mobie2.ui;
 
+import bdv.viewer.Source;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
@@ -43,6 +44,7 @@ public class UserInterface
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
 		final int sourceSelectionPanelHeight = userInterfaceHelper.getViewsSelectionPanelHeight();
 		final int actionPanelHeight = sourceSelectionPanelHeight + 4 * 40;
+
 
 		splitPane.setDividerLocation( actionPanelHeight );
 		splitPane.setTopComponent( actionPanel );

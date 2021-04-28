@@ -74,4 +74,8 @@ public class SegmentationDisplay extends Display
 	{
 		return tables;
 	}
+
+	public void updateSerializableFields(){
+		// TODO
+	};
 }

@@ -10,9 +10,9 @@ import java.util.List;
 public class Display
 {
 	// Serialization
-	private String name;
-	private double opacity = 1.0;
-	private List< String > sources;
+	protected String name;
+	protected double opacity = 1.0;
+	protected List< String > sources;
 
 	// Runtime
 	public transient List< SourceAndConverter< ? > > sourceAndConverters;

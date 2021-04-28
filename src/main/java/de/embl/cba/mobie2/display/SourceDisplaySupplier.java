@@ -2,7 +2,6 @@ package de.embl.cba.mobie2.display;
 
 public class SourceDisplaySupplier
 {
-	// TODO: this could be handled during deserialization
 	private ImageDisplay imageDisplay;
 	private SegmentationDisplay segmentationDisplay;
 
