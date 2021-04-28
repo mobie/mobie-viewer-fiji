@@ -19,9 +19,7 @@ public class ColoringModelHelper
 
 			String coloringLut = getColoringLut( segmentationDisplay );
 
-			Double[] valueRange = getValueRange( segmentationDisplay );
-
-			coloringModel = modelCreator.createColoringModel( segmentationDisplay.getColorByColumn(), coloringLut, valueRange[ 0 ], valueRange[ 1 ] );
+			coloringModel = modelCreator.createColoringModel( segmentationDisplay.getColorByColumn(), coloringLut, segmentationDisplay.getValueLimits()[ 0 ], segmentationDisplay.getValueLimits()[ 1 ] );
 
 			segmentationDisplay.coloringModel = new MoBIEColoringModel( coloringModel );
 		}
@@ -29,17 +27,6 @@ public class ColoringModelHelper
 		{
 			segmentationDisplay.coloringModel = new MoBIEColoringModel<>( segmentationDisplay.getLut() );
 		}
-	}
-
-	private static Double[] getValueRange( SegmentationDisplay segmentationDisplay )
-	{
-		Double[] minMax = new Double[]{null,null};
-		if ( segmentationDisplay.getValueLimits() != null )
-		{
-			minMax[ 0 ] = segmentationDisplay.getValueLimits()[ 0 ];
-			minMax[ 1 ] = segmentationDisplay.getValueLimits()[ 1 ];
-		}
-		return minMax;
 	}
 
 	private static String getColoringLut( SegmentationDisplay segmentationDisplay )

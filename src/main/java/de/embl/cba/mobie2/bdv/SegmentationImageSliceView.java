@@ -59,9 +59,10 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		// convert to labelSource
 		sourceAndConverters = asLabelSources( sourceAndConverters );
 
-		// show
+		// adjust opacity and show in BDV
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
+			( ( LabelConverter ) sourceAndConverter.getConverter() ).setOpacity( segmentationDisplay.getOpacity() );
 			displayService.show( bdvHandle, sourceAndConverter );
 		}
 
@@ -79,6 +80,8 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 					segmentationDisplay.coloringModel );
 
 			SourceAndConverter< ? > labelSourceAndConverter = asLabelSourceAndConverter( sourceAndConverter, labelConverter );
+
+
 
 			labelSourceAndConverters.add( labelSourceAndConverter );
 		}

@@ -213,22 +213,23 @@ public class MoBIE2
 	public synchronized String getImagePath( ImageSource source )
 	{
 		final String path = getPath( options.values.getImageDataLocation(), options.values.getProjectBranch(), getCurrentDatasetName(), source.imageDataLocations.get( getImageDataStorageModality() ) );
+
 		return path;
 	}
 
 	public String getDefaultTablePath( SegmentationSource source )
 	{
-		return getTablePath( source.tableDataLocation, "default" );
+		return getTablePath( source.tableDataLocation, "default.tsv" );
 	}
 
 	public String getDefaultTablePath( String relativeTableLocation )
 	{
-		return getTablePath( relativeTableLocation, "default" );
+		return getTablePath( relativeTableLocation, "default.tsv" );
 	}
 
 	public String getTablePath( String relativeTableLocation, String table )
 	{
-		final String path = getPath( options.values.getTableDataLocation(), options.values.getTableDataBranch(), getCurrentDatasetName(), relativeTableLocation, table+".tsv" );
+		final String path = getPath( options.values.getTableDataLocation(), options.values.getTableDataBranch(), getCurrentDatasetName(), relativeTableLocation, table ); //+".tsv"
 		return path;
 	}
 

@@ -11,7 +11,7 @@ public class Display
 {
 	// Serialization
 	private String name;
-	private double opacity;
+	private double opacity = 1.0;
 	private List< String > sources;
 
 	// Runtime
