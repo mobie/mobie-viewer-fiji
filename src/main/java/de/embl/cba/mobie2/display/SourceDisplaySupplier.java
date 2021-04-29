@@ -1,5 +1,6 @@
 package de.embl.cba.mobie2.display;
 
+// TODO: get rid of this and handle this in a GSon adaptor
 public class SourceDisplaySupplier
 {
 	private ImageDisplay imageDisplay;

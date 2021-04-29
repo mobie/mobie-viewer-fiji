@@ -2,7 +2,6 @@ package de.embl.cba.mobie2;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie.ui.MoBIEOptions;
 import de.embl.cba.mobie2.serialize.DatasetJsonParser;
 import de.embl.cba.mobie2.serialize.ProjectJsonParser;
@@ -16,20 +15,26 @@ import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.github.GitHubUtils;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
-import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.PlaygroundPrefs;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
+import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
 
 public class MoBIE2
 {
+	public static final int N_THREADS = 8;
+
 	private final String projectName;
 	private MoBIEOptions options;
 	private String projectLocation; // without branch, pure github address
@@ -56,6 +61,30 @@ public class MoBIE2
 		project = new ProjectJsonParser().getProject( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" ) );
 
 		openDataset( project.getDefaultDataset() );
+	}
+
+	public List< SourceAndConverter< ? > > openSourceAndConverters( List< String > sources )
+	{
+		List< SourceAndConverter< ? > > sourceAndConverters = new CopyOnWriteArrayList<>();
+		final long start = System.currentTimeMillis();
+		final int nThreads = N_THREADS;
+		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
+		for ( String sourceName : sources )
+		{
+			executorService.execute( () -> {
+				sourceAndConverters.add( openSourceAndConverter( sourceName ) );
+			} );
+		}
+
+		executorService.shutdown();
+		try {
+			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		} catch (InterruptedException e) {
+		}
+
+		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s).");
+
+		return sourceAndConverters;
 	}
 
 	private void openDataset( String datasetName ) throws IOException
@@ -143,13 +172,15 @@ public class MoBIE2
 		return dataset.sources.get( sourceName ).get();
 	}
 
-	public SourceAndConverter getSourceAndConverter( String sourceName )
+	public SourceAndConverter openSourceAndConverter( String sourceName )
 	{
 		final ImageSource source = getSource( sourceName );
 		final String imagePath = getImagePath( source );
-		IJ.log( "Opening image:\n" + imagePath );
+		// TODO: The log does not show when the computer is busy...
+		new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
 		final SpimData spimData = BdvUtils.openSpimData( imagePath );
-		final SourceAndConverter sourceAndConverter = SourceAndConverterHelper.createSourceAndConverters( spimData ).get( 0 );
+		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
+		final SourceAndConverter sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
 		return sourceAndConverter;
 	}
 

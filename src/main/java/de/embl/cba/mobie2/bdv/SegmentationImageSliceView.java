@@ -45,13 +45,8 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		segmentationDisplay.selectionModel.listeners().add( this );
 		segmentationDisplay.coloringModel.listeners().add( this );
 
-		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
-
 		// open
-		for ( String sourceName : segmentationDisplay.getSources() )
-		{
-			sourceAndConverters.add( sourceAndConverterSupplier.get( sourceName ) );
-		}
+		List< SourceAndConverter< ? > > sourceAndConverters = sourceAndConverterSupplier.get( segmentationDisplay.getSources() );
 
 		// transform
 		sourceAndConverters = TransformerHelper.transformSourceAndConverters( sourceAndConverters, segmentationDisplay.sourceTransformers );

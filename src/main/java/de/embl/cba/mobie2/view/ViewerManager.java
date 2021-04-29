@@ -210,7 +210,7 @@ public class ViewerManager
 
 	private void showImageDisplay( ImageDisplay imageDisplay )
 	{
-		imageDisplay.imageSliceView = new ImageSliceView( imageDisplay, bdvHandle, ( String name ) -> moBIE2.getSourceAndConverter( name ) );
+		imageDisplay.imageSliceView = new ImageSliceView( imageDisplay, bdvHandle, ( List< String > name ) -> moBIE2.openSourceAndConverters( name ) );
 	}
 
 	// TODO: own class: SegmentationDisplayConfigurator
@@ -292,7 +292,7 @@ public class ViewerManager
 
 	private void initSliceViewer( SegmentationDisplay segmentationDisplay )
 	{
-		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( segmentationDisplay, bdvHandle, ( String name ) -> moBIE2.getSourceAndConverter( name ) );
+		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE2.openSourceAndConverters( names ) );
 		segmentationDisplay.segmentationImageSliceView = segmentationImageSliceView;
 	}
 
