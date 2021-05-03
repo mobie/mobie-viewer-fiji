@@ -1,7 +1,9 @@
 package de.embl.cba.mobie2.display;
 
+import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie2.color.MoBIEColoringModel;
+import de.embl.cba.mobie2.color.opacity.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.plot.ScatterPlotViewer;
 import de.embl.cba.mobie2.bdv.SegmentationImageSliceView;
@@ -10,8 +12,9 @@ import de.embl.cba.mobie2.table.TableViewer;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
-
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class SegmentationDisplay extends Display
 {
@@ -75,7 +78,50 @@ public class SegmentationDisplay extends Display
 		return tables;
 	}
 
-	public void updateSerializableFields(){
-		// TODO
-	};
+	/**
+	 * Create a serializable copy
+	 *
+	 * @param segmentationDisplay
+	 */
+	public SegmentationDisplay( SegmentationDisplay segmentationDisplay )
+	{
+		this.name = segmentationDisplay.name;
+		this.sources = new ArrayList<>();
+		for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )
+		{
+			sources.add( sourceAndConverter.getSpimSource().getName() );
+		}
+
+		final SourceAndConverter< ? > sourceAndConverter = segmentationDisplay.sourceAndConverters.get( 0 );
+
+		if( sourceAndConverter.getConverter() instanceof AdjustableOpacityColorConverter)
+		{
+			this.opacity = ( ( AdjustableOpacityColorConverter ) sourceAndConverter.getConverter() ).getOpacity();
+		}
+
+		this.lut = segmentationDisplay.tableViewer.getColoringLUTName();
+		this.colorByColumn = segmentationDisplay.tableViewer.getColoringColumnName();
+
+		Double[] valueLimits = new Double[2];
+		double[] currentValueLimits = segmentationDisplay.tableViewer.getColorByColumnValueLimits();
+		for (int i=0; i< currentValueLimits.length; i++) {
+			valueLimits[i] = currentValueLimits[i];
+		}
+		this.valueLimits = valueLimits;
+
+		Set<TableRowImageSegment> currentSelectedSegments = segmentationDisplay.selectionModel.getSelected();
+		if (currentSelectedSegments != null) {
+			ArrayList<String> selectedSegmentIds = new ArrayList<>();
+			for (TableRowImageSegment segment : currentSelectedSegments) {
+				selectedSegmentIds.add( String.valueOf( segment.labelId() ) );
+			}
+			this.selectedSegmentIds = selectedSegmentIds;
+		}
+
+		this.showSelectedSegmentsIn3d = segmentationDisplay.segmentsVolumeViewer.getShowSegments();
+		this.showScatterPlot = segmentationDisplay.scatterPlotViewer.getShowScatterPlot();
+		this.scatterPlotAxes = segmentationDisplay.scatterPlotViewer.getSelectedColumns();
+		this.tables = segmentationDisplay.tableViewer.getAdditionalTables();
+	}
+
 }

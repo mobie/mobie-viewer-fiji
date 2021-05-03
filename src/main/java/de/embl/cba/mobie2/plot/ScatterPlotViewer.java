@@ -87,6 +87,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private int currentTimepoint;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	private boolean showColumnSelectionUI = true;
+	private boolean showScatterPlot = false;
 
 	public ScatterPlotViewer(
 			List< T > tableRows,
@@ -131,6 +132,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		{
 			window.setVisible( true );
 		}
+		showScatterPlot = true;
 	}
 
 	public List< VisibilityListener > getListeners()
@@ -193,6 +195,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 						window = null;
 						bdvHandle = null;
 					}
+					showScatterPlot = false;
 				}
 			});
 	}
@@ -299,6 +302,8 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		return selectedColumns;
 	}
 
+	public boolean getShowScatterPlot() { return showScatterPlot; }
+
 	@Override
 	public void timePointChanged( int timepoint )
 	{
@@ -363,6 +368,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	{
 		if ( window != null )
 			window.setVisible( false );
+		showScatterPlot = false;
 	}
 
 	public void close()
@@ -373,5 +379,6 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 			bdvHandle.close();
 			window = null;
 		}
+		showScatterPlot = false;
 	}
 }
