@@ -99,7 +99,7 @@ public class SegmentationDisplay extends Display
 			this.opacity = ( ( AdjustableOpacityColorConverter ) sourceAndConverter.getConverter() ).getOpacity();
 		}
 
-		this.lut = segmentationDisplay.tableViewer.getColoringLUTName();
+		this.lut = segmentationDisplay.coloringModel.getColoringLUTName();
 		this.colorByColumn = segmentationDisplay.tableViewer.getColoringColumnName();
 
 		Double[] valueLimits = new Double[2];
@@ -119,7 +119,7 @@ public class SegmentationDisplay extends Display
 		}
 
 		this.showSelectedSegmentsIn3d = segmentationDisplay.segmentsVolumeViewer.getShowSegments();
-		this.showScatterPlot = segmentationDisplay.scatterPlotViewer.getShowScatterPlot();
+		this.showScatterPlot = segmentationDisplay.scatterPlotViewer.isVisible();
 		this.scatterPlotAxes = segmentationDisplay.scatterPlotViewer.getSelectedColumns();
 		this.tables = segmentationDisplay.tableViewer.getAdditionalTables();
 	}

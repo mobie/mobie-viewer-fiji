@@ -28,13 +28,8 @@
  */
 package de.embl.cba.mobie2.color;
 
-import de.embl.cba.tables.color.AbstractColoringModel;
-import de.embl.cba.tables.color.CategoryColoringModel;
-import de.embl.cba.tables.color.CategoryTableRowColumnColoringModel;
-import de.embl.cba.tables.color.ColoringLuts;
-import de.embl.cba.tables.color.ColoringModel;
-import de.embl.cba.tables.color.ColumnColoringModelCreator;
-import de.embl.cba.tables.color.LazyCategoryColoringModel;
+import de.embl.cba.bdv.utils.lut.ARGBLut;
+import de.embl.cba.tables.color.*;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
@@ -195,6 +190,19 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	public SelectionModel< T > getSelectionModel()
 	{
 		return selectionModel;
+	}
+
+	public String getColoringLUTName () {
+		if ( coloringModel instanceof ColumnColoringModel ) {
+			ARGBLut lut = ( ( ColumnColoringModel ) coloringModel ).getARGBLut();
+			if ( lut == null ) {
+				return ColoringLuts.ARGB_COLUMN;
+			} else {
+				return lut.getName();
+			}
+		} else {
+			return null;
+		}
 	}
 
 	public double getOpacityNotSelected()
