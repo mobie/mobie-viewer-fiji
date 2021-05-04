@@ -10,6 +10,7 @@ import de.embl.cba.mobie2.bdv.SegmentationImageSliceView;
 import de.embl.cba.mobie2.volume.SegmentsVolumeView;
 import de.embl.cba.mobie2.table.TableViewer;
 import de.embl.cba.tables.color.ColoringLuts;
+import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import java.util.ArrayList;
@@ -100,7 +101,11 @@ public class SegmentationDisplay extends Display
 		}
 
 		this.lut = segmentationDisplay.coloringModel.getColoringLUTName();
-		this.colorByColumn = segmentationDisplay.tableViewer.getColoringColumnName();
+
+		if ( segmentationDisplay.coloringModel instanceof ColumnColoringModel )
+		{
+			this.colorByColumn = (( ColumnColoringModel ) coloringModel).getColumnName();
+		}
 
 		Double[] valueLimits = new Double[2];
 		double[] currentValueLimits = segmentationDisplay.tableViewer.getColorByColumnValueLimits();
