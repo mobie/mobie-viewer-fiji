@@ -273,7 +273,11 @@ public class SegmentsVolumeView< S extends ImageSegment > implements ColoringLis
 		}
 	}
 
-	private void setShowSegments( boolean b )
+	public boolean getShowSegments() {
+		return showSegments;
+	}
+
+	private void setShowSegments(boolean b )
 	{
 		this.showSegments = b;
 	}

@@ -783,21 +783,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		}
 	}
 
-	public String getColoringLUTName () {
-		final ColoringModel< T > coloringModel = this.coloringModel.getColoringModel();
-		if (coloringModel instanceof ColumnColoringModel ) {
-			ARGBLut lut = (( ColumnColoringModel ) coloringModel).getARGBLut();
-			if (lut == null) {
-				return ColoringLuts.ARGB_COLUMN;
-			} else {
-				return lut.getName();
-			}
-		} else {
-			return null;
-		}
-
-	}
-
 	private void addColorByColumnMenuItem( JMenu coloringMenu )
 	{
 		final JMenuItem menuItem = new JMenuItem( "Color by Column..." );

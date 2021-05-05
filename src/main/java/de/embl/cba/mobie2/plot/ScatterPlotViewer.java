@@ -299,6 +299,8 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		return selectedColumns;
 	}
 
+	public boolean isVisible() { return (window != null) && window.isVisible(); }
+
 	@Override
 	public void timePointChanged( int timepoint )
 	{
