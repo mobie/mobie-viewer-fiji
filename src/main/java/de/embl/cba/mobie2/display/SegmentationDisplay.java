@@ -10,7 +10,9 @@ import de.embl.cba.mobie2.bdv.SegmentationImageSliceView;
 import de.embl.cba.mobie2.volume.SegmentsVolumeView;
 import de.embl.cba.mobie2.table.TableViewer;
 import de.embl.cba.tables.color.ColoringLuts;
+import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
+import de.embl.cba.tables.color.NumericColoringModel;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import java.util.ArrayList;
@@ -100,19 +102,22 @@ public class SegmentationDisplay extends Display
 			this.opacity = ( ( AdjustableOpacityColorConverter ) sourceAndConverter.getConverter() ).getOpacity();
 		}
 
-		this.lut = segmentationDisplay.coloringModel.getColoringLUTName();
+		this.lut = segmentationDisplay.coloringModel.getARGBLutName();
 
-		if ( segmentationDisplay.coloringModel instanceof ColumnColoringModel )
+		final ColoringModel< TableRowImageSegment > wrappedColoringModel = segmentationDisplay.coloringModel.getWrappedColoringModel();
+
+		if ( wrappedColoringModel instanceof ColumnColoringModel )
 		{
-			this.colorByColumn = (( ColumnColoringModel ) coloringModel).getColumnName();
+			this.colorByColumn = (( ColumnColoringModel ) wrappedColoringModel).getColumnName();
 		}
 
-		Double[] valueLimits = new Double[2];
-		double[] currentValueLimits = segmentationDisplay.tableViewer.getColorByColumnValueLimits();
-		for (int i=0; i< currentValueLimits.length; i++) {
-			valueLimits[i] = currentValueLimits[i];
+		if ( wrappedColoringModel instanceof NumericColoringModel )
+		{
+			this.valueLimits = new Double[2];
+			NumericColoringModel numericColoringModel = ( NumericColoringModel ) ( wrappedColoringModel );
+			valueLimits[0] = numericColoringModel.getMin();
+			valueLimits[1] = numericColoringModel.getMax();
 		}
-		this.valueLimits = valueLimits;
 
 		Set<TableRowImageSegment> currentSelectedSegments = segmentationDisplay.selectionModel.getSelected();
 		if (currentSelectedSegments != null) {

@@ -28,6 +28,7 @@
  */
 package de.embl.cba.mobie2.annotate;
 
+import com.amazonaws.internal.FIFOCache;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.CategoryTableRowColumnColoringModel;
@@ -42,6 +43,7 @@ import javax.swing.*;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -62,11 +64,13 @@ public class Annotator< T extends TableRow > extends JFrame
 	private JPanel annotationButtonsContainer;
 	private JScrollPane annotationButtonsScrollPane;
 	private T currentlySelectedRow;
+	private Set< String > annotationNames;
 
 	public Annotator( String columnName, List< T > tableRows, SelectionModel< T > selectionModel, CategoryTableRowColumnColoringModel< T > coloringModel, RowSorter< ? extends TableModel > rowSorter )
 	{
 		super("");
 		this.annotationColumnName = columnName;
+		this.annotationNames = new HashSet<>();
 		this.tableRows = tableRows;
 		this.selectionModel = selectionModel;
 		this.coloringModel = coloringModel;
@@ -74,6 +78,7 @@ public class Annotator< T extends TableRow > extends JFrame
 		this.currentlySelectedRow = tableRows.get( rowSorter.convertRowIndexToModel( 0 ) );
 		this.coloringModel.fixedColorMode( true );
 		this.panel = new JPanel();
+
 	}
 
 	public void showDialog()
@@ -116,9 +121,9 @@ public class Annotator< T extends TableRow > extends JFrame
 		panel.add( textField );
 		button.addActionListener( e -> {
 			String newClassName = textField.getText();
-			if ( getAnnotations().containsKey( newClassName ) )
+			if ( getAnnotations().containsKey( newClassName ) || annotationNames.contains( newClassName )  )
 			{
-				Logger.error( "Class of name " + newClassName + " exists already.");
+				Logger.error( "Category " + newClassName + " exists already." );
 				return;
 			}
 			addAnnotationButtonPanel( newClassName, null );
@@ -156,6 +161,7 @@ public class Annotator< T extends TableRow > extends JFrame
 
 	private void addAnnotationButtonPanel( String annotationName, T tableRow )
 	{
+		annotationNames.add( annotationName );
 		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 
 		final JButton annotateButton = new JButton( String.format("%1$15s", annotationName) );

@@ -182,7 +182,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		coloringModel.listeners().add( () -> notifyColoringListeners() );
 	}
 
-	public ColoringModel< T > getColoringModel()
+	public ColoringModel< T > getWrappedColoringModel()
 	{
 		return coloringModel;
 	}
@@ -192,15 +192,14 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		return selectionModel;
 	}
 
-	public String getColoringLUTName () {
-		if ( coloringModel instanceof ColumnColoringModel ) {
-			ARGBLut lut = ( ( ColumnColoringModel ) coloringModel ).getARGBLut();
-			if ( lut == null ) {
-				return ColoringLuts.ARGB_COLUMN;
-			} else {
-				return lut.getName();
-			}
-		} else {
+	public String getARGBLutName()
+	{
+		if ( coloringModel instanceof ARBGLutSupplier )
+		{
+			return ( ( ColumnColoringModel ) coloringModel ).getARGBLut().getName();
+		}
+		else
+		{
 			return null;
 		}
 	}

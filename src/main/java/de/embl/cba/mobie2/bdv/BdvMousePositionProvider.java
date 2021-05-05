@@ -5,7 +5,6 @@ import net.imglib2.RealPoint;
 
 public class BdvMousePositionProvider
 {
-
 	private final RealPoint position;
 	private final int timePoint;
 

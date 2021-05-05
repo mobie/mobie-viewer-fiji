@@ -29,7 +29,6 @@
 package de.embl.cba.mobie2.table;
 
 import bdv.tools.HelpDialog;
-import de.embl.cba.bdv.utils.lut.ARGBLut;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie2.annotate.Annotator;
 import de.embl.cba.mobie2.color.MoBIEColoringModel;
@@ -365,20 +364,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		);
 		return menuItem;
 	}
-	// TODO: This does not always make sense. Should be added only on demand
-	private JMenuItem createShowNavigationHelpMenuItem()
-	{
-		final JMenuItem menuItem = new JMenuItem( "Show Navigation Help" );
-		menuItem.addActionListener( e ->
-		{
-			final HelpDialog helpDialog = new HelpDialog(
-				frame,
-				Tables.class.getResource( "/MultiImageSetNavigationHelp.html" ) );
-				helpDialog.setVisible( true );
-			}
-		);
-		return menuItem;
-	}
 
 	private JMenu createTableMenu()
     {
@@ -434,38 +419,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	public ArrayList<String> getAdditionalTables() {
 		return additionalTables;
-	}
-
-	public double[] getColorByColumnValueLimits() {
-		ColoringModel coloringModel = this.coloringModel.getColoringModel();
-		if (coloringModel instanceof NumericColoringModel ) {
-			double[] valueLimits = new double[2];
-			NumericColoringModel numericColoringModel = ( NumericColoringModel ) coloringModel;
-			valueLimits[0] = numericColoringModel.getMin();
-			valueLimits[1] = numericColoringModel.getMax();
-			return valueLimits;
-		} else {
-			return null;
-		}
-	}
-
-	public ArrayList<T> getSelectedLabelIds () {
-		if (selectionModel.getSelected().size() > 0) {
-			ArrayList<T> selectedIDsArray = new ArrayList<>(selectionModel.getSelected());
-			return selectedIDsArray;
-		} else {
-			return null;
-		}
-	}
-
-	public void setMergeByColumnName(String mergeByColumnName )
-	{
-		this.mergeByColumnName = mergeByColumnName;
-	}
-
-	public void setTablesDirectory( String tablesDirectory )
-	{
-		this.tablesDirectory = tablesDirectory;
 	}
 
 	private JMenuItem createSaveTableAsMenuItem()
@@ -771,7 +724,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	public String getColoringColumnName()
 	{
-		final ColoringModel< T > coloringModel = this.coloringModel.getColoringModel();
+		final ColoringModel< T > coloringModel = this.coloringModel.getWrappedColoringModel();
 
 		if ( coloringModel instanceof ColumnColoringModel )
 		{
@@ -798,33 +751,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	{
 		final ColoringModel< T > coloringModel = columnColoringModelCreator.showDialog();
 
-		if ( coloringModel != null )
-			this.coloringModel.setColoringModel( coloringModel );
-	}
-
-	/**
-	 * This method call auto-computes the contrast limits for the coloring
-	 *
-	 * @param columnName
-	 * @param coloringLut choose from ColoringLuts
-	 */
-	public void colorByColumn( String columnName, String coloringLut )
-	{
-		colorByColumn( columnName, coloringLut, null, null );
-	}
-
-	/**
-	 * TODO: min &amp; max only make sense for a NumericColoringModel...
-	 *
-	 * @param columnName
-	 * @param coloringLut choose from ColoringLuts
-	 * @param min
-	 * @param max
-	 */
-	public void colorByColumn( String columnName, String coloringLut, Double min, Double max )
-	{
-		final ColoringModel< T > coloringModel =
-				columnColoringModelCreator.createColoringModel( columnName, coloringLut, min, max );
 		if ( coloringModel != null )
 			this.coloringModel.setColoringModel( coloringModel );
 	}

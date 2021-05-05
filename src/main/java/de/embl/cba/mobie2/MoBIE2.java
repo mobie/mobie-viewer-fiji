@@ -176,7 +176,6 @@ public class MoBIE2
 	{
 		final ImageSource source = getSource( sourceName );
 		final String imagePath = getImagePath( source );
-		// TODO: The log does not show when the computer is busy...
 		new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
 		final SpimData spimData = BdvUtils.openSpimData( imagePath );
 		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );

@@ -92,13 +92,7 @@ public class ViewerManager
 		return sliceViewer;
 	}
 
-	/**
-	 *
-	 *
-	 * @param view
-	 * 					Serialised view
-	 */
-	public void show( View view )
+	public synchronized void show( View view )
 	{
 		if ( view.isExclusive() )
 		{

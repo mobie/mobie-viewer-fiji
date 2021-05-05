@@ -381,9 +381,12 @@ public class UserInterfaceHelper
 		{
 			SwingUtilities.invokeLater( () ->
 			{
-				final String viewName = ( String ) comboBox.getSelectedItem();
-				final View view = views.get( viewName );
-				moBIE2.getViewerManager().show( view );
+				new Thread( () ->
+				{
+					final String viewName = ( String ) comboBox.getSelectedItem();
+					final View view = views.get( viewName );
+					moBIE2.getViewerManager().show( view );
+				}).start();
 			} );
 		} );
 
