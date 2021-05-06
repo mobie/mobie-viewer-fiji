@@ -26,6 +26,8 @@ public class SliceViewer implements Supplier< BdvHandle >
 {
 	public static final String UNDO_SEGMENT_SELECTIONS = "Undo segment selections [ Ctrl Shift N ]";
 	public static final String CHANGE_RANDOM_COLOR_SEED = "Change random color seed";
+	public static final String LOAD_ADDITIONAL_VIEWS = "Load additional views";
+	public static final String SAVE_CURRENT_SETTINGS_AS_VIEW = "Save current settings as view";
 	private final SourceAndConverterBdvDisplayService sacDisplayService;
 	private BdvHandle bdvHandle;
 	private final boolean is2D;
@@ -77,12 +79,25 @@ public class SliceViewer implements Supplier< BdvHandle >
 			RandomColorSeedChangerCommand.incrementRandomColorSeed( sourceAndConverters );
 		} );
 
+		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
+			// TODO: Maybe only do this for the sacs at the mouse position
+			// TODO - load additional views
+		} );
+
+		sacService.registerAction( SAVE_CURRENT_SETTINGS_AS_VIEW, sourceAndConverters -> {
+			// TODO: Maybe only do this for the sacs at the mouse position
+			// TODO - save view
+		} );
+
 		final String[] actions = {
 				sacService.getCommandName( ScreenShotMakerCommand.class ),
 				sacService.getCommandName( BdvLocationLogger.class ),
 				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
 				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
-				UNDO_SEGMENT_SELECTIONS };
+				UNDO_SEGMENT_SELECTIONS,
+				LOAD_ADDITIONAL_VIEWS,
+				SAVE_CURRENT_SETTINGS_AS_VIEW
+		};
 
 		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions );
 
