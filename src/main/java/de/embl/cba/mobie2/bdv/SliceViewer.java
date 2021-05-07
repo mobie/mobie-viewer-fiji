@@ -4,6 +4,7 @@ import bdv.util.BdvHandle;
 import de.embl.cba.mobie2.segment.BdvSegmentSelector;
 import de.embl.cba.mobie2.color.RandomColorSeedChangerCommand;
 import de.embl.cba.mobie2.ui.WindowArrangementHelper;
+import de.embl.cba.mobie2.view.AdditionalViewsLoader;
 import de.embl.cba.mobie2.view.ViewerManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -86,6 +87,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 			// gui to choose which one to load
 			// read views from file
 			// call the function in user interface to trigger adding it
+			viewerManager.getAdditionalViewsLoader().loadAdditionalViewsDialog();
 		} );
 
 		sacService.registerAction( SAVE_CURRENT_SETTINGS_AS_VIEW, sourceAndConverters -> {

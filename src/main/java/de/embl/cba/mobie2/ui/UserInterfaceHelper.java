@@ -195,6 +195,15 @@ public class UserInterfaceHelper
 		}
 	}
 
+	public static void resetCrossPlatformSwingLookAndFeel() {
+		// TODO: reset where the menu bar is?
+		try {
+			UIManager.setLookAndFeel( UIManager.getCrossPlatformLookAndFeelClassName() );
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	public JPanel createGridViewDisplaySettingsPanel( GridOverlayDisplay gridOverlayDisplay )
 	{
 		JPanel panel = createDisplayPanel( gridOverlayDisplay.getName() );
@@ -342,6 +351,7 @@ public class UserInterfaceHelper
 		final Map< String, View > views = moBIE2.getViews();
 
 		groupingsToViews = new HashMap<>(  );
+		groupingsToComboBox = new HashMap<>( );
 		viewSelectionPanel = new JPanel( new BorderLayout() );
 		viewSelectionPanel.setLayout( new BoxLayout( viewSelectionPanel, BoxLayout.Y_AXIS ) );
 
@@ -371,14 +381,24 @@ public class UserInterfaceHelper
 			}
 		} else {
 			// If there are already panels, then add new ones at the correct index to maintain alphabetical order
+			Map< Integer, JPanel > indexToPanel = new HashMap<>();
 			for ( String viewName : views.keySet() ) {
 				String uiSelectionGroup = views.get( viewName ).getUiSelectionGroup();
 				if ( groupingsToComboBox.containsKey( uiSelectionGroup ) ) {
 					groupingsToComboBox.get( uiSelectionGroup ).addItem( viewName );
 				} else {
 					final JPanel selectionPanel = createViewSelectionPanel(moBIE2, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
-					int alphabeticalIndex = uiSelectionGroup.indexOf( uiSelectionGroup );
-					viewSelectionPanel.add( selectionPanel, alphabeticalIndex );
+					int alphabeticalIndex = uiSelectionGroups.indexOf( uiSelectionGroup );
+					indexToPanel.put( alphabeticalIndex, selectionPanel );
+				}
+			}
+
+			if ( indexToPanel.keySet().size() > 0 ) {
+				// add panels in ascending index order
+				final ArrayList< Integer > sortedIndices = new ArrayList<>( indexToPanel.keySet() );
+				Collections.sort( sortedIndices );
+				for ( Integer index: sortedIndices ) {
+					viewSelectionPanel.add( indexToPanel.get(index), index.intValue() );
 				}
 			}
 		}
@@ -389,6 +409,11 @@ public class UserInterfaceHelper
 	public int getViewsSelectionPanelHeight()
 	{
 		return viewsSelectionPanelHeight;
+	}
+
+	public int getActionPanelHeight()
+	{
+		return viewsSelectionPanelHeight + 4 * 40;
 	}
 
 	private JPanel createViewSelectionPanel( MoBIE2 moBIE2, String panelName, Map< String, View > views )

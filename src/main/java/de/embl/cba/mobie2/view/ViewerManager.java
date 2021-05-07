@@ -53,6 +53,7 @@ public class ViewerManager
 	private final BdvHandle bdvHandle;
 	private GridOverlayDisplay gridOverlayDisplay;
 	private final UniverseManager universeManager;
+	private final AdditionalViewsLoader additionalViewsLoader;
 
 	public ViewerManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
 	{
@@ -62,6 +63,7 @@ public class ViewerManager
 		sliceViewer = new SliceViewer( is2D, this, timepoints );
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
+		additionalViewsLoader = new AdditionalViewsLoader( moBIE2 );
 	}
 
 	public static void initScatterPlotViewer( SegmentationDisplay display )
@@ -92,7 +94,9 @@ public class ViewerManager
 		return sliceViewer;
 	}
 
-	public synchronized void show( View view )
+	public AdditionalViewsLoader getAdditionalViewsLoader() { return additionalViewsLoader; }
+
+	public synchronized void show(View view )
 	{
 		if ( view.isExclusive() )
 		{

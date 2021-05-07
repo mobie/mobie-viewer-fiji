@@ -22,6 +22,7 @@ public class UserInterface
 	private final JPanel selectionContainer;
 	private final UserInterfaceHelper userInterfaceHelper;
 	private Map< Object, JPanel > displayToPanel;
+	private JSplitPane splitPane;
 
 	public UserInterface( MoBIE2 moBIE )
 	{
@@ -40,10 +41,9 @@ public class UserInterface
 	{
 		JFrame frame = new JFrame( "MoBIE: " + panelName );
 
-		JSplitPane splitPane = new JSplitPane();
+		splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		final int sourceSelectionPanelHeight = userInterfaceHelper.getViewsSelectionPanelHeight();
-		final int actionPanelHeight = sourceSelectionPanelHeight + 4 * 40;
+		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
 
 
 		splitPane.setDividerLocation( actionPanelHeight );
@@ -75,6 +75,9 @@ public class UserInterface
 	{
 		selectionContainer.revalidate();
 		selectionContainer.repaint();
+		// update the location of the splitpane divider, so any new uiSelectionGroups are visible
+		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
+		splitPane.setDividerLocation( actionPanelHeight );
 		frame.revalidate();
 		frame.repaint();
 	}

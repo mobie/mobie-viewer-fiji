@@ -30,6 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
+import static de.embl.cba.mobie2.PathHelpers.getPath;
 
 public class MoBIE2
 {
@@ -109,26 +110,6 @@ public class MoBIE2
 			return "fileSystem";
 	}
 
-	private String getPath( String rootLocation, String githubBranch, String... files )
-	{
-		if ( rootLocation.contains( "github.com" ) )
-		{
-			rootLocation = GitHubUtils.createRawUrl( rootLocation, githubBranch );
-		}
-
-		final String[] strings = new String[ files.length + 2 ];
-		strings[ 0 ] = rootLocation;
-		strings[ 1 ] = "data";
-		for ( int i = 0; i < files.length; i++ )
-		{
-			strings[ i + 2] = files[ i ];
-		}
-
-		String path = FileAndUrlUtils.combinePath( strings );
-
-		return path;
-	}
-
 	public ViewerManager getViewerManager()
 	{
 		return viewerManager;
@@ -158,6 +139,8 @@ public class MoBIE2
 	{
 		return project.getDatasets();
 	}
+
+	public UserInterface getUserInterface() { return userInterface; }
 
 	public void close()
 	{
