@@ -1,11 +1,11 @@
 package de.embl.cba.mobie2.ui;
 
-import bdv.viewer.Source;
 import de.embl.cba.mobie2.display.ImageDisplay;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.Display;
 import de.embl.cba.mobie2.grid.GridOverlayDisplay;
+import de.embl.cba.mobie2.view.View;
 
 import javax.swing.*;
 import java.awt.*;
@@ -63,10 +63,18 @@ public class UserInterface
 		return frame;
 	}
 
-	private void refresh()
+	private void refreshDisplaySettings()
 	{
 		displaySettingsContainer.revalidate();
 		displaySettingsContainer.repaint();
+		frame.revalidate();
+		frame.repaint();
+	}
+
+	private void refreshSelection()
+	{
+		selectionContainer.revalidate();
+		selectionContainer.repaint();
 		frame.revalidate();
 		frame.repaint();
 	}
@@ -75,7 +83,12 @@ public class UserInterface
 	{
 		final JPanel panel = createDisplaySettingPanel( display );
 		showDisplaySettingsPanel( display, panel );
-		refresh();
+		refreshDisplaySettings();
+	}
+
+	public void addViews( Map<String, View> views ) {
+		userInterfaceHelper.addViewsToSelectionPanel( views );
+		refreshSelection();
 	}
 
 	private JPanel createDisplaySettingPanel( Display display )
@@ -106,7 +119,7 @@ public class UserInterface
 			final JPanel jPanel = displayToPanel.get( display );
 			displaySettingsContainer.remove( jPanel );
 			displayToPanel.remove( display );
-			refresh();
+			refreshDisplaySettings();
 		} );
 	}
 
@@ -115,7 +128,7 @@ public class UserInterface
 		SwingUtilities.invokeLater( () -> {
 			displayToPanel.put( display, panel );
 			displaySettingsContainer.add( panel );
-			refresh();
+			refreshDisplaySettings();
 		});
 	}
 

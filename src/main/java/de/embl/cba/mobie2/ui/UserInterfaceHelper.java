@@ -58,6 +58,9 @@ public class UserInterfaceHelper
 
 	private final MoBIE2 moBIE2;
 	private int viewsSelectionPanelHeight;
+	private JPanel viewSelectionPanel;
+	private Map< String, Map< String, View > > groupingsToViews;
+	private Map< String, JComboBox > groupingsToComboBox;
 
 	public UserInterfaceHelper( MoBIE2 moBIE2 )
 	{
@@ -338,8 +341,16 @@ public class UserInterfaceHelper
 	{
 		final Map< String, View > views = moBIE2.getViews();
 
-		Map< String, Map< String, View > > groupingsToViews = new HashMap<>(  );
+		groupingsToViews = new HashMap<>(  );
+		viewSelectionPanel = new JPanel( new BorderLayout() );
+		viewSelectionPanel.setLayout( new BoxLayout( viewSelectionPanel, BoxLayout.Y_AXIS ) );
 
+		addViewsToSelectionPanel( views );
+
+		return viewSelectionPanel;
+	}
+
+	public void addViewsToSelectionPanel( Map< String, View > views ) {
 		for ( String viewName : views.keySet() )
 		{
 			final View view = views.get( viewName );
@@ -349,20 +360,30 @@ public class UserInterfaceHelper
 			groupingsToViews.get( uiSelectionGroup ).put( viewName, view );
 		}
 
-		JPanel containerPanel = new JPanel( new BorderLayout() );
-		containerPanel.setLayout( new BoxLayout( containerPanel, BoxLayout.Y_AXIS ) );
-
 		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );
 		Collections.sort( uiSelectionGroups );
-		for ( String uiSelectionGroup : uiSelectionGroups )
-		{
-			final JPanel selectionPanel = createViewSelectionPanel( moBIE2, uiSelectionGroup, groupingsToViews.get( uiSelectionGroup ) );
-			containerPanel.add( selectionPanel );
+
+		// If it's the first time, just add all the panels in order
+		if ( groupingsToComboBox.keySet().size() == 0 ) {
+			for (String uiSelectionGroup : uiSelectionGroups) {
+				final JPanel selectionPanel = createViewSelectionPanel(moBIE2, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
+				viewSelectionPanel.add(selectionPanel);
+			}
+		} else {
+			// If there are already panels, then add new ones at the correct index to maintain alphabetical order
+			for ( String viewName : views.keySet() ) {
+				String uiSelectionGroup = views.get( viewName ).getUiSelectionGroup();
+				if ( groupingsToComboBox.containsKey( uiSelectionGroup ) ) {
+					groupingsToComboBox.get( uiSelectionGroup ).addItem( viewName );
+				} else {
+					final JPanel selectionPanel = createViewSelectionPanel(moBIE2, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
+					int alphabeticalIndex = uiSelectionGroup.indexOf( uiSelectionGroup );
+					viewSelectionPanel.add( selectionPanel, alphabeticalIndex );
+				}
+			}
 		}
 
 		viewsSelectionPanelHeight = groupingsToViews.keySet().size() * 40;
-
-		return containerPanel;
 	}
 
 	public int getViewsSelectionPanelHeight()
@@ -395,6 +416,8 @@ public class UserInterfaceHelper
 		horizontalLayoutPanel.add( getJLabel( panelName ) );
 		horizontalLayoutPanel.add( comboBox );
 		horizontalLayoutPanel.add( button );
+
+		groupingsToComboBox.put( panelName, comboBox );
 
 		return horizontalLayoutPanel;
 	}

@@ -82,6 +82,10 @@ public class SliceViewer implements Supplier< BdvHandle >
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
 			// TODO - load additional views
+			// list all files in misc directory (either from local or remote)
+			// gui to choose which one to load
+			// read views from file
+			// call the function in user interface to trigger adding it
 		} );
 
 		sacService.registerAction( SAVE_CURRENT_SETTINGS_AS_VIEW, sourceAndConverters -> {
