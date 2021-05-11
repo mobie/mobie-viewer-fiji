@@ -101,7 +101,7 @@ public class ViewsSaver {
 
     private void saveToAdditionalViewsJson( View view, String viewName, String jsonPath ) throws IOException {
         if ( isGithub( jsonPath ) ) {
-
+            new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( jsonPath ) ).writeViewToGithub( viewName, view );
         } else {
             AdditionalViews additionalViews;
             if (new File(jsonPath).exists()) {
@@ -131,7 +131,11 @@ public class ViewsSaver {
             jsonFileName = chooseViewsFileNameDialog();
         }
 
-        return jsonFileName;
+        if ( jsonFileName != null ) {
+            return getPath(options.values.getProjectLocation(), options.values.getProjectBranch(), moBIE2.getDatasetName(), "misc", "views", jsonFileName);
+        } else {
+            return null;
+        }
     }
 
     private void saveToProject( String viewName, String uiSelectionGroup, boolean exclusive ) {
