@@ -21,6 +21,7 @@ import de.embl.cba.mobie2.transform.GridSourceTransformer;
 import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.mobie2.ui.WindowArrangementHelper;
+import de.embl.cba.mobie2.view.additionalviews.AdditionalViewsLoader;
 import de.embl.cba.mobie2.volume.SegmentsVolumeView;
 import de.embl.cba.mobie2.volume.UniverseManager;
 import de.embl.cba.tables.TableColumns;
@@ -54,6 +55,7 @@ public class ViewerManager
 	private GridOverlayDisplay gridOverlayDisplay;
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
+	private final ViewsSaver additionalViewsSaver;
 
 	public ViewerManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
 	{
@@ -64,6 +66,7 @@ public class ViewerManager
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE2 );
+		additionalViewsSaver = new ViewsSaver( moBIE2 );
 	}
 
 	public static void initScatterPlotViewer( SegmentationDisplay display )
@@ -95,6 +98,8 @@ public class ViewerManager
 	}
 
 	public AdditionalViewsLoader getAdditionalViewsLoader() { return additionalViewsLoader; }
+
+	public ViewsSaver getAdditionalViewsSaver() { return additionalViewsSaver; }
 
 	public synchronized void show(View view )
 	{

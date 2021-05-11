@@ -11,6 +11,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
@@ -138,6 +139,18 @@ public class UserInterface
 	public Window getWindow()
 	{
 		return frame;
+	}
+
+	public String[] getUISelectionGroupNames() {
+
+		Set<String> groupings = userInterfaceHelper.getGroupings();
+		String[] groupNames = new String[groupings.size()];
+		int i = 0;
+		for ( String groupName: groupings ) {
+			groupNames[i] = groupName;
+			i++;
+		}
+		return groupNames;
 	}
 
 	public void close()

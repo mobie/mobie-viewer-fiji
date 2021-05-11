@@ -3,8 +3,6 @@ package de.embl.cba.mobie2.bdv;
 import bdv.util.BdvHandle;
 import de.embl.cba.mobie2.segment.BdvSegmentSelector;
 import de.embl.cba.mobie2.color.RandomColorSeedChangerCommand;
-import de.embl.cba.mobie2.ui.WindowArrangementHelper;
-import de.embl.cba.mobie2.view.AdditionalViewsLoader;
 import de.embl.cba.mobie2.view.ViewerManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -82,17 +80,12 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
-			// TODO - load additional views
-			// list all files in misc directory (either from local or remote)
-			// gui to choose which one to load
-			// read views from file
-			// call the function in user interface to trigger adding it
 			viewerManager.getAdditionalViewsLoader().loadAdditionalViewsDialog();
 		} );
 
 		sacService.registerAction( SAVE_CURRENT_SETTINGS_AS_VIEW, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
-			// TODO - save view
+			viewerManager.getAdditionalViewsSaver().saveCurrentSettingsAsViewDialog();
 		} );
 
 		final String[] actions = {

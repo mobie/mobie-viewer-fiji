@@ -416,6 +416,10 @@ public class UserInterfaceHelper
 		return viewsSelectionPanelHeight + 4 * 40;
 	}
 
+	public Set<String> getGroupings() {
+		return groupingsToViews.keySet();
+	}
+
 	private JPanel createViewSelectionPanel( MoBIE2 moBIE2, String panelName, Map< String, View > views )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();

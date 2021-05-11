@@ -2,7 +2,7 @@ package de.embl.cba.mobie2.serialize;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import de.embl.cba.mobie2.view.AdditionalViews;
+import de.embl.cba.mobie2.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.FileAndUrlUtils;
 
 import java.io.IOException;

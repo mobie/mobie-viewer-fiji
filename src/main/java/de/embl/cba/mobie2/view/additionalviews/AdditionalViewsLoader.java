@@ -1,9 +1,10 @@
-package de.embl.cba.mobie2.view;
+package de.embl.cba.mobie2.view.additionalviews;
 
 import de.embl.cba.mobie.ui.MoBIEOptions;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.serialize.AdditionalViewsJsonParser;
 import de.embl.cba.mobie2.ui.UserInterfaceHelper;
+import de.embl.cba.mobie2.view.View;
 
 import java.io.IOException;
 import java.util.Map;
@@ -29,7 +30,7 @@ public class AdditionalViewsLoader {
             UserInterfaceHelper.resetCrossPlatformSwingLookAndFeel();
 
             if (selectedFilePath != null) {
-                Map< String, View > views = new AdditionalViewsJsonParser().getViews( selectedFilePath ).views;
+                Map< String, View> views = new AdditionalViewsJsonParser().getViews( selectedFilePath ).views;
                 moBIE2.getUserInterface().addViews( views );
             }
 
