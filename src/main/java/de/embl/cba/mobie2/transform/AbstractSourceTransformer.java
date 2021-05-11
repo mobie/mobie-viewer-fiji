@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class AbstractSourceTransformer implements SourceTransformer
 {
-	protected Map< String, AffineTransform3D > sourceNameToTransform = new HashMap();
+	protected transient Map< String, AffineTransform3D > sourceNameToTransform = new HashMap();
 
 	@Override
 	public List< SourceAndConverter< ? > > transform( List< SourceAndConverter< ? > > sourceAndConverters )

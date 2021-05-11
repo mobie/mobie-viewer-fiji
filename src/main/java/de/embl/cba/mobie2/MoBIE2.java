@@ -130,6 +130,11 @@ public class MoBIE2
 		return projectLocation;
 	}
 
+	public Dataset getDataset()
+	{
+		return dataset;
+	}
+
 	public String getDatasetName()
 	{
 		return datasetName;
@@ -164,11 +169,6 @@ public class MoBIE2
 		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 		final SourceAndConverter sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
 		return sourceAndConverter;
-	}
-
-	public String getDataset()
-	{
-		return datasetName;
 	}
 
 	public void setDataset( String dataset )

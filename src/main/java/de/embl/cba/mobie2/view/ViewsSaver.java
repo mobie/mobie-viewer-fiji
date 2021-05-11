@@ -5,13 +5,19 @@ import com.google.gson.stream.JsonWriter;
 import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.bookmark.BookmarkReader;
 import de.embl.cba.mobie.bookmark.write.BookmarkGithubWriter;
+import de.embl.cba.mobie.dataset.DatasetsParser;
 import de.embl.cba.mobie.ui.MoBIEOptions;
+import de.embl.cba.mobie2.Dataset;
 import de.embl.cba.mobie2.MoBIE2;
+import de.embl.cba.mobie2.serialize.AdditionalViewsJsonParser;
+import de.embl.cba.mobie2.serialize.DatasetJsonParser;
+import de.embl.cba.mobie2.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.github.GitHubUtils;
 import de.embl.cba.tables.github.GitLocation;
 import ij.IJ;
 import ij.gui.GenericDialog;
+import script.imglib.math.Add;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -44,7 +50,7 @@ public class ViewsSaver {
         this.options = moBIE2.getOptions();
     }
 
-    private void saveToFileSystem() {
+    private void saveToFileSystem( String viewName, String uiSelectionGroup, boolean exclusive ) {
         String jsonPath = null;
         final JFileChooser jFileChooser = new JFileChooser();
         jFileChooser.setFileFilter(new FileNameExtensionFilter("json", "json"));
@@ -66,38 +72,88 @@ public class ViewsSaver {
             }
 
             if (jsonPath != null) {
-                // TODO - write
+                View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive);
+                try {
+                    saveToAdditionalViewsJson( currentView, viewName, jsonPath );
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
 
-    private void saveToProject() {
-        ProjectSaveLocation projectSaveLocation = chooseSaveLocationDialog();
-        if (projectSaveLocation != null) {
-            if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
-                // TODO - save it
+    private void saveToDatasetJson( View view, String viewName ) throws IOException {
+        String datasetJsonPath = getPath(options.values.getProjectLocation(), options.values.getProjectBranch(), moBIE2.getDatasetName(), "dataset.json");
+        Dataset dataset = moBIE2.getDataset();
+        dataset.views.put( viewName, view );
+
+        if ( isGithub( datasetJsonPath ) ) {
+
+        } else {
+            new DatasetJsonParser().saveDataset( dataset, datasetJsonPath );
+        }
+
+        Map<String, View> views = new HashMap<>();
+        views.put( viewName, view );
+        moBIE2.getUserInterface().addViews( views );
+
+    }
+
+    private void saveToAdditionalViewsJson( View view, String viewName, String jsonPath ) throws IOException {
+        if ( isGithub( jsonPath ) ) {
+
+        } else {
+            AdditionalViews additionalViews;
+            if (new File(jsonPath).exists()) {
+                additionalViews = new AdditionalViewsJsonParser().getViews(jsonPath);
             } else {
-                // TODO - choose existing view file, or say make new one
-                // if make new one, choose a name for it
+                additionalViews = new AdditionalViews();
+                additionalViews.views = new HashMap<>();
+            }
 
-                if ( isS3(options.values.getProjectLocation()) ) {
-                    // TODO - support saving views to s3?
-                    IJ.log("View saving aborted - saving directly to s3 is not yet supported!");
-                } else {
-                    String additionalViewsDirectory = getPath(options.values.getProjectLocation(), options.values.getProjectBranch(), moBIE2.getDatasetName(), "misc", "views");
-                    String[] existingViewFiles = getFileNamesFromProject(additionalViewsDirectory);
+            additionalViews.views.put(viewName, view);
 
-                    String jsonFileName;
-                    if (existingViewFiles != null && existingViewFiles.length > 0) {
-                        // TODO - give option to choose existing or make new
-                        jsonFileName = chooseViewsJsonDialog(existingViewFiles);
+            new AdditionalViewsJsonParser().saveViews(additionalViews, jsonPath);
+        }
+    }
+
+    private String chooseAdditionalViewsJson() {
+        // TODO - choose existing view file, or say make new one
+        // if make new one, choose a name for it
+        String additionalViewsDirectory = getPath(options.values.getProjectLocation(), options.values.getProjectBranch(), moBIE2.getDatasetName(), "misc", "views");
+        String[] existingViewFiles = getFileNamesFromProject(additionalViewsDirectory);
+
+        String jsonFileName;
+        if (existingViewFiles != null && existingViewFiles.length > 0) {
+            // TODO - give option to choose existing or make new
+            jsonFileName = chooseViewsJsonDialog(existingViewFiles);
+        } else {
+            jsonFileName = chooseViewsFileNameDialog();
+        }
+
+        return jsonFileName;
+    }
+
+    private void saveToProject( String viewName, String uiSelectionGroup, boolean exclusive ) {
+        if ( isS3(options.values.getProjectLocation()) ) {
+            // TODO - support saving views to s3?
+            IJ.log("View saving aborted - saving directly to s3 is not yet supported!");
+        } else {
+            ProjectSaveLocation projectSaveLocation = chooseSaveLocationDialog();
+            if (projectSaveLocation != null) {
+                View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive);
+
+                try {
+                    if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
+                        saveToDatasetJson(currentView, viewName);
                     } else {
-                        jsonFileName = chooseViewsFileNameDialog();
+                        String viewJsonPath = chooseAdditionalViewsJson();
+                        if (viewJsonPath != null) {
+                            saveToAdditionalViewsJson(currentView, viewName, viewJsonPath);
+                        }
                     }
-
-                    View currentView = moBIE2.getViewerManager().getCurrentView( "test", true);
-                    System.out.println("yo");
-                    // TODO - write
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -127,9 +183,9 @@ public class ViewsSaver {
             boolean exclusive = gd.getNextBoolean();
 
             if (fileLocation == FileUtils.FileLocation.Project) {
-                saveToProject();
+                saveToProject( viewName, uiSelectionGroup, exclusive );
             } else {
-                saveToFileSystem();
+                saveToFileSystem( viewName, uiSelectionGroup, exclusive );
             }
         }
     }
@@ -221,22 +277,6 @@ public class ViewsSaver {
             return null;
         }
 
-    }
-
-    public static void writeViewsToFile (Gson gson, Type type, File jsonFile, Map< String, Bookmark> bookmarks) throws IOException
-    {
-        Map<String, Bookmark> bookmarksInFile = new HashMap<>();
-        // If json already exists, read existing bookmarks to append new ones
-        if (jsonFile.exists()) {
-            bookmarksInFile.putAll( BookmarkReader.readBookmarksFromFile(gson, type, jsonFile.getAbsolutePath()));
-        }
-        bookmarksInFile.putAll(bookmarks);
-
-        try (OutputStream outputStream = new FileOutputStream( jsonFile );
-             final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8")) ) {
-            writer.setIndent("	");
-            gson.toJson(bookmarksInFile, type, writer);
-        }
     }
 
     public static void writeViewsToGithub(ArrayList< Bookmark > bookmarks, BookmarkReader bookmarkReader ) {
