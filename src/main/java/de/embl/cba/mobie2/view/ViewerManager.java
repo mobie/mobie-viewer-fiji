@@ -2,6 +2,7 @@ package de.embl.cba.mobie2.view;
 
 import bdv.util.BdvHandle;
 import de.embl.cba.mobie.Constants;
+import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.bdv.ImageSliceView;
 import de.embl.cba.mobie2.bdv.SegmentationImageSliceView;
@@ -16,9 +17,7 @@ import de.embl.cba.mobie2.display.SegmentationDisplay;
 import de.embl.cba.mobie2.display.Display;
 import de.embl.cba.mobie2.display.SourceDisplaySupplier;
 import de.embl.cba.mobie2.table.TableViewer;
-import de.embl.cba.mobie2.transform.BdvLocationChanger;
-import de.embl.cba.mobie2.transform.GridSourceTransformer;
-import de.embl.cba.mobie2.transform.SourceTransformer;
+import de.embl.cba.mobie2.transform.*;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.mobie2.ui.WindowArrangementHelper;
 import de.embl.cba.mobie2.view.additionalviews.AdditionalViewsLoader;
@@ -29,6 +28,7 @@ import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
+import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 
@@ -55,7 +55,7 @@ public class ViewerManager
 	private GridOverlayDisplay gridOverlayDisplay;
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
-	private final ViewsSaver additionalViewsSaver;
+	private final ViewsSaver viewsSaver;
 
 	public ViewerManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
 	{
@@ -66,7 +66,7 @@ public class ViewerManager
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE2 );
-		additionalViewsSaver = new ViewsSaver( moBIE2 );
+		viewsSaver = new ViewsSaver( moBIE2 );
 	}
 
 	public static void initScatterPlotViewer( SegmentationDisplay display )
@@ -99,7 +99,42 @@ public class ViewerManager
 
 	public AdditionalViewsLoader getAdditionalViewsLoader() { return additionalViewsLoader; }
 
-	public ViewsSaver getAdditionalViewsSaver() { return additionalViewsSaver; }
+	public ViewsSaver getViewsSaver() { return viewsSaver; }
+
+	public View getCurrentView( String uiSelectionGroup, boolean isExclusive ) {
+
+		List<SourceDisplaySupplier> sourceDisplays = new ArrayList<>();
+		List<SourceTransformerSupplier> sourceTransforms = new ArrayList<>();
+		List<SourceTransformer> sourceTransformers = new ArrayList<>();
+		for ( Display display : displays ) {
+			Display currentDisplay = null;
+			if ( display instanceof ImageDisplay ) {
+				currentDisplay = new ImageDisplay( (ImageDisplay) display );
+			} else if ( display instanceof  SegmentationDisplay ) {
+				currentDisplay = new SegmentationDisplay( (SegmentationDisplay) display );
+			}
+
+			if ( currentDisplay != null ) {
+				sourceDisplays.add(new SourceDisplaySupplier(currentDisplay));
+			}
+
+			// TODO - would be good to pick up any manual transforms here too. This would allow e.g. manual placement
+			// of differing sized sources into a grid
+			if ( display.sourceTransformers != null ) {
+				for ( SourceTransformer sourceTransformer: display.sourceTransformers ) {
+					if ( !sourceTransformers.contains( sourceTransformer ) ) {
+						sourceTransformers.add( sourceTransformer );
+						sourceTransforms.add( new SourceTransformerSupplier(sourceTransformer) );
+					}
+				}
+			}
+		}
+
+		AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform( bdvHandle, Utils.getMousePosition( bdvHandle ) );
+		BdvLocationSupplier viewerTransform = new BdvLocationSupplier( new BdvLocation( BdvLocationType.NormalisedViewerTransform, normalisedViewTransform.getRowPackedCopy()) );
+
+		return new View( uiSelectionGroup, sourceDisplays, sourceTransforms, viewerTransform, isExclusive );
+	}
 
 	public synchronized void show(View view )
 	{

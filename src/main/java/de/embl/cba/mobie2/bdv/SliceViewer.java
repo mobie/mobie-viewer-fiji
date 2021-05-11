@@ -85,7 +85,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 		sacService.registerAction( SAVE_CURRENT_SETTINGS_AS_VIEW, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
-			viewerManager.getAdditionalViewsSaver().saveCurrentSettingsAsViewDialog();
+			viewerManager.getViewsSaver().saveCurrentSettingsAsViewDialog();
 		} );
 
 		final String[] actions = {

@@ -80,7 +80,7 @@ public class ViewsSaver {
                 // TODO - choose existing view file, or say make new one
                 // if make new one, choose a name for it
 
-                if (isS3(options.values.getProjectLocation())) {
+                if ( isS3(options.values.getProjectLocation()) ) {
                     // TODO - support saving views to s3?
                     IJ.log("View saving aborted - saving directly to s3 is not yet supported!");
                 } else {
@@ -95,6 +95,8 @@ public class ViewsSaver {
                         jsonFileName = chooseViewsFileNameDialog();
                     }
 
+                    View currentView = moBIE2.getViewerManager().getCurrentView( "test", true);
+                    System.out.println("yo");
                     // TODO - write
                 }
             }
@@ -241,8 +243,8 @@ public class ViewsSaver {
         final GitLocation gitLocation = GitHubUtils.rawUrlToGitLocation( bookmarkReader.getDatasetLocation() );
         gitLocation.path += "misc/bookmarks";
 
-        BookmarkGithubWriter bookmarkWriter = new BookmarkGithubWriter(gitLocation, bookmarkReader );
-        bookmarkWriter.writeBookmarksToGithub(bookmarks);
+        // BookmarkGithubWriter bookmarkWriter = new BookmarkGithubWriter(gitLocation, bookmarkReader );
+        // bookmarkWriter.writeBookmarksToGithub(bookmarks);
     }
 
 }

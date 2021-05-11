@@ -6,6 +6,14 @@ public class SourceDisplaySupplier
 	private ImageDisplay imageDisplay;
 	private SegmentationDisplay segmentationDisplay;
 
+	public SourceDisplaySupplier( Display display ) {
+		if ( display instanceof ImageDisplay ) {
+			imageDisplay = (ImageDisplay) display;
+		} else if ( display instanceof  SegmentationDisplay ) {
+			segmentationDisplay = (SegmentationDisplay) display;
+		}
+	}
+
 	public Display get()
 	{
 		if ( imageDisplay != null ) return imageDisplay;
