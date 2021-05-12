@@ -1,32 +1,29 @@
 package de.embl.cba.mobie2.bdv;
 
 import bdv.util.BdvHandle;
-import de.embl.cba.mobie2.segment.BdvSegmentSelector;
 import de.embl.cba.mobie2.color.RandomColorSeedChangerCommand;
-import de.embl.cba.mobie2.ui.WindowArrangementHelper;
+import de.embl.cba.mobie2.segment.BdvSegmentSelector;
 import de.embl.cba.mobie2.view.ViewerManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
-import sc.fiji.bdvpg.bdv.MinimalBdvCreator;
-import sc.fiji.bdvpg.bdv.projector.Projector;
+import sc.fiji.bdvpg.bdv.supplier.DefaultBdvSupplier;
+import sc.fiji.bdvpg.bdv.supplier.SerializableBdvOptions;
 import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
-import sc.fiji.bdvpg.scijava.command.bdv.ScreenShotMakerCommand;
-import sc.fiji.bdvpg.scijava.command.source.SourceAndConverterBlendingModeChangerCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class SliceViewer implements Supplier< BdvHandle >
 {
 	public static final String UNDO_SEGMENT_SELECTIONS = "Undo segment selections [ Ctrl Shift N ]";
 	public static final String CHANGE_RANDOM_COLOR_SEED = "Change random color seed";
-	private final SourceAndConverterBdvDisplayService sacDisplayService;
+	private final SourceAndConverterBdvDisplayService displayService;
 	private BdvHandle bdvHandle;
 	private final boolean is2D;
 	private final ViewerManager viewerManager;
@@ -42,10 +39,10 @@ public class SliceViewer implements Supplier< BdvHandle >
 		this.timepoints = timepoints;
 
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-		sacDisplayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
+		displayService = SourceAndConverterServices.getBdvDisplayService();
 
 		bdvHandle = createBdv( timepoints );
-		sacDisplayService.registerBdvHandle( bdvHandle );
+		displayService.registerBdvHandle( bdvHandle );
 
 		installContextMenuAndKeyboardShortCuts();
 	}
@@ -56,7 +53,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		if ( bdvHandle == null )
 		{
 			bdvHandle = createBdv( timepoints );
-			sacDisplayService.registerBdvHandle( bdvHandle );
+			displayService.registerBdvHandle( bdvHandle );
 		}
 		return bdvHandle;
 	}
@@ -78,9 +75,9 @@ public class SliceViewer implements Supplier< BdvHandle >
 		} );
 
 		final String[] actions = {
-				sacService.getCommandName( ScreenShotMakerCommand.class ),
+				//sacService.getCommandName( ScreenShot.class ),
 				sacService.getCommandName( BdvLocationLogger.class ),
-				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
+				//sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
 				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
 				UNDO_SEGMENT_SELECTIONS };
 
@@ -117,9 +114,11 @@ public class SliceViewer implements Supplier< BdvHandle >
 	private BdvHandle createBdv( int numTimepoints )
 	{
 		// create Bdv
-		final MinimalBdvCreator bdvCreator = new MinimalBdvCreator( "MoBIE", is2D, Projector.MIXED_PROJECTOR, true, numTimepoints );
-		final BdvHandle bdvHandle = bdvCreator.get();
-
+		final SerializableBdvOptions bdvOptions = new SerializableBdvOptions();
+		bdvOptions.numTimePoints = numTimepoints;
+		bdvOptions.is2D = is2D;
+		final DefaultBdvSupplier bdvSupplier = new DefaultBdvSupplier( bdvOptions );
+		final BdvHandle bdvHandle = bdvSupplier.get();
 		return bdvHandle;
 	}
 

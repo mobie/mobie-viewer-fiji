@@ -5,23 +5,22 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie2.bdv.ImageSliceView;
 import de.embl.cba.mobie2.color.opacity.AdjustableOpacityColorConverter;
 import net.imglib2.display.ColorConverter;
-import sc.fiji.bdvpg.bdv.projector.BlendingMode;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
-
-import static sc.fiji.bdvpg.bdv.projector.BlendingMode.BLENDING_MODE;
 
 public class ImageDisplay extends Display
 {
 	// Serialization
 	private String color;
 	private double[] contrastLimits;
-	private BlendingMode blendingMode;
+	//private BlendingMode blendingMode;
 	private boolean showImagesIn3d;
 
 	// Runtime
 	public transient ImageSliceView imageSliceView;
+	private final SourceAndConverterBdvDisplayService displayService;
 
 	public String getColor()
 	{
@@ -33,10 +32,10 @@ public class ImageDisplay extends Display
 		return contrastLimits;
 	}
 
-	public BlendingMode getBlendingMode()
-	{
-		return blendingMode;
-	}
+//	public BlendingMode getBlendingMode()
+//	{
+//		return blendingMode;
+//	}
 
 	/**
 	 * Create a serializable copy
@@ -46,6 +45,7 @@ public class ImageDisplay extends Display
 	public ImageDisplay( ImageDisplay imageDisplay )
 	{
 		this.name = imageDisplay.name;
+		this.displayService = SourceAndConverterServices.getBdvDisplayService();
 		this.sources = new ArrayList<>();
 		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )
 		{
@@ -53,7 +53,7 @@ public class ImageDisplay extends Display
 		}
 
 		final SourceAndConverter< ? > sourceAndConverter = imageDisplay.sourceAndConverters.get( 0 );
-		final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterDisplayService().getConverterSetup( sourceAndConverter );
+		final ConverterSetup converterSetup = displayService.getConverterSetup( sourceAndConverter );
 
 		if( sourceAndConverter.getConverter() instanceof AdjustableOpacityColorConverter )
 		{
@@ -73,7 +73,7 @@ public class ImageDisplay extends Display
 		contrastLimits[1] = converterSetup.getDisplayRangeMax();
 		this.contrastLimits = contrastLimits;
 
-		this.blendingMode = (BlendingMode) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BLENDING_MODE );
+//		this.blendingMode = (BlendingMode) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BLENDING_MODE );
 
 		// TODO - show images in 3d (currently not supported in viewer)
 	}

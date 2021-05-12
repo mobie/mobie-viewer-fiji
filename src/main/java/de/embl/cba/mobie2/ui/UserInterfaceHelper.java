@@ -28,6 +28,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
@@ -58,10 +59,12 @@ public class UserInterfaceHelper
 
 	private final MoBIE2 moBIE2;
 	private int viewsSelectionPanelHeight;
+	private final SourceAndConverterBdvDisplayService displayService;
 
 	public UserInterfaceHelper( MoBIE2 moBIE2 )
 	{
 		this.moBIE2 = moBIE2;
+		displayService = SourceAndConverterServices.getBdvDisplayService();
 	}
 
 	public static JPanel createDisplaySettingsPanel()
@@ -289,11 +292,10 @@ public class UserInterfaceHelper
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createCheckboxPlaceholder() );
 
-
 		// make the panel color listen to color changes of the sources
 		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
 		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
+			displayService.getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
 				// color changed listener
 				setPanelColor( panel, setup.getColor() );
 			} );
@@ -548,7 +550,7 @@ public class UserInterfaceHelper
 		return Box.createRigidArea( PREFERRED_CHECKBOX_SIZE );
 	}
 
-	private static JCheckBox createSliceViewerVisibilityCheckbox(
+	private JCheckBox createSliceViewerVisibilityCheckbox(
 			boolean isVisible,
 			final List< SourceAndConverter< ? > > sourceAndConverters )
 	{
@@ -563,7 +565,7 @@ public class UserInterfaceHelper
 			{
 				for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 				{
-					SourceAndConverterServices.getSourceAndConverterDisplayService().setVisible( sourceAndConverter, checkBox.isSelected() );
+					displayService.setVisible( sourceAndConverter, checkBox.isSelected() );
 				}
 			}
 		} );
@@ -679,7 +681,7 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	public static JButton createImageDisplayBrightnessButton( ImageDisplay imageDisplay )
+	public JButton createImageDisplayBrightnessButton( ImageDisplay imageDisplay )
 	{
 		JButton button = new JButton( "B" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -689,7 +691,7 @@ public class UserInterfaceHelper
 			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
 			for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )
 			{
-				converterSetups.add( SourceAndConverterServices.getSourceAndConverterDisplayService().getConverterSetup( sourceAndConverter ) );
+				converterSetups.add( displayService.getConverterSetup( sourceAndConverter ) );
 			}
 
 			UserInterfaceHelper.showBrightnessDialog(

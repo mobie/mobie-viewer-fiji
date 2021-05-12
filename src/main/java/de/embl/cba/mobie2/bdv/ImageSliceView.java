@@ -16,7 +16,6 @@ import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import sc.fiji.bdvpg.bdv.projector.BlendingMode;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -42,7 +41,7 @@ public class ImageSliceView
 		this.bdvHandle = bdvHandle;
 		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
 
-		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
+		displayService = SourceAndConverterServices.getBdvDisplayService();
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 
 		show();
@@ -71,8 +70,8 @@ public class ImageSliceView
 			adaptImageColor( sourceAndConverter );
 
 			// set blending mode
-			if ( imageDisplay.getBlendingMode() != null )
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, imageDisplay.getBlendingMode());
+			//if ( imageDisplay.getBlendingMode() != null )
+			//	SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, imageDisplay.getBlendingMode());
 
 			// show
 			displayService.show( bdvHandle, sourceAndConverter );
@@ -119,7 +118,7 @@ public class ImageSliceView
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )
 		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+			displayService.removeFromAllBdvs( sourceAndConverter );
 		}
 	}
 }

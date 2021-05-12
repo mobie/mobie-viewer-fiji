@@ -82,10 +82,12 @@
 		<bigdataviewer-vistools.version>1.0.0-beta-28</bigdataviewer-vistools.version>
 
 		<!-- BIOP -->
-		<bigdataviewer-playground.version>0.2.14-SNAPSHOT</bigdataviewer-playground.version>
+		<bigdataviewer-playground.version>0.3.0</bigdataviewer-playground.version>
+		<bigdataviewer-spimdata-extras.version>0.1.2-SNAPSHOT</bigdataviewer-spimdata-extras.version>
+		<bigdataviewer_playground_display.version>0.1.1-SNAPSHOT</bigdataviewer_playground_display.version>
 
 		<!-- EMBL CBA -->
-		<imagej-utils.version>0.6.3-SNAPSHOT</imagej-utils.version>
+		<imagej-utils.version>0.6.4-SNAPSHOT</imagej-utils.version>
 
 		<!-- Version 1.6.0-scijava-3-SNAPSHOT of j3dcore addresses a minor issue
 		https://github.com/fiji/3D_Viewer/issues/26
@@ -124,6 +126,16 @@
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-playground</artifactId>
 			<version>${bigdataviewer-playground.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.epfl.biop</groupId>
+			<artifactId>bigdataviewer-spimdata-extras</artifactId>
+			<version>${bigdataviewer-spimdata-extras.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>sc.fiji.bigdataviewer</groupId>
+			<artifactId>bigdataviewer_playground_display</artifactId>
+			<version>${bigdataviewer_playground_display.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.imglib2</groupId>
