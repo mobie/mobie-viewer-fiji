@@ -65,7 +65,7 @@ public class GridOverlayDisplay extends Display implements ColoringListener, Sel
 	{
 		final TableRowsIntervalImage< DefaultAnnotatedIntervalTableRow > intervalImage = new TableRowsIntervalImage<>( tableRows, coloringModel, name );
 		SourceAndConverter< IntType > sourceAndConverter = intervalImage.getSourceAndConverter();
-		SourceAndConverterServices.getSourceAndConverterDisplayService().show( bdvHandle, sourceAndConverter );
+		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, sourceAndConverter );
 		sourceAndConverters.add( sourceAndConverter );
 	}
 
@@ -103,7 +103,6 @@ public class GridOverlayDisplay extends Display implements ColoringListener, Sel
 		}
 
 		BdvLocationChanger.moveToLocation( bdvHandle, new BdvLocation( BdvLocationType.Position3d, center ) );
-
 	}
 
 	public String getName()
@@ -115,7 +114,7 @@ public class GridOverlayDisplay extends Display implements ColoringListener, Sel
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+			SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
 		}
 
 		tableViewer.close();

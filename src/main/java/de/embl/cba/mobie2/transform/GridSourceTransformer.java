@@ -53,10 +53,10 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
 		for ( int gridIndex = 0; gridIndex < positions.size(); gridIndex++ )
 		{
-			final int index = gridIndex;
+			final int gridPosition = gridIndex;
 
 			executorService.execute( () -> {
-				transformSourcesAtGridPosition( sourceAndConverters, transformedSources, spacingX, spacingY, index );
+				transformSourcesAtGridPosition( sourceAndConverters, transformedSources, spacingX, spacingY, gridPosition );
 			} );
 		}
 		executorService.shutdown();
