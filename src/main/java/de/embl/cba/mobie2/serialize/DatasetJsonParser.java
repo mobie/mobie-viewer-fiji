@@ -34,4 +34,10 @@ public class DatasetJsonParser
 			gson.toJson(dataset, type, writer);
 		}
 	}
+
+	public String datasetToJsonString( Dataset dataset ) {
+		Gson gson = new Gson();
+		Type type = new TypeToken< Dataset >() {}.getType();
+		return gson.toJson( dataset, type );
+	}
 }

@@ -1,11 +1,5 @@
 package de.embl.cba.mobie2.view;
 
-import com.google.gson.Gson;
-import com.google.gson.stream.JsonWriter;
-import de.embl.cba.mobie.bookmark.Bookmark;
-import de.embl.cba.mobie.bookmark.BookmarkReader;
-import de.embl.cba.mobie.bookmark.write.BookmarkGithubWriter;
-import de.embl.cba.mobie.dataset.DatasetsParser;
 import de.embl.cba.mobie.ui.MoBIEOptions;
 import de.embl.cba.mobie2.Dataset;
 import de.embl.cba.mobie2.MoBIE2;
@@ -14,16 +8,12 @@ import de.embl.cba.mobie2.serialize.DatasetJsonParser;
 import de.embl.cba.mobie2.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.github.GitHubUtils;
-import de.embl.cba.tables.github.GitLocation;
 import ij.IJ;
 import ij.gui.GenericDialog;
-import script.imglib.math.Add;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.*;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,6 +39,9 @@ public class ViewsSaver {
         this.moBIE2 = moBIE2;
         this.options = moBIE2.getOptions();
     }
+
+    // TODO for file system project list bookmarks, don't open free-form dialog
+    // TODO - directly read existing file to be sure dataset is up to date
 
     private void saveToFileSystem( String viewName, String uiSelectionGroup, boolean exclusive ) {
         String jsonPath = null;
@@ -88,7 +81,7 @@ public class ViewsSaver {
         dataset.views.put( viewName, view );
 
         if ( isGithub( datasetJsonPath ) ) {
-
+            new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( datasetJsonPath ) ).writeViewToDatasetJson( viewName, view );
         } else {
             new DatasetJsonParser().saveDataset( dataset, datasetJsonPath );
         }
@@ -101,7 +94,7 @@ public class ViewsSaver {
 
     private void saveToAdditionalViewsJson( View view, String viewName, String jsonPath ) throws IOException {
         if ( isGithub( jsonPath ) ) {
-            new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( jsonPath ) ).writeViewToGithub( viewName, view );
+            new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( jsonPath ) ).writeViewToViewsJson( viewName, view );
         } else {
             AdditionalViews additionalViews;
             if (new File(jsonPath).exists()) {
@@ -281,14 +274,6 @@ public class ViewsSaver {
             return null;
         }
 
-    }
-
-    public static void writeViewsToGithub(ArrayList< Bookmark > bookmarks, BookmarkReader bookmarkReader ) {
-        final GitLocation gitLocation = GitHubUtils.rawUrlToGitLocation( bookmarkReader.getDatasetLocation() );
-        gitLocation.path += "misc/bookmarks";
-
-        // BookmarkGithubWriter bookmarkWriter = new BookmarkGithubWriter(gitLocation, bookmarkReader );
-        // bookmarkWriter.writeBookmarksToGithub(bookmarks);
     }
 
 }

@@ -31,4 +31,10 @@ public class AdditionalViewsJsonParser {
             gson.toJson(additionalViews, type, writer);
         }
     }
+
+    public String viewsToJsonString( AdditionalViews additionalViews ) {
+        Gson gson = new Gson();
+        Type type = new TypeToken< AdditionalViews >() {}.getType();
+        return gson.toJson( additionalViews, type );
+    }
 }
