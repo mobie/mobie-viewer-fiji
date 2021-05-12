@@ -20,7 +20,9 @@ public class ImageDisplay extends Display
 
 	// Runtime
 	public transient ImageSliceView imageSliceView;
-	private final SourceAndConverterBdvDisplayService displayService;
+
+	// Other
+	private transient final SourceAndConverterBdvDisplayService displayService;
 
 	public String getColor()
 	{

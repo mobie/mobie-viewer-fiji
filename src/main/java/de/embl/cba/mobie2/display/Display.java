@@ -28,6 +28,7 @@ public class Display
 	{
 		return Collections.unmodifiableList( sources );
 	}
+
 	public double getOpacity()
 	{
 		return opacity;
