@@ -42,6 +42,8 @@ public class ViewsSaver {
 
     // TODO for file system project list bookmarks, don't open free-form dialog
     // TODO - directly read existing file to be sure dataset is up to date
+    // TODO - check when say make new file, that they don't enter same name as before
+    // TODO - check for dodgy file names
 
     private void saveToFileSystem( String viewName, String uiSelectionGroup, boolean exclusive ) {
         String jsonPath = null;

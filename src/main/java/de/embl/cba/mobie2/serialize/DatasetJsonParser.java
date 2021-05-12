@@ -1,6 +1,7 @@
 package de.embl.cba.mobie2.serialize;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonWriter;
 import de.embl.cba.mobie2.Dataset;
@@ -35,8 +36,13 @@ public class DatasetJsonParser
 		}
 	}
 
-	public String datasetToJsonString( Dataset dataset ) {
-		Gson gson = new Gson();
+	public String datasetToJsonString( Dataset dataset, boolean prettyPrinting ) {
+		Gson gson;
+		if ( prettyPrinting ) {
+			gson = new GsonBuilder().setPrettyPrinting().create();
+		} else {
+			gson = new Gson();
+		}
 		Type type = new TypeToken< Dataset >() {}.getType();
 		return gson.toJson( dataset, type );
 	}

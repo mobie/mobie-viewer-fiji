@@ -9,6 +9,7 @@ import de.embl.cba.mobie2.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.github.GitHubContentGetter;
 import de.embl.cba.tables.github.GitHubFileCommitter;
 import de.embl.cba.tables.github.GitLocation;
+import ij.IJ;
 import ij.Prefs;
 import ij.gui.GenericDialog;
 
@@ -23,20 +24,26 @@ public class ViewsGithubWriter {
 
     ViewsGithubWriter( GitLocation viewJsonGitLocation ) {
         this.viewJsonGitLocation = viewJsonGitLocation;
+
+        // Git location should be a path to a json file, so remove any trailing /
+        String path = this.viewJsonGitLocation.path;
+        if ( path.endsWith("/") ) {
+            this.viewJsonGitLocation.path = path.substring(0, path.length() - 1);
+        }
     }
 
     private static String writeAdditionalViewsToBase64String ( AdditionalViews additionalViews ) {
-        String jsonString = new AdditionalViewsJsonParser().viewsToJsonString( additionalViews );
+        String jsonString = new AdditionalViewsJsonParser().viewsToJsonString( additionalViews, true );
+        jsonString += "\n";
         byte[] jsonBytes = jsonString.getBytes( StandardCharsets.UTF_8);
         return Base64.getEncoder().encodeToString(jsonBytes);
-        // TODO - add new line at end?
     }
 
     private static String writeDatasetToBase64String ( Dataset dataset ) {
-        String jsonString = new DatasetJsonParser().datasetToJsonString( dataset );
+        String jsonString = new DatasetJsonParser().datasetToJsonString( dataset, true );
+        jsonString += "\n";
         byte[] jsonBytes = jsonString.getBytes( StandardCharsets.UTF_8);
         return Base64.getEncoder().encodeToString(jsonBytes);
-        // TODO - add new line at end?
     }
 
     class FilePathAndSha {
@@ -88,56 +95,64 @@ public class ViewsGithubWriter {
 
     public void writeViewToDatasetJson( String viewName, View view ) {
         if ( showDialog() ) {
-            final GitHubContentGetter contentGetter =
-                    new GitHubContentGetter(viewJsonGitLocation.repoUrl, viewJsonGitLocation.path, viewJsonGitLocation.branch, null);
+            if ( viewJsonGitLocation.path.endsWith( "dataset.json") ) {
+                final GitHubContentGetter contentGetter =
+                        new GitHubContentGetter(viewJsonGitLocation.repoUrl, viewJsonGitLocation.path, viewJsonGitLocation.branch, null);
 
-            Dataset dataset;
-            try {
-                String content = contentGetter.getContent();
-                if (content != null) {
-                    FilePathAndSha filePathAndSha = getFilePathAndSha(content);
-                    dataset = new DatasetJsonParser().getDataset(filePathAndSha.filePath);
-                    dataset.views.put(viewName, view);
+                Dataset dataset;
+                try {
+                    String content = contentGetter.getContent();
+                    if (content != null) {
+                        FilePathAndSha filePathAndSha = getFilePathAndSha(content);
+                        dataset = new DatasetJsonParser().getDataset(filePathAndSha.filePath);
+                        dataset.views.put(viewName, view);
 
-                    final String datasetBase64String = writeDatasetToBase64String(dataset);
-                    overwriteExistingFile(filePathAndSha, datasetBase64String);
+                        final String datasetBase64String = writeDatasetToBase64String(dataset);
+                        overwriteExistingFile(filePathAndSha, datasetBase64String);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            } else {
+                IJ.log( "Aborting saving view to github - path is not a dataset.json" );
             }
         }
     }
 
     public void writeViewToViewsJson( String viewName, View view ) {
         if ( showDialog() ) {
-            final GitHubContentGetter contentGetter =
-                    new GitHubContentGetter(viewJsonGitLocation.repoUrl, viewJsonGitLocation.path, viewJsonGitLocation.branch, null);
-            int responseCode = contentGetter.getContentResponseCode();
+            if ( viewJsonGitLocation.path.endsWith( ".json" )) {
+                final GitHubContentGetter contentGetter =
+                        new GitHubContentGetter(viewJsonGitLocation.repoUrl, viewJsonGitLocation.path, viewJsonGitLocation.branch, null);
+                int responseCode = contentGetter.getContentResponseCode();
 
-            AdditionalViews additionalViews;
-            // if 404, then file doesn't exist, so make new one
-            if (responseCode == 404) {
-                additionalViews = new AdditionalViews();
-                additionalViews.views = new HashMap<>();
-                additionalViews.views.put(viewName, view);
+                AdditionalViews additionalViews;
+                // if 404, then file doesn't exist, so make new one
+                if (responseCode == 404) {
+                    additionalViews = new AdditionalViews();
+                    additionalViews.views = new HashMap<>();
+                    additionalViews.views.put(viewName, view);
 
-                final String additionalViewsBase64String = writeAdditionalViewsToBase64String(additionalViews);
-                writeNewFile(additionalViewsBase64String);
-            // otherwise, append to file
-            } else {
-                try {
-                    String content = contentGetter.getContent();
-                    if (content != null) {
-                        FilePathAndSha filePathAndSha = getFilePathAndSha(content);
-                        additionalViews = new AdditionalViewsJsonParser().getViews(filePathAndSha.filePath);
-                        additionalViews.views.put(viewName, view);
+                    final String additionalViewsBase64String = writeAdditionalViewsToBase64String(additionalViews);
+                    writeNewFile(additionalViewsBase64String);
+                    // otherwise, append to file
+                } else {
+                    try {
+                        String content = contentGetter.getContent();
+                        if (content != null) {
+                            FilePathAndSha filePathAndSha = getFilePathAndSha(content);
+                            additionalViews = new AdditionalViewsJsonParser().getViews(filePathAndSha.filePath);
+                            additionalViews.views.put(viewName, view);
 
-                        final String additionalViewsBase64String = writeAdditionalViewsToBase64String(additionalViews);
-                        overwriteExistingFile(filePathAndSha, additionalViewsBase64String);
+                            final String additionalViewsBase64String = writeAdditionalViewsToBase64String(additionalViews);
+                            overwriteExistingFile(filePathAndSha, additionalViewsBase64String);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
+            } else {
+                IJ.log( "Aborting saving view to github - path is not a .json" );
             }
         }
     }

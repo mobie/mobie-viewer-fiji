@@ -1,6 +1,7 @@
 package de.embl.cba.mobie2.serialize;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonWriter;
 import de.embl.cba.mobie2.view.additionalviews.AdditionalViews;
@@ -32,8 +33,13 @@ public class AdditionalViewsJsonParser {
         }
     }
 
-    public String viewsToJsonString( AdditionalViews additionalViews ) {
-        Gson gson = new Gson();
+    public String viewsToJsonString( AdditionalViews additionalViews, boolean prettyPrinting ) {
+        Gson gson;
+        if ( prettyPrinting ) {
+            gson = new GsonBuilder().setPrettyPrinting().create();
+        } else {
+            gson = new Gson();
+        }
         Type type = new TypeToken< AdditionalViews >() {}.getType();
         return gson.toJson( additionalViews, type );
     }
