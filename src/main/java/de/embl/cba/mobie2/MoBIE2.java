@@ -18,7 +18,6 @@ import mpicbg.spim.data.SpimData;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -90,7 +89,7 @@ public class MoBIE2
 	private void openDataset( String datasetName ) throws IOException
 	{
 		this.datasetName = datasetName;
-		dataset = new DatasetJsonParser().getDataset( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), getDatasetName(), "dataset.json" ) );
+		dataset = new DatasetJsonParser().parseDataset( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), getDatasetName(), "dataset.json" ) );
 
 		userInterface = new UserInterface( this );
 		viewerManager = new ViewerManager( this, userInterface, dataset.is2D, dataset.timepoints );
