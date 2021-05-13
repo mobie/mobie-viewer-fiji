@@ -1,7 +1,9 @@
 package de.embl.cba.mobie2.view;
 
 import de.embl.cba.mobie2.display.SourceDisplaySupplier;
+import de.embl.cba.mobie2.transform.AbstractSourceTransformer;
 import de.embl.cba.mobie2.transform.BdvLocationSupplier;
+import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.mobie2.transform.SourceTransformerSupplier;
 
 import java.util.List;
@@ -10,7 +12,7 @@ public class View
 {
 	private String uiSelectionGroup;
 	private List< SourceDisplaySupplier > sourceDisplays;
-	private List< SourceTransformerSupplier > sourceTransforms;
+	private List< SourceTransformer > sourceTransforms;
 	private BdvLocationSupplier viewerTransform;
 	private boolean isExclusive = false;
 
@@ -19,9 +21,10 @@ public class View
 		return isExclusive;
 	}
 
-	public List< SourceTransformerSupplier > getSourceTransforms()
+	public List< SourceTransformer > getSourceTransforms()
 	{
-		return sourceTransforms;
+		return null;
+//		return sourceTransforms;
 	}
 
 	public List< SourceDisplaySupplier > getSourceDisplays()

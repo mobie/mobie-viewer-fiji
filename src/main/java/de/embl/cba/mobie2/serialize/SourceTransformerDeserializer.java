@@ -17,12 +17,12 @@ import java.util.TreeMap;
 
 public class SourceTransformerDeserializer implements JsonDeserializer< List< SourceTransformer > >
 {
-	private static Map<String, Class> map = new TreeMap<String, Class>();
+	private static Map<String, Class> nameToClass = new TreeMap<String, Class>();
 
 	static {
 		//map.put("SourceTransformer", SourceTransformer.class);
-		map.put("GridSourceTransformer", GridSourceTransformer.class);
-		map.put("AffineSourceTransformer", AffineSourceTransformer.class);
+		nameToClass.put("grid", GridSourceTransformer.class);
+		nameToClass.put("affine", AffineSourceTransformer.class);
 	}
 
 	@Override
@@ -33,10 +33,11 @@ public class SourceTransformerDeserializer implements JsonDeserializer< List< So
 
 		for (JsonElement je : ja)
 		{
-			String type = je.getAsJsonObject().get("isA").getAsString();
-			Class c = map.get(type);
+			final Map map = (Map) context.deserialize( je, Map.class );
+			final Object className = map.keySet().iterator().next();
+			Class c = nameToClass.get( className );
 			if (c == null)
-				throw new RuntimeException("Unknow class: " + type);
+				throw new RuntimeException("Unknow class: " + className);
 			list.add(context.deserialize(je, c));
 		}
 

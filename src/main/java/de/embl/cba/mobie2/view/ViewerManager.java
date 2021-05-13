@@ -101,11 +101,6 @@ public class ViewerManager
 
 		setMoBIESwingLookAndFeel();
 
-		// fetch the source transformers
-		List< SourceTransformer > sourceTransformers = null;
-		if ( view.getSourceTransforms() != null )
-			sourceTransformers = view.getSourceTransforms().stream().map( s -> s.get() ).collect( Collectors.toList() );
-
 		// show the displays
 		final List< SourceDisplaySupplier > sourceDisplays = view.getSourceDisplays();
 		if ( sourceDisplays != null )
@@ -113,12 +108,14 @@ public class ViewerManager
 			for ( SourceDisplaySupplier displaySupplier : sourceDisplays )
 			{
 				final Display display = displaySupplier.get();
-				display.sourceTransformers = sourceTransformers;
+				// TODO: why are there transforms done here and below...
+				display.sourceTransformers = view.getSourceTransforms();
 				showSourceDisplay( display );
 			}
 		}
 
-		createAndShowGridView( SwingUtilities.getWindowAncestor( sliceViewer.get().getViewerPanel() ), sourceTransformers );
+		// ...more source transforms, feels wrong
+		createAndShowGridView( SwingUtilities.getWindowAncestor( sliceViewer.get().getViewerPanel() ), view.getSourceTransforms() );
 
 		resetSystemSwingLookAndFeel();
 
