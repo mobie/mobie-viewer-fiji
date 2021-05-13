@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import de.embl.cba.mobie2.transform.AffineSourceTransformer;
 import de.embl.cba.mobie2.transform.GridSourceTransformer;
@@ -15,12 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class SourceTransformerDeserializer implements JsonDeserializer< List< SourceTransformer > >
+public class SourceTransformerListDeserializer implements JsonDeserializer< List< SourceTransformer > >
 {
-	private static Map<String, Class> nameToClass = new TreeMap<String, Class>();
+	private static Map<String, Class> nameToClass = new TreeMap<>();
 
 	static {
-		//map.put("SourceTransformer", SourceTransformer.class);
 		nameToClass.put("grid", GridSourceTransformer.class);
 		nameToClass.put("affine", AffineSourceTransformer.class);
 	}
@@ -33,12 +33,7 @@ public class SourceTransformerDeserializer implements JsonDeserializer< List< So
 
 		for (JsonElement je : ja)
 		{
-			final Map map = (Map) context.deserialize( je, Map.class );
-			final Object className = map.keySet().iterator().next();
-			Class c = nameToClass.get( className );
-			if (c == null)
-				throw new RuntimeException("Unknow class: " + className);
-			list.add(context.deserialize(je, c));
+			list.add( JsonHelper.getObject( context, je, nameToClass ));
 		}
 
 		return list;

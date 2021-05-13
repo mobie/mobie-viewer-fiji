@@ -4,10 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import de.embl.cba.mobie2.Dataset;
-import de.embl.cba.mobie2.transform.AbstractSourceTransformer;
+import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.tables.FileAndUrlUtils;
-import sc.fiji.bdvpg.services.serializers.RuntimeTypeAdapterFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -19,13 +18,19 @@ public class DatasetJsonParser
 	{
 		final String datasetJson = FileAndUrlUtils.read( path );
 
-		GsonBuilder gb = new GsonBuilder();
-		Type collectionType = new TypeToken<List<SourceTransformer>>(){}.getType();
-		gb.registerTypeAdapter( collectionType, new SourceTransformerDeserializer());
+		Gson gson = buildGson();
 
-		Gson gson = gb.create();
 		Type type = new TypeToken< Dataset >() {}.getType();
 		Dataset dataset = gson.fromJson( datasetJson, type );
 		return dataset;
+	}
+
+	private Gson buildGson()
+	{
+		GsonBuilder gb = new GsonBuilder();
+		gb.registerTypeAdapter( new TypeToken<List< SourceTransformer >>(){}.getType(), new SourceTransformerListDeserializer());
+		gb.registerTypeAdapter( new TypeToken<List< SourceDisplay >>(){}.getType(), new SourceDisplayListDeserializer());
+		Gson gson = gb.create();
+		return gson;
 	}
 }

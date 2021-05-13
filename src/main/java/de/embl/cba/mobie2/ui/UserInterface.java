@@ -1,11 +1,10 @@
 package de.embl.cba.mobie2.ui;
 
-import bdv.viewer.Source;
-import de.embl.cba.mobie2.display.ImageDisplay;
+import de.embl.cba.mobie2.display.ImageSourceDisplay;
 import de.embl.cba.mobie2.MoBIE2;
-import de.embl.cba.mobie2.display.SegmentationDisplay;
-import de.embl.cba.mobie2.display.Display;
-import de.embl.cba.mobie2.grid.GridOverlayDisplay;
+import de.embl.cba.mobie2.display.SegmentationSourceDisplay;
+import de.embl.cba.mobie2.display.SourceDisplay;
+import de.embl.cba.mobie2.grid.GridOverlaySourceDisplay;
 
 import javax.swing.*;
 import java.awt.*;
@@ -71,22 +70,22 @@ public class UserInterface
 		frame.repaint();
 	}
 
-	public void addSourceDisplay( Display display )
+	public void addSourceDisplay( SourceDisplay sourceDisplay )
 	{
-		final JPanel panel = createDisplaySettingPanel( display );
-		showDisplaySettingsPanel( display, panel );
+		final JPanel panel = createDisplaySettingPanel( sourceDisplay );
+		showDisplaySettingsPanel( sourceDisplay, panel );
 		refresh();
 	}
 
-	private JPanel createDisplaySettingPanel( Display display )
+	private JPanel createDisplaySettingPanel( SourceDisplay sourceDisplay )
 	{
-		if ( display instanceof ImageDisplay )
+		if ( sourceDisplay instanceof ImageSourceDisplay )
 		{
-			return userInterfaceHelper.createImageDisplaySettingsPanel( ( ImageDisplay ) display );
+			return userInterfaceHelper.createImageDisplaySettingsPanel( ( ImageSourceDisplay ) sourceDisplay );
 		}
-		else if ( display instanceof SegmentationDisplay )
+		else if ( sourceDisplay instanceof SegmentationSourceDisplay )
 		{
-			return userInterfaceHelper.createSegmentationDisplaySettingsPanel( ( SegmentationDisplay ) display );
+			return userInterfaceHelper.createSegmentationDisplaySettingsPanel( ( SegmentationSourceDisplay ) sourceDisplay );
 		}
 		else
 		{
@@ -94,7 +93,7 @@ public class UserInterface
 		}
 	}
 
-	public void addGridView( GridOverlayDisplay gridOverlayDisplay )
+	public void addGridView( GridOverlaySourceDisplay gridOverlayDisplay )
 	{
 		final JPanel panel = userInterfaceHelper.createGridViewDisplaySettingsPanel( gridOverlayDisplay );
 		showDisplaySettingsPanel( gridOverlayDisplay, panel );

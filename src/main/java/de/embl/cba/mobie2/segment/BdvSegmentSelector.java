@@ -4,7 +4,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie2.bdv.BdvMousePositionProvider;
-import de.embl.cba.mobie2.display.SegmentationDisplay;
+import de.embl.cba.mobie2.display.SegmentationSourceDisplay;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import net.imglib2.RandomAccess;
 import net.imglib2.RealPoint;
@@ -18,9 +18,9 @@ public class BdvSegmentSelector implements Runnable
 {
 	private BdvHandle bdvHandle;
 	private boolean is2D;
-	private Supplier< Collection< SegmentationDisplay > > segmentationDisplaySupplier;
+	private Supplier< Collection< SegmentationSourceDisplay > > segmentationDisplaySupplier;
 
-	public BdvSegmentSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< SegmentationDisplay > > segmentationDisplaySupplier )
+	public BdvSegmentSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< SegmentationSourceDisplay > > segmentationDisplaySupplier )
 	{
 		this.bdvHandle = bdvHandle;
 		this.is2D = is2D;
@@ -29,9 +29,9 @@ public class BdvSegmentSelector implements Runnable
 
 	public synchronized void clearSelection()
 	{
-		final Collection< SegmentationDisplay > segmentationDisplays = segmentationDisplaySupplier.get();
+		final Collection< SegmentationSourceDisplay > segmentationDisplays = segmentationDisplaySupplier.get();
 
-		for ( SegmentationDisplay segmentationDisplay : segmentationDisplays )
+		for ( SegmentationSourceDisplay segmentationDisplay : segmentationDisplays )
 		{
 			segmentationDisplay.selectionModel.clearSelection();
 		}
@@ -43,9 +43,9 @@ public class BdvSegmentSelector implements Runnable
 		final int timePoint = positionProvider.getTimePoint();
 		final RealPoint position = positionProvider.getPosition();
 
-		final Collection< SegmentationDisplay > segmentationDisplays = segmentationDisplaySupplier.get();
+		final Collection< SegmentationSourceDisplay > segmentationDisplays = segmentationDisplaySupplier.get();
 
-		for ( SegmentationDisplay segmentationDisplay : segmentationDisplays )
+		for ( SegmentationSourceDisplay segmentationDisplay : segmentationDisplays )
 		{
 			for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )
 			{

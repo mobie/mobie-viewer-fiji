@@ -1,6 +1,6 @@
 package de.embl.cba.mobie2.color;
 
-import de.embl.cba.mobie2.display.SegmentationDisplay;
+import de.embl.cba.mobie2.display.SegmentationSourceDisplay;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
@@ -9,7 +9,7 @@ import org.apache.commons.lang.WordUtils;
 
 public class ColoringModelHelper
 {
-	public static void configureMoBIEColoringModel( SegmentationDisplay segmentationDisplay )
+	public static void configureMoBIEColoringModel( SegmentationSourceDisplay segmentationDisplay )
 	{
 		if ( segmentationDisplay.getColorByColumn() != null )
 		{
@@ -29,7 +29,7 @@ public class ColoringModelHelper
 		}
 	}
 
-	private static String getColoringLut( SegmentationDisplay segmentationDisplay )
+	private static String getColoringLut( SegmentationSourceDisplay segmentationDisplay )
 	{
 		String coloringLut = segmentationDisplay.getLut() ;
 		if ( coloringLut.equals( "argbColumn" ) )

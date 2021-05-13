@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 import static sc.fiji.bdvpg.bdv.projector.BlendingMode.BLENDING_MODE;
 
-public class ImageDisplay extends Display
+public class ImageSourceDisplay extends SourceDisplay
 {
 	// Serialization
 	private String color;
@@ -43,7 +43,7 @@ public class ImageDisplay extends Display
 	 *
 	 * @param imageDisplay
 	 */
-	public ImageDisplay( ImageDisplay imageDisplay )
+	public ImageSourceDisplay( ImageSourceDisplay imageDisplay )
 	{
 		this.name = imageDisplay.name;
 		this.sources = new ArrayList<>();

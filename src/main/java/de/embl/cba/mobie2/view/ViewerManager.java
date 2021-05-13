@@ -7,14 +7,13 @@ import de.embl.cba.mobie2.bdv.ImageSliceView;
 import de.embl.cba.mobie2.bdv.SegmentationImageSliceView;
 import de.embl.cba.mobie2.bdv.SliceViewer;
 import de.embl.cba.mobie2.color.ColoringModelHelper;
-import de.embl.cba.mobie2.grid.GridOverlayDisplay;
+import de.embl.cba.mobie2.grid.GridOverlaySourceDisplay;
 import de.embl.cba.mobie2.plot.ScatterPlotViewer;
 import de.embl.cba.mobie2.segment.SegmentAdapter;
 import de.embl.cba.mobie2.source.SegmentationSource;
-import de.embl.cba.mobie2.display.ImageDisplay;
-import de.embl.cba.mobie2.display.SegmentationDisplay;
-import de.embl.cba.mobie2.display.Display;
-import de.embl.cba.mobie2.display.SourceDisplaySupplier;
+import de.embl.cba.mobie2.display.ImageSourceDisplay;
+import de.embl.cba.mobie2.display.SegmentationSourceDisplay;
+import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.table.TableViewer;
 import de.embl.cba.mobie2.transform.BdvLocationChanger;
 import de.embl.cba.mobie2.transform.GridSourceTransformer;
@@ -49,22 +48,22 @@ public class ViewerManager
 	private final MoBIE2 moBIE2;
 	private final UserInterface userInterface;
 	private final SliceViewer sliceViewer;
-	private ArrayList< Display > displays;
+	private ArrayList< SourceDisplay > sourceDisplays;
 	private final BdvHandle bdvHandle;
-	private GridOverlayDisplay gridOverlayDisplay;
+	private GridOverlaySourceDisplay gridOverlayDisplay;
 	private final UniverseManager universeManager;
 
 	public ViewerManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
 	{
 		this.moBIE2 = moBIE2;
 		this.userInterface = userInterface;
-		displays = new ArrayList<>();
+		sourceDisplays = new ArrayList<>();
 		sliceViewer = new SliceViewer( is2D, this, timepoints );
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
 	}
 
-	public static void initScatterPlotViewer( SegmentationDisplay display )
+	public static void initScatterPlotViewer( SegmentationSourceDisplay display )
 	{
 		display.scatterPlotViewer = new ScatterPlotViewer<>( display.segments, display.selectionModel, display.coloringModel, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
@@ -75,16 +74,16 @@ public class ViewerManager
 			display.scatterPlotViewer.show();
 	}
 
-	public static void initTableViewer( SegmentationDisplay display  )
+	public static void initTableViewer( SegmentationSourceDisplay display  )
 	{
 		display.tableViewer = new TableViewer<>( display.segments, display.selectionModel, display.coloringModel, display.getName() ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
 
-	public ArrayList< Display > getSourceDisplays()
+	public ArrayList< SourceDisplay > getSourceDisplays()
 	{
-		return displays;
+		return sourceDisplays;
 	}
 
 	public SliceViewer getSliceViewer()
@@ -101,20 +100,19 @@ public class ViewerManager
 
 		setMoBIESwingLookAndFeel();
 
-		// show the displays
-		final List< SourceDisplaySupplier > sourceDisplays = view.getSourceDisplays();
+		// show the displays if there are any
+		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
 		if ( sourceDisplays != null )
 		{
-			for ( SourceDisplaySupplier displaySupplier : sourceDisplays )
+			for ( SourceDisplay sourceDisplay : sourceDisplays )
 			{
-				final Display display = displaySupplier.get();
 				// TODO: why are there transforms done here and below...
-				display.sourceTransformers = view.getSourceTransforms();
-				showSourceDisplay( display );
+				sourceDisplay.sourceTransformers = view.getSourceTransforms();
+				showSourceDisplay( sourceDisplay );
 			}
 		}
 
-		// ...more source transforms, feels wrong
+		// ...more source transforms here, feels wrong
 		createAndShowGridView( SwingUtilities.getWindowAncestor( sliceViewer.get().getViewerPanel() ), view.getSourceTransforms() );
 
 		resetSystemSwingLookAndFeel();
@@ -126,33 +124,33 @@ public class ViewerManager
 		}
 		else
 		{
-			if ( view.isExclusive() || displays.size() == 1 )
+			if ( view.isExclusive() || this.sourceDisplays.size() == 1 )
 			{
 				// focus on the image that was added last
-				final Display display = displays.get( displays.size() - 1 );
-				new ViewerTransformAdjuster( bdvHandle, display.sourceAndConverters.get( 0 ) ).run();
+				final SourceDisplay sourceDisplay = this.sourceDisplays.get( this.sourceDisplays.size() - 1 );
+				new ViewerTransformAdjuster( bdvHandle, sourceDisplay.sourceAndConverters.get( 0 ) ).run();
 			}
 		}
 	}
 
-	private void showSourceDisplay( Display display )
+	private void showSourceDisplay( SourceDisplay sourceDisplay )
 	{
-		if ( displays.contains( display ) ) return;
+		if ( sourceDisplays.contains( sourceDisplay ) ) return;
 
-		display.sliceViewer = sliceViewer;
+		sourceDisplay.sliceViewer = sliceViewer;
 
-		if ( display instanceof ImageDisplay )
+		if ( sourceDisplay instanceof ImageSourceDisplay )
 		{
-			showImageDisplay( ( ImageDisplay ) display );
+			showImageDisplay( ( ImageSourceDisplay ) sourceDisplay );
 		}
-		else if ( display instanceof SegmentationDisplay )
+		else if ( sourceDisplay instanceof SegmentationSourceDisplay )
 		{
-			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
+			final SegmentationSourceDisplay segmentationDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
 			showSegmentationDisplay( segmentationDisplay );
 		}
 
-		userInterface.addSourceDisplay( display );
-		displays.add( display );
+		userInterface.addSourceDisplay( sourceDisplay );
+		sourceDisplays.add( sourceDisplay );
 	}
 
 	private void createAndShowGridView( Window window, List< SourceTransformer > sourceTransformers )
@@ -169,10 +167,10 @@ public class ViewerManager
 
 					if ( tableDataLocation != null )
 					{
-						gridOverlayDisplay = new GridOverlayDisplay( moBIE2, bdvHandle,  "grid-" + (i++), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
+						gridOverlayDisplay = new GridOverlaySourceDisplay( moBIE2, bdvHandle,  "grid-" + (i++), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
 
 						userInterface.addGridView( gridOverlayDisplay );
-						displays.add( gridOverlayDisplay );
+						sourceDisplays.add( gridOverlayDisplay );
 
 						SwingUtilities.invokeLater( () ->
 						{
@@ -187,25 +185,25 @@ public class ViewerManager
 	private void removeAllSourceDisplays()
 	{
 		// create a copy of the currently shown displays...
-		final ArrayList< Display > currentDisplays = new ArrayList<>( displays ) ;
+		final ArrayList< SourceDisplay > currentSourceDisplays = new ArrayList<>( sourceDisplays ) ;
 
 		// ...such that we can remove the displays without
 		// modifying the list that we iterate over
-		for ( Display display : currentDisplays )
+		for ( SourceDisplay sourceDisplay : currentSourceDisplays )
 		{
 			// removes display from all viewers and
 			// also from the list of currently shown sourceDisplays
-			removeSourceDisplay( display );
+			removeSourceDisplay( sourceDisplay );
 		}
 	}
 
-	private void showImageDisplay( ImageDisplay imageDisplay )
+	private void showImageDisplay( ImageSourceDisplay imageDisplay )
 	{
 		imageDisplay.imageSliceView = new ImageSliceView( imageDisplay, bdvHandle, ( List< String > name ) -> moBIE2.openSourceAndConverters( name ) );
 	}
 
 	// TODO: own class: SegmentationDisplayConfigurator
-	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
+	private void showSegmentationDisplay( SegmentationSourceDisplay segmentationDisplay )
 	{
 		fetchSegmentsFromTables( segmentationDisplay );
 
@@ -232,7 +230,7 @@ public class ViewerManager
 		} );
 	}
 
-	private void fetchSegmentsFromTables( SegmentationDisplay segmentationDisplay )
+	private void fetchSegmentsFromTables( SegmentationSourceDisplay segmentationDisplay )
 	{
 		segmentationDisplay.segments = new ArrayList<>();
 
@@ -281,13 +279,13 @@ public class ViewerManager
 		}
 	}
 
-	private void initSliceViewer( SegmentationDisplay segmentationDisplay )
+	private void initSliceViewer( SegmentationSourceDisplay segmentationDisplay )
 	{
 		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE2.openSourceAndConverters( names ) );
 		segmentationDisplay.segmentationImageSliceView = segmentationImageSliceView;
 	}
 
-	private void initVolumeViewer( SegmentationDisplay display )
+	private void initVolumeViewer( SegmentationSourceDisplay display )
 	{
 		display.segmentsVolumeViewer = new SegmentsVolumeView<>( display.selectionModel, display.coloringModel, display.sourceAndConverters, universeManager );
 		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d() );
@@ -295,34 +293,34 @@ public class ViewerManager
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
 	}
 
-	public synchronized void removeSourceDisplay( Display display )
+	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay )
 	{
-		if ( display instanceof SegmentationDisplay )
+		if ( sourceDisplay instanceof SegmentationSourceDisplay )
 		{
-			final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
+			final SegmentationSourceDisplay segmentationDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
 			segmentationDisplay.segmentationImageSliceView.close();
 			segmentationDisplay.tableViewer.close();
 			segmentationDisplay.scatterPlotViewer.close();
 			segmentationDisplay.segmentsVolumeViewer.close();
 		}
-		else if ( display instanceof ImageDisplay )
+		else if ( sourceDisplay instanceof ImageSourceDisplay )
 		{
-			final ImageDisplay imageDisplay = ( ImageDisplay ) display;
+			final ImageSourceDisplay imageDisplay = ( ImageSourceDisplay ) sourceDisplay;
 			imageDisplay.imageSliceView.close();
 		}
-		else if ( display instanceof GridOverlayDisplay )
+		else if ( sourceDisplay instanceof GridOverlaySourceDisplay )
 		{
-			final GridOverlayDisplay gridOverlayDisplay = ( GridOverlayDisplay ) display;
+			final GridOverlaySourceDisplay gridOverlayDisplay = ( GridOverlaySourceDisplay ) sourceDisplay;
 			gridOverlayDisplay.close();
 		}
 
-		userInterface.removeDisplaySettingsPanel( display );
-		displays.remove( display );
+		userInterface.removeDisplaySettingsPanel( sourceDisplay );
+		sourceDisplays.remove( sourceDisplay );
 	}
 
-	public Collection< SegmentationDisplay > getSegmentationDisplays()
+	public Collection< SegmentationSourceDisplay > getSegmentationDisplays()
 	{
-		final List< SegmentationDisplay > segmentationDisplays = getSourceDisplays().stream().filter( s -> s instanceof SegmentationDisplay ).map( s -> ( SegmentationDisplay ) s ).collect( Collectors.toList() );
+		final List< SegmentationSourceDisplay > segmentationDisplays = getSourceDisplays().stream().filter( s -> s instanceof SegmentationSourceDisplay ).map( s -> ( SegmentationSourceDisplay ) s ).collect( Collectors.toList() );
 
 		return segmentationDisplays;
 	}

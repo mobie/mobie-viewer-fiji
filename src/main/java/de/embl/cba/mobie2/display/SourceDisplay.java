@@ -7,7 +7,7 @@ import de.embl.cba.mobie2.bdv.SliceViewer;
 import java.util.Collections;
 import java.util.List;
 
-public class Display
+public class SourceDisplay
 {
 	// Serialization
 	protected String name;
