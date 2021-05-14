@@ -1,6 +1,7 @@
 package de.embl.cba.mobie2.view;
 
 import de.embl.cba.mobie.ui.MoBIEOptions;
+import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.Dataset;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.serialize.AdditionalViewsJsonParser;
@@ -10,10 +11,13 @@ import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.github.GitHubUtils;
 import ij.IJ;
 import ij.gui.GenericDialog;
+import org.apache.commons.compress.utils.FileNameUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -113,17 +117,14 @@ public class ViewsSaver {
     }
 
     private String chooseAdditionalViewsJson() {
-        // TODO - choose existing view file, or say make new one
-        // if make new one, choose a name for it
         String additionalViewsDirectory = getPath(options.values.getProjectLocation(), options.values.getProjectBranch(), moBIE2.getDatasetName(), "misc", "views");
         String[] existingViewFiles = getFileNamesFromProject(additionalViewsDirectory);
 
         String jsonFileName;
-        if (existingViewFiles != null && existingViewFiles.length > 0) {
-            // TODO - give option to choose existing or make new
-            jsonFileName = chooseViewsJsonDialog(existingViewFiles);
+        if ( existingViewFiles != null && existingViewFiles.length > 0 ) {
+            jsonFileName = chooseViewsJsonDialog( existingViewFiles );
         } else {
-            jsonFileName = chooseViewsFileNameDialog();
+            jsonFileName = makeNewViewFile( existingViewFiles );
         }
 
         if ( jsonFileName != null ) {
@@ -138,7 +139,7 @@ public class ViewsSaver {
             // TODO - support saving views to s3?
             IJ.log("View saving aborted - saving directly to s3 is not yet supported!");
         } else {
-            ProjectSaveLocation projectSaveLocation = chooseSaveLocationDialog();
+            ProjectSaveLocation projectSaveLocation = chooseProjectSaveLocationDialog();
             if (projectSaveLocation != null) {
                 View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive);
 
@@ -158,9 +159,48 @@ public class ViewsSaver {
         }
     }
 
+    private String makeNewUiSelectionGroup( String[] currentUiSelectionGroups ) {
+        String newUiSelectionGroup = chooseNewSelectionGroupNameDialog();
+
+        // get rid of any spaces, warn for unusual characters
+        if ( newUiSelectionGroup != null ) {
+            newUiSelectionGroup = tidyString(newUiSelectionGroup);
+        }
+
+        if ( newUiSelectionGroup != null ) {
+            boolean alreadyExists = Arrays.asList(currentUiSelectionGroups).contains( newUiSelectionGroup );
+            if ( alreadyExists ) {
+                newUiSelectionGroup = null;
+                IJ.log("Saving view aborted - new ui selection group already exists");
+            }
+        }
+
+        return newUiSelectionGroup;
+    }
+
+    private String makeNewViewFile( String[] existingViewFiles ) {
+        String viewFileName = chooseNewViewsFileNameDialog();
+
+        // get rid of any spaces, warn for unusual characters in basename (without the .json)
+        if ( viewFileName!= null ) {
+            viewFileName = tidyString( viewFileName);
+        }
+
+        if ( viewFileName != null ) {
+            viewFileName += ".json";
+            boolean alreadyExists = Arrays.asList( existingViewFiles ).contains( viewFileName );
+            if ( alreadyExists ) {
+                viewFileName = null;
+                IJ.log("Saving view aborted - new view file already exists");
+            }
+        }
+
+        return viewFileName;
+    }
+
     public void saveCurrentSettingsAsViewDialog() {
         final GenericDialog gd = new GenericDialog("Save current view");
-        gd.addStringField("View name", "name");
+        gd.addStringField("View name", "name", 25);
 
         String[] currentUiSelectionGroups = moBIE2.getUserInterface().getUISelectionGroupNames();
         String[] choices = new String[currentUiSelectionGroups.length + 1];
@@ -181,10 +221,21 @@ public class ViewsSaver {
             FileUtils.FileLocation fileLocation = FileUtils.FileLocation.valueOf(gd.getNextChoice());
             boolean exclusive = gd.getNextBoolean();
 
-            if (fileLocation == FileUtils.FileLocation.Project) {
-                saveToProject( viewName, uiSelectionGroup, exclusive );
-            } else {
-                saveToFileSystem( viewName, uiSelectionGroup, exclusive );
+            viewName = tidyString( viewName );
+
+            if ( viewName != null ) {
+
+                if (uiSelectionGroup.equals("Make New Ui Selection Group")) {
+                    uiSelectionGroup = makeNewUiSelectionGroup(currentUiSelectionGroups);
+                }
+
+                if (uiSelectionGroup != null) {
+                    if (fileLocation == FileUtils.FileLocation.Project) {
+                        saveToProject(viewName, uiSelectionGroup, exclusive);
+                    } else {
+                        saveToFileSystem(viewName, uiSelectionGroup, exclusive);
+                    }
+                }
             }
         }
     }
@@ -201,7 +252,7 @@ public class ViewsSaver {
         }
     }
 
-    private ProjectSaveLocation chooseSaveLocationDialog() {
+    private ProjectSaveLocation chooseProjectSaveLocationDialog() {
         final GenericDialog gd = new GenericDialog("Save location");
         String[] choices = new String[]{"dataset.json", "views.json"};
         gd.addChoice("Save location:", choices, choices[0]);
@@ -218,40 +269,36 @@ public class ViewsSaver {
         return null;
     }
 
-    private ProjectSaveLocation chooseViewJsonOption() {
-        final GenericDialog gd = new GenericDialog("Options for view json:");
-        String[] choices = new String[]{"Append to existing views json", "Make new views json"};
-        gd.addChoice("View json options:", choices, choices[0]);
-        gd.showDialog();
-
-        if (!gd.wasCanceled()) {
-            String projectSaveLocation = gd.getNextChoice();
-            if (projectSaveLocation.equals("dataset.json")) {
-                return ProjectSaveLocation.datasetJson;
-            } else if (projectSaveLocation.equals("views.json")) {
-                return ProjectSaveLocation.viewsJson;
-            }
-        }
-        return null;
-    }
-
-    private String chooseViewsFileNameDialog() {
+    private String chooseNewViewsFileNameDialog() {
         final GenericDialog gd = new GenericDialog("Choose views json filename");
-
-        gd.addStringField("New view json filename:", "");
+        gd.addStringField("New view json filename:", "", 25 );
         gd.showDialog();
 
         if (!gd.wasCanceled()) {
-            // TODO - check for invalid names e.g. stuff with spaces, punctuation etc...
             String viewFileName =  gd.getNextString();
-            if ( !viewFileName.endsWith(".json") ) {
-                viewFileName += ".json";
+
+            // we just want the basename, no extension
+            if ( viewFileName != null && viewFileName.endsWith(".json") ) {
+                viewFileName = FilenameUtils.removeExtension( viewFileName );
             }
             return viewFileName;
         } else {
             return null;
         }
 
+    }
+
+    private String chooseNewSelectionGroupNameDialog() {
+        final GenericDialog gd = new GenericDialog("Choose ui selection group Name:");
+
+        gd.addStringField("New ui selection group name:", "", 25 );
+        gd.showDialog();
+
+        if (!gd.wasCanceled()) {
+            return gd.getNextString();
+        } else {
+            return null;
+        }
     }
 
     private String chooseViewsJsonDialog(String[] viewFileNames) {
@@ -268,14 +315,31 @@ public class ViewsSaver {
         if (!gd.wasCanceled()) {
             String choice = gd.getNextChoice();
             if (choice.equals("Make new views json file")) {
-                choice = chooseViewsFileNameDialog();
-                // TODO - check if that file exists already, if it does - abort and log a warning sayin why
+                choice = makeNewViewFile( viewFileNames );
             }
             return choice;
         } else {
             return null;
         }
 
+    }
+
+    private String tidyString( String string ) {
+        string = string.trim();
+        String tidyString = string.replaceAll("\\s+","_");
+
+        if ( !string.equals(tidyString) ) {
+            Utils.log( "Spaces were removed from name, and replaced by _");
+        }
+
+        // check only contains alphanumerics, or _ -
+        if ( !tidyString.matches("^[a-zA-Z0-9_-]+$") ) {
+            Utils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
+                    "with a different name.");
+            tidyString = null;
+        }
+
+        return tidyString;
     }
 
 }
