@@ -2,13 +2,13 @@ package de.embl.cba.mobie2.transform;
 
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.NumericType;
 import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 
-import javax.xml.transform.Source;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AffineSourceTransformer extends AbstractSourceTransformer
+public class AffineSourceTransformer extends AbstractSourceTransformer< NumericType< T > >
 {
 	private List< String > sources;
 	private double[] parameters;

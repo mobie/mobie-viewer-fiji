@@ -5,6 +5,7 @@ import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.MoBIE2;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.NumericType;
 import org.apache.commons.lang.ArrayUtils;
 import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 
@@ -16,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class GridSourceTransformer extends AbstractSourceTransformer
+public class GridSourceTransformer extends AbstractSourceTransformer< NumericType< T > >
 {
 	// Serialization
 	private List< List< String > > sources;

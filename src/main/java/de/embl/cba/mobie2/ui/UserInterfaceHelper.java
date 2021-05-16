@@ -96,7 +96,7 @@ public class UserInterfaceHelper
 						rangeMax,
 						currentRangeMax );
 
-		double spinnerStepSize = ( currentRangeMax - currentRangeMin ) / 100.0;
+		double spinnerStepSize = Math.abs( currentRangeMax - currentRangeMin ) / 100.0;
 
 		JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );

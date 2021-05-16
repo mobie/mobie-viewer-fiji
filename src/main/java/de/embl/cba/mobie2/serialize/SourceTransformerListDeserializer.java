@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import de.embl.cba.mobie2.transform.AffineSourceTransformer;
+import de.embl.cba.mobie2.transform.CropSourceTransformer;
 import de.embl.cba.mobie2.transform.GridSourceTransformer;
 import de.embl.cba.mobie2.transform.SourceTransformer;
 
@@ -23,6 +24,7 @@ public class SourceTransformerListDeserializer implements JsonDeserializer< List
 	static {
 		nameToClass.put("grid", GridSourceTransformer.class);
 		nameToClass.put("affine", AffineSourceTransformer.class);
+		nameToClass.put("crop", CropSourceTransformer.class);
 	}
 
 	@Override
