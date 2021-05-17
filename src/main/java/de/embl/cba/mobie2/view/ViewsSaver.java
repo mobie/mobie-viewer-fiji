@@ -138,7 +138,7 @@ public class ViewsSaver {
 
     private void saveToDatasetJson( View view, String viewName ) throws IOException {
         String datasetJsonPath = getPath(options.values.getProjectLocation(), options.values.getProjectBranch(), moBIE2.getDatasetName(), "dataset.json");
-        Dataset dataset = new DatasetJsonParser().getDataset( datasetJsonPath );
+        Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
         dataset.views.put( viewName, view );
 
         if ( isGithub( datasetJsonPath ) ) {

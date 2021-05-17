@@ -371,7 +371,13 @@ public class UserInterfaceHelper
 		}
 
 		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );
-		Collections.sort( uiSelectionGroups );
+		// sort in alphabetical order, ignoring upper/lower case
+		Collections.sort( uiSelectionGroups, new Comparator<String>() {
+			@Override
+			public int compare(String s1, String s2) {
+				return s1.compareToIgnoreCase(s2);
+			}
+		});
 
 		// If it's the first time, just add all the panels in order
 		if ( groupingsToComboBox.keySet().size() == 0 ) {

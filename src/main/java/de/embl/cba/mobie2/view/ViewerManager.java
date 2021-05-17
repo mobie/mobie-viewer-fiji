@@ -102,28 +102,27 @@ public class ViewerManager
 
 	public View getCurrentView( String uiSelectionGroup, boolean isExclusive ) {
 
-		List<SourceDisplaySupplier> sourceDisplays = new ArrayList<>();
-		List<SourceTransformerSupplier> sourceTransforms = new ArrayList<>();
-		List<SourceTransformer> sourceTransformers = new ArrayList<>();
-		for ( Display display : displays ) {
-			Display currentDisplay = null;
-			if ( display instanceof ImageDisplay ) {
-				currentDisplay = new ImageDisplay( (ImageDisplay) display );
-			} else if ( display instanceof  SegmentationDisplay ) {
-				currentDisplay = new SegmentationDisplay( (SegmentationDisplay) display );
+		List< SourceDisplay > viewSourceDisplays = new ArrayList<>();
+		List< SourceTransformer > viewSourceTransforms = new ArrayList<>();
+
+		for ( SourceDisplay sourceDisplay : sourceDisplays ) {
+			SourceDisplay currentDisplay = null;
+			if ( sourceDisplay instanceof ImageSourceDisplay ) {
+				currentDisplay = new ImageSourceDisplay( (ImageSourceDisplay) sourceDisplay );
+			} else if ( sourceDisplay instanceof  SegmentationSourceDisplay ) {
+				currentDisplay = new SegmentationSourceDisplay( (SegmentationSourceDisplay) sourceDisplay );
 			}
 
 			if ( currentDisplay != null ) {
-				sourceDisplays.add(new SourceDisplaySupplier(currentDisplay));
+				viewSourceDisplays.add( currentDisplay );
 			}
 
 			// TODO - would be good to pick up any manual transforms here too. This would allow e.g. manual placement
 			// of differing sized sources into a grid
-			if ( display.sourceTransformers != null ) {
-				for ( SourceTransformer sourceTransformer: display.sourceTransformers ) {
-					if ( !sourceTransformers.contains( sourceTransformer ) ) {
-						sourceTransformers.add( sourceTransformer );
-						sourceTransforms.add( new SourceTransformerSupplier(sourceTransformer) );
+			if ( sourceDisplay.sourceTransformers != null ) {
+				for ( SourceTransformer sourceTransformer: sourceDisplay.sourceTransformers ) {
+					if ( !viewSourceTransforms.contains( sourceTransformer ) ) {
+						viewSourceTransforms.add( sourceTransformer );
 					}
 				}
 			}
@@ -132,7 +131,7 @@ public class ViewerManager
 		AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform( bdvHandle, Utils.getMousePosition( bdvHandle ) );
 		BdvLocationSupplier viewerTransform = new BdvLocationSupplier( new BdvLocation( BdvLocationType.NormalisedViewerTransform, normalisedViewTransform.getRowPackedCopy()) );
 
-		return new View( uiSelectionGroup, sourceDisplays, sourceTransforms, viewerTransform, isExclusive );
+		return new View( uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, viewerTransform, isExclusive );
 	}
 
 	public synchronized void show(View view )

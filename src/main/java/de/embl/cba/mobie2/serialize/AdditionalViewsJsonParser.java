@@ -13,17 +13,19 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
 
+import static de.embl.cba.mobie2.serialize.JsonHelper.buildGson;
+
 public class AdditionalViewsJsonParser {
     public AdditionalViews getViews( String path ) throws IOException
     {
         final String s = FileAndUrlUtils.read( path );
-        Gson gson = new Gson();
+        Gson gson = buildGson( false );
         Type type = new TypeToken< AdditionalViews >() {}.getType();
         return gson.fromJson( s, type );
     }
 
     public void saveViews( AdditionalViews additionalViews, String path ) throws IOException {
-        Gson gson = new Gson();
+        Gson gson = buildGson( false );
         Type type = new TypeToken< AdditionalViews >() {}.getType();
 
         try ( OutputStream outputStream = new FileOutputStream( path );
@@ -34,12 +36,7 @@ public class AdditionalViewsJsonParser {
     }
 
     public String viewsToJsonString( AdditionalViews additionalViews, boolean prettyPrinting ) {
-        Gson gson;
-        if ( prettyPrinting ) {
-            gson = new GsonBuilder().setPrettyPrinting().create();
-        } else {
-            gson = new Gson();
-        }
+        Gson gson = buildGson( true );
         Type type = new TypeToken< AdditionalViews >() {}.getType();
         return gson.toJson( additionalViews, type );
     }

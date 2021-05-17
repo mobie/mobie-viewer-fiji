@@ -104,7 +104,7 @@ public class ViewsGithubWriter {
                     String content = contentGetter.getContent();
                     if (content != null) {
                         FilePathAndSha filePathAndSha = getFilePathAndSha(content);
-                        dataset = new DatasetJsonParser().getDataset(filePathAndSha.filePath);
+                        dataset = new DatasetJsonParser().parseDataset(filePathAndSha.filePath);
                         dataset.views.put(viewName, view);
 
                         final String datasetBase64String = writeDatasetToBase64String(dataset);
