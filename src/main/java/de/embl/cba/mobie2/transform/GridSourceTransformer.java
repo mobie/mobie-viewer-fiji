@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class GridSourceTransformer extends AbstractSourceTransformer< NumericType< T > >
+public class GridSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
 {
 	// Serialization
 	private List< List< String > > sources;
@@ -26,10 +26,10 @@ public class GridSourceTransformer extends AbstractSourceTransformer< NumericTyp
 	// Runtime
 	private List< int[] > positions;
 	private transient List< FinalRealInterval > intervals;
-	private transient List< SourceAndConverter< ? > > transformedSources;
+	private transient List< SourceAndConverter< T > > transformedSources;
 
 	@Override
-	public List< SourceAndConverter< ? > > transform( List< SourceAndConverter< ? > > sourceAndConverters )
+	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sourceAndConverters )
 	{
 		// Make a copy because not all sources in the input list may be transformed
 		transformedSources = new CopyOnWriteArrayList<>( sourceAndConverters );
@@ -40,7 +40,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer< NumericTyp
 			autoSetPositions();
 		}
 
-		final SourceAndConverter< ? > reference = getReferenceSource( sourceAndConverters );
+		final SourceAndConverter< T > reference = getReferenceSource( sourceAndConverters );
 
 		// TODO: make this work on the union of the sources
 		FinalRealInterval bounds = Utils.estimateBounds( reference.getSpimSource() );
@@ -71,7 +71,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer< NumericTyp
 		return transformedSources;
 	}
 
-	private void transformSourcesAtGridPosition( List< SourceAndConverter< ? > > sourceAndConverters, List< SourceAndConverter< ? > > transformedSources, double spacingX, double spacingY, int i )
+	private void transformSourcesAtGridPosition( List< SourceAndConverter< T > > sourceAndConverters, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY, int i )
 	{
 		final List< String > sources = this.sources.get( i );
 
@@ -80,7 +80,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer< NumericTyp
 			final AffineTransform3D transform3D = new AffineTransform3D();
 			transform3D.translate( spacingX * positions.get( i )[ 0 ], spacingY * positions.get( i )[ 1 ], 0 );
 
-			final SourceAndConverter< ? > sourceAndConverter = Utils.getSource( sourceAndConverters, sourceName );
+			final SourceAndConverter< T > sourceAndConverter = Utils.getSource( sourceAndConverters, sourceName );
 
 			if ( sourceAndConverter == null )
 			{
@@ -92,7 +92,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer< NumericTyp
 				continue;
 			}
 
-			final SourceAndConverter< ? > transformedSource = new SourceAffineTransformer( sourceAndConverter, transform3D ).getSourceOut();
+			final SourceAndConverter< T > transformedSource = new SourceAffineTransformer( sourceAndConverter, transform3D ).getSourceOut();
 
 			// Replace the original source by the transformed one
 			transformedSources.remove( sourceAndConverter );
@@ -103,13 +103,13 @@ public class GridSourceTransformer extends AbstractSourceTransformer< NumericTyp
 		}
 	}
 
-	private SourceAndConverter< ? > getReferenceSource( List< SourceAndConverter< ? > > sourceAndConverters )
+	private SourceAndConverter< T > getReferenceSource( List< SourceAndConverter< T > > sourceAndConverters )
 	{
 		final List< String > sourcesAtFirstGridPosition = sources.get( 0 );
 
 		for ( String name : sourcesAtFirstGridPosition )
 		{
-			final SourceAndConverter< ? > source = Utils.getSource( sourceAndConverters, name );
+			final SourceAndConverter< T > source = Utils.getSource( sourceAndConverters, name );
 			if ( source != null )
 			{
 				return source;

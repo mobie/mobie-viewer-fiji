@@ -205,18 +205,18 @@ public class MoBIE2
 
 	public Map< String, View > getViews()
 	{
-		final HashMap< String, View > views = new LinkedHashMap<>();
+//		final HashMap< String, View > views = new LinkedHashMap<>();
+//
+//		// combine the individual source views...
+//		for ( String sourceName : dataset.sources.keySet() )
+//		{
+//			views.put( sourceName, dataset.sources.get( sourceName ).get().view );
+//		}
+//
+//		// ...with the additional views
+//		views.putAll( dataset.views );
 
-		// combine the individual source views...
-		for ( String sourceName : dataset.sources.keySet() )
-		{
-			views.put( sourceName, dataset.sources.get( sourceName ).get().view );
-		}
-
-		// ...with the additional views
-		views.putAll( dataset.views );
-
-		return views;
+		return dataset.views;
 	}
 
 	public synchronized String getImagePath( ImageSource source )

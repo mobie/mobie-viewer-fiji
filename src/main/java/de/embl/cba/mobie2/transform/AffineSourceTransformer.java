@@ -8,15 +8,15 @@ import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AffineSourceTransformer extends AbstractSourceTransformer< NumericType< T > >
+public class AffineSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
 {
 	private List< String > sources;
 	private double[] parameters;
 
 	@Override
-	public List< SourceAndConverter< ? > > transform( List< SourceAndConverter< ? > > sources )
+	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sources )
 	{
-		final ArrayList< SourceAndConverter< ? > > transformedSources = new ArrayList<>( sources );
+		final ArrayList< SourceAndConverter< T > > transformedSources = new ArrayList<>( sources );
 
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parameters );

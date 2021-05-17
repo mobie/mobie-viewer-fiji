@@ -37,7 +37,6 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
@@ -48,7 +47,7 @@ import java.util.HashMap;
 
 public class CroppedSource< T extends NumericType<T> > implements Source<T>
 {
-    private final Source<T> wrappedSource;
+    private final Source<T> source;
     private final String name;
     private final RealInterval crop;
     private final boolean zeroMin;
@@ -56,9 +55,20 @@ public class CroppedSource< T extends NumericType<T> > implements Source<T>
     protected transient final DefaultInterpolators< T > interpolators;
     private transient HashMap< Integer, Interval > levelToVoxelInterval;
 
+    public CroppedSource( Source< T > source, RealInterval crop, boolean zeroMin )
+    {
+        this.source = source;
+        this.name = null;
+        this.crop = crop;
+        this.zeroMin = zeroMin;
+        this.interpolators = new DefaultInterpolators();
+
+        initCropIntervals( source, crop );
+    }
+
     public CroppedSource( Source< T > source, String name, RealInterval crop, boolean zeroMin )
     {
-        this.wrappedSource = source;
+        this.source = source;
         this.name = name;
         this.crop = crop;
         this.zeroMin = zeroMin;
@@ -81,18 +91,18 @@ public class CroppedSource< T extends NumericType<T> > implements Source<T>
     }
 
     public Source< ? > getWrappedSource() {
-        return wrappedSource;
+        return source;
     }
 
     @Override
     public boolean isPresent(int t) {
-        return wrappedSource.isPresent(t);
+        return source.isPresent(t);
     }
 
     @Override
     public RandomAccessibleInterval< T > getSource(int t, int level)
     {
-        final IntervalView< T > intervalView = Views.interval( wrappedSource.getSource( t, level ), levelToVoxelInterval.get( level ) );
+        final IntervalView< T > intervalView = Views.interval( source.getSource( t, level ), levelToVoxelInterval.get( level ) );
 
         if ( zeroMin )
             return Views.zeroMin( intervalView );
@@ -112,28 +122,29 @@ public class CroppedSource< T extends NumericType<T> > implements Source<T>
     @Override
     public void getSourceTransform(int t, int level, AffineTransform3D transform)
     {
-        wrappedSource.getSourceTransform( t, level, transform );
+        source.getSourceTransform( t, level, transform );
     }
 
     @Override
     public T getType() {
-        return wrappedSource.getType();
+        return source.getType();
     }
 
     @Override
     public String getName()
     {
-        return name;
+        if ( name != null ) return name;
+        else return source.getName();
     }
 
     @Override
     public VoxelDimensions getVoxelDimensions() {
-        return wrappedSource.getVoxelDimensions();
+        return source.getVoxelDimensions();
     }
 
     @Override
     public int getNumMipmapLevels() {
-        return wrappedSource.getNumMipmapLevels();
+        return source.getNumMipmapLevels();
     }
 
 }
