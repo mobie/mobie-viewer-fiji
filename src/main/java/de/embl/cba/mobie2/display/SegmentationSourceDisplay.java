@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class SegmentationDisplay extends Display
+public class SegmentationSourceDisplay extends SourceDisplay
 {
 	// Serialization
 	private String lut = ColoringLuts.GLASBEY;
@@ -86,7 +86,7 @@ public class SegmentationDisplay extends Display
 	 *
 	 * @param segmentationDisplay
 	 */
-	public SegmentationDisplay( SegmentationDisplay segmentationDisplay )
+	public SegmentationSourceDisplay( SegmentationSourceDisplay segmentationDisplay )
 	{
 		this.name = segmentationDisplay.name;
 		this.sources = new ArrayList<>();

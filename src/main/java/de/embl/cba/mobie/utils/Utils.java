@@ -43,9 +43,9 @@ import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
 public abstract class Utils
 {
-	public static SourceAndConverter< ? > getSource( List< SourceAndConverter< ? > > sourceAndConverters, String name )
+	public static < T > SourceAndConverter< T > getSource( List< SourceAndConverter< T > > sourceAndConverters, String name )
 	{
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
 		{
 			if ( sourceAndConverter.getSpimSource().getName().equals( name ) )
 				return sourceAndConverter;

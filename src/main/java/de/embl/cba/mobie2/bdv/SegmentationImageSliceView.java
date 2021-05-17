@@ -4,8 +4,8 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie2.color.LabelConverter;
-import de.embl.cba.mobie2.display.SegmentationDisplay;
-import de.embl.cba.mobie2.display.Display;
+import de.embl.cba.mobie2.display.SegmentationSourceDisplay;
+import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.open.SourceAndConverterSupplier;
 import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.mobie2.transform.TransformerHelper;
@@ -26,11 +26,11 @@ import java.util.List;
 public class SegmentationImageSliceView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
 	private final SourceAndConverterBdvDisplayService displayService;
-	private final SegmentationDisplay segmentationDisplay;
+	private final SegmentationSourceDisplay segmentationDisplay;
 	private BdvHandle bdvHandle;
 	private final SourceAndConverterSupplier sourceAndConverterSupplier;
 
-	public SegmentationImageSliceView( SegmentationDisplay segmentationDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
+	public SegmentationImageSliceView( SegmentationSourceDisplay segmentationDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
 	{
 		this.segmentationDisplay = segmentationDisplay;
 		this.bdvHandle = bdvHandle;
@@ -154,9 +154,9 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 	}
 
-	public void removeSourceDisplay( Display display )
+	public void removeSourceDisplay( SourceDisplay sourceDisplay )
 	{
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
 		{
 			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
 		}

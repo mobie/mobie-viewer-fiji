@@ -15,10 +15,10 @@ import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.ui.MoBIEInfo;
 import de.embl.cba.mobie2.*;
 import de.embl.cba.mobie2.color.OpacityAdjuster;
-import de.embl.cba.mobie2.display.ImageDisplay;
-import de.embl.cba.mobie2.display.SegmentationDisplay;
-import de.embl.cba.mobie2.display.Display;
-import de.embl.cba.mobie2.grid.GridOverlayDisplay;
+import de.embl.cba.mobie2.display.ImageSourceDisplay;
+import de.embl.cba.mobie2.display.SegmentationSourceDisplay;
+import de.embl.cba.mobie2.display.SourceDisplay;
+import de.embl.cba.mobie2.grid.GridOverlaySourceDisplay;
 import de.embl.cba.mobie2.view.View;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
@@ -99,7 +99,7 @@ public class UserInterfaceHelper
 						rangeMax,
 						currentRangeMax );
 
-		double spinnerStepSize = ( currentRangeMax - currentRangeMin ) / 100.0;
+		double spinnerStepSize = Math.abs( currentRangeMax - currentRangeMin ) / 100.0;
 
 		JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
@@ -204,7 +204,7 @@ public class UserInterfaceHelper
 		}
 	}
 
-	public JPanel createGridViewDisplaySettingsPanel( GridOverlayDisplay gridOverlayDisplay )
+	public JPanel createGridViewDisplaySettingsPanel( GridOverlaySourceDisplay gridOverlayDisplay )
 	{
 		JPanel panel = createDisplayPanel( gridOverlayDisplay.getName() );
 
@@ -276,7 +276,7 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public JPanel createImageDisplaySettingsPanel( ImageDisplay display )
+	public JPanel createImageDisplaySettingsPanel( ImageSourceDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
@@ -327,7 +327,7 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public JPanel createSegmentationDisplaySettingsPanel( SegmentationDisplay display )
+	public JPanel createSegmentationDisplaySettingsPanel( SegmentationSourceDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
@@ -643,7 +643,7 @@ public class UserInterfaceHelper
 	}
 
 	private static JCheckBox createScatterPlotViewerVisibilityCheckbox(
-			SegmentationDisplay display,
+			SegmentationSourceDisplay display,
 			boolean isVisible )
 	{
 		JCheckBox checkBox = new JCheckBox( "P" );
@@ -673,7 +673,7 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JCheckBox createVolumeViewerVisibilityCheckbox( SegmentationDisplay display )
+	public static JCheckBox createVolumeViewerVisibilityCheckbox( SegmentationSourceDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "V" );
 		checkBox.setSelected( display.showSelectedSegmentsIn3d() );
@@ -713,7 +713,7 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JButton createFocusButton( Display display, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
+	public static JButton createFocusButton( SourceDisplay sourceDisplay, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
 	{
 		JButton button = new JButton( "F" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -723,7 +723,7 @@ public class UserInterfaceHelper
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{
 				// TODO: make this work for multiple!
-				final AffineTransform3D transform = new ViewerTransformAdjuster( display.sliceViewer.getBdvHandle(), sourceAndConverter ).getTransform();
+				final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverter ).getTransform();
 				new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
 			}
 		} );
@@ -731,7 +731,7 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	public static JButton createImageDisplayBrightnessButton( ImageDisplay imageDisplay )
+	public static JButton createImageDisplayBrightnessButton( ImageSourceDisplay imageDisplay )
 	{
 		JButton button = new JButton( "B" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -824,14 +824,14 @@ public class UserInterfaceHelper
 		}
 	}
 
-	private JButton createRemoveButton( Display display )
+	private JButton createRemoveButton( SourceDisplay sourceDisplay )
 	{
 		JButton removeButton = new JButton( "X" );
 		removeButton.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		removeButton.addActionListener( e ->
 		{
-			moBIE2.getViewerManager().removeSourceDisplay( display );
+			moBIE2.getViewerManager().removeSourceDisplay( sourceDisplay );
 		} );
 
 		return removeButton;

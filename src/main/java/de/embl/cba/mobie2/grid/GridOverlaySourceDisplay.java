@@ -9,7 +9,7 @@ import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.transform.BdvLocationChanger;
 import de.embl.cba.mobie2.color.MoBIEColoringModel;
-import de.embl.cba.mobie2.display.Display;
+import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.transform.GridSourceTransformer;
 import de.embl.cba.mobie2.table.TableViewer;
 import de.embl.cba.tables.TableColumns;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class GridOverlayDisplay extends Display implements ColoringListener, SelectionListener< DefaultAnnotatedIntervalTableRow >
+public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringListener, SelectionListener< DefaultAnnotatedIntervalTableRow >
 {
 	private final MoBIEColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel;
 	private final DefaultSelectionModel< DefaultAnnotatedIntervalTableRow > selectionModel;
@@ -33,7 +33,7 @@ public class GridOverlayDisplay extends Display implements ColoringListener, Sel
 	private final String name;
 
 	// TODO: split in two classes: the GridOverlayDisplay and the GridOverlayView
-	public GridOverlayDisplay( MoBIE2 moBIE2, BdvHandle bdvHandle, String name, String tableDataFolder, GridSourceTransformer sourceTransformer )
+	public GridOverlaySourceDisplay( MoBIE2 moBIE2, BdvHandle bdvHandle, String name, String tableDataFolder, GridSourceTransformer sourceTransformer )
 	{
 		this.bdvHandle = bdvHandle;
 		this.name = name;

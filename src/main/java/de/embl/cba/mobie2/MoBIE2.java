@@ -18,7 +18,6 @@ import mpicbg.spim.data.SpimData;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -91,7 +90,7 @@ public class MoBIE2
 	private void openDataset( String datasetName ) throws IOException
 	{
 		this.datasetName = datasetName;
-		dataset = new DatasetJsonParser().getDataset( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), getDatasetName(), "dataset.json" ) );
+		dataset = new DatasetJsonParser().parseDataset( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), getDatasetName(), "dataset.json" ) );
 
 		userInterface = new UserInterface( this );
 		viewerManager = new ViewerManager( this, userInterface, dataset.is2D, dataset.timepoints );
@@ -189,18 +188,18 @@ public class MoBIE2
 
 	public Map< String, View > getViews()
 	{
-		final HashMap< String, View > views = new LinkedHashMap<>();
+//		final HashMap< String, View > views = new LinkedHashMap<>();
+//
+//		// combine the individual source views...
+//		for ( String sourceName : dataset.sources.keySet() )
+//		{
+//			views.put( sourceName, dataset.sources.get( sourceName ).get().view );
+//		}
+//
+//		// ...with the additional views
+//		views.putAll( dataset.views );
 
-		// combine the individual source views...
-		for ( String sourceName : dataset.sources.keySet() )
-		{
-			views.put( sourceName, dataset.sources.get( sourceName ).get().view );
-		}
-
-		// ...with the additional views
-		views.putAll( dataset.views );
-
-		return views;
+		return dataset.views;
 	}
 
 	public synchronized String getImagePath( ImageSource source )

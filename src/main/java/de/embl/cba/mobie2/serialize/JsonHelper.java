@@ -1,6 +1,9 @@
 package de.embl.cba.mobie2.serialize;
 
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
 import de.embl.cba.tables.FileAndUrlUtils;
@@ -8,6 +11,7 @@ import de.embl.cba.tables.FileAndUrlUtils;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class JsonHelper
 {
@@ -28,5 +32,16 @@ public class JsonHelper
 		{
 			return null; // new double[]{0.70,0.56,0.43};
 		}
+	}
+
+	public static Object getObject( JsonDeserializationContext context, JsonElement je, Map< String, Class > nameToClass )
+	{
+		final JsonObject jsonObject = je.getAsJsonObject();
+		final Map.Entry< String, JsonElement > jsonElementEntry = jsonObject.entrySet().iterator().next();
+		Class c = nameToClass.get( jsonElementEntry.getKey() );
+		if (c == null)
+			throw new RuntimeException("Unknown class: " + jsonElementEntry.getKey());
+		final Object deserialize = context.deserialize( jsonElementEntry.getValue(), c );
+		return deserialize;
 	}
 }

@@ -4,10 +4,9 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
-import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.color.opacity.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie2.color.opacity.VolatileAdjustableOpacityColorConverter;
-import de.embl.cba.mobie2.display.ImageDisplay;
+import de.embl.cba.mobie2.display.ImageSourceDisplay;
 import de.embl.cba.mobie2.open.SourceAndConverterSupplier;
 import de.embl.cba.mobie2.transform.TransformerHelper;
 import de.embl.cba.tables.color.ColorUtils;
@@ -31,12 +30,12 @@ import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 public class ImageSliceView
 {
 	private final SourceAndConverterBdvDisplayService displayService;
-	private final ImageDisplay imageDisplay;
+	private final ImageSourceDisplay imageDisplay;
 	private final BdvHandle bdvHandle;
 	private final SourceAndConverterSupplier sourceAndConverterSupplier;
 	private final SourceAndConverterService sacService;
 
-	public ImageSliceView( ImageDisplay imageDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
+	public ImageSliceView( ImageSourceDisplay imageDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
 	{
 		this.imageDisplay = imageDisplay;
 		this.bdvHandle = bdvHandle;
