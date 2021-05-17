@@ -68,7 +68,7 @@ public class MoBIE2
 		String projectJson = getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" );
 		if ( ! FileAndUrlUtils.exists( projectJson ) )
 		{
-			// sometimes we have a "data" sub-folder (legacy)
+			// toggle existence of data subfolder
 			options = options.hasDataSubfolder( ! options.values.hasDataSubfolder() );
 			projectJson = getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" );
 		}

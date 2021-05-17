@@ -78,7 +78,6 @@ public class CroppedSource< T extends NumericType<T> > implements Source<T>
         initCropIntervals( source, crop );
     }
 
-
     private void initCropIntervals( Source< T > source, RealInterval crop )
     {
         final AffineTransform3D transform3D = new AffineTransform3D();
@@ -87,6 +86,9 @@ public class CroppedSource< T extends NumericType<T> > implements Source<T>
         {
             source.getSourceTransform( 0, level, transform3D );
             final Interval voxelInterval = Intervals.smallestContainingInterval( transform3D.inverse().estimateBounds( crop ) );
+            // If the interval is outside the bounds of the RAI then there is nothing to show.
+            // Moreover the fetcher threads throw errors when trying to access pixels outside the RAI.
+            // Thus let's limit the interval to where there actually is data .
             final RandomAccessibleInterval< T > rai = source.getSource( 0, level );
             final FinalInterval intersect = Intervals.intersect( rai, voxelInterval );
             levelToVoxelInterval.put( level, intersect );
