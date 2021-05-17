@@ -1,7 +1,8 @@
 package de.embl.cba.mobie2.ui;
 
-import de.embl.cba.mobie2.display.ImageSourceDisplay;
 import de.embl.cba.mobie2.MoBIE2;
+import de.embl.cba.mobie2.view.View;
+import de.embl.cba.mobie2.display.ImageSourceDisplay;
 import de.embl.cba.mobie2.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.grid.GridOverlaySourceDisplay;
@@ -10,6 +11,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
@@ -21,6 +23,7 @@ public class UserInterface
 	private final JPanel selectionContainer;
 	private final UserInterfaceHelper userInterfaceHelper;
 	private Map< Object, JPanel > displayToPanel;
+	private JSplitPane splitPane;
 
 	public UserInterface( MoBIE2 moBIE )
 	{
@@ -39,10 +42,9 @@ public class UserInterface
 	{
 		JFrame frame = new JFrame( "MoBIE: " + panelName );
 
-		JSplitPane splitPane = new JSplitPane();
+		splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		final int sourceSelectionPanelHeight = userInterfaceHelper.getViewsSelectionPanelHeight();
-		final int actionPanelHeight = sourceSelectionPanelHeight + 4 * 40;
+		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
 
 
 		splitPane.setDividerLocation( actionPanelHeight );
@@ -62,7 +64,7 @@ public class UserInterface
 		return frame;
 	}
 
-	private void refresh()
+	private void refreshDisplaySettings()
 	{
 		displaySettingsContainer.revalidate();
 		displaySettingsContainer.repaint();
@@ -70,11 +72,27 @@ public class UserInterface
 		frame.repaint();
 	}
 
+	private void refreshSelection()
+	{
+		selectionContainer.revalidate();
+		selectionContainer.repaint();
+		// update the location of the splitpane divider, so any new uiSelectionGroups are visible
+		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
+		splitPane.setDividerLocation( actionPanelHeight );
+		frame.revalidate();
+		frame.repaint();
+	}
+
+	public void addViews( Map<String, View> views ) {
+		userInterfaceHelper.addViewsToSelectionPanel(views);
+		refreshSelection();
+	}
+
 	public void addSourceDisplay( SourceDisplay sourceDisplay )
 	{
 		final JPanel panel = createDisplaySettingPanel( sourceDisplay );
 		showDisplaySettingsPanel( sourceDisplay, panel );
-		refresh();
+		refreshDisplaySettings();
 	}
 
 	private JPanel createDisplaySettingPanel( SourceDisplay sourceDisplay )
@@ -105,7 +123,7 @@ public class UserInterface
 			final JPanel jPanel = displayToPanel.get( display );
 			displaySettingsContainer.remove( jPanel );
 			displayToPanel.remove( display );
-			refresh();
+			refreshDisplaySettings();
 		} );
 	}
 
@@ -114,13 +132,25 @@ public class UserInterface
 		SwingUtilities.invokeLater( () -> {
 			displayToPanel.put( display, panel );
 			displaySettingsContainer.add( panel );
-			refresh();
+			refreshDisplaySettings();
 		});
 	}
 
 	public Window getWindow()
 	{
 		return frame;
+	}
+
+	public String[] getUISelectionGroupNames() {
+
+		Set<String> groupings = userInterfaceHelper.getGroupings();
+		String[] groupNames = new String[groupings.size()];
+		int i = 0;
+		for ( String groupName: groupings ) {
+			groupNames[i] = groupName;
+			i++;
+		}
+		return groupNames;
 	}
 
 	public void close()

@@ -196,7 +196,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	{
 		if ( coloringModel instanceof ARBGLutSupplier )
 		{
-			return ( ( ColumnColoringModel ) coloringModel ).getARGBLut().getName();
+			return ( ( ARBGLutSupplier ) coloringModel ).getARGBLut().getName();
 		}
 		else
 		{

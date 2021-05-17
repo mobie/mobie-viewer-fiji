@@ -58,6 +58,9 @@ public class UserInterfaceHelper
 
 	private final MoBIE2 moBIE2;
 	private int viewsSelectionPanelHeight;
+	private JPanel viewSelectionPanel;
+	private Map< String, Map< String, View > > groupingsToViews;
+	private Map< String, JComboBox > groupingsToComboBox;
 
 	public UserInterfaceHelper( MoBIE2 moBIE2 )
 	{
@@ -187,6 +190,15 @@ public class UserInterfaceHelper
 		// TODO: reset where the menu bar is?
 		try {
 			UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void resetCrossPlatformSwingLookAndFeel() {
+		// TODO: reset where the menu bar is?
+		try {
+			UIManager.setLookAndFeel( UIManager.getCrossPlatformLookAndFeelClassName() );
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -338,8 +350,17 @@ public class UserInterfaceHelper
 	{
 		final Map< String, View > views = moBIE2.getViews();
 
-		Map< String, Map< String, View > > groupingsToViews = new HashMap<>(  );
+		groupingsToViews = new HashMap<>(  );
+		groupingsToComboBox = new HashMap<>( );
+		viewSelectionPanel = new JPanel( new BorderLayout() );
+		viewSelectionPanel.setLayout( new BoxLayout( viewSelectionPanel, BoxLayout.Y_AXIS ) );
 
+		addViewsToSelectionPanel( views );
+
+		return viewSelectionPanel;
+	}
+
+	public void addViewsToSelectionPanel( Map< String, View > views ) {
 		for ( String viewName : views.keySet() )
 		{
 			final View view = views.get( viewName );
@@ -349,25 +370,60 @@ public class UserInterfaceHelper
 			groupingsToViews.get( uiSelectionGroup ).put( viewName, view );
 		}
 
-		JPanel containerPanel = new JPanel( new BorderLayout() );
-		containerPanel.setLayout( new BoxLayout( containerPanel, BoxLayout.Y_AXIS ) );
-
 		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );
-		Collections.sort( uiSelectionGroups );
-		for ( String uiSelectionGroup : uiSelectionGroups )
-		{
-			final JPanel selectionPanel = createViewSelectionPanel( moBIE2, uiSelectionGroup, groupingsToViews.get( uiSelectionGroup ) );
-			containerPanel.add( selectionPanel );
+		// sort in alphabetical order, ignoring upper/lower case
+		Collections.sort( uiSelectionGroups, new Comparator<String>() {
+			@Override
+			public int compare(String s1, String s2) {
+				return s1.compareToIgnoreCase(s2);
+			}
+		});
+
+		// If it's the first time, just add all the panels in order
+		if ( groupingsToComboBox.keySet().size() == 0 ) {
+			for (String uiSelectionGroup : uiSelectionGroups) {
+				final JPanel selectionPanel = createViewSelectionPanel(moBIE2, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
+				viewSelectionPanel.add(selectionPanel);
+			}
+		} else {
+			// If there are already panels, then add new ones at the correct index to maintain alphabetical order
+			Map< Integer, JPanel > indexToPanel = new HashMap<>();
+			for ( String viewName : views.keySet() ) {
+				String uiSelectionGroup = views.get( viewName ).getUiSelectionGroup();
+				if ( groupingsToComboBox.containsKey( uiSelectionGroup ) ) {
+					groupingsToComboBox.get( uiSelectionGroup ).addItem( viewName );
+				} else {
+					final JPanel selectionPanel = createViewSelectionPanel(moBIE2, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
+					int alphabeticalIndex = uiSelectionGroups.indexOf( uiSelectionGroup );
+					indexToPanel.put( alphabeticalIndex, selectionPanel );
+				}
+			}
+
+			if ( indexToPanel.keySet().size() > 0 ) {
+				// add panels in ascending index order
+				final ArrayList< Integer > sortedIndices = new ArrayList<>( indexToPanel.keySet() );
+				Collections.sort( sortedIndices );
+				for ( Integer index: sortedIndices ) {
+					viewSelectionPanel.add( indexToPanel.get(index), index.intValue() );
+				}
+			}
 		}
 
 		viewsSelectionPanelHeight = groupingsToViews.keySet().size() * 40;
-
-		return containerPanel;
 	}
 
 	public int getViewsSelectionPanelHeight()
 	{
 		return viewsSelectionPanelHeight;
+	}
+
+	public int getActionPanelHeight()
+	{
+		return viewsSelectionPanelHeight + 4 * 40;
+	}
+
+	public Set<String> getGroupings() {
+		return groupingsToViews.keySet();
 	}
 
 	private JPanel createViewSelectionPanel( MoBIE2 moBIE2, String panelName, Map< String, View > views )
@@ -395,6 +451,8 @@ public class UserInterfaceHelper
 		horizontalLayoutPanel.add( getJLabel( panelName ) );
 		horizontalLayoutPanel.add( comboBox );
 		horizontalLayoutPanel.add( button );
+
+		groupingsToComboBox.put( panelName, comboBox );
 
 		return horizontalLayoutPanel;
 	}
@@ -516,7 +574,7 @@ public class UserInterfaceHelper
 			} );
 		} );
 
-		comboBox.setSelectedItem( moBIE2.getDataset() );
+		comboBox.setSelectedItem( moBIE2.getDatasetName() );
 		setComboBoxDimensions( comboBox );
 
 		panel.add( getJLabel( "dataset" ) );

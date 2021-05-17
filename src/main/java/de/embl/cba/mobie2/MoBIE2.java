@@ -124,7 +124,7 @@ public class MoBIE2
 		WindowArrangementHelper.rightAlignWindow( userInterface.getWindow(), viewerManager.getSliceViewer().getWindow(), false, true );
 	}
 
-	private String getPath( String rootLocation, String githubBranch, String... files )
+	public String getPath( String rootLocation, String githubBranch, String... files )
 	{
 		if ( rootLocation.contains( "github.com" ) )
 		{
@@ -158,6 +158,11 @@ public class MoBIE2
 		return settings;
 	}
 
+	public Dataset getDataset()
+	{
+		return dataset;
+	}
+
 	public String getDatasetName()
 	{
 		return datasetName;
@@ -167,6 +172,8 @@ public class MoBIE2
 	{
 		return project.getDatasets();
 	}
+
+	public UserInterface getUserInterface() { return userInterface; }
 
 	public void close()
 	{
@@ -190,11 +197,6 @@ public class MoBIE2
 		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 		final SourceAndConverter sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
 		return sourceAndConverter;
-	}
-
-	public String getDataset()
-	{
-		return datasetName;
 	}
 
 	public void setDataset( String dataset )
