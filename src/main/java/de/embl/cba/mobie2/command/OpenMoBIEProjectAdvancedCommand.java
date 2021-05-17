@@ -1,6 +1,6 @@
 package de.embl.cba.mobie2.command;
 
-import de.embl.cba.mobie.ui.MoBIEOptions;
+import de.embl.cba.mobie.ui.MoBIESettings;
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie2.MoBIE2;
 import net.imagej.ImageJ;
@@ -38,9 +38,9 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 		{
 			new MoBIE2(
 					projectLocation,
-					MoBIEOptions.options()
+					MoBIESettings.settings()
 							.gitProjectBranch( projectBranch )
-							.imageDataStorageModality( MoBIEOptions.ImageDataStorageModality.valueOf( imageDataStorageModality ) )
+							.imageDataStorageModality( MoBIESettings.ImageDataStorageModality.valueOf( imageDataStorageModality ) )
 							.imageDataLocation( imageDataLocation )
 							.tableDataLocation( tableDataLocation )
 							.gitTablesBranch( tableDataBranch ) );
@@ -86,9 +86,9 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 
 		new MoBIE(
 				"https://github.com/mobie/platybrowser-datasets",
-				MoBIEOptions.options()
+				MoBIESettings.settings()
 						.gitProjectBranch( "xray" )
-						.imageDataStorageModality( MoBIEOptions.ImageDataStorageModality.FileSystem )
+						.imageDataStorageModality( MoBIESettings.ImageDataStorageModality.FileSystem )
 						.imageDataLocation( "/g/arendt/EM_6dpf_segmentation/platy-browser-data" )
 						.tableDataLocation( "https://github.com/mobie/platy-browser-data" )
 						.gitTablesBranch( "xray" ) );

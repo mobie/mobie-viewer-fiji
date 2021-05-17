@@ -1,7 +1,6 @@
 package projects;
 
-import de.embl.cba.mobie.ui.MoBIE;
-import de.embl.cba.mobie.ui.MoBIEOptions;
+import de.embl.cba.mobie.ui.MoBIESettings;
 import de.embl.cba.mobie2.MoBIE2;
 import net.imagej.ImageJ;
 
@@ -13,6 +12,6 @@ public class OpenRemoteArabidopsis
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE2("https://github.com/mobie/arabidopsis-root-lm-datasets", MoBIEOptions.options().gitProjectBranch( "spec-v2" ).imageDataStorageModality( MoBIEOptions.ImageDataStorageModality.S3 ) );
+		new MoBIE2("https://github.com/mobie/arabidopsis-root-lm-datasets", MoBIESettings.settings().gitProjectBranch( "spec-v2" ).imageDataStorageModality( MoBIESettings.ImageDataStorageModality.S3 ) );
 	}
 }

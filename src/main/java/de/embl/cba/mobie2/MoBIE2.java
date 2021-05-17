@@ -2,8 +2,9 @@ package de.embl.cba.mobie2;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.mobie.ui.MoBIEOptions;
+import de.embl.cba.mobie.ui.MoBIESettings;
 import de.embl.cba.mobie2.serialize.DatasetJsonParser;
+import de.embl.cba.mobie2.serialize.JsonHelper;
 import de.embl.cba.mobie2.serialize.ProjectJsonParser;
 import de.embl.cba.mobie2.source.ImageSource;
 import de.embl.cba.mobie2.source.SegmentationSource;
@@ -19,8 +20,6 @@ import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -35,8 +34,7 @@ public class MoBIE2
 	public static final int N_THREADS = 8;
 
 	private final String projectName;
-	private MoBIEOptions options;
-	private String projectLocation; // without branch, pure github address
+	private MoBIESettings settings;
 	private String datasetName;
 	private Dataset dataset;
 	private ViewerManager viewerManager;
@@ -45,33 +43,46 @@ public class MoBIE2
 
 	public MoBIE2( String projectLocation ) throws IOException
 	{
-		this( projectLocation, MoBIEOptions.options() );
+		this( projectLocation, MoBIESettings.settings() );
 	}
 
-	public MoBIE2( String projectLocation, MoBIEOptions options ) throws IOException
+	public MoBIE2( String projectLocation, MoBIESettings settings ) throws IOException
 	{
-		this.projectLocation = projectLocation;
-		this.options = options.projectLocation( projectLocation );
+		this.settings = settings.projectLocation( projectLocation );
+		this.settings = fixDataLocations( this.settings );
 		projectName = getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 
 		IJ.log("MoBIE");
 
-		String projectJson = getProjectJson( options );
-		project = new ProjectJsonParser().getProject( projectJson );
+		String projectJson = getProjectJson( this.settings );
+		project = new ProjectJsonParser().parseProject( projectJson );
 
 		openDataset( project.getDefaultDataset() );
 	}
 
-	private String getProjectJson( MoBIEOptions options )
+	private MoBIESettings fixDataLocations( MoBIESettings settings )
+	{
+		if( ! FileAndUrlUtils.exists( FileAndUrlUtils.combinePath(  settings.values.getProjectLocation(), "project.json") ) )
+		{
+			settings = settings.projectLocation( FileAndUrlUtils.combinePath( settings.values.getProjectLocation(), "data" ) );
+		}
+
+		if( ! FileAndUrlUtils.exists( FileAndUrlUtils.combinePath(  settings.values.getImageDataLocation(), "project.json") ) )
+		{
+			settings = settings.imageDataLocation( FileAndUrlUtils.combinePath( settings.values.getImageDataLocation(), "data" ) );
+		}
+
+		if( ! FileAndUrlUtils.exists( FileAndUrlUtils.combinePath(  settings.values.getTableDataLocation(), "project.json") ) )
+		{
+			settings = settings.tableDataLocation( FileAndUrlUtils.combinePath( settings.values.getTableDataBranch(), "data" ) );
+		}
+		return settings;
+	}
+
+	private String getProjectJson( MoBIESettings options )
 	{
 		String projectJson = getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" );
-		if ( ! FileAndUrlUtils.exists( projectJson ) )
-		{
-			// toggle existence of data subfolder
-			options = options.hasDataSubfolder( ! options.values.hasDataSubfolder() );
-			projectJson = getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" );
-		}
 		return projectJson;
 	}
 
@@ -102,7 +113,7 @@ public class MoBIE2
 	private void openDataset( String datasetName ) throws IOException
 	{
 		this.datasetName = datasetName;
-		dataset = new DatasetJsonParser().parseDataset( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), getDatasetName(), "dataset.json" ) );
+		dataset = new DatasetJsonParser().parseDataset( getPath( settings.values.getProjectLocation(), settings.values.getProjectBranch(), getDatasetName(), "dataset.json" ) );
 
 		userInterface = new UserInterface( this );
 		viewerManager = new ViewerManager( this, userInterface, dataset.is2D, dataset.timepoints );
@@ -113,14 +124,6 @@ public class MoBIE2
 		WindowArrangementHelper.rightAlignWindow( userInterface.getWindow(), viewerManager.getSliceViewer().getWindow(), false, true );
 	}
 
-	private String getImageDataStorageModality()
-	{
-		if ( options.values.getImageDataStorageModality().equals( MoBIEOptions.ImageDataStorageModality.S3 ) )
-			return "s3store";
-		else
-			return "fileSystem";
-	}
-
 	private String getPath( String rootLocation, String githubBranch, String... files )
 	{
 		if ( rootLocation.contains( "github.com" ) )
@@ -128,28 +131,14 @@ public class MoBIE2
 			rootLocation = GitHubUtils.createRawUrl( rootLocation, githubBranch );
 		}
 
-		String[] strings;
-		if ( options.values.hasDataSubfolder() )
+		String[] rootLocationAndFiles = new String[ files.length + 1 ];
+		rootLocationAndFiles[ 0 ] = rootLocation;
+		for ( int i = 0; i < files.length; i++ )
 		{
-			strings = new String[ files.length + 2 ];
-			strings[ 0 ] = rootLocation;
-			strings[ 1 ] = "data";
-			for ( int i = 0; i < files.length; i++ )
-			{
-				strings[ i + 2 ] = files[ i ];
-			}
-		}
-		else
-		{
-			strings = new String[ files.length + 1 ];
-			strings[ 0 ] = rootLocation;
-			for ( int i = 0; i < files.length; i++ )
-			{
-				strings[ i + 1 ] = files[ i ];
-			}
+			rootLocationAndFiles[ i + 1 ] = files[ i ];
 		}
 
-		String path = FileAndUrlUtils.combinePath( strings );
+		final String path = FileAndUrlUtils.combinePath( rootLocationAndFiles );
 
 		return path;
 	}
@@ -164,14 +153,9 @@ public class MoBIE2
 		return projectName;
 	}
 
-	public MoBIEOptions getOptions()
+	public MoBIESettings getSettings()
 	{
-		return options;
-	}
-
-	public String getProjectLocation()
-	{
-		return projectLocation;
+		return settings;
 	}
 
 	public String getDatasetName()
@@ -247,7 +231,7 @@ public class MoBIE2
 
 	public synchronized String getImagePath( ImageSource source )
 	{
-		final String path = getPath( options.values.getImageDataLocation(), options.values.getProjectBranch(), getDatasetName(), source.imageDataLocations.get( getImageDataStorageModality() ) );
+		final String path = getPath( settings.values.getImageDataLocation(), settings.values.getProjectBranch(), getDatasetName(), source.imageDataLocations.get( JsonHelper.getImageDataStorageModalityJsonString( settings.values.getImageDataStorageModality() ) ) );
 
 		return path;
 	}
@@ -264,7 +248,7 @@ public class MoBIE2
 
 	public String getTablePath( String relativeTableLocation, String table )
 	{
-		final String path = getPath( options.values.getTableDataLocation(), options.values.getTableDataBranch(), getDatasetName(), relativeTableLocation, table ); //+".tsv"
+		final String path = getPath( settings.values.getTableDataLocation(), settings.values.getTableDataBranch(), getDatasetName(), relativeTableLocation, table );
 		return path;
 	}
 

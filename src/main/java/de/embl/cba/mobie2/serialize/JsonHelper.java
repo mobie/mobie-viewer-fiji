@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
+import de.embl.cba.mobie.ui.MoBIESettings;
 import de.embl.cba.tables.FileAndUrlUtils;
 
 import java.io.InputStream;
@@ -43,5 +44,17 @@ public class JsonHelper
 			throw new RuntimeException("Unknown class: " + jsonElementEntry.getKey());
 		final Object deserialize = context.deserialize( jsonElementEntry.getValue(), c );
 		return deserialize;
+	}
+
+	public static String getImageDataStorageModalityJsonString( MoBIESettings.ImageDataStorageModality imageDataStorageModality )
+	{
+		if ( imageDataStorageModality.equals( MoBIESettings.ImageDataStorageModality.S3 ) )
+		{
+			return "s3store";
+		}
+		else
+		{
+			return "fileSystem";
+		}
 	}
 }

@@ -1,7 +1,6 @@
 package de.embl.cba.mobie2.command;
 
-import de.embl.cba.mobie.ui.MoBIEOptions;
-import de.embl.cba.mobie.ui.MoBIE;
+import de.embl.cba.mobie.ui.MoBIESettings;
 import de.embl.cba.mobie2.MoBIE2;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -19,10 +18,10 @@ public class OpenMoBIEProjectCommand implements Command
 	@Override
 	public void run()
 	{
-		MoBIEOptions options = MoBIEOptions.options();
+		MoBIESettings options = MoBIESettings.settings();
 
 		if ( projectLocation.startsWith( "http" ) )
-			options = options.imageDataStorageModality( MoBIEOptions.ImageDataStorageModality.S3 );
+			options = options.imageDataStorageModality( MoBIESettings.ImageDataStorageModality.S3 );
 
 		try
 		{

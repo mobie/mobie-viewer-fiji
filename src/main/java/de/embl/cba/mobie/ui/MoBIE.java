@@ -29,7 +29,7 @@ public class MoBIE
 
 	private final SourcesDisplayManager sourcesDisplayManager;
 	private final SourcesModel sourcesModel;
-	private final MoBIEOptions options;
+	private final MoBIESettings options;
 	private UserInterface userInterface;
 	private String dataset;
 	private final String projectBaseLocation; // without branch, pure github address
@@ -45,7 +45,7 @@ public class MoBIE
 
 	public MoBIE( String projectLocation )
 	{
-		this( projectLocation, MoBIEOptions.options() );
+		this( projectLocation, MoBIESettings.settings() );
 	}
 
 	@Deprecated
@@ -53,12 +53,12 @@ public class MoBIE
 			String projectLocation,
 			String tablesLocation )
 	{
-		this( projectLocation, MoBIEOptions.options().tableDataLocation( tablesLocation ) );
+		this( projectLocation, MoBIESettings.settings().tableDataLocation( tablesLocation ) );
 	}
 
 	public MoBIE(
 			String projectBaseLocation,
-			MoBIEOptions options )
+			MoBIESettings options )
 	{
 		this.projectBaseLocation = projectBaseLocation;
 		this.options = options;
@@ -93,7 +93,7 @@ public class MoBIE
 		return projectName;
 	}
 
-	public MoBIEOptions getOptions()
+	public MoBIESettings getOptions()
 	{
 		return options;
 	}
