@@ -3,7 +3,7 @@ package de.embl.cba.mobie.image;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.bdv.utils.sources.Sources;
-import de.embl.cba.mobie.ui.MoBIEOptions;
+import de.embl.cba.mobie.ui.MoBIESettings;
 import de.embl.cba.mobie.utils.Enums;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.mobie.utils.Utils;
@@ -18,14 +18,14 @@ public class SourcesModel implements ImageSourcesModel
 {
 	public static final String EM_ID = "em-";
 	public static final String XRAY_ID = "xray-";
-	private final MoBIEOptions.ImageDataStorageModality imageDataStorageModality;
+	private final MoBIESettings.ImageDataStorageModality imageDataStorageModality;
 
 	private Map< String, SourceAndMetadata< ? > > nameToSourceAndDefaultMetadata;
 	private final String tableDataLocation;
 	private String imageStorageModality;
 	private String imageRootLocation;
 
-	public SourcesModel( String imageDataLocation, MoBIEOptions.ImageDataStorageModality imageDataStorageModality, String tableDataLocation )
+	public SourcesModel( String imageDataLocation, MoBIESettings.ImageDataStorageModality imageDataStorageModality, String tableDataLocation )
 	{
 		this.imageDataStorageModality = imageDataStorageModality;
 		this.tableDataLocation = tableDataLocation;
@@ -66,7 +66,7 @@ public class SourcesModel implements ImageSourcesModel
 	private void addSources( String imageDataLocation, Map< String, ImageProperties > nameToImageProperties )
 	{
 		// TODO: this can probably be simplified somehow...
-		imageStorageModality = imageDataStorageModality.equals( MoBIEOptions.ImageDataStorageModality.S3 ) ? "remote" : "local";
+		imageStorageModality = imageDataStorageModality.equals( MoBIESettings.ImageDataStorageModality.S3 ) ? "remote" : "local";
 
 		imageRootLocation = FileAndUrlUtils.combinePath( imageDataLocation, "images" );
 

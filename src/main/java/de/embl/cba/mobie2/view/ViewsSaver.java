@@ -1,6 +1,6 @@
 package de.embl.cba.mobie2.view;
 
-import de.embl.cba.mobie.ui.MoBIEOptions;
+import de.embl.cba.mobie.ui.MoBIESettings;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.Dataset;
 import de.embl.cba.mobie2.MoBIE2;
@@ -24,7 +24,7 @@ import static de.embl.cba.tables.FileUtils.*;
 public class ViewsSaver {
 
     private MoBIE2 moBIE2;
-    private MoBIEOptions options;
+    private MoBIESettings settings;
 
     enum ProjectSaveLocation {
         datasetJson,
@@ -33,7 +33,7 @@ public class ViewsSaver {
 
     public ViewsSaver(MoBIE2 moBIE2) {
         this.moBIE2 = moBIE2;
-        this.options = moBIE2.getOptions();
+        this.settings = moBIE2.getSettings();
     }
 
     public void saveCurrentSettingsAsViewDialog() {
@@ -111,7 +111,7 @@ public class ViewsSaver {
     }
 
     private void saveToProject( String viewName, String uiSelectionGroup, boolean exclusive ) {
-        if ( isS3(options.values.getProjectLocation()) ) {
+        if ( isS3(settings.values.getProjectLocation()) ) {
             // TODO - support saving views to s3?
             IJ.log("View saving aborted - saving directly to s3 is not yet supported!");
         } else {
@@ -136,7 +136,7 @@ public class ViewsSaver {
     }
 
     private void saveToDatasetJson( View view, String viewName ) throws IOException {
-        String datasetJsonPath = moBIE2.getPath(options.values.getProjectLocation(), options.values.getProjectBranch(), moBIE2.getDatasetName(), "dataset.json");
+        String datasetJsonPath = moBIE2.getPath(settings.values.getProjectLocation(), settings.values.getProjectBranch(), moBIE2.getDatasetName(), "dataset.json");
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
         dataset.views.put( viewName, view );
 
@@ -167,7 +167,7 @@ public class ViewsSaver {
     }
 
     private String chooseAdditionalViewsJson() {
-        String additionalViewsDirectory = moBIE2.getPath(options.values.getProjectLocation(), options.values.getProjectBranch(), moBIE2.getDatasetName(), "misc", "views");
+        String additionalViewsDirectory = moBIE2.getPath(settings.values.getProjectLocation(), settings.values.getProjectBranch(), moBIE2.getDatasetName(), "misc", "views");
         String[] existingViewFiles = getFileNamesFromProject(additionalViewsDirectory);
 
         String jsonFileName;
@@ -178,7 +178,7 @@ public class ViewsSaver {
         }
 
         if ( jsonFileName != null ) {
-            return moBIE2.getPath(options.values.getProjectLocation(), options.values.getProjectBranch(), moBIE2.getDatasetName(), "misc", "views", jsonFileName);
+            return moBIE2.getPath(settings.values.getProjectLocation(), settings.values.getProjectBranch(), moBIE2.getDatasetName(), "misc", "views", jsonFileName);
         } else {
             return null;
         }

@@ -1,9 +1,7 @@
 package de.embl.cba.mobie2.command;
 
-import de.embl.cba.mobie.ui.MoBIEOptions;
-import de.embl.cba.mobie.ui.MoBIE;
+import de.embl.cba.mobie.ui.MoBIESettings;
 import de.embl.cba.mobie2.MoBIE2;
-import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -24,7 +22,7 @@ public class OpenMoBIEProjectBranchCommand implements Command
 	{
 		try
 		{
-			new MoBIE2( projectLocation, MoBIEOptions.options().gitProjectBranch( projectBranch ) );
+			new MoBIE2( projectLocation, MoBIESettings.settings().gitProjectBranch( projectBranch ) );
 		}
 		catch ( IOException e )
 		{

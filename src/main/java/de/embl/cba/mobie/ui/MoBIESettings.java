@@ -1,6 +1,6 @@
 package de.embl.cba.mobie.ui;
 
-public class MoBIEOptions
+public class MoBIESettings
 {
 	public final Values values = new Values();
 
@@ -10,65 +10,58 @@ public class MoBIEOptions
 		S3
 	}
 
-	public static MoBIEOptions options()
+	public static MoBIESettings settings()
 	{
-		return new MoBIEOptions();
+		return new MoBIESettings();
 	}
 
-	public MoBIEOptions projectLocation( String projectLocation )
+	public MoBIESettings projectLocation( String projectLocation )
 	{
 		this.values.projectLocation = projectLocation;
 		return this;
 	}
 
-	public MoBIEOptions dataset( String dataset )
+	public MoBIESettings dataset( String dataset )
 	{
 		this.values.dataset = dataset;
 		return this;
 	}
 
-	public MoBIEOptions gitProjectBranch( String gitBranch )
+	public MoBIESettings gitProjectBranch( String gitBranch )
 	{
 		this.values.projectBranch = gitBranch;
 		return this;
 	}
 
-	public MoBIEOptions imageDataStorageModality( ImageDataStorageModality imageDataStorageModality )
+	public MoBIESettings imageDataStorageModality( ImageDataStorageModality imageDataStorageModality )
 	{
 		this.values.imageDataStorageModality = imageDataStorageModality;
 		return this;
 	}
 
-	public MoBIEOptions imageDataLocation( String imageDataLocation )
+	public MoBIESettings imageDataLocation( String imageDataLocation )
 	{
 		this.values.imageDataLocation = imageDataLocation;
 		return this;
 	}
 
-	public MoBIEOptions tableDataLocation( String tableDataLocation )
+	public MoBIESettings tableDataLocation( String tableDataLocation )
 	{
 		this.values.tableDataLocation = tableDataLocation;
 		return this;
 	}
 
-	public MoBIEOptions gitTablesBranch( String tableDataBranch )
+	public MoBIESettings gitTablesBranch( String tableDataBranch )
 	{
 		this.values.tableDataBranch = tableDataBranch;
 		return this;
 	}
 
-	public MoBIEOptions publicationURL( String publicationURL )
+	public MoBIESettings publicationURL( String publicationURL )
 	{
 		this.values.publicationURL = publicationURL;
 		return this;
 	}
-
-	public MoBIEOptions hasDataSubfolder( boolean hasDataSubfolder )
-	{
-		this.values.hasDataSubfolder = hasDataSubfolder;
-		return this;
-	}
-
 
 	public static class Values
 	{
@@ -80,7 +73,6 @@ public class MoBIEOptions
 		private String projectLocation;
 		private String imageDataLocation;
 		private String tableDataLocation;
-		private boolean hasDataSubfolder = true;
 
 		public String getDataset()
 		{
@@ -122,11 +114,6 @@ public class MoBIEOptions
 		public String getProjectLocation()
 		{
 			return projectLocation;
-		}
-
-		public boolean hasDataSubfolder()
-		{
-			return hasDataSubfolder;
 		}
 	}
 }

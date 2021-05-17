@@ -10,7 +10,7 @@ import java.lang.reflect.Type;
 
 public class ProjectJsonParser
 {
-	public Project getProject( String path ) throws IOException
+	public Project parseProject( String path ) throws IOException
 	{
 		final String s = FileAndUrlUtils.read( path );
 		Gson gson = new Gson();

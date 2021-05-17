@@ -265,7 +265,7 @@ public class UserInterfaceHelper
 		final JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ) );
 
-		panel.add( createInfoPanel( moBIE2.getProjectLocation(), moBIE2.getOptions().values.getPublicationURL() ) );
+		panel.add( createInfoPanel( moBIE2.getSettings().values.getProjectLocation(), moBIE2.getSettings().values.getPublicationURL() ) );
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		panel.add( createDatasetSelectionPanel() );
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
@@ -589,7 +589,7 @@ public class UserInterfaceHelper
 	{
 		// TODO: make sure the Swing UI sources panel is fully visible before instantiating the new BDV
 		moBIE2.close();
-		new MoBIE( moBIE2.getProjectLocation(), moBIE2.getOptions().dataset( dataset ) );
+		new MoBIE( moBIE2.getSettings().values.getProjectLocation(), moBIE2.getSettings().dataset( dataset ) );
 	}
 
 	private static Component createSpace()

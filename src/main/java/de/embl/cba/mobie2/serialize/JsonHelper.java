@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.transform.SourceTransformer;
+import de.embl.cba.mobie.ui.MoBIESettings;
 import de.embl.cba.tables.FileAndUrlUtils;
 
 import java.io.InputStream;
@@ -59,4 +60,15 @@ public class JsonHelper
 		return gson;
 	}
 
+	public static String getImageDataStorageModalityJsonString( MoBIESettings.ImageDataStorageModality imageDataStorageModality )
+	{
+		if ( imageDataStorageModality.equals( MoBIESettings.ImageDataStorageModality.S3 ) )
+		{
+			return "s3store";
+		}
+		else
+		{
+			return "fileSystem";
+		}
+	}
 }
