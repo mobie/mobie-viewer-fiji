@@ -32,6 +32,7 @@ import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
@@ -77,16 +78,20 @@ public class CroppedSource< T extends NumericType<T> > implements Source<T>
         initCropIntervals( source, crop );
     }
 
-
     private void initCropIntervals( Source< T > source, RealInterval crop )
     {
         final AffineTransform3D transform3D = new AffineTransform3D();
         levelToVoxelInterval = new HashMap<>();
-        for ( int l = 0; l < source.getNumMipmapLevels(); l++ )
+        for ( int level = 0; level < source.getNumMipmapLevels(); level++ )
         {
-            source.getSourceTransform( 0, l, transform3D );
+            source.getSourceTransform( 0, level, transform3D );
             final Interval voxelInterval = Intervals.smallestContainingInterval( transform3D.inverse().estimateBounds( crop ) );
-            levelToVoxelInterval.put( l, voxelInterval );
+            // If the interval is outside the bounds of the RAI then there is nothing to show.
+            // Moreover the fetcher threads throw errors when trying to access pixels outside the RAI.
+            // Thus let's limit the interval to where there actually is data .
+            final RandomAccessibleInterval< T > rai = source.getSource( 0, level );
+            final FinalInterval intersect = Intervals.intersect( rai, voxelInterval );
+            levelToVoxelInterval.put( level, intersect );
         }
     }
 
@@ -102,20 +107,22 @@ public class CroppedSource< T extends NumericType<T> > implements Source<T>
     @Override
     public RandomAccessibleInterval< T > getSource(int t, int level)
     {
-        final IntervalView< T > intervalView = Views.interval( source.getSource( t, level ), levelToVoxelInterval.get( level ) );
+        final RandomAccessibleInterval< T > rai = source.getSource( t, level );
+        final IntervalView< T > croppedRai = Views.interval( rai, levelToVoxelInterval.get( level ) );
 
         if ( zeroMin )
-            return Views.zeroMin( intervalView );
+            return Views.zeroMin( croppedRai );
         else
-            return intervalView;
+            return croppedRai;
     }
 
     @Override
-    public RealRandomAccessible<T> getInterpolatedSource(int t, int level, Interpolation method)
+    public RealRandomAccessible< T > getInterpolatedSource( int t, int level, Interpolation method )
     {
+        final RandomAccessibleInterval< T > croppedRai = getSource( t, level );
         ExtendedRandomAccessibleInterval<T, RandomAccessibleInterval< T >>
-                zeroExtendedCrop = Views.extendZero( getSource( t, level ) );
-        RealRandomAccessible< T > realRandomAccessible = Views.interpolate( zeroExtendedCrop, interpolators.get(method) );
+                extendedRai = Views.extendZero( croppedRai );
+        RealRandomAccessible< T > realRandomAccessible = Views.interpolate( extendedRai, interpolators.get(method) );
         return realRandomAccessible;
     }
 

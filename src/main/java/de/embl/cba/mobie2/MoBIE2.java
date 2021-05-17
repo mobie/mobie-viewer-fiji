@@ -29,7 +29,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
-import static de.embl.cba.mobie2.PathHelpers.getPath;
 
 public class MoBIE2
 {
@@ -58,9 +57,22 @@ public class MoBIE2
 
 		IJ.log("MoBIE");
 
-		project = new ProjectJsonParser().getProject( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" ) );
+		String projectJson = getProjectJson( options );
+		project = new ProjectJsonParser().getProject( projectJson );
 
 		openDataset( project.getDefaultDataset() );
+	}
+
+	private String getProjectJson( MoBIEOptions options )
+	{
+		String projectJson = getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" );
+		if ( ! FileAndUrlUtils.exists( projectJson ) )
+		{
+			// toggle existence of data subfolder
+			options = options.hasDataSubfolder( ! options.values.hasDataSubfolder() );
+			projectJson = getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" );
+		}
+		return projectJson;
 	}
 
 	public List< SourceAndConverter< ? > > openSourceAndConverters( List< String > sources )
@@ -107,6 +119,39 @@ public class MoBIE2
 			return "s3store";
 		else
 			return "fileSystem";
+	}
+
+	public String getPath( String rootLocation, String githubBranch, String... files )
+	{
+		if ( rootLocation.contains( "github.com" ) )
+		{
+			rootLocation = GitHubUtils.createRawUrl( rootLocation, githubBranch );
+		}
+
+		String[] strings;
+		if ( options.values.hasDataSubfolder() )
+		{
+			strings = new String[ files.length + 2 ];
+			strings[ 0 ] = rootLocation;
+			strings[ 1 ] = "data";
+			for ( int i = 0; i < files.length; i++ )
+			{
+				strings[ i + 2 ] = files[ i ];
+			}
+		}
+		else
+		{
+			strings = new String[ files.length + 1 ];
+			strings[ 0 ] = rootLocation;
+			for ( int i = 0; i < files.length; i++ )
+			{
+				strings[ i + 1 ] = files[ i ];
+			}
+		}
+
+		String path = FileAndUrlUtils.combinePath( strings );
+
+		return path;
 	}
 
 	public ViewerManager getViewerManager()

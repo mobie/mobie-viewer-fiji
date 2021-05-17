@@ -3,7 +3,6 @@ package de.embl.cba.mobie2.command;
 import de.embl.cba.mobie.projects.PublishedProject;
 import de.embl.cba.mobie.projects.PublishedProjectsCreator;
 import de.embl.cba.mobie.ui.MoBIEOptions;
-import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie2.MoBIE2;
 import ij.gui.GenericDialog;
 import net.imagej.ImageJ;
@@ -39,7 +38,7 @@ public class OpenMoBIEPublishedProjectCommand implements Command
 
 		try
 		{
-			new MoBIE2( project.location, MoBIEOptions.options().pulicationURL( project.pulicationURL ) );
+			new MoBIE2( project.location, MoBIEOptions.options().publicationURL( project.pulicationURL ) );
 		}
 		catch ( IOException e )
 		{
