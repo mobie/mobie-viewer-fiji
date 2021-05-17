@@ -1,5 +1,6 @@
 package projects;
 
+import de.embl.cba.mobie.ui.MoBIEOptions;
 import de.embl.cba.mobie2.MoBIE2;
 import net.imagej.ImageJ;
 
@@ -11,6 +12,6 @@ public class OpenLocalCropTest
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		final MoBIE2 moBIE2 = new MoBIE2("/g/emcf/pape/mobie-test-projects/mobie_crop");
+		final MoBIE2 moBIE2 = new MoBIE2("/g/emcf/pape/mobie-test-projects/mobie_crop", MoBIEOptions.options().imageDataStorageModality( MoBIEOptions.ImageDataStorageModality.FileSystem ));
 	}
 }

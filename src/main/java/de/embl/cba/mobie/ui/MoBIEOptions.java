@@ -57,11 +57,18 @@ public class MoBIEOptions
 		return this;
 	}
 
-	public MoBIEOptions pulicationURL( String publicationURL )
+	public MoBIEOptions publicationURL( String publicationURL )
 	{
 		this.values.publicationURL = publicationURL;
 		return this;
 	}
+
+	public MoBIEOptions hasDataSubfolder( boolean hasDataSubfolder )
+	{
+		this.values.hasDataSubfolder = hasDataSubfolder;
+		return this;
+	}
+
 
 	public static class Values
 	{
@@ -73,15 +80,18 @@ public class MoBIEOptions
 		private String projectLocation;
 		private String imageDataLocation;
 		private String tableDataLocation;
+		private boolean hasDataSubfolder = true;
 
 		public String getDataset()
 		{
 			return dataset;
 		}
+
 		public String getProjectBranch()
 		{
 			return projectBranch;
 		}
+
 		public ImageDataStorageModality getImageDataStorageModality() { return imageDataStorageModality; }
 
 		public String getImageDataLocation()
@@ -112,6 +122,11 @@ public class MoBIEOptions
 		public String getProjectLocation()
 		{
 			return projectLocation;
+		}
+
+		public boolean hasDataSubfolder()
+		{
+			return hasDataSubfolder;
 		}
 	}
 }

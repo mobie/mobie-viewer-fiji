@@ -57,9 +57,22 @@ public class MoBIE2
 
 		IJ.log("MoBIE");
 
-		project = new ProjectJsonParser().getProject( getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" ) );
+		String projectJson = getProjectJson( options );
+		project = new ProjectJsonParser().getProject( projectJson );
 
 		openDataset( project.getDefaultDataset() );
+	}
+
+	private String getProjectJson( MoBIEOptions options )
+	{
+		String projectJson = getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" );
+		if ( ! FileAndUrlUtils.exists( projectJson ) )
+		{
+			// sometimes we have a "data" sub-folder (legacy)
+			options = options.hasDataSubfolder( ! options.values.hasDataSubfolder() );
+			projectJson = getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), "project.json" );
+		}
+		return projectJson;
 	}
 
 	public List< SourceAndConverter< ? > > openSourceAndConverters( List< String > sources )
@@ -115,12 +128,25 @@ public class MoBIE2
 			rootLocation = GitHubUtils.createRawUrl( rootLocation, githubBranch );
 		}
 
-		final String[] strings = new String[ files.length + 2 ];
-		strings[ 0 ] = rootLocation;
-		strings[ 1 ] = "data";
-		for ( int i = 0; i < files.length; i++ )
+		String[] strings;
+		if ( options.values.hasDataSubfolder() )
 		{
-			strings[ i + 2] = files[ i ];
+			strings = new String[ files.length + 2 ];
+			strings[ 0 ] = rootLocation;
+			strings[ 1 ] = "data";
+			for ( int i = 0; i < files.length; i++ )
+			{
+				strings[ i + 2 ] = files[ i ];
+			}
+		}
+		else
+		{
+			strings = new String[ files.length + 1 ];
+			strings[ 0 ] = rootLocation;
+			for ( int i = 0; i < files.length; i++ )
+			{
+				strings[ i + 1 ] = files[ i ];
+			}
 		}
 
 		String path = FileAndUrlUtils.combinePath( strings );
