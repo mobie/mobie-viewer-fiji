@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.tidyString;
 
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Create new MoBIE Project..." )
 public class CreateNewMoBIEProjectCommand implements Command {
@@ -39,7 +40,7 @@ public class CreateNewMoBIEProjectCommand implements Command {
                 setMoBIESwingLookAndFeel();
 
                 try {
-                    ProjectsCreatorPanel panel = new ProjectsCreatorPanel(projectLocation);
+                    ProjectsCreatorPanel panel = new ProjectsCreatorPanel( projectLocation );
                     panel.showProjectsCreatorPanel();
                 } catch (IOException e) {
                     e.printStackTrace();

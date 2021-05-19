@@ -1,5 +1,6 @@
 package de.embl.cba.mobie2.projectcreator.ui;
 
+import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie2.Project;
 import de.embl.cba.mobie2.projectcreator.ProjectCreator;
 import de.embl.cba.tables.FileAndUrlUtils;
@@ -140,7 +141,7 @@ public class ProjectsCreatorPanel extends JFrame {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
         final JButton addButton = createButton( "Add" );
-        final JButton editButton = createButton("Edit");
+        // final JButton editButton = createButton("Edit");
 
         createImagesCombobox();
         addButton.addActionListener( e ->
@@ -148,15 +149,15 @@ public class ProjectsCreatorPanel extends JFrame {
             new Thread( () -> { addImageDialog(); } ).start();
         } );
 
-        editButton.addActionListener( e ->
-        {
-            new Thread( () -> { editImageDialog(); } ).start();
-        } );
+        // editButton.addActionListener( e ->
+        // {
+        //     new Thread( () -> { editImageDialog(); } ).start();
+        // } );
 
         horizontalLayoutPanel.add(getJLabel("image", 60, 10));
         horizontalLayoutPanel.add(imagesComboBox);
         horizontalLayoutPanel.add( addButton );
-        horizontalLayoutPanel.add( editButton );
+        // horizontalLayoutPanel.add( editButton );
         horizontalLayoutPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
         this.getContentPane().add(horizontalLayoutPanel);
@@ -194,6 +195,18 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
+    private String selectUiSelectionGroupDialog() {
+        final GenericDialog gd = new GenericDialog( "Ui selection group for image view..." );
+        gd.addStringField( "Ui selection group", "", 35 );
+        gd.showDialog();
+
+        if ( !gd.wasCanceled() ) {
+            return gd.getNextString();
+        } else {
+            return null;
+        }
+    }
+
     public void addCurrentOpenImageDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
@@ -212,6 +225,7 @@ public class ProjectsCreatorPanel extends JFrame {
             gd.addChoice( "Bdv format", bdvFormats, bdvFormats[0] );
             gd.addStringField("Affine", defaultAffineTransform, 35 );
             gd.addCheckbox("Use default export settings", true);
+            gd.addCheckbox( "Create view for this image", true );
 
             gd.showDialog();
 
@@ -221,6 +235,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 ProjectCreator.BdvFormat bdvFormat = ProjectCreator.BdvFormat.valueOf( gd.getNextChoice() );
                 String affineTransform = gd.getNextString().trim();
                 boolean useDefaultSettings = gd.getNextBoolean();
+                boolean createView = gd.getNextBoolean();
 
                 // tidy up image name, remove any spaces
                 imageName = tidyString( imageName );
@@ -228,8 +243,19 @@ public class ProjectsCreatorPanel extends JFrame {
                 AffineTransform3D sourceTransform = parseAffineString( affineTransform );
 
                 if ( imageName != null && sourceTransform != null ) {
-                    projectsCreator.getImagesCreator().addImage( currentImage, imageName,
-                            datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings );
+                    String uiSelectionGroup = null;
+                    if ( createView ) {
+                        uiSelectionGroup = selectUiSelectionGroupDialog();
+                        uiSelectionGroup = tidyString( uiSelectionGroup );
+                        if ( uiSelectionGroup != null ) {
+                            projectsCreator.getImagesCreator().addImage( currentImage, imageName,
+                                    datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings, uiSelectionGroup );
+                        }
+                    } else {
+                        projectsCreator.getImagesCreator().addImage( currentImage, imageName,
+                                datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings, uiSelectionGroup );
+                    }
+
                     updateImagesComboBox( imageName );
                 }
             }
@@ -255,8 +281,9 @@ public class ProjectsCreatorPanel extends JFrame {
                         ProjectCreator.AddMethod.copy.toString(), ProjectCreator.AddMethod.move.toString() };
                 gd.addChoice("Add method:", addMethods, addMethods[0]);
                 String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
-                        ProjectCreator.ImageType.segmentation.toString(), ProjectCreator.ImageType.mask.toString() };
+                        ProjectCreator.ImageType.segmentation.toString() };
                 gd.addChoice("Image Type", imageTypes, imageTypes[0]);
+                gd.addCheckbox( "Create view for this image", true );
                 gd.addMessage( "Note: You can only 'link' to images outside \n" +
                         "the project folder for local projects. \n " +
                         "'copy' or 'move' if you wish to upload to s3");
@@ -266,9 +293,21 @@ public class ProjectsCreatorPanel extends JFrame {
                 if (!gd.wasCanceled()) {
                     ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.valueOf( gd.getNextChoice() );
                     ProjectCreator.ImageType imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
+                    boolean createView = gd.getNextBoolean();
 
                     try {
-                        projectsCreator.getImagesCreator().addBdvFormatImage( xmlLocation, datasetName, imageType, addMethod );
+                        String uiSelectionGroup = null;
+                        if ( createView ) {
+                            uiSelectionGroup = selectUiSelectionGroupDialog();
+                            uiSelectionGroup = tidyString( uiSelectionGroup );
+                            if ( uiSelectionGroup != null ) {
+                                projectsCreator.getImagesCreator().addBdvFormatImage( xmlLocation, datasetName, imageType,
+                                        addMethod, uiSelectionGroup );
+                            }
+                        } else {
+                            projectsCreator.getImagesCreator().addBdvFormatImage( xmlLocation, datasetName, imageType,
+                                    addMethod, uiSelectionGroup );
+                        }
                     } catch (SpimDataException | IOException e) {
                         e.printStackTrace();
                     }
@@ -328,16 +367,6 @@ public class ProjectsCreatorPanel extends JFrame {
                 }
 
             }
-        }
-    }
-
-    private void editImageDialog() {
-        String datasetName = (String) datasetComboBox.getSelectedItem();
-        String imageName = (String) imagesComboBox.getSelectedItem();
-
-        if ( !datasetName.equals("") && !imageName.equals("") ) {
-            new ImagePropertiesEditor(datasetName,
-                    imageName, projectsCreator);
         }
     }
 

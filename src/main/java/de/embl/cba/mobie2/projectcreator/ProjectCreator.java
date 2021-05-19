@@ -23,7 +23,6 @@ public class ProjectCreator {
     private final DatasetsCreator datasetsCreator;
     private final ImagesCreator imagesCreator;
     private final DatasetJsonCreator datasetJsonCreator;
-    private final DefaultViewsCreator defaultBookmarkCreator;
     private final RemoteMetadataCreator remoteMetadataCreator;
 
     public enum BdvFormat {
@@ -52,11 +51,10 @@ public class ProjectCreator {
             this.project = new Project();
         }
 
-        this.datasetsCreator = new DatasetsCreator( project );
+        this.datasetsCreator = new DatasetsCreator( this );
         this.datasetJsonCreator = new DatasetJsonCreator( this );
-        this.defaultBookmarkCreator = new DefaultViewsCreator( project );
-        this.imagesCreator = new ImagesCreator( project, imagesJsonCreator, defaultBookmarkCreator );
-        this.remoteMetadataCreator = new RemoteMetadataCreator( project );
+        this.imagesCreator = new ImagesCreator( this );
+        this.remoteMetadataCreator = new RemoteMetadataCreator( this );
     }
 
     public File getDataLocation() { return dataLocation; }
@@ -64,6 +62,8 @@ public class ProjectCreator {
     public Project getProject() {
         return project;
     }
+
+    public File getProjectJson() { return projectJson; }
 
     public void reloadProject() throws IOException {
         this.project = new ProjectJsonParser().parseProject( projectJson.getAbsolutePath() );
@@ -99,10 +99,6 @@ public class ProjectCreator {
 
     public DatasetJsonCreator getDatasetJsonCreator() {
         return datasetJsonCreator;
-    }
-
-    public DefaultViewsCreator getDefaultBookmarkCreator() {
-        return defaultBookmarkCreator;
     }
 
     public RemoteMetadataCreator getRemoteMetadataCreator() {

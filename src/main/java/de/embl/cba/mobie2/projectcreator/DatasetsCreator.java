@@ -1,26 +1,28 @@
 package de.embl.cba.mobie2.projectcreator;
 
-import de.embl.cba.mobie.dataset.Datasets;
-import de.embl.cba.mobie.dataset.DatasetsParser;
-import de.embl.cba.mobie.projects.projectsCreator.Project;
-import de.embl.cba.mobie.utils.Utils;
+import de.embl.cba.mobie2.serialize.ProjectJsonParser;
 import de.embl.cba.tables.FileAndUrlUtils;
+import ij.IJ;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatasetsCreator {
 
-    private Project project;
+    private ProjectCreator projectCreator;
 
-    public DatasetsCreator( Project project ) {
-        this.project = project;
+    public DatasetsCreator(ProjectCreator projectCreator ) {
+        this.projectCreator = projectCreator;
     }
 
     public void addDataset ( String datasetName ) {
-        boolean contains = project.isInDatasets(datasetName);
-        if (!contains) {
-            File datasetDir = new File ( project.getDatasetDirectoryPath( datasetName ) );
+        List<String> currentDatasets = projectCreator.getProject().getDatasets();
+        boolean contains = currentDatasets.contains( datasetName );
+        if ( !contains ) {
+            File datasetDir = new File ( FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
+                    datasetName ) );
 
             if ( !datasetDir.exists() ) {
                 datasetDir.mkdirs();
@@ -31,25 +33,21 @@ public class DatasetsCreator {
                 new File(datasetDir, "tables").mkdirs();
                 new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "images", "local")).mkdirs();
                 new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "images", "remote")).mkdirs();
-                new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "misc", "bookmarks")).mkdirs();
+                new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "misc", "views")).mkdirs();
 
 
                 // if this is the first dataset, then make this the default
-                Datasets currentDatasets = project.getCurrentDatasets();
-                if ( currentDatasets.datasets.size() == 0) {
-                    currentDatasets.defaultDataset = datasetName;
+                if ( currentDatasets.size() == 0) {
+                    projectCreator.getProject().setDefaultDataset( datasetName );
+                    currentDatasets = new ArrayList<>();
                 }
-                currentDatasets.datasets.add(datasetName);
-                try {
-                    writeDatasetsJson( currentDatasets );
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                currentDatasets.add( datasetName );
+                writeProjectJson();
             } else {
-                Utils.log( "Dataset creation failed - this name already exists" );
+                IJ.log( "Dataset creation failed - this name already exists" );
             }
         } else {
-            Utils.log("Add dataset failed - dataset already exists");
+            IJ.log("Add dataset failed - dataset already exists");
         }
     }
 
@@ -57,54 +55,58 @@ public class DatasetsCreator {
 
         if ( !newName.equals(oldName) ) {
             // check not already in datasets
-            boolean contains = project.isInDatasets(newName);
-            if (!contains) {
-                File oldDatasetDir = new File(project.getDatasetDirectoryPath(oldName));
-                File newDatasetDir = new File(project.getDatasetDirectoryPath(newName));
+            List<String> currentDatasets = projectCreator.getProject().getDatasets();
+            boolean contains = currentDatasets.contains( newName );
+            if ( !contains ) {
+                File oldDatasetDir = new File( FileAndUrlUtils.combinePath(
+                        projectCreator.getDataLocation().getAbsolutePath(), oldName) );
+                File newDatasetDir = new File( FileAndUrlUtils.combinePath(
+                        projectCreator.getDataLocation().getAbsolutePath(), newName ));
 
                 if (oldDatasetDir.exists()) {
                     if (oldDatasetDir.renameTo(newDatasetDir)) {
 
-                        Datasets currentDatasets = project.getCurrentDatasets();
                         // update json
-                        if (currentDatasets.defaultDataset.equals(oldName)) {
-                            currentDatasets.defaultDataset = newName;
+                        if ( projectCreator.getProject().getDefaultDataset().equals(oldName) ) {
+                            projectCreator.getProject().setDefaultDataset( newName );
                         }
 
-                        int indexOld = currentDatasets.datasets.indexOf(oldName);
-                        currentDatasets.datasets.set(indexOld, newName);
+                        int indexOld = projectCreator.getProject().getDatasets().indexOf(oldName);
+                        projectCreator.getProject().getDatasets().set(indexOld, newName);
 
-                        try {
-                            writeDatasetsJson(currentDatasets);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        writeProjectJson();
+
                     } else {
-                        Utils.log("Rename directory failed");
+                        IJ.log("Rename directory failed");
                     }
                 } else {
-                    Utils.log("Rename dataset failed - that dataset doesn't exist");
+                    IJ.log("Rename dataset failed - that dataset doesn't exist");
                 }
             } else {
-                Utils.log( "Rename dataset failed - there is already a dataset of that name" );
+                IJ.log( "Rename dataset failed - there is already a dataset of that name" );
             }
         }
 
     }
 
     public void makeDefaultDataset ( String datasetName ) {
-        Datasets currentDatasets = project.getCurrentDatasets();
-        currentDatasets.defaultDataset = datasetName;
+        projectCreator.getProject().setDefaultDataset( datasetName );
+        writeProjectJson();
+    }
+
+    private void writeProjectJson() {
         try {
-            writeDatasetsJson( currentDatasets );
+            new ProjectJsonParser().saveProject( projectCreator.getProject(), projectCreator.getProjectJson().getAbsolutePath() );
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
 
-    private void writeDatasetsJson( Datasets datasets ) throws IOException {
-        new DatasetsParser().datasetsToFile( project.getDatasetsJsonPath(), datasets);
-        project.updateDatasets();
+        // whether the project writing succeeded or not, we now read the current state of the project
+        try {
+            projectCreator.reloadProject();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

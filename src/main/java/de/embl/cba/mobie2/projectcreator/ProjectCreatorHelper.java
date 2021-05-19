@@ -2,6 +2,8 @@ package de.embl.cba.mobie2.projectcreator;
 
 import bdv.img.n5.N5ImageLoader;
 import bdv.spimdata.SpimDataMinimal;
+import de.embl.cba.mobie.n5.N5FSImageLoader;
+import de.embl.cba.mobie.n5.N5S3ImageLoader;
 import ij.IJ;
 import ij.ImagePlus;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;

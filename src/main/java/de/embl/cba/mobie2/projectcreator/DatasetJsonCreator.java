@@ -32,7 +32,12 @@ public class DatasetJsonCreator {
         addNewSource( dataset, imageName, imageType );
         if ( uiSelectionGroup != null ) {
             // add a view with the same name as the image, and sensible defaults
-            addNewView( dataset, imageName, imageType, uiSelectionGroup );
+            addNewImageView( dataset, imageName, imageType, uiSelectionGroup );
+        }
+
+        // if there is no default view, make one with this image and sensible defaults
+        if ( !dataset.views.containsKey("default")) {
+            addNewDefaultView( dataset, imageName, imageType );
         }
 
         writeDatasetJson( datasetName, dataset );
@@ -66,9 +71,21 @@ public class DatasetJsonCreator {
         }
     }
 
-    private void addNewView( Dataset dataset, String imageName, ProjectCreator.ImageType imageType,
+    private void addNewImageView( Dataset dataset, String imageName, ProjectCreator.ImageType imageType,
                             String uiSelectionGroup ) {
 
+        View view = createView( imageName, imageType, uiSelectionGroup, false );
+        dataset.views.put( imageName, view );
+    }
+
+    private void addNewDefaultView( Dataset dataset, String imageName, ProjectCreator.ImageType imageType ) {
+
+        View view = createView( imageName, imageType, "views", true );
+        dataset.views.put( "default", view );
+    }
+
+    private View createView( String imageName, ProjectCreator.ImageType imageType, String uiSelectionGroup,
+                             boolean isExclusive ) {
         ArrayList<SourceDisplay> sourceDisplays = new ArrayList<>();
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
@@ -85,15 +102,21 @@ public class DatasetJsonCreator {
                 sourceDisplays.add( imageSourceDisplay );
         }
 
-        View view = new View( uiSelectionGroup, sourceDisplays, null, null, false );
-        dataset.views.put( imageName, view );
+        View view = new View( uiSelectionGroup, sourceDisplays, null, null, isExclusive );
+        return view;
     }
 
-    private void writeDatasetJson ( String datasetName, Dataset dataset ) {
+    public void writeDatasetJson ( String datasetName, Dataset dataset ) {
         try {
             String datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
                     datasetName, "dataset.json" );
             new DatasetJsonParser().saveDataset( dataset, datasetJsonPath );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // whether the dataset json saving succeeded or not, we reload the current dataset
+        try {
             projectCreator.reloadCurrentDataset();
         } catch (IOException e) {
             e.printStackTrace();

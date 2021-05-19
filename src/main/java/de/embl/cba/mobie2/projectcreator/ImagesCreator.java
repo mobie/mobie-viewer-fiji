@@ -4,7 +4,6 @@ import bdv.img.n5.N5ImageLoader;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
-import de.embl.cba.mobie2.Project;
 import de.embl.cba.mobie2.projectcreator.n5.DownsampleBlock;
 import de.embl.cba.mobie2.projectcreator.n5.WriteImgPlusToN5;
 import de.embl.cba.mobie2.projectcreator.ui.ManualN5ExportPanel;
@@ -96,7 +95,7 @@ public class ImagesCreator {
     }
 
     public void addBdvFormatImage ( File xmlLocation, String datasetName, ProjectCreator.ImageType imageType,
-                                   ProjectCreator.AddMethod addMethod ) throws SpimDataException, IOException {
+                                   ProjectCreator.AddMethod addMethod, String uiSelectionGroup ) throws SpimDataException, IOException {
         if ( xmlLocation.exists() ) {
             SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(xmlLocation.getAbsolutePath());
             String imageName = FileNameUtils.getBaseName(xmlLocation.getAbsolutePath());
@@ -118,7 +117,7 @@ public class ImagesCreator {
                             moveImage(bdvFormat, spimDataMinimal, newXmlDirectory, imageName);
                             break;
                     }
-                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName );
+                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup );
                 } else {
                     IJ.log( "Image is of unsupported type. Must be n5.");
                 }
@@ -199,9 +198,8 @@ public class ImagesCreator {
         if ( imageType == ProjectCreator.ImageType.segmentation) {
             addDefaultTableForImage( imageName, datasetName );
         }
-        projectCreator.getDatasetJsonCreator().addToImagesJson( imageName, datasetName, imageType );
-        // if there's no default json, create one with this image
-        defaultBookmarkCreator.createDefaultBookmark( imageName, datasetName );
+        DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
+        datasetJsonCreator.addToDatasetJson( imageName, datasetName, imageType, uiSelectionGroup );
     }
 
     private void copyImage ( ProjectCreator.BdvFormat bdvFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
