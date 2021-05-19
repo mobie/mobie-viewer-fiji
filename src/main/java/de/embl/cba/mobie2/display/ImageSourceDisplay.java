@@ -9,6 +9,7 @@ import sc.fiji.bdvpg.bdv.projector.BlendingMode;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static sc.fiji.bdvpg.bdv.projector.BlendingMode.BLENDING_MODE;
 
@@ -36,6 +37,17 @@ public class ImageSourceDisplay extends SourceDisplay
 	public BlendingMode getBlendingMode()
 	{
 		return blendingMode;
+	}
+
+	public ImageSourceDisplay( String name, double opacity, List< String > sources, String color,
+							   double[] contrastLimits, BlendingMode blendingMode, boolean showImagesIn3d ) {
+		this.name = name;
+		this.opacity = opacity;
+		this.sources = sources;
+		this.color = color;
+		this.contrastLimits = contrastLimits;
+		this.blendingMode = blendingMode;
+		this.showImagesIn3d = showImagesIn3d;
 	}
 
 	/**

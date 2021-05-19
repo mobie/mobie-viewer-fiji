@@ -8,6 +8,7 @@ import bdv.viewer.SourceAndConverter;
 import com.formdev.flatlaf.FlatLightLaf;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
+import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.transform.BdvLocationChanger;
 import de.embl.cba.mobie.bookmark.BookmarkManager;
 import de.embl.cba.mobie2.transform.BdvLocation;
@@ -841,5 +842,23 @@ public class UserInterfaceHelper
 		} );
 
 		return removeButton;
+	}
+
+	public static String tidyString( String string ) {
+		string = string.trim();
+		String tidyString = string.replaceAll("\\s+","_");
+
+		if ( !string.equals(tidyString) ) {
+			Utils.log( "Spaces were removed from name, and replaced by _");
+		}
+
+		// check only contains alphanumerics, or _ -
+		if ( !tidyString.matches("^[a-zA-Z0-9_-]+$") ) {
+			Utils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
+					"with a different name.");
+			tidyString = null;
+		}
+
+		return tidyString;
 	}
 }

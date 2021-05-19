@@ -81,6 +81,24 @@ public class SegmentationSourceDisplay extends SourceDisplay
 		return tables;
 	}
 
+	public SegmentationSourceDisplay( String name, double opacity, List< String > sources,
+									  String lut, String colorByColumn, Double[] valueLimits,
+									  List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d,
+									  boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
+	{
+		this.name = name;
+		this.opacity = opacity;
+		this.sources = sources;
+		this.lut = lut;
+		this.colorByColumn = colorByColumn;
+		this.valueLimits = valueLimits;
+		this.selectedSegmentIds = selectedSegmentIds;
+		this.showSelectedSegmentsIn3d = showSelectedSegmentsIn3d;
+		this.showScatterPlot = showScatterPlot;
+		this.scatterPlotAxes = scatterPlotAxes;
+		this.tables = tables;
+	}
+
 	/**
 	 * Create a serializable copy
 	 *
