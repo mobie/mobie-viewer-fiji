@@ -19,7 +19,7 @@ public class DatasetsCreator {
 
     public void addDataset ( String datasetName ) {
         List<String> currentDatasets = projectCreator.getProject().getDatasets();
-        boolean contains = currentDatasets.contains( datasetName );
+        boolean contains = currentDatasets.contains(datasetName);
         if ( !contains ) {
             File datasetDir = new File ( FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
                     datasetName ) );
@@ -37,9 +37,8 @@ public class DatasetsCreator {
 
 
                 // if this is the first dataset, then make this the default
-                if ( currentDatasets.size() == 0) {
+                if ( currentDatasets.size() == 0 ) {
                     projectCreator.getProject().setDefaultDataset( datasetName );
-                    currentDatasets = new ArrayList<>();
                 }
                 currentDatasets.add( datasetName );
                 writeProjectJson();

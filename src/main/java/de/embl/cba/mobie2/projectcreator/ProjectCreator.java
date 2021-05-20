@@ -8,6 +8,7 @@ import de.embl.cba.tables.FileAndUrlUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class ProjectCreator {
 
@@ -49,6 +50,8 @@ public class ProjectCreator {
             reloadProject();
         } else {
             this.project = new Project();
+            project.setDatasets( new ArrayList<>() );
+            project.setSpecVersion( "0.2.0" );
         }
 
         this.datasetsCreator = new DatasetsCreator( this );
@@ -73,13 +76,18 @@ public class ProjectCreator {
         if ( datasetName.equals(currentDatasetName) ) {
             return currentDataset;
         } else {
-            try {
-                currentDatasetJson = new File( FileAndUrlUtils.combinePath( dataLocation.getAbsolutePath(), datasetName, "dataset.json") );
-                currentDatasetName = datasetName;
-                reloadCurrentDataset();
-                return currentDataset;
-            } catch (IOException e) {
-                e.printStackTrace();
+            File datasetJson = new File( FileAndUrlUtils.combinePath( dataLocation.getAbsolutePath(), datasetName, "dataset.json") );
+            if ( datasetJson.exists() ) {
+                try {
+                    currentDatasetJson = datasetJson;
+                    currentDatasetName = datasetName;
+                    reloadCurrentDataset();
+                    return currentDataset;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            } else {
                 return null;
             }
         }
