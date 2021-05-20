@@ -28,7 +28,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
-import static de.embl.cba.mobie.utils.Utils.getSimplifiedSourceName;
 
 public class MoBIE2
 {
@@ -41,56 +40,53 @@ public class MoBIE2
 	private ViewerManager viewerManager;
 	private Project project;
 	private UserInterface userInterface;
-	private String projectSubFolder; // legacy
-	private String imageSubFolder; // legacy
-	private String tableSubFolder; // legacy
+	private String projectRoot;
+	private String imageRoot;
+	private String tableRoot;
 
-	public MoBIE2( String projectLocation ) throws IOException
+	public MoBIE2( String projectRoot ) throws IOException
 	{
-		this( projectLocation, MoBIESettings.settings() );
+		this( projectRoot, MoBIESettings.settings() );
 	}
 
 	public MoBIE2( String projectLocation, MoBIESettings settings ) throws IOException
 	{
+		IJ.log("MoBIE");
 		this.settings = settings.projectLocation( projectLocation );
-		determinePotentialDataSubFolders( this.settings );
+		setProjectImageAndTableRootLocations( this.settings );
 		projectName = getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
-
-		IJ.log("MoBIE");
-
-		project = new ProjectJsonParser().parseProject( getProjectJsonPath( this.settings ) );
-
+		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
 		openDataset( project.getDefaultDataset() );
 	}
 
-	private void determinePotentialDataSubFolders( MoBIESettings settings )
+	private void setProjectImageAndTableRootLocations( MoBIESettings settings )
 	{
-		if( ! FileAndUrlUtils.exists(
-				getPath(
-						settings.values.getProjectLocation(),
-						settings.values.getProjectBranch(),
-						"project.json") ) )
+		projectRoot = createPath(
+				settings.values.getProjectLocation(),
+				settings.values.getProjectBranch() );
+
+		if( ! FileAndUrlUtils.exists( FileAndUrlUtils.combinePath( projectRoot, "project.json" ) ) )
 		{
-			projectSubFolder = "data";
+			projectRoot = FileAndUrlUtils.combinePath( projectRoot, "data" );
 		}
 
-		if( ! FileAndUrlUtils.exists(
-				getPath(
-						settings.values.getImageDataLocation(),
-						settings.values.getImageDataBranch(),
-						"project.json") ) )
+		imageRoot = createPath(
+				settings.values.getImageDataLocation(),
+				settings.values.getImageDataBranch() );
+
+		if( ! FileAndUrlUtils.exists( FileAndUrlUtils.combinePath( imageRoot, "project.json" ) ) );
 		{
-			imageSubFolder = "data";
+			imageRoot = FileAndUrlUtils.combinePath( imageRoot, "data" );
 		}
 
-		if( ! FileAndUrlUtils.exists(
-				getPath(
-						settings.values.getTableDataLocation(),
-						settings.values.getTableDataBranch(),
-						"project.json") ) )
+		tableRoot = createPath(
+				settings.values.getTableDataLocation(),
+				settings.values.getTableDataBranch() );
+
+		if( ! FileAndUrlUtils.exists( FileAndUrlUtils.combinePath( tableRoot, "project.json" ) ) );
 		{
-			tableSubFolder = "data";
+			tableRoot = FileAndUrlUtils.combinePath( tableRoot, "data" );
 		}
 	}
 
@@ -120,7 +116,7 @@ public class MoBIE2
 
 	private void openDataset( String datasetName ) throws IOException
 	{
-		this.datasetName = datasetName;
+		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 
 		userInterface = new UserInterface( this );
@@ -132,7 +128,12 @@ public class MoBIE2
 		WindowArrangementHelper.rightAlignWindow( userInterface.getWindow(), viewerManager.getSliceViewer().getWindow(), false, true );
 	}
 
-	private String getPath( String rootLocation, String githubBranch, String optionalSubFolder, String... files )
+	private void setDatasetName( String datasetName )
+	{
+		this.datasetName = datasetName;
+	}
+
+	private String createPath( String rootLocation, String githubBranch, String... files )
 	{
 		if ( rootLocation.contains( "github.com" ) )
 		{
@@ -141,8 +142,6 @@ public class MoBIE2
 
 		final ArrayList< String > strings = new ArrayList<>();
 		strings.add( rootLocation );
-		if ( optionalSubFolder != null )
-			strings.add( optionalSubFolder );
 
 		for ( int i = 0; i < files.length; i++ )
 		{
@@ -212,7 +211,7 @@ public class MoBIE2
 
 	public void setDataset( String dataset )
 	{
-		this.datasetName = dataset;
+		setDatasetName( dataset );
 		viewerManager.close();
 		userInterface.close();
 
@@ -228,25 +227,13 @@ public class MoBIE2
 
 	public Map< String, View > getViews()
 	{
-//		final HashMap< String, View > views = new LinkedHashMap<>();
-//
-//		// combine the individual source views...
-//		for ( String sourceName : dataset.sources.keySet() )
-//		{
-//			views.put( sourceName, dataset.sources.get( sourceName ).get().view );
-//		}
-//
-//		// ...with the additional views
-//		views.putAll( dataset.views );
-
 		return dataset.views;
 	}
 
 	public synchronized String getImagePath( ImageSource source )
 	{
-		final String path = getPath( settings.values.getImageDataLocation(), settings.values.getProjectBranch(), imageSubFolder, getDatasetName(), source.imageDataLocations.get( settings.values.getImageDataStorageModality().toString() ) );
-
-		return path;
+		final String relativeImagePath = source.imageDataLocations.get( settings.values.getImageDataStorageModality().toString() );
+		return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativeImagePath );
 	}
 
 	public String getDefaultTablePath( SegmentationSource source )
@@ -261,25 +248,20 @@ public class MoBIE2
 
 	public String getTablePath( String relativeTableLocation, String table )
 	{
-		final String path = getPath( settings.values.getTableDataLocation(), settings.values.getTableDataBranch(), tableSubFolder, getDatasetName(), relativeTableLocation, table );
-		return path;
+		return FileAndUrlUtils.combinePath( tableRoot, getDatasetName(), relativeTableLocation, table );
 	}
 
 	public String getDatasetPath( String... files )
 	{
-		final String datasetFolder = getPath( settings.values.getTableDataLocation(), settings.values.getTableDataBranch(), projectSubFolder, getDatasetName() );
-
-		String location = datasetFolder;
-		for ( String file : files )
-		{
-			location = FileAndUrlUtils.combinePath( datasetFolder, file );
-		}
-
-		return location;
+		final String datasetRoot = FileAndUrlUtils.combinePath( projectRoot, getDatasetName() );
+		return createPath( datasetRoot, files );
 	}
 
-	private String getProjectJsonPath( MoBIESettings options )
+	private String createPath( String root, String[] files )
 	{
-		return getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), projectSubFolder, "project.json" );
+		String location = root;
+		for ( String file : files )
+			location = FileAndUrlUtils.combinePath( location, file );
+		return location;
 	}
 }
