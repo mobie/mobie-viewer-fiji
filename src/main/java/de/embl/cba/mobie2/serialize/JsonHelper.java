@@ -45,16 +45,4 @@ public class JsonHelper
 		final Object deserialize = context.deserialize( jsonElementEntry.getValue(), c );
 		return deserialize;
 	}
-
-	public static String getImageDataStorageModalityJsonString( MoBIESettings.ImageDataStorageModality imageDataStorageModality )
-	{
-		if ( imageDataStorageModality.equals( MoBIESettings.ImageDataStorageModality.S3 ) )
-		{
-			return "s3store";
-		}
-		else
-		{
-			return "fileSystem";
-		}
-	}
 }
