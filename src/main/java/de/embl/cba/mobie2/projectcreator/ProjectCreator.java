@@ -94,7 +94,9 @@ public class ProjectCreator {
     }
 
     public void reloadCurrentDataset() throws IOException {
-        this.currentDataset = new DatasetJsonParser().parseDataset( currentDatasetJson.getAbsolutePath() );
+        if ( currentDatasetName != null ) {
+            this.currentDataset = new DatasetJsonParser().parseDataset(currentDatasetJson.getAbsolutePath());
+        }
     }
 
     public DatasetsCreator getDatasetsCreator() {

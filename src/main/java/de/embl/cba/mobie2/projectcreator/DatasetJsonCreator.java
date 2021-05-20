@@ -29,6 +29,11 @@ public class DatasetJsonCreator {
     public void addToDatasetJson( String imageName, String datasetName, ProjectCreator.ImageType imageType,
                                   String uiSelectionGroup ) {
         Dataset dataset = projectCreator.getDataset( datasetName );
+        if ( dataset == null ) {
+            dataset = new Dataset();
+            dataset.sources = new HashMap<>();
+            dataset.views = new HashMap<>();
+        }
         addNewSource( dataset, imageName, imageType );
         if ( uiSelectionGroup != null ) {
             // add a view with the same name as the image, and sensible defaults
@@ -66,7 +71,6 @@ public class DatasetJsonCreator {
                 imageSource.imageDataLocations = imageDataLocations;
 
                 sourceSupplier = new SourceSupplier( imageSource );
-
                 dataset.sources.put( imageName, sourceSupplier );
         }
     }
