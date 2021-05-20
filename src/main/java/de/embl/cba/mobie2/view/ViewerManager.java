@@ -2,6 +2,7 @@ package de.embl.cba.mobie2.view;
 
 import bdv.util.BdvHandle;
 import de.embl.cba.mobie.Constants;
+import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.bdv.ImageSliceView;
 import de.embl.cba.mobie2.bdv.SegmentationImageSliceView;
@@ -15,18 +16,18 @@ import de.embl.cba.mobie2.display.ImageSourceDisplay;
 import de.embl.cba.mobie2.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie2.display.SourceDisplay;
 import de.embl.cba.mobie2.table.TableViewer;
-import de.embl.cba.mobie2.transform.BdvLocationChanger;
-import de.embl.cba.mobie2.transform.GridSourceTransformer;
-import de.embl.cba.mobie2.transform.SourceTransformer;
+import de.embl.cba.mobie2.transform.*;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.mobie2.ui.WindowArrangementHelper;
+import de.embl.cba.mobie2.view.additionalviews.AdditionalViewsLoader;
 import de.embl.cba.mobie2.volume.SegmentsVolumeView;
 import de.embl.cba.mobie2.volume.UniverseManager;
 import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import de.embl.cba.tables.tablerow.TableRows;
 import ij.IJ;
+import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 
@@ -52,6 +53,8 @@ public class ViewerManager
 	private final BdvHandle bdvHandle;
 	private GridOverlaySourceDisplay gridOverlayDisplay;
 	private final UniverseManager universeManager;
+	private final AdditionalViewsLoader additionalViewsLoader;
+	private final ViewsSaver viewsSaver;
 
 	public ViewerManager( MoBIE2 moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
 	{
@@ -61,6 +64,8 @@ public class ViewerManager
 		sliceViewer = new SliceViewer( is2D, this, timepoints );
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
+		additionalViewsLoader = new AdditionalViewsLoader( moBIE2 );
+		viewsSaver = new ViewsSaver( moBIE2 );
 	}
 
 	public static void initScatterPlotViewer( SegmentationSourceDisplay display )
@@ -91,7 +96,45 @@ public class ViewerManager
 		return sliceViewer;
 	}
 
-	public synchronized void show( View view )
+	public AdditionalViewsLoader getAdditionalViewsLoader() { return additionalViewsLoader; }
+
+	public ViewsSaver getViewsSaver() { return viewsSaver; }
+
+	public View getCurrentView( String uiSelectionGroup, boolean isExclusive ) {
+
+		List< SourceDisplay > viewSourceDisplays = new ArrayList<>();
+		List< SourceTransformer > viewSourceTransforms = new ArrayList<>();
+
+		for ( SourceDisplay sourceDisplay : sourceDisplays ) {
+			SourceDisplay currentDisplay = null;
+			if ( sourceDisplay instanceof ImageSourceDisplay ) {
+				currentDisplay = new ImageSourceDisplay( (ImageSourceDisplay) sourceDisplay );
+			} else if ( sourceDisplay instanceof  SegmentationSourceDisplay ) {
+				currentDisplay = new SegmentationSourceDisplay( (SegmentationSourceDisplay) sourceDisplay );
+			}
+
+			if ( currentDisplay != null ) {
+				viewSourceDisplays.add( currentDisplay );
+			}
+
+			// TODO - would be good to pick up any manual transforms here too. This would allow e.g. manual placement
+			// of differing sized sources into a grid
+			if ( sourceDisplay.sourceTransformers != null ) {
+				for ( SourceTransformer sourceTransformer: sourceDisplay.sourceTransformers ) {
+					if ( !viewSourceTransforms.contains( sourceTransformer ) ) {
+						viewSourceTransforms.add( sourceTransformer );
+					}
+				}
+			}
+		}
+
+		AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform( bdvHandle, Utils.getMousePosition( bdvHandle ) );
+		BdvLocationSupplier viewerTransform = new BdvLocationSupplier( new BdvLocation( BdvLocationType.NormalisedViewerTransform, normalisedViewTransform.getRowPackedCopy()) );
+
+		return new View( uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, viewerTransform, isExclusive );
+	}
+
+	public synchronized void show(View view )
 	{
 		if ( view.isExclusive() )
 		{

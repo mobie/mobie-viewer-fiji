@@ -14,6 +14,16 @@ public class View
 	private BdvLocationSupplier viewerTransform;
 	private boolean isExclusive = false;
 
+	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays,
+				 List< SourceTransformer > sourceTransforms, BdvLocationSupplier viewerTransform,
+				 boolean isExclusive ) {
+		this.uiSelectionGroup = uiSelectionGroup;
+		this.sourceDisplays = sourceDisplays;
+		this.sourceTransforms = sourceTransforms;
+		this.viewerTransform = viewerTransform;
+		this.isExclusive = isExclusive;
+	}
+
 	public boolean isExclusive()
 	{
 		return isExclusive;

@@ -1,17 +1,18 @@
 package de.embl.cba.mobie2.serialize;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import de.embl.cba.mobie2.display.SourceDisplay;
+import de.embl.cba.mobie2.transform.SourceTransformer;
 import de.embl.cba.mobie.ui.MoBIESettings;
 import de.embl.cba.tables.FileAndUrlUtils;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class JsonHelper
@@ -44,5 +45,18 @@ public class JsonHelper
 			throw new RuntimeException("Unknown class: " + jsonElementEntry.getKey());
 		final Object deserialize = context.deserialize( jsonElementEntry.getValue(), c );
 		return deserialize;
+	}
+
+	public static Gson buildGson( boolean prettyPrinting )
+	{
+		GsonBuilder gb = new GsonBuilder();
+		gb.registerTypeAdapter( new TypeToken<List<SourceTransformer>>(){}.getType(), new SourceTransformerListAdapter());
+		gb.registerTypeAdapter( new TypeToken<List<SourceDisplay>>(){}.getType(), new SourceDisplayListAdapter());
+
+		if ( prettyPrinting ) {
+			gb.setPrettyPrinting();
+		}
+		Gson gson = gb.create();
+		return gson;
 	}
 }

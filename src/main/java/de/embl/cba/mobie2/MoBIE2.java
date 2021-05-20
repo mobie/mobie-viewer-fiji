@@ -28,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static de.embl.cba.mobie.utils.Utils.getName;
+import static de.embl.cba.mobie.utils.Utils.getSimplifiedSourceName;
 
 public class MoBIE2
 {
@@ -120,7 +121,7 @@ public class MoBIE2
 	private void openDataset( String datasetName ) throws IOException
 	{
 		this.datasetName = datasetName;
-		dataset = new DatasetJsonParser().parseDataset( getDataSetJsonPath() );
+		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 
 		userInterface = new UserInterface( this );
 		viewerManager = new ViewerManager( this, userInterface, dataset.is2D, dataset.timepoints );
@@ -168,6 +169,11 @@ public class MoBIE2
 		return settings;
 	}
 
+	public Dataset getDataset()
+	{
+		return dataset;
+	}
+
 	public String getDatasetName()
 	{
 		return datasetName;
@@ -177,6 +183,8 @@ public class MoBIE2
 	{
 		return project.getDatasets();
 	}
+
+	public UserInterface getUserInterface() { return userInterface; }
 
 	public void close()
 	{
@@ -200,11 +208,6 @@ public class MoBIE2
 		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 		final SourceAndConverter sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
 		return sourceAndConverter;
-	}
-
-	public String getDataset()
-	{
-		return datasetName;
 	}
 
 	public void setDataset( String dataset )
@@ -262,14 +265,21 @@ public class MoBIE2
 		return path;
 	}
 
+	public String getDatasetPath( String... files )
+	{
+		final String datasetFolder = getPath( settings.values.getTableDataLocation(), settings.values.getTableDataBranch(), projectSubFolder, getDatasetName() );
+
+		String location = datasetFolder;
+		for ( String file : files )
+		{
+			location = FileAndUrlUtils.combinePath( datasetFolder, file );
+		}
+
+		return location;
+	}
+
 	private String getProjectJsonPath( MoBIESettings options )
 	{
 		return getPath( options.values.getProjectLocation(), options.values.getProjectBranch(), projectSubFolder, "project.json" );
 	}
-
-	private String getDataSetJsonPath()
-	{
-		return getPath( settings.values.getProjectLocation(), settings.values.getProjectBranch(), projectSubFolder, getDatasetName(), "dataset.json" );
-	}
-
 }
