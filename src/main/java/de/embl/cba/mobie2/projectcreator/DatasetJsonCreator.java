@@ -63,8 +63,9 @@ public class DatasetJsonCreator {
                 sourceSupplier = new SourceSupplier( segmentationSource );
 
                 dataset.sources.put( imageName, sourceSupplier );
+                break;
 
-            default:
+            case image:
                 ImageSource imageSource = new ImageSource();
                 imageDataLocations = new HashMap<>();
                 imageDataLocations.put( "fileSystem", "images/local/" + imageName + ".xml" );
@@ -72,6 +73,7 @@ public class DatasetJsonCreator {
 
                 sourceSupplier = new SourceSupplier( imageSource );
                 dataset.sources.put( imageName, sourceSupplier );
+                break;
         }
     }
 
@@ -100,10 +102,12 @@ public class DatasetJsonCreator {
                         null, null, null, false,
                         false, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, null );
                 sourceDisplays.add( segmentationSourceDisplay );
-            default:
+                break;
+            case image:
                 ImageSourceDisplay imageSourceDisplay = new ImageSourceDisplay( imageName, 1.0, sources,
                         "white", new double[] {0.0, 255.0}, null, false );
                 sourceDisplays.add( imageSourceDisplay );
+                break;
         }
 
         View view = new View( uiSelectionGroup, sourceDisplays, null, null, isExclusive );

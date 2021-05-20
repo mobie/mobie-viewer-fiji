@@ -55,7 +55,7 @@ public class ImagesCreator {
     }
 
     private String getDefaultTableDirPath( String datasetName, String imageName ) {
-        return FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(), "tables", imageName );
+        return FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(), datasetName, "tables", imageName );
     }
 
     public void addImage ( ImagePlus imp, String imageName, String datasetName,
