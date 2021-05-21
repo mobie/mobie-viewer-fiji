@@ -27,13 +27,20 @@ public class DatasetJsonCreator {
     }
 
     public void addToDatasetJson( String imageName, String datasetName, ProjectCreator.ImageType imageType,
-                                  String uiSelectionGroup ) {
+                                  String uiSelectionGroup, boolean is2D ) {
         Dataset dataset = projectCreator.getDataset( datasetName );
         if ( dataset == null ) {
             dataset = new Dataset();
             dataset.sources = new HashMap<>();
             dataset.views = new HashMap<>();
+            // start new datasets with is2D as true, then for the first 3D image added it can be set to false
+            dataset.is2D = true;
         }
+
+        if ( !is2D ) {
+            dataset.is2D = false;
+        }
+
         addNewSource( dataset, imageName, imageType );
         if ( uiSelectionGroup != null ) {
             // add a view with the same name as the image, and sensible defaults

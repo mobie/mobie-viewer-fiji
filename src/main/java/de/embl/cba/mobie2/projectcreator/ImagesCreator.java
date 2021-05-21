@@ -32,8 +32,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.getBdvFormatFromSpimDataMinimal;
-import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.getImageLocationFromSpimDataMinimal;
+import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.*;
 import static de.embl.cba.morphometry.Utils.labelMapAsImgLabeling;
 
 public class ImagesCreator {
@@ -87,7 +86,13 @@ public class ImagesCreator {
 
             // check image written successfully, before writing jsons
             if ( xmlFile.exists() ) {
-                updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup );
+                boolean is2D;
+                if ( imp.getNDimensions() <= 2 ) {
+                    is2D = true;
+                } else {
+                    is2D = false;
+                }
+                updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup, is2D );
             }
         } else {
             IJ.log( "Adding image to project failed - this image name already exists" );
@@ -117,7 +122,7 @@ public class ImagesCreator {
                             moveImage(bdvFormat, spimDataMinimal, newXmlDirectory, imageName);
                             break;
                     }
-                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup );
+                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup, isSpimData2D( spimDataMinimal ) );
                 } else {
                     IJ.log( "Image is of unsupported type. Must be n5.");
                 }
@@ -194,12 +199,12 @@ public class ImagesCreator {
     }
 
     private void updateTableAndJsonsForNewImage ( String imageName, ProjectCreator.ImageType imageType,
-                                          String datasetName, String uiSelectionGroup ) {
+                                          String datasetName, String uiSelectionGroup, boolean is2D ) {
         if ( imageType == ProjectCreator.ImageType.segmentation) {
             addDefaultTableForImage( imageName, datasetName );
         }
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
-        datasetJsonCreator.addToDatasetJson( imageName, datasetName, imageType, uiSelectionGroup );
+        datasetJsonCreator.addToDatasetJson( imageName, datasetName, imageType, uiSelectionGroup, is2D );
     }
 
     private void copyImage ( ProjectCreator.BdvFormat bdvFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
