@@ -171,4 +171,8 @@ public class ProjectCreatorHelper {
             return false;
         }
     }
+
+    public static int getNTimepointsFromSpimData( SpimDataMinimal spimDataMinimal ) {
+        return spimDataMinimal.getSequenceDescription().getTimePoints().size();
+    }
 }

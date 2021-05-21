@@ -27,7 +27,7 @@ public class DatasetJsonCreator {
     }
 
     public void addToDatasetJson( String imageName, String datasetName, ProjectCreator.ImageType imageType,
-                                  String uiSelectionGroup, boolean is2D ) {
+                                  String uiSelectionGroup, boolean is2D, int nTimepoints ) {
         Dataset dataset = projectCreator.getDataset( datasetName );
         if ( dataset == null ) {
             dataset = new Dataset();
@@ -39,6 +39,10 @@ public class DatasetJsonCreator {
 
         if ( !is2D ) {
             dataset.is2D = false;
+        }
+
+        if ( nTimepoints > dataset.timepoints ) {
+            dataset.timepoints = nTimepoints;
         }
 
         addNewSource( dataset, imageName, imageType );

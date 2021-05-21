@@ -92,7 +92,7 @@ public class ImagesCreator {
                 } else {
                     is2D = false;
                 }
-                updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup, is2D );
+                updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup, is2D, imp.getNFrames() );
             }
         } else {
             IJ.log( "Adding image to project failed - this image name already exists" );
@@ -122,7 +122,8 @@ public class ImagesCreator {
                             moveImage(bdvFormat, spimDataMinimal, newXmlDirectory, imageName);
                             break;
                     }
-                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup, isSpimData2D( spimDataMinimal ) );
+                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup,
+                            isSpimData2D( spimDataMinimal ), getNTimepointsFromSpimData( spimDataMinimal ) );
                 } else {
                     IJ.log( "Image is of unsupported type. Must be n5.");
                 }
@@ -199,12 +200,12 @@ public class ImagesCreator {
     }
 
     private void updateTableAndJsonsForNewImage ( String imageName, ProjectCreator.ImageType imageType,
-                                          String datasetName, String uiSelectionGroup, boolean is2D ) {
+                                          String datasetName, String uiSelectionGroup, boolean is2D, int nTimepoints ) {
         if ( imageType == ProjectCreator.ImageType.segmentation) {
             addDefaultTableForImage( imageName, datasetName );
         }
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
-        datasetJsonCreator.addToDatasetJson( imageName, datasetName, imageType, uiSelectionGroup, is2D );
+        datasetJsonCreator.addToDatasetJson( imageName, datasetName, imageType, uiSelectionGroup, is2D, nTimepoints );
     }
 
     private void copyImage ( ProjectCreator.BdvFormat bdvFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
