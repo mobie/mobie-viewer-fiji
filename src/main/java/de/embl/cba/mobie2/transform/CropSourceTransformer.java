@@ -1,6 +1,8 @@
 package de.embl.cba.mobie2.transform;
 
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie2.source.SourceChanger;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
@@ -8,6 +10,7 @@ import net.imglib2.type.numeric.NumericType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 public class CropSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
 {
@@ -31,11 +34,15 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 				String transformedSourceName = getTransformedSourceName( inputSourceName );
 
 				// transform, i.e. crop
-				final SourceAndConverter< T > transformedSource = new SourceCropper( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), shiftToOrigin ).get();
+//				final SourceAndConverter< T > transformedSourceOld = new SourceCropper( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), shiftToOrigin ).get();
+//
+//				final CroppedSource< T > croppedSource = ( CroppedSource< T > ) new CroppedSource( sourceAndConverter.getSpimSource(), transformedSourceName, new FinalRealInterval( min, max ), shiftToOrigin );
+
+				final SourceAndConverter< T > croppedSourceAndConverter = new SourceChanger( ( Function< Source< ? >, Source< ? > > ) source -> new CroppedSource( source, transformedSourceName, new FinalRealInterval( min, max ), shiftToOrigin  ) ).apply( sourceAndConverter );
 
 				// replace the source in the list
 				transformedSources.remove( sourceAndConverter );
-				transformedSources.add( transformedSource );
+				transformedSources.add( croppedSourceAndConverter );
 
 				// store translation
 				final AffineTransform3D transform3D = new AffineTransform3D();

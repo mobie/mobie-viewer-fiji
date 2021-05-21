@@ -136,7 +136,7 @@ public class ViewsSaver {
     }
 
     private void saveToDatasetJson( View view, String viewName ) throws IOException {
-        String datasetJsonPath = moBIE2.getPath(settings.values.getProjectLocation(), settings.values.getProjectBranch(), moBIE2.getDatasetName(), "dataset.json");
+        String datasetJsonPath = moBIE2.getDatasetPath( "dataset.json");
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
         dataset.views.put( viewName, view );
 
@@ -167,7 +167,7 @@ public class ViewsSaver {
     }
 
     private String chooseAdditionalViewsJson() {
-        String additionalViewsDirectory = moBIE2.getPath(settings.values.getProjectLocation(), settings.values.getProjectBranch(), moBIE2.getDatasetName(), "misc", "views");
+        String additionalViewsDirectory = moBIE2.getDatasetPath( "misc", "views");
         String[] existingViewFiles = getFileNamesFromProject(additionalViewsDirectory);
 
         String jsonFileName;
@@ -178,7 +178,7 @@ public class ViewsSaver {
         }
 
         if ( jsonFileName != null ) {
-            return moBIE2.getPath(settings.values.getProjectLocation(), settings.values.getProjectBranch(), moBIE2.getDatasetName(), "misc", "views", jsonFileName);
+            return moBIE2.getDatasetPath( "misc", "views", jsonFileName);
         } else {
             return null;
         }

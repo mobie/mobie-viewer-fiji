@@ -45,10 +45,11 @@ import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
 import java.util.HashMap;
+import java.util.function.Function;
 
-public class CroppedSource< T extends NumericType<T> > implements Source<T>
+public class CroppedSource< T extends NumericType<T> > implements Source< T >, Function< Source< T >, Source< T > >
 {
-    private final Source<T> source;
+    private final Source< T > source;
     private final String name;
     private final RealInterval crop;
     private final boolean zeroMin;
@@ -154,4 +155,9 @@ public class CroppedSource< T extends NumericType<T> > implements Source<T>
         return source.getNumMipmapLevels();
     }
 
+    @Override
+    public Source< T > apply( Source< T > inputSource )
+    {
+        return new CroppedSource<>( inputSource, name, crop, zeroMin );
+    }
 }

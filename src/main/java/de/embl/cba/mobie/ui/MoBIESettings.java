@@ -7,7 +7,20 @@ public class MoBIESettings
 	public enum ImageDataStorageModality
 	{
 		FileSystem,
-		S3
+		S3;
+
+		@Override
+		public String toString()
+		{
+			if ( this.equals( S3 ) )
+			{
+				return "s3store";
+			}
+			else
+			{
+				return "fileSystem";
+			}
+		}
 	}
 
 	public static MoBIESettings settings()

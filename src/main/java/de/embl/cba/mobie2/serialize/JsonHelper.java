@@ -59,16 +59,4 @@ public class JsonHelper
 		Gson gson = gb.create();
 		return gson;
 	}
-
-	public static String getImageDataStorageModalityJsonString( MoBIESettings.ImageDataStorageModality imageDataStorageModality )
-	{
-		if ( imageDataStorageModality.equals( MoBIESettings.ImageDataStorageModality.S3 ) )
-		{
-			return "s3store";
-		}
-		else
-		{
-			return "fileSystem";
-		}
-	}
 }

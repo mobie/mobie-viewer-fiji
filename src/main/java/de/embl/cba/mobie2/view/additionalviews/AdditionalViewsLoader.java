@@ -23,7 +23,7 @@ public class AdditionalViewsLoader {
 
     public void loadAdditionalViewsDialog() {
         try {
-            String additionalViewsDirectory = moBIE2.getPath( settings.values.getProjectLocation(), settings.values.getProjectBranch(), moBIE2.getDatasetName(), "misc", "views" );
+            String additionalViewsDirectory = moBIE2.getDatasetPath("misc", "views" );
             String selectedFilePath = selectPathFromProjectOrFileSystem( additionalViewsDirectory, "View" );
             // to match to the existing view selection panels, we enable the cross platform look and feel
             UserInterfaceHelper.resetCrossPlatformSwingLookAndFeel();
