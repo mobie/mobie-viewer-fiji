@@ -21,8 +21,7 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 
-import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.generateDefaultAffine;
-import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.parseAffineString;
+import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.*;
 import static de.embl.cba.mobie2.ui.SwingHelper.*;
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.tidyString;
 
@@ -34,13 +33,8 @@ public class ProjectsCreatorPanel extends JFrame {
     public ProjectsCreatorPanel ( File projectLocation ) throws IOException {
 
         // account for projects with and without the top 'data' directory
-        String dataDirectoryPath = FileAndUrlUtils.combinePath(  projectLocation.getAbsolutePath(), "data");
-        File dataDirectory = new File( dataDirectoryPath );
-        if (!dataDirectory.exists() ) {
-            this.projectsCreator = new ProjectCreator(projectLocation);
-        } else {
-            this.projectsCreator = new ProjectCreator(dataDirectory);
-        }
+        File dataDirectory = getDataLocation( projectLocation );
+        this.projectsCreator = new ProjectCreator( dataDirectory );
 
         addDatasetPanel();
         addImagesPanel();

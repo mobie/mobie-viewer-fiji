@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 
+import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.getDataLocation;
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
 
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Add/Update MoBIE Project remote..." )
@@ -52,9 +53,8 @@ public class AddRemoteToMoBIEProjectCommand implements Command {
             IJ.log( "Add Remote failed - MoBIE project does not exist!" );
         } else {
             if ( continueDialog() ) {
-                ProjectCreator projectsCreator = null;
                 try {
-                    projectsCreator = new ProjectCreator( projectLocation );
+                    ProjectCreator projectsCreator = new ProjectCreator( getDataLocation( projectLocation ) );
                     RemoteMetadataCreator remoteMetadataCreator = projectsCreator.getRemoteMetadataCreator();
                     remoteMetadataCreator.createRemoteMetadata( signingRegion, serviceEndpoint, bucketName );
                 } catch (IOException e) {
