@@ -31,11 +31,6 @@ public class ColoringModelHelper
 
 	private static String getColoringLut( SegmentationSourceDisplay segmentationDisplay )
 	{
-		String coloringLut = segmentationDisplay.getLut() ;
-		if ( coloringLut.equals( "argbColumn" ) )
-			coloringLut = ColoringLuts.ARGB_COLUMN;
-		else
-			coloringLut = WordUtils.capitalize( coloringLut );
-		return coloringLut;
+		return segmentationDisplay.getLut() ;
 	}
 }
