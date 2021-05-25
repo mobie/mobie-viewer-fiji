@@ -4,6 +4,7 @@ import bdv.img.n5.N5ImageLoader;
 import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
+import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.mobie2.projectcreator.n5.DownsampleBlock;
 import de.embl.cba.mobie2.projectcreator.n5.WriteImgPlusToN5;
@@ -96,7 +97,11 @@ public class ImagesCreator {
                 } else {
                     is2D = false;
                 }
-                updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup, is2D, imp.getNFrames() );
+                try {
+                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup, is2D, imp.getNFrames() );
+                } catch (SpimDataException e) {
+                    e.printStackTrace();
+                }
             }
         } else {
             IJ.log( "Adding image to project failed - this image name already exists" );
@@ -142,8 +147,56 @@ public class ImagesCreator {
         }
     }
 
+    private ArrayList<Object[]> makeDefaultTableRowsForTimepoint( LazySpimSource labelsSource, int timepoint, boolean addTimepointColumn ) {
+
+        final RandomAccessibleInterval<IntType> rai = labelsSource.getNonVolatileSource( timepoint, 0 );
+        double[] dimensions = new double[ rai.numDimensions() ];
+        labelsSource.getVoxelDimensions().dimensions( dimensions );
+
+        ImgLabeling<Integer, IntType> imgLabeling = labelMapAsImgLabeling(rai);
+
+        LabelRegions labelRegions = new LabelRegions(imgLabeling);
+        Iterator<LabelRegion> labelRegionIterator = labelRegions.iterator();
+
+        ArrayList<Object[]> rows = new ArrayList<>();
+        int nColumns = 10;
+        if ( addTimepointColumn ) {
+            nColumns += 1;
+        }
+        while (labelRegionIterator.hasNext()) {
+            Object[] row = new Object[ nColumns ];
+            LabelRegion labelRegion = labelRegionIterator.next();
+
+            double[] centre = new double[rai.numDimensions()];
+            labelRegion.getCenterOfMass().localize(centre);
+            double[] bbMin = new double[rai.numDimensions()];
+            double[] bbMax = new double[rai.numDimensions()];
+            labelRegion.realMin(bbMin);
+            labelRegion.realMax(bbMax);
+
+            row[0] = labelRegion.getLabel();
+            row[1] = centre[0] * dimensions[0];
+            row[2] = centre[1] * dimensions[1];
+            row[3] = centre[2] * dimensions[2];
+            row[4] = bbMin[0] * dimensions[0];
+            row[5] = bbMin[1] * dimensions[1];
+            row[6] = bbMin[2] * dimensions[2];
+            row[7] = bbMax[0] * dimensions[0];
+            row[8] = bbMax[1] * dimensions[1];
+            row[9] = bbMax[2] * dimensions[2];
+
+            if ( addTimepointColumn ) {
+                row[10] = timepoint;
+            }
+
+            rows.add(row);
+        }
+
+        return rows;
+    }
+
     // TODO - is this efficient for big images?
-    private void addDefaultTableForImage ( String imageName, String datasetName ) {
+    private void addDefaultTableForImage ( String imageName, String datasetName ) throws SpimDataException {
         File tableFolder = new File( getDefaultTableDirPath( datasetName, imageName ) );
         File defaultTable = new File( tableFolder, "default.tsv" );
         if ( !tableFolder.exists() ){
@@ -154,52 +207,36 @@ public class ImagesCreator {
 
             IJ.log( " Creating default table... 0 label is counted as background" );
 
-            String[] columnNames = {"label_id", "anchor_x", "anchor_y",
-                    "anchor_z", "bb_min_x", "bb_min_y", "bb_min_z", "bb_max_x",
-                    "bb_max_y", "bb_max_z"};
+            SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(getDefaultLocalImageXmlPath(datasetName, imageName));
+
+            boolean hasTimeColumn = spimDataMinimal.getSequenceDescription().getTimePoints().size() > 1;
+            ArrayList<String> columnNames = new ArrayList<>();
+            columnNames.add( "label_id" );
+            columnNames.add( "anchor_x" );
+            columnNames.add( "anchor_y" );
+            columnNames.add( "anchor_z" );
+            columnNames.add( "bb_min_x" );
+            columnNames.add( "bb_min_y" );
+            columnNames.add( "bb_min_z" );
+            columnNames.add( "bb_max_x" );
+            columnNames.add( "bb_max_y" );
+            columnNames.add( "bb_max_z" );
+            if ( hasTimeColumn ) {
+                columnNames.add("timepoint");
+            }
 
             final LazySpimSource labelsSource = new LazySpimSource("labelImage",
                     getDefaultLocalImageXmlPath(datasetName, imageName));
-
-            final RandomAccessibleInterval<IntType> rai = labelsSource.getNonVolatileSource(0, 0);
-            double[] dimensions = new double[ rai.numDimensions() ];
-            labelsSource.getVoxelDimensions().dimensions( dimensions );
-
-            ImgLabeling<Integer, IntType> imgLabeling = labelMapAsImgLabeling(rai);
-
-            LabelRegions labelRegions = new LabelRegions(imgLabeling);
-            Iterator<LabelRegion> labelRegionIterator = labelRegions.iterator();
-
             ArrayList<Object[]> rows = new ArrayList<>();
-            while (labelRegionIterator.hasNext()) {
-                Object[] row = new Object[columnNames.length];
-                LabelRegion labelRegion = labelRegionIterator.next();
 
-                double[] centre = new double[rai.numDimensions()];
-                labelRegion.getCenterOfMass().localize(centre);
-                double[] bbMin = new double[rai.numDimensions()];
-                double[] bbMax = new double[rai.numDimensions()];
-                labelRegion.realMin(bbMin);
-                labelRegion.realMax(bbMax);
-
-                row[0] = labelRegion.getLabel();
-                row[1] = centre[0] * dimensions[0];
-                row[2] = centre[1] * dimensions[1];
-                row[3] = centre[2] * dimensions[2];
-                row[4] = bbMin[0] * dimensions[0];
-                row[5] = bbMin[1] * dimensions[1];
-                row[6] = bbMin[2] * dimensions[2];
-                row[7] = bbMax[0] * dimensions[0];
-                row[8] = bbMax[1] * dimensions[1];
-                row[9] = bbMax[2] * dimensions[2];
-
-                rows.add(row);
+            for ( Integer timepoint: spimDataMinimal.getSequenceDescription().getTimePoints().getTimePoints().keySet() ) {
+                rows.addAll( makeDefaultTableRowsForTimepoint( labelsSource, timepoint, hasTimeColumn ) );
             }
 
-            Object[][] rowArray = new Object[rows.size()][columnNames.length];
+            Object[][] rowArray = new Object[rows.size()][columnNames.size()];
             rowArray = rows.toArray(rowArray);
 
-            JTable table = new JTable(rowArray, columnNames);
+            JTable table = new JTable(rowArray, columnNames.toArray() );
             Tables.saveTable( table, defaultTable );
 
             IJ.log( "Default table complete" );
@@ -207,7 +244,7 @@ public class ImagesCreator {
     }
 
     private void updateTableAndJsonsForNewImage ( String imageName, ProjectCreator.ImageType imageType,
-                                          String datasetName, String uiSelectionGroup, boolean is2D, int nTimepoints ) {
+                                          String datasetName, String uiSelectionGroup, boolean is2D, int nTimepoints ) throws SpimDataException {
         if ( imageType == ProjectCreator.ImageType.segmentation) {
             addDefaultTableForImage( imageName, datasetName );
         }
