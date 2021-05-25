@@ -58,6 +58,8 @@ public class WriteImgPlusToN5 {
 
         final Compression compression;
 
+        final String[] viewSetupNames;
+
         public Parameters(
                 final int[][] resolutions, final int[][] subdivisions,
                 final File seqFile, final File n5File, final AffineTransform3D sourceTransform,
@@ -70,6 +72,23 @@ public class WriteImgPlusToN5 {
             this.sourceTransform = sourceTransform;
             this.downsamplingMethod = downsamplingMethod;
             this.compression = compression;
+            this.viewSetupNames = null;
+        }
+
+        public Parameters(
+                final int[][] resolutions, final int[][] subdivisions,
+                final File seqFile, final File n5File, final AffineTransform3D sourceTransform,
+                final DownsampleBlock.DownsamplingMethod downsamplingMethod, final Compression compression,
+                final String[] viewSetupNames )
+        {
+            this.resolutions = resolutions;
+            this.subdivisions = subdivisions;
+            this.seqFile = seqFile;
+            this.n5File = n5File;
+            this.sourceTransform = sourceTransform;
+            this.downsamplingMethod = downsamplingMethod;
+            this.compression = compression;
+            this.viewSetupNames = viewSetupNames;
         }
     }
 
@@ -84,7 +103,7 @@ public class WriteImgPlusToN5 {
         final AffineTransform3D sourceTransform = generateSourceTransform( voxelSize );
 
         Parameters defaultParameters = generateDefaultParameters( imp, xmlPath, sourceTransform, downsamplingMethod,
-                compression );
+                compression, null );
 
         export( imp, defaultParameters );
     }
@@ -97,7 +116,21 @@ public class WriteImgPlusToN5 {
         }
 
         Parameters defaultParameters = generateDefaultParameters( imp, xmlPath, sourceTransform,
-                downsamplingMethod, compression );
+                downsamplingMethod, compression, null );
+
+        export( imp, defaultParameters );
+    }
+
+    // export, generating default resolutions / subdivisions
+    public void export(ImagePlus imp, String xmlPath, AffineTransform3D sourceTransform,
+                       DownsampleBlock.DownsamplingMethod downsamplingMethod, Compression compression,
+                       String[] viewSetupNames ) {
+        if ( !isImageSuitable( imp ) ) {
+            return;
+        }
+
+        Parameters defaultParameters = generateDefaultParameters( imp, xmlPath, sourceTransform,
+                downsamplingMethod, compression, viewSetupNames );
 
         export( imp, defaultParameters );
     }
@@ -105,6 +138,12 @@ public class WriteImgPlusToN5 {
     public void export( ImagePlus imp, int[][] resolutions, int[][] subdivisions, String xmlPath,
                         AffineTransform3D sourceTransform, DownsampleBlock.DownsamplingMethod downsamplingMethod,
                         Compression compression ) {
+        export( imp, resolutions, subdivisions, xmlPath, sourceTransform, downsamplingMethod, compression, null );
+    }
+
+    public void export( ImagePlus imp, int[][] resolutions, int[][] subdivisions, String xmlPath,
+                        AffineTransform3D sourceTransform, DownsampleBlock.DownsamplingMethod downsamplingMethod,
+                        Compression compression, String[] viewSetupNames ) {
         if ( resolutions.length == 0 ) {
             IJ.showMessage( "Invalid resolutions - length 0" );
             return;
@@ -133,13 +172,14 @@ public class WriteImgPlusToN5 {
         // TODO - check transform and downsampling mode
 
         Parameters exportParameters = new Parameters( resolutions, subdivisions, seqFile, n5File, sourceTransform,
-                downsamplingMethod, compression );
+                downsamplingMethod, compression, viewSetupNames );
 
         export( imp, exportParameters );
     }
 
     protected Parameters generateDefaultParameters(ImagePlus imp, String xmlPath, AffineTransform3D sourceTransform,
-                                                   DownsampleBlock.DownsamplingMethod downsamplingMethod, Compression compression ) {
+                                                   DownsampleBlock.DownsamplingMethod downsamplingMethod, Compression compression,
+                                                   String[] viewSetupNames ) {
         FinalVoxelDimensions voxelSize = getVoxelSize( imp );
         FinalDimensions size = getSize( imp );
 
@@ -168,7 +208,7 @@ public class WriteImgPlusToN5 {
         final File n5File = getN5FileFromXmlPath( seqFilename );
 
         return new Parameters( resolutions, subdivisions, seqFile, n5File, sourceTransform,
-                downsamplingMethod, compression );
+                downsamplingMethod, compression, viewSetupNames );
     }
 
     protected void export( ImagePlus imp, Parameters params ) {
@@ -227,9 +267,18 @@ public class WriteImgPlusToN5 {
 
         // write n5
         final HashMap< Integer, BasicViewSetup> setups = new HashMap<>( numSetups );
+        if ( params.viewSetupNames != null && params.viewSetupNames.length != numSetups ) {
+            throw new RuntimeException( params.viewSetupNames.length + " view setup names were given, " +
+                    "but there are " + numSetups + "setups" );
+        }
         for ( int s = 0; s < numSetups; ++s )
         {
-            final BasicViewSetup setup = new BasicViewSetup( s, String.format( "channel %d", s + 1 ), size, voxelSize );
+            final BasicViewSetup setup;
+            if ( params.viewSetupNames != null ) {
+                setup = new BasicViewSetup(s, params.viewSetupNames[s], size, voxelSize);
+            } else {
+                setup = new BasicViewSetup(s, String.format("channel %d", s + 1), size, voxelSize);
+            }
             setup.setAttribute( new Channel( s + 1 ) );
             setups.put( s, setup );
         }

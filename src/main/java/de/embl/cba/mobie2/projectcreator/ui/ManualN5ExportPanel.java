@@ -20,6 +20,7 @@ public class ManualN5ExportPanel {
     String xmlPath;
     AffineTransform3D sourceTransform;
     DownsampleBlock.DownsamplingMethod downsamplingMethod;
+    String imageName;
 
     static String lastSubsampling = "{ {1,1,1} }";
     static String lastChunkSizes = "{ {64,64,64} }";
@@ -27,11 +28,12 @@ public class ManualN5ExportPanel {
     static boolean lastCompressionDefaultSettings = true;
 
     public ManualN5ExportPanel ( ImagePlus imp, String xmlPath, AffineTransform3D sourceTransform,
-                                 DownsampleBlock.DownsamplingMethod downsamplingMethod ) {
+                                 DownsampleBlock.DownsamplingMethod downsamplingMethod, String imageName ) {
         this.imp = imp;
         this.xmlPath = xmlPath;
         this.sourceTransform = sourceTransform;
         this.downsamplingMethod = downsamplingMethod;
+        this.imageName = imageName;
     }
 
     public void getManualExportParameters() {
@@ -97,7 +99,7 @@ public class ManualN5ExportPanel {
             return;
 
         new WriteImgPlusToN5().export( imp, resolutions, subdivisions, xmlPath, sourceTransform,
-                downsamplingMethod, compression );
+                downsamplingMethod, compression, new String[]{imageName} );
     }
 
 

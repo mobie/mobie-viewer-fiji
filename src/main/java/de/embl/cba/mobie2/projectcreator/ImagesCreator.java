@@ -1,6 +1,7 @@
 package de.embl.cba.mobie2.projectcreator;
 
 import bdv.img.n5.N5ImageLoader;
+import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
@@ -12,10 +13,12 @@ import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.generic.base.Entity;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
+import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewRegistration;
 import mpicbg.spim.data.registration.ViewRegistrations;
-import mpicbg.spim.data.sequence.ImgLoader;
+import mpicbg.spim.data.sequence.*;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.labeling.ImgLabeling;
@@ -30,6 +33,7 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.*;
@@ -76,11 +80,11 @@ public class ImagesCreator {
             switch( bdvFormat ) {
                 case n5:
                     if (!useDefaultSettings) {
-                        new ManualN5ExportPanel(imp, xmlPath, sourceTransform, downsamplingMethod).getManualExportParameters();
+                        new ManualN5ExportPanel(imp, xmlPath, sourceTransform, downsamplingMethod, imageName).getManualExportParameters();
                     } else {
                         // gzip compression by default
                         new WriteImgPlusToN5().export(imp, xmlPath, sourceTransform, downsamplingMethod,
-                                new GzipCompression());
+                                new GzipCompression(), new String[]{imageName} );
                     }
             }
 
@@ -111,6 +115,9 @@ public class ImagesCreator {
                 // check n5 format (e.g. we no longer support hdf5)
                 ProjectCreator.BdvFormat bdvFormat = getBdvFormatFromSpimDataMinimal( spimDataMinimal );
                 if ( bdvFormat != null ) {
+                    // The view setup name must be the same as the image name
+                    spimDataMinimal = fixSetupName( spimDataMinimal, imageName );
+
                     switch (addMethod) {
                         case link:
                             new XmlIoSpimDataMinimal().save(spimDataMinimal, newXmlFile.getAbsolutePath());
@@ -245,6 +252,38 @@ public class ImagesCreator {
                 N5ImageLoader n5ImageLoader = (N5ImageLoader) imgLoader;
                 n5ImageLoader.close();
                 break;
+        }
+    }
+
+    private SpimDataMinimal fixSetupName( SpimDataMinimal spimDataMinimal, String imageName ) {
+        // The view setup name must be the same as the image name
+        BasicViewSetup firstSetup = spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().get(0);
+        if ( !firstSetup.getName().equals(imageName) ) {
+
+            int numSetups = spimDataMinimal.getSequenceDescription().getViewSetups().size();
+            final HashMap< Integer, BasicViewSetup> setups = new HashMap<>( numSetups );
+            for ( int s = 0; s < numSetups; s++ )
+            {
+                final BasicViewSetup setup;
+                if ( s == 0 ) {
+                    setup = new BasicViewSetup( firstSetup.getId(), imageName,
+                            firstSetup.getSize(), firstSetup.getVoxelSize() );
+                    for ( Entity attribute: firstSetup.getAttributes().values() ) {
+                        setup.setAttribute( attribute );
+                    }
+                } else {
+                    setup = spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().get( s );
+                }
+                setups.put( s, setup );
+            }
+
+            final SequenceDescriptionMinimal newSeq = new SequenceDescriptionMinimal(
+                    spimDataMinimal.getSequenceDescription().getTimePoints(), setups,
+                    spimDataMinimal.getSequenceDescription().getImgLoader(), null );
+
+            return new SpimDataMinimal( spimDataMinimal.getBasePath(), newSeq, spimDataMinimal.getViewRegistrations() );
+        } else {
+            return spimDataMinimal;
         }
     }
 
