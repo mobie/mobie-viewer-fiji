@@ -4,11 +4,14 @@ import de.embl.cba.mobie2.Dataset;
 import de.embl.cba.mobie2.Project;
 import de.embl.cba.mobie2.serialize.DatasetJsonParser;
 import de.embl.cba.mobie2.serialize.ProjectJsonParser;
+import de.embl.cba.mobie2.view.View;
 import de.embl.cba.tables.FileAndUrlUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProjectCreator {
 
@@ -20,6 +23,7 @@ public class ProjectCreator {
     private File currentDatasetJson;
     private String currentDatasetName;
     private Dataset currentDataset;
+    private Map<String, ArrayList<String> > currentGrouptoViews;
 
     private final DatasetsCreator datasetsCreator;
     private final ImagesCreator imagesCreator;
@@ -93,9 +97,48 @@ public class ProjectCreator {
         }
     }
 
+    public String[] getGroups( String datasetName ) {
+        if ( !datasetName.equals(currentDatasetName) ) {
+            getDataset( datasetName );
+        }
+
+        String[] groups = null;
+        if ( currentGrouptoViews != null && currentGrouptoViews.keySet().size() > 0 ) {
+            groups = new String[currentGrouptoViews.keySet().size()];
+            currentGrouptoViews.keySet().toArray(groups);
+        }
+        return groups;
+    }
+
+    public String[] getViews( String datasetName, String uiSelectionGroup ) {
+        if ( !datasetName.equals(currentDatasetName) ) {
+            getDataset( datasetName );
+        }
+
+        String[] views = null;
+        if ( currentGrouptoViews != null && currentGrouptoViews.keySet().size() > 0 ) {
+            views = currentGrouptoViews.get(uiSelectionGroup).toArray(new String[0]);
+        }
+
+        return views;
+    }
+
     public void reloadCurrentDataset() throws IOException {
         if ( currentDatasetName != null ) {
             this.currentDataset = new DatasetJsonParser().parseDataset(currentDatasetJson.getAbsolutePath());
+
+            this.currentGrouptoViews = new HashMap<>();
+            for ( String viewName: currentDataset.views.keySet() ) {
+                View view = currentDataset.views.get( viewName );
+                String group = view.getUiSelectionGroup();
+                if ( !currentGrouptoViews.containsKey( group ) ) {
+                    ArrayList<String> views = new ArrayList<>();
+                    views.add( viewName );
+                    currentGrouptoViews.put( group, views );
+                } else {
+                    currentGrouptoViews.get( group ).add( viewName );
+                }
+            }
         }
     }
 

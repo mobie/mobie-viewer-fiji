@@ -4,7 +4,6 @@ import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie2.Dataset;
 import de.embl.cba.mobie2.Project;
 import de.embl.cba.mobie2.projectcreator.ProjectCreator;
-import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.ImagePlus;
@@ -28,7 +27,9 @@ import static de.embl.cba.mobie2.ui.UserInterfaceHelper.tidyString;
 public class ProjectsCreatorPanel extends JFrame {
     private ProjectCreator projectsCreator;
     private JComboBox<String> datasetComboBox;
-    private JComboBox<String> imagesComboBox;
+    private JComboBox<String> sourcesComboBox;
+    private JComboBox<String> groupsComboBox;
+    private JComboBox<String> viewsComboBox;
 
     public ProjectsCreatorPanel ( File projectLocation ) throws IOException {
 
@@ -37,7 +38,11 @@ public class ProjectsCreatorPanel extends JFrame {
         this.projectsCreator = new ProjectCreator( dataDirectory );
 
         addDatasetPanel();
-        addImagesPanel();
+        addSourcesPanel();
+        this.getContentPane().add(new JSeparator(SwingConstants.HORIZONTAL));
+        this.getContentPane().add( Box.createVerticalStrut( 10 ) );
+        addViewsPanel();
+
         String shortenedProjectName = projectLocation.getName();
         if ( shortenedProjectName.length() > 50 ) {
             shortenedProjectName = shortenedProjectName.substring( 0, 47 ) + "...";
@@ -102,22 +107,61 @@ public class ProjectsCreatorPanel extends JFrame {
         datasetComboBox.setSelectedItem( datasetNames[0] );
         setComboBoxDimensions(datasetComboBox);
         datasetComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
-        datasetComboBox.addItemListener( new SyncImageAndDatasetComboBox() );
+        datasetComboBox.addItemListener( new SyncAllWithDatasetComboBox() );
     }
 
-    private void createImagesCombobox() {
+    private void createSoucesComboBox() {
         String selectedDataset = (String) datasetComboBox.getSelectedItem();
         Dataset dataset = projectsCreator.getDataset( selectedDataset );
         if ( !selectedDataset.equals("") && dataset != null && dataset.sources.keySet().size() > 0 ) {
             String[] imageNames = projectsCreator.getDataset( selectedDataset ).sources.keySet().toArray(new String[0]);
-            imagesComboBox = new JComboBox<>( imageNames );
-            imagesComboBox.setSelectedItem( imageNames[0] );
+            sourcesComboBox = new JComboBox<>( imageNames );
+            sourcesComboBox.setSelectedItem( imageNames[0] );
         } else {
-            imagesComboBox = new JComboBox<>( new String[] {""} );
-            imagesComboBox.setSelectedItem( "" );
+            sourcesComboBox = new JComboBox<>( new String[] {""} );
+            sourcesComboBox.setSelectedItem( "" );
         }
-        setComboBoxDimensions(imagesComboBox);
-        imagesComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
+        setComboBoxDimensions(sourcesComboBox);
+        sourcesComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
+    }
+
+    private void createGroupsCombobox() {
+        String selectedDataset = (String) datasetComboBox.getSelectedItem();
+        String[] groupNames = null;
+        if ( !selectedDataset.equals("") ) {
+            groupNames = projectsCreator.getGroups( selectedDataset );
+        }
+
+        if ( groupNames != null && groupNames.length > 0 ) {
+            groupsComboBox = new JComboBox<>( groupNames );
+            groupsComboBox.setSelectedItem( groupNames[0] );
+        } else {
+            groupsComboBox = new JComboBox<>( new String[] {""} );
+            groupsComboBox.setSelectedItem( "" );
+        }
+        setComboBoxDimensions(groupsComboBox);
+        groupsComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
+        groupsComboBox.addItemListener( new SyncGroupAndViewComboBox() );
+    }
+
+    private void createViewsCombobox() {
+        String selectedDataset = (String) datasetComboBox.getSelectedItem();
+        String selectedGroup = (String) groupsComboBox.getSelectedItem();
+        String[] viewNames = null;
+        if ( !selectedDataset.equals("") && !selectedGroup.equals("") ) {
+            viewNames = projectsCreator.getViews( selectedDataset, selectedGroup );
+        }
+
+        if ( viewNames != null && viewNames.length > 0 ) {
+            viewsComboBox = new JComboBox<>( viewNames );
+            viewsComboBox.setSelectedItem( viewNames[0] );
+        } else {
+            viewsComboBox = new JComboBox<>( new String[] {""} );
+            viewsComboBox.setSelectedItem( "" );
+        }
+
+        setComboBoxDimensions(viewsComboBox);
+        viewsComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
     }
 
     public static void setComboBoxDimensions( JComboBox< String > comboBox )
@@ -127,16 +171,26 @@ public class ProjectsCreatorPanel extends JFrame {
         comboBox.setMaximumSize( new Dimension( 350, 20 ) );
     }
 
-    private class SyncImageAndDatasetComboBox implements ItemListener {
+    private class SyncAllWithDatasetComboBox implements ItemListener {
         @Override
         public void itemStateChanged(ItemEvent event) {
             if (event.getStateChange() == ItemEvent.SELECTED) {
-                updateImagesComboBox();
+                updateSourcesComboBox();
+                updateGroupsComboBox();
             }
         }
     }
 
-    private void addImagesPanel() {
+    private class SyncGroupAndViewComboBox implements ItemListener {
+        @Override
+        public void itemStateChanged(ItemEvent event) {
+            if (event.getStateChange() == ItemEvent.SELECTED) {
+                updateViewsComboBox();
+            }
+        }
+    }
+
+    private void addSourcesPanel() {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
         final JButton addButton = createButton( "Add" );
@@ -144,7 +198,7 @@ public class ProjectsCreatorPanel extends JFrame {
         // so keep this code for now
         // final JButton editButton = createButton("Edit");
 
-        createImagesCombobox();
+        createSoucesComboBox();
         addButton.addActionListener( e ->
         {
             new Thread( () -> { addImageDialog(); } ).start();
@@ -155,14 +209,36 @@ public class ProjectsCreatorPanel extends JFrame {
         //     new Thread( () -> { editImageDialog(); } ).start();
         // } );
 
-        horizontalLayoutPanel.add(getJLabel("image", 60, 10));
-        horizontalLayoutPanel.add(imagesComboBox);
+        horizontalLayoutPanel.add(getJLabel("source", 60, 10));
+        horizontalLayoutPanel.add(sourcesComboBox);
         horizontalLayoutPanel.add( addButton );
         horizontalLayoutPanel.add( Box.createHorizontalStrut( BUTTON_DIMENSION.width ) );
         // horizontalLayoutPanel.add( editButton );
         horizontalLayoutPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
         this.getContentPane().add(horizontalLayoutPanel);
+    }
+
+    private void addViewsPanel() {
+        final JPanel groupPanel = SwingUtils.horizontalLayoutPanel();
+        final JPanel viewsPanel = SwingUtils.horizontalLayoutPanel();
+
+        createGroupsCombobox();
+        createViewsCombobox();
+
+        groupPanel.add(getJLabel("group", 60, 10));
+        viewsPanel.add(getJLabel("view", 60, 10));
+        groupPanel.add( groupsComboBox );
+        viewsPanel.add( viewsComboBox );
+        groupPanel.add( Box.createHorizontalStrut( BUTTON_DIMENSION.width ) );
+        groupPanel.add( Box.createHorizontalStrut( BUTTON_DIMENSION.width ) );
+        viewsPanel.add( Box.createHorizontalStrut( BUTTON_DIMENSION.width ) );
+        viewsPanel.add( Box.createHorizontalStrut( BUTTON_DIMENSION.width ) );
+        groupPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
+        viewsPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
+
+        this.getContentPane().add( groupPanel );
+        this.getContentPane().add( viewsPanel );
     }
 
     public String chooseDatasetDialog() {
@@ -203,9 +279,19 @@ public class ProjectsCreatorPanel extends JFrame {
         gd.showDialog();
 
         if ( !gd.wasCanceled() ) {
-            return gd.getNextString();
+            return tidyString( gd.getNextString() );
         } else {
             return null;
+        }
+    }
+
+    private void updateComboBoxesForNewImage( String imageName, String uiSelectionGroup ) {
+        updateSourcesComboBox( imageName );
+        if ( uiSelectionGroup != null ) {
+            updateGroupsComboBox( uiSelectionGroup );
+            viewsComboBox.setSelectedItem( imageName );
+        } else {
+            updateGroupsComboBox();
         }
     }
 
@@ -248,17 +334,16 @@ public class ProjectsCreatorPanel extends JFrame {
                     String uiSelectionGroup = null;
                     if ( createView ) {
                         uiSelectionGroup = selectUiSelectionGroupDialog();
-                        uiSelectionGroup = tidyString( uiSelectionGroup );
                         if ( uiSelectionGroup != null ) {
                             projectsCreator.getImagesCreator().addImage( currentImage, imageName,
                                     datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings, uiSelectionGroup );
+                            updateComboBoxesForNewImage( imageName, uiSelectionGroup );
                         }
                     } else {
                         projectsCreator.getImagesCreator().addImage( currentImage, imageName,
                                 datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings, uiSelectionGroup );
+                        updateComboBoxesForNewImage( imageName, uiSelectionGroup );
                     }
-
-                    updateImagesComboBox( imageName );
                 }
             }
 
@@ -296,26 +381,25 @@ public class ProjectsCreatorPanel extends JFrame {
                     ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.valueOf( gd.getNextChoice() );
                     ProjectCreator.ImageType imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
                     boolean createView = gd.getNextBoolean();
+                    String imageName = FileNameUtils.getBaseName(xmlLocation.getAbsolutePath());
 
                     try {
                         String uiSelectionGroup = null;
                         if ( createView ) {
                             uiSelectionGroup = selectUiSelectionGroupDialog();
-                            uiSelectionGroup = tidyString( uiSelectionGroup );
                             if ( uiSelectionGroup != null ) {
                                 projectsCreator.getImagesCreator().addBdvFormatImage( xmlLocation, datasetName, imageType,
                                         addMethod, uiSelectionGroup );
+                                updateComboBoxesForNewImage( imageName, uiSelectionGroup );
                             }
                         } else {
                             projectsCreator.getImagesCreator().addBdvFormatImage( xmlLocation, datasetName, imageType,
                                     addMethod, uiSelectionGroup );
+                            updateComboBoxesForNewImage( imageName, uiSelectionGroup );
                         }
                     } catch (SpimDataException | IOException e) {
                         e.printStackTrace();
                     }
-
-                    String imageName = FileNameUtils.getBaseName(xmlLocation.getAbsolutePath());
-                    updateImagesComboBox( imageName );
                 }
             }
         } else {
@@ -381,23 +465,60 @@ public class ProjectsCreatorPanel extends JFrame {
         datasetComboBox.setSelectedItem( selection );
     }
 
-    private void updateImagesComboBox( String selection ) {
-        updateImagesComboBox();
-        imagesComboBox.setSelectedItem( selection );
+    private void updateSourcesComboBox(String selection ) {
+        updateSourcesComboBox();
+        sourcesComboBox.setSelectedItem( selection );
     }
 
-    private void updateImagesComboBox () {
+    private void updateSourcesComboBox() {
         String currentDataset = (String) datasetComboBox.getSelectedItem();
 
         if ( currentDataset != null && !currentDataset.equals("") ) {
-            imagesComboBox.removeAllItems();
+            sourcesComboBox.removeAllItems();
             Dataset dataset = projectsCreator.getDataset( currentDataset );
             if ( dataset != null && dataset.sources.keySet().size() > 0 ) {
-                for (String imageName : dataset.sources.keySet() ) {
-                    imagesComboBox.addItem(imageName);
+                for (String sourceName : dataset.sources.keySet() ) {
+                    sourcesComboBox.addItem( sourceName );
                 }
             } else {
-                imagesComboBox.addItem( "" );
+                sourcesComboBox.addItem( "" );
+            }
+        }
+    }
+
+    private void updateGroupsComboBox( String selection ) {
+        updateGroupsComboBox();
+        groupsComboBox.setSelectedItem( selection );
+    }
+
+    private void updateGroupsComboBox() {
+        String currentDataset = (String) datasetComboBox.getSelectedItem();
+        if ( currentDataset != null && !currentDataset.equals("") ) {
+            groupsComboBox.removeAllItems();
+            String[] groups = projectsCreator.getGroups( currentDataset );
+            if ( groups != null && groups.length > 0 ) {
+                for ( String group : groups ) {
+                    groupsComboBox.addItem( group );
+                }
+            } else {
+                groupsComboBox.addItem( "" );
+            }
+        }
+    }
+
+    private void updateViewsComboBox() {
+        String currentDataset = (String) datasetComboBox.getSelectedItem();
+        String currentGroup = (String) groupsComboBox.getSelectedItem();
+
+        if ( currentDataset != null && !currentDataset.equals("") && currentGroup != null && !currentGroup.equals("") ) {
+            viewsComboBox.removeAllItems();
+            String[] views = projectsCreator.getViews( currentDataset, currentGroup );
+            if ( views != null && views.length > 0 ) {
+                for ( String view: views ) {
+                    viewsComboBox.addItem(view);
+                }
+            } else {
+                viewsComboBox.addItem( "" );
             }
         }
     }
