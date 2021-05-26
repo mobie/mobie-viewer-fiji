@@ -273,16 +273,34 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
-    private String selectUiSelectionGroupDialog() {
-        final GenericDialog gd = new GenericDialog( "Ui selection group for image view..." );
-        gd.addStringField( "Ui selection group", "", 35 );
-        gd.showDialog();
+    private String selectUiSelectionGroupDialog( String datasetName ) {
 
-        if ( !gd.wasCanceled() ) {
-            return tidyString( gd.getNextString() );
+        String[] currentSelectionGroups = projectsCreator.getGroups( datasetName );
+
+        String chosenGroup = null;
+        if ( currentSelectionGroups == null || currentSelectionGroups.length == 0 ) {
+            chosenGroup = makeNewUiSelectionGroup( new String[]{} );
         } else {
-            return null;
+            final GenericDialog gd = new GenericDialog( "Choose selection group for image view..." );
+            String[] choices = new String[currentSelectionGroups.length + 1];
+            choices[0] = "Make New Ui Selection Group";
+            for (int i = 0; i < currentSelectionGroups.length; i++) {
+                choices[i + 1] = currentSelectionGroups[i];
+            }
+            gd.addChoice("Ui Selection Group", choices, choices[0]);
+            gd.showDialog();
+
+            if ( !gd.wasCanceled() ) {
+                String choice = gd.getNextChoice();
+                if ( choice.equals("Make New Ui Selection Group") ) {
+                    chosenGroup = makeNewUiSelectionGroup( currentSelectionGroups );
+                } else {
+                    chosenGroup = choice;
+                }
+            }
         }
+
+        return chosenGroup;
     }
 
     private void updateComboBoxesForNewImage( String imageName, String uiSelectionGroup ) {
@@ -333,7 +351,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 if ( imageName != null && sourceTransform != null ) {
                     String uiSelectionGroup = null;
                     if ( createView ) {
-                        uiSelectionGroup = selectUiSelectionGroupDialog();
+                        uiSelectionGroup = selectUiSelectionGroupDialog( datasetName );
                         if ( uiSelectionGroup != null ) {
                             projectsCreator.getImagesCreator().addImage( currentImage, imageName,
                                     datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings, uiSelectionGroup );
@@ -386,7 +404,7 @@ public class ProjectsCreatorPanel extends JFrame {
                     try {
                         String uiSelectionGroup = null;
                         if ( createView ) {
-                            uiSelectionGroup = selectUiSelectionGroupDialog();
+                            uiSelectionGroup = selectUiSelectionGroupDialog( datasetName );
                             if ( uiSelectionGroup != null ) {
                                 projectsCreator.getImagesCreator().addBdvFormatImage( xmlLocation, datasetName, imageType,
                                         addMethod, uiSelectionGroup );

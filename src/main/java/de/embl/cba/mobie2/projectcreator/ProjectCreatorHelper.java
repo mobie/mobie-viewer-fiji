@@ -8,6 +8,7 @@ import de.embl.cba.mobie.n5.N5S3ImageLoader;
 import de.embl.cba.tables.FileAndUrlUtils;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.GenericDialog;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
@@ -17,6 +18,9 @@ import net.imglib2.FinalDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.io.File;
+import java.util.Arrays;
+
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.tidyString;
 
 public class ProjectCreatorHelper {
     public static boolean isImageSuitable(ImagePlus imp) {
@@ -174,5 +178,37 @@ public class ProjectCreatorHelper {
 
     public static int getNTimepointsFromSpimData( SpimDataMinimal spimDataMinimal ) {
         return spimDataMinimal.getSequenceDescription().getTimePoints().size();
+    }
+
+    public static String makeNewUiSelectionGroup( String[] currentUiSelectionGroups ) {
+        String newUiSelectionGroup = chooseNewSelectionGroupNameDialog();
+
+        // get rid of any spaces, warn for unusual characters
+        if ( newUiSelectionGroup != null ) {
+            newUiSelectionGroup = tidyString(newUiSelectionGroup);
+        }
+
+        if ( newUiSelectionGroup != null ) {
+            boolean alreadyExists = Arrays.asList(currentUiSelectionGroups).contains( newUiSelectionGroup );
+            if ( alreadyExists ) {
+                newUiSelectionGroup = null;
+                IJ.log("Saving view aborted - new ui selection group already exists");
+            }
+        }
+
+        return newUiSelectionGroup;
+    }
+
+    public static String chooseNewSelectionGroupNameDialog() {
+        final GenericDialog gd = new GenericDialog("Choose ui selection group Name:");
+
+        gd.addStringField("New ui selection group name:", "", 25 );
+        gd.showDialog();
+
+        if (!gd.wasCanceled()) {
+            return gd.getNextString();
+        } else {
+            return null;
+        }
     }
 }

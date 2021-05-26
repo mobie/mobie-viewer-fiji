@@ -18,6 +18,7 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.makeNewUiSelectionGroup;
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.tidyString;
 import static de.embl.cba.tables.FileUtils.*;
 
@@ -205,38 +206,6 @@ public class ViewsSaver {
             return null;
         }
 
-    }
-
-    private String makeNewUiSelectionGroup( String[] currentUiSelectionGroups ) {
-        String newUiSelectionGroup = chooseNewSelectionGroupNameDialog();
-
-        // get rid of any spaces, warn for unusual characters
-        if ( newUiSelectionGroup != null ) {
-            newUiSelectionGroup = tidyString(newUiSelectionGroup);
-        }
-
-        if ( newUiSelectionGroup != null ) {
-            boolean alreadyExists = Arrays.asList(currentUiSelectionGroups).contains( newUiSelectionGroup );
-            if ( alreadyExists ) {
-                newUiSelectionGroup = null;
-                IJ.log("Saving view aborted - new ui selection group already exists");
-            }
-        }
-
-        return newUiSelectionGroup;
-    }
-
-    private String chooseNewSelectionGroupNameDialog() {
-        final GenericDialog gd = new GenericDialog("Choose ui selection group Name:");
-
-        gd.addStringField("New ui selection group name:", "", 25 );
-        gd.showDialog();
-
-        if (!gd.wasCanceled()) {
-            return gd.getNextString();
-        } else {
-            return null;
-        }
     }
 
     private String makeNewViewFile( String[] existingViewFiles ) {
