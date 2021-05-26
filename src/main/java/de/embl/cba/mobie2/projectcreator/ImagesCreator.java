@@ -21,11 +21,16 @@ import mpicbg.spim.data.registration.ViewRegistration;
 import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.*;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.converter.RealTypeConverters;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.labeling.ImgLabeling;
 import net.imglib2.roi.labeling.LabelRegion;
 import net.imglib2.roi.labeling.LabelRegions;
+import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.integer.IntType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.type.volatiles.VolatileUnsignedShortType;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.GzipCompression;
@@ -39,6 +44,7 @@ import java.util.Iterator;
 
 import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.*;
 import static de.embl.cba.morphometry.Utils.labelMapAsImgLabeling;
+import static net.imglib2.util.Util.getTypeFromInterval;
 
 public class ImagesCreator {
 
@@ -149,7 +155,11 @@ public class ImagesCreator {
 
     private ArrayList<Object[]> makeDefaultTableRowsForTimepoint( LazySpimSource labelsSource, int timepoint, boolean addTimepointColumn ) {
 
-        final RandomAccessibleInterval<IntType> rai = labelsSource.getNonVolatileSource( timepoint, 0 );
+        RandomAccessibleInterval rai = labelsSource.getNonVolatileSource( timepoint, 0 );
+        if ( getTypeFromInterval( rai ) instanceof FloatType ) {
+            rai = RealTypeConverters.convert( rai, new IntType() );
+        }
+
         double[] dimensions = new double[ rai.numDimensions() ];
         labelsSource.getVoxelDimensions().dimensions( dimensions );
 
