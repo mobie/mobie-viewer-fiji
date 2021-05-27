@@ -1,10 +1,11 @@
-package de.embl.cba.mobie2.view;
+package de.embl.cba.mobie2.view.saving;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import de.embl.cba.mobie2.Dataset;
 import de.embl.cba.mobie2.serialize.AdditionalViewsJsonParser;
 import de.embl.cba.mobie2.serialize.DatasetJsonParser;
+import de.embl.cba.mobie2.view.View;
 import de.embl.cba.mobie2.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.github.GitHubContentGetter;
 import de.embl.cba.tables.github.GitHubFileCommitter;

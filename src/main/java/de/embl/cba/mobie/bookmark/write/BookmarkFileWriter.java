@@ -5,8 +5,8 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonWriter;
 import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.bookmark.BookmarkReader;
+import de.embl.cba.mobie2.PathHelpers;
 import de.embl.cba.tables.FileAndUrlUtils;
-import de.embl.cba.tables.FileUtils;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -55,10 +55,10 @@ public class BookmarkFileWriter
 		writeBookmarksToFile(gson, type, jsonFile, bookmarks);
 	}
 
-	public static String chooseJsonFileLocation( FileUtils.FileLocation fileLocation, String datasetLocation ) {
+	public static String chooseJsonFileLocation(PathHelpers.FileLocation fileLocation, String datasetLocation ) {
 		String jsonPath = null;
 		final JFileChooser jFileChooser;
-		if (fileLocation.equals( FileUtils.FileLocation.FileSystem )) {
+		if (fileLocation.equals( PathHelpers.FileLocation.FileSystem )) {
 			jFileChooser = new JFileChooser();
 		} else {
 			String bookmarksDirectory = FileAndUrlUtils.combinePath( datasetLocation, "misc", "bookmarks");
@@ -87,7 +87,7 @@ public class BookmarkFileWriter
 		return jsonPath;
 	}
 
-	public static void saveBookmarksToFile( ArrayList< Bookmark > bookmarks, FileUtils.FileLocation fileLocation, String datasetLocation ) throws IOException {
+	public static void saveBookmarksToFile(ArrayList< Bookmark > bookmarks, PathHelpers.FileLocation fileLocation, String datasetLocation ) throws IOException {
 		HashMap<String, Bookmark> namesToBookmarks = new HashMap<>();
 		for (Bookmark bookmark : bookmarks) {
 			namesToBookmarks.put(bookmark.name, bookmark);

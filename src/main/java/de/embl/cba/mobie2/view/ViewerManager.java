@@ -20,6 +20,7 @@ import de.embl.cba.mobie2.transform.*;
 import de.embl.cba.mobie2.ui.UserInterface;
 import de.embl.cba.mobie2.ui.WindowArrangementHelper;
 import de.embl.cba.mobie2.view.additionalviews.AdditionalViewsLoader;
+import de.embl.cba.mobie2.view.saving.ViewsSaver;
 import de.embl.cba.mobie2.volume.SegmentsVolumeView;
 import de.embl.cba.mobie2.volume.UniverseManager;
 import de.embl.cba.tables.TableColumns;

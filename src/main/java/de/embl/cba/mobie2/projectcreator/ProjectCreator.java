@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.getGroupToViewsMap;
+
 public class ProjectCreator {
 
     private final File dataLocation;
@@ -126,19 +128,7 @@ public class ProjectCreator {
     public void reloadCurrentDataset() throws IOException {
         if ( currentDatasetName != null ) {
             this.currentDataset = new DatasetJsonParser().parseDataset(currentDatasetJson.getAbsolutePath());
-
-            this.currentGrouptoViews = new HashMap<>();
-            for ( String viewName: currentDataset.views.keySet() ) {
-                View view = currentDataset.views.get( viewName );
-                String group = view.getUiSelectionGroup();
-                if ( !currentGrouptoViews.containsKey( group ) ) {
-                    ArrayList<String> views = new ArrayList<>();
-                    views.add( viewName );
-                    currentGrouptoViews.put( group, views );
-                } else {
-                    currentGrouptoViews.get( group ).add( viewName );
-                }
-            }
+            this.currentGrouptoViews = getGroupToViewsMap(this.currentDataset);
         }
     }
 

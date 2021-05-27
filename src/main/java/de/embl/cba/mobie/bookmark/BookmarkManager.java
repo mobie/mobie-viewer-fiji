@@ -13,12 +13,12 @@ import de.embl.cba.mobie.image.SourceGroupLabelSourceCreator;
 import de.embl.cba.mobie.image.SourceGroups;
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.ui.SourcesDisplayManager;
+import de.embl.cba.mobie2.PathHelpers;
 import de.embl.cba.mobie2.transform.BdvLocationChanger;
 import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.transform.BdvLocation;
 import de.embl.cba.mobie2.transform.BdvLocationType;
 import de.embl.cba.tables.FileAndUrlUtils;
-import de.embl.cba.tables.FileUtils.FileLocation;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -202,7 +202,7 @@ public class BookmarkManager
 		ArrayList<Bookmark> bookmarks = new ArrayList<>();
 		bookmarks.add(currentBookmark);
 
-		if ( bookmarkNameAndFileLocation.location.equals( FileLocation.Project ) &&
+		if ( bookmarkNameAndFileLocation.location.equals( PathHelpers.FileLocation.Project ) &&
 				datasetLocation.contains( "raw.githubusercontent" )) {
 			BookmarkWriter.saveBookmarksToGithub(bookmarks, bookmarkReader );
 		} else {

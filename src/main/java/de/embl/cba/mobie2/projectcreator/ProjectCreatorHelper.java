@@ -5,6 +5,8 @@ import bdv.spimdata.SpimDataMinimal;
 import com.fasterxml.jackson.databind.introspect.TypeResolutionContext;
 import de.embl.cba.mobie.n5.N5FSImageLoader;
 import de.embl.cba.mobie.n5.N5S3ImageLoader;
+import de.embl.cba.mobie2.Dataset;
+import de.embl.cba.mobie2.view.View;
 import de.embl.cba.tables.FileAndUrlUtils;
 import ij.IJ;
 import ij.ImagePlus;
@@ -18,7 +20,10 @@ import net.imglib2.FinalDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.tidyString;
 
@@ -174,6 +179,23 @@ public class ProjectCreatorHelper {
         } else {
             return false;
         }
+    }
+
+    public static Map<String, ArrayList<String>> getGroupToViewsMap( Dataset dataset ) {
+        Map<String, ArrayList<String>> groupToViewsMap = new HashMap<>();
+        for ( String viewName: dataset.views.keySet() ) {
+            View view = dataset.views.get( viewName );
+            String group = view.getUiSelectionGroup();
+            if ( !groupToViewsMap.containsKey( group ) ) {
+                ArrayList<String> views = new ArrayList<>();
+                views.add( viewName );
+                groupToViewsMap.put( group, views );
+            } else {
+                groupToViewsMap.get( group ).add( viewName );
+            }
+        }
+
+        return groupToViewsMap;
     }
 
     public static int getNTimepointsFromSpimData( SpimDataMinimal spimDataMinimal ) {
