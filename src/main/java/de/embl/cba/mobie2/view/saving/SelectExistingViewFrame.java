@@ -10,6 +10,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,6 +19,8 @@ import java.util.Map;
 import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.getGroupToViewsMap;
 import static de.embl.cba.mobie2.ui.SwingHelper.createButton;
 import static de.embl.cba.mobie2.ui.SwingHelper.getJLabel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
 import static de.embl.cba.mobie2.view.saving.ViewSavingHelpers.writeAdditionalViewsJson;
 import static de.embl.cba.mobie2.view.saving.ViewSavingHelpers.writeDatasetJson;
 
@@ -34,6 +37,7 @@ public class SelectExistingViewFrame extends JFrame {
 
     // writing to dataset json
     public SelectExistingViewFrame( Dataset dataset, View view, String jsonPath ) {
+        setMoBIESwingLookAndFeel();
         this.dataset = dataset;
         this.view = view;
         this.jsonPath = jsonPath;
@@ -43,6 +47,7 @@ public class SelectExistingViewFrame extends JFrame {
 
     // write to additional views json
     public SelectExistingViewFrame( AdditionalViews additionalViews, View view, String jsonPath ) {
+        setMoBIESwingLookAndFeel();
         this.additionalViews = additionalViews;
         this.view = view;
         this.jsonPath = jsonPath;
@@ -56,6 +61,16 @@ public class SelectExistingViewFrame extends JFrame {
         this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         createComboBoxes();
         createAcceptPanel();
+        // reset swing laf when finished
+        this.addWindowListener( new WindowAdapter()
+        {
+            @Override
+            public void windowClosing(WindowEvent e)
+            {
+                resetSystemSwingLookAndFeel();
+                e.getWindow().dispose();
+            }
+        });
         this.pack();
         this.setLocationRelativeTo(null);
         this.setVisible( true );
