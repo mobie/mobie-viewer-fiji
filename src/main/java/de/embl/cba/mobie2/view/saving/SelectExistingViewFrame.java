@@ -121,7 +121,7 @@ public class SelectExistingViewFrame extends JFrame {
             } ).start();
         } );
         JButton cancelButton = createButton("Cancel");
-        selectButton.addActionListener( e ->
+        cancelButton.addActionListener( e ->
         {
             new Thread( () -> {
                 this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
