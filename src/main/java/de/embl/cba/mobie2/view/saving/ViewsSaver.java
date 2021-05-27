@@ -60,12 +60,14 @@ public class ViewsSaver {
         gd.addChoice("Ui Selection Group", choices, choices[0]);
 
         gd.addCheckbox("exclusive", true);
+        gd.addCheckbox("Include viewer transform?", true );
         gd.showDialog();
 
         if (!gd.wasCanceled()) {
             PathHelpers.FileLocation fileLocation = PathHelpers.FileLocation.valueOf(gd.getNextChoice());
             String uiSelectionGroup = gd.getNextChoice();
             boolean exclusive = gd.getNextBoolean();
+            boolean includeViewerTransform = gd.getNextBoolean();
 
             if (uiSelectionGroup.equals("Make New Ui Selection Group")) {
                 uiSelectionGroup = makeNewUiSelectionGroup(currentUiSelectionGroups);
@@ -73,15 +75,15 @@ public class ViewsSaver {
 
             if (uiSelectionGroup != null) {
                 if (fileLocation == PathHelpers.FileLocation.Project) {
-                    saveToProject( uiSelectionGroup, exclusive );
+                    saveToProject( uiSelectionGroup, exclusive, includeViewerTransform );
                 } else {
-                    saveToFileSystem( uiSelectionGroup, exclusive );
+                    saveToFileSystem( uiSelectionGroup, exclusive, includeViewerTransform );
                 }
             }
         }
     }
 
-    private void saveToFileSystem( String uiSelectionGroup, boolean exclusive ) {
+    private void saveToFileSystem( String uiSelectionGroup, boolean exclusive, boolean includeViewerTransform ) {
         String jsonPath = null;
         final JFileChooser jFileChooser = new JFileChooser();
         jFileChooser.setFileFilter(new FileNameExtensionFilter("json", "json"));
@@ -94,7 +96,7 @@ public class ViewsSaver {
                 jsonPath += ".json";
             }
 
-            View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive);
+            View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
             try {
                 saveToAdditionalViewsJson( currentView, jsonPath );
             } catch (IOException e) {
@@ -103,14 +105,14 @@ public class ViewsSaver {
         }
     }
 
-    private void saveToProject( String uiSelectionGroup, boolean exclusive ) {
+    private void saveToProject( String uiSelectionGroup, boolean exclusive, boolean includeViewerTransform ) {
         if ( isS3(settings.values.getProjectLocation()) ) {
             // TODO - support saving views to s3?
             IJ.log("View saving aborted - saving directly to s3 is not yet supported!");
         } else {
             ProjectSaveLocation projectSaveLocation = chooseProjectSaveLocationDialog();
             if (projectSaveLocation != null) {
-                View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive);
+                View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
 
                 try {
                     if (projectSaveLocation == ProjectSaveLocation.datasetJson) {

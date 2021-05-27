@@ -101,7 +101,7 @@ public class ViewerManager
 
 	public ViewsSaver getViewsSaver() { return viewsSaver; }
 
-	public View getCurrentView( String uiSelectionGroup, boolean isExclusive ) {
+	public View getCurrentView( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform ) {
 
 		List< SourceDisplay > viewSourceDisplays = new ArrayList<>();
 		List< SourceTransformer > viewSourceTransforms = new ArrayList<>();
@@ -129,10 +129,13 @@ public class ViewerManager
 			}
 		}
 
-		AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform( bdvHandle, Utils.getMousePosition( bdvHandle ) );
-		BdvLocationSupplier viewerTransform = new BdvLocationSupplier( new BdvLocation( BdvLocationType.NormalisedViewerTransform, normalisedViewTransform.getRowPackedCopy()) );
-
-		return new View( uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, viewerTransform, isExclusive );
+		if ( includeViewerTransform ) {
+			AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform(bdvHandle, Utils.getMousePosition(bdvHandle));
+			BdvLocationSupplier viewerTransform = new BdvLocationSupplier(new BdvLocation(BdvLocationType.NormalisedViewerTransform, normalisedViewTransform.getRowPackedCopy()));
+			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, viewerTransform, isExclusive);
+		} else {
+			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, isExclusive);
+		}
 	}
 
 	public synchronized void show(View view )
