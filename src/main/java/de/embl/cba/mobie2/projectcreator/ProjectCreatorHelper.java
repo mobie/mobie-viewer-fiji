@@ -2,11 +2,11 @@ package de.embl.cba.mobie2.projectcreator;
 
 import bdv.img.n5.N5ImageLoader;
 import bdv.spimdata.SpimDataMinimal;
-import com.fasterxml.jackson.databind.introspect.TypeResolutionContext;
 import de.embl.cba.mobie.n5.N5FSImageLoader;
 import de.embl.cba.mobie.n5.N5S3ImageLoader;
 import de.embl.cba.mobie2.Dataset;
 import de.embl.cba.mobie2.view.View;
+import de.embl.cba.mobie2.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.FileAndUrlUtils;
 import ij.IJ;
 import ij.ImagePlus;
@@ -14,8 +14,6 @@ import ij.gui.GenericDialog;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
-import mpicbg.spim.data.sequence.ViewSetup;
-import net.imglib2.Dimensions;
 import net.imglib2.FinalDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 
@@ -185,6 +183,23 @@ public class ProjectCreatorHelper {
         Map<String, ArrayList<String>> groupToViewsMap = new HashMap<>();
         for ( String viewName: dataset.views.keySet() ) {
             View view = dataset.views.get( viewName );
+            String group = view.getUiSelectionGroup();
+            if ( !groupToViewsMap.containsKey( group ) ) {
+                ArrayList<String> views = new ArrayList<>();
+                views.add( viewName );
+                groupToViewsMap.put( group, views );
+            } else {
+                groupToViewsMap.get( group ).add( viewName );
+            }
+        }
+
+        return groupToViewsMap;
+    }
+
+    public static Map<String, ArrayList<String>> getGroupToViewsMap( AdditionalViews additionalViews ) {
+        Map<String, ArrayList<String>> groupToViewsMap = new HashMap<>();
+        for ( String viewName: additionalViews.views.keySet() ) {
+            View view = additionalViews.views.get( viewName );
             String group = view.getUiSelectionGroup();
             if ( !groupToViewsMap.containsKey( group ) ) {
                 ArrayList<String> views = new ArrayList<>();

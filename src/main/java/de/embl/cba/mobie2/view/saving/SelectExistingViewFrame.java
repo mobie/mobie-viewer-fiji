@@ -2,8 +2,8 @@ package de.embl.cba.mobie2.view.saving;
 
 import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie2.Dataset;
-import de.embl.cba.mobie2.projectcreator.ui.ProjectsCreatorPanel;
 import de.embl.cba.mobie2.view.View;
+import de.embl.cba.mobie2.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.SwingUtils;
 
 import javax.swing.*;
@@ -18,25 +18,39 @@ import java.util.Map;
 import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.getGroupToViewsMap;
 import static de.embl.cba.mobie2.ui.SwingHelper.createButton;
 import static de.embl.cba.mobie2.ui.SwingHelper.getJLabel;
+import static de.embl.cba.mobie2.view.saving.ViewSavingHelpers.writeAdditionalViewsJson;
 import static de.embl.cba.mobie2.view.saving.ViewSavingHelpers.writeDatasetJson;
 
 public class SelectExistingViewFrame extends JFrame {
 
     private JComboBox<String> groupsComboBox;
     private JComboBox<String> viewsComboBox;
+    private AdditionalViews additionalViews;
     private Dataset dataset;
     private View view;
     private String jsonPath;
     private ViewsSaver.ProjectSaveLocation saveLocation;
     private Map<String, ArrayList<String>> groupToViewsMap;
 
-    public SelectExistingViewFrame(ViewsSaver.ProjectSaveLocation saveLocation, Dataset dataset,
-                                   View view, String jsonPath ) {
+    // writing to dataset json
+    public SelectExistingViewFrame( Dataset dataset, View view, String jsonPath ) {
         this.dataset = dataset;
         this.view = view;
-        this.saveLocation = saveLocation;
         this.jsonPath = jsonPath;
         groupToViewsMap = getGroupToViewsMap(dataset);
+        createPanels();
+    }
+
+    // write to additional views json
+    public SelectExistingViewFrame( AdditionalViews additionalViews, View view, String jsonPath ) {
+        this.additionalViews = additionalViews;
+        this.view = view;
+        this.jsonPath = jsonPath;
+        groupToViewsMap = getGroupToViewsMap(additionalViews);
+        createPanels();
+    }
+
+    private void createPanels() {
         this.setTitle( "Choose an existing view..." );
         this.getContentPane().setLayout( new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS ) );
         this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
@@ -74,16 +88,18 @@ public class SelectExistingViewFrame extends JFrame {
             new Thread( () -> {
                 this.setVisible( false );
                 String selectedView = (String) viewsComboBox.getSelectedItem();
-                switch( saveLocation ) {
-                    case viewsJson:
-                        break;
-                    case datasetJson:
-                        try {
-                            writeDatasetJson( dataset, view, selectedView, jsonPath );
-                        } catch (IOException ioException) {
-                            ioException.printStackTrace();
-                        }
-                        break;
+                if ( dataset != null ) {
+                    try {
+                        writeDatasetJson( dataset, view, selectedView, jsonPath );
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                } else if ( additionalViews != null ) {
+                    try {
+                        writeAdditionalViewsJson( additionalViews, view, selectedView, jsonPath );
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
                 }
                 this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
 

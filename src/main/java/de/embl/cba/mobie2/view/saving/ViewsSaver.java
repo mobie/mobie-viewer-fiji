@@ -1,6 +1,5 @@
 package de.embl.cba.mobie2.view.saving;
 
-import de.embl.cba.mobie.ui.MoBIE;
 import de.embl.cba.mobie.ui.MoBIESettings;
 import de.embl.cba.mobie2.Dataset;
 import de.embl.cba.mobie2.MoBIE2;
@@ -16,19 +15,14 @@ import org.apache.commons.io.FilenameUtils;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 
 import static de.embl.cba.mobie2.PathHelpers.*;
-import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.getGroupToViewsMap;
 import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.makeNewUiSelectionGroup;
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.tidyString;
+import static de.embl.cba.mobie2.view.saving.ViewSavingHelpers.writeAdditionalViewsJson;
 import static de.embl.cba.mobie2.view.saving.ViewSavingHelpers.writeDatasetJson;
 
 public class ViewsSaver {
@@ -53,7 +47,6 @@ public class ViewsSaver {
 
     public void saveCurrentSettingsAsViewDialog() {
         final GenericDialog gd = new GenericDialog("Save current view");
-        // gd.addStringField("View name", "name", 25);
 
         gd.addChoice("Save to", new String[]{ PathHelpers.FileLocation.Project.toString(),
                 PathHelpers.FileLocation.FileSystem.toString()}, PathHelpers.FileLocation.Project.toString());
@@ -70,14 +63,9 @@ public class ViewsSaver {
         gd.showDialog();
 
         if (!gd.wasCanceled()) {
-            // String viewName = gd.getNextString();
             PathHelpers.FileLocation fileLocation = PathHelpers.FileLocation.valueOf(gd.getNextChoice());
             String uiSelectionGroup = gd.getNextChoice();
             boolean exclusive = gd.getNextBoolean();
-
-            // viewName = tidyString( viewName );
-
-            // if ( viewName != null ) {
 
             if (uiSelectionGroup.equals("Make New Ui Selection Group")) {
                 uiSelectionGroup = makeNewUiSelectionGroup(currentUiSelectionGroups);
@@ -87,14 +75,13 @@ public class ViewsSaver {
                 if (fileLocation == PathHelpers.FileLocation.Project) {
                     saveToProject( uiSelectionGroup, exclusive );
                 } else {
-                    // saveToFileSystem( uiSelectionGroup, exclusive );
+                    saveToFileSystem( uiSelectionGroup, exclusive );
                 }
             }
-            // }
         }
     }
 
-    private void saveToFileSystem( String viewName, String uiSelectionGroup, boolean exclusive ) {
+    private void saveToFileSystem( String uiSelectionGroup, boolean exclusive ) {
         String jsonPath = null;
         final JFileChooser jFileChooser = new JFileChooser();
         jFileChooser.setFileFilter(new FileNameExtensionFilter("json", "json"));
@@ -107,21 +94,11 @@ public class ViewsSaver {
                 jsonPath += ".json";
             }
 
-            File jsonFile = new File(jsonPath);
-            if (jsonFile.exists()) {
-                // check if want to append to existing file, otherwise abort
-                if (!appendToFileDialog()) {
-                    jsonPath = null;
-                }
-            }
-
-            if (jsonPath != null) {
-                View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive);
-                try {
-                    saveToAdditionalViewsJson( currentView, viewName, jsonPath );
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive);
+            try {
+                saveToAdditionalViewsJson( currentView, jsonPath );
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -141,7 +118,7 @@ public class ViewsSaver {
                     } else {
                         String viewJsonPath = chooseAdditionalViewsJson();
                         if (viewJsonPath != null) {
-                            saveToAdditionalViewsJson(currentView, viewJsonPath);
+                            saveToAdditionalViewsJson( currentView, viewJsonPath );
                         }
                     }
                 } catch (IOException e) {
@@ -169,7 +146,7 @@ public class ViewsSaver {
                         }
                         break;
                     case overwriteExistingView:
-                        new SelectExistingViewFrame( ProjectSaveLocation.datasetJson, dataset, view, datasetJsonPath );
+                        new SelectExistingViewFrame( dataset, view, datasetJsonPath );
                         break;
                 }
             }
@@ -180,21 +157,43 @@ public class ViewsSaver {
 
     }
 
-    private void saveToAdditionalViewsJson( View view, String viewName, String jsonPath ) throws IOException {
-        if ( isGithub( jsonPath ) ) {
-            new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( jsonPath ) ).writeViewToViewsJson( viewName, view );
-        } else {
-            AdditionalViews additionalViews;
-            if (new File(jsonPath).exists()) {
-                additionalViews = new AdditionalViewsJsonParser().getViews(jsonPath);
-            } else {
-                additionalViews = new AdditionalViews();
-                additionalViews.views = new HashMap<>();
+    private void saveToExistingViewsJson( View view, String jsonPath ) throws IOException {
+        AdditionalViews additionalViews = new AdditionalViewsJsonParser().getViews( jsonPath );
+        SaveMethod saveMethod = chooseSaveMethodDialog();
+        if ( saveMethod != null ) {
+            switch( saveMethod ) {
+                case saveAsNewView:
+                    String viewName = chooseNewViewNameDialog();
+                    if ( viewName != null && additionalViews.views.containsKey( viewName ) ) {
+                        IJ.log( "View saving aborted - this view name already exists!" );
+                    } else {
+                        writeAdditionalViewsJson( additionalViews, view, viewName, jsonPath );
+                    }
+                    break;
+                case overwriteExistingView:
+                    new SelectExistingViewFrame( additionalViews, view, jsonPath );
+                    break;
             }
+        }
+    }
 
-            additionalViews.views.put(viewName, view);
+    private void saveToAdditionalViewsJson( View view, String jsonPath ) throws IOException {
 
-            new AdditionalViewsJsonParser().saveViews(additionalViews, jsonPath);
+        boolean jsonExists;
+        if ( isGithub( jsonPath )) {
+            jsonExists = new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation(jsonPath) ).jsonExists();
+        } else {
+            jsonExists = new File( jsonPath ).exists();
+        }
+
+        String viewName;
+        if ( jsonExists ) {
+            saveToExistingViewsJson( view, jsonPath );
+        } else {
+            viewName = chooseNewViewNameDialog();
+            AdditionalViews additionalViews = new AdditionalViews();
+            additionalViews.views = new HashMap<>();
+            writeAdditionalViewsJson( additionalViews, view, viewName, jsonPath );
         }
     }
 
@@ -307,18 +306,6 @@ public class ViewsSaver {
             // TODO - check if already exists
         } else {
             return null;
-        }
-    }
-
-    public boolean appendToFileDialog() {
-        int result = JOptionPane.showConfirmDialog(null,
-                "This Json file already exists - append view to this file?", "Append to file?",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
-        if (result != JOptionPane.YES_OPTION) {
-            return false;
-        } else {
-            return true;
         }
     }
 
