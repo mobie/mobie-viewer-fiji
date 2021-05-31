@@ -1,11 +1,22 @@
 package projects;
 
-import de.embl.cba.mobie.ui.MoBIE;
+import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.MoBIESettings;
+import net.imagej.ImageJ;
+
+import java.io.IOException;
 
 public class OpenRemoteCovidEM
 {
 	public static void main( String[] args )
 	{
-		new MoBIE( "https://github.com/mobie-org/covid-em-datasets");
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
+		try {
+			new MoBIE("https://github.com/mobie-org/covid-em-datasets",
+					MoBIESettings.settings().imageDataStorageModality( MoBIESettings.ImageDataStorageModality.S3 ) );
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

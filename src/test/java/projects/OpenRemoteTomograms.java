@@ -1,7 +1,10 @@
 package projects;
 
-import de.embl.cba.mobie.ui.MoBIE;
+import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.MoBIESettings;
 import net.imagej.ImageJ;
+
+import java.io.IOException;
 
 public class OpenRemoteTomograms
 {
@@ -10,6 +13,11 @@ public class OpenRemoteTomograms
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		new MoBIE("https://github.com/mobie/covid-tomo-datasets" );
+		try {
+			new MoBIE("https://github.com/mobie/covid-tomo-datasets",
+					MoBIESettings.settings().imageDataStorageModality( MoBIESettings.ImageDataStorageModality.S3 ) );
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

@@ -1,14 +1,21 @@
 package projects;
 
-import de.embl.cba.mobie.ui.MoBIESettings;
-import de.embl.cba.mobie.ui.MoBIE;
+import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.MoBIESettings;
 import net.imagej.ImageJ;
+
+import java.io.IOException;
 
 public class OpenLocalPlankton
 {
 	public static void main( String[] args )
 	{
 		new ImageJ().ui().showUI();
-		new MoBIE("/Volumes/schwab/schwab/MoBIE-plankton", MoBIESettings.settings().imageDataStorageModality( MoBIESettings.ImageDataStorageModality.FileSystem ));
+		try {
+			new MoBIE("/Volumes/schwab/schwab/MoBIE-plankton",
+					MoBIESettings.settings().imageDataStorageModality( MoBIESettings.ImageDataStorageModality.FileSystem ) );
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

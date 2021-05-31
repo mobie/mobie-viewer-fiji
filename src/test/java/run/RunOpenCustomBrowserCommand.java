@@ -1,6 +1,6 @@
 package run;
 
-import de.embl.cba.mobie2.command.OpenMoBIEProjectCommand;
+import de.embl.cba.mobie.command.OpenMoBIEProjectCommand;
 import net.imagej.ImageJ;
 
 public class RunOpenCustomBrowserCommand

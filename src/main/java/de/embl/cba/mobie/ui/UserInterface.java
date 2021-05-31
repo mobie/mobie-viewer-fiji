@@ -1,86 +1,51 @@
 package de.embl.cba.mobie.ui;
 
-import bdv.util.BdvHandle;
-import bdv.viewer.Interpolation;
-import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.mobie.image.SourceAndMetadataChangedListener;
-import de.embl.cba.mobie2.ui.WindowArrangementHelper;
-import de.embl.cba.tables.image.SourceAndMetadata;
+import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.view.View;
+import de.embl.cba.mobie.display.ImageSourceDisplay;
+import de.embl.cba.mobie.display.SegmentationSourceDisplay;
+import de.embl.cba.mobie.display.SourceDisplay;
+import de.embl.cba.mobie.grid.GridOverlaySourceDisplay;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
-public class UserInterface implements SourceAndMetadataChangedListener
+import static de.embl.cba.mobie.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
+import static de.embl.cba.mobie.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
+
+public class UserInterface
 {
-	private final UserInterfaceComponentsProvider componentsProvider;
-	private final JPanel displaySettingsPanel;
-	private final SourcesDisplayManager displayManager;
-	private HashMap< Object, JPanel > sourceToPanel;
+	private final JPanel displaySettingsContainer;
 	private final JFrame frame;
-	private final JPanel actionPanel;
+	private final JPanel selectionContainer;
+	private final UserInterfaceHelper userInterfaceHelper;
+	private Map< Object, JPanel > displayToPanel;
+	private JSplitPane splitPane;
 
 	public UserInterface( MoBIE moBIE )
 	{
-		displayManager = moBIE.getSourcesDisplayManager();
-		displayManager.listeners().add( this );
+		userInterfaceHelper = new UserInterfaceHelper( moBIE );
 
-		componentsProvider = new UserInterfaceComponentsProvider( moBIE );
+		selectionContainer = userInterfaceHelper.createSelectionPanel();
+		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsPanel();
+		displayToPanel = new HashMap<>();
 
-		actionPanel = createActionPanel( moBIE );
-		displaySettingsPanel = createDisplaySettingsPanel();
-
-		frame = createAndShowFrame( moBIE, actionPanel, displaySettingsPanel );
+		setMoBIESwingLookAndFeel();
+		frame = createAndShowFrame( selectionContainer, displaySettingsContainer, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
+		resetSystemSwingLookAndFeel();
 	}
 
-	public void dispose()
+	private JFrame createAndShowFrame( JPanel actionPanel, JPanel displaySettingsPanel, String panelName )
 	{
-		frame.dispose();
-	}
+		JFrame frame = new JFrame( "MoBIE: " + panelName );
 
-	private JPanel createDisplaySettingsPanel()
-	{
-		final JPanel panel = new JPanel();
-		panel.setLayout( new BoxLayout(panel, BoxLayout.Y_AXIS ) );
-		panel.setAlignmentX( Component.LEFT_ALIGNMENT );
-
-		sourceToPanel = new HashMap<>();
-
-		return panel;
-	}
-
-	private JPanel createActionPanel( MoBIE moBIE )
-	{
-		final JPanel actionPanel = new JPanel();
-		actionPanel.setLayout( new BoxLayout( actionPanel, BoxLayout.Y_AXIS ) );
-
-		actionPanel.add( componentsProvider.createInfoPanel( moBIE.getProjectLocation(), moBIE.getOptions().values.getPublicationURL() ) );
-		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-
-		actionPanel.add( componentsProvider.createDatasetSelectionPanel() );
-		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-
-		actionPanel.add( componentsProvider.createSourceSelectionPanel( moBIE.getSourcesDisplayManager() ) );
-		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-
-		actionPanel.add( componentsProvider.createBookmarksPanel( moBIE.getBookmarkManager() )  );
-		actionPanel.add( componentsProvider.createMoveToLocationPanel( )  );
-
-		if ( moBIE.getLevelingVector() != null )
-		{
-			actionPanel.add( componentsProvider.createLevelingPanel( moBIE.getLevelingVector() ) );
-		}
-		return actionPanel;
-	}
-
-	private JFrame createAndShowFrame( MoBIE moBIE, JPanel actionPanel, JPanel displaySettingsPanel )
-	{
-		JFrame frame = new JFrame( "MoBIE: " + moBIE.getProjectName() + "-" + moBIE.getDataset() );
-
-		JSplitPane splitPane = new JSplitPane();
+		splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		final int sourceSelectionPanelHeight = componentsProvider.getSourceSelectionPanelHeight();
-		final int actionPanelHeight = sourceSelectionPanelHeight + 7 * 40;
+		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
+
 
 		splitPane.setDividerLocation( actionPanelHeight );
 		splitPane.setTopComponent( actionPanel );
@@ -88,7 +53,7 @@ public class UserInterface implements SourceAndMetadataChangedListener
 		splitPane.setAutoscrolls( true );
 
 		// show frame
-		frame.setPreferredSize( new Dimension( 700, actionPanelHeight + 200 ) );
+		frame.setPreferredSize( new Dimension( 550, actionPanelHeight + 200 ) );
 		frame.getContentPane().setLayout( new GridLayout() );
 		frame.getContentPane().add( splitPane );
 
@@ -99,53 +64,97 @@ public class UserInterface implements SourceAndMetadataChangedListener
 		return frame;
 	}
 
-	private void refresh()
+	private void refreshDisplaySettings()
 	{
-		displaySettingsPanel.revalidate();
-		displaySettingsPanel.repaint();
+		displaySettingsContainer.revalidate();
+		displaySettingsContainer.repaint();
 		frame.revalidate();
 		frame.repaint();
 	}
 
-	@Override
-	public synchronized void addedToBDV( SourceAndMetadata< ? > sam )
+	private void refreshSelection()
 	{
-		Object panelKey = getPanelKey( sam );
+		selectionContainer.revalidate();
+		selectionContainer.repaint();
+		// update the location of the splitpane divider, so any new uiSelectionGroups are visible
+		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
+		splitPane.setDividerLocation( actionPanelHeight );
+		frame.revalidate();
+		frame.repaint();
+	}
 
-		if ( sourceToPanel.containsKey( panelKey ) )
+	public void addViews( Map<String, View> views ) {
+		userInterfaceHelper.addViewsToSelectionPanel(views);
+		refreshSelection();
+	}
+
+	public void addSourceDisplay( SourceDisplay sourceDisplay )
+	{
+		final JPanel panel = createDisplaySettingPanel( sourceDisplay );
+		showDisplaySettingsPanel( sourceDisplay, panel );
+		refreshDisplaySettings();
+	}
+
+	private JPanel createDisplaySettingPanel( SourceDisplay sourceDisplay )
+	{
+		if ( sourceDisplay instanceof ImageSourceDisplay )
 		{
-			return;
+			return userInterfaceHelper.createImageDisplaySettingsPanel( ( ImageSourceDisplay ) sourceDisplay );
+		}
+		else if ( sourceDisplay instanceof SegmentationSourceDisplay )
+		{
+			return userInterfaceHelper.createSegmentationDisplaySettingsPanel( ( SegmentationSourceDisplay ) sourceDisplay );
 		}
 		else
 		{
-			final JPanel panel = componentsProvider.createDisplaySettingsPanel( sam, displayManager );
-			displaySettingsPanel.add( panel );
-			sourceToPanel.put( panelKey, panel );
-			refresh();
+			throw new UnsupportedOperationException();
 		}
 	}
 
-	protected Object getPanelKey( SourceAndMetadata< ? > sam )
+	public void addGridView( GridOverlaySourceDisplay gridOverlayDisplay )
 	{
-		Object panelKey;
-		if ( sam.metadata().groupId != null )
-			panelKey = sam.metadata().groupId;
-		else
-			panelKey = sam.metadata();
-		return panelKey;
+		final JPanel panel = userInterfaceHelper.createGridViewDisplaySettingsPanel( gridOverlayDisplay );
+		showDisplaySettingsPanel( gridOverlayDisplay, panel );
 	}
 
-	@Override
-	public void removedFromBDV( SourceAndMetadata< ? > sam )
+	public void removeDisplaySettingsPanel( Object display )
 	{
-		final JPanel panel = sourceToPanel.get( getPanelKey( sam ) );
-		displaySettingsPanel.remove( panel );
-		sourceToPanel.remove( sam );
-		refresh();
+		SwingUtilities.invokeLater( () -> {
+			final JPanel jPanel = displayToPanel.get( display );
+			displaySettingsContainer.remove( jPanel );
+			displayToPanel.remove( display );
+			refreshDisplaySettings();
+		} );
 	}
 
-	public JFrame getWindow()
+	protected void showDisplaySettingsPanel( Object display, JPanel panel )
+	{
+		SwingUtilities.invokeLater( () -> {
+			displayToPanel.put( display, panel );
+			displaySettingsContainer.add( panel );
+			refreshDisplaySettings();
+		});
+	}
+
+	public Window getWindow()
 	{
 		return frame;
+	}
+
+	public String[] getUISelectionGroupNames() {
+
+		Set<String> groupings = userInterfaceHelper.getGroupings();
+		String[] groupNames = new String[groupings.size()];
+		int i = 0;
+		for ( String groupName: groupings ) {
+			groupNames[i] = groupName;
+			i++;
+		}
+		return groupNames;
+	}
+
+	public void close()
+	{
+		frame.dispose();
 	}
 }
