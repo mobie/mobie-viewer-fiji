@@ -1,10 +1,11 @@
-package de.embl.cba.mobie2.view;
+package de.embl.cba.mobie2.view.saving;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import de.embl.cba.mobie2.Dataset;
 import de.embl.cba.mobie2.serialize.AdditionalViewsJsonParser;
 import de.embl.cba.mobie2.serialize.DatasetJsonParser;
+import de.embl.cba.mobie2.view.View;
 import de.embl.cba.mobie2.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.github.GitHubContentGetter;
 import de.embl.cba.tables.github.GitHubFileCommitter;
@@ -119,16 +120,23 @@ public class ViewsGithubWriter {
         }
     }
 
+    public boolean jsonExists() {
+        final GitHubContentGetter contentGetter =
+                new GitHubContentGetter(viewJsonGitLocation.repoUrl, viewJsonGitLocation.path, viewJsonGitLocation.branch, null);
+        int responseCode = contentGetter.getContentResponseCode();
+        if ( responseCode == 404 ) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     public void writeViewToViewsJson( String viewName, View view ) {
         if ( showDialog() ) {
             if ( viewJsonGitLocation.path.endsWith( ".json" )) {
-                final GitHubContentGetter contentGetter =
-                        new GitHubContentGetter(viewJsonGitLocation.repoUrl, viewJsonGitLocation.path, viewJsonGitLocation.branch, null);
-                int responseCode = contentGetter.getContentResponseCode();
-
                 AdditionalViews additionalViews;
                 // if 404, then file doesn't exist, so make new one
-                if (responseCode == 404) {
+                if ( !jsonExists() ) {
                     additionalViews = new AdditionalViews();
                     additionalViews.views = new HashMap<>();
                     additionalViews.views.put(viewName, view);
@@ -138,6 +146,8 @@ public class ViewsGithubWriter {
                     // otherwise, append to file
                 } else {
                     try {
+                        final GitHubContentGetter contentGetter =
+                                new GitHubContentGetter(viewJsonGitLocation.repoUrl, viewJsonGitLocation.path, viewJsonGitLocation.branch, null);
                         String content = contentGetter.getContent();
                         if (content != null) {
                             FilePathAndSha filePathAndSha = getFilePathAndSha(content);

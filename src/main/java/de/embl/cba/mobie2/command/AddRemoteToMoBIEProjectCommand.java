@@ -1,8 +1,8 @@
-package de.embl.cba.mobie.ui.command;
+package de.embl.cba.mobie2.command;
 
-import de.embl.cba.mobie.projects.projectsCreator.ProjectsCreator;
-import de.embl.cba.mobie.projects.projectsCreator.RemoteMetadataCreator;
-import de.embl.cba.mobie.utils.Utils;
+import de.embl.cba.mobie2.projectcreator.ProjectCreator;
+import de.embl.cba.mobie2.projectcreator.RemoteMetadataCreator;
+import ij.IJ;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -10,7 +10,9 @@ import org.scijava.plugin.Plugin;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.IOException;
 
+import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.getDataLocation;
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
 
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Add/Update MoBIE Project remote..." )
@@ -47,19 +49,17 @@ public class AddRemoteToMoBIEProjectCommand implements Command {
         // using File script parameter changes the look and feel of swing, reset it to default here
         setMoBIESwingLookAndFeel();
 
-        File dataLocation = new File( projectLocation, "data" );
-
         if ( !projectLocation.exists() ) {
-            Utils.log( "Add Remote failed - MoBIE project does not exist!" );
-        } else if ( !dataLocation.exists() ) {
-            Utils.log( "Add remote failed - this folder does not contain a valid MoBIE project structure. \n " +
-                    "Please choose a MoBIE project folder (this contains a 'data' folder at the top level)" );
+            IJ.log( "Add Remote failed - MoBIE project does not exist!" );
         } else {
-
             if ( continueDialog() ) {
-                ProjectsCreator projectsCreator = new ProjectsCreator(projectLocation);
-                RemoteMetadataCreator remoteMetadataCreator = projectsCreator.getRemoteMetadataCreator();
-                remoteMetadataCreator.createRemoteMetadata( signingRegion, serviceEndpoint, bucketName );
+                try {
+                    ProjectCreator projectsCreator = new ProjectCreator( getDataLocation( projectLocation ) );
+                    RemoteMetadataCreator remoteMetadataCreator = projectsCreator.getRemoteMetadataCreator();
+                    remoteMetadataCreator.createRemoteMetadata( signingRegion, serviceEndpoint, bucketName );
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

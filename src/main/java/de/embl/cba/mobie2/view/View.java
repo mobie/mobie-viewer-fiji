@@ -24,6 +24,14 @@ public class View
 		this.isExclusive = isExclusive;
 	}
 
+	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays,
+				 List< SourceTransformer > sourceTransforms, boolean isExclusive ) {
+		this.uiSelectionGroup = uiSelectionGroup;
+		this.sourceDisplays = sourceDisplays;
+		this.sourceTransforms = sourceTransforms;
+		this.isExclusive = isExclusive;
+	}
+
 	public boolean isExclusive()
 	{
 		return isExclusive;

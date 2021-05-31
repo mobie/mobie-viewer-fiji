@@ -18,7 +18,7 @@ import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.transform.BdvLocation;
 import de.embl.cba.mobie2.transform.BdvLocationType;
 import de.embl.cba.tables.FileAndUrlUtils;
-import de.embl.cba.tables.FileUtils.FileLocation;
+import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -202,7 +202,7 @@ public class BookmarkManager
 		ArrayList<Bookmark> bookmarks = new ArrayList<>();
 		bookmarks.add(currentBookmark);
 
-		if ( bookmarkNameAndFileLocation.location.equals( FileLocation.Project ) &&
+		if ( bookmarkNameAndFileLocation.location.equals( FileUtils.FileLocation.Project ) &&
 				datasetLocation.contains( "raw.githubusercontent" )) {
 			BookmarkWriter.saveBookmarksToGithub(bookmarks, bookmarkReader );
 		} else {

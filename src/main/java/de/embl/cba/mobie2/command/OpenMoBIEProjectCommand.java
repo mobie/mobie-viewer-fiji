@@ -20,8 +20,11 @@ public class OpenMoBIEProjectCommand implements Command
 	{
 		MoBIESettings options = MoBIESettings.settings();
 
-		if ( projectLocation.startsWith( "http" ) )
-			options = options.imageDataStorageModality( MoBIESettings.ImageDataStorageModality.S3 );
+		if ( projectLocation.startsWith( "http" ) ) {
+			options = options.imageDataStorageModality(MoBIESettings.ImageDataStorageModality.S3);
+		} else {
+			options = options.imageDataStorageModality(MoBIESettings.ImageDataStorageModality.FileSystem);
+		}
 
 		try
 		{

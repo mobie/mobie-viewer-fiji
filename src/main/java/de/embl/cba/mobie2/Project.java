@@ -22,4 +22,10 @@ public class Project
 	{
 		return specVersion;
 	}
+
+	public void setDatasets( List<String> datasets ) { this.datasets = datasets; }
+
+	public void setDefaultDataset( String defaultDataset ) { this.defaultDataset = defaultDataset; }
+
+	public void setSpecVersion( String specVersion ) { this.specVersion = specVersion; }
 }

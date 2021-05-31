@@ -55,7 +55,7 @@ public class BookmarkFileWriter
 		writeBookmarksToFile(gson, type, jsonFile, bookmarks);
 	}
 
-	public static String chooseJsonFileLocation( FileUtils.FileLocation fileLocation, String datasetLocation ) {
+	public static String chooseJsonFileLocation(FileUtils.FileLocation fileLocation, String datasetLocation ) {
 		String jsonPath = null;
 		final JFileChooser jFileChooser;
 		if (fileLocation.equals( FileUtils.FileLocation.FileSystem )) {
@@ -87,7 +87,7 @@ public class BookmarkFileWriter
 		return jsonPath;
 	}
 
-	public static void saveBookmarksToFile( ArrayList< Bookmark > bookmarks, FileUtils.FileLocation fileLocation, String datasetLocation ) throws IOException {
+	public static void saveBookmarksToFile(ArrayList< Bookmark > bookmarks, FileUtils.FileLocation fileLocation, String datasetLocation ) throws IOException {
 		HashMap<String, Bookmark> namesToBookmarks = new HashMap<>();
 		for (Bookmark bookmark : bookmarks) {
 			namesToBookmarks.put(bookmark.name, bookmark);

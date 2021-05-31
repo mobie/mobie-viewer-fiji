@@ -1,11 +1,11 @@
-package de.embl.cba.mobie2.view;
+package de.embl.cba.mobie2.view.saving;
 
 import de.embl.cba.mobie.ui.MoBIESettings;
-import de.embl.cba.mobie.utils.Utils;
 import de.embl.cba.mobie2.Dataset;
 import de.embl.cba.mobie2.MoBIE2;
 import de.embl.cba.mobie2.serialize.AdditionalViewsJsonParser;
 import de.embl.cba.mobie2.serialize.DatasetJsonParser;
+import de.embl.cba.mobie2.view.View;
 import de.embl.cba.mobie2.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.github.GitHubUtils;
@@ -19,6 +19,10 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.makeNewUiSelectionGroup;
+import static de.embl.cba.mobie2.ui.UserInterfaceHelper.tidyString;
+import static de.embl.cba.mobie2.view.saving.ViewSavingHelpers.writeAdditionalViewsJson;
+import static de.embl.cba.mobie2.view.saving.ViewSavingHelpers.writeDatasetJson;
 import static de.embl.cba.tables.FileUtils.*;
 
 public class ViewsSaver {
@@ -31,6 +35,11 @@ public class ViewsSaver {
         viewsJson
     }
 
+    enum SaveMethod {
+        saveAsNewView,
+        overwriteExistingView
+    }
+
     public ViewsSaver(MoBIE2 moBIE2) {
         this.moBIE2 = moBIE2;
         this.settings = moBIE2.getSettings();
@@ -38,7 +47,9 @@ public class ViewsSaver {
 
     public void saveCurrentSettingsAsViewDialog() {
         final GenericDialog gd = new GenericDialog("Save current view");
-        gd.addStringField("View name", "name", 25);
+
+        gd.addChoice("Save to", new String[]{ FileUtils.FileLocation.Project.toString(),
+                FileUtils.FileLocation.FileSystem.toString()}, FileUtils.FileLocation.Project.toString());
 
         String[] currentUiSelectionGroups = moBIE2.getUserInterface().getUISelectionGroupNames();
         String[] choices = new String[currentUiSelectionGroups.length + 1];
@@ -48,37 +59,31 @@ public class ViewsSaver {
         }
         gd.addChoice("Ui Selection Group", choices, choices[0]);
 
-        gd.addChoice("Save to", new String[]{FileUtils.FileLocation.Project.toString(),
-                FileUtils.FileLocation.FileSystem.toString()}, FileUtils.FileLocation.Project.toString());
         gd.addCheckbox("exclusive", true);
+        gd.addCheckbox("Include viewer transform?", true );
         gd.showDialog();
 
         if (!gd.wasCanceled()) {
-            String viewName = gd.getNextString();
-            String uiSelectionGroup = gd.getNextChoice();
             FileUtils.FileLocation fileLocation = FileUtils.FileLocation.valueOf(gd.getNextChoice());
+            String uiSelectionGroup = gd.getNextChoice();
             boolean exclusive = gd.getNextBoolean();
+            boolean includeViewerTransform = gd.getNextBoolean();
 
-            viewName = tidyString( viewName );
+            if (uiSelectionGroup.equals("Make New Ui Selection Group")) {
+                uiSelectionGroup = makeNewUiSelectionGroup(currentUiSelectionGroups);
+            }
 
-            if ( viewName != null ) {
-
-                if (uiSelectionGroup.equals("Make New Ui Selection Group")) {
-                    uiSelectionGroup = makeNewUiSelectionGroup(currentUiSelectionGroups);
-                }
-
-                if (uiSelectionGroup != null) {
-                    if (fileLocation == FileUtils.FileLocation.Project) {
-                        saveToProject(viewName, uiSelectionGroup, exclusive);
-                    } else {
-                        saveToFileSystem(viewName, uiSelectionGroup, exclusive);
-                    }
+            if (uiSelectionGroup != null) {
+                if (fileLocation == FileUtils.FileLocation.Project) {
+                    saveToProject( uiSelectionGroup, exclusive, includeViewerTransform );
+                } else {
+                    saveToFileSystem( uiSelectionGroup, exclusive, includeViewerTransform );
                 }
             }
         }
     }
 
-    private void saveToFileSystem( String viewName, String uiSelectionGroup, boolean exclusive ) {
+    private void saveToFileSystem( String uiSelectionGroup, boolean exclusive, boolean includeViewerTransform ) {
         String jsonPath = null;
         final JFileChooser jFileChooser = new JFileChooser();
         jFileChooser.setFileFilter(new FileNameExtensionFilter("json", "json"));
@@ -91,41 +96,31 @@ public class ViewsSaver {
                 jsonPath += ".json";
             }
 
-            File jsonFile = new File(jsonPath);
-            if (jsonFile.exists()) {
-                // check if want to append to existing file, otherwise abort
-                if (!appendToFileDialog()) {
-                    jsonPath = null;
-                }
-            }
-
-            if (jsonPath != null) {
-                View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive);
-                try {
-                    saveToAdditionalViewsJson( currentView, viewName, jsonPath );
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
+            try {
+                saveToAdditionalViewsJson( currentView, jsonPath );
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
 
-    private void saveToProject( String viewName, String uiSelectionGroup, boolean exclusive ) {
+    private void saveToProject( String uiSelectionGroup, boolean exclusive, boolean includeViewerTransform ) {
         if ( isS3(settings.values.getProjectLocation()) ) {
             // TODO - support saving views to s3?
             IJ.log("View saving aborted - saving directly to s3 is not yet supported!");
         } else {
             ProjectSaveLocation projectSaveLocation = chooseProjectSaveLocationDialog();
             if (projectSaveLocation != null) {
-                View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive);
+                View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
 
                 try {
                     if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
-                        saveToDatasetJson(currentView, viewName);
+                        saveToDatasetJson( currentView );
                     } else {
                         String viewJsonPath = chooseAdditionalViewsJson();
                         if (viewJsonPath != null) {
-                            saveToAdditionalViewsJson(currentView, viewName, viewJsonPath);
+                            saveToAdditionalViewsJson( currentView, viewJsonPath );
                         }
                     }
                 } catch (IOException e) {
@@ -135,34 +130,72 @@ public class ViewsSaver {
         }
     }
 
-    private void saveToDatasetJson( View view, String viewName ) throws IOException {
+    private void saveToDatasetJson( View view ) throws IOException {
         String datasetJsonPath = moBIE2.getDatasetPath( "dataset.json");
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
-        dataset.views.put( viewName, view );
 
-        if ( isGithub( datasetJsonPath ) ) {
-            new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( datasetJsonPath ) ).writeViewToDatasetJson( viewName, view );
+        String viewName;
+        if ( dataset.views.keySet().size() > 0 ) {
+            SaveMethod saveMethod = chooseSaveMethodDialog();
+            if ( saveMethod != null ) {
+                switch( saveMethod ) {
+                    case saveAsNewView:
+                        viewName = chooseNewViewNameDialog();
+                        if ( viewName != null && dataset.views.containsKey( viewName ) ) {
+                            IJ.log( "View saving aborted - this view name already exists!" );
+                        } else {
+                            writeDatasetJson( dataset, view, viewName, datasetJsonPath );
+                        }
+                        break;
+                    case overwriteExistingView:
+                        new SelectExistingViewFrame( dataset, view, datasetJsonPath );
+                        break;
+                }
+            }
         } else {
-            new DatasetJsonParser().saveDataset( dataset, datasetJsonPath );
+            viewName = chooseNewViewNameDialog();
+            writeDatasetJson( dataset, view, viewName, datasetJsonPath );
         }
 
     }
 
-    private void saveToAdditionalViewsJson( View view, String viewName, String jsonPath ) throws IOException {
-        if ( isGithub( jsonPath ) ) {
-            new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation( jsonPath ) ).writeViewToViewsJson( viewName, view );
-        } else {
-            AdditionalViews additionalViews;
-            if (new File(jsonPath).exists()) {
-                additionalViews = new AdditionalViewsJsonParser().getViews(jsonPath);
-            } else {
-                additionalViews = new AdditionalViews();
-                additionalViews.views = new HashMap<>();
+    private void saveToExistingViewsJson( View view, String jsonPath ) throws IOException {
+        AdditionalViews additionalViews = new AdditionalViewsJsonParser().getViews( jsonPath );
+        SaveMethod saveMethod = chooseSaveMethodDialog();
+        if ( saveMethod != null ) {
+            switch( saveMethod ) {
+                case saveAsNewView:
+                    String viewName = chooseNewViewNameDialog();
+                    if ( viewName != null && additionalViews.views.containsKey( viewName ) ) {
+                        IJ.log( "View saving aborted - this view name already exists!" );
+                    } else {
+                        writeAdditionalViewsJson( additionalViews, view, viewName, jsonPath );
+                    }
+                    break;
+                case overwriteExistingView:
+                    new SelectExistingViewFrame( additionalViews, view, jsonPath );
+                    break;
             }
+        }
+    }
 
-            additionalViews.views.put(viewName, view);
+    private void saveToAdditionalViewsJson( View view, String jsonPath ) throws IOException {
 
-            new AdditionalViewsJsonParser().saveViews(additionalViews, jsonPath);
+        boolean jsonExists;
+        if ( isGithub( jsonPath )) {
+            jsonExists = new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation(jsonPath) ).jsonExists();
+        } else {
+            jsonExists = new File( jsonPath ).exists();
+        }
+
+        String viewName;
+        if ( jsonExists ) {
+            saveToExistingViewsJson( view, jsonPath );
+        } else {
+            viewName = chooseNewViewNameDialog();
+            AdditionalViews additionalViews = new AdditionalViews();
+            additionalViews.views = new HashMap<>();
+            writeAdditionalViewsJson( additionalViews, view, viewName, jsonPath );
         }
     }
 
@@ -207,38 +240,6 @@ public class ViewsSaver {
 
     }
 
-    private String makeNewUiSelectionGroup( String[] currentUiSelectionGroups ) {
-        String newUiSelectionGroup = chooseNewSelectionGroupNameDialog();
-
-        // get rid of any spaces, warn for unusual characters
-        if ( newUiSelectionGroup != null ) {
-            newUiSelectionGroup = tidyString(newUiSelectionGroup);
-        }
-
-        if ( newUiSelectionGroup != null ) {
-            boolean alreadyExists = Arrays.asList(currentUiSelectionGroups).contains( newUiSelectionGroup );
-            if ( alreadyExists ) {
-                newUiSelectionGroup = null;
-                IJ.log("Saving view aborted - new ui selection group already exists");
-            }
-        }
-
-        return newUiSelectionGroup;
-    }
-
-    private String chooseNewSelectionGroupNameDialog() {
-        final GenericDialog gd = new GenericDialog("Choose ui selection group Name:");
-
-        gd.addStringField("New ui selection group name:", "", 25 );
-        gd.showDialog();
-
-        if (!gd.wasCanceled()) {
-            return gd.getNextString();
-        } else {
-            return null;
-        }
-    }
-
     private String makeNewViewFile( String[] existingViewFiles ) {
         String viewFileName = chooseNewViewsFileNameDialog();
 
@@ -278,15 +279,35 @@ public class ViewsSaver {
 
     }
 
-    public static boolean appendToFileDialog() {
-        int result = JOptionPane.showConfirmDialog(null,
-                "This Json file already exists - append view to this file?", "Append to file?",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
-        if (result != JOptionPane.YES_OPTION) {
-            return false;
+    private SaveMethod chooseSaveMethodDialog() {
+        final GenericDialog gd = new GenericDialog("How to save?");
+        String[] choices = new String[]{ "Save as new view", "Overwrite existing view" };
+        gd.addChoice("Save method:", choices, choices[0] );
+        gd.showDialog();
+
+        if (!gd.wasCanceled()) {
+            String saveMethod = gd.getNextChoice();
+            if ( saveMethod.equals("Save as new view") ) {
+                return SaveMethod.saveAsNewView;
+            } else if ( saveMethod.equals( "Overwrite existing view" )) {
+                return SaveMethod.overwriteExistingView;
+            }
+        }
+
+        return null;
+    }
+
+    public String chooseNewViewNameDialog() {
+        final GenericDialog gd = new GenericDialog("Choose view name:");
+
+        gd.addStringField("View name:", "", 25 );
+        gd.showDialog();
+
+        if (!gd.wasCanceled()) {
+            return tidyString( gd.getNextString() );
+            // TODO - check if already exists
         } else {
-            return true;
+            return null;
         }
     }
 
@@ -305,24 +326,6 @@ public class ViewsSaver {
             }
         }
         return null;
-    }
-
-    private String tidyString( String string ) {
-        string = string.trim();
-        String tidyString = string.replaceAll("\\s+","_");
-
-        if ( !string.equals(tidyString) ) {
-            Utils.log( "Spaces were removed from name, and replaced by _");
-        }
-
-        // check only contains alphanumerics, or _ -
-        if ( !tidyString.matches("^[a-zA-Z0-9_-]+$") ) {
-            Utils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
-                    "with a different name.");
-            tidyString = null;
-        }
-
-        return tidyString;
     }
 
 }

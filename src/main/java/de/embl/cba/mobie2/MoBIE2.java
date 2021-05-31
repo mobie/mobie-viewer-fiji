@@ -75,7 +75,7 @@ public class MoBIE2
 				settings.values.getImageDataLocation(),
 				settings.values.getImageDataBranch() );
 
-		if( ! FileAndUrlUtils.exists( FileAndUrlUtils.combinePath( imageRoot, "project.json" ) ) );
+		if( ! FileAndUrlUtils.exists( FileAndUrlUtils.combinePath( imageRoot, "project.json" ) ) )
 		{
 			imageRoot = FileAndUrlUtils.combinePath( imageRoot, "data" );
 		}
@@ -84,7 +84,7 @@ public class MoBIE2
 				settings.values.getTableDataLocation(),
 				settings.values.getTableDataBranch() );
 
-		if( ! FileAndUrlUtils.exists( FileAndUrlUtils.combinePath( tableRoot, "project.json" ) ) );
+		if( ! FileAndUrlUtils.exists( FileAndUrlUtils.combinePath( tableRoot, "project.json" ) ) )
 		{
 			tableRoot = FileAndUrlUtils.combinePath( tableRoot, "data" );
 		}
