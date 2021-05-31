@@ -9,7 +9,7 @@ import de.embl.cba.tables.github.GitHubUtils;
 
 import java.io.IOException;
 
-import static de.embl.cba.mobie2.PathHelpers.isGithub;
+import static de.embl.cba.tables.FileUtils.isGithub;
 
 public class ViewSavingHelpers {
     public static void writeDatasetJson( Dataset dataset, View view, String viewName, String datasetJsonPath ) throws IOException {

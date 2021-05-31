@@ -2,7 +2,7 @@ package de.embl.cba.mobie.bookmark.write;
 
 import de.embl.cba.mobie.bookmark.Bookmark;
 import de.embl.cba.mobie.bookmark.BookmarkReader;
-import de.embl.cba.mobie2.PathHelpers;
+import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.github.GitHubUtils;
 import de.embl.cba.tables.github.GitLocation;
 import ij.gui.GenericDialog;
@@ -20,17 +20,17 @@ public class BookmarkWriter
 	}
 
 	public static NameAndFileLocation bookmarkSaveDialog () {
-		PathHelpers.FileLocation fileLocation = null;
+		FileUtils.FileLocation fileLocation = null;
 		String bookmarkName = null;
 		final GenericDialog gd = new GenericDialog( "Choose save location" );
 		gd.addStringField("Bookmark Name", "name");
-		gd.addChoice( "Save to", new String[]{ PathHelpers.FileLocation.Project.toString(),
-				PathHelpers.FileLocation.FileSystem.toString() }, PathHelpers.FileLocation.Project.toString() );
+		gd.addChoice( "Save to", new String[]{ FileUtils.FileLocation.Project.toString(),
+				FileUtils.FileLocation.FileSystem.toString() }, FileUtils.FileLocation.Project.toString() );
 		gd.showDialog();
 
 		if ( gd.wasCanceled() ) return null;
 		bookmarkName = gd.getNextString();
-		fileLocation = PathHelpers.FileLocation.valueOf( gd.getNextChoice() );
+		fileLocation = FileUtils.FileLocation.valueOf( gd.getNextChoice() );
 
 		NameAndFileLocation bookmarkNameAndFileLocation = new NameAndFileLocation();
 		bookmarkNameAndFileLocation.name = bookmarkName;

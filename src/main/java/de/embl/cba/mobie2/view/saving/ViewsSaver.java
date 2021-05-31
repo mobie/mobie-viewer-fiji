@@ -3,11 +3,11 @@ package de.embl.cba.mobie2.view.saving;
 import de.embl.cba.mobie.ui.MoBIESettings;
 import de.embl.cba.mobie2.Dataset;
 import de.embl.cba.mobie2.MoBIE2;
-import de.embl.cba.mobie2.PathHelpers;
 import de.embl.cba.mobie2.serialize.AdditionalViewsJsonParser;
 import de.embl.cba.mobie2.serialize.DatasetJsonParser;
 import de.embl.cba.mobie2.view.View;
 import de.embl.cba.mobie2.view.additionalviews.AdditionalViews;
+import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.github.GitHubUtils;
 import ij.IJ;
 import ij.gui.GenericDialog;
@@ -19,11 +19,11 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import static de.embl.cba.mobie2.PathHelpers.*;
 import static de.embl.cba.mobie2.projectcreator.ProjectCreatorHelper.makeNewUiSelectionGroup;
 import static de.embl.cba.mobie2.ui.UserInterfaceHelper.tidyString;
 import static de.embl.cba.mobie2.view.saving.ViewSavingHelpers.writeAdditionalViewsJson;
 import static de.embl.cba.mobie2.view.saving.ViewSavingHelpers.writeDatasetJson;
+import static de.embl.cba.tables.FileUtils.*;
 
 public class ViewsSaver {
 
@@ -48,8 +48,8 @@ public class ViewsSaver {
     public void saveCurrentSettingsAsViewDialog() {
         final GenericDialog gd = new GenericDialog("Save current view");
 
-        gd.addChoice("Save to", new String[]{ PathHelpers.FileLocation.Project.toString(),
-                PathHelpers.FileLocation.FileSystem.toString()}, PathHelpers.FileLocation.Project.toString());
+        gd.addChoice("Save to", new String[]{ FileUtils.FileLocation.Project.toString(),
+                FileUtils.FileLocation.FileSystem.toString()}, FileUtils.FileLocation.Project.toString());
 
         String[] currentUiSelectionGroups = moBIE2.getUserInterface().getUISelectionGroupNames();
         String[] choices = new String[currentUiSelectionGroups.length + 1];
@@ -64,7 +64,7 @@ public class ViewsSaver {
         gd.showDialog();
 
         if (!gd.wasCanceled()) {
-            PathHelpers.FileLocation fileLocation = PathHelpers.FileLocation.valueOf(gd.getNextChoice());
+            FileUtils.FileLocation fileLocation = FileUtils.FileLocation.valueOf(gd.getNextChoice());
             String uiSelectionGroup = gd.getNextChoice();
             boolean exclusive = gd.getNextBoolean();
             boolean includeViewerTransform = gd.getNextBoolean();
@@ -74,7 +74,7 @@ public class ViewsSaver {
             }
 
             if (uiSelectionGroup != null) {
-                if (fileLocation == PathHelpers.FileLocation.Project) {
+                if (fileLocation == FileUtils.FileLocation.Project) {
                     saveToProject( uiSelectionGroup, exclusive, includeViewerTransform );
                 } else {
                     saveToFileSystem( uiSelectionGroup, exclusive, includeViewerTransform );
