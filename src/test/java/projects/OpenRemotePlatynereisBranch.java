@@ -1,11 +1,17 @@
 package projects;
 
-import de.embl.cba.mobie.ui.MoBIE;
+import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.MoBIESettings;
+import net.imagej.ImageJ;
+
+import java.io.IOException;
 
 public class OpenRemotePlatynereisBranch
 {
-	public static void main( String[] args )
+	public static void main( String[] args ) throws IOException
 	{
-		new MoBIE( "https://github.com/platybrowser/platybrowser" );
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
+		new MoBIE( "https://github.com/mobie/platybrowser-datasets", MoBIESettings.settings().gitProjectBranch( "spec-v2" ) );
 	}
 }

@@ -1,7 +1,5 @@
 package de.embl.cba.mobie.n5.zarr.ui;
 
-import bdv.util.BdvFunctions;
-import de.embl.cba.mobie.n5.zarr.N5OMEZarrImageLoader;
 import de.embl.cba.mobie.n5.zarr.OMEZarrS3Reader;
 import de.embl.cba.mobie.n5.zarr.OMEZarrViewer;
 import mpicbg.spim.data.SpimData;
@@ -11,8 +9,6 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 
 @Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME ZARR>Open OME ZARR From S3..." )

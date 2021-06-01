@@ -1,10 +1,6 @@
 package de.embl.cba.mobie.n5.zarr.ui;
 
-import bdv.util.BdvFunctions;
 import de.embl.cba.mobie.n5.zarr.OMEZarrS3Reader;
-import de.embl.cba.mobie.n5.zarr.OMEZarrViewer;
-import ij.IJ;
-import mpicbg.spim.data.SpimData;
 import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;

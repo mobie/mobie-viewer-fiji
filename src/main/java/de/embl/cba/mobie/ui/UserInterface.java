@@ -1,92 +1,51 @@
 package de.embl.cba.mobie.ui;
 
-import bdv.tools.brightness.ConverterSetup;
-import bdv.tools.brightness.SliderPanelDouble;
-import bdv.util.BdvHandle;
-import bdv.util.BoundedValueDouble;
-import bdv.viewer.Interpolation;
-import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.BrightnessUpdateListener;
-import de.embl.cba.mobie.image.SourceAndMetadataChangedListener;
-import de.embl.cba.tables.image.SourceAndMetadata;
-import ij.WindowManager;
+import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.view.View;
+import de.embl.cba.mobie.display.ImageSourceDisplay;
+import de.embl.cba.mobie.display.SegmentationSourceDisplay;
+import de.embl.cba.mobie.display.SourceDisplay;
+import de.embl.cba.mobie.grid.GridOverlaySourceDisplay;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public class UserInterface implements SourceAndMetadataChangedListener
+import static de.embl.cba.mobie.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
+import static de.embl.cba.mobie.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
+
+public class UserInterface
 {
-	private final UserInterfaceComponentsProvider componentsProvider;
-	private final JPanel displaySettingsPanel;
-	private final SourcesDisplayManager displayManager;
-	private HashMap< Object, JPanel > sourceToPanel;
+	private final JPanel displaySettingsContainer;
 	private final JFrame frame;
-	private final JPanel actionPanel;
+	private final JPanel selectionContainer;
+	private final UserInterfaceHelper userInterfaceHelper;
+	private Map< Object, JPanel > displayToPanel;
+	private JSplitPane splitPane;
 
 	public UserInterface( MoBIE moBIE )
 	{
-		displayManager = moBIE.getSourcesDisplayManager();
-		displayManager.listeners().add( this );
+		userInterfaceHelper = new UserInterfaceHelper( moBIE );
 
-		componentsProvider = new UserInterfaceComponentsProvider( moBIE );
+		selectionContainer = userInterfaceHelper.createSelectionPanel();
+		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsPanel();
+		displayToPanel = new HashMap<>();
 
-		actionPanel = createActionsPanel( moBIE );
-		displaySettingsPanel = createDisplaySettingsPanel();
-
-		frame = createAndShowFrame( moBIE, actionPanel, displaySettingsPanel );
-		setImageJLogWindowPositionAndSize( frame );
+		setMoBIESwingLookAndFeel();
+		frame = createAndShowFrame( selectionContainer, displaySettingsContainer, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
+		resetSystemSwingLookAndFeel();
 	}
 
-	public void dispose()
+	private JFrame createAndShowFrame( JPanel actionPanel, JPanel displaySettingsPanel, String panelName )
 	{
-		frame.dispose();
-	}
+		JFrame frame = new JFrame( "MoBIE: " + panelName );
 
-	private JPanel createDisplaySettingsPanel()
-	{
-		final JPanel panel = new JPanel();
-		panel.setLayout( new BoxLayout(panel, BoxLayout.Y_AXIS ) );
-		panel.setAlignmentX( Component.LEFT_ALIGNMENT );
-
-		sourceToPanel = new HashMap<>();
-
-		return panel;
-	}
-
-	private JPanel createActionsPanel( MoBIE moBIE )
-	{
-		final JPanel actionPanel = new JPanel();
-		actionPanel.setLayout( new BoxLayout( actionPanel, BoxLayout.Y_AXIS ) );
-
-		actionPanel.add( componentsProvider.createInfoPanel( moBIE.getProjectLocation(), moBIE.getOptions().values.getPublicationURL() ) );
-		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-
-		actionPanel.add( componentsProvider.createDatasetSelectionPanel() );
-		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-
-		actionPanel.add( componentsProvider.createSourceSelectionPanel( moBIE.getSourcesDisplayManager() ) );
-		actionPanel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-
-		actionPanel.add( componentsProvider.createBookmarksPanel( moBIE.getBookmarkManager() )  );
-		actionPanel.add( componentsProvider.createMoveToLocationPanel( )  );
-
-		if ( moBIE.getLevelingVector() != null )
-		{
-			actionPanel.add( componentsProvider.createLevelingPanel( moBIE.getLevelingVector() ) );
-		}
-		return actionPanel;
-	}
-
-	private JFrame createAndShowFrame( MoBIE moBIE, JPanel actionPanel, JPanel displaySettingsPanel )
-	{
-		JFrame frame = new JFrame( "MoBIE: " + moBIE.getProjectName() + "-" + moBIE.getDataset() );
-
-		JSplitPane splitPane = new JSplitPane();
+		splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		final int sourceSelectionPanelHeight = componentsProvider.getSourceSelectionPanelHeight();
-		final int actionPanelHeight = sourceSelectionPanelHeight + 7 * 40;
+		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
+
 
 		splitPane.setDividerLocation( actionPanelHeight );
 		splitPane.setTopComponent( actionPanel );
@@ -94,7 +53,7 @@ public class UserInterface implements SourceAndMetadataChangedListener
 		splitPane.setAutoscrolls( true );
 
 		// show frame
-		frame.setPreferredSize( new Dimension( 600, actionPanelHeight + 200 ) );
+		frame.setPreferredSize( new Dimension( 550, actionPanelHeight + 200 ) );
 		frame.getContentPane().setLayout( new GridLayout() );
 		frame.getContentPane().add( splitPane );
 
@@ -105,130 +64,97 @@ public class UserInterface implements SourceAndMetadataChangedListener
 		return frame;
 	}
 
-	private void setImageJLogWindowPositionAndSize( JFrame parentComponent )
+	private void refreshDisplaySettings()
 	{
-		final Frame log = WindowManager.getFrame( "Log" );
-		if (log != null) {
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			final int logWindowHeight = screenSize.height - ( parentComponent.getLocationOnScreen().y + parentComponent.getHeight() + 20 );
-			log.setSize( parentComponent.getWidth(), logWindowHeight  );
-			log.setLocation( parentComponent.getLocationOnScreen().x, parentComponent.getLocationOnScreen().y + parentComponent.getHeight() );
-		}
-	}
-
-	public void setBdvWindowPositionAndSize( BdvHandle bdvHandle )
-	{
-		BdvUtils.getViewerFrame( bdvHandle ).setLocation(
-				frame.getLocationOnScreen().x + frame.getWidth(),
-				frame.getLocationOnScreen().y );
-
-		BdvUtils.getViewerFrame( bdvHandle ).setSize( frame.getHeight(), frame.getHeight() );
-
-		bdvHandle.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
-	}
-
-	private void refresh()
-	{
-		displaySettingsPanel.revalidate();
-		displaySettingsPanel.repaint();
+		displaySettingsContainer.revalidate();
+		displaySettingsContainer.repaint();
 		frame.revalidate();
 		frame.repaint();
 	}
 
-	@Override
-	public synchronized void addedToBDV( SourceAndMetadata< ? > sam )
+	private void refreshSelection()
 	{
-		Object panelKey = getPanelKey( sam );
+		selectionContainer.revalidate();
+		selectionContainer.repaint();
+		// update the location of the splitpane divider, so any new uiSelectionGroups are visible
+		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
+		splitPane.setDividerLocation( actionPanelHeight );
+		frame.revalidate();
+		frame.repaint();
+	}
 
-		if ( sourceToPanel.containsKey( panelKey ) )
+	public void addViews( Map<String, View> views ) {
+		userInterfaceHelper.addViewsToSelectionPanel(views);
+		refreshSelection();
+	}
+
+	public void addSourceDisplay( SourceDisplay sourceDisplay )
+	{
+		final JPanel panel = createDisplaySettingPanel( sourceDisplay );
+		showDisplaySettingsPanel( sourceDisplay, panel );
+		refreshDisplaySettings();
+	}
+
+	private JPanel createDisplaySettingPanel( SourceDisplay sourceDisplay )
+	{
+		if ( sourceDisplay instanceof ImageSourceDisplay )
 		{
-			return;
+			return userInterfaceHelper.createImageDisplaySettingsPanel( ( ImageSourceDisplay ) sourceDisplay );
+		}
+		else if ( sourceDisplay instanceof SegmentationSourceDisplay )
+		{
+			return userInterfaceHelper.createSegmentationDisplaySettingsPanel( ( SegmentationSourceDisplay ) sourceDisplay );
 		}
 		else
 		{
-			final JPanel panel = componentsProvider.createDisplaySettingsPanel( sam, displayManager );
-			displaySettingsPanel.add( panel );
-			sourceToPanel.put( panelKey, panel );
-			refresh();
+			throw new UnsupportedOperationException();
 		}
 	}
 
-	protected Object getPanelKey( SourceAndMetadata< ? > sam )
+	public void addGridView( GridOverlaySourceDisplay gridOverlayDisplay )
 	{
-		Object panelKey;
-		if ( sam.metadata().groupId != null )
-			panelKey = sam.metadata().groupId;
-		else
-			panelKey = sam.metadata();
-		return panelKey;
+		final JPanel panel = userInterfaceHelper.createGridViewDisplaySettingsPanel( gridOverlayDisplay );
+		showDisplaySettingsPanel( gridOverlayDisplay, panel );
 	}
 
-	@Override
-	public void removedFromBDV( SourceAndMetadata< ? > sam )
+	public void removeDisplaySettingsPanel( Object display )
 	{
-		final JPanel panel = sourceToPanel.get( getPanelKey( sam ) );
-		displaySettingsPanel.remove( panel );
-		sourceToPanel.remove( sam );
-		refresh();
+		SwingUtilities.invokeLater( () -> {
+			final JPanel jPanel = displayToPanel.get( display );
+			displaySettingsContainer.remove( jPanel );
+			displayToPanel.remove( display );
+			refreshDisplaySettings();
+		} );
 	}
 
-	public static void showBrightnessDialog(
-			String name,
-			List< ConverterSetup > converterSetups,
-			double rangeMin,
-			double rangeMax )
+	protected void showDisplaySettingsPanel( Object display, JPanel panel )
 	{
-		JFrame frame = new JFrame( name );
-		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+		SwingUtilities.invokeLater( () -> {
+			displayToPanel.put( display, panel );
+			displaySettingsContainer.add( panel );
+			refreshDisplaySettings();
+		});
+	}
 
-		final double currentRangeMin = converterSetups.get( 0 ).getDisplayRangeMin();
-		final double currentRangeMax = converterSetups.get( 0 ).getDisplayRangeMax();
+	public Window getWindow()
+	{
+		return frame;
+	}
 
-		final BoundedValueDouble min =
-				new BoundedValueDouble(
-						rangeMin,
-						rangeMax,
-						currentRangeMin );
+	public String[] getUISelectionGroupNames() {
 
-		final BoundedValueDouble max =
-				new BoundedValueDouble(
-						rangeMin,
-						rangeMax,
-						currentRangeMax );
+		Set<String> groupings = userInterfaceHelper.getGroupings();
+		String[] groupNames = new String[groupings.size()];
+		int i = 0;
+		for ( String groupName: groupings ) {
+			groupNames[i] = groupName;
+			i++;
+		}
+		return groupNames;
+	}
 
-		double spinnerStepSize = ( currentRangeMax - currentRangeMin ) / 100.0;
-
-		JPanel panel = new JPanel();
-		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
-		final SliderPanelDouble minSlider =
-				new SliderPanelDouble( "Min", min, spinnerStepSize );
-		minSlider.setNumColummns( 7 );
-		minSlider.setDecimalFormat( "####E0" );
-
-		final SliderPanelDouble maxSlider =
-				new SliderPanelDouble( "Max", max, spinnerStepSize );
-		maxSlider.setNumColummns( 7 );
-		maxSlider.setDecimalFormat( "####E0" );
-
-		final BrightnessUpdateListener brightnessUpdateListener =
-				new BrightnessUpdateListener(
-						min, max, minSlider, maxSlider, converterSetups );
-
-		min.setUpdateListener( brightnessUpdateListener );
-		max.setUpdateListener( brightnessUpdateListener );
-
-		panel.add( minSlider );
-		panel.add( maxSlider );
-
-		frame.setContentPane( panel );
-
-		//Display the window.
-		frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
-				MouseInfo.getPointerInfo().getLocation().y,
-				120, 10);
-		frame.setResizable( false );
-		frame.pack();
-		frame.setVisible( true );
-
+	public void close()
+	{
+		frame.dispose();
 	}
 }

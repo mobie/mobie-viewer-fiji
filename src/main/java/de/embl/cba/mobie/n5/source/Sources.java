@@ -2,11 +2,8 @@ package de.embl.cba.mobie.n5.source;
 
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
-import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
-import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.img.display.imagej.ImageJFunctions;

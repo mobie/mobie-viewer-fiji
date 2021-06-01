@@ -1,9 +1,12 @@
 package develop;
 
-import de.embl.cba.mobie.ui.MoBIE;
+import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.MoBIESettings;
 import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
+
+import java.io.IOException;
 
 public class DevelopNormalisedViewerTransforms
 {
@@ -14,7 +17,12 @@ public class DevelopNormalisedViewerTransforms
 
 		testNormalisationAndReversion();
 
-		final MoBIE moBIE = new MoBIE( "https://github.com/mobie-org/covid-em-datasets" );
+		try {
+			final MoBIE moBIE = new MoBIE("https://github.com/mobie-org/covid-em-datasets",
+					MoBIESettings.settings().imageDataStorageModality( MoBIESettings.ImageDataStorageModality.S3 ) );
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void testNormalisationAndReversion()
