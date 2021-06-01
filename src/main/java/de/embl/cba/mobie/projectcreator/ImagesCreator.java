@@ -5,6 +5,7 @@ import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
+import de.embl.cba.mobie.n5.N5FSImageLoader;
 import de.embl.cba.mobie.projectcreator.n5.DownsampleBlock;
 import de.embl.cba.mobie.projectcreator.n5.WriteImgPlusToN5;
 import de.embl.cba.mobie.projectcreator.ui.ManualN5ExportPanel;
@@ -292,8 +293,11 @@ public class ImagesCreator {
 
         switch ( bdvFormat ) {
             case n5:
-                N5ImageLoader n5ImageLoader = (N5ImageLoader) imgLoader;
-                n5ImageLoader.close();
+                if ( imgLoader instanceof  N5ImageLoader ) {
+                    ( (N5ImageLoader) imgLoader ).close();
+                } else if ( imgLoader instanceof N5FSImageLoader ) {
+                    ( (N5FSImageLoader) imgLoader ).close();
+                }
                 break;
         }
     }
