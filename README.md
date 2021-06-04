@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/177135630.svg)](https://zenodo.org/badge/latestdoi/177135630)
+
 # MoBIE Fiji Viewer
 
 The MoBIE Fiji viewer is a Fiji plugin for the exploration of big multi-modal image and associated tabular data. 
