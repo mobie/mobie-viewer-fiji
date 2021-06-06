@@ -3,6 +3,7 @@ package de.embl.cba.mobie.n5.zarr;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
+import de.embl.cba.mobie.n5.S3Reader;
 import de.embl.cba.mobie.n5.source.Sources;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
@@ -14,46 +15,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class OMEZarrS3Reader
+public class OMEZarrS3Reader extends S3Reader
 {
-	private static boolean logChunkLoading;
-
-	private final String serviceEndpoint;
-	private final String signingRegion;
-	private final String bucketName;
-
 	public OMEZarrS3Reader( String serviceEndpoint, String signingRegion, String bucketName )
 	{
-		this.serviceEndpoint = serviceEndpoint;
-		this.signingRegion = signingRegion;
-		this.bucketName = bucketName;
-	}
-
-	public static void setLogChunkLoading( boolean logChunkLoading )
-	{
-		OMEZarrS3Reader.logChunkLoading = logChunkLoading;
-		if ( logChunkLoading ) IJ.run("Console");
-	}
-
-	public SpimData readKey( String key ) throws IOException
-	{
-		N5OMEZarrImageLoader.logChunkLoading = logChunkLoading;
-		N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader( serviceEndpoint, signingRegion, bucketName, key );
-		SpimData spimData = new SpimData( null, Cast.unchecked( imageLoader.getSequenceDescription() ), imageLoader.getViewRegistrations() );
-		return spimData;
-	}
-
-	public static SpimData readURL( String url ) throws IOException
-	{
-		final String[] split = url.split( "/" );
-		String serviceEndpoint = Arrays.stream( split ).limit( 3 ).collect( Collectors.joining( "/" ) );
-		String signingRegion = "us-west-2";
-		String bucketName = split[ 3 ];
-		final String key = Arrays.stream( split ).skip( 4 ).collect( Collectors.joining( "/") );
-
-		N5OMEZarrImageLoader.logChunkLoading = logChunkLoading;
-		final OMEZarrS3Reader reader = new OMEZarrS3Reader( serviceEndpoint, signingRegion, bucketName );
-		return reader.readKey( key );
+		super(serviceEndpoint, signingRegion, bucketName);
 	}
 
 	public static void main( String[] args ) throws IOException
