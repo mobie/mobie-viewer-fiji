@@ -42,6 +42,7 @@ import de.embl.cba.tables.tablerow.JTableFromTableRowsModelCreator;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowListener;
 import de.embl.cba.tables.tablerow.TableRows;
+import ij.VirtualStack;
 import ij.gui.GenericDialog;
 import net.imglib2.type.numeric.ARGBType;
 import org.apache.commons.io.FilenameUtils;
