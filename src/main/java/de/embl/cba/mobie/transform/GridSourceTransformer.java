@@ -3,6 +3,8 @@ package de.embl.cba.mobie.transform;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.source.StorageLocation;
+import de.embl.cba.mobie.table.TableDataFormat;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
@@ -12,6 +14,7 @@ import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,11 +23,10 @@ import java.util.concurrent.TimeUnit;
 public class GridSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
 {
 	// Serialization
-	private List< List< String > > sources;
-	private String tableDataLocation;
+	public Map< TableDataFormat, StorageLocation > tableData;
 
 	// Runtime
-	private List< int[] > positions;
+	private transient List< int[] > positions;
 	private transient List< FinalRealInterval > intervals;
 	private transient List< SourceAndConverter< T > > transformedSources;
 
@@ -138,9 +140,9 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		}
 	}
 
-	public String getTableDataLocation()
+	public String getTableDataFolder( TableDataFormat tableDataFormat )
 	{
-		return tableDataLocation;
+		return tableData.get( tableDataFormat ).relativePath;
 	}
 
 	public List< FinalRealInterval > getIntervals()

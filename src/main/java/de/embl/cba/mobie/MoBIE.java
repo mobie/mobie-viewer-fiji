@@ -7,6 +7,7 @@ import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.mobie.source.ImageSource;
 import de.embl.cba.mobie.source.SegmentationSource;
+import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.ui.UserInterface;
 import de.embl.cba.mobie.ui.WindowArrangementHelper;
 import de.embl.cba.mobie.view.View;
@@ -247,14 +248,12 @@ public class MoBIE
 			default:
 				throw new UnsupportedOperationException( "File format not supported: " + imageDataFormat );
 
-
-
 		}
 	}
 
 	public String getDefaultTablePath( SegmentationSource source )
 	{
-		return getTablePath( source.tableDataLocation, "default.tsv" );
+		return getTablePath( source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath, "default.tsv" );
 	}
 
 	public String getDefaultTablePath( String relativeTableLocation )

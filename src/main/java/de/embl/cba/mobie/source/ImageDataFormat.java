@@ -23,7 +23,7 @@ public enum ImageDataFormat
 			case OpenOrganelle:
 				return "openOrganelle";
 			default:
-				throw new UnsupportedOperationException( "Unknown image file format: " + this );
+				throw new UnsupportedOperationException( "Unknown file format: " + this );
 		}
 	}
 }
