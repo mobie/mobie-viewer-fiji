@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.embl.cba.mobie.n5.open_organelle;
+package de.embl.cba.mobie.n5.openorganelle;
 
 import bdv.AbstractViewerSetupImgLoader;
 import bdv.ViewerImgLoader;

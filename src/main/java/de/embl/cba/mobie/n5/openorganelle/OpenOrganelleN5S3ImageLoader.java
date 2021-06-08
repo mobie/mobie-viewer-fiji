@@ -27,8 +27,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.embl.cba.mobie.n5.open_organelle;
+package de.embl.cba.mobie.n5.openorganelle;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -58,6 +60,7 @@ public class OpenOrganelleN5S3ImageLoader extends OpenOrganelleN5ImageLoader imp
                     .standard()
                     .withPathStyleAccessEnabled( true )
                     .withEndpointConfiguration( endpoint )
+                    .withCredentials(new AWSStaticCredentialsProvider( new AnonymousAWSCredentials() ))
                     .build();
 
             return new N5AmazonS3Reader( s3, bucketName, key );
