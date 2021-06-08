@@ -2,6 +2,7 @@ package de.embl.cba.mobie.command;
 
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.MoBIESettings;
+import de.embl.cba.mobie.source.ImageDataFormat;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -21,9 +22,9 @@ public class OpenMoBIEProjectCommand implements Command
 		MoBIESettings options = MoBIESettings.settings();
 
 		if ( projectLocation.startsWith( "http" ) ) {
-			options = options.imageDataFormat( MoBIESettings.ImageDataFormat.BdvN5S3 );
+			options = options.imageDataFormat( ImageDataFormat.BdvN5S3 );
 		} else {
-			options = options.imageDataFormat( MoBIESettings.ImageDataFormat.BdvN5 );
+			options = options.imageDataFormat( ImageDataFormat.BdvN5 );
 		}
 
 		try

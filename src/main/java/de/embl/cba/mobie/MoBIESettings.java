@@ -1,36 +1,10 @@
 package de.embl.cba.mobie;
 
-import com.google.gson.annotations.SerializedName;
+import de.embl.cba.mobie.source.ImageDataFormat;
 
 public class MoBIESettings
 {
 	public final Values values = new Values();
-
-	public enum ImageDataFormat
-	{
-		@SerializedName("bdv.n5")
-		BdvN5,
-		@SerializedName("bdv.n5.s3")
-		BdvN5S3,
-		@SerializedName("openOrganelle")
-		OpenOrganelle;
-
-		@Override
-		public String toString()
-		{
-			switch ( this )
-			{
-				case BdvN5:
-					return "bdv.n5";
-				case BdvN5S3:
-					return "bdv.n5.s3";
-				case OpenOrganelle:
-					return "openOrganelle";
-				default:
-					throw new UnsupportedOperationException("Unknown image file format: " + this );
-			}
-		}
-	}
 
 	public static MoBIESettings settings()
 	{
@@ -106,7 +80,7 @@ public class MoBIESettings
 			return projectBranch;
 		}
 
-		public ImageDataFormat getImageDataStorageModality() { return imageDataFormat; }
+		public ImageDataFormat getImageDataFormat() { return imageDataFormat; }
 
 		public String getImageDataLocation()
 		{

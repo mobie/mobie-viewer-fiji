@@ -4,6 +4,7 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
+import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.mobie.source.ImageSource;
 import de.embl.cba.mobie.source.SegmentationSource;
 import de.embl.cba.mobie.ui.UserInterface;
@@ -232,14 +233,23 @@ public class MoBIE
 
 	public synchronized String getImagePath( ImageSource source )
 	{
-		switch ( settings.values.getImageDataStorageModality() )
+		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
+
+		switch ( imageDataFormat )
 		{
 			case BdvN5:
-				source.imageData.get( settings.values.getImageDataStorageModality() ).get( "relativePath" );
-				return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativeImagePath );
+			case BdvN5S3:
+				final String relativePath = source.imageData.get( imageDataFormat ).relativePath;
+				return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativePath );
+			case OpenOrganelle:
+				final String s3Address = source.imageData.get( imageDataFormat ).s3Address;
+				throw new UnsupportedOperationException( "Loading openOrganelle not supported yet.");
+			default:
+				throw new UnsupportedOperationException( "File format not supported: " + imageDataFormat );
+
+
+
 		}
-		final String relativeImagePath = source.imageData.get( settings.values.getImageDataStorageModality().toString() );
-		return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativeImagePath );
 	}
 
 	public String getDefaultTablePath( SegmentationSource source )
