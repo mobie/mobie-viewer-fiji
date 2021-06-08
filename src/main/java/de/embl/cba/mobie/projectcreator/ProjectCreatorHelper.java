@@ -5,6 +5,7 @@ import bdv.spimdata.SpimDataMinimal;
 import de.embl.cba.mobie.n5.N5FSImageLoader;
 import de.embl.cba.mobie.n5.N5S3ImageLoader;
 import de.embl.cba.mobie.Dataset;
+import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.FileAndUrlUtils;
@@ -128,22 +129,23 @@ public class ProjectCreatorHelper {
         return new File(n5Filename);
     }
 
-    public static ProjectCreator.BdvFormat getBdvFormatFromSpimDataMinimal(SpimDataMinimal spimDataMinimal) {
-        ProjectCreator.BdvFormat bdvFormat = null;
+    public static ImageDataFormat getImageFormatFromSpimDataMinimal( SpimDataMinimal spimDataMinimal ) {
+        ImageDataFormat imageFormat = null;
         BasicImgLoader imgLoader = spimDataMinimal.getSequenceDescription().getImgLoader();
-        if (imgLoader instanceof N5ImageLoader | imgLoader instanceof N5FSImageLoader |
-                imgLoader instanceof N5S3ImageLoader | imgLoader instanceof de.embl.cba.mobie.n5.N5ImageLoader) {
-            bdvFormat = ProjectCreator.BdvFormat.n5;
+        if ( imgLoader instanceof N5FSImageLoader | imgLoader instanceof N5ImageLoader ) {
+            imageFormat = ImageDataFormat.BdvN5;
+        } else if ( imgLoader instanceof N5S3ImageLoader ) {
+            imageFormat = ImageDataFormat.BdvN5S3;
         }
 
-        return bdvFormat;
+        return imageFormat;
     }
 
-    public static File getImageLocationFromSpimDataMinimal(SpimDataMinimal spimDataMinimal, ProjectCreator.BdvFormat bdvFormat) {
+    public static File getImageLocationFromSpimDataMinimal(SpimDataMinimal spimDataMinimal, ImageDataFormat imageFormat ) {
         File imageLocation = null;
 
-        switch (bdvFormat) {
-            case n5:
+        switch ( imageFormat ) {
+            case BdvN5:
                 // get image loader to find absolute image location
                 BasicImgLoader imgLoader = spimDataMinimal.getSequenceDescription().getImgLoader();
                 if (imgLoader instanceof N5ImageLoader) {

@@ -26,4 +26,34 @@ public enum ImageDataFormat
 				throw new UnsupportedOperationException( "Unknown file format: " + this );
 		}
 	}
+
+	public static ImageDataFormat fromString( String string )
+	{
+		switch ( string )
+		{
+			case "bdv.n5":
+				return BdvN5;
+			case "bdv.n5.s3":
+				return BdvN5S3;
+			case "openOrganelle":
+				return OpenOrganelle;
+			default:
+				throw new UnsupportedOperationException( "Unknown file format: " + string );
+		}
+	}
+
+	public boolean isSupportedByProjectCreator()
+	{
+		switch ( this )
+		{
+			case BdvN5:
+				return true;
+			case BdvN5S3:
+				return false;
+			case OpenOrganelle:
+				return false;
+			default:
+				return false;
+		}
+	}
 }

@@ -9,6 +9,7 @@ import de.embl.cba.mobie.n5.N5FSImageLoader;
 import de.embl.cba.mobie.projectcreator.n5.DownsampleBlock;
 import de.embl.cba.mobie.projectcreator.n5.WriteImgPlusToN5;
 import de.embl.cba.mobie.projectcreator.ui.ManualN5ExportPanel;
+import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
 import ij.IJ;
@@ -65,8 +66,8 @@ public class ImagesCreator {
         return FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(), datasetName, "tables", imageName );
     }
 
-    public void addImage ( ImagePlus imp, String imageName, String datasetName,
-                          ProjectCreator.BdvFormat bdvFormat, ProjectCreator.ImageType imageType,
+    public void addImage (ImagePlus imp, String imageName, String datasetName,
+                          ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
                           AffineTransform3D sourceTransform, boolean useDefaultSettings, String uiSelectionGroup ) {
         String xmlPath = getDefaultLocalImageXmlPath( datasetName, imageName );
         File xmlFile = new File( xmlPath );
@@ -81,8 +82,8 @@ public class ImagesCreator {
         }
 
         if ( !xmlFile.exists() ) {
-            switch( bdvFormat ) {
-                case n5:
+            switch( imageDataFormat ) {
+                case BdvN5:
                     if (!useDefaultSettings) {
                         new ManualN5ExportPanel(imp, xmlPath, sourceTransform, downsamplingMethod, imageName).getManualExportParameters();
                     } else {
@@ -121,8 +122,8 @@ public class ImagesCreator {
 
             if ( !newXmlFile.exists() ) {
                 // check n5 format (e.g. we no longer support hdf5)
-                ProjectCreator.BdvFormat bdvFormat = getBdvFormatFromSpimDataMinimal( spimDataMinimal );
-                if ( bdvFormat != null ) {
+                ImageDataFormat imageFormat = getImageFormatFromSpimDataMinimal( spimDataMinimal );
+                if ( imageFormat != null && imageFormat.isSupportedByProjectCreator() ) {
                     // The view setup name must be the same as the image name
                     spimDataMinimal = fixSetupName( spimDataMinimal, imageName );
 
@@ -131,16 +132,16 @@ public class ImagesCreator {
                             new XmlIoSpimDataMinimal().save(spimDataMinimal, newXmlFile.getAbsolutePath());
                             break;
                         case copy:
-                            copyImage(bdvFormat, spimDataMinimal, newXmlDirectory, imageName);
+                            copyImage( imageFormat, spimDataMinimal, newXmlDirectory, imageName);
                             break;
                         case move:
-                            moveImage(bdvFormat, spimDataMinimal, newXmlDirectory, imageName);
+                            moveImage( imageFormat, spimDataMinimal, newXmlDirectory, imageName);
                             break;
                     }
                     updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup,
                             isSpimData2D( spimDataMinimal ), getNTimepointsFromSpimData( spimDataMinimal ) );
                 } else {
-                    IJ.log( "Image is of unsupported type. Must be n5.");
+                    IJ.log( "Image is of unsupported type.");
                 }
             } else {
                 IJ.log("Adding image to project failed - this image name already exists");
@@ -259,40 +260,40 @@ public class ImagesCreator {
         datasetJsonCreator.addToDatasetJson( imageName, datasetName, imageType, uiSelectionGroup, is2D, nTimepoints );
     }
 
-    private void copyImage ( ProjectCreator.BdvFormat bdvFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
-        File newImageFile = new File( newXmlDirectory, imageName + "." + bdvFormat );
-        File imageLocation = getImageLocationFromSpimDataMinimal( spimDataMinimal, bdvFormat );
+    private void copyImage ( ImageDataFormat imageFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
+        File newImageFile = null;
 
-        switch ( bdvFormat ) {
-            case n5:
-                FileUtils.copyDirectory(imageLocation, newImageFile );
-                break;
+        switch( imageFormat ) {
+            case BdvN5:
+                newImageFile = new File(newXmlDirectory, imageName + ".n5" );
+                File imageLocation = getImageLocationFromSpimDataMinimal(spimDataMinimal, imageFormat );
+                FileUtils.copyDirectory(imageLocation, newImageFile);
         }
 
-        writeNewBdvXml( spimDataMinimal, newImageFile, newXmlDirectory, imageName, bdvFormat);
+        writeNewBdvXml( spimDataMinimal, newImageFile, newXmlDirectory, imageName, imageFormat );
     }
 
-    private void moveImage ( ProjectCreator.BdvFormat bdvFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
-        File newImageFile = new File( newXmlDirectory, imageName + "." + bdvFormat );
-        File imageLocation = getImageLocationFromSpimDataMinimal( spimDataMinimal, bdvFormat );
+    private void moveImage ( ImageDataFormat imageFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
+        File newImageFile = null;
 
-        // have to explicitly close the image loader, so we can delete the original file
-        closeImgLoader( spimDataMinimal, bdvFormat );
+        switch( imageFormat ) {
+            case BdvN5:
+                newImageFile = new File( newXmlDirectory, imageName + ".n5" );
+                File imageLocation = getImageLocationFromSpimDataMinimal( spimDataMinimal, imageFormat );
 
-        switch ( bdvFormat ) {
-            case n5:
+                // have to explicitly close the image loader, so we can delete the original file
+                closeImgLoader( spimDataMinimal, imageFormat );
                 FileUtils.moveDirectory( imageLocation, newImageFile );
-                break;
         }
 
-        writeNewBdvXml( spimDataMinimal, newImageFile, newXmlDirectory, imageName, bdvFormat );
+        writeNewBdvXml( spimDataMinimal, newImageFile, newXmlDirectory, imageName, imageFormat );
     }
 
-    private void closeImgLoader ( SpimDataMinimal spimDataMinimal, ProjectCreator.BdvFormat bdvFormat ) {
+    private void closeImgLoader ( SpimDataMinimal spimDataMinimal, ImageDataFormat imageFormat ) {
         BasicImgLoader imgLoader = spimDataMinimal.getSequenceDescription().getImgLoader();
 
-        switch ( bdvFormat ) {
-            case n5:
+        switch ( imageFormat ) {
+            case BdvN5:
                 if ( imgLoader instanceof  N5ImageLoader ) {
                     ( (N5ImageLoader) imgLoader ).close();
                 } else if ( imgLoader instanceof N5FSImageLoader ) {
@@ -335,11 +336,11 @@ public class ImagesCreator {
     }
 
     private void writeNewBdvXml ( SpimDataMinimal spimDataMinimal, File imageFile, File saveDirectory, String imageName,
-                                  ProjectCreator.BdvFormat bdvFormat ) throws SpimDataException {
+                                  ImageDataFormat imageFormat ) throws SpimDataException {
 
         ImgLoader imgLoader = null;
-        switch ( bdvFormat ) {
-            case n5:
+        switch ( imageFormat ) {
+            case BdvN5:
                 imgLoader = new N5ImageLoader( imageFile, null);
                 break;
         }
