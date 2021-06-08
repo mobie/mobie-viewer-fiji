@@ -55,15 +55,15 @@ public class UserInterfaceHelper
 	private static final String ADD = "view";
 	public static final int SPACING = 20;
 
-	private final MoBIE moBIE2;
+	private final MoBIE moBIE;
 	private int viewsSelectionPanelHeight;
 	private JPanel viewSelectionPanel;
 	private Map< String, Map< String, View > > groupingsToViews;
 	private Map< String, JComboBox > groupingsToComboBox;
 
-	public UserInterfaceHelper( MoBIE moBIE2 )
+	public UserInterfaceHelper( MoBIE moBIE )
 	{
-		this.moBIE2 = moBIE2;
+		this.moBIE = moBIE;
 	}
 
 	public static JPanel createDisplaySettingsPanel()
@@ -264,7 +264,7 @@ public class UserInterfaceHelper
 		final JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ) );
 
-		panel.add( createInfoPanel( moBIE2.getSettings().values.getProjectLocation(), moBIE2.getSettings().values.getPublicationURL() ) );
+		panel.add( createInfoPanel( moBIE.getSettings().values.getProjectLocation(), moBIE.getSettings().values.getPublicationURL() ) );
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		panel.add( createDatasetSelectionPanel() );
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
@@ -347,7 +347,7 @@ public class UserInterfaceHelper
 
 	public JPanel createViewsSelectionPanel( )
 	{
-		final Map< String, View > views = moBIE2.getViews();
+		final Map< String, View > views = moBIE.getViews();
 
 		groupingsToViews = new HashMap<>(  );
 		groupingsToComboBox = new HashMap<>( );
@@ -381,7 +381,7 @@ public class UserInterfaceHelper
 		// If it's the first time, just add all the panels in order
 		if ( groupingsToComboBox.keySet().size() == 0 ) {
 			for (String uiSelectionGroup : uiSelectionGroups) {
-				final JPanel selectionPanel = createViewSelectionPanel(moBIE2, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
+				final JPanel selectionPanel = createViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
 				viewSelectionPanel.add(selectionPanel);
 			}
 		} else {
@@ -392,7 +392,7 @@ public class UserInterfaceHelper
 				if ( groupingsToComboBox.containsKey( uiSelectionGroup ) ) {
 					groupingsToComboBox.get( uiSelectionGroup ).addItem( viewName );
 				} else {
-					final JPanel selectionPanel = createViewSelectionPanel(moBIE2, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
+					final JPanel selectionPanel = createViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
 					int alphabeticalIndex = uiSelectionGroups.indexOf( uiSelectionGroup );
 					indexToPanel.put( alphabeticalIndex, selectionPanel );
 				}
@@ -425,7 +425,7 @@ public class UserInterfaceHelper
 		return groupingsToViews.keySet();
 	}
 
-	private JPanel createViewSelectionPanel(MoBIE moBIE2, String panelName, Map< String, View > views )
+	private JPanel createViewSelectionPanel(MoBIE moBIE, String panelName, Map< String, View > views )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
@@ -440,7 +440,7 @@ public class UserInterfaceHelper
 				{
 					final String viewName = ( String ) comboBox.getSelectedItem();
 					final View view = views.get( viewName );
-					moBIE2.getViewerManager().show( view );
+					moBIE.getViewerManager().show( view );
 				}).start();
 			} );
 		} );
@@ -482,7 +482,7 @@ public class UserInterfaceHelper
 //			Utils.logVector( "New reference normal vector (default): ", levelingVector );
 //		} );
 
-		button.addActionListener( e -> BdvUtils.levelCurrentView( moBIE2.getViewerManager().getSliceViewer().getBdvHandle(), targetNormalVector ) );
+		button.addActionListener( e -> BdvUtils.levelCurrentView( moBIE.getViewerManager().getSliceViewer().getBdvHandle(), targetNormalVector ) );
 
 		return horizontalLayoutPanel;
 	}
@@ -495,7 +495,7 @@ public class UserInterfaceHelper
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		button.addActionListener( e -> BdvLocationChanger.moveToLocation( moBIE2.getViewerManager().getSliceViewer().getBdvHandle(), new BdvLocation( jTextField.getText() ) ) );
+		button.addActionListener( e -> BdvLocationChanger.moveToLocation( moBIE.getViewerManager().getSliceViewer().getBdvHandle(), new BdvLocation( jTextField.getText() ) ) );
 
 		horizontalLayoutPanel.add( getJLabel( "location" ) );
 		horizontalLayoutPanel.add( jTextField );
@@ -544,7 +544,7 @@ public class UserInterfaceHelper
 	{
 		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 
-		final JComboBox< String > comboBox = new JComboBox<>( moBIE2.getDatasets().toArray( new String[ 0 ] ) );
+		final JComboBox< String > comboBox = new JComboBox<>( moBIE.getDatasets().toArray( new String[ 0 ] ) );
 
 		final JButton button = createButton( ADD );
 		button.addActionListener( e ->
@@ -552,11 +552,11 @@ public class UserInterfaceHelper
 			SwingUtilities.invokeLater( () ->
 			{
 				final String dataset = ( String ) comboBox.getSelectedItem();
-				moBIE2.setDataset( dataset );
+				moBIE.setDataset( dataset );
 			} );
 		} );
 
-		comboBox.setSelectedItem( moBIE2.getDatasetName() );
+		comboBox.setSelectedItem( moBIE.getDatasetName() );
 		setComboBoxDimensions( comboBox );
 
 		panel.add( getJLabel( "dataset" ) );
@@ -811,7 +811,7 @@ public class UserInterfaceHelper
 
 		removeButton.addActionListener( e ->
 		{
-			moBIE2.getViewerManager().removeSourceDisplay( sourceDisplay );
+			moBIE.getViewerManager().removeSourceDisplay( sourceDisplay );
 		} );
 
 		return removeButton;

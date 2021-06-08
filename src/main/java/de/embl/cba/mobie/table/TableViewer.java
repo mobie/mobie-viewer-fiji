@@ -60,7 +60,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static de.embl.cba.tables.FileUtils.selectPathFromProjectOrFileSystem;
+import static de.embl.cba.mobie.Utils.createAnnotatedImageSegmentsFromTableFile;
+import static de.embl.cba.mobie.Utils.selectPathFromProjectOrFileSystem;
 import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_GREY;
 import static de.embl.cba.tables.tablerow.TableRows.setTableCell;
 
@@ -102,7 +103,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			final List< T > tableRows,
 			final SelectionModel< T > selectionModel,
 			final MoBIEColoringModel< T > moBIEColoringModel,
-			String tableName )
+			String tableName, String tablesDirectory )
 	{
 		this.tableRows = tableRows;
 		this.coloringModel = moBIEColoringModel;
@@ -110,6 +111,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		this.tableName = tableName;
 		this.recentlySelectedRowInView = -1;
 		this.additionalTables = new ArrayList<>();
+		this.tablesDirectory = tablesDirectory;
 
 		// TODO: reconsider
 		registerAsTableRowListener( tableRows );

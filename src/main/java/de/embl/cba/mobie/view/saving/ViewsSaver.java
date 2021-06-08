@@ -7,7 +7,6 @@ import de.embl.cba.mobie.serialize.AdditionalViewsJsonParser;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.view.additionalviews.AdditionalViews;
-import de.embl.cba.tables.FileUtils;
 import de.embl.cba.tables.github.GitHubUtils;
 import ij.IJ;
 import ij.gui.GenericDialog;
@@ -23,11 +22,14 @@ import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.makeNewUiSel
 import static de.embl.cba.mobie.ui.UserInterfaceHelper.tidyString;
 import static de.embl.cba.mobie.view.saving.ViewSavingHelpers.writeAdditionalViewsJson;
 import static de.embl.cba.mobie.view.saving.ViewSavingHelpers.writeDatasetJson;
-import static de.embl.cba.tables.FileUtils.*;
+import static de.embl.cba.mobie.Utils.FileLocation;
+import static de.embl.cba.tables.FileAndUrlUtils.getFileNames;
+import static de.embl.cba.tables.S3Utils.isS3;
+import static de.embl.cba.tables.github.GitHubUtils.isGithub;
 
 public class ViewsSaver {
 
-    private MoBIE moBIE2;
+    private MoBIE moBIE;
     private MoBIESettings settings;
 
     enum ProjectSaveLocation {
@@ -40,18 +42,18 @@ public class ViewsSaver {
         overwriteExistingView
     }
 
-    public ViewsSaver(MoBIE moBIE2) {
-        this.moBIE2 = moBIE2;
-        this.settings = moBIE2.getSettings();
+    public ViewsSaver(MoBIE moBIE) {
+        this.moBIE = moBIE;
+        this.settings = moBIE.getSettings();
     }
 
     public void saveCurrentSettingsAsViewDialog() {
         final GenericDialog gd = new GenericDialog("Save current view");
 
-        gd.addChoice("Save to", new String[]{ FileUtils.FileLocation.Project.toString(),
-                FileUtils.FileLocation.FileSystem.toString()}, FileUtils.FileLocation.Project.toString());
+        gd.addChoice("Save to", new String[]{ FileLocation.Project.toString(),
+                FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
 
-        String[] currentUiSelectionGroups = moBIE2.getUserInterface().getUISelectionGroupNames();
+        String[] currentUiSelectionGroups = moBIE.getUserInterface().getUISelectionGroupNames();
         String[] choices = new String[currentUiSelectionGroups.length + 1];
         choices[0] = "Make New Ui Selection Group";
         for (int i = 0; i < currentUiSelectionGroups.length; i++) {
@@ -64,7 +66,7 @@ public class ViewsSaver {
         gd.showDialog();
 
         if (!gd.wasCanceled()) {
-            FileUtils.FileLocation fileLocation = FileUtils.FileLocation.valueOf(gd.getNextChoice());
+            FileLocation fileLocation = FileLocation.valueOf(gd.getNextChoice());
             String uiSelectionGroup = gd.getNextChoice();
             boolean exclusive = gd.getNextBoolean();
             boolean includeViewerTransform = gd.getNextBoolean();
@@ -74,7 +76,7 @@ public class ViewsSaver {
             }
 
             if (uiSelectionGroup != null) {
-                if (fileLocation == FileUtils.FileLocation.Project) {
+                if (fileLocation == FileLocation.Project) {
                     saveToProject( uiSelectionGroup, exclusive, includeViewerTransform );
                 } else {
                     saveToFileSystem( uiSelectionGroup, exclusive, includeViewerTransform );
@@ -96,7 +98,7 @@ public class ViewsSaver {
                 jsonPath += ".json";
             }
 
-            View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
+            View currentView = moBIE.getViewerManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
             try {
                 saveToAdditionalViewsJson( currentView, jsonPath );
             } catch (IOException e) {
@@ -112,7 +114,7 @@ public class ViewsSaver {
         } else {
             ProjectSaveLocation projectSaveLocation = chooseProjectSaveLocationDialog();
             if (projectSaveLocation != null) {
-                View currentView = moBIE2.getViewerManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
+                View currentView = moBIE.getViewerManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
 
                 try {
                     if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
@@ -131,7 +133,7 @@ public class ViewsSaver {
     }
 
     private void saveToDatasetJson( View view ) throws IOException {
-        String datasetJsonPath = moBIE2.getDatasetPath( "dataset.json");
+        String datasetJsonPath = moBIE.getDatasetPath( "dataset.json");
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
 
         String viewName;
@@ -200,8 +202,8 @@ public class ViewsSaver {
     }
 
     private String chooseAdditionalViewsJson() {
-        String additionalViewsDirectory = moBIE2.getDatasetPath( "misc", "views");
-        String[] existingViewFiles = getFileNamesFromProject(additionalViewsDirectory);
+        String additionalViewsDirectory = moBIE.getDatasetPath( "misc", "views");
+        String[] existingViewFiles = getFileNames(additionalViewsDirectory);
 
         String jsonFileName;
         if ( existingViewFiles != null && existingViewFiles.length > 0 ) {
@@ -211,7 +213,7 @@ public class ViewsSaver {
         }
 
         if ( jsonFileName != null ) {
-            return moBIE2.getDatasetPath( "misc", "views", jsonFileName);
+            return moBIE.getDatasetPath( "misc", "views", jsonFileName);
         } else {
             return null;
         }

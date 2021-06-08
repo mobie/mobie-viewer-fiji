@@ -33,12 +33,12 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 	private final String name;
 
 	// TODO: split in two classes: the GridOverlayDisplay and the GridOverlayView
-	public GridOverlaySourceDisplay(MoBIE moBIE2, BdvHandle bdvHandle, String name, String tableDataFolder, GridSourceTransformer sourceTransformer )
+	public GridOverlaySourceDisplay(MoBIE moBIE, BdvHandle bdvHandle, String name, String tableDataFolder, GridSourceTransformer sourceTransformer )
 	{
 		this.bdvHandle = bdvHandle;
 		this.name = name;
 
-		String tablePath = moBIE2.getDefaultTablePath( tableDataFolder );
+		String tablePath = moBIE.getDefaultTablePath( tableDataFolder );
 		tablePath = Utils.resolveTablePath( tablePath );
 		Logger.log( "Opening table:\n" + tablePath );
 
@@ -50,7 +50,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 		selectionModel = new DefaultSelectionModel< DefaultAnnotatedIntervalTableRow >();
 		coloringModel.setSelectionModel( selectionModel );
 
-		tableViewer = new TableViewer<>( tableRows, selectionModel, coloringModel, name ).show();
+		tableViewer = new TableViewer<>( tableRows, selectionModel, coloringModel, name, tableDataFolder ).show();
 		coloringModel.listeners().add( tableViewer );
 		selectionModel.listeners().add( tableViewer );
 

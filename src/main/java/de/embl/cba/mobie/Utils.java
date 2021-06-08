@@ -4,12 +4,13 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.tables.FileUtils;
+import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
 import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
+import ij.gui.GenericDialog;
 import net.imglib2.*;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
@@ -23,6 +24,51 @@ import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
 
 public abstract class Utils
 {
+	public enum FileLocation {
+		Project,
+		FileSystem
+	}
+
+	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
+	public static String selectPathFromProjectOrFileSystem (String directory, String objectName) throws IOException {
+		if (directory != null) {
+			final GenericDialog gd = new GenericDialog("Choose source");
+			gd.addChoice("Load from", new String[]{FileLocation.Project.toString(),
+					FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
+			gd.showDialog();
+			if (gd.wasCanceled()) return null;
+			FileLocation fileLocation = FileLocation.valueOf(gd.getNextChoice());
+
+			if (fileLocation == FileLocation.Project) {
+				return FileAndUrlUtils.selectPath(directory, objectName);
+			} else {
+				return FileAndUrlUtils.selectPath(System.getProperty("user.home"), objectName);
+			}
+		} else {
+			return null;
+		}
+	}
+
+	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
+	public static String selectPathFromProjectOrFileSystem ( String[] directories, String objectName) throws IOException {
+		if ( directories != null) {
+			final GenericDialog gd = new GenericDialog("Choose source");
+			gd.addChoice("Load from", new String[]{FileLocation.Project.toString(),
+					FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
+			gd.showDialog();
+			if (gd.wasCanceled()) return null;
+			FileLocation fileLocation = FileLocation.valueOf(gd.getNextChoice());
+
+			if (fileLocation == FileLocation.Project) {
+				return FileAndUrlUtils.selectPath(directory, objectName);
+			} else {
+				return FileAndUrlUtils.selectPath(System.getProperty("user.home"), objectName);
+			}
+		} else {
+			return null;
+		}
+	}
+
 	public static < T > SourceAndConverter< T > getSource( List< SourceAndConverter< T > > sourceAndConverters, String name )
 	{
 		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
@@ -79,9 +125,9 @@ public abstract class Utils
 	public static String resolveTablePath( String tablePath )
 	{
 		if ( tablePath.startsWith( "http" ) ) {
-			tablePath = FileUtils.resolveTableURL( URI.create(tablePath) );
+			tablePath = FileAndUrlUtils.resolveTableURL( URI.create(tablePath) );
 		} else {
-			tablePath = FileUtils.resolveTablePath( tablePath );
+			tablePath = FileAndUrlUtils.resolveTablePath( tablePath );
 		}
 		return tablePath;
 	}

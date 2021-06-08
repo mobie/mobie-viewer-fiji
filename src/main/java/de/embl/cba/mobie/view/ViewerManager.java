@@ -35,6 +35,7 @@ import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import javax.activation.UnsupportedDataTypeException;
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -47,7 +48,7 @@ import static de.embl.cba.mobie.ui.UserInterfaceHelper.resetSystemSwingLookAndFe
 
 public class ViewerManager
 {
-	private final MoBIE moBIE2;
+	private final MoBIE moBIE;
 	private final UserInterface userInterface;
 	private final SliceViewer sliceViewer;
 	private ArrayList< SourceDisplay > sourceDisplays;
@@ -57,16 +58,16 @@ public class ViewerManager
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewsSaver viewsSaver;
 
-	public ViewerManager(MoBIE moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
+	public ViewerManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
 	{
-		this.moBIE2 = moBIE2;
+		this.moBIE = moBIE;
 		this.userInterface = userInterface;
 		sourceDisplays = new ArrayList<>();
 		sliceViewer = new SliceViewer( is2D, this, timepoints );
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
-		additionalViewsLoader = new AdditionalViewsLoader( moBIE2 );
-		viewsSaver = new ViewsSaver( moBIE2 );
+		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
+		viewsSaver = new ViewsSaver( moBIE );
 	}
 
 	public static void initScatterPlotViewer( SegmentationSourceDisplay display )
@@ -80,9 +81,12 @@ public class ViewerManager
 			display.scatterPlotViewer.show();
 	}
 
-	public static void initTableViewer( SegmentationSourceDisplay display  )
+	public void initTableViewer( SegmentationSourceDisplay display  )
 	{
-		display.tableViewer = new TableViewer<>( display.segments, display.selectionModel, display.coloringModel, display.getName() ).show();
+		String tablesDirectory = ((SegmentationSource) moBIE.getSource( display.getSources().get(0) )).tableDataLocation;
+
+		display.tableViewer = new TableViewer<>( display.segments, display.selectionModel, display.coloringModel,
+				display.getName(), tablesDirectory ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
@@ -214,7 +218,7 @@ public class ViewerManager
 
 					if ( tableDataLocation != null )
 					{
-						gridOverlayDisplay = new GridOverlaySourceDisplay( moBIE2, bdvHandle,  "grid-" + (i++), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
+						gridOverlayDisplay = new GridOverlaySourceDisplay(moBIE, bdvHandle,  "grid-" + (i++), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
 
 						userInterface.addGridView( gridOverlayDisplay );
 						sourceDisplays.add( gridOverlayDisplay );
@@ -246,7 +250,7 @@ public class ViewerManager
 
 	private void showImageDisplay( ImageSourceDisplay imageDisplay )
 	{
-		imageDisplay.imageSliceView = new ImageSliceView( imageDisplay, bdvHandle, ( List< String > name ) -> moBIE2.openSourceAndConverters( name ) );
+		imageDisplay.imageSliceView = new ImageSliceView( imageDisplay, bdvHandle, ( List< String > name ) -> moBIE.openSourceAndConverters( name ) );
 	}
 
 	// TODO: own class: SegmentationDisplayConfigurator
@@ -284,10 +288,10 @@ public class ViewerManager
 		// load default tables
 		for ( String sourceName : segmentationDisplay.getSources() )
 		{
-			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
+			final SegmentationSource source = ( SegmentationSource ) moBIE.getSource( sourceName );
 
 			segmentationDisplay.segments.addAll( createAnnotatedImageSegmentsFromTableFile(
-					moBIE2.getDefaultTablePath( source ),
+					moBIE.getDefaultTablePath( source ),
 					sourceName ) );
 		}
 
@@ -295,14 +299,14 @@ public class ViewerManager
 		// TODO: This will not work like this for the grid view with multiple sources...
 		for ( String sourceName : segmentationDisplay.getSources() )
 		{
-			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
+			final SegmentationSource source = ( SegmentationSource ) moBIE.getSource( sourceName );
 
 			final List< String > tables = segmentationDisplay.getTables();
 			if ( tables != null )
 			{
 				for ( String table : tables )
 				{
-					final String tablePath = moBIE2.getTablePath( source.tableDataLocation, table );
+					final String tablePath = moBIE.getTablePath( source.tableDataLocation, table );
 					IJ.log( "Opening table:\n" + tablePath );
 					final Map< String, List< String > > newColumns =
 							TableColumns.openAndOrderNewColumns(
@@ -328,7 +332,7 @@ public class ViewerManager
 
 	private void initSliceViewer( SegmentationSourceDisplay segmentationDisplay )
 	{
-		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE2.openSourceAndConverters( names ) );
+		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE.openSourceAndConverters( names ) );
 		segmentationDisplay.segmentationImageSliceView = segmentationImageSliceView;
 	}
 

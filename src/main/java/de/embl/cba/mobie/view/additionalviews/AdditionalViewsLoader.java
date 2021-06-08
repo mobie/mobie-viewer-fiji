@@ -9,28 +9,28 @@ import de.embl.cba.mobie.view.View;
 import java.io.IOException;
 import java.util.Map;
 
-import static de.embl.cba.tables.FileUtils.selectPathFromProjectOrFileSystem;
+import static de.embl.cba.mobie.Utils.selectPathFromProjectOrFileSystem;
 
 public class AdditionalViewsLoader {
 
-    private MoBIE moBIE2;
+    private MoBIE moBIE;
     private MoBIESettings settings;
 
-    public AdditionalViewsLoader ( MoBIE moBIE2 ) {
-        this.moBIE2 = moBIE2;
-        this.settings = moBIE2.getSettings();
+    public AdditionalViewsLoader ( MoBIE moBIE ) {
+        this.moBIE = moBIE;
+        this.settings = moBIE.getSettings();
     }
 
     public void loadAdditionalViewsDialog() {
         try {
-            String additionalViewsDirectory = moBIE2.getDatasetPath("misc", "views" );
+            String additionalViewsDirectory = moBIE.getDatasetPath("misc", "views" );
             String selectedFilePath = selectPathFromProjectOrFileSystem( additionalViewsDirectory, "View" );
             // to match to the existing view selection panels, we enable the cross platform look and feel
             UserInterfaceHelper.resetCrossPlatformSwingLookAndFeel();
 
             if (selectedFilePath != null) {
                 Map< String, View> views = new AdditionalViewsJsonParser().getViews( selectedFilePath ).views;
-                moBIE2.getUserInterface().addViews( views );
+                moBIE.getUserInterface().addViews( views );
             }
 
             UserInterfaceHelper.resetSystemSwingLookAndFeel();
