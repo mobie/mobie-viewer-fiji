@@ -14,7 +14,7 @@ public class OpenRemoteAutophagosomesCLEM
 		imageJ.ui().showUI();
 		try {
 			new MoBIE("https://github.com/mobie-org/autophagosomes-clem-datasets",
-					MoBIESettings.settings().imageDataStorageModality( MoBIESettings.ImageDataStorageModality.S3 ) );
+					MoBIESettings.settings().imageDataFormat( MoBIESettings.ImageDataFormat.BdvN5S3 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

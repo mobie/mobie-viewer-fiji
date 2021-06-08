@@ -21,9 +21,9 @@ public class OpenMoBIEProjectCommand implements Command
 		MoBIESettings options = MoBIESettings.settings();
 
 		if ( projectLocation.startsWith( "http" ) ) {
-			options = options.imageDataStorageModality(MoBIESettings.ImageDataStorageModality.S3);
+			options = options.imageDataFormat( MoBIESettings.ImageDataFormat.BdvN5S3 );
 		} else {
-			options = options.imageDataStorageModality(MoBIESettings.ImageDataStorageModality.FileSystem);
+			options = options.imageDataFormat( MoBIESettings.ImageDataFormat.BdvN5 );
 		}
 
 		try

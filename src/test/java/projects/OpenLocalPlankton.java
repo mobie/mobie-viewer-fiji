@@ -13,7 +13,7 @@ public class OpenLocalPlankton
 		new ImageJ().ui().showUI();
 		try {
 			new MoBIE("/Volumes/schwab/schwab/MoBIE-plankton",
-					MoBIESettings.settings().imageDataStorageModality( MoBIESettings.ImageDataStorageModality.FileSystem ) );
+					MoBIESettings.settings().imageDataFormat( MoBIESettings.ImageDataFormat.BdvN5 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

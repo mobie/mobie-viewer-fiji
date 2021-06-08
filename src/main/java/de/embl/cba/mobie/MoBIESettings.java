@@ -1,24 +1,33 @@
 package de.embl.cba.mobie;
 
+import com.google.gson.annotations.SerializedName;
+
 public class MoBIESettings
 {
 	public final Values values = new Values();
 
-	public enum ImageDataStorageModality
+	public enum ImageDataFormat
 	{
-		FileSystem,
-		S3;
+		@SerializedName("bdv.n5")
+		BdvN5,
+		@SerializedName("bdv.n5.s3")
+		BdvN5S3,
+		@SerializedName("openOrganelle")
+		OpenOrganelle;
 
 		@Override
 		public String toString()
 		{
-			if ( this.equals( S3 ) )
+			switch ( this )
 			{
-				return "s3store";
-			}
-			else
-			{
-				return "fileSystem";
+				case BdvN5:
+					return "bdv.n5";
+				case BdvN5S3:
+					return "bdv.n5.s3";
+				case OpenOrganelle:
+					return "openOrganelle";
+				default:
+					throw new UnsupportedOperationException("Unknown image file format: " + this );
 			}
 		}
 	}
@@ -46,9 +55,9 @@ public class MoBIESettings
 		return this;
 	}
 
-	public MoBIESettings imageDataStorageModality( ImageDataStorageModality imageDataStorageModality )
+	public MoBIESettings imageDataFormat( ImageDataFormat imageDataFormat )
 	{
-		this.values.imageDataStorageModality = imageDataStorageModality;
+		this.values.imageDataFormat = imageDataFormat;
 		return this;
 	}
 
@@ -82,7 +91,7 @@ public class MoBIESettings
 		private String dataset;
 		private String projectBranch = "master"; // project and images
 		private String tableDataBranch;
-		private ImageDataStorageModality imageDataStorageModality = ImageDataStorageModality.S3;
+		private ImageDataFormat imageDataFormat = ImageDataFormat.BdvN5S3;
 		private String projectLocation;
 		private String imageDataLocation;
 		private String tableDataLocation;
@@ -97,7 +106,7 @@ public class MoBIESettings
 			return projectBranch;
 		}
 
-		public ImageDataStorageModality getImageDataStorageModality() { return imageDataStorageModality; }
+		public ImageDataFormat getImageDataStorageModality() { return imageDataFormat; }
 
 		public String getImageDataLocation()
 		{

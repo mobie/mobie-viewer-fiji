@@ -1,8 +1,10 @@
 package de.embl.cba.mobie.source;
 
+import de.embl.cba.mobie.MoBIESettings;
+
 import java.util.Map;
 
 public class ImageSource
 {
-	public Map< String, String > imageDataLocations;
+	public Map< MoBIESettings.ImageDataFormat, Map< String, String > > imageData;
 }

@@ -12,6 +12,6 @@ public class OpenRemoteZebrafish
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("https://github.com/mobie/zebrafish-lm-datasets", MoBIESettings.settings().gitProjectBranch( "spec-v2" ).imageDataStorageModality( MoBIESettings.ImageDataStorageModality.S3 ) );
+		new MoBIE("https://github.com/mobie/zebrafish-lm-datasets", MoBIESettings.settings().gitProjectBranch( "spec-v2" ).imageDataFormat( MoBIESettings.ImageDataFormat.BdvN5S3 ) );
 	}
 }

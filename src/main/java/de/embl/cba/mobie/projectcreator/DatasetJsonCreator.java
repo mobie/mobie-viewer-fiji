@@ -69,7 +69,7 @@ public class DatasetJsonCreator {
                 segmentationSource.tableDataLocation = "tables/" + imageName;
                 imageDataLocations = new HashMap<>();
                 imageDataLocations.put( "fileSystem", "images/local/" + imageName + ".xml" );
-                segmentationSource.imageDataLocations = imageDataLocations;
+                segmentationSource.imageData = imageDataLocations;
 
                 sourceSupplier = new SourceSupplier( segmentationSource );
 
@@ -80,7 +80,7 @@ public class DatasetJsonCreator {
                 ImageSource imageSource = new ImageSource();
                 imageDataLocations = new HashMap<>();
                 imageDataLocations.put( "fileSystem", "images/local/" + imageName + ".xml" );
-                imageSource.imageDataLocations = imageDataLocations;
+                imageSource.imageData = imageDataLocations;
 
                 sourceSupplier = new SourceSupplier( imageSource );
                 dataset.sources.put( imageName, sourceSupplier );

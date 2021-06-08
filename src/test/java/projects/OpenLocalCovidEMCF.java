@@ -14,7 +14,7 @@ public class OpenLocalCovidEMCF
 		imageJ.ui().showUI();
 		try {
 			new MoBIE("/Volumes/emcf/common/5792_Sars-Cov-2/covid-em/data",
-					MoBIESettings.settings().imageDataStorageModality( MoBIESettings.ImageDataStorageModality.FileSystem ) );
+					MoBIESettings.settings().imageDataFormat( MoBIESettings.ImageDataFormat.BdvN5 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

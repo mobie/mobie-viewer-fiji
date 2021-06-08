@@ -15,7 +15,7 @@ public class OpenRemoteTomogramsBranch
 
 		try {
 			new MoBIE("https://github.com/mobie/covid-tomo-datasets",
-					MoBIESettings.settings().gitProjectBranch( "grid-test" ).imageDataStorageModality( MoBIESettings.ImageDataStorageModality.S3 ) );
+					MoBIESettings.settings().gitProjectBranch( "grid-test" ).imageDataFormat( MoBIESettings.ImageDataFormat.BdvN5S3 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

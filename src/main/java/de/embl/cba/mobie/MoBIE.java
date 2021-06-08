@@ -44,12 +44,12 @@ public class MoBIE
 	private String imageRoot;
 	private String tableRoot;
 
-	public MoBIE(String projectRoot ) throws IOException
+	public MoBIE( String projectRoot ) throws IOException
 	{
 		this( projectRoot, MoBIESettings.settings() );
 	}
 
-	public MoBIE(String projectLocation, MoBIESettings settings ) throws IOException
+	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
 		IJ.log("MoBIE");
 		this.settings = settings.projectLocation( projectLocation );
@@ -232,7 +232,13 @@ public class MoBIE
 
 	public synchronized String getImagePath( ImageSource source )
 	{
-		final String relativeImagePath = source.imageDataLocations.get( settings.values.getImageDataStorageModality().toString() );
+		switch ( settings.values.getImageDataStorageModality() )
+		{
+			case BdvN5:
+				source.imageData.get( settings.values.getImageDataStorageModality() ).get( "relativePath" );
+				return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativeImagePath );
+		}
+		final String relativeImagePath = source.imageData.get( settings.values.getImageDataStorageModality().toString() );
 		return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativeImagePath );
 	}
 

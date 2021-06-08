@@ -14,7 +14,7 @@ public class OpenPlatyBrowserCommand implements Command
 	@Override
 	public void run()
 	{
-		MoBIESettings options = MoBIESettings.settings().imageDataStorageModality(MoBIESettings.ImageDataStorageModality.S3);
+		MoBIESettings options = MoBIESettings.settings().imageDataFormat( MoBIESettings.ImageDataFormat.BdvN5S3 );
 
 		try
 		{

@@ -14,7 +14,7 @@ public class OpenRemoteCovidEM
 		imageJ.ui().showUI();
 		try {
 			new MoBIE("https://github.com/mobie-org/covid-em-datasets",
-					MoBIESettings.settings().imageDataStorageModality( MoBIESettings.ImageDataStorageModality.S3 ) );
+					MoBIESettings.settings().imageDataFormat( MoBIESettings.ImageDataFormat.BdvN5S3 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

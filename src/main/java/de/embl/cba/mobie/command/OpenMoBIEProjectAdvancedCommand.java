@@ -39,7 +39,7 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 					projectLocation,
 					MoBIESettings.settings()
 							.gitProjectBranch( projectBranch )
-							.imageDataStorageModality( MoBIESettings.ImageDataStorageModality.valueOf( imageDataStorageModality ) )
+							.imageDataFormat( MoBIESettings.ImageDataFormat.valueOf( imageDataStorageModality ) )
 							.imageDataLocation( imageDataLocation )
 							.tableDataLocation( tableDataLocation )
 							.gitTablesBranch( tableDataBranch ) );
@@ -92,7 +92,7 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 					"https://github.com/mobie/platybrowser-datasets",
 					MoBIESettings.settings()
 							.gitProjectBranch( "xray" )
-							.imageDataStorageModality( MoBIESettings.ImageDataStorageModality.FileSystem )
+							.imageDataFormat( MoBIESettings.ImageDataFormat.BdvN5 )
 							.imageDataLocation( "/g/arendt/EM_6dpf_segmentation/platy-browser-data" )
 							.tableDataLocation( "https://github.com/mobie/platy-browser-data" )
 							.gitTablesBranch( "xray" ) );

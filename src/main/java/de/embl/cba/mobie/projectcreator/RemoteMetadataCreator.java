@@ -48,10 +48,10 @@ public class RemoteMetadataCreator {
 
     private void deleteRemoteMetadataForImage( String datasetName, String imageName ) throws IOException {
         ImageSource imageSource = projectCreator.getDataset( datasetName ).sources.get( imageName ).get();
-        if ( imageSource.imageDataLocations.containsKey("s3store") ) {
+        if ( imageSource.imageData.containsKey("s3store") ) {
             // delete any existing remote metadata
             File currentRemoteXmlLocation = new File( FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
-                    datasetName, imageSource.imageDataLocations.get("s3store") ) );
+                    datasetName, imageSource.imageData.get("s3store") ) );
             if ( currentRemoteXmlLocation.exists() ) {
                 if ( !currentRemoteXmlLocation.delete() ) {
                     String errorMessage = "Remote metadata for: " + imageName + " in dataset: " + datasetName + " could not be deleted.";
@@ -59,7 +59,7 @@ public class RemoteMetadataCreator {
                     throw new IOException(errorMessage);
                 }
             }
-            imageSource.imageDataLocations.remove( "s3store" );
+            imageSource.imageData.remove( "s3store" );
         }
     }
 
@@ -116,7 +116,7 @@ public class RemoteMetadataCreator {
     private void addRemoteMetadataForImage( String datasetName, String imageName ) throws SpimDataException, IOException {
         ImageSource imageSource = projectCreator.getDataset( datasetName ).sources.get( imageName ).get();
         String localXmlLocation = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
-                datasetName, imageSource.imageDataLocations.get("fileSystem") );
+                datasetName, imageSource.imageData.get("fileSystem") );
 
         deleteRemoteMetadataForImage( datasetName, imageName );
 
@@ -135,7 +135,7 @@ public class RemoteMetadataCreator {
             saveXml( spimDataMinimal, datasetName, imageName,
                     new File(remoteXmlLocation, imageName + ".xml").getAbsolutePath(),
                     bdvFormat );
-            imageSource.imageDataLocations.put( "s3store", "images/remote/" + imageName + ".xml" );
+            imageSource.imageData.put( "s3store", "images/remote/" + imageName + ".xml" );
         }
 
     }
