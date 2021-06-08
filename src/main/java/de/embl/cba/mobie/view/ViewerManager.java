@@ -15,6 +15,7 @@ import de.embl.cba.mobie.source.SegmentationSource;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
+import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.table.TableViewer;
 import de.embl.cba.mobie.transform.*;
 import de.embl.cba.mobie.ui.UserInterface;
@@ -214,11 +215,11 @@ public class ViewerManager
 			{
 				if ( sourceTransformer instanceof GridSourceTransformer )
 				{
-					final String tableDataLocation = ( ( GridSourceTransformer ) sourceTransformer ).getTableDataLocation();
+					final String tableDataFolder = ( ( GridSourceTransformer ) sourceTransformer ).getTableDataFolder( TableDataFormat.TabDelimitedFile );
 
-					if ( tableDataLocation != null )
+					if ( tableDataFolder != null )
 					{
-						gridOverlayDisplay = new GridOverlaySourceDisplay(moBIE, bdvHandle,  "grid-" + (i++), tableDataLocation, ( GridSourceTransformer ) sourceTransformer );
+						gridOverlayDisplay = new GridOverlaySourceDisplay( moBIE, bdvHandle,  "grid-" + (i++), tableDataFolder, ( GridSourceTransformer ) sourceTransformer );
 
 						userInterface.addGridView( gridOverlayDisplay );
 						sourceDisplays.add( gridOverlayDisplay );
@@ -306,7 +307,7 @@ public class ViewerManager
 			{
 				for ( String table : tables )
 				{
-					final String tablePath = moBIE.getTablePath( source.tableDataLocation, table );
+					final String tablePath = moBIE.getTablePath( source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath, table );
 					IJ.log( "Opening table:\n" + tablePath );
 					final Map< String, List< String > > newColumns =
 							TableColumns.openAndOrderNewColumns(

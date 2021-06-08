@@ -2,6 +2,7 @@ package develop;
 
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.MoBIESettings;
+import de.embl.cba.mobie.source.ImageDataFormat;
 import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
@@ -19,7 +20,7 @@ public class DevelopNormalisedViewerTransforms
 
 		try {
 			final MoBIE moBIE = new MoBIE("https://github.com/mobie-org/covid-em-datasets",
-					MoBIESettings.settings().imageDataStorageModality( MoBIESettings.ImageDataStorageModality.S3 ) );
+					MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5S3 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

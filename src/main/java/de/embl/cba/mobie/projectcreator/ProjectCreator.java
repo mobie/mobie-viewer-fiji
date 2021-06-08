@@ -30,11 +30,6 @@ public class ProjectCreator {
     private final DatasetJsonCreator datasetJsonCreator;
     private final RemoteMetadataCreator remoteMetadataCreator;
 
-    public enum BdvFormat {
-        // TODO - add OME.ZARR
-        n5
-    }
-
     public enum ImageType {
         image,
         segmentation

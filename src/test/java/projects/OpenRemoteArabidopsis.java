@@ -2,6 +2,7 @@ package projects;
 
 import de.embl.cba.mobie.MoBIESettings;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.source.ImageDataFormat;
 import net.imagej.ImageJ;
 
 import java.io.IOException;
@@ -12,6 +13,6 @@ public class OpenRemoteArabidopsis
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("https://github.com/mobie/arabidopsis-root-lm-datasets", MoBIESettings.settings().gitProjectBranch( "spec-v2" ).imageDataStorageModality( MoBIESettings.ImageDataStorageModality.S3 ) );
+		new MoBIE("https://github.com/mobie/arabidopsis-root-lm-datasets", MoBIESettings.settings().gitProjectBranch( "new-data-spec3" ).imageDataFormat( ImageDataFormat.BdvN5S3 ) );
 	}
 }

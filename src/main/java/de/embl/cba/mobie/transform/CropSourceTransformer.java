@@ -14,8 +14,7 @@ import java.util.function.Function;
 
 public class CropSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
 {
-	private List< String > sources;
-	private List< String > names;
+	private List< String > names; // optional new names after transformation
 	private double[] min;
 	private double[] max;
 	private boolean shiftToOrigin = true;

@@ -4,5 +4,5 @@ import java.util.Map;
 
 public class ImageSource
 {
-	public Map< String, String > imageDataLocations;
+	public Map< ImageDataFormat, StorageLocation > imageData;
 }

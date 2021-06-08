@@ -4,6 +4,7 @@ import de.embl.cba.mobie.Dataset;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.Project;
 import de.embl.cba.mobie.projectcreator.ProjectCreator;
+import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.ImagePlus;
@@ -327,8 +328,8 @@ public class ProjectsCreatorPanel extends JFrame {
                     ProjectCreator.ImageType.segmentation.toString() };
             gd.addChoice( "Image Type", imageTypes, imageTypes[0] );
             // TODO - add OME.ZARR
-            String[] bdvFormats = new String[]{ ProjectCreator.BdvFormat.n5.toString() };
-            gd.addChoice( "Bdv format", bdvFormats, bdvFormats[0] );
+            String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString() };
+            gd.addChoice( "Image format", imageFormats, imageFormats[0] );
             gd.addStringField("Affine", defaultAffineTransform, 35 );
             gd.addCheckbox("Use default export settings", true);
             gd.addCheckbox( "Create view for this image", true );
@@ -338,7 +339,7 @@ public class ProjectsCreatorPanel extends JFrame {
             if ( !gd.wasCanceled() ) {
                 String imageName = gd.getNextString();
                 ProjectCreator.ImageType imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
-                ProjectCreator.BdvFormat bdvFormat = ProjectCreator.BdvFormat.valueOf( gd.getNextChoice() );
+                ImageDataFormat imageFormat = ImageDataFormat.fromString( gd.getNextChoice() );
                 String affineTransform = gd.getNextString().trim();
                 boolean useDefaultSettings = gd.getNextBoolean();
                 boolean createView = gd.getNextBoolean();
@@ -354,12 +355,12 @@ public class ProjectsCreatorPanel extends JFrame {
                         uiSelectionGroup = selectUiSelectionGroupDialog( datasetName );
                         if ( uiSelectionGroup != null ) {
                             projectsCreator.getImagesCreator().addImage( currentImage, imageName,
-                                    datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings, uiSelectionGroup );
+                                    datasetName, imageFormat, imageType, sourceTransform, useDefaultSettings, uiSelectionGroup );
                             updateComboBoxesForNewImage( imageName, uiSelectionGroup );
                         }
                     } else {
                         projectsCreator.getImagesCreator().addImage( currentImage, imageName,
-                                datasetName, bdvFormat, imageType, sourceTransform, useDefaultSettings, uiSelectionGroup );
+                                datasetName, imageFormat, imageType, sourceTransform, useDefaultSettings, uiSelectionGroup );
                         updateComboBoxesForNewImage( imageName, uiSelectionGroup );
                     }
                 }

@@ -6,9 +6,8 @@ import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
-import de.embl.cba.mobie.source.ImageSource;
-import de.embl.cba.mobie.source.SegmentationSource;
-import de.embl.cba.mobie.source.SourceSupplier;
+import de.embl.cba.mobie.source.*;
+import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.color.ColoringLuts;
@@ -60,16 +59,23 @@ public class DatasetJsonCreator {
     }
 
     private void addNewSource( Dataset dataset, String imageName, ProjectCreator.ImageType imageType ) {
-        Map<String, String> imageDataLocations;
+        Map<ImageDataFormat, StorageLocation> imageDataLocations;
+        StorageLocation imageStorageLocation;
         SourceSupplier sourceSupplier;
 
         switch( imageType ) {
             case segmentation:
                 SegmentationSource segmentationSource = new SegmentationSource();
-                segmentationSource.tableDataLocation = "tables/" + imageName;
+                segmentationSource.tableData = new HashMap<>();
+                StorageLocation tableStorageLocation = new StorageLocation();
+                tableStorageLocation.relativePath = "tables/" + imageName;
+                segmentationSource.tableData.put( TableDataFormat.TabDelimitedFile, tableStorageLocation );
+
                 imageDataLocations = new HashMap<>();
-                imageDataLocations.put( "fileSystem", "images/local/" + imageName + ".xml" );
-                segmentationSource.imageDataLocations = imageDataLocations;
+                imageStorageLocation = new StorageLocation();
+                imageStorageLocation.relativePath = "images/local/" + imageName + ".xml";
+                imageDataLocations.put( ImageDataFormat.BdvN5, imageStorageLocation );
+                segmentationSource.imageData = imageDataLocations;
 
                 sourceSupplier = new SourceSupplier( segmentationSource );
 
@@ -79,8 +85,10 @@ public class DatasetJsonCreator {
             case image:
                 ImageSource imageSource = new ImageSource();
                 imageDataLocations = new HashMap<>();
-                imageDataLocations.put( "fileSystem", "images/local/" + imageName + ".xml" );
-                imageSource.imageDataLocations = imageDataLocations;
+                imageStorageLocation = new StorageLocation();
+                imageStorageLocation.relativePath = "images/local/" + imageName + ".xml";
+                imageDataLocations.put( ImageDataFormat.BdvN5, imageStorageLocation );
+                imageSource.imageData = imageDataLocations;
 
                 sourceSupplier = new SourceSupplier( imageSource );
                 dataset.sources.put( imageName, sourceSupplier );
