@@ -1,5 +1,6 @@
 package de.embl.cba.mobie.source;
 
+// TODO: get rid of the supplier and deal with this by means of a Gson adapter
 public class SourceSupplier
 {
 	private ImageSource image;

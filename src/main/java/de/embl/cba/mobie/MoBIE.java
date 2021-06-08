@@ -4,8 +4,10 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
+import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.mobie.source.ImageSource;
 import de.embl.cba.mobie.source.SegmentationSource;
+import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.ui.UserInterface;
 import de.embl.cba.mobie.ui.WindowArrangementHelper;
 import de.embl.cba.mobie.view.View;
@@ -44,12 +46,12 @@ public class MoBIE
 	private String imageRoot;
 	private String tableRoot;
 
-	public MoBIE(String projectRoot ) throws IOException
+	public MoBIE( String projectRoot ) throws IOException
 	{
 		this( projectRoot, MoBIESettings.settings() );
 	}
 
-	public MoBIE(String projectLocation, MoBIESettings settings ) throws IOException
+	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
 		IJ.log("MoBIE");
 		this.settings = settings.projectLocation( projectLocation );
@@ -232,13 +234,26 @@ public class MoBIE
 
 	public synchronized String getImagePath( ImageSource source )
 	{
-		final String relativeImagePath = source.imageDataLocations.get( settings.values.getImageDataStorageModality().toString() );
-		return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativeImagePath );
+		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
+
+		switch ( imageDataFormat )
+		{
+			case BdvN5:
+			case BdvN5S3:
+				final String relativePath = source.imageData.get( imageDataFormat ).relativePath;
+				return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativePath );
+			case OpenOrganelle:
+				final String s3Address = source.imageData.get( imageDataFormat ).s3Address;
+				throw new UnsupportedOperationException( "Loading openOrganelle not supported yet.");
+			default:
+				throw new UnsupportedOperationException( "File format not supported: " + imageDataFormat );
+
+		}
 	}
 
 	public String getDefaultTablePath( SegmentationSource source )
 	{
-		return getTablePath( source.tableDataLocation, "default.tsv" );
+		return getTablePath( source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath, "default.tsv" );
 	}
 
 	public String getDefaultTablePath( String relativeTableLocation )

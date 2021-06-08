@@ -10,7 +10,11 @@ import java.util.Map;
 
 public class AbstractSourceTransformer< T extends NumericType< T > > implements SourceTransformer< T >
 {
+	// Serialisation
 	protected String name;
+	protected List< List< String > > sources;
+
+	// Runtime
 	protected transient Map< String, AffineTransform3D > sourceNameToTransform = new HashMap();
 
 	@Override

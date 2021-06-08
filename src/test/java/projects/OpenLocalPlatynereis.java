@@ -2,6 +2,7 @@ package projects;
 
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.MoBIESettings;
+import de.embl.cba.mobie.source.ImageDataFormat;
 import net.imagej.ImageJ;
 
 import java.io.IOException;
@@ -14,7 +15,7 @@ public class OpenLocalPlatynereis
 		imageJ.ui().showUI();
 		try {
 			new MoBIE("/g/arendt/EM_6dpf_segmentation/platy-browser-data/data/",
-					MoBIESettings.settings().imageDataStorageModality( MoBIESettings.ImageDataStorageModality.FileSystem ) );
+					MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

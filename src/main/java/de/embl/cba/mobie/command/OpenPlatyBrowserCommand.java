@@ -2,6 +2,7 @@ package de.embl.cba.mobie.command;
 
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.MoBIESettings;
+import de.embl.cba.mobie.source.ImageDataFormat;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 
@@ -14,7 +15,7 @@ public class OpenPlatyBrowserCommand implements Command
 	@Override
 	public void run()
 	{
-		MoBIESettings options = MoBIESettings.settings().imageDataStorageModality(MoBIESettings.ImageDataStorageModality.S3);
+		MoBIESettings options = MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5S3 );
 
 		try
 		{

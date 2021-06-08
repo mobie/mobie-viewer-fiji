@@ -1,27 +1,10 @@
 package de.embl.cba.mobie;
 
+import de.embl.cba.mobie.source.ImageDataFormat;
+
 public class MoBIESettings
 {
 	public final Values values = new Values();
-
-	public enum ImageDataStorageModality
-	{
-		FileSystem,
-		S3;
-
-		@Override
-		public String toString()
-		{
-			if ( this.equals( S3 ) )
-			{
-				return "s3store";
-			}
-			else
-			{
-				return "fileSystem";
-			}
-		}
-	}
 
 	public static MoBIESettings settings()
 	{
@@ -46,9 +29,9 @@ public class MoBIESettings
 		return this;
 	}
 
-	public MoBIESettings imageDataStorageModality( ImageDataStorageModality imageDataStorageModality )
+	public MoBIESettings imageDataFormat( ImageDataFormat imageDataFormat )
 	{
-		this.values.imageDataStorageModality = imageDataStorageModality;
+		this.values.imageDataFormat = imageDataFormat;
 		return this;
 	}
 
@@ -82,7 +65,7 @@ public class MoBIESettings
 		private String dataset;
 		private String projectBranch = "master"; // project and images
 		private String tableDataBranch;
-		private ImageDataStorageModality imageDataStorageModality = ImageDataStorageModality.S3;
+		private ImageDataFormat imageDataFormat = ImageDataFormat.BdvN5S3;
 		private String projectLocation;
 		private String imageDataLocation;
 		private String tableDataLocation;
@@ -97,7 +80,7 @@ public class MoBIESettings
 			return projectBranch;
 		}
 
-		public ImageDataStorageModality getImageDataStorageModality() { return imageDataStorageModality; }
+		public ImageDataFormat getImageDataFormat() { return imageDataFormat; }
 
 		public String getImageDataLocation()
 		{

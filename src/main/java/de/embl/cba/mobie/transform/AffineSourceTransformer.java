@@ -10,7 +10,6 @@ import java.util.List;
 
 public class AffineSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
 {
-	private List< String > sources;
 	private double[] parameters;
 
 	@Override
