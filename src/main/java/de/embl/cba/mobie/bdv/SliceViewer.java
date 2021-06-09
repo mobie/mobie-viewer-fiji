@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.bdv;
 
 import bdv.util.BdvHandle;
+import de.embl.cba.mobie.color.NonSelectedSegmentsOpacityAdjusterCommand;
 import de.embl.cba.mobie.segment.BdvSegmentSelector;
 import de.embl.cba.mobie.color.RandomColorSeedChangerCommand;
 import de.embl.cba.mobie.view.ViewerManager;
@@ -66,17 +67,17 @@ public class SliceViewer implements Supplier< BdvHandle >
 	{
 		final BdvSegmentSelector segmentBdvSelector = new BdvSegmentSelector( bdvHandle, is2D, () -> viewerManager.getSegmentationDisplays() );
 
-		final Set< String > actionsKeys = sacService.getActionsKeys();
-
 		sacService.registerAction( UNDO_SEGMENT_SELECTIONS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
 			segmentBdvSelector.clearSelection();
 		} );
 
-		sacService.registerAction( CHANGE_RANDOM_COLOR_SEED, sourceAndConverters -> {
+		sacService.registerAction( sacService.getCommandName( RandomColorSeedChangerCommand.class ), sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
 			RandomColorSeedChangerCommand.incrementRandomColorSeed( sourceAndConverters );
 		} );
+
+		sacService.registerScijavaCommand( NonSelectedSegmentsOpacityAdjusterCommand.class );
 
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
@@ -88,11 +89,14 @@ public class SliceViewer implements Supplier< BdvHandle >
 			viewerManager.getViewsSaver().saveCurrentSettingsAsViewDialog();
 		} );
 
+		final Set< String > actionsKeys = sacService.getActionsKeys();
+
 		final String[] actions = {
 				sacService.getCommandName( ScreenShotMakerCommand.class ),
 				sacService.getCommandName( BdvLocationLogger.class ),
 				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
 				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
+				sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ),
 				UNDO_SEGMENT_SELECTIONS,
 				LOAD_ADDITIONAL_VIEWS,
 				SAVE_CURRENT_SETTINGS_AS_VIEW

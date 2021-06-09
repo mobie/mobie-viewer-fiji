@@ -169,9 +169,13 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	public void setColoringModel( ColoringModel< T > coloringModel )
 	{
 		this.coloringModel = coloringModel;
-		notifyColoringListeners();
 
-		// chain event notification
+		notifyListeners();
+	}
+
+	private void notifyListeners()
+	{
+		notifyColoringListeners();
 		coloringModel.listeners().add( () -> notifyColoringListeners() );
 	}
 
@@ -205,6 +209,8 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	public void setOpacityNotSelected( double opacityNotSelected )
 	{
 		this.opacityNotSelected = opacityNotSelected;
+
+		notifyListeners();
 	}
 
 	public void incrementRandomColorSeed()
