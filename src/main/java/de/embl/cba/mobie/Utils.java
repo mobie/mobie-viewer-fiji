@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
+import static de.embl.cba.mobie.ui.SwingHelper.selectionDialog;
 
 public abstract class Utils
 {
@@ -30,7 +31,7 @@ public abstract class Utils
 	}
 
 	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
-	public static String selectPathFromProjectOrFileSystem (String directory, String objectName) throws IOException {
+	public static String selectPathFromProjectOrFileSystem (String directory, String objectName ) throws IOException {
 		if (directory != null) {
 			final GenericDialog gd = new GenericDialog("Choose source");
 			gd.addChoice("Load from", new String[]{FileLocation.Project.toString(),
@@ -49,24 +50,74 @@ public abstract class Utils
 		}
 	}
 
-	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
-	public static String selectPathFromProjectOrFileSystem ( String[] directories, String objectName) throws IOException {
-		if ( directories != null) {
-			final GenericDialog gd = new GenericDialog("Choose source");
-			gd.addChoice("Load from", new String[]{FileLocation.Project.toString(),
-					FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
-			gd.showDialog();
-			if (gd.wasCanceled()) return null;
-			FileLocation fileLocation = FileLocation.valueOf(gd.getNextChoice());
+	private static String chooseCommonFileName( ArrayList<String> directories, String objectName ) {
+		Map<String, Integer> fileNameCounts = new HashMap<>();
+		ArrayList<String> commonFileNames = new ArrayList<>();
 
-			if (fileLocation == FileLocation.Project) {
-				return FileAndUrlUtils.selectPath(directory, objectName);
-			} else {
-				return FileAndUrlUtils.selectPath(System.getProperty("user.home"), objectName);
+		for ( String directory: directories ) {
+			String[] directoryFileNames = FileAndUrlUtils.getFileNames( directory );
+			for ( String directoryFileName: directoryFileNames ) {
+				if ( fileNameCounts.containsKey( directoryFileName ) ) {
+					int count = fileNameCounts.get(directoryFileName);
+					fileNameCounts.put( directoryFileName, count + 1 );
+				} else {
+					fileNameCounts.put( directoryFileName, 1 );
+				}
 			}
+		}
+
+		for ( String fileName: fileNameCounts.keySet() ) {
+			if ( fileNameCounts.get( fileName ) == directories.size() ) {
+				commonFileNames.add( fileName );
+			}
+		}
+
+		if ( commonFileNames.size() > 0 ) {
+			String[] choices = new String[commonFileNames.size()];
+			for (int i = 0; i < choices.length; i++) {
+				choices[i] = commonFileNames.get(i);
+			}
+			return selectionDialog(choices, objectName);
 		} else {
 			return null;
 		}
+	}
+
+	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
+	// when there are multiple directories, we only allow selection of items that are present with the same name in
+	// all of them
+	public static ArrayList<String> selectPathsFromProjectOrFileSystem ( ArrayList<String> directories, String objectName ) throws IOException {
+		if ( directories == null ) {
+			return null;
+		}
+
+		ArrayList<String> paths = null;
+
+		final GenericDialog gd = new GenericDialog("Choose source");
+		gd.addChoice("Load from", new String[]{FileLocation.Project.toString(),
+				FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
+		gd.showDialog();
+		if (gd.wasCanceled()) return null;
+		FileLocation fileLocation = FileLocation.valueOf(gd.getNextChoice());
+
+		if (fileLocation == FileLocation.Project) {
+			String fileName = chooseCommonFileName( directories, objectName );
+			if ( fileName != null ) {
+				paths = new ArrayList<>();
+				for ( String directory: directories ) {
+					paths.add( FileAndUrlUtils.combinePath( directory, fileName ) );
+				}
+			}
+
+		} else {
+			String path = FileAndUrlUtils.selectPath(System.getProperty("user.home"), objectName);
+			if ( path != null ) {
+				paths = new ArrayList<>();
+				paths.add( path );
+			}
+		}
+
+		return paths;
 	}
 
 	public static < T > SourceAndConverter< T > getSource( List< SourceAndConverter< T > > sourceAndConverters, String name )

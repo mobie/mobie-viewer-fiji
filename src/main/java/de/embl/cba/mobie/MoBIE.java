@@ -251,9 +251,21 @@ public class MoBIE
 		}
 	}
 
+	private String getRelativeTableLocation( SegmentationSource source ) {
+		return source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
+	}
+
+	public String getTablesDirectoryPath( SegmentationSource source ) {
+		return getTablesDirectoryPath( getRelativeTableLocation( source ) );
+	}
+
+	public String getTablesDirectoryPath( String relativeTableLocation ) {
+		return FileAndUrlUtils.combinePath( tableRoot, getDatasetName(), relativeTableLocation );
+	}
+
 	public String getDefaultTablePath( SegmentationSource source )
 	{
-		return getTablePath( source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath, "default.tsv" );
+		return getTablePath( getRelativeTableLocation( source ), "default.tsv" );
 	}
 
 	public String getDefaultTablePath( String relativeTableLocation )

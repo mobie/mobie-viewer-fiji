@@ -60,8 +60,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static de.embl.cba.mobie.Utils.createAnnotatedImageSegmentsFromTableFile;
-import static de.embl.cba.mobie.Utils.selectPathFromProjectOrFileSystem;
+import static de.embl.cba.mobie.Utils.*;
 import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_GREY;
 import static de.embl.cba.tables.tablerow.TableRows.setTableCell;
 
@@ -77,7 +76,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private int recentlySelectedRowInView;
 	private ColumnColoringModelCreator< T > columnColoringModelCreator;
 	private String mergeByColumnName; // for loading additional columns
-	private String tablesDirectory; // for loading additional columns
+	private ArrayList<String> tablesDirectories; // for loading additional columns
 	private ArrayList<String> additionalTables; // tables from which additional columns are loaded
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
 
@@ -103,7 +102,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			final List< T > tableRows,
 			final SelectionModel< T > selectionModel,
 			final MoBIEColoringModel< T > moBIEColoringModel,
-			String tableName, String tablesDirectory )
+			String tableName, ArrayList<String> tablesDirectories )
 	{
 		this.tableRows = tableRows;
 		this.coloringModel = moBIEColoringModel;
@@ -111,7 +110,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		this.tableName = tableName;
 		this.recentlySelectedRowInView = -1;
 		this.additionalTables = new ArrayList<>();
-		this.tablesDirectory = tablesDirectory;
+		this.tablesDirectories = tablesDirectories;
 
 		// TODO: reconsider
 		registerAsTableRowListener( tableRows );
@@ -395,12 +394,32 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 					try
 					{
 						String mergeByColumnName = getMergeByColumnName();
-						String tablePath = selectPathFromProjectOrFileSystem( tablesDirectory, "Table");
-						addAdditionalTable(tablePath);
-						Map< String, List< String > > newColumnsOrdered = TableUIs.loadColumns( table, tablePath, mergeByColumnName );
-						if ( newColumnsOrdered == null ) return;
-						newColumnsOrdered.remove( mergeByColumnName );
-						addColumns( newColumnsOrdered );
+						ArrayList<String> tablePaths = null;
+						if ( tablesDirectories.size() == 1 ) {
+							String selectedTablePath = selectPathFromProjectOrFileSystem( tablesDirectories.get(0), "Table");
+							if ( selectedTablePath != null ) {
+								tablePaths = new ArrayList<>();
+								tablePaths.add(selectedTablePath);
+								addAdditionalTable( selectedTablePath );
+							}
+						} else {
+							ArrayList<String> selectedTablePaths = selectPathsFromProjectOrFileSystem( tablesDirectories, "Table" );
+							if ( selectedTablePaths != null ) {
+								tablePaths = selectedTablePaths;
+								// all the selected table paths are the same table name, in different directories.
+								// so we only need to add one to the additional tables list
+								addAdditionalTable( selectedTablePaths.get(0) );
+							}
+						}
+
+						if ( tablePaths != null ) {
+							for ( String tablePath: tablePaths ) {
+								Map<String, List<String>> newColumnsOrdered = TableUIs.loadColumns(table, tablePath, mergeByColumnName);
+								if (newColumnsOrdered == null) return;
+								newColumnsOrdered.remove(mergeByColumnName);
+								addColumns(newColumnsOrdered);
+							}
+						}
 					} catch ( IOException ioOException )
 					{
 						ioOException.printStackTrace();

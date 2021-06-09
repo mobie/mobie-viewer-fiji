@@ -50,7 +50,9 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 		selectionModel = new DefaultSelectionModel< DefaultAnnotatedIntervalTableRow >();
 		coloringModel.setSelectionModel( selectionModel );
 
-		tableViewer = new TableViewer<>( tableRows, selectionModel, coloringModel, name, tableDataFolder ).show();
+		ArrayList<String> tableDirectories = new ArrayList<>();
+		tableDirectories.add( moBIE.getTablesDirectoryPath( tableDataFolder ) );
+		tableViewer = new TableViewer<>( tableRows, selectionModel, coloringModel, name, tableDirectories ).show();
 		coloringModel.listeners().add( tableViewer );
 		selectionModel.listeners().add( tableViewer );
 
