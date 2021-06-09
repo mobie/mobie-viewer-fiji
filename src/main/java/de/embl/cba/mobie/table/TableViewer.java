@@ -270,7 +270,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 //		}
 
 		final ARGBType argbType = new ARGBType();
-		coloringModel.convert( tableRows.get( row ), argbType );
+		final T tableRow = tableRows.get( row );
+		coloringModel.convert( tableRow, argbType );
 
 		if ( ARGBType.alpha( argbType.get() ) == 0 )
 			return Color.WHITE;

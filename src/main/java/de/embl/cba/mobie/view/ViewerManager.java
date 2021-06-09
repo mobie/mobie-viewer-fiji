@@ -294,6 +294,15 @@ public class ViewerManager
 			segmentationDisplay.segments.addAll( segments );
 		}
 
+		// check  validity
+		for ( TableRowImageSegment segment : segmentationDisplay.segments )
+		{
+			if ( segment.labelId() == 0 )
+			{
+				throw new UnsupportedOperationException( "The table contains rows (image segments) with label index 0, which is not supported and will lead to errors. Please change the table accordingly." );
+			}
+		}
+
 		// load additional tables
 		// TODO: This will not work like this for the grid view with multiple sources...
 		for ( String sourceName : segmentationDisplay.getSources() )

@@ -42,7 +42,7 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	private final String imageId;
 	private final MoBIEColoringModel< S > coloringModel;
 
-	private int frame;
+	private int timePointIndex = 0;
 	private double opacity = 1.0;
 
 	public LabelConverter(
@@ -53,7 +53,6 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 		this.segmentAdapter = segmentAdapter;
 		this.imageId = imageId;
 		this.coloringModel = coloringModel;
-		this.frame = 0;
 	}
 
 	@Override
@@ -74,7 +73,7 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 			return;
 		}
 
-		final S imageSegment = segmentAdapter.getSegment( label.getRealDouble(), frame, imageId );
+		final S imageSegment = segmentAdapter.getSegment( label.getRealDouble(), timePointIndex, imageId );
 
 		if ( imageSegment == null )
 		{
@@ -91,9 +90,10 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 		color.mul( opacity );
 	}
 
+	@Override
 	public void timePointChanged( int timePointIndex )
 	{
-		this.frame = timePointIndex;
+		this.timePointIndex = timePointIndex;
 	}
 
 	@Override

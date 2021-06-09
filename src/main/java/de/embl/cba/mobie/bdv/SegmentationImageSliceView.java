@@ -59,6 +59,7 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		{
 			( ( LabelConverter ) sourceAndConverter.getConverter() ).setOpacity( segmentationDisplay.getOpacity() );
 			displayService.show( bdvHandle, sourceAndConverter );
+			bdvHandle.getViewerPanel().addTimePointListener( (LabelConverter) sourceAndConverter.getConverter() );
 		}
 
 		segmentationDisplay.sourceAndConverters = sourceAndConverters;
@@ -74,17 +75,15 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 					sourceAndConverter.getSpimSource().getName(),
 					segmentationDisplay.coloringModel );
 
-			SourceAndConverter< ? > labelSourceAndConverter = asLabelSourceAndConverter( sourceAndConverter, labelConverter );
+			SourceAndConverter< ? > sourceAndLabelConverter = asSourceAndLabelConverter( sourceAndConverter, labelConverter );
 
-
-
-			labelSourceAndConverters.add( labelSourceAndConverter );
+			labelSourceAndConverters.add( sourceAndLabelConverter );
 		}
 
 		return labelSourceAndConverters;
 	}
 
-	private SourceAndConverter asLabelSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, LabelConverter labelConverter )
+	private SourceAndConverter asSourceAndLabelConverter( SourceAndConverter< ? > sourceAndConverter, LabelConverter labelConverter )
 	{
 		LabelSource volatileLabelSource = new LabelSource( sourceAndConverter.asVolatile().getSpimSource() );
 		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileLabelSource, labelConverter );
