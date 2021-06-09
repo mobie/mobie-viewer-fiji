@@ -120,7 +120,12 @@ public class ViewerManager
 			if ( sourceDisplay instanceof ImageSourceDisplay ) {
 				currentDisplay = new ImageSourceDisplay( (ImageSourceDisplay) sourceDisplay );
 			} else if ( sourceDisplay instanceof  SegmentationSourceDisplay ) {
-				currentDisplay = new SegmentationSourceDisplay( (SegmentationSourceDisplay) sourceDisplay );
+				SegmentationSourceDisplay segmentationSourceDisplay = (SegmentationSourceDisplay) sourceDisplay;
+				if ( segmentationSourceDisplay.tableViewer.hasColumnsFromTablesOutsideProject() ) {
+					IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project).");
+					return null;
+				}
+				currentDisplay = new SegmentationSourceDisplay( segmentationSourceDisplay );
 			}
 
 			if ( currentDisplay != null ) {

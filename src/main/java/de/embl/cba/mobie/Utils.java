@@ -30,26 +30,6 @@ public abstract class Utils
 		FileSystem
 	}
 
-	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
-	public static String selectPathFromProjectOrFileSystem (String directory, String objectName ) throws IOException {
-		if (directory != null) {
-			final GenericDialog gd = new GenericDialog("Choose source");
-			gd.addChoice("Load from", new String[]{FileLocation.Project.toString(),
-					FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
-			gd.showDialog();
-			if (gd.wasCanceled()) return null;
-			FileLocation fileLocation = FileLocation.valueOf(gd.getNextChoice());
-
-			if (fileLocation == FileLocation.Project) {
-				return FileAndUrlUtils.selectPath(directory, objectName);
-			} else {
-				return FileAndUrlUtils.selectPath(System.getProperty("user.home"), objectName);
-			}
-		} else {
-			return null;
-		}
-	}
-
 	private static String chooseCommonFileName( ArrayList<String> directories, String objectName ) {
 		Map<String, Integer> fileNameCounts = new HashMap<>();
 		ArrayList<String> commonFileNames = new ArrayList<>();
@@ -83,41 +63,45 @@ public abstract class Utils
 		}
 	}
 
-	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
-	// when there are multiple directories, we only allow selection of items that are present with the same name in
-	// all of them
-	public static ArrayList<String> selectPathsFromProjectOrFileSystem ( ArrayList<String> directories, String objectName ) throws IOException {
+	public static FileLocation loadFromProjectOrFileSystemDialog() {
+		final GenericDialog gd = new GenericDialog("Choose source");
+		gd.addChoice("Load from", new String[]{FileLocation.Project.toString(),
+				FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
+		gd.showDialog();
+		if (gd.wasCanceled()) return null;
+		return FileLocation.valueOf(gd.getNextChoice());
+	}
+
+	public static ArrayList<String> selectPathsFromProject( ArrayList<String> directories, String objectName ) {
 		if ( directories == null ) {
 			return null;
 		}
 
 		ArrayList<String> paths = null;
 
-		final GenericDialog gd = new GenericDialog("Choose source");
-		gd.addChoice("Load from", new String[]{FileLocation.Project.toString(),
-				FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
-		gd.showDialog();
-		if (gd.wasCanceled()) return null;
-		FileLocation fileLocation = FileLocation.valueOf(gd.getNextChoice());
-
-		if (fileLocation == FileLocation.Project) {
-			String fileName = chooseCommonFileName( directories, objectName );
-			if ( fileName != null ) {
-				paths = new ArrayList<>();
-				for ( String directory: directories ) {
-					paths.add( FileAndUrlUtils.combinePath( directory, fileName ) );
-				}
-			}
-
+		String fileName;
+		if ( directories.size() > 1) {
+			// when there are multiple directories, we only allow selection of items that are present with the same name in
+			// all of them
+			fileName = chooseCommonFileName(directories, objectName);
 		} else {
-			String path = FileAndUrlUtils.selectPath(System.getProperty("user.home"), objectName);
-			if ( path != null ) {
-				paths = new ArrayList<>();
-				paths.add( path );
+			String[] fileNames = FileAndUrlUtils.getFileNames( directories.get(0) );
+			fileName = selectionDialog( fileNames, objectName );
+		}
+		if ( fileName != null ) {
+			paths = new ArrayList<>();
+			for ( String directory: directories ) {
+				paths.add( FileAndUrlUtils.combinePath( directory, fileName ) );
 			}
 		}
 
 		return paths;
+
+	}
+
+	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
+	public static String selectPathFromFileSystem ( String objectName ) throws IOException {
+		return FileAndUrlUtils.selectPath(System.getProperty("user.home"), objectName);
 	}
 
 	public static < T > SourceAndConverter< T > getSource( List< SourceAndConverter< T > > sourceAndConverters, String name )

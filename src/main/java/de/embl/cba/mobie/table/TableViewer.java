@@ -29,6 +29,7 @@
 package de.embl.cba.mobie.table;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
+import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.annotate.Annotator;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
 import de.embl.cba.tables.*;
@@ -78,6 +79,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private String mergeByColumnName; // for loading additional columns
 	private ArrayList<String> tablesDirectories; // for loading additional columns
 	private ArrayList<String> additionalTables; // tables from which additional columns are loaded
+	private boolean hasColumnsFromTablesOutsideProject; // whether additional columns have been loaded from tables outside the project
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
 
 	// TODO: this is only for the annotator (maybe move it there)
@@ -111,6 +113,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		this.recentlySelectedRowInView = -1;
 		this.additionalTables = new ArrayList<>();
 		this.tablesDirectories = tablesDirectories;
+		this.hasColumnsFromTablesOutsideProject = false;
 
 		// TODO: reconsider
 		registerAsTableRowListener( tableRows );
@@ -394,21 +397,20 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 					try
 					{
 						String mergeByColumnName = getMergeByColumnName();
+						FileLocation fileLocation = loadFromProjectOrFileSystemDialog();
 						ArrayList<String> tablePaths = null;
-						if ( tablesDirectories.size() == 1 ) {
-							String selectedTablePath = selectPathFromProjectOrFileSystem( tablesDirectories.get(0), "Table");
-							if ( selectedTablePath != null ) {
-								tablePaths = new ArrayList<>();
-								tablePaths.add(selectedTablePath);
-								addAdditionalTable( selectedTablePath );
-							}
+
+						if ( fileLocation == FileLocation.Project ) {
+							tablePaths = selectPathsFromProject(tablesDirectories, "Table");
+							// all the selected table paths are the same table name, in different directories.
+							// so we only need to add one to the additional tables list
+							addAdditionalTable( tablePaths.get(0) );
 						} else {
-							ArrayList<String> selectedTablePaths = selectPathsFromProjectOrFileSystem( tablesDirectories, "Table" );
-							if ( selectedTablePaths != null ) {
-								tablePaths = selectedTablePaths;
-								// all the selected table paths are the same table name, in different directories.
-								// so we only need to add one to the additional tables list
-								addAdditionalTable( selectedTablePaths.get(0) );
+							String path = selectPathFromFileSystem( "Table" );
+							if ( path != null ) {
+								tablePaths = new ArrayList<>();
+								tablePaths.add(path);
+								hasColumnsFromTablesOutsideProject = true;
 							}
 						}
 
@@ -441,6 +443,10 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	public ArrayList<String> getAdditionalTables() {
 		return additionalTables;
+	}
+
+	public boolean hasColumnsFromTablesOutsideProject() {
+		return hasColumnsFromTablesOutsideProject;
 	}
 
 	private JMenuItem createSaveTableAsMenuItem()

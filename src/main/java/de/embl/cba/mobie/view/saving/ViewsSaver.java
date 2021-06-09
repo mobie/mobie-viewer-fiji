@@ -99,10 +99,12 @@ public class ViewsSaver {
             }
 
             View currentView = moBIE.getViewerManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
-            try {
-                saveToAdditionalViewsJson( currentView, jsonPath );
-            } catch (IOException e) {
-                e.printStackTrace();
+            if ( currentView != null ) {
+                try {
+                    saveToAdditionalViewsJson(currentView, jsonPath);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -116,17 +118,19 @@ public class ViewsSaver {
             if (projectSaveLocation != null) {
                 View currentView = moBIE.getViewerManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
 
-                try {
-                    if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
-                        saveToDatasetJson( currentView );
-                    } else {
-                        String viewJsonPath = chooseAdditionalViewsJson();
-                        if (viewJsonPath != null) {
-                            saveToAdditionalViewsJson( currentView, viewJsonPath );
+                if ( currentView != null ) {
+                    try {
+                        if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
+                            saveToDatasetJson(currentView);
+                        } else {
+                            String viewJsonPath = chooseAdditionalViewsJson();
+                            if (viewJsonPath != null) {
+                                saveToAdditionalViewsJson(currentView, viewJsonPath);
+                            }
                         }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
         }
