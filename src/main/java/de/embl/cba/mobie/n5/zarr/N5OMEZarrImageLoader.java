@@ -131,7 +131,10 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			for ( int setupId = 0; setupId < numSetups; setupId++ )
 			{
 				ViewSetup viewSetup = createViewSetup( setupId );
-				int setupTimepoints = ( int ) setupToAttributes.get( setupId ).getDimensions()[ T ];
+				int setupTimepoints = 1;
+				if (setupToAttributes.get( setupId ).getNumDimensions() > 4) {
+					setupTimepoints = (int) setupToAttributes.get(setupId).getDimensions()[T];
+				}
 				sequenceTimepoints = setupTimepoints > sequenceTimepoints ?  setupTimepoints : sequenceTimepoints;
 				viewSetups.add( viewSetup );
 				viewRegistrationList.addAll( createViewRegistrations( setupId, setupTimepoints ) );
@@ -165,8 +168,10 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		int setupId = -1;
 		Multiscale multiscale = getMultiscale( "" ); // returns multiscales[ 0 ]
 		DatasetAttributes attributes = getDatasetAttributes( multiscale.datasets[ 0 ].path );
-		long nC = attributes.getDimensions()[ C ];
-
+		long nC = 1;
+		if (attributes.getNumDimensions() > 4) {
+			nC = attributes.getDimensions()[C];
+		}
 		for ( int c = 0; c < nC; c++ )
 		{
 			// each channel is one setup
@@ -575,7 +580,9 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 				}
 
 				// ome.zarr is 5D but BDV expects 3D
+				System.out.println(Arrays.toString(attributes.getDimensions()));
 				final long[] dimensions = Arrays.stream( attributes.getDimensions() ).limit( 3 ).toArray();
+				System.out.println(Arrays.toString(dimensions));
 				final int[] cellDimensions = Arrays.stream( attributes.getBlockSize() ).limit( 3 ).toArray();
 				final CellGrid grid = new CellGrid( dimensions, cellDimensions );
 
