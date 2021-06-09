@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.imageFormatToFolderName;
+
 public class DatasetJsonCreator {
 
     ProjectCreator projectCreator;
@@ -73,7 +75,8 @@ public class DatasetJsonCreator {
 
                 imageDataLocations = new HashMap<>();
                 imageStorageLocation = new StorageLocation();
-                imageStorageLocation.relativePath = "images/local/" + imageName + ".xml";
+                imageStorageLocation.relativePath = "images/" + imageFormatToFolderName( ImageDataFormat.BdvN5) +
+                        "/" + imageName + ".xml";
                 imageDataLocations.put( ImageDataFormat.BdvN5, imageStorageLocation );
                 segmentationSource.imageData = imageDataLocations;
 
@@ -86,7 +89,8 @@ public class DatasetJsonCreator {
                 ImageSource imageSource = new ImageSource();
                 imageDataLocations = new HashMap<>();
                 imageStorageLocation = new StorageLocation();
-                imageStorageLocation.relativePath = "images/local/" + imageName + ".xml";
+                imageStorageLocation.relativePath = "images/" + imageFormatToFolderName( ImageDataFormat.BdvN5) +
+                        "/" + imageName + ".xml";
                 imageDataLocations.put( ImageDataFormat.BdvN5, imageStorageLocation );
                 imageSource.imageData = imageDataLocations;
 
@@ -105,7 +109,7 @@ public class DatasetJsonCreator {
 
     private void addNewDefaultView( Dataset dataset, String imageName, ProjectCreator.ImageType imageType ) {
 
-        View view = createView( imageName, imageType, "views", true );
+        View view = createView( imageName, imageType, "bookmark", true );
         dataset.views.put( "default", view );
     }
 

@@ -250,4 +250,8 @@ public class ProjectCreatorHelper {
             return null;
         }
     }
+
+    public static String imageFormatToFolderName( ImageDataFormat imageFormat ) {
+        return imageFormat.toString().replaceAll("\\.", "-");
+    }
 }
