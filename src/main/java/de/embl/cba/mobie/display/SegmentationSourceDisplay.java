@@ -29,7 +29,7 @@ public class SegmentationSourceDisplay extends SourceDisplay
 	private boolean showSelectedSegmentsIn3d = false;
 	private boolean showScatterPlot = false;
 	private String[] scatterPlotAxes = new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y };
-	private List< String > tables;
+	private List< String > tables; // table columns in addition to default
 
 	// Runtime
 	public transient SelectionModel< TableRowImageSegment > selectionModel;

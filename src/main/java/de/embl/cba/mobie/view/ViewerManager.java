@@ -25,9 +25,9 @@ import de.embl.cba.mobie.view.saving.ViewsSaver;
 import de.embl.cba.mobie.volume.SegmentsVolumeView;
 import de.embl.cba.mobie.volume.UniverseManager;
 import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import de.embl.cba.tables.tablerow.TableRows;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
@@ -295,9 +295,11 @@ public class ViewerManager
 		{
 			final SegmentationSource source = ( SegmentationSource ) moBIE.getSource( sourceName );
 
-			segmentationDisplay.segments.addAll( createAnnotatedImageSegmentsFromTableFile(
-					moBIE.getDefaultTablePath( source ),
-					sourceName ) );
+			final String defaultTablePath = moBIE.getDefaultTablePath( source );
+
+			final List< TableRowImageSegment > segments = createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
+
+			segmentationDisplay.segments.addAll( segments );
 		}
 
 		// load additional tables

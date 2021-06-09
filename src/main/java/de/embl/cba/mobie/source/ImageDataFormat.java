@@ -8,8 +8,8 @@ public enum ImageDataFormat
 	BdvN5,
 	@SerializedName( "bdv.n5.s3" )
 	BdvN5S3,
-	@SerializedName( "openOrganelle" )
-	OpenOrganelle;
+	@SerializedName( "openOrganelle.s3" )
+	OpenOrganelleS3;
 
 	@Override
 	public String toString()
@@ -20,8 +20,8 @@ public enum ImageDataFormat
 				return "bdv.n5";
 			case BdvN5S3:
 				return "bdv.n5.s3";
-			case OpenOrganelle:
-				return "openOrganelle";
+			case OpenOrganelleS3:
+				return "openOrganelle.s3";
 			default:
 				throw new UnsupportedOperationException( "Unknown file format: " + this );
 		}
@@ -36,7 +36,7 @@ public enum ImageDataFormat
 			case "bdv.n5.s3":
 				return BdvN5S3;
 			case "openOrganelle":
-				return OpenOrganelle;
+				return OpenOrganelleS3;
 			default:
 				throw new UnsupportedOperationException( "Unknown file format: " + string );
 		}
@@ -50,7 +50,7 @@ public enum ImageDataFormat
 				return true;
 			case BdvN5S3:
 				return false;
-			case OpenOrganelle:
+			case OpenOrganelleS3:
 				return false;
 			default:
 				return false;
