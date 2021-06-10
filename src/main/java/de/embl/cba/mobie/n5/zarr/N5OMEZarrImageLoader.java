@@ -687,11 +687,11 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 
 		private long[] getCellDims( long[] gridPosition )
 		{
-			long[] cellMin = new long[ 5 ];
-			int[] cellDims = new int[ 5 ];
+			long[] cellMin = new long[ 3 ];
+			int[] cellDims = new int[ 3 ];
 			cellGrid.getCellDimensions( gridPosition, cellMin, cellDims );
-			cellDims[ 3 ] = 1; // channel
-			cellDims[ 4 ] = 1; // timepoint
+//			cellDims[ 3 ] = 1; // channel
+//			cellDims[ 4 ] = 1; // timepoint
 			return Arrays.stream( cellDims ).mapToLong( i -> i ).toArray(); // casting to long for creating ArrayImgs.*
 		}
 	}
@@ -720,21 +720,21 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		{
 			DataBlock< ? > block = null;
 
-			long[] gridPosition5D = new long[ 5 ];
-			System.arraycopy(gridPosition3D, 0, gridPosition5D, 0, 3);
-			gridPosition5D[ 3 ] = channel;
-			gridPosition5D[ 4 ] = timepoint;
+//			long[] gridPosition5D = new long[ 5 ];
+//			System.arraycopy(gridPosition3D, 0, gridPosition5D, 0, 3);
+//			gridPosition5D[ 3 ] = channel;
+//			gridPosition5D[ 4 ] = timepoint;
 //			gridPosition5D[ 3 ] = 0;
 //			gridPosition5D[ 4 ] = 0;
 			long start = 0;
 			if ( logChunkLoading )
 			{
 				start = System.currentTimeMillis();
-				System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " ..." );
+				System.out.println( pathName + " " + Arrays.toString( gridPosition3D ) + " ..." );
 			}
 
 			try {
-				block = n5.readBlock( pathName, attributes, gridPosition5D );
+				block = n5.readBlock( pathName, attributes, gridPosition3D );
 			}
 			catch ( SdkClientException e )
 			{
@@ -744,9 +744,9 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			if ( logChunkLoading )
 			{
 				if ( block != null )
-					System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " fetched " + block.getNumElements() + " voxels in " + ( System.currentTimeMillis() - start ) + " ms." );
+					System.out.println( pathName + " " + Arrays.toString( gridPosition3D ) + " fetched " + block.getNumElements() + " voxels in " + ( System.currentTimeMillis() - start ) + " ms." );
 				else
-					System.out.println( pathName + " " + Arrays.toString( gridPosition5D ) + " is missing, returning zeros." );
+					System.out.println( pathName + " " + Arrays.toString( gridPosition3D ) + " is missing, returning zeros." );
 			}
 
 			if ( block == null )
