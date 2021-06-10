@@ -277,15 +277,8 @@ public class ViewerManager
 
 		if ( tables != null )
 		{
-			segmentationDisplay.segments = new ArrayList<>();
-
 			// primary table
-			final ArrayList< List< TableRowImageSegment > > primaryTables = moBIE2.loadPrimaryTables( segmentationDisplay, tables.get( 0 ) );
-
-			for ( List< TableRowImageSegment > primaryTable : primaryTables )
-			{
-				segmentationDisplay.segments.addAll( primaryTable );
-			}
+			moBIE2.loadPrimaryTables( segmentationDisplay );
 
 			// secondary tables
 			if ( tables.size() > 1 )

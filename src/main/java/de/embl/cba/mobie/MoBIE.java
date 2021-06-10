@@ -281,7 +281,7 @@ public class MoBIE
 		return location;
 	}
 
-	public List< TableRowImageSegment > loadTable( String sourceName, String table )
+	private List< TableRowImageSegment > loadTable( String sourceName, String table )
 	{
 		final SegmentationSource source = ( SegmentationSource ) getSource( sourceName );
 
@@ -292,7 +292,7 @@ public class MoBIE
 		return segments;
 	}
 
-	public ArrayList< Map< String, List< String > > > loadAdditionalTables( SegmentationSourceDisplay segmentationDisplay, String table )
+	private ArrayList< Map< String, List< String > > > loadAdditionalTables( SegmentationSourceDisplay segmentationDisplay, String table )
 	{
 		// TODO: make table loading parallel
 		final ArrayList< Map< String, List< String > > > additionalTables = new ArrayList<>();
@@ -307,7 +307,7 @@ public class MoBIE
 		return additionalTables;
 	}
 
-	public ArrayList< List< TableRowImageSegment > > loadPrimaryTables( SegmentationSourceDisplay segmentationDisplay, String table )
+	private ArrayList< List< TableRowImageSegment > > loadPrimaryTables( SegmentationSourceDisplay segmentationDisplay, String table )
 	{
 		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
 
@@ -321,7 +321,7 @@ public class MoBIE
 		return primaryTables;
 	}
 
-	public Map< String, List< String > > createColumnsForMerging( Map< String, List< String > > newColumns, List< TableRowImageSegment > segments )
+	private Map< String, List< String > > createColumnsForMerging( Map< String, List< String > > newColumns, List< TableRowImageSegment > segments )
 	{
 		final ArrayList< String > imageIdColumn = TableColumns.getColumn( segments, Constants.LABEL_IMAGE_ID );
 		final ArrayList< String > segmentIdColumn = TableColumns.getColumn( segments, Constants.SEGMENT_LABEL_ID );
@@ -352,6 +352,17 @@ public class MoBIE
 			{
 				TableRows.addColumn( segmentationDisplay.segments, column.getKey(), column.getValue() );
 			}
+		}
+	}
+
+	public void loadPrimaryTables( SegmentationSourceDisplay segmentationDisplay )
+	{
+		segmentationDisplay.segments = new ArrayList<>();
+		final ArrayList< List< TableRowImageSegment > > primaryTables = loadPrimaryTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
+
+		for ( List< TableRowImageSegment > primaryTable : primaryTables )
+		{
+			segmentationDisplay.segments.addAll( primaryTable );
 		}
 	}
 }
