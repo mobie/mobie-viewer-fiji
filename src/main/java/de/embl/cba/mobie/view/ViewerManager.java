@@ -23,22 +23,17 @@ import de.embl.cba.mobie.view.additionalviews.AdditionalViewsLoader;
 import de.embl.cba.mobie.view.saving.ViewsSaver;
 import de.embl.cba.mobie.volume.SegmentsVolumeView;
 import de.embl.cba.mobie.volume.UniverseManager;
-import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 
-import javax.activation.UnsupportedDataTypeException;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
@@ -284,38 +279,20 @@ public class ViewerManager
 		{
 			segmentationDisplay.segments = new ArrayList<>();
 
-			for ( int tableIndex = 0; tableIndex < tables.size(); tableIndex++ )
+			// primary table
+			final ArrayList< List< TableRowImageSegment > > primaryTables = moBIE2.loadPrimaryTables( segmentationDisplay, tables.get( 0 ) );
+
+			for ( List< TableRowImageSegment > primaryTable : primaryTables )
 			{
-				// TODO: make table loading parallel (in MoBIE2).
-				for ( String sourceName : segmentationDisplay.getSources() )
-				{
-					if ( tableIndex == 0 )
-					{
-						segmentationDisplay.segments.addAll( moBIE2.loadTable( sourceName, tables.get( 0 ) ) );
-					}
-					else
-					{
-						final String tablePath = moBIE2.getTablePath( source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath, table );
-						IJ.log( "Opening table:\n" + tablePath );
-						final Map< String, List< String > > newColumns =
-								TableColumns.openAndOrderNewColumns(
-										segmentationDisplay.segments,
-										Constants.SEGMENT_LABEL_ID,
-										tablePath );
-						newColumns.remove( Constants.SEGMENT_LABEL_ID );
-						for ( String columnName : newColumns.keySet() )
-						{
-							try
-							{
-								Object[] values = TableColumns.asTypedArray( newColumns.get( columnName ) );
-								TableRows.addColumn( segmentationDisplay.segments, columnName, values );
-							} catch ( UnsupportedDataTypeException e )
-							{
-								e.printStackTrace();
-							}
-						}
-					}
-				}
+				segmentationDisplay.segments.addAll( primaryTable );
+			}
+
+			// secondary tables
+			if ( tables.size() > 1 )
+			{
+				final List< String > additionalTables = tables.subList( 1, tables.size() );
+
+				moBIE2.appendTables( segmentationDisplay, additionalTables );
 			}
 		}
 

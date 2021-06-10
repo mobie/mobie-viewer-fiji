@@ -2,6 +2,7 @@ package de.embl.cba.mobie;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
@@ -13,6 +14,8 @@ import de.embl.cba.mobie.ui.WindowArrangementHelper;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.view.ViewerManager;
 import de.embl.cba.tables.FileAndUrlUtils;
+import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.github.GitHubUtils;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
@@ -22,6 +25,7 @@ import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataC
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -286,5 +290,68 @@ public class MoBIE
 		final List< TableRowImageSegment > segments = createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
 
 		return segments;
+	}
+
+	public ArrayList< Map< String, List< String > > > loadAdditionalTables( SegmentationSourceDisplay segmentationDisplay, String table )
+	{
+		// TODO: make table loading parallel
+		final ArrayList< Map< String, List< String > > > additionalTables = new ArrayList<>();
+
+		for ( String sourceName : segmentationDisplay.getSources() )
+		{
+			Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
+
+			TableColumns.addLabelImageIdColumn( columns, Constants.LABEL_IMAGE_ID, sourceName );
+			additionalTables.add( columns );
+		}
+		return additionalTables;
+	}
+
+	public ArrayList< List< TableRowImageSegment > > loadPrimaryTables( SegmentationSourceDisplay segmentationDisplay, String table )
+	{
+		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
+
+		// TODO: make parallel
+		for ( String sourceName : segmentationDisplay.getSources() )
+		{
+			final List< TableRowImageSegment > primaryTable = loadTable( sourceName, table );
+			primaryTables.add( primaryTable );
+		}
+
+		return primaryTables;
+	}
+
+	public Map< String, List< String > > createColumnsForMerging( Map< String, List< String > > newColumns, List< TableRowImageSegment > segments )
+	{
+		final ArrayList< String > imageIdColumn = TableColumns.getColumn( segments, Constants.LABEL_IMAGE_ID );
+		final ArrayList< String > segmentIdColumn = TableColumns.getColumn( segments, Constants.SEGMENT_LABEL_ID );
+		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
+		referenceColumns.put( Constants.LABEL_IMAGE_ID, imageIdColumn );
+		referenceColumns.put( Constants.LABEL_IMAGE_ID, segmentIdColumn );
+
+		final Map< String, List< String > > columnsForMerging = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, newColumns );
+
+		return columnsForMerging;
+	}
+
+	public void appendTables( SegmentationSourceDisplay segmentationDisplay, List< String > tables )
+	{
+		for ( String table : tables )
+		{
+			// load
+			final ArrayList< Map< String, List< String > > > additionalTables = loadAdditionalTables( segmentationDisplay, table );
+
+			// concatenate
+			Map< String, List< String > > concatenatedTable = TableColumns.concatenate( additionalTables );
+
+			// merge
+			final Map< String, List< String > > columnsForMerging = createColumnsForMerging( concatenatedTable, segmentationDisplay.segments );
+
+			// append
+			for ( Map.Entry< String, List< String > > column : columnsForMerging.entrySet() )
+			{
+				TableRows.addColumn( segmentationDisplay.segments, column.getKey(), column.getValue() );
+			}
+		}
 	}
 }
