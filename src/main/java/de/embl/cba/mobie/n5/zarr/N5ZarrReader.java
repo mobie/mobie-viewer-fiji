@@ -148,7 +148,7 @@ public class N5ZarrReader extends N5FSReader
 	public N5ZarrReader( final String basePath, final boolean mapN5DatasetAttributes) throws IOException
 	{
 
-		this(basePath, new GsonBuilder(), ".", mapN5DatasetAttributes);
+		this(basePath, new GsonBuilder(), "/", mapN5DatasetAttributes);
 	}
 
 	/**
@@ -164,7 +164,7 @@ public class N5ZarrReader extends N5FSReader
 	public N5ZarrReader( final String basePath, final GsonBuilder gsonBuilder) throws IOException
 	{
 
-		this(basePath, gsonBuilder, ".");
+		this(basePath, gsonBuilder, "/");
 	}
 
 	/**
@@ -456,6 +456,7 @@ public class N5ZarrReader extends N5FSReader
 						gridPosition,
 						dimensionSeparator,
 						zarrDatasetAttributes.isRowMajor()).toString());
+		System.out.println("readBlock path" + path);
 		if (!Files.exists(path))
 			return null;
 
@@ -514,7 +515,7 @@ public class N5ZarrReader extends N5FSReader
 				pathStringBuilder.append(gridPosition[i]);
 			}
 		}
-
+		System.out.println("Path" + Paths.get(pathStringBuilder.toString()));
 		return Paths.get(pathStringBuilder.toString());
 	}
 }

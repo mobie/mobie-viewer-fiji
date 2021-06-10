@@ -244,6 +244,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			if ( n5 instanceof N5S3ZarrReader )
 			{
 				final N5S3ZarrReader s3ZarrReader = ( N5S3ZarrReader ) n5;
+				s3ZarrReader.setDimensionSeparator("/");
 				location += "service endpoint: " + s3ZarrReader.getServiceEndpoint();
 				location += "; bucket: " + s3ZarrReader.getBucketName();
 				location += "; container path: " + s3ZarrReader.getContainerPath();
@@ -720,10 +721,11 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			DataBlock< ? > block = null;
 
 			long[] gridPosition5D = new long[ 5 ];
-			for ( int d = 0; d < 3; d++ ) gridPosition5D[ d ] = gridPosition3D[ d ];
+			System.arraycopy(gridPosition3D, 0, gridPosition5D, 0, 3);
 			gridPosition5D[ 3 ] = channel;
 			gridPosition5D[ 4 ] = timepoint;
-
+//			gridPosition5D[ 3 ] = 0;
+//			gridPosition5D[ 4 ] = 0;
 			long start = 0;
 			if ( logChunkLoading )
 			{

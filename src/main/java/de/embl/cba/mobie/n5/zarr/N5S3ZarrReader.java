@@ -58,10 +58,15 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 	private static final String zgroupFile = N5ZarrReader.zgroupFile;
 
 	final protected boolean mapN5DatasetAttributes;
-	final protected String dimensionSeparator;
+
+	protected String dimensionSeparator;
 	private final String serviceEndpoint;
 
-	public N5S3ZarrReader( AmazonS3 s3, String serviceEndpoint, String bucketName, String containerPath ) throws IOException
+	public void setDimensionSeparator(String dimensionSeparator) {
+		this.dimensionSeparator = dimensionSeparator;
+	}
+
+	public N5S3ZarrReader(AmazonS3 s3, String serviceEndpoint, String bucketName, String containerPath ) throws IOException
 	{
 		super(s3, bucketName, containerPath, initGsonBuilder(new GsonBuilder()));
 		this.serviceEndpoint = serviceEndpoint; // for debugging
