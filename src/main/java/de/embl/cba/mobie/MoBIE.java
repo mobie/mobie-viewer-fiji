@@ -14,6 +14,7 @@ import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.view.ViewerManager;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.github.GitHubUtils;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import sc.fiji.bdvpg.PlaygroundPrefs;
@@ -28,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static de.embl.cba.mobie.Utils.createAnnotatedImageSegmentsFromTableFile;
 import static de.embl.cba.mobie.Utils.getName;
 
 public class MoBIE
@@ -251,14 +253,9 @@ public class MoBIE
 		}
 	}
 
-	public String getDefaultTablePath( SegmentationSource source )
+	public String getTablePath( SegmentationSource source, String table )
 	{
-		return getTablePath( source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath, "default.tsv" );
-	}
-
-	public String getDefaultTablePath( String relativeTableLocation )
-	{
-		return getTablePath( relativeTableLocation, "default.tsv" );
+		return getTablePath( source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath, table );
 	}
 
 	public String getTablePath( String relativeTableLocation, String table )
@@ -278,5 +275,16 @@ public class MoBIE
 		for ( String file : files )
 			location = FileAndUrlUtils.combinePath( location, file );
 		return location;
+	}
+
+	public List< TableRowImageSegment > loadTable( String sourceName, String table )
+	{
+		final SegmentationSource source = ( SegmentationSource ) getSource( sourceName );
+
+		final String defaultTablePath = getTablePath( source, table );
+
+		final List< TableRowImageSegment > segments = createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
+
+		return segments;
 	}
 }
