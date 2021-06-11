@@ -11,6 +11,8 @@ import java.io.IOException;
 public class OMEZarrReader
 {
     private static boolean logChunkLoading;
+    private static final String V3_SEPARATOR = "/";
+    private static final String D5_SEPARATOR = ".";
 
     private final String filePath;
 
@@ -36,11 +38,16 @@ public class OMEZarrReader
     private SpimData readFile() throws IOException
     {
         N5OMEZarrImageLoader.logChunkLoading = logChunkLoading;
-        N5ZarrReader reader = new N5ZarrReader(this.filePath, new GsonBuilder());
+        String dimensionSeparator = isV3OMEZarr() ? V3_SEPARATOR : D5_SEPARATOR;
+        N5ZarrReader reader = new N5ZarrReader(this.filePath, new GsonBuilder(), dimensionSeparator);
         N5OMEZarrImageLoader imageLoader = new N5OMEZarrImageLoader(reader);
         return new SpimData(
                 new File(this.filePath),
                 Cast.unchecked( imageLoader.getSequenceDescription() ),
                 imageLoader.getViewRegistrations());
+    }
+
+    private boolean isV3OMEZarr(){
+        return true;
     }
 }

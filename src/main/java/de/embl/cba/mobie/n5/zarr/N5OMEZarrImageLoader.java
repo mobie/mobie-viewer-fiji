@@ -78,6 +78,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	protected AbstractSequenceDescription< ?, ?, ? > seq;
 	protected ViewRegistrations viewRegistrations;
 	public static boolean logChunkLoading = false;
+	private static boolean is5D = false;
 
 	/**
 	 * Maps setup id to {@link SetupImgLoader}.
@@ -132,8 +133,10 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			{
 				ViewSetup viewSetup = createViewSetup( setupId );
 				int setupTimepoints = 1;
+				is5D = false;
 				if (setupToAttributes.get( setupId ).getNumDimensions() > 4) {
 					setupTimepoints = (int) setupToAttributes.get(setupId).getDimensions()[T];
+					is5D = true;
 				}
 				sequenceTimepoints = setupTimepoints > sequenceTimepoints ?  setupTimepoints : sequenceTimepoints;
 				viewSetups.add( viewSetup );
@@ -487,8 +490,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 
 			try
 			{
-				for ( int level = 0; level < mipmapResolutions.length; level++ )
-					mipmapResolutions[ level ] = multiscale.scales[ level ];
+				System.arraycopy(multiscale.scales, 0, mipmapResolutions, 0, mipmapResolutions.length);
 			}
 			catch ( Exception e )
 			{
@@ -689,9 +691,15 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		{
 			long[] cellMin = new long[ 3 ];
 			int[] cellDims = new int[ 3 ];
+
+			if (is5D) {
+			cellMin = new long[ 5 ];
+			cellDims = new int[ 5 ];
+			cellDims[ 3 ] = 1; // channel
+			cellDims[ 4 ] = 1; // timepoint
+			}
+
 			cellGrid.getCellDimensions( gridPosition, cellMin, cellDims );
-//			cellDims[ 3 ] = 1; // channel
-//			cellDims[ 4 ] = 1; // timepoint
 			return Arrays.stream( cellDims ).mapToLong( i -> i ).toArray(); // casting to long for creating ArrayImgs.*
 		}
 	}
@@ -716,25 +724,29 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		}
 
 		@Override
-		public A loadArray( final long[] gridPosition3D ) throws IOException
+		public A loadArray( final long[] gridPosition ) throws IOException
 		{
 			DataBlock< ? > block = null;
+			long[] usedGridPosition = gridPosition;
 
-//			long[] gridPosition5D = new long[ 5 ];
-//			System.arraycopy(gridPosition3D, 0, gridPosition5D, 0, 3);
-//			gridPosition5D[ 3 ] = channel;
-//			gridPosition5D[ 4 ] = timepoint;
-//			gridPosition5D[ 3 ] = 0;
-//			gridPosition5D[ 4 ] = 0;
+			if (is5D) {
+			long[] gridPosition5D = new long[ 5 ];
+			System.arraycopy(gridPosition, 0, gridPosition5D, 0, 3);
+			gridPosition5D[ 3 ] = channel;
+			gridPosition5D[ 4 ] = timepoint;
+				usedGridPosition = gridPosition5D;
+			}
+
+
 			long start = 0;
 			if ( logChunkLoading )
 			{
 				start = System.currentTimeMillis();
-				System.out.println( pathName + " " + Arrays.toString( gridPosition3D ) + " ..." );
+				System.out.println( pathName + " " + Arrays.toString( usedGridPosition ) + " ..." );
 			}
 
 			try {
-				block = n5.readBlock( pathName, attributes, gridPosition3D );
+				block = n5.readBlock( pathName, attributes, usedGridPosition );
 			}
 			catch ( SdkClientException e )
 			{
@@ -744,18 +756,18 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			if ( logChunkLoading )
 			{
 				if ( block != null )
-					System.out.println( pathName + " " + Arrays.toString( gridPosition3D ) + " fetched " + block.getNumElements() + " voxels in " + ( System.currentTimeMillis() - start ) + " ms." );
+					System.out.println( pathName + " " + Arrays.toString( usedGridPosition ) + " fetched " + block.getNumElements() + " voxels in " + ( System.currentTimeMillis() - start ) + " ms." );
 				else
-					System.out.println( pathName + " " + Arrays.toString( gridPosition3D ) + " is missing, returning zeros." );
+					System.out.println( pathName + " " + Arrays.toString( usedGridPosition ) + " is missing, returning zeros." );
 			}
 
 			if ( block == null )
 			{
-				return arrayCreator.createEmptyArray( gridPosition3D );
+				return arrayCreator.createEmptyArray( usedGridPosition );
 			}
 			else
 			{
-				return arrayCreator.createArray( block, gridPosition3D );
+				return arrayCreator.createArray( block, usedGridPosition );
 			}
 		}
 	}
