@@ -293,20 +293,33 @@ public class MoBIE
 		return segments;
 	}
 
-	private ArrayList< Map< String, List< String > > > loadAdditionalTables( SegmentationSourceDisplay segmentationDisplay, String table )
+	private List< Map< String, List< String > > > loadAdditionalTables( SegmentationSourceDisplay segmentationDisplay, String table )
 	{
-		// TODO: make table loading parallel
-		final ArrayList< Map< String, List< String > > > additionalTables = new ArrayList<>();
+		final List< Map< String, List< String > > > additionalTables = new CopyOnWriteArrayList<>();
+
+		final long start = System.currentTimeMillis();
+		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
 
 		for ( String sourceName : segmentationDisplay.getSources() )
 		{
-			Logger.log( "Opening table:\n" + getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
-			Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
+			executorService.execute( () -> {
+				Logger.log( "Opening table:\n" + getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
+				Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
 
-			TableColumns.addLabelImageIdColumn( columns, Constants.LABEL_IMAGE_ID, sourceName );
+				TableColumns.addLabelImageIdColumn( columns, Constants.LABEL_IMAGE_ID, sourceName );
 
-			additionalTables.add( columns );
+				additionalTables.add( columns );
+			} );
 		}
+
+		executorService.shutdown();
+		try {
+			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		} catch (InterruptedException e) {
+		}
+
+		System.out.println( "Fetched " + segmentationDisplay.getSources().size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
+
 		return additionalTables;
 	}
 
@@ -349,7 +362,7 @@ public class MoBIE
 		for ( String table : tables )
 		{
 			// load
-			final ArrayList< Map< String, List< String > > > additionalTables = loadAdditionalTables( segmentationDisplay, table );
+			final List< Map< String, List< String > > > additionalTables = loadAdditionalTables( segmentationDisplay, table );
 
 			// concatenate
 			Map< String, List< String > > concatenatedTable = TableColumns.concatenate( additionalTables );
