@@ -136,14 +136,17 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	public void registerAsTableRowListener( List< T > tableRows )
 	{
+		int rowIndex = 0;
 		for ( T tableRow : tableRows )
 		{
+			int finalRowIndex = rowIndex;
+			rowIndex++;
 			tableRow.listeners().add( new TableRowListener()
 			{
 				@Override
 				public void cellChanged( String columnName, String value )
 				{
-					setTableCell( tableRow.rowIndex(), columnName, value, getTable() );
+					setTableCell( finalRowIndex, columnName, value, getTable() );
 				}
 			} );
 		}
@@ -274,7 +277,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 //		}
 
 		final ARGBType argbType = new ARGBType();
-		coloringModel.convert( tableRows.get( row ), argbType );
+		final T tableRow = tableRows.get( row );
+		coloringModel.convert( tableRow, argbType );
 
 		if ( ARGBType.alpha( argbType.get() ) == 0 )
 			return Color.WHITE;
@@ -693,7 +697,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private synchronized void moveToSelectedTableRow( TableRow selection )
 	{
-		final int rowInView = table.convertRowIndexToView( selection.rowIndex() );
+		final int rowInView = table.convertRowIndexToView( tableRows.indexOf( selection ) );
 
 		if ( rowInView == recentlySelectedRowInView ) return;
 
