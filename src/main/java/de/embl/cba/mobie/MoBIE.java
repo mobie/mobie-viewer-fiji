@@ -2,6 +2,7 @@ package de.embl.cba.mobie;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
@@ -299,13 +300,16 @@ public class MoBIE
 
 		for ( String sourceName : segmentationDisplay.getSources() )
 		{
+			Logger.log( "Opening table:\n" + getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
 			Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
 
 			TableColumns.addLabelImageIdColumn( columns, Constants.LABEL_IMAGE_ID, sourceName );
+
 			additionalTables.add( columns );
 		}
 		return additionalTables;
 	}
+
 
 	private ArrayList< List< TableRowImageSegment > > loadPrimaryTables( SegmentationSourceDisplay segmentationDisplay, String table )
 	{
@@ -323,11 +327,17 @@ public class MoBIE
 
 	private Map< String, List< String > > createColumnsForMerging( Map< String, List< String > > newColumns, List< TableRowImageSegment > segments )
 	{
-		final ArrayList< String > imageIdColumn = TableColumns.getColumn( segments, Constants.LABEL_IMAGE_ID );
 		final ArrayList< String > segmentIdColumn = TableColumns.getColumn( segments, Constants.SEGMENT_LABEL_ID );
+		final ArrayList< String > imageIdColumn = TableColumns.getColumn( segments, Constants.LABEL_IMAGE_ID );
 		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
 		referenceColumns.put( Constants.LABEL_IMAGE_ID, imageIdColumn );
-		referenceColumns.put( Constants.LABEL_IMAGE_ID, segmentIdColumn );
+		referenceColumns.put( Constants.SEGMENT_LABEL_ID, segmentIdColumn );
+
+		// deal with the fact that the label ids are sometimes
+		// stored as 1 and sometimes as 1.0
+		// after below operation they all will be 1.0, 2.0, ...
+		Utils.toDoubleStrings( segmentIdColumn );
+		Utils.toDoubleStrings( newColumns.get( Constants.SEGMENT_LABEL_ID ) );
 
 		final Map< String, List< String > > columnsForMerging = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, newColumns );
 
@@ -355,6 +365,9 @@ public class MoBIE
 		}
 	}
 
+	/**
+	 * Primary tables must contain the image segment properties.
+	 */
 	public void loadPrimaryTables( SegmentationSourceDisplay segmentationDisplay )
 	{
 		segmentationDisplay.segments = new ArrayList<>();

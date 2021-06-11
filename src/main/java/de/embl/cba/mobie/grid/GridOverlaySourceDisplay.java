@@ -38,9 +38,8 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 		this.bdvHandle = bdvHandle;
 		this.name = name;
 
-		// TODO: do not hard code this
-		final String tables = sourceTransformer.tables;
-		String tablePath = moBIE2.getTablePath( tableDataFolder, "default.tsv" );
+		// TODO: Deal with more than one table
+		String tablePath = moBIE2.getTablePath( tableDataFolder, sourceTransformer.tables[ 0 ] );
 		tablePath = Utils.resolveTablePath( tablePath );
 		Logger.log( "Opening table:\n" + tablePath );
 
