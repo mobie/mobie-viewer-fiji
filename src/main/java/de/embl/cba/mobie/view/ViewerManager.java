@@ -79,14 +79,8 @@ public class ViewerManager
 
 	public void initTableViewer( SegmentationSourceDisplay display  )
 	{
-		ArrayList<String> tablesDirectories = new ArrayList<>();
-		for ( String source: display.getSources() ) {
-			SegmentationSource segmentationSource = (SegmentationSource) moBIE.getSource( source );
-			tablesDirectories.add( moBIE.getTablesDirectoryPath( segmentationSource ) );
-		}
-
 		display.tableViewer = new TableViewer<>( moBIE, display.segments, display.selectionModel, display.coloringModel,
-				display.getName(), tablesDirectories ).show();
+				display.getName(), display.getSources() ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
