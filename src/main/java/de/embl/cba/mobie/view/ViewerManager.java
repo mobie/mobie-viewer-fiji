@@ -11,7 +11,6 @@ import de.embl.cba.mobie.color.ColoringModelHelper;
 import de.embl.cba.mobie.grid.GridOverlaySourceDisplay;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.segment.SegmentAdapter;
-import de.embl.cba.mobie.source.SegmentationSource;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
@@ -24,25 +23,19 @@ import de.embl.cba.mobie.view.additionalviews.AdditionalViewsLoader;
 import de.embl.cba.mobie.view.saving.ViewsSaver;
 import de.embl.cba.mobie.volume.SegmentsVolumeView;
 import de.embl.cba.mobie.volume.UniverseManager;
-import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 
-import javax.activation.UnsupportedDataTypeException;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import static de.embl.cba.mobie.Utils.createAnnotatedImageSegmentsFromTableFile;
 import static de.embl.cba.mobie.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
 import static de.embl.cba.mobie.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
 
@@ -280,19 +273,22 @@ public class ViewerManager
 
 	private void fetchSegmentsFromTables( SegmentationSourceDisplay segmentationDisplay )
 	{
-		segmentationDisplay.segments = new ArrayList<>();
+		final List< String > tables = segmentationDisplay.getTables();
 
-		// load default tables
-		for ( String sourceName : segmentationDisplay.getSources() )
+		if ( tables != null )
 		{
-			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
+			// primary table
+			moBIE2.loadPrimaryTables( segmentationDisplay );
 
-			final String defaultTablePath = moBIE2.getDefaultTablePath( source );
+			// secondary tables
+			if ( tables.size() > 1 )
+			{
+				final List< String > additionalTables = tables.subList( 1, tables.size() );
 
-			final List< TableRowImageSegment > segments = createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
-
-			segmentationDisplay.segments.addAll( segments );
+				moBIE2.appendTables( segmentationDisplay, additionalTables );
+			}
 		}
+
 
 		// check  validity
 		for ( TableRowImageSegment segment : segmentationDisplay.segments )
@@ -300,40 +296,6 @@ public class ViewerManager
 			if ( segment.labelId() == 0 )
 			{
 				throw new UnsupportedOperationException( "The table contains rows (image segments) with label index 0, which is not supported and will lead to errors. Please change the table accordingly." );
-			}
-		}
-
-		// load additional tables
-		// TODO: This will not work like this for the grid view with multiple sources...
-		for ( String sourceName : segmentationDisplay.getSources() )
-		{
-			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
-
-			final List< String > tables = segmentationDisplay.getTables();
-			if ( tables != null )
-			{
-				for ( String table : tables )
-				{
-					final String tablePath = moBIE2.getTablePath( source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath, table );
-					IJ.log( "Opening table:\n" + tablePath );
-					final Map< String, List< String > > newColumns =
-							TableColumns.openAndOrderNewColumns(
-									segmentationDisplay.segments,
-									Constants.SEGMENT_LABEL_ID,
-									tablePath );
-					newColumns.remove( Constants.SEGMENT_LABEL_ID );
-					for ( String columnName : newColumns.keySet() )
-					{
-						try
-						{
-							Object[] values = TableColumns.asTypedArray( newColumns.get( columnName ) );
-							TableRows.addColumn( segmentationDisplay.segments, columnName, values );
-						} catch ( UnsupportedDataTypeException e )
-						{
-							e.printStackTrace();
-						}
-					}
-				}
 			}
 		}
 	}

@@ -24,6 +24,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 {
 	// Serialization
 	public Map< TableDataFormat, StorageLocation > tableData;
+	public String[] tables;
 
 	// Runtime
 	private transient List< int[] > positions;

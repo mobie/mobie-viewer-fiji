@@ -2,6 +2,8 @@ package de.embl.cba.mobie;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.Logger;
+import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
@@ -13,7 +15,10 @@ import de.embl.cba.mobie.ui.WindowArrangementHelper;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.view.ViewerManager;
 import de.embl.cba.tables.FileAndUrlUtils;
+import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.github.GitHubUtils;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import sc.fiji.bdvpg.PlaygroundPrefs;
@@ -21,6 +26,7 @@ import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataC
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -28,6 +34,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static de.embl.cba.mobie.Utils.createAnnotatedImageSegmentsFromTableFile;
 import static de.embl.cba.mobie.Utils.getName;
 
 public class MoBIE
@@ -251,14 +258,9 @@ public class MoBIE
 		}
 	}
 
-	public String getDefaultTablePath( SegmentationSource source )
+	public String getTablePath( SegmentationSource source, String table )
 	{
-		return getTablePath( source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath, "default.tsv" );
-	}
-
-	public String getDefaultTablePath( String relativeTableLocation )
-	{
-		return getTablePath( relativeTableLocation, "default.tsv" );
+		return getTablePath( source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath, table );
 	}
 
 	public String getTablePath( String relativeTableLocation, String table )
@@ -278,5 +280,115 @@ public class MoBIE
 		for ( String file : files )
 			location = FileAndUrlUtils.combinePath( location, file );
 		return location;
+	}
+
+	private List< TableRowImageSegment > loadTable( String sourceName, String table )
+	{
+		final SegmentationSource source = ( SegmentationSource ) getSource( sourceName );
+
+		final String defaultTablePath = getTablePath( source, table );
+
+		final List< TableRowImageSegment > segments = createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
+
+		return segments;
+	}
+
+	private List< Map< String, List< String > > > loadAdditionalTables( SegmentationSourceDisplay segmentationDisplay, String table )
+	{
+		final List< Map< String, List< String > > > additionalTables = new CopyOnWriteArrayList<>();
+
+		final long start = System.currentTimeMillis();
+		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
+
+		for ( String sourceName : segmentationDisplay.getSources() )
+		{
+			executorService.execute( () -> {
+				Logger.log( "Opening table:\n" + getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
+				Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
+
+				TableColumns.addLabelImageIdColumn( columns, Constants.LABEL_IMAGE_ID, sourceName );
+
+				additionalTables.add( columns );
+			} );
+		}
+
+		executorService.shutdown();
+		try {
+			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		} catch (InterruptedException e) {
+		}
+
+		System.out.println( "Fetched " + segmentationDisplay.getSources().size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
+
+		return additionalTables;
+	}
+
+
+	private ArrayList< List< TableRowImageSegment > > loadPrimaryTables( SegmentationSourceDisplay segmentationDisplay, String table )
+	{
+		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
+
+		// TODO: make parallel
+		for ( String sourceName : segmentationDisplay.getSources() )
+		{
+			final List< TableRowImageSegment > primaryTable = loadTable( sourceName, table );
+			primaryTables.add( primaryTable );
+		}
+
+		return primaryTables;
+	}
+
+	private Map< String, List< String > > createColumnsForMerging( Map< String, List< String > > newColumns, List< TableRowImageSegment > segments )
+	{
+		final ArrayList< String > segmentIdColumn = TableColumns.getColumn( segments, Constants.SEGMENT_LABEL_ID );
+		final ArrayList< String > imageIdColumn = TableColumns.getColumn( segments, Constants.LABEL_IMAGE_ID );
+		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
+		referenceColumns.put( Constants.LABEL_IMAGE_ID, imageIdColumn );
+		referenceColumns.put( Constants.SEGMENT_LABEL_ID, segmentIdColumn );
+
+		// deal with the fact that the label ids are sometimes
+		// stored as 1 and sometimes as 1.0
+		// after below operation they all will be 1.0, 2.0, ...
+		Utils.toDoubleStrings( segmentIdColumn );
+		Utils.toDoubleStrings( newColumns.get( Constants.SEGMENT_LABEL_ID ) );
+
+		final Map< String, List< String > > columnsForMerging = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, newColumns );
+
+		return columnsForMerging;
+	}
+
+	public void appendTables( SegmentationSourceDisplay segmentationDisplay, List< String > tables )
+	{
+		for ( String table : tables )
+		{
+			// load
+			final List< Map< String, List< String > > > additionalTables = loadAdditionalTables( segmentationDisplay, table );
+
+			// concatenate
+			Map< String, List< String > > concatenatedTable = TableColumns.concatenate( additionalTables );
+
+			// merge
+			final Map< String, List< String > > columnsForMerging = createColumnsForMerging( concatenatedTable, segmentationDisplay.segments );
+
+			// append
+			for ( Map.Entry< String, List< String > > column : columnsForMerging.entrySet() )
+			{
+				TableRows.addColumn( segmentationDisplay.segments, column.getKey(), column.getValue() );
+			}
+		}
+	}
+
+	/**
+	 * Primary tables must contain the image segment properties.
+	 */
+	public void loadPrimaryTables( SegmentationSourceDisplay segmentationDisplay )
+	{
+		segmentationDisplay.segments = new ArrayList<>();
+		final ArrayList< List< TableRowImageSegment > > primaryTables = loadPrimaryTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
+
+		for ( List< TableRowImageSegment > primaryTable : primaryTables )
+		{
+			segmentationDisplay.segments.addAll( primaryTable );
+		}
 	}
 }
