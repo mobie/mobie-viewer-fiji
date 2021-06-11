@@ -18,6 +18,7 @@ import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.github.GitHubUtils;
+import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
@@ -305,21 +306,27 @@ public class MoBIE
 		return segments;
 	}
 
-	private List< Map< String, List< String > > > loadAdditionalTables( SegmentationSourceDisplay segmentationDisplay, String table )
+	private Map< String, List< String > > loadAdditionalTable( String source, String tablePath )
+	{
+		Logger.log( "Opening table:\n" + tablePath );
+		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
+
+		TableColumns.addLabelImageIdColumn( columns, Constants.LABEL_IMAGE_ID, source );
+		return columns;
+	}
+
+	private List< Map< String, List< String > > > loadAdditionalTables( List<String> sources, String table )
 	{
 		final List< Map< String, List< String > > > additionalTables = new CopyOnWriteArrayList<>();
 
 		final long start = System.currentTimeMillis();
 		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
 
-		for ( String sourceName : segmentationDisplay.getSources() )
+		for ( String sourceName : sources )
 		{
 			executorService.execute( () -> {
-				Logger.log( "Opening table:\n" + getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
-				Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
-
-				TableColumns.addLabelImageIdColumn( columns, Constants.LABEL_IMAGE_ID, sourceName );
-
+				Map< String, List< String > > columns =
+						loadAdditionalTable( sourceName, getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
 				additionalTables.add( columns );
 			} );
 		}
@@ -330,7 +337,7 @@ public class MoBIE
 		} catch (InterruptedException e) {
 		}
 
-		System.out.println( "Fetched " + segmentationDisplay.getSources().size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
+		System.out.println( "Fetched " + sources.size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
 
 		return additionalTables;
 	}
@@ -369,25 +376,46 @@ public class MoBIE
 		return columnsForMerging;
 	}
 
-	public void appendTables( SegmentationSourceDisplay segmentationDisplay, List< String > tables )
+	private void mergeTables( List<TableRowImageSegment> tableRows, Map< String, List< String > > tableToMerge )
+	{
+		// merge
+		final Map< String, List< String > > columnsForMerging = createColumnsForMerging( tableToMerge, tableRows );
+
+		// append
+		for ( Map.Entry< String, List< String > > column : columnsForMerging.entrySet() )
+		{
+			TableRows.addColumn( tableRows, column.getKey(), column.getValue() );
+		}
+	}
+
+	public void appendTables( List<String> sources, List< String > tables, List<TableRowImageSegment> tableRows )
 	{
 		for ( String table : tables )
 		{
 			// load
-			final List< Map< String, List< String > > > additionalTables = loadAdditionalTables( segmentationDisplay, table );
+			final List< Map< String, List< String > > > additionalTables = loadAdditionalTables( sources, table );
 
 			// concatenate
 			Map< String, List< String > > concatenatedTable = TableColumns.concatenate( additionalTables );
 
 			// merge
-			final Map< String, List< String > > columnsForMerging = createColumnsForMerging( concatenatedTable, segmentationDisplay.segments );
-
-			// append
-			for ( Map.Entry< String, List< String > > column : columnsForMerging.entrySet() )
-			{
-				TableRows.addColumn( segmentationDisplay.segments, column.getKey(), column.getValue() );
-			}
+			mergeTables( tableRows, concatenatedTable );
 		}
+	}
+
+	// needed to load a table from an arbitrary location on the filesystem
+	public void appendTables( String source, String tablePath, List<TableRowImageSegment> tableRows )
+	{
+		// load
+		Map< String, List< String > > additionalTable = loadAdditionalTable( source, tablePath );
+
+		// merge
+		mergeTables( tableRows, additionalTable );
+	}
+
+	public void appendTables( SegmentationSourceDisplay segmentationDisplay, List< String > tables )
+	{
+		appendTables( segmentationDisplay.getSources(), tables, segmentationDisplay.segments );
 	}
 
 	/**

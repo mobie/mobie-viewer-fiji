@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
-import static de.embl.cba.mobie.Utils.selectPathsFromProject;
+import static de.embl.cba.mobie.Utils.selectPathFromProject;
 
 public class AdditionalViewsLoader {
 
@@ -24,10 +24,7 @@ public class AdditionalViewsLoader {
 
     public void loadAdditionalViewsDialog() {
         try {
-            ArrayList<String> directories = new ArrayList<>();
-            directories.add( moBIE.getDatasetPath("misc", "views" ) );
-
-            String selectedFilePath = selectPathsFromProject( directories, "View" ).get(0);
+            String selectedFilePath = selectPathFromProject( moBIE.getDatasetPath("misc", "views" ), "View" );
             // to match to the existing view selection panels, we enable the cross platform look and feel
             UserInterfaceHelper.resetCrossPlatformSwingLookAndFeel();
 

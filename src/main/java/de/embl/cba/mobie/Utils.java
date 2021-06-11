@@ -30,7 +30,7 @@ public abstract class Utils
 		FileSystem
 	}
 
-	private static String chooseCommonFileName( ArrayList<String> directories, String objectName ) {
+	private static String chooseCommonFileName( List<String> directories, String objectName ) {
 		Map<String, Integer> fileNameCounts = new HashMap<>();
 		ArrayList<String> commonFileNames = new ArrayList<>();
 
@@ -72,12 +72,10 @@ public abstract class Utils
 		return FileLocation.valueOf(gd.getNextChoice());
 	}
 
-	public static ArrayList<String> selectPathsFromProject( ArrayList<String> directories, String objectName ) {
+	public static String selectCommonFileNameFromProject( List<String> directories, String objectName ) {
 		if ( directories == null ) {
 			return null;
 		}
-
-		ArrayList<String> paths = null;
 
 		String fileName;
 		if ( directories.size() > 1) {
@@ -88,15 +86,22 @@ public abstract class Utils
 			String[] fileNames = FileAndUrlUtils.getFileNames( directories.get(0) );
 			fileName = selectionDialog( fileNames, objectName );
 		}
-		if ( fileName != null ) {
-			paths = new ArrayList<>();
-			for ( String directory: directories ) {
-				paths.add( FileAndUrlUtils.combinePath( directory, fileName ) );
-			}
+
+		return fileName;
+	}
+
+	public static String selectPathFromProject( String directory, String objectName ) {
+		if ( directory == null ) {
+			return null;
 		}
 
-		return paths;
-
+		String[] fileNames = FileAndUrlUtils.getFileNames( directory );
+		String fileName = selectionDialog( fileNames, objectName );
+		if ( fileName != null ) {
+			return FileAndUrlUtils.combinePath( directory, fileName );
+		} else {
+			return null;
+		}
 	}
 
 	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...

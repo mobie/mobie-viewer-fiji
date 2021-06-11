@@ -54,7 +54,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 
 		ArrayList<String> tableDirectories = new ArrayList<>();
 		tableDirectories.add( moBIE.getTablesDirectoryPath( tableDataFolder ) );
-		tableViewer = new TableViewer<>( tableRows, selectionModel, coloringModel, name, tableDirectories ).show();
+		tableViewer = new TableViewer<>( moBIE, tableRows, selectionModel, coloringModel, name, tableDirectories ).show();
 		coloringModel.listeners().add( tableViewer );
 		selectionModel.listeners().add( tableViewer );
 

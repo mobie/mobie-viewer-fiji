@@ -14,6 +14,7 @@ import de.embl.cba.mobie.segment.SegmentAdapter;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
+import de.embl.cba.mobie.source.SegmentationSource;
 import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.table.TableViewer;
 import de.embl.cba.mobie.transform.*;
@@ -25,6 +26,7 @@ import de.embl.cba.mobie.volume.SegmentsVolumeView;
 import de.embl.cba.mobie.volume.UniverseManager;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
@@ -83,7 +85,7 @@ public class ViewerManager
 			tablesDirectories.add( moBIE.getTablesDirectoryPath( segmentationSource ) );
 		}
 
-		display.tableViewer = new TableViewer<>( display.segments, display.selectionModel, display.coloringModel,
+		display.tableViewer = new TableViewer<>( moBIE, display.segments, display.selectionModel, display.coloringModel,
 				display.getName(), tablesDirectories ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
