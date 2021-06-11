@@ -13,8 +13,8 @@ public class OpenLocalPlankton
 	{
 		new ImageJ().ui().showUI();
 		try {
-			new MoBIE("/Volumes/schwab/schwab/MoBIE-plankton",
-					MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ) );
+			new MoBIE("/Volumes/emcf/pape/plankton-fibsem-project",
+					MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ).dataset( "galdieria" ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

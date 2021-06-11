@@ -66,7 +66,20 @@ public class MoBIE
 		projectName = getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
-		openDataset( project.getDefaultDataset() );
+
+		openDataset();
+	}
+
+	private void openDataset() throws IOException
+	{
+		if ( this.settings.values.getDataset() != null )
+		{
+			openDataset( this.settings.values.getDataset() );
+		}
+		else
+		{
+			openDataset( project.getDefaultDataset() );
+		}
 	}
 
 	private void setProjectImageAndTableRootLocations( MoBIESettings settings )

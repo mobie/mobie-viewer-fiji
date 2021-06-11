@@ -42,8 +42,10 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 		String tablePath = moBIE2.getTablePath( tableDataFolder, sourceTransformer.tables[ 0 ] );
 		tablePath = Utils.resolveTablePath( tablePath );
 		Logger.log( "Opening table:\n" + tablePath );
-
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
+
+		TableColumns.createColumnsForMergingExcludingReferenceColumns(  )
+
 		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( columns, sourceTransformer );
 		final List< DefaultAnnotatedIntervalTableRow > tableRows = annotatedIntervalCreator.getTableRows();
 
