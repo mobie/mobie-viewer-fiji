@@ -67,7 +67,20 @@ public class MoBIE
 		projectName = getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
-		openDataset( project.getDefaultDataset() );
+
+		openDataset();
+	}
+
+	private void openDataset() throws IOException
+	{
+		if ( this.settings.values.getDataset() != null )
+		{
+			openDataset( this.settings.values.getDataset() );
+		}
+		else
+		{
+			openDataset( project.getDefaultDataset() );
+		}
 	}
 
 	private void setProjectImageAndTableRootLocations( MoBIESettings settings )
@@ -131,7 +144,9 @@ public class MoBIE
 
 		userInterface = new UserInterface( this );
 		viewerManager = new ViewerManager( this, userInterface, dataset.is2D, dataset.timepoints );
-		viewerManager.show( dataset.views.get( "default" ) );
+		final View view = dataset.views.get( "default" );
+		view.setName( "default" );
+		viewerManager.show( view );
 
 		// arrange windows
 		WindowArrangementHelper.setLogWindowPositionAndSize( userInterface.getWindow() );

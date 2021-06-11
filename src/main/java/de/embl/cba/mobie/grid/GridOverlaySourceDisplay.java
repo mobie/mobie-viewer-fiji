@@ -3,6 +3,7 @@ package de.embl.cba.mobie.grid;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
+import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.transform.BdvLocation;
 import de.embl.cba.mobie.transform.BdvLocationType;
 import de.embl.cba.mobie.Utils;
@@ -21,6 +22,8 @@ import net.imglib2.type.numeric.integer.IntType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,26 +33,19 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 	private final DefaultSelectionModel< DefaultAnnotatedIntervalTableRow > selectionModel;
 	private final TableViewer< DefaultAnnotatedIntervalTableRow > tableViewer;
 	private final BdvHandle bdvHandle;
-	private final String name;
 
 	// TODO: split in two classes: the GridOverlayDisplay and the GridOverlayView
 
-	public GridOverlaySourceDisplay(MoBIE moBIE, BdvHandle bdvHandle, String name, String tableDataFolder, GridSourceTransformer sourceTransformer )
+	public GridOverlaySourceDisplay( MoBIE moBIE, BdvHandle bdvHandle, String tableDataFolder, GridSourceTransformer sourceTransformer )
 	{
 		this.bdvHandle = bdvHandle;
-		this.name = name;
+		this.name = sourceTransformer.getName();
 
-		// TODO: Deal with more than one table
-		String tablePath = moBIE.getTablePath( tableDataFolder, sourceTransformer.tables[ 0 ] );
-		tablePath = Utils.resolveTablePath( tablePath );
-		Logger.log( "Opening table:\n" + tablePath );
+		// open tables
+		final List< DefaultAnnotatedIntervalTableRow > tableRows = openGridTables( moBIE, tableDataFolder, sourceTransformer );
 
-		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
-		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( columns, sourceTransformer );
-		final List< DefaultAnnotatedIntervalTableRow > tableRows = annotatedIntervalCreator.getTableRows();
-
-		coloringModel = new MoBIEColoringModel< DefaultAnnotatedIntervalTableRow >( ColoringLuts.GLASBEY );
-		selectionModel = new DefaultSelectionModel< DefaultAnnotatedIntervalTableRow >();
+		coloringModel = new MoBIEColoringModel< >( ColoringLuts.GLASBEY );
+		selectionModel = new DefaultSelectionModel< >();
 		coloringModel.setSelectionModel( selectionModel );
 
 		ArrayList<String> tableDirectories = new ArrayList<>();
@@ -63,6 +59,39 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 
 		coloringModel.listeners().add( this );
 		selectionModel.listeners().add( this );
+	}
+
+	private List< DefaultAnnotatedIntervalTableRow > openGridTables( MoBIE moBIE, String tableDataFolder, GridSourceTransformer sourceTransformer )
+	{
+		// open
+		final List< Map< String, List< String > > > tables = new ArrayList<>();
+		for ( String table : sourceTransformer.tables )
+		{
+			String tablePath = moBIE.getTablePath( tableDataFolder, table );
+			tablePath = Utils.resolveTablePath( tablePath );
+			Logger.log( "Opening table:\n" + tablePath );
+			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
+		}
+
+		// merge
+		Map< String, List< String > > mergedTable = tables.get( 0 );
+		if ( tables.size() > 1 )
+		{
+			final HashMap< String, List< String > > referenceColumns = new HashMap<>();
+			referenceColumns.put( Constants.GRID_ID, mergedTable.get( Constants.GRID_ID ) );
+			for ( int i = 1; i < tables.size(); i++ )
+			{
+				final Map< String, List< String > > newColumns = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, tables.get( i ) );
+				for ( Map.Entry< String, List< String > > column : newColumns.entrySet() )
+				{
+					mergedTable.put( column.getKey(), column.getValue() );
+				}
+			}
+		}
+
+		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( mergedTable, sourceTransformer );
+		final List< DefaultAnnotatedIntervalTableRow > tableRows = annotatedIntervalCreator.getTableRows();
+		return tableRows;
 	}
 
 	private void showGridImage( BdvHandle bdvHandle, String name, List< DefaultAnnotatedIntervalTableRow > tableRows )
