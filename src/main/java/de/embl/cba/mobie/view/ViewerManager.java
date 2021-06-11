@@ -132,7 +132,7 @@ public class ViewerManager
 		}
 	}
 
-	public synchronized void show(View view )
+	public synchronized void show( View view )
 	{
 		if ( view.isExclusive() )
 		{
@@ -154,7 +154,7 @@ public class ViewerManager
 		}
 
 		// ...more source transforms here, feels wrong
-		createAndShowGridView( SwingUtilities.getWindowAncestor( sliceViewer.get().getViewerPanel() ), view.getSourceTransforms() );
+		createAndShowGridView( SwingUtilities.getWindowAncestor( sliceViewer.get().getViewerPanel() ), view.getSourceTransforms(), view.getName() );
 
 		resetSystemSwingLookAndFeel();
 
@@ -194,21 +194,26 @@ public class ViewerManager
 		sourceDisplays.add( sourceDisplay );
 	}
 
-	private void createAndShowGridView( Window window, List< SourceTransformer > sourceTransformers )
+	private void createAndShowGridView( Window window, List< SourceTransformer > sourceTransformers, String viewName )
 	{
-		int i = 0; // TODO: can there be more than one?
-
 		if ( sourceTransformers != null )
 		{
 			for ( SourceTransformer sourceTransformer : sourceTransformers )
 			{
 				if ( sourceTransformer instanceof GridSourceTransformer )
 				{
-					final String tableDataFolder = ( ( GridSourceTransformer ) sourceTransformer ).getTableDataFolder( TableDataFormat.TabDelimitedFile );
+					final GridSourceTransformer gridSourceTransformer = ( GridSourceTransformer ) sourceTransformer;
+					if ( gridSourceTransformer.getName() == null )
+					{
+						gridSourceTransformer.setName( viewName );
+						// this name is used to name the associated table
+					}
+
+					final String tableDataFolder = (gridSourceTransformer).getTableDataFolder( TableDataFormat.TabDelimitedFile );
 
 					if ( tableDataFolder != null )
 					{
-						gridOverlayDisplay = new GridOverlaySourceDisplay( moBIE2, bdvHandle,  "grid-" + (i++), tableDataFolder, ( GridSourceTransformer ) sourceTransformer );
+						gridOverlayDisplay = new GridOverlaySourceDisplay( moBIE2, bdvHandle, tableDataFolder, gridSourceTransformer );
 
 						userInterface.addGridView( gridOverlayDisplay );
 						sourceDisplays.add( gridOverlayDisplay );

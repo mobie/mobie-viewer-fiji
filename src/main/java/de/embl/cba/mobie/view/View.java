@@ -13,6 +13,7 @@ public class View
 	private List< SourceTransformer > sourceTransforms;
 	private BdvLocationSupplier viewerTransform;
 	private boolean isExclusive = false;
+	private String name;
 
 	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays,
 				 List< SourceTransformer > sourceTransforms, BdvLocationSupplier viewerTransform,
@@ -55,5 +56,15 @@ public class View
 	public BdvLocationSupplier getViewerTransform()
 	{
 		return viewerTransform;
+	}
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public void setName( String name )
+	{
+		this.name = name;
 	}
 }

@@ -143,7 +143,9 @@ public class MoBIE
 
 		userInterface = new UserInterface( this );
 		viewerManager = new ViewerManager( this, userInterface, dataset.is2D, dataset.timepoints );
-		viewerManager.show( dataset.views.get( "default" ) );
+		final View view = dataset.views.get( "default" );
+		view.setName( "default" );
+		viewerManager.show( view );
 
 		// arrange windows
 		WindowArrangementHelper.setLogWindowPositionAndSize( userInterface.getWindow() );

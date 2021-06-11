@@ -150,4 +150,14 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 	{
 		return Collections.unmodifiableList( intervals );
 	}
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public void setName( String name )
+	{
+		this.name = name;
+	}
 }

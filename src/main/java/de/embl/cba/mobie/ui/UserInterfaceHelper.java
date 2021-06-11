@@ -440,6 +440,7 @@ public class UserInterfaceHelper
 				{
 					final String viewName = ( String ) comboBox.getSelectedItem();
 					final View view = views.get( viewName );
+					view.setName( viewName );
 					moBIE2.getViewerManager().show( view );
 				}).start();
 			} );
