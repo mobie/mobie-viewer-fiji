@@ -74,10 +74,10 @@ public class XmlIoN5S3ZarrImageLoader implements XmlIoBasicImgLoader< N5S3OMEZar
 		final String signingRegion = XmlHelpers.getText( elem, SIGNING_REGION );
 		final String bucketName = XmlHelpers.getText( elem, BUCKET_NAME );
 		final String key = XmlHelpers.getText( elem, KEY );
-
+//TODO: get real dimensionSeparator from the metadata
 		try
 		{
-			return new N5S3OMEZarrImageLoader( serviceEndpoint, signingRegion, bucketName, key, sequenceDescription );
+			return new N5S3OMEZarrImageLoader( serviceEndpoint, signingRegion, bucketName, key, "/", sequenceDescription);
 		}
 		catch ( IOException e )
 		{

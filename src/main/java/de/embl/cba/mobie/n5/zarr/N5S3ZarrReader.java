@@ -66,11 +66,11 @@ public class N5S3ZarrReader extends N5AmazonS3Reader
 		this.dimensionSeparator = dimensionSeparator;
 	}
 
-	public N5S3ZarrReader(AmazonS3 s3, String serviceEndpoint, String bucketName, String containerPath ) throws IOException
+	public N5S3ZarrReader(AmazonS3 s3, String serviceEndpoint, String bucketName, String containerPath, String dimensionSeparator ) throws IOException
 	{
 		super(s3, bucketName, containerPath, initGsonBuilder(new GsonBuilder()));
 		this.serviceEndpoint = serviceEndpoint; // for debugging
-		dimensionSeparator = ".";
+		this.dimensionSeparator = dimensionSeparator;
 		mapN5DatasetAttributes = true;
 	}
 
