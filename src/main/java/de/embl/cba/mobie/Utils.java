@@ -165,9 +165,9 @@ public abstract class Utils
 	public static String resolveTablePath( String tablePath )
 	{
 		if ( tablePath.startsWith( "http" ) ) {
-			tablePath = FileAndUrlUtils.resolveTableURL( URI.create(tablePath) );
+			tablePath = FileAndUrlUtils.resolveURL( URI.create( tablePath ) );
 		} else {
-			tablePath = FileAndUrlUtils.resolveTablePath( tablePath );
+			tablePath = FileAndUrlUtils.resolvePath( tablePath );
 		}
 		return tablePath;
 	}
