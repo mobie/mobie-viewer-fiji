@@ -3,7 +3,6 @@ package de.embl.cba.mobie.grid;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
-import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.transform.BdvLocation;
 import de.embl.cba.mobie.transform.BdvLocationType;
 import de.embl.cba.mobie.Utils;
@@ -22,8 +21,6 @@ import net.imglib2.type.numeric.integer.IntType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +39,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 		this.name = sourceTransformer.getName();
 
 		// open tables
-		final List< DefaultAnnotatedIntervalTableRow > tableRows = openGridTables( moBIE, tableDataFolder, sourceTransformer );
+		final List< DefaultAnnotatedIntervalTableRow > tableRows = openGridTables( moBIE, tableDataFolder, sourceTransformer, sourceTransformer.tables );
 
 		coloringModel = new MoBIEColoringModel< >( ColoringLuts.GLASBEY );
 		selectionModel = new DefaultSelectionModel< >();
@@ -61,11 +58,11 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 		selectionModel.listeners().add( this );
 	}
 
-	private List< DefaultAnnotatedIntervalTableRow > openGridTables( MoBIE moBIE, String tableDataFolder, GridSourceTransformer sourceTransformer )
+	private List< DefaultAnnotatedIntervalTableRow > openGridTables( MoBIE moBIE, String tableDataFolder, GridSourceTransformer sourceTransformer, String[] relativeTablePaths )
 	{
 		// open
 		final List< Map< String, List< String > > > tables = new ArrayList<>();
-		for ( String table : sourceTransformer.tables )
+		for ( String table : relativeTablePaths )
 		{
 			String tablePath = moBIE.getTablePath( tableDataFolder, table );
 			tablePath = Utils.resolveTablePath( tablePath );
@@ -73,25 +70,19 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
 		}
 
-		// merge
-		Map< String, List< String > > mergedTable = tables.get( 0 );
-		if ( tables.size() > 1 )
+		// create primary AnnotatedIntervalTableRow table
+		final Map< String, List< String > > referenceTable = tables.get( 0 );
+		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, sourceTransformer );
+		final List< DefaultAnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getTableRows();
+
+		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
+
+		for ( int i = 0; i < additionalTables.size(); i++ )
 		{
-			final HashMap< String, List< String > > referenceColumns = new HashMap<>();
-			referenceColumns.put( Constants.GRID_ID, mergedTable.get( Constants.GRID_ID ) );
-			for ( int i = 1; i < tables.size(); i++ )
-			{
-				final Map< String, List< String > > newColumns = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, tables.get( i ) );
-				for ( Map.Entry< String, List< String > > column : newColumns.entrySet() )
-				{
-					mergedTable.put( column.getKey(), column.getValue() );
-				}
-			}
+			MoBIE.mergeImageTable( intervalTableRows, additionalTables.get( i ) );
 		}
 
-		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( mergedTable, sourceTransformer );
-		final List< DefaultAnnotatedIntervalTableRow > tableRows = annotatedIntervalCreator.getTableRows();
-		return tableRows;
+		return intervalTableRows;
 	}
 
 	private void showGridImage( BdvHandle bdvHandle, String name, List< DefaultAnnotatedIntervalTableRow > tableRows )

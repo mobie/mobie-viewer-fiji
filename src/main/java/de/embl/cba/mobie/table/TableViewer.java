@@ -434,13 +434,13 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 							String tableName = selectCommonFileNameFromProject( tablesDirectories, "Table" );
 							if ( tableName != null ) {
 								tableNames.add(tableName);
-								moBIE.appendTables(sources, tableNames, (List<TableRowImageSegment>) tableRows);
+								moBIE.appendSegmentsTables(sources, tableNames, (List<TableRowImageSegment>) tableRows);
 								addAdditionalTable( tableName );
 							}
 						} else {
 							String path = selectPathFromFileSystem( "Table" );
 							if ( path != null ) {
-								moBIE.appendTables( sources.get(0), path, (List<TableRowImageSegment>) tableRows);
+								moBIE.appendSegmentsTables( sources.get(0), path, (List<TableRowImageSegment>) tableRows);
 								hasColumnsFromTablesOutsideProject = true;
 							}
 						}

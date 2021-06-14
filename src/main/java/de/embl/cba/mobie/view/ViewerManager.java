@@ -14,7 +14,6 @@ import de.embl.cba.mobie.segment.SegmentAdapter;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
-import de.embl.cba.mobie.source.SegmentationSource;
 import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.table.TableViewer;
 import de.embl.cba.mobie.transform.*;
@@ -33,7 +32,6 @@ import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -218,7 +216,7 @@ public class ViewerManager
 						// this name is used to name the associated table
 					}
 
-					final String tableDataFolder = (gridSourceTransformer).getTableDataFolder( TableDataFormat.TabDelimitedFile );
+					final String tableDataFolder = gridSourceTransformer.getTableDataFolder( TableDataFormat.TabDelimitedFile );
 
 					if ( tableDataFolder != null )
 					{
@@ -292,14 +290,14 @@ public class ViewerManager
 		if ( tables != null )
 		{
 			// primary table
-			moBIE.loadPrimaryTables( segmentationDisplay );
+			moBIE.loadPrimarySegmentsTables( segmentationDisplay );
 
 			// secondary tables
 			if ( tables.size() > 1 )
 			{
 				final List< String > additionalTables = tables.subList( 1, tables.size() );
 
-				moBIE.appendTables( segmentationDisplay, additionalTables );
+				moBIE.appendSegmentsTables( segmentationDisplay, additionalTables );
 			}
 		}
 

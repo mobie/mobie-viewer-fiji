@@ -4,6 +4,7 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
+import de.embl.cba.mobie.grid.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
@@ -18,7 +19,6 @@ import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.github.GitHubUtils;
-import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
@@ -69,6 +69,20 @@ public class MoBIE
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
 
 		openDataset();
+	}
+
+	public static void mergeImageTable( List< DefaultAnnotatedIntervalTableRow > intervalTableRows, Map< String, List< String > > columns )
+	{
+		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
+		referenceColumns.put( Constants.GRID_ID, TableColumns.getColumn( intervalTableRows, Constants.GRID_ID ) );
+
+		final Map< String, List< String > > newColumns = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, columns );
+
+		for ( Map.Entry< String, List< String > > column : newColumns.entrySet() )
+		{
+			// TODO: this will not work...
+			TableRows.addColumn( intervalTableRows, column.getKey(), column.getValue() );
+		}
 	}
 
 	private void openDataset() throws IOException
@@ -310,7 +324,7 @@ public class MoBIE
 		return location;
 	}
 
-	private List< TableRowImageSegment > loadTable( String sourceName, String table )
+	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String table )
 	{
 		final SegmentationSource source = ( SegmentationSource ) getSource( sourceName );
 
@@ -325,7 +339,6 @@ public class MoBIE
 	{
 		Logger.log( "Opening table:\n" + tablePath );
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
-
 		TableColumns.addLabelImageIdColumn( columns, Constants.LABEL_IMAGE_ID, source );
 		return columns;
 	}
@@ -358,21 +371,21 @@ public class MoBIE
 	}
 
 
-	private ArrayList< List< TableRowImageSegment > > loadPrimaryTables( SegmentationSourceDisplay segmentationDisplay, String table )
+	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay, String table )
 	{
 		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
 
 		// TODO: make parallel
 		for ( String sourceName : segmentationDisplay.getSources() )
 		{
-			final List< TableRowImageSegment > primaryTable = loadTable( sourceName, table );
+			final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( sourceName, table );
 			primaryTables.add( primaryTable );
 		}
 
 		return primaryTables;
 	}
 
-	private Map< String, List< String > > createColumnsForMerging( Map< String, List< String > > newColumns, List< TableRowImageSegment > segments )
+	private Map< String, List< String > > createColumnsForMerging( List< TableRowImageSegment > segments, Map< String, List< String > > newColumns )
 	{
 		final ArrayList< String > segmentIdColumn = TableColumns.getColumn( segments, Constants.SEGMENT_LABEL_ID );
 		final ArrayList< String > imageIdColumn = TableColumns.getColumn( segments, Constants.LABEL_IMAGE_ID );
@@ -391,10 +404,10 @@ public class MoBIE
 		return columnsForMerging;
 	}
 
-	private void mergeTables( List<TableRowImageSegment> tableRows, Map< String, List< String > > tableToMerge )
+	private void mergeSegmentsTable( List< TableRowImageSegment > tableRows, Map< String, List< String > > additionalTable )
 	{
-		// merge
-		final Map< String, List< String > > columnsForMerging = createColumnsForMerging( tableToMerge, tableRows );
+		// prepare
+		final Map< String, List< String > > columnsForMerging = createColumnsForMerging( tableRows, additionalTable );
 
 		// append
 		for ( Map.Entry< String, List< String > > column : columnsForMerging.entrySet() )
@@ -403,43 +416,42 @@ public class MoBIE
 		}
 	}
 
-	public void appendTables( List<String> sources, List< String > tables, List<TableRowImageSegment> tableRows )
+	public void appendSegmentsTables( List< String > imageSourceNames, List< String > relativeTablePaths, List< TableRowImageSegment > tableRows )
 	{
-		for ( String table : tables )
+		for ( String table : relativeTablePaths )
 		{
 			// load
-			final List< Map< String, List< String > > > additionalTables = loadAdditionalTables( sources, table );
+			final List< Map< String, List< String > > > additionalTables = loadAdditionalTables( imageSourceNames, table );
 
 			// concatenate
 			Map< String, List< String > > concatenatedTable = TableColumns.concatenate( additionalTables );
 
 			// merge
-			mergeTables( tableRows, concatenatedTable );
+			mergeSegmentsTable( tableRows, concatenatedTable );
 		}
 	}
 
-	// needed to load a table from an arbitrary location on the filesystem
-	public void appendTables( String source, String tablePath, List<TableRowImageSegment> tableRows )
+	public void appendSegmentsTables( String source, String tablePath, List<TableRowImageSegment> tableRows )
 	{
 		// load
 		Map< String, List< String > > additionalTable = loadAdditionalTable( source, tablePath );
 
 		// merge
-		mergeTables( tableRows, additionalTable );
+		mergeSegmentsTable( tableRows, additionalTable );
 	}
 
-	public void appendTables( SegmentationSourceDisplay segmentationDisplay, List< String > tables )
+	public void appendSegmentsTables( SegmentationSourceDisplay segmentationDisplay, List< String > relativeTablePaths )
 	{
-		appendTables( segmentationDisplay.getSources(), tables, segmentationDisplay.segments );
+		appendSegmentsTables( segmentationDisplay.getSources(), relativeTablePaths, segmentationDisplay.segments );
 	}
 
 	/**
 	 * Primary tables must contain the image segment properties.
 	 */
-	public void loadPrimaryTables( SegmentationSourceDisplay segmentationDisplay )
+	public void loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay )
 	{
 		segmentationDisplay.segments = new ArrayList<>();
-		final ArrayList< List< TableRowImageSegment > > primaryTables = loadPrimaryTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
+		final ArrayList< List< TableRowImageSegment > > primaryTables = loadPrimarySegmentsTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
 
 		for ( List< TableRowImageSegment > primaryTable : primaryTables )
 		{
