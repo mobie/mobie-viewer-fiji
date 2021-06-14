@@ -14,6 +14,7 @@ import de.embl.cba.mobie.segment.SegmentAdapter;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
+import de.embl.cba.mobie.source.SegmentationSource;
 import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.table.TableViewer;
 import de.embl.cba.mobie.transform.*;
@@ -25,14 +26,14 @@ import de.embl.cba.mobie.volume.SegmentsVolumeView;
 import de.embl.cba.mobie.volume.UniverseManager;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,7 +42,7 @@ import static de.embl.cba.mobie.ui.UserInterfaceHelper.resetSystemSwingLookAndFe
 
 public class ViewerManager
 {
-	private final MoBIE moBIE2;
+	private final MoBIE moBIE;
 	private final UserInterface userInterface;
 	private final SliceViewer sliceViewer;
 	private ArrayList< SourceDisplay > sourceDisplays;
@@ -51,16 +52,16 @@ public class ViewerManager
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewsSaver viewsSaver;
 
-	public ViewerManager(MoBIE moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
+	public ViewerManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
 	{
-		this.moBIE2 = moBIE2;
+		this.moBIE = moBIE;
 		this.userInterface = userInterface;
 		sourceDisplays = new ArrayList<>();
 		sliceViewer = new SliceViewer( is2D, this, timepoints );
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
-		additionalViewsLoader = new AdditionalViewsLoader( moBIE2 );
-		viewsSaver = new ViewsSaver( moBIE2 );
+		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
+		viewsSaver = new ViewsSaver( moBIE );
 	}
 
 	public static void initScatterPlotViewer( SegmentationSourceDisplay display )
@@ -74,9 +75,16 @@ public class ViewerManager
 			display.scatterPlotViewer.show();
 	}
 
-	public static void initTableViewer( SegmentationSourceDisplay display  )
+	public void initTableViewer( SegmentationSourceDisplay display  )
 	{
-		display.tableViewer = new TableViewer<>( display.segments, display.selectionModel, display.coloringModel, display.getName() ).show();
+		Map<String, String> sourceNameToTableDir = new HashMap<>();
+		for ( String source: display.getSources() ) {
+			sourceNameToTableDir.put(
+					source, moBIE.getTablesDirectoryPath( (SegmentationSource) moBIE.getSource( source ) )
+			);
+		}
+		display.tableViewer = new TableViewer<>( moBIE, display.segments, display.selectionModel, display.coloringModel,
+				display.getName(), sourceNameToTableDir, false ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
@@ -105,7 +113,12 @@ public class ViewerManager
 			if ( sourceDisplay instanceof ImageSourceDisplay ) {
 				currentDisplay = new ImageSourceDisplay( (ImageSourceDisplay) sourceDisplay );
 			} else if ( sourceDisplay instanceof  SegmentationSourceDisplay ) {
-				currentDisplay = new SegmentationSourceDisplay( (SegmentationSourceDisplay) sourceDisplay );
+				SegmentationSourceDisplay segmentationSourceDisplay = (SegmentationSourceDisplay) sourceDisplay;
+				if ( segmentationSourceDisplay.tableViewer.hasColumnsFromTablesOutsideProject() ) {
+					IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project).");
+					return null;
+				}
+				currentDisplay = new SegmentationSourceDisplay( segmentationSourceDisplay );
 			}
 
 			if ( currentDisplay != null ) {
@@ -209,11 +222,11 @@ public class ViewerManager
 						// this name is used to name the associated table
 					}
 
-					final String tableDataFolder = (gridSourceTransformer).getTableDataFolder( TableDataFormat.TabDelimitedFile );
+					final String tableDataFolder = gridSourceTransformer.getTableDataFolder( TableDataFormat.TabDelimitedFile );
 
 					if ( tableDataFolder != null )
 					{
-						gridOverlayDisplay = new GridOverlaySourceDisplay( moBIE2, bdvHandle, tableDataFolder, gridSourceTransformer );
+						gridOverlayDisplay = new GridOverlaySourceDisplay( moBIE, bdvHandle, tableDataFolder, gridSourceTransformer );
 
 						userInterface.addGridView( gridOverlayDisplay );
 						sourceDisplays.add( gridOverlayDisplay );
@@ -245,7 +258,7 @@ public class ViewerManager
 
 	private void showImageDisplay( ImageSourceDisplay imageDisplay )
 	{
-		imageDisplay.imageSliceView = new ImageSliceView( imageDisplay, bdvHandle, ( List< String > name ) -> moBIE2.openSourceAndConverters( name ) );
+		imageDisplay.imageSliceView = new ImageSliceView( imageDisplay, bdvHandle, ( List< String > name ) -> moBIE.openSourceAndConverters( name ) );
 	}
 
 	// TODO: own class: SegmentationDisplayConfigurator
@@ -283,17 +296,16 @@ public class ViewerManager
 		if ( tables != null )
 		{
 			// primary table
-			moBIE2.loadPrimaryTables( segmentationDisplay );
+			moBIE.loadPrimarySegmentsTables( segmentationDisplay );
 
 			// secondary tables
 			if ( tables.size() > 1 )
 			{
 				final List< String > additionalTables = tables.subList( 1, tables.size() );
 
-				moBIE2.appendTables( segmentationDisplay, additionalTables );
+				moBIE.appendSegmentsTables( segmentationDisplay, additionalTables );
 			}
 		}
-
 
 		// check  validity
 		for ( TableRowImageSegment segment : segmentationDisplay.segments )
@@ -307,7 +319,7 @@ public class ViewerManager
 
 	private void initSliceViewer( SegmentationSourceDisplay segmentationDisplay )
 	{
-		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE2.openSourceAndConverters( names ) );
+		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE.openSourceAndConverters( names ) );
 		segmentationDisplay.segmentationImageSliceView = segmentationImageSliceView;
 	}
 

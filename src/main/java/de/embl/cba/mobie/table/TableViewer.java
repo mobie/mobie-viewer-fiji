@@ -29,8 +29,10 @@
 package de.embl.cba.mobie.table;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
+import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.annotate.Annotator;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
+import de.embl.cba.mobie.grid.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.tables.*;
 import de.embl.cba.tables.color.*;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
@@ -39,6 +41,7 @@ import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.JTableFromTableRowsModelCreator;
 import de.embl.cba.tables.tablerow.TableRow;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.tablerow.TableRowListener;
 import de.embl.cba.tables.TableRows;
 import ij.gui.GenericDialog;
@@ -59,25 +62,28 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import static de.embl.cba.tables.FileUtils.selectPathFromProjectOrFileSystem;
+import static de.embl.cba.mobie.Utils.*;
 import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_GREY;
-import static de.embl.cba.tables.TableRows.setTableCell;
 
 public class TableViewer< T extends TableRow > implements SelectionListener< T >, ColoringListener, TableRowListener
 {
+	private final MoBIE moBIE;
 	private final List< T > tableRows;
 	private final SelectionModel< T > selectionModel;
 	private final MoBIEColoringModel< T > coloringModel;
 	private final String tableName;
 
-	private JTable table;
+	private JTable jTable;
 
 	private int recentlySelectedRowInView;
 	private ColumnColoringModelCreator< T > columnColoringModelCreator;
 	private String mergeByColumnName; // for loading additional columns
-	private String tablesDirectory; // for loading additional columns
+	private Map<String, String> sourceNameToTableDir; // for loading additional columns
 	private ArrayList<String> additionalTables; // tables from which additional columns are loaded
+	private boolean hasColumnsFromTablesOutsideProject; // whether additional columns have been loaded from tables outside the project
+	private boolean isGridTable; // Needed as merging columns to a segments table is different to a grid table
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
 
 	// TODO: this is only for the annotator (maybe move it there)
@@ -99,17 +105,24 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	}
 
 	public TableViewer(
+			final MoBIE moBIE,
 			final List< T > tableRows,
 			final SelectionModel< T > selectionModel,
 			final MoBIEColoringModel< T > moBIEColoringModel,
-			String tableName )
+			String tableName,
+			Map<String, String> sourceNameToTableDir,
+			boolean isGridTable )
 	{
+		this.moBIE = moBIE;
 		this.tableRows = tableRows;
 		this.coloringModel = moBIEColoringModel;
 		this.selectionModel = selectionModel;
 		this.tableName = tableName;
 		this.recentlySelectedRowInView = -1;
 		this.additionalTables = new ArrayList<>();
+		this.sourceNameToTableDir = sourceNameToTableDir;
+		this.hasColumnsFromTablesOutsideProject = false;
+		this.isGridTable = isGridTable;
 
 		// TODO: reconsider
 		registerAsTableRowListener( tableRows );
@@ -132,19 +145,27 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	public void registerAsTableRowListener( List< T > tableRows )
 	{
-		int rowIndex = 0;
-		for ( T tableRow : tableRows )
+		final int numTableRows = tableRows.size();
+		for ( int rowIndex = 0; rowIndex < numTableRows; rowIndex++ )
 		{
 			int finalRowIndex = rowIndex;
-			rowIndex++;
-			tableRow.listeners().add( new TableRowListener()
+
+			tableRows.get( rowIndex ).listeners().add( new TableRowListener()
 			{
 				@Override
 				public void cellChanged( String columnName, String value )
 				{
-					setTableCell( finalRowIndex, columnName, value, getTable() );
+					synchronized ( jTable )
+					{
+						if ( !Tables.getColumnNames( jTable ).contains( columnName ) )
+						{
+							Tables.addColumnToJTable( columnName, value, jTable.getModel() );
+						}
+
+						Tables.setJTableCell( finalRowIndex, columnName, value, jTable );
+					}
 				}
-			} );
+			});
 		}
 	}
 
@@ -156,7 +177,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private void configureTableRowColoring()
 	{
-		table.setDefaultRenderer( Double.class, new DefaultTableCellRenderer()
+		jTable.setDefaultRenderer( Double.class, new DefaultTableCellRenderer()
 		{
 			@Override
 			public Component getTableCellRendererComponent(
@@ -177,7 +198,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			}
 		} );
 
-		table.setDefaultRenderer( String.class, new DefaultTableCellRenderer()
+		jTable.setDefaultRenderer( String.class, new DefaultTableCellRenderer()
 		{
 			@Override
 			public Component getTableCellRendererComponent(
@@ -199,7 +220,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 		} );
 
-		table.setDefaultRenderer( Long.class, new DefaultTableCellRenderer()
+		jTable.setDefaultRenderer( Long.class, new DefaultTableCellRenderer()
 		{
 			@Override
 			public Component getTableCellRendererComponent(
@@ -220,7 +241,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			}
 		});
 
-		table.setDefaultRenderer( Integer.class, new DefaultTableCellRenderer()
+		jTable.setDefaultRenderer( Integer.class, new DefaultTableCellRenderer()
 		{
 			@Override
 			public Component getTableCellRendererComponent(
@@ -241,7 +262,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			}
 		} );
 
-		table.setDefaultRenderer( Object.class, new DefaultTableCellRenderer()
+		jTable.setDefaultRenderer( Object.class, new DefaultTableCellRenderer()
 		{
 			@Override
 			public Component getTableCellRendererComponent(
@@ -265,7 +286,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private Color getColor( int rowInView, int columnInView )
 	{
-		final int row = table.convertRowIndexToModel( rowInView );
+		final int row = jTable.convertRowIndexToModel( rowInView );
 
 //		if ( selectionModel.isFocused( tableRows.getTableRows().get( row ) ) )
 //		{
@@ -289,19 +310,19 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private synchronized void repaintTable()
 	{
-		table.repaint();
+		jTable.repaint();
 	}
 
 	private void configureJTable()
 	{
-		table = new JTableFromTableRowsModelCreator( tableRows ).createJTable();
-		table.setPreferredScrollableViewportSize( new Dimension(500, 200) );
-		table.setFillsViewportHeight( true );
-		table.setAutoCreateRowSorter( true );
-		table.setRowSelectionAllowed( true );
-		table.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
+		jTable = new JTableFromTableRowsModelCreator( tableRows ).createJTable();
+		jTable.setPreferredScrollableViewportSize( new Dimension(500, 200) );
+		jTable.setFillsViewportHeight( true );
+		jTable.setAutoCreateRowSorter( true );
+		jTable.setRowSelectionAllowed( true );
+		jTable.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
 
-		columnColoringModelCreator = new ColumnColoringModelCreator( table );
+		columnColoringModelCreator = new ColumnColoringModelCreator( jTable );
 	}
 
 	private JMenuBar createMenuBar()
@@ -388,6 +409,46 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		additionalTables.add(tableName);
 	}
 
+	private Map< String, List< String > > openTable( String tablePath ) {
+		String resolvedPath = de.embl.cba.mobie.Utils.resolveTablePath( tablePath );
+		Logger.info( "Opening table:\n" + resolvedPath );
+		return TableColumns.stringColumnsFromTableFile( resolvedPath );
+	}
+
+	private void loadColumnsFromProject() {
+		ArrayList<String> tableNames = new ArrayList<>();
+		String tableName = selectCommonFileNameFromProject(
+				new ArrayList<>( sourceNameToTableDir.values() ), "Table" );
+		if ( tableName != null ) {
+			tableNames.add(tableName);
+
+			if ( !isGridTable ) {
+				List<String> sources = new ArrayList<>(sourceNameToTableDir.keySet());
+				moBIE.appendSegmentsTables(sources, tableNames, (List<TableRowImageSegment>) tableRows);
+			} else {
+				for ( String tableDir: sourceNameToTableDir.values() ) {
+					final Map< String, List< String > > table = openTable( FileAndUrlUtils.combinePath(tableDir, tableName ) );
+					MoBIE.mergeImageTable( (List<DefaultAnnotatedIntervalTableRow>) tableRows, table );
+				}
+			}
+			addAdditionalTable( tableName );
+		}
+	}
+
+	private void loadColumnsFromFileSystem() throws IOException {
+		String path = selectPathFromFileSystem( "Table" );
+		if ( path != null ) {
+			if ( !isGridTable ) {
+				moBIE.appendSegmentsTables((String) sourceNameToTableDir.keySet().toArray()[0],
+						path, (List<TableRowImageSegment>) tableRows);
+			} else {
+				Map<String, List<String>> table = openTable( path );
+				MoBIE.mergeImageTable( (List<DefaultAnnotatedIntervalTableRow>) tableRows, table );
+			}
+			hasColumnsFromTablesOutsideProject = true;
+		}
+	}
+
 	private JMenuItem createLoadColumnsMenuItem()
 	{
 		final JMenuItem menuItem = new JMenuItem( "Load Columns..." );
@@ -396,13 +457,19 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				{
 					try
 					{
-						String mergeByColumnName = getMergeByColumnName();
-						String tablePath = selectPathFromProjectOrFileSystem( tablesDirectory, "Table");
-						addAdditionalTable(tablePath);
-						Map< String, List< String > > newColumnsOrdered = TableUIs.loadColumns( table, tablePath, mergeByColumnName );
-						if ( newColumnsOrdered == null ) return;
-						newColumnsOrdered.remove( mergeByColumnName );
-						addColumns( newColumnsOrdered );
+						FileLocation fileLocation;
+						if ( sourceNameToTableDir.size() > 1 ) {
+							// For multi-source tables, we only allow loading from the project
+							fileLocation = FileLocation.Project;
+						} else {
+							fileLocation = loadFromProjectOrFileSystemDialog();
+						}
+
+						if ( fileLocation == FileLocation.Project ) {
+							loadColumnsFromProject();
+						} else {
+							loadColumnsFromFileSystem();
+						}
 					} catch ( IOException ioOException )
 					{
 						ioOException.printStackTrace();
@@ -412,18 +479,12 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		return menuItem;
 	}
 
-	private String getMergeByColumnName()
-	{
-		String aMergeByColumnName;
-		if ( mergeByColumnName == null )
-			aMergeByColumnName = TableUIs.selectColumnNameUI( table, "Merge by " );
-		else
-			aMergeByColumnName = mergeByColumnName;
-		return aMergeByColumnName;
-	}
-
 	public ArrayList<String> getAdditionalTables() {
 		return additionalTables;
+	}
+
+	public boolean hasColumnsFromTablesOutsideProject() {
+		return hasColumnsFromTablesOutsideProject;
 	}
 
 	private JMenuItem createSaveTableAsMenuItem()
@@ -431,7 +492,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		final JMenuItem menuItem = new JMenuItem( "Save Table as..." );
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
-						TableUIs.saveTableUI( table ) ) );
+						TableUIs.saveTableUI( jTable ) ) );
 
 		return menuItem;
 	}
@@ -440,7 +501,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	{
 		final JMenuItem menuItem = new JMenuItem( "Save Columns as..." );
 		menuItem.addActionListener( e ->
-				SwingUtilities.invokeLater( () -> TableUIs.saveColumns( table ) ) );
+				SwingUtilities.invokeLater( () -> TableUIs.saveColumns( jTable ) ) );
 
 		return menuItem;
 	}
@@ -478,7 +539,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	{
 		SwingUtilities.invokeLater( () ->
 		{
-			final String annotationColumn = TableUIs.selectColumnNameUI( table, "Annotation column" );
+			final String annotationColumn = TableUIs.selectColumnNameUI( jTable, "Annotation column" );
 			continueAnnotation( annotationColumn );
 		});
 	}
@@ -506,6 +567,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			Logger.error( "\"" +columnName + "\" exists already as a column name, please choose another one." );
 			return;
 		}
+
 		this.addColumn( columnName, "None" );
 
 		continueAnnotation( columnName );
@@ -521,7 +583,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 		coloringModel.setSelectionColoringMode( MoBIEColoringModel.SelectionColoringMode.DimNotSelected );
 		coloringModel.setColoringModel( columnNameToColoringModel.get( columnName ) );
-		final RowSorter< ? extends TableModel > rowSorter = table.getRowSorter();
+		final RowSorter< ? extends TableModel > rowSorter = jTable.getRowSorter();
 
 		final Annotator annotator = new Annotator(
 				columnName,
@@ -538,12 +600,12 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	{
 		final JPanel panel = new JPanel( new GridLayout( 1, 0 ) );
 		JScrollPane scrollPane = new JScrollPane(
-				table,
+				jTable,
 				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED );
 		panel.add( scrollPane );
 
-		table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
+		jTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 		panel.updateUI(); // TODO do we need this?
 		panel.setOpaque( true );
 
@@ -570,13 +632,12 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	{
 		if ( getColumnNames().contains( column ) )
 			throw new RuntimeException( column + " exists already, please choose another name." );
-		Tables.addColumn( table.getModel(), column, defaultValue );
+
 		TableRows.addColumn( tableRows, column, defaultValue );
 	}
 
 	public void addColumn( String column, Object[] values )
 	{
-		Tables.addColumn( table.getModel(), column, values );
 		TableRows.addColumn( tableRows, column, values );
 	}
 
@@ -596,30 +657,30 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		}
 	}
 
-	public List< String > getColumnNames()
+	public Set< String > getColumnNames()
 	{
-		return Tables.getColumnNames( table );
+		return tableRows.get( 0 ).getColumnNames();
 	}
 
 	public JTable getTable()
 	{
-		return table;
+		return jTable;
 	}
 
 	private synchronized void moveToRowInView( int rowInView )
 	{
 		setRecentlySelectedRowInView( rowInView );
 		//table.getSelectionModel().setSelectionInterval( rowInView, rowInView );
-		final Rectangle visibleRect = table.getVisibleRect();
-		final Rectangle cellRect = table.getCellRect( rowInView, 0, true );
+		final Rectangle visibleRect = jTable.getVisibleRect();
+		final Rectangle cellRect = jTable.getCellRect( rowInView, 0, true );
 		visibleRect.y = cellRect.y;
-		table.scrollRectToVisible( visibleRect );
-		table.repaint();
+		jTable.scrollRectToVisible( visibleRect );
+		jTable.repaint();
 	}
 
 	public void installSelectionModelNotification()
 	{
-		table.addMouseListener( new MouseAdapter()
+		jTable.addMouseListener( new MouseAdapter()
 		{
 			@Override
 			public void mouseClicked( MouseEvent e )
@@ -628,14 +689,14 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			}
 		} );
 
-		table.getSelectionModel().addListSelectionListener( e ->
+		jTable.getSelectionModel().addListSelectionListener( e ->
 			SwingUtilities.invokeLater( () ->
 			{
 				if ( tableRowSelectionMode.equals( TableRowSelectionMode.None ) ) return;
 
 				if ( e.getValueIsAdjusting() ) return;
 
-				final int selectedRowInView = table.getSelectedRow();
+				final int selectedRowInView = jTable.getSelectedRow();
 
 				if ( selectedRowInView == -1 ) return;
 
@@ -643,7 +704,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 				setRecentlySelectedRowInView( selectedRowInView );
 
-				final int row = table.convertRowIndexToModel( recentlySelectedRowInView );
+				final int row = jTable.convertRowIndexToModel( recentlySelectedRowInView );
 
 				final T object = tableRows.get( row );
 
@@ -670,7 +731,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private synchronized void moveToSelectedTableRow( TableRow selection )
 	{
-		final int rowInView = table.convertRowIndexToView( tableRows.indexOf( selection ) );
+		final int rowInView = jTable.convertRowIndexToView( tableRows.indexOf( selection ) );
 
 		if ( rowInView == recentlySelectedRowInView ) return;
 
@@ -771,7 +832,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		if ( selectionModel.isEmpty() )
 		{
 			setRecentlySelectedRowInView( -1 );
-			table.getSelectionModel().clearSelection();
+			jTable.getSelectionModel().clearSelection();
 		}
 		SwingUtilities.invokeLater( () -> repaintTable() );
 	}

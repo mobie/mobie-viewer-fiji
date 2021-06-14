@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.getImageLocationFromSpimDataMinimal;
+import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.imageFormatToFolderName;
 
 public class RemoteMetadataCreator {
     ProjectCreator projectCreator;
@@ -129,7 +130,7 @@ public class RemoteMetadataCreator {
         deleteRemoteMetadataForImage( datasetName, imageName );
 
         String remoteXmlLocation = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
-                datasetName, "images", "remote" );
+                datasetName, "images", imageFormatToFolderName( ImageDataFormat.BdvN5S3) );
 
         SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load( localXmlLocation );
         spimDataMinimal.setBasePath( new File( remoteXmlLocation ) );
@@ -138,7 +139,7 @@ public class RemoteMetadataCreator {
                 ImageDataFormat.BdvN5S3 );
 
         StorageLocation storageLocation = new StorageLocation();
-        storageLocation.relativePath = "images/remote/" + imageName + ".xml";
+        storageLocation.relativePath = "images/" + imageFormatToFolderName( ImageDataFormat.BdvN5S3 ) + "/" + imageName + ".xml";
         imageSource.imageData.put( ImageDataFormat.BdvN5S3, storageLocation );
 
     }
