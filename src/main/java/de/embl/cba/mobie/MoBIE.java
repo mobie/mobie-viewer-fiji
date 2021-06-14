@@ -80,7 +80,6 @@ public class MoBIE
 
 		for ( Map.Entry< String, List< String > > column : newColumns.entrySet() )
 		{
-			// TODO: this will not work...
 			TableRows.addColumn( intervalTableRows, column.getKey(), column.getValue() );
 		}
 	}
