@@ -14,6 +14,7 @@ import de.embl.cba.mobie.segment.SegmentAdapter;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
+import de.embl.cba.mobie.source.SegmentationSource;
 import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.table.TableViewer;
 import de.embl.cba.mobie.transform.*;
@@ -32,8 +33,7 @@ import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,8 +77,14 @@ public class ViewerManager
 
 	public void initTableViewer( SegmentationSourceDisplay display  )
 	{
+		Map<String, String> sourceNameToTableDir = new HashMap<>();
+		for ( String source: display.getSources() ) {
+			sourceNameToTableDir.put(
+					source, moBIE.getTablesDirectoryPath( (SegmentationSource) moBIE.getSource( source ) )
+			);
+		}
 		display.tableViewer = new TableViewer<>( moBIE, display.segments, display.selectionModel, display.coloringModel,
-				display.getName(), display.getSources() ).show();
+				display.getName(), sourceNameToTableDir, false ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}

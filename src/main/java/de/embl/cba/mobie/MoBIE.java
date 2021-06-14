@@ -74,7 +74,14 @@ public class MoBIE
 	public static void mergeImageTable( List< DefaultAnnotatedIntervalTableRow > intervalTableRows, Map< String, List< String > > columns )
 	{
 		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
-		referenceColumns.put( Constants.GRID_ID, TableColumns.getColumn( intervalTableRows, Constants.GRID_ID ) );
+		final ArrayList< String > gridIdColumn = TableColumns.getColumn( intervalTableRows, Constants.GRID_ID );
+		referenceColumns.put( Constants.GRID_ID, gridIdColumn );
+
+		// deal with the fact that the grid ids are sometimes
+		// stored as 1 and sometimes as 1.0
+		// after below operation they all will be 1.0, 2.0, ...
+		Utils.toDoubleStrings( gridIdColumn );
+		Utils.toDoubleStrings( columns.get( Constants.GRID_ID ) );
 
 		final Map< String, List< String > > newColumns = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, columns );
 

@@ -21,6 +21,7 @@ import net.imglib2.type.numeric.integer.IntType;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,9 +46,9 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 		selectionModel = new DefaultSelectionModel< >();
 		coloringModel.setSelectionModel( selectionModel );
 
-		ArrayList<String> tableDirectories = new ArrayList<>();
-		tableDirectories.add( moBIE.getTablesDirectoryPath( tableDataFolder ) );
-		tableViewer = new TableViewer<>( moBIE, tableRows, selectionModel, coloringModel, name, tableDirectories ).show();
+		HashMap<String, String> nameToTableDir = new HashMap<>();
+		nameToTableDir.put( sourceTransformer.getName(), tableDataFolder );
+		tableViewer = new TableViewer<>( moBIE, tableRows, selectionModel, coloringModel, name, nameToTableDir, true ).show();
 		coloringModel.listeners().add( tableViewer );
 		selectionModel.listeners().add( tableViewer );
 

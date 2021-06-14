@@ -32,7 +32,7 @@ import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.annotate.Annotator;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
-import de.embl.cba.mobie.source.SegmentationSource;
+import de.embl.cba.mobie.grid.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.tables.*;
 import de.embl.cba.tables.color.*;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
@@ -80,9 +80,11 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private int recentlySelectedRowInView;
 	private ColumnColoringModelCreator< T > columnColoringModelCreator;
 	private String mergeByColumnName; // for loading additional columns
-	private List<String> sources; // for loading additional columns
+	private Map<String, String> sourceNameToTableDir; // for loading additional columns
+	// private List<String> sources; // for loading additional columns
 	private ArrayList<String> additionalTables; // tables from which additional columns are loaded
 	private boolean hasColumnsFromTablesOutsideProject; // whether additional columns have been loaded from tables outside the project
+	private boolean isGridTable; // Needed as merging columns to a segments table is different to a grid table
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
 
 	// TODO: this is only for the annotator (maybe move it there)
@@ -109,7 +111,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			final SelectionModel< T > selectionModel,
 			final MoBIEColoringModel< T > moBIEColoringModel,
 			String tableName,
-			List<String> sources )
+			Map<String, String> sourceNameToTableDir,
+			boolean isGridTable )
 	{
 		this.moBIE = moBIE;
 		this.tableRows = tableRows;
@@ -118,8 +121,9 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		this.tableName = tableName;
 		this.recentlySelectedRowInView = -1;
 		this.additionalTables = new ArrayList<>();
-		this.sources = sources;
+		this.sourceNameToTableDir = sourceNameToTableDir;
 		this.hasColumnsFromTablesOutsideProject = false;
+		this.isGridTable = isGridTable;
 
 		// TODO: reconsider
 		registerAsTableRowListener( tableRows );
@@ -406,6 +410,46 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		additionalTables.add(tableName);
 	}
 
+	private Map< String, List< String > > openTable( String tablePath ) {
+		String resolvedPath = de.embl.cba.mobie.Utils.resolveTablePath( tablePath );
+		Logger.info( "Opening table:\n" + resolvedPath );
+		return TableColumns.stringColumnsFromTableFile( resolvedPath );
+	}
+
+	private void loadColumnsFromProject() {
+		ArrayList<String> tableNames = new ArrayList<>();
+		String tableName = selectCommonFileNameFromProject(
+				new ArrayList<>( sourceNameToTableDir.values() ), "Table" );
+		if ( tableName != null ) {
+			tableNames.add(tableName);
+
+			if ( !isGridTable ) {
+				List<String> sources = new ArrayList<>(sourceNameToTableDir.keySet());
+				moBIE.appendSegmentsTables(sources, tableNames, (List<TableRowImageSegment>) tableRows);
+			} else {
+				for ( String tableDir: sourceNameToTableDir.values() ) {
+					final Map< String, List< String > > table = openTable( FileAndUrlUtils.combinePath(tableDir, tableName ) );
+					MoBIE.mergeImageTable( (List<DefaultAnnotatedIntervalTableRow>) tableRows, table );
+				}
+			}
+			addAdditionalTable( tableName );
+		}
+	}
+
+	private void loadColumnsFromFileSystem() throws IOException {
+		String path = selectPathFromFileSystem( "Table" );
+		if ( path != null ) {
+			if ( !isGridTable ) {
+				moBIE.appendSegmentsTables((String) sourceNameToTableDir.keySet().toArray()[0],
+						path, (List<TableRowImageSegment>) tableRows);
+			} else {
+				Map<String, List<String>> table = openTable( path );
+				MoBIE.mergeImageTable( (List<DefaultAnnotatedIntervalTableRow>) tableRows, table );
+			}
+			hasColumnsFromTablesOutsideProject = true;
+		}
+	}
+
 	private JMenuItem createLoadColumnsMenuItem()
 	{
 		final JMenuItem menuItem = new JMenuItem( "Load Columns..." );
@@ -415,7 +459,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 					try
 					{
 						FileLocation fileLocation;
-						if ( sources.size() > 1 ) {
+						if ( sourceNameToTableDir.size() > 1 ) {
 							// For multi-source tables, we only allow loading from the project
 							fileLocation = FileLocation.Project;
 						} else {
@@ -423,26 +467,9 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 						}
 
 						if ( fileLocation == FileLocation.Project ) {
-							List<String> tablesDirectories = new ArrayList<>();
-							for ( String source: sources ) {
-								tablesDirectories.add(
-										moBIE.getTablesDirectoryPath( ( SegmentationSource ) moBIE.getSource( source ) )
-								);
-							}
-
-							ArrayList<String> tableNames = new ArrayList<>();
-							String tableName = selectCommonFileNameFromProject( tablesDirectories, "Table" );
-							if ( tableName != null ) {
-								tableNames.add(tableName);
-								moBIE.appendSegmentsTables(sources, tableNames, (List<TableRowImageSegment>) tableRows);
-								addAdditionalTable( tableName );
-							}
+							loadColumnsFromProject();
 						} else {
-							String path = selectPathFromFileSystem( "Table" );
-							if ( path != null ) {
-								moBIE.appendSegmentsTables( sources.get(0), path, (List<TableRowImageSegment>) tableRows);
-								hasColumnsFromTablesOutsideProject = true;
-							}
+							loadColumnsFromFileSystem();
 						}
 					} catch ( IOException ioOException )
 					{
