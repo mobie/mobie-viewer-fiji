@@ -120,10 +120,12 @@ public class DatasetJsonCreator {
         sources.add( imageName );
         switch( imageType ) {
             case segmentation:
+                ArrayList<String> tables = new ArrayList<>();
+                tables.add( "default.tsv" );
                 SegmentationSourceDisplay segmentationSourceDisplay = new SegmentationSourceDisplay(
                         imageName, 0.5, sources, ColoringLuts.GLASBEY,
                         null, null, null, false,
-                        false, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, null );
+                        false, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, tables );
                 sourceDisplays.add( segmentationSourceDisplay );
                 break;
             case image:
