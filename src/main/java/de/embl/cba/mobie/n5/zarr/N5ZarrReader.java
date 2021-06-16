@@ -55,6 +55,8 @@ import java.util.stream.Stream;
  */
 public class N5ZarrReader extends N5FSReader
 {
+	private static final String V3_SEPARATOR = "/";
+	private static final String D5_SEPARATOR = ".";
 
 	protected static Version VERSION = new Version(2, 0, 0);
 
@@ -72,7 +74,7 @@ public class N5ZarrReader extends N5FSReader
 	}
 
 	final protected boolean mapN5DatasetAttributes;
-	final protected String dimensionSeparator;
+	protected String dimensionSeparator;
 
 	/**
 	 * Opens an {@link N5ZarrReader} at a given base path with a custom
@@ -249,6 +251,9 @@ public class N5ZarrReader extends N5FSReader
 								gson));
 			}
 		} else System.out.println(path.toString() + " does not exist.");
+
+		JsonElement dimSep = attributes.get("dimension_separator");
+		this.dimensionSeparator = dimSep == null ?  D5_SEPARATOR : V3_SEPARATOR;
 
 		return new ZArrayAttributes(
 				attributes.get("zarr_format").getAsInt(),
