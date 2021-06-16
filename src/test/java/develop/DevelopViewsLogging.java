@@ -1,20 +1,20 @@
 package develop;
 
 import com.google.gson.Gson;
-import de.embl.cba.mobie.transform.AffineViewerTransform;
-import de.embl.cba.mobie.transform.BdvLocationSupplier;
-import de.embl.cba.mobie.transform.BdvLocationType;
+import de.embl.cba.mobie.serialize.JsonHelper;
+import de.embl.cba.mobie.transform.NormalizedAffineViewerTransform;
+import de.embl.cba.mobie.transform.ViewerTransform;
 
 public class DevelopViewsLogging
 {
 	public static void main( String[] args )
 	{
-		final AffineViewerTransform affineViewerTransform = new AffineViewerTransform( BdvLocationType.Position3d, new double[ 3 ] );
-		final BdvLocationSupplier supplier = new BdvLocationSupplier( affineViewerTransform );
+		final NormalizedAffineViewerTransform affineViewerTransform = new NormalizedAffineViewerTransform( new double[ 12 ] );
 
-		final Gson gson = new Gson();
-		final String json = gson.toJson( supplier );
+		final Gson gson = JsonHelper.buildGson( false );
+		final String json = gson.toJson( affineViewerTransform );
 		System.out.printf( json );
-		final BdvLocationSupplier bdvLocationSupplier = gson.fromJson( json, BdvLocationSupplier.class );
+
+		final ViewerTransform viewerTransform = gson.fromJson( json, ViewerTransform.class );
 	}
 }

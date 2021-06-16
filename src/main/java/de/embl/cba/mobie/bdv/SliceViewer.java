@@ -93,7 +93,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 		final String[] actions = {
 				sacService.getCommandName( ScreenShotMakerCommand.class ),
-				sacService.getCommandName( BdvLocationLogger.class ),
+				sacService.getCommandName( ViewerTransformLogger.class ),
 				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
 				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
 				sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ),

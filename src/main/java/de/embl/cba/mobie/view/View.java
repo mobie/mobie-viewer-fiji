@@ -1,8 +1,6 @@
 package de.embl.cba.mobie.view;
 
 import de.embl.cba.mobie.display.SourceDisplay;
-import de.embl.cba.mobie.transform.AffineViewerTransform;
-import de.embl.cba.mobie.transform.BdvLocationSupplier;
 import de.embl.cba.mobie.transform.SourceTransformer;
 import de.embl.cba.mobie.transform.ViewerTransform;
 
@@ -54,9 +52,9 @@ public class View
 		return uiSelectionGroup;
 	}
 
-	public BdvLocationSupplier getViewerTransform()
+	public ViewerTransform getViewerTransform()
 	{
-		return ( BdvLocationSupplier ) viewerTransform;
+		return viewerTransform;
 	}
 
 	public String getName()

@@ -47,8 +47,7 @@ public class ViewerTransformAdapter implements JsonSerializer< ViewerTransform >
 
 	@Override
 	public JsonElement serialize( ViewerTransform viewerTransform, Type type, JsonSerializationContext context ) {
-		JsonArray ja = new JsonArray();
-
+		// JsonArray ja = new JsonArray();
 //		if ( viewerTransform instanceof GridSourceTransformer ) {
 //			ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, GridSourceTransformer > >() {}.getType() ) );
 //		} else if ( sourceTransformer instanceof AffineSourceTransformer ) {

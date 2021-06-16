@@ -6,9 +6,12 @@ import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
 import bdv.viewer.SourceAndConverter;
 import com.formdev.flatlaf.FlatLightLaf;
+import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.mobie.Utils;
+import de.embl.cba.mobie.serialize.JsonHelper;
+import de.embl.cba.mobie.transform.ViewerTransform;
 import de.embl.cba.mobie.transform.ViewerTransformChanger;
 import de.embl.cba.mobie.transform.AffineViewerTransform;
 import de.embl.cba.mobie.MoBIEInfo;
@@ -495,7 +498,12 @@ public class UserInterfaceHelper
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		button.addActionListener( e -> ViewerTransformChanger.changeViewerTransform( moBIE.getViewerManager().getSliceViewer().getBdvHandle(), new AffineViewerTransform( jTextField.getText() ) ) );
+		button.addActionListener( e ->
+		{
+			final Gson gson = JsonHelper.buildGson( false );
+			final ViewerTransform viewerTransform = gson.fromJson( jTextField.getText(), ViewerTransform.class );
+			ViewerTransformChanger.changeViewerTransform( moBIE.getViewerManager().getSliceViewer().getBdvHandle(), viewerTransform );
+		} );
 
 		horizontalLayoutPanel.add( getJLabel( "location" ) );
 		horizontalLayoutPanel.add( jTextField );
