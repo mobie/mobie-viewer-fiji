@@ -1,26 +1,20 @@
 package de.embl.cba.mobie.serialize;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.google.gson.reflect.TypeToken;
 import de.embl.cba.mobie.transform.AffineSourceTransformer;
+import de.embl.cba.mobie.transform.AffineViewerTransform;
 import de.embl.cba.mobie.transform.CropSourceTransformer;
 import de.embl.cba.mobie.transform.GridSourceTransformer;
 import de.embl.cba.mobie.transform.NormalizedAffineViewerTransform;
-import de.embl.cba.mobie.transform.SourceTransformer;
-import de.embl.cba.mobie.transform.AffineViewerTransform;
+import de.embl.cba.mobie.transform.PositionViewerTransform;
 import de.embl.cba.mobie.transform.ViewerTransform;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -31,11 +25,11 @@ public class ViewerTransformAdapter implements JsonSerializer< ViewerTransform >
 
 	static {
 		nameToClass.put("affine", AffineViewerTransform.class);
-		classToName.put(GridSourceTransformer.class.getName(), "grid");
+		classToName.put(AffineViewerTransform.class.getName(), "affine");
 		nameToClass.put("normalizedAffine", NormalizedAffineViewerTransform.class);
-		classToName.put(AffineSourceTransformer.class.getName(), "affine");
-		nameToClass.put("position", CropSourceTransformer.class);
-		classToName.put(CropSourceTransformer.class.getName(), "crop");
+		classToName.put(NormalizedAffineViewerTransform.class.getName(), "normalizedAffine");
+		nameToClass.put("position", PositionViewerTransform.class);
+		classToName.put(PositionViewerTransform.class.getName(), "position");
 	}
 
 	@Override

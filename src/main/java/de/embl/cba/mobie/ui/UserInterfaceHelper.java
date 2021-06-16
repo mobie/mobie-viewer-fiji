@@ -495,7 +495,7 @@ public class UserInterfaceHelper
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 		final JButton button = createButton( MOVE );
 
-		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
+		final JTextField jTextField = new JTextField( "{\"position\":[120.5,115.3,201.5]}" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		button.addActionListener( e ->

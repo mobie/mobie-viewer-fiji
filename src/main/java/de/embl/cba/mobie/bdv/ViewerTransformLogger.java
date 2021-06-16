@@ -17,7 +17,7 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 @Plugin( type = BdvPlaygroundActionCommand.class, name = ViewerTransformLogger.NAME, menuPath = ViewerTransformLogger.NAME )
 public class ViewerTransformLogger implements BdvPlaygroundActionCommand
 {
-	public static final String NAME = "BDV - Log Current Location";
+	public static final String NAME = "BDV - Log Current View";
 
 	@Parameter
 	BdvHandle bdvh;
@@ -41,6 +41,10 @@ public class ViewerTransformLogger implements BdvPlaygroundActionCommand
 
 			// print
 			final Gson gson = JsonHelper.buildGson( false );
+			Logger.log( "# Current view " );
+			Logger.log( "To restore the view, any of below lines can be pasted into the \'location\' text field." );
+			Logger.log( "To share views with other people we recommend \'normalizedAffine\'." );
+
 			Logger.log( gson.toJson( positionViewerTransform ) );
 			Logger.log( gson.toJson( affineViewerTransform ) );
 			Logger.log( gson.toJson( normalizedAffineViewerTransform ) );
