@@ -138,8 +138,8 @@ public class ViewerManager
 
 		if ( includeViewerTransform ) {
 			AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform(bdvHandle, Utils.getMousePosition(bdvHandle));
-			BdvLocationSupplier viewerTransform = new BdvLocationSupplier(new BdvLocation(BdvLocationType.NormalisedViewerTransform, normalisedViewTransform.getRowPackedCopy()));
-			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, viewerTransform, isExclusive);
+			BdvLocationSupplier viewerTransform = new BdvLocationSupplier(new AffineViewerTransform(BdvLocationType.NormalisedViewerTransform, normalisedViewTransform.getRowPackedCopy()));
+			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, ( ViewerTransform ) viewerTransform, isExclusive);
 		} else {
 			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, isExclusive);
 		}
@@ -174,7 +174,7 @@ public class ViewerManager
 		// adjust the viewer transform
 		if ( view.getViewerTransform() != null )
 		{
-			BdvLocationChanger.moveToLocation( bdvHandle, view.getViewerTransform().get() );
+			ViewerTransformChanger.changeViewerTransform( bdvHandle, view.getViewerTransform().get() );
 		}
 		else
 		{

@@ -8,7 +8,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.Arrays;
 
-public abstract class BdvLocationChanger
+public abstract class ViewerTransformChanger
 {
 	public static int animationDurationMillis = 3000;
 
@@ -17,38 +17,22 @@ public abstract class BdvLocationChanger
 	private static boolean pointOverlaySourceIsActive;
 	private static boolean isPointOverlayEnabled;
 
-	public static void moveToLocation( BdvHandle bdv, BdvLocation bdvLocation )
+	public static void changeViewerTransform( BdvHandle bdv, ViewerTransform viewerTransform )
 	{
-		switch ( bdvLocation.type )
+		if ( viewerTransform instanceof PositionViewerTransform )
 		{
-			case Position3d:
-
-				BdvUtils.moveToPosition( bdv, bdvLocation.doubles, 0, animationDurationMillis );
-
-				if ( isPointOverlayEnabled )
-					addPointOverlay( bdv, bdvLocation.doubles );
-				break;
-
-			case Position3dAndTime:
-
-				final double[] position = new double[ 3 ];
-				for ( int d = 0; d < 3; d++ )
-					position[ d ] = bdvLocation.doubles[ d ];
-				final int time = (int) bdvLocation.doubles[ 3 ];
-
-				BdvUtils.moveToPosition( bdv, position, time, animationDurationMillis );
-				break;
-
-			case ViewerTransform:
-
-				BdvUtils.changeBdvViewerTransform( bdv, Utils.asAffineTransform3D( bdvLocation.doubles ), animationDurationMillis );
-				break;
-
-			case NormalisedViewerTransform:
-
-				final AffineTransform3D transform = Utils.createUnnormalizedViewerTransform( Utils.asAffineTransform3D( bdvLocation.doubles ), bdv );
-				BdvUtils.changeBdvViewerTransform( bdv, transform, animationDurationMillis );
-				break;
+			BdvUtils.moveToPosition( bdv, viewerTransform.getParameters(), 0, animationDurationMillis );
+			if ( isPointOverlayEnabled )
+				addPointOverlay( bdv, viewerTransform.getParameters() );
+		}
+		else if ( viewerTransform instanceof AffineViewerTransform )
+		{
+			BdvUtils.changeBdvViewerTransform( bdv, Utils.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
+		}
+		else if ( viewerTransform instanceof NormalizedAffineViewerTransform )
+		{
+			final AffineTransform3D transform = Utils.createUnnormalizedViewerTransform( Utils.asAffineTransform3D( viewerTransform.getParameters() ), bdv );
+			BdvUtils.changeBdvViewerTransform( bdv, transform, animationDurationMillis );
 		}
 	}
 
@@ -79,6 +63,6 @@ public abstract class BdvLocationChanger
 
 	public static void enablePointOverlay( boolean isPointOverlayEnabled )
 	{
-		BdvLocationChanger.isPointOverlayEnabled = isPointOverlayEnabled;
+		ViewerTransformChanger.isPointOverlayEnabled = isPointOverlayEnabled;
 	}
 }

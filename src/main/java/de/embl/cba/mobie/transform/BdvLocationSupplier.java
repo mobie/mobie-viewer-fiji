@@ -5,25 +5,24 @@ public class BdvLocationSupplier
 	private double[] normalizedAffine;
 	private double[] position;
 
-	public BdvLocationSupplier( BdvLocation bdvLocation ) {
-		if ( bdvLocation.type == BdvLocationType.NormalisedViewerTransform ) {
-			this.normalizedAffine = bdvLocation.doubles;
-		} else if ( bdvLocation.type == BdvLocationType.Position3d ) {
-			this.position = bdvLocation.doubles;
+	public BdvLocationSupplier( AffineViewerTransform affineViewerTransform ) {
+		if ( affineViewerTransform.getType() == BdvLocationType.NormalisedViewerTransform ) {
+		} else if ( affineViewerTransform.getType() == BdvLocationType.Position3d ) {
+			this.position = affineViewerTransform.getParameters();
 		}
 	}
 
-	public BdvLocation get()
+	public AffineViewerTransform get()
 	{
 		if ( normalizedAffine != null )
 		{
-			final BdvLocation bdvLocation = new BdvLocation( BdvLocationType.NormalisedViewerTransform, normalizedAffine );
-			return bdvLocation;
+			final AffineViewerTransform affineViewerTransform = new AffineViewerTransform( BdvLocationType.NormalisedViewerTransform, normalizedAffine );
+			return affineViewerTransform;
 		}
 		else if ( position != null )
 		{
-			final BdvLocation bdvLocation = new BdvLocation( BdvLocationType.Position3d, position );
-			return bdvLocation;
+			final AffineViewerTransform affineViewerTransform = new AffineViewerTransform( BdvLocationType.Position3d, position );
+			return affineViewerTransform;
 		}
 		else throw new UnsupportedOperationException( "No viewer transform found." );
 	}

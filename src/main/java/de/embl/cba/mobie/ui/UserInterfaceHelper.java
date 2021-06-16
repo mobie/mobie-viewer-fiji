@@ -9,8 +9,8 @@ import com.formdev.flatlaf.FlatLightLaf;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.mobie.Utils;
-import de.embl.cba.mobie.transform.BdvLocationChanger;
-import de.embl.cba.mobie.transform.BdvLocation;
+import de.embl.cba.mobie.transform.ViewerTransformChanger;
+import de.embl.cba.mobie.transform.AffineViewerTransform;
 import de.embl.cba.mobie.MoBIEInfo;
 import de.embl.cba.mobie.*;
 import de.embl.cba.mobie.color.OpacityAdjuster;
@@ -26,7 +26,6 @@ import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
-import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
@@ -496,7 +495,7 @@ public class UserInterfaceHelper
 		final JTextField jTextField = new JTextField( "120.5,115.3,201.5" );
 		jTextField.setPreferredSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
-		button.addActionListener( e -> BdvLocationChanger.moveToLocation( moBIE.getViewerManager().getSliceViewer().getBdvHandle(), new BdvLocation( jTextField.getText() ) ) );
+		button.addActionListener( e -> ViewerTransformChanger.changeViewerTransform( moBIE.getViewerManager().getSliceViewer().getBdvHandle(), new AffineViewerTransform( jTextField.getText() ) ) );
 
 		horizontalLayoutPanel.add( getJLabel( "location" ) );
 		horizontalLayoutPanel.add( jTextField );
@@ -705,7 +704,7 @@ public class UserInterfaceHelper
 			{
 				// TODO: make this work for multiple!
 				final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverter ).getTransform();
-				new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
+				new sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
 			}
 		} );
 

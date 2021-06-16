@@ -1,11 +1,5 @@
 package publication.platybrowser;
 
-import de.embl.cba.mobie.transform.BdvLocationChanger;
-import de.embl.cba.mobie.transform.BdvLocation;
-import net.imagej.ImageJ;
-
-import java.awt.*;
-
 public class RegistrationVisualisationNuclei
 {
 	public static void main( String[] args )

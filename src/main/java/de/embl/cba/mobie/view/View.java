@@ -1,8 +1,10 @@
 package de.embl.cba.mobie.view;
 
 import de.embl.cba.mobie.display.SourceDisplay;
+import de.embl.cba.mobie.transform.AffineViewerTransform;
 import de.embl.cba.mobie.transform.BdvLocationSupplier;
 import de.embl.cba.mobie.transform.SourceTransformer;
+import de.embl.cba.mobie.transform.ViewerTransform;
 
 import java.util.List;
 
@@ -11,13 +13,12 @@ public class View
 	private String uiSelectionGroup;
 	private List< SourceDisplay > sourceDisplays;
 	private List< SourceTransformer > sourceTransforms;
-	private BdvLocationSupplier viewerTransform;
+	private ViewerTransform viewerTransform;
 	private boolean isExclusive = false;
 	private String name;
 
 	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays,
-				 List< SourceTransformer > sourceTransforms, BdvLocationSupplier viewerTransform,
-				 boolean isExclusive ) {
+				 List< SourceTransformer > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;
 		this.sourceTransforms = sourceTransforms;
@@ -55,7 +56,7 @@ public class View
 
 	public BdvLocationSupplier getViewerTransform()
 	{
-		return viewerTransform;
+		return ( BdvLocationSupplier ) viewerTransform;
 	}
 
 	public String getName()
