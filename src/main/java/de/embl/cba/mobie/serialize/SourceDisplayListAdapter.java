@@ -30,7 +30,7 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< SourceDis
 
 		for (JsonElement je : ja)
 		{
-			list.add( JsonHelper.getObject( context, je, nameToClass ) );
+			list.add( JsonHelper.createObjectFromJsonValue( context, je, nameToClass ) );
 		}
 
 		return list;

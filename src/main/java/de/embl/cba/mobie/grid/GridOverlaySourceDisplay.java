@@ -3,11 +3,10 @@ package de.embl.cba.mobie.grid;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
-import de.embl.cba.mobie.transform.BdvLocation;
-import de.embl.cba.mobie.transform.BdvLocationType;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.MoBIE;
-import de.embl.cba.mobie.transform.BdvLocationChanger;
+import de.embl.cba.mobie.transform.PositionViewerTransform;
+import de.embl.cba.mobie.transform.ViewerTransformChanger;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
 import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.transform.GridSourceTransformer;
@@ -127,7 +126,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 			center[ d ] = ( max[ d ] + min[ d ] ) / 2;
 		}
 
-		BdvLocationChanger.moveToLocation( bdvHandle, new BdvLocation( BdvLocationType.Position3d, center ) );
+		ViewerTransformChanger.changeViewerTransform( bdvHandle, new PositionViewerTransform( center, bdvHandle.getViewerPanel().state().getCurrentTimepoint() ) );
 
 	}
 

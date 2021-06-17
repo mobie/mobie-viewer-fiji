@@ -77,7 +77,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 			RandomColorSeedChangerCommand.incrementRandomColorSeed( sourceAndConverters );
 		} );
 
-		sacService.registerScijavaCommand( NonSelectedSegmentsOpacityAdjusterCommand.class );
+		// sacService.registerScijavaCommand( NonSelectedSegmentsOpacityAdjusterCommand.class );
 
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
@@ -93,7 +93,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 		final String[] actions = {
 				sacService.getCommandName( ScreenShotMakerCommand.class ),
-				sacService.getCommandName( BdvLocationLogger.class ),
+				sacService.getCommandName( ViewerTransformLogger.class ),
 				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
 				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
 				sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ),

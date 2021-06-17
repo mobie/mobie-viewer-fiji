@@ -136,10 +136,12 @@ public class ViewerManager
 			}
 		}
 
-		if ( includeViewerTransform ) {
-			AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform(bdvHandle, Utils.getMousePosition(bdvHandle));
-			BdvLocationSupplier viewerTransform = new BdvLocationSupplier(new BdvLocation(BdvLocationType.NormalisedViewerTransform, normalisedViewTransform.getRowPackedCopy()));
-			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, viewerTransform, isExclusive);
+		if ( includeViewerTransform )
+		{
+			AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform( bdvHandle, Utils.getMousePosition( bdvHandle ) );
+
+			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
+			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, transform, isExclusive);
 		} else {
 			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, isExclusive);
 		}
@@ -174,7 +176,7 @@ public class ViewerManager
 		// adjust the viewer transform
 		if ( view.getViewerTransform() != null )
 		{
-			BdvLocationChanger.moveToLocation( bdvHandle, view.getViewerTransform().get() );
+			ViewerTransformChanger.changeViewerTransform( bdvHandle, view.getViewerTransform() );
 		}
 		else
 		{
