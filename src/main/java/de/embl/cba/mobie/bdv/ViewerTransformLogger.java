@@ -2,8 +2,8 @@ package de.embl.cba.mobie.bdv;
 
 import bdv.util.BdvHandle;
 import com.google.gson.Gson;
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
+import de.embl.cba.mobie.PlaygroundUtils;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.serialize.JsonHelper;
 import de.embl.cba.mobie.transform.AffineViewerTransform;
@@ -20,25 +20,26 @@ public class ViewerTransformLogger implements BdvPlaygroundActionCommand
 	public static final String NAME = "BDV - Log Current View";
 
 	@Parameter
-	BdvHandle bdvh;
+	BdvHandle bdv;
 
 	@Override
 	public void run()
 	{
 		new Thread( () -> {
 
-			final int timepoint = bdvh.getViewerPanel().state().getCurrentTimepoint();
+			final int timepoint = bdv.getViewerPanel().state().getCurrentTimepoint();
+			final double[] position = PlaygroundUtils.getWindowCentreInCalibratedUnits( bdv );
 
 			// position
-			final PositionViewerTransform positionViewerTransform = new PositionViewerTransform( BdvUtils.getGlobalMouseCoordinates( bdvh ).positionAsDoubleArray(), timepoint );
+			final PositionViewerTransform positionViewerTransform = new PositionViewerTransform( position, timepoint );
 
 			// affine
 			final AffineTransform3D affineTransform3D = new AffineTransform3D();
-			bdvh.getViewerPanel().state().getViewerTransform( affineTransform3D );
+			bdv.getViewerPanel().state().getViewerTransform( affineTransform3D );
 			final AffineViewerTransform affineViewerTransform = new AffineViewerTransform( affineTransform3D.getRowPackedCopy(), timepoint );
 
 			// normalized affine
-			final AffineTransform3D normalisedViewerTransform = Utils.createNormalisedViewerTransform( bdvh, Utils.getMousePosition( bdvh ) );
+			final AffineTransform3D normalisedViewerTransform = Utils.createNormalisedViewerTransform( bdv, Utils.getMousePosition( bdv ) );
 			final NormalizedAffineViewerTransform normalizedAffineViewerTransform = new NormalizedAffineViewerTransform( normalisedViewerTransform.getRowPackedCopy(), timepoint );
 
 			// print

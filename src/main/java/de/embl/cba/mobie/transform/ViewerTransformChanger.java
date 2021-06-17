@@ -3,6 +3,7 @@ package de.embl.cba.mobie.transform;
 import bdv.util.*;
 import bdv.viewer.animate.SimilarityTransformAnimator;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.mobie.PlaygroundUtils;
 import de.embl.cba.mobie.bdv.BdvPointOverlay;
 import de.embl.cba.mobie.Utils;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -83,7 +84,7 @@ public abstract class ViewerTransformChanger
 		ViewerTransformChanger.isPointOverlayEnabled = isPointOverlayEnabled;
 	}
 
-	public static void moveToPosition( Bdv bdv, double[] xyz, long durationMillis )
+	public static void moveToPosition( BdvHandle bdv, double[] xyz, long durationMillis )
 	{
 		final AffineTransform3D currentViewerTransform = new AffineTransform3D();
 		bdv.getBdvHandle().getViewerPanel().state().getViewerTransform( currentViewerTransform );
@@ -103,9 +104,8 @@ public abstract class ViewerTransformChanger
 		}
 
 		newViewerTransform.translate( locationOfTargetCoordinatesInCurrentViewer );
-		// TODO: use bdv-playground instead: BdvHandleHelper.getWindowCentreInPixels( BdvHandle bdvHandle )
-		//   https://github.com/bigdataviewer/bigdataviewer-playground/pull/229
-		newViewerTransform.translate( BdvUtils.getBdvWindowCenter( bdv ) );
+		final double[] bdvWindowCenter = PlaygroundUtils.getWindowCentreInPixelUnits( bdv );
+		newViewerTransform.translate( bdvWindowCenter );
 
 		if ( durationMillis <= 0 )
 		{
