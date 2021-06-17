@@ -6,12 +6,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import de.embl.cba.mobie.transform.AffineSourceTransformer;
 import de.embl.cba.mobie.transform.AffineViewerTransform;
-import de.embl.cba.mobie.transform.CropSourceTransformer;
-import de.embl.cba.mobie.transform.GridSourceTransformer;
 import de.embl.cba.mobie.transform.NormalizedAffineViewerTransform;
 import de.embl.cba.mobie.transform.PositionViewerTransform;
+import de.embl.cba.mobie.transform.TimepointViewerTransform;
 import de.embl.cba.mobie.transform.ViewerTransform;
 
 import java.lang.reflect.Type;
@@ -30,12 +28,14 @@ public class ViewerTransformAdapter implements JsonSerializer< ViewerTransform >
 		classToName.put(NormalizedAffineViewerTransform.class.getName(), "normalizedAffine");
 		nameToClass.put("position", PositionViewerTransform.class);
 		classToName.put(PositionViewerTransform.class.getName(), "position");
+		nameToClass.put("timepoint", TimepointViewerTransform.class);
+		classToName.put(TimepointViewerTransform.class.getName(), "timepoint");
 	}
 
 	@Override
 	public ViewerTransform deserialize( JsonElement json, Type typeOfT, JsonDeserializationContext context ) throws JsonParseException
 	{
-		final ViewerTransform viewerTransform = ( ViewerTransform ) JsonHelper.getObject2( context, json, nameToClass );
+		final ViewerTransform viewerTransform = ( ViewerTransform ) JsonHelper.createObjectFromJsonObject( context, json, nameToClass );
 		return viewerTransform;
 	}
 

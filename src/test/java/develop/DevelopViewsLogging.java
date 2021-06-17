@@ -9,7 +9,7 @@ public class DevelopViewsLogging
 {
 	public static void main( String[] args )
 	{
-		final NormalizedAffineViewerTransform affineViewerTransform = new NormalizedAffineViewerTransform( new double[ 12 ] );
+		final NormalizedAffineViewerTransform affineViewerTransform = new NormalizedAffineViewerTransform( new double[ 12 ], 0 );
 
 		final Gson gson = JsonHelper.buildGson( false );
 		final String json = gson.toJson( affineViewerTransform );

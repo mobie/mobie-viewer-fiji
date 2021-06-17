@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.transform;
 
 import bdv.util.*;
+import bdv.viewer.animate.SimilarityTransformAnimator;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.bdv.BdvPointOverlay;
 import de.embl.cba.mobie.Utils;
@@ -21,19 +22,35 @@ public abstract class ViewerTransformChanger
 	{
 		if ( viewerTransform instanceof PositionViewerTransform )
 		{
-			BdvUtils.moveToPosition( bdv, viewerTransform.getParameters(), 0, animationDurationMillis );
+			moveToPosition( bdv, viewerTransform.getParameters(), animationDurationMillis );
+			adaptTimepoint( bdv, viewerTransform );
 			if ( isPointOverlayEnabled )
 				addPointOverlay( bdv, viewerTransform.getParameters() );
 		}
+		else if ( viewerTransform instanceof TimepointViewerTransform )
+		{
+			adaptTimepoint( bdv, viewerTransform );
+		}
 		else if ( viewerTransform instanceof AffineViewerTransform )
 		{
-			BdvUtils.changeBdvViewerTransform( bdv, Utils.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
+			// TODO: changing time point and viewer transform at the same time
+			//  used to sometimes lead to hickups; check whether this is the case and think about a solution...
+			//  e.g., does changeBdvViewerTransform return already while the transformation is still going on?
+			changeViewerTransform( bdv, Utils.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
+			adaptTimepoint( bdv, viewerTransform );
 		}
 		else if ( viewerTransform instanceof NormalizedAffineViewerTransform )
 		{
 			final AffineTransform3D transform = Utils.createUnnormalizedViewerTransform( Utils.asAffineTransform3D( viewerTransform.getParameters() ), bdv );
-			BdvUtils.changeBdvViewerTransform( bdv, transform, animationDurationMillis );
+			changeViewerTransform( bdv, transform, animationDurationMillis );
+			adaptTimepoint( bdv, viewerTransform );
 		}
+	}
+
+	private static void adaptTimepoint( BdvHandle bdv, ViewerTransform viewerTransform )
+	{
+		if ( viewerTransform.getTimepoint() != null )
+			bdv.getViewerPanel().setTimepoint( viewerTransform.getTimepoint() );
 	}
 
 	public static void togglePointOverlay()
@@ -65,4 +82,63 @@ public abstract class ViewerTransformChanger
 	{
 		ViewerTransformChanger.isPointOverlayEnabled = isPointOverlayEnabled;
 	}
+
+	public static void moveToPosition( Bdv bdv, double[] xyz, long durationMillis )
+	{
+		final AffineTransform3D currentViewerTransform = new AffineTransform3D();
+		bdv.getBdvHandle().getViewerPanel().state().getViewerTransform( currentViewerTransform );
+
+		AffineTransform3D newViewerTransform = currentViewerTransform.copy();
+
+		// ViewerTransform
+		// applyInverse: coordinates in viewer => coordinates in image
+		// apply: coordinates in image => coordinates in viewer
+
+		final double[] locationOfTargetCoordinatesInCurrentViewer = new double[ 3 ];
+		currentViewerTransform.apply( xyz, locationOfTargetCoordinatesInCurrentViewer );
+
+		for ( int d = 0; d < 3; d++ )
+		{
+			locationOfTargetCoordinatesInCurrentViewer[ d ] *= -1;
+		}
+
+		newViewerTransform.translate( locationOfTargetCoordinatesInCurrentViewer );
+		// TODO: use bdv-playground instead: BdvHandleHelper.getWindowCentreInPixels( BdvHandle bdvHandle )
+		//   https://github.com/bigdataviewer/bigdataviewer-playground/pull/229
+		newViewerTransform.translate( BdvUtils.getBdvWindowCenter( bdv ) );
+
+		if ( durationMillis <= 0 )
+		{
+			bdv.getBdvHandle().getViewerPanel().state().setViewerTransform(  newViewerTransform );
+		}
+		else
+		{
+			final SimilarityTransformAnimator similarityTransformAnimator =
+					new SimilarityTransformAnimator(
+							currentViewerTransform,
+							newViewerTransform,
+							0,
+							0,
+							durationMillis );
+
+			bdv.getBdvHandle().getViewerPanel().setTransformAnimator( similarityTransformAnimator );
+		}
+	}
+
+	public static void changeViewerTransform( Bdv bdv, AffineTransform3D newViewerTransform, long duration)
+	{
+		AffineTransform3D currentViewerTransform = new AffineTransform3D();
+		bdv.getBdvHandle().getViewerPanel().state().getViewerTransform( currentViewerTransform );
+
+		final SimilarityTransformAnimator similarityTransformAnimator =
+				new SimilarityTransformAnimator(
+						currentViewerTransform,
+						newViewerTransform,
+						0 ,
+						0,
+						duration );
+
+		bdv.getBdvHandle().getViewerPanel().setTransformAnimator( similarityTransformAnimator );
+	}
+
 }

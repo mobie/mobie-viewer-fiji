@@ -36,7 +36,7 @@ public class JsonHelper
 		}
 	}
 
-	public static Object getObject( JsonDeserializationContext context, JsonElement je, Map< String, Class > nameToClass )
+	public static Object createObjectFromJsonValue( JsonDeserializationContext context, JsonElement je, Map< String, Class > nameToClass )
 	{
 		final JsonObject jsonObject = je.getAsJsonObject();
 		final Map.Entry< String, JsonElement > jsonElementEntry = jsonObject.entrySet().iterator().next();
@@ -47,7 +47,7 @@ public class JsonHelper
 		return deserialize;
 	}
 
-	public static Object getObject2( JsonDeserializationContext context, JsonElement je, Map< String, Class > nameToClass )
+	public static Object createObjectFromJsonObject( JsonDeserializationContext context, JsonElement je, Map< String, Class > nameToClass )
 	{
 		final JsonObject jsonObject = je.getAsJsonObject();
 		final Map.Entry< String, JsonElement > jsonElementEntry = jsonObject.entrySet().iterator().next();

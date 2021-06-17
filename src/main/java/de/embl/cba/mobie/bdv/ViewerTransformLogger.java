@@ -27,17 +27,19 @@ public class ViewerTransformLogger implements BdvPlaygroundActionCommand
 	{
 		new Thread( () -> {
 
+			final int timepoint = bdvh.getViewerPanel().state().getCurrentTimepoint();
+
 			// position
-			final PositionViewerTransform positionViewerTransform = new PositionViewerTransform( BdvUtils.getGlobalMouseCoordinates( bdvh ).positionAsDoubleArray() );
+			final PositionViewerTransform positionViewerTransform = new PositionViewerTransform( BdvUtils.getGlobalMouseCoordinates( bdvh ).positionAsDoubleArray(), timepoint );
 
 			// affine
 			final AffineTransform3D affineTransform3D = new AffineTransform3D();
 			bdvh.getViewerPanel().state().getViewerTransform( affineTransform3D );
-			final AffineViewerTransform affineViewerTransform = new AffineViewerTransform( affineTransform3D.getRowPackedCopy() );
+			final AffineViewerTransform affineViewerTransform = new AffineViewerTransform( affineTransform3D.getRowPackedCopy(), timepoint );
 
 			// normalized affine
 			final AffineTransform3D normalisedViewerTransform = Utils.createNormalisedViewerTransform( bdvh, Utils.getMousePosition( bdvh ) );
-			final NormalizedAffineViewerTransform normalizedAffineViewerTransform = new NormalizedAffineViewerTransform( normalisedViewerTransform.getRowPackedCopy() );
+			final NormalizedAffineViewerTransform normalizedAffineViewerTransform = new NormalizedAffineViewerTransform( normalisedViewerTransform.getRowPackedCopy(), timepoint );
 
 			// print
 			final Gson gson = JsonHelper.buildGson( false );

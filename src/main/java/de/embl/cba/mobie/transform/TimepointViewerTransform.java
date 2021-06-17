@@ -1,19 +1,18 @@
 package de.embl.cba.mobie.transform;
 
-public class PositionViewerTransform implements ViewerTransform
+public class TimepointViewerTransform implements ViewerTransform
 {
-	private double[] position;
 	private Integer timepoint;
 
-	public PositionViewerTransform( double[] parameters, int timepoint )
+	public TimepointViewerTransform( int timepoint )
 	{
-		this.position = parameters;
 		this.timepoint = timepoint;
 	}
 
+	@Override
 	public double[] getParameters()
 	{
-		return position;
+		return null;
 	}
 
 	@Override
