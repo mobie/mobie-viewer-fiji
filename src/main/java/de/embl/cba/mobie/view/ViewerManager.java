@@ -3,6 +3,7 @@ package de.embl.cba.mobie.view;
 import bdv.util.BdvHandle;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.PlaygroundUtils;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.bdv.ImageSliceView;
 import de.embl.cba.mobie.bdv.SegmentationImageSliceView;
@@ -138,7 +139,8 @@ public class ViewerManager
 
 		if ( includeViewerTransform )
 		{
-			AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform( bdvHandle, Utils.getMousePosition( bdvHandle ) );
+			AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform( bdvHandle,
+					PlaygroundUtils.getWindowCentreInPixelUnits( bdvHandle ) );
 
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
 			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, transform, isExclusive);
