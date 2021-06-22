@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.bdv;
 
 import bdv.util.BdvHandle;
+import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.color.NonSelectedSegmentsOpacityAdjusterCommand;
 import de.embl.cba.mobie.segment.BdvSegmentSelector;
 import de.embl.cba.mobie.color.RandomColorSeedChangerCommand;
@@ -77,6 +78,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 			RandomColorSeedChangerCommand.incrementRandomColorSeed( sourceAndConverters );
 		} );
 
+		// Below Command is automatically registered because it is a BdvPlaygroundActionCommand
 		// sacService.registerScijavaCommand( NonSelectedSegmentsOpacityAdjusterCommand.class );
 
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
@@ -120,6 +122,15 @@ public class SliceViewer implements Supplier< BdvHandle >
 							segmentBdvSelector.clearSelection();
 						}).start(),
 				"Clear selection", "ctrl shift N" ) ;
+
+		behaviours.behaviour(
+				( ClickBehaviour ) ( x, y ) ->
+						new Thread( () ->
+						{
+							final SourceAndConverter[] sourceAndConverters = sacService.getSourceAndConverters().toArray( new SourceAndConverter[ 0 ] );
+							RandomColorSeedChangerCommand.incrementRandomColorSeed( sourceAndConverters );
+						}).start(),
+				"Change random color seed", "ctrl L" ) ;
 	}
 
 	public SourceAndConverterService getSacService()
