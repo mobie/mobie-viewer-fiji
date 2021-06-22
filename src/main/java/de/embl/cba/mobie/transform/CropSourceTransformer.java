@@ -14,10 +14,12 @@ import java.util.function.Function;
 
 public class CropSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
 {
-	private List< String > names; // optional new names after transformation
-	private double[] min;
-	private double[] max;
-	private boolean shiftToOrigin = true;
+	protected double[] min;
+	protected double[] max;
+	protected List< String > sources;
+	protected List< String > sourceNamesAfterTransform;
+
+	protected boolean shiftToOrigin = true;
 
 	@Override
 	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sourceAndConverters )
@@ -62,15 +64,16 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 
 	private String getTransformedSourceName( String inputSourceName )
 	{
-		String transformedSourceName;
-		if ( names != null )
-		{
-			transformedSourceName = names.get( this.sources.indexOf( inputSourceName ) );
-		}
-		else
-		{
-			transformedSourceName = inputSourceName;
-		}
-		return transformedSourceName;
+		return inputSourceName;
+
+		// TODO: enable once implemented
+//		if ( sourceNamesAfterTransform != null )
+//		{
+//			return sourceNamesAfterTransform.get( this.sources.indexOf( inputSourceName ) );
+//		}
+//		else
+//		{
+//			return inputSourceName;
+//		}
 	}
 }

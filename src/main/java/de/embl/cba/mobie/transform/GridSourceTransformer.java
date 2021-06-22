@@ -3,6 +3,7 @@ package de.embl.cba.mobie.transform;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.source.SourceChanger;
 import de.embl.cba.mobie.source.StorageLocation;
 import de.embl.cba.mobie.table.TableDataFormat;
 import net.imglib2.FinalRealInterval;
@@ -25,9 +26,12 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 	// Serialization
 	public Map< TableDataFormat, StorageLocation > tableData;
 	public String[] tables;
+	// The first list corresponds to the grid positions
+	protected List< List< String > > sources;
+	protected List< List< String > > sourceNamesAfterTransform;
+	protected List< int[] > positions;
 
 	// Runtime
-	private transient List< int[] > positions;
 	private transient List< FinalRealInterval > intervals;
 	private transient List< SourceAndConverter< T > > transformedSources;
 
@@ -74,14 +78,14 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		return transformedSources;
 	}
 
-	private void transformSourcesAtGridPosition( List< SourceAndConverter< T > > sourceAndConverters, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY, int i )
+	private void transformSourcesAtGridPosition( List< SourceAndConverter< T > > sourceAndConverters, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY, int gridPosition )
 	{
-		final List< String > sources = this.sources.get( i );
+		final List< String > sources = this.sources.get( gridPosition );
 
 		for ( String sourceName : sources )
 		{
 			final AffineTransform3D transform3D = new AffineTransform3D();
-			transform3D.translate( spacingX * positions.get( i )[ 0 ], spacingY * positions.get( i )[ 1 ], 0 );
+			transform3D.translate( spacingX * positions.get( gridPosition )[ 0 ], spacingY * positions.get( gridPosition )[ 1 ], 0 );
 
 			final SourceAndConverter< T > sourceAndConverter = Utils.getSource( sourceAndConverters, sourceName );
 
