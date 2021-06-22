@@ -13,7 +13,6 @@ import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.serialize.JsonHelper;
 import de.embl.cba.mobie.transform.ViewerTransform;
 import de.embl.cba.mobie.transform.ViewerTransformChanger;
-import de.embl.cba.mobie.transform.AffineViewerTransform;
 import de.embl.cba.mobie.MoBIEInfo;
 import de.embl.cba.mobie.*;
 import de.embl.cba.mobie.color.OpacityAdjuster;
@@ -250,11 +249,9 @@ public class UserInterfaceHelper
 
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{
-				final double currentValue = value.getCurrentValue();
+				final double opacity = value.getCurrentValue();
 
-				( ( OpacityAdjuster ) sourceAndConverter.getConverter() ).setOpacity( currentValue );
-				if ( sourceAndConverter.asVolatile() != null )
-					( ( OpacityAdjuster ) sourceAndConverter.asVolatile().getConverter() ).setOpacity( currentValue );
+				OpacityAdjuster.adjustOpacity( sourceAndConverter, opacity );
 			}
 
 			bdvHandle.getViewerPanel().requestRepaint();
