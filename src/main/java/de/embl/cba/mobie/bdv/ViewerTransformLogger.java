@@ -39,7 +39,8 @@ public class ViewerTransformLogger implements BdvPlaygroundActionCommand
 			final AffineViewerTransform affineViewerTransform = new AffineViewerTransform( affineTransform3D.getRowPackedCopy(), timepoint );
 
 			// normalized affine
-			final AffineTransform3D normalisedViewerTransform = Utils.createNormalisedViewerTransform( bdv, Utils.getMousePosition( bdv ) );
+			final AffineTransform3D normalisedViewerTransform = Utils.createNormalisedViewerTransform( bdv,
+					PlaygroundUtils.getWindowCentreInPixelUnits( bdv ) );
 			final NormalizedAffineViewerTransform normalizedAffineViewerTransform = new NormalizedAffineViewerTransform( normalisedViewerTransform.getRowPackedCopy(), timepoint );
 
 			// print
