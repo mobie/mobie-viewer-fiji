@@ -2,6 +2,7 @@ package de.embl.cba.mobie.bdv;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie.color.LabelConverter;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
@@ -54,10 +55,13 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		// convert to labelSource
 		sourceAndConverters = asLabelSources( sourceAndConverters );
 
-		// adjust opacity and show in BDV
+
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			( ( LabelConverter ) sourceAndConverter.getConverter() ).setOpacity( segmentationDisplay.getOpacity() );
+			// set opacity
+			OpacityAdjuster.adjustOpacity( sourceAndConverter, segmentationDisplay.getOpacity() );
+
+			// show
 			displayService.show( bdvHandle, sourceAndConverter );
 			bdvHandle.getViewerPanel().addTimePointListener( (LabelConverter) sourceAndConverter.getConverter() );
 		}
