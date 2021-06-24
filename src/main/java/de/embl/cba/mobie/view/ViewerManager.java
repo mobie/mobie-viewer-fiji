@@ -72,6 +72,8 @@ public class ViewerManager
 
 	public static void initScatterPlotViewer( SegmentationSourceDisplay display )
 	{
+		if ( display.segments.size() == 0 ) return;
+
 		display.scatterPlotViewer = new ScatterPlotViewer<>( display.segments, display.selectionModel, display.coloringModel, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
 		display.coloringModel.listeners().add( display.scatterPlotViewer );
@@ -268,14 +270,19 @@ public class ViewerManager
 		}
 
 		initSliceViewer( segmentationDisplay );
-		initTableViewer( segmentationDisplay );
-		initScatterPlotViewer( segmentationDisplay );
-		initVolumeViewer( segmentationDisplay );
 
-		SwingUtilities.invokeLater( () ->
+		if ( segmentationDisplay.segments.size() > 0 )
 		{
-			WindowArrangementHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
-		} );
+			initTableViewer( segmentationDisplay );
+			initScatterPlotViewer( segmentationDisplay );
+
+			SwingUtilities.invokeLater( () ->
+			{
+				WindowArrangementHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
+			} );
+		}
+
+		initVolumeViewer( segmentationDisplay );
 	}
 
 	private void fetchSegmentsFromTables( SegmentationSourceDisplay segmentationDisplay )
@@ -286,6 +293,11 @@ public class ViewerManager
 		for ( String sourceName : segmentationDisplay.getSources() )
 		{
 			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
+
+			if ( source.tableData == null )
+			{
+				continue;
+			}
 
 			segmentationDisplay.segments.addAll( createAnnotatedImageSegmentsFromTableFile(
 					moBIE2.getDefaultTablePath( source ),

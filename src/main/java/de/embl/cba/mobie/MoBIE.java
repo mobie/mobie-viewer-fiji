@@ -242,7 +242,7 @@ public class MoBIE
 			case BdvN5S3:
 				final String relativePath = source.imageData.get( imageDataFormat ).relativePath;
 				return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativePath );
-			case OpenOrganelle:
+			case OpenOrganelleS3:
 				final String s3Address = source.imageData.get( imageDataFormat ).s3Address;
 				throw new UnsupportedOperationException( "Loading openOrganelle not supported yet.");
 			default:
@@ -253,7 +253,8 @@ public class MoBIE
 
 	public String getDefaultTablePath( SegmentationSource source )
 	{
-		return getTablePath( source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath, "default.tsv" );
+		final String relativeTableLocation = source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
+		return getTablePath( relativeTableLocation, "default.tsv" );
 	}
 
 	public String getDefaultTablePath( String relativeTableLocation )
