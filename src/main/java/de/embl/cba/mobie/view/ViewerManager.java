@@ -67,6 +67,8 @@ public class ViewerManager
 
 	public static void initScatterPlotViewer( SegmentationSourceDisplay display )
 	{
+		if ( display.segments.size() == 0 ) return;
+
 		display.scatterPlotViewer = new ScatterPlotViewer<>( display.segments, display.selectionModel, display.coloringModel, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
 		display.coloringModel.listeners().add( display.scatterPlotViewer );
@@ -270,7 +272,15 @@ public class ViewerManager
 	{
 		fetchSegmentsFromTables( segmentationDisplay );
 
-		segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.segments );
+		if ( segmentationDisplay.segments != null )
+		{
+			segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.segments );
+		}
+		else
+		{
+			segmentationDisplay.segmentAdapter = new SegmentAdapter();
+		}
+
 		ColoringModelHelper.configureMoBIEColoringModel( segmentationDisplay );
 		segmentationDisplay.selectionModel = new DefaultSelectionModel<>();
 		segmentationDisplay.coloringModel.setSelectionModel(  segmentationDisplay.selectionModel );
@@ -283,35 +293,38 @@ public class ViewerManager
 		}
 
 		initSliceViewer( segmentationDisplay );
-		initTableViewer( segmentationDisplay );
-		initScatterPlotViewer( segmentationDisplay );
-		initVolumeViewer( segmentationDisplay );
 
-		SwingUtilities.invokeLater( () ->
+		if ( segmentationDisplay.segments != null )
 		{
-			WindowArrangementHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
-		} );
+			initTableViewer( segmentationDisplay );
+			initScatterPlotViewer( segmentationDisplay );
+
+			SwingUtilities.invokeLater( () ->
+			{
+				WindowArrangementHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
+			} );
+		}
+
+		initVolumeViewer( segmentationDisplay );
 	}
 
 	private void fetchSegmentsFromTables( SegmentationSourceDisplay segmentationDisplay )
 	{
 		final List< String > tables = segmentationDisplay.getTables();
 
-		if ( tables != null )
+		if ( tables == null ) return;
+
+		// primary table
+		moBIE.loadPrimarySegmentsTables( segmentationDisplay );
+
+		// secondary tables
+		if ( tables.size() > 1 )
 		{
-			// primary table
-			moBIE.loadPrimarySegmentsTables( segmentationDisplay );
+			final List< String > additionalTables = tables.subList( 1, tables.size() );
 
-			// secondary tables
-			if ( tables.size() > 1 )
-			{
-				final List< String > additionalTables = tables.subList( 1, tables.size() );
-
-				moBIE.appendSegmentsTables( segmentationDisplay, additionalTables );
-			}
+			moBIE.appendSegmentsTables( segmentationDisplay, additionalTables );
 		}
 
-		// check  validity
 		for ( TableRowImageSegment segment : segmentationDisplay.segments )
 		{
 			if ( segment.labelId() == 0 )

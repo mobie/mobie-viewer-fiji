@@ -294,7 +294,8 @@ public class MoBIE
 		}
 	}
 
-	private String getRelativeTableLocation( SegmentationSource source ) {
+	private String getRelativeTableLocation( SegmentationSource source )
+	{
 		return source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
 	}
 

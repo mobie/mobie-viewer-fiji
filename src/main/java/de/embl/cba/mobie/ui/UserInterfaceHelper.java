@@ -338,8 +338,18 @@ public class UserInterfaceHelper
 		panel.add( createSpace() );
 		panel.add( createSliceViewerVisibilityCheckbox( true, display.sourceAndConverters ) );
 		panel.add( createVolumeViewerVisibilityCheckbox( display ) );
-		panel.add( createWindowVisibilityCheckbox( true, display.tableViewer.getWindow() ) );
-		panel.add( createScatterPlotViewerVisibilityCheckbox( display,  display.showScatterPlot() ) );
+		if ( display.segments != null )
+		{
+			// table view
+			panel.add( createWindowVisibilityCheckbox( true, display.tableViewer.getWindow() ) );
+			// scatter plot view
+			panel.add( createScatterPlotViewerVisibilityCheckbox( display, display.showScatterPlot() ) );
+		}
+		else
+		{
+			panel.add( createCheckboxPlaceholder() );
+			panel.add( createCheckboxPlaceholder() );
+		}
 
 		return panel;
 	}
