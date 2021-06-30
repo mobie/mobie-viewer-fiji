@@ -28,11 +28,7 @@
  */
 package de.embl.cba.mobie.plot;
 
-import bdv.util.BdvFunctions;
-import bdv.util.BdvHandle;
-import bdv.util.BdvOptions;
-import bdv.util.BdvStackSource;
-import bdv.util.Prefs;
+import bdv.util.*;
 import bdv.viewer.TimePointListener;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
@@ -282,6 +278,9 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		Prefs.showScaleBar( false );
 
 		final BdvOptions bdvOptions = BdvOptions.options().is2D().frameTitle( createPlotName( selectedColumns ) ).addTo( bdvHandle );
+		if ( bdvHandle != null ) {
+			((BdvHandleFrame) bdvHandle).getBigDataViewer().getViewerFrame().setTitle( createPlotName(selectedColumns) );
+		}
 
 		scatterPlotSource = BdvFunctions.show(
 				randomAccessible,
