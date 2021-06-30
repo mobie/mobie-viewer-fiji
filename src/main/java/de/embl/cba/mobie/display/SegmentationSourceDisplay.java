@@ -2,6 +2,7 @@ package de.embl.cba.mobie.display;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.Constants;
+import de.embl.cba.mobie.color.LabelConverter;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
 import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie.segment.SegmentAdapter;
@@ -115,9 +116,9 @@ public class SegmentationSourceDisplay extends SourceDisplay
 
 		final SourceAndConverter< ? > sourceAndConverter = segmentationDisplay.sourceAndConverters.get( 0 );
 
-		if( sourceAndConverter.getConverter() instanceof AdjustableOpacityColorConverter)
+		if( sourceAndConverter.getConverter() instanceof LabelConverter )
 		{
-			this.opacity = ( ( AdjustableOpacityColorConverter ) sourceAndConverter.getConverter() ).getOpacity();
+			this.opacity = ( ( LabelConverter ) sourceAndConverter.getConverter() ).getOpacity();
 		}
 
 		this.lut = segmentationDisplay.coloringModel.getARGBLutName();
