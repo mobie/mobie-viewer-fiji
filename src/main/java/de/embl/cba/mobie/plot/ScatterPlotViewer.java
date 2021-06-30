@@ -132,6 +132,10 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		}
 	}
 
+	public void setShowColumnSelectionUI( boolean showColumnSelectionUI ) {
+		this.showColumnSelectionUI = showColumnSelectionUI;
+	}
+
 	public List< VisibilityListener > getListeners()
 	{
 		return listeners;
