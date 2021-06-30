@@ -30,7 +30,7 @@ public class SegmentationSourceDisplay extends SourceDisplay
 	private boolean showSelectedSegmentsIn3d = false;
 	private boolean showScatterPlot = false;
 	private String[] scatterPlotAxes = new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y };
-	private List< String > tables; // table columns in addition to default
+	private List< String > tables; // tables to display
 
 	// Runtime
 	public transient SelectionModel< TableRowImageSegment > selectionModel;
@@ -150,7 +150,14 @@ public class SegmentationSourceDisplay extends SourceDisplay
 		this.showSelectedSegmentsIn3d = segmentationDisplay.segmentsVolumeViewer.getShowSegments();
 		this.showScatterPlot = segmentationDisplay.scatterPlotViewer.isVisible();
 		this.scatterPlotAxes = segmentationDisplay.scatterPlotViewer.getSelectedColumns();
-		this.tables = segmentationDisplay.tableViewer.getAdditionalTables();
+		this.tables = segmentationDisplay.tables;
+		List<String> additionalTables = segmentationDisplay.tableViewer.getAdditionalTables();
+		if ( additionalTables.size() > 0 ){
+			if ( this.tables == null ) {
+				this.tables = new ArrayList<>();
+			}
+			this.tables.addAll( additionalTables );
+		}
 	}
 
 }
