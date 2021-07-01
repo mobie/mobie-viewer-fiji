@@ -247,7 +247,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> focusAndSelectClosestPoints(), "Select closest point(s)", "ctrl button1" ) ;
 
-		BdvPopupMenus.addAction( bdvHandle,"Configure point selection",
+		BdvPopupMenus.addAction( bdvHandle,"Configure point(s) selection...",
 				( x, y ) -> {
 					final GenericDialog genericDialog = new GenericDialog( "Point selection configuration" );
 					genericDialog.addChoice( "Selection mode",  Arrays.stream( PointSelectionModes.values() ).map( Enum::name ).toArray( String[]::new ), pointSelectionMode.toString()  );
@@ -262,7 +262,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 	private void installFocusClosestPoint( Behaviours behaviours )
 	{
-		BdvPopupMenus.addAction( bdvHandle,"Focus closest point [Left-Click ]",
+		BdvPopupMenus.addAction( bdvHandle,"Focus closest point [ Left-Click ]",
 				( x, y ) -> focusClosestPoint()
 		);
 
