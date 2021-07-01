@@ -47,10 +47,12 @@ import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import ij.IJ;
+import ij.gui.GenericDialog;
 import net.imglib2.FinalInterval;
 import net.imglib2.KDTree;
 import net.imglib2.RealPoint;
 import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
+import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -62,6 +64,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -70,6 +73,14 @@ import java.util.stream.Collectors;
 
 public class ScatterPlotViewer< T extends TableRow > implements SelectionListener< T >, ColoringListener, TimePointListener
 {
+	public enum PointSelectionModes
+	{
+		Closest,
+		WithinRadius;
+	}
+	private PointSelectionModes pointSelectionMode = PointSelectionModes.Closest;
+	private double selectionRadius = 1.0;
+
 	private final List< T > tableRows;
 	private final ColoringModel< T > coloringModel;
 	private final SelectionModel< T > selectionModel;
@@ -81,11 +92,12 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private Map< T, RealPoint > tableRowToRealPoint;
 	private T recentFocus;
 	private Window window;
-	private NearestNeighborSearchOnKDTree< T > search;
+	private NearestNeighborSearchOnKDTree< T > nearestNeighborSearchOnKDTree;
 	private BdvStackSource< ARGBType > scatterPlotSource;
 	private int currentTimepoint;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	private boolean showColumnSelectionUI = true;
+	private RadiusNeighborSearchOnKDTree< T > radiusNeighborSearchOnKDTree;
 
 	public ScatterPlotViewer(
 			List< T > tableRows,
@@ -146,7 +158,8 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		double[] min = kdTreeSupplier.getMin();
 		double[] max = kdTreeSupplier.getMax();
 		tableRowToRealPoint = kdTreeSupplier.getTableRowToRealPoint();
-		search = new NearestNeighborSearchOnKDTree<>( kdTree );
+		nearestNeighborSearchOnKDTree = new NearestNeighborSearchOnKDTree<>( kdTree );
+		radiusNeighborSearchOnKDTree = new RadiusNeighborSearchOnKDTree<>( kdTree );
 
 		double aspectRatio = ( max[ 1 ] - min[ 1 ] ) / ( max[ 0 ] - min[ 0 ] );
 		if ( aspectRatio > 10 || aspectRatio < 0.1 )
@@ -201,17 +214,10 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( bdvHandle.getTriggerbindings(), getBehavioursName() );
 		behaviours.getBehaviourMap().clear();
-		BdvPopupMenus.addAction( bdvHandle,"Focus closest point [Left-Click ]",
-				( x, y ) -> focusAndSelectClosestPoint( search, true )
-		);
 
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> focusAndSelectClosestPoint( search, true ), "Focus closest point", "button1" ) ;
+		installFocusClosestPoint( behaviours );
 
-		BdvPopupMenus.addAction( bdvHandle,"Select closest point [ Ctrl Left-Click ]",
-				( x, y ) -> focusAndSelectClosestPoint( search, false )
-		);
-
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> focusAndSelectClosestPoint( search, false ), "Select closest point", "ctrl button1" ) ;
+		installSelectClosestPoints( behaviours );
 
 		BdvPopupMenus.addAction( bdvHandle,"Reconfigure...",
 			( x, y ) -> {
@@ -233,23 +239,48 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		);
 	}
 
+	private void installSelectClosestPoints( Behaviours behaviours )
+	{
+		BdvPopupMenus.addAction( bdvHandle,"Select closest point(s) [ Ctrl Left-Click ]",
+				( x, y ) -> focusAndSelectClosestPoints()
+		);
+
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> focusAndSelectClosestPoints(), "Select closest point(s)", "ctrl button1" ) ;
+
+		BdvPopupMenus.addAction( bdvHandle,"Configure point selection",
+				( x, y ) -> {
+					final GenericDialog genericDialog = new GenericDialog( "Point selection configuration" );
+					genericDialog.addChoice( "Selection mode",  Arrays.stream( PointSelectionModes.values() ).map( Enum::name ).toArray( String[]::new ), pointSelectionMode.toString()  );
+					genericDialog.addNumericField( "Radius", selectionRadius );
+					genericDialog.showDialog();
+					if ( genericDialog.wasCanceled() ) return;
+					pointSelectionMode = PointSelectionModes.valueOf( genericDialog.getNextChoice() );
+					selectionRadius = genericDialog.getNextNumber();
+				}
+		);
+	}
+
+	private void installFocusClosestPoint( Behaviours behaviours )
+	{
+		BdvPopupMenus.addAction( bdvHandle,"Focus closest point [Left-Click ]",
+				( x, y ) -> focusClosestPoint()
+		);
+
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> focusClosestPoint(), "Focus closest point", "button1" ) ;
+	}
+
 	private String getBehavioursName()
 	{
 		return "scatterplot" + selectedColumns[ 0 ] + selectedColumns[ 1 ];
 	}
 
-	private synchronized void focusAndSelectClosestPoint( NearestNeighborSearchOnKDTree< T > search, boolean focusOnly )
+	private synchronized void focusAndSelectClosestPoints( )
 	{
-		final T selection = searchClosestPoint( search );
-
-		if ( selection != null )
+		if ( pointSelectionMode.equals( PointSelectionModes.Closest ) )
 		{
-			if ( focusOnly )
-			{
-				recentFocus = selection;
-				selectionModel.focus( selection );
-			}
-			else
+			final T selection = searchClosestPoint();
+
+			if ( selection != null )
 			{
 				selectionModel.toggle( selection );
 				if ( selectionModel.isSelected( selection ) )
@@ -259,17 +290,54 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 				}
 			}
 		}
-		else
-			throw new RuntimeException( "No closest point found." );
+		else if ( pointSelectionMode.equals( PointSelectionModes.WithinRadius ) )
+		{
+			final ArrayList< T > selection = searchWithinRadius();
+
+			if ( selection != null )
+			{
+				selectionModel.setSelected( selection, true );
+			}
+		}
 	}
 
-	private T searchClosestPoint( NearestNeighborSearchOnKDTree< T > search )
+	private synchronized void focusClosestPoint()
+	{
+		final T selection = searchClosestPoint();
+
+		if ( selection != null )
+		{
+			recentFocus = selection;
+			selectionModel.focus( selection );
+		}
+		else
+		{
+			throw new RuntimeException( "No closest point found." );
+		}
+	}
+
+	private T searchClosestPoint(  )
 	{
 		final RealPoint realPoint = new RealPoint( 3 );
 		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( realPoint );
 		RealPoint realPoint2d = new RealPoint( realPoint.getDoublePosition( 0 ), realPoint.getDoublePosition( 1 ) );
-		search.search( realPoint2d );
-		return search.getSampler().get();
+		nearestNeighborSearchOnKDTree.search( realPoint2d );
+		return nearestNeighborSearchOnKDTree.getSampler().get();
+	}
+
+	private ArrayList< T > searchWithinRadius(  )
+	{
+		final RealPoint realPoint = new RealPoint( 3 );
+		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( realPoint );
+		RealPoint realPoint2d = new RealPoint( realPoint.getDoublePosition( 0 ), realPoint.getDoublePosition( 1 ) );
+		radiusNeighborSearchOnKDTree.search( realPoint2d, selectionRadius, true );
+		final int numNeighbors = radiusNeighborSearchOnKDTree.numNeighbors();
+		final ArrayList< T > neighbors = new ArrayList<>();
+		for ( int i = 0; i < numNeighbors; i++ )
+		{
+			neighbors.add( radiusNeighborSearchOnKDTree.getSampler( i ).get() );
+		}
+		return neighbors;
 	}
 
 	private void showInBdv( FunctionRealRandomAccessible< ARGBType > randomAccessible, FinalInterval interval, String[] selectedColumns )
