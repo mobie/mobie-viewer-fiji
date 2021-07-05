@@ -264,7 +264,7 @@ public class ViewerManager
 
 	private void showImageDisplay( ImageSourceDisplay imageDisplay )
 	{
-		imageDisplay.imageSliceView = new ImageSliceView( imageDisplay, bdvHandle, ( List< String > name ) -> moBIE.openSourceAndConverters( name ) );
+		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle, ( List< String > name ) -> moBIE.openSourceAndConverters( name ) );
 	}
 
 	// TODO: own class: SegmentationDisplayConfigurator
