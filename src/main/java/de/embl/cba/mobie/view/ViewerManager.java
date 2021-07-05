@@ -166,7 +166,6 @@ public class ViewerManager
 		{
 			for ( SourceDisplay sourceDisplay : sourceDisplays )
 			{
-				// TODO: why are there transforms done here and below...
 				sourceDisplay.sourceTransformers = view.getSourceTransforms();
 				showSourceDisplay( sourceDisplay );
 			}
@@ -354,9 +353,12 @@ public class ViewerManager
 		{
 			final SegmentationSourceDisplay segmentationDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
 			segmentationDisplay.segmentationImageSliceView.close();
-			segmentationDisplay.tableViewer.close();
-			segmentationDisplay.scatterPlotViewer.close();
-			segmentationDisplay.segmentsVolumeViewer.close();
+			if ( segmentationDisplay.segments != null )
+			{
+				segmentationDisplay.tableViewer.close();
+				segmentationDisplay.scatterPlotViewer.close();
+				segmentationDisplay.segmentsVolumeViewer.close();
+			}
 		}
 		else if ( sourceDisplay instanceof ImageSourceDisplay )
 		{
