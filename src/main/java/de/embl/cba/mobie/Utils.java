@@ -4,12 +4,13 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.tables.FileUtils;
+import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
 import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
+import ij.gui.GenericDialog;
 import net.imglib2.*;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
@@ -20,9 +21,103 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
+import static de.embl.cba.mobie.ui.SwingHelper.selectionDialog;
 
 public abstract class Utils
 {
+	public enum FileLocation {
+		Project,
+		FileSystem
+	}
+
+	private static String chooseCommonFileName( List<String> directories, String objectName ) {
+		Map<String, Integer> fileNameCounts = new HashMap<>();
+		ArrayList<String> commonFileNames = new ArrayList<>();
+
+		for ( String directory: directories ) {
+			String[] directoryFileNames = FileAndUrlUtils.getFileNames( directory );
+			for ( String directoryFileName: directoryFileNames ) {
+				if ( fileNameCounts.containsKey( directoryFileName ) ) {
+					int count = fileNameCounts.get(directoryFileName);
+					fileNameCounts.put( directoryFileName, count + 1 );
+				} else {
+					fileNameCounts.put( directoryFileName, 1 );
+				}
+			}
+		}
+
+		for ( String fileName: fileNameCounts.keySet() ) {
+			if ( fileNameCounts.get( fileName ) == directories.size() ) {
+				commonFileNames.add( fileName );
+			}
+		}
+
+		if ( commonFileNames.size() > 0 ) {
+			String[] choices = new String[commonFileNames.size()];
+			for (int i = 0; i < choices.length; i++) {
+				choices[i] = commonFileNames.get(i);
+			}
+			return selectionDialog(choices, objectName);
+		} else {
+			return null;
+		}
+	}
+
+	public static FileLocation loadFromProjectOrFileSystemDialog() {
+		final GenericDialog gd = new GenericDialog("Choose source");
+		gd.addChoice("Load from", new String[]{FileLocation.Project.toString(),
+				FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
+		gd.showDialog();
+		if (gd.wasCanceled()) return null;
+		return FileLocation.valueOf(gd.getNextChoice());
+	}
+
+	public static String selectCommonFileNameFromProject( List<String> directories, String objectName ) {
+		if ( directories == null ) {
+			return null;
+		}
+
+		String fileName;
+		if ( directories.size() > 1) {
+			// when there are multiple directories, we only allow selection of items that are present with the same name in
+			// all of them
+			fileName = chooseCommonFileName(directories, objectName);
+		} else {
+			String[] fileNames = FileAndUrlUtils.getFileNames( directories.get(0) );
+			fileName = selectionDialog( fileNames, objectName );
+		}
+
+		return fileName;
+	}
+
+	public static String selectPathFromProject( String directory, String objectName ) {
+		if ( directory == null ) {
+			return null;
+		}
+
+		String[] fileNames = FileAndUrlUtils.getFileNames( directory );
+		String fileName = selectionDialog( fileNames, objectName );
+		if ( fileName != null ) {
+			return FileAndUrlUtils.combinePath( directory, fileName );
+		} else {
+			return null;
+		}
+	}
+
+	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
+	public static String selectPathFromFileSystem ( String objectName )
+	{
+		try
+		{
+			return FileAndUrlUtils.selectPath( System.getProperty("user.home"), objectName );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( "File not found: " + objectName );
+		}
+	}
+
 	public static < T > SourceAndConverter< T > getSource( List< SourceAndConverter< T > > sourceAndConverters, String name )
 	{
 		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
@@ -79,9 +174,9 @@ public abstract class Utils
 	public static String resolveTablePath( String tablePath )
 	{
 		if ( tablePath.startsWith( "http" ) ) {
-			tablePath = FileUtils.resolveTableURL( URI.create(tablePath) );
+			tablePath = FileAndUrlUtils.resolveURL( URI.create( tablePath ) );
 		} else {
-			tablePath = FileUtils.resolveTablePath( tablePath );
+			tablePath = FileAndUrlUtils.resolvePath( tablePath );
 		}
 		return tablePath;
 	}
@@ -197,6 +292,15 @@ public abstract class Utils
 		else
 		{
 			return new File( path ).getName();
+		}
+	}
+
+	public static void toDoubleStrings( List< String > values )
+	{
+		final int size = values.size();
+		for ( int i = 0; i < size; i++ )
+		{
+			values.set( i, String.valueOf( Double.parseDouble( values.get( i ) ) ) );
 		}
 	}
 }

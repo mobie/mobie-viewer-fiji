@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.transform.SourceTransformer;
+import de.embl.cba.mobie.transform.ViewerTransform;
 import de.embl.cba.tables.FileAndUrlUtils;
 
 import java.io.InputStream;
@@ -35,7 +36,7 @@ public class JsonHelper
 		}
 	}
 
-	public static Object getObject( JsonDeserializationContext context, JsonElement je, Map< String, Class > nameToClass )
+	public static Object createObjectFromJsonValue( JsonDeserializationContext context, JsonElement je, Map< String, Class > nameToClass )
 	{
 		final JsonObject jsonObject = je.getAsJsonObject();
 		final Map.Entry< String, JsonElement > jsonElementEntry = jsonObject.entrySet().iterator().next();
@@ -46,11 +47,23 @@ public class JsonHelper
 		return deserialize;
 	}
 
+	public static Object createObjectFromJsonObject( JsonDeserializationContext context, JsonElement je, Map< String, Class > nameToClass )
+	{
+		final JsonObject jsonObject = je.getAsJsonObject();
+		final Map.Entry< String, JsonElement > jsonElementEntry = jsonObject.entrySet().iterator().next();
+		Class c = nameToClass.get( jsonElementEntry.getKey() );
+		if (c == null)
+			throw new RuntimeException("Unknown class: " + jsonElementEntry.getKey());
+		final Object deserialize = context.deserialize( jsonObject, c );
+		return deserialize;
+	}
+
 	public static Gson buildGson( boolean prettyPrinting )
 	{
 		GsonBuilder gb = new GsonBuilder();
 		gb.registerTypeAdapter( new TypeToken<List<SourceTransformer>>(){}.getType(), new SourceTransformerListAdapter());
 		gb.registerTypeAdapter( new TypeToken<List<SourceDisplay>>(){}.getType(), new SourceDisplayListAdapter());
+		gb.registerTypeAdapter( new TypeToken< ViewerTransform >(){}.getType(), new ViewerTransformAdapter());
 
 		if ( prettyPrinting ) {
 			gb.setPrettyPrinting();

@@ -27,12 +27,12 @@ public class SourceTransformerListAdapter implements JsonSerializer< List< Sourc
 	@Override
 	public List< SourceTransformer > deserialize( JsonElement json, Type typeOfT, JsonDeserializationContext context ) throws JsonParseException
 	{
-		List list = new ArrayList<SourceTransformer>();
+		List list = new ArrayList< SourceTransformer >();
 		JsonArray ja = json.getAsJsonArray();
 
-		for (JsonElement je : ja)
+		for ( JsonElement je : ja )
 		{
-			list.add( JsonHelper.getObject( context, je, nameToClass ));
+			list.add( JsonHelper.createObjectFromJsonValue( context, je, nameToClass ) );
 		}
 
 		return list;

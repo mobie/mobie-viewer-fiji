@@ -1,31 +1,44 @@
 package de.embl.cba.mobie.transform;
 
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
-import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class AffineSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
 {
-	private double[] parameters;
+	// Serialisation
+	protected double[] parameters;
+	protected List< String > sources;
+	protected List< String > sourceNamesAfterTransform;
 
 	@Override
-	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sources )
+	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sourceAndConverters )
 	{
-		final ArrayList< SourceAndConverter< T > > transformedSources = new ArrayList<>( sources );
+		final ArrayList< SourceAndConverter< T > > transformedSources = new ArrayList<>( sourceAndConverters );
 
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parameters );
-		final SourceAffineTransformer transformer = new SourceAffineTransformer( affineTransform3D );
 
-		for ( SourceAndConverter< ? > source : sources )
+		for ( SourceAndConverter< ? > source : sourceAndConverters )
 		{
-			final String name = source.getSpimSource().getName();
-			if ( this.sources.contains( name ) )
+			String name = source.getSpimSource().getName();
+			if ( sources.contains( name ) )
 			{
+				SourceAffineTransformer transformer;
+				if ( sourceNamesAfterTransform != null )
+				{
+					name = sourceNamesAfterTransform.get( sources.indexOf( name ) );
+					transformer = new SourceAffineTransformer( affineTransform3D, name );
+				}
+				else
+				{
+					transformer = new SourceAffineTransformer( affineTransform3D );
+				}
+
 				final SourceAndConverter transformedSource = transformer.apply( source );
 				// replace the source in the list
 				transformedSources.remove( source );

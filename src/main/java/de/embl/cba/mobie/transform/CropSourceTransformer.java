@@ -2,7 +2,7 @@ package de.embl.cba.mobie.transform;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.mobie.source.SourceChanger;
+import de.embl.cba.mobie.playground.SourceChanger;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
@@ -14,10 +14,12 @@ import java.util.function.Function;
 
 public class CropSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
 {
-	private List< String > names; // optional new names after transformation
-	private double[] min;
-	private double[] max;
-	private boolean shiftToOrigin = true;
+	protected double[] min;
+	protected double[] max;
+	protected List< String > sources;
+	protected List< String > sourceNamesAfterTransform;
+
+	protected boolean shiftToOrigin = true;
 
 	@Override
 	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sourceAndConverters )
@@ -48,12 +50,8 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 				if ( shiftToOrigin == true )
 				{
 					transform3D.translate( Arrays.stream( min ).map( x -> -x ).toArray() );
-					sourceNameToTransform.put( transformedSourceName, transform3D );
 				}
-				else
-				{
-					sourceNameToTransform.put( transformedSourceName, transform3D );
-				}
+				sourceNameToTransform.put( transformedSourceName, transform3D );
 			}
 		}
 
@@ -62,15 +60,13 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 
 	private String getTransformedSourceName( String inputSourceName )
 	{
-		String transformedSourceName;
-		if ( names != null )
+		if ( sourceNamesAfterTransform != null )
 		{
-			transformedSourceName = names.get( this.sources.indexOf( inputSourceName ) );
+			return sourceNamesAfterTransform.get( this.sources.indexOf( inputSourceName ) );
 		}
 		else
 		{
-			transformedSourceName = inputSourceName;
+			return inputSourceName;
 		}
-		return transformedSourceName;
 	}
 }

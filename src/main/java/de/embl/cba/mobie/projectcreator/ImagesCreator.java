@@ -54,12 +54,12 @@ public class ImagesCreator {
 
     private String getDefaultLocalImageXmlPath( String datasetName, String imageName ) {
         return FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(), datasetName,
-                "images", "local", imageName + ".xml");
+                "images", imageFormatToFolderName( ImageDataFormat.BdvN5 ), imageName + ".xml");
     }
 
     private String getDefaultLocalImageDirPath( String datasetName ) {
         return FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(), datasetName,
-                "images", "local" );
+                "images", imageFormatToFolderName( ImageDataFormat.BdvN5 ) );
     }
 
     private String getDefaultTableDirPath( String datasetName, String imageName ) {

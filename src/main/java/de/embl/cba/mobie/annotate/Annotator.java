@@ -41,6 +41,7 @@ import net.imglib2.type.numeric.ARGBType;
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -244,7 +245,7 @@ public class Annotator< T extends TableRow > extends JFrame
 			isSingleRowBrowsingMode = true;
 
 			// rowIndex in sorted "units"
-			int rowIndex = rowSorter.convertRowIndexToView( currentlySelectedRow.rowIndex() );
+			int rowIndex = rowSorter.convertRowIndexToView( tableRows.indexOf( currentlySelectedRow ) );
 			if ( rowIndex < tableRows.size() - 1 )
 			{
 				T row = null;
@@ -257,8 +258,7 @@ public class Annotator< T extends TableRow > extends JFrame
 						{
 							row = null;
 							continue;
-						}
-						else
+						} else
 						{
 							break;
 						}
@@ -271,14 +271,12 @@ public class Annotator< T extends TableRow > extends JFrame
 					}
 
 					selectRow( row );
-				}
-				else
+				} else
 				{
 					row = tableRows.get( rowSorter.convertRowIndexToModel( ++rowIndex ) );
 					selectRow( row );
 				}
-			}
-			else
+			} else
 			{
 				IJ.showMessage( NO_MORE_SEGMENTS );
 			}
@@ -297,7 +295,7 @@ public class Annotator< T extends TableRow > extends JFrame
 			isSingleRowBrowsingMode = true;
 
 			// row index in sorted "units"
-			int rowIndex = rowSorter.convertRowIndexToView( currentlySelectedRow.rowIndex() );
+			int rowIndex = rowSorter.convertRowIndexToView( tableRows.indexOf( currentlySelectedRow ) );
 			if ( rowIndex > 0 )
 			{
 				T row = null;

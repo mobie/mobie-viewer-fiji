@@ -2,6 +2,8 @@ package de.embl.cba.mobie.bdv;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie.color.LabelConverter;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
@@ -26,12 +28,14 @@ import java.util.List;
 public class SegmentationImageSliceView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
 	private final SourceAndConverterBdvDisplayService displayService;
+	private final MoBIE moBIE;
 	private final SegmentationSourceDisplay segmentationDisplay;
 	private BdvHandle bdvHandle;
 	private final SourceAndConverterSupplier sourceAndConverterSupplier;
 
-	public SegmentationImageSliceView( SegmentationSourceDisplay segmentationDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
+	public SegmentationImageSliceView( MoBIE moBIE, SegmentationSourceDisplay segmentationDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
 	{
+		this.moBIE = moBIE;
 		this.segmentationDisplay = segmentationDisplay;
 		this.bdvHandle = bdvHandle;
 		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
@@ -54,10 +58,12 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		// convert to labelSource
 		sourceAndConverters = asLabelSources( sourceAndConverters );
 
-		// adjust opacity and show in BDV
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			( ( LabelConverter ) sourceAndConverter.getConverter() ).setOpacity( segmentationDisplay.getOpacity() );
+			// set opacity
+			OpacityAdjuster.adjustOpacity( sourceAndConverter, segmentationDisplay.getOpacity() );
+
+			// show
 			displayService.show( bdvHandle, sourceAndConverter );
 			bdvHandle.getViewerPanel().addTimePointListener( (LabelConverter) sourceAndConverter.getConverter() );
 		}
@@ -95,8 +101,9 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )
 		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+			moBIE.closeSourceAndConverter( sourceAndConverter );
 		}
+		segmentationDisplay.sourceAndConverters.clear();
 	};
 
 	@Override

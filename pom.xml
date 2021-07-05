@@ -78,11 +78,11 @@
 		<!-- Java 8	Update Site	-->
 		<imglib2.version>5.11.1</imglib2.version>
 		<imglib2-cache.version>1.0.0-beta-16</imglib2-cache.version>
-		<bigdataviewer-core.version>10.2.0</bigdataviewer-core.version>
+		<bigdataviewer-core.version>10.2.1-SNAPSHOT</bigdataviewer-core.version>
 		<bigdataviewer-vistools.version>1.0.0-beta-28</bigdataviewer-vistools.version>
 
 		<!-- BIOP -->
-		<bigdataviewer-playground.version>0.2.14-SNAPSHOT</bigdataviewer-playground.version>
+		<bigdataviewer-playground.version>0.2.14</bigdataviewer-playground.version>
 
 		<!-- EMBL CBA -->
 		<imagej-utils.version>0.6.4-SNAPSHOT</imagej-utils.version>

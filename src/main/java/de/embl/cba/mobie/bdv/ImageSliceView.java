@@ -4,6 +4,8 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
+import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie.color.opacity.VolatileAdjustableOpacityColorConverter;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
@@ -30,13 +32,15 @@ import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 public class ImageSliceView
 {
 	private final SourceAndConverterBdvDisplayService displayService;
+	private final MoBIE moBIE;
 	private final ImageSourceDisplay imageDisplay;
 	private final BdvHandle bdvHandle;
 	private final SourceAndConverterSupplier sourceAndConverterSupplier;
 	private final SourceAndConverterService sacService;
 
-	public ImageSliceView( ImageSourceDisplay imageDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
+	public ImageSliceView( MoBIE moBIE, ImageSourceDisplay imageDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier )
 	{
+		this.moBIE = moBIE;
 		this.imageDisplay = imageDisplay;
 		this.bdvHandle = bdvHandle;
 		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
@@ -63,10 +67,15 @@ public class ImageSliceView
 
 			// TODO: understand this madness
 			final Converter< RealType, ARGBType > converter = ( Converter< RealType, ARGBType > ) sourceAndConverter.getConverter();
+			final AdjustableOpacityColorConverter adjustableOpacityColorConverter = new AdjustableOpacityColorConverter( converter );
 			final Converter< ? extends Volatile< ? >, ARGBType > volatileConverter = sourceAndConverter.asVolatile().getConverter();
-			sourceAndConverter = new ConverterChanger( sourceAndConverter, new AdjustableOpacityColorConverter(  converter ), new VolatileAdjustableOpacityColorConverter( volatileConverter ) ).get();
+			final VolatileAdjustableOpacityColorConverter volatileAdjustableOpacityColorConverter = new VolatileAdjustableOpacityColorConverter( volatileConverter );
+			sourceAndConverter = new ConverterChanger( sourceAndConverter, adjustableOpacityColorConverter, volatileAdjustableOpacityColorConverter ).get();
 
-			// adapt color
+			// set opacity
+			OpacityAdjuster.adjustOpacity( sourceAndConverter, imageDisplay.getOpacity() );
+
+			// set color
 			adaptImageColor( sourceAndConverter );
 
 			// set blending mode
@@ -118,7 +127,9 @@ public class ImageSliceView
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )
 		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+			moBIE.closeSourceAndConverter( sourceAndConverter );
 		}
+		imageDisplay.sourceAndConverters.clear();
 	}
+
 }

@@ -1,12 +1,6 @@
 package publication.platybrowser;
 
-import de.embl.cba.mobie.MoBIE;
-import de.embl.cba.mobie.MoBIESettings;
-import de.embl.cba.mobie.transform.BdvLocationChanger;
-import de.embl.cba.mobie.transform.BdvLocation;
 import net.imagej.ImageJ;
-
-import java.awt.*;
 
 public class RegistrationVisualisationMuscles
 {

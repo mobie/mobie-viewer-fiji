@@ -1,5 +1,6 @@
 package develop;
 
+import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
 
 import java.io.BufferedReader;
@@ -18,7 +19,7 @@ public class ExploreTableLoadingFromGitlab
 		while ((inputLine = in.readLine()) != null)
 				System.out.println(inputLine);
 
-		final BufferedReader reader = Tables.getReader( "https://git.embl.de/tischer/platy-browser-tables/raw/dev/data/0.2.1/tables/sbem-6dpf-1-whole-segmented-nuclei-labels/default.csv" );
+		final BufferedReader reader = FileAndUrlUtils.getReader( "https://git.embl.de/tischer/platy-browser-tables/raw/dev/data/0.2.1/tables/sbem-6dpf-1-whole-segmented-nuclei-labels/default.csv" );
 
 		System.out.println( reader.readLine() );
 

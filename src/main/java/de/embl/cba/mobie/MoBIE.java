@@ -1,7 +1,14 @@
 package de.embl.cba.mobie;
 
+import bdv.SpimSource;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.Logger;
+import de.embl.cba.mobie.display.SegmentationSourceDisplay;
+import de.embl.cba.mobie.grid.DefaultAnnotatedIntervalTableRow;
+import de.embl.cba.mobie.n5.N5ImageLoader;
+import de.embl.cba.mobie.n5.N5S3ImageLoader;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
@@ -13,14 +20,20 @@ import de.embl.cba.mobie.ui.WindowArrangementHelper;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.view.ViewerManager;
 import de.embl.cba.tables.FileAndUrlUtils;
+import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.github.GitHubUtils;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.sequence.ImgLoader;
 import sc.fiji.bdvpg.PlaygroundPrefs;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -28,6 +41,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static de.embl.cba.mobie.Utils.createAnnotatedImageSegmentsFromTableFile;
 import static de.embl.cba.mobie.Utils.getName;
 
 public class MoBIE
@@ -45,6 +59,7 @@ public class MoBIE
 	private String projectRoot;
 	private String imageRoot;
 	private String tableRoot;
+	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -59,7 +74,41 @@ public class MoBIE
 		projectName = getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
-		openDataset( project.getDefaultDataset() );
+		sourceNameToImgLoader = new HashMap<>();
+
+		openDataset();
+	}
+
+	public static void mergeImageTable( List< DefaultAnnotatedIntervalTableRow > intervalTableRows, Map< String, List< String > > columns )
+	{
+		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
+		final ArrayList< String > gridIdColumn = TableColumns.getColumn( intervalTableRows, Constants.GRID_ID );
+		referenceColumns.put( Constants.GRID_ID, gridIdColumn );
+
+		// deal with the fact that the grid ids are sometimes
+		// stored as 1 and sometimes as 1.0
+		// after below operation they all will be 1.0, 2.0, ...
+		Utils.toDoubleStrings( gridIdColumn );
+		Utils.toDoubleStrings( columns.get( Constants.GRID_ID ) );
+
+		final Map< String, List< String > > newColumns = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, columns );
+
+		for ( Map.Entry< String, List< String > > column : newColumns.entrySet() )
+		{
+			TableRows.addColumn( intervalTableRows, column.getKey(), column.getValue() );
+		}
+	}
+
+	private void openDataset() throws IOException
+	{
+		if ( this.settings.values.getDataset() != null )
+		{
+			openDataset( this.settings.values.getDataset() );
+		}
+		else
+		{
+			openDataset( project.getDefaultDataset() );
+		}
 	}
 
 	private void setProjectImageAndTableRootLocations( MoBIESettings settings )
@@ -123,7 +172,9 @@ public class MoBIE
 
 		userInterface = new UserInterface( this );
 		viewerManager = new ViewerManager( this, userInterface, dataset.is2D, dataset.timepoints );
-		viewerManager.show( dataset.views.get( "default" ) );
+		final View view = dataset.views.get( "default" );
+		view.setName( "default" );
+		viewerManager.show( view );
 
 		// arrange windows
 		WindowArrangementHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
@@ -207,7 +258,8 @@ public class MoBIE
 		new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
 		final SpimData spimData = BdvUtils.openSpimData( imagePath );
 		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
-		final SourceAndConverter sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+		final SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+		sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 		return sourceAndConverter;
 	}
 
@@ -251,14 +303,22 @@ public class MoBIE
 		}
 	}
 
-	public String getDefaultTablePath( SegmentationSource source )
+	private String getRelativeTableLocation( SegmentationSource source )
 	{
-		return getTablePath( source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath, "default.tsv" );
+		return source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
 	}
 
-	public String getDefaultTablePath( String relativeTableLocation )
+	public String getTablesDirectoryPath( SegmentationSource source ) {
+		return getTablesDirectoryPath( getRelativeTableLocation( source ) );
+	}
+
+	public String getTablesDirectoryPath( String relativeTableLocation ) {
+		return FileAndUrlUtils.combinePath( tableRoot, getDatasetName(), relativeTableLocation );
+	}
+
+	public String getTablePath( SegmentationSource source, String table )
 	{
-		return getTablePath( relativeTableLocation, "default.tsv" );
+		return getTablePath( getRelativeTableLocation( source ), table );
 	}
 
 	public String getTablePath( String relativeTableLocation, String table )
@@ -278,5 +338,155 @@ public class MoBIE
 		for ( String file : files )
 			location = FileAndUrlUtils.combinePath( location, file );
 		return location;
+	}
+
+	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String table )
+	{
+		final SegmentationSource source = ( SegmentationSource ) getSource( sourceName );
+
+		final String defaultTablePath = getTablePath( source, table );
+
+		final List< TableRowImageSegment > segments = createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
+
+		return segments;
+	}
+
+	private Map< String, List< String > > loadAdditionalTable( String imageID, String tablePath )
+	{
+		Logger.log( "Opening table:\n" + tablePath );
+		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
+		TableColumns.addLabelImageIdColumn( columns, Constants.LABEL_IMAGE_ID, imageID );
+		return columns;
+	}
+
+	private List< Map< String, List< String > > > loadAdditionalTables( List<String> sources, String table )
+	{
+		final List< Map< String, List< String > > > additionalTables = new CopyOnWriteArrayList<>();
+
+		final long start = System.currentTimeMillis();
+		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
+
+		for ( String sourceName : sources )
+		{
+			executorService.execute( () -> {
+				Map< String, List< String > > columns =
+						loadAdditionalTable( sourceName, getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
+				additionalTables.add( columns );
+			} );
+		}
+
+		executorService.shutdown();
+		try {
+			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		} catch (InterruptedException e) {
+		}
+
+		System.out.println( "Fetched " + sources.size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
+
+		return additionalTables;
+	}
+
+
+	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay, String table )
+	{
+		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
+
+		// TODO: make parallel
+		for ( String sourceName : segmentationDisplay.getSources() )
+		{
+			final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( sourceName, table );
+			primaryTables.add( primaryTable );
+		}
+
+		return primaryTables;
+	}
+
+	private Map< String, List< String > > createColumnsForMerging( List< TableRowImageSegment > segments, Map< String, List< String > > newColumns )
+	{
+		final ArrayList< String > segmentIdColumn = TableColumns.getColumn( segments, Constants.SEGMENT_LABEL_ID );
+		final ArrayList< String > imageIdColumn = TableColumns.getColumn( segments, Constants.LABEL_IMAGE_ID );
+		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
+		referenceColumns.put( Constants.LABEL_IMAGE_ID, imageIdColumn );
+		referenceColumns.put( Constants.SEGMENT_LABEL_ID, segmentIdColumn );
+
+		// deal with the fact that the label ids are sometimes
+		// stored as 1 and sometimes as 1.0
+		// after below operation they all will be 1.0, 2.0, ...
+		Utils.toDoubleStrings( segmentIdColumn );
+		Utils.toDoubleStrings( newColumns.get( Constants.SEGMENT_LABEL_ID ) );
+
+		final Map< String, List< String > > columnsForMerging = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, newColumns );
+
+		return columnsForMerging;
+	}
+
+	private void mergeSegmentsTable( List< TableRowImageSegment > tableRows, Map< String, List< String > > additionalTable )
+	{
+		// prepare
+		final Map< String, List< String > > columnsForMerging = createColumnsForMerging( tableRows, additionalTable );
+
+		// append
+		for ( Map.Entry< String, List< String > > column : columnsForMerging.entrySet() )
+		{
+			TableRows.addColumn( tableRows, column.getKey(), column.getValue() );
+		}
+	}
+
+	public void appendSegmentsTables( List< String > imageSourceNames, List< String > relativeTablePaths, List< TableRowImageSegment > tableRows )
+	{
+		for ( String table : relativeTablePaths )
+		{
+			// load
+			final List< Map< String, List< String > > > additionalTables = loadAdditionalTables( imageSourceNames, table );
+
+			// concatenate
+			Map< String, List< String > > concatenatedTable = TableColumns.concatenate( additionalTables );
+
+			// merge
+			mergeSegmentsTable( tableRows, concatenatedTable );
+		}
+	}
+
+	public void appendSegmentsTables( String source, String tablePath, List<TableRowImageSegment> tableRows )
+	{
+		// load
+		Map< String, List< String > > additionalTable = loadAdditionalTable( source, tablePath );
+
+		// merge
+		mergeSegmentsTable( tableRows, additionalTable );
+	}
+
+	public void appendSegmentsTables( SegmentationSourceDisplay segmentationDisplay, List< String > relativeTablePaths )
+	{
+		appendSegmentsTables( segmentationDisplay.getSources(), relativeTablePaths, segmentationDisplay.segments );
+	}
+
+	/**
+	 * Primary tables must contain the image segment properties.
+	 */
+	public void loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay )
+	{
+		segmentationDisplay.segments = new ArrayList<>();
+		final ArrayList< List< TableRowImageSegment > > primaryTables = loadPrimarySegmentsTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
+
+		for ( List< TableRowImageSegment > primaryTable : primaryTables )
+		{
+			segmentationDisplay.segments.addAll( primaryTable );
+		}
+	}
+
+	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter )
+	{
+		SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+		String sourceName = sourceAndConverter.getSpimSource().getName();
+		final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
+		if ( imgLoader instanceof N5ImageLoader )
+		{
+			( ( N5ImageLoader ) imgLoader ).close();
+		}
+
+		sourceNameToImgLoader.remove( sourceName );
+
+		//TODO - when we support more image formats e.g. OME-ZARR, we should explicitly close their imgloaders here too
 	}
 }

@@ -1,12 +1,15 @@
 package de.embl.cba.mobie.projectcreator;
 
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
+import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.tables.FileAndUrlUtils;
 import ij.IJ;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.imageFormatToFolderName;
 
 public class DatasetsCreator {
 
@@ -30,8 +33,10 @@ public class DatasetsCreator {
                 new File(datasetDir, "images").mkdirs();
                 new File(datasetDir, "misc").mkdirs();
                 new File(datasetDir, "tables").mkdirs();
-                new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "images", "local")).mkdirs();
-                new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "images", "remote")).mkdirs();
+                new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "images",
+                        imageFormatToFolderName( ImageDataFormat.BdvN5 ))).mkdirs();
+                new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "images",
+                        imageFormatToFolderName( ImageDataFormat.BdvN5S3 ))).mkdirs();
                 new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "misc", "views")).mkdirs();
 
 

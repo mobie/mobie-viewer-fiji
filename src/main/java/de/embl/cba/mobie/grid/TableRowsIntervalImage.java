@@ -32,6 +32,7 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 	private String name;
 	private SourceAndConverter< IntType > sourceAndConverter;
 	private RealInterval union;
+	private int size;
 
 	public TableRowsIntervalImage(
 			List< T > tableRows,
@@ -39,6 +40,7 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 			String name )
 	{
 		this.tableRows = tableRows;
+		size = tableRows.size();
 		this.coloringModel = coloringModel;
 		this.name = name;
 
@@ -69,14 +71,14 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 		{
 			t.setInteger( ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX );
 
-			for ( T annotatedIntervalTableRow : tableRows )
+			for ( int i = 0; i < size; i++ )
 			{
-				final RealInterval interval = annotatedIntervalTableRow.getInterval();
+				final RealInterval interval = tableRows.get( i ).getInterval();
 
 				if ( Intervals.contains( interval, l ) )
 				{
-					final int rowIndex = annotatedIntervalTableRow.rowIndex();
-					t.setInteger( rowIndex );
+					t.setInteger( i );
+					return;
 				}
 			}
 		};

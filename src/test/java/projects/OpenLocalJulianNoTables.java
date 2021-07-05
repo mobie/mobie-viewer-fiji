@@ -7,12 +7,12 @@ import net.imagej.ImageJ;
 
 import java.io.IOException;
 
-public class OpenRemoteZebrafish
+public class OpenLocalJulianNoTables
 {
 	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("https://github.com/mobie/zebrafish-lm-datasets", MoBIESettings.settings().gitProjectBranch( "new-table-spec" ).imageDataFormat( ImageDataFormat.BdvN5S3 ) );
+		final MoBIE moBIE2 = new MoBIE("/Volumes/emcf/hennies/for_constantin/mobie_no_table_test/", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ));
 	}
 }

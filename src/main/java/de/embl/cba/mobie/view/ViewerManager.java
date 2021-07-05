@@ -3,6 +3,7 @@ package de.embl.cba.mobie.view;
 import bdv.util.BdvHandle;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.playground.PlaygroundUtils;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.bdv.ImageSliceView;
 import de.embl.cba.mobie.bdv.SegmentationImageSliceView;
@@ -11,10 +12,10 @@ import de.embl.cba.mobie.color.ColoringModelHelper;
 import de.embl.cba.mobie.grid.GridOverlaySourceDisplay;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.segment.SegmentAdapter;
-import de.embl.cba.mobie.source.SegmentationSource;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
+import de.embl.cba.mobie.source.SegmentationSource;
 import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.table.TableViewer;
 import de.embl.cba.mobie.transform.*;
@@ -24,8 +25,6 @@ import de.embl.cba.mobie.view.additionalviews.AdditionalViewsLoader;
 import de.embl.cba.mobie.view.saving.ViewsSaver;
 import de.embl.cba.mobie.volume.SegmentsVolumeView;
 import de.embl.cba.mobie.volume.UniverseManager;
-import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
@@ -33,22 +32,18 @@ import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 
-import javax.activation.UnsupportedDataTypeException;
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import static de.embl.cba.mobie.Utils.createAnnotatedImageSegmentsFromTableFile;
 import static de.embl.cba.mobie.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
 import static de.embl.cba.mobie.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
 
 public class ViewerManager
 {
-	private final MoBIE moBIE2;
+	private final MoBIE moBIE;
 	private final UserInterface userInterface;
 	private final SliceViewer sliceViewer;
 	private ArrayList< SourceDisplay > sourceDisplays;
@@ -58,32 +53,49 @@ public class ViewerManager
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewsSaver viewsSaver;
 
-	public ViewerManager(MoBIE moBIE2, UserInterface userInterface, boolean is2D, int timepoints )
+	public ViewerManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
 	{
-		this.moBIE2 = moBIE2;
+		this.moBIE = moBIE;
 		this.userInterface = userInterface;
 		sourceDisplays = new ArrayList<>();
 		sliceViewer = new SliceViewer( is2D, this, timepoints );
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
-		additionalViewsLoader = new AdditionalViewsLoader( moBIE2 );
-		viewsSaver = new ViewsSaver( moBIE2 );
+		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
+		viewsSaver = new ViewsSaver( moBIE );
 	}
 
 	public static void initScatterPlotViewer( SegmentationSourceDisplay display )
 	{
-		display.scatterPlotViewer = new ScatterPlotViewer<>( display.segments, display.selectionModel, display.coloringModel, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, new double[]{1.0, 1.0}, 0.5 );
+		if ( display.segments.size() == 0 ) return;
+
+		String[] scatterPlotAxes = display.getScatterPlotAxes();
+		if ( scatterPlotAxes == null ) {
+			scatterPlotAxes = new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y };
+		}
+
+		display.scatterPlotViewer = new ScatterPlotViewer<>( display.segments, display.selectionModel, display.coloringModel,
+				scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
 		display.coloringModel.listeners().add( display.scatterPlotViewer );
 		display.sliceViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
 
-		if ( display.showScatterPlot() )
+		if ( display.showScatterPlot() ) {
+			display.scatterPlotViewer.setShowColumnSelectionUI( false );
 			display.scatterPlotViewer.show();
+		}
 	}
 
-	public static void initTableViewer( SegmentationSourceDisplay display  )
+	public void initTableViewer( SegmentationSourceDisplay display  )
 	{
-		display.tableViewer = new TableViewer<>( display.segments, display.selectionModel, display.coloringModel, display.getName() ).show();
+		Map<String, String> sourceNameToTableDir = new HashMap<>();
+		for ( String source: display.getSources() ) {
+			sourceNameToTableDir.put(
+					source, moBIE.getTablesDirectoryPath( (SegmentationSource) moBIE.getSource( source ) )
+			);
+		}
+		display.tableViewer = new TableViewer<>( moBIE, display.segments, display.selectionModel, display.coloringModel,
+				display.getName(), sourceNameToTableDir, false ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
@@ -112,7 +124,12 @@ public class ViewerManager
 			if ( sourceDisplay instanceof ImageSourceDisplay ) {
 				currentDisplay = new ImageSourceDisplay( (ImageSourceDisplay) sourceDisplay );
 			} else if ( sourceDisplay instanceof  SegmentationSourceDisplay ) {
-				currentDisplay = new SegmentationSourceDisplay( (SegmentationSourceDisplay) sourceDisplay );
+				SegmentationSourceDisplay segmentationSourceDisplay = (SegmentationSourceDisplay) sourceDisplay;
+				if ( segmentationSourceDisplay.tableViewer.hasColumnsFromTablesOutsideProject() ) {
+					IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project).");
+					return null;
+				}
+				currentDisplay = new SegmentationSourceDisplay( segmentationSourceDisplay );
 			}
 
 			if ( currentDisplay != null ) {
@@ -130,16 +147,19 @@ public class ViewerManager
 			}
 		}
 
-		if ( includeViewerTransform ) {
-			AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform(bdvHandle, Utils.getMousePosition(bdvHandle));
-			BdvLocationSupplier viewerTransform = new BdvLocationSupplier(new BdvLocation(BdvLocationType.NormalisedViewerTransform, normalisedViewTransform.getRowPackedCopy()));
-			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, viewerTransform, isExclusive);
+		if ( includeViewerTransform )
+		{
+			AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform( bdvHandle,
+					PlaygroundUtils.getWindowCentreInPixelUnits( bdvHandle ) );
+
+			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
+			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, transform, isExclusive);
 		} else {
 			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, isExclusive);
 		}
 	}
 
-	public synchronized void show(View view )
+	public synchronized void show( View view )
 	{
 		if ( view.isExclusive() )
 		{
@@ -154,21 +174,20 @@ public class ViewerManager
 		{
 			for ( SourceDisplay sourceDisplay : sourceDisplays )
 			{
-				// TODO: why are there transforms done here and below...
 				sourceDisplay.sourceTransformers = view.getSourceTransforms();
 				showSourceDisplay( sourceDisplay );
 			}
 		}
 
 		// ...more source transforms here, feels wrong
-		createAndShowGridView( SwingUtilities.getWindowAncestor( sliceViewer.get().getViewerPanel() ), view.getSourceTransforms() );
+		createAndShowGridView( SwingUtilities.getWindowAncestor( sliceViewer.get().getViewerPanel() ), view.getSourceTransforms(), view.getName() );
 
 		resetSystemSwingLookAndFeel();
 
 		// adjust the viewer transform
 		if ( view.getViewerTransform() != null )
 		{
-			BdvLocationChanger.moveToLocation( bdvHandle, view.getViewerTransform().get() );
+			ViewerTransformChanger.changeViewerTransform( bdvHandle, view.getViewerTransform() );
 		}
 		else
 		{
@@ -201,21 +220,26 @@ public class ViewerManager
 		sourceDisplays.add( sourceDisplay );
 	}
 
-	private void createAndShowGridView( Window window, List< SourceTransformer > sourceTransformers )
+	private void createAndShowGridView( Window window, List< SourceTransformer > sourceTransformers, String viewName )
 	{
-		int i = 0; // TODO: can there be more than one?
-
 		if ( sourceTransformers != null )
 		{
 			for ( SourceTransformer sourceTransformer : sourceTransformers )
 			{
 				if ( sourceTransformer instanceof GridSourceTransformer )
 				{
-					final String tableDataFolder = ( ( GridSourceTransformer ) sourceTransformer ).getTableDataFolder( TableDataFormat.TabDelimitedFile );
+					final GridSourceTransformer gridSourceTransformer = ( GridSourceTransformer ) sourceTransformer;
+					if ( gridSourceTransformer.getName() == null )
+					{
+						gridSourceTransformer.setName( viewName );
+						// this name is used to name the associated table
+					}
+
+					final String tableDataFolder = gridSourceTransformer.getTableDataFolder( TableDataFormat.TabDelimitedFile );
 
 					if ( tableDataFolder != null )
 					{
-						gridOverlayDisplay = new GridOverlaySourceDisplay( moBIE2, bdvHandle,  "grid-" + (i++), tableDataFolder, ( GridSourceTransformer ) sourceTransformer );
+						gridOverlayDisplay = new GridOverlaySourceDisplay( moBIE, bdvHandle, tableDataFolder, gridSourceTransformer );
 
 						userInterface.addGridView( gridOverlayDisplay );
 						sourceDisplays.add( gridOverlayDisplay );
@@ -247,7 +271,7 @@ public class ViewerManager
 
 	private void showImageDisplay( ImageSourceDisplay imageDisplay )
 	{
-		imageDisplay.imageSliceView = new ImageSliceView( imageDisplay, bdvHandle, ( List< String > name ) -> moBIE2.openSourceAndConverters( name ) );
+		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle, ( List< String > name ) -> moBIE.openSourceAndConverters( name ) );
 	}
 
 	// TODO: own class: SegmentationDisplayConfigurator
@@ -255,7 +279,15 @@ public class ViewerManager
 	{
 		fetchSegmentsFromTables( segmentationDisplay );
 
-		segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.segments );
+		if ( segmentationDisplay.segments != null )
+		{
+			segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.segments );
+		}
+		else
+		{
+			segmentationDisplay.segmentAdapter = new SegmentAdapter();
+		}
+
 		ColoringModelHelper.configureMoBIEColoringModel( segmentationDisplay );
 		segmentationDisplay.selectionModel = new DefaultSelectionModel<>();
 		segmentationDisplay.coloringModel.setSelectionModel(  segmentationDisplay.selectionModel );
@@ -268,33 +300,38 @@ public class ViewerManager
 		}
 
 		initSliceViewer( segmentationDisplay );
-		initTableViewer( segmentationDisplay );
-		initScatterPlotViewer( segmentationDisplay );
-		initVolumeViewer( segmentationDisplay );
 
-		SwingUtilities.invokeLater( () ->
+		if ( segmentationDisplay.segments != null )
 		{
-			WindowArrangementHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
-		} );
+			initTableViewer( segmentationDisplay );
+			initScatterPlotViewer( segmentationDisplay );
+
+			SwingUtilities.invokeLater( () ->
+			{
+				WindowArrangementHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
+			} );
+		}
+
+		initVolumeViewer( segmentationDisplay );
 	}
 
 	private void fetchSegmentsFromTables( SegmentationSourceDisplay segmentationDisplay )
 	{
-		segmentationDisplay.segments = new ArrayList<>();
+		final List< String > tables = segmentationDisplay.getTables();
 
-		// load default tables
-		for ( String sourceName : segmentationDisplay.getSources() )
+		if ( tables == null ) return;
+
+		// primary table
+		moBIE.loadPrimarySegmentsTables( segmentationDisplay );
+
+		// secondary tables
+		if ( tables.size() > 1 )
 		{
-			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
+			final List< String > additionalTables = tables.subList( 1, tables.size() );
 
-			final String defaultTablePath = moBIE2.getDefaultTablePath( source );
-
-			final List< TableRowImageSegment > segments = createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
-
-			segmentationDisplay.segments.addAll( segments );
+			moBIE.appendSegmentsTables( segmentationDisplay, additionalTables );
 		}
 
-		// check  validity
 		for ( TableRowImageSegment segment : segmentationDisplay.segments )
 		{
 			if ( segment.labelId() == 0 )
@@ -302,45 +339,11 @@ public class ViewerManager
 				throw new UnsupportedOperationException( "The table contains rows (image segments) with label index 0, which is not supported and will lead to errors. Please change the table accordingly." );
 			}
 		}
-
-		// load additional tables
-		// TODO: This will not work like this for the grid view with multiple sources...
-		for ( String sourceName : segmentationDisplay.getSources() )
-		{
-			final SegmentationSource source = ( SegmentationSource ) moBIE2.getSource( sourceName );
-
-			final List< String > tables = segmentationDisplay.getTables();
-			if ( tables != null )
-			{
-				for ( String table : tables )
-				{
-					final String tablePath = moBIE2.getTablePath( source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath, table );
-					IJ.log( "Opening table:\n" + tablePath );
-					final Map< String, List< String > > newColumns =
-							TableColumns.openAndOrderNewColumns(
-									segmentationDisplay.segments,
-									Constants.SEGMENT_LABEL_ID,
-									tablePath );
-					newColumns.remove( Constants.SEGMENT_LABEL_ID );
-					for ( String columnName : newColumns.keySet() )
-					{
-						try
-						{
-							Object[] values = TableColumns.asTypedArray( newColumns.get( columnName ) );
-							TableRows.addColumn( segmentationDisplay.segments, columnName, values );
-						} catch ( UnsupportedDataTypeException e )
-						{
-							e.printStackTrace();
-						}
-					}
-				}
-			}
-		}
 	}
 
 	private void initSliceViewer( SegmentationSourceDisplay segmentationDisplay )
 	{
-		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE2.openSourceAndConverters( names ) );
+		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( moBIE, segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE.openSourceAndConverters( names ) );
 		segmentationDisplay.segmentationImageSliceView = segmentationImageSliceView;
 	}
 
@@ -358,9 +361,12 @@ public class ViewerManager
 		{
 			final SegmentationSourceDisplay segmentationDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
 			segmentationDisplay.segmentationImageSliceView.close();
-			segmentationDisplay.tableViewer.close();
-			segmentationDisplay.scatterPlotViewer.close();
-			segmentationDisplay.segmentsVolumeViewer.close();
+			if ( segmentationDisplay.segments != null )
+			{
+				segmentationDisplay.tableViewer.close();
+				segmentationDisplay.scatterPlotViewer.close();
+				segmentationDisplay.segmentsVolumeViewer.close();
+			}
 		}
 		else if ( sourceDisplay instanceof ImageSourceDisplay )
 		{

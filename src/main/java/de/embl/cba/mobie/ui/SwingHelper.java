@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.ui;
 
 import de.embl.cba.mobie.MoBIE;
+import ij.gui.GenericDialog;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,6 +55,17 @@ public class SwingHelper
 		comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE );
 		comboBox.setPreferredSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
 		comboBox.setMaximumSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
+	}
+
+	public static String selectionDialog( String[] choices, String objectName ) {
+		final GenericDialog gd = new GenericDialog("Choose " + objectName );
+		gd.addChoice( objectName, choices, choices[0] );
+		gd.showDialog();
+		if (gd.wasCanceled()) {
+			return null;
+		} else {
+			return gd.getNextChoice();
+		}
 	}
 
 }

@@ -13,6 +13,6 @@ public class OpenLocalCropTest
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		final MoBIE moBIE2 = new MoBIE("/g/emcf/pape/mobie-test-projects/mobie_crop", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ));
+		final MoBIE moBIE = new MoBIE("/Volumes/emcf/pape/mobie-test-projects/", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ));
 	}
 }

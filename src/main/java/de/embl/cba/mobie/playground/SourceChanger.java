@@ -26,47 +26,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.embl.cba.mobie.transform;
+package de.embl.cba.mobie.playground;
 
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import net.imglib2.RealInterval;
-import net.imglib2.Volatile;
-import net.imglib2.type.numeric.NumericType;
 
-public class SourceCropper< T extends NumericType<T> > {
+import java.util.function.Function;
 
-    private final SourceAndConverter< T > sourceAndConverter;
-    private final String name;
-    private final RealInterval realInterval;
-    private final boolean zeroMin;
+public class SourceChanger< T > implements Function< SourceAndConverter< ? >,  SourceAndConverter< ? > >
+{
+    private final Function< Source< ? >, Source< ? > > sourceConverter;
 
-    public SourceCropper( SourceAndConverter< T > sourceAndConverter, String name, RealInterval realInterval, boolean zeroMin )
+    public SourceChanger( Function< Source< ? >, Source< ? > > sourceConverter )
     {
-        this.sourceAndConverter = sourceAndConverter;
-        this.name = name;
-        this.realInterval = realInterval;
-        this.zeroMin = zeroMin;
+        this.sourceConverter = sourceConverter;
     }
 
-    public SourceAndConverter< T > get()
+    @Override
+    public SourceAndConverter< ? > apply( SourceAndConverter< ? > inputSourceAndConverter )
     {
-        CroppedSource< T > src = new CroppedSource<>( sourceAndConverter.getSpimSource(), name, realInterval, zeroMin );
+        Source< ? > outputSource = sourceConverter.apply( inputSourceAndConverter.getSpimSource() );
 
-        if ( sourceAndConverter.asVolatile() != null )
+        if ( inputSourceAndConverter.asVolatile() != null )
         {
-            CroppedSource< ? extends Volatile< T > > vsrc = new CroppedSource( sourceAndConverter.asVolatile().getSpimSource(), name, realInterval, zeroMin );
+            final Source< ? > volatileOutputSource = sourceConverter.apply( inputSourceAndConverter.asVolatile().getSpimSource() );
 
-//            SourceAndConverter< ? extends Volatile< T > > vsac = new SourceAndConverter( vsrc, sourceAndConverter.asVolatile().getConverter(), sourceAndConverter.asVolatile() );
+            final SourceAndConverter< ? > volatileOutputSourceAndConverter = new SourceAndConverter( volatileOutputSource, inputSourceAndConverter.asVolatile().getConverter() );
 
-            SourceAndConverter< ? extends Volatile< T > > vsac = new SourceAndConverter( vsrc, sourceAndConverter.asVolatile().getConverter() );
-
-            final SourceAndConverter< T > outputSourceAndConverter = new SourceAndConverter<>( src, sourceAndConverter.getConverter(), vsac );
+            final SourceAndConverter< ? > outputSourceAndConverter = new SourceAndConverter( outputSource, inputSourceAndConverter.getConverter(), volatileOutputSourceAndConverter );
 
             return outputSourceAndConverter;
         }
         else
         {
-            return new SourceAndConverter< T >( src, sourceAndConverter.getConverter() );
+            return new SourceAndConverter( outputSource, inputSourceAndConverter.getConverter() );
         }
     }
 }

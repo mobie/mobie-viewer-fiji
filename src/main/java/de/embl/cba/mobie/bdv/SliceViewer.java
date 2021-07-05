@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.bdv;
 
 import bdv.util.BdvHandle;
+import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.color.NonSelectedSegmentsOpacityAdjusterCommand;
 import de.embl.cba.mobie.segment.BdvSegmentSelector;
 import de.embl.cba.mobie.color.RandomColorSeedChangerCommand;
@@ -77,7 +78,8 @@ public class SliceViewer implements Supplier< BdvHandle >
 			RandomColorSeedChangerCommand.incrementRandomColorSeed( sourceAndConverters );
 		} );
 
-		sacService.registerScijavaCommand( NonSelectedSegmentsOpacityAdjusterCommand.class );
+		// Below Command is automatically registered because it is a BdvPlaygroundActionCommand
+		// sacService.registerScijavaCommand( NonSelectedSegmentsOpacityAdjusterCommand.class );
 
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
@@ -93,7 +95,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 		final String[] actions = {
 				sacService.getCommandName( ScreenShotMakerCommand.class ),
-				sacService.getCommandName( BdvLocationLogger.class ),
+				sacService.getCommandName( ViewerTransformLogger.class ),
 				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
 				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
 				sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ),
@@ -120,6 +122,15 @@ public class SliceViewer implements Supplier< BdvHandle >
 							segmentBdvSelector.clearSelection();
 						}).start(),
 				"Clear selection", "ctrl shift N" ) ;
+
+		behaviours.behaviour(
+				( ClickBehaviour ) ( x, y ) ->
+						new Thread( () ->
+						{
+							final SourceAndConverter[] sourceAndConverters = sacService.getSourceAndConverters().toArray( new SourceAndConverter[ 0 ] );
+							RandomColorSeedChangerCommand.incrementRandomColorSeed( sourceAndConverters );
+						}).start(),
+				"Change random color seed", "ctrl L" ) ;
 	}
 
 	public SourceAndConverterService getSacService()
