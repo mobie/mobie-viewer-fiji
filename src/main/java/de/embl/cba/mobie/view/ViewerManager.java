@@ -69,13 +69,21 @@ public class ViewerManager
 	{
 		if ( display.segments.size() == 0 ) return;
 
-		display.scatterPlotViewer = new ScatterPlotViewer<>( display.segments, display.selectionModel, display.coloringModel, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, new double[]{1.0, 1.0}, 0.5 );
+		String[] scatterPlotAxes = display.getScatterPlotAxes();
+		if ( scatterPlotAxes == null ) {
+			scatterPlotAxes = new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y };
+		}
+
+		display.scatterPlotViewer = new ScatterPlotViewer<>( display.segments, display.selectionModel, display.coloringModel,
+				scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
 		display.coloringModel.listeners().add( display.scatterPlotViewer );
 		display.sliceViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
 
-		if ( display.showScatterPlot() )
+		if ( display.showScatterPlot() ) {
+			display.scatterPlotViewer.setShowColumnSelectionUI( false );
 			display.scatterPlotViewer.show();
+		}
 	}
 
 	public void initTableViewer( SegmentationSourceDisplay display  )

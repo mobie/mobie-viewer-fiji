@@ -28,11 +28,7 @@
  */
 package de.embl.cba.mobie.plot;
 
-import bdv.util.BdvFunctions;
-import bdv.util.BdvHandle;
-import bdv.util.BdvOptions;
-import bdv.util.BdvStackSource;
-import bdv.util.Prefs;
+import bdv.util.*;
 import bdv.viewer.TimePointListener;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
@@ -142,6 +138,10 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		{
 			window.setVisible( true );
 		}
+	}
+
+	public void setShowColumnSelectionUI( boolean showColumnSelectionUI ) {
+		this.showColumnSelectionUI = showColumnSelectionUI;
 	}
 
 	public List< VisibilityListener > getListeners()
