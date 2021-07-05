@@ -342,11 +342,11 @@ public class MoBIE
 		return segments;
 	}
 
-	private Map< String, List< String > > loadAdditionalTable( String source, String tablePath )
+	private Map< String, List< String > > loadAdditionalTable( String imageID, String tablePath )
 	{
 		Logger.log( "Opening table:\n" + tablePath );
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
-		TableColumns.addLabelImageIdColumn( columns, Constants.LABEL_IMAGE_ID, source );
+		TableColumns.addLabelImageIdColumn( columns, Constants.LABEL_IMAGE_ID, imageID );
 		return columns;
 	}
 
@@ -445,8 +445,6 @@ public class MoBIE
 
 		// merge
 		mergeSegmentsTable( tableRows, additionalTable );
-
-		int a = 1;
 	}
 
 	public void appendSegmentsTables( SegmentationSourceDisplay segmentationDisplay, List< String > relativeTablePaths )

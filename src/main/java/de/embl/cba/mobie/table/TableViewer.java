@@ -57,7 +57,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -80,8 +79,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private int recentlySelectedRowInView;
 	private ColumnColoringModelCreator< T > columnColoringModelCreator;
 	private String mergeByColumnName; // for loading additional columns
-	private Map<String, String> sourceNameToTableDir; // for loading additional columns
-	private ArrayList<String> additionalTables; // tables from which additional columns are loaded
+	private Map< String, String > sourceNameToTableDir; // for loading additional columns
+	private ArrayList< String > additionalTables; // tables from which additional columns are loaded
 	private boolean hasColumnsFromTablesOutsideProject; // whether additional columns have been loaded from tables outside the project
 	private boolean isGridTable; // Needed as merging columns to a segments table is different to a grid table
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
@@ -415,19 +414,25 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		return TableColumns.stringColumnsFromTableFile( resolvedPath );
 	}
 
-	private void loadColumnsFromProject() {
+	private void loadColumnsFromProject()
+	{
 		ArrayList<String> tableNames = new ArrayList<>();
-		String tableName = selectCommonFileNameFromProject(
-				new ArrayList<>( sourceNameToTableDir.values() ), "Table" );
-		if ( tableName != null ) {
-			tableNames.add(tableName);
+		String tableName = selectCommonFileNameFromProject( new ArrayList<>( sourceNameToTableDir.values() ), "Table" );
 
-			if ( !isGridTable ) {
-				List<String> sources = new ArrayList<>(sourceNameToTableDir.keySet());
-				moBIE.appendSegmentsTables(sources, tableNames, (List<TableRowImageSegment>) tableRows);
-			} else {
-				for ( String tableDir: sourceNameToTableDir.values() ) {
-					final Map< String, List< String > > table = openTable( FileAndUrlUtils.combinePath(tableDir, tableName ) );
+		if ( tableName != null )
+		{
+			tableNames.add( tableName );
+
+			if ( ! isGridTable )
+			{
+				List< String > sources = new ArrayList<>( sourceNameToTableDir.keySet() );
+				moBIE.appendSegmentsTables( sources, tableNames, (List<TableRowImageSegment>) tableRows);
+			}
+			else
+			{
+				for ( String tableDir: sourceNameToTableDir.values() )
+				{
+					final Map< String, List< String > > table = openTable( FileAndUrlUtils.combinePath( tableDir, tableName ) );
 					MoBIE.mergeImageTable( (List<DefaultAnnotatedIntervalTableRow>) tableRows, table );
 				}
 			}
@@ -440,14 +445,31 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		String path = selectPathFromFileSystem( "Table" );
 
 		if ( path != null ) {
-			if ( ! isGridTable ) {
-				moBIE.appendSegmentsTables((String) sourceNameToTableDir.keySet().toArray()[0],
-						path, (List<TableRowImageSegment>) tableRows);
-			} else {
-				Map<String, List<String>> table = openTable( path );
-				MoBIE.mergeImageTable( (List<DefaultAnnotatedIntervalTableRow>) tableRows, table );
-			}
+			new Thread( () -> {
+				enableRowSorting( false ); // otherwise it can crash during loading.
+				if ( ! isGridTable )
+				{
+					final String sourceName = ( String ) sourceNameToTableDir.keySet().toArray()[ 0 ];
+					moBIE.appendSegmentsTables( sourceName, path, ( List< TableRowImageSegment > ) tableRows );
+				}
+				else
+				{
+
+					Map< String, List< String > > table = openTable( path );
+					MoBIE.mergeImageTable( ( List< DefaultAnnotatedIntervalTableRow > ) tableRows, table );
+				}
+				enableRowSorting( true );
+			}).start();
 			hasColumnsFromTablesOutsideProject = true;
+		}
+	}
+
+	private void enableRowSorting( boolean sortable )
+	{
+		final int columnCount = jTable.getColumnCount();
+		for ( int i = 0; i < columnCount; i++ )
+		{
+			((DefaultRowSorter) jTable.getRowSorter()).setSortable( i, sortable );
 		}
 	}
 
@@ -465,15 +487,14 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 						fileLocation = loadFromProjectOrFileSystemDialog();
 					}
 
-					new Thread( () -> {
-						if ( fileLocation == FileLocation.Project ) {
-							loadColumnsFromProject();
-						}
-						else
-						{
-							loadColumnsFromFileSystem();
-						}
-					}).start();
+					if ( fileLocation == FileLocation.Project )
+					{
+						loadColumnsFromProject();
+					}
+					else
+					{
+						loadColumnsFromFileSystem();
+					}
 				} ) );
 
 		return menuItem;
