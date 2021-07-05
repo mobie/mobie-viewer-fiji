@@ -336,7 +336,7 @@ public class ViewerManager
 
 	private void initSliceViewer( SegmentationSourceDisplay segmentationDisplay )
 	{
-		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE.openSourceAndConverters( names ) );
+		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( moBIE, segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE.openSourceAndConverters( names ) );
 		segmentationDisplay.segmentationImageSliceView = segmentationImageSliceView;
 	}
 

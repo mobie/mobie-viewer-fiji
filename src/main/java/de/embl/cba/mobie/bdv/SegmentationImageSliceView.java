@@ -2,6 +2,7 @@ package de.embl.cba.mobie.bdv;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie.color.LabelConverter;
@@ -27,12 +28,14 @@ import java.util.List;
 public class SegmentationImageSliceView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
 	private final SourceAndConverterBdvDisplayService displayService;
+	private final MoBIE moBIE;
 	private final SegmentationSourceDisplay segmentationDisplay;
 	private BdvHandle bdvHandle;
 	private final SourceAndConverterSupplier sourceAndConverterSupplier;
 
-	public SegmentationImageSliceView( SegmentationSourceDisplay segmentationDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
+	public SegmentationImageSliceView( MoBIE moBIE, SegmentationSourceDisplay segmentationDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
 	{
+		this.moBIE = moBIE;
 		this.segmentationDisplay = segmentationDisplay;
 		this.bdvHandle = bdvHandle;
 		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
@@ -99,7 +102,7 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )
 		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+			moBIE.closeSourceAndConverter( sourceAndConverter );
 		}
 	};
 

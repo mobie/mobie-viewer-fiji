@@ -59,7 +59,7 @@ public class MoBIE
 	private String projectRoot;
 	private String imageRoot;
 	private String tableRoot;
-	private HashMap< SourceAndConverter< ? >, ImgLoader > sourceAndConverterToImgLoader;
+	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -74,7 +74,7 @@ public class MoBIE
 		projectName = getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
-		sourceAndConverterToImgLoader = new HashMap<>();
+		sourceNameToImgLoader = new HashMap<>();
 
 		openDataset();
 	}
@@ -259,7 +259,7 @@ public class MoBIE
 		final SpimData spimData = BdvUtils.openSpimData( imagePath );
 		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 		final SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-		sourceAndConverterToImgLoader.put( sourceAndConverter, spimData.getSequenceDescription().getImgLoader() );
+		sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 		return sourceAndConverter;
 	}
 
@@ -478,10 +478,15 @@ public class MoBIE
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter )
 	{
 		SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
-		final ImgLoader imgLoader = sourceAndConverterToImgLoader.get( sourceAndConverter );
+		String sourceName = sourceAndConverter.getSpimSource().getName();
+		final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
 		if ( imgLoader instanceof N5ImageLoader )
 		{
 			( ( N5ImageLoader ) imgLoader ).close();
 		}
+
+		sourceNameToImgLoader.remove( sourceName );
+
+		//TODO - when we support more image formats e.g. OME-ZARR, we should explicitly close their imgloaders here too
 	}
 }
