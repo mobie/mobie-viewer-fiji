@@ -2,6 +2,7 @@ package de.embl.cba.mobie.display;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.Constants;
+import de.embl.cba.mobie.color.LabelConverter;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
 import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie.segment.SegmentAdapter;
@@ -29,7 +30,7 @@ public class SegmentationSourceDisplay extends SourceDisplay
 	private boolean showSelectedSegmentsIn3d = false;
 	private boolean showScatterPlot = false;
 	private String[] scatterPlotAxes = new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y };
-	private List< String > tables; // table columns in addition to default
+	private List< String > tables; // tables to display
 
 	// Runtime
 	public transient SelectionModel< TableRowImageSegment > selectionModel;
@@ -115,9 +116,9 @@ public class SegmentationSourceDisplay extends SourceDisplay
 
 		final SourceAndConverter< ? > sourceAndConverter = segmentationDisplay.sourceAndConverters.get( 0 );
 
-		if( sourceAndConverter.getConverter() instanceof AdjustableOpacityColorConverter)
+		if( sourceAndConverter.getConverter() instanceof LabelConverter )
 		{
-			this.opacity = ( ( AdjustableOpacityColorConverter ) sourceAndConverter.getConverter() ).getOpacity();
+			this.opacity = ( ( LabelConverter ) sourceAndConverter.getConverter() ).getOpacity();
 		}
 
 		this.lut = segmentationDisplay.coloringModel.getARGBLutName();
@@ -149,7 +150,14 @@ public class SegmentationSourceDisplay extends SourceDisplay
 		this.showSelectedSegmentsIn3d = segmentationDisplay.segmentsVolumeViewer.getShowSegments();
 		this.showScatterPlot = segmentationDisplay.scatterPlotViewer.isVisible();
 		this.scatterPlotAxes = segmentationDisplay.scatterPlotViewer.getSelectedColumns();
-		this.tables = segmentationDisplay.tableViewer.getAdditionalTables();
+		this.tables = segmentationDisplay.tables;
+		List<String> additionalTables = segmentationDisplay.tableViewer.getAdditionalTables();
+		if ( additionalTables.size() > 0 ){
+			if ( this.tables == null ) {
+				this.tables = new ArrayList<>();
+			}
+			this.tables.addAll( additionalTables );
+		}
 	}
 
 }
