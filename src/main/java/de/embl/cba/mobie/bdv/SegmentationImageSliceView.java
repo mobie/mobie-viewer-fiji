@@ -104,6 +104,7 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		{
 			moBIE.closeSourceAndConverter( sourceAndConverter );
 		}
+		segmentationDisplay.sourceAndConverters.clear();
 	};
 
 	@Override

@@ -129,6 +129,7 @@ public class ImageSliceView
 		{
 			moBIE.closeSourceAndConverter( sourceAndConverter );
 		}
+		imageDisplay.sourceAndConverters.clear();
 	}
 
 }
