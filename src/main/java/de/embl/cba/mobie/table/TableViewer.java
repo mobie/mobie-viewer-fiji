@@ -157,7 +157,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				{
 					synchronized ( jTable )
 					{
-						if ( !Tables.getColumnNames( jTable ).contains( columnName ) )
+						if ( ! Tables.getColumnNames( jTable ).contains( columnName ) )
 						{
 							Tables.addColumnToJTable( columnName, value, jTable.getModel() );
 						}
@@ -435,10 +435,12 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		}
 	}
 
-	private void loadColumnsFromFileSystem() throws IOException {
+	private void loadColumnsFromFileSystem()
+	{
 		String path = selectPathFromFileSystem( "Table" );
+
 		if ( path != null ) {
-			if ( !isGridTable ) {
+			if ( ! isGridTable ) {
 				moBIE.appendSegmentsTables((String) sourceNameToTableDir.keySet().toArray()[0],
 						path, (List<TableRowImageSegment>) tableRows);
 			} else {
@@ -455,25 +457,23 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
 				{
-					try
-					{
-						FileLocation fileLocation;
-						if ( sourceNameToTableDir.size() > 1 ) {
-							// For multi-source tables, we only allow loading from the project
-							fileLocation = FileLocation.Project;
-						} else {
-							fileLocation = loadFromProjectOrFileSystemDialog();
-						}
+					FileLocation fileLocation;
+					if ( sourceNameToTableDir.size() > 1 ) {
+						// For multi-source tables, we only allow loading from the project
+						fileLocation = FileLocation.Project;
+					} else {
+						fileLocation = loadFromProjectOrFileSystemDialog();
+					}
 
+					new Thread( () -> {
 						if ( fileLocation == FileLocation.Project ) {
 							loadColumnsFromProject();
-						} else {
+						}
+						else
+						{
 							loadColumnsFromFileSystem();
 						}
-					} catch ( IOException ioOException )
-					{
-						ioOException.printStackTrace();
-					}
+					}).start();
 				} ) );
 
 		return menuItem;

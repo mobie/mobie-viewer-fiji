@@ -445,6 +445,8 @@ public class MoBIE
 
 		// merge
 		mergeSegmentsTable( tableRows, additionalTable );
+
+		int a = 1;
 	}
 
 	public void appendSegmentsTables( SegmentationSourceDisplay segmentationDisplay, List< String > relativeTablePaths )

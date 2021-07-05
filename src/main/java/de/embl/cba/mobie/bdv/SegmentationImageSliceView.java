@@ -55,7 +55,6 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		// convert to labelSource
 		sourceAndConverters = asLabelSources( sourceAndConverters );
 
-
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			// set opacity

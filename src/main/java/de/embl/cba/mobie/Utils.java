@@ -105,8 +105,17 @@ public abstract class Utils
 	}
 
 	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
-	public static String selectPathFromFileSystem ( String objectName ) throws IOException {
-		return FileAndUrlUtils.selectPath(System.getProperty("user.home"), objectName);
+	public static String selectPathFromFileSystem ( String objectName )
+	{
+		try
+		{
+			return FileAndUrlUtils.selectPath( System.getProperty("user.home"), objectName );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+			throw new RuntimeException( "File not found: " + objectName );
+		}
 	}
 
 	public static < T > SourceAndConverter< T > getSource( List< SourceAndConverter< T > > sourceAndConverters, String name )
