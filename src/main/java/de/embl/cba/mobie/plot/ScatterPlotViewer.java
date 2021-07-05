@@ -345,7 +345,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		Prefs.showMultibox( false );
 		Prefs.showScaleBar( false );
 
-		final BdvOptions bdvOptions = BdvOptions.options().is2D().frameTitle( createPlotName( selectedColumns ) ).addTo( bdvHandle );
+		final BdvOptions bdvOptions = BdvOptions.options().is2D().frameTitle( "Scatter plot" ).addTo( bdvHandle );
 
 		scatterPlotSource = BdvFunctions.show(
 				randomAccessible,
