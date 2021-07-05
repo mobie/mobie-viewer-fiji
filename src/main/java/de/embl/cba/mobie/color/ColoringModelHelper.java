@@ -17,7 +17,11 @@ public class ColoringModelHelper
 
 			String coloringLut = getColoringLut( segmentationDisplay );
 
-			coloringModel = modelCreator.createColoringModel( segmentationDisplay.getColorByColumn(), coloringLut, segmentationDisplay.getValueLimits()[ 0 ], segmentationDisplay.getValueLimits()[ 1 ] );
+			if ( segmentationDisplay.getValueLimits() != null ) {
+				coloringModel = modelCreator.createColoringModel(segmentationDisplay.getColorByColumn(), coloringLut, segmentationDisplay.getValueLimits()[0], segmentationDisplay.getValueLimits()[1]);
+			} else {
+				coloringModel = modelCreator.createColoringModel(segmentationDisplay.getColorByColumn(), coloringLut, null, null );
+			}
 
 			segmentationDisplay.coloringModel = new MoBIEColoringModel( coloringModel );
 		}
