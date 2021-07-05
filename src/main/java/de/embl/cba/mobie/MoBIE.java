@@ -1,10 +1,14 @@
 package de.embl.cba.mobie;
 
+import bdv.SpimSource;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.grid.DefaultAnnotatedIntervalTableRow;
+import de.embl.cba.mobie.n5.N5ImageLoader;
+import de.embl.cba.mobie.n5.N5S3ImageLoader;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
@@ -22,7 +26,9 @@ import de.embl.cba.tables.github.GitHubUtils;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.sequence.ImgLoader;
 import sc.fiji.bdvpg.PlaygroundPrefs;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
 import java.io.IOException;
@@ -53,6 +59,7 @@ public class MoBIE
 	private String projectRoot;
 	private String imageRoot;
 	private String tableRoot;
+	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -67,6 +74,7 @@ public class MoBIE
 		projectName = getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
+		sourceNameToImgLoader = new HashMap<>();
 
 		openDataset();
 	}
@@ -250,7 +258,8 @@ public class MoBIE
 		new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
 		final SpimData spimData = BdvUtils.openSpimData( imagePath );
 		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
-		final SourceAndConverter sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+		final SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+		sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 		return sourceAndConverter;
 	}
 
@@ -464,5 +473,20 @@ public class MoBIE
 		{
 			segmentationDisplay.segments.addAll( primaryTable );
 		}
+	}
+
+	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter )
+	{
+		SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+		String sourceName = sourceAndConverter.getSpimSource().getName();
+		final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
+		if ( imgLoader instanceof N5ImageLoader )
+		{
+			( ( N5ImageLoader ) imgLoader ).close();
+		}
+
+		sourceNameToImgLoader.remove( sourceName );
+
+		//TODO - when we support more image formats e.g. OME-ZARR, we should explicitly close their imgloaders here too
 	}
 }
