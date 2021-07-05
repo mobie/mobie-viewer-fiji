@@ -47,26 +47,15 @@ import net.imglib2.view.Views;
 import java.util.HashMap;
 import java.util.function.Function;
 
-public class CroppedSource< T extends NumericType<T> > implements Source< T >, Function< Source< T >, Source< T > >
+public class CroppedSource< T extends NumericType<T> > implements Source< T > //, Function< Source< T >, Source< T > >
 {
-    private final Source< T > source;
+    private Source< T > source;
     private final String name;
     private final RealInterval crop;
     private final boolean zeroMin;
 
     protected transient final DefaultInterpolators< T > interpolators;
     private transient HashMap< Integer, Interval > levelToVoxelInterval;
-
-    public CroppedSource( Source< T > source, RealInterval crop, boolean zeroMin )
-    {
-        this.source = source;
-        this.name = null;
-        this.crop = crop;
-        this.zeroMin = zeroMin;
-        this.interpolators = new DefaultInterpolators();
-
-        initCropIntervals( source, crop );
-    }
 
     public CroppedSource( Source< T > source, String name, RealInterval crop, boolean zeroMin )
     {
@@ -83,13 +72,16 @@ public class CroppedSource< T extends NumericType<T> > implements Source< T >, F
     {
         final AffineTransform3D transform3D = new AffineTransform3D();
         levelToVoxelInterval = new HashMap<>();
-        for ( int level = 0; level < source.getNumMipmapLevels(); level++ )
+        final int numMipmapLevels = source.getNumMipmapLevels();
+        for ( int level = 0; level < numMipmapLevels; level++ )
         {
             source.getSourceTransform( 0, level, transform3D );
-            final Interval voxelInterval = Intervals.smallestContainingInterval( transform3D.inverse().estimateBounds( crop ) );
+            final AffineTransform3D inverse = transform3D.inverse();
+            final Interval voxelInterval = Intervals.smallestContainingInterval( inverse.estimateBounds( crop ) );
+
             // If the interval is outside the bounds of the RAI then there is nothing to show.
             // Moreover the fetcher threads throw errors when trying to access pixels outside the RAI.
-            // Thus let's limit the interval to where there actually is data .
+            // Thus let's limit the interval to where there actually is data.
             final RandomAccessibleInterval< T > rai = source.getSource( 0, level );
             final FinalInterval intersect = Intervals.intersect( rai, voxelInterval );
             levelToVoxelInterval.put( level, intersect );
@@ -155,9 +147,9 @@ public class CroppedSource< T extends NumericType<T> > implements Source< T >, F
         return source.getNumMipmapLevels();
     }
 
-    @Override
-    public Source< T > apply( Source< T > inputSource )
-    {
-        return new CroppedSource<>( inputSource, name, crop, zeroMin );
-    }
+//    @Override
+//    public Source< T > apply( Source< T > inputSource )
+//    {
+//        return new CroppedSource<>( inputSource, name, crop, zeroMin );
+//    }
 }
