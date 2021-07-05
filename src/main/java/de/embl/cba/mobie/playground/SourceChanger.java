@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.embl.cba.mobie.source;
+package de.embl.cba.mobie.playground;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;

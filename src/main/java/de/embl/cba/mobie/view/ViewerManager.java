@@ -3,7 +3,7 @@ package de.embl.cba.mobie.view;
 import bdv.util.BdvHandle;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.MoBIE;
-import de.embl.cba.mobie.PlaygroundUtils;
+import de.embl.cba.mobie.playground.PlaygroundUtils;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.bdv.ImageSliceView;
 import de.embl.cba.mobie.bdv.SegmentationImageSliceView;

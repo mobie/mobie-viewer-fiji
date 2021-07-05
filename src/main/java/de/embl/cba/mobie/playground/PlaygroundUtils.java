@@ -1,4 +1,4 @@
-package de.embl.cba.mobie;
+package de.embl.cba.mobie.playground;
 
 import bdv.util.BdvHandle;
 import net.imglib2.realtransform.AffineTransform3D;

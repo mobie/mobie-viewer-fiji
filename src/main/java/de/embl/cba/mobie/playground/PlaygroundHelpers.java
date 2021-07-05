@@ -1,4 +1,4 @@
-package de.embl.cba.mobie;
+package de.embl.cba.mobie.playground;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
@@ -6,7 +6,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.List;
 
-public class BdvPlaygroundHelpers
+public class PlaygroundHelpers
 {
 	public static BdvHandle getBdvHandle( List< SourceAndConverter< ? > > sourceAndConverters )
 	{

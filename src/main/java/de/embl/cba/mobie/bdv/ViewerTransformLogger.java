@@ -3,7 +3,7 @@ package de.embl.cba.mobie.bdv;
 import bdv.util.BdvHandle;
 import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.Logger;
-import de.embl.cba.mobie.PlaygroundUtils;
+import de.embl.cba.mobie.playground.PlaygroundUtils;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.serialize.JsonHelper;
 import de.embl.cba.mobie.transform.AffineViewerTransform;

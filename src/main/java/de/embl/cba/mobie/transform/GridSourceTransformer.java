@@ -1,10 +1,8 @@
 package de.embl.cba.mobie.transform;
 
-import bdv.util.AxisOrder;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.MoBIE;
-import de.embl.cba.mobie.source.SourceChanger;
 import de.embl.cba.mobie.source.StorageLocation;
 import de.embl.cba.mobie.table.TableDataFormat;
 import net.imglib2.FinalRealInterval;

@@ -2,7 +2,7 @@ package de.embl.cba.mobie.transform;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.mobie.source.SourceChanger;
+import de.embl.cba.mobie.playground.SourceChanger;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
@@ -50,12 +50,8 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 				if ( shiftToOrigin == true )
 				{
 					transform3D.translate( Arrays.stream( min ).map( x -> -x ).toArray() );
-					sourceNameToTransform.put( transformedSourceName, transform3D );
 				}
-				else
-				{
-					sourceNameToTransform.put( transformedSourceName, transform3D );
-				}
+				sourceNameToTransform.put( transformedSourceName, transform3D );
 			}
 		}
 
@@ -64,16 +60,13 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 
 	private String getTransformedSourceName( String inputSourceName )
 	{
-		return inputSourceName;
-
-		// TODO: enable once implemented
-//		if ( sourceNamesAfterTransform != null )
-//		{
-//			return sourceNamesAfterTransform.get( this.sources.indexOf( inputSourceName ) );
-//		}
-//		else
-//		{
-//			return inputSourceName;
-//		}
+		if ( sourceNamesAfterTransform != null )
+		{
+			return sourceNamesAfterTransform.get( this.sources.indexOf( inputSourceName ) );
+		}
+		else
+		{
+			return inputSourceName;
+		}
 	}
 }

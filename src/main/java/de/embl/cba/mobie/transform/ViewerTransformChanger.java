@@ -2,8 +2,7 @@ package de.embl.cba.mobie.transform;
 
 import bdv.util.*;
 import bdv.viewer.animate.SimilarityTransformAnimator;
-import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.mobie.PlaygroundUtils;
+import de.embl.cba.mobie.playground.PlaygroundUtils;
 import de.embl.cba.mobie.bdv.BdvPointOverlay;
 import de.embl.cba.mobie.Utils;
 import net.imglib2.realtransform.AffineTransform3D;
