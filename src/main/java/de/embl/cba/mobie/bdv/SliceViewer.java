@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.bdv;
 
 import bdv.util.BdvHandle;
+import bdv.util.projector.mixed.SourceAndConverterBlendingModeChangerCommand;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.color.NonSelectedSegmentsOpacityAdjusterCommand;
 import de.embl.cba.mobie.segment.BdvSegmentSelector;
@@ -9,6 +10,9 @@ import de.embl.cba.mobie.view.ViewerManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
+import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
+import sc.fiji.bdvpg.bdv.supplier.mobie.MobieBdvSupplier;
+import sc.fiji.bdvpg.bdv.supplier.mobie.MobieSerializableBdvOptions;
 import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
@@ -90,7 +94,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		final Set< String > actionsKeys = sacService.getActionsKeys();
 
 		final String[] actions = {
-				sacService.getCommandName( ScreenShotMakerCommand.class ),
+				//sacService.getCommandName( ScreenShotMakerCommand.class ),
 				sacService.getCommandName( ViewerTransformLogger.class ),
 				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
 				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
@@ -141,9 +145,15 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 	private BdvHandle createBdv( int numTimepoints )
 	{
-		// create Bdv
-		final MinimalBdvCreator bdvCreator = new MinimalBdvCreator( "MoBIE", is2D, Projector.MIXED_PROJECTOR, true, numTimepoints );
-		final BdvHandle bdvHandle = bdvCreator.get();
+		final MobieSerializableBdvOptions sOptions = new MobieSerializableBdvOptions();
+		sOptions.is2D = is2D;
+		sOptions.numTimePoints = numTimepoints;
+
+		IBdvSupplier bdvSupplier = new MobieBdvSupplier( sOptions );
+
+		SourceAndConverterServices.getBdvDisplayService().setDefaultBdvSupplier(bdvSupplier);
+
+		BdvHandle bdvHandle = SourceAndConverterServices.getBdvDisplayService().getNewBdv();
 
 		return bdvHandle;
 	}

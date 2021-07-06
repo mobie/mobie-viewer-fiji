@@ -2,6 +2,7 @@ package de.embl.cba.mobie.bdv;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;
+import bdv.util.projector.mixed.BlendingMode;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie.color.OpacityAdjuster;
@@ -16,7 +17,6 @@ import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import sc.fiji.bdvpg.bdv.projector.BlendingMode;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -42,7 +42,7 @@ public class ImageSliceView
 		this.bdvHandle = bdvHandle;
 		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
 
-		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
+		displayService = SourceAndConverterServices.getBdvDisplayService();
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 
 		show();
@@ -124,7 +124,7 @@ public class ImageSliceView
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )
 		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+			SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
 		}
 	}
 }
