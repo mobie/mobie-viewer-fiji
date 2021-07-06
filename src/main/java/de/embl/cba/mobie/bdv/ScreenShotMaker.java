@@ -331,8 +331,6 @@ public class ScreenShotMaker
 
     private void projectUsingMixedProjector( ArrayList< RandomAccessibleInterval< ARGBType > > argbCaptures, RandomAccessibleInterval< ARGBType > argbCapture, BlendingMode[] blendingModes )
     {
-        final int[] sourcesOrder = AccumulateMixedProjectorARGB.getSourcesOrder( blendingModes );
-
         final Cursor< ARGBType > argbCursor = Views.iterable( argbCapture ).localizingCursor();
         final int numVisibleSources = argbCaptures.size();
         Cursor< ARGBType >[] cursors = getCursors( argbCaptures, numVisibleSources );
@@ -343,7 +341,7 @@ public class ScreenShotMaker
             for ( int i = 0; i < numVisibleSources; i++ )
                 cursors[ i ].fwd();
 
-            final int argbIndex = AccumulateMixedProjectorARGB.getArgbIndex( cursors, sourcesOrder, blendingModes );
+            final int argbIndex = AccumulateMixedProjectorARGB.getArgbIndex( cursors, blendingModes );
             argbCursor.get().set( argbIndex );
         }
     }

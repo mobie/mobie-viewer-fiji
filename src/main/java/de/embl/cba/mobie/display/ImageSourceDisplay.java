@@ -39,8 +39,7 @@ public class ImageSourceDisplay extends SourceDisplay
 		return blendingMode;
 	}
 
-	public ImageSourceDisplay( String name, double opacity, List< String > sources, String color,
-							   double[] contrastLimits, BlendingMode blendingMode, boolean showImagesIn3d ) {
+	public ImageSourceDisplay( String name, double opacity, List< String > sources, String color, double[] contrastLimits, BlendingMode blendingMode, boolean showImagesIn3d ) {
 		this.name = name;
 		this.opacity = opacity;
 		this.sources = sources;
