@@ -9,11 +9,7 @@ import de.embl.cba.mobie.view.ViewerManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
-import sc.fiji.bdvpg.bdv.MinimalBdvCreator;
-import sc.fiji.bdvpg.bdv.projector.Projector;
 import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
-import sc.fiji.bdvpg.scijava.command.bdv.ScreenShotMakerCommand;
-import sc.fiji.bdvpg.scijava.command.source.SourceAndConverterBlendingModeChangerCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -45,7 +41,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		this.timepoints = timepoints;
 
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-		sacDisplayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
+		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
 		bdvHandle = createBdv( timepoints );
 		sacDisplayService.registerBdvHandle( bdvHandle );
