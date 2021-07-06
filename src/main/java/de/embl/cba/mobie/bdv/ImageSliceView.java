@@ -5,6 +5,7 @@ import bdv.util.BdvHandle;
 import bdv.util.projector.mixed.BlendingMode;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
+import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie.color.opacity.VolatileAdjustableOpacityColorConverter;
@@ -31,13 +32,15 @@ import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 public class ImageSliceView
 {
 	private final SourceAndConverterBdvDisplayService displayService;
+	private final MoBIE moBIE;
 	private final ImageSourceDisplay imageDisplay;
 	private final BdvHandle bdvHandle;
 	private final SourceAndConverterSupplier sourceAndConverterSupplier;
 	private final SourceAndConverterService sacService;
 
-	public ImageSliceView( ImageSourceDisplay imageDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
+	public ImageSliceView( MoBIE moBIE, ImageSourceDisplay imageDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier )
 	{
+		this.moBIE = moBIE;
 		this.imageDisplay = imageDisplay;
 		this.bdvHandle = bdvHandle;
 		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
@@ -124,7 +127,9 @@ public class ImageSliceView
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )
 		{
-			SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
+			moBIE.closeSourceAndConverter( sourceAndConverter );
 		}
+		imageDisplay.sourceAndConverters.clear();
 	}
+
 }

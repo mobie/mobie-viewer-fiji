@@ -16,7 +16,7 @@ public class OpenRemotePlatynereis
 
 		try {
 			new MoBIE("https://github.com/platybrowser/platybrowser",
-					MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5S3 ) );
+					MoBIESettings.settings().gitProjectBranch("spec-v2").imageDataFormat( ImageDataFormat.BdvN5S3 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
