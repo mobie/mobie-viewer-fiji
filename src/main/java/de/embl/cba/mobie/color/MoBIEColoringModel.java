@@ -40,14 +40,11 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	private ColoringModel< T > coloringModel;
 	private SelectionModel< T > selectionModel;
 
-	private SelectionColoringMode selectionColoringMode;
 	private ARGBType selectionColor;
 	private double opacityNotSelected;
 
 	public static final ARGBType YELLOW = new ARGBType( ARGBType.rgba( 255, 255, 0, 255 ) );
 	public static final ARGBType TRANSPARENT = new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) );
-
-	private List< SelectionColoringMode > selectionColoringModes;
 
 	public enum SelectionColoringMode
 	{
@@ -70,10 +67,8 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 
 	private void init()
 	{
-		this.selectionColoringModes = Arrays.asList( SelectionColoringMode.values() );
-		this.selectionColor = YELLOW;
+		this.selectionColor = null;
 		this.opacityNotSelected = 0.15;
-		this.selectionColoringMode = SelectionColoringMode.DimNotSelected;
 	}
 
 	public void setSelectionModel( SelectionModel< T > selectionModel )
@@ -94,27 +89,13 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 
 		final boolean isSelected = selectionModel.isSelected( input );
 
-		switch ( selectionColoringMode )
+		if ( ! isSelected )
 		{
-			case DimNotSelected:
-				if ( ! isSelected )
-					dim( output, opacityNotSelected );
-				break;
-
-			case SelectionColor:
-				if ( isSelected )
-					output.set( selectionColor );
-				break;
-
-			case SelectionColorAndDimNotSelected:
-				if ( isSelected )
-					output.set( selectionColor );
-				else
-					dim( output, opacityNotSelected );
-				break;
-
-			default:
-				break;
+			dim( output, opacityNotSelected );
+		}
+		else
+		{
+			if ( selectionColor != null ) output.set( selectionColor );
 		}
 	}
 
@@ -122,9 +103,9 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	 * Implements dimming via alpha
 	 *
 	 * @param output
-	 * @param alpha
+	 * @param opacity
 	 */
-	private void dim( ARGBType output, double alpha )
+	private void dim( ARGBType output, double opacity )
 	{
 		final int colorIndex = output.get();
 
@@ -133,31 +114,8 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 						ARGBType.red( colorIndex ),
 						ARGBType.green( colorIndex ),
 						ARGBType.blue( colorIndex ),
-						alpha * 255 )
+						opacity * 255 )
 		);
-	}
-
-	public void setSelectionColoringMode( SelectionColoringMode selectionColoringMode )
-	{
-		this.selectionColoringMode = selectionColoringMode;
-		notifyColoringListeners();
-	}
-
-	public void setSelectionColoringMode( SelectionColoringMode selectionColoringMode, double brightnessNotSelected )
-	{
-		this.selectionColoringMode = selectionColoringMode;
-
-		// ensure value between 0 and 1
-		brightnessNotSelected = Math.min( 1.0, brightnessNotSelected );
-		brightnessNotSelected = Math.max( 0.0, brightnessNotSelected );
-		this.opacityNotSelected = brightnessNotSelected;
-
-		notifyColoringListeners();
-	}
-
-	public SelectionColoringMode getSelectionColoringMode()
-	{
-		return selectionColoringMode;
 	}
 
 	public void setSelectionColor( ARGBType selectionColor )

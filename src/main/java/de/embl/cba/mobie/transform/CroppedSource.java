@@ -33,6 +33,7 @@ import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
@@ -79,6 +80,7 @@ public class CroppedSource< T extends NumericType<T> > implements Source< T > //
             final AffineTransform3D inverse = transform3D.inverse();
             final Interval voxelInterval = Intervals.smallestContainingInterval( inverse.estimateBounds( crop ) );
             final FinalInterval containedVoxelInterval = intersectWithSourceInterval( source, crop, level, voxelInterval );
+            final FinalRealInterval realInterval = transform3D.estimateBounds( voxelInterval );
 
             levelToVoxelInterval.put( level, containedVoxelInterval );
         }

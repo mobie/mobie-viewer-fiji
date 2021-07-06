@@ -4,6 +4,7 @@ import bdv.util.BdvHandle;
 import bdv.util.projector.mixed.SourceAndConverterBlendingModeChangerCommand;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.color.NonSelectedSegmentsOpacityAdjusterCommand;
+import de.embl.cba.mobie.color.SelectedSegmentsColorConfiguratorCommand;
 import de.embl.cba.mobie.segment.BdvSegmentSelector;
 import de.embl.cba.mobie.color.RandomColorSeedChangerCommand;
 import de.embl.cba.mobie.view.ViewerManager;
@@ -99,6 +100,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
 				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
 				sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ),
+				sacService.getCommandName( SelectedSegmentsColorConfiguratorCommand.class ),
 				UNDO_SEGMENT_SELECTIONS,
 				LOAD_ADDITIONAL_VIEWS,
 				SAVE_CURRENT_SETTINGS_AS_VIEW
