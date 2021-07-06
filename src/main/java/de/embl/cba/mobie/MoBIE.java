@@ -477,7 +477,7 @@ public class MoBIE
 
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter )
 	{
-		SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+		SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
 		String sourceName = sourceAndConverter.getSpimSource().getName();
 		final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
 		if ( imgLoader instanceof N5ImageLoader )

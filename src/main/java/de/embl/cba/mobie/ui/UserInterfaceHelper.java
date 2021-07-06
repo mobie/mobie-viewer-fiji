@@ -303,7 +303,7 @@ public class UserInterfaceHelper
 		// make the panel color listen to color changes of the sources
 		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
 		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
+			SourceAndConverterServices.getBdvDisplayService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
 				// color changed listener
 				setPanelColor( panel, setup.getColor() );
 			} );
@@ -610,7 +610,7 @@ public class UserInterfaceHelper
 			{
 				for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 				{
-					SourceAndConverterServices.getSourceAndConverterDisplayService().setVisible( sourceAndConverter, checkBox.isSelected() );
+					SourceAndConverterServices.getBdvDisplayService().setVisible( sourceAndConverter, checkBox.isSelected() );
 				}
 			}
 		} );
@@ -736,7 +736,7 @@ public class UserInterfaceHelper
 			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
 			for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )
 			{
-				converterSetups.add( SourceAndConverterServices.getSourceAndConverterDisplayService().getConverterSetup( sourceAndConverter ) );
+				converterSetups.add( SourceAndConverterServices.getBdvDisplayService().getConverterSetup( sourceAndConverter ) );
 			}
 
 			UserInterfaceHelper.showBrightnessDialog(

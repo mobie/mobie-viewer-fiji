@@ -33,6 +33,7 @@ import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
@@ -78,14 +79,25 @@ public class CroppedSource< T extends NumericType<T> > implements Source< T > //
             source.getSourceTransform( 0, level, transform3D );
             final AffineTransform3D inverse = transform3D.inverse();
             final Interval voxelInterval = Intervals.smallestContainingInterval( inverse.estimateBounds( crop ) );
+            final FinalInterval containedVoxelInterval = intersectWithSourceInterval( source, crop, level, voxelInterval );
+            final FinalRealInterval realInterval = transform3D.estimateBounds( voxelInterval );
 
-            // If the interval is outside the bounds of the RAI then there is nothing to show.
-            // Moreover the fetcher threads throw errors when trying to access pixels outside the RAI.
-            // Thus let's limit the interval to where there actually is data.
-            final RandomAccessibleInterval< T > rai = source.getSource( 0, level );
-            final FinalInterval intersect = Intervals.intersect( rai, voxelInterval );
-            levelToVoxelInterval.put( level, intersect );
+            levelToVoxelInterval.put( level, containedVoxelInterval );
         }
+    }
+
+    private FinalInterval intersectWithSourceInterval( Source< T > source, RealInterval crop, int level, Interval voxelInterval )
+    {
+        // If the interval is outside the bounds of the RAI then there is nothing to show.
+        // Moreover the fetcher threads throw errors when trying to access pixels outside the RAI.
+        // Thus let's limit the interval to where there actually is data.
+        final RandomAccessibleInterval< T > rai = source.getSource( 0, level );
+        final FinalInterval intersect = Intervals.intersect( rai, voxelInterval );
+        if ( Intervals.numElements( intersect ) <= 0 )
+        {
+            throw new RuntimeException( "The crop interval " + crop + " is not within the image source " + source.getName() );
+        }
+        return intersect;
     }
 
     public Source< ? > getWrappedSource() {

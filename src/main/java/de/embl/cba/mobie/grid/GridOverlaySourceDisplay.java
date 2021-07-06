@@ -89,7 +89,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 	{
 		final TableRowsIntervalImage< DefaultAnnotatedIntervalTableRow > intervalImage = new TableRowsIntervalImage<>( tableRows, coloringModel, name );
 		SourceAndConverter< IntType > sourceAndConverter = intervalImage.getSourceAndConverter();
-		SourceAndConverterServices.getSourceAndConverterDisplayService().show( bdvHandle, sourceAndConverter );
+		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, sourceAndConverter );
 		sourceAndConverters.add( sourceAndConverter );
 	}
 
@@ -139,7 +139,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+			SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
 		}
 
 		tableViewer.close();

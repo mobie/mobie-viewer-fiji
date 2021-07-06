@@ -13,6 +13,7 @@ public class TransformerHelper
 			for ( SourceTransformer sourceTransformer : sourceTransformers )
 			{
 				sourceAndConverters = sourceTransformer.transform( sourceAndConverters );
+				//break;
 			}
 		}
 

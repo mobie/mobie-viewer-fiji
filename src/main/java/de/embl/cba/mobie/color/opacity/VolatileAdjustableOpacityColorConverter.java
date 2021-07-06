@@ -50,8 +50,16 @@ public class VolatileAdjustableOpacityColorConverter< V extends Volatile< RealTy
 	@Override
 	public void convert( V realTypeVolatile, ARGBType output )
 	{
-		converter.convert( realTypeVolatile, output );
-		output.mul( opacity );
+		if ( realTypeVolatile.isValid() && realTypeVolatile.get().getRealDouble() == 0 )
+		{
+			// ...for the Accumulate projector to know where the source ends
+			output.set( new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) ) );
+		}
+		else
+		{
+			converter.convert( realTypeVolatile, output );
+			output.mul( opacity );
+		}
 	}
 
 	@Override

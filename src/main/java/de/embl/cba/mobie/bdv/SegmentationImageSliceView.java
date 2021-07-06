@@ -40,7 +40,7 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		this.bdvHandle = bdvHandle;
 		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
 
-		displayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
+		displayService = SourceAndConverterServices.getBdvDisplayService();
 		show();
 	}
 
@@ -164,7 +164,7 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
 		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+			SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
 		}
 	}
 }

@@ -602,7 +602,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			columnNameToColoringModel.put( columnName, categoricalColoringModel );
 		}
 
-		coloringModel.setSelectionColoringMode( MoBIEColoringModel.SelectionColoringMode.DimNotSelected );
 		coloringModel.setColoringModel( columnNameToColoringModel.get( columnName ) );
 		final RowSorter< ? extends TableModel > rowSorter = jTable.getRowSorter();
 
