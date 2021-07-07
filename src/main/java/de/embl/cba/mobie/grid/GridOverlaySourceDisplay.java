@@ -48,6 +48,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 		HashMap<String, String> nameToTableDir = new HashMap<>();
 		nameToTableDir.put( sourceTransformer.getName(), tableDataFolder );
 		tableViewer = new TableViewer<>( moBIE, tableRows, selectionModel, coloringModel, name, nameToTableDir, true ).show();
+
 		coloringModel.listeners().add( tableViewer );
 		selectionModel.listeners().add( tableViewer );
 

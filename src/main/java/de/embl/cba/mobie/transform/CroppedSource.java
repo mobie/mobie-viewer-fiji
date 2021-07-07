@@ -39,6 +39,9 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.InverseRealTransform;
+import net.imglib2.realtransform.RealTransformRandomAccessible;
+import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
@@ -80,8 +83,6 @@ public class CroppedSource< T extends NumericType<T> > implements Source< T > //
             final AffineTransform3D inverse = transform3D.inverse();
             final Interval voxelInterval = Intervals.smallestContainingInterval( inverse.estimateBounds( crop ) );
             final FinalInterval containedVoxelInterval = intersectWithSourceInterval( source, crop, level, voxelInterval );
-            final FinalRealInterval realInterval = transform3D.estimateBounds( voxelInterval );
-
             levelToVoxelInterval.put( level, containedVoxelInterval );
         }
     }
@@ -128,6 +129,10 @@ public class CroppedSource< T extends NumericType<T> > implements Source< T > //
         ExtendedRandomAccessibleInterval<T, RandomAccessibleInterval< T >>
                 extendedRai = Views.extendZero( croppedRai );
         RealRandomAccessible< T > realRandomAccessible = Views.interpolate( extendedRai, interpolators.get(method) );
+        final AffineTransform3D affineTransform3D = new AffineTransform3D();
+        source.getSourceTransform( t, level, affineTransform3D );
+        final RealRandomAccessible< T > transformed = RealViews.transform( realRandomAccessible, affineTransform3D );
+
         return realRandomAccessible;
     }
 
