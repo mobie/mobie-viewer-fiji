@@ -29,11 +29,11 @@
 package de.embl.cba.mobie.bdv;
 
 import bdv.util.BdvHandle;
-import bdv.util.projector.mixed.AccumulateMixedProjectorARGB;
-import bdv.util.projector.mixed.BlendingMode;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie.bdv.render.AccumulateOccludingProjectorARGB;
+import de.embl.cba.mobie.bdv.render.BlendingMode;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
@@ -75,7 +75,6 @@ import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 public class ScreenShotMaker
 {
-
     private final BdvHandle bdvHandle;
     private double physicalPixelSpacingInXY = 1;
     private String physicalUnit = "Pixels";
@@ -227,7 +226,7 @@ public class ScreenShotMaker
 
         if ( rawCaptures.size() > 0 )
         {
-            final BlendingMode[] blendingModes = AccumulateMixedProjectorARGB.getBlendingModes( visibleSacs );
+            final BlendingMode[] blendingModes = AccumulateOccludingProjectorARGB.getBlendingModes( visibleSacs );
             screenShot = createImagePlus( physicalUnit, argbCaptures, voxelSpacing, blendingModes, null );
             rawImageData  = createCompositeImage(
                     voxelSpacing, physicalUnit, rawCaptures, colors, displayRanges );
@@ -341,7 +340,7 @@ public class ScreenShotMaker
             for ( int i = 0; i < numVisibleSources; i++ )
                 cursors[ i ].fwd();
 
-            final int argbIndex = AccumulateMixedProjectorARGB.getArgbIndex( cursors, blendingModes );
+            final int argbIndex = AccumulateOccludingProjectorARGB.getArgbIndex( cursors, AccumulateOccludingProjectorARGB.getOccludedBy() );
             argbCursor.get().set( argbIndex );
         }
     }

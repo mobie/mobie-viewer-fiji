@@ -4,6 +4,8 @@ import com.google.gson.*;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import de.embl.cba.mobie.bdv.MobieBdvSupplier;
+import de.embl.cba.mobie.bdv.MobieBdvSupplierAdapter;
 import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.transform.SourceTransformer;
 import de.embl.cba.mobie.transform.ViewerTransform;
@@ -64,6 +66,7 @@ public class JsonHelper
 		gb.registerTypeAdapter( new TypeToken<List<SourceTransformer>>(){}.getType(), new SourceTransformerListAdapter());
 		gb.registerTypeAdapter( new TypeToken<List<SourceDisplay>>(){}.getType(), new SourceDisplayListAdapter());
 		gb.registerTypeAdapter( new TypeToken< ViewerTransform >(){}.getType(), new ViewerTransformAdapter());
+		//gb.registerTypeAdapter( new TypeToken< MobieBdvSupplier >(){}.getType(), new MobieBdvSupplierAdapter());
 
 		if ( prettyPrinting ) {
 			gb.setPrettyPrinting();

@@ -127,11 +127,11 @@
 			<artifactId>bigdataviewer-playground</artifactId>
 			<version>${bigdataviewer-playground.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>sc.fiji.bigdataviewer</groupId>
-			<artifactId>bigdataviewer-playground-display</artifactId>
-			<version>${bigdataviewer-playground-display.version}</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>sc.fiji.bigdataviewer</groupId>-->
+<!--			<artifactId>bigdataviewer-playground-display</artifactId>-->
+<!--			<version>${bigdataviewer-playground-display.version}</version>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>

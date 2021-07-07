@@ -1,11 +1,11 @@
 package de.embl.cba.mobie.bdv;
 
 import bdv.util.BdvHandle;
-import bdv.util.projector.mixed.SourceAndConverterBlendingModeChangerCommand;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.command.NonSelectedSegmentsOpacityAdjusterCommand;
 import de.embl.cba.mobie.command.SegmentsVolumeRenderingConfiguratorCommand;
 import de.embl.cba.mobie.command.SelectedSegmentsColorConfiguratorCommand;
+import de.embl.cba.mobie.command.SourceAndConverterBlendingModeChangerCommand;
 import de.embl.cba.mobie.segment.BdvSegmentSelector;
 import de.embl.cba.mobie.command.RandomColorSeedChangerCommand;
 import de.embl.cba.mobie.view.ViewerManager;
@@ -13,8 +13,6 @@ import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
-import sc.fiji.bdvpg.bdv.supplier.mobie.MobieBdvSupplier;
-import sc.fiji.bdvpg.bdv.supplier.mobie.MobieSerializableBdvOptions;
 import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;

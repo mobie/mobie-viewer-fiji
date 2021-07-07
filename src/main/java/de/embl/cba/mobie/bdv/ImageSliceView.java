@@ -2,10 +2,10 @@ package de.embl.cba.mobie.bdv;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;
-import bdv.util.projector.mixed.BlendingMode;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.bdv.render.BlendingMode;
 import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie.color.opacity.VolatileAdjustableOpacityColorConverter;
@@ -80,7 +80,7 @@ public class ImageSliceView
 
 			// set blending mode
 			if ( imageDisplay.getBlendingMode() != null )
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, imageDisplay.getBlendingMode());
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, imageDisplay.getBlendingMode() );
 
 			// show
 			displayService.show( bdvHandle, sourceAndConverter );
