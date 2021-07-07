@@ -349,6 +349,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 		menu.add( createSelectAllMenuItem() );
 		menu.add( createSelectEqualToMenuItem() );
+		menu.add( createSelectLessThanMenuItem() );
+		menu.add( createSelectGreaterThanMenuItem() );
 
 		return menu;
 	}
@@ -551,6 +553,28 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		return menuItem;
 	}
 
+	private JMenuItem createSelectLessThanMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Select less than..." );
+
+		menuItem.addActionListener( e ->
+				SwingUtilities.invokeLater( () ->
+						selectGreaterOrLessThan( false ) ) );
+
+		return menuItem;
+	}
+
+	private JMenuItem createSelectGreaterThanMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Select greater than..." );
+
+		menuItem.addActionListener( e ->
+				SwingUtilities.invokeLater( () ->
+						selectGreaterOrLessThan( true )) );
+
+		return menuItem;
+	}
+
 	private JMenuItem createStartNewAnnotationMenuItem()
 	{
 		final JMenuItem menuItem = new JMenuItem( "Start new annotation..." );
@@ -589,8 +613,14 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	}
 
+	private void selectRows( List<T> selectedTableRows, List<T> notSelectedTableRows ) {
+		selectionModel.setSelected( selectedTableRows, true );
+		selectionModel.setSelected( notSelectedTableRows, false );
+	}
+
 	private void selectEqualTo()
 	{
+		// works for categorical and numeric columns
 		final GenericDialog gd = new GenericDialog( "" );
 		String[] columnNames = getColumnNames().stream().toArray( String[]::new );
 		gd.addChoice( "Column", columnNames, columnNames[0] );
@@ -634,114 +664,49 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		}
 
 		if ( selectedTableRows.size() > 0 ) {
-			selectionModel.setSelected( selectedTableRows, true );
-			selectionModel.setSelected( notSelectedTableRows, false );
+			selectRows( selectedTableRows, notSelectedTableRows );
 		} else {
 			Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
 		}
 	}
 
-	private void selectGreaterThan()
-	{
+	private void selectGreaterOrLessThan( boolean greaterThan ) {
+		// only works for numeric columns
 		final GenericDialog gd = new GenericDialog( "" );
-		String[] columnNames = getColumnNames().stream().toArray( String[]::new );
+		String[] columnNames = getNumericColumnNames().toArray(new String[0]);
 		gd.addChoice( "Column", columnNames, columnNames[0] );
-		gd.addStringField( "value", "" );
+		gd.addNumericField( "value", 0 );
 		gd.showDialog();
 		if( gd.wasCanceled() ) return;
 		final String columnName = gd.getNextChoice();
-		final String value = gd.getNextString();
-
-
-		// Have to parse to doubles for double column (as e.g. integers like 9 are displayed as 9.0)
-		double doubleValue = 0;
-		boolean isDoubleColumn = jTable.getValueAt(0, jTable.getColumn( columnName ).getModelIndex() ) instanceof Double;
-		if ( isDoubleColumn ) {
-			try {
-				doubleValue = Utils.parseDouble(value);
-			} catch (NumberFormatException e) {
-				Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
-				return;
-			}
-		}
+		final double value = gd.getNextNumber();
 
 		ArrayList<T> selectedTableRows = new ArrayList<>();
 		ArrayList<T> notSelectedTableRows = new ArrayList<>();
 		for( T tableRow: tableRows ) {
-			String tableValue = tableRow.getCell( columnName );
-			boolean valuesMatch;
 
-			if ( isDoubleColumn ) {
-				double tableDouble = Utils.parseDouble( tableValue );
-				valuesMatch = doubleValue == tableDouble;
+			boolean criteriaMet;
+			if ( greaterThan ) {
+				criteriaMet = Utils.parseDouble(tableRow.getCell(columnName)) > value;
 			} else {
-				valuesMatch = tableValue.equals( value );
+				criteriaMet = Utils.parseDouble(tableRow.getCell(columnName)) < value;
 			}
 
-			if ( valuesMatch ) {
-				selectedTableRows.add( tableRow );
+			if ( criteriaMet ) {
+				selectedTableRows.add(tableRow);
 			} else {
-				notSelectedTableRows.add( tableRow );
+				notSelectedTableRows.add(tableRow);
 			}
 		}
 
 		if ( selectedTableRows.size() > 0 ) {
-			selectionModel.setSelected( selectedTableRows, true );
-			selectionModel.setSelected( notSelectedTableRows, false );
+			selectRows( selectedTableRows, notSelectedTableRows );
 		} else {
-			Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
-		}
-	}
-
-	private void selectLessThan()
-	{
-		final GenericDialog gd = new GenericDialog( "" );
-		String[] columnNames = getColumnNames().stream().toArray( String[]::new );
-		gd.addChoice( "Column", columnNames, columnNames[0] );
-		gd.addStringField( "value", "" );
-		gd.showDialog();
-		if( gd.wasCanceled() ) return;
-		final String columnName = gd.getNextChoice();
-		final String value = gd.getNextString();
-
-
-		// Have to parse to doubles for double column (as e.g. integers like 9 are displayed as 9.0)
-		double doubleValue = 0;
-		boolean isDoubleColumn = jTable.getValueAt(0, jTable.getColumn( columnName ).getModelIndex() ) instanceof Double;
-		if ( isDoubleColumn ) {
-			try {
-				doubleValue = Utils.parseDouble(value);
-			} catch (NumberFormatException e) {
-				Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
-				return;
-			}
-		}
-
-		ArrayList<T> selectedTableRows = new ArrayList<>();
-		ArrayList<T> notSelectedTableRows = new ArrayList<>();
-		for( T tableRow: tableRows ) {
-			String tableValue = tableRow.getCell( columnName );
-			boolean valuesMatch;
-
-			if ( isDoubleColumn ) {
-				double tableDouble = Utils.parseDouble( tableValue );
-				valuesMatch = doubleValue == tableDouble;
+			if ( greaterThan ) {
+				Logger.error("No values greater than " + value + " in column " + columnName + ", please choose another value.");
 			} else {
-				valuesMatch = tableValue.equals( value );
+				Logger.error("No values less than " + value + " in column " + columnName + ", please choose another value.");
 			}
-
-			if ( valuesMatch ) {
-				selectedTableRows.add( tableRow );
-			} else {
-				notSelectedTableRows.add( tableRow );
-			}
-		}
-
-		if ( selectedTableRows.size() > 0 ) {
-			selectionModel.setSelected( selectedTableRows, true );
-			selectionModel.setSelected( notSelectedTableRows, false );
-		} else {
-			Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
 		}
 	}
 
@@ -849,6 +814,19 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	public Set< String > getColumnNames()
 	{
 		return tableRows.get( 0 ).getColumnNames();
+	}
+
+	public List<String> getNumericColumnNames()
+	{
+		Set<String> columnNames = getColumnNames();
+		ArrayList<String> numericColumnNames = new ArrayList<>();
+		for( String columnName: columnNames ) {
+			if ( jTable.getValueAt(0, jTable.getColumn( columnName ).getModelIndex() ) instanceof Double ) {
+				numericColumnNames.add( columnName );
+			}
+		}
+
+		return numericColumnNames;
 	}
 
 	public JTable getTable()
