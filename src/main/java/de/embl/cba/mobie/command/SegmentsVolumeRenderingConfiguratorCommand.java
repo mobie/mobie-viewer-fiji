@@ -1,7 +1,6 @@
 package de.embl.cba.mobie.command;
 
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.mobie.color.LabelConverter;
 import de.embl.cba.mobie.volume.SegmentsVolumeViewer;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -25,13 +24,16 @@ public class SegmentsVolumeRenderingConfiguratorCommand implements BdvPlayground
 	@Parameter ( label = "Resolution Z [um]")
 	double sz;
 
+	@Parameter ( label = "Repaint all segments")
+	boolean repaint;
+
 	@Override
 	public void run()
 	{
-		setVoxelSpacing( sourceAndConverters, new double[]{ sx, sy, sz } );
+		setVoxelSpacing( sourceAndConverters, new double[]{ sx, sy, sz }, repaint );
 	}
 
-	public static void setVoxelSpacing( SourceAndConverter[] sourceAndConverters, double[] voxelSpacing )
+	public static void setVoxelSpacing( SourceAndConverter[] sourceAndConverters, double[] voxelSpacing, boolean repaint )
 	{
 		final SourceAndConverterService sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 
@@ -41,6 +43,8 @@ public class SegmentsVolumeRenderingConfiguratorCommand implements BdvPlayground
 			if ( volumeViewer != null )
 			{
 				volumeViewer.setVoxelSpacing( voxelSpacing );
+				if ( repaint )
+					volumeViewer.updateView( true );
 			}
 		}
 	}

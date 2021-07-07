@@ -164,11 +164,14 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 		}
 	}
 
-	private synchronized void updateView( boolean recomputeMeshes )
+	public synchronized void updateView( boolean recomputeMeshes )
 	{
-		// TODO: It feels that below functions should be merged...
-		updateSelectedSegments( recomputeMeshes );
-		removeUnselectedSegments();
+		new Thread( () ->
+		{
+			// TODO: It feels that below functions should be merged...
+			updateSelectedSegments( recomputeMeshes );
+			removeUnselectedSegments();
+		}).start();
 	}
 
 	private void removeUnselectedSegments( )
@@ -266,7 +269,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 			this.showSegments = showSegments;
 			if ( showSegments )
 			{
-				new Thread( () -> updateView( false ) ).start();
+				updateView( false );
 			}
 			else
 			{
@@ -458,14 +461,11 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	{
 		if ( ! showSegments ) return;
 
-		new Thread( () ->
+		if ( selection.timePoint() != currentTimePoint )
 		{
-			if ( selection.timePoint() != currentTimePoint )
-			{
-				currentTimePoint = selection.timePoint();
-				updateView( false );
-			}
-		}).start();
+			currentTimePoint = selection.timePoint();
+			updateView( false );
+		}
 
 		if ( universe.getContents().size() == 0 ) return;
 		if ( selection == recentFocus ) return;
