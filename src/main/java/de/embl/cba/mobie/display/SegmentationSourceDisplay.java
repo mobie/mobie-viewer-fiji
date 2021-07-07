@@ -4,11 +4,10 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.color.LabelConverter;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
-import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie.segment.SegmentAdapter;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.bdv.SegmentationImageSliceView;
-import de.embl.cba.mobie.volume.SegmentsVolumeView;
+import de.embl.cba.mobie.volume.SegmentsVolumeViewer;
 import de.embl.cba.mobie.table.TableViewer;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.ColoringModel;
@@ -39,7 +38,7 @@ public class SegmentationSourceDisplay extends SourceDisplay
 	public transient ScatterPlotViewer< TableRowImageSegment > scatterPlotViewer;
 	public transient List< TableRowImageSegment > segments;
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
-	public transient SegmentsVolumeView< TableRowImageSegment > segmentsVolumeViewer;
+	public transient SegmentsVolumeViewer< TableRowImageSegment > segmentsVolumeViewer;
 	public transient SegmentationImageSliceView< TableRowImageSegment > segmentationImageSliceView;
 
 	public String getLut()

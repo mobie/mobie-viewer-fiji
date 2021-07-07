@@ -58,8 +58,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SegmentsVolumeView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
+public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
+	public static String VOLUME_VIEW = "Volume view";
+
 	private final SelectionModel< S > selectionModel;
 	private final ColoringModel< S > coloringModel;
 	private final Collection< SourceAndConverter< ? > > sourceAndConverters;
@@ -77,14 +79,14 @@ public class SegmentsVolumeView< S extends ImageSegment > implements ColoringLis
 	private long maxNumSegmentVoxels;
 	private String objectsName;
 	private boolean showSegments = false;
-	private double voxelSpacing = 0; // 0 = auto
+	private double[] voxelSpacing; // desired voxel spacings; null = auto
 	private int currentTimePoint = 0;
 	private final MeshCreator< ImageSegment > meshCreator;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	private Window window;
 	private Image3DUniverse universe;
 
-	public SegmentsVolumeView(
+	public SegmentsVolumeViewer(
 			final SelectionModel< S > selectionModel,
 			final ColoringModel< S > coloringModel,
 			final Collection< SourceAndConverter< ? > > sourceAndConverters,
@@ -422,12 +424,12 @@ public class SegmentsVolumeView< S extends ImageSegment > implements ColoringLis
 		return new Color3f( ColorUtils.getColor( argbType ) );
 	}
 
-	public void setVoxelSpacing( double voxelSpacing )
+	public void setVoxelSpacing( double[] voxelSpacing )
 	{
 		this.voxelSpacing = voxelSpacing;
 	}
 
-	public double getVoxelSpacing()
+	public double[] getVoxelSpacing()
 	{
 		return voxelSpacing;
 	}
