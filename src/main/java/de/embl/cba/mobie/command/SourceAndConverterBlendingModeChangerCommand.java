@@ -45,12 +45,9 @@ public class SourceAndConverterBlendingModeChangerCommand implements BdvPlaygrou
     @Parameter(label = "Select Source(s)")
     SourceAndConverter[] sacs;
 
-    @Parameter(label="Add Source(s) to occluding layer")
-    boolean addtooccludinglayer = false;
-
     @Override
     public void run() {
-        new BlendingModeChanger( sacs, BlendingMode.valueOf(blendingmode), addtooccludinglayer).run();
+        new BlendingModeChanger( sacs, BlendingMode.valueOf(blendingmode) ).run();
     }
 
 }

@@ -36,13 +36,11 @@ import java.util.function.Consumer;
 public class BlendingModeChanger implements Runnable, Consumer< SourceAndConverter[] > {
 
     private BlendingMode blendingMode;
-    private final boolean showSourcesExclusively;
     private final SourceAndConverter[] sacs;
 
-    public BlendingModeChanger(SourceAndConverter[] sacs, BlendingMode blendingMode, boolean showSourcesExclusively ) {
+    public BlendingModeChanger( SourceAndConverter[] sacs, BlendingMode blendingMode ) {
         this.sacs = sacs;
         this.blendingMode = blendingMode;
-        this.showSourcesExclusively = showSourcesExclusively;
     }
 
     @Override
@@ -68,14 +66,6 @@ public class BlendingModeChanger implements Runnable, Consumer< SourceAndConvert
     {
         for ( SourceAndConverter sac : sacs )
         {
-            if ( showSourcesExclusively )
-            {
-                if ( blendingMode.equals( BlendingMode.Average ) )
-                    blendingMode = BlendingMode.AverageOccluding;
-                else if ( blendingMode.equals( BlendingMode.Sum ) )
-                    blendingMode = BlendingMode.SumOccluding;
-            }
-
             SourceAndConverterServices.getSourceAndConverterService().setMetadata( sac, BlendingMode.BLENDING_MODE, blendingMode );
         }
     }
