@@ -35,6 +35,7 @@ import de.embl.cba.mobie.color.MoBIEColoringModel;
 import de.embl.cba.mobie.grid.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.tables.*;
 import de.embl.cba.tables.color.*;
+import de.embl.cba.tables.imagesegment.DefaultTableRowImageSegment;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
 
 import de.embl.cba.tables.select.SelectionListener;
@@ -347,6 +348,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		JMenu menu = new JMenu( "Select" );
 
 		menu.add( createSelectAllMenuItem() );
+		menu.add( createSelectEqualToMenuItem() );
 
 		return menu;
 	}
@@ -538,6 +540,17 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		return menuItem;
 	}
 
+	private JMenuItem createSelectEqualToMenuItem()
+	{
+		final JMenuItem menuItem = new JMenuItem( "Select equal to..." );
+
+		menuItem.addActionListener( e ->
+				SwingUtilities.invokeLater( () ->
+						selectEqualTo() ) );
+
+		return menuItem;
+	}
+
 	private JMenuItem createStartNewAnnotationMenuItem()
 	{
 		final JMenuItem menuItem = new JMenuItem( "Start new annotation..." );
@@ -574,6 +587,162 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 //			selectionModel.focus( tableRow );
 //		}
 
+	}
+
+	private void selectEqualTo()
+	{
+		final GenericDialog gd = new GenericDialog( "" );
+		String[] columnNames = getColumnNames().stream().toArray( String[]::new );
+		gd.addChoice( "Column", columnNames, columnNames[0] );
+		gd.addStringField( "value", "" );
+		gd.showDialog();
+		if( gd.wasCanceled() ) return;
+		final String columnName = gd.getNextChoice();
+		final String value = gd.getNextString();
+
+
+		// Have to parse to doubles for double column (as e.g. integers like 9 are displayed as 9.0)
+		double doubleValue = 0;
+		boolean isDoubleColumn = jTable.getValueAt(0, jTable.getColumn( columnName ).getModelIndex() ) instanceof Double;
+		if ( isDoubleColumn ) {
+			try {
+				doubleValue = Utils.parseDouble(value);
+			} catch (NumberFormatException e) {
+				Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
+				return;
+			}
+		}
+
+		ArrayList<T> selectedTableRows = new ArrayList<>();
+		ArrayList<T> notSelectedTableRows = new ArrayList<>();
+		for( T tableRow: tableRows ) {
+			String tableValue = tableRow.getCell( columnName );
+			boolean valuesMatch;
+
+			if ( isDoubleColumn ) {
+				double tableDouble = Utils.parseDouble( tableValue );
+				valuesMatch = doubleValue == tableDouble;
+			} else {
+				valuesMatch = tableValue.equals( value );
+			}
+
+			if ( valuesMatch ) {
+				selectedTableRows.add( tableRow );
+			} else {
+				notSelectedTableRows.add( tableRow );
+			}
+		}
+
+		if ( selectedTableRows.size() > 0 ) {
+			selectionModel.setSelected( selectedTableRows, true );
+			selectionModel.setSelected( notSelectedTableRows, false );
+		} else {
+			Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
+		}
+	}
+
+	private void selectGreaterThan()
+	{
+		final GenericDialog gd = new GenericDialog( "" );
+		String[] columnNames = getColumnNames().stream().toArray( String[]::new );
+		gd.addChoice( "Column", columnNames, columnNames[0] );
+		gd.addStringField( "value", "" );
+		gd.showDialog();
+		if( gd.wasCanceled() ) return;
+		final String columnName = gd.getNextChoice();
+		final String value = gd.getNextString();
+
+
+		// Have to parse to doubles for double column (as e.g. integers like 9 are displayed as 9.0)
+		double doubleValue = 0;
+		boolean isDoubleColumn = jTable.getValueAt(0, jTable.getColumn( columnName ).getModelIndex() ) instanceof Double;
+		if ( isDoubleColumn ) {
+			try {
+				doubleValue = Utils.parseDouble(value);
+			} catch (NumberFormatException e) {
+				Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
+				return;
+			}
+		}
+
+		ArrayList<T> selectedTableRows = new ArrayList<>();
+		ArrayList<T> notSelectedTableRows = new ArrayList<>();
+		for( T tableRow: tableRows ) {
+			String tableValue = tableRow.getCell( columnName );
+			boolean valuesMatch;
+
+			if ( isDoubleColumn ) {
+				double tableDouble = Utils.parseDouble( tableValue );
+				valuesMatch = doubleValue == tableDouble;
+			} else {
+				valuesMatch = tableValue.equals( value );
+			}
+
+			if ( valuesMatch ) {
+				selectedTableRows.add( tableRow );
+			} else {
+				notSelectedTableRows.add( tableRow );
+			}
+		}
+
+		if ( selectedTableRows.size() > 0 ) {
+			selectionModel.setSelected( selectedTableRows, true );
+			selectionModel.setSelected( notSelectedTableRows, false );
+		} else {
+			Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
+		}
+	}
+
+	private void selectLessThan()
+	{
+		final GenericDialog gd = new GenericDialog( "" );
+		String[] columnNames = getColumnNames().stream().toArray( String[]::new );
+		gd.addChoice( "Column", columnNames, columnNames[0] );
+		gd.addStringField( "value", "" );
+		gd.showDialog();
+		if( gd.wasCanceled() ) return;
+		final String columnName = gd.getNextChoice();
+		final String value = gd.getNextString();
+
+
+		// Have to parse to doubles for double column (as e.g. integers like 9 are displayed as 9.0)
+		double doubleValue = 0;
+		boolean isDoubleColumn = jTable.getValueAt(0, jTable.getColumn( columnName ).getModelIndex() ) instanceof Double;
+		if ( isDoubleColumn ) {
+			try {
+				doubleValue = Utils.parseDouble(value);
+			} catch (NumberFormatException e) {
+				Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
+				return;
+			}
+		}
+
+		ArrayList<T> selectedTableRows = new ArrayList<>();
+		ArrayList<T> notSelectedTableRows = new ArrayList<>();
+		for( T tableRow: tableRows ) {
+			String tableValue = tableRow.getCell( columnName );
+			boolean valuesMatch;
+
+			if ( isDoubleColumn ) {
+				double tableDouble = Utils.parseDouble( tableValue );
+				valuesMatch = doubleValue == tableDouble;
+			} else {
+				valuesMatch = tableValue.equals( value );
+			}
+
+			if ( valuesMatch ) {
+				selectedTableRows.add( tableRow );
+			} else {
+				notSelectedTableRows.add( tableRow );
+			}
+		}
+
+		if ( selectedTableRows.size() > 0 ) {
+			selectionModel.setSelected( selectedTableRows, true );
+			selectionModel.setSelected( notSelectedTableRows, false );
+		} else {
+			Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
+		}
 	}
 
 	public void showNewAnnotationDialog()
