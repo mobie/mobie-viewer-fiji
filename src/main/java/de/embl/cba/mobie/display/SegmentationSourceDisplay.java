@@ -22,14 +22,14 @@ import java.util.Set;
 public class SegmentationSourceDisplay extends SourceDisplay
 {
 	// Serialization
-	private String lut = ColoringLuts.GLASBEY;
-	private String colorByColumn;
-	private Double[] valueLimits = new Double[]{ null, null };
-	private List< String > selectedSegmentIds;
-	private boolean showSelectedSegmentsIn3d = false;
-	private boolean showScatterPlot = false;
-	private String[] scatterPlotAxes = new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y };
-	private List< String > tables; // tables to display
+	protected String lut = ColoringLuts.GLASBEY;
+	protected String colorByColumn;
+	protected Double[] valueLimits = new Double[]{ null, null };
+	protected List< String > selectedSegmentIds;
+	protected boolean showSelectedSegmentsIn3d = false;
+	protected boolean showScatterPlot = false;
+	protected String[] scatterPlotAxes = new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y };
+	protected List< String > tables; // tables to display
 
 	// Runtime
 	public transient SelectionModel< TableRowImageSegment > selectionModel;

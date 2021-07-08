@@ -29,6 +29,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 	private final MoBIEColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel;
 	private final DefaultSelectionModel< DefaultAnnotatedIntervalTableRow > selectionModel;
 	private final TableViewer< DefaultAnnotatedIntervalTableRow > tableViewer;
+
 	private final BdvHandle bdvHandle;
 
 	public GridOverlaySourceDisplay( MoBIE moBIE, BdvHandle bdvHandle, String tableDataFolder, GridSourceTransformer sourceTransformer )
@@ -56,6 +57,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 		selectionModel.listeners().add( this );
 	}
 
+	// TODO: maybe replace the GridSourceTransform by a functional?
 	private List< DefaultAnnotatedIntervalTableRow > openGridTables( MoBIE moBIE, String tableDataFolder, GridSourceTransformer sourceTransformer, String[] relativeTablePaths )
 	{
 		// open
