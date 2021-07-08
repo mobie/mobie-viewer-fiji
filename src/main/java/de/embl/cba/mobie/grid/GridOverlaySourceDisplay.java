@@ -31,8 +31,6 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 	private final TableViewer< DefaultAnnotatedIntervalTableRow > tableViewer;
 	private final BdvHandle bdvHandle;
 
-	// TODO: split in two classes: the GridOverlayDisplay and the GridOverlayView
-
 	public GridOverlaySourceDisplay( MoBIE moBIE, BdvHandle bdvHandle, String tableDataFolder, GridSourceTransformer sourceTransformer )
 	{
 		this.bdvHandle = bdvHandle;
@@ -52,7 +50,6 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 		coloringModel.listeners().add( tableViewer );
 		selectionModel.listeners().add( tableViewer );
 
-		sourceAndConverters = new ArrayList<>();
 		showGridImage( bdvHandle, name, tableRows );
 
 		coloringModel.listeners().add( this );
@@ -91,6 +88,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 		final TableRowsIntervalImage< DefaultAnnotatedIntervalTableRow > intervalImage = new TableRowsIntervalImage<>( tableRows, coloringModel, name );
 		SourceAndConverter< IntType > sourceAndConverter = intervalImage.getSourceAndConverter();
 		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, sourceAndConverter );
+		sourceAndConverters = new ArrayList<>();
 		sourceAndConverters.add( sourceAndConverter );
 	}
 

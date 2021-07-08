@@ -99,12 +99,6 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		}
 	}
 
-	/**
-	 * Implements dimming via alpha
-	 *
-	 * @param output
-	 * @param opacity
-	 */
 	private void dim( ARGBType output, double opacity )
 	{
 		final int colorIndex = output.get();
