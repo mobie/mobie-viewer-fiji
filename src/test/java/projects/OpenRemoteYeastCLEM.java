@@ -14,6 +14,6 @@ public class OpenRemoteYeastCLEM
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		new MoBIE("https://github.com/mobie/yeast-clem-datasets", MoBIESettings.settings().gitProjectBranch( "spec-v2-blending-modes" ).imageDataFormat( ImageDataFormat.BdvN5S3 ) );
+		new MoBIE("https://github.com/mobie/yeast-clem-datasets", MoBIESettings.settings().gitProjectBranch( "spec-v2" ).imageDataFormat( ImageDataFormat.BdvN5S3 ) );
 	}
 }

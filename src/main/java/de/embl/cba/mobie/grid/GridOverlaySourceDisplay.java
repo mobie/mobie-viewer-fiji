@@ -113,7 +113,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 	@Override
 	public void selectionChanged()
 	{
-
+		bdvHandle.getViewerPanel().requestRepaint();
 	}
 
 	@Override
