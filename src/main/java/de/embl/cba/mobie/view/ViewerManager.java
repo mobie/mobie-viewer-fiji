@@ -5,7 +5,6 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalAdapter;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
-import de.embl.cba.mobie.annotate.TableRowsIntervalImage;
 import de.embl.cba.mobie.bdv.view.AnnotatedIntervalSliceView;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
 import de.embl.cba.mobie.display.AnnotatedRegionDisplay;
@@ -36,14 +35,12 @@ import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.numeric.integer.IntType;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -254,7 +251,7 @@ public class ViewerManager
 		}
 		else if ( sourceDisplay instanceof AnnotatedIntervalDisplay )
 		{
-			showSourceAnnotationDisplay( ( AnnotatedIntervalDisplay ) sourceDisplay );
+			showAnnotatedIntervalDisplay( ( AnnotatedIntervalDisplay ) sourceDisplay );
 		}
 
 		userInterface.addSourceDisplay( sourceDisplay );
@@ -282,9 +279,9 @@ public class ViewerManager
 	}
 
 	// TODO: own class: SourceAnnotationDisplayConfigurator
-	private void showSourceAnnotationDisplay( AnnotatedIntervalDisplay annotationDisplay )
+	private void showAnnotatedIntervalDisplay( AnnotatedIntervalDisplay annotationDisplay )
 	{
-		annotationDisplay.tableRows = moBIE.loadSourceAnnotationTables( annotationDisplay );
+		annotationDisplay.tableRows = moBIE.loadAnnotatedIntervalTables( annotationDisplay );
 		annotationDisplay.annotatedIntervalAdapter = new AnnotatedIntervalAdapter<>( annotationDisplay.tableRows );
 
 		configureMoBIEColoringModel( annotationDisplay );
@@ -292,9 +289,9 @@ public class ViewerManager
 		annotationDisplay.coloringModel.setSelectionModel(  annotationDisplay.selectionModel );
 
 		// set selected segments
-		if ( annotationDisplay.getSelectedSourceAnnotationIds() != null )
+		if ( annotationDisplay.getSelectedAnnotationIds() != null )
 		{
-			final List< AnnotatedIntervalTableRow > annotatedIntervals = annotationDisplay.annotatedIntervalAdapter.getAnnotatedIntervals( annotationDisplay.getSelectedSourceAnnotationIds() );
+			final List< AnnotatedIntervalTableRow > annotatedIntervals = annotationDisplay.annotatedIntervalAdapter.getAnnotatedIntervals( annotationDisplay.getSelectedAnnotationIds() );
 			annotationDisplay.selectionModel.setSelected( annotatedIntervals, true );
 		}
 

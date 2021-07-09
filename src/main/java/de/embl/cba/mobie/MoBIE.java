@@ -80,7 +80,7 @@ public class MoBIE
 		openDataset();
 	}
 
-	public static void mergeSourceAnnotationTable( List< AnnotatedIntervalTableRow > intervalTableRows, Map< String, List< String > > columns )
+	public static void mergeAnnotatedIntervalTable( List< AnnotatedIntervalTableRow > intervalTableRows, Map< String, List< String > > columns )
 	{
 		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
 		final ArrayList< String > gridIdColumn = TableColumns.getColumn( intervalTableRows, Constants.GRID_ID );
@@ -480,7 +480,7 @@ public class MoBIE
 		}
 	}
 
-	public List< AnnotatedIntervalTableRow > loadSourceAnnotationTables( AnnotatedIntervalDisplay annotationDisplay )
+	public List< AnnotatedIntervalTableRow > loadAnnotatedIntervalTables( AnnotatedIntervalDisplay annotationDisplay )
 	{
 		// open
 		final List< Map< String, List< String > > > tables = new ArrayList<>();
@@ -501,7 +501,7 @@ public class MoBIE
 
 		for ( int i = 0; i < additionalTables.size(); i++ )
 		{
-			MoBIE.mergeSourceAnnotationTable( intervalTableRows, additionalTables.get( i ) );
+			MoBIE.mergeAnnotatedIntervalTable( intervalTableRows, additionalTables.get( i ) );
 		}
 
 		return intervalTableRows;

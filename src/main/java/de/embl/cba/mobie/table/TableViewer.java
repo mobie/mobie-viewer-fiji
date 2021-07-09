@@ -33,7 +33,6 @@ import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
 import de.embl.cba.mobie.annotate.Annotator;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
-import de.embl.cba.mobie.annotate.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.tables.*;
 import de.embl.cba.tables.color.*;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
@@ -437,7 +436,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				for ( String tableDir: sourceNameToTableDir.values() )
 				{
 					final Map< String, List< String > > table = openTable( FileAndUrlUtils.combinePath( tableDir, tableName ) );
-					MoBIE.mergeSourceAnnotationTable( (List< AnnotatedIntervalTableRow >) tableRows, table );
+					MoBIE.mergeAnnotatedIntervalTable( (List< AnnotatedIntervalTableRow >) tableRows, table );
 				}
 			}
 			addAdditionalTable( tableName );
@@ -460,7 +459,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				{
 
 					Map< String, List< String > > table = openTable( path );
-					MoBIE.mergeSourceAnnotationTable( ( List< AnnotatedIntervalTableRow > ) tableRows, table );
+					MoBIE.mergeAnnotatedIntervalTable( ( List< AnnotatedIntervalTableRow > ) tableRows, table );
 				}
 				enableRowSorting( true );
 			}).start();

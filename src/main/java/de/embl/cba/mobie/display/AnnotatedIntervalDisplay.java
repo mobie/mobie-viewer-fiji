@@ -13,7 +13,7 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedI
 {
 	// Serialization
 	protected Map< String, List< String > > sources;
-	protected List< String > selectedSourceAnnotationIds;
+	protected List< String > selectedAnnotationIds;
 	protected Map< TableDataFormat, StorageLocation > tableData;
 
 	// Runtime
@@ -21,9 +21,9 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedI
 	public AnnotatedIntervalSliceView< AnnotatedIntervalTableRow > sliceView;
 
 	// Getters for the serialised fields
-	public List< String > getSelectedSourceAnnotationIds()
+	public List< String > getSelectedAnnotationIds()
 	{
-		return selectedSourceAnnotationIds;
+		return selectedAnnotationIds;
 	}
 
 	public String getTableDataFolder( TableDataFormat tableDataFormat )
@@ -46,7 +46,7 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedI
 		this.lut = lut;
 		this.colorByColumn = colorByColumn;
 		this.valueLimits = valueLimits;
-		this.selectedSourceAnnotationIds = selectedSegmentIds;
+		this.selectedAnnotationIds = selectedSegmentIds;
 		this.showScatterPlot = showScatterPlot;
 		this.scatterPlotAxes = scatterPlotAxes;
 		this.tables = tables;
