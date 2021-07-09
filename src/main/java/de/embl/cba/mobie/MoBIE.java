@@ -1,13 +1,15 @@
 package de.embl.cba.mobie;
 
 import bdv.viewer.SourceAndConverter;
-import com.google.gson.GsonBuilder;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.grid.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.mobie.n5.N5ImageLoader;
-import de.embl.cba.mobie.n5.zarr.*;
+import de.embl.cba.mobie.n5.zarr.N5OMEZarrImageLoader;
+import de.embl.cba.mobie.n5.zarr.OMEZarrReader;
+import de.embl.cba.mobie.n5.zarr.OMEZarrS3Reader;
+import de.embl.cba.mobie.n5.zarr.XmlN5OmeZarrImageLoader;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
@@ -26,7 +28,6 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
-import net.imglib2.util.Cast;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -35,10 +36,8 @@ import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -228,7 +227,7 @@ public class MoBIE {
         return dataset.sources.get(sourceName).get();
     }
 
-    public SpimData openZarrData(String path) {
+    private SpimData openZarrData(String path) {
         try {
             final SAXBuilder sax = new SAXBuilder();
             InputStream stream = FileAndUrlUtils.getInputStream(path);
