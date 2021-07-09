@@ -6,6 +6,7 @@ import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceAnnotationDisplay;
 import de.embl.cba.mobie.grid.AnnotatedIntervalCreator;
+import de.embl.cba.mobie.grid.AnnotatedIntervalTableRow;
 import de.embl.cba.mobie.grid.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.mobie.n5.N5ImageLoader;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
@@ -59,6 +60,7 @@ public class MoBIE
 	private String imageRoot;
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
+	private HashMap< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -74,11 +76,12 @@ public class MoBIE
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
 		sourceNameToImgLoader = new HashMap<>();
+		sourceNameToSourceAndConverter = new HashMap<>();
 
 		openDataset();
 	}
 
-	public static void mergeSourceAnnotationTable( List< DefaultAnnotatedIntervalTableRow > intervalTableRows, Map< String, List< String > > columns )
+	public static void mergeSourceAnnotationTable( List< AnnotatedIntervalTableRow > intervalTableRows, Map< String, List< String > > columns )
 	{
 		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
 		final ArrayList< String > gridIdColumn = TableColumns.getColumn( intervalTableRows, Constants.GRID_ID );
@@ -149,7 +152,7 @@ public class MoBIE
 		for ( String sourceName : sources )
 		{
 			executorService.execute( () -> {
-				sourceAndConverters.add( openSourceAndConverter( sourceName ) );
+				sourceAndConverters.add( getSourceAndConverter( sourceName ) );
 			} );
 		}
 
@@ -250,8 +253,11 @@ public class MoBIE
 		return dataset.sources.get( sourceName ).get();
 	}
 
-	public SourceAndConverter openSourceAndConverter( String sourceName )
+	public SourceAndConverter getSourceAndConverter( String sourceName )
 	{
+		if ( sourceNameToSourceAndConverter.containsKey( sourceName ) )
+			return sourceNameToSourceAndConverter.get( sourceName );
+
 		final ImageSource source = getSource( sourceName );
 		final String imagePath = getImagePath( source );
 		new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
@@ -259,6 +265,7 @@ public class MoBIE
 		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 		final SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
 		sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
+		sourceNameToSourceAndConverter.put( sourceName, sourceAndConverter );
 		return sourceAndConverter;
 	}
 
@@ -474,16 +481,13 @@ public class MoBIE
 		}
 	}
 
-	/**
-	 * Primary segment tables must contain the image segment properties.
-	 */
-	public void loadPrimarySourceAnnotationTables( SourceAnnotationDisplay annotationDisplay )
+	public List< AnnotatedIntervalTableRow > loadSourceAnnotationTables( SourceAnnotationDisplay annotationDisplay )
 	{
 		// open
 		final List< Map< String, List< String > > > tables = new ArrayList<>();
 		for ( String table : annotationDisplay.getTables() )
 		{
-			String tablePath = getTablePath( annotationDisplay.getTableDataFolder(  ), table );
+			String tablePath = getTablePath( annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
 			tablePath = Utils.resolveTablePath( tablePath );
 			Logger.log( "Opening table:\n" + tablePath );
 			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
@@ -491,8 +495,17 @@ public class MoBIE
 
 		// create primary AnnotatedIntervalTableRow table
 		final Map< String, List< String > > referenceTable = tables.get( 0 );
-		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, sourceTransformer );
-		final List< DefaultAnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getTableRows();
+		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getSources(), ( String sourceName ) -> this.getSourceAndConverter( sourceName )  );
+		final List< AnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getTableRows();
+
+		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
+
+		for ( int i = 0; i < additionalTables.size(); i++ )
+		{
+			MoBIE.mergeSourceAnnotationTable( intervalTableRows, additionalTables.get( i ) );
+		}
+
+		return intervalTableRows;
 	}
 
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter )
@@ -506,7 +519,8 @@ public class MoBIE
 		}
 
 		sourceNameToImgLoader.remove( sourceName );
+		sourceNameToSourceAndConverter.remove( sourceName );
 
-		//TODO - when we support more image formats e.g. OME-ZARR, we should explicitly close their imgloaders here too
+		// TODO - when we support more image formats e.g. OME-ZARR, we should explicitly close their imgloaders here too
 	}
 }

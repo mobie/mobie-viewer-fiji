@@ -275,23 +275,16 @@ public class ViewerManager
 	// TODO: own class: SourceAnnotationDisplayConfigurator
 	private void showSourceAnnotationDisplay( SourceAnnotationDisplay annotationDisplay )
 	{
-		loadTablesAndCreateAnnotatedIntervals( annotationDisplay );
+		annotationDisplay.tableRows = moBIE.loadSourceAnnotationTables( annotationDisplay );
 
-		if ( annotationDisplay.tableRows != null )
-		{
-			annotationDisplay.segmentAdapter = new SegmentAdapter( annotationDisplay.tableRows );
-		}
-		else
-		{
-			annotationDisplay.segmentAdapter = new SegmentAdapter();
-		}
+		annotationDisplay.segmentAdapter = new SegmentAdapter( annotationDisplay.tableRows );
 
 		ColoringModelHelper.configureMoBIEColoringModel( annotationDisplay );
 		annotationDisplay.selectionModel = new DefaultSelectionModel<>();
 		annotationDisplay.coloringModel.setSelectionModel(  annotationDisplay.selectionModel );
 
 		// set selected segments
-		if ( annotationDisplay.getSelectedTableRows() != null )
+		if ( annotationDisplay.getSelectedSourceAnnotationIds() != null )
 		{
 			final List< TableRowImageSegment > segments = annotationDisplay.segmentAdapter.getSegments( annotationDisplay.getSelectedTableRows() );
 			annotationDisplay.selectionModel.setSelected( segments, true );
@@ -379,33 +372,6 @@ public class ViewerManager
 			}
 		}
 	}
-
-	private void loadTablesAndCreateAnnotatedIntervals( SourceAnnotationDisplay annotationDisplay )
-	{
-		final List< String > tables = annotationDisplay.getTables();
-
-		if ( tables == null ) return;
-
-		// primary table
-		moBIE.loadPrimarySourceAnnotationTables( annotationDisplay );
-
-		// secondary tables
-		if ( tables.size() > 1 )
-		{
-			final List< String > additionalTables = tables.subList( 1, tables.size() );
-
-			moBIE.appendSegmentsTables( annotationDisplay, additionalTables );
-		}
-
-		for ( TableRowImageSegment segment : annotationDisplay.tableRows )
-		{
-			if ( segment.labelId() == 0 )
-			{
-				throw new UnsupportedOperationException( "The table contains rows (image segments) with label index 0, which is not supported and will lead to errors. Please change the table accordingly." );
-			}
-		}
-	}
-
 
 	private void showInSliceViewer( SegmentationSourceDisplay segmentationDisplay )
 	{

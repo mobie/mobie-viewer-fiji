@@ -6,6 +6,7 @@ import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.grid.AnnotatedIntervalCreator;
+import de.embl.cba.mobie.grid.AnnotatedIntervalTableRow;
 import de.embl.cba.mobie.grid.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.mobie.grid.TableRowsIntervalImage;
 import de.embl.cba.mobie.transform.PositionViewerTransform;
@@ -60,7 +61,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 	}
 
 	// TODO: maybe replace the GridSourceTransform by a functional?
-	private List< DefaultAnnotatedIntervalTableRow > openGridTables( MoBIE moBIE, String tableDataFolder, GridSourceTransformer sourceTransformer, List< String > relativeTablePaths )
+	private List< AnnotatedIntervalTableRow > openGridTables( MoBIE moBIE, String tableDataFolder, GridSourceTransformer sourceTransformer, List< String > relativeTablePaths )
 	{
 		// open
 		final List< Map< String, List< String > > > tables = new ArrayList<>();
@@ -75,7 +76,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 		// create primary AnnotatedIntervalTableRow table
 		final Map< String, List< String > > referenceTable = tables.get( 0 );
 		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, sourceTransformer );
-		final List< DefaultAnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getTableRows();
+		final List< AnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getTableRows();
 
 		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
 

@@ -11,7 +11,7 @@ import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie.color.opacity.VolatileAdjustableOpacityColorConverter;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.open.SourceAndConverterSupplier;
-import de.embl.cba.mobie.transform.TransformerHelper;
+import de.embl.cba.mobie.transform.TransformHelper;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
 import net.imglib2.Volatile;
@@ -56,7 +56,7 @@ public class ImageSliceView
 		List< SourceAndConverter< ? > > sourceAndConverters = sourceAndConverterSupplier.get( imageDisplay.getSources() );
 
 		// transform
-		sourceAndConverters = TransformerHelper.transformSourceAndConverters( sourceAndConverters, imageDisplay.sourceTransformers );
+		sourceAndConverters = TransformHelper.transformSourceAndConverters( sourceAndConverters, imageDisplay.sourceTransformers );
 
 		// show
 		List< SourceAndConverter< ? > > displayedSourceAndConverters = new ArrayList<>();

@@ -10,7 +10,7 @@ import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.open.SourceAndConverterSupplier;
 import de.embl.cba.mobie.transform.SourceTransformer;
-import de.embl.cba.mobie.transform.TransformerHelper;
+import de.embl.cba.mobie.transform.TransformHelper;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.SelectionListener;
@@ -53,7 +53,7 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		List< SourceAndConverter< ? > > sourceAndConverters = sourceAndConverterSupplier.get( segmentationDisplay.getSources() );
 
 		// transform
-		sourceAndConverters = TransformerHelper.transformSourceAndConverters( sourceAndConverters, segmentationDisplay.sourceTransformers );
+		sourceAndConverters = TransformHelper.transformSourceAndConverters( sourceAndConverters, segmentationDisplay.sourceTransformers );
 
 		// convert to labelSource
 		sourceAndConverters = asLabelSources( sourceAndConverters );

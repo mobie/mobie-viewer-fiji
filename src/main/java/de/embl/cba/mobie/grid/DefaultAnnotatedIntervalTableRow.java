@@ -13,13 +13,13 @@ import java.util.Set;
 
 public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implements AnnotatedIntervalTableRow
 {
-	protected final FinalRealInterval interval;
+	protected final RealInterval interval;
 	protected final Map< String, String > cells;
 	protected final String siteName;
 
 	public DefaultAnnotatedIntervalTableRow(
 			String siteName,
-			FinalRealInterval interval,
+			RealInterval interval,
 			Map< String, List< String > > columns,
 			int rowIndex )
 	{

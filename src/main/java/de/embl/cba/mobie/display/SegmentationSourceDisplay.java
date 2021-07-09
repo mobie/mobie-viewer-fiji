@@ -1,26 +1,20 @@
 package de.embl.cba.mobie.display;
 
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.color.LabelConverter;
-import de.embl.cba.mobie.color.MoBIEColoringModel;
 import de.embl.cba.mobie.segment.SegmentAdapter;
-import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.bdv.SegmentationImageSliceView;
 import de.embl.cba.mobie.volume.SegmentsVolumeViewer;
-import de.embl.cba.mobie.table.TableViewer;
-import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.NumericColoringModel;
-import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class SegmentationSourceDisplay extends TableDisplay< TableRowImageSegment >
+public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowImageSegment >
 {
 	// Serialization
 	protected List< String > sources;

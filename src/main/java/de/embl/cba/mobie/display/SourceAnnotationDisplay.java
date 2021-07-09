@@ -7,24 +7,30 @@ import de.embl.cba.mobie.table.TableDataFormat;
 import java.util.List;
 import java.util.Map;
 
-public class SourceAnnotationDisplay extends TableDisplay< AnnotatedIntervalTableRow >
+public class SourceAnnotationDisplay extends AnnotatedRegionDisplay< AnnotatedIntervalTableRow >
 {
 	// Serialization
 	protected Map< String, List< String > > sources;
 	protected List< String > selectedSourceAnnotationIds;
 	protected Map< TableDataFormat, StorageLocation > tableData;
 
-	// Runtime
+	// Getters for the serialised fields
 	public List< String > getSelectedSourceAnnotationIds()
 	{
 		return selectedSourceAnnotationIds;
 	}
 
-	// Getters for the serialised fields
 	public String getTableDataFolder( TableDataFormat tableDataFormat )
 	{
 		return tableData.get( tableDataFormat ).relativePath;
 	}
+
+	public Map< String, List< String > > getSources()
+	{
+		return sources;
+	}
+
+
 
 	public SourceAnnotationDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
 	{
