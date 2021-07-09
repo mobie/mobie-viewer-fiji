@@ -11,6 +11,6 @@ public class OpenLocalRawOmeZarr {
     public static void main( String[] args ) throws IOException
     {
         final ImageJ imageJ = new ImageJ();
-        final MoBIE moBIE = new MoBIE("/home/katerina/Documents/data/data/", MoBIESettings.settings().imageDataFormat( ImageDataFormat.OmeZarr));
+        final MoBIE moBIE = new MoBIE("/g/kreshuk/pape/Work/mobie/covid-em-datasets/ngff-example/data", MoBIESettings.settings().imageDataFormat( ImageDataFormat.OmeZarr));
     }
 }
