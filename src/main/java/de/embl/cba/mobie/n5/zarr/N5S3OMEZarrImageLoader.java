@@ -34,44 +34,46 @@ import de.embl.cba.tables.S3Utils;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 
 import java.io.IOException;
+import java.util.HashMap;
 
-// TODO: avoid code duplication!
-//  this is essentially identical to N5S3ImageLoader
 public class N5S3OMEZarrImageLoader extends N5OMEZarrImageLoader
 {
 	private final String serviceEndpoint;
 	private final String signingRegion;
 	private final String bucketName;
 	private final String key;
+	private static HashMap<String, Integer> axesMap;
 
 	static class  N5S3ZarrReaderCreator
 	{
-		public N5S3ZarrReader create( String serviceEndpoint, String signingRegion, String bucketName, String key ) throws IOException
+		public N5S3ZarrReader create(String serviceEndpoint, String signingRegion, String bucketName, String key, String dimensionSeparator ) throws IOException
 		{
 			final AmazonS3 s3 = S3Utils.getS3Client( serviceEndpoint, signingRegion, bucketName );
-			return new N5S3ZarrReader( s3, serviceEndpoint, bucketName, key );
+			N5S3ZarrReader reader = new N5S3ZarrReader( s3, serviceEndpoint, bucketName, key, dimensionSeparator );
+			axesMap = reader.getAxesMap();
+			return reader;
 		}
 	}
 
 	// sequenceDescription has been read from xml
-	public N5S3OMEZarrImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key, AbstractSequenceDescription< ?, ?, ? > sequenceDescription ) throws IOException
+	public N5S3OMEZarrImageLoader(String serviceEndpoint, String signingRegion, String bucketName, String key, String dimensionSeparator, AbstractSequenceDescription< ?, ?, ? > sequenceDescription ) throws IOException
 	{
-		super( new N5S3ZarrReaderCreator().create( serviceEndpoint, signingRegion, bucketName, key ), sequenceDescription );
+		super(  new N5S3ZarrReaderCreator().create( serviceEndpoint, signingRegion, bucketName, key, dimensionSeparator ), sequenceDescription);
 		this.serviceEndpoint = serviceEndpoint;
 		this.signingRegion = signingRegion;
 		this.bucketName = bucketName;
 		this.key = key;
 	}
 
-	// sequenceDescription will be read from zarr
-	public N5S3OMEZarrImageLoader( String serviceEndpoint, String signingRegion, String bucketName, String key ) throws IOException
+	public N5S3OMEZarrImageLoader(String serviceEndpoint, String signingRegion, String bucketName, String key, String dimensionSeparator, HashMap<String, Integer> axes) throws IOException
 	{
-		super( new N5S3ZarrReaderCreator().create( serviceEndpoint, signingRegion, bucketName, key ) );
+		super( new N5S3ZarrReaderCreator().create( serviceEndpoint, signingRegion, bucketName, key, dimensionSeparator), axesMap);
 		this.serviceEndpoint = serviceEndpoint;
 		this.signingRegion = signingRegion;
 		this.bucketName = bucketName;
 		this.key = key;
 	}
+
 
 	public String getServiceEndpoint()
 	{
