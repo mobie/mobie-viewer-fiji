@@ -30,6 +30,7 @@
 package de.embl.cba.mobie.n5;
 
 
+import de.embl.cba.mobie.n5.zarr.N5S3OMEZarrImageLoader;
 import mpicbg.spim.data.XmlHelpers;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.ImgLoaderIo;
