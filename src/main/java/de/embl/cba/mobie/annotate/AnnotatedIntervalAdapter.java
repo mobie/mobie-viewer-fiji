@@ -1,8 +1,5 @@
 package de.embl.cba.mobie.annotate;
 
-import de.embl.cba.tables.imagesegment.DefaultImageSegment;
-import de.embl.cba.tables.imagesegment.LabelFrameAndImage;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

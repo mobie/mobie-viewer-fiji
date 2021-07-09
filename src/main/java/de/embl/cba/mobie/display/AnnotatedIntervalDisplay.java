@@ -2,13 +2,14 @@ package de.embl.cba.mobie.display;
 
 import de.embl.cba.mobie.annotate.AnnotatedIntervalAdapter;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
+import de.embl.cba.mobie.bdv.view.AnnotatedIntervalSliceView;
 import de.embl.cba.mobie.source.StorageLocation;
 import de.embl.cba.mobie.table.TableDataFormat;
 
 import java.util.List;
 import java.util.Map;
 
-public class SourceAnnotationDisplay extends AnnotatedRegionDisplay< AnnotatedIntervalTableRow >
+public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedIntervalTableRow >
 {
 	// Serialization
 	protected Map< String, List< String > > sources;
@@ -17,6 +18,7 @@ public class SourceAnnotationDisplay extends AnnotatedRegionDisplay< AnnotatedIn
 
 	// Runtime
 	public AnnotatedIntervalAdapter< AnnotatedIntervalTableRow > annotatedIntervalAdapter;
+	public AnnotatedIntervalSliceView< AnnotatedIntervalTableRow > sliceView;
 
 	// Getters for the serialised fields
 	public List< String > getSelectedSourceAnnotationIds()
@@ -36,7 +38,7 @@ public class SourceAnnotationDisplay extends AnnotatedRegionDisplay< AnnotatedIn
 
 
 
-	public SourceAnnotationDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
+	public AnnotatedIntervalDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -55,7 +57,7 @@ public class SourceAnnotationDisplay extends AnnotatedRegionDisplay< AnnotatedIn
 	 *
 	 * @param segmentationDisplay
 	 */
-	public SourceAnnotationDisplay( SourceAnnotationDisplay segmentationDisplay )
+	public AnnotatedIntervalDisplay( AnnotatedIntervalDisplay segmentationDisplay )
 	{
 		// TODO: We should use the TableDisplay as much as possible!
 	}

@@ -30,6 +30,7 @@ package de.embl.cba.mobie.table;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
 import de.embl.cba.mobie.annotate.Annotator;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
 import de.embl.cba.mobie.annotate.DefaultAnnotatedIntervalTableRow;
@@ -109,7 +110,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			final SelectionModel< T > selectionModel,
 			final MoBIEColoringModel< T > moBIEColoringModel,
 			String tableName,
-			Map<String, String> sourceNameToTableDir,
+			Map< String, String > sourceNameToTableDir,
 			boolean isGridTable )
 	{
 		this.moBIE = moBIE;
@@ -436,7 +437,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				for ( String tableDir: sourceNameToTableDir.values() )
 				{
 					final Map< String, List< String > > table = openTable( FileAndUrlUtils.combinePath( tableDir, tableName ) );
-					MoBIE.mergeSourceAnnotationTable( (List<DefaultAnnotatedIntervalTableRow>) tableRows, table );
+					MoBIE.mergeSourceAnnotationTable( (List< AnnotatedIntervalTableRow >) tableRows, table );
 				}
 			}
 			addAdditionalTable( tableName );
@@ -459,7 +460,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				{
 
 					Map< String, List< String > > table = openTable( path );
-					MoBIE.mergeSourceAnnotationTable( ( List< DefaultAnnotatedIntervalTableRow > ) tableRows, table );
+					MoBIE.mergeSourceAnnotationTable( ( List< AnnotatedIntervalTableRow > ) tableRows, table );
 				}
 				enableRowSorting( true );
 			}).start();

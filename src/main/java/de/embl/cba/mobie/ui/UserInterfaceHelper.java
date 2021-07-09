@@ -10,7 +10,7 @@ import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.mobie.Utils;
-import de.embl.cba.mobie.display.SourceAnnotationDisplay;
+import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.serialize.JsonHelper;
 import de.embl.cba.mobie.transform.ViewerTransform;
@@ -205,7 +205,7 @@ public class UserInterfaceHelper
 		}
 	}
 
-	public JPanel createSourceAnnotationDisplaySettingsPanel( SourceAnnotationDisplay display )
+	public JPanel createAnnotatedIntervalDisplaySettingsPanel( AnnotatedIntervalDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
@@ -224,6 +224,11 @@ public class UserInterfaceHelper
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotViewer, display.showScatterPlot() ) );
 		return panel;
+	}
+
+	public JPanel createSegmentationDisplaySettingsPanel( AnnotatedIntervalDisplay sourceDisplay )
+	{
+		return null;
 	}
 
 

@@ -7,7 +7,6 @@ import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie.color.LabelConverter;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
-import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.open.SourceAndConverterSupplier;
 import de.embl.cba.mobie.transform.SourceTransformer;
 import de.embl.cba.mobie.transform.TransformHelper;
@@ -29,14 +28,14 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 {
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final MoBIE moBIE;
-	private final SegmentationSourceDisplay segmentationDisplay;
+	private final SegmentationSourceDisplay display;
 	private BdvHandle bdvHandle;
 	private final SourceAndConverterSupplier sourceAndConverterSupplier;
 
-	public SegmentationSliceView( MoBIE moBIE, SegmentationSourceDisplay segmentationDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
+	public SegmentationSliceView( MoBIE moBIE, SegmentationSourceDisplay display, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
 	{
 		this.moBIE = moBIE;
-		this.segmentationDisplay = segmentationDisplay;
+		this.display = display;
 		this.bdvHandle = bdvHandle;
 		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
 
@@ -46,14 +45,14 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 
 	private void show( )
 	{
-		segmentationDisplay.selectionModel.listeners().add( this );
-		segmentationDisplay.coloringModel.listeners().add( this );
+		display.selectionModel.listeners().add( this );
+		display.coloringModel.listeners().add( this );
 
 		// open
-		List< SourceAndConverter< ? > > sourceAndConverters = sourceAndConverterSupplier.get( segmentationDisplay.getSources() );
+		List< SourceAndConverter< ? > > sourceAndConverters = sourceAndConverterSupplier.get( display.getSources() );
 
 		// transform
-		sourceAndConverters = TransformHelper.transformSourceAndConverters( sourceAndConverters, segmentationDisplay.sourceTransformers );
+		sourceAndConverters = TransformHelper.transformSourceAndConverters( sourceAndConverters, display.sourceTransformers );
 
 		// convert to labelSource
 		sourceAndConverters = asLabelSources( sourceAndConverters );
@@ -61,14 +60,14 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			// set opacity
-			OpacityAdjuster.adjustOpacity( sourceAndConverter, segmentationDisplay.getOpacity() );
+			OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
 			// show
 			displayService.show( bdvHandle, sourceAndConverter );
 			bdvHandle.getViewerPanel().addTimePointListener( (LabelConverter) sourceAndConverter.getConverter() );
 		}
 
-		segmentationDisplay.sourceAndConverters = sourceAndConverters;
+		display.sourceAndConverters = sourceAndConverters;
 	}
 
 	private List< SourceAndConverter< ? > > asLabelSources( List< SourceAndConverter< ? > > sourceAndConverters )
@@ -77,9 +76,9 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			LabelConverter< S > labelConverter = new LabelConverter(
-					segmentationDisplay.segmentAdapter,
+					display.segmentAdapter,
 					sourceAndConverter.getSpimSource().getName(),
-					segmentationDisplay.coloringModel );
+					display.coloringModel );
 
 			SourceAndConverter< ? > sourceAndLabelConverter = asSourceAndLabelConverter( sourceAndConverter, labelConverter );
 
@@ -99,11 +98,16 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 
 	public void close()
 	{
-		for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
+		{
+			SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
+		}
+
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
 		{
 			moBIE.closeSourceAndConverter( sourceAndConverter );
 		}
-		segmentationDisplay.sourceAndConverters.clear();
+		display.sourceAndConverters.clear();
 	};
 
 	@Override
@@ -140,9 +144,9 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 
 	private void adaptPosition( double[] position, String sourceName )
 	{
-		if ( segmentationDisplay.sourceTransformers != null )
+		if ( display.sourceTransformers != null )
 		{
-			for ( SourceTransformer sourceTransformer : segmentationDisplay.sourceTransformers )
+			for ( SourceTransformer sourceTransformer : display.sourceTransformers )
 			{
 				final AffineTransform3D transform = sourceTransformer.getTransform( sourceName );
 				transform.apply( position, position );
@@ -160,11 +164,4 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 	}
 
-	public void removeSourceDisplay( SourceDisplay sourceDisplay )
-	{
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
-		{
-			SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
-		}
-	}
 }

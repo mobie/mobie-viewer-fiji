@@ -4,7 +4,7 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
-import de.embl.cba.mobie.display.SourceAnnotationDisplay;
+import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalCreator;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
 import de.embl.cba.mobie.n5.N5ImageLoader;
@@ -480,7 +480,7 @@ public class MoBIE
 		}
 	}
 
-	public List< AnnotatedIntervalTableRow > loadSourceAnnotationTables( SourceAnnotationDisplay annotationDisplay )
+	public List< AnnotatedIntervalTableRow > loadSourceAnnotationTables( AnnotatedIntervalDisplay annotationDisplay )
 	{
 		// open
 		final List< Map< String, List< String > > > tables = new ArrayList<>();

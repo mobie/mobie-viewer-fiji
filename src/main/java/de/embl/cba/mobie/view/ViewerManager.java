@@ -6,15 +6,15 @@ import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalAdapter;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
 import de.embl.cba.mobie.annotate.TableRowsIntervalImage;
+import de.embl.cba.mobie.bdv.view.AnnotatedIntervalSliceView;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
 import de.embl.cba.mobie.display.AnnotatedRegionDisplay;
-import de.embl.cba.mobie.display.SourceAnnotationDisplay;
+import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.playground.PlaygroundUtils;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.bdv.view.ImageSliceView;
 import de.embl.cba.mobie.bdv.view.SegmentationSliceView;
 import de.embl.cba.mobie.bdv.SliceViewer;
-import de.embl.cba.mobie.display.GridOverlaySourceDisplay;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.segment.SegmentAdapter;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
@@ -59,7 +59,6 @@ public class ViewerManager
 	private final SourceAndConverterService sacService;
 	private ArrayList< SourceDisplay > sourceDisplays;
 	private final BdvHandle bdvHandle;
-	private GridOverlaySourceDisplay gridOverlayDisplay;
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewsSaver viewsSaver;
@@ -253,31 +252,13 @@ public class ViewerManager
 		{
 			showSegmentationDisplay( ( SegmentationSourceDisplay ) sourceDisplay );
 		}
-		else if ( sourceDisplay instanceof SourceAnnotationDisplay )
+		else if ( sourceDisplay instanceof AnnotatedIntervalDisplay )
 		{
-			showSourceAnnotationDisplay( ( SourceAnnotationDisplay ) sourceDisplay );
+			showSourceAnnotationDisplay( ( AnnotatedIntervalDisplay ) sourceDisplay );
 		}
 
 		userInterface.addSourceDisplay( sourceDisplay );
 		sourceDisplays.add( sourceDisplay );
-	}
-
-	private void createAndShowGridView( Window window, List< SourceTransformer > sourceTransformers, String viewName )
-	{
-		if ( sourceTransformers != null )
-		{
-			for ( SourceTransformer sourceTransformer : sourceTransformers )
-			{
-				if ( sourceTransformer instanceof GridSourceTransformer )
-				{
-					final GridSourceTransformer gridSourceTransformer = ( GridSourceTransformer ) sourceTransformer;
-					if ( gridSourceTransformer.getName() == null )
-					{
-						gridSourceTransformer.setName( viewName );
-					}
-				}
-			}
-		}
 	}
 
 	private void removeAllSourceDisplays()
@@ -301,7 +282,7 @@ public class ViewerManager
 	}
 
 	// TODO: own class: SourceAnnotationDisplayConfigurator
-	private void showSourceAnnotationDisplay( SourceAnnotationDisplay annotationDisplay )
+	private void showSourceAnnotationDisplay( AnnotatedIntervalDisplay annotationDisplay )
 	{
 		annotationDisplay.tableRows = moBIE.loadSourceAnnotationTables( annotationDisplay );
 		annotationDisplay.annotatedIntervalAdapter = new AnnotatedIntervalAdapter<>( annotationDisplay.tableRows );
@@ -327,7 +308,7 @@ public class ViewerManager
 		} );
 	}
 
-	private void showInTableViewer( SourceAnnotationDisplay annotationDisplay )
+	private void showInTableViewer( AnnotatedIntervalDisplay annotationDisplay )
 	{
 		HashMap<String, String> nameToTableDir = new HashMap<>();
 		nameToTableDir.put( annotationDisplay.getName(), annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ) );
@@ -403,18 +384,12 @@ public class ViewerManager
 
 	private void showInSliceViewer( SegmentationSourceDisplay segmentationDisplay )
 	{
-		final SegmentationSliceView segmentationSliceView = new SegmentationSliceView<>( moBIE, segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE.openSourceAndConverters( names ) );
-		segmentationDisplay.segmentationSliceView = segmentationSliceView;
+		segmentationDisplay.sliceView = new SegmentationSliceView<>( moBIE, segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE.openSourceAndConverters( names ) );
 	}
 
-	private void showInSliceViewer( SourceAnnotationDisplay sourceAnnotationDisplay )
+	private void showInSliceViewer( AnnotatedIntervalDisplay annotatedIntervalDisplay )
 	{
-		// TODO: Make a SourceAnnotationSliceView with the listeners for the focussing.
-		final TableRowsIntervalImage< AnnotatedIntervalTableRow > intervalImage = new TableRowsIntervalImage<>( sourceAnnotationDisplay.tableRows, sourceAnnotationDisplay.coloringModel, sourceAnnotationDisplay.getName() );
-		SourceAndConverter< IntType > sourceAndConverter = intervalImage.getSourceAndConverter();
-		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, sourceAndConverter );
-		sourceAnnotationDisplay.sourceAndConverters = new ArrayList<>();
-		sourceAnnotationDisplay.sourceAndConverters.add( sourceAndConverter );
+		annotatedIntervalDisplay.sliceView = new AnnotatedIntervalSliceView( moBIE, annotatedIntervalDisplay, bdvHandle );
 	}
 
 	private void initVolumeViewer( SegmentationSourceDisplay display )
@@ -435,7 +410,7 @@ public class ViewerManager
 		if ( sourceDisplay instanceof SegmentationSourceDisplay )
 		{
 			final SegmentationSourceDisplay segmentationDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
-			segmentationDisplay.segmentationSliceView.close();
+			segmentationDisplay.sliceView.close();
 			if ( segmentationDisplay.tableRows != null )
 			{
 				segmentationDisplay.tableViewer.close();
@@ -448,10 +423,13 @@ public class ViewerManager
 			final ImageSourceDisplay imageDisplay = ( ImageSourceDisplay ) sourceDisplay;
 			imageDisplay.imageSliceView.close();
 		}
-		else if ( sourceDisplay instanceof GridOverlaySourceDisplay )
+		else if ( sourceDisplay instanceof AnnotatedIntervalDisplay )
 		{
-			final GridOverlaySourceDisplay gridOverlayDisplay = ( GridOverlaySourceDisplay ) sourceDisplay;
-			gridOverlayDisplay.close();
+			// TODO: Code duplication (sourceDisplay instanceof SegmentationSourceDisplay)
+			final AnnotatedIntervalDisplay annotatedIntervalDisplay = ( AnnotatedIntervalDisplay ) sourceDisplay;
+			annotatedIntervalDisplay.sliceView.close();
+			annotatedIntervalDisplay.tableViewer.close();
+			annotatedIntervalDisplay.scatterPlotViewer.close();
 		}
 
 		userInterface.removeDisplaySettingsPanel( sourceDisplay );

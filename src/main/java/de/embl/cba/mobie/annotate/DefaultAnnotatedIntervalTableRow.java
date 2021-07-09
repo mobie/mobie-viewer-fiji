@@ -42,6 +42,12 @@ public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implement
 	}
 
 	@Override
+	public Integer getTimepoint()
+	{
+		return Integer.parseInt( cells.get( "timepoint" ) );
+	}
+
+	@Override
 	public String getName()
 	{
 		return siteName;

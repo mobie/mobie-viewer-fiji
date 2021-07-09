@@ -24,7 +24,7 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	// Runtime
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
 	public transient SegmentsVolumeViewer< TableRowImageSegment > segmentsVolumeViewer;
-	public transient SegmentationSliceView< TableRowImageSegment > segmentationSliceView;
+	public transient SegmentationSliceView< TableRowImageSegment > sliceView;
 
 	public List< String > getSources()
 	{
