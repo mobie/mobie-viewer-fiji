@@ -10,6 +10,6 @@ public class PlaygroundHelpers
 {
 	public static BdvHandle getBdvHandle( List< SourceAndConverter< ? > > sourceAndConverters )
 	{
-		return SourceAndConverterServices.getSourceAndConverterDisplayService().getDisplaysOf( sourceAndConverters.get( 0 ) ).iterator().next();
+		return SourceAndConverterServices.getBdvDisplayService().getDisplaysOf( sourceAndConverters.get( 0 ) ).iterator().next();
 	}
 }

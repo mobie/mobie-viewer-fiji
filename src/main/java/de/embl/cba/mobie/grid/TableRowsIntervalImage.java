@@ -24,11 +24,9 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 {
 	private final List< T > tableRows;
 	private final ColoringModel< T > coloringModel;
-	private RandomAccessibleInterval< IntType > rai;
 	private double[] contrastLimits;
 	private HashMap< String, T > nameToTableRow;
 	private HashMap< String, Integer > nameToTableRowIndex;
-	private ARGBConvertedRealSource argbSource;
 	private String name;
 	private SourceAndConverter< IntType > sourceAndConverter;
 	private RealInterval union;
@@ -40,7 +38,6 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 			String name )
 	{
 		this.tableRows = tableRows;
-		size = tableRows.size();
 		this.coloringModel = coloringModel;
 		this.name = name;
 
@@ -50,6 +47,7 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 
 	public void init( List< T > tableRows )
 	{
+		size = tableRows.size();
 		nameToTableRow = new HashMap<>();
 		nameToTableRowIndex = new HashMap();
 
@@ -88,8 +86,7 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 		final IntType intType = randomAccessible.realRandomAccess().get();
 		final RealRandomAccessibleIntervalSource< IntType > source = new RealRandomAccessibleIntervalSource( randomAccessible, Intervals.smallestContainingInterval( union ), intType, name );
 
-		final ListItemsARGBConverter< T > argbConverter =
-				new ListItemsARGBConverter<>( tableRows, coloringModel );
+		final ListItemsARGBConverter< T > argbConverter = new ListItemsARGBConverter<>( tableRows, coloringModel );
 
 		sourceAndConverter = new SourceAndConverter( source, argbConverter );
 
@@ -109,11 +106,6 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 	public double[] getContrastLimits()
 	{
 		return contrastLimits;
-	}
-
-	public RandomAccessibleInterval< ? > getRAI()
-	{
-		return rai;
 	}
 
 	public SourceAndConverter< IntType > getSourceAndConverter()

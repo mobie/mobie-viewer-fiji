@@ -3,13 +3,13 @@ package de.embl.cba.mobie.transform;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.playground.SourceAffineTransformer;
 import de.embl.cba.mobie.source.StorageLocation;
 import de.embl.cba.mobie.table.TableDataFormat;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import org.apache.commons.lang.ArrayUtils;
-import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,8 +24,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 {
 	// Serialization
 	public Map< TableDataFormat, StorageLocation > tableData;
-	public String[] tables;
-	// The first list corresponds to the grid positions
+	public List< String > tables;
 	protected List< List< String > > sources;
 	protected List< List< String > > sourceNamesAfterTransform;
 	protected List< int[] > positions;
@@ -63,7 +62,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 			final int index = gridIndex;
 
 			executorService.execute( () -> {
-				transformSourcesAtGridPosition( sourceAndConverters, transformedSources, spacingX, spacingY, index );
+				transformSourcesAtGridPosition( sourceAndConverters, transformedSources, spacingX, spacingY, index, this.sources.get( index ) );
 			} );
 		}
 		executorService.shutdown();
@@ -77,14 +76,13 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		return transformedSources;
 	}
 
-	private void transformSourcesAtGridPosition( List< SourceAndConverter< T > > sourceAndConverters, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY, int gridPosition )
+	private void transformSourcesAtGridPosition( List< SourceAndConverter< T > > sourceAndConverters, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY, int gridPosition, List< String > sources )
 	{
-		final List< String > sources = this.sources.get( gridPosition );
-
 		for ( String sourceName : sources )
 		{
-			final AffineTransform3D transform3D = new AffineTransform3D();
-			transform3D.translate( spacingX * positions.get( gridPosition )[ 0 ], spacingY * positions.get( gridPosition )[ 1 ], 0 );
+			// compute translation transform
+			final AffineTransform3D affineTransform3D = new AffineTransform3D();
+			affineTransform3D.translate( spacingX * positions.get( gridPosition )[ 0 ], spacingY * positions.get( gridPosition )[ 1 ], 0 );
 
 			final SourceAndConverter< T > sourceAndConverter = Utils.getSource( sourceAndConverters, sourceName );
 
@@ -98,13 +96,8 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 				continue;
 			}
 
-			final SourceAndConverter< T > transformedSource = new SourceAffineTransformer( sourceAndConverter, transform3D ).getSourceOut();
+			final SourceAndConverter< T > transformedSource = AffineSourceTransformer.transform( transformedSources, affineTransform3D, sourceAndConverter, name, sourceNamesAfterTransform.get( gridPosition ), sourceNameToTransform, sources );
 
-			// Replace the original source by the transformed one
-			transformedSources.remove( sourceAndConverter );
-			transformedSources.add( transformedSource );
-
-			sourceNameToTransform.put( sourceName, transform3D );
 			intervals.add( Utils.estimateBounds( transformedSource.getSpimSource() ) );
 		}
 	}

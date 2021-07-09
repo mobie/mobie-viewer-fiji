@@ -29,9 +29,8 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 	private final MoBIEColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel;
 	private final DefaultSelectionModel< DefaultAnnotatedIntervalTableRow > selectionModel;
 	private final TableViewer< DefaultAnnotatedIntervalTableRow > tableViewer;
-	private final BdvHandle bdvHandle;
 
-	// TODO: split in two classes: the GridOverlayDisplay and the GridOverlayView
+	private final BdvHandle bdvHandle;
 
 	public GridOverlaySourceDisplay( MoBIE moBIE, BdvHandle bdvHandle, String tableDataFolder, GridSourceTransformer sourceTransformer )
 	{
@@ -48,16 +47,17 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 		HashMap<String, String> nameToTableDir = new HashMap<>();
 		nameToTableDir.put( sourceTransformer.getName(), tableDataFolder );
 		tableViewer = new TableViewer<>( moBIE, tableRows, selectionModel, coloringModel, name, nameToTableDir, true ).show();
+
 		coloringModel.listeners().add( tableViewer );
 		selectionModel.listeners().add( tableViewer );
 
-		sourceAndConverters = new ArrayList<>();
 		showGridImage( bdvHandle, name, tableRows );
 
 		coloringModel.listeners().add( this );
 		selectionModel.listeners().add( this );
 	}
 
+	// TODO: maybe replace the GridSourceTransform by a functional?
 	private List< DefaultAnnotatedIntervalTableRow > openGridTables( MoBIE moBIE, String tableDataFolder, GridSourceTransformer sourceTransformer, String[] relativeTablePaths )
 	{
 		// open
@@ -89,7 +89,8 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 	{
 		final TableRowsIntervalImage< DefaultAnnotatedIntervalTableRow > intervalImage = new TableRowsIntervalImage<>( tableRows, coloringModel, name );
 		SourceAndConverter< IntType > sourceAndConverter = intervalImage.getSourceAndConverter();
-		SourceAndConverterServices.getSourceAndConverterDisplayService().show( bdvHandle, sourceAndConverter );
+		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, sourceAndConverter );
+		sourceAndConverters = new ArrayList<>();
 		sourceAndConverters.add( sourceAndConverter );
 	}
 
@@ -112,7 +113,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 	@Override
 	public void selectionChanged()
 	{
-
+		bdvHandle.getViewerPanel().requestRepaint();
 	}
 
 	@Override
@@ -139,7 +140,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().removeFromAllBdvs( sourceAndConverter );
+			SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
 		}
 
 		tableViewer.close();

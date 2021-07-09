@@ -57,6 +57,8 @@ public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBTyp
 		else
 		{
 			coloringModel.convert( item, color );
+			final int alpha = ARGBType.alpha( color.get() );
+			color.mul( alpha / 255.0 );
 		}
 
 		color.mul( opacity );

@@ -3,15 +3,13 @@ package de.embl.cba.mobie.display;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.bdv.ImageSliceView;
+import de.embl.cba.mobie.bdv.render.BlendingMode;
 import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
 import net.imglib2.display.ColorConverter;
-import sc.fiji.bdvpg.bdv.projector.BlendingMode;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static sc.fiji.bdvpg.bdv.projector.BlendingMode.BLENDING_MODE;
 
 public class ImageSourceDisplay extends SourceDisplay
 {
@@ -39,8 +37,7 @@ public class ImageSourceDisplay extends SourceDisplay
 		return blendingMode;
 	}
 
-	public ImageSourceDisplay( String name, double opacity, List< String > sources, String color,
-							   double[] contrastLimits, BlendingMode blendingMode, boolean showImagesIn3d ) {
+	public ImageSourceDisplay( String name, double opacity, List< String > sources, String color, double[] contrastLimits, BlendingMode blendingMode, boolean showImagesIn3d ) {
 		this.name = name;
 		this.opacity = opacity;
 		this.sources = sources;
@@ -65,7 +62,7 @@ public class ImageSourceDisplay extends SourceDisplay
 		}
 
 		final SourceAndConverter< ? > sourceAndConverter = imageDisplay.sourceAndConverters.get( 0 );
-		final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterDisplayService().getConverterSetup( sourceAndConverter );
+		final ConverterSetup converterSetup = SourceAndConverterServices.getBdvDisplayService().getConverterSetup( sourceAndConverter );
 
 		if( sourceAndConverter.getConverter() instanceof AdjustableOpacityColorConverter )
 		{
@@ -85,7 +82,7 @@ public class ImageSourceDisplay extends SourceDisplay
 		contrastLimits[1] = converterSetup.getDisplayRangeMax();
 		this.contrastLimits = contrastLimits;
 
-		this.blendingMode = (BlendingMode) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BLENDING_MODE );
+		this.blendingMode = (BlendingMode) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
 
 		// TODO - show images in 3d (currently not supported in viewer)
 	}

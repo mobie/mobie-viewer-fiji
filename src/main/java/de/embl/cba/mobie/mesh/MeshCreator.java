@@ -22,6 +22,8 @@ import org.scijava.vecmath.Point3f;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static de.embl.cba.tables.Utils.getVoxelSpacings;
+
 public class MeshCreator < S extends ImageSegment >
 {
 	private int meshSmoothingIterations;
@@ -33,7 +35,7 @@ public class MeshCreator < S extends ImageSegment >
 		this.maxNumSegmentVoxels = maxNumSegmentVoxels;
 	}
 
-	private float[] createMesh( ImageSegment segment, double voxelSpacing, Source< ? > labelsSource )
+	private float[] createMesh( ImageSegment segment, double[] voxelSpacing, Source< ? > labelsSource )
 	{
 		Integer level = getLevel( segment, labelsSource, voxelSpacing );
 		double[] voxelSpacings = Utils.getVoxelSpacings( labelsSource ).get( level );
@@ -46,7 +48,7 @@ public class MeshCreator < S extends ImageSegment >
 		FinalInterval boundingBox = getIntervalInVoxelUnits( segment.boundingBox(), voxelSpacings );
 		final long numElements = Intervals.numElements( boundingBox );
 
-		if ( voxelSpacing == 0 ) // auto-resolution
+		if ( voxelSpacing == null ) // auto-resolution
 		{
 			if ( numElements > maxNumSegmentVoxels )
 			{
@@ -88,14 +90,14 @@ public class MeshCreator < S extends ImageSegment >
 		return meshCoordinates;
 	}
 
-	public CustomTriangleMesh createSmoothCustomTriangleMesh( S segment, double voxelSpacing, boolean recomputeMesh, Source< ? > source )
+	public CustomTriangleMesh createSmoothCustomTriangleMesh( ImageSegment segment, double[] voxelSpacing, boolean recomputeMesh, Source< ? > source )
 	{
 		CustomTriangleMesh triangleMesh = createCustomTriangleMesh( segment, voxelSpacing, recomputeMesh, source );
 		MeshEditor.smooth2( triangleMesh, meshSmoothingIterations );
 		return triangleMesh;
 	}
 
-	private CustomTriangleMesh createCustomTriangleMesh( S segment, double voxelSpacing, boolean recomputeMesh, Source< ? > source )
+	private CustomTriangleMesh createCustomTriangleMesh( ImageSegment segment, double[] voxelSpacing, boolean recomputeMesh, Source< ? > source )
 	{
 		if ( segment.getMesh() == null || recomputeMesh )
 		{
@@ -137,13 +139,13 @@ public class MeshCreator < S extends ImageSegment >
 		return mesh;
 	}
 
-	private Integer getLevel( ImageSegment segment, Source< ? > labelSource, double voxelSpacing )
+	private Integer getLevel( ImageSegment segment, Source< ? > labelSource, double[] voxelSpacing )
 	{
 		Integer level;
 
-		if ( voxelSpacing != 0 )
+		if ( voxelSpacing != null )
 		{
-			level = UniverseUtils.getLevel( labelSource, voxelSpacing );
+			level = getLevel( labelSource, voxelSpacing );
 		}
 		else // auto-resolution
 		{
@@ -173,6 +175,38 @@ public class MeshCreator < S extends ImageSegment >
 				if ( level == numLevels ) level = numLevels - 1;
 			}
 		}
+
+		return level;
+	}
+
+	private static int getLevel( Source< ? > source, double[] requestedVoxelSpacing )
+	{
+		ArrayList< double[] > voxelSpacings = getVoxelSpacings( source );
+		return getLevel( voxelSpacings, requestedVoxelSpacing );
+	}
+
+	private static int getLevel( ArrayList< double[] > sourceVoxelSpacings, double[] requestedVoxelSpacing )
+	{
+		int level;
+		int numLevels = sourceVoxelSpacings.size();
+		final int numDimensions = sourceVoxelSpacings.get( 0 ).length;
+
+		for ( level = 0; level < numLevels; level++ )
+		{
+			boolean allLargerOrEqual = true;
+			for ( int d = 0; d < numDimensions; d++ )
+			{
+				if ( sourceVoxelSpacings.get( level )[ d ] < requestedVoxelSpacing[ d ] )
+				{
+					allLargerOrEqual = false;
+					continue;
+				}
+			}
+
+			if ( allLargerOrEqual ) break;
+		}
+
+		if ( level == numLevels ) level = numLevels - 1;
 
 		return level;
 	}

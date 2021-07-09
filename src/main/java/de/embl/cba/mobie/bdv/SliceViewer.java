@@ -2,18 +2,18 @@ package de.embl.cba.mobie.bdv;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.mobie.color.NonSelectedSegmentsOpacityAdjusterCommand;
+import de.embl.cba.mobie.command.NonSelectedSegmentsOpacityAdjusterCommand;
+import de.embl.cba.mobie.command.SegmentsVolumeRenderingConfiguratorCommand;
+import de.embl.cba.mobie.command.SelectedSegmentsColorConfiguratorCommand;
+import de.embl.cba.mobie.command.SourceAndConverterBlendingModeChangerCommand;
 import de.embl.cba.mobie.segment.BdvSegmentSelector;
-import de.embl.cba.mobie.color.RandomColorSeedChangerCommand;
+import de.embl.cba.mobie.command.RandomColorSeedChangerCommand;
 import de.embl.cba.mobie.view.ViewerManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
-import sc.fiji.bdvpg.bdv.MinimalBdvCreator;
-import sc.fiji.bdvpg.bdv.projector.Projector;
+import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
 import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
-import sc.fiji.bdvpg.scijava.command.bdv.ScreenShotMakerCommand;
-import sc.fiji.bdvpg.scijava.command.source.SourceAndConverterBlendingModeChangerCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -45,7 +45,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		this.timepoints = timepoints;
 
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-		sacDisplayService = SourceAndConverterServices.getSourceAndConverterDisplayService();
+		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
 		bdvHandle = createBdv( timepoints );
 		sacDisplayService.registerBdvHandle( bdvHandle );
@@ -78,9 +78,6 @@ public class SliceViewer implements Supplier< BdvHandle >
 			RandomColorSeedChangerCommand.incrementRandomColorSeed( sourceAndConverters );
 		} );
 
-		// Below Command is automatically registered because it is a BdvPlaygroundActionCommand
-		// sacService.registerScijavaCommand( NonSelectedSegmentsOpacityAdjusterCommand.class );
-
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
 			viewerManager.getAdditionalViewsLoader().loadAdditionalViewsDialog();
@@ -94,11 +91,13 @@ public class SliceViewer implements Supplier< BdvHandle >
 		final Set< String > actionsKeys = sacService.getActionsKeys();
 
 		final String[] actions = {
-				sacService.getCommandName( ScreenShotMakerCommand.class ),
+				//sacService.getCommandName( ScreenShotMakerCommand.class ),
 				sacService.getCommandName( ViewerTransformLogger.class ),
 				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
 				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
 				sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ),
+				sacService.getCommandName( SelectedSegmentsColorConfiguratorCommand.class ),
+				sacService.getCommandName( SegmentsVolumeRenderingConfiguratorCommand.class ),
 				UNDO_SEGMENT_SELECTIONS,
 				LOAD_ADDITIONAL_VIEWS,
 				SAVE_CURRENT_SETTINGS_AS_VIEW
@@ -145,9 +144,15 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 	private BdvHandle createBdv( int numTimepoints )
 	{
-		// create Bdv
-		final MinimalBdvCreator bdvCreator = new MinimalBdvCreator( "MoBIE", is2D, Projector.MIXED_PROJECTOR, true, numTimepoints );
-		final BdvHandle bdvHandle = bdvCreator.get();
+		final MobieSerializableBdvOptions sOptions = new MobieSerializableBdvOptions();
+		sOptions.is2D = is2D;
+		sOptions.numTimePoints = numTimepoints;
+
+		IBdvSupplier bdvSupplier = new MobieBdvSupplier( sOptions );
+
+		SourceAndConverterServices.getBdvDisplayService().setDefaultBdvSupplier(bdvSupplier);
+
+		BdvHandle bdvHandle = SourceAndConverterServices.getBdvDisplayService().getNewBdv();
 
 		return bdvHandle;
 	}

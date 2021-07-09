@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.view;
 
 import bdv.util.BdvHandle;
+import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.playground.PlaygroundUtils;
@@ -23,13 +24,15 @@ import de.embl.cba.mobie.ui.UserInterface;
 import de.embl.cba.mobie.ui.WindowArrangementHelper;
 import de.embl.cba.mobie.view.additionalviews.AdditionalViewsLoader;
 import de.embl.cba.mobie.view.saving.ViewsSaver;
-import de.embl.cba.mobie.volume.SegmentsVolumeView;
+import de.embl.cba.mobie.volume.SegmentsVolumeViewer;
 import de.embl.cba.mobie.volume.UniverseManager;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
 import javax.swing.*;
@@ -46,6 +49,7 @@ public class ViewerManager
 	private final MoBIE moBIE;
 	private final UserInterface userInterface;
 	private final SliceViewer sliceViewer;
+	private final SourceAndConverterService sacService;
 	private ArrayList< SourceDisplay > sourceDisplays;
 	private final BdvHandle bdvHandle;
 	private GridOverlaySourceDisplay gridOverlayDisplay;
@@ -63,6 +67,7 @@ public class ViewerManager
 		bdvHandle = sliceViewer.get();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewsSaver = new ViewsSaver( moBIE );
+		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 	}
 
 	public static void initScatterPlotViewer( SegmentationSourceDisplay display )
@@ -86,7 +91,7 @@ public class ViewerManager
 		}
 	}
 
-	public void initTableViewer( SegmentationSourceDisplay display  )
+	public void showInTableViewer( SegmentationSourceDisplay display  )
 	{
 		Map<String, String> sourceNameToTableDir = new HashMap<>();
 		for ( String source: display.getSources() ) {
@@ -299,20 +304,20 @@ public class ViewerManager
 			segmentationDisplay.selectionModel.setSelected( segments, true );
 		}
 
-		initSliceViewer( segmentationDisplay );
+		showInSliceViewer( segmentationDisplay );
 
 		if ( segmentationDisplay.segments != null )
 		{
-			initTableViewer( segmentationDisplay );
+			showInTableViewer( segmentationDisplay );
 			initScatterPlotViewer( segmentationDisplay );
 
 			SwingUtilities.invokeLater( () ->
 			{
 				WindowArrangementHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
 			} );
-		}
 
-		initVolumeViewer( segmentationDisplay );
+			initVolumeViewer( segmentationDisplay );
+		}
 	}
 
 	private void fetchSegmentsFromTables( SegmentationSourceDisplay segmentationDisplay )
@@ -341,7 +346,7 @@ public class ViewerManager
 		}
 	}
 
-	private void initSliceViewer( SegmentationSourceDisplay segmentationDisplay )
+	private void showInSliceViewer( SegmentationSourceDisplay segmentationDisplay )
 	{
 		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( moBIE, segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE.openSourceAndConverters( names ) );
 		segmentationDisplay.segmentationImageSliceView = segmentationImageSliceView;
@@ -349,10 +354,15 @@ public class ViewerManager
 
 	private void initVolumeViewer( SegmentationSourceDisplay display )
 	{
-		display.segmentsVolumeViewer = new SegmentsVolumeView<>( display.selectionModel, display.coloringModel, display.sourceAndConverters, universeManager );
+		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.coloringModel, display.sourceAndConverters, universeManager );
 		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d() );
 		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
+
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
+		{
+			sacService.setMetadata( sourceAndConverter, SegmentsVolumeViewer.VOLUME_VIEW, display.segmentsVolumeViewer  );
+		}
 	}
 
 	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay )

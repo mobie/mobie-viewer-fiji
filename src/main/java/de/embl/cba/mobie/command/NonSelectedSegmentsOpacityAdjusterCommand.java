@@ -1,7 +1,8 @@
-package de.embl.cba.mobie.color;
+package de.embl.cba.mobie.command;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie.color.LabelConverter;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;

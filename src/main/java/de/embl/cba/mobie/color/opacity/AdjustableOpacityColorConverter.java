@@ -47,8 +47,16 @@ public class AdjustableOpacityColorConverter implements OpacityAdjuster, ColorCo
 	@Override
 	public void convert( RealType realType, ARGBType output )
 	{
-		converter.convert( realType, output );
-		output.mul( opacity );
+		if ( realType.getRealDouble() == 0 )
+		{
+			// ...for the Accumulate projector
+			output.set( new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) ) );
+		}
+		else
+		{
+			converter.convert( realType, output );
+			output.mul( opacity );
+		}
 	}
 
 	@Override

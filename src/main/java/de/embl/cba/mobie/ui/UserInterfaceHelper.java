@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.mobie.Utils;
+import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.serialize.JsonHelper;
 import de.embl.cba.mobie.transform.ViewerTransform;
 import de.embl.cba.mobie.transform.ViewerTransformChanger;
@@ -23,6 +24,7 @@ import de.embl.cba.mobie.grid.GridOverlaySourceDisplay;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -220,7 +222,7 @@ public class UserInterfaceHelper
 		panel.add( createSliceViewerVisibilityCheckbox( true,  gridOverlayDisplay.getSourceAndConverters() ) );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createWindowVisibilityCheckbox( true, gridOverlayDisplay.getTableViewer().getWindow() ) );
-		panel.add( createCheckboxPlaceholder() ); //panel.add( createScatterPlotViewerVisibilityCheckbox( display, true ) );
+		panel.add( createScatterPlotViewerVisibilityCheckbox( display, true, display.scatterPlotViewer ) );
 		return panel;
 	}
 
@@ -303,7 +305,7 @@ public class UserInterfaceHelper
 		// make the panel color listen to color changes of the sources
 		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
 		{
-			SourceAndConverterServices.getSourceAndConverterDisplayService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
+			SourceAndConverterServices.getBdvDisplayService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
 				// color changed listener
 				setPanelColor( panel, setup.getColor() );
 			} );
@@ -343,7 +345,7 @@ public class UserInterfaceHelper
 			// table view
 			panel.add( createWindowVisibilityCheckbox( true, display.tableViewer.getWindow() ) );
 			// scatter plot view
-			panel.add( createScatterPlotViewerVisibilityCheckbox( display, display.showScatterPlot() ) );
+			panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotViewer, display.showScatterPlot() ) );
 		}
 		else
 		{
@@ -610,7 +612,7 @@ public class UserInterfaceHelper
 			{
 				for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 				{
-					SourceAndConverterServices.getSourceAndConverterDisplayService().setVisible( sourceAndConverter, checkBox.isSelected() );
+					SourceAndConverterServices.getBdvDisplayService().setVisible( sourceAndConverter, checkBox.isSelected() );
 				}
 			}
 		} );
@@ -638,7 +640,7 @@ public class UserInterfaceHelper
 	}
 
 	private static JCheckBox createScatterPlotViewerVisibilityCheckbox(
-			SegmentationSourceDisplay display,
+			ScatterPlotViewer< ? > scatterPlotViewer,
 			boolean isVisible )
 	{
 		JCheckBox checkBox = new JCheckBox( "P" );
@@ -648,12 +650,12 @@ public class UserInterfaceHelper
 			SwingUtilities.invokeLater( () ->
 				{
 					if ( checkBox.isSelected() )
-						display.scatterPlotViewer.show();
+						scatterPlotViewer.show();
 					else
-						display.scatterPlotViewer.hide();
+						scatterPlotViewer.hide();
 				} ) );
 
-		display.scatterPlotViewer.getListeners().add( new VisibilityListener()
+		scatterPlotViewer.getListeners().add( new VisibilityListener()
 		{
 			@Override
 			public void visibility( boolean isVisible )
@@ -736,7 +738,7 @@ public class UserInterfaceHelper
 			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
 			for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )
 			{
-				converterSetups.add( SourceAndConverterServices.getSourceAndConverterDisplayService().getConverterSetup( sourceAndConverter ) );
+				converterSetups.add( SourceAndConverterServices.getBdvDisplayService().getConverterSetup( sourceAndConverter ) );
 			}
 
 			UserInterfaceHelper.showBrightnessDialog(

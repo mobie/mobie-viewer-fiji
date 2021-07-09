@@ -81,8 +81,10 @@
 		<bigdataviewer-core.version>10.2.1-SNAPSHOT</bigdataviewer-core.version>
 		<bigdataviewer-vistools.version>1.0.0-beta-28</bigdataviewer-vistools.version>
 
+
 		<!-- BIOP -->
-		<bigdataviewer-playground.version>0.2.14</bigdataviewer-playground.version>
+		<bigdataviewer-playground.version>0.3.4</bigdataviewer-playground.version>
+		<bigdataviewer-playground-display.version>0.1.7-SNAPSHOT</bigdataviewer-playground-display.version>
 
 		<!-- EMBL CBA -->
 		<imagej-utils.version>0.6.4-SNAPSHOT</imagej-utils.version>
@@ -125,6 +127,11 @@
 			<artifactId>bigdataviewer-playground</artifactId>
 			<version>${bigdataviewer-playground.version}</version>
 		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>sc.fiji.bigdataviewer</groupId>-->
+<!--			<artifactId>bigdataviewer-playground-display</artifactId>-->
+<!--			<version>${bigdataviewer-playground-display.version}</version>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
