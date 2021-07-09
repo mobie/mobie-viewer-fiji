@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.display;
 
-import de.embl.cba.mobie.grid.AnnotatedIntervalTableRow;
+import de.embl.cba.mobie.annotate.AnnotatedIntervalAdapter;
+import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
 import de.embl.cba.mobie.source.StorageLocation;
 import de.embl.cba.mobie.table.TableDataFormat;
 
@@ -13,6 +14,9 @@ public class SourceAnnotationDisplay extends AnnotatedRegionDisplay< AnnotatedIn
 	protected Map< String, List< String > > sources;
 	protected List< String > selectedSourceAnnotationIds;
 	protected Map< TableDataFormat, StorageLocation > tableData;
+
+	// Runtime
+	public AnnotatedIntervalAdapter< AnnotatedIntervalTableRow > annotatedIntervalAdapter;
 
 	// Getters for the serialised fields
 	public List< String > getSelectedSourceAnnotationIds()

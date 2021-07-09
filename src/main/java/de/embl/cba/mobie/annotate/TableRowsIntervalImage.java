@@ -1,13 +1,11 @@
-package de.embl.cba.mobie.grid;
+package de.embl.cba.mobie.annotate;
 
 import bdv.util.BdvOverlay;
 import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.mobie.color.ListItemsARGBConverter;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringModel;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.position.FunctionRealRandomAccessible;

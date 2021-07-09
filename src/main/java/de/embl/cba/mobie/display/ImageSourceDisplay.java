@@ -2,7 +2,7 @@ package de.embl.cba.mobie.display;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.mobie.bdv.ImageSliceView;
+import de.embl.cba.mobie.bdv.view.ImageSliceView;
 import de.embl.cba.mobie.bdv.render.BlendingMode;
 import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
 import net.imglib2.display.ColorConverter;

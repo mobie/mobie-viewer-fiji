@@ -1,7 +1,6 @@
-package de.embl.cba.mobie.grid;
+package de.embl.cba.mobie.annotate;
 
 import de.embl.cba.tables.tablerow.AbstractTableRow;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.bdv;
+package de.embl.cba.mobie.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
@@ -25,7 +25,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SegmentationImageSliceView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
+public class SegmentationSliceView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final MoBIE moBIE;
@@ -33,7 +33,7 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 	private BdvHandle bdvHandle;
 	private final SourceAndConverterSupplier sourceAndConverterSupplier;
 
-	public SegmentationImageSliceView( MoBIE moBIE, SegmentationSourceDisplay segmentationDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
+	public SegmentationSliceView( MoBIE moBIE, SegmentationSourceDisplay segmentationDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
 	{
 		this.moBIE = moBIE;
 		this.segmentationDisplay = segmentationDisplay;

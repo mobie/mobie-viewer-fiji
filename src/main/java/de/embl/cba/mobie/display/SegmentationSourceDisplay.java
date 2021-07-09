@@ -3,7 +3,7 @@ package de.embl.cba.mobie.display;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.color.LabelConverter;
 import de.embl.cba.mobie.segment.SegmentAdapter;
-import de.embl.cba.mobie.bdv.SegmentationImageSliceView;
+import de.embl.cba.mobie.bdv.view.SegmentationSliceView;
 import de.embl.cba.mobie.volume.SegmentsVolumeViewer;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
@@ -24,7 +24,7 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	// Runtime
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
 	public transient SegmentsVolumeViewer< TableRowImageSegment > segmentsVolumeViewer;
-	public transient SegmentationImageSliceView< TableRowImageSegment > segmentationImageSliceView;
+	public transient SegmentationSliceView< TableRowImageSegment > segmentationSliceView;
 
 	public List< String > getSources()
 	{

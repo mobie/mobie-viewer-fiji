@@ -2,15 +2,18 @@ package de.embl.cba.mobie.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.annotate.AnnotatedIntervalAdapter;
+import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
+import de.embl.cba.mobie.annotate.TableRowsIntervalImage;
+import de.embl.cba.mobie.color.MoBIEColoringModel;
+import de.embl.cba.mobie.display.AnnotatedRegionDisplay;
 import de.embl.cba.mobie.display.SourceAnnotationDisplay;
 import de.embl.cba.mobie.playground.PlaygroundUtils;
 import de.embl.cba.mobie.Utils;
-import de.embl.cba.mobie.bdv.ImageSliceView;
-import de.embl.cba.mobie.bdv.SegmentationImageSliceView;
+import de.embl.cba.mobie.bdv.view.ImageSliceView;
+import de.embl.cba.mobie.bdv.view.SegmentationSliceView;
 import de.embl.cba.mobie.bdv.SliceViewer;
-import de.embl.cba.mobie.color.ColoringModelHelper;
 import de.embl.cba.mobie.display.GridOverlaySourceDisplay;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.segment.SegmentAdapter;
@@ -18,6 +21,7 @@ import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.source.SegmentationSource;
+import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.table.TableViewer;
 import de.embl.cba.mobie.transform.*;
 import de.embl.cba.mobie.ui.UserInterface;
@@ -26,10 +30,13 @@ import de.embl.cba.mobie.view.additionalviews.AdditionalViewsLoader;
 import de.embl.cba.mobie.view.saving.ViewsSaver;
 import de.embl.cba.mobie.volume.SegmentsVolumeViewer;
 import de.embl.cba.mobie.volume.UniverseManager;
+import de.embl.cba.tables.color.ColoringModel;
+import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.integer.IntType;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -70,33 +77,54 @@ public class ViewerManager
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 	}
 
-	public static void initScatterPlotViewer( SegmentationSourceDisplay display )
+	public static void initScatterPlotViewer( AnnotatedRegionDisplay< ? > display )
 	{
 		if ( display.tableRows.size() == 0 ) return;
 
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
-		if ( scatterPlotAxes == null ) {
-			scatterPlotAxes = new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y };
-		}
-
-		display.scatterPlotViewer = new ScatterPlotViewer<>( display.tableRows, display.selectionModel, display.coloringModel,
-				scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
+		display.scatterPlotViewer = new ScatterPlotViewer( display.tableRows, display.selectionModel, display.coloringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
 		display.coloringModel.listeners().add( display.scatterPlotViewer );
 		display.sliceViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
 
-		if ( display.showScatterPlot() ) {
+		if ( display.showScatterPlot() )
+		{
 			display.scatterPlotViewer.setShowColumnSelectionUI( false );
 			display.scatterPlotViewer.show();
+		}
+	}
+
+	private static void configureMoBIEColoringModel( AnnotatedRegionDisplay< ? > display )
+	{
+		if ( display.getColorByColumn() != null )
+		{
+			final ColumnColoringModelCreator< TableRowImageSegment > modelCreator = new ColumnColoringModelCreator( display.tableRows );
+			final ColoringModel< TableRowImageSegment > coloringModel;
+			String coloringLut = display.getLut();
+
+			if ( display.getValueLimits() != null )
+			{
+				coloringModel = modelCreator.createColoringModel(display.getColorByColumn(), coloringLut, display.getValueLimits()[0], display.getValueLimits()[1]);
+			}
+			else
+			{
+				coloringModel = modelCreator.createColoringModel(display.getColorByColumn(), coloringLut, null, null );
+			}
+
+			display.coloringModel = new MoBIEColoringModel( coloringModel );
+		}
+		else
+		{
+			display.coloringModel = new MoBIEColoringModel<>( display.getLut() );
 		}
 	}
 
 	public void showInTableViewer( SegmentationSourceDisplay display  )
 	{
 		Map<String, String> sourceNameToTableDir = new HashMap<>();
-		for ( String source: display.getSources() ) {
-			sourceNameToTableDir.put(
-					source, moBIE.getTablesDirectoryPath( (SegmentationSource) moBIE.getSource( source ) )
+		for ( String source: display.getSources() )
+		{
+			sourceNameToTableDir.put( source, moBIE.getTablesDirectoryPath( (SegmentationSource) moBIE.getSource( source ) )
 			);
 		}
 		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel,
@@ -276,34 +304,34 @@ public class ViewerManager
 	private void showSourceAnnotationDisplay( SourceAnnotationDisplay annotationDisplay )
 	{
 		annotationDisplay.tableRows = moBIE.loadSourceAnnotationTables( annotationDisplay );
+		annotationDisplay.annotatedIntervalAdapter = new AnnotatedIntervalAdapter<>( annotationDisplay.tableRows );
 
-		annotationDisplay.segmentAdapter = new SegmentAdapter( annotationDisplay.tableRows );
-
-		ColoringModelHelper.configureMoBIEColoringModel( annotationDisplay );
+		configureMoBIEColoringModel( annotationDisplay );
 		annotationDisplay.selectionModel = new DefaultSelectionModel<>();
 		annotationDisplay.coloringModel.setSelectionModel(  annotationDisplay.selectionModel );
 
 		// set selected segments
 		if ( annotationDisplay.getSelectedSourceAnnotationIds() != null )
 		{
-			final List< TableRowImageSegment > segments = annotationDisplay.segmentAdapter.getSegments( annotationDisplay.getSelectedTableRows() );
-			annotationDisplay.selectionModel.setSelected( segments, true );
+			final List< AnnotatedIntervalTableRow > annotatedIntervals = annotationDisplay.annotatedIntervalAdapter.getAnnotatedIntervals( annotationDisplay.getSelectedSourceAnnotationIds() );
+			annotationDisplay.selectionModel.setSelected( annotatedIntervals, true );
 		}
 
 		showInSliceViewer( annotationDisplay );
+		showInTableViewer( annotationDisplay );
+		initScatterPlotViewer( annotationDisplay );
 
-		if ( annotationDisplay.tableRows != null )
+		SwingUtilities.invokeLater( () ->
 		{
-			showInTableViewer( annotationDisplay );
-			initScatterPlotViewer( annotationDisplay );
+			WindowArrangementHelper.bottomAlignWindow( annotationDisplay.sliceViewer.getWindow(), annotationDisplay.tableViewer.getWindow() );
+		} );
+	}
 
-			SwingUtilities.invokeLater( () ->
-			{
-				WindowArrangementHelper.bottomAlignWindow( annotationDisplay.sliceViewer.getWindow(), annotationDisplay.tableViewer.getWindow() );
-			} );
-
-			initVolumeViewer( annotationDisplay );
-		}
+	private void showInTableViewer( SourceAnnotationDisplay annotationDisplay )
+	{
+		HashMap<String, String> nameToTableDir = new HashMap<>();
+		nameToTableDir.put( annotationDisplay.getName(), annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ) );
+		annotationDisplay.tableViewer = new TableViewer<>( moBIE, annotationDisplay.tableRows, annotationDisplay.selectionModel, annotationDisplay.coloringModel, annotationDisplay.getName(), nameToTableDir, true ).show();
 	}
 
 	// TODO: own class: SegmentationDisplayConfigurator
@@ -320,7 +348,7 @@ public class ViewerManager
 			segmentationDisplay.segmentAdapter = new SegmentAdapter();
 		}
 
-		ColoringModelHelper.configureMoBIEColoringModel( segmentationDisplay );
+		configureMoBIEColoringModel( segmentationDisplay );
 		segmentationDisplay.selectionModel = new DefaultSelectionModel<>();
 		segmentationDisplay.coloringModel.setSelectionModel(  segmentationDisplay.selectionModel );
 
@@ -375,8 +403,18 @@ public class ViewerManager
 
 	private void showInSliceViewer( SegmentationSourceDisplay segmentationDisplay )
 	{
-		final SegmentationImageSliceView segmentationImageSliceView = new SegmentationImageSliceView<>( moBIE, segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE.openSourceAndConverters( names ) );
-		segmentationDisplay.segmentationImageSliceView = segmentationImageSliceView;
+		final SegmentationSliceView segmentationSliceView = new SegmentationSliceView<>( moBIE, segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE.openSourceAndConverters( names ) );
+		segmentationDisplay.segmentationSliceView = segmentationSliceView;
+	}
+
+	private void showInSliceViewer( SourceAnnotationDisplay sourceAnnotationDisplay )
+	{
+		// TODO: Make a SourceAnnotationSliceView with the listeners for the focussing.
+		final TableRowsIntervalImage< AnnotatedIntervalTableRow > intervalImage = new TableRowsIntervalImage<>( sourceAnnotationDisplay.tableRows, sourceAnnotationDisplay.coloringModel, sourceAnnotationDisplay.getName() );
+		SourceAndConverter< IntType > sourceAndConverter = intervalImage.getSourceAndConverter();
+		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, sourceAndConverter );
+		sourceAnnotationDisplay.sourceAndConverters = new ArrayList<>();
+		sourceAnnotationDisplay.sourceAndConverters.add( sourceAndConverter );
 	}
 
 	private void initVolumeViewer( SegmentationSourceDisplay display )
@@ -397,7 +435,7 @@ public class ViewerManager
 		if ( sourceDisplay instanceof SegmentationSourceDisplay )
 		{
 			final SegmentationSourceDisplay segmentationDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
-			segmentationDisplay.segmentationImageSliceView.close();
+			segmentationDisplay.segmentationSliceView.close();
 			if ( segmentationDisplay.tableRows != null )
 			{
 				segmentationDisplay.tableViewer.close();

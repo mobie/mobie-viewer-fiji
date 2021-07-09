@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.grid;
+package de.embl.cba.mobie.annotate;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;

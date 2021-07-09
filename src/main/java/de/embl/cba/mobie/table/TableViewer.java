@@ -32,7 +32,7 @@ import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.annotate.Annotator;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
-import de.embl.cba.mobie.grid.DefaultAnnotatedIntervalTableRow;
+import de.embl.cba.mobie.annotate.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.tables.*;
 import de.embl.cba.tables.color.*;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
