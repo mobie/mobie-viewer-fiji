@@ -7,9 +7,7 @@ import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.grid.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.mobie.n5.N5ImageLoader;
-import de.embl.cba.mobie.n5.zarr.N5OMEZarrImageLoader;
-import de.embl.cba.mobie.n5.zarr.N5OmeZarrReader;
-import de.embl.cba.mobie.n5.zarr.XmlN5OmeZarrImageLoader;
+import de.embl.cba.mobie.n5.zarr.*;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
@@ -40,6 +38,8 @@ import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataC
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -234,13 +234,14 @@ public class MoBIE {
             InputStream stream = FileAndUrlUtils.getInputStream(path);
             final Document doc = sax.build(stream);
             final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
-            File imagesFile = XmlN5OmeZarrImageLoader.getDatasetsPathFromXml(imgLoaderElem, new File(path));
-            N5OmeZarrReader reader = new N5OmeZarrReader(imagesFile.toString(), new GsonBuilder());
-            HashMap<String, Integer> axesMap = reader.getAxes();
-            N5OMEZarrImageLoader imageLoader = new N5OMEZarrImageLoader(reader, axesMap);
-            return new SpimData(imagesFile,
-                    Cast.unchecked(imageLoader.getSequenceDescription()),
-                    imageLoader.getViewRegistrations());
+            String imagesFile = XmlN5OmeZarrImageLoader.getDatasetsPathFromXml(imgLoaderElem, path);
+            if(imagesFile != null) {
+                if ((imagesFile.equals(Paths.get(imagesFile).toString()))) {
+                    return OMEZarrReader.openFile( imagesFile );
+                } else {
+                    return OMEZarrS3Reader.readURL( imagesFile );
+                }
+            }
         } catch (JDOMException | IOException e) {
             e.printStackTrace();
         }

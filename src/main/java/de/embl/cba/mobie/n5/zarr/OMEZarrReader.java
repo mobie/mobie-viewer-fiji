@@ -28,7 +28,6 @@ public class OMEZarrReader
 
     public static SpimData openFile(String filePath) throws IOException
     {
-        setLogChunkLoading(true);
         N5OMEZarrImageLoader.logChunkLoading = logChunkLoading;
         OMEZarrReader omeZarrReader = new OMEZarrReader(filePath);
         return omeZarrReader.readFile();
