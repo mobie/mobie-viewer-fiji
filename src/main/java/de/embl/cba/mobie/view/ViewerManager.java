@@ -4,6 +4,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.display.SourceAnnotationDisplay;
 import de.embl.cba.mobie.playground.PlaygroundUtils;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.bdv.ImageSliceView;
@@ -17,7 +18,6 @@ import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.source.SegmentationSource;
-import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.table.TableViewer;
 import de.embl.cba.mobie.transform.*;
 import de.embl.cba.mobie.ui.UserInterface;
@@ -124,11 +124,16 @@ public class ViewerManager
 		List< SourceDisplay > viewSourceDisplays = new ArrayList<>();
 		List< SourceTransformer > viewSourceTransforms = new ArrayList<>();
 
-		for ( SourceDisplay sourceDisplay : sourceDisplays ) {
+		for ( SourceDisplay sourceDisplay : sourceDisplays )
+		{
 			SourceDisplay currentDisplay = null;
-			if ( sourceDisplay instanceof ImageSourceDisplay ) {
+
+			if ( sourceDisplay instanceof ImageSourceDisplay )
+			{
 				currentDisplay = new ImageSourceDisplay( (ImageSourceDisplay) sourceDisplay );
-			} else if ( sourceDisplay instanceof  SegmentationSourceDisplay ) {
+			}
+			else if ( sourceDisplay instanceof  SegmentationSourceDisplay )
+			{
 				SegmentationSourceDisplay segmentationSourceDisplay = (SegmentationSourceDisplay) sourceDisplay;
 				if ( segmentationSourceDisplay.tableViewer.hasColumnsFromTablesOutsideProject() ) {
 					IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project).");
@@ -137,15 +142,19 @@ public class ViewerManager
 				currentDisplay = new SegmentationSourceDisplay( segmentationSourceDisplay );
 			}
 
-			if ( currentDisplay != null ) {
+			if ( currentDisplay != null )
+			{
 				viewSourceDisplays.add( currentDisplay );
 			}
 
 			// TODO - would be good to pick up any manual transforms here too. This would allow e.g. manual placement
 			// of differing sized sources into a grid
-			if ( sourceDisplay.getSourceTransformers() != null ) {
-				for ( SourceTransformer sourceTransformer: sourceDisplay.getSourceTransformers() ) {
-					if ( !viewSourceTransforms.contains( sourceTransformer ) ) {
+			if ( sourceDisplay.sourceTransformers != null )
+			{
+				for ( SourceTransformer sourceTransformer: sourceDisplay.sourceTransformers )
+				{
+					if ( ! viewSourceTransforms.contains( sourceTransformer ) )
+					{
 						viewSourceTransforms.add( sourceTransformer );
 					}
 				}
@@ -184,9 +193,6 @@ public class ViewerManager
 			}
 		}
 
-		// ...more source transforms here, feels wrong
-		createAndShowGridView( SwingUtilities.getWindowAncestor( sliceViewer.get().getViewerPanel() ), view.getSourceTransforms(), view.getName() );
-
 		resetSystemSwingLookAndFeel();
 
 		// adjust the viewer transform
@@ -217,8 +223,11 @@ public class ViewerManager
 		}
 		else if ( sourceDisplay instanceof SegmentationSourceDisplay )
 		{
-			final SegmentationSourceDisplay segmentationDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
-			showSegmentationDisplay( segmentationDisplay );
+			showSegmentationDisplay( ( SegmentationSourceDisplay ) sourceDisplay );
+		}
+		else if ( sourceDisplay instanceof SourceAnnotationDisplay )
+		{
+			showSourceAnnotationDisplay( ( SourceAnnotationDisplay ) sourceDisplay );
 		}
 
 		userInterface.addSourceDisplay( sourceDisplay );
@@ -237,22 +246,6 @@ public class ViewerManager
 					if ( gridSourceTransformer.getName() == null )
 					{
 						gridSourceTransformer.setName( viewName );
-						// this name is used to name the associated table
-					}
-
-					final String tableDataFolder = gridSourceTransformer.getTableDataFolder( TableDataFormat.TabDelimitedFile );
-
-					if ( tableDataFolder != null )
-					{
-						gridOverlayDisplay = new GridOverlaySourceDisplay( moBIE, bdvHandle, tableDataFolder, gridSourceTransformer );
-
-						userInterface.addGridView( gridOverlayDisplay );
-						sourceDisplays.add( gridOverlayDisplay );
-
-						SwingUtilities.invokeLater( () ->
-						{
-							WindowArrangementHelper.bottomAlignWindow( window, gridOverlayDisplay.getTableViewer().getWindow() );
-						} );
 					}
 				}
 			}
@@ -279,10 +272,51 @@ public class ViewerManager
 		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle, ( List< String > name ) -> moBIE.openSourceAndConverters( name ) );
 	}
 
+	// TODO: own class: SourceAnnotationDisplayConfigurator
+	private void showSourceAnnotationDisplay( SourceAnnotationDisplay annotationDisplay )
+	{
+		loadTablesAndCreateAnnotatedIntervals( annotationDisplay );
+
+		if ( annotationDisplay.tableRows != null )
+		{
+			annotationDisplay.segmentAdapter = new SegmentAdapter( annotationDisplay.tableRows );
+		}
+		else
+		{
+			annotationDisplay.segmentAdapter = new SegmentAdapter();
+		}
+
+		ColoringModelHelper.configureMoBIEColoringModel( annotationDisplay );
+		annotationDisplay.selectionModel = new DefaultSelectionModel<>();
+		annotationDisplay.coloringModel.setSelectionModel(  annotationDisplay.selectionModel );
+
+		// set selected segments
+		if ( annotationDisplay.getSelectedTableRows() != null )
+		{
+			final List< TableRowImageSegment > segments = annotationDisplay.segmentAdapter.getSegments( annotationDisplay.getSelectedTableRows() );
+			annotationDisplay.selectionModel.setSelected( segments, true );
+		}
+
+		showInSliceViewer( annotationDisplay );
+
+		if ( annotationDisplay.tableRows != null )
+		{
+			showInTableViewer( annotationDisplay );
+			initScatterPlotViewer( annotationDisplay );
+
+			SwingUtilities.invokeLater( () ->
+			{
+				WindowArrangementHelper.bottomAlignWindow( annotationDisplay.sliceViewer.getWindow(), annotationDisplay.tableViewer.getWindow() );
+			} );
+
+			initVolumeViewer( annotationDisplay );
+		}
+	}
+
 	// TODO: own class: SegmentationDisplayConfigurator
 	private void showSegmentationDisplay( SegmentationSourceDisplay segmentationDisplay )
 	{
-		fetchSegmentsFromTables( segmentationDisplay );
+		loadTablesAndCreateImageSegments( segmentationDisplay );
 
 		if ( segmentationDisplay.tableRows != null )
 		{
@@ -320,7 +354,7 @@ public class ViewerManager
 		}
 	}
 
-	private void fetchSegmentsFromTables( SegmentationSourceDisplay segmentationDisplay )
+	private void loadTablesAndCreateImageSegments( SegmentationSourceDisplay segmentationDisplay )
 	{
 		final List< String > tables = segmentationDisplay.getTables();
 
@@ -345,6 +379,33 @@ public class ViewerManager
 			}
 		}
 	}
+
+	private void loadTablesAndCreateAnnotatedIntervals( SourceAnnotationDisplay annotationDisplay )
+	{
+		final List< String > tables = annotationDisplay.getTables();
+
+		if ( tables == null ) return;
+
+		// primary table
+		moBIE.loadPrimarySourceAnnotationTables( annotationDisplay );
+
+		// secondary tables
+		if ( tables.size() > 1 )
+		{
+			final List< String > additionalTables = tables.subList( 1, tables.size() );
+
+			moBIE.appendSegmentsTables( annotationDisplay, additionalTables );
+		}
+
+		for ( TableRowImageSegment segment : annotationDisplay.tableRows )
+		{
+			if ( segment.labelId() == 0 )
+			{
+				throw new UnsupportedOperationException( "The table contains rows (image segments) with label index 0, which is not supported and will lead to errors. Please change the table accordingly." );
+			}
+		}
+	}
+
 
 	private void showInSliceViewer( SegmentationSourceDisplay segmentationDisplay )
 	{

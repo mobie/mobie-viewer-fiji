@@ -1,29 +1,29 @@
 package de.embl.cba.mobie.display;
 
-import bdv.viewer.SourceAndConverter;
-import de.embl.cba.mobie.color.LabelConverter;
 import de.embl.cba.mobie.grid.AnnotatedIntervalTableRow;
-import de.embl.cba.tables.color.ColoringModel;
-import de.embl.cba.tables.color.ColumnColoringModel;
-import de.embl.cba.tables.color.NumericColoringModel;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import de.embl.cba.mobie.source.StorageLocation;
+import de.embl.cba.mobie.table.TableDataFormat;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class SourceAnnotationDisplay extends TableDisplay< AnnotatedIntervalTableRow >
 {
 	// Serialization
 	protected Map< String, List< String > > sources;
 	protected List< String > selectedSourceAnnotationIds;
+	protected Map< TableDataFormat, StorageLocation > tableData;
 
 	// Runtime
-
 	public List< String > getSelectedSourceAnnotationIds()
 	{
 		return selectedSourceAnnotationIds;
+	}
+
+	// Getters for the serialised fields
+	public String getTableDataFolder( TableDataFormat tableDataFormat )
+	{
+		return tableData.get( tableDataFormat ).relativePath;
 	}
 
 	public SourceAnnotationDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )

@@ -11,7 +11,6 @@ import de.embl.cba.mobie.grid.TableRowsIntervalImage;
 import de.embl.cba.mobie.transform.PositionViewerTransform;
 import de.embl.cba.mobie.transform.ViewerTransformChanger;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
-import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.transform.GridSourceTransformer;
 import de.embl.cba.mobie.table.TableViewer;
 import de.embl.cba.tables.TableColumns;
@@ -82,7 +81,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 
 		for ( int i = 0; i < additionalTables.size(); i++ )
 		{
-			MoBIE.mergeImageTable( intervalTableRows, additionalTables.get( i ) );
+			MoBIE.mergeSourceAnnotationTable( intervalTableRows, additionalTables.get( i ) );
 		}
 
 		return intervalTableRows;

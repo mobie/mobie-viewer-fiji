@@ -4,6 +4,8 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
+import de.embl.cba.mobie.display.SourceAnnotationDisplay;
+import de.embl.cba.mobie.grid.AnnotatedIntervalCreator;
 import de.embl.cba.mobie.grid.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.mobie.n5.N5ImageLoader;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
@@ -76,7 +78,7 @@ public class MoBIE
 		openDataset();
 	}
 
-	public static void mergeImageTable( List< DefaultAnnotatedIntervalTableRow > intervalTableRows, Map< String, List< String > > columns )
+	public static void mergeSourceAnnotationTable( List< DefaultAnnotatedIntervalTableRow > intervalTableRows, Map< String, List< String > > columns )
 	{
 		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
 		final ArrayList< String > gridIdColumn = TableColumns.getColumn( intervalTableRows, Constants.GRID_ID );
@@ -459,7 +461,7 @@ public class MoBIE
 	}
 
 	/**
-	 * Primary tables must contain the image segment properties.
+	 * Primary segment tables must contain the image segment properties.
 	 */
 	public void loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay )
 	{
@@ -470,6 +472,27 @@ public class MoBIE
 		{
 			segmentationDisplay.tableRows.addAll( primaryTable );
 		}
+	}
+
+	/**
+	 * Primary segment tables must contain the image segment properties.
+	 */
+	public void loadPrimarySourceAnnotationTables( SourceAnnotationDisplay annotationDisplay )
+	{
+		// open
+		final List< Map< String, List< String > > > tables = new ArrayList<>();
+		for ( String table : annotationDisplay.getTables() )
+		{
+			String tablePath = getTablePath( annotationDisplay.getTableDataFolder(  ), table );
+			tablePath = Utils.resolveTablePath( tablePath );
+			Logger.log( "Opening table:\n" + tablePath );
+			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
+		}
+
+		// create primary AnnotatedIntervalTableRow table
+		final Map< String, List< String > > referenceTable = tables.get( 0 );
+		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, sourceTransformer );
+		final List< DefaultAnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getTableRows();
 	}
 
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter )

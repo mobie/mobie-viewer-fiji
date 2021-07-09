@@ -153,8 +153,7 @@ public abstract class Utils
 
 		tablePath = resolveTablePath( tablePath );
 
-		Map< String, List< String > > columns =
-				TableColumns.stringColumnsFromTableFile( tablePath );
+		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
 
 		TableColumns.addLabelImageIdColumn(
 				columns,
