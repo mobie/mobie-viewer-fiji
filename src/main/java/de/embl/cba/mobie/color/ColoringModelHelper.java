@@ -11,7 +11,7 @@ public class ColoringModelHelper
 	{
 		if ( segmentationDisplay.getColorByColumn() != null )
 		{
-			final ColumnColoringModelCreator< TableRowImageSegment > modelCreator = new ColumnColoringModelCreator( segmentationDisplay.segments );
+			final ColumnColoringModelCreator< TableRowImageSegment > modelCreator = new ColumnColoringModelCreator( segmentationDisplay.tableRows );
 
 			final ColoringModel< TableRowImageSegment > coloringModel;
 

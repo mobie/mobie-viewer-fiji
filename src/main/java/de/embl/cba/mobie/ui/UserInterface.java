@@ -5,7 +5,7 @@ import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
-import de.embl.cba.mobie.grid.GridOverlaySourceDisplay;
+import de.embl.cba.mobie.display.GridOverlaySourceDisplay;
 
 import javax.swing.*;
 import java.awt.*;
@@ -113,7 +113,7 @@ public class UserInterface
 
 	public void addGridView( GridOverlaySourceDisplay gridOverlayDisplay )
 	{
-		final JPanel panel = userInterfaceHelper.createGridViewDisplaySettingsPanel( gridOverlayDisplay );
+		final JPanel panel = userInterfaceHelper.createSourceAnnotationDisplaySettingsPanel( gridOverlayDisplay );
 		showDisplaySettingsPanel( gridOverlayDisplay, panel );
 	}
 

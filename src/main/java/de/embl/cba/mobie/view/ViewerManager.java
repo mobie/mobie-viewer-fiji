@@ -10,7 +10,7 @@ import de.embl.cba.mobie.bdv.ImageSliceView;
 import de.embl.cba.mobie.bdv.SegmentationImageSliceView;
 import de.embl.cba.mobie.bdv.SliceViewer;
 import de.embl.cba.mobie.color.ColoringModelHelper;
-import de.embl.cba.mobie.grid.GridOverlaySourceDisplay;
+import de.embl.cba.mobie.display.GridOverlaySourceDisplay;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.segment.SegmentAdapter;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
@@ -72,14 +72,14 @@ public class ViewerManager
 
 	public static void initScatterPlotViewer( SegmentationSourceDisplay display )
 	{
-		if ( display.segments.size() == 0 ) return;
+		if ( display.tableRows.size() == 0 ) return;
 
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
 		if ( scatterPlotAxes == null ) {
 			scatterPlotAxes = new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y };
 		}
 
-		display.scatterPlotViewer = new ScatterPlotViewer<>( display.segments, display.selectionModel, display.coloringModel,
+		display.scatterPlotViewer = new ScatterPlotViewer<>( display.tableRows, display.selectionModel, display.coloringModel,
 				scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
 		display.coloringModel.listeners().add( display.scatterPlotViewer );
@@ -99,7 +99,7 @@ public class ViewerManager
 					source, moBIE.getTablesDirectoryPath( (SegmentationSource) moBIE.getSource( source ) )
 			);
 		}
-		display.tableViewer = new TableViewer<>( moBIE, display.segments, display.selectionModel, display.coloringModel,
+		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel,
 				display.getName(), sourceNameToTableDir, false ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
@@ -143,8 +143,8 @@ public class ViewerManager
 
 			// TODO - would be good to pick up any manual transforms here too. This would allow e.g. manual placement
 			// of differing sized sources into a grid
-			if ( sourceDisplay.sourceTransformers != null ) {
-				for ( SourceTransformer sourceTransformer: sourceDisplay.sourceTransformers ) {
+			if ( sourceDisplay.getSourceTransformers() != null ) {
+				for ( SourceTransformer sourceTransformer: sourceDisplay.getSourceTransformers() ) {
 					if ( !viewSourceTransforms.contains( sourceTransformer ) ) {
 						viewSourceTransforms.add( sourceTransformer );
 					}
@@ -284,9 +284,9 @@ public class ViewerManager
 	{
 		fetchSegmentsFromTables( segmentationDisplay );
 
-		if ( segmentationDisplay.segments != null )
+		if ( segmentationDisplay.tableRows != null )
 		{
-			segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.segments );
+			segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.tableRows );
 		}
 		else
 		{
@@ -298,15 +298,15 @@ public class ViewerManager
 		segmentationDisplay.coloringModel.setSelectionModel(  segmentationDisplay.selectionModel );
 
 		// set selected segments
-		if ( segmentationDisplay.getSelectedSegmentIds() != null )
+		if ( segmentationDisplay.getSelectedTableRows() != null )
 		{
-			final List< TableRowImageSegment > segments = segmentationDisplay.segmentAdapter.getSegments( segmentationDisplay.getSelectedSegmentIds() );
+			final List< TableRowImageSegment > segments = segmentationDisplay.segmentAdapter.getSegments( segmentationDisplay.getSelectedTableRows() );
 			segmentationDisplay.selectionModel.setSelected( segments, true );
 		}
 
 		showInSliceViewer( segmentationDisplay );
 
-		if ( segmentationDisplay.segments != null )
+		if ( segmentationDisplay.tableRows != null )
 		{
 			showInTableViewer( segmentationDisplay );
 			initScatterPlotViewer( segmentationDisplay );
@@ -337,7 +337,7 @@ public class ViewerManager
 			moBIE.appendSegmentsTables( segmentationDisplay, additionalTables );
 		}
 
-		for ( TableRowImageSegment segment : segmentationDisplay.segments )
+		for ( TableRowImageSegment segment : segmentationDisplay.tableRows )
 		{
 			if ( segment.labelId() == 0 )
 			{
@@ -371,7 +371,7 @@ public class ViewerManager
 		{
 			final SegmentationSourceDisplay segmentationDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
 			segmentationDisplay.segmentationImageSliceView.close();
-			if ( segmentationDisplay.segments != null )
+			if ( segmentationDisplay.tableRows != null )
 			{
 				segmentationDisplay.tableViewer.close();
 				segmentationDisplay.scatterPlotViewer.close();

@@ -1,14 +1,11 @@
 package de.embl.cba.mobie;
 
-import bdv.SpimSource;
-import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.grid.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.mobie.n5.N5ImageLoader;
-import de.embl.cba.mobie.n5.N5S3ImageLoader;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
@@ -458,7 +455,7 @@ public class MoBIE
 
 	public void appendSegmentsTables( SegmentationSourceDisplay segmentationDisplay, List< String > relativeTablePaths )
 	{
-		appendSegmentsTables( segmentationDisplay.getSources(), relativeTablePaths, segmentationDisplay.segments );
+		appendSegmentsTables( segmentationDisplay.getSources(), relativeTablePaths, segmentationDisplay.tableRows );
 	}
 
 	/**
@@ -466,12 +463,12 @@ public class MoBIE
 	 */
 	public void loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay )
 	{
-		segmentationDisplay.segments = new ArrayList<>();
+		segmentationDisplay.tableRows = new ArrayList<>();
 		final ArrayList< List< TableRowImageSegment > > primaryTables = loadPrimarySegmentsTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
 
 		for ( List< TableRowImageSegment > primaryTable : primaryTables )
 		{
-			segmentationDisplay.segments.addAll( primaryTable );
+			segmentationDisplay.tableRows.addAll( primaryTable );
 		}
 	}
 
