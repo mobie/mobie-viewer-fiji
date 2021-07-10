@@ -83,7 +83,7 @@
 
 
 		<!-- BIOP -->
-		<bigdataviewer-playground.version>0.3.4</bigdataviewer-playground.version>
+		<bigdataviewer-playground.version>0.3.8-SNAPSHOT</bigdataviewer-playground.version>
 		<bigdataviewer-playground-display.version>0.1.7-SNAPSHOT</bigdataviewer-playground-display.version>
 
 		<!-- EMBL CBA -->

@@ -26,8 +26,7 @@ public class MobieSerializableBdvOptions {
 
     public AxisOrder axisOrder = AxisOrder.DEFAULT;
 
-    // Extra for the playground
-    public boolean interpolate = false;
+    public boolean interpolate = true;
 
     public int numTimePoints = 1;
 

@@ -222,7 +222,7 @@ public class UserInterfaceHelper
 		panel.add( createSliceViewerVisibilityCheckbox( true,  gridOverlayDisplay.getSourceAndConverters() ) );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createWindowVisibilityCheckbox( true, gridOverlayDisplay.getTableViewer().getWindow() ) );
-		panel.add( createScatterPlotViewerVisibilityCheckbox( display, true, display.scatterPlotViewer ) );
+		//panel.add( createScatterPlotViewerVisibilityCheckbox( display, true, display.scatterPlotViewer ) );
 		return panel;
 	}
 

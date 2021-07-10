@@ -6,6 +6,8 @@ import de.embl.cba.mobie.playground.SourceChanger;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
+import sc.fiji.bdvpg.sourceandconverter.importer.EmptySourceAndConverterCreator;
+import sc.fiji.bdvpg.sourceandconverter.transform.SourceResampler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,11 +37,12 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 				String transformedSourceName = getTransformedSourceName( inputSourceName );
 
 				// transform, i.e. crop
-//				final SourceAndConverter< T > transformedSourceOld = new SourceCropper( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), shiftToOrigin ).get();
-//
-//				final CroppedSource< T > croppedSource = ( CroppedSource< T > ) new CroppedSource( sourceAndConverter.getSpimSource(), transformedSourceName, new FinalRealInterval( min, max ), shiftToOrigin );
+				SourceAndConverter model = new EmptySourceAndConverterCreator(transformedSourceName, new FinalRealInterval(min, max), 100,100,100).get();
 
-				final SourceAndConverter< T > croppedSourceAndConverter = new SourceChanger( ( Function< Source< ? >, Source< ? > > ) source -> new CroppedSource( source, transformedSourceName, new FinalRealInterval( min, max ), shiftToOrigin  ) ).apply( sourceAndConverter );
+				// Resample generative source as model source
+				final SourceAndConverter< T > croppedSourceAndConverter = new SourceResampler( sourceAndConverter, model,false,false, false,0 ).get();
+
+//				final SourceAndConverter< T > croppedSourceAndConverter = new SourceChanger( ( Function< Source< ? >, Source< ? > > ) source -> new CroppedSource( source, transformedSourceName, new FinalRealInterval( min, max ), shiftToOrigin  ) ).apply( sourceAndConverter );
 
 				// replace the source in the list
 				transformedSources.remove( sourceAndConverter );

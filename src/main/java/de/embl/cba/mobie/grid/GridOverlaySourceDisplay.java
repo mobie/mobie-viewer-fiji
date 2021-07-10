@@ -58,7 +58,7 @@ public class GridOverlaySourceDisplay extends SourceDisplay implements ColoringL
 	}
 
 	// TODO: maybe replace the GridSourceTransform by a functional?
-	private List< DefaultAnnotatedIntervalTableRow > openGridTables( MoBIE moBIE, String tableDataFolder, GridSourceTransformer sourceTransformer, String[] relativeTablePaths )
+	private List< DefaultAnnotatedIntervalTableRow > openGridTables( MoBIE moBIE, String tableDataFolder, GridSourceTransformer sourceTransformer, List< String > relativeTablePaths )
 	{
 		// open
 		final List< Map< String, List< String > > > tables = new ArrayList<>();
