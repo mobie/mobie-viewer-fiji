@@ -226,12 +226,6 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public JPanel createSegmentationDisplaySettingsPanel( AnnotatedIntervalDisplay sourceDisplay )
-	{
-		return null;
-	}
-
-
 	public static class OpacityUpdateListener implements BoundedValueDouble.UpdateListener
 	{
 		final private List< SourceAndConverter< ? > > sourceAndConverters;
