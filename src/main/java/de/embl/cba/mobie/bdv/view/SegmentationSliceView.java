@@ -2,12 +2,12 @@ package de.embl.cba.mobie.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import bdv.viewer.TimePointListener;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie.color.LabelConverter;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
-import de.embl.cba.mobie.open.SourceAndConverterSupplier;
 import de.embl.cba.mobie.transform.SourceTransformer;
 import de.embl.cba.mobie.transform.TransformHelper;
 import de.embl.cba.tables.color.ColoringListener;
@@ -30,14 +30,12 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 	private final MoBIE moBIE;
 	private final SegmentationSourceDisplay display;
 	private BdvHandle bdvHandle;
-	private final SourceAndConverterSupplier sourceAndConverterSupplier;
 
-	public SegmentationSliceView( MoBIE moBIE, SegmentationSourceDisplay display, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
+	public SegmentationSliceView( MoBIE moBIE, SegmentationSourceDisplay display, BdvHandle bdvHandle )
 	{
 		this.moBIE = moBIE;
 		this.display = display;
 		this.bdvHandle = bdvHandle;
-		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
 
 		displayService = SourceAndConverterServices.getBdvDisplayService();
 		show();
@@ -49,7 +47,7 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		display.coloringModel.listeners().add( this );
 
 		// open
-		List< SourceAndConverter< ? > > sourceAndConverters = sourceAndConverterSupplier.get( display.getSources() );
+		List< SourceAndConverter< ? > > sourceAndConverters = moBIE.openSourceAndConverters( display.getSources() );
 
 		// transform
 		sourceAndConverters = TransformHelper.transformSourceAndConverters( sourceAndConverters, display.sourceTransformers );
@@ -64,7 +62,7 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 
 			// show
 			displayService.show( bdvHandle, sourceAndConverter );
-			bdvHandle.getViewerPanel().addTimePointListener( (LabelConverter) sourceAndConverter.getConverter() );
+			bdvHandle.getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
 		}
 
 		display.sourceAndConverters = sourceAndConverters;

@@ -263,10 +263,14 @@ public class MoBIE
 		final SpimData spimData = BdvUtils.openSpimData( imagePath );
 		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 		final SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+
 		sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 		sourceNameToSourceAndConverter.put( sourceName, sourceAndConverter );
+
 		return sourceAndConverter;
 	}
+
+
 
 	public void setDataset( String dataset )
 	{
@@ -495,7 +499,7 @@ public class MoBIE
 		// create primary AnnotatedIntervalTableRow table
 		final Map< String, List< String > > referenceTable = tables.get( 0 );
 		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getSources(), ( String sourceName ) -> this.getSourceAndConverter( sourceName )  );
-		final List< AnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getTableRows();
+		final List< AnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getAnnotatedIntervalTableRows();
 
 		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
 
@@ -521,5 +525,10 @@ public class MoBIE
 		sourceNameToSourceAndConverter.remove( sourceName );
 
 		// TODO - when we support more image formats e.g. OME-ZARR, we should explicitly close their imgloaders here too
+	}
+
+	public void registerSourceAndConverter( String name, SourceAndConverter< ? > sac )
+	{
+		sourceNameToSourceAndConverter.put( name, sac );
 	}
 }

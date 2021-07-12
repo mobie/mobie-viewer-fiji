@@ -1,7 +1,11 @@
-package de.embl.cba.mobie.bdv;
+package de.embl.cba.mobie.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie.bdv.MobieBdvSupplier;
+import de.embl.cba.mobie.bdv.MobieSerializableBdvOptions;
+import de.embl.cba.mobie.bdv.SourcesAtMousePositionSupplier;
+import de.embl.cba.mobie.bdv.ViewerTransformLogger;
 import de.embl.cba.mobie.command.NonSelectedSegmentsOpacityAdjusterCommand;
 import de.embl.cba.mobie.command.SegmentsVolumeRenderingConfiguratorCommand;
 import de.embl.cba.mobie.command.SelectedSegmentsColorConfiguratorCommand;

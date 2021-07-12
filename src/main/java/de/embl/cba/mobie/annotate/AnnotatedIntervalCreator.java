@@ -16,21 +16,21 @@ public class AnnotatedIntervalCreator
 	private final Map< String, List< String > > columns;
 	private final Map< String, List< String > > annotationIdToSources;
 	private final Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier;
-	private List< AnnotatedIntervalTableRow > tableRows;
+	private List< AnnotatedIntervalTableRow > annotatedIntervalTableRows;
 
 	public AnnotatedIntervalCreator( Map< String, List< String > > columns, Map< String, List< String > > annotationIdToSources, Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier)
 	{
 		this.columns = columns;
 		this.annotationIdToSources = annotationIdToSources;
 		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
-		create();
+		createAnnotatedIntervals();
 	}
 
-	private void create()
+	private void createAnnotatedIntervals()
 	{
-		tableRows = new ArrayList<>();
+		annotatedIntervalTableRows = new ArrayList<>();
 		final int numRows = columns.values().iterator().next().size();
-		final List< String > annotationIds = columns.get( "source_annotation_id" );
+		final List< String > annotationIds = columns.get( "annotation_id" );
 
 		for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
 		{
@@ -38,7 +38,7 @@ public class AnnotatedIntervalCreator
 			final List< ? extends Source< ? > > sources = annotationIdToSources.get( annotationId ).stream().map( name -> sourceAndConverterSupplier.apply( name ).getSpimSource() ).collect( Collectors.toList() );
 			final RealInterval realInterval = TransformHelper.unionRealInterval( sources );
 
-			tableRows.add(
+			annotatedIntervalTableRows.add(
 					new DefaultAnnotatedIntervalTableRow(
 							annotationId,
 							realInterval,
@@ -48,8 +48,8 @@ public class AnnotatedIntervalCreator
 		}
 	}
 
-	public List< AnnotatedIntervalTableRow > getTableRows()
+	public List< AnnotatedIntervalTableRow > getAnnotatedIntervalTableRows()
 	{
-		return tableRows;
+		return annotatedIntervalTableRows;
 	}
 }

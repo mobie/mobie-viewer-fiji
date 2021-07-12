@@ -2,9 +2,8 @@ package de.embl.cba.mobie.display;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.transform.SourceTransformer;
-import de.embl.cba.mobie.bdv.SliceViewer;
+import de.embl.cba.mobie.bdv.view.SliceViewer;
 
-import java.util.Collections;
 import java.util.List;
 
 public abstract class SourceDisplay

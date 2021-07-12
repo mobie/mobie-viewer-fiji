@@ -2,14 +2,14 @@ package de.embl.cba.mobie.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import bdv.viewer.TimePointListener;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.annotate.AnnotatedInterval;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
 import de.embl.cba.mobie.annotate.TableRowsIntervalImage;
-import de.embl.cba.mobie.color.LabelConverter;
+import de.embl.cba.mobie.color.ListItemsARGBConverter;
 import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
-import de.embl.cba.mobie.open.SourceAndConverterSupplier;
 import de.embl.cba.mobie.transform.PositionViewerTransform;
 import de.embl.cba.mobie.transform.ViewerTransformChanger;
 import de.embl.cba.tables.color.ColoringListener;
@@ -58,7 +58,8 @@ public class AnnotatedIntervalSliceView< S extends AnnotatedInterval > implement
 
 		// show
 		displayService.show( bdvHandle, sourceAndConverter );
-		bdvHandle.getViewerPanel().addTimePointListener( (LabelConverter) sourceAndConverter.getConverter() );
+		ListItemsARGBConverter converter = ( ListItemsARGBConverter ) sourceAndConverter.getConverter();
+		bdvHandle.getViewerPanel().addTimePointListener( ( TimePointListener ) converter );
 	}
 
 	public void close()

@@ -13,7 +13,7 @@ import de.embl.cba.mobie.playground.PlaygroundUtils;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.bdv.view.ImageSliceView;
 import de.embl.cba.mobie.bdv.view.SegmentationSliceView;
-import de.embl.cba.mobie.bdv.SliceViewer;
+import de.embl.cba.mobie.bdv.view.SliceViewer;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.segment.SegmentAdapter;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
@@ -254,6 +254,9 @@ public class ViewerManager
 			showAnnotatedIntervalDisplay( ( AnnotatedIntervalDisplay ) sourceDisplay );
 		}
 
+		// register the SAC with MoBIE for access and closing
+		sourceDisplay.sourceAndConverters.stream().forEach( sac -> moBIE.registerSourceAndConverter( sac.getSpimSource().getName(), sac)  );
+
 		userInterface.addSourceDisplay( sourceDisplay );
 		sourceDisplays.add( sourceDisplay );
 	}
@@ -275,7 +278,7 @@ public class ViewerManager
 
 	private void showImageDisplay( ImageSourceDisplay imageDisplay )
 	{
-		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle, ( List< String > name ) -> moBIE.openSourceAndConverters( name ) );
+		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle );
 	}
 
 	// TODO: own class: SourceAnnotationDisplayConfigurator
@@ -381,7 +384,7 @@ public class ViewerManager
 
 	private void showInSliceViewer( SegmentationSourceDisplay segmentationDisplay )
 	{
-		segmentationDisplay.sliceView = new SegmentationSliceView<>( moBIE, segmentationDisplay, bdvHandle, ( List< String > names ) -> moBIE.openSourceAndConverters( names ) );
+		segmentationDisplay.sliceView = new SegmentationSliceView<>( moBIE, segmentationDisplay, bdvHandle );
 	}
 
 	private void showInSliceViewer( AnnotatedIntervalDisplay annotatedIntervalDisplay )

@@ -17,8 +17,8 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedI
 	protected Map< TableDataFormat, StorageLocation > tableData;
 
 	// Runtime
-	public AnnotatedIntervalAdapter< AnnotatedIntervalTableRow > annotatedIntervalAdapter;
-	public AnnotatedIntervalSliceView< AnnotatedIntervalTableRow > sliceView;
+	public transient AnnotatedIntervalAdapter< AnnotatedIntervalTableRow > annotatedIntervalAdapter;
+	public transient AnnotatedIntervalSliceView< AnnotatedIntervalTableRow > sliceView;
 
 	// Getters for the serialised fields
 	public List< String > getSelectedAnnotationIds()
