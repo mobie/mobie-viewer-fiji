@@ -84,7 +84,6 @@
 
 		<!-- BIOP -->
 		<bigdataviewer-playground.version>0.3.4</bigdataviewer-playground.version>
-		<bigdataviewer-playground-display.version>0.1.7-SNAPSHOT</bigdataviewer-playground-display.version>
 
 		<!-- EMBL CBA -->
 		<imagej-utils.version>0.6.4-SNAPSHOT</imagej-utils.version>
