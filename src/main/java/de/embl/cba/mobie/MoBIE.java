@@ -227,7 +227,7 @@ public class MoBIE {
         return dataset.sources.get(sourceName).get();
     }
 
-    private SpimData openZarrData(String path) {
+    private SpimData openBdvZarrData(String path) {
         try {
             final SAXBuilder sax = new SAXBuilder();
             InputStream stream = FileAndUrlUtils.getInputStream(path);
@@ -259,8 +259,8 @@ public class MoBIE {
             case BdvN5S3:
                 spimData = BdvUtils.openSpimData(imagePath);
                 break;
-            case OmeZarr:
-                spimData = openZarrData(imagePath);
+            case BdvOmeZarr:
+                spimData = openBdvZarrData(imagePath);
         }
         final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator(spimData);
         final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
@@ -292,7 +292,7 @@ public class MoBIE {
         switch (imageDataFormat) {
             case BdvN5:
             case BdvN5S3:
-            case OmeZarr:
+            case BdvOmeZarr:
                 final String relativePath = source.imageData.get(imageDataFormat).relativePath;
                 return FileAndUrlUtils.combinePath(imageRoot, getDatasetName(), relativePath);
             case OpenOrganelleS3:
