@@ -127,11 +127,11 @@
 			<artifactId>bigdataviewer-playground</artifactId>
 			<version>${bigdataviewer-playground.version}</version>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>sc.fiji.bigdataviewer</groupId>-->
-<!--			<artifactId>bigdataviewer-playground-display</artifactId>-->
-<!--			<version>${bigdataviewer-playground-display.version}</version>-->
-<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>sc.fiji.bigdataviewer</groupId>-->
+		<!--			<artifactId>bigdataviewer-playground-display</artifactId>-->
+		<!--			<version>${bigdataviewer-playground-display.version}</version>-->
+		<!--		</dependency>-->
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
@@ -183,14 +183,19 @@
 			<version>${imagej-utils.version}</version>
 		</dependency>
 		<dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>16.0.2</version>
-        </dependency>
+			<groupId>org.jetbrains</groupId>
+			<artifactId>annotations</artifactId>
+			<version>16.0.2</version>
+		</dependency>
 		<dependency>
 			<groupId>com.formdev</groupId>
 			<artifactId>flatlaf</artifactId>
 			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>ij</artifactId>
+			<version>1.53d</version>
 		</dependency>
 	</dependencies>
 </project>

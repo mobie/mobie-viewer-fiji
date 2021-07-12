@@ -11,6 +11,8 @@ public enum ImageDataFormat
 	@SerializedName( "openOrganelle.s3" )
 	OpenOrganelleS3,
 	@SerializedName("bdv.ome.zarr")
+	BdvOmeZarr,
+	@SerializedName("ome.zarr")
 	OmeZarr;
 
 	@Override
@@ -24,8 +26,10 @@ public enum ImageDataFormat
 				return "bdv.n5.s3";
 			case OpenOrganelleS3:
 				return "openOrganelle.s3";
-			case OmeZarr:
+			case BdvOmeZarr:
 				return "bdv.ome.zarr";
+			case OmeZarr:
+				return "ome.zarr";
 			default:
 				throw new UnsupportedOperationException( "Unknown file format: " + this );
 		}
@@ -43,6 +47,8 @@ public enum ImageDataFormat
 			case "openOrganelle":
 				return OpenOrganelleS3;
 			case "bdv.ome.zarr":
+				return BdvOmeZarr;
+			case "ome.zarr":
 				return OmeZarr;
 			default:
 				throw new UnsupportedOperationException( "Unknown file format: " + string );
@@ -58,6 +64,8 @@ public enum ImageDataFormat
 			case BdvN5S3:
 				return false;
 			case OpenOrganelleS3:
+				return false;
+			case BdvOmeZarr:
 				return false;
 			case OmeZarr:
 				return false;

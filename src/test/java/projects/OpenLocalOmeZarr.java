@@ -6,11 +6,11 @@ import de.embl.cba.mobie.source.ImageDataFormat;
 import net.imagej.ImageJ;
 
 import java.io.IOException;
-
-public class OpenRemoteRawOmeZarr {
+//WIP
+public class OpenLocalOmeZarr {
     public static void main(String[] args) throws IOException {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        new MoBIE("https://s3.embl.de/i2k-2020/project-bdv-ome-zarr", MoBIESettings.settings().imageDataFormat(ImageDataFormat.OmeZarr));
+//        new MoBIE("/g/kreshuk/pape/Work/mobie/covid-if-project", MoBIESettings.settings().imageDataFormat(ImageDataFormat.OmeZarr));
     }
 }

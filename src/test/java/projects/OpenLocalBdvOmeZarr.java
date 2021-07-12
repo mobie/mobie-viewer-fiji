@@ -7,7 +7,7 @@ import net.imagej.ImageJ;
 
 import java.io.IOException;
 
-public class OpenLocalRawOmeZarr {
+public class OpenLocalBdvOmeZarr {
     public static void main( String[] args ) throws IOException
     {
         final ImageJ imageJ = new ImageJ();
