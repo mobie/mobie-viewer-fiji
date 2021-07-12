@@ -65,7 +65,7 @@ public class MoBIESettings
 		private String dataset;
 		private String projectBranch = "master"; // project and images
 		private String tableDataBranch;
-		private ImageDataFormat imageDataFormat = ImageDataFormat.BdvN5S3;
+		private ImageDataFormat imageDataFormat;
 		private String projectLocation;
 		private String imageDataLocation;
 		private String tableDataLocation;

@@ -8,6 +8,9 @@ import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalCreator;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
 import de.embl.cba.mobie.n5.N5ImageLoader;
+import de.embl.cba.mobie.n5.zarr.OMEZarrReader;
+import de.embl.cba.mobie.n5.zarr.OMEZarrS3Reader;
+import de.embl.cba.mobie.n5.zarr.XmlN5OmeZarrImageLoader;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
@@ -26,15 +29,18 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.InputStream;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,6 +48,8 @@ import java.util.concurrent.TimeUnit;
 
 import static de.embl.cba.mobie.Utils.createAnnotatedImageSegmentsFromTableFile;
 import static de.embl.cba.mobie.Utils.getName;
+import static mpicbg.spim.data.XmlKeys.IMGLOADER_TAG;
+import static mpicbg.spim.data.XmlKeys.SEQUENCEDESCRIPTION_TAG;
 
 public class MoBIE
 {
@@ -270,8 +278,6 @@ public class MoBIE
 		return sourceAndConverter;
 	}
 
-
-
 	public void setDataset( String dataset )
 	{
 		setDatasetName( dataset );
@@ -291,25 +297,6 @@ public class MoBIE
 	public Map< String, View > getViews()
 	{
 		return dataset.views;
-	}
-
-	public synchronized String getImagePath( ImageSource source )
-	{
-		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
-
-		switch ( imageDataFormat )
-		{
-			case BdvN5:
-			case BdvN5S3:
-				final String relativePath = source.imageData.get( imageDataFormat ).relativePath;
-				return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativePath );
-			case OpenOrganelleS3:
-				final String s3Address = source.imageData.get( imageDataFormat ).s3Address;
-				throw new UnsupportedOperationException( "Loading openOrganelle not supported yet.");
-			default:
-				throw new UnsupportedOperationException( "File format not supported: " + imageDataFormat );
-
-		}
 	}
 
 	private String getRelativeTableLocation( SegmentationSource source )
@@ -531,4 +518,42 @@ public class MoBIE
 	{
 		sourceNameToSourceAndConverter.put( name, sac );
 	}
+
+    private SpimData ZarrData(String path) {
+        try {
+            final SAXBuilder sax = new SAXBuilder();
+            InputStream stream = FileAndUrlUtils.getInputStream(path);
+            final Document doc = sax.build(stream);
+            final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
+            String imagesFile = XmlN5OmeZarrImageLoader.getDatasetsPathFromXml(imgLoaderElem, path);
+            if(imagesFile != null) {
+                if ((imagesFile.equals(Paths.get(imagesFile).toString()))) {
+                    return OMEZarrReader.openFile( imagesFile );
+                } else {
+                    return OMEZarrS3Reader.readURL( imagesFile );
+                }
+            }
+        } catch (JDOMException | IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public synchronized String getImagePath(ImageSource source) {
+        final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
+
+        switch (imageDataFormat) {
+            case BdvN5:
+            case BdvN5S3:
+            case OmeZarr:
+                final String relativePath = source.imageData.get(imageDataFormat).relativePath;
+                return FileAndUrlUtils.combinePath(imageRoot, getDatasetName(), relativePath);
+            case OpenOrganelleS3:
+                final String s3Address = source.imageData.get(imageDataFormat).s3Address;
+                throw new UnsupportedOperationException("Loading openOrganelle not supported yet.");
+            default:
+                throw new UnsupportedOperationException("File format not supported: " + imageDataFormat);
+
+        }
+    }
 }
