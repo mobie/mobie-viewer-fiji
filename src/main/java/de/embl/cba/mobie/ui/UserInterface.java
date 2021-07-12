@@ -1,11 +1,11 @@
 package de.embl.cba.mobie.ui;
 
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
-import de.embl.cba.mobie.grid.GridOverlaySourceDisplay;
 
 import javax.swing.*;
 import java.awt.*;
@@ -105,16 +105,14 @@ public class UserInterface
 		{
 			return userInterfaceHelper.createSegmentationDisplaySettingsPanel( ( SegmentationSourceDisplay ) sourceDisplay );
 		}
+		else if ( sourceDisplay instanceof AnnotatedIntervalDisplay )
+		{
+			return userInterfaceHelper.createAnnotatedIntervalDisplaySettingsPanel( ( AnnotatedIntervalDisplay ) sourceDisplay );
+		}
 		else
 		{
 			throw new UnsupportedOperationException();
 		}
-	}
-
-	public void addGridView( GridOverlaySourceDisplay gridOverlayDisplay )
-	{
-		final JPanel panel = userInterfaceHelper.createGridViewDisplaySettingsPanel( gridOverlayDisplay );
-		showDisplaySettingsPanel( gridOverlayDisplay, panel );
 	}
 
 	public void removeDisplaySettingsPanel( Object display )

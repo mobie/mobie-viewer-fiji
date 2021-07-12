@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.mobie.Utils;
+import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.serialize.JsonHelper;
 import de.embl.cba.mobie.transform.ViewerTransform;
@@ -20,11 +21,9 @@ import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
-import de.embl.cba.mobie.grid.GridOverlaySourceDisplay;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -206,26 +205,26 @@ public class UserInterfaceHelper
 		}
 	}
 
-	public JPanel createGridViewDisplaySettingsPanel( GridOverlaySourceDisplay gridOverlayDisplay )
+	public JPanel createAnnotatedIntervalDisplaySettingsPanel( AnnotatedIntervalDisplay display )
 	{
-		JPanel panel = createDisplayPanel( gridOverlayDisplay.getName() );
+		JPanel panel = createDisplayPanel( display.getName() );
 
 		// Buttons
 		panel.add( createSpace() );
 		panel.add( createButtonPlaceholder() );
-		panel.add( createOpacityButton( gridOverlayDisplay.getSourceAndConverters(), gridOverlayDisplay.getName(), gridOverlayDisplay.getBdvHandle() ) );
+		panel.add( createOpacityButton( display.sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createButtonPlaceholder() );
-		panel.add( createRemoveButton( gridOverlayDisplay ) );
+		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( createSpace() );
-		panel.add( createSliceViewerVisibilityCheckbox( true,  gridOverlayDisplay.getSourceAndConverters() ) );
+		panel.add( createSliceViewerVisibilityCheckbox( true,  display.sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
-		panel.add( createWindowVisibilityCheckbox( true, gridOverlayDisplay.getTableViewer().getWindow() ) );
-		// panel.add( createScatterPlotViewerVisibilityCheckbox( display, true, display.scatterPlotViewer ) );
+		panel.add( createWindowVisibilityCheckbox( true, display.tableViewer.getWindow() ) );
+		panel.add( createCheckboxPlaceholder() );
+		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotViewer, display.showScatterPlot() ) );
 		return panel;
 	}
-
 
 	public static class OpacityUpdateListener implements BoundedValueDouble.UpdateListener
 	{
@@ -340,7 +339,7 @@ public class UserInterfaceHelper
 		panel.add( createSpace() );
 		panel.add( createSliceViewerVisibilityCheckbox( true, display.sourceAndConverters ) );
 		panel.add( createVolumeViewerVisibilityCheckbox( display ) );
-		if ( display.segments != null )
+		if ( display.tableRows != null )
 		{
 			// table view
 			panel.add( createWindowVisibilityCheckbox( true, display.tableViewer.getWindow() ) );

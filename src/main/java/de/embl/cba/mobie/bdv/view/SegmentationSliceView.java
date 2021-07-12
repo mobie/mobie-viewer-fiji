@@ -1,16 +1,15 @@
-package de.embl.cba.mobie.bdv;
+package de.embl.cba.mobie.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import bdv.viewer.TimePointListener;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie.color.LabelConverter;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
-import de.embl.cba.mobie.display.SourceDisplay;
-import de.embl.cba.mobie.open.SourceAndConverterSupplier;
 import de.embl.cba.mobie.transform.SourceTransformer;
-import de.embl.cba.mobie.transform.TransformerHelper;
+import de.embl.cba.mobie.transform.TransformHelper;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.SelectionListener;
@@ -25,20 +24,18 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SegmentationImageSliceView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
+public class SegmentationSliceView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final MoBIE moBIE;
-	private final SegmentationSourceDisplay segmentationDisplay;
+	private final SegmentationSourceDisplay display;
 	private BdvHandle bdvHandle;
-	private final SourceAndConverterSupplier sourceAndConverterSupplier;
 
-	public SegmentationImageSliceView( MoBIE moBIE, SegmentationSourceDisplay segmentationDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier  )
+	public SegmentationSliceView( MoBIE moBIE, SegmentationSourceDisplay display, BdvHandle bdvHandle )
 	{
 		this.moBIE = moBIE;
-		this.segmentationDisplay = segmentationDisplay;
+		this.display = display;
 		this.bdvHandle = bdvHandle;
-		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
 
 		displayService = SourceAndConverterServices.getBdvDisplayService();
 		show();
@@ -46,14 +43,14 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 
 	private void show( )
 	{
-		segmentationDisplay.selectionModel.listeners().add( this );
-		segmentationDisplay.coloringModel.listeners().add( this );
+		display.selectionModel.listeners().add( this );
+		display.coloringModel.listeners().add( this );
 
 		// open
-		List< SourceAndConverter< ? > > sourceAndConverters = sourceAndConverterSupplier.get( segmentationDisplay.getSources() );
+		List< SourceAndConverter< ? > > sourceAndConverters = moBIE.openSourceAndConverters( display.getSources() );
 
 		// transform
-		sourceAndConverters = TransformerHelper.transformSourceAndConverters( sourceAndConverters, segmentationDisplay.sourceTransformers );
+		sourceAndConverters = TransformHelper.transformSourceAndConverters( sourceAndConverters, display.sourceTransformers );
 
 		// convert to labelSource
 		sourceAndConverters = asLabelSources( sourceAndConverters );
@@ -61,14 +58,14 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			// set opacity
-			OpacityAdjuster.adjustOpacity( sourceAndConverter, segmentationDisplay.getOpacity() );
+			OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
 			// show
 			displayService.show( bdvHandle, sourceAndConverter );
-			bdvHandle.getViewerPanel().addTimePointListener( (LabelConverter) sourceAndConverter.getConverter() );
+			bdvHandle.getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
 		}
 
-		segmentationDisplay.sourceAndConverters = sourceAndConverters;
+		display.sourceAndConverters = sourceAndConverters;
 	}
 
 	private List< SourceAndConverter< ? > > asLabelSources( List< SourceAndConverter< ? > > sourceAndConverters )
@@ -77,9 +74,9 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			LabelConverter< S > labelConverter = new LabelConverter(
-					segmentationDisplay.segmentAdapter,
+					display.segmentAdapter,
 					sourceAndConverter.getSpimSource().getName(),
-					segmentationDisplay.coloringModel );
+					display.coloringModel );
 
 			SourceAndConverter< ? > sourceAndLabelConverter = asSourceAndLabelConverter( sourceAndConverter, labelConverter );
 
@@ -99,11 +96,16 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 
 	public void close()
 	{
-		for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
+		{
+			SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
+		}
+
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
 		{
 			moBIE.closeSourceAndConverter( sourceAndConverter );
 		}
-		segmentationDisplay.sourceAndConverters.clear();
+		display.sourceAndConverters.clear();
 	};
 
 	@Override
@@ -140,9 +142,9 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 
 	private void adaptPosition( double[] position, String sourceName )
 	{
-		if ( segmentationDisplay.sourceTransformers != null )
+		if ( display.sourceTransformers != null )
 		{
-			for ( SourceTransformer sourceTransformer : segmentationDisplay.sourceTransformers )
+			for ( SourceTransformer sourceTransformer : display.sourceTransformers )
 			{
 				final AffineTransform3D transform = sourceTransformer.getTransform( sourceName );
 				transform.apply( position, position );
@@ -160,11 +162,4 @@ public class SegmentationImageSliceView< S extends ImageSegment > implements Col
 		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 	}
 
-	public void removeSourceDisplay( SourceDisplay sourceDisplay )
-	{
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceDisplay.sourceAndConverters )
-		{
-			SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
-		}
-	}
 }
