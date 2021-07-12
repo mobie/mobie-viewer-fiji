@@ -8,6 +8,7 @@ import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalCreator;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
 import de.embl.cba.mobie.n5.N5ImageLoader;
+import de.embl.cba.mobie.n5.zarr.N5OMEZarrImageLoader;
 import de.embl.cba.mobie.n5.zarr.OMEZarrReader;
 import de.embl.cba.mobie.n5.zarr.OMEZarrS3Reader;
 import de.embl.cba.mobie.n5.zarr.XmlN5OmeZarrImageLoader;
@@ -270,20 +271,22 @@ public class MoBIE
 		new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
 		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
 		SpimData spimData = null;
-		switch (imageDataFormat) {
+		switch (imageDataFormat)
+        {
 			case BdvN5:
 			case BdvN5S3:
 				spimData = BdvUtils.openSpimData(imagePath);
 				break;
-			case OmeZarr:
-				spimData = ZarrData(imagePath);
+			case BdvOmeZarr:
+				spimData = openBdvZarrData(imagePath);
 		}
 		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 		final SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-
+        if (spimData != null)
+        {
 		sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 		sourceNameToSourceAndConverter.put( sourceName, sourceAndConverter );
-
+        }
 		return sourceAndConverter;
 	}
 
@@ -528,17 +531,21 @@ public class MoBIE
 		sourceNameToSourceAndConverter.put( name, sac );
 	}
 
-    private SpimData ZarrData(String path) {
-        try {
+    private SpimData openBdvZarrData(String path) {
+        try
+        {
             final SAXBuilder sax = new SAXBuilder();
             InputStream stream = FileAndUrlUtils.getInputStream(path);
             final Document doc = sax.build(stream);
             final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
             String imagesFile = XmlN5OmeZarrImageLoader.getDatasetsPathFromXml(imgLoaderElem, path);
-            if(imagesFile != null) {
-                if ((imagesFile.equals(Paths.get(imagesFile).toString()))) {
+            if(imagesFile != null)
+            {
+                if ((imagesFile.equals(Paths.get(imagesFile).toString())))
+                {
                     return OMEZarrReader.openFile( imagesFile );
-                } else {
+                } else
+                {
                     return OMEZarrS3Reader.readURL( imagesFile );
                 }
             }
@@ -554,7 +561,7 @@ public class MoBIE
         switch (imageDataFormat) {
             case BdvN5:
             case BdvN5S3:
-            case OmeZarr:
+            case BdvOmeZarr:
                 final String relativePath = source.imageData.get(imageDataFormat).relativePath;
                 return FileAndUrlUtils.combinePath(imageRoot, getDatasetName(), relativePath);
             case OpenOrganelleS3:
