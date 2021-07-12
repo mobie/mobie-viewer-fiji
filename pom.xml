@@ -81,7 +81,6 @@
 		<bigdataviewer-core.version>10.2.1-SNAPSHOT</bigdataviewer-core.version>
 		<bigdataviewer-vistools.version>1.0.0-beta-28</bigdataviewer-vistools.version>
 
-
 		<!-- BIOP -->
 		<bigdataviewer-playground.version>0.3.4</bigdataviewer-playground.version>
 
