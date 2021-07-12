@@ -268,7 +268,16 @@ public class MoBIE
 		final ImageSource source = getSource( sourceName );
 		final String imagePath = getImagePath( source );
 		new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
-		final SpimData spimData = BdvUtils.openSpimData( imagePath );
+		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
+		SpimData spimData = null;
+		switch (imageDataFormat) {
+			case BdvN5:
+			case BdvN5S3:
+				spimData = BdvUtils.openSpimData(imagePath);
+				break;
+			case OmeZarr:
+				spimData = ZarrData(imagePath);
+		}
 		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 		final SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
 
