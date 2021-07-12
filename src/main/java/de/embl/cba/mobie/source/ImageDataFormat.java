@@ -9,7 +9,9 @@ public enum ImageDataFormat
 	@SerializedName( "bdv.n5.s3" )
 	BdvN5S3,
 	@SerializedName( "openOrganelle.s3" )
-	OpenOrganelleS3;
+	OpenOrganelleS3,
+	@SerializedName("bdv.ome.zarr")
+	OmeZarr;
 
 	@Override
 	public String toString()
@@ -22,6 +24,8 @@ public enum ImageDataFormat
 				return "bdv.n5.s3";
 			case OpenOrganelleS3:
 				return "openOrganelle.s3";
+			case OmeZarr:
+				return "bdv.ome.zarr";
 			default:
 				throw new UnsupportedOperationException( "Unknown file format: " + this );
 		}
@@ -29,6 +33,7 @@ public enum ImageDataFormat
 
 	public static ImageDataFormat fromString( String string )
 	{
+		System.out.println(string);
 		switch ( string )
 		{
 			case "bdv.n5":
@@ -37,6 +42,8 @@ public enum ImageDataFormat
 				return BdvN5S3;
 			case "openOrganelle":
 				return OpenOrganelleS3;
+			case "bdv.ome.zarr":
+				return OmeZarr;
 			default:
 				throw new UnsupportedOperationException( "Unknown file format: " + string );
 		}
@@ -51,6 +58,8 @@ public enum ImageDataFormat
 			case BdvN5S3:
 				return false;
 			case OpenOrganelleS3:
+				return false;
+			case OmeZarr:
 				return false;
 			default:
 				return false;
