@@ -9,21 +9,18 @@ import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME ZARR>Open OME ZARR from the file system..." )
+@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME ZARR>Open OME ZARR from the file system...")
 public class OpenOMEZARRCommand implements Command
 {
-    @Parameter( label = "File path " )
+    @Parameter(label = "File path ")
     public String filePath = "";
 
     @Override
     public void run()
     {
-        try
-        {
+        try {
             openAndShow( filePath );
-        }
-        catch ( IOException e )
-        {
+        } catch ( IOException e ) {
             e.printStackTrace();
         }
     }
