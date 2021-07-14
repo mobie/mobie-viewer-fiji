@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.grid;
+package de.embl.cba.mobie.annotate;
 
 import de.embl.cba.tables.tablerow.TableRow;
 

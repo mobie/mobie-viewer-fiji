@@ -1,62 +1,37 @@
 package de.embl.cba.mobie.display;
 
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.mobie.Constants;
 import de.embl.cba.mobie.color.LabelConverter;
-import de.embl.cba.mobie.color.MoBIEColoringModel;
 import de.embl.cba.mobie.segment.SegmentAdapter;
-import de.embl.cba.mobie.plot.ScatterPlotViewer;
-import de.embl.cba.mobie.bdv.SegmentationImageSliceView;
+import de.embl.cba.mobie.bdv.view.SegmentationSliceView;
 import de.embl.cba.mobie.volume.SegmentsVolumeViewer;
-import de.embl.cba.mobie.table.TableViewer;
-import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.NumericColoringModel;
-import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class SegmentationSourceDisplay extends SourceDisplay
+public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowImageSegment >
 {
 	// Serialization
-	protected String lut = ColoringLuts.GLASBEY;
-	protected String colorByColumn;
-	protected Double[] valueLimits = new Double[]{ null, null };
+	protected List< String > sources;
 	protected List< String > selectedSegmentIds;
 	protected boolean showSelectedSegmentsIn3d = false;
-	protected boolean showScatterPlot = false;
-	protected String[] scatterPlotAxes = new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y };
-	protected List< String > tables; // tables to display
 
 	// Runtime
-	public transient SelectionModel< TableRowImageSegment > selectionModel;
-	public transient MoBIEColoringModel< TableRowImageSegment > coloringModel;
-	public transient TableViewer< TableRowImageSegment > tableViewer;
-	public transient ScatterPlotViewer< TableRowImageSegment > scatterPlotViewer;
-	public transient List< TableRowImageSegment > segments;
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
 	public transient SegmentsVolumeViewer< TableRowImageSegment > segmentsVolumeViewer;
-	public transient SegmentationImageSliceView< TableRowImageSegment > segmentationImageSliceView;
+	public transient SegmentationSliceView< TableRowImageSegment > sliceView;
 
-	public String getLut()
+	public List< String > getSources()
 	{
-		return lut;
+		return Collections.unmodifiableList( sources );
 	}
 
-	public String getColorByColumn()
-	{
-		return colorByColumn;
-	}
-
-	public Double[] getValueLimits()
-	{
-		return valueLimits;
-	}
-
-	public List< String > getSelectedSegmentIds()
+	public List< String > getSelectedTableRows()
 	{
 		return selectedSegmentIds;
 	}
@@ -64,21 +39,6 @@ public class SegmentationSourceDisplay extends SourceDisplay
 	public boolean showSelectedSegmentsIn3d()
 	{
 		return showSelectedSegmentsIn3d;
-	}
-
-	public boolean showScatterPlot()
-	{
-		return showScatterPlot;
-	}
-
-	public String[] getScatterPlotAxes()
-	{
-		return scatterPlotAxes;
-	}
-
-	public List< String > getTables()
-	{
-		return tables;
 	}
 
 	public SegmentationSourceDisplay( String name, double opacity, List< String > sources,
@@ -106,6 +66,7 @@ public class SegmentationSourceDisplay extends SourceDisplay
 	 */
 	public SegmentationSourceDisplay( SegmentationSourceDisplay segmentationDisplay )
 	{
+		// TODO: put as much as possible of this into TableDisplay, I guess it could be a protected method that takes < ? extends TableDisplay > as an input and then sets the fields.
 		this.name = segmentationDisplay.name;
 		this.sources = new ArrayList<>();
 		for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )

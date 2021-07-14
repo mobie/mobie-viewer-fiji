@@ -2,17 +2,15 @@ package de.embl.cba.mobie.display;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.transform.SourceTransformer;
-import de.embl.cba.mobie.bdv.SliceViewer;
+import de.embl.cba.mobie.bdv.view.SliceViewer;
 
-import java.util.Collections;
 import java.util.List;
 
-public class SourceDisplay
+public abstract class SourceDisplay
 {
 	// Serialization
 	protected String name;
 	protected double opacity = 1.0;
-	protected List< String > sources;
 
 	// Runtime
 	public transient List< SourceAndConverter< ? > > sourceAndConverters;
@@ -23,28 +21,8 @@ public class SourceDisplay
 	{
 		return name;
 	}
-
-	public List< String > getSources()
-	{
-		return Collections.unmodifiableList( sources );
-	}
 	public double getOpacity()
 	{
 		return opacity;
-	}
-
-	public List< SourceAndConverter< ? > > getSourceAndConverters()
-	{
-		return sourceAndConverters;
-	}
-
-	public List< SourceTransformer > getSourceTransformers()
-	{
-		return sourceTransformers;
-	}
-
-	public SliceViewer getSliceViewer()
-	{
-		return sliceViewer;
 	}
 }

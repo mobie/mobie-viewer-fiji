@@ -2,7 +2,7 @@ package de.embl.cba.mobie.display;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.mobie.bdv.ImageSliceView;
+import de.embl.cba.mobie.bdv.view.ImageSliceView;
 import de.embl.cba.mobie.bdv.render.BlendingMode;
 import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
 import net.imglib2.display.ColorConverter;
@@ -14,6 +14,7 @@ import java.util.List;
 public class ImageSourceDisplay extends SourceDisplay
 {
 	// Serialization
+	private List< String > sources;
 	private String color;
 	private double[] contrastLimits;
 	private BlendingMode blendingMode;
@@ -22,6 +23,7 @@ public class ImageSourceDisplay extends SourceDisplay
 	// Runtime
 	public transient ImageSliceView imageSliceView;
 
+	// Getters for serialised fields
 	public String getColor()
 	{
 		return color;
@@ -37,6 +39,12 @@ public class ImageSourceDisplay extends SourceDisplay
 		return blendingMode;
 	}
 
+	public List< String > getSources()
+	{
+		return sources;
+	}
+
+	// Constructor for serialization
 	public ImageSourceDisplay( String name, double opacity, List< String > sources, String color, double[] contrastLimits, BlendingMode blendingMode, boolean showImagesIn3d ) {
 		this.name = name;
 		this.opacity = opacity;

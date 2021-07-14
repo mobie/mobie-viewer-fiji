@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import de.embl.cba.mobie.bdv.MobieBdvSupplier;
 import de.embl.cba.mobie.bdv.MobieBdvSupplierAdapter;
+import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.transform.SourceTransformer;
 import de.embl.cba.mobie.transform.ViewerTransform;
@@ -45,8 +46,15 @@ public class JsonHelper
 		Class c = nameToClass.get( jsonElementEntry.getKey() );
 		if (c == null)
 			throw new RuntimeException("Unknown class: " + jsonElementEntry.getKey());
-		final Object deserialize = context.deserialize( jsonElementEntry.getValue(), c );
-		return deserialize;
+		try
+		{
+			final Object deserialize = context.deserialize( jsonElementEntry.getValue(), c );
+			return deserialize;
+		}
+		catch ( Exception e )
+		{
+			throw new RuntimeException( e );
+		}
 	}
 
 	public static Object createObjectFromJsonObject( JsonDeserializationContext context, JsonElement je, Map< String, Class > nameToClass )

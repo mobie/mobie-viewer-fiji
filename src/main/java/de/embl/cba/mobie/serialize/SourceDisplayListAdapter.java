@@ -2,6 +2,7 @@ package de.embl.cba.mobie.serialize;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
@@ -20,6 +21,8 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< SourceDis
 		classToName.put(ImageSourceDisplay.class.getName(), "imageDisplay");
 		nameToClass.put("segmentationDisplay", SegmentationSourceDisplay.class);
 		classToName.put(SegmentationSourceDisplay.class.getName(), "segmentationDisplay");
+		nameToClass.put("sourceAnnotationDisplay", AnnotatedIntervalDisplay.class);
+		classToName.put(AnnotatedIntervalDisplay.class.getName(), "sourceAnnotationDisplay");
 	}
 
 	@Override

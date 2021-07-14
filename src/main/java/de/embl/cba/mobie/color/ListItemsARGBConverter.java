@@ -1,5 +1,6 @@
 package de.embl.cba.mobie.color;
 
+import bdv.viewer.TimePointListener;
 import de.embl.cba.tables.color.ColoringModel;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
@@ -9,7 +10,7 @@ import net.imglib2.type.numeric.RealType;
 import java.util.HashMap;
 import java.util.List;
 
-public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBType >, OpacityAdjuster
+public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBType >, OpacityAdjuster, TimePointListener
 {
 	public static final int OUT_OF_BOUNDS_ROW_INDEX = -1;
 	private final ColoringModel< T > coloringModel;
@@ -74,5 +75,11 @@ public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBTyp
 	public double getOpacity()
 	{
 		return opacity;
+	}
+
+	@Override
+	public void timePointChanged( int timePointIndex )
+	{
+		// TODO: why would we need this?
 	}
 }

@@ -1,4 +1,4 @@
-package de.embl.cba.mobie.bdv;
+package de.embl.cba.mobie.bdv.view;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;
@@ -11,7 +11,7 @@ import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie.color.opacity.VolatileAdjustableOpacityColorConverter;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.open.SourceAndConverterSupplier;
-import de.embl.cba.mobie.transform.TransformerHelper;
+import de.embl.cba.mobie.transform.TransformHelper;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
 import net.imglib2.Volatile;
@@ -33,17 +33,15 @@ public class ImageSliceView
 {
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final MoBIE moBIE;
-	private final ImageSourceDisplay imageDisplay;
+	private final ImageSourceDisplay display;
 	private final BdvHandle bdvHandle;
-	private final SourceAndConverterSupplier sourceAndConverterSupplier;
 	private final SourceAndConverterService sacService;
 
-	public ImageSliceView( MoBIE moBIE, ImageSourceDisplay imageDisplay, BdvHandle bdvHandle, SourceAndConverterSupplier sourceAndConverterSupplier )
+	public ImageSliceView( MoBIE moBIE, ImageSourceDisplay display, BdvHandle bdvHandle )
 	{
 		this.moBIE = moBIE;
-		this.imageDisplay = imageDisplay;
+		this.display = display;
 		this.bdvHandle = bdvHandle;
-		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
 
 		displayService = SourceAndConverterServices.getBdvDisplayService();
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
@@ -53,10 +51,10 @@ public class ImageSliceView
 
 	private void show( )
 	{
-		List< SourceAndConverter< ? > > sourceAndConverters = sourceAndConverterSupplier.get( imageDisplay.getSources() );
+		List< SourceAndConverter< ? > > sourceAndConverters = moBIE.openSourceAndConverters( display.getSources() );
 
 		// transform
-		sourceAndConverters = TransformerHelper.transformSourceAndConverters( sourceAndConverters, imageDisplay.sourceTransformers );
+		sourceAndConverters = TransformHelper.transformSourceAndConverters( sourceAndConverters, display.sourceTransformers );
 
 		// show
 		List< SourceAndConverter< ? > > displayedSourceAndConverters = new ArrayList<>();
@@ -73,33 +71,33 @@ public class ImageSliceView
 			sourceAndConverter = new ConverterChanger( sourceAndConverter, adjustableOpacityColorConverter, volatileAdjustableOpacityColorConverter ).get();
 
 			// set opacity
-			OpacityAdjuster.adjustOpacity( sourceAndConverter, imageDisplay.getOpacity() );
+			OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
 			// set color
 			adaptImageColor( sourceAndConverter );
 
 			// set blending mode
-			if ( imageDisplay.getBlendingMode() != null )
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, imageDisplay.getBlendingMode() );
+			if ( display.getBlendingMode() != null )
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
 
 			// show
 			displayService.show( bdvHandle, sourceAndConverter );
 
 			// adapt contrast limits
 			final ConverterSetup converterSetup = displayService.getConverterSetup( sourceAndConverter );
-			converterSetup.setDisplayRange( imageDisplay.getContrastLimits()[ 0 ], imageDisplay.getContrastLimits()[ 1 ] );
+			converterSetup.setDisplayRange( display.getContrastLimits()[ 0 ], display.getContrastLimits()[ 1 ] );
 
 			displayedSourceAndConverters.add( sourceAndConverter );
 		}
 
-		imageDisplay.sourceAndConverters = displayedSourceAndConverters;
+		display.sourceAndConverters = displayedSourceAndConverters;
 	}
 
 	private void adaptImageColor( SourceAndConverter< ? > sourceAndConverter )
 	{
-		if ( imageDisplay.getColor() != null )
+		if ( display.getColor() != null )
 		{
-			final String color = imageDisplay.getColor();
+			final String color = display.getColor();
 
 			if ( color.equals( "randomFromGlasbey" ) )
 			{
@@ -125,11 +123,11 @@ public class ImageSliceView
 
 	public void close( )
 	{
-		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
 		{
 			moBIE.closeSourceAndConverter( sourceAndConverter );
 		}
-		imageDisplay.sourceAndConverters.clear();
+		display.sourceAndConverters.clear();
 	}
 
 }

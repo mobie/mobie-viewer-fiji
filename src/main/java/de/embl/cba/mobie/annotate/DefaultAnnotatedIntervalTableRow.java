@@ -1,7 +1,6 @@
-package de.embl.cba.mobie.grid;
+package de.embl.cba.mobie.annotate;
 
 import de.embl.cba.tables.tablerow.AbstractTableRow;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 
 import java.util.ArrayList;
@@ -13,13 +12,13 @@ import java.util.Set;
 
 public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implements AnnotatedIntervalTableRow
 {
-	protected final FinalRealInterval interval;
+	protected final RealInterval interval;
 	protected final Map< String, String > cells;
 	protected final String siteName;
 
 	public DefaultAnnotatedIntervalTableRow(
 			String siteName,
-			FinalRealInterval interval,
+			RealInterval interval,
 			Map< String, List< String > > columns,
 			int rowIndex )
 	{
@@ -40,6 +39,15 @@ public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implement
 	public RealInterval getInterval()
 	{
 		return interval;
+	}
+
+	@Override
+	public Integer getTimepoint()
+	{
+		if ( cells.containsKey( "timepoint" ) )
+			return Integer.parseInt( cells.get( "timepoint" ) );
+		else
+			return 0;
 	}
 
 	@Override
