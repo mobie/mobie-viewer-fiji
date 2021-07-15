@@ -14,7 +14,7 @@ public class OpenOpenOrganell
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
         try {
-            new MoBIE("/home/katerina/Documents/data/organel/open-organelle-test-master",
+            new MoBIE("/data/organel/open-organelle-test-master",
                     MoBIESettings.settings().imageDataFormat( ImageDataFormat.OpenOrganelleS3) );
         } catch (IOException e) {
             e.printStackTrace();
