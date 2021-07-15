@@ -23,7 +23,7 @@ import java.io.IOException;
 
 import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.*;
 import static de.embl.cba.mobie.ui.SwingHelper.*;
-import static de.embl.cba.mobie.ui.UserInterfaceHelper.tidyString;
+import static de.embl.cba.mobie.ui.UserInterfaceHelper.*;
 
 public class ProjectsCreatorPanel extends JFrame {
     private ProjectCreator projectsCreator;
@@ -34,6 +34,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
     public ProjectsCreatorPanel ( File projectLocation ) throws IOException {
 
+        setMoBIESwingLookAndFeel();
         // account for projects with and without the top 'data' directory
         File dataDirectory = getDataLocation( projectLocation );
         this.projectsCreator = new ProjectCreator( dataDirectory );
@@ -51,12 +52,15 @@ public class ProjectsCreatorPanel extends JFrame {
         this.setTitle( "Editing MoBIE Project: " + shortenedProjectName );
         this.getContentPane().setLayout( new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS ) );
         this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        resetSystemSwingLookAndFeel();
     }
 
     public void showProjectsCreatorPanel() {
+        setMoBIESwingLookAndFeel();
         this.pack();
         this.setLocationRelativeTo(null);
         this.setVisible( true );
+        resetSystemSwingLookAndFeel();
     }
 
     public ProjectCreator getProjectsCreator() {

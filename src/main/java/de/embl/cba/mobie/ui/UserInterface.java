@@ -13,8 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static de.embl.cba.mobie.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
-import static de.embl.cba.mobie.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
+import static de.embl.cba.mobie.ui.UserInterfaceHelper.*;
 
 public class UserInterface
 {
@@ -27,13 +26,13 @@ public class UserInterface
 
 	public UserInterface( MoBIE moBIE )
 	{
+		setMoBIESwingLookAndFeel();
 		userInterfaceHelper = new UserInterfaceHelper( moBIE );
 
 		selectionContainer = userInterfaceHelper.createSelectionPanel();
 		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsPanel();
 		displayToPanel = new HashMap<>();
 
-		setMoBIESwingLookAndFeel();
 		frame = createAndShowFrame( selectionContainer, displaySettingsContainer, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
 		resetSystemSwingLookAndFeel();
 	}
