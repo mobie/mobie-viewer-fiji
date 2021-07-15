@@ -445,7 +445,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private void loadColumnsFromFileSystem()
 	{
-		String path = selectPathFromFileSystem( "Table" );
+		String path = selectOpenPathFromFileSystem( "Table" );
 
 		if ( path != null ) {
 			new Thread( () -> {

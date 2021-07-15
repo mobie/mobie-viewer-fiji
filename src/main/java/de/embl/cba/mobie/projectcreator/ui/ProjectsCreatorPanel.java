@@ -3,6 +3,7 @@ package de.embl.cba.mobie.projectcreator.ui;
 import de.embl.cba.mobie.Dataset;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.Project;
+import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.projectcreator.ProjectCreator;
 import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.tables.SwingUtils;
@@ -375,13 +376,10 @@ public class ProjectsCreatorPanel extends JFrame {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
         if (!datasetName.equals("")) {
+            String filePath = Utils.selectOpenPathFromFileSystem("bdv xml","xml" );
 
-            JFileChooser chooser = new JFileChooser();
-            chooser.setFileFilter(new FileNameExtensionFilter("xml", "xml"));
-            chooser.setDialogTitle( "Select bdv xml..." );
-            int returnVal = chooser.showOpenDialog(null );
-            if (returnVal == JFileChooser.APPROVE_OPTION) {
-                File xmlLocation = new File( chooser.getSelectedFile().getAbsolutePath() );
+            if ( filePath != null ) {
+                File xmlLocation = new File( filePath );
                 final GenericDialog gd = new GenericDialog("Add Bdv Format Image To Project...");
                 String[] addMethods = new String[]{ ProjectCreator.AddMethod.link.toString(),
                         ProjectCreator.AddMethod.copy.toString(), ProjectCreator.AddMethod.move.toString() };
