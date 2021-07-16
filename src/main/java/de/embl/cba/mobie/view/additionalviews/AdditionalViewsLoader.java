@@ -8,7 +8,6 @@ import de.embl.cba.mobie.ui.UserInterfaceHelper;
 import de.embl.cba.mobie.view.View;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Map;
 
 import static de.embl.cba.mobie.Utils.*;
@@ -31,7 +30,7 @@ public class AdditionalViewsLoader {
             if ( fileLocation == Utils.FileLocation.Project ) {
                 selectedFilePath = selectPathFromProject( moBIE.getDatasetPath("misc", "views" ), "View" );
             } else {
-                selectedFilePath = selectPathFromFileSystem( "View" );
+                selectedFilePath = selectOpenPathFromFileSystem( "View" );
             }
 
             // to match to the existing view selection panels, we enable the cross platform look and feel

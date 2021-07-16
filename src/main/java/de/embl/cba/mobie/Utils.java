@@ -4,6 +4,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.mobie.view.View;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
@@ -14,6 +15,9 @@ import ij.gui.GenericDialog;
 import net.imglib2.*;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.*;
 import java.net.URI;
 import java.util.*;
@@ -104,18 +108,52 @@ public abstract class Utils
 		}
 	}
 
+	public static File lastSelectedDir;
+
+	private static void setLastSelectedDir( String filePath ) {
+		File selectedFile = new File( filePath );
+		if ( selectedFile.isDirectory() ) {
+			lastSelectedDir = selectedFile;
+		} else {
+			lastSelectedDir = selectedFile.getParentFile();
+		}
+	}
+
 	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
-	public static String selectPathFromFileSystem ( String objectName )
+	public static String selectOpenPathFromFileSystem( String objectName, String fileExtension ) {
+		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
+		jFileChooser.setFileFilter(new FileNameExtensionFilter( fileExtension, fileExtension ));
+		return selectOpenPathFromFileSystem( objectName, jFileChooser );
+	}
+
+	public static String selectOpenPathFromFileSystem( String objectName ) {
+		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
+		return selectOpenPathFromFileSystem( objectName, jFileChooser );
+	}
+
+	public static String selectOpenPathFromFileSystem( String objectName, JFileChooser jFileChooser ) {
+		String filePath = null;
+		jFileChooser.setDialogTitle( "Select " + objectName );
+		if (jFileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+			filePath = jFileChooser.getSelectedFile().getAbsolutePath();
+			setLastSelectedDir( filePath );
+		}
+
+		return filePath;
+	}
+
+	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
+	public static String selectSavePathFromFileSystem( String fileExtension )
 	{
-		try
-		{
-			return FileAndUrlUtils.selectPath( System.getProperty("user.home"), objectName );
+		String filePath = null;
+		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
+		jFileChooser.setFileFilter(new FileNameExtensionFilter( fileExtension, fileExtension ));
+		if (jFileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+			filePath = jFileChooser.getSelectedFile().getAbsolutePath();
+			setLastSelectedDir( filePath );
 		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-			throw new RuntimeException( "File not found: " + objectName );
-		}
+
+		return filePath;
 	}
 
 	public static < T > SourceAndConverter< T > getSource( List< SourceAndConverter< T > > sourceAndConverters, String name )
