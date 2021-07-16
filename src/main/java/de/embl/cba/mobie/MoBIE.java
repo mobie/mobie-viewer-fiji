@@ -9,10 +9,7 @@ import de.embl.cba.mobie.annotate.AnnotatedIntervalCreator;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
 import de.embl.cba.mobie.n5.N5ImageLoader;
 import de.embl.cba.mobie.n5.openorganelle.OpenOrganelleS3Reader;
-import de.embl.cba.mobie.n5.zarr.N5OMEZarrImageLoader;
-import de.embl.cba.mobie.n5.zarr.OMEZarrReader;
-import de.embl.cba.mobie.n5.zarr.OMEZarrS3Reader;
-import de.embl.cba.mobie.n5.zarr.XmlN5OmeZarrImageLoader;
+import de.embl.cba.mobie.n5.zarr.*;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
@@ -31,6 +28,7 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
+import net.imglib2.util.Cast;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -49,8 +47,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static de.embl.cba.mobie.Utils.createAnnotatedImageSegmentsFromTableFile;
-import static de.embl.cba.mobie.Utils.getName;
+import static de.embl.cba.mobie.Utils.*;
 import static mpicbg.spim.data.XmlKeys.IMGLOADER_TAG;
 import static mpicbg.spim.data.XmlKeys.SEQUENCEDESCRIPTION_TAG;
 
@@ -275,12 +272,15 @@ public class MoBIE
 		SpimData spimData = null;
 		switch (imageDataFormat)
         {
-			case BdvN5:
+            case BdvN5:
             case BdvN5S3:
                 spimData = BdvUtils.openSpimData( imagePath );
                 break;
             case OmeZarr:
                 spimData = openOmeZarData( imagePath );
+                break;
+            case BdvOmeZarrS3:
+                spimData = openOmeZarrS3( imagePath );
                 break;
             case BdvOmeZarr:
                 spimData = openBdvZarrData( imagePath );
@@ -573,6 +573,7 @@ public class MoBIE
             case BdvN5S3:
             case BdvOmeZarr:
             case OmeZarr:
+            case BdvOmeZarrS3:
                 final String relativePath = source.imageData.get( imageDataFormat ).relativePath;
                 return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativePath );
             case OpenOrganelleS3:
@@ -597,6 +598,25 @@ public class MoBIE
         try {
             return OpenOrganelleS3Reader.readURL( path );
         } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    private SpimData openOmeZarrS3( String path )
+    {
+        try {
+        final SAXBuilder sax = new SAXBuilder();
+        InputStream stream = FileAndUrlUtils.getInputStream(path);
+        final Document doc = sax.build(stream);
+        final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
+            HashMap<String, Integer> axesMap = new HashMap<>();
+            String bucketAndObject = imgLoaderElem.getChild( "BucketName").getText() + "/" + imgLoaderElem.getChild( "Key" ).getText();
+            final String[] split = bucketAndObject.split("/");
+            String bucket = split[0];
+            String object = Arrays.stream( split ).skip( 1 ).collect( Collectors.joining( "/") );
+            N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader(imgLoaderElem.getChild( "ServiceEndpoint" ).getText(), imgLoaderElem.getChild( "SigningRegion" ).getText(),bucket, object, ".", axesMap);
+            return new SpimData(null, Cast.unchecked(imageLoader.getSequenceDescription()), imageLoader.getViewRegistrations());
+        } catch ( IOException | JDOMException e ) {
             e.printStackTrace();
         }
         return null;
