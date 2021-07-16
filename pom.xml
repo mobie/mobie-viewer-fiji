@@ -118,6 +118,10 @@
 			<id>imagej.public</id>
 			<url>https://maven.imagej.net/content/groups/public</url>
 		</repository>
+		<repository>
+			<id>glencoesoftware.bioformats2raw</id>
+			<url>https://repo.glencoesoftware.com/repository/bioformats2raw2ometiff/</url>
+		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
@@ -194,6 +198,18 @@
 			<groupId>net.imagej</groupId>
 			<artifactId>ij</artifactId>
 			<version>1.53d</version>
+		</dependency>
+		<dependency>
+			<groupId>com.glencoesoftware</groupId>
+			<artifactId>bioformats2raw</artifactId>
+			<version>0.3.0-rc5</version>
+		</dependency>
+		<!--		this requires com.glencoesoftware's fork of jzarr: https://github.com/glencoesoftware/jzarr
+				 as far as I know, this is not in any public repository, so needs to be built locally -->
+		<dependency>
+			<groupId>com.bc.zarr</groupId>
+			<artifactId>jzarr</artifactId>
+			<version>0.3.3-gs-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>
