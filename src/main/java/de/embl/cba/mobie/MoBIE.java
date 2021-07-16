@@ -260,18 +260,17 @@ public class MoBIE
 		return dataset.sources.get( sourceName ).get();
 	}
 
-	public SourceAndConverter getSourceAndConverter( String sourceName )
-	{
-		if ( sourceNameToSourceAndConverter.containsKey( sourceName ) )
-			return sourceNameToSourceAndConverter.get( sourceName );
+    public SourceAndConverter getSourceAndConverter( String sourceName )
+    {
+        if ( sourceNameToSourceAndConverter.containsKey( sourceName ) )
+            return sourceNameToSourceAndConverter.get( sourceName );
 
-		final ImageSource source = getSource( sourceName );
-		final String imagePath = getImagePath( source );
-		new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
-		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
-		SpimData spimData = null;
-		switch (imageDataFormat)
-        {
+        final ImageSource source = getSource( sourceName );
+        final String imagePath = getImagePath( source );
+        new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
+        final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
+        SpimData spimData = null;
+        switch ( imageDataFormat ) {
             case BdvN5:
             case BdvN5S3:
                 spimData = BdvUtils.openSpimData( imagePath );
@@ -287,50 +286,48 @@ public class MoBIE
                 break;
             case OpenOrganelleS3:
                 spimData = openOpenOrganelle( imagePath );
-		}
-		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
-		final SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-        if (spimData != null)
-        {
-		sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
-		sourceNameToSourceAndConverter.put( sourceName, sourceAndConverter );
         }
-		return sourceAndConverter;
-	}
+        final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
+        final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+        if ( spimData != null ) {
+            sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
+            sourceNameToSourceAndConverter.put( sourceName, sourceAndConverter );
+        }
+        return sourceAndConverter;
+    }
 
-	public void setDataset( String dataset )
-	{
-		setDatasetName( dataset );
-		viewerManager.close();
-		userInterface.close();
+    public void setDataset( String dataset )
+    {
+        setDatasetName( dataset );
+        viewerManager.close();
+        userInterface.close();
 
-		try
-		{
-			openDataset( datasetName );
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-		}
-	}
+        try {
+            openDataset( datasetName );
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+    }
 
-	public Map< String, View > getViews()
-	{
-		return dataset.views;
-	}
+    public Map<String, View> getViews()
+    {
+        return dataset.views;
+    }
 
-	private String getRelativeTableLocation( SegmentationSource source )
-	{
-		return source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
-	}
+    private String getRelativeTableLocation( SegmentationSource source )
+    {
+        return source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
+    }
 
-	public String getTablesDirectoryPath( SegmentationSource source ) {
-		return getTablesDirectoryPath( getRelativeTableLocation( source ) );
-	}
+    public String getTablesDirectoryPath( SegmentationSource source )
+    {
+        return getTablesDirectoryPath( getRelativeTableLocation( source ) );
+    }
 
-	public String getTablesDirectoryPath( String relativeTableLocation ) {
-		return FileAndUrlUtils.combinePath( tableRoot, getDatasetName(), relativeTableLocation );
-	}
+    public String getTablesDirectoryPath( String relativeTableLocation )
+    {
+        return FileAndUrlUtils.combinePath( tableRoot, getDatasetName(), relativeTableLocation );
+    }
 
 	public String getTablePath( SegmentationSource source, String table )
 	{
