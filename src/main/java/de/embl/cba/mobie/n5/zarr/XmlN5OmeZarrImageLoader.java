@@ -1,5 +1,6 @@
 package de.embl.cba.mobie.n5.zarr;
 
+import de.embl.cba.mobie.source.ImageDataFormat;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.ImgLoaderIo;
 import mpicbg.spim.data.generic.sequence.XmlIoBasicImgLoader;

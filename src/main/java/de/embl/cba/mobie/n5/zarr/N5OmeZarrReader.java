@@ -479,7 +479,7 @@ public class N5OmeZarrReader extends N5FSReader {
                         gridPosition,
                         dimensionSeparator,
                         zarrDatasetAttributes.isRowMajor()).toString());
-        System.out.println("readBlock path" + path);
+        System.out.println("readBlock path: " + path);
         if (!Files.exists(path)) {
             return null;
         }

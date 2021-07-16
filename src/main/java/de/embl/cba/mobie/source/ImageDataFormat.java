@@ -12,8 +12,13 @@ public enum ImageDataFormat
 	OpenOrganelleS3,
 	@SerializedName("bdv.ome.zarr")
 	BdvOmeZarr,
+    @SerializedName("bdv.ome.zarr.s3")
+    BdvOmeZarrS3,
 	@SerializedName("ome.zarr")
-	OmeZarr;
+	OmeZarr,
+    @SerializedName("ome.zarr.s3")
+    OmeZarrS3;
+
 
 	@Override
 	public String toString()
@@ -30,6 +35,10 @@ public enum ImageDataFormat
 				return "bdv.ome.zarr";
 			case OmeZarr:
 				return "ome.zarr";
+            case BdvOmeZarrS3:
+                return "bdv.ome.zarr.s3";
+            case OmeZarrS3:
+                return "ome.zarr.s3";
 			default:
 				throw new UnsupportedOperationException( "Unknown file format: " + this );
 		}
@@ -50,6 +59,10 @@ public enum ImageDataFormat
 				return BdvOmeZarr;
 			case "ome.zarr":
 				return OmeZarr;
+            case "bdv.ome.zarr.s3":
+                return BdvOmeZarrS3;
+            case "ome.zarr.s3":
+                return OmeZarrS3;
 			default:
 				throw new UnsupportedOperationException( "Unknown file format: " + string );
 		}
@@ -69,6 +82,10 @@ public enum ImageDataFormat
 				return false;
 			case OmeZarr:
 				return false;
+            case BdvOmeZarrS3:
+                return false;
+            case OmeZarrS3:
+                return false;
 			default:
 				return false;
 		}

@@ -195,5 +195,10 @@
 			<artifactId>ij</artifactId>
 			<version>1.53d</version>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>trove</groupId>
+            <artifactId>trove</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+    </dependencies>
 </project>
