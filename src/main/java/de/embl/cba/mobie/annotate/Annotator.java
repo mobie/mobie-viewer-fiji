@@ -47,6 +47,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static de.embl.cba.mobie.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
+import static de.embl.cba.mobie.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
+
 public class Annotator< T extends TableRow > extends JFrame
 {
 	public static final String LAST = "You are already at the last object in table.";
@@ -83,8 +86,10 @@ public class Annotator< T extends TableRow > extends JFrame
 
 	public void showDialog()
 	{
+		setMoBIESwingLookAndFeel();
 		createDialog();
 		showFrame();
+		resetSystemSwingLookAndFeel();
 	}
 
 	private void createDialog()
@@ -161,6 +166,7 @@ public class Annotator< T extends TableRow > extends JFrame
 
 	private void addAnnotationButtonPanel( String annotationName, T tableRow )
 	{
+		setMoBIESwingLookAndFeel();
 		annotationNames.add( annotationName );
 		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 
@@ -211,6 +217,7 @@ public class Annotator< T extends TableRow > extends JFrame
 		panel.add( changeColor );
 		annotationButtonsContainer.add( panel );
 		refreshDialog();
+		resetSystemSwingLookAndFeel();
 	}
 
 	private void addTableRowBrowserSelectPreviousAndNextPanel( )
