@@ -45,8 +45,7 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static de.embl.cba.mobie.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
-import static de.embl.cba.mobie.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
+import static de.embl.cba.mobie.ui.UserInterfaceHelper.*;
 
 public class ViewerManager
 {
@@ -54,7 +53,7 @@ public class ViewerManager
 	private final UserInterface userInterface;
 	private final SliceViewer sliceViewer;
 	private final SourceAndConverterService sacService;
-	private ArrayList< SourceDisplay > sourceDisplays;
+	private ArrayList< SourceDisplay > currentSourceDisplays;
 	private final BdvHandle bdvHandle;
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
@@ -64,7 +63,7 @@ public class ViewerManager
 	{
 		this.moBIE = moBIE;
 		this.userInterface = userInterface;
-		sourceDisplays = new ArrayList<>();
+		currentSourceDisplays = new ArrayList<>();
 		sliceViewer = new SliceViewer( is2D, this, timepoints );
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
@@ -129,9 +128,9 @@ public class ViewerManager
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
 
-	public ArrayList< SourceDisplay > getSourceDisplays()
+	public ArrayList< SourceDisplay > getCurrentSourceDisplays()
 	{
-		return sourceDisplays;
+		return currentSourceDisplays;
 	}
 
 	public SliceViewer getSliceViewer()
@@ -148,7 +147,7 @@ public class ViewerManager
 		List< SourceDisplay > viewSourceDisplays = new ArrayList<>();
 		List< SourceTransformer > viewSourceTransforms = new ArrayList<>();
 
-		for ( SourceDisplay sourceDisplay : sourceDisplays )
+		for ( SourceDisplay sourceDisplay : currentSourceDisplays )
 		{
 			SourceDisplay currentDisplay = null;
 
@@ -226,10 +225,10 @@ public class ViewerManager
 		}
 		else
 		{
-			if ( view.isExclusive() || this.sourceDisplays.size() == 1 )
+			if ( view.isExclusive() || currentSourceDisplays.size() == 1 )
 			{
 				// focus on the image that was added last
-				final SourceDisplay sourceDisplay = this.sourceDisplays.get( this.sourceDisplays.size() - 1 );
+				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1 );
 				new ViewerTransformAdjuster( bdvHandle, sourceDisplay.sourceAndConverters.get( 0 ) ).run();
 			}
 		}
@@ -237,7 +236,7 @@ public class ViewerManager
 
 	private void showSourceDisplay( SourceDisplay sourceDisplay )
 	{
-		if ( sourceDisplays.contains( sourceDisplay ) ) return;
+		if ( currentSourceDisplays.contains( sourceDisplay ) ) return;
 
 		sourceDisplay.sliceViewer = sliceViewer;
 
@@ -254,17 +253,14 @@ public class ViewerManager
 			showAnnotatedIntervalDisplay( ( AnnotatedIntervalDisplay ) sourceDisplay );
 		}
 
-		// register the SAC with MoBIE for access and closing
-		sourceDisplay.sourceAndConverters.stream().forEach( sac -> moBIE.registerSourceAndConverter( sac.getSpimSource().getName(), sac)  );
-
 		userInterface.addSourceDisplay( sourceDisplay );
-		sourceDisplays.add( sourceDisplay );
+		currentSourceDisplays.add( sourceDisplay );
 	}
 
 	private void removeAllSourceDisplays()
 	{
 		// create a copy of the currently shown displays...
-		final ArrayList< SourceDisplay > currentSourceDisplays = new ArrayList<>( sourceDisplays ) ;
+		final ArrayList< SourceDisplay > currentSourceDisplays = new ArrayList<>( this.currentSourceDisplays ) ;
 
 		// ...such that we can remove the displays without
 		// modifying the list that we iterate over
@@ -433,12 +429,12 @@ public class ViewerManager
 		}
 
 		userInterface.removeDisplaySettingsPanel( sourceDisplay );
-		sourceDisplays.remove( sourceDisplay );
+		currentSourceDisplays.remove( sourceDisplay );
 	}
 
 	public Collection< SegmentationSourceDisplay > getSegmentationDisplays()
 	{
-		final List< SegmentationSourceDisplay > segmentationDisplays = getSourceDisplays().stream().filter( s -> s instanceof SegmentationSourceDisplay ).map( s -> ( SegmentationSourceDisplay ) s ).collect( Collectors.toList() );
+		final List< SegmentationSourceDisplay > segmentationDisplays = getCurrentSourceDisplays().stream().filter( s -> s instanceof SegmentationSourceDisplay ).map( s -> ( SegmentationSourceDisplay ) s ).collect( Collectors.toList() );
 
 		return segmentationDisplays;
 	}

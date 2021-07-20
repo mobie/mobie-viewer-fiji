@@ -19,8 +19,7 @@ import java.util.Map;
 import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.getGroupToViewsMap;
 import static de.embl.cba.mobie.ui.SwingHelper.createButton;
 import static de.embl.cba.mobie.ui.SwingHelper.getJLabel;
-import static de.embl.cba.mobie.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
-import static de.embl.cba.mobie.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
+import static de.embl.cba.mobie.ui.UserInterfaceHelper.*;
 import static de.embl.cba.mobie.view.saving.ViewSavingHelpers.writeAdditionalViewsJson;
 import static de.embl.cba.mobie.view.saving.ViewSavingHelpers.writeDatasetJson;
 
