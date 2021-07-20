@@ -3,6 +3,7 @@ package de.embl.cba.mobie.projectcreator.ui;
 import de.embl.cba.mobie.Dataset;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.Project;
+import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.projectcreator.ProjectCreator;
 import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.tables.SwingUtils;
@@ -23,7 +24,7 @@ import java.io.IOException;
 
 import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.*;
 import static de.embl.cba.mobie.ui.SwingHelper.*;
-import static de.embl.cba.mobie.ui.UserInterfaceHelper.tidyString;
+import static de.embl.cba.mobie.ui.UserInterfaceHelper.*;
 
 public class ProjectsCreatorPanel extends JFrame {
     private ProjectCreator projectsCreator;
@@ -34,6 +35,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
     public ProjectsCreatorPanel ( File projectLocation ) throws IOException {
 
+        setMoBIESwingLookAndFeel();
         // account for projects with and without the top 'data' directory
         File dataDirectory = getDataLocation( projectLocation );
         this.projectsCreator = new ProjectCreator( dataDirectory );
@@ -51,12 +53,15 @@ public class ProjectsCreatorPanel extends JFrame {
         this.setTitle( "Editing MoBIE Project: " + shortenedProjectName );
         this.getContentPane().setLayout( new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS ) );
         this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        resetSystemSwingLookAndFeel();
     }
 
     public void showProjectsCreatorPanel() {
+        setMoBIESwingLookAndFeel();
         this.pack();
         this.setLocationRelativeTo(null);
         this.setVisible( true );
+        resetSystemSwingLookAndFeel();
     }
 
     public ProjectCreator getProjectsCreator() {
@@ -375,13 +380,10 @@ public class ProjectsCreatorPanel extends JFrame {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
         if (!datasetName.equals("")) {
+            String filePath = Utils.selectOpenPathFromFileSystem("bdv xml","xml" );
 
-            JFileChooser chooser = new JFileChooser();
-            chooser.setFileFilter(new FileNameExtensionFilter("xml", "xml"));
-            chooser.setDialogTitle( "Select bdv xml..." );
-            int returnVal = chooser.showOpenDialog(null );
-            if (returnVal == JFileChooser.APPROVE_OPTION) {
-                File xmlLocation = new File( chooser.getSelectedFile().getAbsolutePath() );
+            if ( filePath != null ) {
+                File xmlLocation = new File( filePath );
                 final GenericDialog gd = new GenericDialog("Add Bdv Format Image To Project...");
                 String[] addMethods = new String[]{ ProjectCreator.AddMethod.link.toString(),
                         ProjectCreator.AddMethod.copy.toString(), ProjectCreator.AddMethod.move.toString() };

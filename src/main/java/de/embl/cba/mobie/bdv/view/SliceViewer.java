@@ -18,6 +18,7 @@ import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
 import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
+import sc.fiji.bdvpg.scijava.command.source.ManualTransformCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -97,6 +98,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		final String[] actions = {
 				//sacService.getCommandName( ScreenShotMakerCommand.class ),
 				sacService.getCommandName( ViewerTransformLogger.class ),
+				sacService.getCommandName( ManualTransformCommand.class ),
 				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
 				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
 				sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ),

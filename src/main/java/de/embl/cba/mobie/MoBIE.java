@@ -8,10 +8,8 @@ import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalCreator;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
 import de.embl.cba.mobie.n5.N5ImageLoader;
-import de.embl.cba.mobie.n5.zarr.N5OMEZarrImageLoader;
-import de.embl.cba.mobie.n5.zarr.OMEZarrReader;
-import de.embl.cba.mobie.n5.zarr.OMEZarrS3Reader;
-import de.embl.cba.mobie.n5.zarr.XmlN5OmeZarrImageLoader;
+import de.embl.cba.mobie.n5.openorganelle.OpenOrganelleS3Reader;
+import de.embl.cba.mobie.n5.zarr.*;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
@@ -30,6 +28,7 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
+import net.imglib2.util.Cast;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -49,8 +48,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static de.embl.cba.mobie.Utils.createAnnotatedImageSegmentsFromTableFile;
-import static de.embl.cba.mobie.Utils.getName;
+import static de.embl.cba.mobie.Utils.*;
 import static mpicbg.spim.data.XmlKeys.IMGLOADER_TAG;
 import static mpicbg.spim.data.XmlKeys.SEQUENCEDESCRIPTION_TAG;
 
@@ -273,63 +271,72 @@ public class MoBIE
 			return sourceAndConverters.get( 0 );
 		}
 
-
 		final ImageSource source = getSource( sourceName );
 		final String imagePath = getImagePath( source );
-		new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
-		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
-		SpimData spimData = null;
-		switch (imageDataFormat)
-        {
-			case BdvN5:
-			case BdvN5S3:
-				spimData = BdvUtils.openSpimData(imagePath);
-				break;
-			case BdvOmeZarr:
-				spimData = openBdvZarrData(imagePath);
-		}
-		final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
-		final SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-        if (spimData != null)
-        {
-			sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
+        new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
+        final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
+        SpimData spimData = null;
+        switch ( imageDataFormat ) {
+            case BdvN5:
+            case BdvN5S3:
+                spimData = BdvUtils.openSpimData( imagePath );
+                break;
+            case OmeZarr:
+                spimData = openOmeZarData( imagePath );
+                break;
+            case OmeZarrS3:
+                spimData = openOmeZarrS3Data( imagePath );
+                break;
+            case BdvOmeZarrS3:
+                spimData = openBdvOmeZarrS3Data( imagePath );
+                break;
+            case BdvOmeZarr:
+                spimData = openBdvZarrData( imagePath );
+                break;
+            case OpenOrganelleS3:
+                spimData = openOpenOrganelleData( imagePath );
         }
-		return sourceAndConverter;
-	}
+        final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
+        final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+        if ( spimData != null )
+        {
+            sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
+        }
+        return sourceAndConverter;
+    }
 
-	public void setDataset( String dataset )
-	{
-		setDatasetName( dataset );
-		viewerManager.close();
-		userInterface.close();
+    public void setDataset( String dataset )
+    {
+        setDatasetName( dataset );
+        viewerManager.close();
+        userInterface.close();
 
-		try
-		{
-			openDataset( datasetName );
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-		}
-	}
+        try {
+            openDataset( datasetName );
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+    }
 
-	public Map< String, View > getViews()
-	{
-		return dataset.views;
-	}
+    public Map<String, View> getViews()
+    {
+        return dataset.views;
+    }
 
-	private String getRelativeTableLocation( SegmentationSource source )
-	{
-		return source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
-	}
+    private String getRelativeTableLocation( SegmentationSource source )
+    {
+        return source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
+    }
 
-	public String getTablesDirectoryPath( SegmentationSource source ) {
-		return getTablesDirectoryPath( getRelativeTableLocation( source ) );
-	}
+    public String getTablesDirectoryPath( SegmentationSource source )
+    {
+        return getTablesDirectoryPath( getRelativeTableLocation( source ) );
+    }
 
-	public String getTablesDirectoryPath( String relativeTableLocation ) {
-		return FileAndUrlUtils.combinePath( tableRoot, getDatasetName(), relativeTableLocation );
-	}
+    public String getTablesDirectoryPath( String relativeTableLocation )
+    {
+        return FileAndUrlUtils.combinePath( tableRoot, getDatasetName(), relativeTableLocation );
+    }
 
 	public String getTablePath( SegmentationSource source, String table )
 	{
@@ -525,7 +532,9 @@ public class MoBIE
 		if ( imgLoader instanceof N5ImageLoader )
 		{
 			( ( N5ImageLoader ) imgLoader ).close();
-		}
+		} else if ( imgLoader instanceof N5OMEZarrImageLoader ) {
+            ((N5OMEZarrImageLoader) imgLoader).close();
+        }
 
 		sourceNameToImgLoader.remove( sourceName );
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
@@ -564,14 +573,64 @@ public class MoBIE
             case BdvN5:
             case BdvN5S3:
             case BdvOmeZarr:
-                final String relativePath = source.imageData.get(imageDataFormat).relativePath;
-                return FileAndUrlUtils.combinePath(imageRoot, getDatasetName(), relativePath);
+            case OmeZarr:
+            case BdvOmeZarrS3:
+                final String relativePath = source.imageData.get( imageDataFormat ).relativePath;
+                return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativePath );
             case OpenOrganelleS3:
-                final String s3Address = source.imageData.get(imageDataFormat).s3Address;
-                throw new UnsupportedOperationException("Loading openOrganelle not supported yet.");
+            case OmeZarrS3:
+                return source.imageData.get( imageDataFormat ).s3Address;
             default:
-                throw new UnsupportedOperationException("File format not supported: " + imageDataFormat);
-
+                throw new UnsupportedOperationException( "File format not supported: " + imageDataFormat );
         }
+    }
+
+    private SpimData openOmeZarData( String path )
+    {
+        try {
+            return OMEZarrReader.openFile( path );
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private SpimData openOmeZarrS3Data( String path )
+    {
+        try {
+            return OMEZarrS3Reader.readURL( path );
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private SpimData openOpenOrganelleData( String path )
+    {
+        try {
+            return OpenOrganelleS3Reader.readURL( path );
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    private SpimData openBdvOmeZarrS3Data( String path )
+    {
+        try {
+        final SAXBuilder sax = new SAXBuilder();
+        InputStream stream = FileAndUrlUtils.getInputStream(path);
+        final Document doc = sax.build(stream);
+        final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
+            HashMap<String, Integer> axesMap = new HashMap<>();
+            String bucketAndObject = imgLoaderElem.getChild( "BucketName").getText() + "/" + imgLoaderElem.getChild( "Key" ).getText();
+            final String[] split = bucketAndObject.split("/");
+            String bucket = split[0];
+            String object = Arrays.stream( split ).skip( 1 ).collect( Collectors.joining( "/") );
+            N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader(imgLoaderElem.getChild( "ServiceEndpoint" ).getText(), imgLoaderElem.getChild( "SigningRegion" ).getText(),bucket, object, ".", axesMap);
+            return new SpimData(null, Cast.unchecked(imageLoader.getSequenceDescription()), imageLoader.getViewRegistrations());
+        } catch ( IOException | JDOMException e ) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

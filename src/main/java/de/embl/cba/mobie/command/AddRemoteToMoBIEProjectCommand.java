@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.getDataLocation;
-import static de.embl.cba.mobie.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
 
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Add/Update MoBIE Project remote..." )
 public class AddRemoteToMoBIEProjectCommand implements Command {
@@ -45,10 +44,6 @@ public class AddRemoteToMoBIEProjectCommand implements Command {
     @Override
     public void run()
     {
-
-        // using File script parameter changes the look and feel of swing, reset it to default here
-        setMoBIESwingLookAndFeel();
-
         if ( !projectLocation.exists() ) {
             IJ.log( "Add Remote failed - MoBIE project does not exist!" );
         } else {

@@ -11,6 +11,7 @@ public class OpenLocalBdvOmeZarr {
     public static void main( String[] args ) throws IOException
     {
         final ImageJ imageJ = new ImageJ();
-        final MoBIE moBIE = new MoBIE("/g/kreshuk/pape/Work/mobie/covid-em-datasets/ngff-example/data", MoBIESettings.settings().imageDataFormat( ImageDataFormat.OmeZarr));
+        imageJ.ui().showUI();
+        final MoBIE moBIE = new MoBIE("/g/kreshuk/pape/Work/mobie/covid-em-datasets/ngff-example/data", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvOmeZarr));
     }
 }

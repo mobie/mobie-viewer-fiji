@@ -45,8 +45,7 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static de.embl.cba.mobie.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
-import static de.embl.cba.mobie.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
+import static de.embl.cba.mobie.ui.UserInterfaceHelper.*;
 
 public class ViewerManager
 {

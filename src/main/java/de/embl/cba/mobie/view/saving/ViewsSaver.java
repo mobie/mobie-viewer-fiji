@@ -18,6 +18,7 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import static de.embl.cba.mobie.Utils.selectSavePathFromFileSystem;
 import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.makeNewUiSelectionGroup;
 import static de.embl.cba.mobie.ui.UserInterfaceHelper.tidyString;
 import static de.embl.cba.mobie.view.saving.ViewSavingHelpers.writeAdditionalViewsJson;
@@ -86,12 +87,7 @@ public class ViewsSaver {
     }
 
     private void saveToFileSystem( String uiSelectionGroup, boolean exclusive, boolean includeViewerTransform ) {
-        String jsonPath = null;
-        final JFileChooser jFileChooser = new JFileChooser();
-        jFileChooser.setFileFilter(new FileNameExtensionFilter("json", "json"));
-        if (jFileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-            jsonPath = jFileChooser.getSelectedFile().getAbsolutePath();
-        }
+        String jsonPath = selectSavePathFromFileSystem( "json" );
 
         if (jsonPath != null) {
             if (!jsonPath.endsWith(".json")) {
