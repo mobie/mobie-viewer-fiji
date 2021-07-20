@@ -35,6 +35,7 @@ import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import sc.fiji.bdvpg.PlaygroundPrefs;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
@@ -46,6 +47,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.Utils.createAnnotatedImageSegmentsFromTableFile;
 import static de.embl.cba.mobie.Utils.getName;
@@ -68,7 +70,7 @@ public class MoBIE
 	private String imageRoot;
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
-	private HashMap< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
+	//private HashMap< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -84,7 +86,6 @@ public class MoBIE
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
 		sourceNameToImgLoader = new HashMap<>();
-		sourceNameToSourceAndConverter = new HashMap<>();
 
 		openDataset();
 	}
@@ -263,8 +264,15 @@ public class MoBIE
 
 	public SourceAndConverter getSourceAndConverter( String sourceName )
 	{
-		if ( sourceNameToSourceAndConverter.containsKey( sourceName ) )
-			return sourceNameToSourceAndConverter.get( sourceName );
+		final SourceAndConverterService sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
+
+		final List< SourceAndConverter > sourceAndConverters = sacService.getSourceAndConverters().stream().filter( sac -> sac.getSpimSource().getName().equals( sourceName ) ).collect( Collectors.toList() );
+
+		if ( sourceAndConverters.size() == 1 )
+		{
+			return sourceAndConverters.get( 0 );
+		}
+
 
 		final ImageSource source = getSource( sourceName );
 		final String imagePath = getImagePath( source );
@@ -284,8 +292,7 @@ public class MoBIE
 		final SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
         if (spimData != null)
         {
-		sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
-		sourceNameToSourceAndConverter.put( sourceName, sourceAndConverter );
+			sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
         }
 		return sourceAndConverter;
 	}
@@ -521,14 +528,9 @@ public class MoBIE
 		}
 
 		sourceNameToImgLoader.remove( sourceName );
-		sourceNameToSourceAndConverter.remove( sourceName );
+		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 
 		// TODO - when we support more image formats e.g. OME-ZARR, we should explicitly close their imgloaders here too
-	}
-
-	public void registerSourceAndConverter( String name, SourceAndConverter< ? > sac )
-	{
-		sourceNameToSourceAndConverter.put( name, sac );
 	}
 
     private SpimData openBdvZarrData(String path) {
