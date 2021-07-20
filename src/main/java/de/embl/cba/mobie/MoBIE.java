@@ -278,14 +278,17 @@ public class MoBIE
             case OmeZarr:
                 spimData = openOmeZarData( imagePath );
                 break;
+            case OmeZarrS3:
+                spimData = openOmeZarrS3Data( imagePath );
+                break;
             case BdvOmeZarrS3:
-                spimData = openOmeZarrS3( imagePath );
+                spimData = openBdvOmeZarrS3Data( imagePath );
                 break;
             case BdvOmeZarr:
                 spimData = openBdvZarrData( imagePath );
                 break;
             case OpenOrganelleS3:
-                spimData = openOpenOrganelle( imagePath );
+                spimData = openOpenOrganelleData( imagePath );
         }
         final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
         final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
@@ -574,6 +577,7 @@ public class MoBIE
                 final String relativePath = source.imageData.get( imageDataFormat ).relativePath;
                 return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativePath );
             case OpenOrganelleS3:
+            case OmeZarrS3:
                 return source.imageData.get( imageDataFormat ).s3Address;
             default:
                 throw new UnsupportedOperationException( "File format not supported: " + imageDataFormat );
@@ -590,7 +594,17 @@ public class MoBIE
         return null;
     }
 
-    private SpimData openOpenOrganelle( String path )
+    private SpimData openOmeZarrS3Data( String path )
+    {
+        try {
+            return OMEZarrS3Reader.readURL( path );
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private SpimData openOpenOrganelleData( String path )
     {
         try {
             return OpenOrganelleS3Reader.readURL( path );
@@ -599,7 +613,7 @@ public class MoBIE
         }
         return null;
     }
-    private SpimData openOmeZarrS3( String path )
+    private SpimData openBdvOmeZarrS3Data( String path )
     {
         try {
         final SAXBuilder sax = new SAXBuilder();
