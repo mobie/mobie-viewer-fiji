@@ -19,7 +19,7 @@ import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.ui.UserInterface;
 import de.embl.cba.mobie.ui.WindowArrangementHelper;
 import de.embl.cba.mobie.view.View;
-import de.embl.cba.mobie.view.ViewerManager;
+import de.embl.cba.mobie.view.ViewManager;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
@@ -61,7 +61,7 @@ public class MoBIE
 	private MoBIESettings settings;
 	private String datasetName;
 	private Dataset dataset;
-	private ViewerManager viewerManager;
+	private ViewManager viewManager;
 	private Project project;
 	private UserInterface userInterface;
 	private String projectRoot;
@@ -180,14 +180,14 @@ public class MoBIE
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 
 		userInterface = new UserInterface( this );
-		viewerManager = new ViewerManager( this, userInterface, dataset.is2D, dataset.timepoints );
+		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
 		final View view = dataset.views.get( "default" );
 		view.setName( "default" );
-		viewerManager.show( view );
+		viewManager.show( view );
 
 		// arrange windows
 		WindowArrangementHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
-		WindowArrangementHelper.rightAlignWindow( userInterface.getWindow(), viewerManager.getSliceViewer().getWindow(), false, true );
+		WindowArrangementHelper.rightAlignWindow( userInterface.getWindow(), viewManager.getSliceViewer().getWindow(), false, true );
 	}
 
 	private void setDatasetName( String datasetName )
@@ -215,10 +215,12 @@ public class MoBIE
 		return path;
 	}
 
-	public ViewerManager getViewerManager()
+	public ViewManager getViewerManager()
 	{
-		return viewerManager;
+		return viewManager;
 	}
+
+
 
 	public String getProjectName()
 	{
@@ -308,7 +310,7 @@ public class MoBIE
     public void setDataset( String dataset )
     {
         setDatasetName( dataset );
-        viewerManager.close();
+        viewManager.close();
         userInterface.close();
 
         try {

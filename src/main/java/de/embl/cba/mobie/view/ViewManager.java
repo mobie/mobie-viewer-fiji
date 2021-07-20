@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.ui.UserInterfaceHelper.*;
 
-public class ViewerManager
+public class ViewManager
 {
 	private final MoBIE moBIE;
 	private final UserInterface userInterface;
@@ -59,7 +59,7 @@ public class ViewerManager
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewsSaver viewsSaver;
 
-	public ViewerManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
+	public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
 	{
 		this.moBIE = moBIE;
 		this.userInterface = userInterface;

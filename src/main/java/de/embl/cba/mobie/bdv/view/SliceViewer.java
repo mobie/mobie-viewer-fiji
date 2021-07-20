@@ -12,7 +12,7 @@ import de.embl.cba.mobie.command.SelectedSegmentsColorConfiguratorCommand;
 import de.embl.cba.mobie.command.SourceAndConverterBlendingModeChangerCommand;
 import de.embl.cba.mobie.segment.BdvSegmentSelector;
 import de.embl.cba.mobie.command.RandomColorSeedChangerCommand;
-import de.embl.cba.mobie.view.ViewerManager;
+import de.embl.cba.mobie.view.ViewManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -37,16 +37,16 @@ public class SliceViewer implements Supplier< BdvHandle >
 	private final SourceAndConverterBdvDisplayService sacDisplayService;
 	private BdvHandle bdvHandle;
 	private final boolean is2D;
-	private final ViewerManager viewerManager;
+	private final ViewManager viewManager;
 	private final int timepoints;
 
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
 
-	public SliceViewer( boolean is2D, ViewerManager viewerManager, int timepoints )
+	public SliceViewer( boolean is2D, ViewManager viewManager, int timepoints )
 	{
 		this.is2D = is2D;
-		this.viewerManager = viewerManager;
+		this.viewManager = viewManager;
 		this.timepoints = timepoints;
 
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
@@ -71,7 +71,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 	private void installContextMenuAndKeyboardShortCuts( )
 	{
-		final BdvSegmentSelector segmentBdvSelector = new BdvSegmentSelector( bdvHandle, is2D, () -> viewerManager.getSegmentationDisplays() );
+		final BdvSegmentSelector segmentBdvSelector = new BdvSegmentSelector( bdvHandle, is2D, () -> viewManager.getSegmentationDisplays() );
 
 		sacService.registerAction( UNDO_SEGMENT_SELECTIONS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
@@ -85,12 +85,12 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
-			viewerManager.getAdditionalViewsLoader().loadAdditionalViewsDialog();
+			viewManager.getAdditionalViewsLoader().loadAdditionalViewsDialog();
 		} );
 
 		sacService.registerAction( SAVE_CURRENT_SETTINGS_AS_VIEW, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
-			viewerManager.getViewsSaver().saveCurrentSettingsAsViewDialog();
+			viewManager.getViewsSaver().saveCurrentSettingsAsViewDialog();
 		} );
 
 		final Set< String > actionsKeys = sacService.getActionsKeys();
