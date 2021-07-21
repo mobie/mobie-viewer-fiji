@@ -33,7 +33,6 @@ import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.bdv.render.AccumulateOccludingProjectorARGB;
-import de.embl.cba.mobie.bdv.render.BlendingMode;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
@@ -136,7 +135,7 @@ public class ScreenShotMaker
         captureHeight = ( long ) Math.ceil( h / dxy );
 
         final ArrayList< RandomAccessibleInterval< UnsignedShortType > > rawCaptures = new ArrayList<>();
-        final ArrayList< RandomAccessibleInterval< ARGBType > > argbCaptures = new ArrayList<>();
+        final ArrayList< RandomAccessibleInterval< ARGBType > > argbSources = new ArrayList<>();
         final ArrayList< ARGBType > colors = new ArrayList<>();
 
         final ArrayList< double[] > displayRanges = new ArrayList<>();
@@ -144,12 +143,19 @@ public class ScreenShotMaker
         final List< SourceAndConverter <?> > visibleSacs = getVisibleSacs( bdvHandle );
         if ( visibleSacs.size() == 0 ) return;
 
+        List< SourceAndConverter< ? > > sacs = new ArrayList<>();
+        for ( SourceAndConverter< ?  > sac : visibleSacs )
+        {
+            if ( !isSourceIntersectingCurrentView( bdvHandle, sac.getSpimSource(), sourceInteractionWithViewerPlaneOnly2D ) )
+                continue;
+            sacs.add( sac );
+        }
+        if ( sacs.size() == 0 ) return;
+
         final int t = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 
-        for ( SourceAndConverter sac : visibleSacs )
+        for ( SourceAndConverter< ?  > sac : sacs )
         {
-            if ( ! isSourceIntersectingCurrentView( bdvHandle, sac.getSpimSource(), sourceInteractionWithViewerPlaneOnly2D ) ) continue;
-
             final RandomAccessibleInterval< UnsignedShortType > rawCapture
                     = ArrayImgs.unsignedShorts( captureWidth, captureHeight );
             final RandomAccessibleInterval< ARGBType > argbCapture
@@ -213,7 +219,7 @@ public class ScreenShotMaker
             });
 
             rawCaptures.add( rawCapture );
-            argbCaptures.add( argbCapture );
+            argbSources.add( argbCapture );
             // colors.add( getSourceColor( bdv, sourceIndex ) ); Not used, show GrayScale
             displayRanges.add( BdvHandleHelper.getDisplayRange( displayService.getConverterSetup( sac ) ) );
         }
@@ -226,8 +232,7 @@ public class ScreenShotMaker
 
         if ( rawCaptures.size() > 0 )
         {
-            final BlendingMode[] blendingModes = AccumulateOccludingProjectorARGB.getBlendingModes( visibleSacs );
-            screenShot = createImagePlus( physicalUnit, argbCaptures, voxelSpacing, blendingModes, null );
+            screenShot = createImagePlus( physicalUnit, argbSources, voxelSpacing, sacs );
             rawImageData  = createCompositeImage( voxelSpacing, physicalUnit, rawCaptures, colors, displayRanges );
         }
     }
@@ -300,47 +305,38 @@ public class ScreenShotMaker
 
     private ImagePlus createImagePlus(
             String physicalUnit,
-            ArrayList< RandomAccessibleInterval< ARGBType > > argbCaptures,
+            ArrayList< RandomAccessibleInterval< ARGBType > > argbSources,
             double[] voxelSpacing,
-            BlendingMode[] projectionModes,
-            String projector )
+            List< SourceAndConverter< ? > > sacs )
     {
-        final RandomAccessibleInterval< ARGBType > argbCapture = ArrayImgs.argbs( captureWidth, captureHeight );
+        final RandomAccessibleInterval< ARGBType > argbTarget = ArrayImgs.argbs( captureWidth, captureHeight );
 
-        projectUsingMixedProjector( argbCaptures, argbCapture, projectionModes );
+        project( argbSources, argbTarget, sacs );
 
-//        switch ( projector )
-//        {
-//            case Projection.MIXED_PROJECTOR:
-//                projectUsingMixedProjector( argbCaptures, argbCapture, projectionModes );
-//                break;
-//            case Projection.SUM_PROJECTOR:
-//                projectUsingSumProjector( argbCaptures, argbCapture );
-//                break;
-//            case Projection.AVERAGE_PROJECTOR:
-//                projectUsingAverageProjector( argbCaptures, argbCapture );
-//                break;
-//            default:
-//                break;
-//        }
-
-        return asImagePlus( argbCapture, physicalUnit, voxelSpacing );
+        return asImagePlus( argbTarget, physicalUnit, voxelSpacing );
     }
 
-    private void projectUsingMixedProjector( ArrayList< RandomAccessibleInterval< ARGBType > > argbCaptures, RandomAccessibleInterval< ARGBType > argbCapture, BlendingMode[] blendingModes )
+    private void project( ArrayList< RandomAccessibleInterval< ARGBType > > argbSources, RandomAccessibleInterval< ARGBType > argbTarget, List< SourceAndConverter< ? > > sacs )
     {
-        final Cursor< ARGBType > argbCursor = Views.iterable( argbCapture ).localizingCursor();
-        final int numVisibleSources = argbCaptures.size();
-        Cursor< ARGBType >[] cursors = getCursors( argbCaptures, numVisibleSources );
+        final Cursor< ARGBType > argbCursor = Views.iterable( argbTarget ).localizingCursor();
+        final int numVisibleSources = argbSources.size();
+        Cursor< ARGBType >[] cursors = getCursors( argbSources, numVisibleSources );
+        final ArrayList< ArrayList< Integer > > occlusions = AccumulateOccludingProjectorARGB.getOcclusions( sacs );
 
         while ( argbCursor.hasNext() )
         {
-            argbCursor.fwd();
-            for ( int i = 0; i < numVisibleSources; i++ )
-                cursors[ i ].fwd();
-
-            final int argbIndex = AccumulateOccludingProjectorARGB.getArgbIndex( cursors, AccumulateOccludingProjectorARGB.getOccludedBy() );
-            argbCursor.get().set( argbIndex );
+            try
+            {
+                argbCursor.fwd();
+                for ( int i = 0; i < numVisibleSources; i++ )
+                    cursors[ i ].fwd();
+                final int argbIndex = AccumulateOccludingProjectorARGB.getArgbIndex( cursors, occlusions );
+                argbCursor.get().set( argbIndex );
+            }
+            catch ( Exception e )
+            {
+                e.printStackTrace();
+            }
         }
     }
 

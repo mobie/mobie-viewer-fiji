@@ -45,7 +45,7 @@ import java.util.concurrent.ExecutorService;
 public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBType, ARGBType >
 {
 	private static BlendingMode[] blendingModes;
-	private static ArrayList< ArrayList< Integer > > occludedBy;
+	private static ArrayList< ArrayList< Integer > > occlusions;
 
 	public AccumulateOccludingProjectorARGB(
 			final List< VolatileProjector > sourceProjectors,
@@ -57,15 +57,17 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 	{
 		super( sourceProjectors, sourceScreenImages, target, numThreads, executorService );
 		blendingModes = getBlendingModes( sources );
-		initOcclusions( blendingModes );
+		occlusions = initOcclusions( blendingModes );
 	}
 
-	public static ArrayList< ArrayList< Integer > > getOccludedBy()
+	public static ArrayList< ArrayList< Integer > > getOcclusions( List< SourceAndConverter< ? > > sacs )
 	{
-		return occludedBy;
+		final BlendingMode[] blendingModes = getBlendingModes( sacs );
+		final ArrayList< ArrayList< Integer > > occlusions = initOcclusions( blendingModes );
+		return occlusions;
 	}
 
-	public static BlendingMode[] getBlendingModes( List< SourceAndConverter<?> > sources )
+	public static BlendingMode[] getBlendingModes( List< SourceAndConverter< ? > > sources )
 	{
 		final ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
 
@@ -75,9 +77,9 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 				.toArray( BlendingMode[]::new );
 	}
 
-	private void initOcclusions( BlendingMode[] blendingModes )
+	private static ArrayList< ArrayList< Integer > > initOcclusions( BlendingMode[] blendingModes )
 	{
-		occludedBy = new ArrayList();
+		ArrayList< ArrayList< Integer > > occludedBy = new ArrayList();
 
 		for ( int sourceIndex = 0; sourceIndex < blendingModes.length; sourceIndex++ )
 		{
@@ -92,6 +94,8 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 				}
 			}
 		}
+
+		return occludedBy;
 	}
 
 	@Override
@@ -99,7 +103,7 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 			final Cursor< ? extends ARGBType >[] accesses,
 			final ARGBType target )
 	{
-		final int argbIndex = getArgbIndex( accesses, occludedBy );
+		final int argbIndex = getArgbIndex( accesses, occlusions );
 		target.set( argbIndex );
 	}
 
