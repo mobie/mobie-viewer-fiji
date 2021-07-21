@@ -451,7 +451,7 @@ public class UserInterfaceHelper
 					final String viewName = ( String ) comboBox.getSelectedItem();
 					final View view = views.get( viewName );
 					view.setName( viewName );
-					moBIE.getViewerManager().show( view );
+					moBIE.getViewManager().show( view );
 				}).start();
 			} );
 		} );
@@ -493,7 +493,7 @@ public class UserInterfaceHelper
 //			Utils.logVector( "New reference normal vector (default): ", levelingVector );
 //		} );
 
-		button.addActionListener( e -> BdvUtils.levelCurrentView( moBIE.getViewerManager().getSliceViewer().getBdvHandle(), targetNormalVector ) );
+		button.addActionListener( e -> BdvUtils.levelCurrentView( moBIE.getViewManager().getSliceViewer().getBdvHandle(), targetNormalVector ) );
 
 		return horizontalLayoutPanel;
 	}
@@ -510,7 +510,7 @@ public class UserInterfaceHelper
 		{
 			final Gson gson = JsonHelper.buildGson( false );
 			final ViewerTransform viewerTransform = gson.fromJson( jTextField.getText(), ViewerTransform.class );
-			ViewerTransformChanger.changeViewerTransform( moBIE.getViewerManager().getSliceViewer().getBdvHandle(), viewerTransform );
+			ViewerTransformChanger.changeViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
 		} );
 
 		horizontalLayoutPanel.add( getJLabel( "location" ) );
@@ -827,7 +827,7 @@ public class UserInterfaceHelper
 
 		removeButton.addActionListener( e ->
 		{
-			moBIE.getViewerManager().removeSourceDisplay( sourceDisplay );
+			moBIE.getViewManager().removeSourceDisplay( sourceDisplay );
 		} );
 
 		return removeButton;

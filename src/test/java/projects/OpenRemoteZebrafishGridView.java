@@ -17,6 +17,6 @@ public class OpenRemoteZebrafishGridView
 		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/zebrafish-lm-datasets", MoBIESettings.settings().gitProjectBranch( "new-grid-spec" ).imageDataFormat( ImageDataFormat.BdvN5S3 ) );
 
 		// zooming in and out of the grid view feels sometimes stuck...
-		moBIE.getViewerManager().show( moBIE.getViews().get( "grid-view" ) );
+		moBIE.getViewManager().show( moBIE.getViews().get( "grid-view" ) );
 	}
 }

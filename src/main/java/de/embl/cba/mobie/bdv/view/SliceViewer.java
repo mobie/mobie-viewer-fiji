@@ -10,6 +10,7 @@ import de.embl.cba.mobie.command.NonSelectedSegmentsOpacityAdjusterCommand;
 import de.embl.cba.mobie.command.SegmentsVolumeRenderingConfiguratorCommand;
 import de.embl.cba.mobie.command.SelectedSegmentsColorConfiguratorCommand;
 import de.embl.cba.mobie.command.SourceAndConverterBlendingModeChangerCommand;
+import de.embl.cba.mobie.playground.ScreenShotMakerCommand;
 import de.embl.cba.mobie.segment.BdvSegmentSelector;
 import de.embl.cba.mobie.command.RandomColorSeedChangerCommand;
 import de.embl.cba.mobie.view.ViewManager;
@@ -96,7 +97,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		final Set< String > actionsKeys = sacService.getActionsKeys();
 
 		final String[] actions = {
-				//sacService.getCommandName( ScreenShotMakerCommand.class ),
+				sacService.getCommandName( ScreenShotMakerCommand.class ),
 				sacService.getCommandName( ViewerTransformLogger.class ),
 				sacService.getCommandName( ManualTransformCommand.class ),
 				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),

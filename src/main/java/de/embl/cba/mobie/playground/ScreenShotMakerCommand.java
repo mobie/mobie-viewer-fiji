@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package de.embl.cba.mobie.command;
+package de.embl.cba.mobie.playground;
 
 import bdv.util.BdvHandle;
 import de.embl.cba.mobie.bdv.ScreenShotMaker;

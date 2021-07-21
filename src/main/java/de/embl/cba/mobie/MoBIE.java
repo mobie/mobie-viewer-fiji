@@ -215,12 +215,10 @@ public class MoBIE
 		return path;
 	}
 
-	public ViewManager getViewerManager()
+	public ViewManager getViewManager()
 	{
 		return viewManager;
 	}
-
-
 
 	public String getProjectName()
 	{

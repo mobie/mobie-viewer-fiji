@@ -228,8 +228,7 @@ public class ScreenShotMaker
         {
             final BlendingMode[] blendingModes = AccumulateOccludingProjectorARGB.getBlendingModes( visibleSacs );
             screenShot = createImagePlus( physicalUnit, argbCaptures, voxelSpacing, blendingModes, null );
-            rawImageData  = createCompositeImage(
-                    voxelSpacing, physicalUnit, rawCaptures, colors, displayRanges );
+            rawImageData  = createCompositeImage( voxelSpacing, physicalUnit, rawCaptures, colors, displayRanges );
         }
     }
 

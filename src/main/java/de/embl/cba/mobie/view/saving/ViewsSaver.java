@@ -12,8 +12,6 @@ import ij.IJ;
 import ij.gui.GenericDialog;
 import org.apache.commons.io.FilenameUtils;
 
-import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -94,7 +92,7 @@ public class ViewsSaver {
                 jsonPath += ".json";
             }
 
-            View currentView = moBIE.getViewerManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
+            View currentView = moBIE.getViewManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
             if ( currentView != null ) {
                 try {
                     saveToAdditionalViewsJson(currentView, jsonPath);
@@ -112,7 +110,7 @@ public class ViewsSaver {
         } else {
             ProjectSaveLocation projectSaveLocation = chooseProjectSaveLocationDialog();
             if (projectSaveLocation != null) {
-                View currentView = moBIE.getViewerManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
+                View currentView = moBIE.getViewManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
 
                 if ( currentView != null ) {
                     try {
