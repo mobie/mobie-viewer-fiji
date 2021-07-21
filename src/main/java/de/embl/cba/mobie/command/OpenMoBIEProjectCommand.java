@@ -21,12 +21,6 @@ public class OpenMoBIEProjectCommand implements Command
 	{
 		MoBIESettings options = MoBIESettings.settings();
 
-		if ( projectLocation.startsWith( "http" ) ) {
-			options = options.imageDataFormat( ImageDataFormat.BdvN5S3 );
-		} else {
-			options = options.imageDataFormat( ImageDataFormat.BdvN5 );
-		}
-
 		try
 		{
 			new MoBIE( projectLocation, options );

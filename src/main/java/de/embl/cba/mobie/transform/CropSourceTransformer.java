@@ -48,8 +48,6 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 				SourceAndConverter< T > croppedSourceAndConverter =
 						new SourceResampler( sourceAndConverter, cropModel, transformedSourceName, false,false, false,0).get();
 
-				final VoxelDimensions voxelDimensions = croppedSourceAndConverter.getSpimSource().getVoxelDimensions();
-
 				if ( shiftToOrigin )
 				{
 					croppedSourceAndConverter = shiftToOrigin( croppedSourceAndConverter );

@@ -211,17 +211,16 @@ public class UserInterfaceHelper
 
 		// Buttons
 		panel.add( createSpace() );
-		panel.add( createButtonPlaceholder() );
+		panel.add( createButtonPlaceholder() ); // focus
 		panel.add( createOpacityButton( display.sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
-		panel.add( createButtonPlaceholder() );
-		panel.add( createButtonPlaceholder() );
+		panel.add( createButtonPlaceholder() ); // color
+		panel.add( createButtonPlaceholder() ); // brightness
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( createSpace() );
 		panel.add( createSliceViewerVisibilityCheckbox( true,  display.sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createWindowVisibilityCheckbox( true, display.tableViewer.getWindow() ) );
-		panel.add( createCheckboxPlaceholder() );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotViewer, display.showScatterPlot() ) );
 		return panel;
 	}

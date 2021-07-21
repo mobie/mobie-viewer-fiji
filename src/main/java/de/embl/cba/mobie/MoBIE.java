@@ -79,13 +79,39 @@ public class MoBIE
 	{
 		IJ.log("MoBIE");
 		this.settings = settings.projectLocation( projectLocation );
-		setProjectImageAndTableRootLocations( this.settings );
+		setProjectImageAndTableRootLocations( );
 		projectName = getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
-		sourceNameToImgLoader = new HashMap<>();
-
+		this.settings = setImageDataFormat( projectLocation );
 		openDataset();
+	}
+
+	private MoBIESettings setImageDataFormat( String projectLocation )
+	{
+		if ( settings.values.getImageDataFormat() == null )
+		{
+			final List< ImageDataFormat > imageDataFormats = project.getImageDataFormats();
+			if ( projectLocation.startsWith( "http" ) )
+			{
+				if ( imageDataFormats.contains( ImageDataFormat.BdvN5S3 ) )
+					return settings.imageDataFormat( ImageDataFormat.BdvN5S3 );
+				else if ( imageDataFormats.contains( ImageDataFormat.OmeZarrS3 ) )
+					return settings.imageDataFormat( ImageDataFormat.OmeZarrS3 );
+				else
+					throw new UnsupportedOperationException( "Could not find an S3 storage of the images." );
+			}
+			else
+			{
+				if ( imageDataFormats.contains( ImageDataFormat.BdvN5 ) )
+					return settings.imageDataFormat( ImageDataFormat.BdvN5 );
+				else if ( imageDataFormats.contains( ImageDataFormat.OmeZarr ) )
+					return settings.imageDataFormat( ImageDataFormat.OmeZarr );
+				else
+					throw new UnsupportedOperationException( "Could not find a file system storage of the images." );
+			}
+		}
+		return settings;
 	}
 
 	public static void mergeAnnotatedIntervalTable( List< AnnotatedIntervalTableRow > intervalTableRows, Map< String, List< String > > columns )
@@ -120,7 +146,7 @@ public class MoBIE
 		}
 	}
 
-	private void setProjectImageAndTableRootLocations( MoBIESettings settings )
+	private void setProjectImageAndTableRootLocations( )
 	{
 		projectRoot = createPath(
 				settings.values.getProjectLocation(),
@@ -176,6 +202,7 @@ public class MoBIE
 
 	private void openDataset( String datasetName ) throws IOException
 	{
+		sourceNameToImgLoader = new HashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 
@@ -268,6 +295,7 @@ public class MoBIE
 
 		if ( sourceAndConverters.size() == 1 )
 		{
+			// sac has been loaded already
 			return sourceAndConverters.get( 0 );
 		}
 
@@ -302,6 +330,7 @@ public class MoBIE
         {
             sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
         }
+
         return sourceAndConverter;
     }
 
