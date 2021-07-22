@@ -109,7 +109,7 @@ public class MoBIE
 			{
 				if ( imageDataFormats.contains( ImageDataFormat.OmeZarr ) )
 					return settings.imageDataFormat( ImageDataFormat.OmeZarr );
-				if ( imageDataFormats.contains( ImageDataFormat.BdvOmeZarr ) )
+				else if ( imageDataFormats.contains( ImageDataFormat.BdvOmeZarr ) )
 					return settings.imageDataFormat( ImageDataFormat.BdvOmeZarr );
 				else if ( imageDataFormats.contains( ImageDataFormat.BdvN5 ) )
 					return settings.imageDataFormat( ImageDataFormat.BdvN5 );
