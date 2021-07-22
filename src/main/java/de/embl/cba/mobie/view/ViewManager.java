@@ -221,7 +221,7 @@ public class ViewManager
 		// adjust the viewer transform
 		if ( view.getViewerTransform() != null )
 		{
-			ViewerTransformChanger.changeViewerTransform( bdvHandle, view.getViewerTransform() );
+			MoBIEViewerTransformChanger.changeViewerTransform( bdvHandle, view.getViewerTransform() );
 		}
 		else
 		{
@@ -277,7 +277,6 @@ public class ViewManager
 		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle );
 	}
 
-	// TODO: own class: SourceAnnotationDisplayConfigurator
 	private void showAnnotatedIntervalDisplay( AnnotatedIntervalDisplay annotationDisplay )
 	{
 		annotationDisplay.tableRows = moBIE.loadAnnotatedIntervalTables( annotationDisplay );

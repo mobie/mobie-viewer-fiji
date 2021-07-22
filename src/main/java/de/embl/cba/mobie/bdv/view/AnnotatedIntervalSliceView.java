@@ -11,7 +11,7 @@ import de.embl.cba.mobie.color.ListItemsARGBConverter;
 import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.transform.PositionViewerTransform;
-import de.embl.cba.mobie.transform.ViewerTransformChanger;
+import de.embl.cba.mobie.transform.MoBIEViewerTransformChanger;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.select.SelectionListener;
 import net.imglib2.type.numeric.integer.IntType;
@@ -104,7 +104,7 @@ public class AnnotatedIntervalSliceView< S extends AnnotatedInterval > implement
 			center[ d ] = ( max[ d ] + min[ d ] ) / 2;
 		}
 
-		ViewerTransformChanger.changeViewerTransform( bdvHandle, new PositionViewerTransform( center, bdvHandle.getViewerPanel().state().getCurrentTimepoint() ) );
+		MoBIEViewerTransformChanger.changeViewerTransform( bdvHandle, new PositionViewerTransform( center, bdvHandle.getViewerPanel().state().getCurrentTimepoint() ) );
 
 	}
 

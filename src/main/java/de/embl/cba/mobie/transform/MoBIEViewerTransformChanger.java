@@ -9,7 +9,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.Arrays;
 
-public abstract class ViewerTransformChanger
+public abstract class MoBIEViewerTransformChanger
 {
 	public static int animationDurationMillis = 3000;
 
@@ -80,7 +80,7 @@ public abstract class ViewerTransformChanger
 
 	public static void enablePointOverlay( boolean isPointOverlayEnabled )
 	{
-		ViewerTransformChanger.isPointOverlayEnabled = isPointOverlayEnabled;
+		MoBIEViewerTransformChanger.isPointOverlayEnabled = isPointOverlayEnabled;
 	}
 
 	public static void moveToPosition( BdvHandle bdv, double[] xyz, long durationMillis )

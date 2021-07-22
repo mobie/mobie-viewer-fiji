@@ -94,19 +94,25 @@ public class MoBIE
 			final List< ImageDataFormat > imageDataFormats = project.getImageDataFormats();
 			if ( projectLocation.startsWith( "http" ) )
 			{
-				if ( imageDataFormats.contains( ImageDataFormat.BdvN5S3 ) )
-					return settings.imageDataFormat( ImageDataFormat.BdvN5S3 );
-				else if ( imageDataFormats.contains( ImageDataFormat.OmeZarrS3 ) )
+				if ( imageDataFormats.contains( ImageDataFormat.OmeZarrS3 ) )
 					return settings.imageDataFormat( ImageDataFormat.OmeZarrS3 );
+				else if ( imageDataFormats.contains( ImageDataFormat.BdvOmeZarrS3 ) )
+					return settings.imageDataFormat( ImageDataFormat.BdvOmeZarrS3 );
+				else if ( imageDataFormats.contains( ImageDataFormat.BdvN5S3 ) )
+					return settings.imageDataFormat( ImageDataFormat.BdvN5S3 );
+				else if ( imageDataFormats.contains( ImageDataFormat.OpenOrganelleS3 ) )
+					return settings.imageDataFormat( ImageDataFormat.OpenOrganelleS3 );
 				else
 					throw new UnsupportedOperationException( "Could not find an S3 storage of the images." );
 			}
 			else
 			{
-				if ( imageDataFormats.contains( ImageDataFormat.BdvN5 ) )
-					return settings.imageDataFormat( ImageDataFormat.BdvN5 );
-				else if ( imageDataFormats.contains( ImageDataFormat.OmeZarr ) )
+				if ( imageDataFormats.contains( ImageDataFormat.OmeZarr ) )
 					return settings.imageDataFormat( ImageDataFormat.OmeZarr );
+				if ( imageDataFormats.contains( ImageDataFormat.BdvOmeZarr ) )
+					return settings.imageDataFormat( ImageDataFormat.BdvOmeZarr );
+				else if ( imageDataFormats.contains( ImageDataFormat.BdvN5 ) )
+					return settings.imageDataFormat( ImageDataFormat.BdvN5 );
 				else
 					throw new UnsupportedOperationException( "Could not find a file system storage of the images." );
 			}

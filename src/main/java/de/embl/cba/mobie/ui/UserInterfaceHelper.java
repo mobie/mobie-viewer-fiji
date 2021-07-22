@@ -14,7 +14,7 @@ import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.serialize.JsonHelper;
 import de.embl.cba.mobie.transform.ViewerTransform;
-import de.embl.cba.mobie.transform.ViewerTransformChanger;
+import de.embl.cba.mobie.transform.MoBIEViewerTransformChanger;
 import de.embl.cba.mobie.MoBIEInfo;
 import de.embl.cba.mobie.*;
 import de.embl.cba.mobie.color.OpacityAdjuster;
@@ -29,6 +29,7 @@ import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
+import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
@@ -509,7 +510,7 @@ public class UserInterfaceHelper
 		{
 			final Gson gson = JsonHelper.buildGson( false );
 			final ViewerTransform viewerTransform = gson.fromJson( jTextField.getText(), ViewerTransform.class );
-			ViewerTransformChanger.changeViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
+			MoBIEViewerTransformChanger.changeViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
 		} );
 
 		horizontalLayoutPanel.add( getJLabel( "location" ) );
@@ -715,12 +716,9 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
-			{
-				// TODO: make this work for multiple!
-				final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverter ).getTransform();
-				new sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
-			}
+			// TODO: make this work for multiple sources!
+			final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
+			new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
 		} );
 
 		return button;
