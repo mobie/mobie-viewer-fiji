@@ -9,8 +9,6 @@ import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.NumericColoringModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.*;
 
@@ -31,6 +29,8 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	{
 		return Collections.unmodifiableList( sources );
 	}
+
+	public Double[] getResolution3dView(){ return resolution3dView; }
 
 	public List< String > getSelectedTableRows()
 	{
@@ -84,14 +84,16 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 			this.opacity = ( ( LabelConverter ) sourceAndConverter.getConverter() ).getOpacity();
 		}
 
-		final SourceAndConverterService sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-		final SegmentsVolumeViewer volumeViewer = ( SegmentsVolumeViewer ) sacService.getMetadata( sourceAndConverter, SegmentsVolumeViewer.VOLUME_VIEW );
-		if ( volumeViewer != null )
+		if ( segmentationDisplay.segmentsVolumeViewer != null )
 		{
-			double[] voxelSpacing = volumeViewer.getVoxelSpacing();
-			resolution3dView = new Double[voxelSpacing.length];
-			for ( int i=0; i<voxelSpacing.length; i++ ) {
-				resolution3dView[i] = voxelSpacing[i];
+			this.showSelectedSegmentsIn3d = segmentationDisplay.segmentsVolumeViewer.getShowSegments();
+
+			double[] voxelSpacing = segmentationDisplay.segmentsVolumeViewer.getVoxelSpacing();
+			if ( voxelSpacing != null ) {
+				resolution3dView = new Double[voxelSpacing.length];
+				for (int i = 0; i < voxelSpacing.length; i++) {
+					resolution3dView[i] = voxelSpacing[i];
+				}
 			}
 		}
 
@@ -121,7 +123,6 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 			this.selectedSegmentIds = selectedSegmentIds;
 		}
 
-		this.showSelectedSegmentsIn3d = segmentationDisplay.segmentsVolumeViewer.getShowSegments();
 		this.showScatterPlot = segmentationDisplay.scatterPlotViewer.isVisible();
 		this.scatterPlotAxes = segmentationDisplay.scatterPlotViewer.getSelectedColumns();
 		this.tables = segmentationDisplay.tables;
