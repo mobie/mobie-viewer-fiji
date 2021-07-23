@@ -6,10 +6,7 @@ import com.google.gson.stream.JsonWriter;
 import de.embl.cba.mobie.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.FileAndUrlUtils;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.lang.reflect.Type;
 
 import static de.embl.cba.mobie.serialize.JsonHelper.buildGson;
@@ -26,6 +23,11 @@ public class AdditionalViewsJsonParser {
     public void saveViews( AdditionalViews additionalViews, String path ) throws IOException {
         Gson gson = buildGson( false );
         Type type = new TypeToken< AdditionalViews >() {}.getType();
+
+        File parentDir = new File( path ).getParentFile();
+        if ( !parentDir.exists() ) {
+            parentDir.mkdirs();
+        }
 
         try ( OutputStream outputStream = new FileOutputStream( path );
              final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8")) ) {
