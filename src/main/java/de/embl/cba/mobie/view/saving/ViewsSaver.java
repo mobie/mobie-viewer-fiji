@@ -287,6 +287,8 @@ public class ViewsSaver {
             jsonFileName = chooseViewsJsonDialog( existingViewFiles, includeOptionToMakeNewViewJson );
         } else if ( includeOptionToMakeNewViewJson ) {
             jsonFileName = makeNewViewFile( existingViewFiles );
+        } else {
+            IJ.log("View saving aborted - no additional views jsons exist" );
         }
 
         if ( jsonFileName != null ) {
