@@ -126,7 +126,7 @@ public class DatasetJsonCreator {
                         imageName, 0.5, sources, ColoringLuts.GLASBEY,
                         null, null, null, false,
                         false, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y },
-                        tables, null );
+                        tables, null, null );
                 sourceDisplays.add( segmentationSourceDisplay );
                 break;
             case image:
