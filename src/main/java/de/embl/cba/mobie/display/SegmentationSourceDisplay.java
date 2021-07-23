@@ -9,10 +9,10 @@ import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.NumericColoringModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
+
+import java.util.*;
 
 public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowImageSegment >
 {
@@ -20,6 +20,7 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	protected List< String > sources;
 	protected List< String > selectedSegmentIds;
 	protected boolean showSelectedSegmentsIn3d = false;
+	protected Double[] resolution3dView;
 
 	// Runtime
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
@@ -44,7 +45,8 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	public SegmentationSourceDisplay( String name, double opacity, List< String > sources,
 									  String lut, String colorByColumn, Double[] valueLimits,
 									  List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d,
-									  boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
+									  boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables,
+									  Double[] resolution3dView )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -57,6 +59,7 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 		this.showScatterPlot = showScatterPlot;
 		this.scatterPlotAxes = scatterPlotAxes;
 		this.tables = tables;
+		this.resolution3dView = resolution3dView;
 	}
 
 	/**
@@ -79,6 +82,17 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 		if( sourceAndConverter.getConverter() instanceof LabelConverter )
 		{
 			this.opacity = ( ( LabelConverter ) sourceAndConverter.getConverter() ).getOpacity();
+		}
+
+		final SourceAndConverterService sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
+		final SegmentsVolumeViewer volumeViewer = ( SegmentsVolumeViewer ) sacService.getMetadata( sourceAndConverter, SegmentsVolumeViewer.VOLUME_VIEW );
+		if ( volumeViewer != null )
+		{
+			double[] voxelSpacing = volumeViewer.getVoxelSpacing();
+			resolution3dView = new Double[voxelSpacing.length];
+			for ( int i=0; i<voxelSpacing.length; i++ ) {
+				resolution3dView[i] = voxelSpacing[i];
+			}
 		}
 
 		this.lut = segmentationDisplay.coloringModel.getARGBLutName();
