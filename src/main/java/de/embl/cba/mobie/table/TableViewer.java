@@ -57,6 +57,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -407,7 +408,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
     }
 
     public void addAdditionalTable(String tablePath) {
-		String tableName  = FilenameUtils.getBaseName(tablePath);
+		String tableName  = new File(tablePath).getName();
 		additionalTables.add(tableName);
 	}
 
