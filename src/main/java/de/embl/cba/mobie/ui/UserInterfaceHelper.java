@@ -290,7 +290,7 @@ public class UserInterfaceHelper
 		panel.add( createSpace() );
 		panel.add( createFocusButton( display, display.sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
 		panel.add( createOpacityButton( display.sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
-		panel.add( createColorButton( panel, display.sourceAndConverters ) );
+		panel.add( createColorButton( panel, display.sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
 		panel.add( createImageDisplayBrightnessButton( display ) );
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
@@ -775,7 +775,7 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	private static JButton createColorButton( JPanel parentPanel, List< SourceAndConverter< ? > > sourceAndConverters )
+	private static JButton createColorButton( JPanel parentPanel, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
 	{
 		JButton colorButton = new JButton( "C" );
 
@@ -792,6 +792,8 @@ public class UserInterfaceHelper
 			{
 				new ColorChanger( sourceAndConverter, ColorUtils.getARGBType( color ) ).run();
 			}
+
+			bdvHandle.getViewerPanel().requestRepaint();
 		} );
 
 		return colorButton;
