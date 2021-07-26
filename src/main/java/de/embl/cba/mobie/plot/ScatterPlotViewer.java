@@ -118,7 +118,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		{
 			if ( showColumnSelectionUI )
 			{
-				ScatterPlotDialog dialog = new ScatterPlotDialog( tableRows.get( 0 ).getColumnNames().stream().toArray( String[]::new ), selectedColumns, scaleFactors, dotSizeScaleFactor );
+				ScatterPlotDialog dialog = new ScatterPlotDialog( getColumnNames(), getSelectedColumns(), scaleFactors, dotSizeScaleFactor );
 
 				if ( dialog.show() )
 				{
@@ -138,6 +138,11 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		{
 			window.setVisible( true );
 		}
+	}
+
+	private String[] getColumnNames()
+	{
+		return tableRows.get( 0 ).getColumnNames().stream().toArray( String[]::new );
 	}
 
 	public void setShowColumnSelectionUI( boolean showColumnSelectionUI ) {
@@ -223,7 +228,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 			( x, y ) -> {
 				SwingUtilities.invokeLater( () ->  {
 
-					ScatterPlotDialog dialog = new ScatterPlotDialog( tableRows.get( 0 ).getColumnNames().stream().toArray( String[]::new ), selectedColumns, scaleFactors, dotSizeScaleFactor );
+					ScatterPlotDialog dialog = new ScatterPlotDialog( getColumnNames(), getSelectedColumns(), scaleFactors, dotSizeScaleFactor );
 
 					if ( dialog.show() )
 					{
@@ -363,6 +368,11 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 	public String[] getSelectedColumns()
 	{
+		if ( selectedColumns == null )
+		{
+			final String[] columnNames = getColumnNames();
+			selectedColumns = new String[]{ columnNames[ 0 ], columnNames[ 1 ] };
+		}
 		return selectedColumns;
 	}
 

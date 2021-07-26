@@ -10,7 +10,6 @@ import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
 import de.embl.cba.mobie.color.opacity.VolatileAdjustableOpacityColorConverter;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
-import de.embl.cba.mobie.open.SourceAndConverterSupplier;
 import de.embl.cba.mobie.transform.TransformHelper;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
