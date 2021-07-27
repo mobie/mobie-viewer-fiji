@@ -81,7 +81,7 @@ public class ImageSourceDisplay extends SourceDisplay
 		{
 			// needs to be of form r=(\\d+),g=(\\d+),b=(\\d+),a=(\\d+)"
 			String colorString = ( ( ColorConverter ) sourceAndConverter.getConverter() ).getColor().toString();
-			colorString.replaceAll("[()]", "");
+			colorString = colorString.replaceAll("[()]", "");
 			this.color = colorString;
 		}
 

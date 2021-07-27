@@ -4,6 +4,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.bdv.render.BlendingMode;
 import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie.color.LabelConverter;
@@ -62,6 +63,11 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 
 			// show
 			displayService.show( bdvHandle, sourceAndConverter );
+
+			// set blending mode
+			if ( display.getBlendingMode() != null )
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
+
 			bdvHandle.getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
 		}
 

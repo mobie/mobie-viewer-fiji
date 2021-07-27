@@ -125,7 +125,8 @@ public class DatasetJsonCreator {
                 SegmentationSourceDisplay segmentationSourceDisplay = new SegmentationSourceDisplay(
                         imageName, 0.5, sources, ColoringLuts.GLASBEY,
                         null, null, null, false,
-                        false, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y }, tables );
+                        false, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y },
+                        tables, null, null );
                 sourceDisplays.add( segmentationSourceDisplay );
                 break;
             case image:
