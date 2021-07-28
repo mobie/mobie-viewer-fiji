@@ -242,7 +242,6 @@ public class N5OmeZarrReader extends N5FSReader {
             }
         } else System.out.println(path + " does not exist.");
 
-        System.out.println(attributes.keySet());
         JsonElement dimSep = attributes.get("dimension_separator");
         this.dimensionSeparator = dimSep == null ? DEFAULT_SEPARATOR : dimSep.getAsString();
 

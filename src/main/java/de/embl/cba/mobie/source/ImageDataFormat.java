@@ -46,7 +46,6 @@ public enum ImageDataFormat
 
 	public static ImageDataFormat fromString( String string )
 	{
-		System.out.println(string);
 		switch ( string )
 		{
 			case "bdv.n5":
