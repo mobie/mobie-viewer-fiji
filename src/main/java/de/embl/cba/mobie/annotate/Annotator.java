@@ -36,6 +36,7 @@ import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
+import ij.gui.GenericDialog;
 import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
@@ -45,6 +46,7 @@ import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static de.embl.cba.mobie.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
@@ -68,12 +70,14 @@ public class Annotator< T extends TableRow > extends JFrame
 	private JScrollPane annotationButtonsScrollPane;
 	private T currentlySelectedRow;
 	private Set< String > annotationNames;
+	private Map< String, Character > annotationNameToKeyboardShortcut;
 
 	public Annotator( String columnName, List< T > tableRows, SelectionModel< T > selectionModel, CategoryTableRowColumnColoringModel< T > coloringModel, RowSorter< ? extends TableModel > rowSorter )
 	{
 		super("");
 		this.annotationColumnName = columnName;
 		this.annotationNames = new HashSet<>();
+		this.annotationNameToKeyboardShortcut = new HashMap<>();
 		this.tableRows = tableRows;
 		this.selectionModel = selectionModel;
 		this.coloringModel = coloringModel;
@@ -170,16 +174,71 @@ public class Annotator< T extends TableRow > extends JFrame
 		annotationNames.add( annotationName );
 		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton annotateButton = new JButton( String.format("%1$15s", annotationName) );
+		final JButton annotateButton = createAnnotateButton( annotationName, tableRow );
+		final JButton colorButton = createColorButton( annotationName, annotateButton );
+		final JButton shortcutButton = createShortcutButton( annotationName );
+
+		panel.add( annotateButton );
+		panel.add( colorButton );
+		panel.add( shortcutButton );
+
+		annotationButtonsContainer.add( panel );
+
+		refreshDialog();
+		resetSystemSwingLookAndFeel();
+	}
+
+	private JButton createShortcutButton( String annotationName )
+	{
+		final JButton shortcutButton = new JButton( shortcutText( annotationNameToKeyboardShortcut.get( annotationName ) ) );
+		shortcutButton.addActionListener( e -> {
+			GenericDialog gd = new GenericDialog( "Keyboard Shortcut" );
+			gd.addStringField( "Shortcut for category: " + annotationName + " ", String.valueOf( annotationNameToKeyboardShortcut.get( annotationName ) ), 1 );
+			gd.showDialog();
+			if ( gd.wasCanceled() ) return;
+			char shortcut = gd.getNextString().charAt( 0 );
+			if ( annotationNameToKeyboardShortcut.values().contains( shortcut ) )
+			{
+				Logger.error( shortcutText( shortcut ) + " is already used.\nPlease choose another shortcut." );
+				return;
+			}
+			else
+			{
+				annotationNameToKeyboardShortcut.put( annotationName, shortcut );
+				shortcutButton.setText( shortcutText( shortcut ) );
+			}
+		});
+
+		return shortcutButton;
+	}
+
+	private String shortcutText( Character character )
+	{
+		return "[ " + character + " ]";
+	}
+
+	private JButton createColorButton( String annotationName, JButton annotateButton )
+	{
+		final JButton changeColor = new JButton( "C" );
+		changeColor.addActionListener( e -> {
+			Color color = JColorChooser.showDialog( this.panel, "", null );
+			if ( color == null ) return;
+			annotateButton.setBackground( color );
+			coloringModel.putInputToFixedColor( annotationName, ColorUtils.getARGBType( color ) );
+		} );
+		return changeColor;
+	}
+
+	private JButton createAnnotateButton( String annotationName, T tableRow )
+	{
+		final JButton annotateButton = new JButton( String.format("%1$15s", annotationName ) );
 		annotateButton.setFont( new Font("monospaced", Font.PLAIN, 12) );
 		annotateButton.setOpaque( true );
 		setButtonColor( annotateButton, tableRow );
 		annotateButton.setAlignmentX( Component.CENTER_ALIGNMENT );
-
 		final ARGBType argbType = new ARGBType();
 		coloringModel.convert( annotationName, argbType );
 		annotateButton.setBackground( ColorUtils.getColor( argbType ) );
-
 		annotateButton.addActionListener( e ->
 		{
 			if ( selectionModel.isEmpty() ) return; // nothing selected to be annotated
@@ -204,20 +263,7 @@ public class Annotator< T extends TableRow > extends JFrame
 				selectionModel.clearSelection();
 			}
 		} );
-
-		final JButton changeColor = new JButton( "C" );
-		changeColor.addActionListener( e -> {
-			Color color = JColorChooser.showDialog( this.panel, "", null );
-			if ( color == null ) return;
-			annotateButton.setBackground( color );
-			coloringModel.putInputToFixedColor( annotationName, ColorUtils.getARGBType( color ) );
-		} );
-
-		panel.add( annotateButton );
-		panel.add( changeColor );
-		annotationButtonsContainer.add( panel );
-		refreshDialog();
-		resetSystemSwingLookAndFeel();
+		return annotateButton;
 	}
 
 	private void addTableRowBrowserSelectPreviousAndNextPanel( )

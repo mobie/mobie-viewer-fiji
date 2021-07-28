@@ -110,6 +110,7 @@ public class UserInterfaceHelper
 		minSlider.setNumColummns( 7 );
 		minSlider.setDecimalFormat( "####E0" );
 
+
 		final SliderPanelDouble maxSlider =
 				new SliderPanelDouble( "Max", max, spinnerStepSize );
 		maxSlider.setNumColummns( 7 );

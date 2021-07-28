@@ -3,7 +3,7 @@ package de.embl.cba.mobie.transform;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.Utils;
-import net.imglib2.FinalRealInterval;
+import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import org.apache.commons.lang.ArrayUtils;
@@ -15,6 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class GridSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
 {
@@ -37,20 +38,35 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 			autoSetPositions();
 		}
 
-		final SourceAndConverter< T > reference = getReferenceSource( sourceAndConverters );
+		double[] spacings = getSpacings( sourceAndConverters, 0.1 );
 
-		// TODO: make this work on the union of the sources
-		FinalRealInterval bounds = Utils.estimateBounds( reference.getSpimSource() );
-		final double spacingFactor = 0.1;
-		double spacingX = ( 1.0 + spacingFactor ) * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
-		double spacingY = ( 1.0 + spacingFactor ) * ( bounds.realMax( 1 ) - bounds.realMin( 1 ) );
-
-		transformSources( sourceAndConverters, transformedSources, spacingX, spacingY );
+		transformSources( sourceAndConverters, transformedSources, spacings );
 
 		return transformedSources;
 	}
 
-	private void transformSources( List< SourceAndConverter< T > > sourceAndConverters, CopyOnWriteArrayList< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY )
+	/**
+	 * Compute the union of the intervals covered by all Sources
+	 * at the first grid position and multiply this by
+	 * the spacing factor to determine the grid spacing.
+	 *
+	 * @param sourceAndConverters
+	 * @param spacingFactor
+	 * @return
+	 */
+	private double[] getSpacings( List< SourceAndConverter< T > > sourceAndConverters, double spacingFactor )
+	{
+		final ArrayList< SourceAndConverter< ? > > referenceSources = getReferenceSources( sourceAndConverters );
+
+		final RealInterval bounds = TransformHelper.unionRealInterval( referenceSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) );
+
+		double[] spacings = new double[2];
+		spacings[ 0 ] = ( 1.0 + spacingFactor ) * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
+		spacings[ 1 ] = ( 1.0 + spacingFactor ) * ( bounds.realMax( 1 ) - bounds.realMin( 1 ) );
+		return spacings;
+	}
+
+	private void transformSources( List< SourceAndConverter< T > > sourceAndConverters, CopyOnWriteArrayList< SourceAndConverter< T > > transformedSources, double[] spacings )
 	{
 		final long start = System.currentTimeMillis();
 		final int nThreads = MoBIE.N_THREADS;
@@ -59,7 +75,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		for ( String gridId : sources.keySet() )
 		{
 			executorService.execute( () -> {
-				transformSources( sourceAndConverters, transformedSources, spacingX, spacingY, sources.get( gridId ), getTransformedSourceNames( gridId ), positions.get( gridId ) );
+				transformSources( sourceAndConverters, transformedSources, spacings, sources.get( gridId ), getTransformedSourceNames( gridId ), positions.get( gridId ) );
 			} );
 		}
 
@@ -82,13 +98,13 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		return transformedSourceNames;
 	}
 
-	private void transformSources( List< SourceAndConverter< T > > sourceAndConverters, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY, List< String > sources, List< String > sourceNamesAfterTransform, int[] gridPosition  )
+	private void transformSources( List< SourceAndConverter< T > > sourceAndConverters, List< SourceAndConverter< T > > transformedSources, double[] spacings, List< String > sources, List< String > sourceNamesAfterTransform, int[] gridPosition  )
 	{
 		for ( String sourceName : sources )
 		{
 			// compute translation transform
 			final AffineTransform3D affineTransform3D = new AffineTransform3D();
-			affineTransform3D.translate( spacingX * gridPosition[ 0 ], spacingY * gridPosition[ 1 ], 0 );
+			affineTransform3D.translate( spacings[ 0 ] * gridPosition[ 0 ], spacings[ 1 ] * gridPosition[ 1 ], 0 );
 
 			final SourceAndConverter< T > sourceAndConverter = Utils.getSource( sourceAndConverters, sourceName );
 
@@ -106,20 +122,30 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		}
 	}
 
-	private SourceAndConverter< T > getReferenceSource( List< SourceAndConverter< T > > sourceAndConverters )
+	private ArrayList< SourceAndConverter< ? > > getReferenceSources( List< SourceAndConverter< T > > sourceAndConverters )
 	{
-		final List< String > sourcesAtFirstGridPosition = sources.get( gridIds.get( 0 ) );
+		final List< String > sourceNamesAtFirstGridPosition = sources.get( gridIds.get( 0 ) );
 
-		for ( String name : sourcesAtFirstGridPosition )
+		final ArrayList< SourceAndConverter< ? > > referenceSources = new ArrayList<>();
+
+		for ( String name : sourceNamesAtFirstGridPosition )
 		{
 			final SourceAndConverter< T > source = Utils.getSource( sourceAndConverters, name );
 			if ( source != null )
 			{
-				return source;
+				referenceSources.add( source );
 			}
 		}
 
-		throw new UnsupportedOperationException( "None of the sources specified at the first grid position could be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourcesAtFirstGridPosition ) );
+		if ( referenceSources.size() == 0 )
+		{
+			throw new UnsupportedOperationException( "None of the sources specified at the first grid position could be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourceNamesAtFirstGridPosition ) );
+		}
+		else
+		{
+			return referenceSources;
+		}
+
 	}
 
 	private void autoSetPositions()

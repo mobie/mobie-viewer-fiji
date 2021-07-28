@@ -13,30 +13,27 @@ import java.util.stream.Collectors;
 
 public class AnnotatedIntervalCreator
 {
-	private final Map< String, List< String > > columns;
-	private final Map< String, List< String > > annotationIdToSources;
-	private final Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier;
 	private List< AnnotatedIntervalTableRow > annotatedIntervalTableRows;
 
-	public AnnotatedIntervalCreator( Map< String, List< String > > columns, Map< String, List< String > > annotationIdToSources, Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier)
-	{
-		this.columns = columns;
-		this.annotationIdToSources = annotationIdToSources;
-		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
-		createAnnotatedIntervals();
-	}
-
-	private void createAnnotatedIntervals()
+	/**
+	 * For each annotation Id create one TableRow.
+	 *
+	 * @param columns
+	 * 					Columns containing the values for the table rows. The columns may contain more rows than annotation ids. Only the rows that are matching one of the annotation ids are used.
+	 * @param annotationIdToSourceNames
+	 * @param sourceAndConverterSupplier
+	 */
+	public AnnotatedIntervalCreator( Map< String, List< String > > columns, Map< String, List< String > > annotationIdToSourceNames, Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier)
 	{
 		annotatedIntervalTableRows = new ArrayList<>();
-		final int numRows = columns.values().iterator().next().size();
-		final List< String > annotationIds = columns.get( "annotation_id" );
+		final List< String > annotationIdColumn = columns.get( "annotation_id" );
 
-		for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
+		for ( String annotationId : annotationIdToSourceNames.keySet() )
 		{
-			final String annotationId = annotationIds.get( rowIndex );
-			final List< ? extends Source< ? > > sources = annotationIdToSources.get( annotationId ).stream().map( name -> sourceAndConverterSupplier.apply( name ).getSpimSource() ).collect( Collectors.toList() );
+			final List< ? extends Source< ? > > sources = annotationIdToSourceNames.get( annotationId ).stream().map( name -> sourceAndConverterSupplier.apply( name ).getSpimSource() ).collect( Collectors.toList() );
 			final RealInterval realInterval = TransformHelper.unionRealInterval( sources );
+
+			final int rowIndex = annotationIdColumn.indexOf( annotationId );
 
 			annotatedIntervalTableRows.add(
 					new DefaultAnnotatedIntervalTableRow(
