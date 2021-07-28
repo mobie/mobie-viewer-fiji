@@ -246,7 +246,11 @@ public class OpenOrganelleN5ImageLoader implements ViewerImgLoader, MultiResolut
 			location += "; path: " + pathName;
 			location += "; attribute: " + key;
 			throw new UnsupportedOperationException( "Could not find multiscales at " + location );
-		}
+		} else {
+            for ( Multiscale multiscale : multiscales ) {
+                multiscale.name = n5.getAttribute( "", "name", String.class );
+            }
+        }
 		return multiscales[ 0 ];
 	}
 
