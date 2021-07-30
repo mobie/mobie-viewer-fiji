@@ -52,7 +52,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		return transformedSources;
 	}
 
-	private void transformSources( List< SourceAndConverter< T > > sourceAndConverters, CopyOnWriteArrayList< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY )
+	private void transformSources( List< SourceAndConverter< T > > inputSources, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY )
 	{
 		final long start = System.currentTimeMillis();
 		final int nThreads = MoBIE.N_THREADS;
@@ -61,7 +61,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		for ( String gridId : sources.keySet() )
 		{
 			executorService.execute( () -> {
-				transformSources( sourceAndConverters, transformedSources, spacingX, spacingY, sources.get( gridId ), getTransformedSourceNames( gridId ), positions.get( gridId ) );
+				transformSources( inputSources, transformedSources, spacingX, spacingY, sources.get( gridId ), getTransformedSourceNames( gridId ), positions.get( gridId ) );
 			} );
 		}
 
@@ -71,7 +71,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		} catch (InterruptedException e) {
 		}
 
-		System.out.println( "Transformed " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
+		System.out.println( "Transformed " + inputSources.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
 	}
 
 	private List< String > getTransformedSourceNames( String gridId )
@@ -100,19 +100,25 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 				continue;
 			}
 
-
-			if ( centerAtOrigin )
-			{
-				sourceAndConverter = TransformHelper.centerAtOrigin( sourceAndConverter );
-			}
-
 			// compute translation transform
-			final AffineTransform3D affineTransform3D = new AffineTransform3D();
-			affineTransform3D.translate( spacingX * gridPosition[ 0 ], spacingY * gridPosition[ 1 ], 0 );
+			AffineTransform3D translationTransform = createTranslationTransform3D( spacingX * gridPosition[ 0 ], spacingY * gridPosition[ 1 ], sourceAndConverter, centerAtOrigin );
 
 			// apply translation transform
-			AffineSourceTransformer.transform( transformedSources, affineTransform3D, sourceAndConverter, name, sourceNamesAfterTransform, sourceNameToTransform, sources );
+			AffineSourceTransformer.transform( transformedSources, translationTransform, sourceAndConverter, name, sourceNamesAfterTransform, sourceNameToTransform, sources );
 		}
+	}
+
+	private AffineTransform3D createTranslationTransform3D( double x, double y, SourceAndConverter< T > sourceAndConverter, boolean centerAtOrigin )
+	{
+		AffineTransform3D translationTransform = new AffineTransform3D();
+		if ( centerAtOrigin )
+		{
+			final double[] center = TransformHelper.getCenter( sourceAndConverter );
+			translationTransform.translate( center );
+			translationTransform = translationTransform.inverse();
+		}
+		translationTransform.translate( x, y, 0 );
+		return translationTransform;
 	}
 
 	private SourceAndConverter< T > getReferenceSource( List< SourceAndConverter< T > > sourceAndConverters )
