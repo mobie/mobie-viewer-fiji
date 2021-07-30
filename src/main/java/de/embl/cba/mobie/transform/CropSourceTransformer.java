@@ -20,7 +20,6 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 	protected double[] max;
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
-
 	protected boolean centerAtOrigin = true;
 
 	@Override

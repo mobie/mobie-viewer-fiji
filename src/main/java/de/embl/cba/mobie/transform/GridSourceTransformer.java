@@ -22,7 +22,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 	protected LinkedHashMap< String, List< String > > sources;
 	protected LinkedHashMap< String, List< String > > sourceNamesAfterTransform;
 	protected LinkedHashMap< String, int[] > positions;
-	protected boolean centerAtOrigin;
+	protected boolean centerAtOrigin = false;
 
 	private ArrayList< String > gridIds;
 
