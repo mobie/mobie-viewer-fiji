@@ -22,6 +22,8 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 	protected LinkedHashMap< String, List< String > > sources;
 	protected LinkedHashMap< String, List< String > > sourceNamesAfterTransform;
 	protected LinkedHashMap< String, int[] > positions;
+	protected boolean centerAtOrigin;
+
 	private ArrayList< String > gridIds;
 
 	@Override
@@ -86,11 +88,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 	{
 		for ( String sourceName : sources )
 		{
-			// compute translation transform
-			final AffineTransform3D affineTransform3D = new AffineTransform3D();
-			affineTransform3D.translate( spacingX * gridPosition[ 0 ], spacingY * gridPosition[ 1 ], 0 );
-
-			final SourceAndConverter< T > sourceAndConverter = Utils.getSource( sourceAndConverters, sourceName );
+			SourceAndConverter< T > sourceAndConverter = Utils.getSource( sourceAndConverters, sourceName );
 
 			if ( sourceAndConverter == null )
 			{
@@ -102,6 +100,17 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 				continue;
 			}
 
+
+			if ( centerAtOrigin )
+			{
+				sourceAndConverter = TransformHelper.centerAtOrigin( sourceAndConverter );
+			}
+
+			// compute translation transform
+			final AffineTransform3D affineTransform3D = new AffineTransform3D();
+			affineTransform3D.translate( spacingX * gridPosition[ 0 ], spacingY * gridPosition[ 1 ], 0 );
+
+			// apply translation transform
 			AffineSourceTransformer.transform( transformedSources, affineTransform3D, sourceAndConverter, name, sourceNamesAfterTransform, sourceNameToTransform, sources );
 		}
 	}

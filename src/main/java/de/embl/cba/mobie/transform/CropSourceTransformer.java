@@ -2,7 +2,6 @@ package de.embl.cba.mobie.transform;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.Utils;
-import de.embl.cba.mobie.playground.SourceAffineTransformer;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
@@ -22,7 +21,7 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
 
-	protected boolean shiftToOrigin = true;
+	protected boolean centerAtOrigin = true;
 
 	@Override
 	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sourceAndConverters )
@@ -48,9 +47,9 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 				SourceAndConverter< T > croppedSourceAndConverter =
 						new SourceResampler( sourceAndConverter, cropModel, transformedSourceName, false,false, false,0).get();
 
-				if ( shiftToOrigin )
+				if ( centerAtOrigin )
 				{
-					croppedSourceAndConverter = shiftToOrigin( croppedSourceAndConverter );
+					croppedSourceAndConverter = TransformHelper.centerAtOrigin( croppedSourceAndConverter );
 				}
 
 				// replace the source in the list
@@ -59,7 +58,7 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 
 				// store translation
 				final AffineTransform3D transform3D = new AffineTransform3D();
-				if ( shiftToOrigin == true )
+				if ( centerAtOrigin == true )
 				{
 					transform3D.translate( Arrays.stream( min ).map( x -> -x ).toArray() );
 				}
@@ -68,19 +67,6 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 		}
 
 		return transformedSources;
-	}
-
-	public static < T extends NumericType< T > > SourceAndConverter< T > shiftToOrigin( SourceAndConverter< T > sourceAndConverter )
-	{
-		final AffineTransform3D translate = new AffineTransform3D();
-		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		sourceAndConverter.getSpimSource().getSourceTransform( 0,0, sourceTransform );
-		final FinalRealInterval bounds = Utils.estimateBounds( sourceAndConverter.getSpimSource() );
-		final double[] min = bounds.minAsDoubleArray();
-		translate.translate( min );
-		final SourceAffineTransformer transformer = new SourceAffineTransformer( translate.inverse() );
-		sourceAndConverter = transformer.apply( sourceAndConverter );
-		return sourceAndConverter;
 	}
 
 	private int[] getNumVoxels( double smallestVoxelSize )
