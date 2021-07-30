@@ -209,6 +209,7 @@ public class Annotator< T extends TableRow > extends JFrame
 			}
 		});
 
+
 		return shortcutButton;
 	}
 

@@ -19,6 +19,15 @@ public enum ImageDataFormat
     @SerializedName("ome.zarr.s3")
     OmeZarrS3;
 
+	// needed for SciJava Command UI, which does not support enums
+	public static final String BDVN5 = "BdvN5";
+	public static final String BDVN5S3 = "BdvN5S3";
+	public static final String OPENORGANELLES3 = "OpenOrganelleS3";
+	public static final String BDVOMEZARR = "BdvOmeZarr";
+	public static final String BDVOMEZARRS3 = "BdvOmeZarrS3";
+	public static final String OMEZARR = "OmeZarr";
+	public static final String OMEZARRS3 = "OmeZarrS3";
+
 
 	@Override
 	public String toString()

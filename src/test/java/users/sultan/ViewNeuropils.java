@@ -26,16 +26,13 @@ public class ViewNeuropils
 		SpimData platyBrowserNeuropil = new XmlIoSpimData().load( "/Volumes/cba/exchange/Sultan/prospr_neuropile_0.4um.xml" );
 		SpimData xRayNeuropil = new XmlIoSpimData().load( "/Volumes/cba/exchange/Sultan/platy_90_02_neuropile_1um.xml" );
 
-
 		final List< BdvStackSource< ? > > show = BdvFunctions.show( platyBrowserNeuropil );
 		final Source< ? > spimSource = show.get( 0 ).getSources().get( 0 ).getSpimSource();
 		BdvFunctions.show( xRayNeuropil, BdvOptions.options().addTo( show.get( 0 ) ) );
 
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( show.get( 0 ).getBdvHandle().getTriggerbindings(), "behaviours" );
-
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-
 			(new Thread( () -> {
 				final TransformedSource transformedSource = ( TransformedSource ) spimSource;
 				final AffineTransform3D fixed = new AffineTransform3D();
