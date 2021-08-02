@@ -26,10 +26,10 @@ public class AffineSourceTransformer< T extends NumericType< T > > extends Abstr
 
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			String name = sourceAndConverter.getSpimSource().getName();
-			if ( sources.contains( name ) )
+			String sourceName = sourceAndConverter.getSpimSource().getName();
+			if ( sources.contains( sourceName ) )
 			{
-				transform( transformedSources, affineTransform3D, sourceAndConverter, name, sourceNamesAfterTransform, sourceNameToTransform, sources );
+				transform( transformedSources, affineTransform3D, sourceAndConverter, sourceName, sourceNamesAfterTransform, sourceNameToTransform, sources );
 			}
 		}
 
@@ -38,13 +38,13 @@ public class AffineSourceTransformer< T extends NumericType< T > > extends Abstr
 
 	// TODO: can this be simplified?
 	// Note: this is also used by the GridSourceTransformer
-	public static < T extends NumericType< T > > SourceAndConverter transform( List< SourceAndConverter< T > > transformedSources, AffineTransform3D affineTransform3D, SourceAndConverter< ? > source, String name, List< String > sourceNamesAfterTransform, Map< String, AffineTransform3D > sourceNameToTransform, List< String > sources )
+	public static < T extends NumericType< T > > SourceAndConverter transform( List< SourceAndConverter< T > > transformedSources, AffineTransform3D affineTransform3D, SourceAndConverter< ? > source, String sourceName, List< String > sourceNamesAfterTransform, Map< String, AffineTransform3D > sourceNameToTransform, List< String > sourceNames )
 	{
 		SourceAffineTransformer transformer;
 		if ( sourceNamesAfterTransform != null )
 		{
-			name = sourceNamesAfterTransform.get( sources.indexOf( name ) );
-			transformer = new SourceAffineTransformer( affineTransform3D, name );
+			sourceName = sourceNamesAfterTransform.get( sourceNames.indexOf( sourceName ) );
+			transformer = new SourceAffineTransformer( affineTransform3D, sourceName );
 		}
 		else
 		{
@@ -57,7 +57,7 @@ public class AffineSourceTransformer< T extends NumericType< T > > extends Abstr
 		transformedSources.remove( source );
 		transformedSources.add( transformedSource );
 
-		sourceNameToTransform.put( name, affineTransform3D );
+		sourceNameToTransform.put( sourceName, affineTransform3D );
 
 		return transformedSource;
 	}

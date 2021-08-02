@@ -1,6 +1,6 @@
 package de.embl.cba.mobie.projectcreator;
 
-import de.embl.cba.mobie.Constants;
+import de.embl.cba.mobie.TableColumnNames;
 import de.embl.cba.mobie.Dataset;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
@@ -125,7 +125,7 @@ public class DatasetJsonCreator {
                 SegmentationSourceDisplay segmentationSourceDisplay = new SegmentationSourceDisplay(
                         imageName, 0.5, sources, ColoringLuts.GLASBEY,
                         null, null, null, false,
-                        false, new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y },
+                        false, new String[]{ TableColumnNames.ANCHOR_X, TableColumnNames.ANCHOR_Y },
                         tables, null, null );
                 sourceDisplays.add( segmentationSourceDisplay );
                 break;

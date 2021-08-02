@@ -7,12 +7,12 @@ import net.imagej.ImageJ;
 
 import java.io.IOException;
 
-public class OpenLocalCropTest
+public class OpenLocalTest
 {
 	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		final MoBIE moBIE = new MoBIE("/Volumes/emcf/pape/mobie-test-projects/", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ));
+		final MoBIE moBIE = new MoBIE("/g/kreshuk/pape/Work/mobie/covid-if-project/data", MoBIESettings.settings().imageDataFormat( ImageDataFormat.OmeZarr ));
 	}
 }

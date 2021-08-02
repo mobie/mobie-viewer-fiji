@@ -32,7 +32,7 @@ import bdv.util.*;
 import bdv.viewer.TimePointListener;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
-import de.embl.cba.mobie.Constants;
+import de.embl.cba.mobie.TableColumnNames;
 import de.embl.cba.mobie.VisibilityListener;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;
@@ -185,9 +185,9 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 	private List< T > getTableRows( )
 	{
-		if ( tableRows.get( 0 ).getColumnNames().contains( Constants.TIMEPOINT  ) )
+		if ( tableRows.get( 0 ).getColumnNames().contains( TableColumnNames.TIMEPOINT  ) )
 		{
-			return tableRows.stream().filter( t -> Double.parseDouble( t.getCell( Constants.TIMEPOINT ) ) == currentTimepoint ).collect( Collectors.toList() );
+			return tableRows.stream().filter( t -> Double.parseDouble( t.getCell( TableColumnNames.TIMEPOINT ) ) == currentTimepoint ).collect( Collectors.toList() );
 		}
 		else
 		{
@@ -410,9 +410,9 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	{
 		if ( bdvHandle == null ) return;
 
-		if ( selection.getColumnNames().contains( Constants.TIMEPOINT  ) )
+		if ( selection.getColumnNames().contains( TableColumnNames.TIMEPOINT  ) )
 		{
-			int selectedTimepoint = (int) Double.parseDouble( selection.getCell( Constants.TIMEPOINT ) );
+			int selectedTimepoint = (int) Double.parseDouble( selection.getCell( TableColumnNames.TIMEPOINT ) );
 			if ( selectedTimepoint != currentTimepoint )
 			{
 				currentTimepoint = selectedTimepoint;

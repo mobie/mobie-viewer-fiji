@@ -123,14 +123,14 @@ public class MoBIE
 	public static void mergeAnnotatedIntervalTable( List< AnnotatedIntervalTableRow > intervalTableRows, Map< String, List< String > > columns )
 	{
 		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
-		final ArrayList< String > gridIdColumn = TableColumns.getColumn( intervalTableRows, Constants.GRID_ID );
-		referenceColumns.put( Constants.GRID_ID, gridIdColumn );
+		final ArrayList< String > gridIdColumn = TableColumns.getColumn( intervalTableRows, TableColumnNames.ANNOTATION_ID );
+		referenceColumns.put( TableColumnNames.ANNOTATION_ID, gridIdColumn );
 
 		// deal with the fact that the grid ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
 		Utils.toDoubleStrings( gridIdColumn );
-		Utils.toDoubleStrings( columns.get( Constants.GRID_ID ) );
+		Utils.toDoubleStrings( columns.get( TableColumnNames.ANNOTATION_ID ) );
 
 		final Map< String, List< String > > newColumns = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, columns );
 
@@ -412,7 +412,7 @@ public class MoBIE
 	{
 		Logger.log( "Opening table:\n" + tablePath );
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
-		TableColumns.addLabelImageIdColumn( columns, Constants.LABEL_IMAGE_ID, imageID );
+		TableColumns.addLabelImageIdColumn( columns, TableColumnNames.LABEL_IMAGE_ID, imageID );
 		return columns;
 	}
 
@@ -460,17 +460,17 @@ public class MoBIE
 
 	private Map< String, List< String > > createColumnsForMerging( List< TableRowImageSegment > segments, Map< String, List< String > > newColumns )
 	{
-		final ArrayList< String > segmentIdColumn = TableColumns.getColumn( segments, Constants.SEGMENT_LABEL_ID );
-		final ArrayList< String > imageIdColumn = TableColumns.getColumn( segments, Constants.LABEL_IMAGE_ID );
+		final ArrayList< String > segmentIdColumn = TableColumns.getColumn( segments, TableColumnNames.SEGMENT_LABEL_ID );
+		final ArrayList< String > imageIdColumn = TableColumns.getColumn( segments, TableColumnNames.LABEL_IMAGE_ID );
 		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
-		referenceColumns.put( Constants.LABEL_IMAGE_ID, imageIdColumn );
-		referenceColumns.put( Constants.SEGMENT_LABEL_ID, segmentIdColumn );
+		referenceColumns.put( TableColumnNames.LABEL_IMAGE_ID, imageIdColumn );
+		referenceColumns.put( TableColumnNames.SEGMENT_LABEL_ID, segmentIdColumn );
 
 		// deal with the fact that the label ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
 		Utils.toDoubleStrings( segmentIdColumn );
-		Utils.toDoubleStrings( newColumns.get( Constants.SEGMENT_LABEL_ID ) );
+		Utils.toDoubleStrings( newColumns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
 
 		final Map< String, List< String > > columnsForMerging = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, newColumns );
 

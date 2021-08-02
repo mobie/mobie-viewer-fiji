@@ -84,9 +84,9 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		return transformedSourceNames;
 	}
 
-	private void transformSources( List< SourceAndConverter< T > > sourceAndConverters, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY, List< String > sources, List< String > sourceNamesAfterTransform, int[] gridPosition  )
+	private void transformSources( List< SourceAndConverter< T > > sourceAndConverters, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY, List< String > sourceNames, List< String > sourceNamesAfterTransform, int[] gridPosition  )
 	{
-		for ( String sourceName : sources )
+		for ( String sourceName : sourceNames )
 		{
 			SourceAndConverter< T > sourceAndConverter = Utils.getSource( sourceAndConverters, sourceName );
 
@@ -104,7 +104,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 			AffineTransform3D translationTransform = createTranslationTransform3D( spacingX * gridPosition[ 0 ], spacingY * gridPosition[ 1 ], sourceAndConverter, centerAtOrigin );
 
 			// apply translation transform
-			AffineSourceTransformer.transform( transformedSources, translationTransform, sourceAndConverter, name, sourceNamesAfterTransform, sourceNameToTransform, sources );
+			AffineSourceTransformer.transform( transformedSources, translationTransform, sourceAndConverter, sourceName, sourceNamesAfterTransform, sourceNameToTransform, sourceNames );
 		}
 	}
 

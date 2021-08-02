@@ -153,7 +153,12 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 			for ( SourceTransformer sourceTransformer : display.sourceTransformers )
 			{
 				final AffineTransform3D transform = sourceTransformer.getTransform( sourceName );
-				transform.apply( position, position );
+				if ( transform != null )
+				{
+					// not each transformer of this display may transform all sources
+					// this a transform can be null
+					transform.apply( position, position );
+				}
 			}
 		}
 	}
