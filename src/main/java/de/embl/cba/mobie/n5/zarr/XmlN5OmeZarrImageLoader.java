@@ -1,14 +1,26 @@
 package de.embl.cba.mobie.n5.zarr;
 
+import de.embl.cba.bdv.utils.CustomXmlIoSpimData;
 import de.embl.cba.mobie.source.ImageDataFormat;
+import de.embl.cba.tables.FileAndUrlUtils;
+import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.SpimDataIOException;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.ImgLoaderIo;
 import mpicbg.spim.data.generic.sequence.XmlIoBasicImgLoader;
+import mpicbg.spim.data.sequence.XmlIoSequenceDescription;
+import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
 
-import static mpicbg.spim.data.XmlKeys.IMGLOADER_FORMAT_ATTRIBUTE_NAME;
+import static mpicbg.spim.data.XmlKeys.*;
 
 @ImgLoaderIo(format = "bdv.ome.zarr", type = N5OMEZarrImageLoader.class)
 public class XmlN5OmeZarrImageLoader implements XmlIoBasicImgLoader<N5OMEZarrImageLoader> {
@@ -26,6 +38,40 @@ public class XmlN5OmeZarrImageLoader implements XmlIoBasicImgLoader<N5OMEZarrIma
     public N5OMEZarrImageLoader fromXml(Element elem, File basePath, AbstractSequenceDescription<?, ?, ?> sequenceDescription) {
         return null;
     }
+
+//    private SpimData openBdvZarrData(String path) {
+//        try
+//        {
+//            final SAXBuilder sax = new SAXBuilder();
+//            InputStream stream = FileAndUrlUtils.getInputStream(path);
+//            final Document doc = sax.build(stream);
+//            final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
+//            String imagesFile = XmlN5OmeZarrImageLoader.getDatasetsPathFromXml(imgLoaderElem, path);
+//            if(imagesFile != null)
+//            {
+//                if ((imagesFile.equals( Paths.get(imagesFile).toString())))
+//                {
+//                    SpimData spimData = OMEZarrReader.openFile( imagesFile );
+//                    Element elem = doc.getRootElement().getChild( SEQUENCEDESCRIPTION_TAG );
+//                    if ( elem == null )
+//                        throw new SpimDataIOException( "no <" + SEQUENCEDESCRIPTION_TAG + "> element found." );
+//                    XmlIoSequenceDescription  xmlIoSequenceDescription = new XmlIoSequenceDescription();
+//                    spimData.setSequenceDescription( xmlIoSequenceDescription.fromXml( elem, new File( path ) ) );
+//
+//                    elem = doc.getRootElement().getChild( SEQUENCEDESCRIPTION_TAG );
+//                    if ( elem == null )
+//                        throw new SpimDataIOException( "no <" + VIEWREGISTRATION_TAG + "> element found." );
+//                    spimData.setViewRegistrations( xmlIoViewRegistrations.fromXml( elem ) );
+//                } else
+//                {
+//                    return OMEZarrS3Reader.readURL( imagesFile );
+//                }
+//            }
+//        } catch ( JDOMException | IOException | SpimDataException e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
 
     public static String getDatasetsPathFromXml(final Element parent, final String basePath) {
         final Element elem = parent.getChild(OmeZarr);
