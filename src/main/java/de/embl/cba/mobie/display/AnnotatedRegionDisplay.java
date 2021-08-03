@@ -19,6 +19,7 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Sourc
 	protected boolean showScatterPlot = false;
 	protected String[] scatterPlotAxes = new String[]{ TableColumnNames.ANCHOR_X, TableColumnNames.ANCHOR_Y };
 	protected List< String > tables; // tables to display
+	protected boolean showTable = true;
 
 	// Runtime
 	public transient SelectionModel< T > selectionModel;
@@ -55,6 +56,11 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Sourc
 	public List< String > getTables()
 	{
 		return tables;
+	}
+
+	public boolean showTable()
+	{
+		return showTable;
 	}
 
 }

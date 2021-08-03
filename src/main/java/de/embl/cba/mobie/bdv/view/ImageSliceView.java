@@ -80,7 +80,7 @@ public class ImageSliceView
 				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
 
 			// show
-			displayService.show( bdvHandle, sourceAndConverter );
+			displayService.show( bdvHandle, display.isVisible(), sourceAndConverter );
 
 			// adapt contrast limits
 			final ConverterSetup converterSetup = displayService.getConverterSetup( sourceAndConverter );

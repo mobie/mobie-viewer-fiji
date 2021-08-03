@@ -11,6 +11,7 @@ public abstract class SourceDisplay
 	// Serialization
 	protected String name;
 	protected double opacity = 1.0;
+	protected boolean visible = true;
 
 	// Runtime
 	public transient List< SourceAndConverter< ? > > sourceAndConverters;
@@ -25,4 +26,9 @@ public abstract class SourceDisplay
 	{
 		return opacity;
 	}
+	public boolean isVisible()
+	{
+		return visible;
+	}
+
 }

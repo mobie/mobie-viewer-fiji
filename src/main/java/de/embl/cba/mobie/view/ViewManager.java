@@ -123,8 +123,7 @@ public class ViewManager
 			sourceNameToTableDir.put( source, moBIE.getTablesDirectoryPath( (SegmentationSource) moBIE.getSource( source ) )
 			);
 		}
-		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel,
-				display.getName(), sourceNameToTableDir, false ).show();
+		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel, display.getName(), sourceNameToTableDir, false ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}

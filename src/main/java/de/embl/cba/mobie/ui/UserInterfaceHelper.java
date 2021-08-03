@@ -219,7 +219,7 @@ public class UserInterfaceHelper
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( createSpace() );
-		panel.add( createSliceViewerVisibilityCheckbox( true,  display.sourceAndConverters ) );
+		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(),  display.sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createWindowVisibilityCheckbox( true, display.tableViewer.getWindow() ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotViewer, display.showScatterPlot() ) );
@@ -295,7 +295,7 @@ public class UserInterfaceHelper
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( createSpace() );
-		panel.add( createSliceViewerVisibilityCheckbox( true, display.sourceAndConverters ) );
+		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), display.sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() ); // TODO: createVolume...
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createCheckboxPlaceholder() );
@@ -337,12 +337,12 @@ public class UserInterfaceHelper
 		panel.add( createButtonPlaceholder() );
 		panel.add( createRemoveButton( display ) );
 		panel.add( createSpace() );
-		panel.add( createSliceViewerVisibilityCheckbox( true, display.sourceAndConverters ) );
+		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), display.sourceAndConverters ) );
 		panel.add( createVolumeViewerVisibilityCheckbox( display ) );
 		if ( display.tableRows != null )
 		{
 			// table view
-			panel.add( createWindowVisibilityCheckbox( true, display.tableViewer.getWindow() ) );
+			panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableViewer.getWindow() ) );
 			// scatter plot view
 			panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotViewer, display.showScatterPlot() ) );
 		}
@@ -626,6 +626,7 @@ public class UserInterfaceHelper
 		JCheckBox checkBox = new JCheckBox( "T" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
+		window.setVisible( checkBox.isSelected() );
 		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> window.setVisible( checkBox.isSelected() ) ) );
 
 		window.addWindowListener(

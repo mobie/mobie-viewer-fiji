@@ -62,7 +62,7 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 			OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
 			// show
-			displayService.show( bdvHandle, sourceAndConverter );
+			displayService.show( bdvHandle, display.isVisible(), sourceAndConverter );
 
 			// set blending mode
 			if ( display.getBlendingMode() != null )
