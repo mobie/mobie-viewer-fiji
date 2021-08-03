@@ -1,8 +1,5 @@
 package i2k2020;
 
-import de.embl.cba.tables.image.SourceAndMetadata;
-import mdbtools.libmdb.mem;
-import org.scijava.command.Interactive;
 
 import java.util.Collections;
 import java.util.List;

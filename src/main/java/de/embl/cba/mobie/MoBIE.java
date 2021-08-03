@@ -38,6 +38,7 @@ import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -589,10 +590,20 @@ public class MoBIE
             {
                 if ((imagesFile.equals(Paths.get(imagesFile).toString())))
                 {
-                    return OMEZarrReader.openFile( imagesFile );
+                    SpimData spim =  OMEZarrReader.openFile( imagesFile );
+                    SpimData sp1 = BdvUtils.openSpimData( path );
+                    sp1.setBasePath( new File( imagesFile ) );
+                    sp1.getSequenceDescription().setImgLoader( spim.getSequenceDescription().getImgLoader() );
+                    sp1.getSequenceDescription().getAllChannels().putAll( spim.getSequenceDescription().getAllChannels() );
+                    return sp1;
                 } else
                 {
-                    return OMEZarrS3Reader.readURL( imagesFile );
+                    SpimData spim = OMEZarrS3Reader.readURL( imagesFile );
+                    SpimData sp1 = BdvUtils.openSpimData( path );
+                    sp1.setBasePath(null);
+                    sp1.getSequenceDescription().setImgLoader( spim.getSequenceDescription().getImgLoader() );
+                    sp1.getSequenceDescription().getAllChannels().putAll( spim.getSequenceDescription().getAllChannels() );
+                    return sp1;
                 }
             }
         } catch (JDOMException | IOException e) {
@@ -662,7 +673,12 @@ public class MoBIE
             String bucket = split[0];
             String object = Arrays.stream( split ).skip( 1 ).collect( Collectors.joining( "/") );
             N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader(imgLoaderElem.getChild( "ServiceEndpoint" ).getText(), imgLoaderElem.getChild( "SigningRegion" ).getText(),bucket, object, ".", axesMap);
-            return new SpimData(null, Cast.unchecked(imageLoader.getSequenceDescription()), imageLoader.getViewRegistrations());
+            SpimData spim = new SpimData(null, Cast.unchecked(imageLoader.getSequenceDescription()), imageLoader.getViewRegistrations());
+            SpimData sp1 = BdvUtils.openSpimData( path );
+            sp1.setBasePath(null);
+            sp1.getSequenceDescription().setImgLoader( spim.getSequenceDescription().getImgLoader() );
+            sp1.getSequenceDescription().getAllChannels().putAll( spim.getSequenceDescription().getAllChannels() );
+            return sp1;
         } catch ( IOException | JDOMException e ) {
             e.printStackTrace();
         }

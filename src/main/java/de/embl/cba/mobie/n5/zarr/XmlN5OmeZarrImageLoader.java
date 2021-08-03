@@ -1,14 +1,26 @@
 package de.embl.cba.mobie.n5.zarr;
 
+import de.embl.cba.bdv.utils.CustomXmlIoSpimData;
 import de.embl.cba.mobie.source.ImageDataFormat;
+import de.embl.cba.tables.FileAndUrlUtils;
+import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.SpimDataIOException;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.ImgLoaderIo;
 import mpicbg.spim.data.generic.sequence.XmlIoBasicImgLoader;
+import mpicbg.spim.data.sequence.XmlIoSequenceDescription;
+import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
 
-import static mpicbg.spim.data.XmlKeys.IMGLOADER_FORMAT_ATTRIBUTE_NAME;
+import static mpicbg.spim.data.XmlKeys.*;
 
 @ImgLoaderIo(format = "bdv.ome.zarr", type = N5OMEZarrImageLoader.class)
 public class XmlN5OmeZarrImageLoader implements XmlIoBasicImgLoader<N5OMEZarrImageLoader> {
