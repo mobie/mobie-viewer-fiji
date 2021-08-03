@@ -48,18 +48,19 @@ public class AnnotatedIntervalSliceView< S extends AnnotatedInterval > implement
 		// TODO: Make a SourceAnnotationSliceView with the listeners for the focussing.
 		final TableRowsIntervalImage< AnnotatedIntervalTableRow > intervalImage = new TableRowsIntervalImage<>( display.tableRows, display.coloringModel, display.getName() );
 		SourceAndConverter< IntType > sourceAndConverter = intervalImage.getSourceAndConverter();
-		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, sourceAndConverter );
 		display.sourceAndConverters = new ArrayList<>();
 		display.sourceAndConverters.add( sourceAndConverter );
-
 
 		// set opacity
 		OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
 		// show
-		displayService.show( bdvHandle, sourceAndConverter );
+		final boolean visible = display.isVisible();
+		displayService.show( bdvHandle, visible, sourceAndConverter );
+
+		// add listener
 		ListItemsARGBConverter converter = ( ListItemsARGBConverter ) sourceAndConverter.getConverter();
-		bdvHandle.getViewerPanel().addTimePointListener( ( TimePointListener ) converter );
+		bdvHandle.getViewerPanel().addTimePointListener(  converter );
 	}
 
 	public void close()

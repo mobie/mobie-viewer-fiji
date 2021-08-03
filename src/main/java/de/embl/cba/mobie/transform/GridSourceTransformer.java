@@ -4,6 +4,7 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.Utils;
 import net.imglib2.FinalRealInterval;
+import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import org.apache.commons.lang.ArrayUtils;
@@ -15,6 +16,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class GridSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
 {
@@ -39,10 +41,9 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 			autoSetPositions();
 		}
 
-		final SourceAndConverter< T > reference = getReferenceSource( sourceAndConverters );
+		final List< SourceAndConverter< T > > referenceSources = getReferenceSources( sourceAndConverters );
 
-		// TODO: make this work on the union of the sources
-		FinalRealInterval bounds = Utils.estimateBounds( reference.getSpimSource() );
+		RealInterval bounds = TransformHelper.unionRealInterval(  referenceSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ));
 		final double spacingFactor = 0.1;
 		double spacingX = ( 1.0 + spacingFactor ) * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
 		double spacingY = ( 1.0 + spacingFactor ) * ( bounds.realMax( 1 ) - bounds.realMin( 1 ) );
@@ -121,20 +122,28 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		return translationTransform;
 	}
 
-	private SourceAndConverter< T > getReferenceSource( List< SourceAndConverter< T > > sourceAndConverters )
+	private List< SourceAndConverter< T > > getReferenceSources( List< SourceAndConverter< T > > sourceAndConverters )
 	{
 		final List< String > sourcesAtFirstGridPosition = sources.get( gridIds.get( 0 ) );
 
+		List< SourceAndConverter< T  > > referenceSources = new ArrayList<>();
 		for ( String name : sourcesAtFirstGridPosition )
 		{
 			final SourceAndConverter< T > source = Utils.getSource( sourceAndConverters, name );
 			if ( source != null )
 			{
-				return source;
+				referenceSources.add( source );
 			}
 		}
 
-		throw new UnsupportedOperationException( "None of the sources specified at the first grid position could be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourcesAtFirstGridPosition ) );
+		if ( referenceSources.size() == 0 )
+		{
+			throw new UnsupportedOperationException( "None of the sources specified at the first grid position could be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourcesAtFirstGridPosition ) );
+		}
+		else
+		{
+			return referenceSources;
+		}
 	}
 
 	private void autoSetPositions()

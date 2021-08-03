@@ -91,7 +91,6 @@ public class UserInterface
 	{
 		final JPanel panel = createDisplaySettingPanel( sourceDisplay );
 		showDisplaySettingsPanel( sourceDisplay, panel );
-		refreshDisplaySettings();
 	}
 
 	private JPanel createDisplaySettingPanel( SourceDisplay sourceDisplay )
