@@ -39,40 +39,6 @@ public class XmlN5OmeZarrImageLoader implements XmlIoBasicImgLoader<N5OMEZarrIma
         return null;
     }
 
-//    private SpimData openBdvZarrData(String path) {
-//        try
-//        {
-//            final SAXBuilder sax = new SAXBuilder();
-//            InputStream stream = FileAndUrlUtils.getInputStream(path);
-//            final Document doc = sax.build(stream);
-//            final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
-//            String imagesFile = XmlN5OmeZarrImageLoader.getDatasetsPathFromXml(imgLoaderElem, path);
-//            if(imagesFile != null)
-//            {
-//                if ((imagesFile.equals( Paths.get(imagesFile).toString())))
-//                {
-//                    SpimData spimData = OMEZarrReader.openFile( imagesFile );
-//                    Element elem = doc.getRootElement().getChild( SEQUENCEDESCRIPTION_TAG );
-//                    if ( elem == null )
-//                        throw new SpimDataIOException( "no <" + SEQUENCEDESCRIPTION_TAG + "> element found." );
-//                    XmlIoSequenceDescription  xmlIoSequenceDescription = new XmlIoSequenceDescription();
-//                    spimData.setSequenceDescription( xmlIoSequenceDescription.fromXml( elem, new File( path ) ) );
-//
-//                    elem = doc.getRootElement().getChild( SEQUENCEDESCRIPTION_TAG );
-//                    if ( elem == null )
-//                        throw new SpimDataIOException( "no <" + VIEWREGISTRATION_TAG + "> element found." );
-//                    spimData.setViewRegistrations( xmlIoViewRegistrations.fromXml( elem ) );
-//                } else
-//                {
-//                    return OMEZarrS3Reader.readURL( imagesFile );
-//                }
-//            }
-//        } catch ( JDOMException | IOException | SpimDataException e) {
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
-
     public static String getDatasetsPathFromXml(final Element parent, final String basePath) {
         final Element elem = parent.getChild(OmeZarr);
         if (elem == null)
