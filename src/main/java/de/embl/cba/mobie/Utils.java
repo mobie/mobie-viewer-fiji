@@ -4,7 +4,6 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.mobie.view.View;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
@@ -26,6 +25,8 @@ import java.util.stream.Collectors;
 
 import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
 import static de.embl.cba.mobie.ui.SwingHelper.selectionDialog;
+import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MAX_Z;
+import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
 
 public abstract class Utils
 {
@@ -195,7 +196,7 @@ public abstract class Utils
 
 		TableColumns.addLabelImageIdColumn(
 				columns,
-				Constants.LABEL_IMAGE_ID,
+				TableColumnNames.LABEL_IMAGE_ID,
 				imageId );
 
 		final Map< SegmentProperty, List< String > > segmentPropertyToColumn
@@ -226,29 +227,36 @@ public abstract class Utils
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.LabelImage,
-				columns.get( Constants.LABEL_IMAGE_ID ));
+				columns.get( TableColumnNames.LABEL_IMAGE_ID ));
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.ObjectLabel,
-				columns.get( Constants.SEGMENT_LABEL_ID ) );
+				columns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.X,
-				columns.get( Constants.ANCHOR_X ) );
+				columns.get( TableColumnNames.ANCHOR_X ) );
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.Y,
-				columns.get( Constants.ANCHOR_Y ) );
+				columns.get( TableColumnNames.ANCHOR_Y ) );
 
-		segmentPropertyToColumn.put(
-				SegmentProperty.Z,
-				columns.get( Constants.ANCHOR_Z ) );
+		if ( columns.containsKey( TableColumnNames.ANCHOR_Z ) )
+			segmentPropertyToColumn.put(
+					SegmentProperty.Z,
+					columns.get( TableColumnNames.ANCHOR_Z ) );
 
 		segmentPropertyToColumn.put(
 				SegmentProperty.T,
-				columns.get( Constants.TIMEPOINT ) );
+				columns.get( TableColumnNames.TIMEPOINT ) );
 
 		SegmentUtils.putDefaultBoundingBoxMapping( segmentPropertyToColumn, columns );
+
+		if ( ! columns.containsKey( BB_MIN_Z )  )
+			segmentPropertyToColumn.remove( SegmentProperty.BoundingBoxZMin );
+
+		if ( ! columns.containsKey( BB_MAX_Z ) )
+			segmentPropertyToColumn.remove( SegmentProperty.BoundingBoxZMax );
 
 		return segmentPropertyToColumn;
 	}

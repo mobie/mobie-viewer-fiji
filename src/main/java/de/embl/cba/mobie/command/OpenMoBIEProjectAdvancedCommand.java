@@ -19,8 +19,8 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 	@Parameter ( label = "Project Branch" )
 	public String projectBranch = "master";
 
-	@Parameter ( label = "Image Data Storage Modality", choices = { "S3", "FileSystem" } )
-	public String imageDataStorageModality = "S3";
+	@Parameter ( label = "Image Data Storage Modality", choices = { ImageDataFormat.BDVN5, ImageDataFormat.BDVN5S3, ImageDataFormat.BDVOMEZARR, ImageDataFormat.BDVOMEZARRS3, ImageDataFormat.OMEZARR, ImageDataFormat.OMEZARRS3, ImageDataFormat.OPENORGANELLES3 } )
+	public String imageDataStorageModality = ImageDataFormat.OMEZARRS3;
 
 	@Parameter ( label = "Image Data Location" )
 	public String imageDataLocation = "https://github.com/platybrowser/platybrowser";

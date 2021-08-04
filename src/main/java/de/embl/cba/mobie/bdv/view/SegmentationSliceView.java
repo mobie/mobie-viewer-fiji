@@ -4,6 +4,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.bdv.render.BlendingMode;
 import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.n5.source.LabelSource;
 import de.embl.cba.mobie.color.LabelConverter;
@@ -61,7 +62,12 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 			OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
 			// show
-			displayService.show( bdvHandle, sourceAndConverter );
+			displayService.show( bdvHandle, display.isVisible(), sourceAndConverter );
+
+			// set blending mode
+			if ( display.getBlendingMode() != null )
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
+
 			bdvHandle.getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
 		}
 
@@ -147,7 +153,12 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 			for ( SourceTransformer sourceTransformer : display.sourceTransformers )
 			{
 				final AffineTransform3D transform = sourceTransformer.getTransform( sourceName );
-				transform.apply( position, position );
+				if ( transform != null )
+				{
+					// not each transformer of this display may transform all sources
+					// this a transform can be null
+					transform.apply( position, position );
+				}
 			}
 		}
 	}

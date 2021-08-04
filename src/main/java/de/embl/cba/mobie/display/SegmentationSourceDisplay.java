@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.display;
 
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie.bdv.render.BlendingMode;
 import de.embl.cba.mobie.color.LabelConverter;
 import de.embl.cba.mobie.segment.SegmentAdapter;
 import de.embl.cba.mobie.bdv.view.SegmentationSliceView;
@@ -9,10 +10,9 @@ import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.NumericColoringModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
+
+import java.util.*;
 
 public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowImageSegment >
 {
@@ -20,6 +20,9 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	protected List< String > sources;
 	protected List< String > selectedSegmentIds;
 	protected boolean showSelectedSegmentsIn3d = false;
+	protected Double[] resolution3dView;
+	protected BlendingMode blendingMode;
+
 
 	// Runtime
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
@@ -29,6 +32,13 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	public List< String > getSources()
 	{
 		return Collections.unmodifiableList( sources );
+	}
+
+	public Double[] getResolution3dView(){ return resolution3dView; }
+
+	public BlendingMode getBlendingMode()
+	{
+		return blendingMode;
 	}
 
 	public List< String > getSelectedTableRows()
@@ -44,7 +54,8 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	public SegmentationSourceDisplay( String name, double opacity, List< String > sources,
 									  String lut, String colorByColumn, Double[] valueLimits,
 									  List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d,
-									  boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
+									  boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables,
+									  Double[] resolution3dView, BlendingMode blendingMode )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -57,6 +68,8 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 		this.showScatterPlot = showScatterPlot;
 		this.scatterPlotAxes = scatterPlotAxes;
 		this.tables = tables;
+		this.resolution3dView = resolution3dView;
+		this.blendingMode = blendingMode;
 	}
 
 	/**
@@ -76,9 +89,24 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 
 		final SourceAndConverter< ? > sourceAndConverter = segmentationDisplay.sourceAndConverters.get( 0 );
 
+		this.blendingMode = (BlendingMode) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
+
 		if( sourceAndConverter.getConverter() instanceof LabelConverter )
 		{
 			this.opacity = ( ( LabelConverter ) sourceAndConverter.getConverter() ).getOpacity();
+		}
+
+		if ( segmentationDisplay.segmentsVolumeViewer != null )
+		{
+			this.showSelectedSegmentsIn3d = segmentationDisplay.segmentsVolumeViewer.getShowSegments();
+
+			double[] voxelSpacing = segmentationDisplay.segmentsVolumeViewer.getVoxelSpacing();
+			if ( voxelSpacing != null ) {
+				resolution3dView = new Double[voxelSpacing.length];
+				for (int i = 0; i < voxelSpacing.length; i++) {
+					resolution3dView[i] = voxelSpacing[i];
+				}
+			}
 		}
 
 		this.lut = segmentationDisplay.coloringModel.getARGBLutName();
@@ -102,12 +130,11 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 		if (currentSelectedSegments != null) {
 			ArrayList<String> selectedSegmentIds = new ArrayList<>();
 			for (TableRowImageSegment segment : currentSelectedSegments) {
-				selectedSegmentIds.add( String.valueOf( segment.labelId() ) );
+				selectedSegmentIds.add( segment.imageId() + ";" + segment.timePoint() + ";" + segment.labelId() );
 			}
 			this.selectedSegmentIds = selectedSegmentIds;
 		}
 
-		this.showSelectedSegmentsIn3d = segmentationDisplay.segmentsVolumeViewer.getShowSegments();
 		this.showScatterPlot = segmentationDisplay.scatterPlotViewer.isVisible();
 		this.scatterPlotAxes = segmentationDisplay.scatterPlotViewer.getSelectedColumns();
 		this.tables = segmentationDisplay.tables;

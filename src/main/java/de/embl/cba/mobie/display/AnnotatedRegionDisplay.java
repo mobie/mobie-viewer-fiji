@@ -1,6 +1,6 @@
 package de.embl.cba.mobie.display;
 
-import de.embl.cba.mobie.Constants;
+import de.embl.cba.mobie.TableColumnNames;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.table.TableViewer;
@@ -17,8 +17,9 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Sourc
 	protected String colorByColumn;
 	protected Double[] valueLimits = new Double[]{ null, null };
 	protected boolean showScatterPlot = false;
-	protected String[] scatterPlotAxes = new String[]{ Constants.ANCHOR_X, Constants.ANCHOR_Y };
+	protected String[] scatterPlotAxes = new String[]{ TableColumnNames.ANCHOR_X, TableColumnNames.ANCHOR_Y };
 	protected List< String > tables; // tables to display
+	protected boolean showTable = true;
 
 	// Runtime
 	public transient SelectionModel< T > selectionModel;
@@ -55,6 +56,11 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Sourc
 	public List< String > getTables()
 	{
 		return tables;
+	}
+
+	public boolean showTable()
+	{
+		return showTable;
 	}
 
 }

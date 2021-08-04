@@ -35,6 +35,7 @@ import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.apache.commons.lang.ArrayUtils;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -122,8 +123,7 @@ public class ViewManager
 			sourceNameToTableDir.put( source, moBIE.getTablesDirectoryPath( (SegmentationSource) moBIE.getSource( source ) )
 			);
 		}
-		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel,
-				display.getName(), sourceNameToTableDir, false ).show();
+		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel, display.getName(), sourceNameToTableDir, false ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
@@ -390,6 +390,10 @@ public class ViewManager
 	private void initVolumeViewer( SegmentationSourceDisplay display )
 	{
 		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.coloringModel, display.sourceAndConverters, universeManager );
+		Double[] resolution3dView = display.getResolution3dView();
+		if ( resolution3dView != null ) {
+			display.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(display.getResolution3dView()) );
+		}
 		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d() );
 		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );

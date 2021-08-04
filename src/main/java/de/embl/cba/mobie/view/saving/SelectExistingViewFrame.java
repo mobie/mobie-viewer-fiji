@@ -5,6 +5,7 @@ import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.SwingUtils;
+import ij.IJ;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +13,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
@@ -105,12 +107,14 @@ public class SelectExistingViewFrame extends JFrame {
                 if ( dataset != null ) {
                     try {
                         writeDatasetJson( dataset, view, selectedView, jsonPath );
+                        IJ.log( selectedView + " overwritten in dataset.json" );
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }
                 } else if ( additionalViews != null ) {
                     try {
                         writeAdditionalViewsJson( additionalViews, view, selectedView, jsonPath );
+                        IJ.log( selectedView + " overwritten in " + new File(jsonPath).getName() );
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }

@@ -75,6 +75,7 @@ public class JsonHelper
 		gb.registerTypeAdapter( new TypeToken<List<SourceDisplay>>(){}.getType(), new SourceDisplayListAdapter());
 		gb.registerTypeAdapter( new TypeToken< ViewerTransform >(){}.getType(), new ViewerTransformAdapter());
 		//gb.registerTypeAdapter( new TypeToken< MobieBdvSupplier >(){}.getType(), new MobieBdvSupplierAdapter());
+		gb.disableHtmlEscaping();
 
 		if ( prettyPrinting ) {
 			gb.setPrettyPrinting();

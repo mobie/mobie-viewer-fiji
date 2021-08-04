@@ -7,6 +7,7 @@ import net.imglib2.type.numeric.NumericType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AbstractSourceTransformer< T extends NumericType< T > > implements SourceTransformer< T >
 {
@@ -14,7 +15,7 @@ public class AbstractSourceTransformer< T extends NumericType< T > > implements 
 	protected String name;
 
 	// Runtime
-	protected transient Map< String, AffineTransform3D > sourceNameToTransform = new HashMap();
+	protected transient Map< String, AffineTransform3D > sourceNameToTransform = new ConcurrentHashMap<>();
 
 	@Override
 	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sourceAndConverters )

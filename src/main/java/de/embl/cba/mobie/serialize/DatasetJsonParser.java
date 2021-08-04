@@ -33,7 +33,7 @@ public class DatasetJsonParser
 
 		try (OutputStream outputStream = new FileOutputStream( path );
 			 final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8")) ) {
-			writer.setIndent("	");
+			writer.setIndent("  ");
 			gson.toJson(dataset, type, writer);
 		}
 	}
