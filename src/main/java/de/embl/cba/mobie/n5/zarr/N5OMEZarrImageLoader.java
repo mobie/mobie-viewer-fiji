@@ -330,8 +330,8 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		try {
 			double[] scale = multiscale.transform.scale;
 			transform.scale(scale[0], scale[1], scale[2]);
-		} catch (Exception e) {
-			System.out.println("No scale given" + e);
+		} catch (NullPointerException e) {
+			System.out.println("No scale given for AffineTransform3D ");
 		}
 
 		ArrayList<ViewRegistration> viewRegistrations = new ArrayList<>();
