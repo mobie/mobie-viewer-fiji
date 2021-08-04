@@ -304,22 +304,30 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		}
 	}
 
+	// private static class Multiscale {
+	// 	String name;
+	// 	double[][] scales;
+	// 	Transform transform;
+	// 	Dataset[] datasets;
+	// }
+	//
+	// private static class Transform {
+	// 	String[] axes;
+	// 	double[] scale;
+	// 	double[] translate;
+	// 	String[] units;
+	// }
+
 	private static class Multiscale {
-		String name;
-		double[][] scales;
-		Transform transform;
+		ZarrAxes axes;
 		Dataset[] datasets;
+		String name;
+		String type;
+		N5Reader.Version version;
 	}
 
 	private static class Dataset {
 		String path;
-	}
-
-	private static class Transform {
-		String[] axes;
-		double[] scale;
-		double[] translate;
-		String[] units;
 	}
 
 	@NotNull
@@ -327,12 +335,12 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		Multiscale multiscale = setupToMultiscale.get(setupId);
 		AffineTransform3D transform = new AffineTransform3D();
 
-		try {
-			double[] scale = multiscale.transform.scale;
-			transform.scale(scale[0], scale[1], scale[2]);
-		} catch (Exception e) {
-			System.out.println("No scale given" + e);
-		}
+		// try {
+		// 	double[] scale = multiscale.transform.scale;
+		// 	transform.scale(scale[0], scale[1], scale[2]);
+		// } catch (Exception e) {
+		// 	System.out.println("No scale given" + e);
+		// }
 
 		ArrayList<ViewRegistration> viewRegistrations = new ArrayList<>();
 		for (int t = 0; t < setupTimepoints; t++)
@@ -345,7 +353,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		final DatasetAttributes attributes = setupToAttributes.get(setupId);
 		FinalDimensions dimensions = new FinalDimensions(attributes.getDimensions());
 		Multiscale multiscale = setupToMultiscale.get(setupId);
-		VoxelDimensions voxelDimensions = readVoxelDimensions(multiscale);
+		VoxelDimensions voxelDimensions = new DefaultVoxelDimensions(3);
 		Tile tile = new Tile(0);
 
 		Channel channel;
@@ -369,14 +377,14 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			return "image " + setupId;
 	}
 
-	@NotNull
-	private VoxelDimensions readVoxelDimensions(Multiscale multiscale) {
-		try {
-			return new FinalVoxelDimensions(multiscale.transform.units[0], multiscale.transform.scale);
-		} catch (Exception e) {
-			return new DefaultVoxelDimensions(3);
-		}
-	}
+	// @NotNull
+	// private VoxelDimensions readVoxelDimensions(Multiscale multiscale) {
+	// 	try {
+	// 		return new FinalVoxelDimensions(multiscale.transform.units[0], multiscale.transform.scale);
+	// 	} catch (Exception e) {
+	// 		return new DefaultVoxelDimensions(3);
+	// 	}
+	// }
 
 	/**
 	 * Clear the cache. Images that were obtained from
@@ -462,7 +470,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			double[][] mipmapResolutions = new double[multiscale.datasets.length][];
 
 			try {
-				System.arraycopy(multiscale.scales, 0, mipmapResolutions, 0, mipmapResolutions.length);
+				// System.arraycopy(multiscale.scales, 0, mipmapResolutions, 0, mipmapResolutions.length);
 			} catch (Exception e) {
 
 				//Try to fix 2D problem

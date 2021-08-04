@@ -7,6 +7,8 @@ import bdv.export.SubTaskProgressWriter;
 import bdv.img.cache.SimpleCacheArrayLoader;
 import bdv.img.n5.N5ImageLoader;
 import com.google.gson.GsonBuilder;
+import de.embl.cba.mobie.n5.zarr.N5OMEZarrWriter;
+import de.embl.cba.mobie.n5.zarr.N5OmeZarrReader;
 import de.embl.cba.mobie.n5.zarr.N5ZarrWriter;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
@@ -40,7 +42,7 @@ import static bdv.img.n5.BdvN5Format.getPathName;
 import static net.imglib2.cache.img.ReadOnlyCachedCellImgOptions.options;
 
 public class WriteSequenceToN5OmeZarr {
-    private static final String MULTI_SCALE_KEY = "multiScale";
+    private static final String MULTI_SCALE_KEY = "multiscales";
     private static final String RESOLUTION_KEY = "resolution";
 
     /**
@@ -112,21 +114,34 @@ public class WriteSequenceToN5OmeZarr {
                 .collect( Collectors.toList() );
 
         // N5Writer n5 = new N5FSWriter( n5File.getAbsolutePath() );
-        N5ZarrWriter n5 = new N5ZarrWriter( n5File.getAbsolutePath(), new GsonBuilder(), "/");
+        N5OMEZarrWriter n5 = new N5OMEZarrWriter( n5File.getAbsolutePath(), new GsonBuilder(), "/" );
 
         // TODO - handle multiple setups - write as separate zarr files with sensible naming scheme
         // TODO - handle multiple timepoints properly
 
-        // write Mipmap descriptions
-        for ( final int setupId : setupIds )
-        {
-            final String pathName = getPathName( setupId );
-            final int[][] downsamplingFactors = perSetupMipmapInfo.get( setupId ).getExportResolutions();
-            final DataType dataType = N5Utils.dataType( Cast.unchecked( imgLoader.getSetupImgLoader( setupId ).getImageType() ) );
-            n5.createGroup( pathName );
-            n5.setAttribute( pathName, DOWNSAMPLING_FACTORS_KEY, downsamplingFactors );
-            n5.setAttribute( pathName, DATA_TYPE_KEY, dataType );
+        if ( setupIds.size() > 1 ) {
+            throw new UnsupportedOperationException("More than one setup is not yet supported!");
         }
+
+        if ( timepointIds.size() > 1 ){
+            throw new UnsupportedOperationException("More than one timepoint is not yet supported!");
+        }
+
+        // create group for top directory
+        // n5.createGroup("");
+        // Map<String, >
+        // n5.setAttribute( "", MULTI_SCALE_KEY, );
+
+        // // write Mipmap descriptions
+        // for ( final int setupId : setupIds )
+        // {
+        //     final String pathName = getPathName( setupId );
+        //     final int[][] downsamplingFactors = perSetupMipmapInfo.get( setupId ).getExportResolutions();
+        //     final DataType dataType = N5Utils.dataType( Cast.unchecked( imgLoader.getSetupImgLoader( setupId ).getImageType() ) );
+        //     n5.createGroup( pathName );
+        //     n5.setAttribute( pathName, DOWNSAMPLING_FACTORS_KEY, downsamplingFactors );
+        //     n5.setAttribute( pathName, DATA_TYPE_KEY, dataType );
+        // }
 
 
         // calculate number of tasks for progressWriter
@@ -170,20 +185,20 @@ public class WriteSequenceToN5OmeZarr {
                             loopbackHeuristic, afterEachPlane, subProgressWriter );
 
 
-                    // additional attributes for paintera compatibility
-                    final String pathName = getPathName( setupId, timepointId );
-                    n5.createGroup( pathName );
-                    n5.setAttribute( pathName, MULTI_SCALE_KEY, true );
-                    final VoxelDimensions voxelSize = seq.getViewSetups().get( setupId ).getVoxelSize();
-                    if ( voxelSize != null )
-                    {
-                        final double[] resolution = new double[ voxelSize.numDimensions() ];
-                        voxelSize.dimensions( resolution );
-                        n5.setAttribute( pathName, RESOLUTION_KEY, resolution );
-                    }
-                    final int[][] downsamplingFactors = perSetupMipmapInfo.get( setupId ).getExportResolutions();
-                    for( int l = 0; l < downsamplingFactors.length; ++l )
-                        n5.setAttribute( getPathName( setupId, timepointId, l ), DOWNSAMPLING_FACTORS_KEY, downsamplingFactors[ l ] );
+                    // // additional attributes for paintera compatibility
+                    // final String pathName = getPathName( setupId, timepointId );
+                    // n5.createGroup( pathName );
+                    // n5.setAttribute( pathName, MULTI_SCALE_KEY, true );
+                    // final VoxelDimensions voxelSize = seq.getViewSetups().get( setupId ).getVoxelSize();
+                    // if ( voxelSize != null )
+                    // {
+                    //     final double[] resolution = new double[ voxelSize.numDimensions() ];
+                    //     voxelSize.dimensions( resolution );
+                    //     n5.setAttribute( pathName, RESOLUTION_KEY, resolution );
+                    // }
+                    // final int[][] downsamplingFactors = perSetupMipmapInfo.get( setupId ).getExportResolutions();
+                    // for( int l = 0; l < downsamplingFactors.length; ++l )
+                    //     n5.setAttribute( getPathName( setupId, timepointId, l ), DOWNSAMPLING_FACTORS_KEY, downsamplingFactors[ l ] );
                 }
             }
         }
@@ -212,7 +227,7 @@ public class WriteSequenceToN5OmeZarr {
         final BasicSetupImgLoader< T > setupImgLoader = Cast.unchecked( imgLoader.getSetupImgLoader( setupId ) );
         final RandomAccessibleInterval< T > img = setupImgLoader.getImage( timepointId );
         final T type = setupImgLoader.getImageType();
-        final WriteSequenceToN5.N5DatasetIO< T > io = new WriteSequenceToN5.N5DatasetIO<>( n5, compression, setupId, timepointId, type );
+        final N5DatasetIO< T > io = new N5DatasetIO<>( n5, compression, setupId, timepointId, type );
         ExportScalePyramid.writeScalePyramid(
                 img, type, mipmapInfo, downsamplingMethod, io,
                 executorService, numThreads,
@@ -231,7 +246,7 @@ public class WriteSequenceToN5OmeZarr {
         }
     }
 
-    static class N5DatasetIO< T extends RealType< T > & NativeType< T > > implements ExportScalePyramid.DatasetIO<WriteSequenceToN5.N5Dataset, T >
+    static class N5DatasetIO< T extends RealType< T > & NativeType< T > > implements ExportScalePyramid.DatasetIO<N5Dataset, T >
     {
         private final N5Writer n5;
         private final Compression compression;
@@ -288,28 +303,30 @@ public class WriteSequenceToN5OmeZarr {
         }
 
         @Override
-        public WriteSequenceToN5.N5Dataset createDataset(final int level, final long[] dimensions, final int[] blockSize ) throws IOException
+        public N5Dataset createDataset(final int level, final long[] dimensions, final int[] blockSize ) throws IOException
         {
-            final String pathName = getPathName( setupId, timepointId, level );
+            // final String pathName = getPathName( setupId, timepointId, level );
+            final String pathName = "s" + level;
             n5.createDataset( pathName, dimensions, blockSize, dataType, compression );
             final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
-            return new WriteSequenceToN5.N5Dataset( pathName, attributes );
+            return new N5Dataset( pathName, attributes );
         }
 
         @Override
-        public void writeBlock(final WriteSequenceToN5.N5Dataset dataset, final ExportScalePyramid.Block< T > dataBlock ) throws IOException
+        public void writeBlock(final N5Dataset dataset, final ExportScalePyramid.Block< T > dataBlock ) throws IOException
         {
             n5.writeBlock( dataset.pathName, dataset.attributes, getDataBlock.apply( dataBlock ) );
         }
 
         @Override
-        public void flush( final WriteSequenceToN5.N5Dataset dataset )
+        public void flush( final N5Dataset dataset )
         {}
 
         @Override
         public RandomAccessibleInterval< T > getImage( final int level ) throws IOException
         {
-            final String pathName = getPathName( setupId, timepointId, level );
+            // final String pathName = getPathName( setupId, timepointId, level );
+            final String pathName = "s" + level;
             final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
             final long[] dimensions = attributes.getDimensions();
             final int[] cellDimensions = attributes.getBlockSize();
