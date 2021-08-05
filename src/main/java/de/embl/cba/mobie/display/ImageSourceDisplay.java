@@ -44,6 +44,8 @@ public class ImageSourceDisplay extends SourceDisplay
 		return sources;
 	}
 
+	public ImageSourceDisplay() {}
+
 	// Constructor for serialization
 	public ImageSourceDisplay( String name, double opacity, List< String > sources, String color, double[] contrastLimits, BlendingMode blendingMode, boolean showImagesIn3d ) {
 		this.name = name;
