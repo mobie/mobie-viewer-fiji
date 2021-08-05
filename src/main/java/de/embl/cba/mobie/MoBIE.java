@@ -57,9 +57,9 @@ import static mpicbg.spim.data.XmlKeys.SEQUENCEDESCRIPTION_TAG;
 public class MoBIE
 {
 	public static final int N_THREADS = 8;
+	public static final SharedQueue sharedQueue = new SharedQueue( N_THREADS );
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 	public static final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
-	public static final SharedQueue sharedQueue = new SharedQueue(Math.max(1, Runtime.getRuntime().availableProcessors()));
 	private final String projectName;
 	private MoBIESettings settings;
 	private String datasetName;
