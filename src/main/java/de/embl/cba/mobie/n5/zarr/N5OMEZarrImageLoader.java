@@ -322,24 +322,25 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		String[] units;
 	}
 
-	@NotNull
-	private ArrayList<ViewRegistration> createViewRegistrations(int setupId, int setupTimepoints) {
-		Multiscale multiscale = setupToMultiscale.get(setupId);
-		AffineTransform3D transform = new AffineTransform3D();
+    @NotNull
+    private ArrayList<ViewRegistration> createViewRegistrations( int setupId, int setupTimepoints )
+    {
+        Multiscale multiscale = setupToMultiscale.get( setupId );
+        AffineTransform3D transform = new AffineTransform3D();
 
-		try {
-			double[] scale = multiscale.transform.scale;
-			transform.scale(scale[0], scale[1], scale[2]);
-		} catch (Exception e) {
-			System.out.println("No scale given" + e);
-		}
+        if ( multiscale.transform != null && multiscale.transform.scale != null && multiscale.transform.scale.length > 2 ) {
+            double[] scale = multiscale.transform.scale;
+            transform.scale( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
+        } else {
+            transform.scale( 1, 1, 1 );
+        }
 
-		ArrayList<ViewRegistration> viewRegistrations = new ArrayList<>();
-		for (int t = 0; t < setupTimepoints; t++)
-			viewRegistrations.add(new ViewRegistration(t, setupId, transform));
+        ArrayList<ViewRegistration> viewRegistrations = new ArrayList<>();
+        for ( int t = 0; t < setupTimepoints; t++ )
+            viewRegistrations.add( new ViewRegistration( t, setupId, transform ) );
 
-		return viewRegistrations;
-	}
+        return viewRegistrations;
+    }
 
 	private ViewSetup createViewSetup(int setupId) {
 		final DatasetAttributes attributes = setupToAttributes.get(setupId);
