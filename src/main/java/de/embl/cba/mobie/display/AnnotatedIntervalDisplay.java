@@ -36,7 +36,7 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedI
 		return sources;
 	}
 
-
+	public AnnotatedIntervalDisplay() {}
 
 	public AnnotatedIntervalDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
 	{
