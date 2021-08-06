@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.n5.zarr;
 
 import com.google.gson.GsonBuilder;
+import de.embl.cba.mobie.MoBIE;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.util.Cast;
@@ -14,6 +15,7 @@ public class OMEZarrReader
     private static boolean logChunkLoading;
 
     private final String filePath;
+    ;
 
     public OMEZarrReader(String filePath)
     {
@@ -38,7 +40,7 @@ public class OMEZarrReader
         N5OMEZarrImageLoader.logChunkLoading = logChunkLoading;
         N5OmeZarrReader reader = new N5OmeZarrReader(this.filePath, new GsonBuilder());
         HashMap<String, Integer> axesMap = reader.getAxes();
-        N5OMEZarrImageLoader imageLoader = new N5OMEZarrImageLoader(reader, axesMap);
+        N5OMEZarrImageLoader imageLoader = new N5OMEZarrImageLoader(reader, axesMap, MoBIE.sharedQueue);
         return new SpimData(
                 new File(this.filePath),
                 Cast.unchecked( imageLoader.getSequenceDescription() ),

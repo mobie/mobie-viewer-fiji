@@ -234,7 +234,7 @@ public class ViewManager
 		}
 	}
 
-	private void showSourceDisplay( SourceDisplay sourceDisplay )
+	private synchronized void showSourceDisplay( SourceDisplay sourceDisplay )
 	{
 		if ( currentSourceDisplays.contains( sourceDisplay ) ) return;
 

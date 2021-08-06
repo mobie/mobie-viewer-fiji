@@ -1,5 +1,6 @@
 package de.embl.cba.mobie;
 
+import bdv.util.volatiles.SharedQueue;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
@@ -56,8 +57,9 @@ import static mpicbg.spim.data.XmlKeys.SEQUENCEDESCRIPTION_TAG;
 public class MoBIE
 {
 	public static final int N_THREADS = 8;
+	public static final SharedQueue sharedQueue = new SharedQueue( N_THREADS );
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
-
+	public static final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
 	private final String projectName;
 	private MoBIESettings settings;
 	private String datasetName;
@@ -69,6 +71,7 @@ public class MoBIE
 	private String imageRoot;
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
+	private SourceAndConverterService sacService;
 	//private HashMap< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
 
 	public MoBIE( String projectRoot ) throws IOException
@@ -85,6 +88,7 @@ public class MoBIE
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
 		this.settings = setImageDataFormat( projectLocation );
+		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 		openDataset();
 	}
 
@@ -187,8 +191,8 @@ public class MoBIE
 	{
 		List< SourceAndConverter< ? > > sourceAndConverters = new CopyOnWriteArrayList<>();
 		final long start = System.currentTimeMillis();
-		final int nThreads = N_THREADS;
-		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
+
+		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
 		for ( String sourceName : sources )
 		{
 			executorService.execute( () -> {
@@ -196,13 +200,9 @@ public class MoBIE
 			} );
 		}
 
-		executorService.shutdown();
-		try {
-			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-		} catch (InterruptedException e) {
-		}
+		Utils.waitUntilFinishedAndShutDown( executorService );
 
-		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s).");
+		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
 
 		return sourceAndConverters;
 	}
@@ -296,8 +296,6 @@ public class MoBIE
 
 	public SourceAndConverter getSourceAndConverter( String sourceName )
 	{
-		final SourceAndConverterService sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-
 		final List< SourceAndConverter > sourceAndConverters = sacService.getSourceAndConverters().stream().filter( sac -> sac.getSpimSource().getName().equals( sourceName ) ).collect( Collectors.toList() );
 
 		if ( sourceAndConverters.size() == 1 )
@@ -308,7 +306,8 @@ public class MoBIE
 
 		final ImageSource source = getSource( sourceName );
 		final String imagePath = getImagePath( source );
-        new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
+        //new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
+		IJ.log( "Opening image:\n" + imagePath );
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
         SpimData spimData = null;
         switch ( imageDataFormat ) {
@@ -433,11 +432,7 @@ public class MoBIE
 			} );
 		}
 
-		executorService.shutdown();
-		try {
-			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-		} catch (InterruptedException e) {
-		}
+		Utils.waitUntilFinishedAndShutDown( executorService );
 
 		System.out.println( "Fetched " + sources.size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
 

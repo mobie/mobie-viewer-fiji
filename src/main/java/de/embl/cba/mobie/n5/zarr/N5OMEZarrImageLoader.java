@@ -36,6 +36,7 @@ import bdv.img.cache.SimpleCacheArrayLoader;
 import bdv.img.cache.VolatileGlobalCellCache;
 import bdv.util.ConstantRandomAccessible;
 import bdv.util.MipmapTransforms;
+import bdv.util.volatiles.SharedQueue;
 import com.amazonaws.SdkClientException;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
@@ -99,6 +100,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	private final Map<Integer, Integer> setupToChannel = new HashMap<>();
 	private int sequenceTimepoints = 0;
 	private HashMap<String, Integer> axesMap = new HashMap<>();
+	private BlockingFetchQueues< Callable< ? > > queue;
 
 
 	/**
@@ -119,6 +121,12 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		fetchSequenceDescriptionAndViewRegistrations();
 	}
 
+	public N5OMEZarrImageLoader(N5Reader n5Reader, HashMap<String, Integer> axesMap, BlockingFetchQueues< Callable< ? > > queue ) {
+		this.n5 = n5Reader;
+		this.axesMap = axesMap;
+		this.queue = queue;
+		fetchSequenceDescriptionAndViewRegistrations();
+	}
 
 	private void fetchSequenceDescriptionAndViewRegistrations() {
 		try {
@@ -291,10 +299,13 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 						maxNumLevels = Math.max(maxNumLevels, setupImgLoader.numMipmapLevels());
 					}
 
-					final int numFetcherThreads = Math.max(1, Runtime.getRuntime().availableProcessors());
-					final BlockingFetchQueues<Callable<?>> queue = new BlockingFetchQueues<>(maxNumLevels, numFetcherThreads);
-					fetchers = new FetcherThreads(queue, numFetcherThreads);
-					cache = new VolatileGlobalCellCache(queue);
+					if ( queue == null )
+					{
+						final int numFetcherThreads = Math.max( 1, Runtime.getRuntime().availableProcessors() );
+						queue = new BlockingFetchQueues<>( maxNumLevels, numFetcherThreads );
+						fetchers = new FetcherThreads( queue, numFetcherThreads);
+					}
+					cache = new VolatileGlobalCellCache( queue );
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
@@ -335,19 +346,19 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		// OmeZarrMultiscales multiscale = setupToMultiscale.get(setupId);
 		AffineTransform3D transform = new AffineTransform3D();
 
-		// try {
-		// 	double[] scale = multiscale.transform.scale;
-		// 	transform.scale(scale[0], scale[1], scale[2]);
-		// } catch (Exception e) {
-		// 	System.out.println("No scale given" + e);
-		// }
+        // if ( multiscale.transform != null && multiscale.transform.scale != null && multiscale.transform.scale.length > 2 ) {
+        //     double[] scale = multiscale.transform.scale;
+        //     transform.scale( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
+        // } else {
+        //     transform.scale( 1, 1, 1 );
+        // }
 
-		ArrayList<ViewRegistration> viewRegistrations = new ArrayList<>();
-		for (int t = 0; t < setupTimepoints; t++)
-			viewRegistrations.add(new ViewRegistration(t, setupId, transform));
+        ArrayList<ViewRegistration> viewRegistrations = new ArrayList<>();
+        for ( int t = 0; t < setupTimepoints; t++ )
+            viewRegistrations.add( new ViewRegistration( t, setupId, transform ) );
 
-		return viewRegistrations;
-	}
+        return viewRegistrations;
+    }
 
 	private ViewSetup createViewSetup(int setupId) {
 		final DatasetAttributes attributes = setupToAttributes.get(setupId);
@@ -397,7 +408,8 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			synchronized (this) {
 				if (!isOpen)
 					return;
-				fetchers.shutdown();
+				if ( fetchers != null )
+					fetchers.shutdown();
 				cache.clearCache();
 				isOpen = false;
 			}
