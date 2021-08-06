@@ -185,7 +185,7 @@ public class WriteSequenceToN5OmeZarr {
                     final ProgressWriter subProgressWriter = new SubTaskProgressWriter( progressWriter, startCompletionRatio, endCompletionRatio );
                     writeScalePyramid(
                             n5, compression, downsamplingMethod,
-                            imgLoader, setupId, timepointId, axes,
+                            imgLoader, setupId, timepointId, numSetups, numTimepoints,
                             mipmapInfo,
                             executorService, numCellCreatorThreads,
                             loopbackHeuristic, afterEachPlane, subProgressWriter );
@@ -223,7 +223,8 @@ public class WriteSequenceToN5OmeZarr {
             final BasicImgLoader imgLoader,
             final int setupId,
             final int timepointId,
-            ZarrAxes axes,
+            final int totalNSetups,
+            final int totalNTimepoints,
             final ExportMipmapInfo mipmapInfo,
             final ExecutorService executorService,
             final int numThreads,
@@ -235,7 +236,7 @@ public class WriteSequenceToN5OmeZarr {
         final RandomAccessibleInterval< T > img = setupImgLoader.getImage( timepointId );
         final T type = setupImgLoader.getImageType();
         final N5DatasetIO< T > io = new N5DatasetIO<>( n5, compression, setupId, timepointId, type,
-                axes );
+                totalNSetups, totalNTimepoints );
         ExportScalePyramid.writeScalePyramid(
                 img, type, mipmapInfo, downsamplingMethod, io,
                 executorService, numThreads,
@@ -263,10 +264,11 @@ public class WriteSequenceToN5OmeZarr {
         private final DataType dataType;
         private final T type;
         private final Function< ExportScalePyramid.Block< T >, DataBlock< ? > > getDataBlock;
-        private final ZarrAxes axes;
+        private final int totalNSetups;
+        private final int totalNTimepoints;
 
         public N5DatasetIO( final N5Writer n5, final Compression compression, final int setupId, final int timepointId, final T type,
-                            ZarrAxes axes )
+                            final int totalNSetups, final int totalNTimepoints )
         {
             this.n5 = n5;
             this.compression = compression;
@@ -274,7 +276,8 @@ public class WriteSequenceToN5OmeZarr {
             this.timepointId = timepointId;
             this.dataType = N5Utils.dataType( type );
             this.type = type;
-            this.axes = axes;
+            this.totalNSetups = totalNSetups;
+            this.totalNTimepoints = totalNTimepoints;
 
             switch ( dataType )
             {
@@ -314,24 +317,89 @@ public class WriteSequenceToN5OmeZarr {
         }
 
         private String getPathName( int level ) {
-            if ( axes == ZarrAxes.TCZYX ) {
+            if ( totalNTimepoints > 1 && totalNSetups > 1 ) {
                 return String.format("s%d/%d/%d", level, timepointId, setupId);
-            } else if ( axes == ZarrAxes.CZYX ) {
+            } else if ( totalNSetups > 1 ) {
                 return String.format("s%d/%d", level, setupId);
-            } else if ( axes == ZarrAxes.TZYX ) {
+            } else if ( totalNTimepoints > 1 ) {
                 return String.format("s%d/%d", level, timepointId);
             } else {
                 return String.format("s%d", level);
             }
         }
 
+        private int[] addSingletonDimensionsToChunks( int[] zyxChunks ) {
+            // add any required dimensions for time or channels (we enforce a chunk size of 1 for these axes)
+            int[] chunks;
+
+            int nAxes;
+            if (totalNSetups > 1 && totalNTimepoints > 1) {
+                nAxes = 5;
+            } else if (totalNSetups > 1 || totalNTimepoints > 1) {
+                nAxes = 4;
+            } else {
+                nAxes = 3;
+            }
+
+            if (nAxes > 3) {
+                chunks = new int[nAxes];
+                for ( int i=0; i<nAxes; i++) {
+                    if ( i < 3 ) {
+                        chunks[i] = zyxChunks[i];
+                    } else {
+                        chunks[i] = 1;
+                    }
+                }
+            } else {
+                chunks = zyxChunks;
+            }
+
+            return chunks;
+        }
+
+        private long[] addSetupAndTimeToShape( long[] zyxShape ) {
+            // add any required dimensions for time or channels
+            long[] shape;
+
+            if ( totalNSetups > 1 && totalNTimepoints > 1 ) {
+                shape = new long[5];
+                shape[3] = totalNSetups;
+                shape[4] = totalNTimepoints;
+            } else if ( totalNSetups > 1 ) {
+                shape = new long[4];
+                shape[3] = totalNSetups;
+            } else if ( totalNTimepoints > 1 ) {
+                shape = new long[4];
+                shape[3] = totalNTimepoints;
+            } else {
+                shape = new long[3];
+            }
+
+            for (int i = 0; i < 3; i++) {
+                shape[i] = zyxShape[i];
+            }
+
+            return shape;
+        }
+
         @Override
-        public N5Dataset createDataset(final int level, final long[] dimensions, final int[] blockSize ) throws IOException
+        public N5Dataset createDataset(final int level, final long[] zyxDimensions, final int[] zyxBlockSize ) throws IOException
         {
-            final String pathName = getPathName( level );
-            n5.createDataset( pathName, dimensions, blockSize, dataType, compression );
-            final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
-            return new N5Dataset( pathName, attributes );
+            // create dataset directory + metadata
+            final String pathName = "s" + level;
+            n5.createDataset( pathName, addSetupAndTimeToShape(zyxDimensions),
+                    addSingletonDimensionsToChunks(zyxBlockSize), dataType, compression );
+
+            // here we have to get the zarr attributes that were written, and re-set the shape/chunks to just zyx, as
+            // all the chunking etc operates only in 3D
+            final ZarrDatasetAttributes zarrDatasetAttributes = (ZarrDatasetAttributes) n5.getDatasetAttributes( pathName );
+            final DatasetAttributes datasetAttributes = new ZarrDatasetAttributes( zyxDimensions, zyxBlockSize,
+                    zarrDatasetAttributes.getDType(), compression,
+                    zarrDatasetAttributes.isRowMajor(),
+                    zarrDatasetAttributes.getFillValue() );
+
+            // we provide the full path, including any time or channels to actually write blocks
+            return new N5Dataset( getPathName(level), datasetAttributes );
         }
 
         @Override
@@ -348,7 +416,7 @@ public class WriteSequenceToN5OmeZarr {
         public RandomAccessibleInterval< T > getImage( final int level ) throws IOException
         {
             final String pathName = getPathName( level );
-            final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
+            final DatasetAttributes attributes = n5.getDatasetAttributes( "s" + level );
             final long[] dimensions = attributes.getDimensions();
             final int[] cellDimensions = attributes.getBlockSize();
             final CellGrid grid = new CellGrid( dimensions, cellDimensions );
