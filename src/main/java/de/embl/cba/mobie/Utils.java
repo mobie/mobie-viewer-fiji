@@ -41,6 +41,17 @@ public abstract class Utils
 		}
 	}
 
+	public static int[] asInts( long[] longs) {
+		int[] ints = new int[longs.length];
+
+		for(int i = 0; i < longs.length; ++i)
+		{
+			ints[i] = (int)longs[i];
+		}
+
+		return ints;
+	}
+
 	public enum FileLocation {
 		Project,
 		FileSystem

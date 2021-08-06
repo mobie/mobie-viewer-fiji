@@ -35,7 +35,7 @@ public class MergedGridSourceTransformer< T extends NumericType< T > > extends A
 
 		final List< Source< T > > gridSources = sources.stream().map( sourceName -> Utils.getSource( sourceAndConverters, sourceName ).getSpimSource() ).collect( Collectors.toList() );
 
-		new MergedGridSource<>( gridSources, positions )
+		new MergedGridSource<>( gridSources, positions, mergedGridSourceName );
 
 		List< SourceAndConverter< T > > transformedSourceAndConverters = new CopyOnWriteArrayList<>( sourceAndConverters );
 

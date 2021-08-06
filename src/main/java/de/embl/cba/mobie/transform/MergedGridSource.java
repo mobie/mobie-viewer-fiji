@@ -2,23 +2,29 @@ package de.embl.cba.mobie.transform;
 
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
+import de.embl.cba.mobie.Utils;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.util.Util;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.OptionalInt;
 
 public class MergedGridSource< T > implements Source< T >
 {
-	public MergedGridSource( List< Source< T > > gridSources, List< int[] > positions )
+	private final T type;
+	private final Source< T > referenceSource;
+	private final String mergedGridSourceName;
+
+	public MergedGridSource( List< Source< T > > gridSources, List< int[] > positions, String mergedGridSourceName )
 	{
-		final Source< T > referenceSource = gridSources.get( 0 );
-		final int numMipmapLevels = referenceSource.getNumMipmapLevels();
+		referenceSource = gridSources.get( 0 );
+		this.mergedGridSourceName = mergedGridSourceName;
+		type = Util.getTypeFromInterval( referenceSource.getSource( 0, 0 ) );
 
 		final int[] minPos = new int[ 3 ];
 		final int[] maxPos = new int[ 3 ];
@@ -30,22 +36,27 @@ public class MergedGridSource< T > implements Source< T >
 			maxPos[ d ] = positions.stream().mapToInt( pos -> pos[ finalD ] ).max().orElseThrow( NoSuchElementException::new );
 		}
 
+		int numMipmapLevels = referenceSource.getNumMipmapLevels();
+
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
 			long[] dimensions = new long[ 3 ];
+
 			final long[] referenceSourceDimensions = referenceSource.getSource( 0, level ).dimensionsAsLongArray();
+
+			final int[] cellDimensions = Utils.asInts( referenceSourceDimensions ); // TODO: add grid spacing
 
 			for ( int d = 0; d < 3; d++ )
 			{
 				dimensions[ d ] = maxPos[ d ] - minPos[ d ] + 1;
-				dimensions[ d ] *= referenceSourceDimensions[ d ];
+				dimensions[ d ] *= cellDimensions[ d ];
 			}
 
 			new ReadOnlyCachedCellImgFactory().create(
 					dimensions,
-					nativeType,
+					type,
 					loader,
-					ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
+					ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
 		}
 
 	}
@@ -53,7 +64,7 @@ public class MergedGridSource< T > implements Source< T >
 	@Override
 	public boolean isPresent( int t )
 	{
-		return false;
+		return referenceSource.isPresent( t );
 	}
 
 	@Override
@@ -65,7 +76,7 @@ public class MergedGridSource< T > implements Source< T >
 	@Override
 	public boolean doBoundingBoxCulling()
 	{
-		return false;
+		return referenceSource.doBoundingBoxCulling();
 	}
 
 	@Override
@@ -83,24 +94,24 @@ public class MergedGridSource< T > implements Source< T >
 	@Override
 	public T getType()
 	{
-		return null;
+		return type;
 	}
 
 	@Override
 	public String getName()
 	{
-		return null;
+		return mergedGridSourceName;
 	}
 
 	@Override
 	public VoxelDimensions getVoxelDimensions()
 	{
-		return null;
+		return referenceSource.getVoxelDimensions();
 	}
 
 	@Override
 	public int getNumMipmapLevels()
 	{
-		return 0;
+		return referenceSource.getNumMipmapLevels();
 	}
 }
