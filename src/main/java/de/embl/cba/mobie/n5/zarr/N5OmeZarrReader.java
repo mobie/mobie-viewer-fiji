@@ -72,6 +72,7 @@ public class N5OmeZarrReader extends N5FSReader {
         gsonBuilder.serializeNulls();
         gsonBuilder.registerTypeAdapter(ZarrAxes.class, new ZarrAxesAdapter());
         gsonBuilder.registerTypeAdapter(N5Reader.Version.class, new VersionAdapter());
+        gsonBuilder.setPrettyPrinting();
 
         return gsonBuilder;
     }

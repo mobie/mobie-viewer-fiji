@@ -2,9 +2,10 @@ package de.embl.cba.mobie.n5.zarr;
 
 import com.google.gson.*;
 import java.lang.reflect.Type;
+import java.util.List;
 
 // TODO - improve this business?
-public class ZarrAxesAdapter implements JsonDeserializer< ZarrAxes >
+public class ZarrAxesAdapter implements JsonDeserializer< ZarrAxes >, JsonSerializer< ZarrAxes >
     {
 
         @Override
@@ -29,24 +30,13 @@ public class ZarrAxesAdapter implements JsonDeserializer< ZarrAxes >
             }
         }
 
-        // @Override
-        // public ZarrAxes serialize( List<SourceTransformer> sourceTransformers, Type type, JsonSerializationContext context ) {
-        //     JsonArray ja = new JsonArray();
-        //     for ( SourceTransformer sourceTransformer: sourceTransformers ) {
-        //         Map< String, SourceTransformer > nameToTransformer = new HashMap<>();
-        //         nameToTransformer.put( classToName.get( sourceTransformer.getClass().getName() ), sourceTransformer );
-        //
-        //         if ( sourceTransformer instanceof GridSourceTransformer ) {
-        //             ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, GridSourceTransformer > >() {}.getType() ) );
-        //         } else if ( sourceTransformer instanceof AffineSourceTransformer ) {
-        //             ja.add( context.serialize( nameToTransformer , new TypeToken< Map< String, AffineSourceTransformer > >() {}.getType() ) );
-        //         } else if ( sourceTransformer instanceof CropSourceTransformer ) {
-        //             ja.add( context.serialize( nameToTransformer , new TypeToken< Map< String, CropSourceTransformer > >() {}.getType() ) );
-        //         } else {
-        //             throw new UnsupportedOperationException( "Could not serialise SourceTransformer of type: " + sourceTransformer.getClass().toString() );
-        //         }
-        //     }
-        //
-        //     return ja;
-        // }
+        @Override
+        public JsonElement serialize(ZarrAxes axes, Type typeOfSrc, JsonSerializationContext context) {
+            List<String> axisList = axes.getAxesList();
+            JsonArray jsonArray = new JsonArray();
+            for ( String axis: axisList ) {
+                jsonArray.add( axis );
+            };
+            return jsonArray;
+        }
 }
