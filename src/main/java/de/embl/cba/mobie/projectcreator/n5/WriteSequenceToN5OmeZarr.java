@@ -41,6 +41,7 @@ import static net.imglib2.cache.img.ReadOnlyCachedCellImgOptions.options;
 
 public class WriteSequenceToN5OmeZarr {
     private static final String MULTI_SCALE_KEY = "multiscales";
+    private static final String ARRAY_DIMENSIONS_KEY = "_ARRAY_DIMENSIONS";
     private static final String RESOLUTION_KEY = "resolution";
 
     /**
@@ -185,7 +186,7 @@ public class WriteSequenceToN5OmeZarr {
                     final ProgressWriter subProgressWriter = new SubTaskProgressWriter( progressWriter, startCompletionRatio, endCompletionRatio );
                     writeScalePyramid(
                             n5, compression, downsamplingMethod,
-                            imgLoader, setupId, timepointId, numSetups, numTimepoints,
+                            imgLoader, setupId, timepointId, numSetups, numTimepoints, axes,
                             mipmapInfo,
                             executorService, numCellCreatorThreads,
                             loopbackHeuristic, afterEachPlane, subProgressWriter );
@@ -225,6 +226,7 @@ public class WriteSequenceToN5OmeZarr {
             final int timepointId,
             final int totalNSetups,
             final int totalNTimepoints,
+            final ZarrAxes axes,
             final ExportMipmapInfo mipmapInfo,
             final ExecutorService executorService,
             final int numThreads,
@@ -236,7 +238,7 @@ public class WriteSequenceToN5OmeZarr {
         final RandomAccessibleInterval< T > img = setupImgLoader.getImage( timepointId );
         final T type = setupImgLoader.getImageType();
         final N5DatasetIO< T > io = new N5DatasetIO<>( n5, compression, setupId, timepointId, type,
-                totalNSetups, totalNTimepoints );
+                totalNSetups, totalNTimepoints, axes );
         ExportScalePyramid.writeScalePyramid(
                 img, type, mipmapInfo, downsamplingMethod, io,
                 executorService, numThreads,
@@ -266,9 +268,10 @@ public class WriteSequenceToN5OmeZarr {
         private final Function< ExportScalePyramid.Block< T >, DataBlock< ? > > getDataBlock;
         private final int totalNSetups;
         private final int totalNTimepoints;
+        private final ZarrAxes axes;
 
         public N5DatasetIO( final N5Writer n5, final Compression compression, final int setupId, final int timepointId, final T type,
-                            final int totalNSetups, final int totalNTimepoints )
+                            final int totalNSetups, final int totalNTimepoints, ZarrAxes axes )
         {
             this.n5 = n5;
             this.compression = compression;
@@ -278,6 +281,7 @@ public class WriteSequenceToN5OmeZarr {
             this.type = type;
             this.totalNSetups = totalNSetups;
             this.totalNTimepoints = totalNTimepoints;
+            this.axes = axes;
 
             switch ( dataType )
             {
@@ -389,6 +393,9 @@ public class WriteSequenceToN5OmeZarr {
             final String pathName = "s" + level;
             n5.createDataset( pathName, addSetupAndTimeToShape(zyxDimensions),
                     addSingletonDimensionsToChunks(zyxBlockSize), dataType, compression );
+
+            // TODO - ideally this would go inside n5.createDataset(), but it's a bit complicated to get it there
+            n5.setAttribute(pathName, ARRAY_DIMENSIONS_KEY, axes );
 
             // here we have to get the zarr attributes that were written, and re-set the shape/chunks to just zyx, as
             // all the chunking etc operates only in 3D
