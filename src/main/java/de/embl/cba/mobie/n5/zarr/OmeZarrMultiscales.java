@@ -11,6 +11,24 @@ public class OmeZarrMultiscales {
 
     public OmeZarrMultiscales(){}
 
+    public OmeZarrMultiscales( ZarrAxes axes, String name, String type, N5Reader.Version version, int nDatasets ) {
+        this.version = version;
+        this.name = name;
+        this.type = type;
+        this.axes = axes;
+        generateDatasets( nDatasets );
+    }
+
+    private void generateDatasets( int nDatasets ) {
+        Dataset[] datasets = new Dataset[nDatasets];
+        for ( int i = 0; i<nDatasets; i++ ) {
+            Dataset dataset = new Dataset();
+            dataset.path = "s" + i;
+            datasets[i] = dataset;
+        }
+        this.datasets = datasets;
+    }
+
     public static class Dataset {
         public String path;
     }

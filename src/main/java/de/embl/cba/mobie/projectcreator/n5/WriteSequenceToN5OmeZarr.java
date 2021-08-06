@@ -7,10 +7,7 @@ import bdv.export.SubTaskProgressWriter;
 import bdv.img.cache.SimpleCacheArrayLoader;
 import bdv.img.n5.N5ImageLoader;
 import com.google.gson.GsonBuilder;
-import de.embl.cba.mobie.n5.zarr.N5OMEZarrImageLoader;
-import de.embl.cba.mobie.n5.zarr.N5OMEZarrWriter;
-import de.embl.cba.mobie.n5.zarr.N5OmeZarrReader;
-import de.embl.cba.mobie.n5.zarr.N5ZarrWriter;
+import de.embl.cba.mobie.n5.zarr.*;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicSetupImgLoader;
@@ -119,10 +116,26 @@ public class WriteSequenceToN5OmeZarr {
 
         // TODO - handle multiple setups - write as separate zarr files with sensible naming scheme
 
-        // create group for top directory
-        // n5.createGroup("");
-        // Map<String, >
-        // n5.setAttribute( "", MULTI_SCALE_KEY, );
+        ZarrAxes axes;
+        if ( timepointIds.size() > 1 && setupIds.size() > 1 ) {
+            axes = ZarrAxes.TCZYX;
+        } else if ( timepointIds.size() > 1 ) {
+            axes = ZarrAxes.TZYX;
+        } else if ( setupIds.size() > 1 ) {
+            axes = ZarrAxes.CZYX;
+        } else {
+            axes = ZarrAxes.ZYX;
+        }
+
+        // create group for top directory & add multiscales
+        // TODO - get name of image, or provide parameter for this
+        // Currently we write v0.3 ome-zarr
+        // Assumes persetupmipmapinfo is the same for every setup
+        OmeZarrMultiscales multiscales = new OmeZarrMultiscales(axes, "test", downsamplingMethod.name(),
+                new N5Reader.Version(0, 3, 0), perSetupMipmapInfo.get(0).getNumLevels() );
+
+        n5.createGroup("");
+        n5.setAttribute("", MULTI_SCALE_KEY, multiscales );
 
         // // write Mipmap descriptions
         // for ( final int setupId : setupIds )
@@ -170,11 +183,9 @@ public class WriteSequenceToN5OmeZarr {
                     final double startCompletionRatio = ( double ) numCompletedTasks++ / numTasks;
                     final double endCompletionRatio = ( double ) numCompletedTasks / numTasks;
                     final ProgressWriter subProgressWriter = new SubTaskProgressWriter( progressWriter, startCompletionRatio, endCompletionRatio );
-                    boolean hasMoreThanOneTimepoint = numTimepoints > 1;
-                    boolean hasMoreThanOneSetup = numSetups > 1;
                     writeScalePyramid(
                             n5, compression, downsamplingMethod,
-                            imgLoader, setupId, timepointId, hasMoreThanOneTimepoint, hasMoreThanOneSetup,
+                            imgLoader, setupId, timepointId, axes,
                             mipmapInfo,
                             executorService, numCellCreatorThreads,
                             loopbackHeuristic, afterEachPlane, subProgressWriter );
@@ -212,8 +223,7 @@ public class WriteSequenceToN5OmeZarr {
             final BasicImgLoader imgLoader,
             final int setupId,
             final int timepointId,
-            boolean hasMoreThanOneTimepoint,
-            boolean hasMoreThanOneSetup,
+            ZarrAxes axes,
             final ExportMipmapInfo mipmapInfo,
             final ExecutorService executorService,
             final int numThreads,
@@ -225,7 +235,7 @@ public class WriteSequenceToN5OmeZarr {
         final RandomAccessibleInterval< T > img = setupImgLoader.getImage( timepointId );
         final T type = setupImgLoader.getImageType();
         final N5DatasetIO< T > io = new N5DatasetIO<>( n5, compression, setupId, timepointId, type,
-                hasMoreThanOneTimepoint, hasMoreThanOneSetup );
+                axes );
         ExportScalePyramid.writeScalePyramid(
                 img, type, mipmapInfo, downsamplingMethod, io,
                 executorService, numThreads,
@@ -253,11 +263,10 @@ public class WriteSequenceToN5OmeZarr {
         private final DataType dataType;
         private final T type;
         private final Function< ExportScalePyramid.Block< T >, DataBlock< ? > > getDataBlock;
-        private final boolean hasThanOneTimepoint;
-        private final boolean hasMoreThanOneSetup;
+        private final ZarrAxes axes;
 
         public N5DatasetIO( final N5Writer n5, final Compression compression, final int setupId, final int timepointId, final T type,
-                            boolean hasMoreThanOneTimepoint, boolean hasMoreThanOneSetup )
+                            ZarrAxes axes )
         {
             this.n5 = n5;
             this.compression = compression;
@@ -265,8 +274,7 @@ public class WriteSequenceToN5OmeZarr {
             this.timepointId = timepointId;
             this.dataType = N5Utils.dataType( type );
             this.type = type;
-            this.hasThanOneTimepoint = hasMoreThanOneTimepoint;
-            this.hasMoreThanOneSetup = hasMoreThanOneSetup;
+            this.axes = axes;
 
             switch ( dataType )
             {
@@ -306,11 +314,11 @@ public class WriteSequenceToN5OmeZarr {
         }
 
         private String getPathName( int level ) {
-            if ( hasMoreThanOneSetup && hasThanOneTimepoint ) {
+            if ( axes == ZarrAxes.TCZYX ) {
                 return String.format("s%d/%d/%d", level, timepointId, setupId);
-            } else if ( hasMoreThanOneSetup ) {
+            } else if ( axes == ZarrAxes.CZYX ) {
                 return String.format("s%d/%d", level, setupId);
-            } else if ( hasThanOneTimepoint ) {
+            } else if ( axes == ZarrAxes.TZYX ) {
                 return String.format("s%d/%d", level, timepointId);
             } else {
                 return String.format("s%d", level);
