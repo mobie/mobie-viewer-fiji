@@ -38,6 +38,7 @@ import org.janelia.saalfeldlab.n5.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
@@ -232,32 +233,19 @@ public class N5OmeZarrReader extends N5FSReader {
     public ZArrayAttributes getZArraryAttributes(final String pathName) throws IOException {
 
         final Path path = Paths.get(basePath, removeLeadingSlash(pathName), zarrayFile);
-        final HashMap<String, JsonElement> attributes = new HashMap<>();
 
+        OmeZArrayAttributes zArrayAttributes = null;
         if (Files.exists(path)) {
-
-            try (final LockedFileChannel lockedFileChannel = LockedFileChannel.openForReading(path)) {
-                attributes.putAll(
-                        GsonAttributesParser.readAttributes(
-                                Channels.newReader(
-                                        lockedFileChannel.getFileChannel(),
-                                        StandardCharsets.UTF_8.name()),
-                                gson));
+            try (final LockedFileChannel lockedFileChannel = LockedFileChannel.openForReading(path);
+                    final Reader reader = Channels.newReader(lockedFileChannel.getFileChannel(), StandardCharsets.UTF_8.name()) ) {
+                zArrayAttributes = gson.fromJson(reader, OmeZArrayAttributes.class);
             }
         } else System.out.println(path + " does not exist.");
 
-        JsonElement dimSep = attributes.get("dimension_separator");
-        this.dimensionSeparator = dimSep == null ? DEFAULT_SEPARATOR : dimSep.getAsString();
+        this.dimensionSeparator = zArrayAttributes == null || zArrayAttributes.getDimensionSeparator() == null ?
+                DEFAULT_SEPARATOR : zArrayAttributes.getDimensionSeparator();
 
-        return new ZArrayAttributes(
-                attributes.get("zarr_format").getAsInt(),
-                gson.fromJson(attributes.get("shape"), long[].class),
-                gson.fromJson(attributes.get("chunks"), int[].class),
-                gson.fromJson(attributes.get("dtype"), DType.class),
-                gson.fromJson(attributes.get("compressor"), ZarrCompressor.class),
-                attributes.get("fill_value").getAsString(),
-                attributes.get("order").getAsCharacter(),
-                gson.fromJson(attributes.get("filters"), TypeToken.getParameterized(Collection.class, Filter.class).getType()));
+        return zArrayAttributes;
     }
 
     @Override

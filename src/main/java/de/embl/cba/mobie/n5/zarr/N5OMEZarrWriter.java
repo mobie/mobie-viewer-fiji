@@ -205,7 +205,7 @@ public class N5OMEZarrWriter extends N5OmeZarrReader implements N5Writer {
         final int[] chunks = datasetAttributes.getBlockSize().clone();
         Utils.reorder(chunks);
 
-        final ZArrayAttributes zArrayAttributes = new ZArrayAttributes(
+        final OmeZArrayAttributes zArrayAttributes = new OmeZArrayAttributes(
                 N5ZarrReader.VERSION.getMajor(),
                 shape,
                 chunks,
@@ -213,7 +213,8 @@ public class N5OMEZarrWriter extends N5OmeZarrReader implements N5Writer {
                 ZarrCompressor.fromCompression(datasetAttributes.getCompression()),
                 "0",
                 'C',
-                null);
+                null,
+                dimensionSeparator);
 
         setZArrayAttributes(pathName, zArrayAttributes);
     }
