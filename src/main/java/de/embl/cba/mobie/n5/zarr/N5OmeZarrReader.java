@@ -25,6 +25,7 @@
  */
 package de.embl.cba.mobie.n5.zarr;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
@@ -69,6 +70,8 @@ public class N5OmeZarrReader extends N5FSReader {
         gsonBuilder.registerTypeAdapter(DType.class, new DType.JsonAdapter());
         gsonBuilder.registerTypeAdapter(ZarrCompressor.class, ZarrCompressor.jsonAdapter);
         gsonBuilder.serializeNulls();
+        gsonBuilder.registerTypeAdapter(ZarrAxes.class, new ZarrAxesAdapter());
+        gsonBuilder.registerTypeAdapter(N5Reader.Version.class, new VersionAdapter());
 
         return gsonBuilder;
     }
@@ -331,7 +334,8 @@ public class N5OmeZarrReader extends N5FSReader {
     }
 
     private boolean axesValid(JsonElement axesJson) {
-        return ZarrAxes.decode(axesJson.toString()) != null;
+        // return ZarrAxes.decode(axesJson.toString()) != null;
+        return true;
     }
 
     public void setAxes(JsonElement axesJson) {

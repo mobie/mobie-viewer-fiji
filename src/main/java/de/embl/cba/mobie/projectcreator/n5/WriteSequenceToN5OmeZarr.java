@@ -7,6 +7,7 @@ import bdv.export.SubTaskProgressWriter;
 import bdv.img.cache.SimpleCacheArrayLoader;
 import bdv.img.n5.N5ImageLoader;
 import com.google.gson.GsonBuilder;
+import de.embl.cba.mobie.n5.zarr.N5OMEZarrImageLoader;
 import de.embl.cba.mobie.n5.zarr.N5OMEZarrWriter;
 import de.embl.cba.mobie.n5.zarr.N5OmeZarrReader;
 import de.embl.cba.mobie.n5.zarr.N5ZarrWriter;
