@@ -118,15 +118,6 @@ public class WriteSequenceToN5OmeZarr {
         N5OMEZarrWriter n5 = new N5OMEZarrWriter( n5File.getAbsolutePath(), new GsonBuilder(), "/" );
 
         // TODO - handle multiple setups - write as separate zarr files with sensible naming scheme
-        // TODO - handle multiple timepoints properly
-
-        if ( setupIds.size() > 1 ) {
-            throw new UnsupportedOperationException("More than one setup is not yet supported!");
-        }
-
-        if ( timepointIds.size() > 1 ){
-            throw new UnsupportedOperationException("More than one timepoint is not yet supported!");
-        }
 
         // create group for top directory
         // n5.createGroup("");
@@ -179,9 +170,12 @@ public class WriteSequenceToN5OmeZarr {
                     final double startCompletionRatio = ( double ) numCompletedTasks++ / numTasks;
                     final double endCompletionRatio = ( double ) numCompletedTasks / numTasks;
                     final ProgressWriter subProgressWriter = new SubTaskProgressWriter( progressWriter, startCompletionRatio, endCompletionRatio );
+                    boolean hasMoreThanOneTimepoint = numTimepoints > 1;
+                    boolean hasMoreThanOneSetup = numSetups > 1;
                     writeScalePyramid(
                             n5, compression, downsamplingMethod,
-                            imgLoader, setupId, timepointId, mipmapInfo,
+                            imgLoader, setupId, timepointId, hasMoreThanOneTimepoint, hasMoreThanOneSetup,
+                            mipmapInfo,
                             executorService, numCellCreatorThreads,
                             loopbackHeuristic, afterEachPlane, subProgressWriter );
 
@@ -218,6 +212,8 @@ public class WriteSequenceToN5OmeZarr {
             final BasicImgLoader imgLoader,
             final int setupId,
             final int timepointId,
+            boolean hasMoreThanOneTimepoint,
+            boolean hasMoreThanOneSetup,
             final ExportMipmapInfo mipmapInfo,
             final ExecutorService executorService,
             final int numThreads,
@@ -228,7 +224,8 @@ public class WriteSequenceToN5OmeZarr {
         final BasicSetupImgLoader< T > setupImgLoader = Cast.unchecked( imgLoader.getSetupImgLoader( setupId ) );
         final RandomAccessibleInterval< T > img = setupImgLoader.getImage( timepointId );
         final T type = setupImgLoader.getImageType();
-        final N5DatasetIO< T > io = new N5DatasetIO<>( n5, compression, setupId, timepointId, type );
+        final N5DatasetIO< T > io = new N5DatasetIO<>( n5, compression, setupId, timepointId, type,
+                hasMoreThanOneTimepoint, hasMoreThanOneSetup );
         ExportScalePyramid.writeScalePyramid(
                 img, type, mipmapInfo, downsamplingMethod, io,
                 executorService, numThreads,
@@ -256,8 +253,11 @@ public class WriteSequenceToN5OmeZarr {
         private final DataType dataType;
         private final T type;
         private final Function< ExportScalePyramid.Block< T >, DataBlock< ? > > getDataBlock;
+        private final boolean hasThanOneTimepoint;
+        private final boolean hasMoreThanOneSetup;
 
-        public N5DatasetIO( final N5Writer n5, final Compression compression, final int setupId, final int timepointId, final T type )
+        public N5DatasetIO( final N5Writer n5, final Compression compression, final int setupId, final int timepointId, final T type,
+                            boolean hasMoreThanOneTimepoint, boolean hasMoreThanOneSetup )
         {
             this.n5 = n5;
             this.compression = compression;
@@ -265,6 +265,8 @@ public class WriteSequenceToN5OmeZarr {
             this.timepointId = timepointId;
             this.dataType = N5Utils.dataType( type );
             this.type = type;
+            this.hasThanOneTimepoint = hasMoreThanOneTimepoint;
+            this.hasMoreThanOneSetup = hasMoreThanOneSetup;
 
             switch ( dataType )
             {
@@ -303,11 +305,22 @@ public class WriteSequenceToN5OmeZarr {
             }
         }
 
+        private String getPathName( int level ) {
+            if ( hasMoreThanOneSetup && hasThanOneTimepoint ) {
+                return String.format("s%d/%d/%d", level, timepointId, setupId);
+            } else if ( hasMoreThanOneSetup ) {
+                return String.format("s%d/%d", level, setupId);
+            } else if ( hasThanOneTimepoint ) {
+                return String.format("s%d/%d", level, timepointId);
+            } else {
+                return String.format("s%d", level);
+            }
+        }
+
         @Override
         public N5Dataset createDataset(final int level, final long[] dimensions, final int[] blockSize ) throws IOException
         {
-            // final String pathName = getPathName( setupId, timepointId, level );
-            final String pathName = "s" + level;
+            final String pathName = getPathName( level );
             n5.createDataset( pathName, dimensions, blockSize, dataType, compression );
             final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
             return new N5Dataset( pathName, attributes );
@@ -326,8 +339,7 @@ public class WriteSequenceToN5OmeZarr {
         @Override
         public RandomAccessibleInterval< T > getImage( final int level ) throws IOException
         {
-            // final String pathName = getPathName( setupId, timepointId, level );
-            final String pathName = "s" + level;
+            final String pathName = getPathName( level );
             final DatasetAttributes attributes = n5.getDatasetAttributes( pathName );
             final long[] dimensions = attributes.getDimensions();
             final int[] cellDimensions = attributes.getBlockSize();
