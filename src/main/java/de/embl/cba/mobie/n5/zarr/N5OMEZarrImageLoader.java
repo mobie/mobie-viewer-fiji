@@ -74,6 +74,8 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 
+import static de.embl.cba.mobie.n5.zarr.OmeZarrMultiscales.MULTI_SCALE_KEY;
+
 public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoader {
 	private static final int C = 3;
 	private static final int T = 4;
@@ -255,8 +257,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	 * @throws IOException
 	 */
 	private OmeZarrMultiscales getMultiscale(String pathName) throws IOException {
-		final String key = "multiscales";
-		OmeZarrMultiscales[] multiscales = n5.getAttribute(pathName, key, OmeZarrMultiscales[].class);
+		OmeZarrMultiscales[] multiscales = n5.getAttribute(pathName, MULTI_SCALE_KEY, OmeZarrMultiscales[].class);
 		if (multiscales == null) {
 			String location = "";
 			if (n5 instanceof N5S3ZarrReader) {
@@ -266,7 +267,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 				location += "; bucket: " + s3ZarrReader.getBucketName();
 				location += "; container path: " + s3ZarrReader.getContainerPath();
 				location += "; path: " + pathName;
-				location += "; attribute: " + key;
+				location += "; attribute: " + MULTI_SCALE_KEY;
 			}
 			throw new UnsupportedOperationException("Could not find multiscales at " + location);
 		}

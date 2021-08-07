@@ -3,6 +3,10 @@ package de.embl.cba.mobie.n5.zarr;
 import org.janelia.saalfeldlab.n5.N5Reader;
 
 public class OmeZarrMultiscales {
+
+    // key in json for multiscales
+    public static final String MULTI_SCALE_KEY = "multiscales";
+
     public ZarrAxes axes;
     public Dataset[] datasets;
     public String name;

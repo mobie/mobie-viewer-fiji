@@ -37,10 +37,11 @@ import java.util.stream.Collectors;
 
 import static bdv.img.n5.BdvN5Format.*;
 import static bdv.img.n5.BdvN5Format.getPathName;
+import static de.embl.cba.mobie.n5.zarr.OmeZarrMultiscales.MULTI_SCALE_KEY;
 import static net.imglib2.cache.img.ReadOnlyCachedCellImgOptions.options;
 
 public class WriteSequenceToN5OmeZarr {
-    private static final String MULTI_SCALE_KEY = "multiscales";
+
     private static final String ARRAY_DIMENSIONS_KEY = "_ARRAY_DIMENSIONS";
     private static final String RESOLUTION_KEY = "resolution";
 
@@ -132,7 +133,8 @@ public class WriteSequenceToN5OmeZarr {
         // TODO - get name of image, or provide parameter for this
         // Currently we write v0.3 ome-zarr
         // Assumes persetupmipmapinfo is the same for every setup
-        OmeZarrMultiscales multiscales = new OmeZarrMultiscales(axes, "test", downsamplingMethod.name(),
+        OmeZarrMultiscales[] multiscales = new OmeZarrMultiscales[1];
+        multiscales[0] = new OmeZarrMultiscales(axes, "test", downsamplingMethod.name(),
                 new N5Reader.Version(0, 3, 0), perSetupMipmapInfo.get(0).getNumLevels() );
 
         n5.createGroup("");

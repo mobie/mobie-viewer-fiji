@@ -259,7 +259,7 @@ public class N5OMEZarrWriter extends N5OmeZarrReader implements N5Writer {
             if (mapN5DatasetAttributes && datasetExists(pathName)) {
 
                 attributes = new HashMap<>(attributes);
-                ZArrayAttributes zArrayAttributes = getZArraryAttributes(pathName);
+                ZArrayAttributes zArrayAttributes = getZArrayAttributes(pathName);
                 long[] shape;
                 int[] chunks;
                 final DType dtype;
@@ -300,7 +300,7 @@ public class N5OMEZarrWriter extends N5OmeZarrReader implements N5Writer {
                 } else
                     compressor = zArrayAttributes.getCompressor();
 
-                zArrayAttributes = new ZArrayAttributes(
+                zArrayAttributes = new OmeZArrayAttributes(
                         zArrayAttributes.getZarrFormat(),
                         shape,
                         chunks,
@@ -308,7 +308,8 @@ public class N5OMEZarrWriter extends N5OmeZarrReader implements N5Writer {
                         compressor,
                         zArrayAttributes.getFillValue(),
                         zArrayAttributes.getOrder(),
-                        zArrayAttributes.getFilters());
+                        zArrayAttributes.getFilters(),
+                        dimensionSeparator);
 
                 setZArrayAttributes(pathName, zArrayAttributes);
             }
@@ -438,7 +439,7 @@ public class N5OMEZarrWriter extends N5OmeZarrReader implements N5Writer {
         if (datasetAttributes instanceof ZarrDatasetAttributes)
             zarrDatasetAttributes = (ZarrDatasetAttributes)datasetAttributes;
         else
-            zarrDatasetAttributes = getZArraryAttributes(pathName).getDatasetAttributes();
+            zarrDatasetAttributes = getZArrayAttributes(pathName).getDatasetAttributes();
 
         final Path path = Paths.get(
                 basePath,
@@ -468,7 +469,7 @@ public class N5OMEZarrWriter extends N5OmeZarrReader implements N5Writer {
         if (datasetAttributes instanceof ZarrDatasetAttributes)
             zarrDatasetAttributes = (ZarrDatasetAttributes)datasetAttributes;
         else
-            zarrDatasetAttributes = getZArraryAttributes(pathName).getDatasetAttributes();
+            zarrDatasetAttributes = getZArrayAttributes(pathName).getDatasetAttributes();
 
         final Path path = Paths.get(
                 basePath,

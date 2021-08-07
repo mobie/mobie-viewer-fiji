@@ -25,10 +25,8 @@
  */
 package de.embl.cba.mobie.n5.zarr;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import com.google.gson.reflect.TypeToken;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.Type;
@@ -46,9 +44,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Stream;
+
+import static de.embl.cba.mobie.n5.zarr.OmeZarrMultiscales.MULTI_SCALE_KEY;
 
 
 /**
@@ -230,7 +230,7 @@ public class N5OmeZarrReader extends N5FSReader {
         return Files.exists(path) && Files.isRegularFile(path);
     }
 
-    public ZArrayAttributes getZArraryAttributes(final String pathName) throws IOException {
+    public ZArrayAttributes getZArrayAttributes(final String pathName) throws IOException {
 
         final Path path = Paths.get(basePath, removeLeadingSlash(pathName), zarrayFile);
 
@@ -251,7 +251,7 @@ public class N5OmeZarrReader extends N5FSReader {
     @Override
     public DatasetAttributes getDatasetAttributes(final String pathName) throws IOException {
 
-        final ZArrayAttributes zArrayAttributes = getZArraryAttributes(pathName);
+        final ZArrayAttributes zArrayAttributes = getZArrayAttributes(pathName);
         return zArrayAttributes == null ? null : zArrayAttributes.getDatasetAttributes();
     }
 
@@ -300,11 +300,11 @@ public class N5OmeZarrReader extends N5FSReader {
             }
         }
 
-        getDimensions(attributes);
+        setAxes(attributes);
 
         if (mapN5DatasetAttributes && datasetExists(pathName)) {
 
-            final DatasetAttributes datasetAttributes = getZArraryAttributes(pathName).getDatasetAttributes();
+            final DatasetAttributes datasetAttributes = getZArrayAttributes(pathName).getDatasetAttributes();
             attributes.put("dimensions", gson.toJsonTree(datasetAttributes.getDimensions()));
             attributes.put("blockSize", gson.toJsonTree(datasetAttributes.getBlockSize()));
             attributes.put("dataType", gson.toJsonTree(datasetAttributes.getDataType()));
@@ -314,27 +314,41 @@ public class N5OmeZarrReader extends N5FSReader {
         return attributes;
     }
 
-    private void getDimensions(HashMap<String, JsonElement> attributes) {
-        JsonElement multiscales = attributes.get("multiscales");
-        if (multiscales != null) {
-            JsonElement axes = multiscales.getAsJsonArray().get(0).getAsJsonObject().get("axes");
-            setAxes(axes);
-        }
-    }
-
-    private boolean axesValid(JsonElement axesJson) {
-        // return ZarrAxes.decode(axesJson.toString()) != null;
-        return true;
-    }
-
-    public void setAxes(JsonElement axesJson) {
-        if (axesJson != null && axesValid(axesJson)) {
-            for (int i = 0; i < axesJson.getAsJsonArray().size(); i++) {
-                String elem = axesJson.getAsJsonArray().get(i).getAsString();
-                this.axesMap.put(elem, i);
+    private void setAxes( HashMap<String, JsonElement> attributes ) throws IOException {
+        if ( attributes.size() > 0) {
+            OmeZarrMultiscales multiscale = GsonAttributesParser.parseAttribute(attributes,
+                    MULTI_SCALE_KEY, OmeZarrMultiscales[].class, gson)[0];
+            if (multiscale != null && multiscale.axes != null) {
+                List<String> axisList = multiscale.axes.getAxesList();
+                for (int i = 0; i < axisList.size(); i++) {
+                    this.axesMap.put(axisList.get(i), i);
+                }
             }
         }
     }
+
+    // private void getDimensions(HashMap<String, JsonElement> attributes) {
+    //     OmeZarrMultiscales multiscales = gson.fromJson( attributes.get( MULTI_SCALE_KEY ). );
+    //     JsonElement multiscales = attributes.get( MULTI_SCALE_KEY );
+    //     if (multiscales != null) {
+    //         JsonElement axes = multiscales.getAsJsonArray().get(0).getAsJsonObject().get("axes");
+    //         setAxes(axes);
+    //     }
+    // }
+
+    // private boolean axesValid(JsonElement axesJson) {
+    //     // return ZarrAxes.decode(axesJson.toString()) != null;
+    //     return true;
+    // }
+
+    // public void setAxes(JsonElement axesJson) {
+    //     if (axesJson != null && axesValid(axesJson)) {
+    //         for (int i = 0; i < axesJson.getAsJsonArray().size(); i++) {
+    //             String elem = axesJson.getAsJsonArray().get(i).getAsString();
+    //             this.axesMap.put(elem, i);
+    //         }
+    //     }
+    // }
 
     public HashMap<String, Integer> getAxes() {
         return this.axesMap;
@@ -462,7 +476,7 @@ public class N5OmeZarrReader extends N5FSReader {
         if (datasetAttributes instanceof ZarrDatasetAttributes)
             zarrDatasetAttributes = (ZarrDatasetAttributes) datasetAttributes;
         else
-            zarrDatasetAttributes = getZArraryAttributes(pathName).getDatasetAttributes();
+            zarrDatasetAttributes = getZArrayAttributes(pathName).getDatasetAttributes();
 
         Path path = Paths.get(
                 basePath,
