@@ -22,6 +22,7 @@ import net.imglib2.img.cell.CellGrid;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Cast;
+import org.apache.commons.compress.utils.FileNameUtils;
 import org.janelia.saalfeldlab.n5.*;
 import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
 
@@ -134,7 +135,7 @@ public class WriteSequenceToN5OmeZarr {
         // Currently we write v0.3 ome-zarr
         // Assumes persetupmipmapinfo is the same for every setup
         OmeZarrMultiscales[] multiscales = new OmeZarrMultiscales[1];
-        multiscales[0] = new OmeZarrMultiscales(axes, "test", downsamplingMethod.name(),
+        multiscales[0] = new OmeZarrMultiscales(axes, n5File.getName().split("\\.")[0], downsamplingMethod.name(),
                 new N5Reader.Version(0, 3, 0), perSetupMipmapInfo.get(0).getNumLevels() );
 
         n5.createGroup("");

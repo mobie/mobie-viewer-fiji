@@ -2,6 +2,7 @@ package de.embl.cba.mobie.projectcreator.n5;
 
 import bdv.export.ExportMipmapInfo;
 import bdv.export.ProgressWriter;
+import bdv.export.ProposeMipmaps;
 import bdv.export.SubTaskProgressWriter;
 import bdv.ij.util.PluginHelper;
 import bdv.ij.util.ProgressWriterIJ;
@@ -53,6 +54,41 @@ public class WriteImgPlusToN5OmeZarr extends WriteImgPlusToN5 {
                 compression, null );
 
         export( imp, defaultParameters );
+    }
+
+    // TODO - split some of this into common functions
+    protected Parameters generateDefaultParameters(ImagePlus imp, String xmlPath, AffineTransform3D sourceTransform,
+                                                   DownsampleBlock.DownsamplingMethod downsamplingMethod, Compression compression,
+                                                   String[] viewSetupNames ) {
+        FinalVoxelDimensions voxelSize = getVoxelSize( imp );
+        FinalDimensions size = getSize( imp );
+
+        // propose reasonable mipmap settings
+        final int maxNumElements = 64 * 64 * 64;
+        final ExportMipmapInfo autoMipmapSettings = ProposeMipmaps.proposeMipmaps(
+                new BasicViewSetup(0, "", size, voxelSize),
+                maxNumElements);
+
+        int[][] resolutions = autoMipmapSettings.getExportResolutions();
+        int[][] subdivisions = autoMipmapSettings.getSubdivisions();
+
+        if ( resolutions.length == 0 || subdivisions.length == 0 || resolutions.length != subdivisions.length ) {
+            IJ.showMessage( "Error with calculating default subdivisions and resolutions");
+            return null;
+        }
+
+        String seqFilename = xmlPath;
+        if ( !seqFilename.endsWith( ".xml" ) )
+            seqFilename += ".xml";
+        final File seqFile = getSeqFileFromPath( seqFilename );
+        if ( seqFile == null ) {
+            return null;
+        }
+
+        final File n5File = getOmeZarrFileFromXmlPath( seqFilename );
+
+        return new Parameters( resolutions, subdivisions, seqFile, n5File, sourceTransform,
+                downsamplingMethod, compression, viewSetupNames );
     }
 
     protected void export( ImagePlus imp, Parameters params ) {
