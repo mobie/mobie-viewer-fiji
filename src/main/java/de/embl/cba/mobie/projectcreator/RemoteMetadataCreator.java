@@ -2,11 +2,11 @@ package de.embl.cba.mobie.projectcreator;
 
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
-import de.embl.cba.mobie.n5.XmlIoN5S3ImageLoader;
 import de.embl.cba.mobie.Dataset;
 import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.mobie.source.ImageSource;
 import de.embl.cba.mobie.source.StorageLocation;
+import de.embl.cba.n5.util.loaders.xml.XmlIoN5S3ImageLoader;
 import de.embl.cba.tables.FileAndUrlUtils;
 import ij.IJ;
 import mpicbg.spim.data.SpimDataException;

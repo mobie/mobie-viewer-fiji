@@ -2,12 +2,12 @@ package de.embl.cba.mobie.projectcreator;
 
 import bdv.img.n5.N5ImageLoader;
 import bdv.spimdata.SpimDataMinimal;
-import de.embl.cba.mobie.n5.N5FSImageLoader;
-import de.embl.cba.mobie.n5.N5S3ImageLoader;
 import de.embl.cba.mobie.Dataset;
 import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.view.additionalviews.AdditionalViews;
+import de.embl.cba.n5.util.loaders.N5FSImageLoader;
+import de.embl.cba.n5.util.loaders.N5S3ImageLoader;
 import de.embl.cba.tables.FileAndUrlUtils;
 import ij.IJ;
 import ij.ImagePlus;
