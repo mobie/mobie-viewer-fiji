@@ -24,7 +24,7 @@ import de.embl.cba.n5.ome.zarr.loaders.N5OMEZarrImageLoader;
 import de.embl.cba.n5.ome.zarr.loaders.N5S3OMEZarrImageLoader;
 import de.embl.cba.n5.ome.zarr.openers.OMEZarrOpener;
 import de.embl.cba.n5.ome.zarr.openers.OMEZarrS3Opener;
-import de.embl.cba.n5.openorganelle.OpenOrganelleS3Reader;
+import de.embl.cba.n5.openorganelle.OpenOrganelleS3Opener;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
@@ -633,7 +633,7 @@ public class MoBIE
     private SpimData openOmeZarData( String path )
     {
         try {
-            return OMEZarrOpener.openFile( path );
+            return OMEZarrOpener.openFile( path, sharedQueue);
         } catch ( IOException e ) {
             e.printStackTrace();
         }
@@ -653,7 +653,7 @@ public class MoBIE
     private SpimData openOpenOrganelleData( String path )
     {
         try {
-            return OpenOrganelleS3Reader.readURL( path );
+            return OpenOrganelleS3Opener.readURL( path );
         } catch ( IOException e ) {
             e.printStackTrace();
         }
