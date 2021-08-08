@@ -3,7 +3,6 @@ package de.embl.cba.mobie.transform;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.Utils;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
@@ -15,7 +14,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class GridSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
@@ -56,8 +54,10 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 	private void transformSources( List< SourceAndConverter< T > > inputSources, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY )
 	{
 		final long start = System.currentTimeMillis();
+
 		final int nThreads = MoBIE.N_THREADS;
 		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
+		//final ExecutorService executorService = MoBIE.executorService;
 
 		for ( String gridId : sources.keySet() )
 		{
@@ -66,11 +66,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 			} );
 		}
 
-		executorService.shutdown();
-		try {
-			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-		} catch (InterruptedException e) {
-		}
+		Utils.waitUntilFinishedAndShutDown( executorService );
 
 		System.out.println( "Transformed " + inputSources.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
 	}

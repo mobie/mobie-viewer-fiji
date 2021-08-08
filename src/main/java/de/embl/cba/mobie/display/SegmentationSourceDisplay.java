@@ -51,6 +51,8 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 		return showSelectedSegmentsIn3d;
 	}
 
+	public SegmentationSourceDisplay(){}
+
 	public SegmentationSourceDisplay( String name, double opacity, List< String > sources,
 									  String lut, String colorByColumn, Double[] valueLimits,
 									  List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d,
