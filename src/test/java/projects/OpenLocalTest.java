@@ -13,6 +13,7 @@ public class OpenLocalTest
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		final MoBIE moBIE = new MoBIE("/g/kreshuk/pape/Work/mobie/covid-if-project/data", MoBIESettings.settings().imageDataFormat( ImageDataFormat.OmeZarr ));
+//		final MoBIE moBIE = new MoBIE("/g/kreshuk/pape/Work/mobie/covid-if-project/data", MoBIESettings.settings().imageDataFormat( ImageDataFormat.OmeZarr ));
+		final MoBIE moBIE = new MoBIE("/g/emcf/hennies/for_constantin/mobie_no_table_test", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ));
 	}
 }
