@@ -316,43 +316,10 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		}
 	}
 
-	// private static class Multiscale {
-	// 	String name;
-	// 	double[][] scales;
-	// 	Transform transform;
-	// 	Dataset[] datasets;
-	// }
-	//
-	// private static class Transform {
-	// 	String[] axes;
-	// 	double[] scale;
-	// 	double[] translate;
-	// 	String[] units;
-	// }
-
-	// private static class Multiscale {
-	// 	ZarrAxes axes;
-	// 	Dataset[] datasets;
-	// 	String name;
-	// 	String type;
-	// 	N5Reader.Version version;
-	// }
-	//
-	// private static class Dataset {
-	// 	String path;
-	// }
-
 	@NotNull
 	private ArrayList<ViewRegistration> createViewRegistrations(int setupId, int setupTimepoints) {
-		// OmeZarrMultiscales multiscale = setupToMultiscale.get(setupId);
-		AffineTransform3D transform = new AffineTransform3D();
 
-        // if ( multiscale.transform != null && multiscale.transform.scale != null && multiscale.transform.scale.length > 2 ) {
-        //     double[] scale = multiscale.transform.scale;
-        //     transform.scale( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
-        // } else {
-        //     transform.scale( 1, 1, 1 );
-        // }
+		AffineTransform3D transform = new AffineTransform3D();
 
         ArrayList<ViewRegistration> viewRegistrations = new ArrayList<>();
         for ( int t = 0; t < setupTimepoints; t++ )
@@ -388,15 +355,6 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		else
 			return "image " + setupId;
 	}
-
-	// @NotNull
-	// private VoxelDimensions readVoxelDimensions(Multiscale multiscale) {
-	// 	try {
-	// 		return new FinalVoxelDimensions(multiscale.transform.units[0], multiscale.transform.scale);
-	// 	} catch (Exception e) {
-	// 		return new DefaultVoxelDimensions(3);
-	// 	}
-	// }
 
 	/**
 	 * Clear the cache. Images that were obtained from
@@ -482,32 +440,25 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			OmeZarrMultiscales multiscale = setupToMultiscale.get(setupId);
 			double[][] mipmapResolutions = new double[multiscale.datasets.length][];
 
-			// TODO - how to store scales and resolutions?
-			//
-			// try {
-			// 	// System.arraycopy(multiscale.scales, 0, mipmapResolutions, 0, mipmapResolutions.length);
-			// } catch (Exception e) {
+			//Try to fix 2D problem
+			long[] dimensionsOfLevel0 = getDatasetAttributes(getPathName(setupId, 0)).getDimensions();
+			mipmapResolutions[0] = new double[]{1.0, 1.0, 1.0};
 
-				//Try to fix 2D problem
-				long[] dimensionsOfLevel0 = getDatasetAttributes(getPathName(setupId, 0)).getDimensions();
-				mipmapResolutions[0] = new double[]{1.0, 1.0, 1.0};
-
-				for (int level = 1; level < mipmapResolutions.length; level++) {
-					long[] dimensions = getDatasetAttributes(getPathName(setupId, level)).getDimensions();
+			for (int level = 1; level < mipmapResolutions.length; level++) {
+				long[] dimensions = getDatasetAttributes(getPathName(setupId, level)).getDimensions();
+				mipmapResolutions[level] = new double[3];
+				if (dimensions.length < 3 && dimensionsOfLevel0.length < 3) {
+					for (int d = 0; d < 2; d++) {
+						mipmapResolutions[level][d] = 1.0 * dimensionsOfLevel0[d] / dimensions[d];
+					}
+					mipmapResolutions[level][2] = 1.0;
+				} else {
 					mipmapResolutions[level] = new double[3];
-					if (dimensions.length < 3 && dimensionsOfLevel0.length < 3) {
-						for (int d = 0; d < 2; d++) {
-							mipmapResolutions[level][d] = 1.0 * dimensionsOfLevel0[d] / dimensions[d];
-						}
-						mipmapResolutions[level][2] = 1.0;
-					} else {
-						mipmapResolutions[level] = new double[3];
-						for (int d = 0; d < 3; d++) {
-							mipmapResolutions[level][d] = 1.0 * dimensionsOfLevel0[d] / dimensions[d];
-						}
+					for (int d = 0; d < 3; d++) {
+						mipmapResolutions[level][d] = 1.0 * dimensionsOfLevel0[d] / dimensions[d];
 					}
 				}
-			// }
+			}
 
 			return mipmapResolutions;
 		}

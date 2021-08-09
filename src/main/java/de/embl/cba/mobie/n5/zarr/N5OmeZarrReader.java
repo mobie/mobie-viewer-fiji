@@ -327,29 +327,6 @@ public class N5OmeZarrReader extends N5FSReader {
         }
     }
 
-    // private void getDimensions(HashMap<String, JsonElement> attributes) {
-    //     OmeZarrMultiscales multiscales = gson.fromJson( attributes.get( MULTI_SCALE_KEY ). );
-    //     JsonElement multiscales = attributes.get( MULTI_SCALE_KEY );
-    //     if (multiscales != null) {
-    //         JsonElement axes = multiscales.getAsJsonArray().get(0).getAsJsonObject().get("axes");
-    //         setAxes(axes);
-    //     }
-    // }
-
-    // private boolean axesValid(JsonElement axesJson) {
-    //     // return ZarrAxes.decode(axesJson.toString()) != null;
-    //     return true;
-    // }
-
-    // public void setAxes(JsonElement axesJson) {
-    //     if (axesJson != null && axesValid(axesJson)) {
-    //         for (int i = 0; i < axesJson.getAsJsonArray().size(); i++) {
-    //             String elem = axesJson.getAsJsonArray().get(i).getAsString();
-    //             this.axesMap.put(elem, i);
-    //         }
-    //     }
-    // }
-
     public HashMap<String, Integer> getAxes() {
         return this.axesMap;
     }
