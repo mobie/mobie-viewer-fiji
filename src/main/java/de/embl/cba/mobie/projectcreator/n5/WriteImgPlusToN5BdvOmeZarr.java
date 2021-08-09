@@ -5,10 +5,16 @@ import bdv.export.ProgressWriter;
 import bdv.export.ProposeMipmaps;
 import bdv.export.SubTaskProgressWriter;
 import bdv.spimdata.SequenceDescriptionMinimal;
+import bdv.spimdata.SpimDataMinimal;
+import bdv.spimdata.XmlIoSpimDataMinimal;
+import de.embl.cba.mobie.n5.zarr.N5OMEZarrImageLoader;
+import de.embl.cba.mobie.n5.zarr.N5OmeZarrReader;
 import ij.IJ;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
+import mpicbg.spim.data.registration.ViewRegistration;
+import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.FinalDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -16,46 +22,16 @@ import org.janelia.saalfeldlab.n5.Compression;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 
 import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.*;
+import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.getOmeZarrFileFromXmlPath;
 
-public class WriteImgPlusToN5OmeZarr extends WriteImgPlusToN5 {
-
-    // TODO - deal with transforms properly - is there somewhere in ome-zarr this can be written?
-
-    // export, generating default source transform, and default resolutions / subdivisions
-    @Override
-    public void export( ImagePlus imp, String zarrPath, DownsampleBlock.DownsamplingMethod downsamplingMethod,
-                        Compression compression ) {
-        super.export( imp, zarrPath, downsamplingMethod, compression );
-    }
-
-    // export, generating default resolutions / subdivisions
-    @Override
-    public void export(ImagePlus imp, String zarPath, AffineTransform3D sourceTransform,
-                       DownsampleBlock.DownsamplingMethod downsamplingMethod, Compression compression ) {
-        super.export( imp, zarPath, sourceTransform, downsamplingMethod, compression );
-    }
-
-
-    // export, generating default resolutions / subdivisions
-    @Override
-    public void export(ImagePlus imp, String zarrPath, AffineTransform3D sourceTransform,
-                       DownsampleBlock.DownsamplingMethod downsamplingMethod, Compression compression,
-                       String[] viewSetupNames ) {
-        super.export( imp, zarrPath, sourceTransform, downsamplingMethod, compression, viewSetupNames );
-    }
+public class WriteImgPlusToN5BdvOmeZarr extends WriteImgPlusToN5 {
 
     @Override
-    public void export( ImagePlus imp, int[][] resolutions, int[][] subdivisions, String zarrPath,
-                        AffineTransform3D sourceTransform, DownsampleBlock.DownsamplingMethod downsamplingMethod,
-                        Compression compression ) {
-        export( imp, resolutions, subdivisions, zarrPath, sourceTransform, downsamplingMethod, compression, null );
-    }
-
-    @Override
-    public void export( ImagePlus imp, int[][] resolutions, int[][] subdivisions, String zarrPath,
+    public void export( ImagePlus imp, int[][] resolutions, int[][] subdivisions, String xmlPath,
                         AffineTransform3D sourceTransform, DownsampleBlock.DownsamplingMethod downsamplingMethod,
                         Compression compression, String[] viewSetupNames ) {
         if ( resolutions.length == 0 ) {
@@ -73,18 +49,27 @@ public class WriteImgPlusToN5OmeZarr extends WriteImgPlusToN5 {
             return;
         }
 
-        final File zarrFile = new File( zarrPath );
+        String seqFilename = xmlPath;
+        if ( !seqFilename.endsWith( ".xml" ) )
+            seqFilename += ".xml";
+        final File seqFile = getSeqFileFromPath( seqFilename );
+        if ( seqFile == null ) {
+            return;
+        }
+
+        final File zarrFile = getOmeZarrFileFromXmlPath( seqFilename );
 
         // TODO - check transform and downsampling mode
 
-        Parameters exportParameters = new Parameters( resolutions, subdivisions, null, zarrFile, sourceTransform,
+        Parameters exportParameters = new Parameters( resolutions, subdivisions, seqFile, zarrFile, sourceTransform,
                 downsamplingMethod, compression, viewSetupNames );
 
         export( imp, exportParameters );
     }
 
+    // TODO - split some of this into common functions
     @Override
-    protected Parameters generateDefaultParameters(ImagePlus imp, String zarrPath, AffineTransform3D sourceTransform,
+    protected Parameters generateDefaultParameters(ImagePlus imp, String xmlPath, AffineTransform3D sourceTransform,
                                                    DownsampleBlock.DownsamplingMethod downsamplingMethod, Compression compression,
                                                    String[] viewSetupNames ) {
         FinalVoxelDimensions voxelSize = getVoxelSize( imp );
@@ -104,9 +89,17 @@ public class WriteImgPlusToN5OmeZarr extends WriteImgPlusToN5 {
             return null;
         }
 
-        final File zarrFile = new File( zarrPath );
+        String seqFilename = xmlPath;
+        if ( !seqFilename.endsWith( ".xml" ) )
+            seqFilename += ".xml";
+        final File seqFile = getSeqFileFromPath( seqFilename );
+        if ( seqFile == null ) {
+            return null;
+        }
 
-        return new Parameters( resolutions, subdivisions, null, zarrFile, sourceTransform,
+        final File zarrFile = getOmeZarrFileFromXmlPath( seqFilename );
+
+        return new Parameters( resolutions, subdivisions, seqFile, zarrFile, sourceTransform,
                 downsamplingMethod, compression, viewSetupNames );
     }
 
@@ -120,6 +113,21 @@ public class WriteImgPlusToN5OmeZarr extends WriteImgPlusToN5 {
                 params.compression, params.n5File,
                 loopbackHeuristic, afterEachPlane, numCellCreatorThreads,
                 new SubTaskProgressWriter( progressWriter, 0, 0.95 ) );
+
+        // write xml sequence description
+        final N5OMEZarrImageLoader zarrLoader = new N5OMEZarrImageLoader(
+                new N5OmeZarrReader( params.n5File.getAbsolutePath() ), seq );
+        final SequenceDescriptionMinimal seqh5 = new SequenceDescriptionMinimal( seq, zarrLoader );
+
+        final ArrayList<ViewRegistration> registrations = new ArrayList<>();
+        for ( int t = 0; t < numTimepoints; ++t )
+            for ( int s = 0; s < numSetups; ++s )
+                registrations.add( new ViewRegistration( t, s, params.sourceTransform ) );
+
+        final File basePath = params.seqFile.getParentFile();
+        final SpimDataMinimal spimData = new SpimDataMinimal( basePath, seqh5, new ViewRegistrations( registrations ) );
+
+        new XmlIoSpimDataMinimal().save( spimData, params.seqFile.getAbsolutePath() );
 
         progressWriter.setProgress( 1.0 );
     }
