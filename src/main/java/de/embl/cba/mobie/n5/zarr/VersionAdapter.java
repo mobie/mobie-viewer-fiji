@@ -1,6 +1,5 @@
 package de.embl.cba.mobie.n5.zarr;
 
-import com.google.api.client.json.JsonString;
 import com.google.gson.*;
 import org.janelia.saalfeldlab.n5.N5Reader;
 

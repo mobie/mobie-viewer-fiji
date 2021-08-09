@@ -4,7 +4,6 @@ import com.google.gson.*;
 import java.lang.reflect.Type;
 import java.util.List;
 
-// TODO - improve this business?
 public class ZarrAxesAdapter implements JsonDeserializer< ZarrAxes >, JsonSerializer< ZarrAxes >
     {
 

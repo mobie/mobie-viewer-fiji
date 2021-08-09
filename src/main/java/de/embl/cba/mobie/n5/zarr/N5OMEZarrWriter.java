@@ -26,10 +26,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+// This is mostly a copy of N5ZarrWriter with minor changes needed for ome-zarr
 public class N5OMEZarrWriter extends N5OmeZarrReader implements N5Writer {
 
     /**
-     * Opens an {@link N5ZarrWriter} at a given base path with a custom
+     * Opens an {@link N5OMEZarrWriter} at a given base path with a custom
      * {@link GsonBuilder} to support custom attributes.
      *
      * If the base path does not exist, it will be created.
@@ -54,7 +55,7 @@ public class N5OMEZarrWriter extends N5OmeZarrReader implements N5Writer {
     }
 
     /**
-     * Opens an {@link N5ZarrWriter} at a given base path with a custom
+     * Opens an {@link N5OMEZarrWriter} at a given base path with a custom
      * {@link GsonBuilder} to support custom attributes.
      *
      * If the base path does not exist, it will be created.
@@ -71,7 +72,7 @@ public class N5OMEZarrWriter extends N5OmeZarrReader implements N5Writer {
     }
 
     /**
-     * Opens an {@link N5ZarrWriter} at a given base path.
+     * Opens an {@link N5OMEZarrWriter} at a given base path.
      *
      * If the base path does not exist, it will be created.
      *
@@ -93,7 +94,7 @@ public class N5OMEZarrWriter extends N5OmeZarrReader implements N5Writer {
     }
 
     /**
-     * Opens an {@link N5ZarrWriter} at a given base path.
+     * Opens an {@link N5OMEZarrWriter} at a given base path.
      *
      * If the base path does not exist, it will be created.
      *
@@ -114,7 +115,7 @@ public class N5OMEZarrWriter extends N5OmeZarrReader implements N5Writer {
     }
 
     /**
-     * Opens an {@link N5ZarrWriter} at a given base path with a custom
+     * Opens an {@link N5OMEZarrWriter} at a given base path with a custom
      * {@link GsonBuilder} to support custom attributes.
      *
      * If the base path does not exist, it will be created.
@@ -131,7 +132,7 @@ public class N5OMEZarrWriter extends N5OmeZarrReader implements N5Writer {
     }
 
     /**
-     * Opens an {@link N5ZarrWriter} at a given base path.
+     * Opens an {@link N5OMEZarrWriter} at a given base path.
      *
      * If the base path does not exist, it will be created.
      *
