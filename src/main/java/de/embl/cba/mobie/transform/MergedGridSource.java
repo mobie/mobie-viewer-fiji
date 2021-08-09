@@ -1,11 +1,14 @@
 package de.embl.cba.mobie.transform;
 
+import bdv.util.volatiles.VolatileViews;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import de.embl.cba.mobie.Utils;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
+import net.imglib2.Volatile;
+import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -52,14 +55,18 @@ public class MergedGridSource< T > implements Source< T >
 				dimensions[ d ] *= cellDimensions[ d ];
 			}
 
-			new ReadOnlyCachedCellImgFactory().create(
-					dimensions,
-					type,
-					loader,
-					ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
+			//VolatileViews.wrapAsVolatile(  )
+
+//			new ReadOnlyCachedCellImgFactory().create(
+//					dimensions,
+//					type,
+//					loader,
+//					ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
 		}
 
 	}
+
+
 
 	@Override
 	public boolean isPresent( int t )

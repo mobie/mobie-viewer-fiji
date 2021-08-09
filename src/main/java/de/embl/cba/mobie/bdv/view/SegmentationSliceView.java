@@ -1,5 +1,6 @@
 package de.embl.cba.mobie.bdv.view;
 
+import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
@@ -64,6 +65,7 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 			// show
 			displayService.show( bdvHandle, display.isVisible(), sourceAndConverter );
 
+			BdvFunctions.show(  )
 			// set blending mode
 			if ( display.getBlendingMode() != null )
 				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
