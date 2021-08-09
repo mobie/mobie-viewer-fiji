@@ -14,7 +14,6 @@ import mpicbg.spim.data.generic.sequence.BasicSetupImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.TimePoint;
 import mpicbg.spim.data.sequence.ViewId;
-import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.img.cell.Cell;
@@ -22,7 +21,6 @@ import net.imglib2.img.cell.CellGrid;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Cast;
-import org.apache.commons.compress.utils.FileNameUtils;
 import org.janelia.saalfeldlab.n5.*;
 import org.janelia.saalfeldlab.n5.imglib2.N5Utils;
 
@@ -36,22 +34,19 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static bdv.img.n5.BdvN5Format.*;
-import static bdv.img.n5.BdvN5Format.getPathName;
 import static de.embl.cba.mobie.n5.zarr.OmeZarrMultiscales.MULTI_SCALE_KEY;
 import static net.imglib2.cache.img.ReadOnlyCachedCellImgOptions.options;
 
 public class WriteSequenceToN5OmeZarr {
 
     private static final String ARRAY_DIMENSIONS_KEY = "_ARRAY_DIMENSIONS";
-    private static final String RESOLUTION_KEY = "resolution";
 
     /**
-     * Create a n5 group containing image data from all views and all
+     * Create a ome zarr group containing image data from all views and all
      * timepoints in a chunked, mipmaped representation.
      *
      * @param seq
-     *            description of the sequence to be stored as hdf5. (The
+     *            description of the sequence to be stored as ome-zarr. (The
      *            {@link AbstractSequenceDescription} contains the number of
      *            setups and timepoints as well as an {@link BasicImgLoader}
      *            that provides the image data, Registration information is not
@@ -63,12 +58,12 @@ public class WriteSequenceToN5OmeZarr {
      *            subsampling factors and subdivision block sizes.
      * @param compression
      *            n5 compression scheme.
-     * @param n5File
-     *            n5 root.
+     * @param zarrFile
+     *            zarr file root.
      * @param loopbackHeuristic
      *            heuristic to decide whether to create each resolution level by
      *            reading pixels from the original image or by reading back a
-     *            finer resolution level already written to the hdf5. may be
+     *            finer resolution level already written to the ome-zarr. may be
      *            null (in this case always use the original image).
      * @param afterEachPlane
      *            this is called after each "plane of chunks" is written, giving
@@ -81,12 +76,12 @@ public class WriteSequenceToN5OmeZarr {
      * @param progressWriter
      *            completion ratio and status output will be directed here.
      */
-    public static void writeN5File(
+    public static void writeOmeZarrFile(
             final AbstractSequenceDescription< ?, ?, ? > seq,
             final Map< Integer, ExportMipmapInfo> perSetupMipmapInfo,
             final DownsampleBlock.DownsamplingMethod downsamplingMethod,
             final Compression compression,
-            final File n5File,
+            final File zarrFile,
             final ExportScalePyramid.LoopbackHeuristic loopbackHeuristic,
             final ExportScalePyramid.AfterEachPlane afterEachPlane,
             final int numCellCreatorThreads,
@@ -114,10 +109,7 @@ public class WriteSequenceToN5OmeZarr {
                 .map( BasicViewSetup::getId )
                 .collect( Collectors.toList() );
 
-        // N5Writer n5 = new N5FSWriter( n5File.getAbsolutePath() );
-        N5OMEZarrWriter n5 = new N5OMEZarrWriter( n5File.getAbsolutePath(), new GsonBuilder(), "/" );
-
-        // TODO - handle multiple setups - write as separate zarr files with sensible naming scheme
+        N5OMEZarrWriter zarrWriter = new N5OMEZarrWriter( zarrFile.getAbsolutePath(), new GsonBuilder(), "/" );
 
         ZarrAxes axes;
         if ( timepointIds.size() > 1 && setupIds.size() > 1 ) {
@@ -131,27 +123,14 @@ public class WriteSequenceToN5OmeZarr {
         }
 
         // create group for top directory & add multiscales
-        // TODO - get name of image, or provide parameter for this
         // Currently we write v0.3 ome-zarr
         // Assumes persetupmipmapinfo is the same for every setup
         OmeZarrMultiscales[] multiscales = new OmeZarrMultiscales[1];
-        multiscales[0] = new OmeZarrMultiscales(axes, n5File.getName().split("\\.")[0], downsamplingMethod.name(),
+        multiscales[0] = new OmeZarrMultiscales(axes, zarrFile.getName().split("\\.")[0], downsamplingMethod.name(),
                 new N5Reader.Version(0, 3, 0), perSetupMipmapInfo.get(0).getNumLevels() );
 
-        n5.createGroup("");
-        n5.setAttribute("", MULTI_SCALE_KEY, multiscales );
-
-        // // write Mipmap descriptions
-        // for ( final int setupId : setupIds )
-        // {
-        //     final String pathName = getPathName( setupId );
-        //     final int[][] downsamplingFactors = perSetupMipmapInfo.get( setupId ).getExportResolutions();
-        //     final DataType dataType = N5Utils.dataType( Cast.unchecked( imgLoader.getSetupImgLoader( setupId ).getImageType() ) );
-        //     n5.createGroup( pathName );
-        //     n5.setAttribute( pathName, DOWNSAMPLING_FACTORS_KEY, downsamplingFactors );
-        //     n5.setAttribute( pathName, DATA_TYPE_KEY, dataType );
-        // }
-
+        zarrWriter.createGroup("");
+        zarrWriter.setAttribute("", MULTI_SCALE_KEY, multiscales );
 
         // calculate number of tasks for progressWriter
         int numTasks = 0; // first task is for writing mipmap descriptions etc...
@@ -188,27 +167,11 @@ public class WriteSequenceToN5OmeZarr {
                     final double endCompletionRatio = ( double ) numCompletedTasks / numTasks;
                     final ProgressWriter subProgressWriter = new SubTaskProgressWriter( progressWriter, startCompletionRatio, endCompletionRatio );
                     writeScalePyramid(
-                            n5, compression, downsamplingMethod,
+                            zarrWriter, compression, downsamplingMethod,
                             imgLoader, setupId, timepointId, numSetups, numTimepoints, axes,
                             mipmapInfo,
                             executorService, numCellCreatorThreads,
                             loopbackHeuristic, afterEachPlane, subProgressWriter );
-
-
-                    // // additional attributes for paintera compatibility
-                    // final String pathName = getPathName( setupId, timepointId );
-                    // n5.createGroup( pathName );
-                    // n5.setAttribute( pathName, MULTI_SCALE_KEY, true );
-                    // final VoxelDimensions voxelSize = seq.getViewSetups().get( setupId ).getVoxelSize();
-                    // if ( voxelSize != null )
-                    // {
-                    //     final double[] resolution = new double[ voxelSize.numDimensions() ];
-                    //     voxelSize.dimensions( resolution );
-                    //     n5.setAttribute( pathName, RESOLUTION_KEY, resolution );
-                    // }
-                    // final int[][] downsamplingFactors = perSetupMipmapInfo.get( setupId ).getExportResolutions();
-                    // for( int l = 0; l < downsamplingFactors.length; ++l )
-                    //     n5.setAttribute( getPathName( setupId, timepointId, l ), DOWNSAMPLING_FACTORS_KEY, downsamplingFactors[ l ] );
                 }
             }
         }
@@ -221,7 +184,7 @@ public class WriteSequenceToN5OmeZarr {
     }
 
     static < T extends RealType< T > & NativeType< T > > void writeScalePyramid(
-            final N5Writer n5,
+            final N5OMEZarrWriter zarrWriter,
             final Compression compression,
             final DownsampleBlock.DownsamplingMethod downsamplingMethod,
             final BasicImgLoader imgLoader,
@@ -240,7 +203,7 @@ public class WriteSequenceToN5OmeZarr {
         final BasicSetupImgLoader< T > setupImgLoader = Cast.unchecked( imgLoader.getSetupImgLoader( setupId ) );
         final RandomAccessibleInterval< T > img = setupImgLoader.getImage( timepointId );
         final T type = setupImgLoader.getImageType();
-        final N5DatasetIO< T > io = new N5DatasetIO<>( n5, compression, setupId, timepointId, type,
+        final OmeZarrDatasetIO< T > io = new OmeZarrDatasetIO<>( zarrWriter, compression, setupId, timepointId, type,
                 totalNSetups, totalNTimepoints, axes );
         ExportScalePyramid.writeScalePyramid(
                 img, type, mipmapInfo, downsamplingMethod, io,
@@ -248,21 +211,21 @@ public class WriteSequenceToN5OmeZarr {
                 loopbackHeuristic, afterEachPlane, progressWriter );
     }
 
-    static class N5Dataset
+    static class OmeZarrDataset
     {
         final String pathName;
         final DatasetAttributes attributes;
 
-        public N5Dataset( final String pathName, final DatasetAttributes attributes )
+        public OmeZarrDataset(final String pathName, final DatasetAttributes attributes )
         {
             this.pathName = pathName;
             this.attributes = attributes;
         }
     }
 
-    static class N5DatasetIO< T extends RealType< T > & NativeType< T > > implements ExportScalePyramid.DatasetIO<N5Dataset, T >
+    static class OmeZarrDatasetIO< T extends RealType< T > & NativeType< T > > implements ExportScalePyramid.DatasetIO<OmeZarrDataset, T >
     {
-        private final N5Writer n5;
+        private final N5OMEZarrWriter zarrWriter;
         private final Compression compression;
         private final int setupId;
         private final int timepointId;
@@ -273,10 +236,11 @@ public class WriteSequenceToN5OmeZarr {
         private final int totalNTimepoints;
         private final ZarrAxes axes;
 
-        public N5DatasetIO( final N5Writer n5, final Compression compression, final int setupId, final int timepointId, final T type,
-                            final int totalNSetups, final int totalNTimepoints, ZarrAxes axes )
+        public OmeZarrDatasetIO(final N5OMEZarrWriter zarrWriter, final Compression compression, final int setupId,
+                                final int timepointId, final T type,
+                                final int totalNSetups, final int totalNTimepoints, ZarrAxes axes )
         {
-            this.n5 = n5;
+            this.zarrWriter = zarrWriter;
             this.compression = compression;
             this.setupId = setupId;
             this.timepointId = timepointId;
@@ -390,47 +354,47 @@ public class WriteSequenceToN5OmeZarr {
         }
 
         @Override
-        public N5Dataset createDataset(final int level, final long[] zyxDimensions, final int[] zyxBlockSize ) throws IOException
+        public OmeZarrDataset createDataset(final int level, final long[] zyxDimensions, final int[] zyxBlockSize ) throws IOException
         {
             // create dataset directory + metadata
             final String pathName = "s" + level;
-            n5.createDataset( pathName, addSetupAndTimeToShape(zyxDimensions),
+            zarrWriter.createDataset( pathName, addSetupAndTimeToShape(zyxDimensions),
                     addSingletonDimensionsToChunks(zyxBlockSize), dataType, compression );
 
-            // TODO - ideally this would go inside n5.createDataset(), but it's a bit complicated to get it there
-            n5.setAttribute(pathName, ARRAY_DIMENSIONS_KEY, axes );
+            // TODO - ideally this would go inside zarrWriter.createDataset(), but it's a bit complicated to get it there
+            zarrWriter.setAttribute(pathName, ARRAY_DIMENSIONS_KEY, axes );
 
             // here we have to get the zarr attributes that were written, and re-set the shape/chunks to just zyx, as
             // all the chunking etc operates only in 3D
-            final ZarrDatasetAttributes zarrDatasetAttributes = (ZarrDatasetAttributes) n5.getDatasetAttributes( pathName );
+            final ZarrDatasetAttributes zarrDatasetAttributes = (ZarrDatasetAttributes) zarrWriter.getDatasetAttributes( pathName );
             final DatasetAttributes datasetAttributes = new ZarrDatasetAttributes( zyxDimensions, zyxBlockSize,
                     zarrDatasetAttributes.getDType(), compression,
                     zarrDatasetAttributes.isRowMajor(),
                     zarrDatasetAttributes.getFillValue() );
 
             // we provide the full path, including any time or channels to actually write blocks
-            return new N5Dataset( getPathName(level), datasetAttributes );
+            return new OmeZarrDataset( getPathName(level), datasetAttributes );
         }
 
         @Override
-        public void writeBlock(final N5Dataset dataset, final ExportScalePyramid.Block< T > dataBlock ) throws IOException
+        public void writeBlock(final OmeZarrDataset dataset, final ExportScalePyramid.Block< T > dataBlock ) throws IOException
         {
-            n5.writeBlock( dataset.pathName, dataset.attributes, getDataBlock.apply( dataBlock ) );
+            zarrWriter.writeBlock( dataset.pathName, dataset.attributes, getDataBlock.apply( dataBlock ) );
         }
 
         @Override
-        public void flush( final N5Dataset dataset )
+        public void flush( final OmeZarrDataset dataset )
         {}
 
         @Override
         public RandomAccessibleInterval< T > getImage( final int level ) throws IOException
         {
             final String pathName = getPathName( level );
-            final DatasetAttributes attributes = n5.getDatasetAttributes( "s" + level );
+            final DatasetAttributes attributes = zarrWriter.getDatasetAttributes( "s" + level );
             final long[] dimensions = attributes.getDimensions();
             final int[] cellDimensions = attributes.getBlockSize();
             final CellGrid grid = new CellGrid( dimensions, cellDimensions );
-            final SimpleCacheArrayLoader< ? > cacheArrayLoader = N5ImageLoader.createCacheArrayLoader( n5, pathName );
+            final SimpleCacheArrayLoader< ? > cacheArrayLoader = N5ImageLoader.createCacheArrayLoader(zarrWriter, pathName );
             return new ReadOnlyCachedCellImgFactory().createWithCacheLoader(
                     dimensions, type,
                     key -> {

@@ -108,7 +108,7 @@ public class WriteImgPlusToN5BdvOmeZarr extends WriteImgPlusToN5 {
                               Parameters params, ExportScalePyramid.LoopbackHeuristic loopbackHeuristic,
                               ExportScalePyramid.AfterEachPlane afterEachPlane, int numCellCreatorThreads,
                               ProgressWriter progressWriter, int numTimepoints, int numSetups ) throws IOException, SpimDataException {
-        WriteSequenceToN5OmeZarr.writeN5File( seq, perSetupExportMipmapInfo,
+        WriteSequenceToN5OmeZarr.writeOmeZarrFile( seq, perSetupExportMipmapInfo,
                 params.downsamplingMethod,
                 params.compression, params.n5File,
                 loopbackHeuristic, afterEachPlane, numCellCreatorThreads,
