@@ -338,9 +338,10 @@ public class UserInterfaceHelper
 		panel.add( createRemoveButton( display ) );
 		panel.add( createSpace() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), display.sourceAndConverters ) );
-		panel.add( createVolumeViewerVisibilityCheckbox( display ) );
 		if ( display.tableRows != null )
 		{
+			// segments 3D view
+			panel.add( createVolumeViewerVisibilityCheckbox( display ) );
 			// table view
 			panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableViewer.getWindow() ) );
 			// scatter plot view
@@ -348,6 +349,7 @@ public class UserInterfaceHelper
 		}
 		else
 		{
+			panel.add( createCheckboxPlaceholder() );
 			panel.add( createCheckboxPlaceholder() );
 			panel.add( createCheckboxPlaceholder() );
 		}
