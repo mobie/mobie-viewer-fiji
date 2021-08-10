@@ -6,6 +6,7 @@ import bdv.viewer.Source;
 import de.embl.cba.mobie.Utils;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.cache.img.CachedCellImg;
@@ -17,6 +18,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.util.Util;
+import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
@@ -33,27 +35,33 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	private final String mergedGridSourceName;
 	private final List< RandomAccessibleInterval< T > > mergedRandomAccessibleIntervals;
 	private final DefaultInterpolators< T > interpolators;
+	private final List< Source< T > > gridSources;
+	private final List< int[] > positions;
+	private final double gridSpacing;
 	private int currentTimepoint = 0;
 
-	public MergedGridSource( List< Source< T > > gridSources, List< int[] > positions, String mergedGridSourceName )
+	public MergedGridSource( List< Source< T > > gridSources, List< int[] > positions, String mergedGridSourceName, double gridSpacing )
 	{
-		interpolators = new DefaultInterpolators<>();
-		referenceSource = gridSources.get( 0 );
+		this.gridSources = gridSources;
+		this.positions = positions;
+		this.gridSpacing = gridSpacing;
+		this.interpolators = new DefaultInterpolators<>();
+		this.referenceSource = gridSources.get( 0 );
 		this.mergedGridSourceName = mergedGridSourceName;
-		type = Util.getTypeFromInterval( referenceSource.getSource( 0, 0 ) );
-		mergedRandomAccessibleIntervals = createMergedRandomAccessibleIntervals( gridSources, referenceSource, positions, type );
+		this.type = Util.getTypeFromInterval( referenceSource.getSource( 0, 0 ) );
+
+		mergedRandomAccessibleIntervals = createMergedRandomAccessibleIntervals();
 	}
 
-	private < T extends NativeType< T > & NumericType< T > > List< RandomAccessibleInterval< T > > createMergedRandomAccessibleIntervals( List< Source< T > > gridSources, Source< T > referenceSource, List< int[] > positions, T type )
+	private < T extends NativeType< T > & NumericType< T > > List< RandomAccessibleInterval< T > > createMergedRandomAccessibleIntervals()
 	{
 		List< RandomAccessibleInterval< T >> mergedRandomAccessibleIntervals = new ArrayList<>();
 		int numMipmapLevels = referenceSource.getNumMipmapLevels();
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
-			// TODO: add grid spacing
-			final int[] cellDimensions = getCellDimensions( referenceSource.getSource( 0, level ) );
-			long[] dimensions = getDimensions( positions, cellDimensions );
-			long[] min = getMin( positions, cellDimensions );
+			final int[] cellDimensions = getCellDimensions( referenceSource.getSource( 0, level ), gridSpacing );
+			long[] mergedDimensions = getDimensions( positions, cellDimensions );
+			long[] offset = getMin( positions, cellDimensions );
 
 			final Map< String, Integer > cellKeyToSourceIndex = new HashMap<>();
 			for ( int i = 0; i < positions.size(); i++ )
@@ -66,21 +74,18 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 				}
 				String key = getCellKey( cellMins );
 				cellKeyToSourceIndex.put( key, i );
-				if ( mergedGridSourceName.equals( "plate_nuclei" ) )
-				{
-					int a = 1;
-				}
 			}
 
-			final RandomAccessibleIntervalCellLoader< T > cellLoader = new RandomAccessibleIntervalCellLoader( gridSources, cellKeyToSourceIndex, level, min );
+			final RandomAccessibleIntervalCellLoader< T > cellLoader = new RandomAccessibleIntervalCellLoader( gridSources, cellKeyToSourceIndex, level, offset );
 
-			final CachedCellImg< T, ? > cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
-					dimensions,
-					type,
-					cellLoader,
-					ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
+			final CachedCellImg< T, ? > cachedCellImg =
+					new ReadOnlyCachedCellImgFactory().create(
+						mergedDimensions,
+						type,
+						cellLoader,
+						ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
 
-			final IntervalView< T > translate = Views.translate( cachedCellImg, min );
+			final IntervalView< T > translate = Views.translate( cachedCellImg, offset );
 			mergedRandomAccessibleIntervals.add( translate );
 		}
 
@@ -121,10 +126,14 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	}
 
 
-	private static int[] getCellDimensions( RandomAccessibleInterval< ? > source )
+	private static int[] getCellDimensions( RandomAccessibleInterval< ? > source, double gridSpacing )
 	{
 		final long[] referenceSourceDimensions = source.dimensionsAsLongArray();
 		final int[] cellDimensions = Utils.asInts( referenceSourceDimensions );
+		for ( int d = 0; d < 2; d++ )
+		{
+			cellDimensions[ d ] *= ( 1.0 + 2.0 * gridSpacing );
+		}
 		return cellDimensions;
 	}
 
@@ -214,20 +223,55 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		@Override
 		public void load( SingleCellArrayImg< T, ? > cell ) throws Exception
 		{
-			final long[] min = new long[ 3 ];
-			cell.min( min );
-			for ( int d = 0; d < 3; d++ )
-				min[ d ] += cellMinOffset[ d ];
+			final long[] cellMin = new long[ 3 ];
+			cell.min( cellMin );
 
-			final String cellKey = getCellKey( min );
+			final long[] cellMinWithOffset = new long[ 3 ];
+			for ( int d = 0; d < 3; d++ )
+				cellMinWithOffset[ d ] = cellMin[ d ] + cellMinOffset[ d ];
+			final String cellKey = getCellKey( cellMinWithOffset );
+
 			if ( cellKeyToSourceIndex.containsKey( cellKey ) )
 			{
-				final RandomAccessibleInterval< T > randomAccessibleInterval = gridSources.get( cellKeyToSourceIndex.get( cellKey ) ).getSource( 0, level );
-				Cursor< T > s = Views.flatIterable( randomAccessibleInterval ).cursor();
-				Cursor< T > t = cell.cursor();
-				while(s.hasNext()) {
-					t.next().set(s.next());
+				final long[] cellDimensions = new long[ 3 ];
+				cell.dimensions( cellDimensions );
+
+				RandomAccessibleInterval< T > randomAccessibleInterval = gridSources.get( cellKeyToSourceIndex.get( cellKey ) ).getSource( 0, level );
+				// TODO: extend the rai to match the cell
+
+				final long[] raiDimensions = new long[ 3 ];
+				randomAccessibleInterval.dimensions( raiDimensions );
+
+				final long[] offset = new long[ 3 ];
+				for ( int d = 0; d < 3; d++ )
+				{
+					final long margin = ( cellDimensions[ d ] - raiDimensions[ d ] ) / 2;
+					offset[ d ] = margin + cellMin[ d ];
 				}
+
+				randomAccessibleInterval = Views.translate( randomAccessibleInterval, offset );
+
+				// create a cursor that automatically localizes itself on every move
+				RandomAccess< T > targetAccess = cell.randomAccess();
+				Cursor< T > sourceCursor = Views.iterable( randomAccessibleInterval ).cursor();
+
+				while ( sourceCursor.hasNext() )
+				{
+					try
+					{
+						sourceCursor.fwd();
+						targetAccess.setPositionAndGet( sourceCursor ).set( sourceCursor.get() );
+					} catch ( Exception e )
+					{
+						int a = 1;
+					}
+				}
+
+//				Cursor< T > s = randomAccessibleInterval.cursor();
+//				Cursor< T > t = cell.cursor();
+//				while(s.hasNext()) {
+//					t.next().set(s.next());
+//				}
 			}
 			else
 			{

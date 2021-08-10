@@ -27,33 +27,39 @@ public class MergedGridSourceTransformer< T extends NativeType< T > & NumericTyp
 	@Override
 	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sourceAndConverters )
 	{
-		final List< Source< T > > gridSources = new ArrayList<>();
-		for ( String source : sources )
-		{
-			final SourceAndConverter< T > sourceAndConverter = Utils.getSourceAndConverter( sourceAndConverters, source );
-			if ( sourceAndConverter != null )
-				gridSources.add( sourceAndConverter.getSpimSource() );
-		}
+		final List< Source< T > > gridSources = getSources( sourceAndConverters );
 
 		if ( gridSources.size() == 0 )
 		{
-			// the transformer has nothing to transform
+			// the transformer has nothing to do for the given input
 			return sourceAndConverters;
 		}
 
 		if ( positions == null )
 			positions = createPositions( sources.size() );
 
-		final MergedGridSource< T > mergedGridSource = new MergedGridSource<>( gridSources, positions, mergedGridSourceName );
+		final SourceAndConverter< T > mergedSourceAndConverter = createMergedSourceAndConverter( sourceAndConverters, gridSources );
+
+		List< SourceAndConverter< T > > transformedSourceAndConverters = getTransformedSourceAndConverters( sourceAndConverters, mergedSourceAndConverter );
+
+		return transformedSourceAndConverters;
+	}
+
+	private SourceAndConverter< T > createMergedSourceAndConverter( List< SourceAndConverter< T > > sourceAndConverters, List< Source< T > > gridSources )
+	{
+		final MergedGridSource< T > mergedGridSource = new MergedGridSource<>( gridSources, positions, mergedGridSourceName, 0.10 );
 
 		final VolatileSource< T, V > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
 
 		final SourceAndConverter< V > vsac = new SourceAndConverter<>( volatileMergedGridSource, ( Converter< V, ARGBType > ) Utils.getSourceAndConverter( sourceAndConverters, sources.get( 0 ) ).asVolatile().getConverter() );
 
 		final SourceAndConverter< T > mergedSourceAndConverter = new SourceAndConverter( mergedGridSource, Utils.getSourceAndConverter( sourceAndConverters, sources.get( 0 ) ).getConverter(), vsac );
+		return mergedSourceAndConverter;
+	}
 
+	private List< SourceAndConverter< T > > getTransformedSourceAndConverters( List< SourceAndConverter< T > > sourceAndConverters, SourceAndConverter< T > mergedSourceAndConverter )
+	{
 		List< SourceAndConverter< T > > transformedSourceAndConverters = new CopyOnWriteArrayList<>( sourceAndConverters );
-
 		transformedSourceAndConverters.add( mergedSourceAndConverter );
 		// remove the merged sources
 		for ( String source : sources )
@@ -62,8 +68,19 @@ public class MergedGridSourceTransformer< T extends NativeType< T > & NumericTyp
 			if ( sourceAndConverter != null )
 				transformedSourceAndConverters.remove( sourceAndConverter );
 		}
-
 		return transformedSourceAndConverters;
+	}
+
+	private List< Source< T > > getSources( List< SourceAndConverter< T > > sourceAndConverters )
+	{
+		final List< Source< T > > gridSources = new ArrayList<>();
+		for ( String source : sources )
+		{
+			final SourceAndConverter< T > sourceAndConverter = Utils.getSourceAndConverter( sourceAndConverters, source );
+			if ( sourceAndConverter != null )
+				gridSources.add( sourceAndConverter.getSpimSource() );
+		}
+		return gridSources;
 	}
 
 	private static List< int[] > createPositions( int size )
