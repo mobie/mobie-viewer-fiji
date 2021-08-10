@@ -53,7 +53,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		mergedRandomAccessibleIntervals = createMergedRandomAccessibleIntervals();
 	}
 
-	private < T extends NativeType< T > & NumericType< T > > List< RandomAccessibleInterval< T > > createMergedRandomAccessibleIntervals()
+	private List< RandomAccessibleInterval< T > > createMergedRandomAccessibleIntervals()
 	{
 		List< RandomAccessibleInterval< T >> mergedRandomAccessibleIntervals = new ArrayList<>();
 		int numMipmapLevels = referenceSource.getNumMipmapLevels();
