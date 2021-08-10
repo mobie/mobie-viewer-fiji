@@ -17,6 +17,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.util.Util;
+import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
 import java.util.ArrayList;
@@ -52,6 +53,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 			// TODO: add grid spacing
 			final int[] cellDimensions = getCellDimensions( referenceSource.getSource( 0, level ) );
 			long[] dimensions = getDimensions( positions, cellDimensions );
+			long[] min = getMin( positions, cellDimensions );
 
 			final Map< String, Integer > cellKeyToSourceIndex = new HashMap<>();
 			for ( int i = 0; i < positions.size(); i++ )
@@ -62,12 +64,15 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 				{
 					cellMins[ d ] = position[ d ] * cellDimensions[ d ];
 				}
-
 				String key = getCellKey( cellMins );
 				cellKeyToSourceIndex.put( key, i );
+				if ( mergedGridSourceName.equals( "plate_nuclei" ) )
+				{
+					int a = 1;
+				}
 			}
 
-			final RandomAccessibleIntervalCellLoader< T > cellLoader = new RandomAccessibleIntervalCellLoader( gridSources, cellKeyToSourceIndex, level );
+			final RandomAccessibleIntervalCellLoader< T > cellLoader = new RandomAccessibleIntervalCellLoader( gridSources, cellKeyToSourceIndex, level, min );
 
 			final CachedCellImg< T, ? > cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
 					dimensions,
@@ -75,7 +80,8 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 					cellLoader,
 					ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
 
-			mergedRandomAccessibleIntervals.add( cachedCellImg );
+			final IntervalView< T > translate = Views.translate( cachedCellImg, min );
+			mergedRandomAccessibleIntervals.add( translate );
 		}
 
 		return mergedRandomAccessibleIntervals;
@@ -97,8 +103,23 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 			dimensions[ d ] = maxPos[ d ] - minPos[ d ] + 1;
 			dimensions[ d ] *= cellDimensions[ d ];
 		}
+
 		return dimensions;
 	}
+
+	private static long[] getMin( List< int[] > positions, int[] cellDimensions )
+	{
+		final long[] minPos = new long[ 3 ];
+		for ( int d = 0; d < 2; d++ )
+		{
+			final int finalD = d;
+			minPos[ d ] = positions.stream().mapToInt( pos -> pos[ finalD ] ).min().orElseThrow( NoSuchElementException::new );
+			minPos[ d ] *= cellDimensions[ d ];
+		}
+
+		return minPos;
+	}
+
 
 	private static int[] getCellDimensions( RandomAccessibleInterval< ? > source )
 	{
@@ -180,11 +201,14 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		private final List< Source< T > > gridSources;
 		private final Map< String, Integer > cellKeyToSourceIndex;
 		private final int level;
-		public RandomAccessibleIntervalCellLoader( List< Source< T > > gridSources,  Map< String, Integer > cellKeyToSourceIndex, int level )
+		private final long[] cellMinOffset;
+
+		public RandomAccessibleIntervalCellLoader( List< Source< T > > gridSources,  Map< String, Integer > cellKeyToSourceIndex, int level, long[] cellMinOffset )
 		{
 			this.gridSources = gridSources;
 			this.cellKeyToSourceIndex = cellKeyToSourceIndex;
 			this.level = level;
+			this.cellMinOffset = cellMinOffset;
 		}
 
 		@Override
@@ -192,6 +216,9 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		{
 			final long[] min = new long[ 3 ];
 			cell.min( min );
+			for ( int d = 0; d < 3; d++ )
+				min[ d ] += cellMinOffset[ d ];
+
 			final String cellKey = getCellKey( min );
 			if ( cellKeyToSourceIndex.containsKey( cellKey ) )
 			{

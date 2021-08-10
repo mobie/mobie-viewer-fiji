@@ -45,15 +45,23 @@ public class MergedGridSourceTransformer< T extends NativeType< T > & NumericTyp
 			positions = createPositions( sources.size() );
 
 		final MergedGridSource< T > mergedGridSource = new MergedGridSource<>( gridSources, positions, mergedGridSourceName );
+
 		final VolatileSource< T, V > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
 
 		final SourceAndConverter< V > vsac = new SourceAndConverter<>( volatileMergedGridSource, ( Converter< V, ARGBType > ) Utils.getSourceAndConverter( sourceAndConverters, sources.get( 0 ) ).asVolatile().getConverter() );
 
-		final SourceAndConverter< T > sac = new SourceAndConverter( mergedGridSource, Utils.getSourceAndConverter( sourceAndConverters, sources.get( 0 ) ).getConverter(), vsac );
-		
+		final SourceAndConverter< T > mergedSourceAndConverter = new SourceAndConverter( mergedGridSource, Utils.getSourceAndConverter( sourceAndConverters, sources.get( 0 ) ).getConverter(), vsac );
+
 		List< SourceAndConverter< T > > transformedSourceAndConverters = new CopyOnWriteArrayList<>( sourceAndConverters );
 
-		transformedSourceAndConverters.add( sac );
+		transformedSourceAndConverters.add( mergedSourceAndConverter );
+		// remove the merged sources
+		for ( String source : sources )
+		{
+			final SourceAndConverter< T > sourceAndConverter = Utils.getSourceAndConverter( transformedSourceAndConverters, source );
+			if ( sourceAndConverter != null )
+				transformedSourceAndConverters.remove( sourceAndConverter );
+		}
 
 		return transformedSourceAndConverters;
 	}
