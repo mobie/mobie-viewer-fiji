@@ -65,7 +65,6 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 			// show
 			displayService.show( bdvHandle, display.isVisible(), sourceAndConverter );
 
-			BdvFunctions.show(  )
 			// set blending mode
 			if ( display.getBlendingMode() != null )
 				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );

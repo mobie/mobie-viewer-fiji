@@ -402,7 +402,6 @@ public class MoBIE
 	{
 		final SegmentationSource source = ( SegmentationSource ) getSource( sourceName );
 
-		new LazyCellImg<>(  )
 		final String defaultTablePath = getTablePath( source, table );
 
 		final List< TableRowImageSegment > segments = createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );

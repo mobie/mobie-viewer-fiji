@@ -84,7 +84,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 	{
 		for ( String sourceName : sourceNames )
 		{
-			SourceAndConverter< T > sourceAndConverter = Utils.getSource( sourceAndConverters, sourceName );
+			SourceAndConverter< T > sourceAndConverter = Utils.getSourceAndConverter( sourceAndConverters, sourceName );
 
 			if ( sourceAndConverter == null )
 			{
@@ -124,7 +124,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		List< SourceAndConverter< T  > > referenceSources = new ArrayList<>();
 		for ( String name : sourcesAtFirstGridPosition )
 		{
-			final SourceAndConverter< T > source = Utils.getSource( sourceAndConverters, name );
+			final SourceAndConverter< T > source = Utils.getSourceAndConverter( sourceAndConverters, name );
 			if ( source != null )
 			{
 				referenceSources.add( source );

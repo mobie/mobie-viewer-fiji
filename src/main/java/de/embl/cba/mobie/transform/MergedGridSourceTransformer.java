@@ -1,10 +1,14 @@
 package de.embl.cba.mobie.transform;
 
+import bdv.util.VolatileSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.Utils;
 import net.imglib2.Volatile;
+import net.imglib2.converter.Converter;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 
 import java.util.ArrayList;
@@ -12,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-public class MergedGridSourceTransformer< T extends NativeType< T > & NumericType< T > > extends AbstractSourceTransformer< T >
+public class MergedGridSourceTransformer< T extends NativeType< T > & NumericType< T >, V extends Volatile< T > & NumericType< V > > extends AbstractSourceTransformer< T >
 {
 	// Serialization
 	protected List< String > sources;
@@ -23,20 +27,33 @@ public class MergedGridSourceTransformer< T extends NativeType< T > & NumericTyp
 	@Override
 	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sourceAndConverters )
 	{
+		final List< Source< T > > gridSources = new ArrayList<>();
+		for ( String source : sources )
+		{
+			final SourceAndConverter< T > sourceAndConverter = Utils.getSourceAndConverter( sourceAndConverters, source );
+			if ( sourceAndConverter != null )
+				gridSources.add( sourceAndConverter.getSpimSource() );
+		}
+
+		if ( gridSources.size() == 0 )
+		{
+			// the transformer has nothing to transform
+			return sourceAndConverters;
+		}
+
 		if ( positions == null )
 			positions = createPositions( sources.size() );
 
-		final List< Source< T > > gridSources = sources.stream().map( sourceName -> Utils.getSource( sourceAndConverters, sourceName ).getSpimSource() ).collect( Collectors.toList() );
-
-		final List< Source< ? extends Volatile< T > > > volatileGridSources = sources.stream().map( sourceName -> Utils.getSource( sourceAndConverters, sourceName ).asVolatile().getSpimSource() ).collect( Collectors.toList() );
-
 		final MergedGridSource< T > mergedGridSource = new MergedGridSource<>( gridSources, positions, mergedGridSourceName );
+		final VolatileSource< T, V > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
 
-//		final MergedGridSource< ? extends Volatile< T > > volatileMergedGridSource = new MergedGridSource( volatileGridSources, positions, mergedGridSourceName );
+		final SourceAndConverter< V > vsac = new SourceAndConverter<>( volatileMergedGridSource, ( Converter< V, ARGBType > ) Utils.getSourceAndConverter( sourceAndConverters, sources.get( 0 ) ).asVolatile().getConverter() );
 
+		final SourceAndConverter< T > sac = new SourceAndConverter( mergedGridSource, Utils.getSourceAndConverter( sourceAndConverters, sources.get( 0 ) ).getConverter(), vsac );
+		
 		List< SourceAndConverter< T > > transformedSourceAndConverters = new CopyOnWriteArrayList<>( sourceAndConverters );
 
-
+		transformedSourceAndConverters.add( sac );
 
 		return transformedSourceAndConverters;
 	}

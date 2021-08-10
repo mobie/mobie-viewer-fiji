@@ -53,7 +53,7 @@ public class ImageSliceView
 		List< SourceAndConverter< ? > > sourceAndConverters = moBIE.openSourceAndConverters( display.getSources() );
 
 		// transform
-		sourceAndConverters = TransformHelper.transformSourceAndConverters( sourceAndConverters, display.sourceTransformers );
+ 		sourceAndConverters = TransformHelper.transformSourceAndConverters( sourceAndConverters, display.sourceTransformers );
 
 		// show
 		List< SourceAndConverter< ? > > displayedSourceAndConverters = new ArrayList<>();
