@@ -127,6 +127,8 @@ public class N5S3ZarrReader extends N5AmazonS3Reader {
         gsonBuilder.registerTypeAdapter(DType.class, new DType.JsonAdapter());
         gsonBuilder.registerTypeAdapter(ZarrCompressor.class, ZarrCompressor.jsonAdapter);
         gsonBuilder.serializeNulls();
+        gsonBuilder.registerTypeAdapter(ZarrAxes.class, new ZarrAxesAdapter());
+        gsonBuilder.registerTypeAdapter(N5Reader.Version.class, new VersionAdapter());
 
         return gsonBuilder;
     }

@@ -129,6 +129,11 @@ public class ProjectCreatorHelper {
         return new File(n5Filename);
     }
 
+    public static File getOmeZarrFileFromXmlPath(String xmlPath) {
+        final String omeZarrFileName = xmlPath.substring(0, xmlPath.length() - 4) + ".ome.zarr";
+        return new File(omeZarrFileName);
+    }
+
     public static ImageDataFormat getImageFormatFromSpimDataMinimal( SpimDataMinimal spimDataMinimal ) {
         ImageDataFormat imageFormat = null;
         BasicImgLoader imgLoader = spimDataMinimal.getSequenceDescription().getImgLoader();

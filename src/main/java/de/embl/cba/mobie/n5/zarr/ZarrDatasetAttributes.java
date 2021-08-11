@@ -39,6 +39,7 @@ public class ZarrDatasetAttributes extends DatasetAttributes
 	private final transient boolean isRowMajor;
 	private final transient DType dType;
 	private final transient byte[] fillBytes;
+	private final transient String fillValue;
 
 	public ZarrDatasetAttributes(
 			final long[] dimensions,
@@ -52,6 +53,7 @@ public class ZarrDatasetAttributes extends DatasetAttributes
 		this.dType = dType;
 		this.isRowMajor = isRowMajor;
 		this.fillBytes = dType.createFillBytes(fill_value);
+		this.fillValue = fill_value;
 	}
 
 	public boolean isRowMajor() {
@@ -68,5 +70,9 @@ public class ZarrDatasetAttributes extends DatasetAttributes
 
 		// TODO Auto-generated method stub
 		return fillBytes;
+	}
+
+	public String getFillValue() {
+		return fillValue;
 	}
 }

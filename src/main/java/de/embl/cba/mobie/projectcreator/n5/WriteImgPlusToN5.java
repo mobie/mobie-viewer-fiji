@@ -12,9 +12,11 @@ import bdv.img.virtualstack.VirtualStackImageLoader;
 import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
+import com.google.gson.annotations.SerializedName;
 import ij.IJ;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.generic.sequence.TypedBasicImgLoader;
 import mpicbg.spim.data.registration.ViewRegistration;
@@ -263,8 +265,6 @@ public class WriteImgPlusToN5 {
         final int numTimepoints = imp.getNFrames();
         final int numSetups = imp.getNChannels();
 
-        final AffineTransform3D sourceTransform = params.sourceTransform;
-
         // write n5
         final HashMap< Integer, BasicViewSetup> setups = new HashMap<>( numSetups );
         if ( params.viewSetupNames != null && params.viewSetupNames.length != numSetups ) {
@@ -346,31 +346,39 @@ public class WriteImgPlusToN5 {
 
         try
         {
-            WriteSequenceToN5.writeN5File( seq, perSetupExportMipmapInfo,
-                    params.downsamplingMethod,
-                    params.compression, params.n5File,
-                    loopbackHeuristic, afterEachPlane, numCellCreatorThreads,
-                    new SubTaskProgressWriter( progressWriter, 0, 0.95 ) );
-
-            // write xml sequence description
-            final N5ImageLoader n5Loader = new N5ImageLoader( params.n5File, null );
-            final SequenceDescriptionMinimal seqh5 = new SequenceDescriptionMinimal( seq, n5Loader );
-
-            final ArrayList<ViewRegistration> registrations = new ArrayList<>();
-            for ( int t = 0; t < numTimepoints; ++t )
-                for ( int s = 0; s < numSetups; ++s )
-                    registrations.add( new ViewRegistration( t, s, sourceTransform ) );
-
-            final File basePath = params.seqFile.getParentFile();
-            final SpimDataMinimal spimData = new SpimDataMinimal( basePath, seqh5, new ViewRegistrations( registrations ) );
-
-            new XmlIoSpimDataMinimal().save( spimData, params.seqFile.getAbsolutePath() );
-            progressWriter.setProgress( 1.0 );
+            writeFiles( seq, perSetupExportMipmapInfo, params, loopbackHeuristic, afterEachPlane, numCellCreatorThreads,
+                    progressWriter, numTimepoints, numSetups );
         }
         catch ( final SpimDataException | IOException e )
         {
             throw new RuntimeException( e );
         }
         progressWriter.out().println( "done" );
+    }
+
+    protected void writeFiles(SequenceDescriptionMinimal seq, Map<Integer, ExportMipmapInfo> perSetupExportMipmapInfo,
+                              Parameters params, ExportScalePyramid.LoopbackHeuristic loopbackHeuristic,
+                              ExportScalePyramid.AfterEachPlane afterEachPlane, int numCellCreatorThreads,
+                              ProgressWriter progressWriter, int numTimepoints, int numSetups ) throws IOException, SpimDataException {
+        WriteSequenceToN5.writeN5File( seq, perSetupExportMipmapInfo,
+                params.downsamplingMethod,
+                params.compression, params.n5File,
+                loopbackHeuristic, afterEachPlane, numCellCreatorThreads,
+                new SubTaskProgressWriter( progressWriter, 0, 0.95 ) );
+
+        // write xml sequence description
+        final N5ImageLoader n5Loader = new N5ImageLoader( params.n5File, null );
+        final SequenceDescriptionMinimal seqh5 = new SequenceDescriptionMinimal( seq, n5Loader );
+
+        final ArrayList<ViewRegistration> registrations = new ArrayList<>();
+        for ( int t = 0; t < numTimepoints; ++t )
+            for ( int s = 0; s < numSetups; ++s )
+                registrations.add( new ViewRegistration( t, s, params.sourceTransform ) );
+
+        final File basePath = params.seqFile.getParentFile();
+        final SpimDataMinimal spimData = new SpimDataMinimal( basePath, seqh5, new ViewRegistrations( registrations ) );
+
+        new XmlIoSpimDataMinimal().save( spimData, params.seqFile.getAbsolutePath() );
+        progressWriter.setProgress( 1.0 );
     }
 }
