@@ -40,14 +40,24 @@ public class MergedGridSourceTransformer< T extends NativeType< T > & NumericTyp
 
 		final SourceAndConverter< T > mergedSourceAndConverter = createMergedSourceAndConverter( sourceAndConverters, gridSources );
 
+		// Maybe also transform the individual sources as in the GridSourceTransformer such that we know where they are?!
+
 		List< SourceAndConverter< T > > transformedSourceAndConverters = getTransformedSourceAndConverters( sourceAndConverters, mergedSourceAndConverter );
 
 		return transformedSourceAndConverters;
 	}
 
+	@Override
+	public List< String > getSources()
+	{
+		return sources;
+	}
+
 	private SourceAndConverter< T > createMergedSourceAndConverter( List< SourceAndConverter< T > > sourceAndConverters, List< Source< T > > gridSources )
 	{
 		final MergedGridSource< T > mergedGridSource = new MergedGridSource<>( gridSources, positions, mergedGridSourceName, 0.10 );
+
+		// TODO: populate:  Map< String, AffineTransform3D > sourceNameToTransform
 
 		final VolatileSource< T, V > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
 

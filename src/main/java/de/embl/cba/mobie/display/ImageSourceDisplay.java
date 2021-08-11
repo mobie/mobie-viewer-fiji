@@ -11,7 +11,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ImageSourceDisplay extends SourceDisplay
+public class ImageSourceDisplay extends AbstractSourceDisplay
 {
 	// Serialization
 	private List< String > sources;
@@ -39,6 +39,7 @@ public class ImageSourceDisplay extends SourceDisplay
 		return blendingMode;
 	}
 
+	@Override
 	public List< String > getSources()
 	{
 		return sources;

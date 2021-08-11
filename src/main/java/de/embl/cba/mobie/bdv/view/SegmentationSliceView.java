@@ -149,6 +149,9 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 
 	private void adaptPosition( double[] position, String sourceName )
 	{
+		// TODO: simply check where the source with sourceName sits right now!
+		//   one has to remove the voxelSize to adapt the position
+		// remove from the transformers the getTransform( ) method
 		if ( display.sourceTransformers != null )
 		{
 			for ( SourceTransformer sourceTransformer : display.sourceTransformers )

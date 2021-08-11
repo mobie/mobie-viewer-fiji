@@ -37,6 +37,7 @@ public class MobieBdvSupplier implements IBdvSupplier {
         Prefs.sourceNameOverlayPosition( Prefs.OverlayPosition.TOP_RIGHT );
         
         BdvStackSource<ByteType> bss = BdvFunctions.show( dummyImg, "dummy", options );
+        bss.getSources().get( 0 ).getSpimSource()
         BdvHandle bdv = bss.getBdvHandle();
 
         if ( sOptions.interpolate ) bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );

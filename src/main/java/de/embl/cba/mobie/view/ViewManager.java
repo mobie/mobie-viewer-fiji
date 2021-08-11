@@ -9,6 +9,7 @@ import de.embl.cba.mobie.bdv.view.AnnotatedIntervalSliceView;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
 import de.embl.cba.mobie.display.AnnotatedRegionDisplay;
 import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
+import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.playground.PlaygroundUtils;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.bdv.view.ImageSliceView;
@@ -202,6 +203,18 @@ public class ViewManager
 		{
 			removeAllSourceDisplays();
 		}
+
+		final Set< String > sources = new HashSet<>();
+		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
+		for ( SourceDisplay sourceDisplay : sourceDisplays )
+		{
+			sources.addAll( sourceDisplay.getSources() );
+		}
+		for ( SourceTransformer sourceTransformer : view.getSourceTransforms() )
+		{
+			sourceTransformer.
+		}
+
 
 		setMoBIESwingLookAndFeel();
 

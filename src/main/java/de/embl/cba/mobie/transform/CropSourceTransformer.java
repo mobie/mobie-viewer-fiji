@@ -61,12 +61,18 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 				{
 					transform3D.translate( Arrays.stream( min ).map( x -> -x ).toArray() );
 				}
-				sourceNameToTransform.put( transformedSourceName, transform3D );
 			}
 		}
 
 		return transformedSources;
 	}
+
+	@Override
+	public List< String > getSources()
+	{
+		return sources;
+	}
+
 
 	private int[] getNumVoxels( double smallestVoxelSize )
 	{

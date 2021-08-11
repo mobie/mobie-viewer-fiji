@@ -1,6 +1,7 @@
 package de.embl.cba.mobie.view;
 
 import de.embl.cba.mobie.display.SourceDisplay;
+import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.transform.SourceTransformer;
 import de.embl.cba.mobie.transform.ViewerTransform;
 

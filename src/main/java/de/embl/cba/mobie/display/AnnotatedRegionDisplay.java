@@ -10,7 +10,7 @@ import de.embl.cba.tables.tablerow.TableRow;
 
 import java.util.List;
 
-public abstract class AnnotatedRegionDisplay< T extends TableRow > extends SourceDisplay
+public abstract class AnnotatedRegionDisplay< T extends TableRow > extends AbstractSourceDisplay
 {
 	// Serialization
 	protected String lut = ColoringLuts.GLASBEY;

@@ -3,6 +3,7 @@ package de.embl.cba.mobie.transform;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.Utils;
+import de.embl.cba.mobie.playground.SourceAffineTransformer;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
@@ -11,7 +12,7 @@ import org.apache.commons.lang.ArrayUtils;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -27,25 +28,28 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 	private ArrayList< String > gridIds;
 
 	@Override
-	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sourceAndConverters )
+	public void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
 	{
 		gridIds = new ArrayList<>( sources.keySet() );
 
-		List< SourceAndConverter< T > > transformedSourceAndConverters = new CopyOnWriteArrayList<>( sourceAndConverters );
-
 		if ( positions == null )
-		{
 			autoSetPositions();
-		}
 
-		final List< SourceAndConverter< T > > referenceSources = getReferenceSources( sourceAndConverters );
+		final List< SourceAndConverter< T > > referenceSources = getReferenceSources( sourceNameToSourceAndConverter );
 
-		transform( sourceAndConverters, transformedSourceAndConverters, referenceSources );
-
-		return transformedSourceAndConverters;
+		transform( sourceNameToSourceAndConverter, referenceSources );
 	}
 
-	private void transform( List< SourceAndConverter< T > > inputSources, List< SourceAndConverter< T > > transformedSources, List< SourceAndConverter< T > > referenceSources )
+	@Override
+	public List< String > getSources()
+	{
+		final ArrayList< String > allSources = new ArrayList<>();
+		for ( List< String > sources : this.sources.values() )
+			allSources.addAll( sources );
+		return allSources;
+	}
+
+	private void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter, List< SourceAndConverter< T > > referenceSources )
 	{
 		RealInterval bounds = TransformHelper.unionRealInterval(  referenceSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ));
 		final double spacingFactor = 0.1;
@@ -56,88 +60,71 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 
 		final int nThreads = MoBIE.N_THREADS;
 		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
-		//final ExecutorService executorService = MoBIE.executorService;
 
 		for ( String gridId : sources.keySet() )
 		{
 			executorService.execute( () -> {
-				transform( inputSources, transformedSources, spacingX, spacingY, sources.get( gridId ), getTransformedSourceNames( gridId ), positions.get( gridId ) );
+				transform( sourceNameToSourceAndConverter, spacingX, spacingY, sources.get( gridId ), sourceNamesAfterTransform.get( gridId ), positions.get( gridId ) );
 			} );
 		}
 
 		Utils.waitUntilFinishedAndShutDown( executorService );
 
-		System.out.println( "Transformed " + inputSources.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
+		System.out.println( "Transformed " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
 	}
 
-	private List< String > getTransformedSourceNames( String gridId )
-	{
-		List< String > transformedSourceNames = null;
-		if ( sourceNamesAfterTransform != null )
-		{
-			transformedSourceNames = sourceNamesAfterTransform.get( gridId );
-		}
-		return transformedSourceNames;
-	}
-
-	private void transform( List< SourceAndConverter< T > > sourceAndConverters, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY, List< String > sourceNames, List< String > sourceNamesAfterTransform, int[] gridPosition  )
+	private void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter, double spacingX, double spacingY, List< String > sourceNames, List< String > sourceNamesAfterTransform, int[] gridPosition  )
 	{
 		for ( String sourceName : sourceNames )
 		{
-			SourceAndConverter< T > sourceAndConverter = Utils.getSourceAndConverter( sourceAndConverters, sourceName );
+			final SourceAndConverter< T > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
 
 			if ( sourceAndConverter == null )
-			{
-				// This is OK, because the field `List< List< String > > sources`
-				// can contain more sources than the ones that should be
-				// transformed with `transform( List< SourceAndConverter< ? > > sourceAndConverters )`
-				// Examples are multi-color images where there is a separate imageDisplay
-				// for each color.
-				continue;
-			}
+			  continue;
 
-			// compute translation transform
-			AffineTransform3D translationTransform = createTranslationTransform3D( spacingX * gridPosition[ 0 ], spacingY * gridPosition[ 1 ], sourceAndConverter, centerAtOrigin );
+			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( spacingX * gridPosition[ 0 ], spacingY * gridPosition[ 1 ], sourceAndConverter, centerAtOrigin );
 
-			// apply translation transform
-			AffineSourceTransformer.transform( transformedSources, translationTransform, sourceAndConverter, sourceName, sourceNamesAfterTransform, sourceNameToTransform, sourceNames );
+			final SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, translationTransform );
+
+			final SourceAndConverter transformedSource = transformer.apply( sourceNameToSourceAndConverter.get( sourceName ) );
+
+			sourceNameToSourceAndConverter.put( transformedSource.getSpimSource().getName(), transformedSource );
 		}
 	}
 
-	private AffineTransform3D createTranslationTransform3D( double x, double y, SourceAndConverter< T > sourceAndConverter, boolean centerAtOrigin )
+	private SourceAffineTransformer createSourceAffineTransformer( String sourceName, List< String > sourceNames, List< String > sourceNamesAfterTransform, AffineTransform3D affineTransform3D )
 	{
-		AffineTransform3D translationTransform = new AffineTransform3D();
-		if ( centerAtOrigin )
+		if ( sourceNamesAfterTransform != null )
 		{
-			final double[] center = TransformHelper.getCenter( sourceAndConverter );
-			translationTransform.translate( center );
-			translationTransform = translationTransform.inverse();
-		}
-		translationTransform.translate( x, y, 0 );
-		return translationTransform;
-	}
-
-	private List< SourceAndConverter< T > > getReferenceSources( List< SourceAndConverter< T > > sourceAndConverters )
-	{
-		final List< String > sourcesAtFirstGridPosition = sources.get( gridIds.get( 0 ) );
-
-		List< SourceAndConverter< T  > > referenceSources = new ArrayList<>();
-		for ( String name : sourcesAtFirstGridPosition )
-		{
-			final SourceAndConverter< T > source = Utils.getSourceAndConverter( sourceAndConverters, name );
-			if ( source != null )
-			{
-				referenceSources.add( source );
-			}
-		}
-
-		if ( referenceSources.size() == 0 )
-		{
-			throw new UnsupportedOperationException( "None of the sources specified at the first grid position could not be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourcesAtFirstGridPosition ) );
+			return new SourceAffineTransformer( affineTransform3D, sourceNamesAfterTransform.get( sourceNames.indexOf( sourceName ) ) );
 		}
 		else
 		{
+			return new SourceAffineTransformer( affineTransform3D );
+		}
+	}
+
+	private List< SourceAndConverter< T > > getReferenceSources( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
+	{
+		final List< String > sourceNamesAtFirstGridPosition = sources.get( gridIds.get( 0 ) );
+
+		List< SourceAndConverter< T  > > referenceSources = new ArrayList<>();
+		for ( String sourceName : sourceNamesAtFirstGridPosition )
+		{
+			final SourceAndConverter< T > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
+			if ( sourceAndConverter != null )
+			{
+				referenceSources.add( sourceAndConverter );
+			}
+		}
+
+		if ( referenceSources.size() != 0 )
+		{
 			return referenceSources;
+		}
+		else
+		{
+			throw new UnsupportedOperationException( "None of the sources specified at the first grid position could not be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourceNamesAtFirstGridPosition ) );
 		}
 	}
 

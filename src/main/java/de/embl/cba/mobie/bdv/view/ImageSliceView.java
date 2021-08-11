@@ -5,6 +5,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.bdv.render.BlendingMode;
 import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
@@ -13,6 +14,7 @@ import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.transform.TransformHelper;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
@@ -53,7 +55,13 @@ public class ImageSliceView
 		List< SourceAndConverter< ? > > sourceAndConverters = moBIE.openSourceAndConverters( display.getSources() );
 
 		// transform
+		// TODO: return a Map< SourceAndConverter, isDisplayed >?
  		sourceAndConverters = TransformHelper.transformSourceAndConverters( sourceAndConverters, display.sourceTransformers );
+
+ 		// register all the sacs in mobie, because we need to know where they are in case of the mergedGridView
+		//final FinalRealInterval bounds = Utils.estimateBounds( source );
+
+		// only show the ones that are to be displayed
 
 		// show
 		List< SourceAndConverter< ? > > displayedSourceAndConverters = new ArrayList<>();
