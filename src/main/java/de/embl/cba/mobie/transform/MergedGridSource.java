@@ -18,7 +18,6 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.util.Util;
-import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
@@ -37,14 +36,14 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	private final DefaultInterpolators< T > interpolators;
 	private final List< Source< T > > gridSources;
 	private final List< int[] > positions;
-	private final double gridSpacing;
+	private final double cellScaling;
 	private int currentTimepoint = 0;
 
-	public MergedGridSource( List< Source< T > > gridSources, List< int[] > positions, String mergedGridSourceName, double gridSpacing )
+	public MergedGridSource( List< Source< T > > gridSources, List< int[] > positions, String mergedGridSourceName, double cellScaling )
 	{
 		this.gridSources = gridSources;
 		this.positions = positions;
-		this.gridSpacing = gridSpacing;
+		this.cellScaling = cellScaling;
 		this.interpolators = new DefaultInterpolators<>();
 		this.referenceSource = gridSources.get( 0 );
 		this.mergedGridSourceName = mergedGridSourceName;
@@ -53,13 +52,18 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		mergedRandomAccessibleIntervals = createMergedRandomAccessibleIntervals();
 	}
 
+	public List< Source< T > > getGridSources()
+	{
+		return gridSources;
+	}
+
 	private List< RandomAccessibleInterval< T > > createMergedRandomAccessibleIntervals()
 	{
 		List< RandomAccessibleInterval< T >> mergedRandomAccessibleIntervals = new ArrayList<>();
 		int numMipmapLevels = referenceSource.getNumMipmapLevels();
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
-			final int[] cellDimensions = getCellDimensions( referenceSource.getSource( 0, level ), gridSpacing );
+			final int[] cellDimensions = getCellDimensions( referenceSource.getSource( 0, level ), cellScaling );
 			long[] mergedDimensions = getDimensions( positions, cellDimensions );
 			long[] offset = getMin( positions, cellDimensions );
 
@@ -126,13 +130,13 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	}
 
 
-	private static int[] getCellDimensions( RandomAccessibleInterval< ? > source, double gridSpacing )
+	private static int[] getCellDimensions( RandomAccessibleInterval< ? > source, double cellScaling )
 	{
 		final long[] referenceSourceDimensions = source.dimensionsAsLongArray();
 		final int[] cellDimensions = Utils.asInts( referenceSourceDimensions );
 		for ( int d = 0; d < 2; d++ )
 		{
-			cellDimensions[ d ] *= ( 1.0 + 2.0 * gridSpacing );
+			cellDimensions[ d ] *= cellScaling;
 		}
 		return cellDimensions;
 	}

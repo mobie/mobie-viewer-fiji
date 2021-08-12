@@ -8,7 +8,7 @@ import net.imglib2.type.numeric.NumericType;
 import java.util.List;
 import java.util.Map;
 
-public class AffineSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
+public class AffineSourceTransformer extends AbstractSourceTransformer
 {
 	// Serialisation
 	protected double[] parameters;
@@ -19,7 +19,7 @@ public class AffineSourceTransformer< T extends NumericType< T > > extends Abstr
 	private AffineTransform3D affineTransform3D;
 
 	@Override
-	public void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
+	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
 		affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parameters );

@@ -57,7 +57,7 @@ public class ViewManager
 	private final SliceViewer sliceViewer;
 	private final SourceAndConverterService sacService;
 	private List< SourceDisplay > currentSourceDisplays;
-	private List< SourceTransformer< ? > > currentSourceTransformers;
+	private List< SourceTransformer > currentSourceTransformers;
 	private final BdvHandle bdvHandle;
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;

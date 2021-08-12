@@ -537,7 +537,7 @@ public class MoBIE
 		// create primary AnnotatedIntervalTableRow table
 		final Map< String, List< String > > referenceTable = tables.get( 0 );
 		// TODO: The AnnotatedIntervalCreator does not need the sources, but just the source's real intervals
-		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), ( String sourceName ) -> this.openSourceAndConverter( sourceName )  );
+		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), ( String sourceName ) -> this.getSourceAndConverter( sourceName )  );
 		final List< AnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getAnnotatedIntervalTableRows();
 
 		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
