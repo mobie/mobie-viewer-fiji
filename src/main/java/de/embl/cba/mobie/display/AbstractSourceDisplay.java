@@ -13,11 +13,6 @@ public abstract class AbstractSourceDisplay implements SourceDisplay
 	protected double opacity = 1.0;
 	protected boolean visible = true;
 
-	// Runtime
-	public transient List< SourceAndConverter< ? > > sourceAndConverters;
-	public transient List< SourceTransformer > sourceTransformers;
-	public transient SliceViewer sliceViewer;
-
 	public String getName()
 	{
 		return name;
@@ -30,4 +25,9 @@ public abstract class AbstractSourceDisplay implements SourceDisplay
 	{
 		return visible;
 	}
+
+	// Runtime
+	public transient List< SourceAndConverter< ? > > sourceAndConverters;
+	public transient List< SourceTransformer > sourceTransformers;
+	public transient SliceViewer sliceViewer;
 }

@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -71,7 +72,7 @@ public class MoBIE
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private SourceAndConverterService sacService;
-	//private HashMap< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
+	private Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -186,16 +187,17 @@ public class MoBIE
 		}
 	}
 
-	public List< SourceAndConverter< ? > > openSourceAndConverters( List< String > sources )
+	public Map< String, SourceAndConverter< ? > > openSourceAndConverters( Collection< String > sources )
 	{
-		List< SourceAndConverter< ? > > sourceAndConverters = new CopyOnWriteArrayList<>();
 		final long start = System.currentTimeMillis();
+
+		Map< String, SourceAndConverter< ? > > sourceAndConverters = new ConcurrentHashMap< >();
 
 		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
 		for ( String sourceName : sources )
 		{
 			executorService.execute( () -> {
-				sourceAndConverters.add( openSourceAndConverter( sourceName ) );
+				sourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) );
 			} );
 		}
 
@@ -295,18 +297,6 @@ public class MoBIE
 
 	public SourceAndConverter< ? > openSourceAndConverter( String sourceName )
 	{
-		// TODO: Do not rely on sacService but maintain an internal list in MoBIE
-		final List< SourceAndConverter > sourceAndConverters = sacService.getSourceAndConverters().stream().filter( sac -> sac.getSpimSource().getName().equals( sourceName ) ).collect( Collectors.toList() );
-
-		// TODO: remove this, always reload!
-		// ... because this is risky as the source may have been transformed
-		if ( sourceAndConverters.size() == 1 )
-		{
-
-			// sac has been loaded already
-			return sourceAndConverters.get( 0 );
-		}
-
 		final ImageSource source = getSource( sourceName );
 		final String imagePath = getImagePath( source );
         //new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
@@ -683,4 +673,15 @@ public class MoBIE
         }
         return null;
     }
+
+	public void addSourceAndConverters( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters )
+	{
+		this.sourceNameToSourceAndConverter.putAll( sourceNameToSourceAndConverters );
+	}
+
+	public SourceAndConverter< ? > getSourceAndConverter( String sourceName )
+	{
+		return this.sourceNameToSourceAndConverter.get( sourceName );
+	}
+
 }

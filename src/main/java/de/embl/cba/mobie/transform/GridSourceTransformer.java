@@ -25,6 +25,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 	protected LinkedHashMap< String, int[] > positions;
 	protected boolean centerAtOrigin = false;
 
+	// Runtime
 	private ArrayList< String > gridIds;
 
 	@Override

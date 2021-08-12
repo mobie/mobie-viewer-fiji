@@ -2,11 +2,13 @@ package de.embl.cba.mobie.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import com.amazonaws.internal.FIFOCache;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalAdapter;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
 import de.embl.cba.mobie.bdv.view.AnnotatedIntervalSliceView;
 import de.embl.cba.mobie.color.MoBIEColoringModel;
+import de.embl.cba.mobie.display.AbstractSourceDisplay;
 import de.embl.cba.mobie.display.AnnotatedRegionDisplay;
 import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
@@ -19,7 +21,6 @@ import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.segment.SegmentAdapter;
 import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
-import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.source.SegmentationSource;
 import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.table.TableViewer;
@@ -55,7 +56,8 @@ public class ViewManager
 	private final UserInterface userInterface;
 	private final SliceViewer sliceViewer;
 	private final SourceAndConverterService sacService;
-	private ArrayList< SourceDisplay > currentSourceDisplays;
+	private List< SourceDisplay > currentSourceDisplays;
+	private List< SourceTransformer< ? > > currentSourceTransformers;
 	private final BdvHandle bdvHandle;
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
@@ -129,7 +131,7 @@ public class ViewManager
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
 
-	public ArrayList< SourceDisplay > getCurrentSourceDisplays()
+	public List< SourceDisplay > getCurrentSourceDisplays()
 	{
 		return currentSourceDisplays;
 	}
@@ -154,13 +156,13 @@ public class ViewManager
 
 			if ( sourceDisplay instanceof ImageSourceDisplay )
 			{
-				currentDisplay = new ImageSourceDisplay( (ImageSourceDisplay) sourceDisplay );
-			}
-			else if ( sourceDisplay instanceof  SegmentationSourceDisplay )
+				currentDisplay = new ImageSourceDisplay( ( ImageSourceDisplay ) sourceDisplay );
+			} else if ( sourceDisplay instanceof SegmentationSourceDisplay )
 			{
-				SegmentationSourceDisplay segmentationSourceDisplay = (SegmentationSourceDisplay) sourceDisplay;
-				if ( segmentationSourceDisplay.tableViewer.hasColumnsFromTablesOutsideProject() ) {
-					IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project).");
+				SegmentationSourceDisplay segmentationSourceDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
+				if ( segmentationSourceDisplay.tableViewer.hasColumnsFromTablesOutsideProject() )
+				{
+					IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project)." );
 					return null;
 				}
 				currentDisplay = new SegmentationSourceDisplay( segmentationSourceDisplay );
@@ -170,20 +172,13 @@ public class ViewManager
 			{
 				viewSourceDisplays.add( currentDisplay );
 			}
-
-			// TODO - would be good to pick up any manual transforms here too. This would allow e.g. manual placement
-			// of differing sized sources into a grid
-			if ( sourceDisplay.sourceTransformers != null )
-			{
-				for ( SourceTransformer sourceTransformer: sourceDisplay.sourceTransformers )
-				{
-					if ( ! viewSourceTransforms.contains( sourceTransformer ) )
-					{
-						viewSourceTransforms.add( sourceTransformer );
-					}
-				}
-			}
 		}
+
+		// TODO - would be good to pick up any manual transforms here too. This would allow e.g. manual placement
+		// of differing sized sources into a grid
+		for ( SourceTransformer sourceTransformer : currentSourceTransformers )
+			if ( ! viewSourceTransforms.contains( sourceTransformer ) )
+				viewSourceTransforms.add( sourceTransformer );
 
 		if ( includeViewerTransform )
 		{
@@ -204,34 +199,38 @@ public class ViewManager
 			removeAllSourceDisplays();
 		}
 
-		final Set< String > sources = new HashSet<>();
+		// fetch the names of all sources that are either shown or to be transformed
+		final Set< String > sources = fetchSources( view );
+		final Set< String > datasetSources = sources.stream().filter( s -> moBIE.getDataset().sources.containsKey( s ) ).collect( Collectors.toSet() );
+
+		// open all raw sources
+		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( datasetSources );
+
+		// create transformed sources
+		final List< SourceTransformer > sourceTransformers = view.getSourceTransforms();
+		if ( sourceTransformers != null )
+		for ( SourceTransformer sourceTransformer : sourceTransformers )
+		{
+			currentSourceTransformers.add( sourceTransformer );
+			sourceTransformer.transform( sourceNameToSourceAndConverters );
+		}
+
+		// register all available sources
+		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
+
+		// show the displays
+		setMoBIESwingLookAndFeel();
 		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
 		for ( SourceDisplay sourceDisplay : sourceDisplays )
-		{
-			sources.addAll( sourceDisplay.getSources() );
-		}
-		for ( SourceTransformer sourceTransformer : view.getSourceTransforms() )
-		{
-			sourceTransformer.
-		}
-
-
-		setMoBIESwingLookAndFeel();
-
-		// show the displays if there are any
-		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
-		if ( sourceDisplays != null )
-		{
-			for ( SourceDisplay sourceDisplay : sourceDisplays )
-			{
-				sourceDisplay.sourceTransformers = view.getSourceTransforms();
-				showSourceDisplay( sourceDisplay );
-			}
-		}
-
+			showSourceDisplay( sourceDisplay );
 		resetSystemSwingLookAndFeel();
 
-		// adjust the viewer transform
+		// adjust viewer transform
+		adjustViewerTransform( view );
+	}
+
+	private void adjustViewerTransform( View view )
+	{
 		if ( view.getViewerTransform() != null )
 		{
 			MoBIEViewerTransformChanger.changeViewerTransform( bdvHandle, view.getViewerTransform() );
@@ -240,18 +239,32 @@ public class ViewManager
 		{
 			if ( view.isExclusive() || currentSourceDisplays.size() == 1 )
 			{
+				// TODO: rethink what should happen here...
 				// focus on the image that was added last
-				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1 );
-				new ViewerTransformAdjuster( bdvHandle, sourceDisplay.sourceAndConverters.get( 0 ) ).run();
+//				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1 );
+//				new ViewerTransformAdjuster( bdvHandle, sourceDisplay.sourceAndConverters.get( 0 ) ).run();
 			}
 		}
+	}
+
+	private Set< String > fetchSources( View view )
+	{
+		final Set< String > sources = new HashSet<>();
+		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
+		for ( SourceDisplay sourceDisplay : sourceDisplays )
+		{
+			sources.addAll( sourceDisplay.getSources() );
+		}
+		for ( SourceTransformer sourceTransformer : view.getSourceTransforms() )
+		{
+			sources.addAll( sourceTransformer.getSources() );
+		}
+		return sources;
 	}
 
 	private synchronized void showSourceDisplay( SourceDisplay sourceDisplay )
 	{
 		if ( currentSourceDisplays.contains( sourceDisplay ) ) return;
-
-		sourceDisplay.sliceViewer = sliceViewer;
 
 		if ( sourceDisplay instanceof ImageSourceDisplay )
 		{
@@ -287,11 +300,13 @@ public class ViewManager
 
 	private void showImageDisplay( ImageSourceDisplay imageDisplay )
 	{
+		imageDisplay.sliceViewer = sliceViewer;
 		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle );
 	}
 
 	private void showAnnotatedIntervalDisplay( AnnotatedIntervalDisplay annotationDisplay )
 	{
+		annotationDisplay.sliceViewer = sliceViewer;
 		annotationDisplay.tableRows = moBIE.loadAnnotatedIntervalTables( annotationDisplay );
 		annotationDisplay.annotatedIntervalAdapter = new AnnotatedIntervalAdapter<>( annotationDisplay.tableRows );
 
@@ -326,6 +341,7 @@ public class ViewManager
 	// TODO: own class: SegmentationDisplayConfigurator
 	private void showSegmentationDisplay( SegmentationSourceDisplay segmentationDisplay )
 	{
+		segmentationDisplay.sliceViewer = sliceViewer;
 		loadTablesAndCreateImageSegments( segmentationDisplay );
 
 		if ( segmentationDisplay.tableRows != null )

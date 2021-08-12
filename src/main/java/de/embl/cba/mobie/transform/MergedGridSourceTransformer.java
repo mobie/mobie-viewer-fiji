@@ -13,6 +13,7 @@ import net.imglib2.type.numeric.NumericType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -25,26 +26,18 @@ public class MergedGridSourceTransformer< T extends NativeType< T > & NumericTyp
 	protected boolean centerAtOrigin = false;
 
 	@Override
-	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sourceAndConverters )
+	public void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
 	{
-		final List< Source< T > > gridSources = getSources( sourceAndConverters );
-
-		if ( gridSources.size() == 0 )
-		{
-			// the transformer has nothing to do for the given input
-			return sourceAndConverters;
-		}
+		final List< SourceAndConverter< T > > gridSources = getGridSources( sourceNameToSourceAndConverter );
 
 		if ( positions == null )
-			positions = createPositions( sources.size() );
+			positions = createPositions( gridSources.size() );
 
-		final SourceAndConverter< T > mergedSourceAndConverter = createMergedSourceAndConverter( sourceAndConverters, gridSources );
+		final SourceAndConverter< T > mergedSourceAndConverter = createMergedSourceAndConverter( gridSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ), ( Converter< V, ARGBType > ) gridSources.get( 0 ).asVolatile().getConverter(), gridSources.get( 0 ).getConverter() );
 
-		// Maybe also transform the individual sources as in the GridSourceTransformer such that we know where they are?!
+		// TODO: Maybe also transform the individual sources as in the GridSourceTransformer such that we know where they are?!
 
-		List< SourceAndConverter< T > > transformedSourceAndConverters = getTransformedSourceAndConverters( sourceAndConverters, mergedSourceAndConverter );
-
-		return transformedSourceAndConverters;
+		sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
 	}
 
 	@Override
@@ -53,17 +46,16 @@ public class MergedGridSourceTransformer< T extends NativeType< T > & NumericTyp
 		return sources;
 	}
 
-	private SourceAndConverter< T > createMergedSourceAndConverter( List< SourceAndConverter< T > > sourceAndConverters, List< Source< T > > gridSources )
+	private SourceAndConverter< T > createMergedSourceAndConverter( List< Source< T > > gridSources, Converter< V, ARGBType > volatileConverter, Converter< T, ARGBType > converter )
 	{
 		final MergedGridSource< T > mergedGridSource = new MergedGridSource<>( gridSources, positions, mergedGridSourceName, 0.10 );
 
-		// TODO: populate:  Map< String, AffineTransform3D > sourceNameToTransform
-
 		final VolatileSource< T, V > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
 
-		final SourceAndConverter< V > vsac = new SourceAndConverter<>( volatileMergedGridSource, ( Converter< V, ARGBType > ) Utils.getSourceAndConverter( sourceAndConverters, sources.get( 0 ) ).asVolatile().getConverter() );
+		final SourceAndConverter< V > volatileSourceAndConverter = new SourceAndConverter<>( volatileMergedGridSource, volatileConverter );
 
-		final SourceAndConverter< T > mergedSourceAndConverter = new SourceAndConverter( mergedGridSource, Utils.getSourceAndConverter( sourceAndConverters, sources.get( 0 ) ).getConverter(), vsac );
+		final SourceAndConverter< T > mergedSourceAndConverter = new SourceAndConverter( mergedGridSource, converter, volatileSourceAndConverter );
+
 		return mergedSourceAndConverter;
 	}
 
@@ -81,14 +73,12 @@ public class MergedGridSourceTransformer< T extends NativeType< T > & NumericTyp
 		return transformedSourceAndConverters;
 	}
 
-	private List< Source< T > > getSources( List< SourceAndConverter< T > > sourceAndConverters )
+	private List< SourceAndConverter< T > > getGridSources( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
 	{
-		final List< Source< T > > gridSources = new ArrayList<>();
-		for ( String source : sources )
+		final List< SourceAndConverter< T > > gridSources = new ArrayList<>();
+		for ( String sourceName : sources )
 		{
-			final SourceAndConverter< T > sourceAndConverter = Utils.getSourceAndConverter( sourceAndConverters, source );
-			if ( sourceAndConverter != null )
-				gridSources.add( sourceAndConverter.getSpimSource() );
+			gridSources.add( sourceNameToSourceAndConverter.get( sourceName ) );
 		}
 		return gridSources;
 	}

@@ -5,6 +5,7 @@ import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.transform.SourceTransformer;
 import de.embl.cba.mobie.transform.ViewerTransform;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class View
@@ -40,12 +41,18 @@ public class View
 
 	public List< SourceTransformer > getSourceTransforms()
 	{
-		return sourceTransforms;
+		if ( sourceTransforms == null )
+			return new ArrayList<>();
+		else
+			return sourceTransforms;
 	}
 
 	public List< SourceDisplay > getSourceDisplays()
 	{
-		return sourceDisplays;
+		if ( sourceDisplays == null )
+			return new ArrayList<>();
+		else
+			return sourceDisplays;
 	}
 
 	public String getUiSelectionGroup()
