@@ -1,139 +1,79 @@
 package de.embl.cba.mobie.transform;
 
+import bdv.util.VolatileSource;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.Utils;
-import de.embl.cba.mobie.playground.SourceAffineTransformer;
-import net.imglib2.RealInterval;
-import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.Volatile;
+import net.imglib2.converter.Converter;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
-import org.apache.commons.lang.ArrayUtils;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-public class GridSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
+public class GridSourceTransformer< T extends NativeType< T > & NumericType< T >, V extends Volatile< T > & NumericType< V > > extends AbstractSourceTransformer< T >
 {
 	// Serialization
-	protected LinkedHashMap< String, List< String > > sources;
-	protected LinkedHashMap< String, List< String > > sourceNamesAfterTransform;
-	protected LinkedHashMap< String, int[] > positions;
+	protected List< String > sources;
+	protected String mergedGridSourceName;
+	protected List< int[] > positions;
 	protected boolean centerAtOrigin = false;
-
-	// Runtime
-	private ArrayList< String > gridIds;
 
 	@Override
 	public void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
 	{
-		gridIds = new ArrayList<>( sources.keySet() );
+		final List< SourceAndConverter< T > > gridSources = getGridSources( sourceNameToSourceAndConverter );
 
 		if ( positions == null )
-			autoSetPositions();
+			positions = createPositions( gridSources.size() );
 
-		final List< SourceAndConverter< T > > referenceSources = getReferenceSources( sourceNameToSourceAndConverter );
+		final SourceAndConverter< T > mergedSourceAndConverter = createMergedSourceAndConverter( gridSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ), ( Converter< V, ARGBType > ) gridSources.get( 0 ).asVolatile().getConverter(), gridSources.get( 0 ).getConverter() );
 
-		transform( sourceNameToSourceAndConverter, referenceSources );
+		// TODO: Maybe also transform the individual sources as in the GridSourceTransformer such that we know where they are?!
+
+		sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
 	}
 
 	@Override
 	public List< String > getSources()
 	{
-		final ArrayList< String > allSources = new ArrayList<>();
-		for ( List< String > sources : this.sources.values() )
-			allSources.addAll( sources );
-		return allSources;
+		return sources;
 	}
 
-	private void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter, List< SourceAndConverter< T > > referenceSources )
+	private SourceAndConverter< T > createMergedSourceAndConverter( List< Source< T > > gridSources, Converter< V, ARGBType > volatileConverter, Converter< T, ARGBType > converter )
 	{
-		RealInterval bounds = TransformHelper.unionRealInterval(  referenceSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ));
-		final double spacingFactor = 0.1;
-		double spacingX = ( 1.0 + spacingFactor ) * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
-		double spacingY = ( 1.0 + spacingFactor ) * ( bounds.realMax( 1 ) - bounds.realMin( 1 ) );
+		final MergedGridSource< T > mergedGridSource = new MergedGridSource<>( gridSources, positions, mergedGridSourceName, 0.10 );
 
-		final long start = System.currentTimeMillis();
+		final VolatileSource< T, V > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
 
-		final int nThreads = MoBIE.N_THREADS;
-		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
+		final SourceAndConverter< V > volatileSourceAndConverter = new SourceAndConverter<>( volatileMergedGridSource, volatileConverter );
 
-		for ( String gridId : sources.keySet() )
-		{
-			executorService.execute( () -> {
-				transform( sourceNameToSourceAndConverter, spacingX, spacingY, sources.get( gridId ), sourceNamesAfterTransform.get( gridId ), positions.get( gridId ) );
-			} );
-		}
+		final SourceAndConverter< T > mergedSourceAndConverter = new SourceAndConverter( mergedGridSource, converter, volatileSourceAndConverter );
 
-		Utils.waitUntilFinishedAndShutDown( executorService );
-
-		System.out.println( "Transformed " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
+		return mergedSourceAndConverter;
 	}
 
-	private void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter, double spacingX, double spacingY, List< String > sourceNames, List< String > sourceNamesAfterTransform, int[] gridPosition  )
+	private List< SourceAndConverter< T > > getGridSources( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
 	{
-		for ( String sourceName : sourceNames )
+		final List< SourceAndConverter< T > > gridSources = new ArrayList<>();
+		for ( String sourceName : sources )
 		{
-			final SourceAndConverter< T > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
-
-			if ( sourceAndConverter == null )
-			  continue;
-
-			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( spacingX * gridPosition[ 0 ], spacingY * gridPosition[ 1 ], sourceAndConverter, centerAtOrigin );
-
-			final SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, translationTransform );
-
-			final SourceAndConverter transformedSource = transformer.apply( sourceNameToSourceAndConverter.get( sourceName ) );
-
-			sourceNameToSourceAndConverter.put( transformedSource.getSpimSource().getName(), transformedSource );
+			gridSources.add( sourceNameToSourceAndConverter.get( sourceName ) );
 		}
+		return gridSources;
 	}
 
-	private SourceAffineTransformer createSourceAffineTransformer( String sourceName, List< String > sourceNames, List< String > sourceNamesAfterTransform, AffineTransform3D affineTransform3D )
+	private static List< int[] > createPositions( int size )
 	{
-		if ( sourceNamesAfterTransform != null )
-		{
-			return new SourceAffineTransformer( affineTransform3D, sourceNamesAfterTransform.get( sourceNames.indexOf( sourceName ) ) );
-		}
-		else
-		{
-			return new SourceAffineTransformer( affineTransform3D );
-		}
-	}
-
-	private List< SourceAndConverter< T > > getReferenceSources( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
-	{
-		final List< String > sourceNamesAtFirstGridPosition = sources.get( gridIds.get( 0 ) );
-
-		List< SourceAndConverter< T  > > referenceSources = new ArrayList<>();
-		for ( String sourceName : sourceNamesAtFirstGridPosition )
-		{
-			final SourceAndConverter< T > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
-			if ( sourceAndConverter != null )
-			{
-				referenceSources.add( sourceAndConverter );
-			}
-		}
-
-		if ( referenceSources.size() != 0 )
-		{
-			return referenceSources;
-		}
-		else
-		{
-			throw new UnsupportedOperationException( "None of the sources specified at the first grid position could not be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourceNamesAtFirstGridPosition ) );
-		}
-	}
-
-	private void autoSetPositions()
-	{
-		final int numPositions = sources.size();
+		final int numPositions = size;
 		final int numX = ( int ) Math.ceil( Math.sqrt( numPositions ) );
-		positions = new LinkedHashMap<>();
+		List< int[] > positions = new ArrayList<>();
 		int xPositionIndex = 0;
 		int yPositionIndex = 0;
 		for ( int gridIndex = 0; gridIndex < numPositions; gridIndex++ )
@@ -143,8 +83,10 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 				xPositionIndex = 0;
 				yPositionIndex++;
 			}
-			positions.put( gridIds.get( gridIndex ), new int[]{ xPositionIndex, yPositionIndex }  );
+			positions.add( new int[]{ xPositionIndex, yPositionIndex }  );
 			xPositionIndex++;
 		}
+
+		return positions;
 	}
 }

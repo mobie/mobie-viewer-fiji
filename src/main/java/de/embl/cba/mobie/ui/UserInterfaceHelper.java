@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.mobie.Utils;
+import de.embl.cba.mobie.display.AbstractSourceDisplay;
 import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
 import de.embl.cba.mobie.serialize.JsonHelper;
@@ -712,7 +713,7 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JButton createFocusButton( SourceDisplay sourceDisplay, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
+	public static JButton createFocusButton( AbstractSourceDisplay sourceDisplay, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
 	{
 		JButton button = new JButton( "F" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -720,7 +721,7 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			// TODO: make this work for multiple sources!
-			final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
+			final AffineTransform3D transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
 			new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
 		} );
 
