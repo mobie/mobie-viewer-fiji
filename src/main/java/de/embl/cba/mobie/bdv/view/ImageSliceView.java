@@ -81,7 +81,6 @@ public class ImageSliceView
 			// register	the actually displayed sac (for serialisation)
 			display.sourceAndConverters.add( sourceAndConverter );
 		}
-
 	}
 
 	private SourceAndConverter< ? > adaptConverter( SourceAndConverter< ? > sourceAndConverter )
