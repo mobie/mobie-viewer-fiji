@@ -11,6 +11,6 @@ public class OpenRemoteBdvOmeZarr {
     public static void main(String[] args) throws IOException {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        new MoBIE("https://s3.embl.de/i2k-2020/project-bdv-ome-zarr", MoBIESettings.settings().gitProjectBranch( "master" ).imageDataFormat(ImageDataFormat.BdvOmeZarr));
+        new MoBIE("https://s3.embl.de/i2k-2020/project-bdv-ome-zarr", MoBIESettings.settings().imageDataFormat(ImageDataFormat.BdvOmeZarr));
     }
 }

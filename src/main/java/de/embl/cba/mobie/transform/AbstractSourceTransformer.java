@@ -2,6 +2,7 @@ package de.embl.cba.mobie.transform;
 
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 
 import java.util.HashMap;

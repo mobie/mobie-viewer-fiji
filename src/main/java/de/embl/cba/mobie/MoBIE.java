@@ -33,6 +33,7 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
+import net.imglib2.img.cell.LazyCellImg;
 import net.imglib2.util.Cast;
 import org.jdom2.Document;
 import org.jdom2.Element;

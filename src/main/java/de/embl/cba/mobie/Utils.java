@@ -41,6 +41,17 @@ public abstract class Utils
 		}
 	}
 
+	public static int[] asInts( long[] longs) {
+		int[] ints = new int[longs.length];
+
+		for(int i = 0; i < longs.length; ++i)
+		{
+			ints[i] = (int)longs[i];
+		}
+
+		return ints;
+	}
+
 	public enum FileLocation {
 		Project,
 		FileSystem
@@ -168,7 +179,7 @@ public abstract class Utils
 		return filePath;
 	}
 
-	public static < T > SourceAndConverter< T > getSource( List< SourceAndConverter< T > > sourceAndConverters, String name )
+	public static < T > SourceAndConverter< T > getSourceAndConverter( List< SourceAndConverter< T > > sourceAndConverters, String name )
 	{
 		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
 		{

@@ -1,5 +1,6 @@
 package de.embl.cba.mobie.bdv.view;
 
+import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;

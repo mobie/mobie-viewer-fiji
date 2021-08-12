@@ -31,8 +31,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 	{
 		gridIds = new ArrayList<>( sources.keySet() );
 
-		// Make a copy because not all sources in the input list may be transformed
-		CopyOnWriteArrayList< SourceAndConverter< T > > transformedSources = new CopyOnWriteArrayList<>( sourceAndConverters );
+		List< SourceAndConverter< T > > transformedSourceAndConverters = new CopyOnWriteArrayList<>( sourceAndConverters );
 
 		if ( positions == null )
 		{
@@ -41,18 +40,18 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 
 		final List< SourceAndConverter< T > > referenceSources = getReferenceSources( sourceAndConverters );
 
+		transform( sourceAndConverters, transformedSourceAndConverters, referenceSources );
+
+		return transformedSourceAndConverters;
+	}
+
+	private void transform( List< SourceAndConverter< T > > inputSources, List< SourceAndConverter< T > > transformedSources, List< SourceAndConverter< T > > referenceSources )
+	{
 		RealInterval bounds = TransformHelper.unionRealInterval(  referenceSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ));
 		final double spacingFactor = 0.1;
 		double spacingX = ( 1.0 + spacingFactor ) * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
 		double spacingY = ( 1.0 + spacingFactor ) * ( bounds.realMax( 1 ) - bounds.realMin( 1 ) );
 
-		transformSources( sourceAndConverters, transformedSources, spacingX, spacingY );
-
-		return transformedSources;
-	}
-
-	private void transformSources( List< SourceAndConverter< T > > inputSources, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY )
-	{
 		final long start = System.currentTimeMillis();
 
 		final int nThreads = MoBIE.N_THREADS;
@@ -62,7 +61,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		for ( String gridId : sources.keySet() )
 		{
 			executorService.execute( () -> {
-				transformSources( inputSources, transformedSources, spacingX, spacingY, sources.get( gridId ), getTransformedSourceNames( gridId ), positions.get( gridId ) );
+				transform( inputSources, transformedSources, spacingX, spacingY, sources.get( gridId ), getTransformedSourceNames( gridId ), positions.get( gridId ) );
 			} );
 		}
 
@@ -81,11 +80,11 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		return transformedSourceNames;
 	}
 
-	private void transformSources( List< SourceAndConverter< T > > sourceAndConverters, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY, List< String > sourceNames, List< String > sourceNamesAfterTransform, int[] gridPosition  )
+	private void transform( List< SourceAndConverter< T > > sourceAndConverters, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY, List< String > sourceNames, List< String > sourceNamesAfterTransform, int[] gridPosition  )
 	{
 		for ( String sourceName : sourceNames )
 		{
-			SourceAndConverter< T > sourceAndConverter = Utils.getSource( sourceAndConverters, sourceName );
+			SourceAndConverter< T > sourceAndConverter = Utils.getSourceAndConverter( sourceAndConverters, sourceName );
 
 			if ( sourceAndConverter == null )
 			{
@@ -125,7 +124,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 		List< SourceAndConverter< T  > > referenceSources = new ArrayList<>();
 		for ( String name : sourcesAtFirstGridPosition )
 		{
-			final SourceAndConverter< T > source = Utils.getSource( sourceAndConverters, name );
+			final SourceAndConverter< T > source = Utils.getSourceAndConverter( sourceAndConverters, name );
 			if ( source != null )
 			{
 				referenceSources.add( source );
@@ -134,7 +133,7 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 
 		if ( referenceSources.size() == 0 )
 		{
-			throw new UnsupportedOperationException( "None of the sources specified at the first grid position could be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourcesAtFirstGridPosition ) );
+			throw new UnsupportedOperationException( "None of the sources specified at the first grid position could not be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourcesAtFirstGridPosition ) );
 		}
 		else
 		{
