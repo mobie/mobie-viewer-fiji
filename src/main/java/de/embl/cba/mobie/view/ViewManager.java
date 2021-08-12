@@ -68,6 +68,7 @@ public class ViewManager
 		this.moBIE = moBIE;
 		this.userInterface = userInterface;
 		currentSourceDisplays = new ArrayList<>();
+		currentSourceTransformers = new ArrayList<>();
 		sliceViewer = new SliceViewer( is2D, this, timepoints );
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
@@ -240,9 +241,8 @@ public class ViewManager
 			if ( view.isExclusive() || currentSourceDisplays.size() == 1 )
 			{
 				// TODO: rethink what should happen here...
-				// focus on the image that was added last
-//				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1 );
-//				new ViewerTransformAdjuster( bdvHandle, sourceDisplay.sourceAndConverters.get( 0 ) ).run();
+				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1 );
+				new ViewerTransformAdjuster( bdvHandle, ((AbstractSourceDisplay) sourceDisplay).sourceAndConverters.get( 0 ) ).run();
 			}
 		}
 	}
@@ -338,7 +338,6 @@ public class ViewManager
 		annotationDisplay.tableViewer = new TableViewer<>( moBIE, annotationDisplay.tableRows, annotationDisplay.selectionModel, annotationDisplay.coloringModel, annotationDisplay.getName(), nameToTableDir, true ).show();
 	}
 
-	// TODO: own class: SegmentationDisplayConfigurator
 	private void showSegmentationDisplay( SegmentationSourceDisplay segmentationDisplay )
 	{
 		segmentationDisplay.sliceViewer = sliceViewer;

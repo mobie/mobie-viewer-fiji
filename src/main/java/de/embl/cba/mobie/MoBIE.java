@@ -211,6 +211,7 @@ public class MoBIE
 	private void openDataset( String datasetName ) throws IOException
 	{
 		sourceNameToImgLoader = new HashMap<>();
+		sourceNameToSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 
