@@ -1,24 +1,12 @@
 package de.embl.cba.mobie.n5.zarr;
 
-import de.embl.cba.bdv.utils.CustomXmlIoSpimData;
-import de.embl.cba.mobie.source.ImageDataFormat;
-import de.embl.cba.tables.FileAndUrlUtils;
-import mpicbg.spim.data.SpimData;
-import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.SpimDataIOException;
+import mpicbg.spim.data.XmlHelpers;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.ImgLoaderIo;
 import mpicbg.spim.data.generic.sequence.XmlIoBasicImgLoader;
-import mpicbg.spim.data.sequence.XmlIoSequenceDescription;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
+import org.jdom2.Element;;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Paths;
 
 import static mpicbg.spim.data.XmlKeys.*;
 
@@ -31,6 +19,9 @@ public class XmlN5OmeZarrImageLoader implements XmlIoBasicImgLoader<N5OMEZarrIma
         final Element elem = new Element("ImageLoader");
         elem.setAttribute(IMGLOADER_FORMAT_ATTRIBUTE_NAME, "bdv.ome.zarr");
         elem.setAttribute("version", "0.2");
+        N5OmeZarrReader reader = (N5OmeZarrReader) imgLoader.n5;
+        elem.addContent( XmlHelpers.pathElement( OmeZarr, new File( reader.getBasePath() ), basePath ) );
+
         return elem;
     }
 

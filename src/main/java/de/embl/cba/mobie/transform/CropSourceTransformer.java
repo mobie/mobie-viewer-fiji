@@ -13,6 +13,7 @@ import sc.fiji.bdvpg.sourceandconverter.transform.SourceResampler;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class CropSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
 {
@@ -23,17 +24,14 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 	protected boolean centerAtOrigin = true;
 
 	@Override
-	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sourceAndConverters )
+	public void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
 	{
-		final ArrayList< SourceAndConverter< T > > transformedSources = new ArrayList<>( sourceAndConverters );
-
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		for ( String sourceName : sourceNameToSourceAndConverter.keySet() )
 		{
-			final String inputSourceName = sourceAndConverter.getSpimSource().getName();
-
-			if ( this.sources.contains( inputSourceName ) )
+			if ( sources.contains( sourceName ) )
 			{
-				String transformedSourceName = getTransformedSourceName( inputSourceName );
+				final SourceAndConverter< T > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
+				String transformedSourceName = getTransformedSourceName( sourceName );
 
 				// determine number of voxels for resampling
 				// the current method may over-sample quite a bit
@@ -42,31 +40,26 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 				int[] numVoxels = getNumVoxels( smallestVoxelSize );
 				SourceAndConverter< ? > cropModel = new EmptySourceAndConverterCreator("Model", new FinalRealInterval( min, max ), numVoxels[ 0 ], numVoxels[ 1 ], numVoxels[ 2 ], croppedSourceVoxelDimensions ).get();
 
-				// Resample generative source as model source
-				SourceAndConverter< T > croppedSourceAndConverter =
-						new SourceResampler( sourceAndConverter, cropModel, transformedSourceName, false,false, false,0).get();
+				// resample generative source as model source
+				SourceAndConverter< T > croppedSourceAndConverter = new SourceResampler( sourceAndConverter, cropModel, transformedSourceName, false,false, false,0).get();
 
 				if ( centerAtOrigin )
 				{
 					croppedSourceAndConverter = TransformHelper.centerAtOrigin( croppedSourceAndConverter );
 				}
 
-				// replace the source in the list
-				transformedSources.remove( sourceAndConverter );
-				transformedSources.add( croppedSourceAndConverter );
-
-				// store translation
-				final AffineTransform3D transform3D = new AffineTransform3D();
-				if ( centerAtOrigin == true )
-				{
-					transform3D.translate( Arrays.stream( min ).map( x -> -x ).toArray() );
-				}
-				sourceNameToTransform.put( transformedSourceName, transform3D );
+				// store result
+				sourceNameToSourceAndConverter.put( croppedSourceAndConverter.getSpimSource().getName(), croppedSourceAndConverter );
 			}
 		}
-
-		return transformedSources;
 	}
+
+	@Override
+	public List< String > getSources()
+	{
+		return sources;
+	}
+
 
 	private int[] getNumVoxels( double smallestVoxelSize )
 	{

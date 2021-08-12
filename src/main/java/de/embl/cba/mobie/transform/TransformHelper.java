@@ -14,20 +14,6 @@ import java.util.List;
 
 public class TransformHelper
 {
-	public static List< SourceAndConverter< ? > > transformSourceAndConverters( List< SourceAndConverter< ? > > sourceAndConverters, List< SourceTransformer > sourceTransformers )
-	{
-		if ( sourceTransformers != null )
-		{
-			for ( SourceTransformer sourceTransformer : sourceTransformers )
-			{
-				sourceAndConverters = sourceTransformer.transform( sourceAndConverters );
-				//break;
-			}
-		}
-
-		return sourceAndConverters;
-	}
-
 	public static RealInterval unionRealInterval( List< ? extends Source< ? > > sources )
 	{
 		RealInterval union = null;
@@ -61,7 +47,7 @@ public class TransformHelper
 		return sourceAndConverter;
 	}
 
-	public static < T extends NumericType< T > > double[] getCenter( SourceAndConverter< T > sourceAndConverter )
+	public static double[] getCenter( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final FinalRealInterval bounds = Utils.estimateBounds( sourceAndConverter.getSpimSource() );
 		final double[] center = bounds.minAsDoubleArray();
@@ -71,5 +57,18 @@ public class TransformHelper
 			center[ d ] = ( center[ d ] + max[ d ] ) / 2;
 		}
 		return center;
+	}
+
+	public static AffineTransform3D createTranslationTransform3D( double translationX, double translationY, SourceAndConverter< ? > sourceAndConverter, boolean centerAtOrigin )
+	{
+		AffineTransform3D translationTransform = new AffineTransform3D();
+		if ( centerAtOrigin )
+		{
+			final double[] center = getCenter( sourceAndConverter );
+			translationTransform.translate( center );
+			translationTransform = translationTransform.inverse();
+		}
+		translationTransform.translate( translationX, translationY, 0 );
+		return translationTransform;
 	}
 }

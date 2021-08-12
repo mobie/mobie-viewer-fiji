@@ -33,6 +33,7 @@ public class MobieBdvSupplier implements IBdvSupplier {
         options = options.frameTitle( "MoBIE - BigDataViewer" );
 
         Prefs.showScaleBar( true );
+        Prefs.showMultibox( false );
         Prefs.sourceNameOverlayPosition( Prefs.OverlayPosition.TOP_RIGHT );
         
         BdvStackSource<ByteType> bss = BdvFunctions.show( dummyImg, "dummy", options );

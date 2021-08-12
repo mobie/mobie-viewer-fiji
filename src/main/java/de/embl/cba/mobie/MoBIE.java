@@ -1,5 +1,6 @@
 package de.embl.cba.mobie;
 
+import bdv.util.volatiles.SharedQueue;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
@@ -43,10 +44,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.Utils.*;
@@ -56,8 +57,9 @@ import static mpicbg.spim.data.XmlKeys.SEQUENCEDESCRIPTION_TAG;
 public class MoBIE
 {
 	public static final int N_THREADS = 8;
+	public static final SharedQueue sharedQueue = new SharedQueue( N_THREADS );
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
-
+	public static final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
 	private final String projectName;
 	private MoBIESettings settings;
 	private String datasetName;
@@ -69,7 +71,8 @@ public class MoBIE
 	private String imageRoot;
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
-	//private HashMap< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
+	private SourceAndConverterService sacService;
+	private Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -85,6 +88,7 @@ public class MoBIE
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
 		this.settings = setImageDataFormat( projectLocation );
+		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 		openDataset();
 	}
 
@@ -183,26 +187,23 @@ public class MoBIE
 		}
 	}
 
-	public List< SourceAndConverter< ? > > openSourceAndConverters( List< String > sources )
+	public Map< String, SourceAndConverter< ? > > openSourceAndConverters( Collection< String > sources )
 	{
-		List< SourceAndConverter< ? > > sourceAndConverters = new CopyOnWriteArrayList<>();
 		final long start = System.currentTimeMillis();
-		final int nThreads = N_THREADS;
-		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
+
+		Map< String, SourceAndConverter< ? > > sourceAndConverters = new ConcurrentHashMap< >();
+
+		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
 		for ( String sourceName : sources )
 		{
 			executorService.execute( () -> {
-				sourceAndConverters.add( getSourceAndConverter( sourceName ) );
+				sourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) );
 			} );
 		}
 
-		executorService.shutdown();
-		try {
-			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-		} catch (InterruptedException e) {
-		}
+		Utils.waitUntilFinishedAndShutDown( executorService );
 
-		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s).");
+		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
 
 		return sourceAndConverters;
 	}
@@ -210,6 +211,7 @@ public class MoBIE
 	private void openDataset( String datasetName ) throws IOException
 	{
 		sourceNameToImgLoader = new HashMap<>();
+		sourceNameToSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 
@@ -294,21 +296,12 @@ public class MoBIE
 		return dataset.sources.get( sourceName ).get();
 	}
 
-	public SourceAndConverter getSourceAndConverter( String sourceName )
+	public SourceAndConverter< ? > openSourceAndConverter( String sourceName )
 	{
-		final SourceAndConverterService sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-
-		final List< SourceAndConverter > sourceAndConverters = sacService.getSourceAndConverters().stream().filter( sac -> sac.getSpimSource().getName().equals( sourceName ) ).collect( Collectors.toList() );
-
-		if ( sourceAndConverters.size() == 1 )
-		{
-			// sac has been loaded already
-			return sourceAndConverters.get( 0 );
-		}
-
 		final ImageSource source = getSource( sourceName );
 		final String imagePath = getImagePath( source );
-        new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
+        //new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
+		IJ.log( "Opening image:\n" + imagePath );
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
         SpimData spimData = null;
         switch ( imageDataFormat ) {
@@ -433,11 +426,7 @@ public class MoBIE
 			} );
 		}
 
-		executorService.shutdown();
-		try {
-			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-		} catch (InterruptedException e) {
-		}
+		Utils.waitUntilFinishedAndShutDown( executorService );
 
 		System.out.println( "Fetched " + sources.size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
 
@@ -547,7 +536,8 @@ public class MoBIE
 
 		// create primary AnnotatedIntervalTableRow table
 		final Map< String, List< String > > referenceTable = tables.get( 0 );
-		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getSources(), ( String sourceName ) -> this.getSourceAndConverter( sourceName )  );
+		// TODO: The AnnotatedIntervalCreator does not need the sources, but just the source's real intervals
+		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), ( String sourceName ) -> this.openSourceAndConverter( sourceName )  );
 		final List< AnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getAnnotatedIntervalTableRows();
 
 		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
@@ -684,4 +674,15 @@ public class MoBIE
         }
         return null;
     }
+
+	public void addSourceAndConverters( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters )
+	{
+		this.sourceNameToSourceAndConverter.putAll( sourceNameToSourceAndConverters );
+	}
+
+	public SourceAndConverter< ? > getSourceAndConverter( String sourceName )
+	{
+		return this.sourceNameToSourceAndConverter.get( sourceName );
+	}
+
 }

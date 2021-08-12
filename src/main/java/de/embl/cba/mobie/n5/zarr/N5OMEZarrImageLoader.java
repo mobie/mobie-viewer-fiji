@@ -36,6 +36,7 @@ import bdv.img.cache.SimpleCacheArrayLoader;
 import bdv.img.cache.VolatileGlobalCellCache;
 import bdv.util.ConstantRandomAccessible;
 import bdv.util.MipmapTransforms;
+import bdv.util.volatiles.SharedQueue;
 import com.amazonaws.SdkClientException;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
@@ -73,6 +74,8 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 
+import static de.embl.cba.mobie.n5.zarr.OmeZarrMultiscales.MULTI_SCALE_KEY;
+
 public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImgLoader {
 	private static final int C = 3;
 	private static final int T = 4;
@@ -94,11 +97,12 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	private FetcherThreads fetchers;
 	private VolatileGlobalCellCache cache;
 	private final Map<Integer, String> setupToPathname = new HashMap<>();
-	private final Map<Integer, Multiscale> setupToMultiscale = new HashMap<>();
+	private final Map<Integer, OmeZarrMultiscales> setupToMultiscale = new HashMap<>();
 	private final Map<Integer, DatasetAttributes> setupToAttributes = new HashMap<>();
 	private final Map<Integer, Integer> setupToChannel = new HashMap<>();
 	private int sequenceTimepoints = 0;
 	private HashMap<String, Integer> axesMap = new HashMap<>();
+	private BlockingFetchQueues< Callable< ? > > queue;
 
 
 	/**
@@ -119,6 +123,12 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		fetchSequenceDescriptionAndViewRegistrations();
 	}
 
+	public N5OMEZarrImageLoader(N5Reader n5Reader, HashMap<String, Integer> axesMap, BlockingFetchQueues< Callable< ? > > queue ) {
+		this.n5 = n5Reader;
+		this.axesMap = axesMap;
+		this.queue = queue;
+		fetchSequenceDescriptionAndViewRegistrations();
+	}
 
 	private void fetchSequenceDescriptionAndViewRegistrations() {
 		try {
@@ -170,7 +180,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	private void initSetups() throws IOException {
 		int setupId = -1;
 
-		Multiscale multiscale = getMultiscale(""); // returns multiscales[ 0 ]
+		OmeZarrMultiscales multiscale = getMultiscale(""); // returns multiscales[ 0 ]
 		DatasetAttributes attributes = getDatasetAttributes(multiscale.datasets[0].path);
 		long nC = 1;
 		if (attributes.getNumDimensions() > 4) {
@@ -246,9 +256,8 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 	 * @return
 	 * @throws IOException
 	 */
-	private Multiscale getMultiscale(String pathName) throws IOException {
-		final String key = "multiscales";
-		Multiscale[] multiscales = n5.getAttribute(pathName, key, Multiscale[].class);
+	private OmeZarrMultiscales getMultiscale(String pathName) throws IOException {
+		OmeZarrMultiscales[] multiscales = n5.getAttribute(pathName, MULTI_SCALE_KEY, OmeZarrMultiscales[].class);
 		if (multiscales == null) {
 			String location = "";
 			if (n5 instanceof N5S3ZarrReader) {
@@ -258,7 +267,7 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 				location += "; bucket: " + s3ZarrReader.getBucketName();
 				location += "; container path: " + s3ZarrReader.getContainerPath();
 				location += "; path: " + pathName;
-				location += "; attribute: " + key;
+				location += "; attribute: " + MULTI_SCALE_KEY;
 			}
 			throw new UnsupportedOperationException("Could not find multiscales at " + location);
 		}
@@ -291,10 +300,13 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 						maxNumLevels = Math.max(maxNumLevels, setupImgLoader.numMipmapLevels());
 					}
 
-					final int numFetcherThreads = Math.max(1, Runtime.getRuntime().availableProcessors());
-					final BlockingFetchQueues<Callable<?>> queue = new BlockingFetchQueues<>(maxNumLevels, numFetcherThreads);
-					fetchers = new FetcherThreads(queue, numFetcherThreads);
-					cache = new VolatileGlobalCellCache(queue);
+					if ( queue == null )
+					{
+						final int numFetcherThreads = Math.max( 1, Runtime.getRuntime().availableProcessors() );
+						queue = new BlockingFetchQueues<>( maxNumLevels, numFetcherThreads );
+						fetchers = new FetcherThreads( queue, numFetcherThreads);
+					}
+					cache = new VolatileGlobalCellCache( queue );
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
@@ -304,48 +316,23 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		}
 	}
 
-	private static class Multiscale {
-		String name;
-		double[][] scales;
-		Transform transform;
-		Dataset[] datasets;
-	}
-
-	private static class Dataset {
-		String path;
-	}
-
-	private static class Transform {
-		String[] axes;
-		double[] scale;
-		double[] translate;
-		String[] units;
-	}
-
 	@NotNull
 	private ArrayList<ViewRegistration> createViewRegistrations(int setupId, int setupTimepoints) {
-		Multiscale multiscale = setupToMultiscale.get(setupId);
+
 		AffineTransform3D transform = new AffineTransform3D();
 
-		try {
-			double[] scale = multiscale.transform.scale;
-			transform.scale(scale[0], scale[1], scale[2]);
-		} catch (NullPointerException e) {
-			System.out.println("No scale given for AffineTransform3D ");
-		}
+        ArrayList<ViewRegistration> viewRegistrations = new ArrayList<>();
+        for ( int t = 0; t < setupTimepoints; t++ )
+            viewRegistrations.add( new ViewRegistration( t, setupId, transform ) );
 
-		ArrayList<ViewRegistration> viewRegistrations = new ArrayList<>();
-		for (int t = 0; t < setupTimepoints; t++)
-			viewRegistrations.add(new ViewRegistration(t, setupId, transform));
-
-		return viewRegistrations;
-	}
+        return viewRegistrations;
+    }
 
 	private ViewSetup createViewSetup(int setupId) {
 		final DatasetAttributes attributes = setupToAttributes.get(setupId);
 		FinalDimensions dimensions = new FinalDimensions(attributes.getDimensions());
-		Multiscale multiscale = setupToMultiscale.get(setupId);
-		VoxelDimensions voxelDimensions = readVoxelDimensions(multiscale);
+		OmeZarrMultiscales multiscale = setupToMultiscale.get(setupId);
+		VoxelDimensions voxelDimensions = new DefaultVoxelDimensions(3);
 		Tile tile = new Tile(0);
 
 		Channel channel;
@@ -362,20 +349,11 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		return new ViewSetup(setupId, name, dimensions, voxelDimensions, tile, channel, angle, illumination);
 	}
 
-	private String readName(Multiscale multiscale, int setupId) {
+	private String readName(OmeZarrMultiscales multiscale, int setupId) {
 		if (multiscale.name != null)
 			return multiscale.name;
 		else
 			return "image " + setupId;
-	}
-
-	@NotNull
-	private VoxelDimensions readVoxelDimensions(Multiscale multiscale) {
-		try {
-			return new FinalVoxelDimensions(multiscale.transform.units[0], multiscale.transform.scale);
-		} catch (Exception e) {
-			return new DefaultVoxelDimensions(3);
-		}
 	}
 
 	/**
@@ -389,7 +367,8 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 			synchronized (this) {
 				if (!isOpen)
 					return;
-				fetchers.shutdown();
+				if ( fetchers != null )
+					fetchers.shutdown();
 				cache.clearCache();
 				isOpen = false;
 			}
@@ -458,30 +437,25 @@ public class N5OMEZarrImageLoader implements ViewerImgLoader, MultiResolutionImg
 		 * @throws IOException
 		 */
 		private double[][] readMipmapResolutions() throws IOException {
-			Multiscale multiscale = setupToMultiscale.get(setupId);
+			OmeZarrMultiscales multiscale = setupToMultiscale.get(setupId);
 			double[][] mipmapResolutions = new double[multiscale.datasets.length][];
 
-			try {
-				System.arraycopy(multiscale.scales, 0, mipmapResolutions, 0, mipmapResolutions.length);
-			} catch (Exception e) {
+			//Try to fix 2D problem
+			long[] dimensionsOfLevel0 = getDatasetAttributes(getPathName(setupId, 0)).getDimensions();
+			mipmapResolutions[0] = new double[]{1.0, 1.0, 1.0};
 
-				//Try to fix 2D problem
-				long[] dimensionsOfLevel0 = getDatasetAttributes(getPathName(setupId, 0)).getDimensions();
-				mipmapResolutions[0] = new double[]{1.0, 1.0, 1.0};
-
-				for (int level = 1; level < mipmapResolutions.length; level++) {
-					long[] dimensions = getDatasetAttributes(getPathName(setupId, level)).getDimensions();
+			for (int level = 1; level < mipmapResolutions.length; level++) {
+				long[] dimensions = getDatasetAttributes(getPathName(setupId, level)).getDimensions();
+				mipmapResolutions[level] = new double[3];
+				if (dimensions.length < 3 && dimensionsOfLevel0.length < 3) {
+					for (int d = 0; d < 2; d++) {
+						mipmapResolutions[level][d] = 1.0 * dimensionsOfLevel0[d] / dimensions[d];
+					}
+					mipmapResolutions[level][2] = 1.0;
+				} else {
 					mipmapResolutions[level] = new double[3];
-					if (dimensions.length < 3 && dimensionsOfLevel0.length < 3) {
-						for (int d = 0; d < 2; d++) {
-							mipmapResolutions[level][d] = 1.0 * dimensionsOfLevel0[d] / dimensions[d];
-						}
-						mipmapResolutions[level][2] = 1.0;
-					} else {
-						mipmapResolutions[level] = new double[3];
-						for (int d = 0; d < 3; d++) {
-							mipmapResolutions[level][d] = 1.0 * dimensionsOfLevel0[d] / dimensions[d];
-						}
+					for (int d = 0; d < 3; d++) {
+						mipmapResolutions[level][d] = 1.0 * dimensionsOfLevel0[d] / dimensions[d];
 					}
 				}
 			}

@@ -21,6 +21,8 @@ import java.io.*;
 import java.net.URI;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
@@ -30,6 +32,26 @@ import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
 
 public abstract class Utils
 {
+	public static void waitUntilFinishedAndShutDown( ExecutorService executorService )
+	{
+		executorService.shutdown();
+		try {
+			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		} catch (InterruptedException e) {
+		}
+	}
+
+	public static int[] asInts( long[] longs) {
+		int[] ints = new int[longs.length];
+
+		for(int i = 0; i < longs.length; ++i)
+		{
+			ints[i] = (int)longs[i];
+		}
+
+		return ints;
+	}
+
 	public enum FileLocation {
 		Project,
 		FileSystem
@@ -157,9 +179,9 @@ public abstract class Utils
 		return filePath;
 	}
 
-	public static < T > SourceAndConverter< T > getSource( List< SourceAndConverter< T > > sourceAndConverters, String name )
+	public static SourceAndConverter< ? > getSourceAndConverter( List< SourceAndConverter< ? > > sourceAndConverters, String name )
 	{
-		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			if ( sourceAndConverter.getSpimSource().getName().equals( name ) )
 				return sourceAndConverter;

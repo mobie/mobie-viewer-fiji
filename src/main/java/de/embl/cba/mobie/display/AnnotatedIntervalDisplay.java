@@ -6,6 +6,7 @@ import de.embl.cba.mobie.bdv.view.AnnotatedIntervalSliceView;
 import de.embl.cba.mobie.source.StorageLocation;
 import de.embl.cba.mobie.table.TableDataFormat;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,12 +32,21 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedI
 		return tableData.get( tableDataFormat ).relativePath;
 	}
 
-	public Map< String, List< String > > getSources()
+	public Map< String, List< String > > getAnnotationIdToSources()
 	{
 		return sources;
 	}
 
+	@Override
+	public List< String > getSources()
+	{
+		final ArrayList< String > allSources = new ArrayList<>();
+		for ( List< String > sources : this.sources.values() )
+			allSources.addAll( sources );
+		return allSources;
+	}
 
+	public AnnotatedIntervalDisplay() {}
 
 	public AnnotatedIntervalDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
 	{

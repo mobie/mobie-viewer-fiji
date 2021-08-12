@@ -7,15 +7,16 @@ import net.imagej.ImageJ;
 
 import java.io.IOException;
 
-public class OpenRemoteCovidEM
+public class OpenRemoteCovidTomogramsBranch
 {
 	public static void main( String[] args )
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
+
 		try {
-			new MoBIE("https://github.com/mobie-org/covid-em-datasets",
-					MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5S3 ) );
+			new MoBIE("https://github.com/mobie/covid-tomo-datasets",
+					MoBIESettings.settings().gitProjectBranch( "new-spec" ).imageDataFormat( ImageDataFormat.BdvN5S3 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

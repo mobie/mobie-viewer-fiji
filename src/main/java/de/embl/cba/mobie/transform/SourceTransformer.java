@@ -5,10 +5,17 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 
 import java.util.List;
+import java.util.Map;
 
 public interface SourceTransformer< T extends NumericType< T > >
 {
-	List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sourceAndConverters  );
+	void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter );
 
-	AffineTransform3D getTransform( String name );
+	//AffineTransform3D getTransform( String name );
+
+	/**
+	 *
+	 * @return a list of the names of all sources that should be transformed using this transformer.
+	 */
+	List< String > getSources();
 }
