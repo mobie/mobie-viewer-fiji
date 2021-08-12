@@ -4,8 +4,8 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import de.embl.cba.mobie.transform.AffineSourceTransformer;
 import de.embl.cba.mobie.transform.CropSourceTransformer;
+import de.embl.cba.mobie.transform.TransformedGridSourceTransformer;
 import de.embl.cba.mobie.transform.GridSourceTransformer;
-import de.embl.cba.mobie.transform.MergedGridSourceTransformer;
 import de.embl.cba.mobie.transform.SourceTransformer;
 
 import java.lang.reflect.Type;
@@ -17,10 +17,10 @@ public class SourceTransformerListAdapter implements JsonSerializer< List< Sourc
 	private static Map<String, String> classToName = new TreeMap<>();
 
 	static {
-		nameToClass.put("mergedGrid", MergedGridSourceTransformer.class);
-		classToName.put(MergedGridSourceTransformer.class.getName(), "mergedGrid");
 		nameToClass.put("grid", GridSourceTransformer.class);
-		classToName.put(GridSourceTransformer.class.getName(), "grid");
+		classToName.put( GridSourceTransformer.class.getName(), "grid");
+		nameToClass.put("transformedGrid", TransformedGridSourceTransformer.class);
+		classToName.put( TransformedGridSourceTransformer.class.getName(), "transformedGrid");
 		nameToClass.put("affine", AffineSourceTransformer.class);
 		classToName.put(AffineSourceTransformer.class.getName(), "affine");
 		nameToClass.put("crop", CropSourceTransformer.class);
@@ -48,8 +48,8 @@ public class SourceTransformerListAdapter implements JsonSerializer< List< Sourc
 			Map< String, SourceTransformer > nameToTransformer = new HashMap<>();
 			nameToTransformer.put( classToName.get( sourceTransformer.getClass().getName() ), sourceTransformer );
 
-			if ( sourceTransformer instanceof GridSourceTransformer ) {
-				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, GridSourceTransformer > >() {}.getType() ) );
+			if ( sourceTransformer instanceof TransformedGridSourceTransformer ) {
+				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, TransformedGridSourceTransformer > >() {}.getType() ) );
 			} else if ( sourceTransformer instanceof AffineSourceTransformer ) {
 				ja.add( context.serialize( nameToTransformer , new TypeToken< Map< String, AffineSourceTransformer > >() {}.getType() ) );
 			} else if ( sourceTransformer instanceof CropSourceTransformer ) {

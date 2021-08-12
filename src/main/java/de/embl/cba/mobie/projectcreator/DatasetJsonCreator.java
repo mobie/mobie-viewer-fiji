@@ -115,7 +115,7 @@ public class DatasetJsonCreator {
 
     private View createView( String imageName, ProjectCreator.ImageType imageType, String uiSelectionGroup,
                              boolean isExclusive ) {
-        ArrayList<SourceDisplay> sourceDisplays = new ArrayList<>();
+        ArrayList< SourceDisplay > sourceDisplays = new ArrayList<>();
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
         switch( imageType ) {

@@ -29,7 +29,6 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
-import net.imglib2.img.cell.LazyCellImg;
 import net.imglib2.util.Cast;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -45,10 +44,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.Utils.*;
@@ -73,7 +72,7 @@ public class MoBIE
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private SourceAndConverterService sacService;
-	//private HashMap< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
+	private Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -188,16 +187,17 @@ public class MoBIE
 		}
 	}
 
-	public List< SourceAndConverter< ? > > openSourceAndConverters( List< String > sources )
+	public Map< String, SourceAndConverter< ? > > openSourceAndConverters( Collection< String > sources )
 	{
-		List< SourceAndConverter< ? > > sourceAndConverters = new CopyOnWriteArrayList<>();
 		final long start = System.currentTimeMillis();
+
+		Map< String, SourceAndConverter< ? > > sourceAndConverters = new ConcurrentHashMap< >();
 
 		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
 		for ( String sourceName : sources )
 		{
 			executorService.execute( () -> {
-				sourceAndConverters.add( getSourceAndConverter( sourceName ) );
+				sourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) );
 			} );
 		}
 
@@ -211,6 +211,7 @@ public class MoBIE
 	private void openDataset( String datasetName ) throws IOException
 	{
 		sourceNameToImgLoader = new HashMap<>();
+		sourceNameToSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 
@@ -295,16 +296,8 @@ public class MoBIE
 		return dataset.sources.get( sourceName ).get();
 	}
 
-	public SourceAndConverter getSourceAndConverter( String sourceName )
+	public SourceAndConverter< ? > openSourceAndConverter( String sourceName )
 	{
-		final List< SourceAndConverter > sourceAndConverters = sacService.getSourceAndConverters().stream().filter( sac -> sac.getSpimSource().getName().equals( sourceName ) ).collect( Collectors.toList() );
-
-		if ( sourceAndConverters.size() == 1 )
-		{
-			// sac has been loaded already
-			return sourceAndConverters.get( 0 );
-		}
-
 		final ImageSource source = getSource( sourceName );
 		final String imagePath = getImagePath( source );
         //new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
@@ -543,7 +536,8 @@ public class MoBIE
 
 		// create primary AnnotatedIntervalTableRow table
 		final Map< String, List< String > > referenceTable = tables.get( 0 );
-		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getSources(), ( String sourceName ) -> this.getSourceAndConverter( sourceName )  );
+		// TODO: The AnnotatedIntervalCreator does not need the sources, but just the source's real intervals
+		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), ( String sourceName ) -> this.openSourceAndConverter( sourceName )  );
 		final List< AnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getAnnotatedIntervalTableRows();
 
 		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
@@ -680,4 +674,15 @@ public class MoBIE
         }
         return null;
     }
+
+	public void addSourceAndConverters( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters )
+	{
+		this.sourceNameToSourceAndConverter.putAll( sourceNameToSourceAndConverters );
+	}
+
+	public SourceAndConverter< ? > getSourceAndConverter( String sourceName )
+	{
+		return this.sourceNameToSourceAndConverter.get( sourceName );
+	}
+
 }

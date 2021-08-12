@@ -5,6 +5,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.mobie.MoBIE;
+import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.bdv.render.BlendingMode;
 import de.embl.cba.mobie.color.OpacityAdjuster;
 import de.embl.cba.mobie.color.opacity.AdjustableOpacityColorConverter;
@@ -13,6 +14,7 @@ import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.transform.TransformHelper;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
@@ -25,6 +27,7 @@ import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
@@ -50,24 +53,13 @@ public class ImageSliceView
 
 	private void show( )
 	{
-		List< SourceAndConverter< ? > > sourceAndConverters = moBIE.openSourceAndConverters( display.getSources() );
-
-		// transform
- 		sourceAndConverters = TransformHelper.transformSourceAndConverters( sourceAndConverters, display.sourceTransformers );
-
 		// show
-		List< SourceAndConverter< ? > > displayedSourceAndConverters = new ArrayList<>();
+		final List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.getSources().stream().map( name -> moBIE.getSourceAndConverter( name ) ).collect( Collectors.toList() );
+
+		display.sourceAndConverters = new ArrayList<>();
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			// replace converter such that one can change the opacity
-			// (this changes the hash-code of the sourceAndConverter)
-
-			// TODO: understand this madness
-			final Converter< RealType, ARGBType > converter = ( Converter< RealType, ARGBType > ) sourceAndConverter.getConverter();
-			final AdjustableOpacityColorConverter adjustableOpacityColorConverter = new AdjustableOpacityColorConverter( converter );
-			final Converter< ? extends Volatile< ? >, ARGBType > volatileConverter = sourceAndConverter.asVolatile().getConverter();
-			final VolatileAdjustableOpacityColorConverter volatileAdjustableOpacityColorConverter = new VolatileAdjustableOpacityColorConverter( volatileConverter );
-			sourceAndConverter = new ConverterChanger( sourceAndConverter, adjustableOpacityColorConverter, volatileAdjustableOpacityColorConverter ).get();
+			sourceAndConverter = adaptConverter( sourceAndConverter );
 
 			// set opacity
 			OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
@@ -86,10 +78,23 @@ public class ImageSliceView
 			final ConverterSetup converterSetup = displayService.getConverterSetup( sourceAndConverter );
 			converterSetup.setDisplayRange( display.getContrastLimits()[ 0 ], display.getContrastLimits()[ 1 ] );
 
-			displayedSourceAndConverters.add( sourceAndConverter );
+			// register	the actually displayed sac (for serialisation)
+			display.sourceAndConverters.add( sourceAndConverter );
 		}
+	}
 
-		display.sourceAndConverters = displayedSourceAndConverters;
+	private SourceAndConverter< ? > adaptConverter( SourceAndConverter< ? > sourceAndConverter )
+	{
+		// replace converter such that one can change the opacity
+		// (this changes the hash-code of the sourceAndConverter)
+
+		// TODO: understand this madness
+		final Converter< RealType, ARGBType > converter = ( Converter< RealType, ARGBType > ) sourceAndConverter.getConverter();
+		final AdjustableOpacityColorConverter adjustableOpacityColorConverter = new AdjustableOpacityColorConverter( converter );
+		final Converter< ? extends Volatile< ? >, ARGBType > volatileConverter = sourceAndConverter.asVolatile().getConverter();
+		final VolatileAdjustableOpacityColorConverter volatileAdjustableOpacityColorConverter = new VolatileAdjustableOpacityColorConverter( volatileConverter );
+		sourceAndConverter = new ConverterChanger( sourceAndConverter, adjustableOpacityColorConverter, volatileAdjustableOpacityColorConverter ).get();
+		return sourceAndConverter;
 	}
 
 	private void adaptImageColor( SourceAndConverter< ? > sourceAndConverter )

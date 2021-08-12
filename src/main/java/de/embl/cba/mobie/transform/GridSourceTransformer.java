@@ -1,151 +1,79 @@
 package de.embl.cba.mobie.transform;
 
+import bdv.util.VolatileSource;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.Utils;
-import net.imglib2.RealInterval;
-import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.Volatile;
+import net.imglib2.converter.Converter;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
-import org.apache.commons.lang.ArrayUtils;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-public class GridSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
+public class GridSourceTransformer< T extends NativeType< T > & NumericType< T >, V extends Volatile< T > & NumericType< V > > extends AbstractSourceTransformer< T >
 {
 	// Serialization
-	protected LinkedHashMap< String, List< String > > sources;
-	protected LinkedHashMap< String, List< String > > sourceNamesAfterTransform;
-	protected LinkedHashMap< String, int[] > positions;
+	protected List< String > sources;
+	protected String mergedGridSourceName;
+	protected List< int[] > positions;
 	protected boolean centerAtOrigin = false;
 
-	private ArrayList< String > gridIds;
-
 	@Override
-	public List< SourceAndConverter< T > > transform( List< SourceAndConverter< T > > sourceAndConverters )
+	public void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
 	{
-		gridIds = new ArrayList<>( sources.keySet() );
-
-		List< SourceAndConverter< T > > transformedSourceAndConverters = new CopyOnWriteArrayList<>( sourceAndConverters );
+		final List< SourceAndConverter< T > > gridSources = getGridSources( sourceNameToSourceAndConverter );
 
 		if ( positions == null )
-		{
-			autoSetPositions();
-		}
+			positions = createPositions( gridSources.size() );
 
-		final List< SourceAndConverter< T > > referenceSources = getReferenceSources( sourceAndConverters );
+		final SourceAndConverter< T > mergedSourceAndConverter = createMergedSourceAndConverter( gridSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ), ( Converter< V, ARGBType > ) gridSources.get( 0 ).asVolatile().getConverter(), gridSources.get( 0 ).getConverter() );
 
-		transform( sourceAndConverters, transformedSourceAndConverters, referenceSources );
+		// TODO: Maybe also transform the individual sources as in the GridSourceTransformer such that we know where they are?!
 
-		return transformedSourceAndConverters;
+		sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
 	}
 
-	private void transform( List< SourceAndConverter< T > > inputSources, List< SourceAndConverter< T > > transformedSources, List< SourceAndConverter< T > > referenceSources )
+	@Override
+	public List< String > getSources()
 	{
-		RealInterval bounds = TransformHelper.unionRealInterval(  referenceSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ));
-		final double spacingFactor = 0.1;
-		double spacingX = ( 1.0 + spacingFactor ) * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
-		double spacingY = ( 1.0 + spacingFactor ) * ( bounds.realMax( 1 ) - bounds.realMin( 1 ) );
-
-		final long start = System.currentTimeMillis();
-
-		final int nThreads = MoBIE.N_THREADS;
-		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
-		//final ExecutorService executorService = MoBIE.executorService;
-
-		for ( String gridId : sources.keySet() )
-		{
-			executorService.execute( () -> {
-				transform( inputSources, transformedSources, spacingX, spacingY, sources.get( gridId ), getTransformedSourceNames( gridId ), positions.get( gridId ) );
-			} );
-		}
-
-		Utils.waitUntilFinishedAndShutDown( executorService );
-
-		System.out.println( "Transformed " + inputSources.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
+		return sources;
 	}
 
-	private List< String > getTransformedSourceNames( String gridId )
+	private SourceAndConverter< T > createMergedSourceAndConverter( List< Source< T > > gridSources, Converter< V, ARGBType > volatileConverter, Converter< T, ARGBType > converter )
 	{
-		List< String > transformedSourceNames = null;
-		if ( sourceNamesAfterTransform != null )
-		{
-			transformedSourceNames = sourceNamesAfterTransform.get( gridId );
-		}
-		return transformedSourceNames;
+		final MergedGridSource< T > mergedGridSource = new MergedGridSource<>( gridSources, positions, mergedGridSourceName, 0.10 );
+
+		final VolatileSource< T, V > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
+
+		final SourceAndConverter< V > volatileSourceAndConverter = new SourceAndConverter<>( volatileMergedGridSource, volatileConverter );
+
+		final SourceAndConverter< T > mergedSourceAndConverter = new SourceAndConverter( mergedGridSource, converter, volatileSourceAndConverter );
+
+		return mergedSourceAndConverter;
 	}
 
-	private void transform( List< SourceAndConverter< T > > sourceAndConverters, List< SourceAndConverter< T > > transformedSources, double spacingX, double spacingY, List< String > sourceNames, List< String > sourceNamesAfterTransform, int[] gridPosition  )
+	private List< SourceAndConverter< T > > getGridSources( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
 	{
-		for ( String sourceName : sourceNames )
+		final List< SourceAndConverter< T > > gridSources = new ArrayList<>();
+		for ( String sourceName : sources )
 		{
-			SourceAndConverter< T > sourceAndConverter = Utils.getSourceAndConverter( sourceAndConverters, sourceName );
-
-			if ( sourceAndConverter == null )
-			{
-				// This is OK, because the field `List< List< String > > sources`
-				// can contain more sources than the ones that should be
-				// transformed with `transform( List< SourceAndConverter< ? > > sourceAndConverters )`
-				// Examples are multi-color images where there is a separate imageDisplay
-				// for each color.
-				continue;
-			}
-
-			// compute translation transform
-			AffineTransform3D translationTransform = createTranslationTransform3D( spacingX * gridPosition[ 0 ], spacingY * gridPosition[ 1 ], sourceAndConverter, centerAtOrigin );
-
-			// apply translation transform
-			AffineSourceTransformer.transform( transformedSources, translationTransform, sourceAndConverter, sourceName, sourceNamesAfterTransform, sourceNameToTransform, sourceNames );
+			gridSources.add( sourceNameToSourceAndConverter.get( sourceName ) );
 		}
+		return gridSources;
 	}
 
-	private AffineTransform3D createTranslationTransform3D( double x, double y, SourceAndConverter< T > sourceAndConverter, boolean centerAtOrigin )
+	private static List< int[] > createPositions( int size )
 	{
-		AffineTransform3D translationTransform = new AffineTransform3D();
-		if ( centerAtOrigin )
-		{
-			final double[] center = TransformHelper.getCenter( sourceAndConverter );
-			translationTransform.translate( center );
-			translationTransform = translationTransform.inverse();
-		}
-		translationTransform.translate( x, y, 0 );
-		return translationTransform;
-	}
-
-	private List< SourceAndConverter< T > > getReferenceSources( List< SourceAndConverter< T > > sourceAndConverters )
-	{
-		final List< String > sourcesAtFirstGridPosition = sources.get( gridIds.get( 0 ) );
-
-		List< SourceAndConverter< T  > > referenceSources = new ArrayList<>();
-		for ( String name : sourcesAtFirstGridPosition )
-		{
-			final SourceAndConverter< T > source = Utils.getSourceAndConverter( sourceAndConverters, name );
-			if ( source != null )
-			{
-				referenceSources.add( source );
-			}
-		}
-
-		if ( referenceSources.size() == 0 )
-		{
-			throw new UnsupportedOperationException( "None of the sources specified at the first grid position could not be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourcesAtFirstGridPosition ) );
-		}
-		else
-		{
-			return referenceSources;
-		}
-	}
-
-	private void autoSetPositions()
-	{
-		final int numPositions = sources.size();
+		final int numPositions = size;
 		final int numX = ( int ) Math.ceil( Math.sqrt( numPositions ) );
-		positions = new LinkedHashMap<>();
+		List< int[] > positions = new ArrayList<>();
 		int xPositionIndex = 0;
 		int yPositionIndex = 0;
 		for ( int gridIndex = 0; gridIndex < numPositions; gridIndex++ )
@@ -155,8 +83,10 @@ public class GridSourceTransformer< T extends NumericType< T > > extends Abstrac
 				xPositionIndex = 0;
 				yPositionIndex++;
 			}
-			positions.put( gridIds.get( gridIndex ), new int[]{ xPositionIndex, yPositionIndex }  );
+			positions.add( new int[]{ xPositionIndex, yPositionIndex }  );
 			xPositionIndex++;
 		}
+
+		return positions;
 	}
 }

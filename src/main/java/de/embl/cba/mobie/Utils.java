@@ -179,9 +179,9 @@ public abstract class Utils
 		return filePath;
 	}
 
-	public static < T > SourceAndConverter< T > getSourceAndConverter( List< SourceAndConverter< T > > sourceAndConverters, String name )
+	public static SourceAndConverter< ? > getSourceAndConverter( List< SourceAndConverter< ? > > sourceAndConverters, String name )
 	{
-		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			if ( sourceAndConverter.getSpimSource().getName().equals( name ) )
 				return sourceAndConverter;
