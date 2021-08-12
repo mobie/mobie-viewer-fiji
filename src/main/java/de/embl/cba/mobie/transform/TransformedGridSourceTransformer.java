@@ -28,16 +28,6 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	// Runtime
 	private ArrayList< String > gridIds;
 
-	public static double[] createOffset( double[] gridCellRealDimensions )
-	{
-		final double[] offset = new double[ 2 ];
-		for ( int d = 0; d < 2; d++ )
-		{
-			offset[ d ] = gridCellRealDimensions[ d ] / CELL_SCALING * 0.1;
-		}
-		return offset;
-	}
-
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
@@ -63,7 +53,6 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	private void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > referenceSources )
 	{
 		final double[] cellRealDimensions = createGridCellRealDimensions( referenceSources, CELL_SCALING );
-		final double[] offset = createOffset( cellRealDimensions );
 
 		final long start = System.currentTimeMillis();
 
@@ -73,7 +62,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		for ( String gridId : sources.keySet() )
 		{
 			executorService.execute( () -> {
-				translateToGridPosition( sourceNameToSourceAndConverter, cellRealDimensions, offset, sources.get( gridId ), sourceNamesAfterTransform.get( gridId ), positions.get( gridId ), centerAtOrigin );
+				translateToGridPosition( sourceNameToSourceAndConverter, cellRealDimensions, sources.get( gridId ), sourceNamesAfterTransform.get( gridId ), positions.get( gridId ), centerAtOrigin );
 			} );
 		}
 
@@ -91,7 +80,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		return cellDimensions;
 	}
 
-	public static void translateToGridPosition( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] cellRealDimensions, double[] offset, List< String > sourceNames, List< String > sourceNamesAfterTransform, int[] gridPosition, boolean centerAtOrigin )
+	public static void translateToGridPosition( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] cellRealDimensions, List< String > sourceNames, List< String > sourceNamesAfterTransform, int[] gridPosition, boolean centerAtOrigin )
 	{
 		for ( String sourceName : sourceNames )
 		{
@@ -100,7 +89,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			if ( sourceAndConverter == null )
 			  continue;
 
-			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( cellRealDimensions[ 0 ] * gridPosition[ 0 ] + offset[ 0 ], cellRealDimensions[ 1 ] * gridPosition[ 1 ] + offset[ 1 ], sourceAndConverter, centerAtOrigin );
+			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( cellRealDimensions[ 0 ] * gridPosition[ 0 ], cellRealDimensions[ 1 ] * gridPosition[ 1 ], sourceAndConverter, centerAtOrigin );
 
 			final SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, translationTransform );
 

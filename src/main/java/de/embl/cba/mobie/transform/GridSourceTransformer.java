@@ -46,7 +46,6 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 		final ArrayList< SourceAndConverter< ? > > referenceSources = new ArrayList<>();
 		referenceSources.add( gridSources.get( 0 ) );
 		final double[] gridCellRealDimensions = TransformedGridSourceTransformer.createGridCellRealDimensions( referenceSources, TransformedGridSourceTransformer.CELL_SCALING );
-		final double[] offset = TransformedGridSourceTransformer.createOffset( gridCellRealDimensions );
 
 		final int nThreads = MoBIE.N_THREADS;
 		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
@@ -61,10 +60,10 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 			// translate the source(s) at this grid position
 			// (in fact, here it can only be one source per grid position)
 			executorService.execute( () -> {
-				TransformedGridSourceTransformer.translateToGridPosition( sourceNameToSourceAndConverter, gridCellRealDimensions, offset, sourceNamesAtGridPosition, null, positions.get( finalPositionIndex ), centerAtOrigin );
+				TransformedGridSourceTransformer.translateToGridPosition( sourceNameToSourceAndConverter, gridCellRealDimensions, sourceNamesAtGridPosition, null, positions.get( finalPositionIndex ), centerAtOrigin );
 			} );
 
-			translateSourcesWithinMergedSources( sourceNameToSourceAndConverter, gridCellRealDimensions, offset, executorService, finalPositionIndex, sourceNamesAtGridPosition );
+			translateSourcesWithinMergedSources( sourceNameToSourceAndConverter, gridCellRealDimensions, executorService, finalPositionIndex, sourceNamesAtGridPosition );
 
 		}
 		Utils.waitUntilFinishedAndShutDown( executorService );
@@ -72,7 +71,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 		System.out.println( "Transformed " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
 	}
 
-	private void translateSourcesWithinMergedSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] gridCellRealDimensions, double[] offset, ExecutorService executorService, int finalPositionIndex, ArrayList< String > sourceNamesAtGridPosition )
+	private void translateSourcesWithinMergedSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] gridCellRealDimensions, ExecutorService executorService, int finalPositionIndex, ArrayList< String > sourceNamesAtGridPosition )
 	{
 		final ArrayList< String > baseSourceNames = new ArrayList<>();
 		for ( String sourceName : sourceNamesAtGridPosition )
@@ -88,7 +87,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 		if ( baseSourceNames.size() > 0 )
 		{
 			executorService.execute( () -> {
-				TransformedGridSourceTransformer.translateToGridPosition( sourceNameToSourceAndConverter, gridCellRealDimensions, offset, baseSourceNames, null, positions.get( finalPositionIndex ), centerAtOrigin );
+				TransformedGridSourceTransformer.translateToGridPosition( sourceNameToSourceAndConverter, gridCellRealDimensions, baseSourceNames, null, positions.get( finalPositionIndex ), centerAtOrigin );
 			} );
 		}
 	}
