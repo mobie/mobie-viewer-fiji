@@ -7,7 +7,10 @@ import bdv.export.SubTaskProgressWriter;
 import bdv.img.cache.SimpleCacheArrayLoader;
 import bdv.img.n5.N5ImageLoader;
 import com.google.gson.GsonBuilder;
-import de.embl.cba.mobie.n5.zarr.*;
+import de.embl.cba.n5.ome.zarr.util.OmeZarrMultiscales;
+import de.embl.cba.n5.ome.zarr.util.ZarrAxes;
+import de.embl.cba.n5.ome.zarr.util.ZarrDatasetAttributes;
+import de.embl.cba.n5.ome.zarr.writers.N5OMEZarrWriter;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicSetupImgLoader;
@@ -34,7 +37,8 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static de.embl.cba.mobie.n5.zarr.OmeZarrMultiscales.MULTI_SCALE_KEY;
+
+import static de.embl.cba.n5.ome.zarr.util.OmeZarrMultiscales.MULTI_SCALE_KEY;
 import static net.imglib2.cache.img.ReadOnlyCachedCellImgOptions.options;
 
 public class WriteSequenceToN5OmeZarr {
