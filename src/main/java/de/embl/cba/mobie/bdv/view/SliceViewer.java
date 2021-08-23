@@ -35,6 +35,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 	public static final String CHANGE_RANDOM_COLOR_SEED = "Change random color seed";
 	public static final String LOAD_ADDITIONAL_VIEWS = "Load additional views";
 	public static final String SAVE_CURRENT_SETTINGS_AS_VIEW = "Save current settings as view";
+    private static final String CREATE_OR_EDIT_GRID_VIEW = "Create or edit grid view";
 	private final SourceAndConverterBdvDisplayService sacDisplayService;
 	private BdvHandle bdvHandle;
 	private final boolean is2D;
@@ -93,6 +94,10 @@ public class SliceViewer implements Supplier< BdvHandle >
 			// TODO: Maybe only do this for the sacs at the mouse position
 			viewManager.getViewsSaver().saveCurrentSettingsAsViewDialog();
 		} );
+
+		sacService.registerAction( CREATE_OR_EDIT_GRID_VIEW, sourceAndConverters -> {
+//		    viewManager.
+        } );
 
 		final Set< String > actionsKeys = sacService.getActionsKeys();
 

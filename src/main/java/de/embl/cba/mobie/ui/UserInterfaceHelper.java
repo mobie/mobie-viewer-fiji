@@ -135,6 +135,45 @@ public class UserInterfaceHelper
 		frame.setVisible( true );
 	}
 
+    public static void showDynamicGridViewsDialog(
+            String name,
+            List< String > dropDownValues)
+    {
+        JFrame frame = new JFrame( name );
+        frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+
+        JPanel dialogPanel = new JPanel();
+        dialogPanel.setLayout( new BoxLayout( dialogPanel, BoxLayout.PAGE_AXIS ) );
+
+        final JComboBox< String > comboBox = new JComboBox<>( dropDownValues.toArray( new String[ 0 ] ) );
+
+        final JButton button = createButton( "+" );
+        button.addActionListener( e ->
+        {
+            SwingUtilities.invokeLater( () ->
+            {
+            } );
+        } );
+        button.setMargin(new Insets(0, 0, 0, 0));
+        setComboBoxDimensions( comboBox );
+
+        dialogPanel.add( getJLabel( "dataset" ) );
+        dialogPanel.add( comboBox, BorderLayout.CENTER );
+        dialogPanel.add( button, BorderLayout.PAGE_END);
+//        panel.add( minSlider );
+//        panel.add( maxSlider );
+
+        frame.setContentPane( dialogPanel );
+
+        //Display the window.
+        frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
+                MouseInfo.getPointerInfo().getLocation().y,
+                120, 20);
+        frame.setResizable( false );
+        frame.pack();
+        frame.setVisible( true );
+    }
+
 	public static void showOpacityDialog(
 			String name,
 			List< SourceAndConverter< ? > > sourceAndConverters,
@@ -272,6 +311,8 @@ public class UserInterfaceHelper
 		panel.add( createViewsSelectionPanel() );
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		panel.add( createMoveToLocationPanel()  );
+        panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
+        panel.add( createDynamicGridViewPanel() );
 
 		return panel;
 	}
@@ -584,6 +625,26 @@ public class UserInterfaceHelper
 
 		return panel;
 	}
+
+	public JPanel createDynamicGridViewPanel() {
+	    final JPanel panel = SwingUtils.horizontalLayoutPanel();
+	    final JButton button = createButton("Create grid view");
+        button.addActionListener( e ->
+        {
+            SwingUtilities.invokeLater( () ->
+            {
+                final List<String> converterSetups = new ArrayList<>();
+                converterSetups.add( "a" );
+                converterSetups.add( "b" );
+                UserInterfaceHelper.showDynamicGridViewsDialog(
+                        "Create grid view",
+                        converterSetups );
+            });
+        } );
+        panel.add( button );
+
+        return panel;
+    }
 
 	private static Component createSpace()
 	{
