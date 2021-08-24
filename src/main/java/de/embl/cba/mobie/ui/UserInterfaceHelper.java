@@ -135,46 +135,78 @@ public class UserInterfaceHelper
 		frame.setVisible( true );
 	}
 
-    public static void showDynamicGridViewsDialog(
+    public void showDynamicGridViewsDialog(
             String name,
             List< String > dropDownValues)
     {
         JFrame frame = new JFrame( name );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        final JPanel dialogPanel = SwingUtils.horizontalLayoutPanel();
 
-        JPanel dialogPanel = new JPanel();
-        dialogPanel.setLayout( new BoxLayout( dialogPanel, BoxLayout.PAGE_AXIS ) );
+        dialogPanel.setLayout( new GridBagLayout() );
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
 
-        final JComboBox< String > comboBox = new JComboBox<>( dropDownValues.toArray( new String[ 0 ] ) );
+        constraints.gridy = 0;
+        constraints.gridx = 0;
+        dialogPanel.add( getJLabel( "Datasets:" ), constraints );
 
-        final JButton button = createButton( "+" );
-        button.addActionListener( e ->
+
+        final JPanel datasetsPanel = SwingUtils.horizontalLayoutPanel();
+        datasetsPanel.setLayout( new BoxLayout(datasetsPanel, BoxLayout.PAGE_AXIS) );
+
+        addDataset( datasetsPanel,  frame );
+
+
+        constraints.gridy = 2;
+        constraints.gridx = 1;
+        final JButton addButton = createButton( "+" );
+        addButton.addActionListener( e ->
         {
             SwingUtilities.invokeLater( () ->
             {
+                addDataset( datasetsPanel, frame );
             } );
         } );
-        button.setMargin(new Insets(0, 0, 0, 0));
-        setComboBoxDimensions( comboBox );
+        addButton.setMargin(new Insets(0, 0, 0, 0));
+        dialogPanel.add( addButton, constraints);
 
-        dialogPanel.add( getJLabel( "dataset" ) );
-        dialogPanel.add( comboBox, BorderLayout.CENTER );
-        dialogPanel.add( button, BorderLayout.PAGE_END);
-//        panel.add( minSlider );
-//        panel.add( maxSlider );
+        constraints.gridy = 1;
+        constraints.gridx = 0;
+        dialogPanel.add( datasetsPanel, constraints);
+
+        constraints.gridy = 3;
+        constraints.gridx = 1;
+        final JButton showButton = createButton( HELP );
+        showButton.addActionListener( e ->
+        {
+            SwingUtilities.invokeLater( () ->
+            {
+//                final String dataset = ( String ) comboBox.getSelectedItem();
+//                moBIE.setDataset( dataset );
+            } );
+        } );
+
+        dialogPanel.add( showButton, constraints );
 
         frame.setContentPane( dialogPanel );
-
-        //Display the window.
-        frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
-                MouseInfo.getPointerInfo().getLocation().y,
-                120, 20);
-        frame.setResizable( false );
+        frame.setLocation( MouseInfo.getPointerInfo().getLocation().x,
+                MouseInfo.getPointerInfo().getLocation().y);
+        frame.setResizable( true );
         frame.pack();
         frame.setVisible( true );
     }
 
-	public static void showOpacityDialog(
+    private void addDataset( JPanel datasetsPanel, JFrame frame )
+    {
+        final JComboBox< String > comboBox = new JComboBox<>( moBIE.getDatasets().toArray( new String[ 0 ] ) );
+        comboBox.setSelectedItem( moBIE.getDatasetName() );
+        setComboBoxDimensions( comboBox );
+        datasetsPanel.add( comboBox);
+        frame.pack();
+    }
+
+    public static void showOpacityDialog(
 			String name,
 			List< SourceAndConverter< ? > > sourceAndConverters,
 			BdvHandle bdvHandle )
@@ -312,6 +344,7 @@ public class UserInterfaceHelper
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		panel.add( createMoveToLocationPanel()  );
         panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
+        ////
         panel.add( createDynamicGridViewPanel() );
 
 		return panel;
@@ -636,7 +669,7 @@ public class UserInterfaceHelper
                 final List<String> converterSetups = new ArrayList<>();
                 converterSetups.add( "a" );
                 converterSetups.add( "b" );
-                UserInterfaceHelper.showDynamicGridViewsDialog(
+                showDynamicGridViewsDialog(
                         "Create grid view",
                         converterSetups );
             });
