@@ -63,7 +63,17 @@ public class ViewManager
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewsSaver viewsSaver;
 
-	public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
+    public List<SourceTransformer> getCurrentSourceTransformers()
+    {
+        return currentSourceTransformers;
+    }
+
+    public UserInterface getUserInterface()
+    {
+        return userInterface;
+    }
+
+    public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
 	{
 		this.moBIE = moBIE;
 		this.userInterface = userInterface;
@@ -230,7 +240,7 @@ public class ViewManager
 		adjustViewerTransform( view );
 	}
 
-	private void adjustViewerTransform( View view )
+	public void adjustViewerTransform( View view )
 	{
 		if ( view.getViewerTransform() != null )
 		{
@@ -247,7 +257,7 @@ public class ViewManager
 		}
 	}
 
-	private Set< String > fetchSources( View view )
+	public Set< String > fetchSources( View view )
 	{
 		final Set< String > sources = new HashSet<>();
 		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
@@ -262,7 +272,7 @@ public class ViewManager
 		return sources;
 	}
 
-	private synchronized void showSourceDisplay( SourceDisplay sourceDisplay )
+	public synchronized void showSourceDisplay( SourceDisplay sourceDisplay )
 	{
 		if ( currentSourceDisplays.contains( sourceDisplay ) ) return;
 

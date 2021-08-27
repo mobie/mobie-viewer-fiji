@@ -13,7 +13,10 @@ import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.display.AbstractSourceDisplay;
 import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
+import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.JsonHelper;
+import de.embl.cba.mobie.transform.GridSourceTransformer;
+import de.embl.cba.mobie.transform.SourceTransformer;
 import de.embl.cba.mobie.transform.ViewerTransform;
 import de.embl.cba.mobie.transform.MoBIEViewerTransformChanger;
 import de.embl.cba.mobie.MoBIEInfo;
@@ -23,8 +26,11 @@ import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.view.View;
+import de.embl.cba.mobie.view.ViewManager;
+import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
+import edu.mines.jtk.sgl.BoxConstraint;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -43,6 +49,8 @@ import java.awt.event.WindowEvent;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.ui.SwingHelper.*;
 
@@ -64,6 +72,8 @@ public class UserInterfaceHelper
 	private JPanel viewSelectionPanel;
 	private Map< String, Map< String, View > > groupingsToViews;
 	private Map< String, JComboBox > groupingsToComboBox;
+	private List< JComboBox<String> > sourcesForGridViewSelectors = new CopyOnWriteArrayList<>();
+    private List<GridSourceTransformer> currentSourceTransformers = new ArrayList<>();
 
 	public UserInterfaceHelper( MoBIE moBIE )
 	{
@@ -135,11 +145,9 @@ public class UserInterfaceHelper
 		frame.setVisible( true );
 	}
 
-    public void showDynamicGridViewsDialog(
-            String name,
-            List< String > dropDownValues)
+    public void showDynamicGridViewsDialog()
     {
-        JFrame frame = new JFrame( name );
+        JFrame frame = new JFrame( "Create grid view" );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         final JPanel dialogPanel = SwingUtils.horizontalLayoutPanel();
 
@@ -182,8 +190,42 @@ public class UserInterfaceHelper
         {
             SwingUtilities.invokeLater( () ->
             {
-//                final String dataset = ( String ) comboBox.getSelectedItem();
-//                moBIE.setDataset( dataset );
+                final List< String > datasetSources = new CopyOnWriteArrayList<>();
+                for(JComboBox< String > comboBox : sourcesForGridViewSelectors) {
+                    datasetSources.add( (String) comboBox.getSelectedItem() );
+                }
+
+                    // fetch the names of all sources that are either shown or to be transformed
+                Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( datasetSources );
+		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );
+		// sort in alphabetical order, ignoring upper/lower case
+		uiSelectionGroups.sort( String::compareToIgnoreCase );
+
+		// If it's the first time, just add all the panels in order
+                Dataset dataset = moBIE.getDataset();
+                final View view = dataset.views.get( "default" );
+                final List<SourceTransformer> sourceTransformers = view.getSourceTransforms();
+                if ( sourceTransformers != null )
+                    for ( SourceTransformer sourceTransformer : sourceTransformers )
+                    {
+                        GridSourceTransformer gridSourceTransformer = new GridSourceTransformer();
+                        currentSourceTransformers.add( gridSourceTransformer );
+                        gridSourceTransformer.transform( sourceNameToSourceAndConverters );
+                    }
+
+//                // register all available sources
+                moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
+//
+//                // show the displays
+                setMoBIESwingLookAndFeel();
+                final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
+                for ( SourceDisplay sourceDisplay : sourceDisplays )
+                    moBIE.getViewManager().showSourceDisplay( sourceDisplay );
+                resetSystemSwingLookAndFeel();
+//
+//                // adjust viewer transform
+                moBIE.getViewManager().adjustViewerTransform( view );
+
             } );
         } );
 
@@ -199,10 +241,25 @@ public class UserInterfaceHelper
 
     private void addDataset( JPanel datasetsPanel, JFrame frame )
     {
-        final JComboBox< String > comboBox = new JComboBox<>( moBIE.getDatasets().toArray( new String[ 0 ] ) );
+        final JPanel selectPanel = new JPanel( new BorderLayout());
+        final JComboBox< String > comboBox = new JComboBox<>( moBIE.getSourceNameToImgLoader().keySet().toArray( new String[ 0 ] ) );
+        int comboBoxIndex = sourcesForGridViewSelectors.size();
+        sourcesForGridViewSelectors.add( comboBox );
         comboBox.setSelectedItem( moBIE.getDatasetName() );
         setComboBoxDimensions( comboBox );
-        datasetsPanel.add( comboBox);
+        selectPanel.add(comboBox, BorderLayout.CENTER);
+        final JButton removeButton = new JButton("-");
+        removeButton.addActionListener( e ->
+        {
+            SwingUtilities.invokeLater( () ->
+                    {
+                        selectPanel.remove(comboBox);
+                        sourcesForGridViewSelectors.remove( comboBoxIndex );
+                        datasetsPanel.remove( selectPanel );
+                        datasetsPanel.repaint();
+                    });});
+        selectPanel.add( removeButton, BorderLayout.EAST );
+        datasetsPanel.add( selectPanel );
         frame.pack();
     }
 
@@ -280,7 +337,7 @@ public class UserInterfaceHelper
 
 	public JPanel createAnnotatedIntervalDisplaySettingsPanel( AnnotatedIntervalDisplay display )
 	{
-		JPanel panel = createDisplayPanel( display.getName() );
+		JPanel panel = createDisplayPanel( display );
 
 		// Buttons
 		panel.add( createSpace() );
@@ -344,15 +401,12 @@ public class UserInterfaceHelper
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		panel.add( createMoveToLocationPanel()  );
         panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-        ////
-        panel.add( createDynamicGridViewPanel() );
-
 		return panel;
 	}
 
 	public JPanel createImageDisplaySettingsPanel( ImageSourceDisplay display )
 	{
-		JPanel panel = createDisplayPanel( display.getName() );
+		JPanel panel = createDisplayPanel( display);
 
 		// Set panel background color
 		final Converter< ?, ARGBType > converter = display.sourceAndConverters.get( 0 ).getConverter();
@@ -388,22 +442,23 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	private JPanel createDisplayPanel( String name )
+	private JPanel createDisplayPanel( AbstractSourceDisplay display )
 	{
 		JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.LINE_AXIS ) );
 		panel.setBorder( BorderFactory.createEmptyBorder( 0, 10, 0, 10 ) );
 		panel.add( Box.createHorizontalGlue() );
-		JLabel label = new JLabel(name );
+		JLabel label = new JLabel(display.getName() );
 		label.setHorizontalAlignment( SwingUtilities.LEFT );
 		panel.add( label );
+        panel.setToolTipText( display.getSourcesDescription() );
 
 		return panel;
 	}
 
 	public JPanel createSegmentationDisplaySettingsPanel( SegmentationSourceDisplay display )
 	{
-		JPanel panel = createDisplayPanel( display.getName() );
+		JPanel panel = createDisplayPanel( display);
 
 		panel.add( createSpace() );
 		panel.add( createFocusButton( display, display.sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
@@ -458,12 +513,7 @@ public class UserInterfaceHelper
 
 		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );
 		// sort in alphabetical order, ignoring upper/lower case
-		Collections.sort( uiSelectionGroups, new Comparator<String>() {
-			@Override
-			public int compare(String s1, String s2) {
-				return s1.compareToIgnoreCase(s2);
-			}
-		});
+		uiSelectionGroups.sort( String::compareToIgnoreCase );
 
 		// If it's the first time, just add all the panels in order
 		if ( groupingsToComboBox.keySet().size() == 0 ) {
@@ -658,26 +708,6 @@ public class UserInterfaceHelper
 
 		return panel;
 	}
-
-	public JPanel createDynamicGridViewPanel() {
-	    final JPanel panel = SwingUtils.horizontalLayoutPanel();
-	    final JButton button = createButton("Create grid view");
-        button.addActionListener( e ->
-        {
-            SwingUtilities.invokeLater( () ->
-            {
-                final List<String> converterSetups = new ArrayList<>();
-                converterSetups.add( "a" );
-                converterSetups.add( "b" );
-                showDynamicGridViewsDialog(
-                        "Create grid view",
-                        converterSetups );
-            });
-        } );
-        panel.add( button );
-
-        return panel;
-    }
 
 	private static Component createSpace()
 	{

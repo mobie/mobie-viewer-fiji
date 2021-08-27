@@ -78,7 +78,12 @@ public class MoBIE
 	private SourceAndConverterService sacService;
 	private Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
 
-	public MoBIE( String projectRoot ) throws IOException
+    public HashMap<String, ImgLoader> getSourceNameToImgLoader()
+    {
+        return sourceNameToImgLoader;
+    }
+
+    public MoBIE( String projectRoot ) throws IOException
 	{
 		this( projectRoot, MoBIESettings.settings() );
 	}

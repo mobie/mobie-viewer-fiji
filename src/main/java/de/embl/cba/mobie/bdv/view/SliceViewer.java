@@ -96,7 +96,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		} );
 
 		sacService.registerAction( CREATE_OR_EDIT_GRID_VIEW, sourceAndConverters -> {
-//		    viewManager.
+		    viewManager.getUserInterface().getUserInterfaceHelper().showDynamicGridViewsDialog();
         } );
 
 		final Set< String > actionsKeys = sacService.getActionsKeys();
@@ -112,7 +112,8 @@ public class SliceViewer implements Supplier< BdvHandle >
 				sacService.getCommandName( SegmentsVolumeRenderingConfiguratorCommand.class ),
 				UNDO_SEGMENT_SELECTIONS,
 				LOAD_ADDITIONAL_VIEWS,
-				SAVE_CURRENT_SETTINGS_AS_VIEW
+				SAVE_CURRENT_SETTINGS_AS_VIEW,
+                CREATE_OR_EDIT_GRID_VIEW
 		};
 
 		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions );

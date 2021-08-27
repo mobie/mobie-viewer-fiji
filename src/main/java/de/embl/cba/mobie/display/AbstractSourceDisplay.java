@@ -12,6 +12,17 @@ public abstract class AbstractSourceDisplay implements SourceDisplay
 	protected String name;
 	protected double opacity = 1.0;
 	protected boolean visible = true;
+    private String sourcesDescription;
+
+    public String getSourcesDescription()
+    {
+        return sourcesDescription;
+    }
+
+    public void setSourcesDescription( String sourcesDescription )
+    {
+        this.sourcesDescription = sourcesDescription;
+    }
 
 	public String getName()
 	{
