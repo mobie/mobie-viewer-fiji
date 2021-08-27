@@ -242,6 +242,8 @@ public class UserInterfaceHelper
     private void addDataset( JPanel datasetsPanel, JFrame frame )
     {
         final JPanel selectPanel = new JPanel( new BorderLayout());
+        selectPanel.setPreferredSize( new Dimension( COMBOBOX_WIDTH + 20, 20 ) );
+        selectPanel.setMaximumSize( new Dimension( COMBOBOX_WIDTH + 20, 20 ) );
         final JComboBox< String > comboBox = new JComboBox<>( moBIE.getSourceNameToImgLoader().keySet().toArray( new String[ 0 ] ) );
         int comboBoxIndex = sourcesForGridViewSelectors.size();
         sourcesForGridViewSelectors.add( comboBox );
@@ -254,9 +256,9 @@ public class UserInterfaceHelper
             SwingUtilities.invokeLater( () ->
                     {
                         selectPanel.remove(comboBox);
-                        sourcesForGridViewSelectors.remove( comboBoxIndex );
+                        sourcesForGridViewSelectors.remove( comboBox );
                         datasetsPanel.remove( selectPanel );
-                        datasetsPanel.repaint();
+                        datasetsPanel.revalidate();
                     });});
         selectPanel.add( removeButton, BorderLayout.EAST );
         datasetsPanel.add( selectPanel );
