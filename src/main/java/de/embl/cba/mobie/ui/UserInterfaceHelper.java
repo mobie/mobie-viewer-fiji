@@ -72,7 +72,7 @@ public class UserInterfaceHelper
 	private JPanel viewSelectionPanel;
 	private Map< String, Map< String, View > > groupingsToViews;
 	private Map< String, JComboBox > groupingsToComboBox;
-	private List< JComboBox<String> > sourcesForGridViewSelectors = new CopyOnWriteArrayList<>();
+	private Map< JComboBox<String>, int[] > sourcesForGridViewSelectors = new HashMap<>();
     private List<GridSourceTransformer> currentSourceTransformers = new ArrayList<>();
 
 	public UserInterfaceHelper( MoBIE moBIE )
@@ -191,7 +191,7 @@ public class UserInterfaceHelper
             SwingUtilities.invokeLater( () ->
             {
                 final List< String > datasetSources = new CopyOnWriteArrayList<>();
-                for(JComboBox< String > comboBox : sourcesForGridViewSelectors) {
+                for(JComboBox< String > comboBox : sourcesForGridViewSelectors.keySet()) {
                     datasetSources.add( (String) comboBox.getSelectedItem() );
                 }
 
@@ -242,15 +242,22 @@ public class UserInterfaceHelper
     private void addDataset( JPanel datasetsPanel, JFrame frame )
     {
         final JPanel selectPanel = new JPanel( new BorderLayout());
-        selectPanel.setPreferredSize( new Dimension( COMBOBOX_WIDTH + 20, 20 ) );
-        selectPanel.setMaximumSize( new Dimension( COMBOBOX_WIDTH + 20, 20 ) );
+        selectPanel.setLayout( new GridBagLayout() );
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
         final JComboBox< String > comboBox = new JComboBox<>( moBIE.getSourceNameToImgLoader().keySet().toArray( new String[ 0 ] ) );
+        constraints.gridy = 0;
+        constraints.gridx = 0;
+        selectPanel.add(comboBox, constraints);
+        final JButton removeButton = new JButton("-");
+        final JTextField xPosition = new JTextField();
+        xPosition.setText( "0" );
+        final JTextField yPosition = new JTextField();
+        yPosition.setText( "0" );
         int comboBoxIndex = sourcesForGridViewSelectors.size();
-        sourcesForGridViewSelectors.add( comboBox );
+        sourcesForGridViewSelectors.put( comboBox,  new int[]{ Integer.parseInt( xPosition.getText() ), Integer.parseInt( yPosition.getText() ) });
         comboBox.setSelectedItem( moBIE.getDatasetName() );
         setComboBoxDimensions( comboBox );
-        selectPanel.add(comboBox, BorderLayout.CENTER);
-        final JButton removeButton = new JButton("-");
         removeButton.addActionListener( e ->
         {
             SwingUtilities.invokeLater( () ->
@@ -260,7 +267,15 @@ public class UserInterfaceHelper
                         datasetsPanel.remove( selectPanel );
                         datasetsPanel.revalidate();
                     });});
-        selectPanel.add( removeButton, BorderLayout.EAST );
+        constraints.gridy = 0;
+        constraints.gridx = 2;
+        selectPanel.add( xPosition, constraints);
+        constraints.gridy = 0;
+        constraints.gridx = 3;
+        selectPanel.add( yPosition, constraints);
+        constraints.gridy = 0;
+        constraints.gridx = 5;
+        selectPanel.add( removeButton, constraints);
         datasetsPanel.add( selectPanel );
         frame.pack();
     }
