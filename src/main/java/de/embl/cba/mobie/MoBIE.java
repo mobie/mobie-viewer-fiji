@@ -1,6 +1,7 @@
 package de.embl.cba.mobie;
 
 import bdv.util.volatiles.SharedQueue;
+import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
@@ -8,9 +9,6 @@ import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalCreator;
 import de.embl.cba.mobie.annotate.AnnotatedIntervalTableRow;
-import de.embl.cba.mobie.n5.N5ImageLoader;
-import de.embl.cba.mobie.n5.openorganelle.OpenOrganelleS3Reader;
-import de.embl.cba.mobie.n5.zarr.*;
 import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
@@ -21,6 +19,12 @@ import de.embl.cba.mobie.ui.UserInterface;
 import de.embl.cba.mobie.ui.WindowArrangementHelper;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.view.ViewManager;
+import de.embl.cba.n5.ome.zarr.XmlN5OmeZarrImageLoader;
+import de.embl.cba.n5.ome.zarr.loaders.N5OMEZarrImageLoader;
+import de.embl.cba.n5.ome.zarr.loaders.N5S3OMEZarrImageLoader;
+import de.embl.cba.n5.ome.zarr.openers.OMEZarrOpener;
+import de.embl.cba.n5.ome.zarr.openers.OMEZarrS3Opener;
+import de.embl.cba.n5.openorganelle.OpenOrganelleS3Opener;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
@@ -580,7 +584,7 @@ public class MoBIE
             {
                 if ((imagesFile.equals(Paths.get(imagesFile).toString())))
                 {
-                    SpimData spim =  OMEZarrReader.openFile( imagesFile );
+                    SpimData spim =  OMEZarrOpener.openFile( imagesFile );
                     SpimData sp1 = BdvUtils.openSpimData( path );
                     sp1.setBasePath( new File( imagesFile ) );
                     sp1.getSequenceDescription().setImgLoader( spim.getSequenceDescription().getImgLoader() );
@@ -588,7 +592,7 @@ public class MoBIE
                     return sp1;
                 } else
                 {
-                    SpimData spim = OMEZarrS3Reader.readURL( imagesFile );
+                    SpimData spim = OMEZarrS3Opener.readURL( imagesFile );
                     SpimData sp1 = BdvUtils.openSpimData( path );
                     sp1.setBasePath(null);
                     sp1.getSequenceDescription().setImgLoader( spim.getSequenceDescription().getImgLoader() );
@@ -624,7 +628,7 @@ public class MoBIE
     private SpimData openOmeZarData( String path )
     {
         try {
-            return OMEZarrReader.openFile( path );
+            return OMEZarrOpener.openFile( path, sharedQueue);
         } catch ( IOException e ) {
             e.printStackTrace();
         }
@@ -634,7 +638,7 @@ public class MoBIE
     private SpimData openOmeZarrS3Data( String path )
     {
         try {
-            return OMEZarrS3Reader.readURL( path );
+            return OMEZarrS3Opener.readURL( path );
         } catch ( IOException e ) {
             e.printStackTrace();
         }
@@ -644,7 +648,7 @@ public class MoBIE
     private SpimData openOpenOrganelleData( String path )
     {
         try {
-            return OpenOrganelleS3Reader.readURL( path );
+            return OpenOrganelleS3Opener.readURL( path );
         } catch ( IOException e ) {
             e.printStackTrace();
         }
