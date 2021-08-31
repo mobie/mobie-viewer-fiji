@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 {
 	public static final double CELL_SCALING = 1.2;
+
 	// Serialization
 	protected LinkedHashMap< String, List< String > > sources;
 	protected LinkedHashMap< String, List< String > > sourceNamesAfterTransform;

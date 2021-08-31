@@ -18,10 +18,10 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.util.Util;
-import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,14 +59,15 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 
 	private List< RandomAccessibleInterval< T > > createMergedRandomAccessibleIntervals()
 	{
-		List< RandomAccessibleInterval< T >> mergedRandomAccessibleIntervals = new ArrayList<>();
-		int numMipmapLevels = referenceSource.getNumMipmapLevels();
+		final List< RandomAccessibleInterval< T >> mergedRandomAccessibleIntervals = new ArrayList<>();
+		final int numMipmapLevels = referenceSource.getNumMipmapLevels();
+		final int[][] cellDimensions = computeCellDimensions( numMipmapLevels );
+
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
-			final int[] cellDimensions = getCellDimensions( referenceSource.getSource( 0, level ), cellScaling );
-			long[] mergedDimensions = getDimensions( positions, cellDimensions );
+			long[] mergedDimensions = getDimensions( positions, cellDimensions[ level ] );
 
-			final Map< String, Integer > cellKeyToSourceIndex = getCellKeyToSourceIndex( cellDimensions );
+			final Map< String, Integer > cellKeyToSourceIndex = getCellKeyToSourceIndex( cellDimensions[ level ] );
 
 			final RandomAccessibleIntervalCellLoader< T > cellLoader = new RandomAccessibleIntervalCellLoader( gridSources, cellKeyToSourceIndex, level );
 
@@ -75,12 +76,62 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 						mergedDimensions,
 						type,
 						cellLoader,
-						ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
+						ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions[ level ] ) );
 
+			// TODO: somehow the lower resolution levels must be translated
+			//   but I don't know how much
+			// Views.translate( cachedCellImg )
 			mergedRandomAccessibleIntervals.add( cachedCellImg );
 		}
 
 		return mergedRandomAccessibleIntervals;
+	}
+
+	private int[][] computeCellDimensions( int numMipmapLevels )
+	{
+		final int numDimensions = referenceSource.getVoxelDimensions().numDimensions();
+
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+		referenceSource.getSourceTransform( 0, 0, affineTransform3D );
+
+		final double[][] absoluteResolutions = new double[ numMipmapLevels ][ numDimensions ];
+		for ( int level = 0; level < numMipmapLevels; level++ )
+		{
+			referenceSource.getSourceTransform( 0, level, affineTransform3D );
+			for ( int d = 0; d < numDimensions; d++ )
+				absoluteResolutions[ level ][ d ] = affineTransform3D.get( d, d);
+		}
+
+		double[][] relativeResolutions = new double[ numMipmapLevels ][ numDimensions ];
+		for ( int level = 1; level < numMipmapLevels; level++ )
+			for ( int d = 0; d < numDimensions; d++ )
+				relativeResolutions[ level ][ d ] = absoluteResolutions[ level ][ d ] / absoluteResolutions[ level - 1 ][ d ];
+
+		final double[] resolutionFactorProducts = new double[ numDimensions ];
+		Arrays.fill( resolutionFactorProducts, 1.0D );
+
+		for ( int level = 1; level < numMipmapLevels; level++ )
+			for ( int d = 0; d < numDimensions; d++ )
+				resolutionFactorProducts[ d ] *= relativeResolutions[ level ][ d ];
+
+		int[][] cellDimensions = new int[ numMipmapLevels ][ numDimensions ];
+
+		final RandomAccessibleInterval< T > source = referenceSource.getSource( 0, 0 );
+		final long[] referenceSourceDimensions = source.dimensionsAsLongArray();
+		cellDimensions[ 0 ] = Utils.asInts( referenceSourceDimensions );
+		for ( int d = 0; d < 2; d++ )
+		{
+			cellDimensions[ 0 ][ d ] *= cellScaling;
+			cellDimensions[ 0 ][ d ] = (int) ( resolutionFactorProducts[ d ] * Math.ceil( cellDimensions[ 0 ][ d ] / resolutionFactorProducts[ d ] ) );
+		}
+
+		for ( int level = 1; level < numMipmapLevels; level++ )
+			for ( int d = 0; d < numDimensions; d++ )
+			{
+				cellDimensions[ level ][ d ] = (int) ( cellDimensions[ level - 1 ][ d ] / relativeResolutions[ level ][ d ] );
+			}
+
+		return cellDimensions;
 	}
 
 	private Map< String, Integer > getCellKeyToSourceIndex( int[] cellDimensions )
@@ -109,7 +160,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 			maxPos[ d ] = positions.stream().mapToInt( pos -> pos[ finalD ] ).max().orElseThrow( NoSuchElementException::new );
 		}
 
-		for ( int d = 0; d < 2; d++ )
+		for ( int d = 0; d < 3; d++ )
 			dimensions[ d ] = ( maxPos[ d ] + 1 ) * cellDimensions[ d ];
 
 		return dimensions;
@@ -121,6 +172,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		final int[] cellDimensions = Utils.asInts( referenceSourceDimensions );
 		for ( int d = 0; d < 2; d++ )
 			cellDimensions[ d ] *= cellScaling;
+		cellDimensions[ 1 ] = cellDimensions[ 0 ];
 		return cellDimensions;
 	}
 
@@ -219,8 +271,8 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 				RandomAccessibleInterval< T > randomAccessibleInterval = gridSources.get( cellKeyToSourceIndex.get( cellKey ) ).getSource( currentTimepoint, level );
 
 				// copy RAI into cell
-				RandomAccess< T > targetAccess = cell.randomAccess();
-				Cursor< T > sourceCursor = Views.iterable( randomAccessibleInterval ).cursor();
+				RandomAccess< T > targetAccess = Views.zeroMin( cell ).randomAccess();
+				Cursor< T > sourceCursor = Views.iterable( Views.zeroMin( randomAccessibleInterval ) ).cursor();
 
 				while ( sourceCursor.hasNext() )
 				{
