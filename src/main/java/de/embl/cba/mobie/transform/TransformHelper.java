@@ -35,7 +35,7 @@ public class TransformHelper
 		return union;
 	}
 
-	public static < T extends NumericType< T > > SourceAndConverter< T > centerAtOrigin( SourceAndConverter< T > sourceAndConverter )
+	public static SourceAndConverter< ? > centerAtOrigin( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final AffineTransform3D translate = new AffineTransform3D();
 		final AffineTransform3D sourceTransform = new AffineTransform3D();

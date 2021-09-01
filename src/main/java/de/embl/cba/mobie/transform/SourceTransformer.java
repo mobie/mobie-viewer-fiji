@@ -7,9 +7,9 @@ import net.imglib2.type.numeric.NumericType;
 import java.util.List;
 import java.util.Map;
 
-public interface SourceTransformer< T extends NumericType< T > >
+public interface SourceTransformer
 {
-	void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter );
+	void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter );
 
 	//AffineTransform3D getTransform( String name );
 

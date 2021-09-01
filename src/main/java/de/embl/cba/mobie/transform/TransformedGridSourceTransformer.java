@@ -6,7 +6,6 @@ import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.playground.SourceAffineTransformer;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.numeric.NumericType;
 import org.apache.commons.lang.ArrayUtils;
 
 import java.util.ArrayList;
@@ -17,8 +16,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-public class TransformedGridSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
+public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 {
+	public static final double CELL_SCALING = 1.2;
+
 	// Serialization
 	protected LinkedHashMap< String, List< String > > sources;
 	protected LinkedHashMap< String, List< String > > sourceNamesAfterTransform;
@@ -29,14 +30,14 @@ public class TransformedGridSourceTransformer< T extends NumericType< T > > exte
 	private ArrayList< String > gridIds;
 
 	@Override
-	public void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
+	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
 		gridIds = new ArrayList<>( sources.keySet() );
 
 		if ( positions == null )
 			autoSetPositions();
 
-		final List< SourceAndConverter< T > > referenceSources = getReferenceSources( sourceNameToSourceAndConverter );
+		final List< SourceAndConverter< ? > > referenceSources = getReferenceSources( sourceNameToSourceAndConverter );
 
 		transform( sourceNameToSourceAndConverter, referenceSources );
 	}
@@ -50,12 +51,9 @@ public class TransformedGridSourceTransformer< T extends NumericType< T > > exte
 		return allSources;
 	}
 
-	private void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter, List< SourceAndConverter< T > > referenceSources )
+	private void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > referenceSources )
 	{
-		RealInterval bounds = TransformHelper.unionRealInterval(  referenceSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ));
-		final double spacingFactor = 0.1;
-		double spacingX = ( 1.0 + spacingFactor ) * ( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
-		double spacingY = ( 1.0 + spacingFactor ) * ( bounds.realMax( 1 ) - bounds.realMin( 1 ) );
+		final double[] cellRealDimensions = createGridCellRealDimensions( referenceSources, CELL_SCALING );
 
 		final long start = System.currentTimeMillis();
 
@@ -65,7 +63,7 @@ public class TransformedGridSourceTransformer< T extends NumericType< T > > exte
 		for ( String gridId : sources.keySet() )
 		{
 			executorService.execute( () -> {
-				transform( sourceNameToSourceAndConverter, spacingX, spacingY, sources.get( gridId ), sourceNamesAfterTransform.get( gridId ), positions.get( gridId ) );
+				translateToGridPosition( sourceNameToSourceAndConverter, cellRealDimensions, sources.get( gridId ), sourceNamesAfterTransform.get( gridId ), positions.get( gridId ), centerAtOrigin );
 			} );
 		}
 
@@ -74,16 +72,25 @@ public class TransformedGridSourceTransformer< T extends NumericType< T > > exte
 		System.out.println( "Transformed " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
 	}
 
-	private void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter, double spacingX, double spacingY, List< String > sourceNames, List< String > sourceNamesAfterTransform, int[] gridPosition  )
+	public static double[] createGridCellRealDimensions( List< SourceAndConverter< ? > > sources, double cellScaling )
+	{
+		RealInterval bounds = TransformHelper.unionRealInterval( sources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ));
+		final double[] cellDimensions = new double[ 2 ];
+		for ( int d = 0; d < 2; d++ )
+			cellDimensions[ d ] = cellScaling * ( bounds.realMax( d ) - bounds.realMin( d ) );
+		return cellDimensions;
+	}
+
+	public static void translateToGridPosition( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] cellRealDimensions, List< String > sourceNames, List< String > sourceNamesAfterTransform, int[] gridPosition, boolean centerAtOrigin )
 	{
 		for ( String sourceName : sourceNames )
 		{
-			final SourceAndConverter< T > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
+			final SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
 
 			if ( sourceAndConverter == null )
 			  continue;
 
-			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( spacingX * gridPosition[ 0 ], spacingY * gridPosition[ 1 ], sourceAndConverter, centerAtOrigin );
+			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( cellRealDimensions[ 0 ] * gridPosition[ 0 ], cellRealDimensions[ 1 ] * gridPosition[ 1 ], sourceAndConverter, centerAtOrigin );
 
 			final SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, translationTransform );
 
@@ -93,7 +100,7 @@ public class TransformedGridSourceTransformer< T extends NumericType< T > > exte
 		}
 	}
 
-	private SourceAffineTransformer createSourceAffineTransformer( String sourceName, List< String > sourceNames, List< String > sourceNamesAfterTransform, AffineTransform3D affineTransform3D )
+	public static SourceAffineTransformer createSourceAffineTransformer( String sourceName, List< String > sourceNames, List< String > sourceNamesAfterTransform, AffineTransform3D affineTransform3D )
 	{
 		if ( sourceNamesAfterTransform != null )
 		{
@@ -105,14 +112,14 @@ public class TransformedGridSourceTransformer< T extends NumericType< T > > exte
 		}
 	}
 
-	private List< SourceAndConverter< T > > getReferenceSources( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
+	private List< SourceAndConverter< ? > > getReferenceSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
 		final List< String > sourceNamesAtFirstGridPosition = sources.get( gridIds.get( 0 ) );
 
-		List< SourceAndConverter< T  > > referenceSources = new ArrayList<>();
+		List< SourceAndConverter< ? > > referenceSources = new ArrayList<>();
 		for ( String sourceName : sourceNamesAtFirstGridPosition )
 		{
-			final SourceAndConverter< T > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
+			final SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
 			if ( sourceAndConverter != null )
 			{
 				referenceSources.add( sourceAndConverter );

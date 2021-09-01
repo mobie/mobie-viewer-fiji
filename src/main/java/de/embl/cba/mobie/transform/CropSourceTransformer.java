@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class CropSourceTransformer< T extends NumericType< T > > extends AbstractSourceTransformer< T >
+public class CropSourceTransformer extends AbstractSourceTransformer
 {
 	protected double[] min;
 	protected double[] max;
@@ -24,13 +24,13 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 	protected boolean centerAtOrigin = true;
 
 	@Override
-	public void transform( Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter )
+	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
 		for ( String sourceName : sourceNameToSourceAndConverter.keySet() )
 		{
 			if ( sources.contains( sourceName ) )
 			{
-				final SourceAndConverter< T > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
+				final SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
 				String transformedSourceName = getTransformedSourceName( sourceName );
 
 				// determine number of voxels for resampling
@@ -41,7 +41,7 @@ public class CropSourceTransformer< T extends NumericType< T > > extends Abstrac
 				SourceAndConverter< ? > cropModel = new EmptySourceAndConverterCreator("Model", new FinalRealInterval( min, max ), numVoxels[ 0 ], numVoxels[ 1 ], numVoxels[ 2 ], croppedSourceVoxelDimensions ).get();
 
 				// resample generative source as model source
-				SourceAndConverter< T > croppedSourceAndConverter = new SourceResampler( sourceAndConverter, cropModel, transformedSourceName, false,false, false,0).get();
+				SourceAndConverter< ? > croppedSourceAndConverter = new SourceResampler( sourceAndConverter, cropModel, transformedSourceName, false,false, false,0).get();
 
 				if ( centerAtOrigin )
 				{
