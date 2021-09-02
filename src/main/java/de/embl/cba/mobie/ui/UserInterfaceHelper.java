@@ -245,6 +245,7 @@ public class UserInterfaceHelper
         selectPanel.setLayout( new GridBagLayout() );
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.fill = GridBagConstraints.HORIZONTAL;
+        //all
         final JComboBox< String > comboBox = new JComboBox<>( moBIE.getSourceNameToImgLoader().keySet().toArray( new String[ 0 ] ) );
         constraints.gridy = 0;
         constraints.gridx = 0;
