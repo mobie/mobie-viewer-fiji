@@ -19,9 +19,9 @@ import de.embl.cba.mobie.ui.UserInterface;
 import de.embl.cba.mobie.ui.WindowArrangementHelper;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.view.ViewManager;
-import de.embl.cba.n5.ome.zarr.XmlN5OmeZarrImageLoader;
 import de.embl.cba.n5.ome.zarr.loaders.N5OMEZarrImageLoader;
 import de.embl.cba.n5.ome.zarr.loaders.N5S3OMEZarrImageLoader;
+import de.embl.cba.n5.ome.zarr.loaders.xml.XmlN5OmeZarrImageLoader;
 import de.embl.cba.n5.ome.zarr.openers.OMEZarrOpener;
 import de.embl.cba.n5.ome.zarr.openers.OMEZarrS3Opener;
 import de.embl.cba.n5.openorganelle.OpenOrganelleS3Opener;
@@ -151,9 +151,9 @@ public class MoBIE
 
 	private void openDataset() throws IOException
 	{
-		if ( this.settings.values.getDataset() != null )
+		if ( settings.values.getDataset() != null )
 		{
-			openDataset( this.settings.values.getDataset() );
+			openDataset( settings.values.getDataset() );
 		}
 		else
 		{
@@ -221,8 +221,8 @@ public class MoBIE
 
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
-		final View view = dataset.views.get( "default" );
-		view.setName( "default" );
+		final View view = dataset.views.get( settings.values.getView() );
+		view.setName( settings.values.getView() );
 		viewManager.show( view );
 
 		// arrange windows
@@ -666,7 +666,7 @@ public class MoBIE
             final String[] split = bucketAndObject.split("/");
             String bucket = split[0];
             String object = Arrays.stream( split ).skip( 1 ).collect( Collectors.joining( "/") );
-            N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader(imgLoaderElem.getChild( "ServiceEndpoint" ).getText(), imgLoaderElem.getChild( "SigningRegion" ).getText(),bucket, object, ".", axesMap);
+            N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader(imgLoaderElem.getChild( "ServiceEndpoint" ).getText(), imgLoaderElem.getChild( "SigningRegion" ).getText(),bucket, object, "." );
             SpimData spim = new SpimData(null, Cast.unchecked(imageLoader.getSequenceDescription()), imageLoader.getViewRegistrations());
             SpimData sp1 = BdvUtils.openSpimData( path );
             sp1.setBasePath(null);

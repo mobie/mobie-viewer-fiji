@@ -54,6 +54,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
+import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 import javax.swing.*;
 import java.awt.*;
@@ -170,10 +171,16 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		if ( aspectRatio > 10 || aspectRatio < 0.1 )
 		{
 			IJ.showMessage( "The aspect ratio, (yMax-yMin)/(xMax-xMin), of your data is " + aspectRatio + "." +
-					"\nIn order to see anything you may have to scale either the x or y values" +
-					"\nsuch that this ratio becomes closer to one." +
-					"\nYou can do so by right-clicking into the scatter plot" +
-					"\nand selecting \"Reconfigure...\"" );
+					"\nIn order to see something you may have to scale either the x or y values such that the aspect ratio is closer to 1.0." +
+					"\nYou can change the axis scaling by right-clicking into the scatter plot and selecting \"Reconfigure...\"." );
+		}
+
+		if ( Math.abs( max[ 1 ] - min[ 1 ] ) < 1 || Math.abs( max[ 0 ] - min[ 0 ] ) < 1  )
+		{
+			IJ.showMessage( "The difference between the minimum and maximum value along on of the dimensions is smaller than 1.0.\n" +
+					"The plot may thus appear very small.\n" +
+					"You may either have to zoom in or change the axis scaling to produce larger values." +
+					"\nYou can change the axis scaling by right-clicking into the scatter plot and selecting \"Reconfigure...\"." );
 		}
 
 		Supplier< BiConsumer< RealPoint, ARGBType > > biConsumerSupplier = new RealPointARGBTypeBiConsumerSupplier<>( kdTree, coloringModel, dotSizeScaleFactor * ( min[ 0 ] - max[ 0 ] ) / 100.0, ARGBType.rgba( 100,  100, 100, 255 ) );

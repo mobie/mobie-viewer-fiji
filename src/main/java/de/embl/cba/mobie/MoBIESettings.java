@@ -53,6 +53,12 @@ public class MoBIESettings
 		return this;
 	}
 
+	public MoBIESettings view( String view )
+	{
+		this.values.view = view;
+		return this;
+	}
+
 	public MoBIESettings publicationURL( String publicationURL )
 	{
 		this.values.publicationURL = publicationURL;
@@ -69,6 +75,7 @@ public class MoBIESettings
 		private String projectLocation;
 		private String imageDataLocation;
 		private String tableDataLocation;
+		private String view = "default";
 
 		public String getDataset()
 		{
@@ -110,6 +117,11 @@ public class MoBIESettings
 		public String getProjectLocation()
 		{
 			return projectLocation;
+		}
+
+		public String getView()
+		{
+			return view;
 		}
 	}
 }
