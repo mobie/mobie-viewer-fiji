@@ -666,7 +666,7 @@ public class MoBIE
             final String[] split = bucketAndObject.split("/");
             String bucket = split[0];
             String object = Arrays.stream( split ).skip( 1 ).collect( Collectors.joining( "/") );
-            N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader(imgLoaderElem.getChild( "ServiceEndpoint" ).getText(), imgLoaderElem.getChild( "SigningRegion" ).getText(),bucket, object, "." );
+            N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader(imgLoaderElem.getChild( "ServiceEndpoint" ).getText(), imgLoaderElem.getChild( "SigningRegion" ).getText(),bucket, object, ".");
             SpimData spim = new SpimData(null, Cast.unchecked(imageLoader.getSequenceDescription()), imageLoader.getViewRegistrations());
             SpimData sp1 = BdvUtils.openSpimData( path );
             sp1.setBasePath(null);

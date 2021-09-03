@@ -1,8 +1,8 @@
 package de.embl.cba.mobie.projectcreator.ui;
 
 import bdv.ij.util.PluginHelper;
-import de.embl.cba.mobie.projectcreator.n5.DownsampleBlock;
-import de.embl.cba.mobie.projectcreator.n5.WriteImgPlusToN5;
+import de.embl.cba.n5.util.DownsampleBlock;
+import de.embl.cba.n5.util.writers.WriteImgPlusToN5;
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
 import ij.ImagePlus;
