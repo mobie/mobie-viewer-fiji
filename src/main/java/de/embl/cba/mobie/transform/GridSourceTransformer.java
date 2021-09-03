@@ -52,7 +52,9 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 		final ArrayList< SourceAndConverter< ? > > referenceSources = new ArrayList<>();
 		referenceSources.add( gridSources.get( 0 ) );
 
-		final double[] gridCellRealDimensions = TransformedGridSourceTransformer.computeGridCellRealDimensions( referenceSources, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+		// final double[] gridCellRealDimensions = TransformedGridSourceTransformer.computeGridCellRealDimensions( referenceSources, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+
+		final double[] gridCellRealDimensions = mergedGridSource.getCellRealDimensions();
 
 		// due to margin...
 		translationRealOffset = computeTranslationOffset( gridSources, gridCellRealDimensions );

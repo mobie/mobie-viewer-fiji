@@ -6,6 +6,8 @@ import bdv.viewer.Source;
 import de.embl.cba.mobie.Utils;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
+import net.imglib2.FinalInterval;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
@@ -39,6 +41,8 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	private final double relativeCellMargin;
 	private int currentTimepoint = 0;
 	private Map< String, long[] > sourceNameToVoxelTranslation;
+	private int[][] cellDimensions;
+	private double[] cellRealDimensions;
 
 	public MergedGridSource( List< Source< T > > gridSources, List< int[] > positions, String mergedGridSourceName, double relativeCellMargin )
 	{
@@ -62,7 +66,11 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	{
 		final List< RandomAccessibleInterval< T >> mergedRandomAccessibleIntervals = new ArrayList<>();
 		final int numMipmapLevels = referenceSource.getNumMipmapLevels();
-		final int[][] cellDimensions = computeCellDimensions( numMipmapLevels );
+		cellDimensions = computeCellDimensions( numMipmapLevels );
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+		final FinalInterval interval = new FinalInterval( new long[ 3 ], Utils.asLongs( cellDimensions[ 0 ] ) );
+		final FinalRealInterval bounds = affineTransform3D.estimateBounds( interval );
+		cellRealDimensions = bounds.maxAsDoubleArray();
 
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
@@ -88,6 +96,11 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		}
 
 		return mergedRandomAccessibleIntervals;
+	}
+
+	public double[] getCellRealDimensions()
+	{
+		return cellRealDimensions;
 	}
 
 	private int[][] computeCellDimensions( int numMipmapLevels )
@@ -216,6 +229,11 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	public Map< String, long[] > getSourceNameToVoxelTranslation()
 	{
 		return sourceNameToVoxelTranslation;
+	}
+
+	public int[][] getCellDimensions()
+	{
+		return cellDimensions;
 	}
 
 	@Override
