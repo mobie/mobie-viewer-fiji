@@ -19,7 +19,6 @@ import de.embl.cba.mobie.ui.UserInterface;
 import de.embl.cba.mobie.ui.WindowArrangementHelper;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.view.ViewManager;
-
 import de.embl.cba.n5.ome.zarr.loaders.N5OMEZarrImageLoader;
 import de.embl.cba.n5.ome.zarr.loaders.N5S3OMEZarrImageLoader;
 import de.embl.cba.n5.ome.zarr.loaders.xml.XmlN5OmeZarrImageLoader;
@@ -152,9 +151,9 @@ public class MoBIE
 
 	private void openDataset() throws IOException
 	{
-		if ( this.settings.values.getDataset() != null )
+		if ( settings.values.getDataset() != null )
 		{
-			openDataset( this.settings.values.getDataset() );
+			openDataset( settings.values.getDataset() );
 		}
 		else
 		{
@@ -222,8 +221,8 @@ public class MoBIE
 
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
-		final View view = dataset.views.get( "default" );
-		view.setName( "default" );
+		final View view = dataset.views.get( settings.values.getView() );
+		view.setName( settings.values.getView() );
 		viewManager.show( view );
 
 		// arrange windows

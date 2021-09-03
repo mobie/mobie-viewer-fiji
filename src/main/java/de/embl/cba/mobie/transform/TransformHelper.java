@@ -23,13 +23,9 @@ public class TransformHelper
 			final FinalRealInterval bounds = Utils.estimateBounds( source );
 
 			if ( union == null )
-			{
 				union = bounds;
-			}
 			else
-			{
 				union = Intervals.union( bounds, union );
-			}
 		}
 
 		return union;
