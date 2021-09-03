@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 {
-	public static final double CELL_SCALING = 1.2;
+	public static final double RELATIVE_CELL_MARGIN = 0.1;
 
 	// Serialization
 	protected LinkedHashMap< String, List< String > > sources;
@@ -53,7 +53,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 
 	private void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > referenceSources )
 	{
-		final double[] cellRealDimensions = createGridCellRealDimensions( referenceSources, CELL_SCALING );
+		final double[] cellRealDimensions = computeGridCellRealDimensions( referenceSources, RELATIVE_CELL_MARGIN );
 
 		final long start = System.currentTimeMillis();
 
@@ -63,7 +63,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		for ( String gridId : sources.keySet() )
 		{
 			executorService.execute( () -> {
-				translateToGridPosition( sourceNameToSourceAndConverter, cellRealDimensions, sources.get( gridId ), sourceNamesAfterTransform.get( gridId ), positions.get( gridId ), centerAtOrigin );
+				translate( sourceNameToSourceAndConverter, sources.get( gridId ), sourceNamesAfterTransform.get( gridId ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( gridId )[ 0 ], cellRealDimensions[ 1 ] * positions.get( gridId )[ 1 ] );
 			} );
 		}
 
@@ -72,16 +72,16 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		System.out.println( "Transformed " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
 	}
 
-	public static double[] createGridCellRealDimensions( List< SourceAndConverter< ? > > sources, double cellScaling )
+	public static double[] computeGridCellRealDimensions( List< SourceAndConverter< ? > > sources, double relativeCellMargin )
 	{
 		RealInterval bounds = TransformHelper.unionRealInterval( sources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ));
 		final double[] cellDimensions = new double[ 2 ];
 		for ( int d = 0; d < 2; d++ )
-			cellDimensions[ d ] = cellScaling * ( bounds.realMax( d ) - bounds.realMin( d ) );
+			cellDimensions[ d ] = ( 1.0 + 2.0 * relativeCellMargin ) * ( bounds.realMax( d ) - bounds.realMin( d ) );
 		return cellDimensions;
 	}
 
-	public static void translateToGridPosition( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] cellRealDimensions, List< String > sourceNames, List< String > sourceNamesAfterTransform, int[] gridPosition, boolean centerAtOrigin )
+	public static void translate( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< String > sourceNames, List< String > sourceNamesAfterTransform, boolean centerAtOrigin, double translationX, double translationY )
 	{
 		for ( String sourceName : sourceNames )
 		{
@@ -90,7 +90,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			if ( sourceAndConverter == null )
 			  continue;
 
-			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( cellRealDimensions[ 0 ] * gridPosition[ 0 ], cellRealDimensions[ 1 ] * gridPosition[ 1 ], sourceAndConverter, centerAtOrigin );
+			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( translationX, translationY, sourceAndConverter, centerAtOrigin );
 
 			final SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, translationTransform );
 

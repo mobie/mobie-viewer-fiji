@@ -5,6 +5,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.Utils;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 
@@ -22,6 +23,11 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 	protected String mergedGridSourceName;
 	protected List< int[] > positions;
 	protected boolean centerAtOrigin = false;
+	private MergedGridSource< ? > mergedGridSource;
+	private double[] translationRealOffset;
+
+	// Runtime
+
 
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
@@ -45,7 +51,11 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 
 		final ArrayList< SourceAndConverter< ? > > referenceSources = new ArrayList<>();
 		referenceSources.add( gridSources.get( 0 ) );
-		final double[] gridCellRealDimensions = TransformedGridSourceTransformer.createGridCellRealDimensions( referenceSources, TransformedGridSourceTransformer.CELL_SCALING );
+
+		final double[] gridCellRealDimensions = TransformedGridSourceTransformer.computeGridCellRealDimensions( referenceSources, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+
+		// due to margin...
+		translationRealOffset = computeTranslationOffset( gridSources, gridCellRealDimensions );
 
 		final int nThreads = MoBIE.N_THREADS;
 		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
@@ -60,7 +70,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 			// translate the source(s) at this grid position
 			// (in fact, here it can only be one source per grid position)
 			executorService.execute( () -> {
-				TransformedGridSourceTransformer.translateToGridPosition( sourceNameToSourceAndConverter, gridCellRealDimensions, sourceNamesAtGridPosition, null, positions.get( finalPositionIndex ), centerAtOrigin );
+				TransformedGridSourceTransformer.translate( sourceNameToSourceAndConverter, sourceNamesAtGridPosition, null, centerAtOrigin, gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ], gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ]);
 			} );
 
 			translateSourcesWithinMergedSources( sourceNameToSourceAndConverter, gridCellRealDimensions, executorService, finalPositionIndex, sourceNamesAtGridPosition );
@@ -68,7 +78,22 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 		}
 		Utils.waitUntilFinishedAndShutDown( executorService );
 
-		System.out.println( "Transformed " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
+		// System.out.println( "Transformed " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
+	}
+
+	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealDimensions )
+	{
+		final FinalRealInterval dataRealBounds = Utils.estimateBounds( gridSources.get( 0 ).getSpimSource() );
+
+		final double[] dataRealDimensions = new double[ 3 ];
+		for ( int d = 0; d < 3; d++ )
+			dataRealDimensions[ d ] = ( dataRealBounds.realMax( d ) - dataRealBounds.realMin( d ) );
+
+		final double[] translationOffset = new double[ 2 ];
+		for ( int d = 0; d < 2; d++ )
+			translationOffset[ d ] = 0.5 * ( gridCellRealDimensions[ d ] - dataRealDimensions[ d ] );
+
+		return translationOffset;
 	}
 
 	private void translateSourcesWithinMergedSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] gridCellRealDimensions, ExecutorService executorService, int finalPositionIndex, ArrayList< String > sourceNamesAtGridPosition )
@@ -87,7 +112,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 		if ( baseSourceNames.size() > 0 )
 		{
 			executorService.execute( () -> {
-				TransformedGridSourceTransformer.translateToGridPosition( sourceNameToSourceAndConverter, gridCellRealDimensions, baseSourceNames, null, positions.get( finalPositionIndex ), centerAtOrigin );
+				TransformedGridSourceTransformer.translate( sourceNameToSourceAndConverter, baseSourceNames, null, centerAtOrigin, gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ], gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ]);
 			} );
 		}
 	}
@@ -107,7 +132,7 @@ public class GridSourceTransformer extends AbstractSourceTransformer
 
 	private SourceAndConverter< ? > createMergedSourceAndConverter( List< Source< ? > > gridSources, Converter< ?, ARGBType > volatileConverter, Converter< ?, ARGBType > converter )
 	{
-		final MergedGridSource< ? > mergedGridSource = new MergedGridSource( gridSources, positions, mergedGridSourceName, TransformedGridSourceTransformer.CELL_SCALING );
+		mergedGridSource = new MergedGridSource( gridSources, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
 
 		final VolatileSource< ?, ? > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
 
