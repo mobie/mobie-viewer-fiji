@@ -86,7 +86,7 @@ public enum ImageDataFormat
 			case OpenOrganelleS3:
 				return false;
 			case BdvOmeZarr:
-				return false;
+				return true;
 			case OmeZarr:
 				return false;
             case BdvOmeZarrS3:

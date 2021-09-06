@@ -334,8 +334,7 @@ public class ProjectsCreatorPanel extends JFrame {
             gd.addChoice( "Image Type", imageTypes, imageTypes[0] );
             // TODO - bdv ome-zarr vs ome-zarr
             String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
-                    ImageDataFormat.BDVOMEZARR.toString(),
-                    ImageDataFormat.OMEZARR.toString() };
+                    ImageDataFormat.BdvOmeZarr.toString(), ImageDataFormat.OmeZarr.toString() };
             gd.addChoice( "Image format", imageFormats, imageFormats[0] );
             gd.addStringField("Affine", defaultAffineTransform, 35 );
             gd.addCheckbox("Use default export settings", true);

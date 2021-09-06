@@ -79,9 +79,9 @@ public class ImagesCreator {
                 "images", imageFormatToFolderName( imageDataFormat ), imageName + ".ome.zarr");
     }
 
-    private String getDefaultLocalImageDirPath( String datasetName ) {
+    private String getDefaultLocalImageDirPath( String datasetName, ImageDataFormat imageDataFormat ) {
         return FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(), datasetName,
-                "images", imageFormatToFolderName( ImageDataFormat.BdvN5 ) );
+                "images", imageFormatToFolderName( imageDataFormat ) );
     }
 
     private String getDefaultTableDirPath( String datasetName, String imageName ) {
@@ -106,6 +106,11 @@ public class ImagesCreator {
         }
 
         if ( !imageFile.exists() ) {
+
+            File imageDir = new File(imageFile.getParent());
+            if ( !imageDir.exists() ) {
+                imageDir.mkdirs();
+            }
 
             if ( !useDefaultSettings ) {
                 new ManualExportPanel( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat).getManualExportParameters();
@@ -162,41 +167,74 @@ public class ImagesCreator {
 
     public void addBdvFormatImage ( File xmlLocation, String datasetName, ProjectCreator.ImageType imageType,
                                    ProjectCreator.AddMethod addMethod, String uiSelectionGroup ) throws SpimDataException, IOException {
-        if ( xmlLocation.exists() ) {
-            SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(xmlLocation.getAbsolutePath());
-            String imageName = FileNameUtils.getBaseName(xmlLocation.getAbsolutePath());
-            File newXmlDirectory = new File( getDefaultLocalImageDirPath( datasetName ));
-            File newXmlFile = new File(newXmlDirectory, imageName + ".xml");
-
-            if ( !newXmlFile.exists() ) {
-                // check n5 format (e.g. we no longer support hdf5)
-                ImageDataFormat imageFormat = getImageFormatFromSpimDataMinimal( spimDataMinimal );
-                if ( imageFormat != null && imageFormat.isSupportedByProjectCreator() ) {
-                    // The view setup name must be the same as the image name
-                    spimDataMinimal = fixSetupName( spimDataMinimal, imageName );
-
-                    switch (addMethod) {
-                        case link:
-                            new XmlIoSpimDataMinimal().save(spimDataMinimal, newXmlFile.getAbsolutePath());
-                            break;
-                        case copy:
-                            copyImage( imageFormat, spimDataMinimal, newXmlDirectory, imageName);
-                            break;
-                        case move:
-                            moveImage( imageFormat, spimDataMinimal, newXmlDirectory, imageName);
-                            break;
-                    }
-                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup,
-                            isSpimData2D( spimDataMinimal ), getNTimepointsFromSpimData( spimDataMinimal ) );
-                } else {
-                    IJ.log( "Image is of unsupported type.");
-                }
-            } else {
-                IJ.log("Adding image to project failed - this image name already exists");
-            }
-        } else {
-            IJ.log( "Adding image to project failed - xml does not exist" );
-        }
+        // // TODO - support at least bdv ome-zarr here
+        // TODO - make image dir if doesn't exist yet
+        // if ( xmlLocation.exists() ) {
+        //     SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(xmlLocation.getAbsolutePath());
+        //     SpimData spimData = new SpimDataOpener().openSpimData( xmlLocation.getAbsolutePath(), )
+        //     ImageDataFormat imageFormat = getImageFormatFromSpimDataMinimal( spimDataMinimal );
+        //
+        //     if ( imageFormat != null && imageFormat.isSupportedByProjectCreator() ) {
+        //         String imageName = FileNameUtils.getBaseName(xmlLocation.getAbsolutePath());
+        //         File newXmlDirectory = new File( getDefaultLocalImageDirPath( datasetName ));
+        //         File newXmlFile = new File(newXmlDirectory, imageName + ".xml");
+        //
+        //         if ( !newXmlFile.exists() ) {
+        //                 // The view setup name must be the same as the image name
+        //                 spimDataMinimal = fixSetupName( spimDataMinimal, imageName );
+        //
+        //                 switch (addMethod) {
+        //                     case link:
+        //                         new XmlIoSpimDataMinimal().save(spimDataMinimal, newXmlFile.getAbsolutePath());
+        //                         break;
+        //                     case copy:
+        //                         copyImage( imageFormat, spimDataMinimal, newXmlDirectory, imageName);
+        //                         break;
+        //                     case move:
+        //                         moveImage( imageFormat, spimDataMinimal, newXmlDirectory, imageName);
+        //                         break;
+        //                 }
+        //                 updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup,
+        //                         isSpimData2D( spimDataMinimal ), getNTimepointsFromSpimData( spimDataMinimal ) );
+        //         } else {
+        //             IJ.log("Adding image to project failed - this image name already exists");
+        //         }
+        //     } else {
+        //         IJ.log( "Image is of unsupported type.");
+        //     }
+        //
+        //     File newXmlDirectory = new File( getDefaultLocalImageDirPath( datasetName ));
+        //     File newXmlFile = new File(newXmlDirectory, imageName + ".xml");
+        //
+        //     if ( !newXmlFile.exists() ) {
+        //         // check n5 format (e.g. we no longer support hdf5)
+        //         ImageDataFormat imageFormat = getImageFormatFromSpimDataMinimal( spimDataMinimal );
+        //         if ( imageFormat != null && imageFormat.isSupportedByProjectCreator() ) {
+        //             // The view setup name must be the same as the image name
+        //             spimDataMinimal = fixSetupName( spimDataMinimal, imageName );
+        //
+        //             switch (addMethod) {
+        //                 case link:
+        //                     new XmlIoSpimDataMinimal().save(spimDataMinimal, newXmlFile.getAbsolutePath());
+        //                     break;
+        //                 case copy:
+        //                     copyImage( imageFormat, spimDataMinimal, newXmlDirectory, imageName);
+        //                     break;
+        //                 case move:
+        //                     moveImage( imageFormat, spimDataMinimal, newXmlDirectory, imageName);
+        //                     break;
+        //             }
+        //             updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup,
+        //                     isSpimData2D( spimDataMinimal ), getNTimepointsFromSpimData( spimDataMinimal ) );
+        //         } else {
+        //             IJ.log( "Image is of unsupported type.");
+        //         }
+        //     } else {
+        //         IJ.log("Adding image to project failed - this image name already exists");
+        //     }
+        // } else {
+        //     IJ.log( "Adding image to project failed - xml does not exist" );
+        // }
     }
 
     private ArrayList<Object[]> makeDefaultTableRowsForTimepoint( Source labelsSource, int timepoint, boolean addTimepointColumn ) {

@@ -6,18 +6,22 @@ import de.embl.cba.mobie.Dataset;
 import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.view.additionalviews.AdditionalViews;
+import de.embl.cba.n5.ome.zarr.loaders.N5OMEZarrImageLoader;
+import de.embl.cba.n5.ome.zarr.loaders.N5S3OMEZarrImageLoader;
 import de.embl.cba.n5.util.loaders.N5FSImageLoader;
 import de.embl.cba.n5.util.loaders.N5S3ImageLoader;
 import de.embl.cba.tables.FileAndUrlUtils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
+import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import net.imglib2.FinalDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 
+import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -134,13 +138,17 @@ public class ProjectCreatorHelper {
         return new File(omeZarrFileName);
     }
 
-    public static ImageDataFormat getImageFormatFromSpimDataMinimal( SpimDataMinimal spimDataMinimal ) {
+    public static ImageDataFormat getImageFormatFromSpimDataMinimal( SpimData spimData ) {
         ImageDataFormat imageFormat = null;
-        BasicImgLoader imgLoader = spimDataMinimal.getSequenceDescription().getImgLoader();
+        BasicImgLoader imgLoader = spimData.getSequenceDescription().getImgLoader();
         if ( imgLoader instanceof N5FSImageLoader | imgLoader instanceof N5ImageLoader ) {
             imageFormat = ImageDataFormat.BdvN5;
         } else if ( imgLoader instanceof N5S3ImageLoader ) {
             imageFormat = ImageDataFormat.BdvN5S3;
+        } else if ( imgLoader instanceof N5OMEZarrImageLoader ) {
+            imageFormat = ImageDataFormat.OmeZarr;
+        } else if ( imgLoader instanceof N5S3OMEZarrImageLoader ) {
+            imageFormat = ImageDataFormat.OmeZarrS3;
         }
 
         return imageFormat;

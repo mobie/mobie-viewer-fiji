@@ -33,10 +33,6 @@ public class DatasetsCreator {
                 new File(datasetDir, "images").mkdirs();
                 new File(datasetDir, "misc").mkdirs();
                 new File(datasetDir, "tables").mkdirs();
-                new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "images",
-                        imageFormatToFolderName( ImageDataFormat.BdvN5 ))).mkdirs();
-                new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "images",
-                        imageFormatToFolderName( ImageDataFormat.BdvN5S3 ))).mkdirs();
                 new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "misc", "views")).mkdirs();
 
 
