@@ -59,6 +59,7 @@ public class DatasetJsonCreator {
         }
 
         writeDatasetJson( datasetName, dataset );
+        projectCreator.getDatasetsCreator().addImageDataFormat( imageDataFormat );
     }
 
     private void addNewSource( Dataset dataset, String imageName, ProjectCreator.ImageType imageType,

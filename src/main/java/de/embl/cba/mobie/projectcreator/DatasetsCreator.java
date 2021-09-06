@@ -1,5 +1,6 @@
 package de.embl.cba.mobie.projectcreator;
 
+import de.embl.cba.mobie.Project;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.tables.FileAndUrlUtils;
@@ -7,6 +8,7 @@ import ij.IJ;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.imageFormatToFolderName;
@@ -91,6 +93,19 @@ public class DatasetsCreator {
     public void makeDefaultDataset ( String datasetName ) {
         projectCreator.getProject().setDefaultDataset( datasetName );
         writeProjectJson();
+    }
+
+    public void addImageDataFormat( ImageDataFormat imageDataFormat ) {
+        Project project = projectCreator.getProject();
+        if ( project.getImageDataFormats() == null ) {
+            project.setImageDataFormats( new ArrayList<>() );
+        }
+
+        List<ImageDataFormat> imageDataFormats = project.getImageDataFormats();
+        if ( !imageDataFormats.contains( imageDataFormat ) ) {
+            imageDataFormats.add( imageDataFormat );
+            writeProjectJson();
+        }
     }
 
     private void writeProjectJson() {

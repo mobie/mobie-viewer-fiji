@@ -32,6 +32,10 @@ public class Project
 
 	public void setSpecVersion( String specVersion ) { this.specVersion = specVersion; }
 
+	public void setImageDataFormats(List<ImageDataFormat> imageDataFormats) {
+		this.imageDataFormats = imageDataFormats;
+	}
+
 	public List< ImageDataFormat > getImageDataFormats()
 	{
 		return imageDataFormats;
