@@ -1,11 +1,13 @@
 package de.embl.cba.mobie.projectcreator.ui;
 
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.mobie.Dataset;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.Project;
 import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.projectcreator.ProjectCreator;
 import de.embl.cba.mobie.source.ImageDataFormat;
+import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.ImagePlus;
@@ -381,43 +383,78 @@ public class ProjectsCreatorPanel extends JFrame {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
         if (!datasetName.equals("")) {
-            String filePath = Utils.selectOpenPathFromFileSystem("bdv xml","xml" );
+            final GenericDialog gd = new GenericDialog("Add Bdv Format Image To Project...");
 
-            if ( filePath != null ) {
-                File xmlLocation = new File( filePath );
-                final GenericDialog gd = new GenericDialog("Add Bdv Format Image To Project...");
-                String[] addMethods = new String[]{ ProjectCreator.AddMethod.link.toString(),
-                        ProjectCreator.AddMethod.copy.toString(), ProjectCreator.AddMethod.move.toString() };
-                gd.addChoice("Add method:", addMethods, addMethods[0]);
-                String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
-                        ProjectCreator.ImageType.segmentation.toString() };
-                gd.addChoice("Image Type", imageTypes, imageTypes[0]);
-                gd.addCheckbox( "Create view for this image", true );
-                gd.addMessage( "Note: You can only 'link' to images outside \n" +
-                        "the project folder for local projects. \n " +
-                        "'copy' or 'move' if you wish to upload to s3");
+            gd.addMessage( "Note: You can only 'link' to images outside the project folder \n" +
+                    " for local projects. 'copy' or 'move' if you wish to upload to s3");
 
-                gd.showDialog();
+            String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
+                    ImageDataFormat.BdvOmeZarr.toString(), ImageDataFormat.OmeZarr.toString() };
+            gd.addChoice( "Image format", imageFormats, imageFormats[0] );
 
-                if (!gd.wasCanceled()) {
-                    ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.valueOf( gd.getNextChoice() );
-                    ProjectCreator.ImageType imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
-                    boolean createView = gd.getNextBoolean();
-                    String imageName = FileNameUtils.getBaseName(xmlLocation.getAbsolutePath());
+            // TODO - update last selected dir after this
+            String[] addMethods = new String[]{ ProjectCreator.AddMethod.link.toString(),
+                    ProjectCreator.AddMethod.copy.toString(), ProjectCreator.AddMethod.move.toString() };
+            gd.addChoice("Add method:", addMethods, addMethods[0]);
+            String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
+                    ProjectCreator.ImageType.segmentation.toString() };
+            gd.addChoice("Image Type", imageTypes, imageTypes[0]);
+            gd.addCheckbox( "Create view for this image", true );
+
+            gd.showDialog();
+
+            if (!gd.wasCanceled()) {
+                ImageDataFormat imageDataFormat = ImageDataFormat.fromString( gd.getNextChoice() );
+                ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.valueOf( gd.getNextChoice() );
+                ProjectCreator.ImageType imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
+                boolean createView = gd.getNextBoolean();
+
+                if ( imageDataFormat == ImageDataFormat.OmeZarr && addMethod == ProjectCreator.AddMethod.link ) {
+                    IJ.log( "link is currently unsupported for ome-zarr. Please choose copy or move instead for this" +
+                            "file format." );
+                    return;
+                }
+
+                // select the image file - either .xml or .ome.zarr
+                String filePath = null;
+                switch ( imageDataFormat ) {
+                    case BdvN5:
+                        filePath = Utils.selectOpenPathFromFileSystem("bdv .xml file", "xml");
+                        break;
+
+                    case BdvOmeZarr:
+                        filePath = Utils.selectOpenPathFromFileSystem("bdv .xml file", "xml");
+                        break;
+
+                    case OmeZarr:
+                        filePath = Utils.selectOpenDirFromFileSystem(".ome.zarr file" );
+                        // quick check that basic criteria for ome-zarr are met i.e. contains right files in top of dir
+                        if( !(new File( FileAndUrlUtils.combinePath(filePath, ".zgroup") ).exists() &&
+                                new File( FileAndUrlUtils.combinePath( filePath, ".zattrs")).exists() )) {
+                            IJ.log( "Add image failed - not a valid ome.zarr file." );
+                            return;
+                        }
+                        break;
+                }
+
+                if ( filePath != null ) {
+
+                    File imageFile = new File( filePath );
+                    String imageName = imageFile.getName().split("\\.")[0];
 
                     try {
                         String uiSelectionGroup = null;
-                        if ( createView ) {
-                            uiSelectionGroup = selectUiSelectionGroupDialog( datasetName );
-                            if ( uiSelectionGroup != null ) {
-                                projectsCreator.getImagesCreator().addBdvFormatImage( xmlLocation, datasetName, imageType,
-                                        addMethod, uiSelectionGroup );
-                                updateComboBoxesForNewImage( imageName, uiSelectionGroup );
+                        if (createView) {
+                            uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
+                            if (uiSelectionGroup != null) {
+                                projectsCreator.getImagesCreator().addBdvFormatImage(imageFile, datasetName, imageType,
+                                        addMethod, uiSelectionGroup, imageDataFormat );
+                                updateComboBoxesForNewImage(imageName, uiSelectionGroup);
                             }
                         } else {
-                            projectsCreator.getImagesCreator().addBdvFormatImage( xmlLocation, datasetName, imageType,
-                                    addMethod, uiSelectionGroup );
-                            updateComboBoxesForNewImage( imageName, uiSelectionGroup );
+                            projectsCreator.getImagesCreator().addBdvFormatImage(imageFile, datasetName, imageType,
+                                    addMethod, uiSelectionGroup, imageDataFormat );
+                            updateComboBoxesForNewImage(imageName, uiSelectionGroup);
                         }
                     } catch (SpimDataException | IOException e) {
                         e.printStackTrace();

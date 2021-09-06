@@ -8,6 +8,7 @@ import de.embl.cba.mobie.view.View;
 import de.embl.cba.mobie.view.additionalviews.AdditionalViews;
 import de.embl.cba.n5.ome.zarr.loaders.N5OMEZarrImageLoader;
 import de.embl.cba.n5.ome.zarr.loaders.N5S3OMEZarrImageLoader;
+import de.embl.cba.n5.ome.zarr.readers.N5OmeZarrReader;
 import de.embl.cba.n5.util.loaders.N5FSImageLoader;
 import de.embl.cba.n5.util.loaders.N5S3ImageLoader;
 import de.embl.cba.tables.FileAndUrlUtils;
@@ -15,6 +16,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
@@ -154,19 +156,28 @@ public class ProjectCreatorHelper {
         return imageFormat;
     }
 
-    public static File getImageLocationFromSpimDataMinimal(SpimDataMinimal spimDataMinimal, ImageDataFormat imageFormat ) {
+    public static File getImageLocationFromSequenceDescription(AbstractSequenceDescription seq, ImageDataFormat imageFormat ) {
         File imageLocation = null;
 
+        // get image loader to find absolute image location
+        BasicImgLoader imgLoader = seq.getImgLoader();
         switch ( imageFormat ) {
             case BdvN5:
-                // get image loader to find absolute image location
-                BasicImgLoader imgLoader = spimDataMinimal.getSequenceDescription().getImgLoader();
                 if (imgLoader instanceof N5ImageLoader) {
                     N5ImageLoader n5ImageLoader = (N5ImageLoader) imgLoader;
                     imageLocation = n5ImageLoader.getN5File();
                 } else if (imgLoader instanceof N5FSImageLoader) {
                     N5FSImageLoader n5ImageLoader = (N5FSImageLoader) imgLoader;
                     imageLocation = n5ImageLoader.getN5File();
+                }
+                break;
+
+            case BdvOmeZarr:
+
+            case OmeZarr:
+                if (imgLoader instanceof N5OMEZarrImageLoader) {
+                    N5OMEZarrImageLoader zarrLoader = (N5OMEZarrImageLoader) imgLoader;
+                    imageLocation = new File( ((N5OmeZarrReader) zarrLoader.n5).getBasePath() );
                 }
                 break;
         }
@@ -184,8 +195,8 @@ public class ProjectCreatorHelper {
         }
     }
 
-    public static boolean isSpimData2D( SpimDataMinimal spimDataMinimal ) {
-        BasicViewSetup firstSetup = spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().get(0);
+    public static boolean isSpimData2D( SpimData spimData ) {
+        BasicViewSetup firstSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get(0);
         long[] dimensions = firstSetup.getSize().dimensionsAsLongArray();
         if ( dimensions.length < 3 || dimensions[2] == 1 ) {
             return true;
@@ -228,8 +239,8 @@ public class ProjectCreatorHelper {
         return groupToViewsMap;
     }
 
-    public static int getNTimepointsFromSpimData( SpimDataMinimal spimDataMinimal ) {
-        return spimDataMinimal.getSequenceDescription().getTimePoints().size();
+    public static int getNTimepointsFromSpimData( SpimData spimData ) {
+        return spimData.getSequenceDescription().getTimePoints().size();
     }
 
     public static String makeNewUiSelectionGroup( String[] currentUiSelectionGroups ) {
