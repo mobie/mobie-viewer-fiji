@@ -28,7 +28,8 @@ public class DatasetJsonCreator {
     }
 
     public void addToDatasetJson( String imageName, String datasetName, ProjectCreator.ImageType imageType,
-                                  String uiSelectionGroup, boolean is2D, int nTimepoints ) {
+                                  String uiSelectionGroup, boolean is2D, int nTimepoints,
+                                  ImageDataFormat imageDataFormat ) {
         Dataset dataset = projectCreator.getDataset( datasetName );
         if ( dataset == null ) {
             dataset = new Dataset();
@@ -46,7 +47,7 @@ public class DatasetJsonCreator {
             dataset.timepoints = nTimepoints;
         }
 
-        addNewSource( dataset, imageName, imageType );
+        addNewSource( dataset, imageName, imageType, imageDataFormat );
         if ( uiSelectionGroup != null ) {
             // add a view with the same name as the image, and sensible defaults
             addNewImageView( dataset, imageName, imageType, uiSelectionGroup );
@@ -60,9 +61,9 @@ public class DatasetJsonCreator {
         writeDatasetJson( datasetName, dataset );
     }
 
-    private void addNewSource( Dataset dataset, String imageName, ProjectCreator.ImageType imageType ) {
+    private void addNewSource( Dataset dataset, String imageName, ProjectCreator.ImageType imageType,
+                               ImageDataFormat imageDataFormat ) {
         Map<ImageDataFormat, StorageLocation> imageDataLocations;
-        StorageLocation imageStorageLocation;
         SourceSupplier sourceSupplier;
 
         switch( imageType ) {
@@ -73,11 +74,7 @@ public class DatasetJsonCreator {
                 tableStorageLocation.relativePath = "tables/" + imageName;
                 segmentationSource.tableData.put( TableDataFormat.TabDelimitedFile, tableStorageLocation );
 
-                imageDataLocations = new HashMap<>();
-                imageStorageLocation = new StorageLocation();
-                imageStorageLocation.relativePath = "images/" + imageFormatToFolderName( ImageDataFormat.BdvN5) +
-                        "/" + imageName + ".xml";
-                imageDataLocations.put( ImageDataFormat.BdvN5, imageStorageLocation );
+                imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
                 segmentationSource.imageData = imageDataLocations;
 
                 sourceSupplier = new SourceSupplier( segmentationSource );
@@ -87,17 +84,29 @@ public class DatasetJsonCreator {
 
             case image:
                 ImageSource imageSource = new ImageSource();
-                imageDataLocations = new HashMap<>();
-                imageStorageLocation = new StorageLocation();
-                imageStorageLocation.relativePath = "images/" + imageFormatToFolderName( ImageDataFormat.BdvN5) +
-                        "/" + imageName + ".xml";
-                imageDataLocations.put( ImageDataFormat.BdvN5, imageStorageLocation );
+                imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
                 imageSource.imageData = imageDataLocations;
 
                 sourceSupplier = new SourceSupplier( imageSource );
                 dataset.sources.put( imageName, sourceSupplier );
                 break;
         }
+    }
+
+    private Map<ImageDataFormat, StorageLocation> makeImageDataLocations( ImageDataFormat imageDataFormat,
+                                                                          String imageName ) {
+        Map<ImageDataFormat, StorageLocation> imageDataLocations = new HashMap<>();
+        StorageLocation imageStorageLocation = new StorageLocation();
+        if ( imageDataFormat == ImageDataFormat.OmeZarr ) {
+            imageStorageLocation.relativePath = "images/" + imageFormatToFolderName( imageDataFormat ) +
+                    "/" + imageName + ".ome.zarr";
+        } else {
+            imageStorageLocation.relativePath = "images/" + imageFormatToFolderName(imageDataFormat) +
+                    "/" + imageName + ".xml";
+        }
+        imageDataLocations.put( imageDataFormat, imageStorageLocation );
+
+        return imageDataLocations;
     }
 
     private void addNewImageView( Dataset dataset, String imageName, ProjectCreator.ImageType imageType,

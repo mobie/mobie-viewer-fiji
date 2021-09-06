@@ -1,9 +1,12 @@
 package de.embl.cba.mobie.projectcreator;
 
+import bdv.SpimSource;
 import bdv.img.n5.N5ImageLoader;
 import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
+import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
 import de.embl.cba.mobie.projectcreator.ui.ManualExportPanel;
 import de.embl.cba.mobie.source.ImageDataFormat;
@@ -37,6 +40,7 @@ import net.imglib2.type.numeric.real.FloatType;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.GzipCompression;
+import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
 import javax.swing.*;
 import java.io.File;
@@ -118,7 +122,8 @@ public class ImagesCreator {
                     is2D = false;
                 }
                 try {
-                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup, is2D, imp.getNFrames() );
+                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup,
+                            is2D, imp.getNFrames(), imageDataFormat );
                 } catch (SpimDataException e) {
                     e.printStackTrace();
                 }
@@ -194,9 +199,10 @@ public class ImagesCreator {
         }
     }
 
-    private ArrayList<Object[]> makeDefaultTableRowsForTimepoint( LazySpimSource labelsSource, int timepoint, boolean addTimepointColumn ) {
+    private ArrayList<Object[]> makeDefaultTableRowsForTimepoint( Source labelsSource, int timepoint, boolean addTimepointColumn ) {
 
-        RandomAccessibleInterval rai = labelsSource.getNonVolatileSource( timepoint, 0 );
+        RandomAccessibleInterval rai = labelsSource.getSource( timepoint, 0 );
+
         if ( getTypeFromInterval( rai ) instanceof FloatType ) {
             rai = RealTypeConverters.convert( rai, new IntType() );
         }
@@ -247,8 +253,7 @@ public class ImagesCreator {
     }
 
     // TODO - is this efficient for big images?
-    private void addDefaultTableForImage ( String imageName, String datasetName, ImageDataFormat imageDataFormat ) throws SpimDataException {
-        // TODO - this needs to support ome-zarr without xml too
+    private void addDefaultTableForImage ( String imageName, String datasetName, ImageDataFormat imageDataFormat ) {
         File tableFolder = new File( getDefaultTableDirPath( datasetName, imageName ) );
         File defaultTable = new File( tableFolder, "default.tsv" );
         if ( !tableFolder.exists() ){
@@ -262,12 +267,11 @@ public class ImagesCreator {
             // xml file or zarr file, depending on imageDataFormat
             String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
             SpimData spimData = new SpimDataOpener().openSpimData( filePath, imageDataFormat);
+            final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
+            final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+            final Source labelsSource = sourceAndConverter.getSpimSource();
 
-            SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(getDefaultLocalImageXmlPath(datasetName, imageName));
-            SpimData spimData = OMEZarrOpener.openFile( "blah" );
-            // TODO - get spimdata or spimdataminimal from ome-zarr normal dataset, and a source that I can get rais from
-
-            boolean hasTimeColumn = spimDataMinimal.getSequenceDescription().getTimePoints().size() > 1;
+            boolean hasTimeColumn = spimData.getSequenceDescription().getTimePoints().size() > 1;
             ArrayList<String> columnNames = new ArrayList<>();
             columnNames.add( "label_id" );
             columnNames.add( "anchor_x" );
@@ -283,11 +287,9 @@ public class ImagesCreator {
                 columnNames.add("timepoint");
             }
 
-            final LazySpimSource labelsSource = new LazySpimSource("labelImage",
-                    getDefaultLocalImageXmlPath(datasetName, imageName));
             ArrayList<Object[]> rows = new ArrayList<>();
 
-            for ( Integer timepoint: spimDataMinimal.getSequenceDescription().getTimePoints().getTimePoints().keySet() ) {
+            for ( Integer timepoint: spimData.getSequenceDescription().getTimePoints().getTimePoints().keySet() ) {
                 rows.addAll( makeDefaultTableRowsForTimepoint( labelsSource, timepoint, hasTimeColumn ) );
             }
 
@@ -302,12 +304,14 @@ public class ImagesCreator {
     }
 
     private void updateTableAndJsonsForNewImage ( String imageName, ProjectCreator.ImageType imageType,
-                                          String datasetName, String uiSelectionGroup, boolean is2D, int nTimepoints ) throws SpimDataException {
+                                          String datasetName, String uiSelectionGroup, boolean is2D, int nTimepoints,
+                                                  ImageDataFormat imageDataFormat ) throws SpimDataException {
         if ( imageType == ProjectCreator.ImageType.segmentation) {
-            addDefaultTableForImage( imageName, datasetName );
+            addDefaultTableForImage( imageName, datasetName, imageDataFormat );
         }
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
-        datasetJsonCreator.addToDatasetJson( imageName, datasetName, imageType, uiSelectionGroup, is2D, nTimepoints );
+        datasetJsonCreator.addToDatasetJson( imageName, datasetName, imageType, uiSelectionGroup, is2D, nTimepoints,
+                imageDataFormat );
     }
 
     private void copyImage ( ImageDataFormat imageFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
