@@ -1,6 +1,9 @@
 package de.embl.cba.mobie.projectcreator.ui;
 
 import bdv.ij.util.PluginHelper;
+import de.embl.cba.mobie.source.ImageDataFormat;
+import de.embl.cba.n5.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
+import de.embl.cba.n5.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 import de.embl.cba.n5.util.DownsampleBlock;
 import de.embl.cba.n5.util.writers.WriteImgPlusToN5;
 import fiji.util.gui.GenericDialogPlus;
@@ -14,37 +17,41 @@ import org.janelia.saalfeldlab.n5.*;
 // based on https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusAsN5PlugIn.java
 // removing export path, that shouldn't be set manually
 
-public class ManualN5ExportPanel {
+public class ManualExportPanel {
 
     ImagePlus imp;
-    String xmlPath;
+    String filePath;
     AffineTransform3D sourceTransform;
     DownsampleBlock.DownsamplingMethod downsamplingMethod;
     String imageName;
+    ImageDataFormat imageDataFormat;
 
     static String lastSubsampling = "{ {1,1,1} }";
     static String lastChunkSizes = "{ {64,64,64} }";
     static int lastCompressionChoice = 0;
     static boolean lastCompressionDefaultSettings = true;
 
-    public ManualN5ExportPanel ( ImagePlus imp, String xmlPath, AffineTransform3D sourceTransform,
-                                 DownsampleBlock.DownsamplingMethod downsamplingMethod, String imageName ) {
+    public ManualExportPanel(ImagePlus imp, String filePath, AffineTransform3D sourceTransform,
+                             DownsampleBlock.DownsamplingMethod downsamplingMethod, String imageName,
+                             ImageDataFormat imageDataFormat ) {
         this.imp = imp;
-        this.xmlPath = xmlPath;
+        this.filePath = filePath;
         this.sourceTransform = sourceTransform;
         this.downsamplingMethod = downsamplingMethod;
         this.imageName = imageName;
+        this.imageDataFormat = imageDataFormat;
     }
 
     public void getManualExportParameters() {
 
-        final GenericDialog manualSettings = new GenericDialog( "Manual Settings for BigDataViewer XML/N5" );
+        final GenericDialog manualSettings = new GenericDialog( "Manual Settings for " +
+                imageDataFormat.toString() );
 
         // same settings as https://github.com/bigdataviewer/bigdataviewer_fiji/blob/master/src/main/java/bdv/ij/ExportImagePlusAsN5PlugIn.java#L345
         // but hiding settings like e.g. export location that shouldn't be set manually
 
         manualSettings.addStringField( "Subsampling_factors", lastSubsampling, 25 );
-        manualSettings.addStringField( "N5_chunk_sizes", lastChunkSizes, 25 );
+        manualSettings.addStringField( "chunk_sizes", lastChunkSizes, 25 );
         final String[] compressionChoices = new String[] { "raw (no compression)", "bzip", "gzip", "lz4", "xz" };
         manualSettings.addChoice( "compression", compressionChoices, compressionChoices[ lastCompressionChoice ] );
         manualSettings.addCheckbox( "use default settings for compression", lastCompressionDefaultSettings );
@@ -57,12 +64,12 @@ public class ManualN5ExportPanel {
             lastCompressionChoice = manualSettings.getNextChoiceIndex();
             lastCompressionDefaultSettings = manualSettings.getNextBoolean();
 
-            parseInputAndWriteToN5();
+            parseInputAndWriteImage();
         }
 
     }
 
-    private void parseInputAndWriteToN5 () {
+    private void parseInputAndWriteImage() {
         // parse mipmap resolutions and cell sizes
         final int[][] resolutions = PluginHelper.parseResolutionsString( lastSubsampling );
         final int[][] subdivisions = PluginHelper.parseResolutionsString( lastChunkSizes );
@@ -98,10 +105,30 @@ public class ManualN5ExportPanel {
         if ( compression == null )
             return;
 
-        new WriteImgPlusToN5().export( imp, resolutions, subdivisions, xmlPath, sourceTransform,
-                downsamplingMethod, compression, new String[]{imageName} );
+        writeImage( resolutions, subdivisions, compression );
     }
 
+    private void writeImage( int[][] resolutions, int[][] subdivisions, Compression compression ) {
+        switch( imageDataFormat ) {
+            case BdvN5:
+                new WriteImgPlusToN5().export(imp, resolutions, subdivisions, filePath, sourceTransform,
+                        downsamplingMethod, compression, new String[]{imageName});
+                break;
+
+            case BdvOmeZarr:
+                new WriteImgPlusToN5BdvOmeZarr().export(imp, resolutions, subdivisions, filePath, sourceTransform,
+                        downsamplingMethod, compression, new String[]{imageName});
+                break;
+
+            case OmeZarr:
+                new WriteImgPlusToN5OmeZarr().export(imp, resolutions, subdivisions, filePath, sourceTransform,
+                        downsamplingMethod, compression, new String[]{imageName});
+                break;
+
+            default:
+                throw new UnsupportedOperationException();
+        }
+    }
 
     static int lastBzip2BlockSize = BZip2CompressorOutputStream.MAX_BLOCKSIZE;
 

@@ -14,6 +14,7 @@ import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.mobie.source.ImageSource;
 import de.embl.cba.mobie.source.SegmentationSource;
+import de.embl.cba.mobie.source.SpimDataOpener;
 import de.embl.cba.mobie.table.TableDataFormat;
 import de.embl.cba.mobie.ui.UserInterface;
 import de.embl.cba.mobie.ui.WindowArrangementHelper;
@@ -307,27 +308,7 @@ public class MoBIE
         //new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
 		IJ.log( "Opening image:\n" + imagePath );
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
-        SpimData spimData = null;
-        switch ( imageDataFormat ) {
-            case BdvN5:
-            case BdvN5S3:
-                spimData = BdvUtils.openSpimData( imagePath );
-                break;
-            case OmeZarr:
-                spimData = openOmeZarData( imagePath );
-                break;
-            case OmeZarrS3:
-                spimData = openOmeZarrS3Data( imagePath );
-                break;
-            case BdvOmeZarrS3:
-                spimData = openBdvOmeZarrS3Data( imagePath );
-                break;
-            case BdvOmeZarr:
-                spimData = openBdvZarrData( imagePath );
-                break;
-            case OpenOrganelleS3:
-                spimData = openOpenOrganelleData( imagePath );
-        }
+        SpimData spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat, sharedQueue );
         final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
         final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
         if ( spimData != null )
@@ -572,40 +553,6 @@ public class MoBIE
 		// TODO - when we support more image formats e.g. OME-ZARR, we should explicitly close their imgloaders here too
 	}
 
-    private SpimData openBdvZarrData(String path) {
-        try
-        {
-            final SAXBuilder sax = new SAXBuilder();
-            InputStream stream = FileAndUrlUtils.getInputStream(path);
-            final Document doc = sax.build(stream);
-            final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
-            String imagesFile = XmlN5OmeZarrImageLoader.getDatasetsPathFromXml(imgLoaderElem, path);
-            if(imagesFile != null)
-            {
-                if ((imagesFile.equals(Paths.get(imagesFile).toString())))
-                {
-                    SpimData spim =  OMEZarrOpener.openFile( imagesFile );
-                    SpimData sp1 = BdvUtils.openSpimData( path );
-                    sp1.setBasePath( new File( imagesFile ) );
-                    sp1.getSequenceDescription().setImgLoader( spim.getSequenceDescription().getImgLoader() );
-                    sp1.getSequenceDescription().getAllChannels().putAll( spim.getSequenceDescription().getAllChannels() );
-                    return sp1;
-                } else
-                {
-                    SpimData spim = OMEZarrS3Opener.readURL( imagesFile );
-                    SpimData sp1 = BdvUtils.openSpimData( path );
-                    sp1.setBasePath(null);
-                    sp1.getSequenceDescription().setImgLoader( spim.getSequenceDescription().getImgLoader() );
-                    sp1.getSequenceDescription().getAllChannels().putAll( spim.getSequenceDescription().getAllChannels() );
-                    return sp1;
-                }
-            }
-        } catch (JDOMException | IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     public synchronized String getImagePath(ImageSource source) {
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
 
@@ -623,60 +570,6 @@ public class MoBIE
             default:
                 throw new UnsupportedOperationException( "File format not supported: " + imageDataFormat );
         }
-    }
-
-    private SpimData openOmeZarData( String path )
-    {
-        try {
-            return OMEZarrOpener.openFile( path, sharedQueue);
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private SpimData openOmeZarrS3Data( String path )
-    {
-        try {
-            return OMEZarrS3Opener.readURL( path );
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private SpimData openOpenOrganelleData( String path )
-    {
-        try {
-            return OpenOrganelleS3Opener.readURL( path );
-        } catch ( IOException e ) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-    private SpimData openBdvOmeZarrS3Data( String path )
-    {
-        try {
-        final SAXBuilder sax = new SAXBuilder();
-        InputStream stream = FileAndUrlUtils.getInputStream(path);
-        final Document doc = sax.build(stream);
-        final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
-            HashMap<String, Integer> axesMap = new HashMap<>();
-            String bucketAndObject = imgLoaderElem.getChild( "BucketName").getText() + "/" + imgLoaderElem.getChild( "Key" ).getText();
-            final String[] split = bucketAndObject.split("/");
-            String bucket = split[0];
-            String object = Arrays.stream( split ).skip( 1 ).collect( Collectors.joining( "/") );
-            N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader(imgLoaderElem.getChild( "ServiceEndpoint" ).getText(), imgLoaderElem.getChild( "SigningRegion" ).getText(),bucket, object, ".");
-            SpimData spim = new SpimData(null, Cast.unchecked(imageLoader.getSequenceDescription()), imageLoader.getViewRegistrations());
-            SpimData sp1 = BdvUtils.openSpimData( path );
-            sp1.setBasePath(null);
-            sp1.getSequenceDescription().setImgLoader( spim.getSequenceDescription().getImgLoader() );
-            sp1.getSequenceDescription().getAllChannels().putAll( spim.getSequenceDescription().getAllChannels() );
-            return sp1;
-        } catch ( IOException | JDOMException e ) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
 	public void addSourceAndConverters( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters )

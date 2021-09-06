@@ -5,8 +5,12 @@ import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import de.embl.cba.bdv.utils.sources.LazySpimSource;
-import de.embl.cba.mobie.projectcreator.ui.ManualN5ExportPanel;
+import de.embl.cba.mobie.projectcreator.ui.ManualExportPanel;
 import de.embl.cba.mobie.source.ImageDataFormat;
+import de.embl.cba.mobie.source.SpimDataOpener;
+import de.embl.cba.n5.ome.zarr.openers.OMEZarrOpener;
+import de.embl.cba.n5.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
+import de.embl.cba.n5.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 import de.embl.cba.n5.util.DownsampleBlock;
 import de.embl.cba.n5.util.loaders.N5FSImageLoader;
 import de.embl.cba.n5.util.writers.WriteImgPlusToN5;
@@ -14,6 +18,7 @@ import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.ImagePlus;
+import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.base.Entity;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
@@ -52,9 +57,22 @@ public class ImagesCreator {
         this.projectCreator = projectCreator;
     }
 
-    private String getDefaultLocalImageXmlPath( String datasetName, String imageName ) {
+    private String getDefaultLocalImagePath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
+        if ( imageDataFormat == ImageDataFormat.OmeZarr ) {
+            return getDefaultLocalImageZarrPath( datasetName, imageName, imageDataFormat );
+        } else {
+            return getDefaultLocalImageXmlPath( datasetName, imageName, imageDataFormat );
+        }
+    }
+
+    private String getDefaultLocalImageXmlPath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
         return FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(), datasetName,
-                "images", imageFormatToFolderName( ImageDataFormat.BdvN5 ), imageName + ".xml");
+                "images", imageFormatToFolderName( imageDataFormat ), imageName + ".xml");
+    }
+
+    private String getDefaultLocalImageZarrPath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
+        return FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(), datasetName,
+                "images", imageFormatToFolderName( imageDataFormat ), imageName + ".ome.zarr");
     }
 
     private String getDefaultLocalImageDirPath( String datasetName ) {
@@ -69,8 +87,10 @@ public class ImagesCreator {
     public void addImage (ImagePlus imp, String imageName, String datasetName,
                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
                           AffineTransform3D sourceTransform, boolean useDefaultSettings, String uiSelectionGroup ) {
-        String xmlPath = getDefaultLocalImageXmlPath( datasetName, imageName );
-        File xmlFile = new File( xmlPath );
+
+        // either xml file path or zarr file path depending on imageDataFormat
+        String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
+        File imageFile = new File(filePath);
 
         DownsampleBlock.DownsamplingMethod downsamplingMethod;
         switch( imageType ) {
@@ -81,20 +101,16 @@ public class ImagesCreator {
                 downsamplingMethod = DownsampleBlock.DownsamplingMethod.Centre;
         }
 
-        if ( !xmlFile.exists() ) {
-            switch( imageDataFormat ) {
-                case BdvN5:
-                    if (!useDefaultSettings) {
-                        new ManualN5ExportPanel(imp, xmlPath, sourceTransform, downsamplingMethod, imageName).getManualExportParameters();
-                    } else {
-                        // gzip compression by default
-                        new WriteImgPlusToN5().export(imp, xmlPath, sourceTransform, downsamplingMethod,
-                                new GzipCompression(), new String[]{imageName} );
-                    }
+        if ( !imageFile.exists() ) {
+
+            if ( !useDefaultSettings ) {
+                new ManualExportPanel( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat).getManualExportParameters();
+            } else {
+                writeDefaultImage( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat );
             }
 
             // check image written successfully, before writing jsons
-            if ( xmlFile.exists() ) {
+            if ( imageFile.exists() ) {
                 boolean is2D;
                 if ( imp.getNDimensions() <= 2 ) {
                     is2D = true;
@@ -109,6 +125,33 @@ public class ImagesCreator {
             }
         } else {
             IJ.log( "Adding image to project failed - this image name already exists" );
+        }
+    }
+
+    private void writeDefaultImage( ImagePlus imp, String filePath, AffineTransform3D sourceTransform,
+                                   DownsampleBlock.DownsamplingMethod downsamplingMethod,
+                                   String imageName, ImageDataFormat imageDataFormat ) {
+
+        // gzip compression by default
+        switch( imageDataFormat ) {
+            case BdvN5:
+                new WriteImgPlusToN5().export(imp, filePath, sourceTransform, downsamplingMethod,
+                        new GzipCompression(), new String[]{imageName} );
+                break;
+
+            case BdvOmeZarr:
+                new WriteImgPlusToN5BdvOmeZarr().export(imp, filePath, sourceTransform, downsamplingMethod,
+                        new GzipCompression(), new String[]{imageName} );
+                break;
+
+            case OmeZarr:
+                new WriteImgPlusToN5OmeZarr().export(imp, filePath, sourceTransform, downsamplingMethod,
+                        new GzipCompression(), new String[]{imageName});
+                break;
+
+            default:
+                throw new UnsupportedOperationException();
+
         }
     }
 
@@ -204,7 +247,8 @@ public class ImagesCreator {
     }
 
     // TODO - is this efficient for big images?
-    private void addDefaultTableForImage ( String imageName, String datasetName ) throws SpimDataException {
+    private void addDefaultTableForImage ( String imageName, String datasetName, ImageDataFormat imageDataFormat ) throws SpimDataException {
+        // TODO - this needs to support ome-zarr without xml too
         File tableFolder = new File( getDefaultTableDirPath( datasetName, imageName ) );
         File defaultTable = new File( tableFolder, "default.tsv" );
         if ( !tableFolder.exists() ){
@@ -215,7 +259,13 @@ public class ImagesCreator {
 
             IJ.log( " Creating default table... 0 label is counted as background" );
 
+            // xml file or zarr file, depending on imageDataFormat
+            String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
+            SpimData spimData = new SpimDataOpener().openSpimData( filePath, imageDataFormat);
+
             SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(getDefaultLocalImageXmlPath(datasetName, imageName));
+            SpimData spimData = OMEZarrOpener.openFile( "blah" );
+            // TODO - get spimdata or spimdataminimal from ome-zarr normal dataset, and a source that I can get rais from
 
             boolean hasTimeColumn = spimDataMinimal.getSequenceDescription().getTimePoints().size() > 1;
             ArrayList<String> columnNames = new ArrayList<>();
