@@ -11,8 +11,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.imageFormatToFolderName;
-
 public class DatasetsCreator {
 
     private ProjectCreator projectCreator;

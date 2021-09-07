@@ -1,7 +1,6 @@
 package de.embl.cba.mobie.projectcreator;
 
 import bdv.img.n5.N5ImageLoader;
-import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import bdv.viewer.Source;
@@ -171,8 +170,6 @@ public class ImagesCreator {
         if ( fileLocation.exists() ) {
 
             SpimData spimData = new SpimDataOpener().openSpimData( fileLocation.getAbsolutePath(), imageDataFormat );
-
-            // SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(fileLocation.getAbsolutePath());
             String imageName = fileLocation.getName().split("\\.")[0];
             File imageDirectory = new File( getDefaultLocalImageDirPath( datasetName, imageDataFormat ));
 
@@ -198,9 +195,6 @@ public class ImagesCreator {
                 if ( !imageDir.exists() ) {
                     imageDir.mkdirs();
                 }
-
-                // The view setup name must be the same as the image name
-                // spimData = fixSetupName( spimData, imageName );
 
                 switch (addMethod) {
                     case link:
