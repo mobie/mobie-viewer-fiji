@@ -367,20 +367,33 @@ public class ImagesCreator {
         }
     }
 
-    private void moveImage ( ImageDataFormat imageFormat, SpimData spimData, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
+    private void moveImage ( ImageDataFormat imageFormat, SpimData spimData,
+                             File imageDirectory, String imageName ) throws IOException, SpimDataException {
         File newImageFile = null;
+        File imageLocation = getImageLocationFromSequenceDescription(spimData.getSequenceDescription(), imageFormat );
 
         switch( imageFormat ) {
             case BdvN5:
-                newImageFile = new File( newXmlDirectory, imageName + ".n5" );
-                File imageLocation = getImageLocationFromSequenceDescription( spimData.getSequenceDescription(), imageFormat );
-
+                newImageFile = new File(imageDirectory, imageName + ".n5" );
                 // have to explicitly close the image loader, so we can delete the original file
                 closeImgLoader( spimData, imageFormat );
                 FileUtils.moveDirectory( imageLocation, newImageFile );
-        }
+                writeNewBdvXml( spimData, newImageFile, imageDirectory, imageName, imageFormat );
+                break;
 
-        // writeNewBdvXml( spimDataMinimal, newImageFile, newXmlDirectory, imageName, imageFormat );
+            case BdvOmeZarr:
+                newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
+                closeImgLoader( spimData, imageFormat );
+                FileUtils.moveDirectory( imageLocation, newImageFile );
+                writeNewBdvXml( spimData, newImageFile, imageDirectory, imageName, imageFormat );
+                break;
+
+            case OmeZarr:
+                newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
+                closeImgLoader( spimData, imageFormat );
+                FileUtils.moveDirectory( imageLocation, newImageFile );
+                break;
+        }
     }
 
     private void closeImgLoader ( SpimData spimData, ImageDataFormat imageFormat ) {
@@ -392,6 +405,14 @@ public class ImagesCreator {
                     ( (N5ImageLoader) imgLoader ).close();
                 } else if ( imgLoader instanceof N5FSImageLoader ) {
                     ( (N5FSImageLoader) imgLoader ).close();
+                }
+                break;
+
+            case BdvOmeZarr:
+
+            case OmeZarr:
+                if (imgLoader instanceof N5OMEZarrImageLoader) {
+                    ( (N5OMEZarrImageLoader) imgLoader ).close();
                 }
                 break;
         }
