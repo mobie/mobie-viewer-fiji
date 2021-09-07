@@ -52,17 +52,27 @@ public class ManualExportPanel {
 
         manualSettings.addStringField( "Subsampling_factors", lastSubsampling, 25 );
         manualSettings.addStringField( "chunk_sizes", lastChunkSizes, 25 );
-        final String[] compressionChoices = new String[] { "raw (no compression)", "bzip", "gzip", "lz4", "xz" };
-        manualSettings.addChoice( "compression", compressionChoices, compressionChoices[ lastCompressionChoice ] );
-        manualSettings.addCheckbox( "use default settings for compression", lastCompressionDefaultSettings );
+
+        // TODO - the ome-zarr code doesn't seem to support all the compression options at the moment. Would need to
+        // look into this more. For now, don't show compression options for ome-zarr
+        if ( imageDataFormat == ImageDataFormat.BdvN5 ) {
+            final String[] compressionChoices = new String[]{"raw (no compression)", "bzip", "gzip", "lz4", "xz"};
+            manualSettings.addChoice("compression", compressionChoices, compressionChoices[lastCompressionChoice]);
+            manualSettings.addCheckbox("use default settings for compression", lastCompressionDefaultSettings);
+        }
 
         manualSettings.showDialog();
 
         if ( !manualSettings.wasCanceled() ) {
             lastSubsampling = manualSettings.getNextString();
             lastChunkSizes = manualSettings.getNextString();
-            lastCompressionChoice = manualSettings.getNextChoiceIndex();
-            lastCompressionDefaultSettings = manualSettings.getNextBoolean();
+            if ( imageDataFormat == ImageDataFormat.BdvN5 ) {
+                lastCompressionChoice = manualSettings.getNextChoiceIndex();
+                lastCompressionDefaultSettings = manualSettings.getNextBoolean();
+            } else {
+                lastCompressionChoice = 2;
+                lastCompressionDefaultSettings = true;
+            }
 
             parseInputAndWriteImage();
         }
