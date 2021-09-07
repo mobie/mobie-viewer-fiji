@@ -75,26 +75,37 @@ public enum ImageDataFormat
 		}
 	}
 
-	public boolean isSupportedByProjectCreator()
-	{
+	public boolean isRemote() {
 		switch ( this )
 		{
-			case BdvN5:
-				return true;
 			case BdvN5S3:
-				return false;
+			case OmeZarrS3:
+			case BdvOmeZarrS3:
 			case OpenOrganelleS3:
-				return false;
-			case BdvOmeZarr:
 				return true;
+			case BdvN5:
+			case BdvOmeZarr:
 			case OmeZarr:
-				return false;
-            case BdvOmeZarrS3:
-                return false;
-            case OmeZarrS3:
-                return false;
 			default:
 				return false;
 		}
 	}
+
+	public boolean hasXml() {
+		switch ( this )
+		{
+			case BdvN5S3:
+			case BdvOmeZarr:
+			case BdvN5:
+			case BdvOmeZarrS3:
+				return true;
+			case OmeZarr:
+			case OpenOrganelleS3:
+			case OmeZarrS3:
+			default:
+				return false;
+		}
+
+	}
+
 }

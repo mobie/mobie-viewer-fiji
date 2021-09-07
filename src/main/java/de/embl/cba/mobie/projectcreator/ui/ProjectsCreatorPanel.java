@@ -5,6 +5,7 @@ import de.embl.cba.mobie.Dataset;
 import de.embl.cba.mobie.MoBIE;
 import de.embl.cba.mobie.Project;
 import de.embl.cba.mobie.Utils;
+import de.embl.cba.mobie.command.OpenMoBIEProjectCommand;
 import de.embl.cba.mobie.projectcreator.ProjectCreator;
 import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.tables.FileAndUrlUtils;
@@ -15,6 +16,7 @@ import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimDataException;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.compress.utils.FileNameUtils;
+import org.scijava.plugin.Parameter;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -23,6 +25,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.*;
 import static de.embl.cba.mobie.ui.SwingHelper.*;
@@ -47,6 +51,7 @@ public class ProjectsCreatorPanel extends JFrame {
         this.getContentPane().add(new JSeparator(SwingConstants.HORIZONTAL));
         this.getContentPane().add( Box.createVerticalStrut( 10 ) );
         addViewsPanel();
+        addButtonsPanel();
 
         String shortenedProjectName = projectLocation.getName();
         if ( shortenedProjectName.length() > 50 ) {
@@ -247,6 +252,101 @@ public class ProjectsCreatorPanel extends JFrame {
 
         this.getContentPane().add( groupPanel );
         this.getContentPane().add( viewsPanel );
+    }
+
+    private void addButtonsPanel() {
+        final JPanel buttonsPanel = SwingUtils.horizontalLayoutPanel();
+
+        JButton remoteButton = new JButton("Add/update remote");
+        JButton openMoBIEButton = new JButton("Open in MoBIE");
+
+        remoteButton.addActionListener( e ->
+        {
+            new Thread( () -> { remoteMetadataSettingsDialog(); } ).start();
+        } );
+
+        openMoBIEButton.addActionListener( e ->
+        {
+            new Thread( () -> {
+                OpenMoBIEProjectCommand openMoBIE = new OpenMoBIEProjectCommand();
+                openMoBIE.projectLocation = this.projectsCreator.getDataLocation().getAbsolutePath();
+                openMoBIE.run();
+            } ).start();
+        } );
+
+        buttonsPanel.add(remoteButton);
+        buttonsPanel.add(openMoBIEButton);
+
+        this.getContentPane().add( buttonsPanel );
+    }
+
+    private boolean continueDialog( ImageDataFormat imageDataFormat ) {
+        int result = JOptionPane.showConfirmDialog(null,
+                "This will overwrite any existing remote metadata for " + imageDataFormat.toString() +
+                        " - continue?", "Overwrite remote metadata?",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+        if (result == JOptionPane.YES_OPTION) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void remoteMetadataSettingsDialog() {
+        List<String> datasets = projectsCreator.getProject().getDatasets();
+        List<ImageDataFormat> imageDataFormats = projectsCreator.getProject().getImageDataFormats();
+        if ( datasets == null || datasets.size() == 0 ) {
+            IJ.log( "Remote metadata aborted - there are no datasets in your project!" );
+            return;
+        } else if ( imageDataFormats == null || imageDataFormats.size() == 0 ) {
+            IJ.log( "Remote metadata aborted - there are no images in your project!" );
+            return;
+        }
+
+        final GenericDialog gd = new GenericDialog( "Remote metadata settings..." );
+
+        // Find out which image types are currently in project, to give options for remote
+        List<ImageDataFormat> remoteFormats = new ArrayList<>();
+        if ( imageDataFormats.contains( ImageDataFormat.BdvN5 ) ) {
+            remoteFormats.add( ImageDataFormat.BdvN5S3 );
+        }
+
+        if ( imageDataFormats.contains(ImageDataFormat.BdvOmeZarr) ) {
+            remoteFormats.add( ImageDataFormat.BdvOmeZarrS3 );
+        }
+
+        if ( imageDataFormats.contains(ImageDataFormat.OmeZarr) ) {
+            remoteFormats.add( ImageDataFormat.OmeZarrS3 );
+        }
+
+        if ( remoteFormats.size() == 0 ) {
+            IJ.log( "Remote metadata aborted - no images of correct format in project." );
+            return;
+        }
+
+        String[] formats = new String[remoteFormats.size()];
+        for (int i = 0; i< formats.length; i++) {
+            formats[i] = remoteFormats.get(i).toString();
+        }
+        gd.addChoice("Image format:", formats, formats[0]);
+        gd.addStringField("Signing Region", "us-west-2", 20);
+        gd.addStringField("Service endpoint", "https://...", 20);
+        gd.addStringField("Bucket Name", "", 20);
+
+        gd.showDialog();
+
+        if ( !gd.wasCanceled() ) {
+            ImageDataFormat format = ImageDataFormat.fromString(gd.getNextChoice());
+            String signingRegion = gd.getNextString();
+            String serviceEndpoint = gd.getNextString();
+            String bucketName = gd.getNextString();
+
+            if ( continueDialog(format) ) {
+                projectsCreator.getRemoteMetadataCreator().createRemoteMetadata(
+                        signingRegion, serviceEndpoint, bucketName, format );
+            }
+        }
     }
 
     public String chooseDatasetDialog() {
