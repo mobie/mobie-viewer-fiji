@@ -78,7 +78,7 @@
 		<!-- Java 8	Update Site	-->
 		<imglib2.version>5.11.1</imglib2.version>
 		<imglib2-cache.version>1.0.0-beta-16</imglib2-cache.version>
-		<bigdataviewer-core.version>10.2.1-SNAPSHOT</bigdataviewer-core.version>
+        <bigdataviewer-core.version>10.2.1-SNAPSHOT</bigdataviewer-core.version>
 		<bigdataviewer-vistools.version>1.0.0-beta-28</bigdataviewer-vistools.version>
 
 		<!-- BIOP -->
