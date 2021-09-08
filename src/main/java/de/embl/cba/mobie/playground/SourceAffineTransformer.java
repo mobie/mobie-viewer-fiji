@@ -116,7 +116,7 @@ public class SourceAffineTransformer implements Runnable, Function<SourceAndConv
     {
         TransformedSource src;
         if ( name != null )
-            src = new TransformedSource( in.getSpimSource());
+            src = new TransformedSource( in.getSpimSource(), name );
         else
             src = new TransformedSource( in.getSpimSource() );
         src.setFixedTransform( at3D );
