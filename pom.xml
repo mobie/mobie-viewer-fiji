@@ -51,8 +51,8 @@
 	</contributors>
 	<mailingLists>
 		<mailingList>
-			<name>ImageJ Forum</name>
-			<archive>http://forum.imagej.net/</archive>
+			<name>Image.sc Forum</name>
+			<archive>https://forum.image.sc/</archive>
 		</mailingList>
 	</mailingLists>
 	<scm>
@@ -72,7 +72,6 @@
 		<package-name>de.embl.cba.mobie</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
-		<scijava.app.directory>/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app</scijava.app.directory>
 		<enforcer.skip>true</enforcer.skip>
 
 		<!-- Java 8	Update Site	-->
@@ -100,23 +99,10 @@
 		<j3dcore.version>1.6.0-scijava-2</j3dcore.version>
 	</properties>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.19</version>
-				<configuration>
-					<argLine>-Xmx4024m</argLine>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-
 	<repositories>
 		<repository>
-			<id>imagej.public</id>
-			<url>https://maven.imagej.net/content/groups/public</url>
+			<id>scijava.public</id>
+			<url>https://maven.scijava.org/content/groups/public</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -133,22 +119,18 @@
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
-			<version>${imglib2.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2-cache</artifactId>
-			<version>${imglib2-cache.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
-			<version>${bigdataviewer-core.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-vistools</artifactId>
-			<version>${bigdataviewer-vistools.version}</version>
 		</dependency>
         <dependency>
             <groupId>mobie</groupId>
@@ -174,7 +156,6 @@
 		<dependency>
 			<groupId>org.scijava</groupId>
 			<artifactId>j3dcore</artifactId>
-			<version>${j3dcore.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -198,7 +179,6 @@
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>ij</artifactId>
-			<version>1.53d</version>
 		</dependency>
         <dependency>
             <groupId>trove</groupId>
