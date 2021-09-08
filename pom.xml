@@ -97,6 +97,9 @@
 		on a central repository, and which we will use here for the ome.zarr branch
 		-->
 		<j3dcore.version>1.6.0-scijava-2</j3dcore.version>
+
+		<!-- NB: Deploy releases to the SciJava Maven repository. -->
+		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 	</properties>
 
 	<repositories>
