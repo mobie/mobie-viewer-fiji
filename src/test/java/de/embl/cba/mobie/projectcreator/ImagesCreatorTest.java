@@ -10,11 +10,7 @@ import de.embl.cba.n5.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 import de.embl.cba.n5.util.DownsampleBlock;
 import de.embl.cba.n5.util.writers.WriteImgPlusToN5;
 import de.embl.cba.tables.FileAndUrlUtils;
-import ij.IJ;
 import ij.ImagePlus;
-import ij.io.FileSaver;
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
 import mpicbg.spim.data.SpimDataException;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.janelia.saalfeldlab.n5.Compression;
@@ -30,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.imageFormatToFolderName;
+import static de.embl.cba.mobie.projectcreator.ProjectCreatorTestHelper.makeImage;
+import static de.embl.cba.mobie.projectcreator.ProjectCreatorTestHelper.makeSegmentation;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ImagesCreatorTest {
@@ -116,40 +114,9 @@ class ImagesCreatorTest {
         assertTrue( segmentationSource.tableData.containsKey(TableDataFormat.TabDelimitedFile) );
     }
 
-    ImagePlus makeImage() {
-        // make an image with random values, same size as the imagej sample head image
-        return IJ.createImage(imageName, "8-bit noise", 186, 226, 27);
-    }
-
-    ImagePlus makeSegmentation() {
-        // make an image with 3 boxes with pixel values 1, 2 and 3 as mock segmentation. Same size as imagej sample
-        // head image
-        int width = 186;
-        int height = 226;
-        int depth = 27;
-
-        ImagePlus seg = IJ.createImage(imageName, "8-bit black", width, height, depth);
-        for ( int i = 1; i<depth; i++ ) {
-            ImageProcessor ip = seg.getImageStack().getProcessor(i);
-            ip.setValue(1);
-            ip.setRoi(5, 5, 67, 25);
-            ip.fill();
-
-            ip.setValue(2);
-            ip.setRoi(51, 99, 67, 25);
-            ip.fill();
-
-            ip.setValue(3);
-            ip.setRoi(110, 160, 67, 25);
-            ip.fill();
-        }
-
-        return seg;
-    }
-
     String writeImageAndGetPath( ImageDataFormat imageDataFormat ) {
         // save example image for testing adding bdv format images
-        ImagePlus imp = makeImage();
+        ImagePlus imp = makeImage( imageName );
         DownsampleBlock.DownsamplingMethod downsamplingMethod = DownsampleBlock.DownsamplingMethod.Average;
         Compression compression = new GzipCompression();
         String filePath;
@@ -185,7 +152,7 @@ class ImagesCreatorTest {
     void testAddingImageInCertainFormat( ImageDataFormat imageDataFormat ) throws IOException {
 
         // make an image with random values, same size as the imagej sample head image
-        ImagePlus imp = makeImage();
+        ImagePlus imp = makeImage( imageName );
 
         imagesCreator.addImage( imp, imageName, datasetName,
                 imageDataFormat, ProjectCreator.ImageType.image,
@@ -195,7 +162,7 @@ class ImagesCreatorTest {
     }
 
     void testAddingSegmentationInCertainFormat( ImageDataFormat imageDataFormat ) throws IOException {
-        ImagePlus seg = makeSegmentation();
+        ImagePlus seg = makeSegmentation( imageName );
 
         imagesCreator.addImage( seg, imageName, datasetName,
                 imageDataFormat, ProjectCreator.ImageType.segmentation,
