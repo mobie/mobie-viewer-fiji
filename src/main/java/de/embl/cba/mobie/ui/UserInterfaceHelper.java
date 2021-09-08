@@ -13,7 +13,6 @@ import de.embl.cba.mobie.Utils;
 import de.embl.cba.mobie.display.AbstractSourceDisplay;
 import de.embl.cba.mobie.display.AnnotatedIntervalDisplay;
 import de.embl.cba.mobie.plot.ScatterPlotViewer;
-import de.embl.cba.mobie.serialize.DatasetJsonParser;
 import de.embl.cba.mobie.serialize.JsonHelper;
 import de.embl.cba.mobie.transform.GridSourceTransformer;
 import de.embl.cba.mobie.transform.SourceTransformer;
@@ -26,11 +25,8 @@ import de.embl.cba.mobie.display.ImageSourceDisplay;
 import de.embl.cba.mobie.display.SegmentationSourceDisplay;
 import de.embl.cba.mobie.display.SourceDisplay;
 import de.embl.cba.mobie.view.View;
-import de.embl.cba.mobie.view.ViewManager;
-import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
-import edu.mines.jtk.sgl.BoxConstraint;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -50,7 +46,6 @@ import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 
 import static de.embl.cba.mobie.ui.SwingHelper.*;
 
@@ -469,7 +464,7 @@ public class UserInterfaceHelper
 		JLabel label = new JLabel(display.getName() );
 		label.setHorizontalAlignment( SwingUtilities.LEFT );
 		panel.add( label );
-        panel.setToolTipText( display.getSourcesDescription() );
+        panel.setToolTipText( display.getDescription() );
 
 		return panel;
 	}
