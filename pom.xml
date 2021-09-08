@@ -150,6 +150,12 @@
 			<artifactId>bigdataviewer-vistools</artifactId>
 			<version>${bigdataviewer-vistools.version}</version>
 		</dependency>
+		<!-- required for fix that closes xml files properly after creation - should soon be in main fiji	-->
+		<dependency>
+			<groupId>sc.fiji</groupId>
+			<artifactId>spim_data</artifactId>
+			<version>2.2.5</version>
+		</dependency>
         <dependency>
             <groupId>mobie</groupId>
             <artifactId>bigdataviewer-imageloader</artifactId>

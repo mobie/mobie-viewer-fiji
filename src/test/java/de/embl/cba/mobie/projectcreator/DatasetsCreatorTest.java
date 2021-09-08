@@ -19,7 +19,6 @@ class DatasetsCreatorTest {
     void setUp( @TempDir Path tempDir ) throws IOException {
         projectCreator = new ProjectCreator( tempDir.toFile() );
         datasetsCreator = projectCreator.getDatasetsCreator();
-        System.out.println(tempDir.toFile().getAbsolutePath());
     }
 
     @org.junit.jupiter.api.Test
@@ -48,6 +47,19 @@ class DatasetsCreatorTest {
     }
 
     @org.junit.jupiter.api.Test
-    void makeDefaultDataset() {
+    void makeDefaultDataset() throws IOException {
+        String dataset1Name = "dataset1";
+        String dataset2Name = "dataset2";
+        datasetsCreator.addDataset(dataset1Name);
+        datasetsCreator.addDataset(dataset2Name);
+
+        Project project;
+        project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
+        assertEquals( project.getDefaultDataset(), dataset1Name );
+
+        datasetsCreator.makeDefaultDataset( dataset2Name );
+
+        project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
+        assertEquals( project.getDefaultDataset(), dataset2Name );
     }
 }
