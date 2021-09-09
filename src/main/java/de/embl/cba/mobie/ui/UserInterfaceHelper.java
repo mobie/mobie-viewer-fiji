@@ -468,9 +468,12 @@ public class UserInterfaceHelper
 		JLabel label = new JLabel(display.getName() );
 		label.setHorizontalAlignment( SwingUtilities.LEFT );
 		panel.add( label );
-        panel.setToolTipText( display.getDescription() );
-
-		return panel;
+		StringBuilder stringBuilder = new StringBuilder();
+        moBIE.getDataset().sources.values().forEach( sourceSupplier -> {
+            //NOT ALL INFO!
+                    stringBuilder.append( sourceSupplier.get().description);});
+        panel.setToolTipText(stringBuilder.toString());
+      		return panel;
 	}
 
 	public JPanel createSegmentationDisplaySettingsPanel( SegmentationSourceDisplay display )

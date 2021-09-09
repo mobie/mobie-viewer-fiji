@@ -5,7 +5,6 @@ public class SourceSupplier
 {
 	private ImageSource image;
 	private SegmentationSource segmentation;
-	private String description;
 
 	public SourceSupplier( ImageSource imageSource ) {
 		this.image = imageSource;
@@ -21,14 +20,4 @@ public class SourceSupplier
 		else if ( segmentation != null ) return segmentation;
 		else throw new RuntimeException( "Unsupported Source." );
 	}
-
-    public String getDescription()
-    {
-        return description;
-    }
-
-//    public void setDescription( String description )
-//    {
-//        this.description = description;
-//    }
 }
