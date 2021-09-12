@@ -468,11 +468,7 @@ public class UserInterfaceHelper
 		JLabel label = new JLabel(display.getName() );
 		label.setHorizontalAlignment( SwingUtilities.LEFT );
 		panel.add( label );
-		StringBuilder stringBuilder = new StringBuilder();
-        moBIE.getDataset().sources.values().forEach( sourceSupplier -> {
-            //NOT ALL INFO!
-                    stringBuilder.append( sourceSupplier.get().description);});
-        panel.setToolTipText(stringBuilder.toString());
+        panel.setToolTipText( moBIE.getDataset().sources.get( display.getName() ).get().description );
       		return panel;
 	}
 
