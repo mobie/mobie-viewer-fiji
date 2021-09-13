@@ -2,7 +2,7 @@ package de.embl.cba.mobie.bdv.render;
 
 import com.google.gson.annotations.SerializedName;
 
-/**
+/*
  * Constants to define the blending mode of sources.
  * These constants are used within {@link AccumulateMixedProjectorARGB}.
  *
