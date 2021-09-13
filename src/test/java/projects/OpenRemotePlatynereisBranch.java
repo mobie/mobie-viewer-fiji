@@ -1,7 +1,7 @@
 package projects;
 
-import de.embl.cba.mobie.MoBIE;
-import de.embl.cba.mobie.MoBIESettings;
+import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.MoBIESettings;
 import net.imagej.ImageJ;
 
 import java.io.IOException;

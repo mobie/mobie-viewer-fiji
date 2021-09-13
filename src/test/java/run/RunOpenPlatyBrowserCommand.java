@@ -1,6 +1,6 @@
 package run;
 
-import de.embl.cba.mobie.command.OpenPlatyBrowserCommand;
+import org.embl.mobie.viewer.command.OpenPlatyBrowserCommand;
 import net.imagej.ImageJ;
 
 public class RunOpenPlatyBrowserCommand
