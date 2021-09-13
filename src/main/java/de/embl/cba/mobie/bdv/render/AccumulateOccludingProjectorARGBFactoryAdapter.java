@@ -4,7 +4,7 @@ import bdv.viewer.render.AccumulateProjectorFactory;
 import org.scijava.plugin.Plugin;
 import sc.fiji.persist.IClassRuntimeAdapter;
 
-/**
+/*
  * For serialization of {@link AccumulateOccludingProjectorARGBFactoryAdapter} objects
  *
  * Used in {@link sc.fiji.bdvpg.bdv.supplier.mobie.MobieSerializableBdvOptions}
