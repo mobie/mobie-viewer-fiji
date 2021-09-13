@@ -1,16 +1,18 @@
 package de.embl.cba.mobie.projectcreator;
 
-import bdv.spimdata.SpimDataMinimal;
-import bdv.spimdata.XmlIoSpimDataMinimal;
 import de.embl.cba.mobie.Dataset;
 import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.mobie.source.ImageSource;
+import de.embl.cba.mobie.source.SpimDataOpener;
 import de.embl.cba.mobie.source.StorageLocation;
+import de.embl.cba.n5.ome.zarr.loaders.xml.XmlN5S3OmeZarrImageLoader;
 import de.embl.cba.n5.util.loaders.xml.XmlIoN5S3ImageLoader;
 import de.embl.cba.tables.FileAndUrlUtils;
 import ij.IJ;
+import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.SpimDataIOException;
+import mpicbg.spim.data.XmlIoSpimData;
 import org.apache.commons.io.FilenameUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -23,7 +25,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.getImageLocationFromSpimDataMinimal;
+import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.getImageLocationFromSequenceDescription;
 import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.imageFormatToFolderName;
 
 public class RemoteMetadataCreator {
@@ -31,6 +33,8 @@ public class RemoteMetadataCreator {
     String signingRegion;
     String serviceEndpoint;
     String bucketName;
+    ImageDataFormat remoteImageDataFormat;
+    ImageDataFormat localImageDataFormat;
 
     public RemoteMetadataCreator( ProjectCreator projectCreator ) {
         this.projectCreator = projectCreator;
@@ -50,25 +54,29 @@ public class RemoteMetadataCreator {
 
     private void deleteRemoteMetadataForImage( String datasetName, String imageName ) throws IOException {
         ImageSource imageSource = projectCreator.getDataset( datasetName ).sources.get( imageName ).get();
-        if ( imageSource.imageData.containsKey( ImageDataFormat.BdvN5S3 ) ) {
-            // delete any existing remote metadata
-            File currentRemoteXmlLocation = new File( FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
-                    datasetName, imageSource.imageData.get( ImageDataFormat.BdvN5S3 ).relativePath ) );
-            if ( currentRemoteXmlLocation.exists() ) {
-                if ( !currentRemoteXmlLocation.delete() ) {
-                    String errorMessage = "Remote metadata for: " + imageName + " in dataset: " + datasetName + " could not be deleted.";
-                    IJ.log(errorMessage);
-                    throw new IOException(errorMessage);
+        if ( imageSource.imageData.containsKey( remoteImageDataFormat ) ) {
+
+            if ( remoteImageDataFormat.hasXml() ) {
+                // delete any existing remote metadata .xml files
+                File currentRemoteXmlLocation = new File(FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
+                        datasetName, imageSource.imageData.get(remoteImageDataFormat).relativePath));
+                if (currentRemoteXmlLocation.exists()) {
+                    if (!currentRemoteXmlLocation.delete()) {
+                        String errorMessage = "Remote metadata for: " + imageName + " in dataset: " + datasetName + " could not be deleted.";
+                        IJ.log(errorMessage);
+                        throw new IOException(errorMessage);
+                    }
                 }
             }
-            imageSource.imageData.remove( ImageDataFormat.BdvN5S3 );
+            imageSource.imageData.remove( remoteImageDataFormat );
         }
     }
 
-    public String getRelativeKey( SpimDataMinimal spimDataMinimal, String datasetName, String imageName,
+    public String getRelativeKey( SpimData spimData, String datasetName, String imageName,
                                   ImageDataFormat imageFormat ) throws IOException {
         // check image is within the project folder (if people 'link' to bdv format images they may be outside)
-        Path imagePath = Paths.get( getImageLocationFromSpimDataMinimal( spimDataMinimal, imageFormat ).getAbsolutePath() ).normalize();
+        Path imagePath = Paths.get( getImageLocationFromSequenceDescription( spimData.getSequenceDescription(),
+                imageFormat ).getAbsolutePath() ).normalize();
         Path projectDataFolder = Paths.get( projectCreator.getDataLocation().getAbsolutePath() ).normalize();
 
         if ( !imagePath.startsWith( projectDataFolder )) {
@@ -83,22 +91,26 @@ public class RemoteMetadataCreator {
         return FilenameUtils.separatorsToUnix( relativeKey.toString() );
     }
 
-    public Element createImageLoaderXmlElement ( SpimDataMinimal spimDataMinimal,
+    public Element createImageLoaderXmlElement ( SpimData spimData,
                                                  ImageDataFormat imageFormat,
                                                  String datasetName, String imageName ) throws IOException {
         Element element = null;
+        String key = getRelativeKey( spimData, datasetName, imageName, localImageDataFormat );
         switch ( imageFormat ) {
             case BdvN5S3:
-                String key = getRelativeKey( spimDataMinimal, datasetName, imageName, ImageDataFormat.BdvN5 );
                 element = new XmlIoN5S3ImageLoader().toXml( serviceEndpoint, signingRegion, bucketName, key );
+                break;
+            case BdvOmeZarrS3:
+                element = new XmlN5S3OmeZarrImageLoader().toXml( serviceEndpoint, signingRegion, bucketName, key );
+                break;
         }
 
         return element;
     }
 
-    public void saveXml( final SpimDataMinimal spimData, String datasetName, String imagename,
+    public void saveXml( final SpimData spimData, String datasetName, String imagename,
                          final String xmlFile, ImageDataFormat imageFormat ) throws SpimDataException, IOException {
-        XmlIoSpimDataMinimal io = new XmlIoSpimDataMinimal();
+        XmlIoSpimData io = new XmlIoSpimData();
         final File xmlFileDirectory = new File( xmlFile ).getParentFile();
         final Document doc = new Document( io.toXml( spimData, xmlFileDirectory ) );
         // remove default image loader, and replace with custom one
@@ -118,29 +130,43 @@ public class RemoteMetadataCreator {
 
     private void addRemoteMetadataForImage( String datasetName, String imageName ) throws SpimDataException, IOException {
         ImageSource imageSource = projectCreator.getDataset( datasetName ).sources.get( imageName ).get();
-        if ( !imageSource.imageData.containsKey( ImageDataFormat.BdvN5 ) ) {
-            String errorMesage = "Image:" + imageName + " in dataset:" + datasetName + " is of an unsupported format";
-            IJ.log( errorMesage );
-            throw new IOException( errorMesage );
+        if ( !imageSource.imageData.containsKey( localImageDataFormat ) ) {
+            IJ.log( "No images of format " + localImageDataFormat + " for " + imageName +
+                    " in dataset:" + datasetName + ". Skipping this image." );
+            return;
         }
 
-        String localXmlLocation = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
-                datasetName, imageSource.imageData.get( ImageDataFormat.BdvN5 ).relativePath );
+        if ( localImageDataFormat.hasXml() ) {
 
-        deleteRemoteMetadataForImage( datasetName, imageName );
+            // make new xml containing bucket name etc, and give relative path
+            String localXmlLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
+                    datasetName, imageSource.imageData.get(localImageDataFormat).relativePath);
 
-        String remoteXmlLocation = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
-                datasetName, "images", imageFormatToFolderName( ImageDataFormat.BdvN5S3) );
+            String remoteXmlLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
+                    datasetName, "images", imageFormatToFolderName(remoteImageDataFormat));
 
-        SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load( localXmlLocation );
-        spimDataMinimal.setBasePath( new File( remoteXmlLocation ) );
-        saveXml( spimDataMinimal, datasetName, imageName,
-                new File(remoteXmlLocation, imageName + ".xml").getAbsolutePath(),
-                ImageDataFormat.BdvN5S3 );
+            // make directory for that image file format, if doesn't exist already
+            File remoteDir = new File( remoteXmlLocation );
+            if ( !remoteDir.exists() ) {
+                remoteDir.mkdirs();
+            }
 
-        StorageLocation storageLocation = new StorageLocation();
-        storageLocation.relativePath = "images/" + imageFormatToFolderName( ImageDataFormat.BdvN5S3 ) + "/" + imageName + ".xml";
-        imageSource.imageData.put( ImageDataFormat.BdvN5S3, storageLocation );
+            SpimData spimData = new SpimDataOpener().openSpimData(localXmlLocation, localImageDataFormat);
+            spimData.setBasePath(new File(remoteXmlLocation));
+            saveXml(spimData, datasetName, imageName,
+                    new File(remoteXmlLocation, imageName + ".xml").getAbsolutePath(),
+                    remoteImageDataFormat);
+
+            StorageLocation storageLocation = new StorageLocation();
+            storageLocation.relativePath = "images/" + imageFormatToFolderName( remoteImageDataFormat ) + "/" + imageName + ".xml";
+            imageSource.imageData.put( remoteImageDataFormat, storageLocation );
+        } else {
+            // give absolute s3 path to ome.zarr file
+            StorageLocation storageLocation = new StorageLocation();
+            String relativePath = imageSource.imageData.get(localImageDataFormat).relativePath;
+            storageLocation.s3Address = serviceEndpoint + bucketName + "/data/" + datasetName + "/" + relativePath;
+            imageSource.imageData.put( remoteImageDataFormat, storageLocation );
+        }
 
     }
 
@@ -165,10 +191,33 @@ public class RemoteMetadataCreator {
         }
     }
 
-    public void createRemoteMetadata( String signingRegion, String serviceEndpoint, String bucketName ) {
+    public void createRemoteMetadata( String signingRegion, String serviceEndpoint, String bucketName,
+                                      ImageDataFormat imageDataFormat ) {
+
+        if ( !imageDataFormat.isRemote() ) {
+            IJ.log( "Creating remote metadata aborted - provided image data format is not remote." );
+        }
+
         this.signingRegion = signingRegion;
         this.serviceEndpoint = serviceEndpoint;
         this.bucketName = bucketName;
+        this.remoteImageDataFormat = imageDataFormat;
+
+        if ( !this.serviceEndpoint.endsWith("/") ) {
+            this.serviceEndpoint = this.serviceEndpoint + "/";
+        }
+
+        switch( remoteImageDataFormat ) {
+            case BdvN5S3:
+                localImageDataFormat = ImageDataFormat.BdvN5;
+                break;
+            case BdvOmeZarrS3:
+                localImageDataFormat = ImageDataFormat.BdvOmeZarr;
+                break;
+            case OmeZarrS3:
+                localImageDataFormat = ImageDataFormat.OmeZarr;
+                break;
+        }
 
         try {
             // clean any old remote metadata
@@ -177,7 +226,7 @@ public class RemoteMetadataCreator {
             try {
                addAllRemoteMetadata();
             } catch (SpimDataException | IOException e) {
-                IJ.log( "Error - aborting, and removing all remote metadata" );
+                IJ.log( "Error - aborting, and removing all " + remoteImageDataFormat + " remote metadata" );
                 deleteAllRemoteMetadata();
                 e.printStackTrace();
             }

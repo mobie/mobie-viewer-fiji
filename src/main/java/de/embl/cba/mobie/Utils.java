@@ -176,6 +176,16 @@ public abstract class Utils
 		return filePath;
 	}
 
+	public static String selectOpenDirFromFileSystem( String objectName ) {
+		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
+		return selectOpenDirFromFileSystem( objectName, jFileChooser );
+	}
+
+	public static String selectOpenDirFromFileSystem( String objectName, JFileChooser jFileChooser ) {
+		jFileChooser.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
+		return selectOpenPathFromFileSystem( objectName, jFileChooser );
+	}
+
 	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
 	public static String selectSavePathFromFileSystem( String fileExtension )
 	{

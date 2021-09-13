@@ -150,6 +150,12 @@
 			<artifactId>bigdataviewer-vistools</artifactId>
 			<version>${bigdataviewer-vistools.version}</version>
 		</dependency>
+		<!-- required for fix that closes xml files properly after creation - should soon be in main fiji	-->
+		<dependency>
+			<groupId>sc.fiji</groupId>
+			<artifactId>spim_data</artifactId>
+			<version>2.2.5</version>
+		</dependency>
         <dependency>
             <groupId>mobie</groupId>
             <artifactId>bigdataviewer-imageloader</artifactId>
@@ -177,10 +183,6 @@
 			<version>${j3dcore.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>imagej-utils</artifactId>
 			<version>${imagej-utils.version}</version>
@@ -205,5 +207,11 @@
             <artifactId>trove</artifactId>
             <version>1.0.2</version>
         </dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>5.7.2</version>
+			<scope>test</scope>
+		</dependency>
     </dependencies>
 </project>

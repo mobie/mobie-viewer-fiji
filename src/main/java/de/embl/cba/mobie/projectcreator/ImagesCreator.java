@@ -1,12 +1,17 @@
 package de.embl.cba.mobie.projectcreator;
 
 import bdv.img.n5.N5ImageLoader;
-import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
-import de.embl.cba.bdv.utils.sources.LazySpimSource;
-import de.embl.cba.mobie.projectcreator.ui.ManualN5ExportPanel;
+import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
+import de.embl.cba.mobie.projectcreator.ui.ManualExportPanel;
 import de.embl.cba.mobie.source.ImageDataFormat;
+import de.embl.cba.mobie.source.SpimDataOpener;
+import de.embl.cba.n5.ome.zarr.loaders.N5OMEZarrImageLoader;
+import de.embl.cba.n5.ome.zarr.readers.N5OmeZarrReader;
+import de.embl.cba.n5.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
+import de.embl.cba.n5.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 import de.embl.cba.n5.util.DownsampleBlock;
 import de.embl.cba.n5.util.loaders.N5FSImageLoader;
 import de.embl.cba.n5.util.writers.WriteImgPlusToN5;
@@ -14,10 +19,11 @@ import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.ImagePlus;
+import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.XmlIoSpimData;
 import mpicbg.spim.data.generic.base.Entity;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
-import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewRegistration;
 import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.*;
@@ -29,9 +35,10 @@ import net.imglib2.roi.labeling.LabelRegion;
 import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
-import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FileUtils;
 import org.janelia.saalfeldlab.n5.GzipCompression;
+import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
+import mpicbg.spim.data.sequence.SequenceDescription;
 
 import javax.swing.*;
 import java.io.File;
@@ -52,14 +59,27 @@ public class ImagesCreator {
         this.projectCreator = projectCreator;
     }
 
-    private String getDefaultLocalImageXmlPath( String datasetName, String imageName ) {
-        return FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(), datasetName,
-                "images", imageFormatToFolderName( ImageDataFormat.BdvN5 ), imageName + ".xml");
+    private String getDefaultLocalImagePath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
+        if ( imageDataFormat == ImageDataFormat.OmeZarr ) {
+            return getDefaultLocalImageZarrPath( datasetName, imageName, imageDataFormat );
+        } else {
+            return getDefaultLocalImageXmlPath( datasetName, imageName, imageDataFormat );
+        }
     }
 
-    private String getDefaultLocalImageDirPath( String datasetName ) {
+    private String getDefaultLocalImageXmlPath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
         return FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(), datasetName,
-                "images", imageFormatToFolderName( ImageDataFormat.BdvN5 ) );
+                "images", imageFormatToFolderName( imageDataFormat ), imageName + ".xml");
+    }
+
+    private String getDefaultLocalImageZarrPath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
+        return FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(), datasetName,
+                "images", imageFormatToFolderName( imageDataFormat ), imageName + ".ome.zarr");
+    }
+
+    private String getDefaultLocalImageDirPath( String datasetName, ImageDataFormat imageDataFormat ) {
+        return FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(), datasetName,
+                "images", imageFormatToFolderName( imageDataFormat ) );
     }
 
     private String getDefaultTableDirPath( String datasetName, String imageName ) {
@@ -69,8 +89,10 @@ public class ImagesCreator {
     public void addImage (ImagePlus imp, String imageName, String datasetName,
                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
                           AffineTransform3D sourceTransform, boolean useDefaultSettings, String uiSelectionGroup ) {
-        String xmlPath = getDefaultLocalImageXmlPath( datasetName, imageName );
-        File xmlFile = new File( xmlPath );
+
+        // either xml file path or zarr file path depending on imageDataFormat
+        String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
+        File imageFile = new File(filePath);
 
         DownsampleBlock.DownsamplingMethod downsamplingMethod;
         switch( imageType ) {
@@ -81,20 +103,21 @@ public class ImagesCreator {
                 downsamplingMethod = DownsampleBlock.DownsamplingMethod.Centre;
         }
 
-        if ( !xmlFile.exists() ) {
-            switch( imageDataFormat ) {
-                case BdvN5:
-                    if (!useDefaultSettings) {
-                        new ManualN5ExportPanel(imp, xmlPath, sourceTransform, downsamplingMethod, imageName).getManualExportParameters();
-                    } else {
-                        // gzip compression by default
-                        new WriteImgPlusToN5().export(imp, xmlPath, sourceTransform, downsamplingMethod,
-                                new GzipCompression(), new String[]{imageName} );
-                    }
+        if ( !imageFile.exists() ) {
+
+            File imageDir = new File(imageFile.getParent());
+            if ( !imageDir.exists() ) {
+                imageDir.mkdirs();
+            }
+
+            if ( !useDefaultSettings ) {
+                new ManualExportPanel( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat).getManualExportParameters();
+            } else {
+                writeDefaultImage( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat );
             }
 
             // check image written successfully, before writing jsons
-            if ( xmlFile.exists() ) {
+            if ( imageFile.exists() ) {
                 boolean is2D;
                 if ( imp.getNDimensions() <= 2 ) {
                     is2D = true;
@@ -102,7 +125,8 @@ public class ImagesCreator {
                     is2D = false;
                 }
                 try {
-                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup, is2D, imp.getNFrames() );
+                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup,
+                            is2D, imp.getNFrames(), imageDataFormat );
                 } catch (SpimDataException e) {
                     e.printStackTrace();
                 }
@@ -112,48 +136,95 @@ public class ImagesCreator {
         }
     }
 
-    public void addBdvFormatImage ( File xmlLocation, String datasetName, ProjectCreator.ImageType imageType,
-                                   ProjectCreator.AddMethod addMethod, String uiSelectionGroup ) throws SpimDataException, IOException {
-        if ( xmlLocation.exists() ) {
-            SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(xmlLocation.getAbsolutePath());
-            String imageName = FileNameUtils.getBaseName(xmlLocation.getAbsolutePath());
-            File newXmlDirectory = new File( getDefaultLocalImageDirPath( datasetName ));
-            File newXmlFile = new File(newXmlDirectory, imageName + ".xml");
+    private void writeDefaultImage( ImagePlus imp, String filePath, AffineTransform3D sourceTransform,
+                                   DownsampleBlock.DownsamplingMethod downsamplingMethod,
+                                   String imageName, ImageDataFormat imageDataFormat ) {
 
-            if ( !newXmlFile.exists() ) {
-                // check n5 format (e.g. we no longer support hdf5)
-                ImageDataFormat imageFormat = getImageFormatFromSpimDataMinimal( spimDataMinimal );
-                if ( imageFormat != null && imageFormat.isSupportedByProjectCreator() ) {
+        // gzip compression by default
+        switch( imageDataFormat ) {
+            case BdvN5:
+                new WriteImgPlusToN5().export(imp, filePath, sourceTransform, downsamplingMethod,
+                        new GzipCompression(), new String[]{imageName} );
+                break;
+
+            case BdvOmeZarr:
+                new WriteImgPlusToN5BdvOmeZarr().export(imp, filePath, sourceTransform, downsamplingMethod,
+                        new GzipCompression(), new String[]{imageName} );
+                break;
+
+            case OmeZarr:
+                new WriteImgPlusToN5OmeZarr().export(imp, filePath, sourceTransform, downsamplingMethod,
+                        new GzipCompression(), new String[]{imageName});
+                break;
+
+            default:
+                throw new UnsupportedOperationException();
+
+        }
+    }
+
+    public void addBdvFormatImage ( File fileLocation, String datasetName, ProjectCreator.ImageType imageType,
+                                   ProjectCreator.AddMethod addMethod, String uiSelectionGroup,
+                                    ImageDataFormat imageDataFormat ) throws SpimDataException, IOException {
+
+        if ( fileLocation.exists() ) {
+
+            SpimData spimData = new SpimDataOpener().openSpimData( fileLocation.getAbsolutePath(), imageDataFormat );
+            String imageName = fileLocation.getName().split("\\.")[0];
+            File imageDirectory = new File( getDefaultLocalImageDirPath( datasetName, imageDataFormat ));
+
+            File newImageFile = null;
+            switch( imageDataFormat ) {
+                case BdvN5:
+
+                case BdvOmeZarr:
+                    newImageFile = new File(imageDirectory, imageName + ".xml");
                     // The view setup name must be the same as the image name
-                    spimDataMinimal = fixSetupName( spimDataMinimal, imageName );
+                    spimData = fixSetupName( spimData, imageName );
+                    break;
 
-                    switch (addMethod) {
-                        case link:
-                            new XmlIoSpimDataMinimal().save(spimDataMinimal, newXmlFile.getAbsolutePath());
-                            break;
-                        case copy:
-                            copyImage( imageFormat, spimDataMinimal, newXmlDirectory, imageName);
-                            break;
-                        case move:
-                            moveImage( imageFormat, spimDataMinimal, newXmlDirectory, imageName);
-                            break;
-                    }
-                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup,
-                            isSpimData2D( spimDataMinimal ), getNTimepointsFromSpimData( spimDataMinimal ) );
-                } else {
-                    IJ.log( "Image is of unsupported type.");
+                case OmeZarr:
+                    newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
+                    break;
+            }
+
+            if ( !newImageFile.exists() ) {
+
+                // make directory for that image file format, if doesn't exist already
+                File imageDir = new File( newImageFile.getParent() );
+                if ( !imageDir.exists() ) {
+                    imageDir.mkdirs();
                 }
+
+                switch (addMethod) {
+                    case link:
+                        // TODO - linking currently not supported for ome-zarr
+                        new XmlIoSpimData().save(spimData, newImageFile.getAbsolutePath());
+                        break;
+                    case copy:
+                        copyImage( imageDataFormat, spimData, imageDirectory, imageName);
+                        break;
+                    case move:
+                        moveImage( imageDataFormat, spimData, imageDirectory, imageName);
+                        break;
+                }
+                updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup,
+                        isSpimData2D( spimData ), getNTimepointsFromSpimData( spimData ),
+                        imageDataFormat );
+
+                IJ.log( "Bdv format image " + imageName + " added to project" );
             } else {
                 IJ.log("Adding image to project failed - this image name already exists");
             }
         } else {
-            IJ.log( "Adding image to project failed - xml does not exist" );
+            IJ.log( "Adding image to project failed - " + fileLocation.getAbsolutePath() + " does not exist" );
         }
     }
 
-    private ArrayList<Object[]> makeDefaultTableRowsForTimepoint( LazySpimSource labelsSource, int timepoint, boolean addTimepointColumn ) {
+    private ArrayList<Object[]> makeDefaultTableRowsForTimepoint( Source labelsSource, int timepoint, boolean addTimepointColumn ) {
 
-        RandomAccessibleInterval rai = labelsSource.getNonVolatileSource( timepoint, 0 );
+        RandomAccessibleInterval rai = labelsSource.getSource( timepoint, 0 );
+
         if ( getTypeFromInterval( rai ) instanceof FloatType ) {
             rai = RealTypeConverters.convert( rai, new IntType() );
         }
@@ -204,7 +275,7 @@ public class ImagesCreator {
     }
 
     // TODO - is this efficient for big images?
-    private void addDefaultTableForImage ( String imageName, String datasetName ) throws SpimDataException {
+    private void addDefaultTableForImage ( String imageName, String datasetName, ImageDataFormat imageDataFormat ) {
         File tableFolder = new File( getDefaultTableDirPath( datasetName, imageName ) );
         File defaultTable = new File( tableFolder, "default.tsv" );
         if ( !tableFolder.exists() ){
@@ -215,9 +286,14 @@ public class ImagesCreator {
 
             IJ.log( " Creating default table... 0 label is counted as background" );
 
-            SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load(getDefaultLocalImageXmlPath(datasetName, imageName));
+            // xml file or zarr file, depending on imageDataFormat
+            String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
+            SpimData spimData = new SpimDataOpener().openSpimData( filePath, imageDataFormat);
+            final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
+            final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+            final Source labelsSource = sourceAndConverter.getSpimSource();
 
-            boolean hasTimeColumn = spimDataMinimal.getSequenceDescription().getTimePoints().size() > 1;
+            boolean hasTimeColumn = spimData.getSequenceDescription().getTimePoints().size() > 1;
             ArrayList<String> columnNames = new ArrayList<>();
             columnNames.add( "label_id" );
             columnNames.add( "anchor_x" );
@@ -233,11 +309,9 @@ public class ImagesCreator {
                 columnNames.add("timepoint");
             }
 
-            final LazySpimSource labelsSource = new LazySpimSource("labelImage",
-                    getDefaultLocalImageXmlPath(datasetName, imageName));
             ArrayList<Object[]> rows = new ArrayList<>();
 
-            for ( Integer timepoint: spimDataMinimal.getSequenceDescription().getTimePoints().getTimePoints().keySet() ) {
+            for ( Integer timepoint: spimData.getSequenceDescription().getTimePoints().getTimePoints().keySet() ) {
                 rows.addAll( makeDefaultTableRowsForTimepoint( labelsSource, timepoint, hasTimeColumn ) );
             }
 
@@ -252,45 +326,72 @@ public class ImagesCreator {
     }
 
     private void updateTableAndJsonsForNewImage ( String imageName, ProjectCreator.ImageType imageType,
-                                          String datasetName, String uiSelectionGroup, boolean is2D, int nTimepoints ) throws SpimDataException {
+                                          String datasetName, String uiSelectionGroup, boolean is2D, int nTimepoints,
+                                                  ImageDataFormat imageDataFormat ) throws SpimDataException {
         if ( imageType == ProjectCreator.ImageType.segmentation) {
-            addDefaultTableForImage( imageName, datasetName );
+            addDefaultTableForImage( imageName, datasetName, imageDataFormat );
         }
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
-        datasetJsonCreator.addToDatasetJson( imageName, datasetName, imageType, uiSelectionGroup, is2D, nTimepoints );
+        datasetJsonCreator.addToDatasetJson( imageName, datasetName, imageType, uiSelectionGroup, is2D, nTimepoints,
+                imageDataFormat );
     }
 
-    private void copyImage ( ImageDataFormat imageFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
+    private void copyImage ( ImageDataFormat imageFormat, SpimData spimData,
+                             File imageDirectory, String imageName ) throws IOException, SpimDataException {
         File newImageFile = null;
+        File imageLocation = getImageLocationFromSequenceDescription(spimData.getSequenceDescription(), imageFormat );
 
         switch( imageFormat ) {
             case BdvN5:
-                newImageFile = new File(newXmlDirectory, imageName + ".n5" );
-                File imageLocation = getImageLocationFromSpimDataMinimal(spimDataMinimal, imageFormat );
+                newImageFile = new File(imageDirectory, imageName + ".n5" );
                 FileUtils.copyDirectory(imageLocation, newImageFile);
-        }
+                writeNewBdvXml( spimData, newImageFile, imageDirectory, imageName, imageFormat );
+                break;
 
-        writeNewBdvXml( spimDataMinimal, newImageFile, newXmlDirectory, imageName, imageFormat );
+            case BdvOmeZarr:
+                newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
+                FileUtils.copyDirectory(imageLocation, newImageFile);
+                writeNewBdvXml( spimData, newImageFile, imageDirectory, imageName, imageFormat );
+                break;
+
+            case OmeZarr:
+                newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
+                FileUtils.copyDirectory(imageLocation, newImageFile);
+                break;
+        }
     }
 
-    private void moveImage ( ImageDataFormat imageFormat, SpimDataMinimal spimDataMinimal, File newXmlDirectory, String imageName ) throws IOException, SpimDataException {
+    private void moveImage ( ImageDataFormat imageFormat, SpimData spimData,
+                             File imageDirectory, String imageName ) throws IOException, SpimDataException {
         File newImageFile = null;
+        File imageLocation = getImageLocationFromSequenceDescription(spimData.getSequenceDescription(), imageFormat );
 
         switch( imageFormat ) {
             case BdvN5:
-                newImageFile = new File( newXmlDirectory, imageName + ".n5" );
-                File imageLocation = getImageLocationFromSpimDataMinimal( spimDataMinimal, imageFormat );
-
+                newImageFile = new File(imageDirectory, imageName + ".n5" );
                 // have to explicitly close the image loader, so we can delete the original file
-                closeImgLoader( spimDataMinimal, imageFormat );
+                closeImgLoader( spimData, imageFormat );
                 FileUtils.moveDirectory( imageLocation, newImageFile );
-        }
+                writeNewBdvXml( spimData, newImageFile, imageDirectory, imageName, imageFormat );
+                break;
 
-        writeNewBdvXml( spimDataMinimal, newImageFile, newXmlDirectory, imageName, imageFormat );
+            case BdvOmeZarr:
+                newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
+                closeImgLoader( spimData, imageFormat );
+                FileUtils.moveDirectory( imageLocation, newImageFile );
+                writeNewBdvXml( spimData, newImageFile, imageDirectory, imageName, imageFormat );
+                break;
+
+            case OmeZarr:
+                newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
+                closeImgLoader( spimData, imageFormat );
+                FileUtils.moveDirectory( imageLocation, newImageFile );
+                break;
+        }
     }
 
-    private void closeImgLoader ( SpimDataMinimal spimDataMinimal, ImageDataFormat imageFormat ) {
-        BasicImgLoader imgLoader = spimDataMinimal.getSequenceDescription().getImgLoader();
+    private void closeImgLoader ( SpimData spimData, ImageDataFormat imageFormat ) {
+        BasicImgLoader imgLoader = spimData.getSequenceDescription().getImgLoader();
 
         switch ( imageFormat ) {
             case BdvN5:
@@ -300,54 +401,70 @@ public class ImagesCreator {
                     ( (N5FSImageLoader) imgLoader ).close();
                 }
                 break;
+
+            case BdvOmeZarr:
+
+            case OmeZarr:
+                if (imgLoader instanceof N5OMEZarrImageLoader) {
+                    ( (N5OMEZarrImageLoader) imgLoader ).close();
+                }
+                break;
         }
     }
 
-    private SpimDataMinimal fixSetupName( SpimDataMinimal spimDataMinimal, String imageName ) {
+    private SpimData fixSetupName( SpimData spimData, String imageName ) {
         // The view setup name must be the same as the image name
-        BasicViewSetup firstSetup = spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().get(0);
+        ViewSetup firstSetup = spimData.getSequenceDescription().getViewSetupsOrdered().get(0);
         if ( !firstSetup.getName().equals(imageName) ) {
 
-            int numSetups = spimDataMinimal.getSequenceDescription().getViewSetups().size();
-            final HashMap< Integer, BasicViewSetup> setups = new HashMap<>( numSetups );
+            int numSetups = spimData.getSequenceDescription().getViewSetups().size();
+            final HashMap< Integer, ViewSetup> setups = new HashMap<>( numSetups );
             for ( int s = 0; s < numSetups; s++ )
             {
-                final BasicViewSetup setup;
+                final ViewSetup setup;
                 if ( s == 0 ) {
-                    setup = new BasicViewSetup( firstSetup.getId(), imageName,
-                            firstSetup.getSize(), firstSetup.getVoxelSize() );
+                    setup = new ViewSetup( firstSetup.getId(), imageName, firstSetup.getSize(),
+                            firstSetup.getVoxelSize(), firstSetup.getChannel(), firstSetup.getAngle(),
+                            firstSetup.getIllumination() );
                     for ( Entity attribute: firstSetup.getAttributes().values() ) {
                         setup.setAttribute( attribute );
                     }
                 } else {
-                    setup = spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().get( s );
+                    setup = spimData.getSequenceDescription().getViewSetupsOrdered().get( s );
                 }
                 setups.put( s, setup );
             }
 
-            final SequenceDescriptionMinimal newSeq = new SequenceDescriptionMinimal(
-                    spimDataMinimal.getSequenceDescription().getTimePoints(), setups,
-                    spimDataMinimal.getSequenceDescription().getImgLoader(), null );
+            final SequenceDescription newSeq = new SequenceDescription(
+                    spimData.getSequenceDescription().getTimePoints(), setups,
+                    spimData.getSequenceDescription().getImgLoader(), null );
 
-            return new SpimDataMinimal( spimDataMinimal.getBasePath(), newSeq, spimDataMinimal.getViewRegistrations() );
+            return new SpimData(
+                    spimData.getBasePath(), newSeq, spimData.getViewRegistrations() );
         } else {
-            return spimDataMinimal;
+            return spimData;
         }
     }
 
-    private void writeNewBdvXml ( SpimDataMinimal spimDataMinimal, File imageFile, File saveDirectory, String imageName,
-                                  ImageDataFormat imageFormat ) throws SpimDataException {
+    private void writeNewBdvXml ( SpimData spimData, File imageFile, File saveDirectory, String imageName,
+                                  ImageDataFormat imageFormat ) throws SpimDataException, IOException {
 
         ImgLoader imgLoader = null;
         switch ( imageFormat ) {
             case BdvN5:
                 imgLoader = new N5ImageLoader( imageFile, null);
                 break;
+
+            case BdvOmeZarr:
+                imgLoader = new N5OMEZarrImageLoader(
+                        new N5OmeZarrReader(imageFile.getAbsolutePath()), spimData.getSequenceDescription());
+                break;
+
         }
 
-        spimDataMinimal.setBasePath( saveDirectory );
-        spimDataMinimal.getSequenceDescription().setImgLoader(imgLoader);
-        new XmlIoSpimDataMinimal().save(spimDataMinimal, new File( saveDirectory, imageName + ".xml").getAbsolutePath() );
+        spimData.setBasePath( saveDirectory );
+        spimData.getSequenceDescription().setImgLoader(imgLoader);
+        new XmlIoSpimData().save(spimData, new File( saveDirectory, imageName + ".xml").getAbsolutePath() );
     }
 
     private void addAffineTransformToXml ( String xmlPath, String affineTransform )  {
