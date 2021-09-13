@@ -38,7 +38,7 @@ import net.imglib2.type.numeric.ARGBType;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-/**
+/*
  * For information about this projector, see {@link AccumulateMixedProjectorARGB}
  */
 
