@@ -36,6 +36,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 	public static final String LOAD_ADDITIONAL_VIEWS = "Load additional views";
 	public static final String SAVE_CURRENT_SETTINGS_AS_VIEW = "Save current settings as view";
     private static final String CREATE_OR_EDIT_GRID_VIEW = "Create or edit grid view";
+    private static final String SHOW_VIEW_DESCRIPTION = "Show view description";
 	private final SourceAndConverterBdvDisplayService sacDisplayService;
 	private BdvHandle bdvHandle;
 	private final boolean is2D;
@@ -53,7 +54,6 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
-
 		bdvHandle = createBdv( timepoints );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
@@ -95,6 +95,10 @@ public class SliceViewer implements Supplier< BdvHandle >
 			viewManager.getViewsSaver().saveCurrentSettingsAsViewDialog();
 		} );
 
+        sacService.registerAction( SHOW_VIEW_DESCRIPTION, sourceAndConverters -> {
+            viewManager.getUserInterface().getUserInterfaceHelper().showViewDescription();
+        } );
+
 		sacService.registerAction( CREATE_OR_EDIT_GRID_VIEW, sourceAndConverters -> {
 		    viewManager.getUserInterface().getUserInterfaceHelper().showDynamicGridViewsDialog();
         } );
@@ -113,7 +117,8 @@ public class SliceViewer implements Supplier< BdvHandle >
 				UNDO_SEGMENT_SELECTIONS,
 				LOAD_ADDITIONAL_VIEWS,
 				SAVE_CURRENT_SETTINGS_AS_VIEW,
-                CREATE_OR_EDIT_GRID_VIEW
+                CREATE_OR_EDIT_GRID_VIEW,
+                SHOW_VIEW_DESCRIPTION
 		};
 
 		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions );

@@ -63,9 +63,16 @@ public class ViewManager
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewsSaver viewsSaver;
 
+	private View currentView;
+
     public List<SourceTransformer> getCurrentSourceTransformers()
     {
         return currentSourceTransformers;
+    }
+
+    public View getCurrentView()
+    {
+        return currentView;
     }
 
     public UserInterface getUserInterface()
@@ -209,6 +216,7 @@ public class ViewManager
 		{
 			removeAllSourceDisplays();
 		}
+		currentView = view;
 
 		// fetch the names of all sources that are either shown or to be transformed
 		final Set< String > sources = fetchSources( view );

@@ -155,12 +155,10 @@ public class UserInterfaceHelper
         constraints.gridx = 0;
         dialogPanel.add( getJLabel( "Datasets:" ), constraints );
 
-
         final JPanel datasetsPanel = SwingUtils.horizontalLayoutPanel();
         datasetsPanel.setLayout( new BoxLayout(datasetsPanel, BoxLayout.PAGE_AXIS) );
 
         addDataset( datasetsPanel,  frame );
-
 
         constraints.gridy = 2;
         constraints.gridx = 1;
@@ -372,7 +370,22 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public static class OpacityUpdateListener implements BoundedValueDouble.UpdateListener
+    public void showViewDescription()
+    {
+        JFrame viewDescription = new JFrame("Current view");
+        JPanel content = new JPanel();
+        JLabel description = new JLabel();
+        description.setText( moBIE.getDataset().views.get( moBIE.getViewManager().getCurrentView().getName() ).getDescription() );
+        content.add( description );
+        viewDescription.setContentPane( content );
+        viewDescription.setLocation( MouseInfo.getPointerInfo().getLocation().x,
+                MouseInfo.getPointerInfo().getLocation().y);
+        viewDescription.setResizable( true );
+        viewDescription.pack();
+        viewDescription.setVisible( true );
+    }
+
+    public static class OpacityUpdateListener implements BoundedValueDouble.UpdateListener
 	{
 		final private List< SourceAndConverter< ? > > sourceAndConverters;
 		private final BdvHandle bdvHandle;
