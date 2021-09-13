@@ -1,8 +1,8 @@
 package projects;
 
-import de.embl.cba.mobie.MoBIE;
-import de.embl.cba.mobie.MoBIESettings;
-import de.embl.cba.mobie.source.ImageDataFormat;
+import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.MoBIESettings;
+import org.embl.mobie.viewer.source.ImageDataFormat;
 import net.imagej.ImageJ;
 
 import java.io.IOException;

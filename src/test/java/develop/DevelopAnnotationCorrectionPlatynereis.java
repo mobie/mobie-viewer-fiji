@@ -1,7 +1,5 @@
 package develop;
 
-import de.embl.cba.mobie.MoBIE;
-
 public class DevelopAnnotationCorrectionPlatynereis
 {
 	public static void main( String[] args )
