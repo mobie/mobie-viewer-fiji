@@ -1,9 +1,9 @@
 package develop;
 
 import com.google.gson.Gson;
-import de.embl.cba.mobie.serialize.JsonHelper;
-import de.embl.cba.mobie.transform.NormalizedAffineViewerTransform;
-import de.embl.cba.mobie.transform.ViewerTransform;
+import org.embl.mobie.viewer.serialize.JsonHelper;
+import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
+import org.embl.mobie.viewer.transform.ViewerTransform;
 
 public class DevelopViewsLogging
 {
