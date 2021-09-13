@@ -10,6 +10,8 @@
 	<artifactId>mobie</artifactId>
 	<version>2.0.0-SNAPSHOT</version>
 
+	<!-- mvn clean install "-Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app" -->
+
 	<url>https://github.com/mobie/mobie-viewer-fiji</url>
 	<name>MoBIE Fiji Viewer</name>
 	<description>Fiji viewer for MoBIE projects</description>
@@ -72,7 +74,6 @@
 		<package-name>de.embl.cba.mobie</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
-		<scijava.app.directory>/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app</scijava.app.directory>
 		<enforcer.skip>true</enforcer.skip>
 
 		<!-- Java 8	Update Site	-->

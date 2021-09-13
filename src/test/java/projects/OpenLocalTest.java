@@ -14,6 +14,6 @@ public class OpenLocalTest
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 		new MoBIE("/g/kreshuk/pape/Work/mobie/covid-if-project/data", MoBIESettings.settings().imageDataFormat( ImageDataFormat.OmeZarr ).view( "default_with_tables" ) );
-//		new MoBIE("/g/emcf/hennies/for_constantin/mobie_no_table_test", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ));
+//		new MoBIE("/g/emcf/pape/covid-if-project", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ));
 	}
 }
