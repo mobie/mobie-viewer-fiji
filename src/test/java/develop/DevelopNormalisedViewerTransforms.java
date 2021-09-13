@@ -1,8 +1,8 @@
 package develop;
 
-import de.embl.cba.mobie.MoBIE;
-import de.embl.cba.mobie.MoBIESettings;
-import de.embl.cba.mobie.source.ImageDataFormat;
+import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.MoBIESettings;
+import org.embl.mobie.viewer.source.ImageDataFormat;
 import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
