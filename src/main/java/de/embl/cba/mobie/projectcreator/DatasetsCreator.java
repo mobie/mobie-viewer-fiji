@@ -1,5 +1,6 @@
 package de.embl.cba.mobie.projectcreator;
 
+import de.embl.cba.mobie.Project;
 import de.embl.cba.mobie.serialize.ProjectJsonParser;
 import de.embl.cba.mobie.source.ImageDataFormat;
 import de.embl.cba.tables.FileAndUrlUtils;
@@ -7,9 +8,8 @@ import ij.IJ;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-
-import static de.embl.cba.mobie.projectcreator.ProjectCreatorHelper.imageFormatToFolderName;
 
 public class DatasetsCreator {
 
@@ -33,10 +33,6 @@ public class DatasetsCreator {
                 new File(datasetDir, "images").mkdirs();
                 new File(datasetDir, "misc").mkdirs();
                 new File(datasetDir, "tables").mkdirs();
-                new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "images",
-                        imageFormatToFolderName( ImageDataFormat.BdvN5 ))).mkdirs();
-                new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "images",
-                        imageFormatToFolderName( ImageDataFormat.BdvN5S3 ))).mkdirs();
                 new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "misc", "views")).mkdirs();
 
 
@@ -95,6 +91,19 @@ public class DatasetsCreator {
     public void makeDefaultDataset ( String datasetName ) {
         projectCreator.getProject().setDefaultDataset( datasetName );
         writeProjectJson();
+    }
+
+    public void addImageDataFormat( ImageDataFormat imageDataFormat ) {
+        Project project = projectCreator.getProject();
+        if ( project.getImageDataFormats() == null ) {
+            project.setImageDataFormats( new ArrayList<>() );
+        }
+
+        List<ImageDataFormat> imageDataFormats = project.getImageDataFormats();
+        if ( !imageDataFormats.contains( imageDataFormat ) ) {
+            imageDataFormats.add( imageDataFormat );
+            writeProjectJson();
+        }
     }
 
     private void writeProjectJson() {
