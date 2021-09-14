@@ -1,8 +1,9 @@
 package develop;
 
-import de.embl.cba.mobie.projectcreator.n5.DownsampleBlock;
-import de.embl.cba.mobie.projectcreator.n5.WriteImgPlusToN5BdvOmeZarr;
-import de.embl.cba.mobie.projectcreator.n5.WriteImgPlusToN5OmeZarr;
+
+import de.embl.cba.n5.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
+import de.embl.cba.n5.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
+import de.embl.cba.n5.util.DownsampleBlock;
 import ij.IJ;
 import ij.ImagePlus;
 import org.janelia.saalfeldlab.n5.GzipCompression;
