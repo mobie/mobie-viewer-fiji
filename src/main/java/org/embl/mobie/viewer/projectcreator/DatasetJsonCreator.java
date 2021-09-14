@@ -27,9 +27,46 @@ public class DatasetJsonCreator {
         this.projectCreator = projectCreator;
     }
 
-    public void addToDatasetJson( String imageName, String datasetName, ProjectCreator.ImageType imageType,
+    public void addImageToDatasetJson( String imageName, String datasetName,
                                   String uiSelectionGroup, boolean is2D, int nTimepoints,
-                                  ImageDataFormat imageDataFormat ) {
+                                  ImageDataFormat imageDataFormat, double[] contrastLimits, String colour ) {
+        Dataset dataset = fetchDataset( datasetName, is2D, nTimepoints );
+
+        addNewImageSource( dataset, imageName, imageDataFormat );
+        if ( uiSelectionGroup != null ) {
+            // add a view with the same name as the image, and sensible defaults
+            addNewImageView( dataset, imageName, uiSelectionGroup, contrastLimits, colour );
+        }
+
+        // if there is no default view, make one with this image and sensible defaults
+        if ( !dataset.views.containsKey("default")) {
+            addNewDefaultImageView( dataset, imageName, contrastLimits, colour );
+        }
+
+        writeDatasetJson( datasetName, dataset );
+        projectCreator.getDatasetsCreator().addImageDataFormat( imageDataFormat );
+    }
+
+    public void addSegmentationToDatasetJson( String imageName, String datasetName, String uiSelectionGroup,
+                                              boolean is2D, int nTimepoints, ImageDataFormat imageDataFormat ) {
+        Dataset dataset = fetchDataset( datasetName, is2D, nTimepoints );
+
+        addNewSegmentationSource( dataset, imageName, imageDataFormat );
+        if ( uiSelectionGroup != null ) {
+            // add a view with the same name as the image, and sensible defaults
+            addNewSegmentationView( dataset, imageName, uiSelectionGroup );
+        }
+
+        // if there is no default view, make one with this image and sensible defaults
+        if ( !dataset.views.containsKey("default")) {
+            addNewDefaultSegmentationView( dataset, imageName );
+        }
+
+        writeDatasetJson( datasetName, dataset );
+        projectCreator.getDatasetsCreator().addImageDataFormat( imageDataFormat );
+    }
+
+    private Dataset fetchDataset( String datasetName, boolean is2D, int nTimepoints ) {
         Dataset dataset = projectCreator.getDataset( datasetName );
         if ( dataset == null ) {
             dataset = new Dataset();
@@ -47,51 +84,34 @@ public class DatasetJsonCreator {
             dataset.timepoints = nTimepoints;
         }
 
-        addNewSource( dataset, imageName, imageType, imageDataFormat );
-        if ( uiSelectionGroup != null ) {
-            // add a view with the same name as the image, and sensible defaults
-            addNewImageView( dataset, imageName, imageType, uiSelectionGroup );
-        }
-
-        // if there is no default view, make one with this image and sensible defaults
-        if ( !dataset.views.containsKey("default")) {
-            addNewDefaultView( dataset, imageName, imageType );
-        }
-
-        writeDatasetJson( datasetName, dataset );
-        projectCreator.getDatasetsCreator().addImageDataFormat( imageDataFormat );
+        return dataset;
     }
 
-    private void addNewSource( Dataset dataset, String imageName, ProjectCreator.ImageType imageType,
-                               ImageDataFormat imageDataFormat ) {
+    private void addNewImageSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat ) {
         Map<ImageDataFormat, StorageLocation> imageDataLocations;
-        SourceSupplier sourceSupplier;
+        ImageSource imageSource = new ImageSource();
+        imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
+        imageSource.imageData = imageDataLocations;
 
-        switch( imageType ) {
-            case segmentation:
-                SegmentationSource segmentationSource = new SegmentationSource();
-                segmentationSource.tableData = new HashMap<>();
-                StorageLocation tableStorageLocation = new StorageLocation();
-                tableStorageLocation.relativePath = "tables/" + imageName;
-                segmentationSource.tableData.put( TableDataFormat.TabDelimitedFile, tableStorageLocation );
+        SourceSupplier sourceSupplier = new SourceSupplier( imageSource );
+        dataset.sources.put( imageName, sourceSupplier );
+    }
 
-                imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
-                segmentationSource.imageData = imageDataLocations;
+    private void addNewSegmentationSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat ) {
+        Map<ImageDataFormat, StorageLocation> imageDataLocations;
 
-                sourceSupplier = new SourceSupplier( segmentationSource );
+        SegmentationSource segmentationSource = new SegmentationSource();
+        segmentationSource.tableData = new HashMap<>();
+        StorageLocation tableStorageLocation = new StorageLocation();
+        tableStorageLocation.relativePath = "tables/" + imageName;
+        segmentationSource.tableData.put( TableDataFormat.TabDelimitedFile, tableStorageLocation );
 
-                dataset.sources.put( imageName, sourceSupplier );
-                break;
+        imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
+        segmentationSource.imageData = imageDataLocations;
 
-            case image:
-                ImageSource imageSource = new ImageSource();
-                imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
-                imageSource.imageData = imageDataLocations;
+        SourceSupplier sourceSupplier = new SourceSupplier( segmentationSource );
 
-                sourceSupplier = new SourceSupplier( imageSource );
-                dataset.sources.put( imageName, sourceSupplier );
-                break;
-        }
+        dataset.sources.put( imageName, sourceSupplier );
     }
 
     private Map<ImageDataFormat, StorageLocation> makeImageDataLocations( ImageDataFormat imageDataFormat,
@@ -110,41 +130,54 @@ public class DatasetJsonCreator {
         return imageDataLocations;
     }
 
-    private void addNewImageView( Dataset dataset, String imageName, ProjectCreator.ImageType imageType,
-                            String uiSelectionGroup ) {
-
-        View view = createView( imageName, imageType, uiSelectionGroup, false );
+    private void addNewImageView( Dataset dataset, String imageName, String uiSelectionGroup,
+                                  double[] contrastLimits, String colour ) {
+        View view = createImageView( imageName, uiSelectionGroup, false, contrastLimits, colour );
         dataset.views.put( imageName, view );
     }
 
-    private void addNewDefaultView( Dataset dataset, String imageName, ProjectCreator.ImageType imageType ) {
+    private void addNewSegmentationView( Dataset dataset, String imageName, String uiSelectionGroup ) {
+        View view = createSegmentationView( imageName, uiSelectionGroup, false );
+        dataset.views.put( imageName, view );
+    }
 
-        View view = createView( imageName, imageType, "bookmark", true );
+    private void addNewDefaultImageView( Dataset dataset, String imageName, double[] contrastLimits, String colour ) {
+        View view = createImageView( imageName, "bookmark", true, contrastLimits, colour );
         dataset.views.put( "default", view );
     }
 
-    private View createView( String imageName, ProjectCreator.ImageType imageType, String uiSelectionGroup,
-                             boolean isExclusive ) {
+    private void addNewDefaultSegmentationView( Dataset dataset, String imageName ) {
+        View view = createSegmentationView( imageName, "bookmark", true );
+        dataset.views.put( "default", view );
+    }
+
+    private View createImageView( String imageName, String uiSelectionGroup, boolean isExclusive,
+                                  double[] contrastLimits, String colour ) {
         ArrayList< SourceDisplay > sourceDisplays = new ArrayList<>();
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
-        switch( imageType ) {
-            case segmentation:
-                ArrayList<String> tables = new ArrayList<>();
-                tables.add( "default.tsv" );
-                SegmentationSourceDisplay segmentationSourceDisplay = new SegmentationSourceDisplay(
-                        imageName, 0.5, sources, ColoringLuts.GLASBEY,
-                        null, null, null, false,
-                        false, new String[]{ TableColumnNames.ANCHOR_X, TableColumnNames.ANCHOR_Y },
-                        tables, null, null );
-                sourceDisplays.add( segmentationSourceDisplay );
-                break;
-            case image:
-                ImageSourceDisplay imageSourceDisplay = new ImageSourceDisplay( imageName, 1.0, sources,
-                        "white", new double[] {0.0, 255.0}, null, false );
-                sourceDisplays.add( imageSourceDisplay );
-                break;
-        }
+
+        ImageSourceDisplay imageSourceDisplay = new ImageSourceDisplay( imageName, 1.0, sources,
+                colour, contrastLimits, null, false );
+        sourceDisplays.add( imageSourceDisplay );
+
+        View view = new View( uiSelectionGroup, sourceDisplays, null, null, isExclusive );
+        return view;
+    }
+
+    private View createSegmentationView( String imageName, String uiSelectionGroup, boolean isExclusive ) {
+        ArrayList< SourceDisplay > sourceDisplays = new ArrayList<>();
+        ArrayList<String> sources = new ArrayList<>();
+        sources.add( imageName );
+
+        ArrayList<String> tables = new ArrayList<>();
+        tables.add( "default.tsv" );
+        SegmentationSourceDisplay segmentationSourceDisplay = new SegmentationSourceDisplay(
+                imageName, 0.5, sources, ColoringLuts.GLASBEY,
+                null, null, null, false,
+                false, new String[]{ TableColumnNames.ANCHOR_X, TableColumnNames.ANCHOR_Y },
+                tables, null, null );
+        sourceDisplays.add( segmentationSourceDisplay );
 
         View view = new View( uiSelectionGroup, sourceDisplays, null, null, isExclusive );
         return view;
