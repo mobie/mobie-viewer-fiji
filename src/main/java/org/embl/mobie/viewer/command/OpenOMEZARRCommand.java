@@ -8,12 +8,13 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
+import java.io.File;
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME ZARR>Open OME ZARR from the file system...")
+@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME ZARR>Open OME ZARR From File System...")
 public class OpenOMEZARRCommand implements Command {
-    @Parameter(label = "File path ")
-    public String filePath = "";
+    @Parameter(label = "File path", style = "directory")
+    public File directory;
 
     protected static void openAndShow(String filePath) throws IOException {
         SpimData spimData = OMEZarrOpener.openFile(filePath);
@@ -44,7 +45,7 @@ public class OpenOMEZARRCommand implements Command {
     @Override
     public void run() {
         try {
-            openAndShow(filePath);
+            openAndShow( directory.toString() );
         } catch (IOException e) {
             e.printStackTrace();
         }
