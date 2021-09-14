@@ -27,7 +27,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	protected boolean centerAtOrigin = false;
 
 	// Runtime
-	private ArrayList< String > gridIds;
+	private transient ArrayList< String > gridIds;
 
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )

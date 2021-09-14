@@ -15,7 +15,7 @@ public class AffineSourceTransformer extends AbstractSourceTransformer
 	protected List< String > sourceNamesAfterTransform;
 
 	// Runtime
-	private AffineTransform3D affineTransform3D;
+	private transient AffineTransform3D affineTransform3D;
 
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
