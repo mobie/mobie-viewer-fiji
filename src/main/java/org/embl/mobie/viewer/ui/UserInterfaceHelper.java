@@ -14,6 +14,8 @@ import org.embl.mobie.viewer.display.AbstractSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.serialize.JsonHelper;
+import org.embl.mobie.viewer.transform.GridSourceTransformer;
+import org.embl.mobie.viewer.transform.SourceTransformer;
 import org.embl.mobie.viewer.transform.ViewerTransform;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
@@ -43,6 +45,8 @@ import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import static org.embl.mobie.viewer.ui.SwingHelper.*;
 
 public class UserInterfaceHelper
 {
@@ -592,7 +596,7 @@ public class UserInterfaceHelper
 
 		final JComboBox< String > comboBox = new JComboBox<>( views.keySet().toArray( new String[ 0 ] ) );
 
-		final JButton button = SwingHelper.createButton( ADD );
+		final JButton button = createButton( ADD );
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -607,9 +611,9 @@ public class UserInterfaceHelper
 			} );
 		} );
 
-		SwingHelper.setComboBoxDimensions( comboBox );
+		setComboBoxDimensions( comboBox );
 
-		horizontalLayoutPanel.add( SwingHelper.getJLabel( panelName ) );
+		horizontalLayoutPanel.add( getJLabel( panelName ) );
 		horizontalLayoutPanel.add( comboBox );
 		horizontalLayoutPanel.add( button );
 
@@ -624,7 +628,7 @@ public class UserInterfaceHelper
 
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = SwingHelper.createButton( LEVEL );
+		final JButton button = createButton( LEVEL );
 		horizontalLayoutPanel.add( button );
 
 		// TODO: if below code is needed make an own Levelling class
@@ -652,7 +656,7 @@ public class UserInterfaceHelper
 	public JPanel createMoveToLocationPanel( )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-		final JButton button = SwingHelper.createButton( MOVE );
+		final JButton button = createButton( MOVE );
 
 		final JTextField jTextField = new JTextField( "{\"position\":[120.5,115.3,201.5]}" );
 		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, SwingHelper.TEXT_FIELD_HEIGHT ) );
@@ -664,7 +668,7 @@ public class UserInterfaceHelper
 			MoBIEViewerTransformChanger.changeViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
 		} );
 
-		horizontalLayoutPanel.add( SwingHelper.getJLabel( "location" ) );
+		horizontalLayoutPanel.add( getJLabel( "location" ) );
 		horizontalLayoutPanel.add( jTextField );
 		horizontalLayoutPanel.add( button );
 
@@ -675,12 +679,12 @@ public class UserInterfaceHelper
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = SwingHelper.createButton( HELP );
+		final JButton button = createButton( HELP );
 
 		final MoBIEInfo moBIEInfo = new MoBIEInfo( projectLocation, publicationURL );
 
 		final JComboBox< String > comboBox = new JComboBox<>( moBIEInfo.getInfoChoices() );
-		SwingHelper.setComboBoxDimensions( comboBox );
+		setComboBoxDimensions( comboBox );
 
 		button.addActionListener( e -> {
 			moBIEInfo.showInfo( ( String ) comboBox.getSelectedItem() );
@@ -713,7 +717,7 @@ public class UserInterfaceHelper
 
 		final JComboBox< String > comboBox = new JComboBox<>( moBIE.getDatasets().toArray( new String[ 0 ] ) );
 
-		final JButton button = SwingHelper.createButton( ADD );
+		final JButton button = createButton( ADD );
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -724,9 +728,9 @@ public class UserInterfaceHelper
 		} );
 
 		comboBox.setSelectedItem( moBIE.getDatasetName() );
-		SwingHelper.setComboBoxDimensions( comboBox );
+		setComboBoxDimensions( comboBox );
 
-		panel.add( SwingHelper.getJLabel( "dataset" ) );
+		panel.add( getJLabel( "dataset" ) );
 		panel.add( comboBox );
 		panel.add( button );
 
