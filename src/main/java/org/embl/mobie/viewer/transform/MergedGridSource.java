@@ -68,7 +68,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		final int numMipmapLevels = referenceSource.getNumMipmapLevels();
 		cellDimensions = computeCellDimensions( numMipmapLevels );
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
-		final FinalInterval interval = new FinalInterval( new long[ 3 ], Utils.asLongs( cellDimensions[ 0 ] ) );
+		final FinalInterval interval = createInterval();
 		final FinalRealInterval bounds = affineTransform3D.estimateBounds( interval );
 		cellRealDimensions = bounds.maxAsDoubleArray();
 
@@ -96,6 +96,16 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		}
 
 		return mergedRandomAccessibleIntervals;
+	}
+
+	private FinalInterval createInterval()
+	{
+		final long[] max = Utils.asLongs( cellDimensions[ 0 ] );
+		for ( int d = 0; d < max.length; d++ )
+			max[ d ] -= 1;
+		final long[] min = new long[ 3 ];
+		final FinalInterval interval = new FinalInterval( min, max );
+		return interval;
 	}
 
 	public double[] getCellRealDimensions()

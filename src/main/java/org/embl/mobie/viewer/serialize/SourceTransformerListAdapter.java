@@ -19,8 +19,8 @@ public class SourceTransformerListAdapter implements JsonSerializer< List<Source
 	static {
 		nameToClass.put("grid", GridSourceTransformer.class);
 		classToName.put( GridSourceTransformer.class.getName(), "grid");
-		nameToClass.put("transformedGrid", TransformedGridSourceTransformer.class);
-		classToName.put( TransformedGridSourceTransformer.class.getName(), "transformedGrid");
+		nameToClass.put("transformGrid", TransformedGridSourceTransformer.class);
+		classToName.put( TransformedGridSourceTransformer.class.getName(), "transformGrid");
 		nameToClass.put("affine", AffineSourceTransformer.class);
 		classToName.put(AffineSourceTransformer.class.getName(), "affine");
 		nameToClass.put("crop", CropSourceTransformer.class);
