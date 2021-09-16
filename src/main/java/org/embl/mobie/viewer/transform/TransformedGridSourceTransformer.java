@@ -63,7 +63,11 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		for ( String gridId : sources.keySet() )
 		{
 			executorService.execute( () -> {
-				translate( sourceNameToSourceAndConverter, sources.get( gridId ), sourceNamesAfterTransform.get( gridId ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( gridId )[ 0 ], cellRealDimensions[ 1 ] * positions.get( gridId )[ 1 ] );
+				if ( sourceNamesAfterTransform != null )
+					translate( sourceNameToSourceAndConverter, sources.get( gridId ), sourceNamesAfterTransform.get( gridId ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( gridId )[ 0 ], cellRealDimensions[ 1 ] * positions.get( gridId )[ 1 ] );
+				else
+					translate( sourceNameToSourceAndConverter, sources.get( gridId ), null, centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( gridId )[ 0 ], cellRealDimensions[ 1 ] * positions.get( gridId )[ 1 ] );
+
 			} );
 		}
 
