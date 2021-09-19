@@ -4,6 +4,7 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.google.gson.Gson;
@@ -14,10 +15,7 @@ import org.embl.mobie.viewer.display.AbstractSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.serialize.JsonHelper;
-import org.embl.mobie.viewer.transform.GridSourceTransformer;
-import org.embl.mobie.viewer.transform.SourceTransformer;
-import org.embl.mobie.viewer.transform.ViewerTransform;
-import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
+import org.embl.mobie.viewer.transform.*;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.display.ImageSourceDisplay;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
@@ -67,7 +65,7 @@ public class UserInterfaceHelper
 	private Map< String, Map< String, View > > groupingsToViews;
 	private Map< String, JComboBox > groupingsToComboBox;
 	private List<JComboBox<String>> sourcesForDynamicGridView = new ArrayList<>();
-	private Map< JComboBox<String>, int[] > sourcesForGridViewSelectors = new HashMap<>();
+	private Map< String, int[] > sourcesForGridViewSelectors = new HashMap<>();
     private List<GridSourceTransformer> currentSourceTransformers = new ArrayList<>();
 
 	public UserInterfaceHelper( MoBIE moBIE )
@@ -184,41 +182,46 @@ public class UserInterfaceHelper
            resetPositions();
             SwingUtilities.invokeLater( () ->
             {
-                final List< String > datasetSources = new CopyOnWriteArrayList<>();
-                for(JComboBox< String > comboBox : sourcesForGridViewSelectors.keySet()) {
-                    datasetSources.add( (String) comboBox.getSelectedItem() );
-                }
-
-                    // fetch the names of all sources that are either shown or to be transformed
-                Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( datasetSources );
-		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );
-		// sort in alphabetical order, ignoring upper/lower case
-		uiSelectionGroups.sort( String::compareToIgnoreCase );
-
-		// If it's the first time, just add all the panels in order
-                Dataset dataset = moBIE.getDataset();
-                final View view = dataset.views.get( "default" );
-                final List<SourceTransformer> sourceTransformers = view.getSourceTransforms();
-                if ( sourceTransformers != null )
-                    for ( SourceTransformer sourceTransformer : sourceTransformers )
-                    {
-                        GridSourceTransformer gridSourceTransformer = new GridSourceTransformer();
-                        currentSourceTransformers.add( gridSourceTransformer );
-                        gridSourceTransformer.transform( sourceNameToSourceAndConverters );
-                    }
-
-//                // register all available sources
-                moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
+                List<Source> sources = new ArrayList<>();
+                sourcesForGridViewSelectors.keySet().forEach( sourc -> {
+                   sources.add( moBIE.openSourceAndConverter( sourc ).getSpimSource());
+                } );
+                List<int[]> ll = new ArrayList<>(sourcesForGridViewSelectors.values());
+                MergedGridSource mergedGridSource = new MergedGridSource(
+                        sources, ll,
+                        "NEW_ONE", TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+                System.out.println(mergedGridSource.getName());
 //
-//                // show the displays
-                setMoBIESwingLookAndFeel();
-                final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
-                for ( SourceDisplay sourceDisplay : sourceDisplays )
-                    moBIE.getViewManager().showSourceDisplay( sourceDisplay );
-                resetSystemSwingLookAndFeel();
+//                    // fetch the names of all sources that are either shown or to be transformed
+//                Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( datasetSources );
+//		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );
+//		// sort in alphabetical order, ignoring upper/lower case
+//		uiSelectionGroups.sort( String::compareToIgnoreCase );
 //
-//                // adjust viewer transform
-                moBIE.getViewManager().adjustViewerTransform( view );
+//		// If it's the first time, just add all the panels in order
+//                Dataset dataset = moBIE.getDataset();
+//                final View view = dataset.views.get( "default" );
+//                final List<SourceTransformer> sourceTransformers = view.getSourceTransforms();
+//                if ( sourceTransformers != null )
+//                    for ( SourceTransformer sourceTransformer : sourceTransformers )
+//                    {
+//                        GridSourceTransformer gridSourceTransformer = new GridSourceTransformer();
+//                        currentSourceTransformers.add( gridSourceTransformer );
+//                        gridSourceTransformer.transform( sourceNameToSourceAndConverters );
+//                    }
+//
+////                // register all available sources
+//                moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
+////
+////                // show the displays
+//                setMoBIESwingLookAndFeel();
+//                final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
+//                for ( SourceDisplay sourceDisplay : sourceDisplays )
+//                    moBIE.getViewManager().showSourceDisplay( sourceDisplay );
+//                resetSystemSwingLookAndFeel();
+////
+////                // adjust viewer transform
+//                moBIE.getViewManager().adjustViewerTransform( view );
 
             } );
         } );
@@ -241,7 +244,7 @@ public class UserInterfaceHelper
                 xPosition = 0;
                 yPosition++;
             }
-            sourcesForGridViewSelectors.put( sourcesForDynamicGridView.get( i ), new int[]{ xPosition, yPosition } );
+            sourcesForGridViewSelectors.put( Objects.requireNonNull( sourcesForDynamicGridView.get( i ).getSelectedItem() ).toString(), new int[]{ xPosition, yPosition } );
             xPosition++;
         }
     }
