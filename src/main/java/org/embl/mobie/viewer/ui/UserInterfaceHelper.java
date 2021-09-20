@@ -177,55 +177,6 @@ public class UserInterfaceHelper
         constraints.gridy = 3;
         constraints.gridx = 1;
         final JButton showButton = createButton( HELP );
-        showButton.addActionListener( e ->
-        {
-           resetPositions();
-            SwingUtilities.invokeLater( () ->
-            {
-                List<Source> sources = new ArrayList<>();
-                sourcesForGridViewSelectors.keySet().forEach( sourc -> {
-                   sources.add( moBIE.openSourceAndConverter( sourc ).getSpimSource());
-                } );
-                List<int[]> ll = new ArrayList<>(sourcesForGridViewSelectors.values());
-                MergedGridSource mergedGridSource = new MergedGridSource(
-                        sources, ll,
-                        "NEW_ONE", TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
-                System.out.println(mergedGridSource.getName());
-//
-//                    // fetch the names of all sources that are either shown or to be transformed
-//                Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( datasetSources );
-//		final ArrayList< String > uiSelectionGroups = new ArrayList<>( groupingsToViews.keySet() );
-//		// sort in alphabetical order, ignoring upper/lower case
-//		uiSelectionGroups.sort( String::compareToIgnoreCase );
-//
-//		// If it's the first time, just add all the panels in order
-//                Dataset dataset = moBIE.getDataset();
-//                final View view = dataset.views.get( "default" );
-//                final List<SourceTransformer> sourceTransformers = view.getSourceTransforms();
-//                if ( sourceTransformers != null )
-//                    for ( SourceTransformer sourceTransformer : sourceTransformers )
-//                    {
-//                        GridSourceTransformer gridSourceTransformer = new GridSourceTransformer();
-//                        currentSourceTransformers.add( gridSourceTransformer );
-//                        gridSourceTransformer.transform( sourceNameToSourceAndConverters );
-//                    }
-//
-////                // register all available sources
-//                moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
-////
-////                // show the displays
-//                setMoBIESwingLookAndFeel();
-//                final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
-//                for ( SourceDisplay sourceDisplay : sourceDisplays )
-//                    moBIE.getViewManager().showSourceDisplay( sourceDisplay );
-//                resetSystemSwingLookAndFeel();
-////
-////                // adjust viewer transform
-//                moBIE.getViewManager().adjustViewerTransform( view );
-
-            } );
-        } );
-
         dialogPanel.add( showButton, constraints );
 
         frame.setContentPane( dialogPanel );
