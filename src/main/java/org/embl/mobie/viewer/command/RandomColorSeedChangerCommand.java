@@ -7,7 +7,7 @@ import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Display>Change random coloring seed [ Ctrl L ]")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Display>Change Random Coloring Seed [ Ctrl L ]")
 public class RandomColorSeedChangerCommand implements BdvPlaygroundActionCommand
 {
 	// TODO: Maybe implement a setter (the Categorical coloring models have the method for this already)

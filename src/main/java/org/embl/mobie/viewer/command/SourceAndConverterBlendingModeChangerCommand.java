@@ -36,7 +36,7 @@ import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Display>Set blending mode")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Display>Set Blending Mode")
 public class SourceAndConverterBlendingModeChangerCommand implements BdvPlaygroundActionCommand {
 
     @Parameter(label = "Blending Mode", choices = { BlendingMode.SUM, BlendingMode.SUM_OCCLUDING })
