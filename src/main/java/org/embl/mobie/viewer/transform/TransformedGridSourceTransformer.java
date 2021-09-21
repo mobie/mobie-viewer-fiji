@@ -4,7 +4,6 @@ import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Utils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
-import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.lang.ArrayUtils;
 
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 {
@@ -37,9 +35,9 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		if ( positions == null )
 			autoSetPositions();
 
-		final List< SourceAndConverter< ? > > referenceSources = getReferenceSources( sourceNameToSourceAndConverter );
+		final double[] cellRealDimensions = TransformHelper.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources.values() );
 
-		transform( sourceNameToSourceAndConverter, referenceSources );
+		transform( sourceNameToSourceAndConverter, cellRealDimensions );
 	}
 
 	@Override
@@ -51,10 +49,8 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		return allSources;
 	}
 
-	private void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > referenceSources )
+	private void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] cellRealDimensions )
 	{
-		final double[] cellRealDimensions = computeGridCellRealDimensions( referenceSources, RELATIVE_CELL_MARGIN );
-
 		final long start = System.currentTimeMillis();
 
 		final int nThreads = MoBIE.N_THREADS;
@@ -74,15 +70,6 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		Utils.waitUntilFinishedAndShutDown( executorService );
 
 		System.out.println( "Transformed " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
-	}
-
-	public static double[] computeGridCellRealDimensions( List< SourceAndConverter< ? > > sources, double relativeCellMargin )
-	{
-		RealInterval bounds = TransformHelper.unionRealInterval( sources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ));
-		final double[] cellDimensions = new double[ 2 ];
-		for ( int d = 0; d < 2; d++ )
-			cellDimensions[ d ] = ( 1.0 + 2.0 * relativeCellMargin ) * ( bounds.realMax( d ) - bounds.realMin( d ) );
-		return cellDimensions;
 	}
 
 	public static void translate( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< String > sourceNames, List< String > sourceNamesAfterTransform, boolean centerAtOrigin, double translationX, double translationY )
@@ -116,7 +103,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		}
 	}
 
-	private List< SourceAndConverter< ? > > getReferenceSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
+	private List< SourceAndConverter< ? > > getReferenceSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, LinkedHashMap< String, List< String > > sources )
 	{
 		final List< String > sourceNamesAtFirstGridPosition = sources.get( gridIds.get( 0 ) );
 
@@ -136,7 +123,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		}
 		else
 		{
-			throw new UnsupportedOperationException( "None of the sources specified at the first grid position could not be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourceNamesAtFirstGridPosition ) );
+			throw new UnsupportedOperationException( "None of the sources specified at the first grid position could be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourceNamesAtFirstGridPosition ) );
 		}
 	}
 
