@@ -9,7 +9,10 @@ import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class TransformHelper
 {
@@ -65,5 +68,28 @@ public class TransformHelper
 		}
 		translationTransform.translate( translationX, translationY, 0 );
 		return translationTransform;
+	}
+
+	public static double[] computeSourceUnionRealDimensions( List< SourceAndConverter< ? > > sources, double relativeMargin )
+	{
+		RealInterval bounds = unionRealInterval( sources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ));
+		final double[] realDimensions = new double[ 2 ];
+		for ( int d = 0; d < 2; d++ )
+			realDimensions[ d ] = ( 1.0 + 2.0 * relativeMargin ) * ( bounds.realMax( d ) - bounds.realMin( d ) );
+		return realDimensions;
+	}
+
+	public static double[] getMaximalSourceUnionRealDimensions( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, Collection< List< String > > sourceNamesList )
+	{
+		double[] maximalDimensions = new double[ 2 ];
+		for ( List< String > sourceNames : sourceNamesList )
+		{
+			final List< SourceAndConverter< ? > > sourceAndConverters = sourceNames.stream().map( name -> sourceNameToSourceAndConverter.get( name ) ).collect( Collectors.toList() );
+			final double[] realDimensions = computeSourceUnionRealDimensions( sourceAndConverters, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+			for ( int d = 0; d < 2; d++ )
+				maximalDimensions[ d ] = realDimensions[ d ] > maximalDimensions[ d ] ? realDimensions[ d ] : maximalDimensions[ d ];
+		}
+
+		return maximalDimensions;
 	}
 }
