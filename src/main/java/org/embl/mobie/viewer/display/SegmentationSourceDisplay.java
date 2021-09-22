@@ -84,12 +84,10 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 		// TODO: put as much as possible of this into TableDisplay, I guess it could be a protected method that takes < ? extends TableDisplay > as an input and then sets the fields.
 		this.name = segmentationDisplay.name;
 		this.sources = new ArrayList<>();
-		for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )
-		{
-			sources.add( sourceAndConverter.getSpimSource().getName() );
-		}
+		this.sources.addAll( segmentationDisplay.sourceNameToSourceAndConverter.keySet() );
 
-		final SourceAndConverter< ? > sourceAndConverter = segmentationDisplay.sourceAndConverters.get( 0 );
+		final SourceAndConverter< ? > sourceAndConverter =
+				segmentationDisplay.sourceNameToSourceAndConverter.values().iterator().next();
 
 		this.blendingMode = (BlendingMode) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
 
