@@ -22,9 +22,8 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
@@ -51,11 +50,15 @@ public class ImageSliceView
 	private void show( )
 	{
 		// show
-		final List< ? extends SourceAndConverter< ? > > sourceAndConverters = display.getSources().stream().map( name -> moBIE.getSourceAndConverter( name ) ).collect( Collectors.toList() );
+		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter = new HashMap<>();
+		for ( String name : display.getSources() ) {
+			sourceNameToSourceAndConverter.put( name, moBIE.getSourceAndConverter( name ) );
+		}
 
-		display.sourceAndConverters = new ArrayList<>();
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		display.sourceNameToSourceAndConverter = new HashMap<>();
+		for ( String name : sourceNameToSourceAndConverter.keySet() )
 		{
+			SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( name );
 			sourceAndConverter = adaptConverter( sourceAndConverter );
 
 			// set opacity
@@ -76,7 +79,7 @@ public class ImageSliceView
 			converterSetup.setDisplayRange( display.getContrastLimits()[ 0 ], display.getContrastLimits()[ 1 ] );
 
 			// register	the actually displayed sac (for serialisation)
-			display.sourceAndConverters.add( sourceAndConverter );
+			display.sourceNameToSourceAndConverter.put( name, sourceAndConverter );
 		}
 	}
 
@@ -124,11 +127,11 @@ public class ImageSliceView
 
 	public void close( )
 	{
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
 		{
 			moBIE.closeSourceAndConverter( sourceAndConverter );
 		}
-		display.sourceAndConverters.clear();
+		display.sourceNameToSourceAndConverter.clear();
 	}
 
 }

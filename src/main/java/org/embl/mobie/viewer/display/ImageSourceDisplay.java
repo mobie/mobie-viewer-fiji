@@ -67,12 +67,9 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 	{
 		this.name = imageDisplay.name;
 		this.sources = new ArrayList<>();
-		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )
-		{
-			sources.add( sourceAndConverter.getSpimSource().getName() );
-		}
+		this.sources.addAll( imageDisplay.sourceNameToSourceAndConverter.keySet() );
 
-		final SourceAndConverter< ? > sourceAndConverter = imageDisplay.sourceAndConverters.get( 0 );
+		final SourceAndConverter< ? > sourceAndConverter = imageDisplay.sourceNameToSourceAndConverter.values().iterator().next();
 		final ConverterSetup converterSetup = SourceAndConverterServices.getBdvDisplayService().getConverterSetup( sourceAndConverter );
 
 		if( sourceAndConverter.getConverter() instanceof AdjustableOpacityColorConverter )

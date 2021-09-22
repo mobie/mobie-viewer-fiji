@@ -19,7 +19,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.HashMap;
 
 
 // TODO: code duplication with SegmentationSourceDisplay => derive from a parent class
@@ -47,8 +47,8 @@ public class AnnotatedIntervalSliceView< S extends AnnotatedInterval > implement
 		// TODO: Make a SourceAnnotationSliceView with the listeners for the focussing.
 		final TableRowsIntervalImage< AnnotatedIntervalTableRow > intervalImage = new TableRowsIntervalImage<>( display.tableRows, display.coloringModel, display.getName() );
 		SourceAndConverter< IntType > sourceAndConverter = intervalImage.getSourceAndConverter();
-		display.sourceAndConverters = new ArrayList<>();
-		display.sourceAndConverters.add( sourceAndConverter );
+		display.sourceNameToSourceAndConverter = new HashMap<>();
+		display.sourceNameToSourceAndConverter.put( intervalImage.getName(), sourceAndConverter );
 
 		// set opacity
 		OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
@@ -64,16 +64,16 @@ public class AnnotatedIntervalSliceView< S extends AnnotatedInterval > implement
 
 	public void close()
 	{
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
 		{
 			SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
 		}
 
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
 		{
 			moBIE.closeSourceAndConverter( sourceAndConverter );
 		}
-		display.sourceAndConverters.clear();
+		display.sourceNameToSourceAndConverter.clear();
 	};
 
 	@Override

@@ -243,7 +243,7 @@ public class ViewManager
 			{
 				// TODO: rethink what should happen here...
 				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1 );
-				new ViewerTransformAdjuster( bdvHandle, ((AbstractSourceDisplay) sourceDisplay).sourceAndConverters.get( 0 ) ).run();
+				new ViewerTransformAdjuster( bdvHandle, ((AbstractSourceDisplay) sourceDisplay).sourceNameToSourceAndConverter.values().iterator().next() ).run();
 			}
 		}
 	}
@@ -418,7 +418,7 @@ public class ViewManager
 
 	private void initVolumeViewer( SegmentationSourceDisplay display )
 	{
-		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.coloringModel, display.sourceAndConverters, universeManager );
+		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.coloringModel, display.sourceNameToSourceAndConverter.values(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();
 		if ( resolution3dView != null ) {
 			display.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(display.getResolution3dView()) );
@@ -427,7 +427,7 @@ public class ViewManager
 		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
 
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
 		{
 			sacService.setMetadata( sourceAndConverter, SegmentsVolumeViewer.VOLUME_VIEW, display.segmentsVolumeViewer  );
 		}
