@@ -305,18 +305,19 @@ public class UserInterfaceHelper
 
 	public JPanel createAnnotatedIntervalDisplaySettingsPanel( AnnotatedIntervalDisplay display )
 	{
-		JPanel panel = createDisplayPanel( display );
+        JPanel panel = createDisplayPanel( display );
+		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.sourceNameToSourceAndConverter.values() );
 
 		// Buttons
 		panel.add( createSpace() );
 		panel.add( createButtonPlaceholder() ); // focus
-		panel.add( createOpacityButton( display.sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
+		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() ); // color
 		panel.add( createButtonPlaceholder() ); // brightness
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( createSpace() );
-		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(),  display.sourceAndConverters ) );
+		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createWindowVisibilityCheckbox( true, display.tableViewer.getWindow() ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotViewer, display.showScatterPlot() ) );
@@ -392,29 +393,31 @@ public class UserInterfaceHelper
 		JPanel panel = createDisplayPanel( display );
 
 		// Set panel background color
-		final Converter< ?, ARGBType > converter = display.sourceAndConverters.get( 0 ).getConverter();
+		final Converter< ?, ARGBType > converter = display.sourceNameToSourceAndConverter.values().iterator().next().getConverter();
 		if ( converter instanceof ColorConverter )
 		{
 			setPanelColor( panel, ( ( ColorConverter ) converter ).getColor() );
 		}
 
+		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.sourceNameToSourceAndConverter.values() );
+
 		// Buttons
 		panel.add( createSpace() );
-		panel.add( createFocusButton( display, display.sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
-		panel.add( createOpacityButton( display.sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
-		panel.add( createColorButton( panel, display.sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
+		panel.add( createFocusButton( display, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
+		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
+		panel.add( createColorButton( panel, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
 		panel.add( createImageDisplayBrightnessButton( display ) );
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
 		panel.add( createSpace() );
-		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), display.sourceAndConverters ) );
+		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() ); // TODO: createVolume...
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createCheckboxPlaceholder() );
 
 
 		// make the panel color listen to color changes of the sources
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
 		{
 			SourceAndConverterServices.getBdvDisplayService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
 				// color changed listener
@@ -442,14 +445,17 @@ public class UserInterfaceHelper
 	{
 		JPanel panel = createDisplayPanel( display);
 
+		List< SourceAndConverter< ? > > sourceAndConverters =
+				new ArrayList<>( display.sourceNameToSourceAndConverter.values() );
+
 		panel.add( createSpace() );
-		panel.add( createFocusButton( display, display.sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
-		panel.add( createOpacityButton( display.sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
+		panel.add( createFocusButton( display, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
+		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createRemoveButton( display ) );
 		panel.add( createSpace() );
-		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), display.sourceAndConverters ) );
+		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		if ( display.tableRows != null )
 		{
 			// segments 3D view
@@ -842,7 +848,7 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
-			for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceAndConverters )
+			for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceNameToSourceAndConverter.values() )
 			{
 				converterSetups.add( SourceAndConverterServices.getBdvDisplayService().getConverterSetup( sourceAndConverter ) );
 			}

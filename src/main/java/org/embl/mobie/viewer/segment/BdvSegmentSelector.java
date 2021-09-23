@@ -47,7 +47,7 @@ public class BdvSegmentSelector implements Runnable
 
 		for ( SegmentationSourceDisplay segmentationDisplay : segmentationDisplays )
 		{
-			for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceAndConverters )
+			for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceNameToSourceAndConverter.values() )
 			{
 				if ( SourceAndConverterHelper.isPositionWithinSourceInterval( sourceAndConverter, position, timePoint, is2D ) )
 				{

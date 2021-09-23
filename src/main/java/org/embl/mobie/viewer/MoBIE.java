@@ -1,14 +1,19 @@
 package org.embl.mobie.viewer;
 
+import bdv.tools.transformation.TransformedSource;
+import bdv.util.BdvFunctions;
 import bdv.util.volatiles.SharedQueue;
 import bdv.img.n5.N5ImageLoader;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
+import org.embl.mobie.viewer.playground.SourceChanger;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.ImageDataFormat;
@@ -32,6 +37,7 @@ import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
+import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 
 import java.io.IOException;
 import java.util.*;
@@ -39,6 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 
 public class MoBIE
 {
@@ -289,19 +296,19 @@ public class MoBIE
 
 	public SourceAndConverter< ? > openSourceAndConverter( String sourceName )
 	{
-		final ImageSource source = getSource( sourceName );
-		final String imagePath = getImagePath( source );
+		final ImageSource imageSource = getSource( sourceName );
+		final String imagePath = getImagePath( imageSource );
         //new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
 		IJ.log( "Opening image:\n" + imagePath );
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
         SpimData spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat, sharedQueue );
-        final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
-        final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-        if ( spimData != null )
-        {
-            sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
-        }
+        sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 
+        final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
+        SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+
+        // wrap as TransformedSource
+        sourceAndConverter = new SourceAffineTransformer( sourceAndConverter, new AffineTransform3D( ) ).getSourceOut();
         return sourceAndConverter;
     }
 

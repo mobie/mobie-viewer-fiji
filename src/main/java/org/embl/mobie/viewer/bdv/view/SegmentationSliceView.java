@@ -5,7 +5,6 @@ import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
 import org.embl.mobie.io.util.source.LabelSource;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.Utils;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.color.LabelConverter;
@@ -22,9 +21,8 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SegmentationSliceView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
@@ -48,14 +46,18 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		display.selectionModel.listeners().add( this );
 		display.coloringModel.listeners().add( this );
 
-		List< SourceAndConverter< ? > > sourceAndConverters = display.getSources().stream().map( name -> moBIE.getSourceAndConverter( name ) ).collect( Collectors.toList() );
+		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter = new HashMap<>();
+		for ( String name : display.getSources() ) {
+			sourceNameToSourceAndConverter.put( name, moBIE.getSourceAndConverter( name ) );
+		}
 
 		// convert to labelSource
-		sourceAndConverters = asLabelSources( sourceAndConverters );
+		sourceNameToSourceAndConverter = asLabelSources( sourceNameToSourceAndConverter );
 
-		display.sourceAndConverters = new ArrayList<>();
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		display.sourceNameToSourceAndConverter = new HashMap<>();
+		for ( String name : sourceNameToSourceAndConverter.keySet() )
 		{
+			SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( name );
 			// set opacity
 			OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
@@ -68,15 +70,17 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 
 			bdvHandle.getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
 
-			display.sourceAndConverters.add( sourceAndConverter );
+			display.sourceNameToSourceAndConverter.put( name, sourceAndConverter );
 		}
 	}
 
-	private List< SourceAndConverter< ? > > asLabelSources( List< SourceAndConverter< ? > > sourceAndConverters )
+	private Map< String, SourceAndConverter< ? > > asLabelSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
-		List< SourceAndConverter< ? > > labelSourceAndConverters = new ArrayList<>( );
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		Map< String, SourceAndConverter< ? > > sourceNameToLabelSourceAndConverter = new HashMap<>();
+
+		for ( String name: sourceNameToSourceAndConverter.keySet() )
 		{
+			SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( name );
 			LabelConverter< S > labelConverter = new LabelConverter(
 					display.segmentAdapter,
 					sourceAndConverter.getSpimSource().getName(),
@@ -84,10 +88,10 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 
 			SourceAndConverter< ? > sourceAndLabelConverter = asSourceAndLabelConverter( sourceAndConverter, labelConverter );
 
-			labelSourceAndConverters.add( sourceAndLabelConverter );
+			sourceNameToLabelSourceAndConverter.put( name, sourceAndLabelConverter );
 		}
 
-		return labelSourceAndConverters;
+		return sourceNameToLabelSourceAndConverter;
 	}
 
 	private SourceAndConverter asSourceAndLabelConverter( SourceAndConverter< ? > sourceAndConverter, LabelConverter labelConverter )
@@ -100,16 +104,16 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 
 	public void close()
 	{
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
 		{
 			SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
 		}
 
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceAndConverters )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
 		{
 			moBIE.closeSourceAndConverter( sourceAndConverter );
 		}
-		display.sourceAndConverters.clear();
+		display.sourceNameToSourceAndConverter.clear();
 	};
 
 	@Override
@@ -147,7 +151,7 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 	private void adaptPosition( double[] position, String sourceName )
 	{
 		// get source transform
-		final SourceAndConverter< ? > sourceAndConverter = Utils.getSourceAndConverter( display.sourceAndConverters, sourceName );
+		final SourceAndConverter< ? > sourceAndConverter = display.sourceNameToSourceAndConverter.get( sourceName );
 		AffineTransform3D sourceTransform = new AffineTransform3D();
 		sourceAndConverter.getSpimSource().getSourceTransform( 0,0, sourceTransform );
 
