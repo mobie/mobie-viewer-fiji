@@ -1,11 +1,13 @@
 package org.embl.mobie.viewer;
 
 import bdv.tools.transformation.TransformedSource;
+import bdv.util.BdvFunctions;
 import bdv.util.volatiles.SharedQueue;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
@@ -35,6 +37,7 @@ import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
+import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 
 import java.io.IOException;
 import java.util.*;
@@ -298,8 +301,9 @@ public class MoBIE
 
         final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
         SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-		sourceAndConverter = new SourceChanger<>( source -> new TransformedSource<>( source ) ).apply( sourceAndConverter );
 
+        // wrap as TransformedSource such that the transformation can be modified
+		sourceAndConverter = new SourceAffineTransformer( sourceAndConverter, new AffineTransform3D( ) ).getSourceOut();
         return sourceAndConverter;
     }
 
