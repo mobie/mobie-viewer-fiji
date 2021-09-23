@@ -76,8 +76,7 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay<AnnotatedIn
 		if ( currentSelectedRows != null && currentSelectedRows.size() > 0 ) {
 			ArrayList<String> selectedIds = new ArrayList<>();
 			for ( AnnotatedIntervalTableRow row : currentSelectedRows ) {
-				// TODO - FIX
-				selectedIds.add( row.getName() + ";" );
+				selectedIds.add( row.getTimepoint() + ";" + row.getName() );
 			}
 			this.selectedAnnotationIds = selectedIds;
 		}

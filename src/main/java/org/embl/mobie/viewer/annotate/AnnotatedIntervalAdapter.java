@@ -89,7 +89,7 @@ public class AnnotatedIntervalAdapter< T extends AnnotatedInterval >
 		for ( String string : strings )
 		{
 			final String[] split = string.split( ";" );
-			final TimepointAndAnnotationId timepointAndAnnotationId = new TimepointAndAnnotationId( Integer.parseInt( split[1] ), split[0] );
+			final TimepointAndAnnotationId timepointAndAnnotationId = new TimepointAndAnnotationId( Integer.parseInt( split[0] ), split[1] );
 			annotatedIntervals.add( getAnnotatedInterval( timepointAndAnnotationId ) );
 		}
 		return annotatedIntervals;
