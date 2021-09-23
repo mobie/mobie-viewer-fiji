@@ -55,8 +55,6 @@ public class SourceChanger< T > implements Function< SourceAndConverter< ? >,  S
 
             final SourceAndConverter< ? > outputSourceAndConverter = new SourceAndConverter( outputSource, inputSourceAndConverter.getConverter(), volatileOutputSourceAndConverter );
 
-            outputSourceAndConverter.getSpimSource();
-
             return outputSourceAndConverter;
         }
         else
