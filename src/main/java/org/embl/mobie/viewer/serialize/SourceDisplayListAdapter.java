@@ -50,7 +50,10 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< SourceDis
 				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, ImageSourceDisplay > >() {}.getType() ) );
 			} else if ( sourceDisplay instanceof  SegmentationSourceDisplay ) {
 				ja.add( context.serialize( nameToSourceDisplay , new TypeToken< Map< String, SegmentationSourceDisplay > >() {}.getType() ) );
-			} else {
+			} else if ( sourceDisplay instanceof  AnnotatedIntervalDisplay ) {
+				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, AnnotatedIntervalDisplay > >() {}.getType() ) );
+			} else
+			{
 				throw new UnsupportedOperationException( "Could not serialise SourceDisplay of type: " + sourceDisplay.getClass().toString() );
 			}
 		}

@@ -147,6 +147,16 @@ public class ViewManager
 
 	public ViewsSaver getViewsSaver() { return viewsSaver; }
 
+	private boolean hasColumnsOutsideProject( AnnotatedRegionDisplay annotatedRegionDisplay ) {
+		if ( annotatedRegionDisplay.tableViewer.hasColumnsFromTablesOutsideProject() )
+		{
+			IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project)." );
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public View getCurrentView( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform ) {
 
 		List< SourceDisplay > viewSourceDisplays = new ArrayList<>();
@@ -162,12 +172,13 @@ public class ViewManager
 			} else if ( sourceDisplay instanceof SegmentationSourceDisplay )
 			{
 				SegmentationSourceDisplay segmentationSourceDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
-				if ( segmentationSourceDisplay.tableViewer.hasColumnsFromTablesOutsideProject() )
-				{
-					IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project)." );
-					return null;
-				}
+				if ( hasColumnsOutsideProject( segmentationSourceDisplay ) ) { return null; }
 				currentDisplay = new SegmentationSourceDisplay( segmentationSourceDisplay );
+			} else if ( sourceDisplay instanceof AnnotatedIntervalDisplay )
+			{
+				AnnotatedIntervalDisplay annotatedIntervalDisplay = ( AnnotatedIntervalDisplay ) sourceDisplay;
+				if ( hasColumnsOutsideProject( annotatedIntervalDisplay ) ) { return null; }
+				currentDisplay = new AnnotatedIntervalDisplay( annotatedIntervalDisplay );
 			}
 
 			if ( currentDisplay != null )

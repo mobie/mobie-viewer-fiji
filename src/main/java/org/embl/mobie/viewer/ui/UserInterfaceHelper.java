@@ -220,7 +220,7 @@ public class UserInterfaceHelper
 		panel.add( createSpace() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
-		panel.add( createWindowVisibilityCheckbox( true, display.tableViewer.getWindow() ) );
+		panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableViewer.getWindow() ) );
 		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotViewer, display.showScatterPlot() ) );
 		return panel;
 	}

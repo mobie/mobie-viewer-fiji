@@ -6,9 +6,7 @@ import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay<AnnotatedIntervalTableRow>
 {
@@ -65,10 +63,26 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay<AnnotatedIn
 	/**
 	 * Create a serializable copy
 	 *
-	 * @param segmentationDisplay
+	 * @param annotatedIntervalDisplay
 	 */
-	public AnnotatedIntervalDisplay( AnnotatedIntervalDisplay segmentationDisplay )
+	public AnnotatedIntervalDisplay( AnnotatedIntervalDisplay annotatedIntervalDisplay )
 	{
-		// TODO: We should use the TableDisplay as much as possible!
+		fetchCurrentSettings( annotatedIntervalDisplay );
+
+		this.sources = new HashMap<>();
+		this.sources.putAll( annotatedIntervalDisplay.sources );
+
+		Set<AnnotatedIntervalTableRow> currentSelectedRows = annotatedIntervalDisplay.selectionModel.getSelected();
+		if ( currentSelectedRows != null && currentSelectedRows.size() > 0 ) {
+			ArrayList<String> selectedIds = new ArrayList<>();
+			for ( AnnotatedIntervalTableRow row : currentSelectedRows ) {
+				// TODO - FIX
+				selectedIds.add( row.getName() + ";" );
+			}
+			this.selectedAnnotationIds = selectedIds;
+		}
+
+		this.tableData = new HashMap<>();
+		this.tableData.putAll( annotatedIntervalDisplay.tableData );
 	}
 }
