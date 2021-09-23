@@ -50,7 +50,7 @@ public class AffineSourceTransformer extends AbstractSourceTransformer
 		}
 		else
 		{
-			return new SourceAffineTransformer( affineTransform3D );
+			return new SourceAffineTransformer( affineTransform3D, sourceName );
 		}
 	}
 
