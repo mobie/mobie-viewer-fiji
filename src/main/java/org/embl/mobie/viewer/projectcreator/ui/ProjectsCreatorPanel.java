@@ -429,9 +429,10 @@ public class ProjectsCreatorPanel extends JFrame {
             String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
                     ProjectCreator.ImageType.segmentation.toString() };
             gd.addChoice( "Image Type", imageTypes, imageTypes[0] );
-            // TODO - bdv ome-zarr vs ome-zarr
+            // TODO - ImageDataFormat.OmeZarr removed from here for now. Add it back when transforms are supported
+            // so the voxel size can be maintained.
             String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
-                    ImageDataFormat.BdvOmeZarr.toString(), ImageDataFormat.OmeZarr.toString() };
+                    ImageDataFormat.BdvOmeZarr.toString() };
             gd.addChoice( "Image format", imageFormats, imageFormats[0] );
             gd.addStringField("Affine", defaultAffineTransform, 35 );
             gd.addCheckbox("Use default export settings", true);
@@ -483,11 +484,12 @@ public class ProjectsCreatorPanel extends JFrame {
             gd.addMessage( "Note: You can only 'link' to images outside the project folder \n" +
                     " for local projects. 'copy' or 'move' if you wish to upload to s3");
 
+            // TODO - ImageDataFormat.OmeZarr removed from here for now. Add it back when transforms are supported
+            // so the voxel size can be maintained.
             String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
-                    ImageDataFormat.BdvOmeZarr.toString(), ImageDataFormat.OmeZarr.toString() };
+                    ImageDataFormat.BdvOmeZarr.toString() };
             gd.addChoice( "Image format", imageFormats, imageFormats[0] );
 
-            // TODO - update last selected dir after this
             String[] addMethods = new String[]{ ProjectCreator.AddMethod.link.toString(),
                     ProjectCreator.AddMethod.copy.toString(), ProjectCreator.AddMethod.move.toString() };
             gd.addChoice("Add method:", addMethods, addMethods[0]);
