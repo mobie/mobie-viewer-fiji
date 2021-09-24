@@ -12,7 +12,7 @@ import java.io.IOException;
 
 import static org.embl.mobie.viewer.ui.UserInterfaceHelper.*;
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Create new MoBIE Project..." )
+@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Create New MoBIE Project..." )
 public class CreateNewMoBIEProjectCommand implements Command {
 
     @Parameter( label= "Choose a project name:")
