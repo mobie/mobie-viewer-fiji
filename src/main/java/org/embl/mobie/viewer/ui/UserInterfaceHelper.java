@@ -4,30 +4,30 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
+import bdv.util.VolatileSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
-import org.embl.mobie.viewer.*;
-import org.embl.mobie.viewer.display.AbstractSourceDisplay;
-import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
-import org.embl.mobie.viewer.plot.ScatterPlotViewer;
-import org.embl.mobie.viewer.serialize.JsonHelper;
-import org.embl.mobie.viewer.transform.*;
-import org.embl.mobie.viewer.color.OpacityAdjuster;
-import org.embl.mobie.viewer.display.ImageSourceDisplay;
-import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
-import org.embl.mobie.viewer.display.SourceDisplay;
-import org.embl.mobie.viewer.view.View;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.MoBIEInfo;
 import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.VisibilityListener;
+import org.embl.mobie.viewer.color.OpacityAdjuster;
+import org.embl.mobie.viewer.display.*;
+import org.embl.mobie.viewer.plot.ScatterPlotViewer;
+import org.embl.mobie.viewer.serialize.JsonHelper;
+import org.embl.mobie.viewer.transform.*;
+import org.embl.mobie.viewer.view.View;
+import org.embl.mobie.viewer.view.saving.ViewsSaver;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -40,9 +40,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.URL;
-import java.util.*;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.*;
 
 import static org.embl.mobie.viewer.ui.SwingHelper.*;
 
@@ -140,24 +139,43 @@ public class UserInterfaceHelper
 
     public void showDynamicGridViewsDialog()
     {
+        setMoBIESwingLookAndFeel();
+
         JFrame frame = new JFrame( "Create grid view" );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         final JPanel dialogPanel = SwingUtils.horizontalLayoutPanel();
 
         dialogPanel.setLayout( new GridBagLayout() );
         GridBagConstraints constraints = new GridBagConstraints();
+        constraints.insets = new Insets( 4,4,2,4 );
         constraints.fill = GridBagConstraints.HORIZONTAL;
 
-        constraints.gridy = 0;
+        constraints.gridy = 1;
         constraints.gridx = 0;
-        dialogPanel.add( getJLabel( "Datasets:" ), constraints );
+        JLabel label = new JLabel();
+        label.setText( "Datasets" );
+        dialogPanel.add( label, constraints );
+//
+//        constraints.gridy = 0;
+//        constraints.gridx = 0;
+//        JLabel text = new JLabel();
+//        text.setText( "Grid view name:" );
+//        dialogPanel.add( text, constraints );
 
         final JPanel datasetsPanel = SwingUtils.horizontalLayoutPanel();
-        datasetsPanel.setLayout( new BoxLayout(datasetsPanel, BoxLayout.PAGE_AXIS) );
+        datasetsPanel.setLayout( new BoxLayout( datasetsPanel, BoxLayout.PAGE_AXIS ) );
+        HintTextField gridViewName = new HintTextField("Grid view name");
+        gridViewName.setRequestFocusEnabled( false );
+        gridViewName.setFont( new Font("monospaced", Font.PLAIN, 12) );
+        gridViewName.setToolTipText( "Grid view name" );
+        constraints.gridy = 0;
+        constraints.gridx = 0;
+        dialogPanel.add( gridViewName, constraints );
 
-        addDataset( datasetsPanel,  frame );
+        addDataset( datasetsPanel, frame );
 
-        constraints.gridy = 2;
+        constraints.gridy = 3;
+        constraints.gridwidth = 1;
         constraints.gridx = 1;
         final JButton addButton = createButton( "+" );
         addButton.addActionListener( e ->
@@ -167,21 +185,99 @@ public class UserInterfaceHelper
                 addDataset( datasetsPanel, frame );
             } );
         } );
-        addButton.setMargin(new Insets(0, 0, 0, 0));
-        dialogPanel.add( addButton, constraints);
+        addButton.setMargin( new Insets( 0, 0, 0, 0 ) );
+        dialogPanel.add( addButton, constraints );
 
-        constraints.gridy = 1;
+        constraints.gridy = 2;
         constraints.gridx = 0;
-        dialogPanel.add( datasetsPanel, constraints);
+        dialogPanel.add( datasetsPanel, constraints );
 
-        constraints.gridy = 3;
+        constraints.gridy = 4;
         constraints.gridx = 1;
         final JButton showButton = createButton( HELP );
+        showButton.addActionListener( e ->
+        {
+            resetPositions();
+            SwingUtilities.invokeLater( () ->
+            {
+                String newMergedGridViewName = gridViewName.getText();
+                if (newMergedGridViewName.isEmpty() || newMergedGridViewName.equals( "Grid view name" )) {
+//TODO: Show error popup
+                    JOptionPane.showMessageDialog(new JFrame(), "Please Enter Grid view name", "Dialog",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                List<Source> sources = new ArrayList<>();
+                sourcesForGridViewSelectors.keySet().forEach( sourc -> sources.add( moBIE.openSourceAndConverter( sourc ).getSpimSource() ) );
+                List<String> sourcesNames = new ArrayList<>();
+                sources.forEach( source -> sourcesNames.add( source.getName() ) );
+                List<int[]> ll = new ArrayList<>( sourcesForGridViewSelectors.values() );
+                MergedGridSource mergedGridSource = new MergedGridSource(
+                        sources, ll,
+                        newMergedGridViewName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+                System.out.println( mergedGridSource.getName() );
+                Map<String, SourceAndConverter<?>> sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( sourcesForGridViewSelectors.keySet() );
+                final List<SourceAndConverter<?>> gridSources = new ArrayList<>();
+                for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
+                    gridSources.add( sourceNameToSourceAndConverters.get( sourceName ) );
+                }
+                final VolatileSource<?, ?> volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
+                final SourceAndConverter<?> volatileSourceAndConverter = new SourceAndConverter( volatileMergedGridSource, gridSources.get( 0 ).asVolatile().getConverter() );
+                final SourceAndConverter<?> mergedSourceAndConverter = new SourceAndConverter( mergedGridSource, gridSources.get( 0 ).getConverter(), volatileSourceAndConverter );
+                Map<String, SourceAndConverter<?>> sourceNameToSourceAndConverter = new HashMap<>();
+                sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
+
+                // register all available sources
+                moBIE.addSourceAndConverters( sourceNameToSourceAndConverter );
+
+                ImageSourceDisplay newImg = new ImageSourceDisplay(
+                        newMergedGridViewName, 1.0, sourcesNames, "white", new double[]{ 0.0, 255.0 }, null, false );
+                newImg.sourceNameToSourceAndConverter = sourceNameToSourceAndConverter;
+
+                List<SourceDisplay> sourceDisplays = new ArrayList<>();
+                List<SourceTransformer> sourceTransformers = new ArrayList<>();
+                LinkedHashMap<String, List<String>> stringListLinkedHashMap = new LinkedHashMap<>();
+                for ( int i = 0; i < sources.size(); i++ ) {
+                    stringListLinkedHashMap.put( String.valueOf( i ), new ArrayList<>( Collections.singleton( sources.get( i ).getName() ) ) );
+                }
+                SourceTransformer sourceTransformer = new TransformedGridSourceTransformer( newMergedGridViewName, stringListLinkedHashMap, stringListLinkedHashMap );
+//                        SourceTransformer sourceTransformer1 = new GridSourceTransformer(sourcesNames,"NEW_ONE", new ArrayList<>(sourcesForGridViewSelectors.values()), mergedGridSource);
+                sourceTransformers.add( sourceTransformer );
+                sourceDisplays.add( newImg );
+
+                View created = new View( "gridView", sourceDisplays,
+                        sourceTransformers, true );
+
+                moBIE.getViewManager().removeAllSourceDisplays();
+
+                if ( sourceTransformers.size() != 0 )
+                    for ( SourceTransformer sourceTransform : sourceTransformers ) {
+//                             (TransformedGridSourceTransformer) sourceTransform );
+                        sourceTransform.transform( sourceNameToSourceAndConverters );
+                    }
+
+                // register all available sources
+                moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
+
+                // show the displays
+
+                for ( SourceDisplay sourceDisplay : sourceDisplays )
+                    moBIE.getViewManager().showSourceDisplay( sourceDisplay );
+
+
+                // adjust viewer transform
+                moBIE.getViewManager().setCurrentView( created );
+                moBIE.getViewManager().adjustViewerTransform( created );
+
+            } );
+        } );
+
         dialogPanel.add( showButton, constraints );
 
         frame.setContentPane( dialogPanel );
         frame.setLocation( MouseInfo.getPointerInfo().getLocation().x,
-                MouseInfo.getPointerInfo().getLocation().y);
+                MouseInfo.getPointerInfo().getLocation().y );
+        resetSystemSwingLookAndFeel();
         frame.setResizable( true );
         frame.pack();
         frame.setVisible( true );
@@ -437,7 +533,9 @@ public class UserInterfaceHelper
 		JLabel label = new JLabel(display.getName() );
 		label.setHorizontalAlignment( SwingUtilities.LEFT );
 		panel.add( label );
-        panel.setToolTipText( moBIE.getDataset().sources.get( display.getName() ).get().description );
+		if (moBIE.getDataset().sources.containsKey( display.getName() )) {
+            panel.setToolTipText( moBIE.getDataset().sources.get( display.getName() ).get().description );
+        }
       		return panel;
 	}
 

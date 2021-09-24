@@ -66,6 +66,11 @@ public class ViewManager
 
 	private View currentView;
 
+    public void setCurrentView( View currentView )
+    {
+        this.currentView = currentView;
+    }
+
     public List<SourceTransformer> getCurrentSourceTransformers()
     {
         return currentSourceTransformers;
@@ -260,7 +265,7 @@ public class ViewManager
 			if ( view.isExclusive() || currentSourceDisplays.size() == 1 )
 			{
 				// TODO: rethink what should happen here...
-				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1 );
+				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() > 0 ? currentSourceDisplays.size() - 1 : 0 );
 				new ViewerTransformAdjuster( bdvHandle, ((AbstractSourceDisplay) sourceDisplay).sourceNameToSourceAndConverter.values().iterator().next() ).run();
 			}
 		}
@@ -302,7 +307,7 @@ public class ViewManager
 		currentSourceDisplays.add( sourceDisplay );
 	}
 
-	private void removeAllSourceDisplays()
+	public void removeAllSourceDisplays()
 	{
 		// create a copy of the currently shown displays...
 		final ArrayList< SourceDisplay > currentSourceDisplays = new ArrayList<>( this.currentSourceDisplays ) ;

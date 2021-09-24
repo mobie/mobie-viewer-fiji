@@ -34,7 +34,7 @@ public class SliceViewer implements Supplier< BdvHandle >
     public static final String CHANGE_RANDOM_COLOR_SEED = "Change Random Color Seed";
     public static final String LOAD_ADDITIONAL_VIEWS = "Load Additional Views";
     public static final String SAVE_CURRENT_SETTINGS_AS_VIEW = "Save Current Settings As View";
-    private static final String CREATE_OR_EDIT_GRID_VIEW = "Create Or Edit Grid View";
+    private static final String CREATE_OR_EDIT_GRID_VIEW = "Create Grid View";
     private static final String SHOW_VIEW_DESCRIPTION = "Show View Description";
 	private final SourceAndConverterBdvDisplayService sacDisplayService;
 	private BdvHandle bdvHandle;

@@ -27,7 +27,15 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	// Runtime
 	private transient ArrayList< String > gridIds;
 
-	@Override
+    public TransformedGridSourceTransformer( String name, LinkedHashMap<String, List<String>> sources, LinkedHashMap<String, List<String>> sourceNamesAfterTransform)
+    {
+        this.name = name;
+        this.sources = sources;
+        this.sourceNamesAfterTransform = sourceNamesAfterTransform;
+        this.gridIds = new ArrayList<>( sources.keySet() );
+    }
+
+    @Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
 		gridIds = new ArrayList<>( sources.keySet() );
