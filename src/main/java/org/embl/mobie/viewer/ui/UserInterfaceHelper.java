@@ -139,8 +139,6 @@ public class UserInterfaceHelper
 
     public void showDynamicGridViewsDialog()
     {
-        setMoBIESwingLookAndFeel();
-
         JFrame frame = new JFrame( "Create grid view" );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         final JPanel dialogPanel = SwingUtils.horizontalLayoutPanel();
@@ -277,7 +275,6 @@ public class UserInterfaceHelper
         frame.setContentPane( dialogPanel );
         frame.setLocation( MouseInfo.getPointerInfo().getLocation().x,
                 MouseInfo.getPointerInfo().getLocation().y );
-        resetSystemSwingLookAndFeel();
         frame.setResizable( true );
         frame.pack();
         frame.setVisible( true );
