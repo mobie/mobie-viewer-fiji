@@ -5,6 +5,7 @@ import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import ij.process.LUT;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.readers.N5OmeZarrReader;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
@@ -125,8 +126,17 @@ public class ImagesCreator {
                     is2D = false;
                 }
                 try {
-                    updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup,
-                            is2D, imp.getNFrames(), imageDataFormat );
+                    if (imageType == ProjectCreator.ImageType.image) {
+                        double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
+                        LUT lut = imp.getLuts()[0];
+                        String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" +
+                                lut.getBlue(255) + ",a=" + lut.getAlpha(255);
+                        updateTableAndJsonsForNewImage(imageName, datasetName, uiSelectionGroup, is2D,
+                                imp.getNFrames(), imageDataFormat, contrastLimits, colour );
+                    } else {
+                        updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup, is2D,
+                                imp.getNFrames(), imageDataFormat);
+                    }
                 } catch (SpimDataException e) {
                     e.printStackTrace();
                 }
@@ -208,9 +218,15 @@ public class ImagesCreator {
                         moveImage( imageDataFormat, spimData, imageDirectory, imageName);
                         break;
                 }
-                updateTableAndJsonsForNewImage( imageName, imageType, datasetName, uiSelectionGroup,
-                        isSpimData2D( spimData ), getNTimepointsFromSpimData( spimData ),
-                        imageDataFormat );
+
+                if (imageType == ProjectCreator.ImageType.image) {
+                    updateTableAndJsonsForNewImage(imageName, datasetName, uiSelectionGroup,
+                            isSpimData2D(spimData), getNTimepointsFromSpimData(spimData),
+                            imageDataFormat, new double[]{0.0, 255.0}, "white" );
+                } else {
+                    updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup,
+                            isSpimData2D(spimData), getNTimepointsFromSpimData(spimData), imageDataFormat);
+                }
 
                 IJ.log( "Bdv format image " + imageName + " added to project" );
             } else {
@@ -325,14 +341,19 @@ public class ImagesCreator {
         }
     }
 
-    private void updateTableAndJsonsForNewImage ( String imageName, ProjectCreator.ImageType imageType,
-                                          String datasetName, String uiSelectionGroup, boolean is2D, int nTimepoints,
-                                                  ImageDataFormat imageDataFormat ) throws SpimDataException {
-        if ( imageType == ProjectCreator.ImageType.segmentation) {
-            addDefaultTableForImage( imageName, datasetName, imageDataFormat );
-        }
+    private void updateTableAndJsonsForNewImage ( String imageName, String datasetName, String uiSelectionGroup,
+                                                  boolean is2D, int nTimepoints, ImageDataFormat imageDataFormat,
+                                                  double[] contrastLimits, String colour ) throws SpimDataException {
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
-        datasetJsonCreator.addToDatasetJson( imageName, datasetName, imageType, uiSelectionGroup, is2D, nTimepoints,
+        datasetJsonCreator.addImageToDatasetJson( imageName, datasetName, uiSelectionGroup, is2D, nTimepoints,
+                imageDataFormat, contrastLimits, colour );
+    }
+
+    private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup,
+                                                        boolean is2D, int nTimepoints, ImageDataFormat imageDataFormat ) {
+        addDefaultTableForImage( imageName, datasetName, imageDataFormat );
+        DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
+        datasetJsonCreator.addSegmentationToDatasetJson( imageName, datasetName, uiSelectionGroup, is2D, nTimepoints,
                 imageDataFormat );
     }
 

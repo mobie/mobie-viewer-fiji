@@ -21,28 +21,6 @@ public class OpenOMEZARRFromS3Command implements Command {
         viewer.show();
     }
 
-    public static void main(String[] args) throws IOException {
-//		final ImageJ imageJ = new ImageJ();
-//		imageJ.ui().showUI();
-        openAndShow("https://s3.embl.de/i2k-2020/em-raw.ome.zarr");
-//		            openAndShow("https://s3.embl.de/i2k-2020/ngff-example-data/v0.3/zyx.ome.zarr");
-
-//		openAndShow("https://s3.embl.de/i2k-2020/ngff-example-data/v0.3/tczyx.ome.zarr");
-
-//		openAndShow("https://s3.embl.de/i2k-2020/ngff-example-data/v0.3/cyx.ome.zarr");
-//            openAndShow("https://s3.embl.de/i2k-2020/ngff-example-data/v0.3/tyx.ome.zarr");
-//        openAndShow("https://s3.embl.de/i2k-2020/ngff-example-data/v0.3/czyx.ome.zarr");
-//        openAndShow("https://s3.embl.de/i2k-2020/ngff-example-data/v0.3/tzyx.ome.zarr");
-//         openAndShow("https://s3.embl.de/i2k-2020/ngff-example-data/v0.3/tcyx.ome.zarr");
-
-//err
-//		openAndShow("https://s3.embl.de/i2k-2020/ngff-example-data/v0.3/yx.ome.zarr");
-//            openAndShow("https://s3.embl.de/i2k-2020/ngff-example-data/v0.3/flat_yx.ome.zarr");
-
-
-//        openAndShow( "https://s3.embassy.ebi.ac.uk/idr/zarr/v0.1/6001240.zarr" );
-    }
-
     @Override
     public void run() {
         try {

@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.view;
 
+import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.MoBIE;
@@ -16,6 +17,7 @@ import org.embl.mobie.viewer.Utils;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.bdv.view.SliceViewer;
+import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.display.ImageSourceDisplay;
@@ -23,6 +25,8 @@ import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableViewer;
+import org.embl.mobie.viewer.transform.AffineSourceTransformer;
+import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
@@ -169,10 +173,38 @@ public class ViewManager
 
 	public ViewsSaver getViewsSaver() { return viewsSaver; }
 
+	private boolean hasColumnsOutsideProject( AnnotatedRegionDisplay annotatedRegionDisplay ) {
+		if ( annotatedRegionDisplay.tableViewer.hasColumnsFromTablesOutsideProject() )
+		{
+			IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project)." );
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private void addManualTransforms( List< SourceTransformer > viewSourceTransforms,
+									  Map<String, SourceAndConverter<?> > sourceNameToSourceAndConverter ) {
+		for ( String sourceName: sourceNameToSourceAndConverter.keySet() ) {
+			TransformedSource transformedSource = (TransformedSource) sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
+			AffineTransform3D fixedTransform = new AffineTransform3D();
+			transformedSource.getFixedTransform( fixedTransform );
+			if ( !fixedTransform.isIdentity() ) {
+				List<String> sources = new ArrayList<>();
+				sources.add( sourceName );
+				viewSourceTransforms.add( new AffineSourceTransformer( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
+			}
+		}
+	}
+
 	public View getCurrentView( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform ) {
 
 		List< SourceDisplay > viewSourceDisplays = new ArrayList<>();
 		List< SourceTransformer > viewSourceTransforms = new ArrayList<>();
+
+		for ( SourceTransformer sourceTransformer : currentSourceTransformers )
+			if ( ! viewSourceTransforms.contains( sourceTransformer ) )
+				viewSourceTransforms.add( sourceTransformer );
 
 		for ( SourceDisplay sourceDisplay : currentSourceDisplays )
 		{
@@ -180,16 +212,21 @@ public class ViewManager
 
 			if ( sourceDisplay instanceof ImageSourceDisplay)
 			{
-				currentDisplay = new ImageSourceDisplay( ( ImageSourceDisplay ) sourceDisplay );
+				ImageSourceDisplay imageSourceDisplay = ( ImageSourceDisplay ) sourceDisplay;
+				currentDisplay = new ImageSourceDisplay( imageSourceDisplay );
+				addManualTransforms( viewSourceTransforms, imageSourceDisplay.sourceNameToSourceAndConverter );
 			} else if ( sourceDisplay instanceof SegmentationSourceDisplay )
 			{
 				SegmentationSourceDisplay segmentationSourceDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
-				if ( segmentationSourceDisplay.tableViewer.hasColumnsFromTablesOutsideProject() )
-				{
-					IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project)." );
-					return null;
-				}
+				if ( hasColumnsOutsideProject( segmentationSourceDisplay ) ) { return null; }
 				currentDisplay = new SegmentationSourceDisplay( segmentationSourceDisplay );
+				addManualTransforms( viewSourceTransforms, segmentationSourceDisplay.sourceNameToSourceAndConverter );
+			} else if ( sourceDisplay instanceof AnnotatedIntervalDisplay )
+			{
+				AnnotatedIntervalDisplay annotatedIntervalDisplay = ( AnnotatedIntervalDisplay ) sourceDisplay;
+				if ( hasColumnsOutsideProject( annotatedIntervalDisplay ) ) { return null; }
+				currentDisplay = new AnnotatedIntervalDisplay( annotatedIntervalDisplay );
+				addManualTransforms( viewSourceTransforms, annotatedIntervalDisplay.sourceNameToSourceAndConverter );
 			}
 
 			if ( currentDisplay != null )
@@ -197,12 +234,6 @@ public class ViewManager
 				viewSourceDisplays.add( currentDisplay );
 			}
 		}
-
-		// TODO - would be good to pick up any manual transforms here too. This would allow e.g. manual placement
-		// of differing sized sources into a grid
-		for ( SourceTransformer sourceTransformer : currentSourceTransformers )
-			if ( ! viewSourceTransforms.contains( sourceTransformer ) )
-				viewSourceTransforms.add( sourceTransformer );
 
 		if ( includeViewerTransform )
 		{
@@ -240,15 +271,23 @@ public class ViewManager
 			sourceTransformer.transform( sourceNameToSourceAndConverters );
 		}
 
+		// wrap all in a final transformed source. This is so any manual transformations can be
+		// retrieved separate from any from sourceTransformers.
+		for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
+			SourceAndConverter<?> sourceAndConverter = new SourceAffineTransformer(
+					sourceNameToSourceAndConverters.get(sourceName), new AffineTransform3D()).getSourceOut();
+			sourceNameToSourceAndConverters.put( sourceName, sourceAndConverter );
+		}
+
 		// register all available sources
 		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
 
 		// show the displays
-		setMoBIESwingLookAndFeel();
+		MoBIELookAndFeelToggler.setMoBIELaf();
 		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
 		for ( SourceDisplay sourceDisplay : sourceDisplays )
 			showSourceDisplay( sourceDisplay );
-		resetSystemSwingLookAndFeel();
+		MoBIELookAndFeelToggler.resetMoBIELaf();
 
 		// adjust viewer transform
 		adjustViewerTransform( view );

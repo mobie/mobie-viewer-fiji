@@ -5,6 +5,7 @@ import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Utils;
 import org.embl.mobie.viewer.serialize.AdditionalViewsJsonParser;
+import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
 import org.embl.mobie.viewer.ui.UserInterfaceHelper;
 import org.embl.mobie.viewer.view.View;
 
@@ -33,7 +34,7 @@ public class AdditionalViewsLoader {
             }
 
             // to match to the existing view selection panels, we enable the mobie look and feel
-            UserInterfaceHelper.setMoBIESwingLookAndFeel();
+            MoBIELookAndFeelToggler.setMoBIELaf();
 
             if (selectedFilePath != null) {
                 Map< String, View> views = new AdditionalViewsJsonParser().getViews( selectedFilePath ).views;
@@ -41,7 +42,7 @@ public class AdditionalViewsLoader {
                 IJ.log( "New views loaded from: " + selectedFilePath );
             }
 
-            UserInterfaceHelper.resetSystemSwingLookAndFeel();
+            MoBIELookAndFeelToggler.resetMoBIELaf();
 
         } catch (IOException e) {
             e.printStackTrace();

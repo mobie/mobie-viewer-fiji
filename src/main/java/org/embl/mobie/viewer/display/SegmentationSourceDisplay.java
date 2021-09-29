@@ -81,8 +81,8 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	 */
 	public SegmentationSourceDisplay( SegmentationSourceDisplay segmentationDisplay )
 	{
-		// TODO: put as much as possible of this into TableDisplay, I guess it could be a protected method that takes < ? extends TableDisplay > as an input and then sets the fields.
-		this.name = segmentationDisplay.name;
+		fetchCurrentSettings( segmentationDisplay );
+
 		this.sources = new ArrayList<>();
 		this.sources.addAll( segmentationDisplay.sourceNameToSourceAndConverter.keySet() );
 
@@ -90,11 +90,6 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 				segmentationDisplay.sourceNameToSourceAndConverter.values().iterator().next();
 
 		this.blendingMode = (BlendingMode) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
-
-		if( sourceAndConverter.getConverter() instanceof LabelConverter )
-		{
-			this.opacity = ( ( LabelConverter ) sourceAndConverter.getConverter() ).getOpacity();
-		}
 
 		if ( segmentationDisplay.segmentsVolumeViewer != null )
 		{
@@ -109,23 +104,6 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 			}
 		}
 
-		this.lut = segmentationDisplay.coloringModel.getARGBLutName();
-
-		final ColoringModel< TableRowImageSegment > wrappedColoringModel = segmentationDisplay.coloringModel.getWrappedColoringModel();
-
-		if ( wrappedColoringModel instanceof ColumnColoringModel )
-		{
-			this.colorByColumn = (( ColumnColoringModel ) wrappedColoringModel).getColumnName();
-		}
-
-		if ( wrappedColoringModel instanceof NumericColoringModel )
-		{
-			this.valueLimits = new Double[2];
-			NumericColoringModel numericColoringModel = ( NumericColoringModel ) ( wrappedColoringModel );
-			valueLimits[0] = numericColoringModel.getMin();
-			valueLimits[1] = numericColoringModel.getMax();
-		}
-
 		Set<TableRowImageSegment> currentSelectedSegments = segmentationDisplay.selectionModel.getSelected();
 		if (currentSelectedSegments != null) {
 			ArrayList<String> selectedSegmentIds = new ArrayList<>();
@@ -133,17 +111,6 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 				selectedSegmentIds.add( segment.imageId() + ";" + segment.timePoint() + ";" + segment.labelId() );
 			}
 			this.selectedSegmentIds = selectedSegmentIds;
-		}
-
-		this.showScatterPlot = segmentationDisplay.scatterPlotViewer.isVisible();
-		this.scatterPlotAxes = segmentationDisplay.scatterPlotViewer.getSelectedColumns();
-		this.tables = segmentationDisplay.tables;
-		List<String> additionalTables = segmentationDisplay.tableViewer.getAdditionalTables();
-		if ( additionalTables.size() > 0 ){
-			if ( this.tables == null ) {
-				this.tables = new ArrayList<>();
-			}
-			this.tables.addAll( additionalTables );
 		}
 	}
 

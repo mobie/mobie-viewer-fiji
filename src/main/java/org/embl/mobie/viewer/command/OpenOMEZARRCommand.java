@@ -24,26 +24,6 @@ public class OpenOMEZARRCommand implements Command {
         viewer.show();
     }
 
-    public static void main(String[] args) {
-        try {
-//            openAndShow("/home/katerina/Documents/data/v0.3/yx.ome.zarr");
-//            openAndShow("/home/katerina/Documents/data/v0.3/flat_yx.ome.zarr");
-//
-//            openAndShow("/home/katerina/Documents/data/v0.3/cyx.ome.zarr");
-//            openAndShow("/home/katerina/Documents/data/v0.3/tyx.ome.zarr");
-
-            openAndShow("/home/katerina/Documents/data/v0.3/zyx.ome.zarr");
-//            openAndShow("/home/katerina/Documents/data/v0.3/czyx.ome.zarr");
-//            openAndShow("/home/katerina/Documents/data/v0.3/tzyx.ome.zarr");
-//            openAndShow("/home/katerina/Documents/data/v0.3/tcyx.ome.zarr");
-//            openAndShow("/home/katerina/Documents/data/v0.3/tczyx.ome.zarr");
-//            openAndShow("/home/katerina/Documents/data/Covid19-S4-Area2/images/bdv.ome.zarr/raw.ome.zarr");
-//            openAndShow("/home/katerina/Downloads/example.ome.zarr");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public void run() {
         try {

@@ -17,6 +17,12 @@ public class AffineSourceTransformer extends AbstractSourceTransformer
 	// Runtime
 	private transient AffineTransform3D affineTransform3D;
 
+	public AffineSourceTransformer( String name, double[] parameters, List< String > sources ) {
+		this.name = name;
+		this.parameters = parameters;
+		this.sources = sources;
+	}
+
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
@@ -44,7 +50,7 @@ public class AffineSourceTransformer extends AbstractSourceTransformer
 		}
 		else
 		{
-			return new SourceAffineTransformer( affineTransform3D );
+			return new SourceAffineTransformer( affineTransform3D, sourceName );
 		}
 	}
 

@@ -307,8 +307,6 @@ public class MoBIE
         final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
         SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
 
-        // wrap as TransformedSource
-        sourceAndConverter = new SourceAffineTransformer( sourceAndConverter, new AffineTransform3D( ) ).getSourceOut();
         return sourceAndConverter;
     }
 

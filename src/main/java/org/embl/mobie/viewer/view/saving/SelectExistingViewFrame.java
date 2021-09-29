@@ -2,13 +2,13 @@ package org.embl.mobie.viewer.view.saving;
 
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
 import org.embl.mobie.viewer.ui.SwingHelper;
-import org.embl.mobie.viewer.ui.UserInterfaceHelper;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,7 +40,7 @@ public class SelectExistingViewFrame extends JFrame {
 
     // writing to dataset json
     public SelectExistingViewFrame( Dataset dataset, View view, String jsonPath ) {
-        UserInterfaceHelper.setMoBIESwingLookAndFeel();
+        MoBIELookAndFeelToggler.setMoBIELaf();
         this.dataset = dataset;
         this.view = view;
         this.jsonPath = jsonPath;
@@ -50,7 +50,7 @@ public class SelectExistingViewFrame extends JFrame {
 
     // write to additional views json
     public SelectExistingViewFrame( AdditionalViews additionalViews, View view, String jsonPath ) {
-        UserInterfaceHelper.setMoBIESwingLookAndFeel();
+        MoBIELookAndFeelToggler.setMoBIELaf();
         this.additionalViews = additionalViews;
         this.view = view;
         this.jsonPath = jsonPath;
@@ -70,7 +70,7 @@ public class SelectExistingViewFrame extends JFrame {
             @Override
             public void windowClosing(WindowEvent e)
             {
-                UserInterfaceHelper.resetSystemSwingLookAndFeel();
+                MoBIELookAndFeelToggler.resetMoBIELaf();
                 e.getWindow().dispose();
             }
         });

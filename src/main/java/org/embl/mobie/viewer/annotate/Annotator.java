@@ -37,6 +37,7 @@ import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
@@ -45,9 +46,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static org.embl.mobie.viewer.ui.UserInterfaceHelper.resetSystemSwingLookAndFeel;
-import static org.embl.mobie.viewer.ui.UserInterfaceHelper.setMoBIESwingLookAndFeel;
 
 public class Annotator< T extends TableRow > extends JFrame
 {
@@ -85,10 +83,10 @@ public class Annotator< T extends TableRow > extends JFrame
 
 	public void showDialog()
 	{
-		setMoBIESwingLookAndFeel();
+		MoBIELookAndFeelToggler.setMoBIELaf();
 		createDialog();
 		showFrame();
-		resetSystemSwingLookAndFeel();
+		MoBIELookAndFeelToggler.resetMoBIELaf();
 	}
 
 	private void createDialog()
@@ -165,7 +163,7 @@ public class Annotator< T extends TableRow > extends JFrame
 
 	private void addAnnotationButtonPanel( String annotationName, T tableRow )
 	{
-		setMoBIESwingLookAndFeel();
+		MoBIELookAndFeelToggler.setMoBIELaf();
 		annotationNames.add( annotationName );
 		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 
@@ -216,7 +214,7 @@ public class Annotator< T extends TableRow > extends JFrame
 		panel.add( changeColor );
 		annotationButtonsContainer.add( panel );
 		refreshDialog();
-		resetSystemSwingLookAndFeel();
+		MoBIELookAndFeelToggler.resetMoBIELaf();
 	}
 
 	private void addTableRowBrowserSelectPreviousAndNextPanel( )
