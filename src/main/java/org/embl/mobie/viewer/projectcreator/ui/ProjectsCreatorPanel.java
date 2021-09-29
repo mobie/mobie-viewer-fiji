@@ -36,7 +36,6 @@ public class ProjectsCreatorPanel extends JFrame {
 
     public ProjectsCreatorPanel ( File projectLocation ) throws IOException {
 
-        UserInterfaceHelper.setMoBIESwingLookAndFeel();
         // account for projects with and without the top 'data' directory
         File dataDirectory = ProjectCreatorHelper.getDataLocation( projectLocation );
         this.projectsCreator = new ProjectCreator( dataDirectory );
@@ -55,15 +54,12 @@ public class ProjectsCreatorPanel extends JFrame {
         this.setTitle( "Editing MoBIE Project: " + shortenedProjectName );
         this.getContentPane().setLayout( new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS ) );
         this.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-        UserInterfaceHelper.resetSystemSwingLookAndFeel();
     }
 
     public void showProjectsCreatorPanel() {
-        UserInterfaceHelper.setMoBIESwingLookAndFeel();
         this.pack();
         this.setLocationRelativeTo(null);
         this.setVisible( true );
-        UserInterfaceHelper.resetSystemSwingLookAndFeel();
     }
 
     public ProjectCreator getProjectsCreator() {

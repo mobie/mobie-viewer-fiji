@@ -176,34 +176,6 @@ public class UserInterfaceHelper
 
 	}
 
-	public static void setMoBIESwingLookAndFeel() {
-		FlatLightLaf.install();
-		System.setProperty("apple.laf.useScreenMenuBar", "false");
-		try {
-			UIManager.setLookAndFeel( new FlatLightLaf() );
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void resetSystemSwingLookAndFeel() {
-		// TODO: reset where the menu bar is?
-		try {
-			UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void resetCrossPlatformSwingLookAndFeel() {
-		// TODO: reset where the menu bar is?
-		try {
-			UIManager.setLookAndFeel( UIManager.getCrossPlatformLookAndFeelClassName() );
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public JPanel createAnnotatedIntervalDisplaySettingsPanel( AnnotatedIntervalDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
