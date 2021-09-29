@@ -36,7 +36,6 @@ public class ProjectsCreatorPanel extends JFrame {
 
     public ProjectsCreatorPanel ( File projectLocation ) throws IOException {
 
-        UserInterfaceHelper.resetSystemSwingLookAndFeel();
         // account for projects with and without the top 'data' directory
         File dataDirectory = ProjectCreatorHelper.getDataLocation( projectLocation );
         this.projectsCreator = new ProjectCreator( dataDirectory );
@@ -58,7 +57,6 @@ public class ProjectsCreatorPanel extends JFrame {
     }
 
     public void showProjectsCreatorPanel() {
-        UserInterfaceHelper.resetSystemSwingLookAndFeel();
         this.pack();
         this.setLocationRelativeTo(null);
         this.setVisible( true );

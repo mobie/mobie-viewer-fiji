@@ -26,6 +26,7 @@ import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableViewer;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
+import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
@@ -259,11 +260,11 @@ public class ViewManager
 		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
 
 		// show the displays
-		setMoBIESwingLookAndFeel();
+		MoBIELookAndFeelToggler.setMoBIELaf();
 		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
 		for ( SourceDisplay sourceDisplay : sourceDisplays )
 			showSourceDisplay( sourceDisplay );
-		resetSystemSwingLookAndFeel();
+		MoBIELookAndFeelToggler.resetMoBIELaf();
 
 		// adjust viewer transform
 		adjustViewerTransform( view );
