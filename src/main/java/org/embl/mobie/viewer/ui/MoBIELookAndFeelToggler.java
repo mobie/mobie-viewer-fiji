@@ -8,11 +8,12 @@ public class MoBIELookAndFeelToggler {
 
     private static LookAndFeel before;
 
-    public static void storeCurrentLaf() {
+    private static void storeCurrentLaf() {
         before = UIManager.getLookAndFeel();
     }
 
     public static void setMoBIELaf() {
+        storeCurrentLaf();
         FlatLightLaf.install();
         System.setProperty("apple.laf.useScreenMenuBar", "false");
         try {

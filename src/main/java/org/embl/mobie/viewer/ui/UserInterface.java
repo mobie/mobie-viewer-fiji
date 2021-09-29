@@ -26,7 +26,6 @@ public class UserInterface
 
 	public UserInterface( MoBIE moBIE )
 	{
-		MoBIELookAndFeelToggler.storeCurrentLaf();
 		MoBIELookAndFeelToggler.setMoBIELaf();
 		userInterfaceHelper = new UserInterfaceHelper( moBIE );
 
