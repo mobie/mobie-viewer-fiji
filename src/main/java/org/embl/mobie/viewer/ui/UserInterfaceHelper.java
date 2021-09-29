@@ -9,7 +9,6 @@ import com.formdev.flatlaf.FlatLightLaf;
 import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
-import kotlin.random.Random;
 import org.embl.mobie.viewer.*;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
