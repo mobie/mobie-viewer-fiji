@@ -394,7 +394,11 @@ public class UserInterfaceHelper
         JFrame viewDescription = new JFrame("Current view");
         JPanel content = new JPanel();
         JLabel description = new JLabel();
-        description.setText( moBIE.getDataset().views.get( moBIE.getViewManager().getCurrentView().getName() ).getDescription() );
+        String text = moBIE.getDataset().views.get( moBIE.getViewManager().getCurrentView().getName() ).getDescription();
+        if ( text == null || text.isEmpty() ) {
+            text = "No description provided for " + moBIE.getViewManager().getCurrentView().getName();
+        }
+        description.setText( text );
         content.add( description );
         viewDescription.setContentPane( content );
         viewDescription.setLocation( MouseInfo.getPointerInfo().getLocation().x,
