@@ -11,6 +11,5 @@ public class LAF
 		final LookAndFeel lookAndFeel = UIManager.getLookAndFeel();
 		final String crossPlatformLookAndFeelClassName = UIManager.getCrossPlatformLookAndFeelClassName();
 		final String systemLookAndFeelClassName = UIManager.getSystemLookAndFeelClassName();
-		UserInterfaceHelper.resetSystemSwingLookAndFeel();
 	}
 }
