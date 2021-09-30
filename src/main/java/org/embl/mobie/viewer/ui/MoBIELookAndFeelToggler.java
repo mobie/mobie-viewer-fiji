@@ -8,7 +8,7 @@ public class MoBIELookAndFeelToggler {
 
     private static LookAndFeel before;
 
-    private static boolean isMoBIELaf;
+    private static boolean isMoBIELaf = false;
 
     private static void storeCurrentLaf() {
         before = UIManager.getLookAndFeel();
