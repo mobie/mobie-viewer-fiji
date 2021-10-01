@@ -378,7 +378,12 @@ public class UserInterfaceHelper
 			for ( String viewName : views.keySet() ) {
 				String uiSelectionGroup = views.get( viewName ).getUiSelectionGroup();
 				if ( groupingsToComboBox.containsKey( uiSelectionGroup ) ) {
-					groupingsToComboBox.get( uiSelectionGroup ).addItem( viewName );
+					JComboBox comboBox = groupingsToComboBox.get( uiSelectionGroup );
+					// check if a view of that name already exists: -1 means it doesn't exist
+					int index = ( (DefaultComboBoxModel) comboBox.getModel() ).getIndexOf( viewName );
+					if ( index == -1 ) {
+						comboBox.addItem(viewName);
+					}
 				} else {
 					final JPanel selectionPanel = createViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
 					int alphabeticalIndex = uiSelectionGroups.indexOf( uiSelectionGroup );
