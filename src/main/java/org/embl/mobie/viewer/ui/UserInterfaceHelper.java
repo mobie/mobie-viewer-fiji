@@ -28,6 +28,7 @@ import org.embl.mobie.viewer.serialize.JsonHelper;
 import org.embl.mobie.viewer.transform.*;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.saving.ViewsSaver;
+import org.jetbrains.annotations.NotNull;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -915,14 +916,50 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			// TODO: make this work for multiple sources!
-			final AffineTransform3D transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
-			new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
+            AffineTransform3D transform;
+            if ( sourceAndConverters.size() <= 1 ) {
+                transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
+            } else {
+                try {
+                    final SourceAndConverter<?> mergedSourceAndConverter = getMergedSourceAndConverter( sourceAndConverters );
+                    transform = new ViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), mergedSourceAndConverter ).getTransform();
+                } catch ( IllegalArgumentException exception ) {
+                    transform = new ViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
+                }
+            }
+            new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
 		} );
 
 		return button;
 	}
 
-	public static JButton createImageDisplayBrightnessButton( ImageSourceDisplay imageDisplay )
+    @NotNull
+    private static SourceAndConverter<?> getMergedSourceAndConverter( List<SourceAndConverter<?>> sourceAndConverters )
+    {
+        List<int[]> positions = new ArrayList<>();
+        int xPosition = 0;
+        int yPosition = 0;
+        for ( int i = 0; i < sourceAndConverters.size(); i++ ) {
+            if ( i == Math.ceil( Math.sqrt( sourceAndConverters.size() ) ) ) {
+                xPosition = 0;
+                yPosition++;
+            }
+            positions.add( new int[]{ xPosition, yPosition } );
+            xPosition++;
+        }
+        List<Source> sources = new ArrayList<>();
+        sourceAndConverters.forEach( sourceAndConverter -> sources.add( sourceAndConverter.getSpimSource() ) );
+        MergedGridSource mergedGridSource = new MergedGridSource(
+                sources, positions,
+                "TMP", TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+        final List<SourceAndConverter<?>> gridSources = new ArrayList<>( sourceAndConverters );
+        final VolatileSource<?, ?> volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
+        final SourceAndConverter<?> volatileSourceAndConverter = new SourceAndConverter( volatileMergedGridSource, gridSources.get( 0 ).asVolatile().getConverter() );
+        final SourceAndConverter<?> mergedSourceAndConverter = new SourceAndConverter( mergedGridSource, gridSources.get( 0 ).getConverter(), volatileSourceAndConverter );
+        return mergedSourceAndConverter;
+    }
+
+    public static JButton createImageDisplayBrightnessButton( ImageSourceDisplay imageDisplay )
 	{
 		JButton button = new JButton( "B" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
