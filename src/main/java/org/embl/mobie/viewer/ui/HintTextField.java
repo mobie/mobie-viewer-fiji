@@ -23,9 +23,11 @@ public class HintTextField extends JTextField {
             public void focusGained(FocusEvent e) {
                 if (getText().equals(hint)) {
                     setText("");
+                    setForeground(Color.BLACK);
                     setFont(gainFont);
                 } else {
                     setText(getText());
+                    setForeground(Color.BLACK);
                     setFont(gainFont);
                 }
             }

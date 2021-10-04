@@ -148,31 +148,29 @@ public class UserInterfaceHelper
         constraints.insets = new Insets( 4,4,2,4 );
         constraints.fill = GridBagConstraints.HORIZONTAL;
 
-        constraints.gridy = 1;
+        constraints.gridy = 2;
         constraints.gridx = 0;
         JLabel label = new JLabel();
         label.setText( "Datasets" );
         dialogPanel.add( label, constraints );
-//
-//        constraints.gridy = 0;
-//        constraints.gridx = 0;
-//        JLabel text = new JLabel();
-//        text.setText( "Grid view name:" );
-//        dialogPanel.add( text, constraints );
 
         final JPanel datasetsPanel = SwingUtils.horizontalLayoutPanel();
         datasetsPanel.setLayout( new BoxLayout( datasetsPanel, BoxLayout.PAGE_AXIS ) );
+        constraints.gridy = 0;
+        constraints.gridx = 0;
+        JLabel nameLabel = new JLabel();
+        nameLabel.setText( "Grid View Name" );
+        dialogPanel.add( nameLabel, constraints );
         HintTextField gridViewName = new HintTextField("Grid view name");
-        gridViewName.setRequestFocusEnabled( false );
         gridViewName.setFont( new Font("monospaced", Font.PLAIN, 12) );
         gridViewName.setToolTipText( "Grid view name" );
-        constraints.gridy = 0;
+        constraints.gridy = 1;
         constraints.gridx = 0;
         dialogPanel.add( gridViewName, constraints );
 
         addDataset( datasetsPanel, frame );
 
-        constraints.gridy = 3;
+        constraints.gridy = 4;
         constraints.gridwidth = 1;
         constraints.gridx = 1;
         final JButton addButton = createButton( "+" );
@@ -186,11 +184,11 @@ public class UserInterfaceHelper
         addButton.setMargin( new Insets( 0, 0, 0, 0 ) );
         dialogPanel.add( addButton, constraints );
 
-        constraints.gridy = 2;
+        constraints.gridy = 3;
         constraints.gridx = 0;
         dialogPanel.add( datasetsPanel, constraints );
 
-        constraints.gridy = 4;
+        constraints.gridy = 5;
         constraints.gridx = 1;
         final JButton showButton = createButton( HELP );
         showButton.addActionListener( e ->
@@ -198,74 +196,7 @@ public class UserInterfaceHelper
             resetPositions();
             SwingUtilities.invokeLater( () ->
             {
-                String newMergedGridViewName = gridViewName.getText();
-                if (newMergedGridViewName.isEmpty() || newMergedGridViewName.equals( "Grid view name" )) {
-//TODO: Show error popup
-                    JOptionPane.showMessageDialog(new JFrame(), "Please Enter Grid view name", "Dialog",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                List<Source> sources = new ArrayList<>();
-                sourcesForGridViewSelectors.keySet().forEach( sourc -> sources.add( moBIE.openSourceAndConverter( sourc ).getSpimSource() ) );
-                List<String> sourcesNames = new ArrayList<>();
-                sources.forEach( source -> sourcesNames.add( source.getName() ) );
-                List<int[]> ll = new ArrayList<>( sourcesForGridViewSelectors.values() );
-                MergedGridSource mergedGridSource = new MergedGridSource(
-                        sources, ll,
-                        newMergedGridViewName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
-                System.out.println( mergedGridSource.getName() );
-                Map<String, SourceAndConverter<?>> sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( sourcesForGridViewSelectors.keySet() );
-                final List<SourceAndConverter<?>> gridSources = new ArrayList<>();
-                for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
-                    gridSources.add( sourceNameToSourceAndConverters.get( sourceName ) );
-                }
-                final VolatileSource<?, ?> volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
-                final SourceAndConverter<?> volatileSourceAndConverter = new SourceAndConverter( volatileMergedGridSource, gridSources.get( 0 ).asVolatile().getConverter() );
-                final SourceAndConverter<?> mergedSourceAndConverter = new SourceAndConverter( mergedGridSource, gridSources.get( 0 ).getConverter(), volatileSourceAndConverter );
-                Map<String, SourceAndConverter<?>> sourceNameToSourceAndConverter = new HashMap<>();
-                sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
-
-                // register all available sources
-                moBIE.addSourceAndConverters( sourceNameToSourceAndConverter );
-
-                ImageSourceDisplay newImg = new ImageSourceDisplay(
-                        newMergedGridViewName, 1.0, sourcesNames, "white", new double[]{ 0.0, 255.0 }, null, false );
-                newImg.sourceNameToSourceAndConverter = sourceNameToSourceAndConverter;
-
-                List<SourceDisplay> sourceDisplays = new ArrayList<>();
-                List<SourceTransformer> sourceTransformers = new ArrayList<>();
-                LinkedHashMap<String, List<String>> stringListLinkedHashMap = new LinkedHashMap<>();
-                for ( int i = 0; i < sources.size(); i++ ) {
-                    stringListLinkedHashMap.put( String.valueOf( i ), new ArrayList<>( Collections.singleton( sources.get( i ).getName() ) ) );
-                }
-                SourceTransformer sourceTransformer = new TransformedGridSourceTransformer( newMergedGridViewName, stringListLinkedHashMap, stringListLinkedHashMap );
-//                        SourceTransformer sourceTransformer1 = new GridSourceTransformer(sourcesNames,"NEW_ONE", new ArrayList<>(sourcesForGridViewSelectors.values()), mergedGridSource);
-                sourceTransformers.add( sourceTransformer );
-                sourceDisplays.add( newImg );
-
-                View created = new View( "gridView", sourceDisplays,
-                        sourceTransformers, true );
-
-                moBIE.getViewManager().removeAllSourceDisplays();
-
-                if ( sourceTransformers.size() != 0 )
-                    for ( SourceTransformer sourceTransform : sourceTransformers ) {
-//                             (TransformedGridSourceTransformer) sourceTransform );
-                        sourceTransform.transform( sourceNameToSourceAndConverters );
-                    }
-
-                // register all available sources
-                moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
-
-                // show the displays
-
-                for ( SourceDisplay sourceDisplay : sourceDisplays )
-                    moBIE.getViewManager().showSourceDisplay( sourceDisplay );
-
-
-                // adjust viewer transform
-                moBIE.getViewManager().setCurrentView( created );
-                moBIE.getViewManager().adjustViewerTransform( created );
+                showGridView( gridViewName );
 
             } );
         } );
@@ -278,6 +209,81 @@ public class UserInterfaceHelper
         frame.setResizable( true );
         frame.pack();
         frame.setVisible( true );
+    }
+
+    private void showGridView( JTextField gridViewName )
+    {
+        String newMergedGridViewName = gridViewName.getText();
+        if (newMergedGridViewName.isEmpty() || newMergedGridViewName.equals( "Grid view name" )) {
+            JOptionPane.showMessageDialog(new JFrame(), "Please Enter Grid view name", "Dialog",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        List<Source> sources = new ArrayList<>();
+        sourcesForGridViewSelectors.keySet().forEach( sourc -> sources.add( moBIE.openSourceAndConverter( sourc ).getSpimSource() ) );
+        List<String> sourcesNames = new ArrayList<>();
+        sources.forEach( source -> {
+            if ( !source.getName().equals( "data" ) ) {
+                sourcesNames.add( source.getName() );
+            }
+        });
+        List<int[]> positions = new ArrayList<>( sourcesForGridViewSelectors.values() );
+        MergedGridSource mergedGridSource = new MergedGridSource(
+                sources, positions,
+                newMergedGridViewName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+
+        Map<String, SourceAndConverter<?>> sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( sourcesForGridViewSelectors.keySet() );
+        final List<SourceAndConverter<?>> gridSources = new ArrayList<>();
+        for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
+            gridSources.add( sourceNameToSourceAndConverters.get( sourceName ) );
+        }
+        final VolatileSource<?, ?> volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
+        final SourceAndConverter<?> volatileSourceAndConverter = new SourceAndConverter( volatileMergedGridSource, gridSources.get( 0 ).asVolatile().getConverter() );
+        final SourceAndConverter<?> mergedSourceAndConverter = new SourceAndConverter( mergedGridSource, gridSources.get( 0 ).getConverter(), volatileSourceAndConverter );
+        Map<String, SourceAndConverter<?>> sourceNameToSourceAndConverter = new HashMap<>();
+        sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
+
+        // register all available sources
+        moBIE.addSourceAndConverters( sourceNameToSourceAndConverter );
+
+        ImageSourceDisplay newImg = new ImageSourceDisplay(
+                newMergedGridViewName, 1.0, sourcesNames, "white", new double[]{ 0.0, 255.0 }, null, false );
+        newImg.sourceNameToSourceAndConverter = sourceNameToSourceAndConverter;
+
+        List<SourceDisplay> sourceDisplays = new ArrayList<>();
+        List<SourceTransformer> sourceTransformers = new ArrayList<>();
+        LinkedHashMap<String, List<String>> stringListLinkedHashMap = new LinkedHashMap<>();
+        for ( int i = 0; i < sources.size(); i++ ) {
+            stringListLinkedHashMap.put( String.valueOf( i ), new ArrayList<>( Collections.singleton( sources.get( i ).getName() ) ) );
+        }
+        SourceTransformer sourceTransformer = new TransformedGridSourceTransformer( newMergedGridViewName, stringListLinkedHashMap, stringListLinkedHashMap );
+//                        SourceTransformer sourceTransformer1 = new GridSourceTransformer(sourcesNames,"NEW_ONE", new ArrayList<>(sourcesForGridViewSelectors.values()), mergedGridSource);
+        sourceTransformers.add( sourceTransformer );
+        sourceDisplays.add( newImg );
+
+        View created = new View( "gridView", sourceDisplays,
+                sourceTransformers, true );
+
+        moBIE.getViewManager().removeAllSourceDisplays();
+
+        if ( sourceTransformers.size() != 0 )
+            for ( SourceTransformer sourceTransform : sourceTransformers ) {
+//                             (TransformedGridSourceTransformer) sourceTransform );
+                sourceTransform.transform( sourceNameToSourceAndConverters );
+            }
+
+        // register all available sources
+        moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
+
+        // show the displays
+
+        for ( SourceDisplay sourceDisplay : sourceDisplays )
+            moBIE.getViewManager().showSourceDisplay( sourceDisplay );
+
+
+        // adjust viewer transform
+        moBIE.getViewManager().setCurrentView( created );
+        moBIE.getViewManager().adjustViewerTransform( created );
     }
 
     private void resetPositions() {
