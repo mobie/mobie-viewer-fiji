@@ -391,4 +391,13 @@ public abstract class Utils
 			values.set( i, String.valueOf( Double.parseDouble( values.get( i ) ) ) );
 		}
 	}
+
+	public static boolean containsAtLeastOne( Collection<String> a, Collection<String> b ) {
+		for ( String item : b ) {
+			if ( a.contains( item ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

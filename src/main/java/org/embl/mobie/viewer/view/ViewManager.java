@@ -53,6 +53,7 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.embl.mobie.viewer.Utils.containsAtLeastOne;
 import static org.embl.mobie.viewer.ui.UserInterfaceHelper.*;
 
 public class ViewManager
@@ -501,6 +502,22 @@ public class ViewManager
 
 		userInterface.removeDisplaySettingsPanel( sourceDisplay );
 		currentSourceDisplays.remove( sourceDisplay );
+
+		// remove any sourceTransformers, where none of its relevant 'sources' are displayed
+
+		// create a copy of the currently shown source transformers, so we don't iterate over a list that we modify
+		final ArrayList< SourceTransformer > sourceTransformersCopy = new ArrayList<>( this.currentSourceTransformers ) ;
+
+		Set<String> currentlyDisplayedSources = new HashSet<>();
+		for ( SourceDisplay display: currentSourceDisplays ) {
+			currentlyDisplayedSources.addAll( display.getSources() );
+		}
+
+		for ( SourceTransformer sourceTransformer: sourceTransformersCopy ) {
+			if ( !containsAtLeastOne( currentlyDisplayedSources, sourceTransformer.getSources() )) {
+				currentSourceTransformers.remove( sourceTransformer );
+			}
+		}
 	}
 
 	public Collection< SegmentationSourceDisplay > getSegmentationDisplays()
