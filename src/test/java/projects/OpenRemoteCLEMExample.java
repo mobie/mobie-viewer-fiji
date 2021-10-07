@@ -7,13 +7,13 @@ import net.imagej.ImageJ;
 
 import java.io.IOException;
 
-public class OpenRemoteYeastCLEM
+public class OpenRemoteCLEMExample
 {
 	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		new MoBIE("https://github.com/mobie/clem-example-project/", MoBIESettings.settings().gitProjectBranch( "spec-v2" ).imageDataFormat( ImageDataFormat.BdvN5S3 ) );
+		new MoBIE("https://github.com/mobie/clem-example-project/", MoBIESettings.settings().gitProjectBranch( "update-views" ).imageDataFormat( ImageDataFormat.BdvN5S3 ).view( "tomos-merged" ) );
 	}
 }
