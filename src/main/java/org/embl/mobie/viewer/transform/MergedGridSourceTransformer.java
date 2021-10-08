@@ -22,12 +22,10 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	protected List< String > sources;
 	protected String mergedGridSourceName;
 	protected List< int[] > positions;
-	protected boolean centerAtOrigin = false;
-	private MergedGridSource< ? > mergedGridSource;
-	private double[] translationRealOffset;
 
 	// Runtime
-
+	private transient MergedGridSource< ? > mergedGridSource;
+	private transient double[] translationRealOffset;
 
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
@@ -41,19 +39,13 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 		sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
 
-		// needed to know where the individual sources are in space:
+		// needed to know where the individual sources are in space
+		// such that they can be zoomed to from an annotatedSourceDisplay
 		transformGridSourcesIndividually( sourceNameToSourceAndConverter, gridSources );
 	}
 
 	private void transformGridSourcesIndividually( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > gridSources )
 	{
-		final long start = System.currentTimeMillis();
-
-		final ArrayList< SourceAndConverter< ? > > referenceSources = new ArrayList<>();
-		referenceSources.add( gridSources.get( 0 ) );
-
-		// final double[] gridCellRealDimensions = TransformedGridSourceTransformer.computeGridCellRealDimensions( referenceSources, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
-
 		final double[] gridCellRealDimensions = mergedGridSource.getCellRealDimensions();
 
 		// due to margin...
@@ -71,16 +63,17 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 			// translate the source(s) at this grid position
 			// (in fact, here it can only be one source per grid position)
+			// note that this currently only yields the correct result
+			// when the source transforms only contain the scaling and no
+			// translation
 			executorService.execute( () -> {
-				TransformedGridSourceTransformer.translate( sourceNameToSourceAndConverter, sourceNamesAtGridPosition, null, centerAtOrigin, gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ], gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ]);
+				TransformedGridSourceTransformer.translate( sourceNameToSourceAndConverter, sourceNamesAtGridPosition, null, false, gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ], gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ]);
 			} );
 
 			translateSourcesWithinMergedSources( sourceNameToSourceAndConverter, gridCellRealDimensions, executorService, finalPositionIndex, sourceNamesAtGridPosition );
 
 		}
 		Utils.waitUntilFinishedAndShutDown( executorService );
-
-		// System.out.println( "Transformed " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
 	}
 
 	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealDimensions )
@@ -114,7 +107,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		if ( baseSourceNames.size() > 0 )
 		{
 			executorService.execute( () -> {
-				TransformedGridSourceTransformer.translate( sourceNameToSourceAndConverter, baseSourceNames, null, centerAtOrigin, gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ], gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ]);
+				TransformedGridSourceTransformer.translate( sourceNameToSourceAndConverter, baseSourceNames, null, false, gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ], gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ]);
 			} );
 		}
 	}
