@@ -23,10 +23,10 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	protected String mergedGridSourceName;
 	protected List< int[] > positions;
 	protected boolean centerAtOrigin = false;
-	private MergedGridSource< ? > mergedGridSource;
-	private double[] translationRealOffset;
 
 	// Runtime
+	private transient MergedGridSource< ? > mergedGridSource;
+	private transient double[] translationRealOffset;
 
 
 	@Override
