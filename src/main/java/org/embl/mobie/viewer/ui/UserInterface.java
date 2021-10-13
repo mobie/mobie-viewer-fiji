@@ -18,6 +18,7 @@ import static org.embl.mobie.viewer.ui.UserInterfaceHelper.*;
 public class UserInterface
 {
 	private final JPanel displaySettingsContainer;
+	private final JScrollPane displaySettingsScrollPane;
 	private final JFrame frame;
 	private final JPanel selectionContainer;
 	private final UserInterfaceHelper userInterfaceHelper;
@@ -30,10 +31,12 @@ public class UserInterface
 		userInterfaceHelper = new UserInterfaceHelper( moBIE );
 
 		selectionContainer = userInterfaceHelper.createSelectionPanel();
-		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsPanel();
+		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsContainer();
+		displaySettingsScrollPane = userInterfaceHelper.createDisplaySettingsScrollPane( displaySettingsContainer );
+		JPanel displaySettingsPanel = userInterfaceHelper.createDisplaySettingsPanel( displaySettingsScrollPane );
 		displayToPanel = new HashMap<>();
 
-		frame = createAndShowFrame( selectionContainer, displaySettingsContainer, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
+		frame = createAndShowFrame( selectionContainer, displaySettingsPanel, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
 		MoBIELookAndFeelToggler.resetMoBIELaf();
 	}
 
@@ -128,6 +131,12 @@ public class UserInterface
 		SwingUtilities.invokeLater( () -> {
 			displayToPanel.put( display, panel );
 			displaySettingsContainer.add( panel );
+
+			// scroll to bottom, so any new panels are visible
+			displaySettingsScrollPane.validate();
+			JScrollBar vertical = displaySettingsScrollPane.getVerticalScrollBar();
+			vertical.setValue( vertical.getMaximum() );
+
 			refreshDisplaySettings();
 		});
 	}

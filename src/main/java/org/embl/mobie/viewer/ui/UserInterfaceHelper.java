@@ -67,11 +67,30 @@ public class UserInterfaceHelper
 		this.moBIE = moBIE;
 	}
 
-	public static JPanel createDisplaySettingsPanel()
-	{
+	public JPanel createDisplaySettingsContainer() {
+		JPanel displaySettingsContainer = new JPanel();
+		displaySettingsContainer.setLayout( new BoxLayout( displaySettingsContainer, BoxLayout.PAGE_AXIS ));
+		displaySettingsContainer.setBorder( BorderFactory.createEmptyBorder() );
+		displaySettingsContainer.setAlignmentX( Component.LEFT_ALIGNMENT );
+
+		return displaySettingsContainer;
+	}
+
+	public JScrollPane createDisplaySettingsScrollPane( JPanel displaySettingsContainer ) {
+		JScrollPane displaySettingsScrollPane = new JScrollPane( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
+		displaySettingsScrollPane.setBorder( BorderFactory.createEmptyBorder() );
+
+		displaySettingsScrollPane.setViewportView( displaySettingsContainer );
+		return displaySettingsScrollPane;
+	}
+
+	public JPanel createDisplaySettingsPanel( JScrollPane displaySettingsScrollPane ) {
 		final JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout(panel, BoxLayout.Y_AXIS ) );
 		panel.setAlignmentX( Component.LEFT_ALIGNMENT );
+		panel.add( displaySettingsScrollPane );
+
 		return panel;
 	}
 
