@@ -5,7 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.CropSourceTransformer;
 import org.embl.mobie.viewer.transform.TransformedGridSourceTransformer;
-import org.embl.mobie.viewer.transform.GridSourceTransformer;
+import org.embl.mobie.viewer.transform.MergedGridSourceTransformer;
 import org.embl.mobie.viewer.transform.SourceTransformer;
 
 import java.lang.reflect.Type;
@@ -17,10 +17,10 @@ public class SourceTransformerListAdapter implements JsonSerializer< List<Source
 	private static Map<String, String> classToName = new TreeMap<>();
 
 	static {
-		nameToClass.put("grid", GridSourceTransformer.class);
-		classToName.put( GridSourceTransformer.class.getName(), "grid");
-		nameToClass.put("transformGrid", TransformedGridSourceTransformer.class);
-		classToName.put( TransformedGridSourceTransformer.class.getName(), "transformGrid");
+		nameToClass.put("mergedGrid", MergedGridSourceTransformer.class);
+		classToName.put( MergedGridSourceTransformer.class.getName(), "mergedGrid");
+		nameToClass.put("transformedGrid", TransformedGridSourceTransformer.class);
+		classToName.put( TransformedGridSourceTransformer.class.getName(), "transformedGrid");
 		nameToClass.put("affine", AffineSourceTransformer.class);
 		classToName.put(AffineSourceTransformer.class.getName(), "affine");
 		nameToClass.put("crop", CropSourceTransformer.class);

@@ -16,17 +16,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-public class GridSourceTransformer extends AbstractSourceTransformer
+public class MergedGridSourceTransformer extends AbstractSourceTransformer
 {
 	// Serialization
 	protected List< String > sources;
 	protected String mergedGridSourceName;
 	protected List< int[] > positions;
 	protected boolean centerAtOrigin = false;
-	private MergedGridSource< ? > mergedGridSource;
-	private double[] translationRealOffset;
 
 	// Runtime
+	private transient MergedGridSource< ? > mergedGridSource;
+	private transient double[] translationRealOffset;
 
 
 	@Override

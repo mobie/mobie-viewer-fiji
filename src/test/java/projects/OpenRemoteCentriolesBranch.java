@@ -16,7 +16,7 @@ public class OpenRemoteCentriolesBranch
 
 		try {
 			new MoBIE("https://github.com/mobie/centrioles-tomo-datasets",
-					MoBIESettings.settings().gitProjectBranch( "grid-test2" ).imageDataFormat( ImageDataFormat.BdvN5S3 ) );
+					MoBIESettings.settings().gitProjectBranch( "grid-test-tomo" ).imageDataFormat( ImageDataFormat.BdvN5S3 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

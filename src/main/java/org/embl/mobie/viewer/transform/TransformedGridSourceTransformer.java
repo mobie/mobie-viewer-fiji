@@ -16,16 +16,14 @@ import java.util.concurrent.Executors;
 
 public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 {
-	public static final double RELATIVE_CELL_MARGIN = 0.1;
-
 	// Serialization
-	protected LinkedHashMap< String, List< String > > sources;
-	protected LinkedHashMap< String, List< String > > sourceNamesAfterTransform;
-	protected LinkedHashMap< String, int[] > positions;
+	protected List< List< String > > sources;
+	protected List< List< String > > sourceNamesAfterTransform;
+	protected List< int[] > positions;
 	protected boolean centerAtOrigin = false;
 
-	// Runtime
-	private transient ArrayList< String > gridIds;
+	// Static
+	public static final double RELATIVE_CELL_MARGIN = 0.1;
 
     public TransformedGridSourceTransformer( String name, LinkedHashMap<String, List<String>> sources, LinkedHashMap<String, List<String>> sourceNamesAfterTransform)
     {
@@ -38,12 +36,10 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
     @Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
-		gridIds = new ArrayList<>( sources.keySet() );
-
 		if ( positions == null )
 			autoSetPositions();
 
-		final double[] cellRealDimensions = TransformHelper.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources.values() );
+		final double[] cellRealDimensions = TransformHelper.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
 
 		transform( sourceNameToSourceAndConverter, cellRealDimensions );
 	}
@@ -52,8 +48,8 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	public List< String > getSources()
 	{
 		final ArrayList< String > allSources = new ArrayList<>();
-		for ( List< String > sources : this.sources.values() )
-			allSources.addAll( sources );
+		for ( List< String > sourcesAtGridPosition : sources )
+			allSources.addAll( sourcesAtGridPosition );
 		return allSources;
 	}
 
@@ -64,14 +60,16 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		final int nThreads = MoBIE.N_THREADS;
 		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
 
-		for ( String gridId : sources.keySet() )
+		final int numGridPositions = sources.size();
+
+		for ( int gridIndex = 0; gridIndex < numGridPositions; gridIndex++ )
 		{
+			int finalGridIndex = gridIndex;
 			executorService.execute( () -> {
 				if ( sourceNamesAfterTransform != null )
-					translate( sourceNameToSourceAndConverter, sources.get( gridId ), sourceNamesAfterTransform.get( gridId ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( gridId )[ 0 ], cellRealDimensions[ 1 ] * positions.get( gridId )[ 1 ] );
+					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), sourceNamesAfterTransform.get( finalGridIndex ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
 				else
-					translate( sourceNameToSourceAndConverter, sources.get( gridId ), null, centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( gridId )[ 0 ], cellRealDimensions[ 1 ] * positions.get( gridId )[ 1 ] );
-
+					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), null, centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
 			} );
 		}
 
@@ -111,35 +109,11 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		}
 	}
 
-	private List< SourceAndConverter< ? > > getReferenceSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, LinkedHashMap< String, List< String > > sources )
-	{
-		final List< String > sourceNamesAtFirstGridPosition = sources.get( gridIds.get( 0 ) );
-
-		List< SourceAndConverter< ? > > referenceSources = new ArrayList<>();
-		for ( String sourceName : sourceNamesAtFirstGridPosition )
-		{
-			final SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
-			if ( sourceAndConverter != null )
-			{
-				referenceSources.add( sourceAndConverter );
-			}
-		}
-
-		if ( referenceSources.size() != 0 )
-		{
-			return referenceSources;
-		}
-		else
-		{
-			throw new UnsupportedOperationException( "None of the sources specified at the first grid position could be found at the list of the sources that are to be transformed. Names of sources at first grid position: " + ArrayUtils.toString( sourceNamesAtFirstGridPosition ) );
-		}
-	}
-
 	private void autoSetPositions()
 	{
 		final int numPositions = sources.size();
 		final int numX = ( int ) Math.ceil( Math.sqrt( numPositions ) );
-		positions = new LinkedHashMap<>();
+		positions = new ArrayList<>();
 		int xPositionIndex = 0;
 		int yPositionIndex = 0;
 		for ( int gridIndex = 0; gridIndex < numPositions; gridIndex++ )
@@ -149,7 +123,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 				xPositionIndex = 0;
 				yPositionIndex++;
 			}
-			positions.put( gridIds.get( gridIndex ), new int[]{ xPositionIndex, yPositionIndex }  );
+			positions.add( new int[]{ xPositionIndex, yPositionIndex }  );
 			xPositionIndex++;
 		}
 	}
