@@ -7,7 +7,6 @@ import bdv.util.BoundedValueDouble;
 import bdv.util.VolatileSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import com.formdev.flatlaf.FlatLightLaf;
 import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
@@ -27,7 +26,6 @@ import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.serialize.JsonHelper;
 import org.embl.mobie.viewer.transform.*;
 import org.embl.mobie.viewer.view.View;
-import org.embl.mobie.viewer.view.saving.ViewsSaver;
 import org.jetbrains.annotations.NotNull;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
@@ -215,9 +213,9 @@ public class UserInterfaceHelper
     private void showGridView( JTextField gridViewName )
     {
         String newMergedGridViewName = gridViewName.getText();
-        if (newMergedGridViewName.isEmpty() || newMergedGridViewName.equals( "Grid view name" )) {
-            JOptionPane.showMessageDialog(new JFrame(), "Please Enter Grid view name", "Dialog",
-                    JOptionPane.ERROR_MESSAGE);
+        if ( newMergedGridViewName.isEmpty() || newMergedGridViewName.equals( "Grid view name" ) ) {
+            JOptionPane.showMessageDialog( new JFrame(), "Please Enter Grid view name", "Dialog",
+                    JOptionPane.ERROR_MESSAGE );
             return;
         }
         List<Source> sources = new ArrayList<>();
@@ -227,7 +225,7 @@ public class UserInterfaceHelper
             if ( !source.getName().equals( "data" ) ) {
                 sourcesNames.add( source.getName() );
             }
-        });
+        } );
         List<int[]> positions = new ArrayList<>( sourcesForGridViewSelectors.values() );
         MergedGridSource mergedGridSource = new MergedGridSource(
                 sources, positions,
@@ -244,7 +242,6 @@ public class UserInterfaceHelper
         Map<String, SourceAndConverter<?>> sourceNameToSourceAndConverter = new HashMap<>();
         sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
 
-        // register all available sources
         moBIE.addSourceAndConverters( sourceNameToSourceAndConverter );
 
         ImageSourceDisplay newImg = new ImageSourceDisplay(
@@ -258,31 +255,21 @@ public class UserInterfaceHelper
             stringListLinkedHashMap.put( String.valueOf( i ), new ArrayList<>( Collections.singleton( sources.get( i ).getName() ) ) );
         }
         SourceTransformer sourceTransformer = new TransformedGridSourceTransformer( newMergedGridViewName, stringListLinkedHashMap, stringListLinkedHashMap );
-//                        SourceTransformer sourceTransformer1 = new GridSourceTransformer(sourcesNames,"NEW_ONE", new ArrayList<>(sourcesForGridViewSelectors.values()), mergedGridSource);
         sourceTransformers.add( sourceTransformer );
         sourceDisplays.add( newImg );
-
         View created = new View( "gridView", sourceDisplays,
                 sourceTransformers, true );
-
         moBIE.getViewManager().removeAllSourceDisplays();
-
+        moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
         if ( sourceTransformers.size() != 0 )
             for ( SourceTransformer sourceTransform : sourceTransformers ) {
-//                             (TransformedGridSourceTransformer) sourceTransform );
                 sourceTransform.transform( sourceNameToSourceAndConverters );
             }
-
-        // register all available sources
-        moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
-
-        // show the displays
-
-        for ( SourceDisplay sourceDisplay : sourceDisplays )
+        for ( SourceDisplay sourceDisplay : sourceDisplays ) {
             moBIE.getViewManager().showSourceDisplay( sourceDisplay );
-
-
-        // adjust viewer transform
+            AffineTransform3D transform = new ViewerTransformAdjuster( moBIE.getViewManager().getSliceViewer().getBdvHandle(), mergedSourceAndConverter ).getTransform();
+            new ViewerTransformChanger( moBIE.getViewManager().getSliceViewer().getBdvHandle(), transform, false, 1000 ).run();
+        }
         moBIE.getViewManager().setCurrentView( created );
         moBIE.getViewManager().adjustViewerTransform( created );
     }
@@ -306,7 +293,6 @@ public class UserInterfaceHelper
         selectPanel.setLayout( new BorderLayout() );
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.fill = GridBagConstraints.HORIZONTAL;
-        //all
         final JComboBox< String > comboBox = new JComboBox<>( moBIE.getDataset().sources.keySet().toArray( new String[ 0 ] ) );
         selectPanel.add(comboBox, BorderLayout.WEST);
         final JButton removeButton = new JButton("-");
@@ -324,8 +310,6 @@ public class UserInterfaceHelper
         }
         );
         sourcesForDynamicGridView.add( comboBox );
-
-//        selectPanel.add( position );
         selectPanel.add( removeButton, BorderLayout.EAST);
         datasetsPanel.add( selectPanel );
         frame.pack();
@@ -598,6 +582,9 @@ public class UserInterfaceHelper
 					int index = ( (DefaultComboBoxModel) comboBox.getModel() ).getIndexOf( viewName );
 					if ( index == -1 ) {
 						comboBox.addItem(viewName);
+                        if (moBIE.getDataset().sources.containsKey( viewName )) {
+                            comboBox.setToolTipText( moBIE.getDataset().sources.get(viewName ).get().description );
+                        }
 					}
 				} else {
 					final JPanel selectionPanel = createViewSelectionPanel(moBIE, uiSelectionGroup, groupingsToViews.get(uiSelectionGroup));
