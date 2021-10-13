@@ -64,7 +64,7 @@ public class UserInterfaceHelper
 	private Map< String, JComboBox > groupingsToComboBox;
 	private List<JComboBox<String>> sourcesForDynamicGridView = new ArrayList<>();
 	private Map< String, int[] > sourcesForGridViewSelectors = new HashMap<>();
-    private List<GridSourceTransformer> currentSourceTransformers = new ArrayList<>();
+    private List<MergedGridSourceTransformer> currentSourceTransformers = new ArrayList<>();
 
 	public UserInterfaceHelper( MoBIE moBIE )
 	{
