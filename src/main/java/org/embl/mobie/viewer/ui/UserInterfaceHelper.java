@@ -33,6 +33,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -157,6 +158,7 @@ public class UserInterfaceHelper
 
     public void showDynamicGridViewsDialog()
     {
+        MoBIELookAndFeelToggler.setMoBIELaf();
         JFrame frame = new JFrame( "Create grid view" );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         final JPanel dialogPanel = SwingUtils.horizontalLayoutPanel();
@@ -185,9 +187,8 @@ public class UserInterfaceHelper
         constraints.gridy = 1;
         constraints.gridx = 0;
         dialogPanel.add( gridViewName, constraints );
-
         addDataset( datasetsPanel, frame );
-
+        MoBIELookAndFeelToggler.setMoBIELaf();
         constraints.gridy = 4;
         constraints.gridwidth = 1;
         constraints.gridx = 1;
@@ -197,6 +198,7 @@ public class UserInterfaceHelper
             SwingUtilities.invokeLater( () ->
             {
                 addDataset( datasetsPanel, frame );
+                datasetsPanel.add( Box.createHorizontalStrut(5) );
             } );
         } );
         addButton.setMargin( new Insets( 0, 0, 0, 0 ) );
@@ -218,7 +220,7 @@ public class UserInterfaceHelper
 
             } );
         } );
-
+        MoBIELookAndFeelToggler.resetMoBIELaf();
         dialogPanel.add( showButton, constraints );
 
         frame.setContentPane( dialogPanel );
@@ -227,10 +229,12 @@ public class UserInterfaceHelper
         frame.setResizable( true );
         frame.pack();
         frame.setVisible( true );
+        MoBIELookAndFeelToggler.resetMoBIELaf();
     }
 
     private void showGridView( JTextField gridViewName )
     {
+        MoBIELookAndFeelToggler.setMoBIELaf();
         String newMergedGridViewName = gridViewName.getText();
         if ( newMergedGridViewName.isEmpty() || newMergedGridViewName.equals( "Grid view name" ) ) {
             JOptionPane.showMessageDialog( new JFrame(), "Please Enter Grid view name", "Dialog",
@@ -291,6 +295,7 @@ public class UserInterfaceHelper
         }
         moBIE.getViewManager().setCurrentView( created );
         moBIE.getViewManager().adjustViewerTransform( created );
+        MoBIELookAndFeelToggler.resetMoBIELaf();
     }
 
     private void resetPositions() {
@@ -308,14 +313,16 @@ public class UserInterfaceHelper
 
     private void addDataset( JPanel datasetsPanel, JFrame frame )
     {
+        MoBIELookAndFeelToggler.setMoBIELaf();
         final JPanel selectPanel = new JPanel( new BorderLayout());
-        selectPanel.setLayout( new BorderLayout() );
+        selectPanel.setLayout( new BorderLayout(2,2) );
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.fill = GridBagConstraints.HORIZONTAL;
         final JComboBox< String > comboBox = new JComboBox<>( moBIE.getDataset().sources.keySet().toArray( new String[ 0 ] ) );
         selectPanel.add(comboBox, BorderLayout.WEST);
         final JButton removeButton = new JButton("-");
         comboBox.setSelectedItem( moBIE.getDatasetName() );
+        removeButton.setMargin( new Insets(2,2,2,2) );
         setComboBoxDimensions( comboBox );
         removeButton.addActionListener( e ->
         {
@@ -332,6 +339,7 @@ public class UserInterfaceHelper
         selectPanel.add( removeButton, BorderLayout.EAST);
         datasetsPanel.add( selectPanel );
         frame.pack();
+        MoBIELookAndFeelToggler.resetMoBIELaf();
     }
 
     public static void showOpacityDialog(
