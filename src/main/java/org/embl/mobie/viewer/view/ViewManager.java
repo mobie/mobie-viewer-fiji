@@ -2,7 +2,9 @@ package org.embl.mobie.viewer.view;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.n5.util.source.LabelSource;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
@@ -165,7 +167,13 @@ public class ViewManager
 	private void addManualTransforms( List< SourceTransformer > viewSourceTransforms,
 									  Map<String, SourceAndConverter<?> > sourceNameToSourceAndConverter ) {
 		for ( String sourceName: sourceNameToSourceAndConverter.keySet() ) {
-			TransformedSource transformedSource = (TransformedSource) sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
+			Source<?> source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
+
+			if ( source instanceof LabelSource ) {
+				source = ((LabelSource) source).getWrappedSource();
+			}
+			TransformedSource transformedSource = (TransformedSource) source;
+
 			AffineTransform3D fixedTransform = new AffineTransform3D();
 			transformedSource.getFixedTransform( fixedTransform );
 			if ( !fixedTransform.isIdentity() ) {
@@ -205,7 +213,6 @@ public class ViewManager
 				AnnotatedIntervalDisplay annotatedIntervalDisplay = ( AnnotatedIntervalDisplay ) sourceDisplay;
 				if ( hasColumnsOutsideProject( annotatedIntervalDisplay ) ) { return null; }
 				currentDisplay = new AnnotatedIntervalDisplay( annotatedIntervalDisplay );
-				addManualTransforms( viewSourceTransforms, annotatedIntervalDisplay.sourceNameToSourceAndConverter );
 			}
 
 			if ( currentDisplay != null )
