@@ -1,15 +1,22 @@
 package org.embl.mobie.viewer.source;
 
+import bdv.img.cache.VolatileGlobalCellCache;
 import bdv.util.volatiles.SharedQueue;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.n5.ome.zarr.loaders.N5S3OMEZarrImageLoader;
-import de.embl.cba.n5.ome.zarr.loaders.xml.XmlN5OmeZarrImageLoader;
-import de.embl.cba.n5.ome.zarr.openers.OMEZarrOpener;
-import de.embl.cba.n5.ome.zarr.openers.OMEZarrS3Opener;
-import de.embl.cba.n5.openorganelle.OpenOrganelleS3Opener;
 import de.embl.cba.tables.FileAndUrlUtils;
 import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.generic.sequence.BasicViewSetup;
+import net.imglib2.cache.queue.BlockingFetchQueues;
+import net.imglib2.cache.queue.FetcherThreads;
 import net.imglib2.util.Cast;
+import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
+import org.embl.mobie.io.ome.zarr.loaders.N5S3OMEZarrImageLoader;
+import org.embl.mobie.io.ome.zarr.loaders.xml.XmlN5OmeZarrImageLoader;
+import org.embl.mobie.io.ome.zarr.openers.OMEZarrOpener;
+import org.embl.mobie.io.ome.zarr.openers.OMEZarrS3Opener;
+import org.embl.mobie.io.openorganelle.OpenOrganelleS3Opener;
+import org.embl.mobie.viewer.bdv.N5Opener;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -21,6 +28,7 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static mpicbg.spim.data.XmlKeys.IMGLOADER_TAG;
@@ -61,7 +69,7 @@ public class SpimDataOpener {
         switch ( imageDataFormat ) {
             case BdvN5:
             case BdvN5S3:
-                spimData = BdvUtils.openSpimData( imagePath );
+                spimData = openBDV( imagePath, sharedQueue );
                 break;
             case OmeZarr:
                 spimData = openOmeZarrData( imagePath, sharedQueue );
@@ -80,6 +88,17 @@ public class SpimDataOpener {
         }
 
         return spimData;
+    }
+
+    private SpimData openBDV(String path, SharedQueue queue)
+    {
+        try {
+            return N5Opener.openFile( path, queue );
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+        return null;
+
     }
 
     private SpimData openOmeZarrData( String path )
