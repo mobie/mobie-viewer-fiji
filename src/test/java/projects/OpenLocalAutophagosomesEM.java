@@ -13,9 +13,12 @@ public class OpenLocalAutophagosomesEM
 	{
 		new ImageJ().ui().showUI();
 		try {
-			new MoBIE("/g/kreshuk/pape/work/my_projects/autophagosoms-clem/data",
+			new MoBIE("/home/katerina/Documents/embl/mnt2/kreshuk/pape/Work/mobie/arabidopsis-root-lm-datasets/data",
 					MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ) );
-		} catch (IOException e) {
+//            new MoBIE( "/home/katerina/Documents/embl/mnt/kreshuk/pape/Work/mobie/covid-if-project/data", MoBIESettings.settings().imageDataFormat( ImageDataFormat.OmeZarr ) );
+
+
+        } catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
