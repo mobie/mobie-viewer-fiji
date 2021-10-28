@@ -2,39 +2,7 @@ package org.embl.mobie.viewer.view;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
-import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.n5.util.source.LabelSource;
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
-import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
-import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
-import org.embl.mobie.viewer.color.MoBIEColoringModel;
-import org.embl.mobie.viewer.display.AbstractSourceDisplay;
-import org.embl.mobie.viewer.display.AnnotatedRegionDisplay;
-import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
-import org.embl.mobie.viewer.display.SourceDisplay;
-import org.embl.mobie.viewer.playground.PlaygroundUtils;
-import org.embl.mobie.viewer.Utils;
-import org.embl.mobie.viewer.bdv.view.ImageSliceView;
-import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
-import org.embl.mobie.viewer.bdv.view.SliceViewer;
-import org.embl.mobie.viewer.playground.SourceAffineTransformer;
-import org.embl.mobie.viewer.plot.ScatterPlotViewer;
-import org.embl.mobie.viewer.segment.SegmentAdapter;
-import org.embl.mobie.viewer.display.ImageSourceDisplay;
-import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
-import org.embl.mobie.viewer.source.SegmentationSource;
-import org.embl.mobie.viewer.table.TableDataFormat;
-import org.embl.mobie.viewer.table.TableViewer;
-import org.embl.mobie.viewer.transform.AffineSourceTransformer;
-import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
-import org.embl.mobie.viewer.ui.UserInterface;
-import org.embl.mobie.viewer.ui.WindowArrangementHelper;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
-import org.embl.mobie.viewer.view.saving.ViewsSaver;
-import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
-import org.embl.mobie.viewer.volume.UniverseManager;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.select.DefaultSelectionModel;
@@ -42,21 +10,43 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.lang.ArrayUtils;
+import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
+import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
+import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
+import org.embl.mobie.viewer.bdv.view.ImageSliceView;
+import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
+import org.embl.mobie.viewer.bdv.view.SliceViewer;
+import org.embl.mobie.viewer.color.MoBIEColoringModel;
+import org.embl.mobie.viewer.display.*;
+import org.embl.mobie.viewer.playground.PlaygroundUtils;
+import org.embl.mobie.viewer.playground.SourceAffineTransformer;
+import org.embl.mobie.viewer.plot.ScatterPlotViewer;
+import org.embl.mobie.viewer.segment.SegmentAdapter;
+import org.embl.mobie.viewer.source.SegmentationSource;
+import org.embl.mobie.viewer.table.TableDataFormat;
+import org.embl.mobie.viewer.table.TableViewer;
+import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SourceTransformer;
+import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
+import org.embl.mobie.viewer.ui.UserInterface;
+import org.embl.mobie.viewer.ui.WindowArrangementHelper;
+import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
+import org.embl.mobie.viewer.view.saving.ViewsSaver;
+import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
+import org.embl.mobie.viewer.volume.UniverseManager;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-
 import javax.swing.*;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.embl.mobie.viewer.Utils.containsAtLeastOne;
-import static org.embl.mobie.viewer.ui.UserInterfaceHelper.*;
 
 public class ViewManager
 {
@@ -71,7 +61,29 @@ public class ViewManager
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewsSaver viewsSaver;
 
-	public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
+	private View currentView;
+
+    public void setCurrentView( View currentView )
+    {
+        this.currentView = currentView;
+    }
+
+    public List<SourceTransformer> getCurrentSourceTransformers()
+    {
+        return currentSourceTransformers;
+    }
+
+    public View getCurrentView()
+    {
+        return currentView;
+    }
+
+    public UserInterface getUserInterface()
+    {
+        return userInterface;
+    }
+
+    public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
 	{
 		this.moBIE = moBIE;
 		this.userInterface = userInterface;
@@ -167,13 +179,7 @@ public class ViewManager
 	private void addManualTransforms( List< SourceTransformer > viewSourceTransforms,
 									  Map<String, SourceAndConverter<?> > sourceNameToSourceAndConverter ) {
 		for ( String sourceName: sourceNameToSourceAndConverter.keySet() ) {
-			Source<?> source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
-
-			if ( source instanceof LabelSource ) {
-				source = ((LabelSource) source).getWrappedSource();
-			}
-			TransformedSource transformedSource = (TransformedSource) source;
-
+			TransformedSource transformedSource = (TransformedSource) sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
 			AffineTransform3D fixedTransform = new AffineTransform3D();
 			transformedSource.getFixedTransform( fixedTransform );
 			if ( !fixedTransform.isIdentity() ) {
@@ -213,6 +219,7 @@ public class ViewManager
 				AnnotatedIntervalDisplay annotatedIntervalDisplay = ( AnnotatedIntervalDisplay ) sourceDisplay;
 				if ( hasColumnsOutsideProject( annotatedIntervalDisplay ) ) { return null; }
 				currentDisplay = new AnnotatedIntervalDisplay( annotatedIntervalDisplay );
+				addManualTransforms( viewSourceTransforms, annotatedIntervalDisplay.sourceNameToSourceAndConverter );
 			}
 
 			if ( currentDisplay != null )
@@ -239,6 +246,7 @@ public class ViewManager
 		{
 			removeAllSourceDisplays();
 		}
+		currentView = view;
 
 		// fetch the names of all sources that are either shown or to be transformed
 		final Set< String > sources = fetchSources( view );
@@ -278,7 +286,7 @@ public class ViewManager
 		adjustViewerTransform( view );
 	}
 
-	private void adjustViewerTransform( View view )
+	public void adjustViewerTransform( View view )
 	{
 		if ( view.getViewerTransform() != null )
 		{
@@ -289,13 +297,13 @@ public class ViewManager
 			if ( view.isExclusive() || currentSourceDisplays.size() == 1 )
 			{
 				// TODO: rethink what should happen here...
-				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1 );
+				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() > 0 ? currentSourceDisplays.size() - 1 : 0 );
 				new ViewerTransformAdjuster( bdvHandle, ((AbstractSourceDisplay) sourceDisplay).sourceNameToSourceAndConverter.values().iterator().next() ).run();
 			}
 		}
 	}
 
-	private Set< String > fetchSources( View view )
+	public Set< String > fetchSources( View view )
 	{
 		final Set< String > sources = new HashSet<>();
 		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
@@ -310,7 +318,7 @@ public class ViewManager
 		return sources;
 	}
 
-	private synchronized void showSourceDisplay( SourceDisplay sourceDisplay )
+	public synchronized void showSourceDisplay( SourceDisplay sourceDisplay )
 	{
 		if ( currentSourceDisplays.contains( sourceDisplay ) ) return;
 
@@ -331,7 +339,7 @@ public class ViewManager
 		currentSourceDisplays.add( sourceDisplay );
 	}
 
-	private void removeAllSourceDisplays()
+	public void removeAllSourceDisplays()
 	{
 		// create a copy of the currently shown displays...
 		final ArrayList< SourceDisplay > currentSourceDisplays = new ArrayList<>( this.currentSourceDisplays ) ;
