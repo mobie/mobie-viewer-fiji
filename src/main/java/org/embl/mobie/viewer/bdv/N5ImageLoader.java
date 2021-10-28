@@ -230,7 +230,7 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
             final File basePath = loadBasePath( root, new File( xmlFilename ) );
 
             final TimePoints timepoints = createTimepointsFromXml( root.getChild("SequenceDescription"  ) );
-            final Map< Integer, ViewSetup > setups = createViewSetupsFromXml( root );
+            final Map< Integer, ViewSetup > setups = createViewSetupsFromXml( root.getChild( "SequenceDescription" ) );
             final MissingViews missingViews = null;
             this.seq = new SequenceDescription( timepoints, setups, null, missingViews );
             final ImgLoader imgLoader = createImgLoaderFromXml( root.getChild("SequenceDescription"  ), basePath, this.seq );
@@ -278,25 +278,6 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
             throw new RuntimeException( e );
         }
 
-        /* @param timepointOffset
-         *            The timepoint <em>t</em> in the partition corresponds to
-         *            timepoint <em>t + <code>timepointOffset</code></em> in the
-         *            full sequence.
-         * @param timepointStart
-         *            The first timepoint <em>t</em> contained in this partition
-         *            (relative to the offset, not the full sequence).
-         * @param timepointLength
-         *            How many timepoints are contained in this partition.
-         * @param setupOffset
-         *            The setup <em>s</em> in the partition corresponds to
-         *            setup <em>s + <code>setupOffset</code></em> in the
-         *            full sequence.
-         * @param setupStart
-         *            The first setup <em>s</em> contained in this partition
-         *            (relative to the offset, not the full sequence).
-         * @param setupLength
-         *            How many setups are contained in this partition.
-         */
         final int timepointOffset = Integer.parseInt( elem.getChildText( "timepointOffset" ) );
         final int timepointStart = Integer.parseInt( elem.getChildText( "timepointStart" ) );
         final int timepointLength = Integer.parseInt( elem.getChildText( "timepointLength" ) );
@@ -327,44 +308,79 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
         final HashMap< Integer, Angle > angles = new HashMap<>();
         final HashMap< Integer, Channel > channels = new HashMap<>();
         final HashMap< Integer, Illumination > illuminations = new HashMap<>();
+        Element viewSetups = sequenceDescription.getChild( "ViewSetups" );
 
-        for ( final Element elem : sequenceDescription.getChildren( "ViewSetup" ) )
+        for ( final Element elem : viewSetups.getChildren( "ViewSetup" ) )
         {
             final int id = XmlHelpers.getInt( elem, "id" );
+            int angleId = 0;
+            Angle angle = new Angle( angleId );
+            Channel channel = new Channel( angleId );
+            Illumination illumination = new Illumination( angleId );
+            try {
+                 angleId = XmlHelpers.getInt( elem, "angle" );
+//            if (angleId != null) {
+                angle = angles.get( angleId );
+                if ( angle == null ) {
+                    angle = new Angle( angleId );
+                    angles.put( angleId, angle );
+                }
+            } catch ( NumberFormatException e ) {
+                System.out.println("No ange specified");
 
-            final int angleId = XmlHelpers.getInt( elem, "angle" );
-            Angle angle = angles.get( angleId );
-            if ( angle == null )
-            {
-                angle = new Angle( angleId );
-                angles.put( angleId, angle );
             }
-
+            try {
             final int illuminationId = XmlHelpers.getInt( elem, "illumination" );
-            Illumination illumination = illuminations.get( illuminationId );
+            illumination = illuminations.get( illuminationId );
             if ( illumination == null )
             {
                 illumination = new Illumination( illuminationId );
                 illuminations.put( illuminationId, illumination );
             }
+            } catch ( NumberFormatException e ) {
+                System.out.println("No ange specified");
 
+            }
+            try {
             final int channelId = XmlHelpers.getInt( elem, "channel" );
-            Channel channel = channels.get( channelId );
+            channel = channels.get( channelId );
             if ( channel == null )
             {
                 channel = new Channel( channelId );
                 channels.put( channelId, channel );
             }
+            } catch ( NumberFormatException e ) {
+                System.out.println("No ange specified");
 
-            final long w = XmlHelpers.getInt( elem, "width" );
-            final long h = XmlHelpers.getInt( elem, "height" );
-            final long d = XmlHelpers.getInt( elem, "depth" );
-            final Dimensions size = new FinalDimensions( w, h, d );
+            }
+            try {
+                final long w = XmlHelpers.getInt( elem, "width" );
+                final long h = XmlHelpers.getInt( elem, "height" );
+                final long d = XmlHelpers.getInt( elem, "depth" );
+                final Dimensions size = new FinalDimensions( w, h, d );
+            } catch ( NumberFormatException e ) {
+                System.out.println("No ange specified");
 
+            }
+                final String sizeString = elem.getChildText( "size" );
+                final String[] values = sizeString.split( " " );
+//                final long d = XmlHelpers.getInt( elem, "depth" );
+                final Dimensions size = new FinalDimensions( Integer.parseInt(  values[0]), Integer.parseInt(  values[1]), Integer.parseInt(  values[2]) );
+try {
             final double pw = XmlHelpers.getDouble( elem, "pixelWidth" );
             final double ph = XmlHelpers.getDouble( elem, "pixelHeight" );
             final double pd = XmlHelpers.getDouble( elem, "pixelDepth" );
             final VoxelDimensions voxelSize = new FinalVoxelDimensions( "px", pw, ph, pd );
+} catch ( Exception e ) {
+    System.out.println("No ange specified");
+
+}
+            final Element voxelsizeString = elem.getChild( "voxelSize" );
+            final String unit = elem.getChildText( "unit" );
+            final String[] voxelValues = elem.getChildText("size").split( " " );
+//                final long d = XmlHelpers.getInt( elem, "depth" );
+            final VoxelDimensions voxelSize = new FinalVoxelDimensions( "px", Integer.parseInt(  voxelValues[0]), Integer.parseInt(  voxelValues[1]), Integer.parseInt(  voxelValues[2]) );
+
 
             final ViewSetup setup = new ViewSetup( id, null, size, voxelSize, channel, angle, illumination );
             setups.put( id, setup );

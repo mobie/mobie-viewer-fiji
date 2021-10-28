@@ -17,8 +17,8 @@ public class SourceTransformerListAdapter implements JsonSerializer< List<Source
 	private static Map<String, String> classToName = new TreeMap<>();
 
 	static {
-		nameToClass.put("mergedGrid", MergedGridSourceTransformer.class);
-		classToName.put( MergedGridSourceTransformer.class.getName(), "mergedGrid");
+		nameToClass.put("grid", MergedGridSourceTransformer.class);
+		classToName.put( MergedGridSourceTransformer.class.getName(), "grid");
 		nameToClass.put("transformedGrid", TransformedGridSourceTransformer.class);
 		classToName.put( TransformedGridSourceTransformer.class.getName(), "transformedGrid");
 		nameToClass.put("affine", AffineSourceTransformer.class);
