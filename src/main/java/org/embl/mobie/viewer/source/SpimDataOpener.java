@@ -1,16 +1,10 @@
 package org.embl.mobie.viewer.source;
 
-import bdv.img.cache.VolatileGlobalCellCache;
 import bdv.util.volatiles.SharedQueue;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.tables.FileAndUrlUtils;
 import mpicbg.spim.data.SpimData;
-import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.generic.sequence.BasicViewSetup;
-import net.imglib2.cache.queue.BlockingFetchQueues;
-import net.imglib2.cache.queue.FetcherThreads;
 import net.imglib2.util.Cast;
-import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.loaders.N5S3OMEZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.loaders.xml.XmlN5OmeZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.openers.OMEZarrOpener;
@@ -28,7 +22,6 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static mpicbg.spim.data.XmlKeys.IMGLOADER_TAG;
