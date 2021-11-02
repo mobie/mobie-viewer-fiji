@@ -101,8 +101,6 @@ public class SpimDataOpener {
     {
         try {
             return N5S3Opener.readURL( path, queue );
-//            N5FSImageLoader imageLoader = new N5FSImageLoader(new File(filePath), queue);
-//            return BdvUtils.openSpimData( path );
         } catch ( IOException e ) {
             e.printStackTrace();
         }
