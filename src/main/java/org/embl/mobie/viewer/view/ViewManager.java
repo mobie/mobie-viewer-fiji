@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.view;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
@@ -10,6 +11,7 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.lang.ArrayUtils;
+import org.embl.mobie.io.util.source.LabelSource;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Utils;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
@@ -177,18 +179,24 @@ public class ViewManager
 	}
 
 	private void addManualTransforms( List< SourceTransformer > viewSourceTransforms,
-									  Map<String, SourceAndConverter<?> > sourceNameToSourceAndConverter ) {
-		for ( String sourceName: sourceNameToSourceAndConverter.keySet() ) {
-			TransformedSource transformedSource = (TransformedSource) sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
-			AffineTransform3D fixedTransform = new AffineTransform3D();
-			transformedSource.getFixedTransform( fixedTransform );
-			if ( !fixedTransform.isIdentity() ) {
-				List<String> sources = new ArrayList<>();
-				sources.add( sourceName );
-				viewSourceTransforms.add( new AffineSourceTransformer( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
-			}
-		}
-	}
+                                      Map<String, SourceAndConverter<?> > sourceNameToSourceAndConverter ) {
+        for ( String sourceName: sourceNameToSourceAndConverter.keySet() ) {
+            Source<?> source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
+
+            if ( source instanceof LabelSource ) {
+                source = ((LabelSource) source).getWrappedSource();
+            }
+            TransformedSource transformedSource = (TransformedSource) source;
+
+            AffineTransform3D fixedTransform = new AffineTransform3D();
+            transformedSource.getFixedTransform( fixedTransform );
+            if ( !fixedTransform.isIdentity() ) {
+                List<String> sources = new ArrayList<>();
+                sources.add( sourceName );
+                viewSourceTransforms.add( new AffineSourceTransformer( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
+            }
+        }
+    }
 
 	public View getCurrentView( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform ) {
 
@@ -219,7 +227,6 @@ public class ViewManager
 				AnnotatedIntervalDisplay annotatedIntervalDisplay = ( AnnotatedIntervalDisplay ) sourceDisplay;
 				if ( hasColumnsOutsideProject( annotatedIntervalDisplay ) ) { return null; }
 				currentDisplay = new AnnotatedIntervalDisplay( annotatedIntervalDisplay );
-				addManualTransforms( viewSourceTransforms, annotatedIntervalDisplay.sourceNameToSourceAndConverter );
 			}
 
 			if ( currentDisplay != null )
