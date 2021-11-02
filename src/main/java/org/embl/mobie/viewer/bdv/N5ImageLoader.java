@@ -206,14 +206,11 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
     private void fetchSequenceDescriptionAndViewRegistrations()
     {
         try {
-//            String tt = n5.getDatasetAttributes( "basePath" ).toString();
-            String ll = n5.toString();
-            String ltt = ll.substring( ll.indexOf( "basePath=" ) + 9, ll.length() - 3 );
-//            String xmlFilename = "/home/katerina/Documents/embl/mnt2/kreshuk/pape/Work/mobie/arabidopsis-root-lm-datasets/data/arabidopsis-root/images/local/lm-cells.xml";
-            String xmlFilename = ltt + "xml";
-//            if ( n5 instanceof N5AmazonS3Reader ) {
-//                xmlFilename = (N5AmazonS3Reader) n5.
-//            }
+            if (!(n5 instanceof N5FSImageLoader)) {
+              return;
+            }
+            String n5BasePath = n5.toString();
+            String xmlFilename = n5BasePath.substring( n5BasePath.indexOf( "basePath=" ) + 9, n5BasePath.length() - 3 ) + "xml";
             initSetups();
             ArrayList<ViewSetup> viewSetups = new ArrayList<>();
             ArrayList<ViewRegistration> viewRegistrationList = new ArrayList<>();
@@ -233,19 +230,18 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
                 viewSetups.add( viewSetup );
                 viewRegistrationList.addAll( createViewRegistrations( setupId, setupTimepoints ) );
             }
-
             viewRegistrations = new ViewRegistrations( viewRegistrationList );
             final SAXBuilder sax = new SAXBuilder();
             Document doc;
             doc = sax.build( xmlFilename );
             final Element root = doc.getRootElement();
             final File basePath = loadBasePath( root, new File( xmlFilename ) );
-
-            final TimePoints timepoints = createTimepointsFromXml( root.getChild( "SequenceDescription" ) );
-            final Map<Integer, ViewSetup> setups = createViewSetupsFromXml( root.getChild( "SequenceDescription" ) );
+            final Element sequenceDescriptionElement = root.getChild( "SequenceDescription" );
+            final TimePoints timepoints = createTimepointsFromXml( sequenceDescriptionElement );
+            final Map<Integer, ViewSetup> setups = createViewSetupsFromXml( sequenceDescriptionElement );
             final MissingViews missingViews = null;
             this.seq = new SequenceDescription( timepoints, setups, null, missingViews );
-            final ImgLoader imgLoader = createImgLoaderFromXml( root.getChild( "SequenceDescription" ), basePath, this.seq );
+            final ImgLoader imgLoader = createImgLoaderFromXml( sequenceDescriptionElement, basePath, this.seq );
             this.seq.setImgLoader( imgLoader );
         } catch ( IOException e ) {
             e.printStackTrace();
@@ -342,7 +338,7 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
                     illuminations.put( illuminationId, illumination );
                 }
             } catch ( NumberFormatException e ) {
-                System.out.println( "No ange specified" );
+                System.out.println( "No illumination specified" );
 
             }
             try {
@@ -353,7 +349,7 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
                     channels.put( channelId, channel );
                 }
             } catch ( NumberFormatException e ) {
-                System.out.println( "No ange specified" );
+                System.out.println( "No channel specified" );
 
             }
             try {
@@ -362,7 +358,7 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
                 final long d = XmlHelpers.getInt( elem, "depth" );
                 final Dimensions size = new FinalDimensions( w, h, d );
             } catch ( NumberFormatException e ) {
-                System.out.println( "No ange specified" );
+                System.out.println( "No width, height, depth specified (separately)" );
 
             }
             final String sizeString = elem.getChildText( "size" );
@@ -375,7 +371,7 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
                 final double pd = XmlHelpers.getDouble( elem, "pixelDepth" );
                 final VoxelDimensions voxelSize = new FinalVoxelDimensions( "px", pw, ph, pd );
             } catch ( Exception e ) {
-                System.out.println( "No ange specified" );
+                System.out.println( "No pixelWidth, pixelHeight, pixelDepth specified (separately)" );
 
             }
             final Element voxelsizeString = elem.getChild( "voxelSize" );
@@ -447,8 +443,6 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
             Angle angle = new Angle( 0 );
             Illumination illumination = new Illumination( 0 );
             String name = readName( multiscale, setupId );
-            //if ( setupToPathname.get( setupId ).contains( "labels" ))
-            //	viewSetup.setAttribute( new ImageType( ImageType.Type.IntensityImage ) );
             return new ViewSetup( setupId, name, dimensions, voxelDimensions, tile, channel, angle, illumination );
         } else {
             return null;
