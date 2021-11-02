@@ -10,7 +10,9 @@ import org.embl.mobie.io.ome.zarr.loaders.xml.XmlN5OmeZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.openers.OMEZarrOpener;
 import org.embl.mobie.io.ome.zarr.openers.OMEZarrS3Opener;
 import org.embl.mobie.io.openorganelle.OpenOrganelleS3Opener;
+import org.embl.mobie.viewer.bdv.N5FSImageLoader;
 import org.embl.mobie.viewer.bdv.N5Opener;
+import org.embl.mobie.viewer.bdv.N5S3Opener;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -61,8 +63,10 @@ public class SpimDataOpener {
         SpimData spimData = null;
         switch ( imageDataFormat ) {
             case BdvN5:
-            case BdvN5S3:
                 spimData = openBDV( imagePath, sharedQueue );
+                break;
+            case BdvN5S3:
+                spimData = openBDVS3( imagePath, sharedQueue );
                 break;
             case OmeZarr:
                 spimData = openOmeZarrData( imagePath, sharedQueue );
@@ -87,6 +91,18 @@ public class SpimDataOpener {
     {
         try {
             return N5Opener.openFile( path, queue );
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+        return null;
+
+    }
+    private SpimData openBDVS3(String path, SharedQueue queue)
+    {
+        try {
+            return N5S3Opener.readURL( path, queue );
+//            N5FSImageLoader imageLoader = new N5FSImageLoader(new File(filePath), queue);
+//            return BdvUtils.openSpimData( path );
         } catch ( IOException e ) {
             e.printStackTrace();
         }
@@ -141,7 +157,6 @@ public class SpimDataOpener {
             InputStream stream = FileAndUrlUtils.getInputStream(path);
             final Document doc = sax.build(stream);
             final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
-            HashMap<String, Integer> axesMap = new HashMap<>();
             String bucketAndObject = imgLoaderElem.getChild( "BucketName").getText() + "/" + imgLoaderElem.getChild( "Key" ).getText();
             final String[] split = bucketAndObject.split("/");
             String bucket = split[0];

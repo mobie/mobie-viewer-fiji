@@ -54,7 +54,7 @@ public class N5FSImageLoader extends N5ImageLoader
         this.n5File = n5File;
     }
     public N5FSImageLoader(final File n5File, SharedQueue sharedQueue) throws IOException {
-        super(new N5FSReader(n5File.getAbsolutePath()), sharedQueue);
+        super(new N5FSReader(n5File.getPath()), sharedQueue);
         this.n5File = n5File;
     }
 

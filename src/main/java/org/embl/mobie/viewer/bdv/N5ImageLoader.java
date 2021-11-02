@@ -42,6 +42,7 @@ import bdv.img.remote.XmlIoRemoteImageLoader;
 import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.util.ConstantRandomAccessible;
 import bdv.util.MipmapTransforms;
+import com.amazonaws.services.s3.AmazonS3;
 import mpicbg.spim.data.XmlHelpers;
 import mpicbg.spim.data.generic.sequence.*;
 import mpicbg.spim.data.registration.ViewRegistration;
@@ -65,6 +66,7 @@ import net.imglib2.util.Cast;
 import net.imglib2.view.Views;
 import org.embl.mobie.io.ome.zarr.util.OmeZarrMultiscales;
 import org.janelia.saalfeldlab.n5.*;
+import org.janelia.saalfeldlab.n5.s3.N5AmazonS3Reader;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -201,8 +203,15 @@ public class N5ImageLoader implements ViewerImgLoader, MultiResolutionImgLoader
 
     private void fetchSequenceDescriptionAndViewRegistrations() {
         try {
-            String xmlFilename = "/home/katerina/Documents/embl/mnt2/kreshuk/pape/Work/mobie/arabidopsis-root-lm-datasets/data/arabidopsis-root/images/local/lm-cells.xml";
-            initSetups();
+//            String tt = n5.getDatasetAttributes( "basePath" ).toString();
+            String ll = n5.toString();
+            String ltt = ll.substring(ll.indexOf( "basePath=" ) + 9,ll.length() - 3 );
+//            String xmlFilename = "/home/katerina/Documents/embl/mnt2/kreshuk/pape/Work/mobie/arabidopsis-root-lm-datasets/data/arabidopsis-root/images/local/lm-cells.xml";
+            String xmlFilename = ltt + "xml";
+//            if ( n5 instanceof N5AmazonS3Reader ) {
+//                xmlFilename = (N5AmazonS3Reader) n5.
+//            }
+                    initSetups();
             ArrayList<ViewSetup> viewSetups = new ArrayList<>();
             ArrayList<ViewRegistration> viewRegistrationList = new ArrayList<>();
 

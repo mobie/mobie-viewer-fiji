@@ -29,24 +29,11 @@ public class N5Opener extends BDVOpener
 
     private SpimData readFile(SharedQueue sharedQueue) throws IOException
     {
-        N5FSImageLoader imageLoader = new N5FSImageLoader(new File("/home/katerina/Documents/embl/mnt2/kreshuk/pape/Work/mobie/arabidopsis-root-lm-datasets/data/arabidopsis-root/images/local/lm-cells.n5"), sharedQueue);
-        SpimData spimData = new SpimData(
-                new File(this.filePath),
+        N5FSImageLoader imageLoader = new N5FSImageLoader(new File(filePath), sharedQueue);
+        return new SpimData(
+                new File( this.filePath),
                 Cast.unchecked( imageLoader.getSequenceDescription() ),
                 imageLoader.getViewRegistrations());
-//        if (spimData.getSequenceDescription().) {
-//            ArrayList<V> list = new ArrayList();
-//            Iterator var2 = this.setups.values().iterator();
-//
-//            while(var2.hasNext()) {
-//                V setup = (BasicViewSetup)var2.next();
-//                list.add(setup);
-//            }
-//
-//            this.viewSetupsOrdered = Entity.sortById(list);
-//            this.viewSetupsOrderedDirty = false;
-//        }
-        return spimData;
     }
 
 }
