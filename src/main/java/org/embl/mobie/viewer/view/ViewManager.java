@@ -11,7 +11,7 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.lang.ArrayUtils;
-import org.embl.mobie.io.util.source.LabelSource;
+import org.embl.mobie.io.n5.source.LabelSource;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Utils;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;

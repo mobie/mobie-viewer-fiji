@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.bdv.view;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
-import org.embl.mobie.io.util.source.LabelSource;
+import org.embl.mobie.io.n5.source.LabelSource;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.OpacityAdjuster;

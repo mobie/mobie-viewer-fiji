@@ -1,10 +1,10 @@
 package org.embl.mobie.viewer.projectcreator.ui;
 
 import bdv.ij.util.PluginHelper;
+import org.embl.mobie.io.n5.util.DownsampleBlock;
+import org.embl.mobie.io.n5.writers.WriteImgPlusToN5;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
-import org.embl.mobie.io.util.DownsampleBlock;
-import org.embl.mobie.io.util.writers.WriteImgPlusToN5;
 import org.embl.mobie.viewer.source.ImageDataFormat;
 
 import fiji.util.gui.GenericDialogPlus;

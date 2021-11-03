@@ -3,9 +3,9 @@ package develop;
 
 import ij.IJ;
 import ij.ImagePlus;
+import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
-import org.embl.mobie.io.util.DownsampleBlock;
 import org.janelia.saalfeldlab.n5.GzipCompression;
 
 public class DevelopOmeZarrWriting {

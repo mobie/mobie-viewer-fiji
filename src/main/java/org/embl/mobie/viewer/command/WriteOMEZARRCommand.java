@@ -1,7 +1,7 @@
 package org.embl.mobie.viewer.command;
 
+import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
-import org.embl.mobie.io.util.DownsampleBlock;
 import org.embl.mobie.viewer.projectcreator.ui.ManualExportPanel;
 import org.embl.mobie.viewer.source.ImageDataFormat;
 import ij.ImagePlus;
