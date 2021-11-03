@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.transform;
 import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
+import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.viewer.Utils;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
@@ -117,28 +118,33 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	{
 		final int numDimensions = referenceSource.getVoxelDimensions().numDimensions();
 
-		final AffineTransform3D affineTransform3D = new AffineTransform3D();
-		referenceSource.getSourceTransform( 0, 0, affineTransform3D );
+		final AffineTransform3D at3D = new AffineTransform3D();
+		referenceSource.getSourceTransform( 0, 0, at3D );
 
-		final double[][] absoluteResolutions = new double[ numMipmapLevels ][ numDimensions ];
+		final double[][] voxelSizes = new double[ numMipmapLevels ][ numDimensions ];
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
-			referenceSource.getSourceTransform( 0, level, affineTransform3D );
+			referenceSource.getSourceTransform( 0, level, at3D );
 			for ( int d = 0; d < numDimensions; d++ )
-				absoluteResolutions[ level ][ d ] = affineTransform3D.get( d, d);
+				voxelSizes[ level ][ d ] =
+						Math.sqrt(
+								at3D.get( 0, d ) * at3D.get( 0, d ) +
+								at3D.get( 1, d ) * at3D.get( 1, d ) +
+								at3D.get( 2, d ) * at3D.get( 2, d )
+						);
 		}
 
-		double[][] relativeResolutions = new double[ numMipmapLevels ][ numDimensions ];
+		double[][] downsamplingFactors = new double[ numMipmapLevels ][ numDimensions ];
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
-				relativeResolutions[ level ][ d ] = absoluteResolutions[ level ][ d ] / absoluteResolutions[ level - 1 ][ d ];
+				downsamplingFactors[ level ][ d ] = voxelSizes[ level ][ d ] / voxelSizes[ level - 1 ][ d ];
 
-		final double[] resolutionFactorProducts = new double[ numDimensions ];
-		Arrays.fill( resolutionFactorProducts, 1.0D );
+		final double[] downsamplingFactorProducts = new double[ numDimensions ];
+		Arrays.fill( downsamplingFactorProducts, 1.0D );
 
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
-				resolutionFactorProducts[ d ] *= relativeResolutions[ level ][ d ];
+				downsamplingFactorProducts[ d ] *= downsamplingFactors[ level ][ d ];
 
 		int[][] cellDimensions = new int[ numMipmapLevels ][ numDimensions ];
 
@@ -153,13 +159,13 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		for ( int d = 0; d < 2; d++ )
 		{
 			cellDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeCellMargin );
-			cellDimensions[ 0 ][ d ] = (int) ( resolutionFactorProducts[ d ] * Math.ceil( cellDimensions[ 0 ][ d ] / resolutionFactorProducts[ d ] ) );
+			cellDimensions[ 0 ][ d ] = (int) ( downsamplingFactorProducts[ d ] * Math.ceil( cellDimensions[ 0 ][ d ] / downsamplingFactorProducts[ d ] ) );
 		}
 
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
 			{
-				cellDimensions[ level ][ d ] = (int) ( cellDimensions[ level - 1 ][ d ] / relativeResolutions[ level ][ d ] );
+				cellDimensions[ level ][ d ] = (int) ( cellDimensions[ level - 1 ][ d ] / downsamplingFactors[ level ][ d ] );
 			}
 
 		return cellDimensions;
