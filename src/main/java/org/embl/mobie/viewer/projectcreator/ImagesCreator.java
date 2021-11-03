@@ -6,16 +6,17 @@ import bdv.spimdata.XmlIoSpimDataMinimal;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.process.LUT;
+import org.embl.mobie.io.n5.loaders.N5FSImageLoader;
+import org.embl.mobie.io.n5.util.DownsampleBlock;
+import org.embl.mobie.io.n5.writers.WriteImgPlusToN5;
+import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
+import org.embl.mobie.io.ome.zarr.readers.N5OmeZarrReader;
+import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
+import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
+
 import org.embl.mobie.viewer.projectcreator.ui.ManualExportPanel;
 import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.source.SpimDataOpener;
-import de.embl.cba.n5.ome.zarr.loaders.N5OMEZarrImageLoader;
-import de.embl.cba.n5.ome.zarr.readers.N5OmeZarrReader;
-import de.embl.cba.n5.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
-import de.embl.cba.n5.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
-import de.embl.cba.n5.util.DownsampleBlock;
-import de.embl.cba.n5.util.loaders.N5FSImageLoader;
-import de.embl.cba.n5.util.writers.WriteImgPlusToN5;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
 import ij.IJ;
@@ -426,7 +427,7 @@ public class ImagesCreator {
             case BdvOmeZarr:
 
             case OmeZarr:
-                if (imgLoader instanceof N5OMEZarrImageLoader) {
+                if (imgLoader instanceof N5OMEZarrImageLoader ) {
                     ( (N5OMEZarrImageLoader) imgLoader ).close();
                 }
                 break;

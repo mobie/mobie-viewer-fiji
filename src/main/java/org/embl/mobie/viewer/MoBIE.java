@@ -8,6 +8,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
@@ -24,7 +25,6 @@ import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.ViewManager;
-import de.embl.cba.n5.ome.zarr.loaders.N5OMEZarrImageLoader;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
@@ -544,10 +544,12 @@ public class MoBIE
 
         switch (imageDataFormat) {
             case BdvN5:
-            case BdvN5S3:
+                final String path = source.imageData.get( imageDataFormat ).relativePath.split( "\\." )[0] + ".n5";
+                return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), path );
             case BdvOmeZarr:
             case OmeZarr:
             case BdvOmeZarrS3:
+            case BdvN5S3:
                 final String relativePath = source.imageData.get( imageDataFormat ).relativePath;
                 return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativePath );
             case OpenOrganelleS3:

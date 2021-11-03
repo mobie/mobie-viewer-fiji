@@ -1,10 +1,8 @@
 package org.embl.mobie.viewer.command;
 
-
-import de.embl.cba.n5.ome.zarr.OMEZarrViewer;
-import de.embl.cba.n5.ome.zarr.openers.OMEZarrOpener;
-import ij.ImagePlus;
 import mpicbg.spim.data.SpimData;
+import org.embl.mobie.io.ome.zarr.OMEZarrViewer;
+import org.embl.mobie.io.ome.zarr.openers.OMEZarrOpener;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;

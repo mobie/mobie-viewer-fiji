@@ -145,9 +145,9 @@
 			<version>2.2.5</version>
 		</dependency>
         <dependency>
-            <groupId>mobie</groupId>
-            <artifactId>bigdataviewer-imageloader</artifactId>
-            <version>1.0.2-SNAPSHOT</version>
+            <groupId>org.embl.mobie</groupId>
+            <artifactId>mobie-io</artifactId>
+            <version>1.0.4-SNAPSHOT</version>
         </dependency>
 		<dependency>
 			<groupId>org.janelia.saalfeldlab</groupId>
