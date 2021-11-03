@@ -4,12 +4,14 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>30.0.0</version>
+		<version>31.1.0</version>
 	</parent>
 
 	<groupId>org.embl.mobie</groupId>
 	<artifactId>mobie-viewer-fiji</artifactId>
 	<version>2.0.1-SNAPSHOT</version>
+
+    <!-- mvn clean install "-Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app" -->
 
 	<url>https://github.com/mobie/mobie-viewer-fiji</url>
 	<name>MoBIE Fiji Viewer</name>
@@ -76,13 +78,13 @@
 		<enforcer.skip>true</enforcer.skip>
 
 		<!-- Java 8	Update Site	-->
-		<imglib2.version>5.11.1</imglib2.version>
+		<imglib2.version>5.12.0</imglib2.version>
 		<imglib2-cache.version>1.0.0-beta-16</imglib2-cache.version>
 		<bigdataviewer-core.version>10.2.1</bigdataviewer-core.version>
-		<bigdataviewer-vistools.version>1.0.0-beta-28</bigdataviewer-vistools.version>
+		<bigdataviewer-vistools.version>1.0.0-beta-29</bigdataviewer-vistools.version>
 
 		<!-- BIOP -->
-		<bigdataviewer-playground.version>0.3.8-SNAPSHOT</bigdataviewer-playground.version>
+		<bigdataviewer-playground.version>0.3.10</bigdataviewer-playground.version>
 
 		<!-- EMBL CBA -->
 		<imagej-utils.version>0.6.4</imagej-utils.version>
@@ -109,17 +111,13 @@
 			<url>https://maven.scijava.org/content/groups/public</url>
 		</repository>
 	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-playground</artifactId>
 			<version>${bigdataviewer-playground.version}</version>
 		</dependency>
-		<!--		<dependency>-->
-		<!--			<groupId>sc.fiji.bigdataviewer</groupId>-->
-		<!--			<artifactId>bigdataviewer-playground-display</artifactId>-->
-		<!--			<version>${bigdataviewer-playground-display.version}</version>-->
-		<!--		</dependency>-->
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
