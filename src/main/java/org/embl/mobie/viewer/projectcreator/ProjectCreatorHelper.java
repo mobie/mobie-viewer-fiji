@@ -1,11 +1,11 @@
 package org.embl.mobie.viewer.projectcreator;
 
 import bdv.img.n5.N5ImageLoader;
+import org.embl.mobie.io.n5.loaders.N5FSImageLoader;
+import org.embl.mobie.io.n5.loaders.N5S3ImageLoader;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.loaders.N5S3OMEZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.readers.N5OmeZarrReader;
-import org.embl.mobie.io.util.loaders.N5FSImageLoader;
-import org.embl.mobie.io.util.loaders.N5S3ImageLoader;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.view.View;

@@ -1,14 +1,15 @@
 package org.embl.mobie.viewer.projectcreator;
 
+import org.embl.mobie.io.n5.util.DownsampleBlock;
+import org.embl.mobie.io.n5.writers.WriteImgPlusToN5;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
-import org.embl.mobie.io.util.DownsampleBlock;
-import org.embl.mobie.io.util.writers.WriteImgPlusToN5;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
+
 import de.embl.cba.tables.FileAndUrlUtils;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;

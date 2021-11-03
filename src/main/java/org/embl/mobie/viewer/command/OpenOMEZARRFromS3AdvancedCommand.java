@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer.command;
 
-
 import net.imagej.ImageJ;
 import org.embl.mobie.io.ome.zarr.openers.OMEZarrS3Opener;
 import org.scijava.command.Command;

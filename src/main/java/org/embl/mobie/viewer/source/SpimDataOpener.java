@@ -5,6 +5,8 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.tables.FileAndUrlUtils;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.util.Cast;
+import org.embl.mobie.io.n5.openers.N5Opener;
+import org.embl.mobie.io.n5.openers.N5S3Opener;
 import org.embl.mobie.io.ome.zarr.loaders.N5S3OMEZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.loaders.xml.XmlN5OmeZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.openers.OMEZarrOpener;
@@ -60,8 +62,10 @@ public class SpimDataOpener {
         SpimData spimData = null;
         switch ( imageDataFormat ) {
             case BdvN5:
+                spimData = openBDV( imagePath, sharedQueue );
+                break;
             case BdvN5S3:
-                spimData = BdvUtils.openSpimData( imagePath );
+                spimData = openBDVS3( imagePath, sharedQueue );
                 break;
             case OmeZarr:
                 spimData = openOmeZarrData( imagePath, sharedQueue );
@@ -80,6 +84,27 @@ public class SpimDataOpener {
         }
 
         return spimData;
+    }
+
+    private SpimData openBDV(String path, SharedQueue queue)
+    {
+        try {
+            return N5Opener.openFile( path, queue );
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+        return null;
+
+    }
+    private SpimData openBDVS3(String path, SharedQueue queue)
+    {
+        try {
+            return N5S3Opener.readURL( path, queue );
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+        return null;
+
     }
 
     private SpimData openOmeZarrData( String path )
@@ -129,7 +154,6 @@ public class SpimDataOpener {
             InputStream stream = FileAndUrlUtils.getInputStream(path);
             final Document doc = sax.build(stream);
             final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
-            HashMap<String, Integer> axesMap = new HashMap<>();
             String bucketAndObject = imgLoaderElem.getChild( "BucketName").getText() + "/" + imgLoaderElem.getChild( "Key" ).getText();
             final String[] split = bucketAndObject.split("/");
             String bucket = split[0];

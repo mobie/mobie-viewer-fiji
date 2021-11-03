@@ -2,37 +2,8 @@ package org.embl.mobie.viewer.view;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
-import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
-import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
-import org.embl.mobie.viewer.color.MoBIEColoringModel;
-import org.embl.mobie.viewer.display.AbstractSourceDisplay;
-import org.embl.mobie.viewer.display.AnnotatedRegionDisplay;
-import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
-import org.embl.mobie.viewer.display.SourceDisplay;
-import org.embl.mobie.viewer.playground.PlaygroundUtils;
-import org.embl.mobie.viewer.Utils;
-import org.embl.mobie.viewer.bdv.view.ImageSliceView;
-import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
-import org.embl.mobie.viewer.bdv.view.SliceViewer;
-import org.embl.mobie.viewer.playground.SourceAffineTransformer;
-import org.embl.mobie.viewer.plot.ScatterPlotViewer;
-import org.embl.mobie.viewer.segment.SegmentAdapter;
-import org.embl.mobie.viewer.display.ImageSourceDisplay;
-import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
-import org.embl.mobie.viewer.source.SegmentationSource;
-import org.embl.mobie.viewer.table.TableDataFormat;
-import org.embl.mobie.viewer.table.TableViewer;
-import org.embl.mobie.viewer.transform.AffineSourceTransformer;
-import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
-import org.embl.mobie.viewer.ui.UserInterface;
-import org.embl.mobie.viewer.ui.WindowArrangementHelper;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
-import org.embl.mobie.viewer.view.saving.ViewsSaver;
-import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
-import org.embl.mobie.viewer.volume.UniverseManager;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.select.DefaultSelectionModel;
@@ -40,21 +11,44 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.lang.ArrayUtils;
+import org.embl.mobie.io.n5.source.LabelSource;
+import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
+import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
+import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
+import org.embl.mobie.viewer.bdv.view.ImageSliceView;
+import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
+import org.embl.mobie.viewer.bdv.view.SliceViewer;
+import org.embl.mobie.viewer.color.MoBIEColoringModel;
+import org.embl.mobie.viewer.display.*;
+import org.embl.mobie.viewer.playground.PlaygroundUtils;
+import org.embl.mobie.viewer.playground.SourceAffineTransformer;
+import org.embl.mobie.viewer.plot.ScatterPlotViewer;
+import org.embl.mobie.viewer.segment.SegmentAdapter;
+import org.embl.mobie.viewer.source.SegmentationSource;
+import org.embl.mobie.viewer.table.TableDataFormat;
+import org.embl.mobie.viewer.table.TableViewer;
+import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SourceTransformer;
+import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
+import org.embl.mobie.viewer.ui.UserInterface;
+import org.embl.mobie.viewer.ui.WindowArrangementHelper;
+import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
+import org.embl.mobie.viewer.view.saving.ViewsSaver;
+import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
+import org.embl.mobie.viewer.volume.UniverseManager;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-
 import javax.swing.*;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.embl.mobie.viewer.Utils.containsAtLeastOne;
-import static org.embl.mobie.viewer.ui.UserInterfaceHelper.*;
 
 public class ViewManager
 {
@@ -185,18 +179,24 @@ public class ViewManager
 	}
 
 	private void addManualTransforms( List< SourceTransformer > viewSourceTransforms,
-									  Map<String, SourceAndConverter<?> > sourceNameToSourceAndConverter ) {
-		for ( String sourceName: sourceNameToSourceAndConverter.keySet() ) {
-			TransformedSource transformedSource = (TransformedSource) sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
-			AffineTransform3D fixedTransform = new AffineTransform3D();
-			transformedSource.getFixedTransform( fixedTransform );
-			if ( !fixedTransform.isIdentity() ) {
-				List<String> sources = new ArrayList<>();
-				sources.add( sourceName );
-				viewSourceTransforms.add( new AffineSourceTransformer( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
-			}
-		}
-	}
+                                      Map<String, SourceAndConverter<?> > sourceNameToSourceAndConverter ) {
+        for ( String sourceName: sourceNameToSourceAndConverter.keySet() ) {
+            Source<?> source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
+
+            if ( source instanceof LabelSource ) {
+                source = ((LabelSource) source).getWrappedSource();
+            }
+            TransformedSource transformedSource = (TransformedSource) source;
+
+            AffineTransform3D fixedTransform = new AffineTransform3D();
+            transformedSource.getFixedTransform( fixedTransform );
+            if ( !fixedTransform.isIdentity() ) {
+                List<String> sources = new ArrayList<>();
+                sources.add( sourceName );
+                viewSourceTransforms.add( new AffineSourceTransformer( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
+            }
+        }
+    }
 
 	public View getCurrentView( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform ) {
 
@@ -227,7 +227,6 @@ public class ViewManager
 				AnnotatedIntervalDisplay annotatedIntervalDisplay = ( AnnotatedIntervalDisplay ) sourceDisplay;
 				if ( hasColumnsOutsideProject( annotatedIntervalDisplay ) ) { return null; }
 				currentDisplay = new AnnotatedIntervalDisplay( annotatedIntervalDisplay );
-				addManualTransforms( viewSourceTransforms, annotatedIntervalDisplay.sourceNameToSourceAndConverter );
 			}
 
 			if ( currentDisplay != null )
