@@ -49,7 +49,7 @@ import java.util.function.Function;
 
 public class MoBIE
 {
-	public static final int N_THREADS = 8;
+	public static final int N_THREADS = Runtime.getRuntime().availableProcessors() - 1;
 	public static final SharedQueue sharedQueue = new SharedQueue( N_THREADS );
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 	public static final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
