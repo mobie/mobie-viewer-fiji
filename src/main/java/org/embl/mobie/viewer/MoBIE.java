@@ -293,8 +293,7 @@ public class MoBIE
 	{
 		final ImageSource imageSource = getSource( sourceName );
 		final String imagePath = getImagePath( imageSource );
-        //new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
-		IJ.log( "Opening image:\n" + imagePath );
+        IJ.log( "Opening image:\n" + imagePath );
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
         SpimData spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat, sharedQueue );
         sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
