@@ -275,7 +275,7 @@ public class ViewManager
 		// retrieved separate from any from sourceTransformers.
 		for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
 			SourceAndConverter<?> sourceAndConverter = new SourceAffineTransformer(
-					sourceNameToSourceAndConverters.get(sourceName), new AffineTransform3D()).getSourceOut();
+					sourceNameToSourceAndConverters.get( sourceName ), new AffineTransform3D()).getSourceOut();
 			sourceNameToSourceAndConverters.put( sourceName, sourceAndConverter );
 		}
 
@@ -314,14 +314,17 @@ public class ViewManager
 	{
 		final Set< String > sources = new HashSet<>();
 		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
+
 		for ( SourceDisplay sourceDisplay : sourceDisplays )
 		{
 			sources.addAll( sourceDisplay.getSources() );
 		}
+
 		for ( SourceTransformer sourceTransformer : view.getSourceTransforms() )
 		{
 			sources.addAll( sourceTransformer.getSources() );
 		}
+
 		return sources;
 	}
 
