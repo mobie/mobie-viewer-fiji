@@ -20,7 +20,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	protected LinkedHashMap<String, List<String>>  sources;
 	protected LinkedHashMap<String, List<String>> sourceNamesAfterTransform;
 	protected List< int[] > positions;
-	protected boolean centerAtOrigin = false;
+	protected boolean centerAtOrigin = true;
 
 	// Static
 	public static final double RELATIVE_CELL_MARGIN = 0.1;
