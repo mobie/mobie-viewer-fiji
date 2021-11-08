@@ -278,18 +278,9 @@ public class MoBIE
 //		userInterface.dispose();
 	}
 
-	public synchronized ImageSource getSource(String sourceName )
+	public synchronized ImageSource getSource( String sourceName )
 	{
-		try
-		{
-			return dataset.sources.get( sourceName ).get();
-		}
-		catch ( Exception e )
-		{
-			System.err.println( "Could not find source " + sourceName + " among the available sources in this dataset.");
-			e.printStackTrace();
-			throw new RuntimeException();
-		}
+		return dataset.sources.get( sourceName ).get();
 	}
 
 	public SourceAndConverter< ? > openSourceAndConverter( String sourceName )
