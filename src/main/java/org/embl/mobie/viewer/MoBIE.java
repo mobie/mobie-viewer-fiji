@@ -1,8 +1,5 @@
 package org.embl.mobie.viewer;
 
-import bdv.SpimSource;
-import bdv.tools.transformation.TransformedSource;
-import bdv.util.ResampledSource;
 import bdv.util.volatiles.SharedQueue;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
@@ -20,7 +17,6 @@ import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.source.SpimDataOpener;
 import org.embl.mobie.viewer.table.TableDataFormat;
-import org.embl.mobie.viewer.transform.MergedGridSource;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.View;
@@ -401,59 +397,21 @@ public class MoBIE
 
 	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables(SegmentationSourceDisplay segmentationDisplay, String table )
 	{
-		final Set< String > rootSourceNames = ConcurrentHashMap.newKeySet();
+		final Set< Source > rootSources = ConcurrentHashMap.newKeySet();
 
 		for ( String sourceName : segmentationDisplay.getSources() )
 		{
-			fetchTableRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSourceNames );
+			Utils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSources );
 		}
 
 		// TODO: make parallel
 		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
-		for ( String sourceName : rootSourceNames )
+		for ( Source sourceName : rootSources )
 		{
-			addPrimaryTable( table, primaryTables, sourceName );
+			addPrimaryTable( table, primaryTables, sourceName.getName() );
 		}
 
 		return primaryTables;
-	}
-
-	/**
-	 * Recursively fetch all root sources
-	 * @param source
-	 * @param rootSourceNames
-	 */
-	private void fetchTableRootSources( Source< ? > source, Set< String > rootSourceNames )
-	{
-		if ( source instanceof SpimSource )
-		{
-			rootSourceNames.add( source.getName() );
-		}
-		else if ( source instanceof TransformedSource )
-		{
-			final Source< ? > wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
-
-			fetchTableRootSources( wrappedSource, rootSourceNames );
-		}
-		else if (  source instanceof MergedGridSource )
-		{
-			final MergedGridSource< ? > mergedGridSource = ( MergedGridSource ) source;
-			final List< ? extends Source< ? > > gridSources = mergedGridSource.getGridSources();
-			for ( Source< ? > gridSource : gridSources )
-			{
-				fetchTableRootSources( gridSource, rootSourceNames );
-			}
-		}
-		else if (  source instanceof ResampledSource )
-		{
-			final ResampledSource resampledSource = ( ResampledSource ) source;
-			final Source< ? > wrappedSource = resampledSource.getOriginalSource();
-			fetchTableRootSources( wrappedSource, rootSourceNames );
-		}
-		else
-		{
-			throw new IllegalArgumentException("Sources of type " + source.getClass().getName() + " are currently not supported in MoBIE.fetchTableRootSources.");
-		}
 	}
 
 	private void addPrimaryTable( String table, ArrayList< List< TableRowImageSegment > > primaryTables, String sourceName )

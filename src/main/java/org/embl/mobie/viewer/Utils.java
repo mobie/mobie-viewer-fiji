@@ -1,6 +1,9 @@
 package org.embl.mobie.viewer;
 
+import bdv.SpimSource;
+import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
+import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
@@ -14,6 +17,7 @@ import ij.gui.GenericDialog;
 import net.imglib2.*;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
+import org.embl.mobie.viewer.transform.MergedGridSource;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -61,6 +65,44 @@ public abstract class Utils
 		}
 
 		return longs;
+	}
+
+	/**
+	 * Recursively fetch the names of all root sources
+	 * @param source
+	 * @param rootSourceNames
+	 */
+	public static void fetchRootSources( Source< ? > source, Set< Source > rootSourceNames )
+	{
+		if ( source instanceof SpimSource )
+		{
+			rootSourceNames.add( source );
+		}
+		else if ( source instanceof TransformedSource )
+		{
+			final Source< ? > wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
+
+			fetchRootSources( wrappedSource, rootSourceNames );
+		}
+		else if (  source instanceof MergedGridSource )
+		{
+			final MergedGridSource< ? > mergedGridSource = ( MergedGridSource ) source;
+			final List< ? extends Source< ? > > gridSources = mergedGridSource.getGridSources();
+			for ( Source< ? > gridSource : gridSources )
+			{
+				fetchRootSources( gridSource, rootSourceNames );
+			}
+		}
+		else if (  source instanceof ResampledSource )
+		{
+			final ResampledSource resampledSource = ( ResampledSource ) source;
+			final Source< ? > wrappedSource = resampledSource.getOriginalSource();
+			fetchRootSources( wrappedSource, rootSourceNames );
+		}
+		else
+		{
+			throw new IllegalArgumentException("For sources of type " + source.getClass().getName() + " the root source currently cannot be determined.");
+		}
 	}
 
 	public enum FileLocation {
