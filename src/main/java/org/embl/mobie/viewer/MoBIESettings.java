@@ -69,7 +69,7 @@ public class MoBIESettings
 	{
 		private String publicationURL;
 		private String dataset;
-		private String projectBranch = "master"; // project and images
+		private String projectBranch = "main"; // project and images
 		private String tableDataBranch;
 		private ImageDataFormat imageDataFormat;
 		private String projectLocation;

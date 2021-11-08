@@ -10,8 +10,8 @@ import java.util.List;
 public class View
 {
 	private String uiSelectionGroup;
-	private List<SourceDisplay> sourceDisplays;
-	private List<SourceTransformer> sourceTransforms;
+	private List< SourceDisplay > sourceDisplays;
+	private List< SourceTransformer > sourceTransforms;
 	private ViewerTransform viewerTransform;
 	private boolean isExclusive = false;
 	private String name;

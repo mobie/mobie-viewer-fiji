@@ -49,7 +49,7 @@ import java.util.function.Function;
 
 public class MoBIE
 {
-	public static final int N_THREADS = 8;
+	public static final int N_THREADS = Runtime.getRuntime().availableProcessors() - 1;
 	public static final SharedQueue sharedQueue = new SharedQueue( N_THREADS );
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 	public static final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
@@ -286,15 +286,23 @@ public class MoBIE
 
 	public synchronized ImageSource getSource(String sourceName )
 	{
-		return dataset.sources.get( sourceName ).get();
+		try
+		{
+			return dataset.sources.get( sourceName ).get();
+		}
+		catch ( Exception e )
+		{
+			System.err.println( "Could not find source " + sourceName + " among the available sources in this dataset.");
+			e.printStackTrace();
+			throw new RuntimeException();
+		}
 	}
 
 	public SourceAndConverter< ? > openSourceAndConverter( String sourceName )
 	{
 		final ImageSource imageSource = getSource( sourceName );
 		final String imagePath = getImagePath( imageSource );
-        //new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
-		IJ.log( "Opening image:\n" + imagePath );
+        IJ.log( "Opening image:\n" + imagePath );
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
         SpimData spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat, sharedQueue );
         sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
