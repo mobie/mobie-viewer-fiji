@@ -2,6 +2,7 @@ package org.embl.mobie.viewer;
 
 import bdv.SpimSource;
 import bdv.tools.transformation.TransformedSource;
+import bdv.util.ResampledSource;
 import bdv.util.volatiles.SharedQueue;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
@@ -442,6 +443,12 @@ public class MoBIE
 			{
 				fetchTableRootSources( gridSource, rootSourceNames );
 			}
+		}
+		else if (  source instanceof ResampledSource )
+		{
+			final ResampledSource resampledSource = ( ResampledSource ) source;
+			final Source< ? > wrappedSource = resampledSource.getOriginalSource();
+			fetchTableRootSources( wrappedSource, rootSourceNames );
 		}
 		else
 		{

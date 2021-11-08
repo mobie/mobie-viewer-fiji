@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.transform;
 import bdv.util.VolatileSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.tables.Logger;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Utils;
 import net.imglib2.FinalRealInterval;
@@ -31,6 +32,8 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
+		Logger.info("Creating MergedGridSource: " + mergedGridSourceName );
+
 		final List< SourceAndConverter< ? > > gridSources = getGridSources( sourceNameToSourceAndConverter );
 
 		if ( positions == null )
