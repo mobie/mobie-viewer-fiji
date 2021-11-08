@@ -34,6 +34,8 @@ jobs:
           distribution: 'zulu'
       - name: Set up CI environment
         run: .github/setup.sh
+      - name: Install blosc
+        run: sudo apt install libblosc-dev
       - name: Execute the build
         run: .github/build.sh
         env:
