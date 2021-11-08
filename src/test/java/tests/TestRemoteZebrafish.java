@@ -1,9 +1,9 @@
 package tests;
 
-import ij.IJ;
 import net.imagej.ImageJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
+import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
@@ -16,9 +16,9 @@ public class TestRemoteZebrafish
 {
 	public static void main( String[] args ) throws IOException
 	{
-		//new TestRemoteZebrafish().testSmallGridView();
+		new TestRemoteZebrafish().testSmallGridView();
 		//new TestRemoteZebrafish().testMergedGridView();
-		new TestRemoteZebrafish().testTransformedGridView();
+		//new TestRemoteZebrafish().testTransformedGridView();
 	}
 
 	@Test
@@ -30,6 +30,16 @@ public class TestRemoteZebrafish
 
 		final Map< String, View > views = moBIE.getViews();
 		moBIE.getViewManager().show( views.get( "small-grid-view" ) );
+
+		// select some image segments
+		final SegmentationSourceDisplay display = moBIE.getViewManager().getSegmentationDisplays().iterator().next();
+		display.selectionModel.setSelected( display.tableRows.get( 0 ), true );
+		display.selectionModel.focus( display.tableRows.get( 0 ) );
+		display.selectionModel.setSelected( display.tableRows.get( 1 ), true );
+		display.selectionModel.focus( display.tableRows.get( 1 ) );
+
+		// show in 3D
+		display.segmentsVolumeViewer.showSegments( true );
 	}
 
 	@Test

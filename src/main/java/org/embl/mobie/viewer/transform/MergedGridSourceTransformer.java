@@ -32,7 +32,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
-		Logger.info("Creating MergedGridSource: " + mergedGridSourceName );
+		Logger.info("Merging " + sources.size() + " sources into " + mergedGridSourceName );
 
 		final List< SourceAndConverter< ? > > gridSources = getGridSources( sourceNameToSourceAndConverter );
 
