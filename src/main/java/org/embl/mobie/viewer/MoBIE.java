@@ -1,19 +1,17 @@
 package org.embl.mobie.viewer;
 
+import bdv.SpimSource;
 import bdv.tools.transformation.TransformedSource;
-import bdv.util.BdvFunctions;
 import bdv.util.volatiles.SharedQueue;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
-import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
-import org.embl.mobie.viewer.playground.SourceChanger;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.ImageDataFormat;
@@ -21,6 +19,7 @@ import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.source.SpimDataOpener;
 import org.embl.mobie.viewer.table.TableDataFormat;
+import org.embl.mobie.viewer.transform.MergedGridSource;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.View;
@@ -34,10 +33,8 @@ import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
 import sc.fiji.bdvpg.PlaygroundPrefs;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
-import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 
 import java.io.IOException;
 import java.util.*;
@@ -45,7 +42,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Function;
 
 public class MoBIE
 {
@@ -64,7 +60,6 @@ public class MoBIE
 	private String imageRoot;
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
-	private SourceAndConverterService sacService;
 	private Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
 
 	public MoBIE( String projectRoot ) throws IOException
@@ -81,7 +76,6 @@ public class MoBIE
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
 		this.settings = setImageDataFormat( projectLocation );
-		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 		openDataset();
 	}
 
@@ -284,18 +278,9 @@ public class MoBIE
 //		userInterface.dispose();
 	}
 
-	public synchronized ImageSource getSource(String sourceName )
+	public synchronized ImageSource getSource( String sourceName )
 	{
-		try
-		{
-			return dataset.sources.get( sourceName ).get();
-		}
-		catch ( Exception e )
-		{
-			System.err.println( "Could not find source " + sourceName + " among the available sources in this dataset.");
-			e.printStackTrace();
-			throw new RuntimeException();
-		}
+		return dataset.sources.get( sourceName ).get();
 	}
 
 	public SourceAndConverter< ? > openSourceAndConverter( String sourceName )
@@ -415,16 +400,59 @@ public class MoBIE
 
 	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables(SegmentationSourceDisplay segmentationDisplay, String table )
 	{
-		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
+		final Set< String > rootSourceNames = ConcurrentHashMap.newKeySet();
 
-		// TODO: make parallel
 		for ( String sourceName : segmentationDisplay.getSources() )
 		{
-			final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( sourceName, table );
-			primaryTables.add( primaryTable );
+			fetchTableRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSourceNames );
+		}
+
+		// TODO: make parallel
+		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
+		for ( String sourceName : rootSourceNames )
+		{
+			addPrimaryTable( table, primaryTables, sourceName );
 		}
 
 		return primaryTables;
+	}
+
+	/**
+	 * Recursively fetch all root sources
+	 * @param source
+	 * @param rootSourceNames
+	 */
+	private void fetchTableRootSources( Source< ? > source, Set< String > rootSourceNames )
+	{
+		if ( source instanceof SpimSource )
+		{
+			rootSourceNames.add( source.getName() );
+		}
+		else if ( source instanceof TransformedSource )
+		{
+			final Source< ? > wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
+
+			fetchTableRootSources( wrappedSource, rootSourceNames );
+		}
+		else if (  source instanceof MergedGridSource )
+		{
+			final MergedGridSource< ? > mergedGridSource = ( MergedGridSource ) source;
+			final List< ? extends Source< ? > > gridSources = mergedGridSource.getGridSources();
+			for ( Source< ? > gridSource : gridSources )
+			{
+				fetchTableRootSources( gridSource, rootSourceNames );
+			}
+		}
+		else
+		{
+			throw new IllegalArgumentException("Sources of type " + source.getClass().getName() + " are currently not supported in MoBIE.fetchTableRootSources.");
+		}
+	}
+
+	private void addPrimaryTable( String table, ArrayList< List< TableRowImageSegment > > primaryTables, String sourceName )
+	{
+		final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( sourceName, table );
+		primaryTables.add( primaryTable );
 	}
 
 	private Map< String, List< String > > createColumnsForMerging( List< TableRowImageSegment > segments, Map< String, List< String > > newColumns )

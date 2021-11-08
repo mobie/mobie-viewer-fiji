@@ -28,7 +28,6 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	private transient MergedGridSource< ? > mergedGridSource;
 	private transient double[] translationRealOffset;
 
-
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
