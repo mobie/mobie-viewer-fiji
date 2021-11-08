@@ -40,11 +40,6 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 		sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
 
-		if ( mergedGridSourceName.equals( "plate_cell_segmentation" ) )
-		{
-			int a = 1;
-		}
-
 		// needed to know where the individual sources are in space:
 		transformGridSourcesIndividually( sourceNameToSourceAndConverter, gridSources );
 	}

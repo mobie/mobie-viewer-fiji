@@ -404,7 +404,7 @@ public class MoBIE
 
 		for ( String sourceName : segmentationDisplay.getSources() )
 		{
-			fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSourceNames );
+			fetchTableRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSourceNames );
 		}
 
 		// TODO: make parallel
@@ -422,7 +422,7 @@ public class MoBIE
 	 * @param source
 	 * @param rootSourceNames
 	 */
-	private void fetchRootSources( Source< ? > source, Set< String > rootSourceNames )
+	private void fetchTableRootSources( Source< ? > source, Set< String > rootSourceNames )
 	{
 		if ( source instanceof SpimSource )
 		{
@@ -432,7 +432,7 @@ public class MoBIE
 		{
 			final Source< ? > wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
 
-			fetchRootSources( wrappedSource, rootSourceNames );
+			fetchTableRootSources( wrappedSource, rootSourceNames );
 		}
 		else if (  source instanceof MergedGridSource )
 		{
@@ -440,8 +440,12 @@ public class MoBIE
 			final List< ? extends Source< ? > > gridSources = mergedGridSource.getGridSources();
 			for ( Source< ? > gridSource : gridSources )
 			{
-				fetchRootSources( gridSource, rootSourceNames );
+				fetchTableRootSources( gridSource, rootSourceNames );
 			}
+		}
+		else
+		{
+			throw new IllegalArgumentException("Sources of type " + source.getClass().getName() + " are currently not supported in MoBIE.fetchTableRootSources.");
 		}
 	}
 
