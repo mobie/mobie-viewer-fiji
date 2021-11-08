@@ -28,7 +28,6 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	private transient MergedGridSource< ? > mergedGridSource;
 	private transient double[] translationRealOffset;
 
-
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
@@ -40,6 +39,11 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		SourceAndConverter< ? > mergedSourceAndConverter = createMergedSourceAndConverter( gridSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ), gridSources.get( 0 ).asVolatile().getConverter(), gridSources.get( 0 ).getConverter() );
 
 		sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
+
+		if ( mergedGridSourceName.equals( "plate_cell_segmentation" ) )
+		{
+			int a = 1;
+		}
 
 		// needed to know where the individual sources are in space:
 		transformGridSourcesIndividually( sourceNameToSourceAndConverter, gridSources );
