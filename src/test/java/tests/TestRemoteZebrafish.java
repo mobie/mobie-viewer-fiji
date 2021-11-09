@@ -17,8 +17,8 @@ public class TestRemoteZebrafish
 {
 	public static void main( String[] args ) throws IOException
 	{
-		new TestRemoteZebrafish().testSmallGridView();
-		//new TestRemoteZebrafish().testTransformedGridView();
+		//new TestRemoteZebrafish().testSmallGridView();
+		new TestRemoteZebrafish().testTransformedGridView();
 	}
 
 	//@Test
@@ -54,6 +54,9 @@ public class TestRemoteZebrafish
 		viewsLoader.loadViews( "https://raw.githubusercontent.com/mobie/zebrafish-lm-datasets/main/data/membrane/misc/views/test_views.json" );
 		moBIE.getViewManager().show( "test-transformed-grid" );
 
-		// TODO: add the focussing of one element in the table! This currently throws an error!
+		// select some image segments
+		final SegmentationSourceDisplay display = moBIE.getViewManager().getSegmentationDisplays().iterator().next();
+		display.selectionModel.setSelected( display.tableRows.get( 0 ), true );
+		display.selectionModel.focus( display.tableRows.get( 0 ) );
 	}
 }

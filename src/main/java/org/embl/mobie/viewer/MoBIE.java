@@ -352,13 +352,13 @@ public class MoBIE
 		return location;
 	}
 
-	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String table )
+	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName, String displaySourceName )
 	{
-		final SegmentationSource source = ( SegmentationSource ) getSource( sourceName );
+		final SegmentationSource tableSource = ( SegmentationSource ) getSource( sourceName );
 
-		final String defaultTablePath = getTablePath( source, table );
+		final String defaultTablePath = getTablePath( tableSource, tableName );
 
-		final List< TableRowImageSegment > segments = Utils.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
+		final List< TableRowImageSegment > segments = Utils.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, displaySourceName );
 
 		return segments;
 	}
@@ -397,26 +397,33 @@ public class MoBIE
 
 	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables(SegmentationSourceDisplay segmentationDisplay, String table )
 	{
-		final Set< Source > rootSources = ConcurrentHashMap.newKeySet();
+		final List< String > segmentationDisplaySources = segmentationDisplay.getSources();
+		final ConcurrentHashMap< String, Set< Source > > sourceNameToRootSources = new ConcurrentHashMap();
 
-		for ( String sourceName : segmentationDisplay.getSources() )
+		for ( String sourceName : segmentationDisplaySources )
 		{
-			Utils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSources );
+			Set< Source > rootSourceNames = ConcurrentHashMap.newKeySet();
+			Utils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSourceNames );
+			sourceNameToRootSources.put( sourceName, rootSourceNames );
 		}
 
 		// TODO: make parallel
 		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
-		for ( Source sourceName : rootSources )
+		for ( String displayedSourceName : segmentationDisplaySources )
 		{
-			addPrimaryTable( table, primaryTables, sourceName.getName() );
+			final Set< Source > rootSources = sourceNameToRootSources.get( displayedSourceName );
+			for ( Source rootSource : rootSources )
+			{
+				addPrimaryTable( table, primaryTables, rootSource.getName(), displayedSourceName );
+			}
 		}
 
 		return primaryTables;
 	}
 
-	private void addPrimaryTable( String table, ArrayList< List< TableRowImageSegment > > primaryTables, String sourceName )
+	private void addPrimaryTable( String tableName, ArrayList< List< TableRowImageSegment > > primaryTables, String tableSourceName, String displaySourceName )
 	{
-		final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( sourceName, table );
+		final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( tableSourceName, tableName, displaySourceName );
 		primaryTables.add( primaryTable );
 	}
 

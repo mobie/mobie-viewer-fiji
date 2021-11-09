@@ -70,19 +70,19 @@ public abstract class Utils
 	/**
 	 * Recursively fetch the names of all root sources
 	 * @param source
-	 * @param rootSourceNames
+	 * @param rootSources
 	 */
-	public static void fetchRootSources( Source< ? > source, Set< Source > rootSourceNames )
+	public static void fetchRootSources( Source< ? > source, Set< Source > rootSources )
 	{
 		if ( source instanceof SpimSource )
 		{
-			rootSourceNames.add( source );
+			rootSources.add( source );
 		}
 		else if ( source instanceof TransformedSource )
 		{
 			final Source< ? > wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
 
-			fetchRootSources( wrappedSource, rootSourceNames );
+			fetchRootSources( wrappedSource, rootSources );
 		}
 		else if (  source instanceof MergedGridSource )
 		{
@@ -90,14 +90,14 @@ public abstract class Utils
 			final List< ? extends Source< ? > > gridSources = mergedGridSource.getGridSources();
 			for ( Source< ? > gridSource : gridSources )
 			{
-				fetchRootSources( gridSource, rootSourceNames );
+				fetchRootSources( gridSource, rootSources );
 			}
 		}
 		else if (  source instanceof ResampledSource )
 		{
 			final ResampledSource resampledSource = ( ResampledSource ) source;
 			final Source< ? > wrappedSource = resampledSource.getOriginalSource();
-			fetchRootSources( wrappedSource, rootSourceNames );
+			fetchRootSources( wrappedSource, rootSources );
 		}
 		else
 		{
