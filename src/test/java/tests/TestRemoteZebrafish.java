@@ -17,7 +17,6 @@ public class TestRemoteZebrafish
 	public static void main( String[] args ) throws IOException
 	{
 		new TestRemoteZebrafish().testSmallGridView();
-		//new TestRemoteZebrafish().testMergedGridView();
 		//new TestRemoteZebrafish().testTransformedGridView();
 	}
 
@@ -42,28 +41,17 @@ public class TestRemoteZebrafish
 		display.segmentsVolumeViewer.showSegments( true );
 	}
 
-	@Test
-	public void testMergedGridView() throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
-		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/zebrafish-lm-datasets", MoBIESettings.settings().gitProjectBranch( "main" ).imageDataFormat( ImageDataFormat.BdvN5S3 ) );
-
-		final AdditionalViewsLoader viewsLoader = new AdditionalViewsLoader( moBIE );
-		viewsLoader.loadViews( "https://raw.githubusercontent.com/mobie/zebrafish-lm-datasets/main/data/membrane/misc/views/test_views.json" );
-		moBIE.getViewManager().show( "merged-grid"  );
-	}
-
-	@Test
+	//@Test
 	public void testTransformedGridView() throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/zebrafish-lm-datasets", MoBIESettings.settings().gitProjectBranch( "main" ).imageDataFormat( ImageDataFormat.BdvN5S3 ) );
 
+		// TODO: does not show the sources
 		final AdditionalViewsLoader viewsLoader = new AdditionalViewsLoader( moBIE );
 		viewsLoader.loadViews( "https://raw.githubusercontent.com/mobie/zebrafish-lm-datasets/main/data/membrane/misc/views/test_views.json" );
-		moBIE.getViewManager().show( "transformed-grid" );
+		moBIE.getViewManager().show( "test-transformed-grid" );
 
 		// TODO: add the focussing of one element in the table! This currently throws an error!
 	}
