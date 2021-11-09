@@ -1,6 +1,7 @@
 package org.embl.mobie.viewer.transform;
 
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.tables.Logger;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Utils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
@@ -28,6 +29,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
+		Logger.info("Transforming " + sources.size() + " sources into a grid...");
 		if ( positions == null )
 			autoSetPositions();
 

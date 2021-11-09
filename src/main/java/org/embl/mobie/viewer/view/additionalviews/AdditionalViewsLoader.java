@@ -15,16 +15,13 @@ import java.util.Map;
 public class AdditionalViewsLoader {
 
     private MoBIE moBIE;
-    private MoBIESettings settings;
 
     public AdditionalViewsLoader ( MoBIE moBIE ) {
         this.moBIE = moBIE;
-        this.settings = moBIE.getSettings();
     }
 
     public void loadAdditionalViewsDialog() {
         try {
-
             String selectedFilePath = null;
             Utils.FileLocation fileLocation = Utils.loadFromProjectOrFileSystemDialog();
             if ( fileLocation == Utils.FileLocation.Project ) {
@@ -33,19 +30,22 @@ public class AdditionalViewsLoader {
                 selectedFilePath = Utils.selectOpenPathFromFileSystem( "View" );
             }
 
-            // to match to the existing view selection panels, we enable the mobie look and feel
-            MoBIELookAndFeelToggler.setMoBIELaf();
-
             if (selectedFilePath != null) {
-                Map< String, View> views = new AdditionalViewsJsonParser().getViews( selectedFilePath ).views;
-                moBIE.getUserInterface().addViews( views );
-                IJ.log( "New views loaded from: " + selectedFilePath );
+                MoBIELookAndFeelToggler.setMoBIELaf();
+                loadViews( selectedFilePath );
+                MoBIELookAndFeelToggler.resetMoBIELaf();
             }
-
-            MoBIELookAndFeelToggler.resetMoBIELaf();
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void loadViews( String selectedFilePath ) throws IOException
+    {
+        Map< String, View> views = new AdditionalViewsJsonParser().getViews( selectedFilePath ).views;
+        moBIE.getViews().putAll( views );
+        moBIE.getUserInterface().addViews( views );
+        IJ.log( "New views loaded from:\n" + selectedFilePath );
     }
 }

@@ -255,6 +255,11 @@ public class ViewManager
 		}
 	}
 
+	public synchronized void show( String view )
+	{
+		show( moBIE.getViews().get( view ) );
+	}
+
 	public synchronized void show( View view )
 	{
 		if ( view.isExclusive() )
