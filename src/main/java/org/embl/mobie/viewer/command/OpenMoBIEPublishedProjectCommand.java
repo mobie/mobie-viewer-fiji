@@ -5,7 +5,6 @@ import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.project.PublishedProject;
 import org.embl.mobie.viewer.project.PublishedProjectsCreator;
 import ij.gui.GenericDialog;
-import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 
@@ -44,13 +43,5 @@ public class OpenMoBIEPublishedProjectCommand implements Command
 		{
 			e.printStackTrace();
 		}
-	}
-
-	public static void main( String[] args )
-	{
-		final ImageJ ij = new ImageJ();
-		ij.ui().showUI();
-
-		ij.command().run( OpenMoBIEPublishedProjectCommand.class, true );
 	}
 }

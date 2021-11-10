@@ -47,7 +47,7 @@ public class TestRemoteZebrafish
 		display.segmentsVolumeViewer.showSegments( true );
 	}
 
-	@Test
+	//@Test
 	public void testTransformedGridView() throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
