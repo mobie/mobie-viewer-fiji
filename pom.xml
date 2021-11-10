@@ -110,16 +110,6 @@
 		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 	</properties>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.22.1</version>
-			</plugin>
-		</plugins>
-	</build>
-
 	<repositories>
 		<repository>
 			<id>scijava.public</id>
@@ -128,9 +118,25 @@
 	</repositories>
 	<dependencies>
 		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>imagej</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>imagej-legacy</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-playground</artifactId>
 			<version>${bigdataviewer-playground.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>net.imagej</groupId>
+					<artifactId>imagej</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>net.imglib2</groupId>
@@ -182,6 +188,12 @@
 			<groupId>de.embl.cba</groupId>
 			<artifactId>imagej-utils</artifactId>
 			<version>${imagej-utils.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>net.imagej</groupId>
+					<artifactId>imagej</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains</groupId>

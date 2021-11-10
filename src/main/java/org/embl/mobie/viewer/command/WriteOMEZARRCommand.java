@@ -5,7 +5,6 @@ import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 import org.embl.mobie.viewer.projectcreator.ui.ManualExportPanel;
 import org.embl.mobie.viewer.source.ImageDataFormat;
 import ij.ImagePlus;
-import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.janelia.saalfeldlab.n5.GzipCompression;
 import org.scijava.command.Command;
@@ -58,10 +57,5 @@ public class WriteOMEZARRCommand implements Command {
                         ImageDataFormat.OmeZarr ).getManualExportParameters();
             }
         }
-    }
-
-    public static void main(String[] args) {
-        final ImageJ ij = new ImageJ();
-        ij.ui().showUI();
     }
 }

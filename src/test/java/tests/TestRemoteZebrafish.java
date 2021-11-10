@@ -15,17 +15,22 @@ import java.util.Map;
 
 public class TestRemoteZebrafish
 {
-	public static void main( String[] args ) throws IOException
-	{
-		//new TestRemoteZebrafish().testSmallGridView();
-		new TestRemoteZebrafish().testTransformedGridView();
+	static {
+		LegacyInjector.preinit();
 	}
 
-	//@Test
+	public static void main( String[] args ) throws IOException
+	{
+		new TestRemoteZebrafish().testSmallGridView();
+		//new TestRemoteZebrafish().testTransformedGridView();
+	}
+
+	@Test
 	public void testSmallGridView() throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
+
 		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/zebrafish-lm-datasets", MoBIESettings.settings().gitProjectBranch( "main" ).imageDataFormat( ImageDataFormat.BdvN5S3 ) );
 
 		final Map< String, View > views = moBIE.getViews();
@@ -42,7 +47,7 @@ public class TestRemoteZebrafish
 		display.segmentsVolumeViewer.showSegments( true );
 	}
 
-	//@Test
+	@Test
 	public void testTransformedGridView() throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();

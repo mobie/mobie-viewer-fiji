@@ -2,7 +2,6 @@ package org.embl.mobie.viewer.command;
 
 import org.embl.mobie.viewer.projectcreator.ui.ProjectsCreatorPanel;
 import ij.IJ;
-import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -43,13 +42,5 @@ public class CreateNewMoBIEProjectCommand implements Command {
                 }
             }
         }
-
     }
-
-    public static void main(final String... args)
-    {
-        final ImageJ ij = new ImageJ();
-        ij.ui().showUI();
-    }
-
 }
