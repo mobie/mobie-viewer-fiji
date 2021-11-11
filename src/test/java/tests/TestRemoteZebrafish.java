@@ -18,7 +18,7 @@ public class TestRemoteZebrafish
 	public static void main( String[] args ) throws IOException
 	{
 		new TestRemoteZebrafish().testSmallGridView();
-		//new TestRemoteZebrafish().testTransformedGridView();
+		new TestRemoteZebrafish().testTransformedGridView();
 	}
 
 	@Test
@@ -42,7 +42,7 @@ public class TestRemoteZebrafish
 		display.segmentsVolumeViewer.showSegments( true );
 	}
 
-	//@Test
+	@Test
 	public void testTransformedGridView() throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
