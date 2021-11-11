@@ -39,8 +39,6 @@ jobs:
         run: .github/setup.sh
       - name: Install blosc
         run: sudo apt install libblosc-dev
-      - run: sudo apt-get install xvfb
-      - run: xvfb-run --auto-servernum npm test
       - name: Execute the build
         run: .github/build.sh
         env:
