@@ -53,6 +53,9 @@ import static org.embl.mobie.viewer.Utils.containsAtLeastOne;
 
 public class ViewManager
 {
+
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	private final MoBIE moBIE;
 	private final UserInterface userInterface;
 	private final SliceViewer sliceViewer;

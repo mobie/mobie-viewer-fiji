@@ -13,6 +13,8 @@ import java.util.List;
 
 public class DatasetsCreator {
 
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     private ProjectCreator projectCreator;
 
     public DatasetsCreator(ProjectCreator projectCreator ) {

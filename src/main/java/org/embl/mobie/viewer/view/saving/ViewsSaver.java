@@ -25,6 +25,8 @@ import static de.embl.cba.tables.github.GitHubUtils.isGithub;
 
 public class ViewsSaver {
 
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     private MoBIE moBIE;
     private MoBIESettings settings;
 

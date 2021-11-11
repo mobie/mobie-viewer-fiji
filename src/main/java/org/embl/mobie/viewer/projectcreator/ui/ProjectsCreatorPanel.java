@@ -28,6 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProjectsCreatorPanel extends JFrame {
+
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     private ProjectCreator projectsCreator;
     private JComboBox<String> datasetComboBox;
     private JComboBox<String> sourcesComboBox;

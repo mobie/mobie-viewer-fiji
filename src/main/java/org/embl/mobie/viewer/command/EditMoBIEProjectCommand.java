@@ -14,6 +14,8 @@ import static org.scijava.ItemVisibility.MESSAGE;
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Edit MoBIE Project..." )
 public class EditMoBIEProjectCommand implements Command
 {
+	  static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     @Parameter( visibility=MESSAGE, required=false )
     String message = "Choose a MoBIE project folder...";
 

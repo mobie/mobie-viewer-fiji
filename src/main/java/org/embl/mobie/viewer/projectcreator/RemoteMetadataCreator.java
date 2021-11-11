@@ -26,6 +26,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class RemoteMetadataCreator {
+
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     ProjectCreator projectCreator;
     String signingRegion;
     String serviceEndpoint;

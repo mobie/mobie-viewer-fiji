@@ -55,6 +55,8 @@ import static net.imglib2.util.Util.getTypeFromInterval;
 
 public class ImagesCreator {
 
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     ProjectCreator projectCreator;
 
     public ImagesCreator( ProjectCreator projectCreator ) {

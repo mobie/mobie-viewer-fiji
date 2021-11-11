@@ -20,6 +20,8 @@ import org.janelia.saalfeldlab.n5.*;
 
 public class ManualExportPanel {
 
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     ImagePlus imp;
     String filePath;
     AffineTransform3D sourceTransform;

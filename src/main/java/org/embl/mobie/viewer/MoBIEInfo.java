@@ -7,6 +7,8 @@ import ij.IJ;
 
 public class MoBIEInfo
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static final String MOBIE_VIEWER = "MoBIE Viewer";
 	public static final String MOBIE_FRAMEWORK = "MoBIE Framework";
 	public static final String BIG_DATA_VIEWER = "BigDataViewer";

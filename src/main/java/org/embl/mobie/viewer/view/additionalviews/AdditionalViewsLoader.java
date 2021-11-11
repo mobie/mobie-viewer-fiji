@@ -14,6 +14,8 @@ import java.util.Map;
 
 public class AdditionalViewsLoader {
 
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     private MoBIE moBIE;
 
     public AdditionalViewsLoader ( MoBIE moBIE ) {

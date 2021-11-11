@@ -68,6 +68,9 @@ import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_
 
 public class TableViewer< T extends TableRow > implements SelectionListener< T >, ColoringListener, TableRowListener
 {
+
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	private final MoBIE moBIE;
 	private final List< T > tableRows;
 	private final SelectionModel< T > selectionModel;

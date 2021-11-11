@@ -29,6 +29,8 @@ import static org.embl.mobie.viewer.view.saving.ViewSavingHelpers.writeDatasetJs
 
 public class SelectExistingViewFrame extends JFrame {
 
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     private JComboBox<String> groupsComboBox;
     private JComboBox<String> viewsComboBox;
     private AdditionalViews additionalViews;

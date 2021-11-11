@@ -69,6 +69,8 @@ import java.util.stream.Collectors;
 
 public class ScatterPlotViewer< T extends TableRow > implements SelectionListener< T >, ColoringListener, TimePointListener
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public enum PointSelectionModes
 	{
 		Closest,

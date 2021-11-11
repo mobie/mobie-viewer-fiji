@@ -36,6 +36,8 @@ import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
 
 public abstract class Utils
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static void waitUntilFinishedAndShutDown( ExecutorService executorService )
 	{
 		executorService.shutdown();

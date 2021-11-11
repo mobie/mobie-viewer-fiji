@@ -17,6 +17,8 @@ import static org.embl.mobie.viewer.ui.UserInterfaceHelper.tidyString;
 @Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME ZARR>Export Current Image To OME-ZARR...")
 public class WriteOMEZARRCommand implements Command {
 
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     @Parameter
     public ImagePlus currentImage;
 

@@ -6,6 +6,8 @@ import ij.process.ImageProcessor;
 
 public class ProjectCreatorTestHelper {
 
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     public static ImagePlus makeImage( String imageName ) {
         // make an image with random values, same size as the imagej sample head image
         return IJ.createImage(imageName, "8-bit noise", 186, 226, 27);

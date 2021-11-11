@@ -1,6 +1,5 @@
 package projects;
 
-import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.source.ImageDataFormat;

@@ -14,6 +14,8 @@ import static org.embl.mobie.viewer.ui.UserInterfaceHelper.*;
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Create New MoBIE Project..." )
 public class CreateNewMoBIEProjectCommand implements Command {
 
+	  static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     @Parameter( label= "Choose a project name:")
     public String projectName;
 

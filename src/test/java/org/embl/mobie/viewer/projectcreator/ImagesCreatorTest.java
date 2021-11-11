@@ -32,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ImagesCreatorTest {
 
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     private ProjectCreator projectCreator;
     private ImagesCreator imagesCreator;
     private String imageName;

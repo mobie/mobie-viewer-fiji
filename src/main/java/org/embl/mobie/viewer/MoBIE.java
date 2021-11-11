@@ -42,6 +42,8 @@ import java.util.concurrent.Executors;
 
 public class MoBIE
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static final int N_THREADS = Runtime.getRuntime().availableProcessors() - 1;
 	public static final SharedQueue sharedQueue = new SharedQueue( N_THREADS );
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";

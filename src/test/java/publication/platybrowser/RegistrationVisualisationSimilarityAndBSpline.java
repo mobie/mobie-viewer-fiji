@@ -21,6 +21,8 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 public class RegistrationVisualisationSimilarityAndBSpline< R extends RealType< R > & NativeType< R > >
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static final ARGBType MAGENTA = new ARGBType( ARGBType.rgba( 255, 0, 255, 255 ) );
 	public static final ARGBType GREEN = new ARGBType( ARGBType.rgba( 0, 255, 0, 255 ) );
 	public static final ARGBType WHITE = new ARGBType( ARGBType.rgba( 255, 255, 255, 255 ) );

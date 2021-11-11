@@ -15,6 +15,8 @@ import java.util.HashMap;
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open>Open Published MoBIE Project..." )
 public class OpenMoBIEPublishedProjectCommand implements Command
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	@Override
 	public void run()
 	{

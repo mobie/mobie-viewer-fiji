@@ -8,6 +8,9 @@ import java.awt.*;
 
 public class SwingHelper
 {
+
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static final int TEXT_FIELD_HEIGHT = 20;
 	public static final int COMBOBOX_WIDTH = 270;
 	public static final Dimension BUTTON_DIMENSION = new Dimension( 80, TEXT_FIELD_HEIGHT );

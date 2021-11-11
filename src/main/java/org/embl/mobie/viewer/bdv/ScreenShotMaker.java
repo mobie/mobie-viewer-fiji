@@ -74,6 +74,8 @@ import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 public class ScreenShotMaker
 {
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     private final BdvHandle bdvHandle;
     private double physicalPixelSpacingInXY = 1;
     private String physicalUnit = "Pixels";

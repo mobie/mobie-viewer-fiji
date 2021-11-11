@@ -31,6 +31,9 @@ import java.util.Map;
 import static org.embl.mobie.viewer.ui.UserInterfaceHelper.tidyString;
 
 public class ProjectCreatorHelper {
+
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     public static boolean isImageSuitable(ImagePlus imp) {
         // check the image type
         switch (imp.getType()) {
