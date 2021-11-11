@@ -9,7 +9,7 @@
 
 	<groupId>org.embl.mobie</groupId>
 	<artifactId>mobie-viewer-fiji</artifactId>
-	<version>2.0.3</version>
+	<version>2.0.4</version>
 
 	<!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
 
@@ -109,16 +109,6 @@
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 	</properties>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.22.1</version>
-			</plugin>
-		</plugins>
-	</build>
 
 	<repositories>
 		<repository>

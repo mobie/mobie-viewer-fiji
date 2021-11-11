@@ -17,7 +17,7 @@ public class TestRemoteZebrafish
 {
 	public static void main( String[] args ) throws IOException
 	{
-		//new TestRemoteZebrafish().testSmallGridView();
+		new TestRemoteZebrafish().testSmallGridView();
 		new TestRemoteZebrafish().testTransformedGridView();
 	}
 
