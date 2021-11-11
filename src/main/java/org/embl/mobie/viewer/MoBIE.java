@@ -552,8 +552,6 @@ public class MoBIE
 
         switch (imageDataFormat) {
             case BdvN5:
-                final String path = source.imageData.get( imageDataFormat ).relativePath.split( "\\." )[0] + ".n5";
-                return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), path );
             case BdvOmeZarr:
             case OmeZarr:
             case BdvOmeZarrS3:
