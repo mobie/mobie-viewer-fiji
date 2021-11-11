@@ -15,10 +15,6 @@ import java.util.Map;
 
 public class TestRemoteZebrafish
 {
-	static {
-		LegacyInjector.preinit();
-	}
-
 	public static void main( String[] args ) throws IOException
 	{
 		new TestRemoteZebrafish().testSmallGridView();
@@ -33,8 +29,7 @@ public class TestRemoteZebrafish
 
 		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/zebrafish-lm-datasets", MoBIESettings.settings().gitProjectBranch( "main" ).imageDataFormat( ImageDataFormat.BdvN5S3 ) );
 
-		final Map< String, View > views = moBIE.getViews();
-		moBIE.getViewManager().show( views.get( "small-grid-view" ) );
+		moBIE.getViewManager().show( "small-grid-view" );
 
 		// select some image segments
 		final SegmentationSourceDisplay display = moBIE.getViewManager().getSegmentationDisplays().iterator().next();
