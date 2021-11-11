@@ -12,6 +12,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      - xvfb
+
+    before_script:
+      - "export DISPLAY=:99.0"
+      - "sh -e /etc/init.d/xvfb start"
+      - sleep 3
+
     steps:
       - uses: actions/checkout@v2
 
@@ -36,10 +44,6 @@ jobs:
         run: .github/setup.sh
       - name: Install blosc
         run: sudo apt install libblosc-dev
-      - run: sudo apt install xvfb
-      - run: export DISPLAY=:99.0
-      - run: sh -e /etc/init.d/xvfb start
-      - run: sleep 3
       - name: Execute the build
         run: .github/build.sh
         env:
