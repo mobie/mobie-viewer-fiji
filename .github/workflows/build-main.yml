@@ -1,7 +1,7 @@
 name: build
 
 on:
-  release:
+  push:
     branches:
       - main
       - develop
