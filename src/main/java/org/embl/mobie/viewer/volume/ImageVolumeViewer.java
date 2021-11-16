@@ -63,8 +63,8 @@ public class ImageVolumeViewer
 	private final Collection< SourceAndConverter< ? > > sourceAndConverters;
 	private final UniverseManager universeManager;
 
-	private ConcurrentHashMap< S, Content > segmentToContent;
-	private ConcurrentHashMap< Content, S > contentToSegment;
+	private ConcurrentHashMap< SourceAndConverter, Content > sacToContent;
+	private ConcurrentHashMap< Content, SourceAndConverter > contentToSegment;
 	private double transparency;
 	private int meshSmoothingIterations;
 	private int segmentFocusAnimationDurationMillis;
@@ -96,7 +96,7 @@ public class ImageVolumeViewer
 		this.segmentFocusDzMin = 20.0;
 		this.maxNumSegmentVoxels = 100 * 100 * 100;
 		this.objectsName = "";
-		this.segmentToContent = new ConcurrentHashMap<>();
+		this.sacToContent = new ConcurrentHashMap<>();
 		this.contentToSegment = new ConcurrentHashMap<>();
 
 		this.meshCreator = new MeshCreator<>( meshSmoothingIterations, maxNumSegmentVoxels );
@@ -130,27 +130,17 @@ public class ImageVolumeViewer
 		this.segmentFocusZoomLevel = segmentFocusZoomLevel;
 	}
 
-	public void setSegmentFocusDxyMin( double segmentFocusDxyMin )
-	{
-		this.segmentFocusDxyMin = segmentFocusDxyMin;
-	}
-
-	public void setSegmentFocusDzMin( double segmentFocusDzMin )
-	{
-		this.segmentFocusDzMin = segmentFocusDzMin;
-	}
-
 	public void setMaxNumSegmentVoxels( long maxNumSegmentVoxels )
 	{
 		this.maxNumSegmentVoxels = maxNumSegmentVoxels;
 	}
 
-	private void updateSegmentColors()
+	private void updateImageColors()
 	{
-		for ( S segment : segmentToContent.keySet() )
+		for ( SourceAndConverter< ? >  sourceAndConverter : sacToContent.keySet() )
 		{
-			final Color3f color3f = getColor3f( segment );
-			final Content content = segmentToContent.get( segment );
+			final Color3f color3f = getColor3f( sourceAndConverter );
+			final Content content = sacToContent.get( sourceAndConverter );
 			content.setColor( color3f );
 		}
 	}
@@ -168,7 +158,7 @@ public class ImageVolumeViewer
 	private void removeUnselectedSegments( )
 	{
 		final Set< S > selectedSegments = selectionModel.getSelected();
-		final Set< S > currentSegments = segmentToContent.keySet();
+		final Set< S > currentSegments = sacToContent.keySet();
 		final Set< S > remove = new HashSet<>();
 
 		for ( S segment : currentSegments )
@@ -189,7 +179,7 @@ public class ImageVolumeViewer
 			{
 				if ( recomputeMeshes ) removeSegment( segment );
 
-				if ( ! segmentToContent.containsKey( segment ) )
+				if ( ! sacToContent.containsKey( segment ) )
 				{
 					final Source< ? extends RealType< ? > > source = getSource( segment );
 					final CustomTriangleMesh mesh = meshCreator.createSmoothCustomTriangleMesh( segment, voxelSpacing, recomputeMeshes, source );
@@ -219,9 +209,9 @@ public class ImageVolumeViewer
 
 	private synchronized void removeSegment( S segment )
 	{
-		final Content content = segmentToContent.get( segment );
+		final Content content = sacToContent.get( segment );
 		universe.removeContent( content.getName() );
-		segmentToContent.remove( segment );
+		sacToContent.remove( segment );
 		contentToSegment.remove( content );
 	}
 
@@ -243,7 +233,7 @@ public class ImageVolumeViewer
 					{
 						window = null;
 						universe = null;
-						segmentToContent.clear();
+						sacToContent.clear();
 						contentToSegment.clear();
 						setShowSegments( false );
 						universeManager.setUniverse( null );
@@ -301,7 +291,7 @@ public class ImageVolumeViewer
 		content.setTransparency( ( float ) transparency );
 		content.setLocked( true );
 
-		segmentToContent.put( segment, content );
+		sacToContent.put( segment, content );
 		contentToSegment.put( content, segment );
 
 		universe.setAutoAdjustView( false );
@@ -436,7 +426,7 @@ public class ImageVolumeViewer
 	@Override
 	public void coloringChanged()
 	{
-		updateSegmentColors();
+		updateImageColors();
 	}
 
 	@Override
@@ -460,7 +450,7 @@ public class ImageVolumeViewer
 
 		if ( universe.getContents().size() == 0 ) return;
 		if ( selection == recentFocus ) return;
-		if ( ! segmentToContent.containsKey( selection ) ) return;
+		if ( ! sacToContent.containsKey( selection ) ) return;
 
 		recentFocus = selection;
 
@@ -470,7 +460,7 @@ public class ImageVolumeViewer
 						AnimatedViewAdjuster.ADJUST_BOTH );
 
 		adjuster.apply(
-				segmentToContent.get( selection ),
+				sacToContent.get( selection ),
 				30,
 				segmentFocusAnimationDurationMillis,
 				segmentFocusZoomLevel,
