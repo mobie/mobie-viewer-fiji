@@ -2,7 +2,7 @@ package org.embl.mobie.viewer.transform;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
@@ -22,7 +22,7 @@ public class TransformHelper
 
 		for ( Source< ? > source : sources )
 		{
-			final FinalRealInterval bounds = Utils.estimateBounds( source );
+			final FinalRealInterval bounds = MoBIEUtils.estimateBounds( source );
 
 			if ( union == null )
 				union = bounds;
@@ -47,7 +47,7 @@ public class TransformHelper
 
 	public static double[] getCenter( SourceAndConverter< ? > sourceAndConverter )
 	{
-		final FinalRealInterval bounds = Utils.estimateBounds( sourceAndConverter.getSpimSource() );
+		final FinalRealInterval bounds = MoBIEUtils.estimateBounds( sourceAndConverter.getSpimSource() );
 		final double[] center = bounds.minAsDoubleArray();
 		final double[] max = bounds.maxAsDoubleArray();
 		for ( int d = 0; d < max.length; d++ )

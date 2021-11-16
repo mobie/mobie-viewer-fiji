@@ -5,7 +5,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.MoBIEUtils;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
@@ -80,14 +80,14 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 			translateSourcesWithinMergedSources( sourceNameToSourceAndConverter, gridCellRealDimensions, executorService, finalPositionIndex, sourceNamesAtGridPosition );
 
 		}
-		Utils.waitUntilFinishedAndShutDown( executorService );
+		MoBIEUtils.waitUntilFinishedAndShutDown( executorService );
 
 		// System.out.println( "Transformed " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
 	}
 
 	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealDimensions )
 	{
-		final FinalRealInterval dataRealBounds = Utils.estimateBounds( gridSources.get( 0 ).getSpimSource() );
+		final FinalRealInterval dataRealBounds = MoBIEUtils.estimateBounds( gridSources.get( 0 ).getSpimSource() );
 
 		final double[] dataRealDimensions = new double[ 3 ];
 		for ( int d = 0; d < 3; d++ )

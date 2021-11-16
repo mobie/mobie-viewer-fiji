@@ -14,7 +14,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.io.n5.source.LabelSource;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
 import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
@@ -50,7 +50,7 @@ import javax.swing.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.embl.mobie.viewer.Utils.containsAtLeastOne;
+import static org.embl.mobie.viewer.MoBIEUtils.containsAtLeastOne;
 
 public class ViewManager
 {
@@ -249,7 +249,7 @@ public class ViewManager
 
 		if ( includeViewerTransform )
 		{
-			AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform( bdvHandle,
+			AffineTransform3D normalisedViewTransform = MoBIEUtils.createNormalisedViewerTransform( bdvHandle,
 					PlaygroundUtils.getWindowCentreInPixelUnits( bdvHandle ) );
 
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
@@ -385,7 +385,18 @@ public class ViewManager
 	{
 		imageDisplay.sliceViewer = sliceViewer;
 		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle );
+		initImageVolumeViewer( imageDisplay );
+
+	}
+
+	// compare with initSegmentationVolumeViewer
+	private void initImageVolumeViewer( ImageSourceDisplay imageDisplay )
+	{
 		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.sourceNameToSourceAndConverter, universeManager );
+		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceNameToSourceAndConverter.values() )
+		{
+			sacService.setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), imageDisplay.imageVolumeViewer );
+		}
 	}
 
 	private void showAnnotatedIntervalDisplay( AnnotatedIntervalDisplay annotationDisplay )
@@ -459,7 +470,7 @@ public class ViewManager
 				WindowArrangementHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
 			} );
 
-			initVolumeViewer( segmentationDisplay );
+			initSegmentationVolumeViewer( segmentationDisplay );
 		}
 	}
 
@@ -499,20 +510,20 @@ public class ViewManager
 		annotatedIntervalDisplay.sliceView = new AnnotatedIntervalSliceView( moBIE, annotatedIntervalDisplay, bdvHandle );
 	}
 
-	private void initVolumeViewer( SegmentationSourceDisplay display )
+	private void initSegmentationVolumeViewer( SegmentationSourceDisplay segmentationDisplay )
 	{
-		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.coloringModel, display.sourceNameToSourceAndConverter.values(), universeManager );
-		Double[] resolution3dView = display.getResolution3dView();
+		segmentationDisplay.segmentsVolumeViewer = new SegmentsVolumeViewer<>( segmentationDisplay.selectionModel, segmentationDisplay.coloringModel, segmentationDisplay.sourceNameToSourceAndConverter.values(), universeManager );
+		Double[] resolution3dView = segmentationDisplay.getResolution3dView();
 		if ( resolution3dView != null ) {
-			display.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(display.getResolution3dView()) );
+			segmentationDisplay.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(segmentationDisplay.getResolution3dView()) );
 		}
-		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d() );
-		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
-		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
+		segmentationDisplay.segmentsVolumeViewer.showSegments( segmentationDisplay.showSelectedSegmentsIn3d() );
+		segmentationDisplay.coloringModel.listeners().add( segmentationDisplay.segmentsVolumeViewer );
+		segmentationDisplay.selectionModel.listeners().add( segmentationDisplay.segmentsVolumeViewer );
 
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
+		for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceNameToSourceAndConverter.values() )
 		{
-			sacService.setMetadata( sourceAndConverter, SegmentsVolumeViewer.VOLUME_VIEW, display.segmentsVolumeViewer  );
+			sacService.setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), segmentationDisplay.segmentsVolumeViewer );
 		}
 	}
 

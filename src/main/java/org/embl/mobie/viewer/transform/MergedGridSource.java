@@ -3,8 +3,7 @@ package org.embl.mobie.viewer.transform;
 import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import net.imglib2.util.LinAlgHelpers;
-import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.MoBIEUtils;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
 import net.imglib2.FinalInterval;
@@ -101,7 +100,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 
 	private FinalInterval createInterval()
 	{
-		final long[] max = Utils.asLongs( cellDimensions[ 0 ] );
+		final long[] max = MoBIEUtils.asLongs( cellDimensions[ 0 ] );
 		for ( int d = 0; d < max.length; d++ )
 			max[ d ] -= 1;
 		final long[] min = new long[ 3 ];
@@ -155,7 +154,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		// positions.
 		final RandomAccessibleInterval< T > source = referenceSource.getSource( 0, 0 );
 		final long[] referenceSourceDimensions = source.dimensionsAsLongArray();
-		cellDimensions[ 0 ] = Utils.asInts( referenceSourceDimensions );
+		cellDimensions[ 0 ] = MoBIEUtils.asInts( referenceSourceDimensions );
 		for ( int d = 0; d < 2; d++ )
 		{
 			cellDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeCellMargin );
@@ -337,7 +336,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 				RandomAccessibleInterval< T > data = source.getSource( currentTimepoint, level );
 
 				// Create a view that is shifted to the cell position
-				final long[] offset = computeTranslation( Utils.asInts( cell.dimensionsAsLongArray() ), cell.minAsLongArray(), data.dimensionsAsLongArray() );
+				final long[] offset = computeTranslation( MoBIEUtils.asInts( cell.dimensionsAsLongArray() ), cell.minAsLongArray(), data.dimensionsAsLongArray() );
 				data = Views.translate( Views.zeroMin( data ), offset );
 
 

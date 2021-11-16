@@ -5,7 +5,6 @@ import customnode.CustomTriangleMesh;
 import de.embl.cba.bdv.utils.objects3d.FloodFill;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.Utils;
-import de.embl.cba.tables.ij3d.UniverseUtils;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.mesh.MeshExtractor;
 import ij.IJ;
@@ -18,12 +17,11 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
+import org.embl.mobie.viewer.MoBIEUtils;
 import org.scijava.vecmath.Point3f;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import static de.embl.cba.tables.Utils.getVoxelSpacings;
 
 public class MeshCreator < S extends ImageSegment >
 {
@@ -139,7 +137,7 @@ public class MeshCreator < S extends ImageSegment >
 	{
 		if ( voxelSpacing != null ) // user determined resolution
 		{
-			return getLevel( labelSource, voxelSpacing );
+			return MoBIEUtils.getLevel( labelSource, voxelSpacing );
 		}
 		else // auto-resolution, uses maxNumSegmentVoxels
 		{
@@ -150,56 +148,31 @@ public class MeshCreator < S extends ImageSegment >
 			}
 			else
 			{
-				final ArrayList< double[] > voxelSpacings = Utils.getVoxelSpacings( labelSource );
+				int level = getLevel( segment, labelSource );
 
-				final int numLevels = voxelSpacings.size();
-
-				int level;
-				for ( level = 0; level < numLevels; level++ )
-				{
-					FinalInterval boundingBox = getIntervalInVoxelUnits( segment.boundingBox(), voxelSpacings.get( level ) );
-
-					final long numElements = Intervals.numElements( boundingBox );
-
-					if ( numElements <= maxNumSegmentVoxels )
-						break;
-				}
-
-				if ( level == numLevels ) level = numLevels - 1;
 				return level;
 			}
 		}
 	}
 
-	private static int getLevel( Source< ? > source, double[] requestedVoxelSpacing )
+	private int getLevel( ImageSegment segment, Source< ? > labelSource )
 	{
-		ArrayList< double[] > voxelSpacings = getVoxelSpacings( source );
-		return getLevel( voxelSpacings, requestedVoxelSpacing );
-	}
+		final ArrayList< double[] > voxelSpacings = Utils.getVoxelSpacings( labelSource );
 
-	private static int getLevel( ArrayList< double[] > sourceVoxelSpacings, double[] requestedVoxelSpacing )
-	{
+		final int numLevels = voxelSpacings.size();
+
 		int level;
-		int numLevels = sourceVoxelSpacings.size();
-		final int numDimensions = sourceVoxelSpacings.get( 0 ).length;
-
 		for ( level = 0; level < numLevels; level++ )
 		{
-			boolean allLargerOrEqual = true;
-			for ( int d = 0; d < numDimensions; d++ )
-			{
-				if ( sourceVoxelSpacings.get( level )[ d ] < requestedVoxelSpacing[ d ] )
-				{
-					allLargerOrEqual = false;
-					continue;
-				}
-			}
+			FinalInterval boundingBox = getIntervalInVoxelUnits( segment.boundingBox(), voxelSpacings.get( level ) );
 
-			if ( allLargerOrEqual ) break;
+			final long numElements = Intervals.numElements( boundingBox );
+
+			if ( numElements <= maxNumSegmentVoxels )
+				break;
 		}
 
 		if ( level == numLevels ) level = numLevels - 1;
-
 		return level;
 	}
 

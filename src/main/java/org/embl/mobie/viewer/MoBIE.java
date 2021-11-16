@@ -72,7 +72,7 @@ public class MoBIE
 		IJ.log("MoBIE");
 		this.settings = settings.projectLocation( projectLocation );
 		setProjectImageAndTableRootLocations( );
-		projectName = Utils.getName( projectLocation );
+		projectName = MoBIEUtils.getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
 		this.settings = setImageDataFormat( projectLocation );
@@ -121,8 +121,8 @@ public class MoBIE
 		// deal with the fact that the grid ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
-		Utils.toDoubleStrings( gridIdColumn );
-		Utils.toDoubleStrings( columns.get( TableColumnNames.ANNOTATION_ID ) );
+		MoBIEUtils.toDoubleStrings( gridIdColumn );
+		MoBIEUtils.toDoubleStrings( columns.get( TableColumnNames.ANNOTATION_ID ) );
 
 		final Map< String, List< String > > newColumns = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, columns );
 
@@ -188,7 +188,7 @@ public class MoBIE
 			} );
 		}
 
-		Utils.waitUntilFinishedAndShutDown( executorService );
+		MoBIEUtils.waitUntilFinishedAndShutDown( executorService );
 
 		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
 
@@ -361,7 +361,7 @@ public class MoBIE
 
 		final String defaultTablePath = getTablePath( tableSource, tableName );
 
-		final List< TableRowImageSegment > segments = Utils.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, displaySourceName );
+		final List< TableRowImageSegment > segments = MoBIEUtils.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, displaySourceName );
 
 		return segments;
 	}
@@ -390,7 +390,7 @@ public class MoBIE
 			} );
 		}
 
-		Utils.waitUntilFinishedAndShutDown( executorService );
+		MoBIEUtils.waitUntilFinishedAndShutDown( executorService );
 
 		System.out.println( "Fetched " + sources.size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
 
@@ -406,7 +406,7 @@ public class MoBIE
 		for ( String sourceName : segmentationDisplaySources )
 		{
 			Set< Source > rootSourceNames = ConcurrentHashMap.newKeySet();
-			Utils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSourceNames );
+			MoBIEUtils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSourceNames );
 			sourceNameToRootSources.put( sourceName, rootSourceNames );
 		}
 
@@ -441,8 +441,8 @@ public class MoBIE
 		// deal with the fact that the label ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
-		Utils.toDoubleStrings( segmentIdColumn );
-		Utils.toDoubleStrings( newColumns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
+		MoBIEUtils.toDoubleStrings( segmentIdColumn );
+		MoBIEUtils.toDoubleStrings( newColumns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
 
 		final Map< String, List< String > > columnsForMerging = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, newColumns );
 
@@ -511,7 +511,7 @@ public class MoBIE
 		for ( String table : annotationDisplay.getTables() )
 		{
 			String tablePath = getTablePath( annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
-			tablePath = Utils.resolveTablePath( tablePath );
+			tablePath = MoBIEUtils.resolveTablePath( tablePath );
 			Logger.log( "Opening table:\n" + tablePath );
 			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
 		}

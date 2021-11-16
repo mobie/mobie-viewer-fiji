@@ -3,13 +3,11 @@ package org.embl.mobie.viewer.transform;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.apache.commons.lang.ArrayUtils;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -67,7 +65,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			} );
 		}
 
-		Utils.waitUntilFinishedAndShutDown( executorService );
+		MoBIEUtils.waitUntilFinishedAndShutDown( executorService );
 
 		System.out.println( "Transformed " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
 	}

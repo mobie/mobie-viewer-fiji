@@ -1,6 +1,7 @@
 package org.embl.mobie.viewer.command;
 
 import bdv.viewer.SourceAndConverter;
+import org.embl.mobie.viewer.volume.ImageVolumeViewer;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -9,8 +10,8 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Display>Configure Segments Volume Rendering")
-public class SegmentsVolumeRenderingConfiguratorCommand implements BdvPlaygroundActionCommand
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Display>Configure Image Volume Rendering")
+public class ImageVolumeRenderingConfiguratorCommand implements BdvPlaygroundActionCommand
 {
 	@Parameter
 	SourceAndConverter[] sourceAndConverters;
@@ -24,7 +25,7 @@ public class SegmentsVolumeRenderingConfiguratorCommand implements BdvPlayground
 	@Parameter ( label = "Resolution Z [um]")
 	double sz;
 
-	@Parameter ( label = "Repaint all segments")
+	@Parameter ( label = "Repaint all images")
 	boolean repaint;
 
 	@Override
@@ -39,12 +40,12 @@ public class SegmentsVolumeRenderingConfiguratorCommand implements BdvPlayground
 
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			final SegmentsVolumeViewer volumeViewer = ( SegmentsVolumeViewer ) sacService.getMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName() );
+			final ImageVolumeViewer volumeViewer = ( ImageVolumeViewer ) sacService.getMetadata( sourceAndConverter, ImageVolumeViewer.class.getName() );
 			if ( volumeViewer != null )
 			{
 				volumeViewer.setVoxelSpacing( voxelSpacing );
 				if ( repaint )
-					volumeViewer.updateView( true );
+					volumeViewer.updateView();
 			}
 		}
 	}
