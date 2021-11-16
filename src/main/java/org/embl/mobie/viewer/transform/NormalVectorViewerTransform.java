@@ -15,8 +15,8 @@ import static de.embl.cba.bdv.utils.BdvUtils.quaternionToAffineTransform3D;
 public class NormalVectorViewerTransform implements ViewerTransform
 {
 	// Serialisation
-	private double[] normalVector;
-	private final Integer timepoint;
+	private double[] normalVector; // required
+	private final Integer timepoint; // optional
 
 	public NormalVectorViewerTransform( double[] normalVector, int timepoint )
 	{
