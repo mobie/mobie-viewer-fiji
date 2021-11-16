@@ -469,6 +469,8 @@ public class UserInterfaceHelper
 		return horizontalLayoutPanel;
 	}
 
+	// Levelling vector for MoBIE:
+	// private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	public JPanel createLevelingPanel( double[] levelingVector )
 	{
 		final double[] targetNormalVector = Arrays.copyOf( levelingVector, 3 );
@@ -477,23 +479,6 @@ public class UserInterfaceHelper
 
 		final JButton button = SwingHelper.createButton( LEVEL );
 		horizontalLayoutPanel.add( button );
-
-		// TODO: if below code is needed make an own Levelling class
-//		final JButton changeReference = new JButton( "Set new level vector" );
-//		horizontalLayoutPanel.add( changeReference );
-
-//		final JButton defaultReference = new JButton( "Set default level vector" );
-//		horizontalLayoutPanel.add( defaultReference );
-
-//		changeReference.addActionListener( e -> {
-//			targetNormalVector = BdvUtils.getCurrentViewNormalVector( bdv );
-//			Utils.logVector( "New reference normal vector: ", targetNormalVector );
-//		} );
-
-//		defaultReference.addActionListener( e -> {
-//			targetNormalVector = Arrays.copyOf( levelingVector, 3);
-//			Utils.logVector( "New reference normal vector (default): ", levelingVector );
-//		} );
 
 		button.addActionListener( e -> BdvUtils.levelCurrentView( moBIE.getViewManager().getSliceViewer().getBdvHandle(), targetNormalVector ) );
 
