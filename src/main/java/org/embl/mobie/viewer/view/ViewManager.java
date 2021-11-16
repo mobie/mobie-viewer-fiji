@@ -395,7 +395,7 @@ public class ViewManager
 		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.sourceNameToSourceAndConverter, universeManager );
 		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceNameToSourceAndConverter.values() )
 		{
-			sacService.setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), imageDisplay.imageVolumeViewer );
+			sacService.setMetadata( sourceAndConverter, ImageVolumeViewer.class.getName(), imageDisplay.imageVolumeViewer );
 		}
 	}
 

@@ -115,15 +115,18 @@ public class ImageVolumeViewer
 
 	public void updateView()
 	{
+		if ( universe == null ) return;
+
 		for ( SourceAndConverter< ? > sac : sourceAndConverters.values() )
 		{
 			if ( sacToContent.containsKey( sac ) )
 			{
-				universe.removeContent( sacToContent.get( sac ).getName() );
+				final Content content = sacToContent.get( sac );
+				universe.removeContent( content.getName() );
 				sacToContent.remove( sac );
+				if ( content.isVisible() )
+					addSourceToUniverse( sac );
 			}
-
-			addSourceToUniverse( sac );
 		}
 	}
 
