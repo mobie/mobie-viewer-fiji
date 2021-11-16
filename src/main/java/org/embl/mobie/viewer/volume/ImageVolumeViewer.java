@@ -30,16 +30,29 @@ package org.embl.mobie.viewer.volume;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import customnode.CustomTriangleMesh;
+import de.embl.cba.tables.Logger;
+import de.embl.cba.tables.Utils;
 import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.ij3d.AnimatedViewAdjuster;
-import de.embl.cba.tables.ij3d.UniverseUtils;
 import de.embl.cba.tables.imagesegment.ImageSegment;
+import de.embl.cba.util.CopyUtils;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Prefs;
 import ij3d.Content;
+import ij3d.ContentConstants;
 import ij3d.Image3DUniverse;
 import ij3d.UniverseListener;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.converter.RealUnsignedByteConverter;
+import net.imglib2.display.ColorConverter;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.util.Util;
+import net.imglib2.view.Views;
 import org.embl.mobie.viewer.VisibilityListener;
 import org.embl.mobie.viewer.mesh.MeshCreator;
 import org.scijava.java3d.View;
@@ -49,33 +62,32 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import static de.embl.cba.bdv.utils.BdvUtils.getLevel;
+import static de.embl.cba.tables.Utils.getVoxelSpacings;
 
 public class ImageVolumeViewer
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static String VOLUME_VIEW = "Volume view";
-
-	private final Collection< SourceAndConverter< ? > > sourceAndConverters;
+	private final Map< String, SourceAndConverter< ? > > sourceAndConverters;
 	private final UniverseManager universeManager;
 
 	private ConcurrentHashMap< SourceAndConverter, Content > sacToContent;
 	private ConcurrentHashMap< Content, SourceAndConverter > contentToSac;
-	private double transparency;
+	private boolean showImages;
+
 	private int meshSmoothingIterations;
-	private int segmentFocusAnimationDurationMillis;
-	private double segmentFocusZoomLevel;
-	private double segmentFocusDxyMin;
-	private double segmentFocusDzMin;
 	private long maxNumVoxels;
-	private String objectsName;
-	private boolean showSegments = false;
+
 	private double[] voxelSpacing; // desired voxel spacings; null = auto
+	private float transparency = 0.0F;
 	private int currentTimePoint = 0;
 	private final MeshCreator< ImageSegment > meshCreator;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
@@ -83,49 +95,17 @@ public class ImageVolumeViewer
 	private Image3DUniverse universe;
 
 	public ImageVolumeViewer(
-			final Collection< SourceAndConverter< ? > > sourceAndConverters,
+			final Map< String, SourceAndConverter< ? > > sourceAndConverters,
 			UniverseManager universeManager )
 	{
 		this.sourceAndConverters = sourceAndConverters;
 		this.universeManager = universeManager;
 
-		this.transparency = 0.0;
 		this.meshSmoothingIterations = 5;
 		this.maxNumVoxels = 100 * 100 * 100;
-		this.objectsName = "";
 		this.sacToContent = new ConcurrentHashMap<>();
 		this.contentToSac = new ConcurrentHashMap<>();
-
-		UniverseUtils.addSourceToUniverse(  )
 		this.meshCreator = new MeshCreator<>( meshSmoothingIterations, maxNumVoxels );
-	}
-
-	public void setObjectsName( String objectsName )
-	{
-		if ( objectsName == null )
-			throw new RuntimeException( "Cannot set objects name in Segments3dView to null." );
-
-		this.objectsName = objectsName;
-	}
-
-	public void setTransparency( double transparency )
-	{
-		this.transparency = transparency;
-	}
-
-	public void setMeshSmoothingIterations( int iterations )
-	{
-		this.meshSmoothingIterations = iterations;
-	}
-
-	public void setSegmentFocusAnimationDurationMillis( int duration )
-	{
-		this.segmentFocusAnimationDurationMillis = duration;
-	}
-
-	public void setSegmentFocusZoomLevel( double segmentFocusZoomLevel )
-	{
-		this.segmentFocusZoomLevel = segmentFocusZoomLevel;
 	}
 
 	public void setMaxNumVoxels( long maxNumVoxels )
@@ -133,166 +113,168 @@ public class ImageVolumeViewer
 		this.maxNumVoxels = maxNumVoxels;
 	}
 
-	private void updateImageColors()
+	// TODO: we should listen to the sac color somehow!
+//	private void updateImageColors()
+//	{
+//		for ( SourceAndConverter< ? >  sourceAndConverter : sacToContent.keySet() )
+//		{
+//			final Color3f color3f = getColor3f( sourceAndConverter );
+//			final Content content = sacToContent.get( sourceAndConverter );
+//			content.setColor( color3f );
+//		}
+//	}
+
+	public synchronized void showImages( boolean show )
 	{
-		for ( SourceAndConverter< ? >  sourceAndConverter : sacToContent.keySet() )
+		this.showImages = show;
+
+		if ( showImages && universe == null )
 		{
-			final Color3f color3f = getColor3f( sourceAndConverter );
-			final Content content = sacToContent.get( sourceAndConverter );
-			content.setColor( color3f );
-		}
-	}
-
-	public synchronized void updateView( boolean recomputeMeshes )
-	{
-		new Thread( () ->
-		{
-			// TODO: It feels that below functions should be merged...
-			updateSelectedSegments( recomputeMeshes );
-			removeUnselectedSegments();
-		}).start();
-	}
-
-	private void removeUnselectedSegments( )
-	{
-		final Set< S > selectedSegments = selectionModel.getSelected();
-		final Set< S > currentSegments = sacToContent.keySet();
-		final Set< S > remove = new HashSet<>();
-
-		for ( S segment : currentSegments )
-			if ( ! selectedSegments.contains( segment ) )
-				remove.add( segment );
-
-		for( S segment : remove )
-			removeSegment( segment );
-	}
-
-	private synchronized void updateSelectedSegments( boolean recomputeMeshes )
-	{
-		final Set< S > selected = selectionModel.getSelected();
-
-		for ( S segment : selected )
-		{
-			if ( segment.timePoint() == currentTimePoint )
-			{
-				if ( recomputeMeshes ) removeSegment( segment );
-
-				if ( ! sacToContent.containsKey( segment ) )
-				{
-					final Source< ? extends RealType< ? > > source = getSource( segment );
-					final CustomTriangleMesh mesh = meshCreator.createSmoothCustomTriangleMesh( segment, voxelSpacing, recomputeMeshes, source );
-					mesh.setColor( getColor3f( segment ) );
-					addSegmentMeshToUniverse( segment, mesh );
-				}
-			}
-			else // segment is of another time point
-			{
-				removeSegment( segment );
-			}
-		}
-	}
-
-	private Source< ? extends RealType< ? > > getSource( S segment )
-	{
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
-		{
-			if ( sourceAndConverter.getSpimSource().getName().equals( segment.imageId() ))
-			{
-				return ( Source< ? extends RealType< ? > > ) sourceAndConverter.getSpimSource();
-			}
+			initUniverse();
 		}
 
-		throw new UnsupportedOperationException( "An image segment from " + segment.imageId() + " did not have a corresponding image source."  );
-	}
-
-	private synchronized void removeSegment( S segment )
-	{
-		final Content content = sacToContent.get( segment );
-		universe.removeContent( content.getName() );
-		sacToContent.remove( segment );
-		contentToSac.remove( content );
-	}
-
-	private String getSegmentIdentifier( S segment )
-	{
-		return segment.labelId() + "-" + segment.timePoint();
-	}
-
-	public synchronized void showImages( boolean showSegments )
-	{
-		if ( showSegments && universe == null )
+		for ( SourceAndConverter< ? > sac : sourceAndConverters.values() )
 		{
-			universe = universeManager.get();
-			window = universe.getWindow();
-			window.addWindowListener(
-				new WindowAdapter()
-				{
-					public void windowClosing( WindowEvent ev )
-					{
-						window = null;
-						universe = null;
-						sacToContent.clear();
-						contentToSac.clear();
-						setShowSegments( false );
-						universeManager.setUniverse( null );
-						for ( VisibilityListener listener : listeners )
-						{
-							listener.visibility( false );
-						}
-					}
-				} );
-		}
-
-		if ( showSegments != this.showSegments )
-		{
-			this.showSegments = showSegments;
-			if ( showSegments )
+			if ( sacToContent.containsKey( sac ) )
 			{
-				updateView( false );
+				sacToContent.get( sac ).setVisible( show );
 			}
 			else
 			{
-				new Thread( () -> removeSegments() ).start();
+				if ( show )
+				{
+					final int[] contrastLimits = getContrastLimits( sac );
+					final ARGBType color = ( ( ColorConverter ) sac.getConverter() ).getColor();
+					final Content content = addSourceToUniverse( universe, sac.getSpimSource(), maxNumVoxels, ContentConstants.SURFACE, color, transparency, contrastLimits[ 0 ], contrastLimits[ 1 ] );
+					sacToContent.put( sac, content );
+				}
 			}
 		}
 	}
 
-	public boolean getShowSegments() {
-		return showSegments;
-	}
-
-	private void setShowSegments(boolean b )
+	public static < R extends RealType< R > > Content addSourceToUniverse(
+			Image3DUniverse universe,
+			Source< ? > source,
+			long maxNumVoxels,
+			int displayType,
+			ARGBType argbType,
+			float transparency,
+			int min,
+			int max )
 	{
-		this.showSegments = b;
-	}
+		final Integer level = Utils.getLevel( source, maxNumVoxels );
+		logVoxelSpacing( source, getVoxelSpacings( source ).get( level ) );
 
-	private void removeSegments()
-	{
-		final Set< S > segments = selectionModel.getSelected();
-
-		for ( S segment : segments )
+		if ( level == null )
 		{
-			removeSegment( segment );
+			Logger.warn( "Image is too large to be displayed in 3D." );
+			return null;
 		}
-	}
-
-	private synchronized void addSegmentMeshToUniverse( S segment, CustomTriangleMesh mesh )
-	{
-		if ( mesh == null )
-			throw new RuntimeException( "Mesh of segment " + objectsName + "_" + segment.labelId() + " is null." );
 
 		if ( universe == null )
-			throw new RuntimeException( "Universe is null." );
+		{
+			Logger.warn( "No Universe exists => Cannot show volume." );
+			return null;
+		}
 
-		final Content content = universe.addCustomMesh( mesh, objectsName + "_" + segment.labelId() );
+		if ( universe.getWindow() == null )
+		{
+			Logger.warn( "No Universe window exists => Cannot show volume." );
+			return null;
+		}
 
-		content.setTransparency( ( float ) transparency );
+		final ImagePlus wrap = createUnsignedByteImagePlus( source, min, max, level );
+		final Content content = universe.addContent( wrap, displayType );
+		content.setTransparency( transparency );
 		content.setLocked( true );
-
-		sacToContent.put( segment, content );
-		contentToSac.put( content, segment );
-
+		content.setColor( new Color3f( ColorUtils.getColor( argbType ) ) );
 		universe.setAutoAdjustView( false );
+		return content;
+	}
+
+	public static void logVoxelSpacing( Source< ? > source, double[] voxelSpacings )
+	{
+		IJ.log( "3D View: Fetching source " + source.getName() + " at " + Arrays.stream( voxelSpacings ).mapToObj( x -> "" + x ).collect( Collectors.joining( ", " ) ) + " micrometer..." );
+	}
+
+	public static < R extends RealType< R > > Content addSourceToUniverse(
+			Image3DUniverse universe,
+			Source< ? > source,
+			double voxelSpacing,
+			int displayType,
+			ARGBType argbType,
+			float transparency,
+			int min,
+			int max )
+	{
+		final Integer level = getLevel( source, voxelSpacing );
+		System.out.println( "3D View: Fetching source " + source.getName() + " at resolution " + voxelSpacing + " micrometer..." );
+		final ImagePlus wrap = createUnsignedByteImagePlus( source, min, max, level );
+		final Content content = universe.addContent( wrap, displayType );
+		content.setTransparency( transparency );
+		content.setLocked( true );
+		content.setColor( new Color3f( ColorUtils.getColor( argbType ) ) );
+		universe.setAutoAdjustView( false );
+		return content;
+	}
+
+	private static < R extends RealType< R > & NativeType< R > > ImagePlus createUnsignedByteImagePlus( Source< ? > source, int min, int max, Integer level )
+	{
+		RandomAccessibleInterval< R > rai = ( RandomAccessibleInterval )  source.getSource( 0, level );
+
+		rai = CopyUtils.copyVolumeRaiMultiThreaded( rai, Prefs.getThreads() - 1  ); // TODO: make multi-threading configurable.
+
+		rai = Views.permute( Views.addDimension( rai, 0, 0 ), 2, 3 );
+
+		final ImagePlus wrap = ImageJFunctions.wrapUnsignedByte(
+				rai,
+				new RealUnsignedByteConverter< R >( min, max ),
+				source.getName() );
+
+		final double[] voxelSpacing = getVoxelSpacings( source ).get( level );
+		wrap.getCalibration().pixelWidth = voxelSpacing[ 0 ];
+		wrap.getCalibration().pixelHeight = voxelSpacing[ 1 ];
+		wrap.getCalibration().pixelDepth = voxelSpacing[ 2 ];
+
+		return wrap;
+	}
+
+
+	private int[] getContrastLimits( SourceAndConverter< ? > sac )
+	{
+		final Object type = Util.getTypeFromInterval( sac.getSpimSource().getSource( 0, 0 ) );
+		final int[] contrastLimits = new int[ 2 ];
+		contrastLimits[ 0 ] = 0;
+		if ( type instanceof UnsignedByteType )
+			contrastLimits[ 1 ] = 255;
+		else if ( type instanceof UnsignedShortType )
+			contrastLimits[ 1 ] = 65535;
+		else
+			throw new RuntimeException( "Volume view of image of type " + type + " is currently not supported.");
+		return contrastLimits;
+	}
+
+	private void initUniverse()
+	{
+		universe = universeManager.get();
+		window = universe.getWindow();
+		window.addWindowListener(
+			new WindowAdapter()
+			{
+				public void windowClosing( WindowEvent ev )
+				{
+					window = null;
+					universe = null;
+					sacToContent.clear();
+					contentToSac.clear();
+					showImages = false;
+					universeManager.setUniverse( null );
+					for ( VisibilityListener listener : listeners )
+					{
+						listener.visibility( false );
+					}
+				}
+			} );
 	}
 
 	private boolean addUniverseListener()
@@ -309,28 +291,7 @@ public class ImageVolumeViewer
 			@Override
 			public void transformationUpdated( View view )
 			{
-				// TODO: synchronize with  BDV View
-
-// 			   final Transform3D transform3D = new Transform3D();
-//			   view.getUserHeadToVworld( transform3D );
-
-//				final Transform3D transform3D = new Transform3D();
-//			    .getVworldToCamera( transform3D );
-//				System.out.println( transform3D );
-
-//				final Transform3D transform3DInverse = new Transform3D();
-//				.getVworldToCameraInverse( transform3DInverse );
-//				System.out.println( transform3DInverse );
-
-//				final TransformGroup transformGroup =
-//						.getViewingPlatform()
-//								.getMultiTransformGroup().getTransformGroup(
-//										DefaultUniverse.ZOOM_TG );
-//
-//				final Transform3D transform3D = new Transform3D();
-//				transformGroup.getTransform( transform3D );
-//
-//				System.out.println( transform3D );
+				// TODO: synchronize with BDV view could be nice...
 			}
 
 			@Override
@@ -365,17 +326,7 @@ public class ImageVolumeViewer
 				if ( ! contentToSac.containsKey( c ) )
 					return;
 
-				final S segment = contentToSac.get( c );
-
-				if ( selectionModel.isFocused( segment ) )
-				{
-					return;
-				}
-				else
-				{
-					recentFocus = segment; // avoids "self-focusing"
-					selectionModel.focus( segment );
-				}
+				// Should we do anything?
 			}
 
 			@Override
@@ -399,13 +350,6 @@ public class ImageVolumeViewer
 		return true;
 	}
 
-	private Color3f getColor3f( S imageSegment )
-	{
-		final ARGBType argbType = new ARGBType();
-		coloringModel.convert( imageSegment, argbType );
-		return new Color3f( ColorUtils.getColor( argbType ) );
-	}
-
 	public void setVoxelSpacing( double[] voxelSpacing )
 	{
 		this.voxelSpacing = voxelSpacing;
@@ -421,53 +365,10 @@ public class ImageVolumeViewer
 		showImages( false );
 	}
 
-	@Override
-	public void coloringChanged()
-	{
-		updateImageColors();
-	}
-
-	@Override
-	public synchronized void selectionChanged()
-	{
-		if ( ! showSegments ) return;
-
-		updateView( false );
-	}
-
-	@Override
-	public synchronized void focusEvent( S selection )
-	{
-		if ( ! showSegments ) return;
-
-		if ( selection.timePoint() != currentTimePoint )
-		{
-			currentTimePoint = selection.timePoint();
-			updateView( false );
-		}
-
-		if ( universe.getContents().size() == 0 ) return;
-		if ( selection == recentFocus ) return;
-		if ( ! sacToContent.containsKey( selection ) ) return;
-
-		recentFocus = selection;
-
-		final AnimatedViewAdjuster adjuster =
-				new AnimatedViewAdjuster(
-						universe,
-						AnimatedViewAdjuster.ADJUST_BOTH );
-
-		adjuster.apply(
-				sacToContent.get( selection ),
-				30,
-				segmentFocusAnimationDurationMillis,
-				segmentFocusZoomLevel,
-				segmentFocusDxyMin,
-				segmentFocusDzMin );
-	}
-
 	public Collection< VisibilityListener > getListeners()
 	{
 		return listeners;
 	}
+
+
 }
