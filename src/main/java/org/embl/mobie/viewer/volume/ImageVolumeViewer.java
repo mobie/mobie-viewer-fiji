@@ -33,6 +33,7 @@ import bdv.viewer.SourceAndConverter;
 import customnode.CustomTriangleMesh;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.ij3d.AnimatedViewAdjuster;
+import de.embl.cba.tables.ij3d.UniverseUtils;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import ij3d.Content;
 import ij3d.Image3DUniverse;
@@ -64,14 +65,14 @@ public class ImageVolumeViewer
 	private final UniverseManager universeManager;
 
 	private ConcurrentHashMap< SourceAndConverter, Content > sacToContent;
-	private ConcurrentHashMap< Content, SourceAndConverter > contentToSegment;
+	private ConcurrentHashMap< Content, SourceAndConverter > contentToSac;
 	private double transparency;
 	private int meshSmoothingIterations;
 	private int segmentFocusAnimationDurationMillis;
 	private double segmentFocusZoomLevel;
 	private double segmentFocusDxyMin;
 	private double segmentFocusDzMin;
-	private long maxNumSegmentVoxels;
+	private long maxNumVoxels;
 	private String objectsName;
 	private boolean showSegments = false;
 	private double[] voxelSpacing; // desired voxel spacings; null = auto
@@ -90,16 +91,13 @@ public class ImageVolumeViewer
 
 		this.transparency = 0.0;
 		this.meshSmoothingIterations = 5;
-		this.segmentFocusAnimationDurationMillis = 750;
-		this.segmentFocusZoomLevel = 0.8;
-		this.segmentFocusDxyMin = 20.0;
-		this.segmentFocusDzMin = 20.0;
-		this.maxNumSegmentVoxels = 100 * 100 * 100;
+		this.maxNumVoxels = 100 * 100 * 100;
 		this.objectsName = "";
 		this.sacToContent = new ConcurrentHashMap<>();
-		this.contentToSegment = new ConcurrentHashMap<>();
+		this.contentToSac = new ConcurrentHashMap<>();
 
-		this.meshCreator = new MeshCreator<>( meshSmoothingIterations, maxNumSegmentVoxels );
+		UniverseUtils.addSourceToUniverse(  )
+		this.meshCreator = new MeshCreator<>( meshSmoothingIterations, maxNumVoxels );
 	}
 
 	public void setObjectsName( String objectsName )
@@ -130,9 +128,9 @@ public class ImageVolumeViewer
 		this.segmentFocusZoomLevel = segmentFocusZoomLevel;
 	}
 
-	public void setMaxNumSegmentVoxels( long maxNumSegmentVoxels )
+	public void setMaxNumVoxels( long maxNumVoxels )
 	{
-		this.maxNumSegmentVoxels = maxNumSegmentVoxels;
+		this.maxNumVoxels = maxNumVoxels;
 	}
 
 	private void updateImageColors()
@@ -212,7 +210,7 @@ public class ImageVolumeViewer
 		final Content content = sacToContent.get( segment );
 		universe.removeContent( content.getName() );
 		sacToContent.remove( segment );
-		contentToSegment.remove( content );
+		contentToSac.remove( content );
 	}
 
 	private String getSegmentIdentifier( S segment )
@@ -234,7 +232,7 @@ public class ImageVolumeViewer
 						window = null;
 						universe = null;
 						sacToContent.clear();
-						contentToSegment.clear();
+						contentToSac.clear();
 						setShowSegments( false );
 						universeManager.setUniverse( null );
 						for ( VisibilityListener listener : listeners )
@@ -292,7 +290,7 @@ public class ImageVolumeViewer
 		content.setLocked( true );
 
 		sacToContent.put( segment, content );
-		contentToSegment.put( content, segment );
+		contentToSac.put( content, segment );
 
 		universe.setAutoAdjustView( false );
 	}
@@ -364,10 +362,10 @@ public class ImageVolumeViewer
 			{
 				if ( c == null ) return;
 
-				if ( ! contentToSegment.containsKey( c ) )
+				if ( ! contentToSac.containsKey( c ) )
 					return;
 
-				final S segment = contentToSegment.get( c );
+				final S segment = contentToSac.get( c );
 
 				if ( selectionModel.isFocused( segment ) )
 				{
