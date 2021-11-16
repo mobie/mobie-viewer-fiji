@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 // TODO: maybe we don't need the serializer?!
-public class ViewerTransformAdapter implements JsonSerializer<ViewerTransform>, JsonDeserializer< ViewerTransform >
+public class ViewerTransformAdapter implements JsonSerializer<ViewerTransform>, JsonDeserializer<ViewerTransform>
 {
 	private static Map<String, Class> nameToClass = new TreeMap<>();
 	private static Map<String, String> classToName = new TreeMap<>();
