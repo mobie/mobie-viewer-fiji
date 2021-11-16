@@ -8,6 +8,7 @@ import de.embl.cba.tables.Utils;
 import de.embl.cba.tables.ij3d.UniverseUtils;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.mesh.MeshExtractor;
+import ij.IJ;
 import isosurface.MeshEditor;
 import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;
@@ -82,9 +83,7 @@ public class MeshCreator < S extends ImageSegment >
 
 		if ( meshCoordinates.length == 0 )
 		{
-			Logger.warn( "Could not find any pixels for segment with label " + segment.labelId()
-					+ "\nwithin bounding box " + boundingBox );
-			return null;
+			throw new RuntimeException("Mesh has zero pixels.");
 		}
 
 		return meshCoordinates;
@@ -104,14 +103,11 @@ public class MeshCreator < S extends ImageSegment >
 			try
 			{
 				final float[] mesh = createMesh( segment, voxelSpacing, source );
-				if ( mesh == null )
-				{
-					throw new RuntimeException( "Could not create mesh for segment " + segment.labelId() + " at time point " + segment.timePoint() );
-				}
 				segment.setMesh( mesh );
 			}
 			catch ( Exception e )
 			{
+				IJ.showMessage("Could not create mesh for segment " + segment.labelId() + " at time point " + segment.timePoint() + "\nIt could be that the segment could not be found at the given resolution; please try again with an increased resolution." );
 				e.printStackTrace();
 				throw new RuntimeException( "Could not create mesh for segment " + segment.labelId() + " at time point " + segment.timePoint() );
 			}
@@ -141,20 +137,16 @@ public class MeshCreator < S extends ImageSegment >
 
 	private Integer getLevel( ImageSegment segment, Source< ? > labelSource, double[] voxelSpacing )
 	{
-		Integer level;
-
-		if ( voxelSpacing != null )
+		if ( voxelSpacing != null ) // user determined resolution
 		{
-			level = getLevel( labelSource, voxelSpacing );
+			return getLevel( labelSource, voxelSpacing );
 		}
-		else // auto-resolution
+		else // auto-resolution, uses maxNumSegmentVoxels
 		{
 			if ( segment.boundingBox() == null )
 			{
-				Logger.error( "3D View:\n" +
-						"Automated resolution level selection is enabled, but the segment has no bounding box.\n" +
-						"This combination is currently not possible." );
-				level = null;
+				Logger.error( "3D View:\nAutomated resolution level selection is enabled, but the segment has no bounding box.\nThis combination is currently not supported." );
+				throw new RuntimeException();
 			}
 			else
 			{
@@ -162,6 +154,7 @@ public class MeshCreator < S extends ImageSegment >
 
 				final int numLevels = voxelSpacings.size();
 
+				int level;
 				for ( level = 0; level < numLevels; level++ )
 				{
 					FinalInterval boundingBox = getIntervalInVoxelUnits( segment.boundingBox(), voxelSpacings.get( level ) );
@@ -173,10 +166,9 @@ public class MeshCreator < S extends ImageSegment >
 				}
 
 				if ( level == numLevels ) level = numLevels - 1;
+				return level;
 			}
 		}
-
-		return level;
 	}
 
 	private static int getLevel( Source< ? > source, double[] requestedVoxelSpacing )
