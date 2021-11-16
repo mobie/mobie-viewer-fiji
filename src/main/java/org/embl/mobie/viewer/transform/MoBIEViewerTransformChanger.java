@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.transform;
 
 import bdv.util.*;
 import bdv.viewer.animate.SimilarityTransformAnimator;
+import de.embl.cba.bdv.utils.BdvUtils;
 import org.embl.mobie.viewer.playground.PlaygroundUtils;
 import org.embl.mobie.viewer.bdv.BdvPointOverlay;
 import org.embl.mobie.viewer.Utils;
@@ -31,11 +32,14 @@ public abstract class MoBIEViewerTransformChanger
 		{
 			adaptTimepoint( bdv, viewerTransform );
 		}
+		else if ( viewerTransform instanceof NormalVectorViewerTransform )
+		{
+			final AffineTransform3D transform = NormalVectorViewerTransform.createTransform( bdv, viewerTransform.getParameters() );
+			changeViewerTransform( bdv, transform, animationDurationMillis );
+			adaptTimepoint( bdv, viewerTransform );
+		}
 		else if ( viewerTransform instanceof AffineViewerTransform )
 		{
-			// TODO: changing time point and viewer transform at the same time
-			//  used to sometimes lead to hickups; check whether this is the case and think about a solution...
-			//  e.g., does changeBdvViewerTransform return already while the transformation is still going on?
 			changeViewerTransform( bdv, Utils.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
 			adaptTimepoint( bdv, viewerTransform );
 		}

@@ -4,5 +4,5 @@ public interface ViewerTransform
 {
 	double[] getParameters();
 
-	Integer getTimepoint();
+	Integer getTimepoint(); // May return NULL in the implementation
 }

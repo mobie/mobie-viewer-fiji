@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.serialize;
 
 import com.google.gson.*;
 import org.embl.mobie.viewer.transform.AffineViewerTransform;
+import org.embl.mobie.viewer.transform.NormalVectorViewerTransform;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import org.embl.mobie.viewer.transform.TimepointViewerTransform;
@@ -12,7 +13,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 // TODO: maybe we don't need the serializer?!
-public class ViewerTransformAdapter implements JsonSerializer<ViewerTransform>, JsonDeserializer< ViewerTransform >
+public class ViewerTransformAdapter implements JsonSerializer<ViewerTransform>, JsonDeserializer<ViewerTransform>
 {
 	private static Map<String, Class> nameToClass = new TreeMap<>();
 	private static Map<String, String> classToName = new TreeMap<>();
@@ -26,6 +27,8 @@ public class ViewerTransformAdapter implements JsonSerializer<ViewerTransform>, 
 		classToName.put(PositionViewerTransform.class.getName(), "position");
 		nameToClass.put("timepoint", TimepointViewerTransform.class);
 		classToName.put(TimepointViewerTransform.class.getName(), "timepoint");
+		nameToClass.put("normalVector", NormalVectorViewerTransform.class);
+		classToName.put(NormalVectorViewerTransform.class.getName(), "normalVector");
 	}
 
 	@Override
