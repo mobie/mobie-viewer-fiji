@@ -5,7 +5,6 @@ import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
 import bdv.viewer.SourceAndConverter;
-import com.formdev.flatlaf.FlatLightLaf;
 import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
@@ -288,7 +287,7 @@ public class UserInterfaceHelper
 		// Checkboxes
 		panel.add( createSpace() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
-		panel.add( createCheckboxPlaceholder() ); // TODO: createVolume...
+		panel.add( createImageVolumeViewerVisibilityCheckbox( display ) );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createCheckboxPlaceholder() );
 
@@ -336,7 +335,7 @@ public class UserInterfaceHelper
 		if ( display.tableRows != null )
 		{
 			// segments 3D view
-			panel.add( createVolumeViewerVisibilityCheckbox( display ) );
+			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );
 			// table view
 			panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableViewer.getWindow() ) );
 			// scatter plot view
@@ -598,6 +597,40 @@ public class UserInterfaceHelper
 		return Box.createRigidArea( PREFERRED_CHECKBOX_SIZE );
 	}
 
+	public static JCheckBox createSegmentsVolumeViewerVisibilityCheckbox( SegmentationSourceDisplay display )
+	{
+		JCheckBox checkBox = new JCheckBox( "V" );
+		checkBox.setSelected( display.showSelectedSegmentsIn3d() );
+		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
+
+		checkBox.addActionListener( new ActionListener()
+		{
+			@Override
+			public void actionPerformed( ActionEvent e )
+			{
+				new Thread( () -> {
+						display.segmentsVolumeViewer.showSegments( checkBox.isSelected() );
+				}).start();
+			}
+		} );
+
+		display.segmentsVolumeViewer.getListeners().add( new VisibilityListener()
+		{
+			@Override
+			public void visibility( boolean isVisible )
+			{
+				SwingUtilities.invokeLater( () ->
+				{
+					checkBox.setSelected( isVisible );
+				});
+			}
+		} );
+
+
+		return checkBox;
+	}
+
+
 	private static JCheckBox createSliceViewerVisibilityCheckbox(
 			boolean isVisible,
 			final List< SourceAndConverter< ? > > sourceAndConverters )
@@ -672,10 +705,10 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JCheckBox createVolumeViewerVisibilityCheckbox( SegmentationSourceDisplay display )
+	public static JCheckBox createImageVolumeViewerVisibilityCheckbox( ImageSourceDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "V" );
-		checkBox.setSelected( display.showSelectedSegmentsIn3d() );
+		checkBox.setSelected( display.showImagesIn3d() );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
 		checkBox.addActionListener( new ActionListener()
@@ -684,19 +717,12 @@ public class UserInterfaceHelper
 			public void actionPerformed( ActionEvent e )
 			{
 				new Thread( () -> {
-					if ( checkBox.isSelected() )
-					{
-						display.segmentsVolumeViewer.showSegments( true );
-					}
-					else
-					{
-						display.segmentsVolumeViewer.showSegments( false );
-					}
+						display.imageVolumeViewer.showImages( checkBox.isSelected() );
 				}).start();
 			}
 		} );
 
-		display.segmentsVolumeViewer.getListeners().add( new VisibilityListener()
+		display.imageVolumeViewer.getListeners().add( new VisibilityListener()
 		{
 			@Override
 			public void visibility( boolean isVisible )

@@ -39,6 +39,7 @@ import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
 import org.embl.mobie.viewer.view.saving.ViewsSaver;
+import org.embl.mobie.viewer.volume.ImageVolumeViewer;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 import org.embl.mobie.viewer.volume.UniverseManager;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
@@ -384,6 +385,7 @@ public class ViewManager
 	{
 		imageDisplay.sliceViewer = sliceViewer;
 		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle );
+		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.sourceNameToSourceAndConverter, universeManager );
 	}
 
 	private void showAnnotatedIntervalDisplay( AnnotatedIntervalDisplay annotationDisplay )

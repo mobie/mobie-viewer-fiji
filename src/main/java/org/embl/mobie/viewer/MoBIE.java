@@ -48,6 +48,7 @@ public class MoBIE
 	public static final SharedQueue sharedQueue = new SharedQueue( N_THREADS );
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 	public static final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
+
 	private final String projectName;
 	private MoBIESettings settings;
 	private String datasetName;

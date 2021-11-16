@@ -6,6 +6,7 @@ import org.embl.mobie.viewer.bdv.view.ImageSliceView;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
 import net.imglib2.display.ColorConverter;
+import org.embl.mobie.viewer.volume.ImageVolumeViewer;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 
 	// Runtime
 	public transient ImageSliceView imageSliceView;
+	public transient ImageVolumeViewer imageVolumeViewer;
 
 	// Getters for serialised fields
 	public String getColor()
@@ -37,6 +39,11 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 	public BlendingMode getBlendingMode()
 	{
 		return blendingMode;
+	}
+
+	public boolean showImagesIn3d()
+	{
+		return showImagesIn3d;
 	}
 
 	@Override

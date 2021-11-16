@@ -79,7 +79,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	private double segmentFocusZoomLevel;
 	private double segmentFocusDxyMin;
 	private double segmentFocusDzMin;
-	private long maxNumSegmentVoxels;
+	private long maxNumVoxels;
 	private String objectsName;
 	private boolean showSegments = false;
 	private double[] voxelSpacing; // desired voxel spacings; null = auto
@@ -106,12 +106,12 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 		this.segmentFocusZoomLevel = 0.8;
 		this.segmentFocusDxyMin = 20.0;
 		this.segmentFocusDzMin = 20.0;
-		this.maxNumSegmentVoxels = 100 * 100 * 100;
+		this.maxNumVoxels = 100 * 100 * 100;
 		this.objectsName = "";
 		this.segmentToContent = new ConcurrentHashMap<>();
 		this.contentToSegment = new ConcurrentHashMap<>();
 
-		this.meshCreator = new MeshCreator<>( meshSmoothingIterations, maxNumSegmentVoxels );
+		this.meshCreator = new MeshCreator<>( meshSmoothingIterations, maxNumVoxels );
 	}
 
 	public void setObjectsName( String objectsName )
@@ -152,9 +152,9 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 		this.segmentFocusDzMin = segmentFocusDzMin;
 	}
 
-	public void setMaxNumSegmentVoxels( long maxNumSegmentVoxels )
+	public void setMaxNumVoxels( long maxNumVoxels )
 	{
-		this.maxNumSegmentVoxels = maxNumSegmentVoxels;
+		this.maxNumVoxels = maxNumVoxels;
 	}
 
 	private void updateSegmentColors()
