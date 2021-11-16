@@ -17,7 +17,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
-import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.scijava.vecmath.Point3f;
 
 import java.util.ArrayList;
@@ -137,7 +137,7 @@ public class MeshCreator < S extends ImageSegment >
 	{
 		if ( voxelSpacing != null ) // user determined resolution
 		{
-			return MoBIEUtils.getLevel( labelSource, voxelSpacing );
+			return BdvPlaygroundUtils.getLevel( labelSource, voxelSpacing );
 		}
 		else // auto-resolution, uses maxNumSegmentVoxels
 		{

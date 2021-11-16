@@ -23,7 +23,7 @@ import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.bdv.view.SliceViewer;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import org.embl.mobie.viewer.display.*;
-import org.embl.mobie.viewer.playground.PlaygroundUtils;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
@@ -250,7 +250,7 @@ public class ViewManager
 		if ( includeViewerTransform )
 		{
 			AffineTransform3D normalisedViewTransform = MoBIEUtils.createNormalisedViewerTransform( bdvHandle,
-					PlaygroundUtils.getWindowCentreInPixelUnits( bdvHandle ) );
+					BdvPlaygroundUtils.getWindowCentreInPixelUnits( bdvHandle ) );
 
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
 			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, transform, isExclusive);

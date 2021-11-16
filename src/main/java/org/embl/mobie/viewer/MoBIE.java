@@ -10,6 +10,7 @@ import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.ImageDataFormat;
@@ -406,7 +407,7 @@ public class MoBIE
 		for ( String sourceName : segmentationDisplaySources )
 		{
 			Set< Source > rootSourceNames = ConcurrentHashMap.newKeySet();
-			MoBIEUtils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSourceNames );
+			BdvPlaygroundUtils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSourceNames );
 			sourceNameToRootSources.put( sourceName, rootSourceNames );
 		}
 

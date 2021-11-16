@@ -2,7 +2,7 @@ package org.embl.mobie.viewer.transform;
 
 import bdv.util.*;
 import bdv.viewer.animate.SimilarityTransformAnimator;
-import org.embl.mobie.viewer.playground.PlaygroundUtils;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.bdv.BdvPointOverlay;
 import org.embl.mobie.viewer.MoBIEUtils;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -106,7 +106,7 @@ public abstract class MoBIEViewerTransformChanger
 		}
 
 		newViewerTransform.translate( locationOfTargetCoordinatesInCurrentViewer );
-		final double[] bdvWindowCenter = PlaygroundUtils.getWindowCentreInPixelUnits( bdv );
+		final double[] bdvWindowCenter = BdvPlaygroundUtils.getWindowCentreInPixelUnits( bdv );
 		newViewerTransform.translate( bdvWindowCenter );
 
 		if ( durationMillis <= 0 )

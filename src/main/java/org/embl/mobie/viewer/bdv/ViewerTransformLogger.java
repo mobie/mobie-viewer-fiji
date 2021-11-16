@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.bdv;
 import bdv.util.BdvHandle;
 import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.Logger;
-import org.embl.mobie.viewer.playground.PlaygroundUtils;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.serialize.JsonHelper;
 import org.embl.mobie.viewer.transform.AffineViewerTransform;
@@ -28,7 +28,7 @@ public class ViewerTransformLogger implements BdvPlaygroundActionCommand
 		new Thread( () -> {
 
 			final int timepoint = bdv.getViewerPanel().state().getCurrentTimepoint();
-			final double[] position = PlaygroundUtils.getWindowCentreInCalibratedUnits( bdv );
+			final double[] position = BdvPlaygroundUtils.getWindowCentreInCalibratedUnits( bdv );
 
 			// position
 			final PositionViewerTransform positionViewerTransform = new PositionViewerTransform( position, timepoint );
@@ -40,7 +40,7 @@ public class ViewerTransformLogger implements BdvPlaygroundActionCommand
 
 			// normalized affine
 			final AffineTransform3D normalisedViewerTransform = MoBIEUtils.createNormalisedViewerTransform( bdv,
-					PlaygroundUtils.getWindowCentreInPixelUnits( bdv ) );
+					BdvPlaygroundUtils.getWindowCentreInPixelUnits( bdv ) );
 			final NormalizedAffineViewerTransform normalizedAffineViewerTransform = new NormalizedAffineViewerTransform( normalisedViewerTransform.getRowPackedCopy(), timepoint );
 
 			// print

@@ -31,7 +31,6 @@ package org.embl.mobie.viewer.volume;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
-import de.embl.cba.tables.Utils;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.util.CopyUtils;
@@ -53,9 +52,9 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
-import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.VisibilityListener;
 import org.embl.mobie.viewer.mesh.MeshCreator;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
 
@@ -174,9 +173,9 @@ public class ImageVolumeViewer
 	{
 		Integer level;
 		if ( voxelSpacing != null )
-			level = MoBIEUtils.getLevel( source, voxelSpacing );
+			level = BdvPlaygroundUtils.getLevel( source, voxelSpacing );
 		else
-			level = MoBIEUtils.getLevel( source, maxNumVoxels );
+			level = BdvPlaygroundUtils.getLevel( source, maxNumVoxels );
 
 		logVoxelSpacing( source, getVoxelSpacings( source ).get( level ) );
 
