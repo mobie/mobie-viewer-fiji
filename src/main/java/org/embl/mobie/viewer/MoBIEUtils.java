@@ -9,6 +9,7 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
 import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
@@ -17,6 +18,7 @@ import ij.gui.GenericDialog;
 import net.imglib2.*;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
+import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 
 import javax.swing.*;
@@ -30,11 +32,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
+import static de.embl.cba.tables.Utils.*;
+import static de.embl.cba.tables.Utils.getVoxelSpacings;
 import static org.embl.mobie.viewer.ui.SwingHelper.selectionDialog;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MAX_Z;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
 
-public abstract class Utils
+public abstract class MoBIEUtils
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -67,44 +71,6 @@ public abstract class Utils
 		}
 
 		return longs;
-	}
-
-	/**
-	 * Recursively fetch the names of all root sources
-	 * @param source
-	 * @param rootSources
-	 */
-	public static void fetchRootSources( Source< ? > source, Set< Source > rootSources )
-	{
-		if ( source instanceof SpimSource )
-		{
-			rootSources.add( source );
-		}
-		else if ( source instanceof TransformedSource )
-		{
-			final Source< ? > wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
-
-			fetchRootSources( wrappedSource, rootSources );
-		}
-		else if (  source instanceof MergedGridSource )
-		{
-			final MergedGridSource< ? > mergedGridSource = ( MergedGridSource ) source;
-			final List< ? extends Source< ? > > gridSources = mergedGridSource.getGridSources();
-			for ( Source< ? > gridSource : gridSources )
-			{
-				fetchRootSources( gridSource, rootSources );
-			}
-		}
-		else if (  source instanceof ResampledSource )
-		{
-			final ResampledSource resampledSource = ( ResampledSource ) source;
-			final Source< ? > wrappedSource = resampledSource.getOriginalSource();
-			fetchRootSources( wrappedSource, rootSources );
-		}
-		else
-		{
-			throw new IllegalArgumentException("For sources of type " + source.getClass().getName() + " the root source currently cannot be determined.");
-		}
 	}
 
 	public enum FileLocation {

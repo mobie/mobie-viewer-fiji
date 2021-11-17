@@ -31,7 +31,6 @@ package org.embl.mobie.viewer.volume;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
-import de.embl.cba.tables.Utils;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.util.CopyUtils;
@@ -55,6 +54,7 @@ import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.VisibilityListener;
 import org.embl.mobie.viewer.mesh.MeshCreator;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
 
@@ -85,8 +85,8 @@ public class ImageVolumeViewer
 
 	private int meshSmoothingIterations;
 	private long maxNumVoxels;
+	private double[] voxelSpacing; // desired voxel spacings; null = auto => use maxNumVoxels
 
-	private double[] voxelSpacing; // desired voxel spacings; null = auto
 	private float transparency = 0.0F;
 	private int currentTimePoint = 0;
 	private final MeshCreator< ImageSegment > meshCreator;
@@ -113,16 +113,22 @@ public class ImageVolumeViewer
 		this.maxNumVoxels = maxNumVoxels;
 	}
 
-	// TODO: we should listen to the sac color somehow!
-//	private void updateImageColors()
-//	{
-//		for ( SourceAndConverter< ? >  sourceAndConverter : sacToContent.keySet() )
-//		{
-//			final Color3f color3f = getColor3f( sourceAndConverter );
-//			final Content content = sacToContent.get( sourceAndConverter );
-//			content.setColor( color3f );
-//		}
-//	}
+	public void updateView()
+	{
+		if ( universe == null ) return;
+
+		for ( SourceAndConverter< ? > sac : sourceAndConverters.values() )
+		{
+			if ( sacToContent.containsKey( sac ) )
+			{
+				final Content content = sacToContent.get( sac );
+				universe.removeContent( content.getName() );
+				sacToContent.remove( sac );
+				if ( content.isVisible() )
+					addSourceToUniverse( sac );
+			}
+		}
+	}
 
 	public synchronized void showImages( boolean show )
 	{
@@ -143,18 +149,24 @@ public class ImageVolumeViewer
 			{
 				if ( show )
 				{
-					final int[] contrastLimits = getContrastLimits( sac );
-					final ARGBType color = ( ( ColorConverter ) sac.getConverter() ).getColor();
-					final Content content = addSourceToUniverse( universe, sac.getSpimSource(), maxNumVoxels, ContentConstants.SURFACE, color, transparency, contrastLimits[ 0 ], contrastLimits[ 1 ] );
-					sacToContent.put( sac, content );
+					addSourceToUniverse( sac );
 				}
 			}
 		}
 	}
 
+	private void addSourceToUniverse( SourceAndConverter< ? > sac )
+	{
+		final int[] contrastLimits = getContrastLimits( sac );
+		final ARGBType color = ( ( ColorConverter ) sac.getConverter() ).getColor();
+		final Content content = addSourceToUniverse( universe, sac.getSpimSource(), voxelSpacing, maxNumVoxels, ContentConstants.SURFACE, color, transparency, contrastLimits[ 0 ], contrastLimits[ 1 ] );
+		sacToContent.put( sac, content );
+	}
+
 	public static < R extends RealType< R > > Content addSourceToUniverse(
 			Image3DUniverse universe,
 			Source< ? > source,
+			double[] voxelSpacing,
 			long maxNumVoxels,
 			int displayType,
 			ARGBType argbType,
@@ -162,7 +174,12 @@ public class ImageVolumeViewer
 			int min,
 			int max )
 	{
-		final Integer level = Utils.getLevel( source, maxNumVoxels );
+		Integer level;
+		if ( voxelSpacing != null )
+			level = BdvPlaygroundUtils.getLevel( source, voxelSpacing );
+		else
+			level = BdvPlaygroundUtils.getLevel( source, maxNumVoxels );
+
 		logVoxelSpacing( source, getVoxelSpacings( source ).get( level ) );
 
 		if ( level == null )

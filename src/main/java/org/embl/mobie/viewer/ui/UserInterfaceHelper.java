@@ -26,7 +26,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.MoBIEUtils;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -851,12 +851,12 @@ public class UserInterfaceHelper
 		String tidyString = string.replaceAll("\\s+","_");
 
 		if ( !string.equals(tidyString) ) {
-			Utils.log( "Spaces were removed from name, and replaced by _");
+			MoBIEUtils.log( "Spaces were removed from name, and replaced by _");
 		}
 
 		// check only contains alphanumerics, or _ -
 		if ( !tidyString.matches("^[a-zA-Z0-9_-]+$") ) {
-			Utils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
+			MoBIEUtils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
 					"with a different name.");
 			tidyString = null;
 		}

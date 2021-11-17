@@ -60,10 +60,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
 {
-
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	public static String VOLUME_VIEW = "Volume view";
 
 	private final SelectionModel< S > selectionModel;
 	private final ColoringModel< S > coloringModel;
