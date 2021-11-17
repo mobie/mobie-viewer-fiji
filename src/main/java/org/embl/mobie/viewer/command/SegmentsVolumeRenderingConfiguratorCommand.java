@@ -9,22 +9,27 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
+import static org.scijava.ItemVisibility.MESSAGE;
+
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Display>Configure Segments Volume Rendering")
 public class SegmentsVolumeRenderingConfiguratorCommand implements BdvPlaygroundActionCommand
 {
 	@Parameter
 	SourceAndConverter[] sourceAndConverters;
 
-	@Parameter ( label = "Resolution X [um]")
+	@Parameter ( label = "Resolution X", style="format:#.000" )
 	double sx;
 
-	@Parameter ( label = "Resolution Y [um]")
+	@Parameter ( label = "Resolution Y", style="format:#.000" )
 	double sy;
 
-	@Parameter ( label = "Resolution Z [um]")
+	@Parameter ( label = "Resolution Z", style="format:#.000" )
 	double sz;
 
-	@Parameter ( label = "Repaint all segments")
+	@Parameter ( visibility = MESSAGE )
+	String msg = "( Resolution units: see BigDataViewer scale bar )";
+
+	@Parameter ( label = "Repaint segments")
 	boolean repaint;
 
 	@Override
