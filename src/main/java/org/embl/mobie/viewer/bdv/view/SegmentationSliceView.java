@@ -151,7 +151,7 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 	private void adaptPosition( double[] position, String sourceName )
 	{
 		// get source transform
-		final SourceAndConverter< ? > sourceAndConverter = display.sourceNameToSourceAndConverter.get( sourceName );
+		final SourceAndConverter< ? > sourceAndConverter = moBIE.getSourceAndConverter( sourceName );
 		AffineTransform3D sourceTransform = new AffineTransform3D();
 		sourceAndConverter.getSpimSource().getSourceTransform( 0,0, sourceTransform );
 

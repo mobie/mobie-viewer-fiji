@@ -362,7 +362,7 @@ public class MoBIE
 
 		final String defaultTablePath = getTablePath( tableSource, tableName );
 
-		final List< TableRowImageSegment > segments = MoBIEUtils.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, displaySourceName );
+		final List< TableRowImageSegment > segments = MoBIEUtils.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
 
 		return segments;
 	}
@@ -406,9 +406,9 @@ public class MoBIE
 
 		for ( String sourceName : segmentationDisplaySources )
 		{
-			Set< Source > rootSourceNames = ConcurrentHashMap.newKeySet();
-			BdvPlaygroundUtils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSourceNames );
-			sourceNameToRootSources.put( sourceName, rootSourceNames );
+			Set< Source > rootSources = ConcurrentHashMap.newKeySet();
+			BdvPlaygroundUtils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSources );
+			sourceNameToRootSources.put( sourceName, rootSources );
 		}
 
 		// TODO: make parallel
