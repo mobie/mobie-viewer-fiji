@@ -202,6 +202,7 @@ public class MoBIE
 		sourceNameToSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
+		//dataset.sources
 
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );

@@ -28,6 +28,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	protected String mergedGridSourceName;
 	protected List< int[] > positions;
 	protected boolean centerAtOrigin = false;
+	protected boolean encodeSource = false;
 
 	// Runtime
 	private transient MergedGridSource< ? > mergedGridSource;
@@ -157,7 +158,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 	private SourceAndConverter< ? > createMergedSourceAndConverter( List< Source< ? > > gridSources, Converter< ?, ARGBType > volatileConverter, Converter< ?, ARGBType > converter )
 	{
-		mergedGridSource = new MergedGridSource( gridSources, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+		mergedGridSource = new MergedGridSource( gridSources, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN, encodeSource );
 
 		final VolatileSource< ?, ? > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
 

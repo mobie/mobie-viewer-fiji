@@ -15,6 +15,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.io.n5.source.LabelSource;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
 import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
@@ -274,6 +275,7 @@ public class ViewManager
 
 		// fetch the names of all sources that are either shown or to be transformed
 		final Set< String > sources = fetchSources( view );
+		SourceNameEncoder.addNames( sources );
 		final Set< String > datasetSources = sources.stream().filter( s -> moBIE.getDataset().sources.containsKey( s ) ).collect( Collectors.toSet() );
 
 		// open all raw sources
