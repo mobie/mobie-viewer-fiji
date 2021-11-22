@@ -296,7 +296,7 @@ public class ViewManager
 			sourceNameToSourceAndConverters.put( sourceName, sourceAndConverter );
 		}
 
-		// register all available sources
+		// register all available sources in MoBIE
 		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
 
 		// show the displays

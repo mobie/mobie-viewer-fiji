@@ -73,7 +73,7 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 			return;
 		}
 
-		final S imageSegment = segmentAdapter.getSegment( label.getRealDouble(), timePointIndex, imageId );
+		final S imageSegment = segmentAdapter.getSegmentCreateIfNotExist( label.getRealDouble(), timePointIndex, imageId );
 
 		if ( imageSegment == null )
 		{

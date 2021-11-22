@@ -13,6 +13,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +33,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	// Runtime
 	private transient MergedGridSource< ? > mergedGridSource;
 	private transient double[] translationRealOffset;
+	private Set< SourceAndConverter > containedSourceAndConverters;
 
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
@@ -47,9 +49,13 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 		sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
 
-		// in order to know where the individual sources are in space
-		// we also transform all of them
+		// we also need to transform (i.e. adapt the positions)
+		// of all the contained sources,
+		// as several parts of the code may refer to them and their
+		// positions.
+		containedSourceAndConverters = ConcurrentHashMap.newKeySet();
 		transformGridSourcesIndividually( sourceNameToSourceAndConverter, gridSources );
+		mergedGridSource.setContainedSourceAndConverters( containedSourceAndConverters );
 	}
 
 	private void transformGridSourcesIndividually( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > gridSources )
@@ -86,7 +92,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		}
 		MoBIEUtils.waitUntilFinishedAndShutDown( executorService );
 
-		// System.out.println( "Transformed " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
+		System.out.println( "Transformed contained " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
 	}
 
 	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealDimensions )
@@ -110,6 +116,8 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 		if ( containedSourceNames.size() > 0 )
 		{
+			final List< SourceAndConverter< ? > > sourceAndConverters = sourceNameToSourceAndConverter.values().stream().filter( sac -> containedSourceNames.contains( sac.getSpimSource().getName() ) ).collect( Collectors.toList() );
+			containedSourceAndConverters.addAll( sourceAndConverters );
 			TransformedGridSourceTransformer.translate( sourceNameToSourceAndConverter, containedSourceNames, null, centerAtOrigin, gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ], gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ]);
 
 			recursivelyTranslateContainedSources( sourceNameToSourceAndConverter, gridCellRealDimensions, finalPositionIndex, containedSourceNames );

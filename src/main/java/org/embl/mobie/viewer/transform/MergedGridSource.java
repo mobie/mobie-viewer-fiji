@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.transform;
 import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.MoBIEUtils;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
@@ -28,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 public class MergedGridSource< T extends NativeType< T > & NumericType< T > > implements Source< T >
 {
@@ -43,6 +45,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	private Map< String, long[] > sourceNameToVoxelTranslation;
 	private int[][] cellDimensions;
 	private double[] cellRealDimensions;
+	private Set< SourceAndConverter > containedSourceAndConverters;
 
 	public MergedGridSource( List< Source< T > > gridSources, List< int[] > positions, String mergedGridSourceName, double relativeCellMargin )
 	{
@@ -241,6 +244,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		return translation;
 	}
 
+	// TODO: not used
 	public Map< String, long[] > getSourceNameToVoxelTranslation()
 	{
 		return sourceNameToVoxelTranslation;
@@ -307,6 +311,16 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	public int getNumMipmapLevels()
 	{
 		return referenceSource.getNumMipmapLevels();
+	}
+
+	public void setContainedSourceAndConverters( Set< SourceAndConverter > containedSourceAndConverters )
+	{
+		this.containedSourceAndConverters = containedSourceAndConverters;
+	}
+
+	public Set< SourceAndConverter > getContainedSourceAndConverters()
+	{
+		return containedSourceAndConverters;
 	}
 
 	class RandomAccessibleIntervalCellLoader< T extends NativeType< T > > implements CellLoader< T >

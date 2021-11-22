@@ -398,8 +398,12 @@ public class MoBIE
 		return additionalTables;
 	}
 
+	public Map< String, SourceAndConverter< ? > > getSourceNameToSourceAndConverter()
+	{
+		return sourceNameToSourceAndConverter;
+	}
 
-	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables(SegmentationSourceDisplay segmentationDisplay, String table )
+	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay, String table )
 	{
 		final List< String > segmentationDisplaySources = segmentationDisplay.getSources();
 		final ConcurrentHashMap< String, Set< Source > > sourceNameToRootSources = new ConcurrentHashMap();
