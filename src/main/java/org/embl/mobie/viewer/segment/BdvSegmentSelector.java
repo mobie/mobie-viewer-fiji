@@ -5,6 +5,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import org.embl.mobie.io.n5.source.LabelSource;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.BdvMousePositionProvider;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
@@ -49,85 +50,42 @@ public class BdvSegmentSelector implements Runnable
 		final int timePoint = positionProvider.getTimePoint();
 		final RealPoint position = positionProvider.getPosition();
 
-		// now checking in all available sources whether the segment belongs to it.
-		// the reason is that the source that is actually shown in the
-		// SegmentationSourceDisplay may be a MergedGridSource, which does
-		// not "hold" the individual image segments.
-		// TODO: This logic should be revised!
-		// TODO: only loop through all sources if the source is a MergedGridSource
-		// TODO: the mergedGrid source should have a handle on all the sourceAndConverter!
-
-
-//		for ( SourceAndConverter< ? > sourceAndConverter : sourceNameToSourceAndConverter.values() )
-//		{
-//
-//
-//			// TODO: check whether the source is visible!
-//			if ( SourceAndConverterHelper.isPositionWithinSourceInterval( sourceAndConverter, position, timePoint, is2D ) )
-//			{
-//				final Source< ? > source = sourceAndConverter.getSpimSource();
-//				final double labelIndex = getPixelValue( timePoint, position, source );
-//				if ( labelIndex == 0 ) return;
-//
-//				for ( SegmentationSourceDisplay segmentationDisplay : segmentationDisplaySupplier.get() )
-//				{
-//					try
-//					{
-//						// TODO: add a "segment exists"?
-//						final TableRowImageSegment segment = segmentationDisplay.segmentAdapter.getSegment( labelIndex, timePoint, source.getName() );
-//
-//						segmentationDisplay.selectionModel.toggle( segment );
-//						if ( segmentationDisplay.selectionModel.isSelected( segment ) )
-//						{
-//							segmentationDisplay.selectionModel.focus( segment );
-//						}
-//						System.out.println( "\nSelected image segment!\nLabel index: " + labelIndex + "\nTime point: " + timePoint + "\nSource: " + source.getName() );
-//					} catch ( Exception e )
-//					{
-//						// TODO
-//						System.out.println( "\nCould NOT select image segment!\nLabel index: " + labelIndex + "\nTime point: " + timePoint + "\nSource: " + source.getName() );
-//					}
-//				}
-//			}
-//		}
-
-		// Old code ...
 		final Collection< SegmentationSourceDisplay > segmentationDisplays = segmentationDisplaySupplier.get();
 
 		for ( SegmentationSourceDisplay segmentationDisplay : segmentationDisplays )
 		{
-			final Collection< SourceAndConverter< ? > > sourceAndConverters = segmentationDisplay.sourceNameToSourceAndConverter.values();
-			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+			final Collection< SourceAndConverter< ? > > displayedSourceAndConverters = segmentationDisplay.sourceNameToSourceAndConverter.values();
+			for ( SourceAndConverter< ? > displayedSourceAndConverter : displayedSourceAndConverters )
 			{
-				final boolean sourceVisible = bdvHandle.getViewerPanel().state().isSourceVisible( sourceAndConverter );
+				final boolean sourceVisible = bdvHandle.getViewerPanel().state().isSourceVisible( displayedSourceAndConverter );
 				if ( ! sourceVisible )
 				{
 					continue;
 				}
 
-				// The source might be a MergedGridSource
-				// and thereby represent several sources that
-				// need to be inspected for whether they contain selectable
-				// image segments.
-				final Collection< SourceAndConverter< ? > > containedSourceAndConverters = getContainedSourceAndConverters( sourceAndConverter );
+				// The source might be a MergedGridSource and thereby represent several sources that
+				// need to be inspected for whether they contain selectable image segments.
+				final Collection< SourceAndConverter< ? > > sourceAndConverters = getContainedSourceAndConverters( displayedSourceAndConverter );
 
-				for ( SourceAndConverter< ? > sac : containedSourceAndConverters )
+				for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 				{
 					if ( SourceAndConverterHelper.isPositionWithinSourceInterval( sourceAndConverter, position, timePoint, is2D ) )
 					{
-						final Source< ? > source = sac.getSpimSource();
+						final Source< ? > source = sourceAndConverter.getSpimSource();
 
 						final double labelIndex = getPixelValue( timePoint, position, source );
 						if ( labelIndex == 0 ) continue; // background
 
-						final boolean containsSegment = segmentationDisplay.segmentAdapter.containsSegment( labelIndex, timePoint, source.getName() );
+						final String sourceName = source.getName();
+
+						final boolean containsSegment = segmentationDisplay.segmentAdapter.containsSegment( labelIndex, timePoint, sourceName );
 
 						if ( ! containsSegment )
 						{
 							continue;
 						}
 
-						final TableRowImageSegment segment = segmentationDisplay.segmentAdapter.getSegment( labelIndex, timePoint, source.getName() );
+						final TableRowImageSegment segment = segmentationDisplay.segmentAdapter.getSegment( labelIndex, timePoint, sourceName );
 
 						segmentationDisplay.selectionModel.toggle( segment );
 						if ( segmentationDisplay.selectionModel.isSelected( segment ) )
@@ -144,23 +102,28 @@ public class BdvSegmentSelector implements Runnable
 	{
 		final Collection< SourceAndConverter< ? > > containedSourceAndConverters = new HashSet<>();
 
-		if ( sourceAndConverter.getSpimSource() instanceof TransformedSource )
+		Source< ? > source = sourceAndConverter.getSpimSource();
+
+		if ( source instanceof LabelSource )
 		{
-			final Source< ? > wrappedSource = ( ( TransformedSource< ? > ) sourceAndConverter.getSpimSource() ).getWrappedSource();
-			if ( wrappedSource instanceof MergedGridSource )
-			{
-				containedSourceAndConverters.addAll( ( ( MergedGridSource ) wrappedSource ).getContainedSourceAndConverters() );
-			}
-			else
-			{
-				// Not a MergedGridSource, just return the initial source
-				containedSourceAndConverters.add( sourceAndConverter );
-			}
-		} else
+			source = ( ( LabelSource ) source ).getWrappedSource();
+		}
+
+		if ( source instanceof TransformedSource )
 		{
-			// Not a MergedGridSource, just return the initial source
+			source = ( ( TransformedSource< ? > ) source ).getWrappedSource();
+		}
+
+		if ( source instanceof MergedGridSource )
+		{
+			containedSourceAndConverters.addAll( ( ( MergedGridSource ) source ).getContainedSourceAndConverters() );
+		}
+		else
+		{
+			// not a MergedGridSource, just return the initial source
 			containedSourceAndConverters.add( sourceAndConverter );
 		}
+
 		return containedSourceAndConverters;
 	}
 

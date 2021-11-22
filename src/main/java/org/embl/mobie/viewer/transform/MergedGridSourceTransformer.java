@@ -5,15 +5,14 @@ import bdv.util.VolatileSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
+import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEUtils;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +32,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	// Runtime
 	private transient MergedGridSource< ? > mergedGridSource;
 	private transient double[] translationRealOffset;
-	private Set< SourceAndConverter > containedSourceAndConverters;
+	private transient Set< SourceAndConverter > transformedSourceAndConverters;
 
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
@@ -49,16 +48,15 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 		sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
 
-		// we also need to transform (i.e. adapt the positions)
-		// of all the contained sources,
-		// as several parts of the code may refer to them and their
+		// Transform (i.e. adapt the positions) all contained sources,
+		// because several parts of the code refer to them and their
 		// positions.
-		containedSourceAndConverters = ConcurrentHashMap.newKeySet();
-		transformGridSourcesIndividually( sourceNameToSourceAndConverter, gridSources );
-		mergedGridSource.setContainedSourceAndConverters( containedSourceAndConverters );
+		transformedSourceAndConverters = ConcurrentHashMap.newKeySet();
+		transformContainedSources( sourceNameToSourceAndConverter, gridSources );
+		mergedGridSource.setContainedSourceAndConverters( transformedSourceAndConverters );
 	}
 
-	private void transformGridSourcesIndividually( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > gridSources )
+	private void transformContainedSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > gridSources )
 	{
 		final long start = System.currentTimeMillis();
 
@@ -81,18 +79,13 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 			final ArrayList< String > sourceNamesAtGridPosition = getSourcesAtGridPosition( gridSources, finalPositionIndex );
 
 			executorService.execute( () -> {
-
-				TransformedGridSourceTransformer.translate( sourceNameToSourceAndConverter, sourceNamesAtGridPosition, null, centerAtOrigin, gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ], gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ]);
-
-				// now, in case the source at this grid position was a mergedSource itself
-				// we also have to recursively the positions of all the contained sources
-				recursivelyTranslateContainedSources( sourceNameToSourceAndConverter, gridCellRealDimensions, finalPositionIndex, sourceNamesAtGridPosition );
+				recursivelyTransformSources( sourceNameToSourceAndConverter, gridCellRealDimensions, finalPositionIndex, sourceNamesAtGridPosition );
 			} );
 
 		}
 		MoBIEUtils.waitUntilFinishedAndShutDown( executorService );
 
-		System.out.println( "Transformed contained " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
+		IJ.log( "Transformed " + transformedSourceAndConverters.size() + " source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
 	}
 
 	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealDimensions )
@@ -110,18 +103,24 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		return translationOffset;
 	}
 
-	private void recursivelyTranslateContainedSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] gridCellRealDimensions, int finalPositionIndex, ArrayList< String > sourceNamesAtGridPosition )
+	private void recursivelyTransformSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] gridCellRealDimensions, int finalPositionIndex, ArrayList< String > transformedSourceNames )
 	{
-		final ArrayList< String > containedSourceNames = fetchContainedSourceNames( sourceNameToSourceAndConverter, sourceNamesAtGridPosition );
+		// transform the sources
+		TransformedGridSourceTransformer.translate( sourceNameToSourceAndConverter, transformedSourceNames, null, centerAtOrigin, gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ], gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ]);
+		addTransformedSources( sourceNameToSourceAndConverter, transformedSourceNames );
 
+		// if there are any, also transform contained sources
+		final ArrayList< String > containedSourceNames = fetchContainedSourceNames( sourceNameToSourceAndConverter, transformedSourceNames );
 		if ( containedSourceNames.size() > 0 )
 		{
-			final List< SourceAndConverter< ? > > sourceAndConverters = sourceNameToSourceAndConverter.values().stream().filter( sac -> containedSourceNames.contains( sac.getSpimSource().getName() ) ).collect( Collectors.toList() );
-			containedSourceAndConverters.addAll( sourceAndConverters );
-			TransformedGridSourceTransformer.translate( sourceNameToSourceAndConverter, containedSourceNames, null, centerAtOrigin, gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ], gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ]);
-
-			recursivelyTranslateContainedSources( sourceNameToSourceAndConverter, gridCellRealDimensions, finalPositionIndex, containedSourceNames );
+			recursivelyTransformSources( sourceNameToSourceAndConverter, gridCellRealDimensions, finalPositionIndex, containedSourceNames );
 		}
+	}
+
+	private void addTransformedSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, ArrayList< String > containedSourceNames )
+	{
+		final List< SourceAndConverter< ? > > sourceAndConverters = sourceNameToSourceAndConverter.values().stream().filter( sac -> containedSourceNames.contains( sac.getSpimSource().getName() ) ).collect( Collectors.toList() );
+		transformedSourceAndConverters.addAll( sourceAndConverters );
 	}
 
 	private ArrayList< String > fetchContainedSourceNames( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, ArrayList< String > sourceNames )
