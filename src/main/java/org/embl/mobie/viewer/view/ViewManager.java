@@ -146,7 +146,7 @@ public class ViewManager
 		}
 	}
 
-	public void showInTableViewer( SegmentationSourceDisplay display  )
+	public void initTableViewer( SegmentationSourceDisplay display  )
 	{
 		Map<String, String> sourceNameToTableDir = new HashMap<>();
 		for ( String source: display.getSources() )
@@ -161,7 +161,8 @@ public class ViewManager
 				sourceNameToTableDir.put( source, null );
 			}
 		}
-		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel, display.getName(), sourceNameToTableDir, false ).show();
+		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel, display.getName(), sourceNameToTableDir, false );
+		display.tableViewer.setVisible( display.showTable() );
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
@@ -417,7 +418,7 @@ public class ViewManager
 		}
 
 		showInSliceViewer( annotationDisplay );
-		showInTableViewer( annotationDisplay );
+		initTableViewer( annotationDisplay );
 		initScatterPlotViewer( annotationDisplay );
 
 		SwingUtilities.invokeLater( () ->
@@ -426,7 +427,7 @@ public class ViewManager
 		} );
 	}
 
-	private void showInTableViewer( AnnotatedIntervalDisplay annotationDisplay )
+	private void initTableViewer( AnnotatedIntervalDisplay annotationDisplay )
 	{
 		HashMap<String, String> nameToTableDir = new HashMap<>();
 		nameToTableDir.put( annotationDisplay.getName(), annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ) );
@@ -462,7 +463,7 @@ public class ViewManager
 
 		if ( segmentationDisplay.tableRows != null )
 		{
-			showInTableViewer( segmentationDisplay );
+			initTableViewer( segmentationDisplay );
 			initScatterPlotViewer( segmentationDisplay );
 
 			SwingUtilities.invokeLater( () ->

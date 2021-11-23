@@ -646,7 +646,7 @@ public class UserInterfaceHelper
 		JCheckBox checkBox = new JCheckBox( "T" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
-		window.setVisible( checkBox.isSelected() );
+		window.setVisible( isVisible );
 		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> window.setVisible( checkBox.isSelected() ) ) );
 
 		window.addWindowListener(
