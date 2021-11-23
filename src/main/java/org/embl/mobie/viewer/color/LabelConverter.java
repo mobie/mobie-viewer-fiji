@@ -29,6 +29,9 @@
 package org.embl.mobie.viewer.color;
 
 import bdv.viewer.TimePointListener;
+import net.imglib2.type.numeric.integer.UnsignedIntType;
+import net.imglib2.type.volatiles.VolatileUnsignedIntType;
+import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import net.imglib2.Volatile;
@@ -45,6 +48,16 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	private int timePointIndex = 0;
 	private double opacity = 1.0;
 
+	// No imageId given => decode from pixel value
+	public LabelConverter(
+			SegmentAdapter< S > segmentAdapter,
+			MoBIEColoringModel< S > coloringModel )
+	{
+		this.segmentAdapter = segmentAdapter;
+		this.imageId = null;
+		this.coloringModel = coloringModel;
+	}
+
 	public LabelConverter(
 			SegmentAdapter< S > segmentAdapter,
 			String imageId,
@@ -60,7 +73,7 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	{
 		if ( label instanceof Volatile )
 		{
-			if ( ! ( ( Volatile ) label ).isValid() )
+			if ( !( ( Volatile ) label ).isValid() )
 			{
 				color.set( 0 );
 				return;
@@ -73,7 +86,7 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 			return;
 		}
 
-		final S imageSegment = segmentAdapter.getSegment( label.getRealDouble(), timePointIndex, imageId );
+		S imageSegment = getImageSegment( label );
 
 		if ( imageSegment == null )
 		{
@@ -88,6 +101,25 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 		}
 
 		color.mul( opacity );
+	}
+
+	// TODO: figure out how to make this work for more types
+	private S getImageSegment( RealType label )
+	{
+		if ( imageId == null )
+		{
+			final long value = SourceNameEncoder.getValue( ( VolatileUnsignedIntType ) label );
+			if ( value == 0 )
+			{
+				return null; // background
+			}
+			final String imageId = SourceNameEncoder.getName( ( VolatileUnsignedIntType ) label );
+			return segmentAdapter.getSegmentCreateIfNotExist( value, timePointIndex, imageId );
+		}
+		else
+		{
+			return segmentAdapter.getSegmentCreateIfNotExist( label.getRealDouble(), timePointIndex, imageId );
+		}
 	}
 
 	@Override

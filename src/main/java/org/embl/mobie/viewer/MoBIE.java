@@ -202,6 +202,7 @@ public class MoBIE
 		sourceNameToSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
+		//dataset.sources
 
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
@@ -362,7 +363,7 @@ public class MoBIE
 
 		final String defaultTablePath = getTablePath( tableSource, tableName );
 
-		final List< TableRowImageSegment > segments = MoBIEUtils.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, displaySourceName );
+		final List< TableRowImageSegment > segments = MoBIEUtils.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
 
 		return segments;
 	}
@@ -398,17 +399,21 @@ public class MoBIE
 		return additionalTables;
 	}
 
+	public Map< String, SourceAndConverter< ? > > getSourceNameToSourceAndConverter()
+	{
+		return sourceNameToSourceAndConverter;
+	}
 
-	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables(SegmentationSourceDisplay segmentationDisplay, String table )
+	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay, String table )
 	{
 		final List< String > segmentationDisplaySources = segmentationDisplay.getSources();
 		final ConcurrentHashMap< String, Set< Source > > sourceNameToRootSources = new ConcurrentHashMap();
 
 		for ( String sourceName : segmentationDisplaySources )
 		{
-			Set< Source > rootSourceNames = ConcurrentHashMap.newKeySet();
-			BdvPlaygroundUtils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSourceNames );
-			sourceNameToRootSources.put( sourceName, rootSourceNames );
+			Set< Source > rootSources = ConcurrentHashMap.newKeySet();
+			BdvPlaygroundUtils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSources );
+			sourceNameToRootSources.put( sourceName, rootSources );
 		}
 
 		// TODO: make parallel

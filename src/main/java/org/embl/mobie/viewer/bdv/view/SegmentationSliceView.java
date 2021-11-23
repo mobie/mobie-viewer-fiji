@@ -14,6 +14,7 @@ import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.SelectionListener;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.viewer.transform.MergedGridSource;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
@@ -81,10 +82,8 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		for ( String name: sourceNameToSourceAndConverter.keySet() )
 		{
 			SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( name );
-			LabelConverter< S > labelConverter = new LabelConverter(
-					display.segmentAdapter,
-					sourceAndConverter.getSpimSource().getName(),
-					display.coloringModel );
+
+			LabelConverter< S > labelConverter = getLabelConverter( sourceAndConverter );
 
 			SourceAndConverter< ? > sourceAndLabelConverter = asSourceAndLabelConverter( sourceAndConverter, labelConverter );
 
@@ -92,6 +91,27 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		}
 
 		return sourceNameToLabelSourceAndConverter;
+	}
+
+	private LabelConverter< S > getLabelConverter( SourceAndConverter< ? > sourceAndConverter )
+	{
+		if ( MergedGridSource.instanceOf( sourceAndConverter ) )
+		{
+			// The source name is not the one from which the
+			// image segments should be fetched.
+			// Thus, the constructor where the source name
+			// is determined from encoding in the label is chosen.
+			return new LabelConverter(
+					display.segmentAdapter,
+					display.coloringModel );
+		}
+		else
+		{
+			return new LabelConverter(
+					display.segmentAdapter,
+					sourceAndConverter.getSpimSource().getName(),
+					display.coloringModel );
+		}
 	}
 
 	private SourceAndConverter asSourceAndLabelConverter( SourceAndConverter< ? > sourceAndConverter, LabelConverter labelConverter )
@@ -151,7 +171,7 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 	private void adaptPosition( double[] position, String sourceName )
 	{
 		// get source transform
-		final SourceAndConverter< ? > sourceAndConverter = display.sourceNameToSourceAndConverter.get( sourceName );
+		final SourceAndConverter< ? > sourceAndConverter = moBIE.getSourceAndConverter( sourceName );
 		AffineTransform3D sourceTransform = new AffineTransform3D();
 		sourceAndConverter.getSpimSource().getSourceTransform( 0,0, sourceTransform );
 
