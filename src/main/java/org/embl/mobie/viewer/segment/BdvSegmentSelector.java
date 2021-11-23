@@ -65,6 +65,8 @@ public class BdvSegmentSelector implements Runnable
 
 				// The source might be a MergedGridSource and thereby represent several sources that
 				// need to be inspected for whether they contain selectable image segments.
+				// TODO: Probably more efficient and consistent to simplify this,
+				//   using the image name encoding instead.
 				final Collection< SourceAndConverter< ? > > sourceAndConverters = getContainedSourceAndConverters( displayedSourceAndConverter );
 
 				for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
