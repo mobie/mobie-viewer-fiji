@@ -357,7 +357,7 @@ public class MoBIE
 		return location;
 	}
 
-	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName, String displaySourceName )
+	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName )
 	{
 		final SegmentationSource tableSource = ( SegmentationSource ) getSource( sourceName );
 
@@ -423,16 +423,16 @@ public class MoBIE
 			final Set< Source > rootSources = sourceNameToRootSources.get( displayedSourceName );
 			for ( Source rootSource : rootSources )
 			{
-				addPrimaryTable( table, primaryTables, rootSource.getName(), displayedSourceName );
+				addPrimaryTable( table, primaryTables, rootSource.getName() );
 			}
 		}
 
 		return primaryTables;
 	}
 
-	private void addPrimaryTable( String tableName, ArrayList< List< TableRowImageSegment > > primaryTables, String tableSourceName, String displaySourceName )
+	private void addPrimaryTable( String tableName, ArrayList< List< TableRowImageSegment > > primaryTables, String tableSourceName )
 	{
-		final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( tableSourceName, tableName, displaySourceName );
+		final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( tableSourceName, tableName );
 		primaryTables.add( primaryTable );
 	}
 
