@@ -285,6 +285,12 @@ public class MoBIE
 		return dataset.sources.get( sourceName ).get();
 	}
 
+	public boolean isSegmentationSource( String sourceName )
+	{
+		final boolean isSegmentationSource = dataset.sources.get( sourceName ).get() instanceof SegmentationSource;
+		return isSegmentationSource;
+	}
+
 	public SourceAndConverter< ? > openSourceAndConverter( String sourceName )
 	{
 		final ImageSource imageSource = getSource( sourceName );

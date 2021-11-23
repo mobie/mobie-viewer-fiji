@@ -199,4 +199,12 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 		return positions;
 	}
+
+	// Encode the source names into the values.
+	// This is necessary when merging several label mask images,
+	// because then the labels alone are not unique anymore.
+	public void setEncodeSource( boolean encodeSource )
+	{
+		this.encodeSource = encodeSource;
+	}
 }

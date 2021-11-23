@@ -32,6 +32,7 @@ import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableViewer;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
+import org.embl.mobie.viewer.transform.MergedGridSourceTransformer;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SourceTransformer;
@@ -279,7 +280,7 @@ public class ViewManager
 		SourceNameEncoder.addNames( sources );
 		final Set< String > datasetSources = sources.stream().filter( s -> moBIE.getDataset().sources.containsKey( s ) ).collect( Collectors.toSet() );
 
-		// open all raw sources
+		// open all primary sources
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( datasetSources );
 
 		// create transformed sources
@@ -288,10 +289,12 @@ public class ViewManager
 		for ( SourceTransformer sourceTransformer : sourceTransformers )
 		{
 			currentSourceTransformers.add( sourceTransformer );
+			configureSourceTransformer( sourceTransformer );
 			sourceTransformer.transform( sourceNameToSourceAndConverters );
 		}
 
-		// wrap all in a final transformed source. This is so any manual transformations can be
+		// Wrap all in a final transformed source.
+		// This is so any manual transformations can be
 		// retrieved separate from any from sourceTransformers.
 		for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
 			SourceAndConverter<?> sourceAndConverter = new SourceAffineTransformer(
@@ -311,6 +314,15 @@ public class ViewManager
 
 		// adjust viewer transform
 		adjustViewerTransform( view );
+	}
+
+	private void configureSourceTransformer( SourceTransformer sourceTransformer )
+	{
+		if ( sourceTransformer instanceof MergedGridSourceTransformer )
+		{
+			final boolean isSegmentationSources = sourceTransformer.getSources().stream().allMatch( source -> moBIE.isSegmentationSource( source ) );
+			( ( MergedGridSourceTransformer ) sourceTransformer ).setEncodeSource( isSegmentationSources );
+		}
 	}
 
 	public void adjustViewerTransform( View view )
