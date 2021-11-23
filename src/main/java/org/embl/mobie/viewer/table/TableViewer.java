@@ -129,6 +129,16 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 		// TODO: reconsider
 		registerAsTableRowListener( tableRows );
+
+		configureJTable();
+
+		if ( selectionModel != null )
+			installSelectionModelNotification();
+
+		if ( coloringModel != null)
+			configureTableRowColoring();
+
+		createFrame();
 	}
 
 	public TableViewer< T > show()
@@ -141,7 +151,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		if ( coloringModel != null)
 			configureTableRowColoring();
 
-		createAndShowMenu();
+		createFrame();
 
 		return this;
 	}
@@ -753,7 +763,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		annotator.showDialog();
 	}
 
-	private void createAndShowMenu()
+	private void createFrame()
 	{
 		final JPanel panel = new JPanel( new GridLayout( 1, 0 ) );
 		JScrollPane scrollPane = new JScrollPane(
@@ -781,8 +791,11 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				frame.setVisible( false );
 			}
 		});
+	}
 
-		SwingUtilities.invokeLater( () -> frame.setVisible( true ) );
+	public void setVisible( boolean visible )
+	{
+		SwingUtilities.invokeLater( () -> frame.setVisible( visible ) );
 	}
 
 	public void addColumn( String column, Object defaultValue )

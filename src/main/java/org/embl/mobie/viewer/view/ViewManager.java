@@ -162,14 +162,7 @@ public class ViewManager
 			}
 		}
 		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel, display.getName(), sourceNameToTableDir, false );
-
-		// We currently need to show the table even if display.showTable() is false,
-		// because in the UserInterfaceHelper we need the Window to exist.
-		// The UserInterfaceHelper will call window.setVisible( display.showTable() )
-		// Thus, it may be that the table shortly "flickers" on, before being
-		// set invisible (if display.showTable()==false)
-		display.tableViewer.show();
-
+		display.tableViewer.setVisible( display.showTable() );
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
