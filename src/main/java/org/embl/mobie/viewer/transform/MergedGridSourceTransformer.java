@@ -5,12 +5,11 @@ import bdv.util.VolatileSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
-import ij.IJ;
-import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEUtils;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.ThreadUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public class MergedGridSourceTransformer extends AbstractSourceTransformer
@@ -59,34 +59,27 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 	private void transformContainedSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > gridSources )
 	{
-		final long start = System.currentTimeMillis();
-
 		final ArrayList< SourceAndConverter< ? > > referenceSources = new ArrayList<>();
 		referenceSources.add( gridSources.get( 0 ) );
 
 		final double[] gridCellRealDimensions = mergedGridSource.getCellRealDimensions();
 
-		// due to margin...
+		// account for grid margin
 		translationRealOffset = computeTranslationOffset( gridSources, gridCellRealDimensions );
 
-		final int nThreads = MoBIE.N_THREADS;
-		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
-
 		final int numSources = gridSources.size();
+		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( int positionIndex = 0; positionIndex < numSources; positionIndex++ )
 		{
 			final int finalPositionIndex = positionIndex;
 
 			final ArrayList< String > sourceNamesAtGridPosition = getSourcesAtGridPosition( gridSources, finalPositionIndex );
 
-			executorService.execute( () -> {
+			futures.add( ThreadUtils.executorService.submit( () -> {
 				recursivelyTransformSources( sourceNameToSourceAndConverter, gridCellRealDimensions, finalPositionIndex, sourceNamesAtGridPosition );
-			} );
-
+			} ) );
 		}
-		MoBIEUtils.waitUntilFinishedAndShutDown( executorService );
-
-		IJ.log( "Transformed " + transformedSourceAndConverters.size() + " source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
+		ThreadUtils.waitUntilFinished( futures );
 	}
 
 	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealDimensions )
@@ -107,7 +100,10 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	private void recursivelyTransformSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] gridCellRealDimensions, int finalPositionIndex, ArrayList< String > transformedSourceNames )
 	{
 		// transform the sources
-		TransformedGridSourceTransformer.translate( sourceNameToSourceAndConverter, transformedSourceNames, null, centerAtOrigin, gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ], gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ]);
+		final double translationX = gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ];
+		final double translationY = gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ];
+
+		TransformedGridSourceTransformer.translate( sourceNameToSourceAndConverter, transformedSourceNames, null, centerAtOrigin, translationX, translationY );
 		addTransformedSources( sourceNameToSourceAndConverter, transformedSourceNames );
 
 		// if there are any, also transform contained sources
@@ -160,7 +156,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	{
 		mergedGridSource = new MergedGridSource( gridSources, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN, encodeSource );
 
-		final VolatileSource< ?, ? > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
+		final VolatileSource< ?, ? > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, ThreadUtils.sharedQueue );
 
 		final SourceAndConverter< ? > volatileSourceAndConverter = new SourceAndConverter( volatileMergedGridSource, volatileConverter );
 

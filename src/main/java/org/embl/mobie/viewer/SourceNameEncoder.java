@@ -61,8 +61,10 @@ public abstract class SourceNameEncoder
 
 	public static void encodeName( final UnsignedIntType value, final String name )
 	{
-		final long encoded = value.get() + ( nameToLong.get( name ) << valueBits );
+		final long l = value.get();
+		final long encoded = l + ( nameToLong.get( name ) << valueBits );
 		value.set( encoded );
+		final long value1 = getValue( value );
 	}
 
 }

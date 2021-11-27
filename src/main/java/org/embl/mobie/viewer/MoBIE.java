@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer;
 
-import bdv.util.volatiles.SharedQueue;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -39,16 +38,13 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class MoBIE
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static final int N_THREADS = Runtime.getRuntime().availableProcessors() - 1;
-	public static final SharedQueue sharedQueue = new SharedQueue( N_THREADS );
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
-	public static final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
 
 	private final String projectName;
 	private MoBIESettings settings;
@@ -181,17 +177,16 @@ public class MoBIE
 
 		Map< String, SourceAndConverter< ? > > sourceAndConverters = new ConcurrentHashMap< >();
 
-		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
+		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( String sourceName : sources )
 		{
-			executorService.execute( () -> {
-				sourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) );
-			} );
+			futures.add(
+					ThreadUtils.ioExecutorService.submit( () -> { sourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) ); }
+				) );
 		}
+		ThreadUtils.waitUntilFinished( futures );
 
-		MoBIEUtils.waitUntilFinishedAndShutDown( executorService );
-
-		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
+		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
 
 		return sourceAndConverters;
 	}
@@ -291,7 +286,7 @@ public class MoBIE
 		final String imagePath = getImagePath( imageSource );
         IJ.log( "Opening image:\n" + imagePath );
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
-        SpimData spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat, sharedQueue );
+        SpimData spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
         sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 
         final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
@@ -381,20 +376,20 @@ public class MoBIE
 		final List< Map< String, List< String > > > additionalTables = new CopyOnWriteArrayList<>();
 
 		final long start = System.currentTimeMillis();
-		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
-
+		final ExecutorService executorService = ThreadUtils.ioExecutorService;
+		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( String sourceName : sources )
 		{
-			executorService.execute( () -> {
-				Map< String, List< String > > columns =
-						loadAdditionalTable( sourceName, getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
+			futures.add(
+				executorService.submit( () -> {
+					Map< String, List< String > > columns = loadAdditionalTable( sourceName, getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
 				additionalTables.add( columns );
-			} );
+				} )
+			);
 		}
+		ThreadUtils.waitUntilFinished( futures );
 
-		MoBIEUtils.waitUntilFinishedAndShutDown( executorService );
-
-		System.out.println( "Fetched " + sources.size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
+		System.out.println( "Fetched " + sources.size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
 
 		return additionalTables;
 	}
@@ -416,21 +411,23 @@ public class MoBIE
 			sourceNameToRootSources.put( sourceName, rootSources );
 		}
 
-		// TODO: make parallel
+
 		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
+		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( String displayedSourceName : segmentationDisplaySources )
 		{
 			final Set< Source > rootSources = sourceNameToRootSources.get( displayedSourceName );
 			for ( Source rootSource : rootSources )
 			{
-				addPrimaryTable( table, primaryTables, rootSource.getName() );
+				futures.add( ThreadUtils.ioExecutorService.submit( () -> 				loadAndAddPrimaryTable( table, primaryTables, rootSource.getName() ) ) );
 			}
 		}
+		ThreadUtils.waitUntilFinished( futures );
 
 		return primaryTables;
 	}
 
-	private void addPrimaryTable( String tableName, ArrayList< List< TableRowImageSegment > > primaryTables, String tableSourceName )
+	private void loadAndAddPrimaryTable( String tableName, ArrayList< List< TableRowImageSegment > > primaryTables, String tableSourceName )
 	{
 		final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( tableSourceName, tableName );
 		primaryTables.add( primaryTable );

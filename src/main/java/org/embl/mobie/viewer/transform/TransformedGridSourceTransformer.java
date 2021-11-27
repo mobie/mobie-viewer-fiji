@@ -2,8 +2,7 @@ package org.embl.mobie.viewer.transform;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.ThreadUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
 
@@ -12,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 {
@@ -47,27 +47,20 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 
 	private void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] cellRealDimensions )
 	{
-		final long start = System.currentTimeMillis();
-
-		final int nThreads = MoBIE.N_THREADS;
-		final ExecutorService executorService = Executors.newFixedThreadPool( nThreads );
-
 		final int numGridPositions = sources.size();
 
+		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( int gridIndex = 0; gridIndex < numGridPositions; gridIndex++ )
 		{
 			int finalGridIndex = gridIndex;
-			executorService.execute( () -> {
+			futures.add( ThreadUtils.executorService.submit( () -> {
 				if ( sourceNamesAfterTransform != null )
 					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), sourceNamesAfterTransform.get( finalGridIndex ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
 				else
 					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), null, centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
-			} );
+			} ) );
 		}
-
-		MoBIEUtils.waitUntilFinishedAndShutDown( executorService );
-
-		System.out.println( "Transformed " + sourceNameToSourceAndConverter.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + nThreads + " thread(s)." );
+		ThreadUtils.waitUntilFinished( futures );
 	}
 
 	public static void translate( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< String > sourceNames, List< String > sourceNamesAfterTransform, boolean centerAtOrigin, double translationX, double translationY )

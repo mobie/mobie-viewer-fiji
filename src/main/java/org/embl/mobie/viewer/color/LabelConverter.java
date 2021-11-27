@@ -48,13 +48,12 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	private int timePointIndex = 0;
 	private double opacity = 1.0;
 
-	// No imageId given => decode from pixel value
 	public LabelConverter(
 			SegmentAdapter< S > segmentAdapter,
 			MoBIEColoringModel< S > coloringModel )
 	{
 		this.segmentAdapter = segmentAdapter;
-		this.imageId = null;
+		this.imageId = null; // No imageId given => decode from pixel value
 		this.coloringModel = coloringModel;
 	}
 
@@ -80,46 +79,41 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 			}
 		}
 
-		if ( label.getRealDouble() == 0 )
-		{
-			color.set( 0 );
-			return;
-		}
-
-		S imageSegment = getImageSegment( label );
-
-		if ( imageSegment == null )
-		{
-			color.set( 0 );
-			return;
-		}
-		else
-		{
-			coloringModel.convert( imageSegment, color );
-			final int alpha = ARGBType.alpha( color.get() );
-			color.mul( alpha / 255.0 );
-		}
-
-		color.mul( opacity );
-	}
-
-	// TODO: figure out how to make this work for more types
-	private S getImageSegment( RealType label )
-	{
 		if ( imageId == null )
 		{
-			final long value = SourceNameEncoder.getValue( ( VolatileUnsignedIntType ) label );
-			if ( value == 0 )
+			final long labelId = SourceNameEncoder.getValue( ( VolatileUnsignedIntType ) label );
+
+			if ( labelId == 0 )
 			{
-				return null; // background
+				color.set( 0 );
+				return;
 			}
+
 			final String imageId = SourceNameEncoder.getName( ( VolatileUnsignedIntType ) label );
-			return segmentAdapter.getSegmentCreateIfNotExist( value, timePointIndex, imageId );
+			S segment = segmentAdapter.getSegment( labelId, timePointIndex, imageId );
+			setColorBySegment( color, segment );
 		}
 		else
 		{
-			return segmentAdapter.getSegmentCreateIfNotExist( label.getRealDouble(), timePointIndex, imageId );
+			final double labelId = label.getRealDouble();
+
+			if ( labelId == 0 )
+			{
+				color.set( 0 );
+				return;
+			}
+
+			final S segment = segmentAdapter.getSegment( labelId, timePointIndex, imageId );
+			setColorBySegment( color, segment );
 		}
+	}
+
+	private void setColorBySegment( ARGBType color, S imageSegment )
+	{
+		coloringModel.convert( imageSegment, color );
+		final int alpha = ARGBType.alpha( color.get() );
+		color.mul( alpha / 255.0 );
+		color.mul( opacity );
 	}
 
 	@Override
