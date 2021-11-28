@@ -5,8 +5,10 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import net.imglib2.type.volatiles.VolatileUnsignedIntType;
 import org.embl.mobie.io.n5.source.LabelSource;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.bdv.BdvMousePositionProvider;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
@@ -25,8 +27,10 @@ public class BdvSegmentSelector implements Runnable
 {
 	private BdvHandle bdvHandle;
 	private boolean is2D;
-	private Supplier< Collection<SegmentationSourceDisplay> > segmentationDisplaySupplier;
+	private Supplier< Collection< SegmentationSourceDisplay > > segmentationDisplaySupplier;
 
+	// A segmentationDisplaySupplier is used such that the segmentation images can
+	// change during runtime.
 	public BdvSegmentSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< SegmentationSourceDisplay > > segmentationDisplaySupplier )
 	{
 		this.bdvHandle = bdvHandle;
@@ -36,12 +40,17 @@ public class BdvSegmentSelector implements Runnable
 
 	public synchronized void clearSelection()
 	{
-		final Collection< SegmentationSourceDisplay > segmentationDisplays = segmentationDisplaySupplier.get();
+		final Collection< SegmentationSourceDisplay > segmentationDisplays = getCurrent();
 
 		for ( SegmentationSourceDisplay segmentationDisplay : segmentationDisplays )
 		{
 			segmentationDisplay.selectionModel.clearSelection();
 		}
+	}
+
+	private Collection< SegmentationSourceDisplay > getCurrent()
+	{
+		return segmentationDisplaySupplier.get();
 	}
 
 	private synchronized void toggleSelectionAtMousePosition()
@@ -54,50 +63,67 @@ public class BdvSegmentSelector implements Runnable
 
 		for ( SegmentationSourceDisplay segmentationDisplay : segmentationDisplays )
 		{
-			final Collection< SourceAndConverter< ? > > displayedSourceAndConverters = segmentationDisplay.sourceNameToSourceAndConverter.values();
-			for ( SourceAndConverter< ? > displayedSourceAndConverter : displayedSourceAndConverters )
+			final Collection< SourceAndConverter< ? > > segmentationSourceAndConverters = segmentationDisplay.sourceNameToSourceAndConverter.values();
+
+			for ( SourceAndConverter< ? > sourceAndConverter : segmentationSourceAndConverters )
 			{
-				final boolean sourceVisible = bdvHandle.getViewerPanel().state().isSourceVisible( displayedSourceAndConverter );
-				if ( ! sourceVisible )
+				if ( ! bdvHandle.getViewerPanel().state().isSourceVisible( sourceAndConverter ) )
 				{
 					continue;
 				}
 
-				// The source might be a MergedGridSource and thereby represent several sources that
-				// need to be inspected for whether they contain selectable image segments.
-				// TODO: Probably more efficient and consistent to simplify this,
-				//   using the image name encoding instead.
-				final Collection< SourceAndConverter< ? > > sourceAndConverters = getContainedSourceAndConverters( displayedSourceAndConverter );
-
-				for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+				if ( SourceAndConverterHelper.isPositionWithinSourceInterval( sourceAndConverter, position, timePoint, is2D ) )
 				{
-					if ( SourceAndConverterHelper.isPositionWithinSourceInterval( sourceAndConverter, position, timePoint, is2D ) )
+					final Source< ? > source = sourceAndConverter.getSpimSource();
+
+					final double pixelValue = getPixelValue( timePoint, position, source );
+					final String sourceName = getSourceName( source, pixelValue );
+					double labelIndex = getLabelIndex( source, pixelValue );
+
+					if ( labelIndex == 0 ) continue; // image background
+
+					final boolean containsSegment = segmentationDisplay.segmentAdapter.containsSegment( labelIndex, timePoint, sourceName );
+
+					if ( ! containsSegment )
 					{
-						final Source< ? > source = sourceAndConverter.getSpimSource();
+						// This happens when there is a segmentation without
+						// a segment table
+						continue;
+					}
 
-						final double labelIndex = getPixelValue( timePoint, position, source );
-						if ( labelIndex == 0 ) continue; // background
+					final TableRowImageSegment segment = segmentationDisplay.segmentAdapter.getSegment( labelIndex, timePoint, sourceName );
 
-						final String sourceName = source.getName();
+					segmentationDisplay.selectionModel.toggle( segment );
 
-						final boolean containsSegment = segmentationDisplay.segmentAdapter.containsSegment( labelIndex, timePoint, sourceName );
-
-						if ( ! containsSegment )
-						{
-							continue;
-						}
-
-						final TableRowImageSegment segment = segmentationDisplay.segmentAdapter.getSegment( labelIndex, timePoint, sourceName );
-
-						segmentationDisplay.selectionModel.toggle( segment );
-						if ( segmentationDisplay.selectionModel.isSelected( segment ) )
-						{
-							segmentationDisplay.selectionModel.focus( segment );
-						}
+					if ( segmentationDisplay.selectionModel.isSelected( segment ) )
+					{
+						segmentationDisplay.selectionModel.focus( segment );
 					}
 				}
 			}
 		}
+	}
+
+	private static double getLabelIndex( Source< ? > source, double pixelValue )
+	{
+		if ( MergedGridSource.instanceOf( source ) )
+		{
+			return SourceNameEncoder.getValue( Double.valueOf( pixelValue ).longValue() );
+		}
+		else
+		{
+			return pixelValue;
+		}
+	}
+
+	private static String getSourceName( Source< ? > source, double labelIndex )
+	{
+		if ( MergedGridSource.instanceOf( source ) )
+		{
+			return SourceNameEncoder.getName( Double.valueOf( labelIndex ).longValue() );
+		}
+		final String sourceName = source.getName();
+		return sourceName;
 	}
 
 	private Collection< SourceAndConverter< ? > > getContainedSourceAndConverters( SourceAndConverter< ? > sourceAndConverter )
@@ -134,8 +160,7 @@ public class BdvSegmentSelector implements Runnable
 		final RandomAccess< RealType > randomAccess = ( RandomAccess< RealType > ) source.getSource( timePoint, 0 ).randomAccess();
 		final long[] positionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, position, timePoint, 0 );
 		randomAccess.setPosition( positionInSource );
-		final double labelIndex = randomAccess.get().getRealDouble();
-		return labelIndex;
+		return randomAccess.get().getRealDouble();
 	}
 
 	@Override

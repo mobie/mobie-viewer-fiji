@@ -42,20 +42,29 @@ public abstract class SourceNameEncoder
 
 	public static String getName( final VolatileUnsignedIntType unsignedIntType )
 	{
-		final long imageIndex = unsignedIntType.get().get() >> valueBits;
+		return getName( unsignedIntType.get().get() );
+	}
+
+	public static String getName( final long l )
+	{
+		final long imageIndex = l >> valueBits;
 		final String name = longToName.get( imageIndex );
 		return name;
 	}
 
 	public static long getValue( final UnsignedIntType unsignedIntType )
 	{
-		final long value = unsignedIntType.get() & 0x0000FFFF;
-		return value;
+		return getValue( unsignedIntType.get() );
 	}
 
 	public static long getValue( final VolatileUnsignedIntType unsignedIntType )
 	{
-		final long value = unsignedIntType.get().get() & 0x0000FFFF;
+		return getValue( unsignedIntType.get().get() );
+	}
+
+	public static long getValue( final long l )
+	{
+		final long value = l & 0x0000FFFF;
 		return value;
 	}
 
@@ -64,7 +73,5 @@ public abstract class SourceNameEncoder
 		final long l = value.get();
 		final long encoded = l + ( nameToLong.get( name ) << valueBits );
 		value.set( encoded );
-		final long value1 = getValue( value );
 	}
-
 }

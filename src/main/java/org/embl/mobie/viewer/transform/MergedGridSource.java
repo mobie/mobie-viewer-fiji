@@ -6,6 +6,7 @@ import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
+import org.embl.mobie.io.n5.source.LabelSource;
 import org.embl.mobie.viewer.MoBIEUtils;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
@@ -67,7 +68,17 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 
 	public static boolean instanceOf( SourceAndConverter< ? > sourceAndConverter )
 	{
-		return (( TransformedSource ) sourceAndConverter.getSpimSource() ).getWrappedSource() instanceof MergedGridSource || sourceAndConverter.getSpimSource() instanceof MergedGridSource;
+		final Source< ? > source = sourceAndConverter.getSpimSource();
+		return instanceOf( source );
+	}
+
+	public static boolean instanceOf( Source< ? > source )
+	{
+		if ( source instanceof LabelSource )  source = ( ( LabelSource ) source ).getWrappedSource();
+
+		final Source wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
+
+		return wrappedSource instanceof MergedGridSource || source instanceof MergedGridSource;
 	}
 
 	public List< Source< T > > getGridSources()
