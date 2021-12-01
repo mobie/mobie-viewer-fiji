@@ -1,17 +1,14 @@
 package tests;
 
 import net.imagej.ImageJ;
-import net.imagej.patcher.LegacyInjector;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.source.ImageDataFormat;
-import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Map;
 
 public class TestRemoteZebrafish
 {

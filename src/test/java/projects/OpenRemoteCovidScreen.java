@@ -16,7 +16,7 @@ public class OpenRemoteCovidScreen
 
 		try {
 			new MoBIE("https://github.com/mobie/covid-if-project",
-					MoBIESettings.settings().gitProjectBranch( "main" ).imageDataFormat( ImageDataFormat.OmeZarrS3 ) );
+					MoBIESettings.settings().gitProjectBranch( "main" ).imageDataFormat( ImageDataFormat.OmeZarrS3 ).view( "single_image" ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
