@@ -1,55 +1,41 @@
 package org.embl.mobie.viewer;
 
-import bdv.SpimSource;
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
-import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
 import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import ij.gui.GenericDialog;
-import net.imglib2.*;
+import net.imglib2.FinalRealInterval;
+import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
-import net.imglib2.util.Intervals;
-import org.embl.mobie.viewer.transform.MergedGridSource;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.io.*;
+import java.io.File;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
-import static de.embl.cba.tables.Utils.*;
-import static de.embl.cba.tables.Utils.getVoxelSpacings;
-import static org.embl.mobie.viewer.ui.SwingHelper.selectionDialog;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MAX_Z;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
+import static org.embl.mobie.viewer.ui.SwingHelper.selectionDialog;
 
 public abstract class MoBIEUtils
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	public static void waitUntilFinishedAndShutDown( ExecutorService executorService )
-	{
-		executorService.shutdown();
-		try {
-			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-		} catch (InterruptedException e) {
-		}
-	}
 
 	public static int[] asInts( long[] longs) {
 		int[] ints = new int[longs.length];

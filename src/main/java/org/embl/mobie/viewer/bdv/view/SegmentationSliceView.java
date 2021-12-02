@@ -101,6 +101,7 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 			// image segments should be fetched.
 			// Thus, the constructor where the source name
 			// is determined from encoding in the label is chosen.
+
 			return new LabelConverter(
 					display.segmentAdapter,
 					display.coloringModel );
