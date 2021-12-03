@@ -178,10 +178,14 @@ public class MoBIE
 		Map< String, SourceAndConverter< ? > > sourceAndConverters = new ConcurrentHashMap< >();
 
 		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
+		final int numSources = sources.size();
+		int iSource = 1;
 		for ( String sourceName : sources )
 		{
 			futures.add(
-					ThreadUtils.ioExecutorService.submit( () -> { sourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) ); }
+					ThreadUtils.ioExecutorService.submit( () -> {
+						IJ.log( "Opening image (" + iSource + "/" + numSources + ") " + sourceName );
+						sourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) ); }
 				) );
 		}
 		ThreadUtils.waitUntilFinished( futures );
@@ -284,7 +288,6 @@ public class MoBIE
 	{
 		final ImageSource imageSource = getSource( sourceName );
 		final String imagePath = getImagePath( imageSource );
-        IJ.log( "Opening image:\n" + imagePath );
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
         SpimData spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
         sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
