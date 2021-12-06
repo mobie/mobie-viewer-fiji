@@ -48,7 +48,7 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Parameter
     public BdvHandle bdvh;
 
-    @Parameter(label="Screenshot Sampling [UNIT]")
+    @Parameter(label="Screenshot Sampling [UNIT]", callback = "showNumPixels")
     public Double targetSamplingInXY = 1D;
 
     @Parameter(label="Show Raw Data")
@@ -73,5 +73,11 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
                 getInfo().getMutableInput("targetSamplingInXY", Double.class);
         pixelUnit = bdvh.getViewerPanel().state().getCurrentSource().getSpimSource().getVoxelDimensions().unit();
         pixelSizeItem.setLabel( pixelSizeItem.getLabel().replace( "UNIT", pixelUnit ) );
+    }
+
+    // callback
+    private void showNumPixels()
+    {
+        // TODO
     }
 }
