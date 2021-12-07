@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer.playground;
 
 import bdv.util.BdvHandle;
+import ij.gui.NonBlockingGenericDialog;
 import org.embl.mobie.viewer.bdv.ScreenShotMaker;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
@@ -38,6 +39,8 @@ import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
+import static org.scijava.ItemVisibility.MESSAGE;
+
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"BDV>BDV - Screenshot",
         description = "Creates a screenshot of the current BDV view. The sampling can be chosen to upscale or downscale" +
                 " the image compared to the current view. A single RGB image resulting from the projection" +
@@ -45,11 +48,16 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
 {
 
+    public static final String CAPTURE_SIZE_PIXELS = "Capture size [pixels]: ";
+
     @Parameter
     public BdvHandle bdvh;
 
-    @Parameter(label="Screenshot Sampling [UNIT]", callback = "showNumPixels")
+    @Parameter(label="Screenshot Sampling [UNIT]", callback = "showNumPixels", min = "0.0", style="format:#.00000", stepSize = "0.01")
     public Double targetSamplingInXY = 1D;
+
+    @Parameter( visibility = MESSAGE, required = false )
+    String message = CAPTURE_SIZE_PIXELS +"";
 
     @Parameter(label="Show Raw Data")
     public boolean showRawData = false;
@@ -78,6 +86,8 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     // callback
     private void showNumPixels()
     {
-        // TODO
+        final long[] sizeInPixels = ScreenShotMaker.getCaptureImageSizeInPixels( bdvh, targetSamplingInXY );
+        final MutableModuleItem< String > message = getInfo().getMutableInput("message", String.class);
+        message.setValue( this, CAPTURE_SIZE_PIXELS + sizeInPixels[ 0 ] + ", " + sizeInPixels[ 1 ] );
     }
 }
