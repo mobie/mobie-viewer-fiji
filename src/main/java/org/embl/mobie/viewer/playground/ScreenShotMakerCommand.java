@@ -29,6 +29,8 @@
 package org.embl.mobie.viewer.playground;
 
 import bdv.util.BdvHandle;
+import fiji.util.gui.GenericDialogPlus;
+import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import org.embl.mobie.viewer.bdv.ScreenShotMaker;
 import org.scijava.Initializable;

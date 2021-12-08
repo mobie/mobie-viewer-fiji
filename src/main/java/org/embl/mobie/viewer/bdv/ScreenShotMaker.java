@@ -84,7 +84,7 @@ public class ScreenShotMaker
     private CompositeImage rawImageData = null;
     private final SourceAndConverterBdvDisplayService displayService;
     //private final ISourceAndConverterService sacService;
-    private long[] capturePixelSize = new long[2];
+    private long[] captureImageSizeInPixels = new long[2];
 
     public ScreenShotMaker( BdvHandle bdvHandle) {
         this.bdvHandle = bdvHandle;
@@ -130,7 +130,7 @@ public class ScreenShotMaker
         final long[] capturePixelSize = new long[ 2 ];
         for ( int d = 0; d < 2; d++ )
         {
-            capturePixelSize[ d ] = ( long ) Math.ceil( bdvWindowPhysicalSize[ d ] / samplingXY );
+            capturePixelSize[ d ] = ( long ) ( Math.ceil( bdvWindowPhysicalSize[ d ] / samplingXY ) );
         }
 
         return capturePixelSize;
@@ -141,8 +141,8 @@ public class ScreenShotMaker
         final double[] bdvWindowPhysicalSize = new double[ 2 ];
         final int w = bdvHandle.getViewerPanel().getWidth();
         final int h = bdvHandle.getViewerPanel().getHeight();
-        bdvWindowPhysicalSize[ 0 ] = w / viewerVoxelSpacing;
-        bdvWindowPhysicalSize[ 1 ] = h / viewerVoxelSpacing;
+        bdvWindowPhysicalSize[ 0 ] = w * viewerVoxelSpacing;
+        bdvWindowPhysicalSize[ 1 ] = h * viewerVoxelSpacing;
         return bdvWindowPhysicalSize;
     }
 
@@ -151,7 +151,7 @@ public class ScreenShotMaker
         final AffineTransform3D viewerTransform = new AffineTransform3D();
         bdvHandle.getViewerPanel().state().getViewerTransform( viewerTransform );
 
-        capturePixelSize = getCaptureImageSizeInPixels( bdvHandle, samplingXY );
+        captureImageSizeInPixels = getCaptureImageSizeInPixels( bdvHandle, samplingXY );
 
         final ArrayList< RandomAccessibleInterval< UnsignedShortType > > rawCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< ARGBType > > argbSources = new ArrayList<>();
@@ -176,9 +176,9 @@ public class ScreenShotMaker
         for ( SourceAndConverter< ?  > sac : sacs )
         {
             final RandomAccessibleInterval< UnsignedShortType > rawCapture
-                    = ArrayImgs.unsignedShorts( capturePixelSize[ 0 ], capturePixelSize[ 1 ] );
+                    = ArrayImgs.unsignedShorts( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ] );
             final RandomAccessibleInterval< ARGBType > argbCapture
-                    = ArrayImgs.argbs( capturePixelSize[ 0 ], capturePixelSize[ 1 ]  );
+                    = ArrayImgs.argbs( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ]  );
 
             Source< ? > source = sac.getSpimSource();
             final Converter converter = sac.getConverter();
@@ -218,6 +218,7 @@ public class ScreenShotMaker
 
                 final ARGBType argbType = new ARGBType();
 
+                // iterate through the target image in pixel units
                 while ( rawCaptureCursor.hasNext() )
                 {
                     rawCaptureCursor.fwd();
@@ -226,8 +227,8 @@ public class ScreenShotMaker
                     argbCaptureAccess.setPosition( rawCaptureCursor );
 
                     // canvasPosition is the position on the canvas, in calibrated units
-                    // dxy is the step size that is needed to get the desired resolution in the
-                    // output image
+                    // dxy is the step size that is needed to get
+                    // the desired resolution in the output image
                     canvasPosition[ 0 ] *= canvasStepSize;
                     canvasPosition[ 1 ] *= canvasStepSize;
 
@@ -329,7 +330,7 @@ public class ScreenShotMaker
             double[] voxelSpacing,
             List< SourceAndConverter< ? > > sacs )
     {
-        final RandomAccessibleInterval< ARGBType > argbTarget = ArrayImgs.argbs( capturePixelSize[ 0 ], capturePixelSize[ 1 ]  );
+        final RandomAccessibleInterval< ARGBType > argbTarget = ArrayImgs.argbs( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ]  );
 
         project( argbSources, argbTarget, sacs );
 
