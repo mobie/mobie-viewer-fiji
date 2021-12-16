@@ -11,7 +11,7 @@ public class PublishedProjectsCreator
 		publishedProjects = new HashMap<>();
 
 		final PublishedProject platybrowserProject = new PublishedProject();
-		platybrowserProject.name = "Vergara et al. (2020) \"PlatyBrowser\", bioRxiv";
+		platybrowserProject.name = "Vergara et al. (2021) PlatyBrowser, Cell";
 		platybrowserProject.location = "https://github.com/mobie/platybrowser-datasets";
 		platybrowserProject.pulicationURL = "https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1";
 		publishedProjects.put( platybrowserProject.name, platybrowserProject );
