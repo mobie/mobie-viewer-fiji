@@ -1,5 +1,7 @@
 package org.embl.mobie.viewer.project;
 
+import bdv.SpimSource;
+
 import java.util.HashMap;
 
 public class PublishedProjectsCreator

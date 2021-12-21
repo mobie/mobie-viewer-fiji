@@ -356,7 +356,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private void showInBdv( FunctionRealRandomAccessible< ARGBType > randomAccessible, FinalInterval interval, String[] selectedColumns )
 	{
 		Prefs.showMultibox( false );
-		Prefs.showScaleBar( false );
+		Prefs.showScaleBar( true ); // This clashes with the main BDV...
 
 		final BdvOptions bdvOptions = BdvOptions.options().is2D().frameTitle( "Scatter plot" ).addTo( bdvHandle );
 
