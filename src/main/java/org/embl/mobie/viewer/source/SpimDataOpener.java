@@ -71,7 +71,7 @@ public class SpimDataOpener {
                 spimData = openOmeZarrData( imagePath, sharedQueue );
                 break;
             case OmeZarrS3:
-                spimData = openOmeZarrS3Data( imagePath );
+                spimData = openOmeZarrS3Data( imagePath, sharedQueue );
                 break;
             case BdvOmeZarrS3:
                 spimData = openBdvOmeZarrS3Data( imagePath );
@@ -130,7 +130,17 @@ public class SpimDataOpener {
     private SpimData openOmeZarrS3Data( String path )
     {
         try {
-            return OMEZarrS3Opener.readURL( path );
+            return OMEZarrS3Opener.readURL( path);
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private SpimData openOmeZarrS3Data( String path, SharedQueue sharedQueue  )
+    {
+        try {
+            return OMEZarrS3Opener.readURL( path, sharedQueue);
         } catch ( IOException e ) {
             e.printStackTrace();
         }
