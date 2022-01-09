@@ -1,12 +1,12 @@
 package org.embl.mobie.viewer.projectcreator.ui;
 
+import org.embl.mobie.io.n5.util.ImageDataFormat;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.command.OpenMoBIEProjectCommand;
 import org.embl.mobie.viewer.projectcreator.ProjectCreator;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;

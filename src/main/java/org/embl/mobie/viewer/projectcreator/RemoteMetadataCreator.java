@@ -1,11 +1,11 @@
 package org.embl.mobie.viewer.projectcreator;
 
 import org.embl.mobie.io.n5.loaders.xml.XmlIoN5S3ImageLoader;
+import org.embl.mobie.io.n5.openers.SpimDataOpener;
+import org.embl.mobie.io.n5.util.ImageDataFormat;
 import org.embl.mobie.io.ome.zarr.loaders.xml.XmlN5S3OmeZarrImageLoader;
 import org.embl.mobie.viewer.Dataset;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.source.ImageSource;
-import org.embl.mobie.viewer.source.SpimDataOpener;
 import org.embl.mobie.viewer.source.StorageLocation;
 import de.embl.cba.tables.FileAndUrlUtils;
 import ij.IJ;

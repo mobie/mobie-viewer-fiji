@@ -1,9 +1,9 @@
 package projects;
 
 import net.imagej.ImageJ;
+import org.embl.mobie.io.n5.util.ImageDataFormat;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 
 import java.io.IOException;
 

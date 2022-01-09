@@ -1,8 +1,8 @@
 package org.embl.mobie.viewer.projectcreator;
 
+import org.embl.mobie.io.n5.util.ImageDataFormat;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import de.embl.cba.tables.FileAndUrlUtils;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.junit.jupiter.api.Test;
