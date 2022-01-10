@@ -286,7 +286,13 @@ public class MoBIE
 		final String imagePath = getImagePath( imageSource );
         IJ.log( "Opening image:\n" + imagePath );
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
-        SpimData spimData = (SpimData) new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
+        SpimData spimData;
+        try {
+            spimData = (SpimData) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
+        } catch (UnsupportedOperationException e) {
+            IJ.log( e.getMessage() );
+            spimData = (SpimData) new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
+        }
         sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 
         final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
