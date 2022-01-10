@@ -22,13 +22,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import static mpicbg.spim.data.XmlKeys.IMGLOADER_TAG;
 import static mpicbg.spim.data.XmlKeys.SEQUENCEDESCRIPTION_TAG;
 
-public class SpimDataOpener {
+public class SpimDataOpener
+{
 
     public SpimDataOpener() {}
 
@@ -37,6 +37,7 @@ public class SpimDataOpener {
         switch ( imageDataFormat ) {
             case BdvN5:
             case BdvN5S3:
+            case BdvHDF5:
                 spimData = BdvUtils.openSpimData( imagePath );
                 break;
             case OmeZarr:
@@ -61,6 +62,9 @@ public class SpimDataOpener {
     public SpimData openSpimData(String imagePath, ImageDataFormat imageDataFormat, SharedQueue sharedQueue ) {
         SpimData spimData = null;
         switch ( imageDataFormat ) {
+            case BdvHDF5:
+                spimData = BdvUtils.openSpimData( imagePath );
+                break;
             case BdvN5:
                 spimData = openBDV( imagePath, sharedQueue );
                 break;
@@ -71,7 +75,7 @@ public class SpimDataOpener {
                 spimData = openOmeZarrData( imagePath, sharedQueue );
                 break;
             case OmeZarrS3:
-                spimData = openOmeZarrS3Data( imagePath );
+                spimData = openOmeZarrS3Data( imagePath, sharedQueue );
                 break;
             case BdvOmeZarrS3:
                 spimData = openBdvOmeZarrS3Data( imagePath );
@@ -130,7 +134,17 @@ public class SpimDataOpener {
     private SpimData openOmeZarrS3Data( String path )
     {
         try {
-            return OMEZarrS3Opener.readURL( path );
+            return OMEZarrS3Opener.readURL( path);
+        } catch ( IOException e ) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private SpimData openOmeZarrS3Data( String path, SharedQueue sharedQueue  )
+    {
+        try {
+            return OMEZarrS3Opener.readURL( path, sharedQueue);
         } catch ( IOException e ) {
             e.printStackTrace();
         }

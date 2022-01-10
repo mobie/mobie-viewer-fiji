@@ -561,6 +561,7 @@ public class MoBIE
             case BdvOmeZarr:
             case OmeZarr:
             case BdvOmeZarrS3:
+            case BdvHDF5:
             case BdvN5S3:
                 final String relativePath = source.imageData.get( imageDataFormat ).relativePath;
                 return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativePath );
