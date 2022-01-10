@@ -3,7 +3,6 @@ package org.embl.mobie.viewer.source;
 import bdv.img.imaris.Imaris;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.util.volatiles.SharedQueue;
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.CustomXmlIoSpimData;
 import de.embl.cba.tables.FileAndUrlUtils;
 import mpicbg.spim.data.SpimData;
@@ -178,58 +177,56 @@ public class SpimDataOpener {
     private SpimData openBdvOmeZarrS3( String path )
     {
         try {
-            final SAXBuilder sax = new SAXBuilder();
-            InputStream stream = FileAndUrlUtils.getInputStream(path);
-            final Document doc = sax.build(stream);
-            final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
-            String bucketAndObject = imgLoaderElem.getChild( "BucketName").getText() + "/" + imgLoaderElem.getChild( "Key" ).getText();
-            final String[] split = bucketAndObject.split("/");
-            String bucket = split[0];
-            String object = Arrays.stream( split ).skip( 1 ).collect( Collectors.joining( "/") );
-            N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader(imgLoaderElem.getChild( "ServiceEndpoint" ).getText(), imgLoaderElem.getChild( "SigningRegion" ).getText(),bucket, object, ".");
+            N5S3OMEZarrImageLoader imageLoader = createN5S3OmeZarrImageLoader( path );
 
             // TODO: Add explanation to what is happening!
-            SpimData spimData = new SpimData(null, Cast.unchecked(imageLoader.getSequenceDescription()), imageLoader.getViewRegistrations());
-            SpimData spimData1 = openBdvHdf5AndBdvN5AndBdvN5S3( path );
-            spimData1.setBasePath(null);
-            spimData1.getSequenceDescription().setImgLoader( spimData.getSequenceDescription().getImgLoader() );
-            spimData1.getSequenceDescription().getAllChannels().putAll( spimData.getSequenceDescription().getAllChannels() );
-            return spimData1;
+//            SpimData spimData = new SpimData(null, Cast.unchecked(imageLoader.getSequenceDescription()), imageLoader.getViewRegistrations());
+            SpimData spimData = openBdvHdf5AndBdvN5AndBdvN5S3( path );
+            if ( spimData != null ) {
+                spimData.getSequenceDescription().setImgLoader( imageLoader );
+//            spimData1.getSequenceDescription().getAllChannels().putAll( spimData.getSequenceDescription().getAllChannels() );
+                return spimData;
+            }
         } catch ( IOException | JDOMException e ) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private SpimData openBdvOmeZarr( String path) {
-        try
-        {
+    @NotNull
+    private N5S3OMEZarrImageLoader createN5S3OmeZarrImageLoader( String path ) throws IOException, JDOMException
+    {
+        final SAXBuilder sax = new SAXBuilder();
+        InputStream stream = FileAndUrlUtils.getInputStream( path );
+        final Document doc = sax.build(stream);
+        final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
+        String bucketAndObject = imgLoaderElem.getChild( "BucketName").getText() + "/" + imgLoaderElem.getChild( "Key" ).getText();
+        final String[] split = bucketAndObject.split("/");
+        String bucket = split[0];
+        String object = Arrays.stream( split ).skip( 1 ).collect( Collectors.joining( "/") );
+        N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader(imgLoaderElem.getChild( "ServiceEndpoint" ).getText(), imgLoaderElem.getChild( "SigningRegion" ).getText(),bucket, object, ".");
+        return imageLoader;
+    }
+
+    private SpimData openBdvOmeZarr( String path )
+    {
+        try {
             final SAXBuilder sax = new SAXBuilder();
-            InputStream stream = FileAndUrlUtils.getInputStream(path);
-            final Document doc = sax.build(stream);
-            final Element imgLoaderElem = doc.getRootElement().getChild(SEQUENCEDESCRIPTION_TAG).getChild(IMGLOADER_TAG);
-            String imagesFile = XmlN5OmeZarrImageLoader.getDatasetsPathFromXml(imgLoaderElem, path);
-            if(imagesFile != null)
-            {
-                if ((imagesFile.equals(Paths.get(imagesFile).toString())))
-                {
-                    SpimData spim =  OMEZarrOpener.openFile( imagesFile );
-                    SpimData sp1 = openBdvHdf5AndBdvN5AndBdvN5S3( path );
-                    sp1.setBasePath( new File( imagesFile ) );
-                    sp1.getSequenceDescription().setImgLoader( spim.getSequenceDescription().getImgLoader() );
-                    sp1.getSequenceDescription().getAllChannels().putAll( spim.getSequenceDescription().getAllChannels() );
-                    return sp1;
-                } else
-                {
-                    SpimData spim = OMEZarrS3Opener.readURL( imagesFile );
-                    SpimData sp1 = openBdvHdf5AndBdvN5AndBdvN5S3( path );
-                    sp1.setBasePath(null);
-                    sp1.getSequenceDescription().setImgLoader( spim.getSequenceDescription().getImgLoader() );
-                    sp1.getSequenceDescription().getAllChannels().putAll( spim.getSequenceDescription().getAllChannels() );
-                    return sp1;
+            InputStream stream = FileAndUrlUtils.getInputStream( path );
+            final Document doc = sax.build( stream );
+            final Element imgLoaderElem = doc.getRootElement().getChild( SEQUENCEDESCRIPTION_TAG ).getChild( IMGLOADER_TAG );
+            String imagesFile = XmlN5OmeZarrImageLoader.getDatasetsPathFromXml( imgLoaderElem, path );
+            if ( imagesFile != null && (imagesFile.equals( Paths.get(imagesFile).toString()))) {
+                SpimData spimData = openBdvHdf5AndBdvN5AndBdvN5S3( path );
+                if ( spimData != null ) {
+                    spimData.setBasePath( new File( imagesFile ) );
+                    SpimData spimDataWithImageLoader = OMEZarrOpener.openFile( imagesFile );
+                    spimData.getSequenceDescription().setImgLoader( spimDataWithImageLoader.getSequenceDescription().getImgLoader() );
+                    spimData.getSequenceDescription().getAllChannels().putAll( spimDataWithImageLoader.getSequenceDescription().getAllChannels() );
+                    return spimData;
                 }
             }
-        } catch (JDOMException | IOException e) {
+        } catch ( JDOMException | IOException e ) {
             e.printStackTrace();
         }
         return null;
