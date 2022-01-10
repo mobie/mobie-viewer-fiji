@@ -29,26 +29,31 @@ import com.google.gson.annotations.SerializedName;
  * The data is stored in the ome zarr file format.
  * Does not use xml with additional metadata.
  * <p>
+ * <p>
+ * ims
+ * The data is stored in the hdf5 based Imaris file format (https://imaris.oxinst.com/support/imaris-file-format)
+ * <p>
  * 's3' ending indicates that the data is taken from the remote s3 object store.
  */
-public enum ImageDataFormat
-{
+public enum ImageDataFormat {
+    @SerializedName("bdv.hdf5")
+    BdvHDF5,
     @SerializedName("bdv.n5")
     BdvN5,
     @SerializedName("bdv.n5.s3")
     BdvN5S3,
-    @SerializedName("bdv.hdf5")
-    BdvHDF5,
     @SerializedName("openOrganelle.s3")
     OpenOrganelleS3,
+    @SerializedName("ome.zarr")
+    OmeZarr,
+    @SerializedName("ome.zarr.s3")
+    OmeZarrS3,
     @SerializedName("bdv.ome.zarr")
     BdvOmeZarr,
     @SerializedName("bdv.ome.zarr.s3")
     BdvOmeZarrS3,
-    @SerializedName("ome.zarr")
-    OmeZarr,
-    @SerializedName("ome.zarr.s3")
-    OmeZarrS3;
+    @SerializedName("ims")
+    Imaris;
 
     // needed for SciJava Command UI, which does not support enums
     public static final String BDVN5 = "BdvN5";
@@ -63,6 +68,8 @@ public enum ImageDataFormat
     @Override
     public String toString() {
         switch (this) {
+            case BdvHDF5:
+                return "bdv.h5";
             case BdvN5:
                 return "bdv.n5";
             case BdvN5S3:
@@ -77,8 +84,6 @@ public enum ImageDataFormat
                 return "bdv.ome.zarr.s3";
             case OmeZarrS3:
                 return "ome.zarr.s3";
-            case BdvHDF5:
-                return "bdv.hdf5";
             default:
                 throw new UnsupportedOperationException("Unknown file format: " + this);
         }
@@ -86,6 +91,8 @@ public enum ImageDataFormat
 
     public static ImageDataFormat fromString(String string) {
         switch (string) {
+            case "bdv.h5":
+                return BdvHDF5;
             case "bdv.n5":
                 return BdvN5;
             case "bdv.n5.s3":
@@ -136,7 +143,5 @@ public enum ImageDataFormat
             default:
                 return false;
         }
-
     }
-
 }
