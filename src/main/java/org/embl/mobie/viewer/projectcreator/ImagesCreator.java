@@ -182,7 +182,7 @@ public class ImagesCreator {
 
         if ( fileLocation.exists() ) {
 
-            SpimData spimData = new SpimDataOpener().openSpimData( fileLocation.getAbsolutePath(), imageDataFormat );
+            SpimData spimData = (SpimData) new SpimDataOpener().openSpimData( fileLocation.getAbsolutePath(), imageDataFormat );
             String imageName = fileLocation.getName().split("\\.")[0];
             File imageDirectory = new File( getDefaultLocalImageDirPath( datasetName, imageDataFormat ));
 
@@ -307,7 +307,7 @@ public class ImagesCreator {
 
             // xml file or zarr file, depending on imageDataFormat
             String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
-            SpimData spimData = new SpimDataOpener().openSpimData( filePath, imageDataFormat);
+            SpimData spimData = (SpimData) new SpimDataOpener().openSpimData( filePath, imageDataFormat);
             final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
             final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
             final Source labelsSource = sourceAndConverter.getSpimSource();

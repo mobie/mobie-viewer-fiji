@@ -151,7 +151,7 @@ public class RemoteMetadataCreator {
                 remoteDir.mkdirs();
             }
 
-            SpimData spimData = new SpimDataOpener().openSpimData(localXmlLocation, localImageDataFormat);
+            SpimData spimData = (SpimData) new SpimDataOpener().openSpimData(localXmlLocation, localImageDataFormat);
             spimData.setBasePath(new File(remoteXmlLocation));
             saveXml(spimData, datasetName, imageName,
                     new File(remoteXmlLocation, imageName + ".xml").getAbsolutePath(),
