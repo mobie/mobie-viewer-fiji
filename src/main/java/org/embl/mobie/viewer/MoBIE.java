@@ -4,11 +4,19 @@ import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
+import de.embl.cba.tables.FileAndUrlUtils;
+import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.TableRows;
+import de.embl.cba.tables.github.GitHubUtils;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import ij.IJ;
+import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.sequence.ImgLoader;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
-import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
-import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
+import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
+import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
@@ -21,14 +29,6 @@ import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.ViewManager;
-import de.embl.cba.tables.FileAndUrlUtils;
-import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.TableRows;
-import de.embl.cba.tables.github.GitHubUtils;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import ij.IJ;
-import mpicbg.spim.data.SpimData;
-import mpicbg.spim.data.sequence.ImgLoader;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
@@ -76,7 +76,7 @@ public class MoBIE
 		openDataset();
 	}
 
-	private MoBIESettings setImageDataFormat( String projectLocation )
+	private MoBIESettings setImageDataFormat( String projectLocation ) throws UnsupportedOperationException
 	{
 		if ( settings.values.getImageDataFormat() == null )
 		{
@@ -102,6 +102,8 @@ public class MoBIE
 					return settings.imageDataFormat( ImageDataFormat.BdvOmeZarr );
 				else if ( imageDataFormats.contains( ImageDataFormat.BdvN5 ) )
 					return settings.imageDataFormat( ImageDataFormat.BdvN5 );
+                else if ( imageDataFormats.contains( ImageDataFormat.BdvHDF5 ) )
+                    return settings.imageDataFormat( ImageDataFormat.BdvHDF5 );
 				else
 					throw new UnsupportedOperationException( "Could not find a file system storage of the images." );
 			}
@@ -181,7 +183,11 @@ public class MoBIE
 		for ( String sourceName : sources )
 		{
 			futures.add(
-					ThreadUtils.ioExecutorService.submit( () -> { sourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) ); }
+					ThreadUtils.ioExecutorService.submit( () -> {
+                        SourceAndConverter< ? > sourceAndConverter = openSourceAndConverter( sourceName );
+                        if (sourceAndConverter != null) {
+                            sourceAndConverters.put( sourceName, sourceAndConverter);
+                        }}
 				) );
 		}
 		ThreadUtils.waitUntilFinished( futures );
@@ -286,19 +292,23 @@ public class MoBIE
 		final String imagePath = getImagePath( imageSource );
         IJ.log( "Opening image:\n" + imagePath );
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
-        SpimData spimData;
+        SpimData spimData = null;
         try {
             spimData = (SpimData) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
-        } catch (UnsupportedOperationException e) {
+        } catch ( UnsupportedOperationException e ) {
             IJ.log( e.getMessage() );
-            spimData = (SpimData) new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
+            try {
+                spimData = (SpimData) new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
+            } catch ( UnsupportedOperationException exception ) {
+                IJ.log( e.getMessage() );
+            }
         }
-        sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
-
-        final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
-        SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-
-        return sourceAndConverter;
+        if (spimData != null) {
+            sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
+            final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
+            return (SourceAndConverter<?>) creator.getSetupIdToSourceAndConverter().values().iterator().next();
+        }
+        return null;
     }
 
     public void setDataset( String dataset )

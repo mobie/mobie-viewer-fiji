@@ -5,10 +5,10 @@ import bdv.spimdata.SpimDataMinimal;
 import bdv.util.volatiles.SharedQueue;
 import de.embl.cba.bdv.utils.CustomXmlIoSpimData;
 import de.embl.cba.tables.FileAndUrlUtils;
+import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
-import net.imglib2.util.Cast;
 import org.embl.mobie.io.n5.openers.N5Opener;
 import org.embl.mobie.io.n5.openers.N5S3Opener;
 import org.embl.mobie.io.ome.zarr.loaders.N5S3OMEZarrImageLoader;
@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -36,7 +35,7 @@ public class SpimDataOpener {
 
     public SpimDataOpener() {}
 
-    public AbstractSpimData openSpimData( String imagePath, ImageDataFormat imageDataFormat ) {
+    public AbstractSpimData openSpimData( String imagePath, ImageDataFormat imageDataFormat ) throws UnsupportedOperationException {
         switch ( imageDataFormat ) {
             case Imaris:
                 return openImaris( imagePath );
@@ -59,7 +58,7 @@ public class SpimDataOpener {
         }
     }
 
-    public AbstractSpimData openSpimData(String imagePath, ImageDataFormat imageDataFormat, SharedQueue sharedQueue ) {
+    public AbstractSpimData openSpimData(String imagePath, ImageDataFormat imageDataFormat, SharedQueue sharedQueue ) throws UnsupportedOperationException {
         switch ( imageDataFormat ) {
             case BdvN5:
                 return openBdvN5( imagePath, sharedQueue );
@@ -96,7 +95,6 @@ public class SpimDataOpener {
         }
         catch ( SpimDataException | IOException e )
         {
-            System.out.println( path );
             e.printStackTrace();
             return null;
         }
@@ -178,17 +176,25 @@ public class SpimDataOpener {
     {
         try {
             N5S3OMEZarrImageLoader imageLoader = createN5S3OmeZarrImageLoader( path );
-
-            // TODO: Add explanation to what is happening!
-//            SpimData spimData = new SpimData(null, Cast.unchecked(imageLoader.getSequenceDescription()), imageLoader.getViewRegistrations());
             SpimData spimData = openBdvHdf5AndBdvN5AndBdvN5S3( path );
             if ( spimData != null ) {
                 spimData.getSequenceDescription().setImgLoader( imageLoader );
-//            spimData1.getSequenceDescription().getAllChannels().putAll( spimData.getSequenceDescription().getAllChannels() );
                 return spimData;
             }
         } catch ( IOException | JDOMException e ) {
             e.printStackTrace();
+        }
+        return null;
+    }
+
+    private SpimData openBdvOmeZarr( String path )
+    {
+        SpimData spimData = openBdvHdf5AndBdvN5AndBdvN5S3( path );
+        SpimData spimDataWithImageLoader = getSpimDataWithImageLoader( path );
+        if ( spimData != null && spimDataWithImageLoader != null) {
+            spimData.getSequenceDescription().setImgLoader( spimDataWithImageLoader.getSequenceDescription().getImgLoader() );
+            spimData.getSequenceDescription().getAllChannels().putAll( spimDataWithImageLoader.getSequenceDescription().getAllChannels() );
+            return spimData;
         }
         return null;
     }
@@ -204,30 +210,21 @@ public class SpimDataOpener {
         final String[] split = bucketAndObject.split("/");
         String bucket = split[0];
         String object = Arrays.stream( split ).skip( 1 ).collect( Collectors.joining( "/") );
-        N5S3OMEZarrImageLoader imageLoader = new N5S3OMEZarrImageLoader(imgLoaderElem.getChild( "ServiceEndpoint" ).getText(), imgLoaderElem.getChild( "SigningRegion" ).getText(),bucket, object, ".");
-        return imageLoader;
+        return new N5S3OMEZarrImageLoader(imgLoaderElem.getChild( "ServiceEndpoint" ).getText(), imgLoaderElem.getChild( "SigningRegion" ).getText(),bucket, object, ".");
     }
 
-    private SpimData openBdvOmeZarr( String path )
-    {
+    private SpimData getSpimDataWithImageLoader(String path) {
         try {
             final SAXBuilder sax = new SAXBuilder();
             InputStream stream = FileAndUrlUtils.getInputStream( path );
             final Document doc = sax.build( stream );
             final Element imgLoaderElem = doc.getRootElement().getChild( SEQUENCEDESCRIPTION_TAG ).getChild( IMGLOADER_TAG );
             String imagesFile = XmlN5OmeZarrImageLoader.getDatasetsPathFromXml( imgLoaderElem, path );
-            if ( imagesFile != null && (imagesFile.equals( Paths.get(imagesFile).toString()))) {
-                SpimData spimData = openBdvHdf5AndBdvN5AndBdvN5S3( path );
-                if ( spimData != null ) {
-                    spimData.setBasePath( new File( imagesFile ) );
-                    SpimData spimDataWithImageLoader = OMEZarrOpener.openFile( imagesFile );
-                    spimData.getSequenceDescription().setImgLoader( spimDataWithImageLoader.getSequenceDescription().getImgLoader() );
-                    spimData.getSequenceDescription().getAllChannels().putAll( spimDataWithImageLoader.getSequenceDescription().getAllChannels() );
-                    return spimData;
-                }
+            if ( new File( imagesFile ).exists() ) {
+                return OMEZarrOpener.openFile( imagesFile );
             }
         } catch ( JDOMException | IOException e ) {
-            e.printStackTrace();
+            IJ.log( e.getMessage() );
         }
         return null;
     }
