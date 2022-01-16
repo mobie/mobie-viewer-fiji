@@ -1,12 +1,10 @@
 package org.embl.mobie.viewer.view.additionalviews;
 
 import ij.IJ;
-import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
-import org.embl.mobie.viewer.ui.UserInterfaceHelper;
 import org.embl.mobie.viewer.view.View;
 
 import java.io.IOException;
@@ -25,11 +23,11 @@ public class AdditionalViewsLoader {
     public void loadAdditionalViewsDialog() {
         try {
             String selectedFilePath = null;
-            Utils.FileLocation fileLocation = Utils.loadFromProjectOrFileSystemDialog();
-            if ( fileLocation == Utils.FileLocation.Project ) {
-                selectedFilePath = Utils.selectPathFromProject( moBIE.getDatasetPath("misc", "views" ), "View" );
+            MoBIEUtils.FileLocation fileLocation = MoBIEUtils.loadFromProjectOrFileSystemDialog();
+            if ( fileLocation == MoBIEUtils.FileLocation.Project ) {
+                selectedFilePath = MoBIEUtils.selectPathFromProject( moBIE.getDatasetPath("misc", "views" ), "View" );
             } else {
-                selectedFilePath = Utils.selectOpenPathFromFileSystem( "View" );
+                selectedFilePath = MoBIEUtils.selectOpenPathFromFileSystem( "View" );
             }
 
             if (selectedFilePath != null) {

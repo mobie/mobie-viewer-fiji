@@ -29,6 +29,9 @@
 package org.embl.mobie.viewer.color;
 
 import bdv.viewer.TimePointListener;
+import net.imglib2.type.numeric.integer.UnsignedIntType;
+import net.imglib2.type.volatiles.VolatileUnsignedIntType;
+import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import net.imglib2.Volatile;
@@ -47,6 +50,15 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 
 	public LabelConverter(
 			SegmentAdapter< S > segmentAdapter,
+			MoBIEColoringModel< S > coloringModel )
+	{
+		this.segmentAdapter = segmentAdapter;
+		this.imageId = null; // No imageId given => decode from pixel value
+		this.coloringModel = coloringModel;
+	}
+
+	public LabelConverter(
+			SegmentAdapter< S > segmentAdapter,
 			String imageId,
 			MoBIEColoringModel< S > coloringModel )
 	{
@@ -60,33 +72,47 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	{
 		if ( label instanceof Volatile )
 		{
-			if ( ! ( ( Volatile ) label ).isValid() )
+			if ( !( ( Volatile ) label ).isValid() )
 			{
 				color.set( 0 );
 				return;
 			}
 		}
 
-		if ( label.getRealDouble() == 0 )
+		if ( imageId == null )
 		{
-			color.set( 0 );
-			return;
-		}
+			final long labelId = SourceNameEncoder.getValue( ( VolatileUnsignedIntType ) label );
 
-		final S imageSegment = segmentAdapter.getSegment( label.getRealDouble(), timePointIndex, imageId );
+			if ( labelId == 0 )
+			{
+				color.set( 0 );
+				return;
+			}
 
-		if ( imageSegment == null )
-		{
-			color.set( 0 );
-			return;
+			final String imageId = SourceNameEncoder.getName( ( VolatileUnsignedIntType ) label );
+			S segment = segmentAdapter.getSegment( labelId, timePointIndex, imageId );
+			setColorBySegment( color, segment );
 		}
 		else
 		{
-			coloringModel.convert( imageSegment, color );
-			final int alpha = ARGBType.alpha( color.get() );
-			color.mul( alpha / 255.0 );
-		}
+			final double labelId = label.getRealDouble();
 
+			if ( labelId == 0 )
+			{
+				color.set( 0 );
+				return;
+			}
+
+			final S segment = segmentAdapter.getSegment( labelId, timePointIndex, imageId );
+			setColorBySegment( color, segment );
+		}
+	}
+
+	private void setColorBySegment( ARGBType color, S imageSegment )
+	{
+		coloringModel.convert( imageSegment, color );
+		final int alpha = ARGBType.alpha( color.get() );
+		color.mul( alpha / 255.0 );
 		color.mul( opacity );
 	}
 

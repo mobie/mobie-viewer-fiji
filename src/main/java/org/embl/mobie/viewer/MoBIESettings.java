@@ -1,6 +1,7 @@
 package org.embl.mobie.viewer;
 
-import org.embl.mobie.viewer.source.ImageDataFormat;
+
+import org.embl.mobie.io.n5.util.ImageDataFormat;
 
 public class MoBIESettings
 {

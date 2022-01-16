@@ -2,11 +2,13 @@ package org.embl.mobie.viewer.bdv;
 
 import bdv.util.BdvHandle;
 import com.google.gson.Gson;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
-import org.embl.mobie.viewer.playground.PlaygroundUtils;
-import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
+import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.serialize.JsonHelper;
 import org.embl.mobie.viewer.transform.AffineViewerTransform;
+import org.embl.mobie.viewer.transform.NormalVectorViewerTransform;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -28,7 +30,7 @@ public class ViewerTransformLogger implements BdvPlaygroundActionCommand
 		new Thread( () -> {
 
 			final int timepoint = bdv.getViewerPanel().state().getCurrentTimepoint();
-			final double[] position = PlaygroundUtils.getWindowCentreInCalibratedUnits( bdv );
+			final double[] position = BdvPlaygroundUtils.getWindowCentreInCalibratedUnits( bdv );
 
 			// position
 			final PositionViewerTransform positionViewerTransform = new PositionViewerTransform( position, timepoint );
@@ -39,9 +41,12 @@ public class ViewerTransformLogger implements BdvPlaygroundActionCommand
 			final AffineViewerTransform affineViewerTransform = new AffineViewerTransform( affineTransform3D.getRowPackedCopy(), timepoint );
 
 			// normalized affine
-			final AffineTransform3D normalisedViewerTransform = Utils.createNormalisedViewerTransform( bdv,
-					PlaygroundUtils.getWindowCentreInPixelUnits( bdv ) );
+			final AffineTransform3D normalisedViewerTransform = MoBIEUtils.createNormalisedViewerTransform( bdv, BdvPlaygroundUtils.getWindowCentreInPixelUnits( bdv ) );
 			final NormalizedAffineViewerTransform normalizedAffineViewerTransform = new NormalizedAffineViewerTransform( normalisedViewerTransform.getRowPackedCopy(), timepoint );
+
+			// normal vector
+			double[] currentNormalVector = BdvUtils.getCurrentViewNormalVector( bdv );
+			final NormalVectorViewerTransform normalVectorViewerTransform = new NormalVectorViewerTransform( currentNormalVector, timepoint );
 
 			// print
 			final Gson gson = JsonHelper.buildGson( false );
@@ -52,6 +57,7 @@ public class ViewerTransformLogger implements BdvPlaygroundActionCommand
 			Logger.log( gson.toJson( positionViewerTransform ) );
 			Logger.log( gson.toJson( affineViewerTransform ) );
 			Logger.log( gson.toJson( normalizedAffineViewerTransform ) );
+			Logger.log( gson.toJson( normalVectorViewerTransform ) );
 
 		} ).start();
 	}

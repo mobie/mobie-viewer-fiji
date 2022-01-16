@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.projectcreator;
 
+import org.embl.mobie.io.n5.util.ImageDataFormat;
 import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.display.ImageSourceDisplay;
@@ -28,8 +29,8 @@ public class DatasetJsonCreator {
     }
 
     public void addImageToDatasetJson( String imageName, String datasetName,
-                                  String uiSelectionGroup, boolean is2D, int nTimepoints,
-                                  ImageDataFormat imageDataFormat, double[] contrastLimits, String colour ) {
+                                       String uiSelectionGroup, boolean is2D, int nTimepoints,
+                                       ImageDataFormat imageDataFormat, double[] contrastLimits, String colour ) {
         Dataset dataset = fetchDataset( datasetName, is2D, nTimepoints );
 
         addNewImageSource( dataset, imageName, imageDataFormat );

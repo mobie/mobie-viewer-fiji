@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.transform;
 
 public class PositionViewerTransform implements ViewerTransform
 {
+	// Serialization
 	private double[] position;
 	private Integer timepoint;
 

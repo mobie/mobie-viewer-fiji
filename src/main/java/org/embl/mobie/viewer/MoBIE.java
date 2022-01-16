@@ -1,21 +1,21 @@
 package org.embl.mobie.viewer;
 
-import bdv.util.volatiles.SharedQueue;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
+import org.embl.mobie.io.n5.openers.SpimDataOpener;
+import org.embl.mobie.io.n5.util.ImageDataFormat;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
-import org.embl.mobie.viewer.source.SpimDataOpener;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
@@ -38,16 +38,14 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class MoBIE
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static final int N_THREADS = Runtime.getRuntime().availableProcessors() - 1;
-	public static final SharedQueue sharedQueue = new SharedQueue( N_THREADS );
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
-	public static final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
+
 	private final String projectName;
 	private MoBIESettings settings;
 	private String datasetName;
@@ -71,7 +69,7 @@ public class MoBIE
 		IJ.log("MoBIE");
 		this.settings = settings.projectLocation( projectLocation );
 		setProjectImageAndTableRootLocations( );
-		projectName = Utils.getName( projectLocation );
+		projectName = MoBIEUtils.getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
 		this.settings = setImageDataFormat( projectLocation );
@@ -120,8 +118,8 @@ public class MoBIE
 		// deal with the fact that the grid ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
-		Utils.toDoubleStrings( gridIdColumn );
-		Utils.toDoubleStrings( columns.get( TableColumnNames.ANNOTATION_ID ) );
+		MoBIEUtils.toDoubleStrings( gridIdColumn );
+		MoBIEUtils.toDoubleStrings( columns.get( TableColumnNames.ANNOTATION_ID ) );
 
 		final Map< String, List< String > > newColumns = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, columns );
 
@@ -179,17 +177,16 @@ public class MoBIE
 
 		Map< String, SourceAndConverter< ? > > sourceAndConverters = new ConcurrentHashMap< >();
 
-		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
+		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( String sourceName : sources )
 		{
-			executorService.execute( () -> {
-				sourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) );
-			} );
+			futures.add(
+					ThreadUtils.ioExecutorService.submit( () -> { sourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) ); }
+				) );
 		}
+		ThreadUtils.waitUntilFinished( futures );
 
-		Utils.waitUntilFinishedAndShutDown( executorService );
-
-		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
+		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
 
 		return sourceAndConverters;
 	}
@@ -200,6 +197,7 @@ public class MoBIE
 		sourceNameToSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
+		//dataset.sources
 
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
@@ -288,7 +286,7 @@ public class MoBIE
 		final String imagePath = getImagePath( imageSource );
         IJ.log( "Opening image:\n" + imagePath );
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
-        SpimData spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat, sharedQueue );
+        SpimData spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
         sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 
         final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
@@ -354,13 +352,13 @@ public class MoBIE
 		return location;
 	}
 
-	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName, String displaySourceName )
+	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName )
 	{
 		final SegmentationSource tableSource = ( SegmentationSource ) getSource( sourceName );
 
 		final String defaultTablePath = getTablePath( tableSource, tableName );
 
-		final List< TableRowImageSegment > segments = Utils.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, displaySourceName );
+		final List< TableRowImageSegment > segments = MoBIEUtils.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
 
 		return segments;
 	}
@@ -378,54 +376,60 @@ public class MoBIE
 		final List< Map< String, List< String > > > additionalTables = new CopyOnWriteArrayList<>();
 
 		final long start = System.currentTimeMillis();
-		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
-
+		final ExecutorService executorService = ThreadUtils.ioExecutorService;
+		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( String sourceName : sources )
 		{
-			executorService.execute( () -> {
-				Map< String, List< String > > columns =
-						loadAdditionalTable( sourceName, getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
+			futures.add(
+				executorService.submit( () -> {
+					Map< String, List< String > > columns = loadAdditionalTable( sourceName, getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
 				additionalTables.add( columns );
-			} );
+				} )
+			);
 		}
+		ThreadUtils.waitUntilFinished( futures );
 
-		Utils.waitUntilFinishedAndShutDown( executorService );
-
-		System.out.println( "Fetched " + sources.size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
+		System.out.println( "Fetched " + sources.size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
 
 		return additionalTables;
 	}
 
+	public Map< String, SourceAndConverter< ? > > getSourceNameToSourceAndConverter()
+	{
+		return sourceNameToSourceAndConverter;
+	}
 
-	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables(SegmentationSourceDisplay segmentationDisplay, String table )
+	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay, String table )
 	{
 		final List< String > segmentationDisplaySources = segmentationDisplay.getSources();
 		final ConcurrentHashMap< String, Set< Source > > sourceNameToRootSources = new ConcurrentHashMap();
 
 		for ( String sourceName : segmentationDisplaySources )
 		{
-			Set< Source > rootSourceNames = ConcurrentHashMap.newKeySet();
-			Utils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSourceNames );
-			sourceNameToRootSources.put( sourceName, rootSourceNames );
+			Set< Source > rootSources = ConcurrentHashMap.newKeySet();
+			BdvPlaygroundUtils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSources );
+			sourceNameToRootSources.put( sourceName, rootSources );
 		}
 
-		// TODO: make parallel
+
 		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
+		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( String displayedSourceName : segmentationDisplaySources )
 		{
 			final Set< Source > rootSources = sourceNameToRootSources.get( displayedSourceName );
 			for ( Source rootSource : rootSources )
 			{
-				addPrimaryTable( table, primaryTables, rootSource.getName(), displayedSourceName );
+				futures.add( ThreadUtils.ioExecutorService.submit( () -> 				loadAndAddPrimaryTable( table, primaryTables, rootSource.getName() ) ) );
 			}
 		}
+		ThreadUtils.waitUntilFinished( futures );
 
 		return primaryTables;
 	}
 
-	private void addPrimaryTable( String tableName, ArrayList< List< TableRowImageSegment > > primaryTables, String tableSourceName, String displaySourceName )
+	private void loadAndAddPrimaryTable( String tableName, ArrayList< List< TableRowImageSegment > > primaryTables, String tableSourceName )
 	{
-		final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( tableSourceName, tableName, displaySourceName );
+		final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( tableSourceName, tableName );
 		primaryTables.add( primaryTable );
 	}
 
@@ -440,8 +444,8 @@ public class MoBIE
 		// deal with the fact that the label ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
-		Utils.toDoubleStrings( segmentIdColumn );
-		Utils.toDoubleStrings( newColumns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
+		MoBIEUtils.toDoubleStrings( segmentIdColumn );
+		MoBIEUtils.toDoubleStrings( newColumns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
 
 		final Map< String, List< String > > columnsForMerging = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, newColumns );
 
@@ -510,7 +514,7 @@ public class MoBIE
 		for ( String table : annotationDisplay.getTables() )
 		{
 			String tablePath = getTablePath( annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
-			tablePath = Utils.resolveTablePath( tablePath );
+			tablePath = MoBIEUtils.resolveTablePath( tablePath );
 			Logger.log( "Opening table:\n" + tablePath );
 			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
 		}

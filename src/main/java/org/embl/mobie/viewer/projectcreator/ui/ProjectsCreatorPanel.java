@@ -1,12 +1,12 @@
 package org.embl.mobie.viewer.projectcreator.ui;
 
+import org.embl.mobie.io.n5.util.ImageDataFormat;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Project;
-import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.command.OpenMoBIEProjectCommand;
 import org.embl.mobie.viewer.projectcreator.ProjectCreator;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
@@ -515,15 +515,15 @@ public class ProjectsCreatorPanel extends JFrame {
                 String filePath = null;
                 switch ( imageDataFormat ) {
                     case BdvN5:
-                        filePath = Utils.selectOpenPathFromFileSystem("bdv .xml file", "xml");
+                        filePath = MoBIEUtils.selectOpenPathFromFileSystem("bdv .xml file", "xml");
                         break;
 
                     case BdvOmeZarr:
-                        filePath = Utils.selectOpenPathFromFileSystem("bdv .xml file", "xml");
+                        filePath = MoBIEUtils.selectOpenPathFromFileSystem("bdv .xml file", "xml");
                         break;
 
                     case OmeZarr:
-                        filePath = Utils.selectOpenDirFromFileSystem(".ome.zarr file" );
+                        filePath = MoBIEUtils.selectOpenDirFromFileSystem(".ome.zarr file" );
                         // quick check that basic criteria for ome-zarr are met i.e. contains right files in top of dir
                         if( !(new File( FileAndUrlUtils.combinePath(filePath, ".zgroup") ).exists() &&
                                 new File( FileAndUrlUtils.combinePath( filePath, ".zattrs")).exists() )) {

@@ -32,5 +32,9 @@ jobs:
           distribution: 'zulu'
       - name: Set up CI environment
         run: .github/setup.sh
-      - name: Execute the build
-        run: .github/build.sh
+      - name: Install blosc
+        run: sudo apt install libblosc-dev
+      - name: Install xvfb
+        run: sudo apt-get install xvfb
+      - name: Execute the build using xvfb
+        run: xvfb-run --auto-servernum .github/build.sh

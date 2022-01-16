@@ -29,44 +29,67 @@
 package org.embl.mobie.viewer.playground;
 
 import bdv.util.BdvHandle;
+import fiji.util.gui.GenericDialogPlus;
+import ij.gui.GenericDialog;
+import ij.gui.NonBlockingGenericDialog;
 import org.embl.mobie.viewer.bdv.ScreenShotMaker;
+import org.scijava.Initializable;
+import org.scijava.command.DynamicCommand;
+import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-/**
- * ScreenShotMakerCommand
- * <p>
- * <p>
- * <p>
- * Author: @haesleinhuepf
- * 12 2019
- */
+import static org.scijava.ItemVisibility.MESSAGE;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"BDV>BDV - Screenshot",
-        description = "Creates a screenshot of a BDV view, the resolution can be chosen to upscale or downscale" +
-                " the image compared to the original window. A single RGB image resulting from the projection" +
-                " of all sources is displayed. Raw image data can also be exported in grayscale.")
-public class ScreenShotMakerCommand implements BdvPlaygroundActionCommand {
+        description = "Creates a screenshot of the current BDV view. The sampling can be chosen to upscale or downscale" +
+                " the image compared to the current view. A single RGB image resulting from the projection" +
+                " of all sources is displayed. Raw image data can also be exported as multi-channel grayscale.")
+public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
+{
+
+    public static final String CAPTURE_SIZE_PIXELS = "Capture size [pixels]: ";
 
     @Parameter
-    BdvHandle bdvh;
+    public BdvHandle bdvh;
 
-    @Parameter(label="Target Pixel Size (in XY)")
-    public double targetPixelSizeInXY = 1;
+    @Parameter(label="Screenshot Sampling [UNIT]", callback = "showNumPixels", min = "0.0", style="format:#.00000", stepSize = "0.01")
+    public Double targetSamplingInXY = 1D;
 
-    @Parameter(label="Pixel Size Unit")
-    public String targetPixelUnit = "Pixels";
+    @Parameter( visibility = MESSAGE, required = false )
+    String message = CAPTURE_SIZE_PIXELS +"";
 
     @Parameter(label="Show Raw Data")
     public boolean showRawData = false;
 
+    private String pixelUnit = "Pixels";
+
     @Override
     public void run() {
-        ScreenShotMaker screenShotMaker = new ScreenShotMaker(bdvh);
-        screenShotMaker.setPhysicalPixelSpacingInXY(targetPixelSizeInXY, targetPixelUnit);
+        ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvh );
+        screenShotMaker.setPhysicalPixelSpacingInXY( targetSamplingInXY, pixelUnit );
         screenShotMaker.getRgbScreenShot().show();
-        if(showRawData) screenShotMaker.getRawScreenShot().show();
+        if( showRawData ) screenShotMaker.getRawScreenShot().show();
+    }
+
+    @Override
+    public void initialize() {
+
+        // adapt pixel unit
+        //
+        final MutableModuleItem< Double > pixelSizeItem = //
+                getInfo().getMutableInput("targetSamplingInXY", Double.class);
+        pixelUnit = bdvh.getViewerPanel().state().getCurrentSource().getSpimSource().getVoxelDimensions().unit();
+        pixelSizeItem.setLabel( pixelSizeItem.getLabel().replace( "UNIT", pixelUnit ) );
+    }
+
+    // callback
+    private void showNumPixels()
+    {
+        final long[] sizeInPixels = ScreenShotMaker.getCaptureImageSizeInPixels( bdvh, targetSamplingInXY );
+        final MutableModuleItem< String > message = getInfo().getMutableInput("message", String.class);
+        message.setValue( this, CAPTURE_SIZE_PIXELS + sizeInPixels[ 0 ] + ", " + sizeInPixels[ 1 ] );
     }
 }
