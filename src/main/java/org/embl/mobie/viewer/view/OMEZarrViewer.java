@@ -6,7 +6,7 @@ import bdv.util.BdvStackSource;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.sequence.ViewSetup;
 import net.imglib2.Dimensions;
-import org.embl.mobie.io.n5.source.Sources;
+import org.embl.mobie.viewer.source.Sources;
 
 import java.util.List;
 

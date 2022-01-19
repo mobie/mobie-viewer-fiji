@@ -4,10 +4,6 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import ij.IJ;
-import net.imglib2.type.volatiles.VolatileUnsignedIntType;
-import org.embl.mobie.io.n5.source.LabelSource;
-import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.bdv.BdvMousePositionProvider;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
@@ -15,6 +11,7 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import net.imglib2.RandomAccess;
 import net.imglib2.RealPoint;
 import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 

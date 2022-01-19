@@ -13,8 +13,6 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Cast;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import org.embl.mobie.io.n5.source.LabelConverter;
-import org.embl.mobie.io.n5.source.LabelSource;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
