@@ -19,9 +19,9 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import static de.embl.cba.tables.FileAndUrlUtils.getFileNames;
-import static de.embl.cba.tables.S3Utils.isS3;
-import static de.embl.cba.tables.github.GitHubUtils.isGithub;
+import static org.embl.mobie.io.github.GitHubUtils.isGithub;
+import static org.embl.mobie.io.util.FileAndUrlUtils.getFileNames;
+import static org.embl.mobie.io.util.S3Utils.isS3;
 
 public class ViewsSaver {
 
