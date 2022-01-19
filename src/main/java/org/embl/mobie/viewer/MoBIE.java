@@ -319,7 +319,15 @@ public class MoBIE
 	{
 		try
 		{
-			return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
+			if ( imageDataFormat.equals( ImageDataFormat.BdvOmeZarrS3 ) )
+			{
+				// TODO FIXME
+				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
+			}
+			else
+			{
+				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
+			}
 		}
 		catch ( SpimDataException e )
 		{
