@@ -1,12 +1,12 @@
 package org.embl.mobie.viewer.projectcreator.ui;
 
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.command.OpenMoBIEProjectCommand;
 import org.embl.mobie.viewer.projectcreator.ProjectCreator;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
@@ -289,7 +289,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
     private void remoteMetadataSettingsDialog() {
         List<String> datasets = projectsCreator.getProject().getDatasets();
-        List<ImageDataFormat> imageDataFormats = projectsCreator.getProject().getImageDataFormats();
+        List< ImageDataFormat > imageDataFormats = projectsCreator.getProject().getImageDataFormats();
         if ( datasets == null || datasets.size() == 0 ) {
             IJ.log( "Remote metadata aborted - there are no datasets in your project!" );
             return;

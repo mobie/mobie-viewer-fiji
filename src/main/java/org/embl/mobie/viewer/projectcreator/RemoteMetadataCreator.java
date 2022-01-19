@@ -1,11 +1,12 @@
 package org.embl.mobie.viewer.projectcreator;
 
+import mpicbg.spim.data.generic.AbstractSpimData;
+import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.n5.loaders.xml.XmlIoN5S3ImageLoader;
 import org.embl.mobie.io.ome.zarr.loaders.xml.XmlN5S3OmeZarrImageLoader;
 import org.embl.mobie.viewer.Dataset;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.source.ImageSource;
-import org.embl.mobie.viewer.source.SpimDataOpener;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import ij.IJ;
@@ -108,8 +109,7 @@ public class RemoteMetadataCreator {
         return element;
     }
 
-    public void saveXml( final SpimData spimData, String datasetName, String imagename,
-                         final String xmlFile, ImageDataFormat imageFormat ) throws SpimDataException, IOException {
+    public void saveXml( final SpimData spimData, String datasetName, String imagename, final String xmlFile, ImageDataFormat imageFormat ) throws SpimDataException, IOException {
         XmlIoSpimData io = new XmlIoSpimData();
         final File xmlFileDirectory = new File( xmlFile ).getParentFile();
         final Document doc = new Document( io.toXml( spimData, xmlFileDirectory ) );
@@ -143,7 +143,7 @@ public class RemoteMetadataCreator {
                     datasetName, imageSource.imageData.get(localImageDataFormat).relativePath);
 
             String remoteXmlLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
-                    datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(remoteImageDataFormat));
+                    datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName( remoteImageDataFormat ));
 
             // make directory for that image file format, if doesn't exist already
             File remoteDir = new File( remoteXmlLocation );
@@ -151,9 +151,9 @@ public class RemoteMetadataCreator {
                 remoteDir.mkdirs();
             }
 
-            SpimData spimData = new SpimDataOpener().openSpimData(localXmlLocation, localImageDataFormat);
+            AbstractSpimData spimData = new SpimDataOpener().openSpimData(localXmlLocation, localImageDataFormat);
             spimData.setBasePath(new File(remoteXmlLocation));
-            saveXml(spimData, datasetName, imageName,
+            saveXml( ( SpimData ) spimData, datasetName, imageName,
                     new File(remoteXmlLocation, imageName + ".xml").getAbsolutePath(),
                     remoteImageDataFormat);
 
@@ -191,8 +191,7 @@ public class RemoteMetadataCreator {
         }
     }
 
-    public void createRemoteMetadata( String signingRegion, String serviceEndpoint, String bucketName,
-                                      ImageDataFormat imageDataFormat ) {
+    public void createRemoteMetadata( String signingRegion, String serviceEndpoint, String bucketName, ImageDataFormat imageDataFormat ) {
 
         if ( !imageDataFormat.isRemote() ) {
             IJ.log( "Creating remote metadata aborted - provided image data format is not remote." );

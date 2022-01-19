@@ -1,11 +1,11 @@
 package org.embl.mobie.viewer.projectcreator.ui;
 
 import bdv.ij.util.PluginHelper;
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.n5.writers.WriteImgPlusToN5;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
@@ -34,9 +34,7 @@ public class ManualExportPanel {
     static int lastCompressionChoice = 0;
     static boolean lastCompressionDefaultSettings = true;
 
-    public ManualExportPanel(ImagePlus imp, String filePath, AffineTransform3D sourceTransform,
-                             DownsampleBlock.DownsamplingMethod downsamplingMethod, String imageName,
-                             ImageDataFormat imageDataFormat ) {
+    public ManualExportPanel(ImagePlus imp, String filePath, AffineTransform3D sourceTransform, DownsampleBlock.DownsamplingMethod downsamplingMethod, String imageName, ImageDataFormat imageDataFormat ) {
         this.imp = imp;
         this.filePath = filePath;
         this.sourceTransform = sourceTransform;

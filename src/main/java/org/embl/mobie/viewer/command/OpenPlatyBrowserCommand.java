@@ -1,8 +1,8 @@
 package org.embl.mobie.viewer.command;
 
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 
