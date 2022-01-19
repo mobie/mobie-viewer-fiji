@@ -2,10 +2,10 @@ package projects;
 
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import net.imagej.ImageJ;
 
 import java.io.IOException;
+import org.embl.mobie.io.ImageDataFormat;
 
 public class OpenRemotePlatynereis
 {

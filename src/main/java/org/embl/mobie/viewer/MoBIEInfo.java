@@ -1,7 +1,7 @@
 package org.embl.mobie.viewer;
 
 import bdv.tools.HelpDialog;
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.Help;
 import ij.IJ;
 

@@ -6,6 +6,8 @@ import bdv.spimdata.XmlIoSpimDataMinimal;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.process.LUT;
+import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.n5.loaders.N5FSImageLoader;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.n5.writers.WriteImgPlusToN5;
@@ -15,9 +17,7 @@ import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 
 import org.embl.mobie.viewer.projectcreator.ui.ManualExportPanel;
-import org.embl.mobie.viewer.source.ImageDataFormat;
-import org.embl.mobie.viewer.source.SpimDataOpener;
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.ImagePlus;
@@ -90,9 +90,9 @@ public class ImagesCreator {
         return FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(), datasetName, "tables", imageName );
     }
 
-    public void addImage (ImagePlus imp, String imageName, String datasetName,
-                          ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
-                          AffineTransform3D sourceTransform, boolean useDefaultSettings, String uiSelectionGroup ) {
+    public void addImage ( ImagePlus imp, String imageName, String datasetName,
+                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
+                           AffineTransform3D sourceTransform, boolean useDefaultSettings, String uiSelectionGroup ) {
 
         // either xml file path or zarr file path depending on imageDataFormat
         String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
@@ -150,8 +150,8 @@ public class ImagesCreator {
     }
 
     private void writeDefaultImage( ImagePlus imp, String filePath, AffineTransform3D sourceTransform,
-                                   DownsampleBlock.DownsamplingMethod downsamplingMethod,
-                                   String imageName, ImageDataFormat imageDataFormat ) {
+                                    DownsampleBlock.DownsamplingMethod downsamplingMethod,
+                                    String imageName, ImageDataFormat imageDataFormat ) {
 
         // gzip compression by default
         switch( imageDataFormat ) {
@@ -177,12 +177,12 @@ public class ImagesCreator {
     }
 
     public void addBdvFormatImage ( File fileLocation, String datasetName, ProjectCreator.ImageType imageType,
-                                   ProjectCreator.AddMethod addMethod, String uiSelectionGroup,
+                                    ProjectCreator.AddMethod addMethod, String uiSelectionGroup,
                                     ImageDataFormat imageDataFormat ) throws SpimDataException, IOException {
 
         if ( fileLocation.exists() ) {
 
-            SpimData spimData = new SpimDataOpener().openSpimData( fileLocation.getAbsolutePath(), imageDataFormat );
+            SpimData spimData = ( SpimData ) new SpimDataOpener().openSpimData( fileLocation.getAbsolutePath(), imageDataFormat );
             String imageName = fileLocation.getName().split("\\.")[0];
             File imageDirectory = new File( getDefaultLocalImageDirPath( datasetName, imageDataFormat ));
 
@@ -307,7 +307,7 @@ public class ImagesCreator {
 
             // xml file or zarr file, depending on imageDataFormat
             String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
-            SpimData spimData = new SpimDataOpener().openSpimData( filePath, imageDataFormat);
+            SpimData spimData = tryOpenSpimData( imageDataFormat, filePath );
             final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
             final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
             final Source labelsSource = sourceAndConverter.getSpimSource();
@@ -341,6 +341,17 @@ public class ImagesCreator {
             Tables.saveTable( table, defaultTable );
 
             IJ.log( "Default table complete" );
+        }
+    }
+
+    private SpimData tryOpenSpimData( ImageDataFormat imageDataFormat, String filePath )
+    {
+        try
+        {
+            return ( SpimData ) new SpimDataOpener().openSpimData( filePath, imageDataFormat );
+        } catch ( SpimDataException e )
+        {
+           throw new RuntimeException( e );
         }
     }
 

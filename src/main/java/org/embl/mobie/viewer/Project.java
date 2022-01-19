@@ -1,13 +1,13 @@
 package org.embl.mobie.viewer;
 
-import org.embl.mobie.viewer.source.ImageDataFormat;
+import org.embl.mobie.io.ImageDataFormat;
 
 import java.util.List;
 
 public class Project
 {
 	private List< String > datasets;
-	private List<ImageDataFormat> imageDataFormats;
+	private List< ImageDataFormat > imageDataFormats;
 	private String defaultDataset;
 	private String specVersion;
 
@@ -32,7 +32,7 @@ public class Project
 
 	public void setSpecVersion( String specVersion ) { this.specVersion = specVersion; }
 
-	public void setImageDataFormats(List<ImageDataFormat> imageDataFormats) {
+	public void setImageDataFormats( List< ImageDataFormat > imageDataFormats) {
 		this.imageDataFormats = imageDataFormats;
 	}
 

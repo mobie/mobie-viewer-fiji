@@ -1,12 +1,12 @@
 package org.embl.mobie.viewer.projectcreator;
 
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.n5.writers.WriteImgPlusToN5;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 
@@ -62,7 +62,7 @@ class ImagesCreatorTest {
                 datasetName, "dataset.json" );
     }
 
-    void assertionsForImageAdded(ImageDataFormat imageDataFormat, boolean onlyXmls ) throws IOException {
+    void assertionsForImageAdded( ImageDataFormat imageDataFormat, boolean onlyXmls ) throws IOException {
         assertTrue( new File(datasetJsonPath).exists() );
 
         List<String> filePaths = new ArrayList<>();

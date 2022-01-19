@@ -4,7 +4,12 @@ import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
+import mpicbg.spim.data.SpimDataException;
+import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
+import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
@@ -12,16 +17,13 @@ import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
-import org.embl.mobie.viewer.source.SpimDataOpener;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.ViewManager;
-import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.github.GitHubUtils;
@@ -68,6 +70,7 @@ public class MoBIE
 	{
 		IJ.log("MoBIE");
 		this.settings = settings.projectLocation( projectLocation );
+		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations( );
 		projectName = MoBIEUtils.getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
@@ -76,11 +79,28 @@ public class MoBIE
 		openDataset();
 	}
 
+	private void setS3Credentials( MoBIESettings settings )
+	{
+		if ( settings.values.getS3AccessAndSecretKey() != null )
+		{
+			S3Utils.setS3AccessAndSecretKey( settings.values.getS3AccessAndSecretKey() );
+		}
+	}
+
 	private MoBIESettings setImageDataFormat( String projectLocation )
 	{
-		if ( settings.values.getImageDataFormat() == null )
+		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
+
+		if ( imageDataFormat != null )
 		{
-			final List<ImageDataFormat> imageDataFormats = project.getImageDataFormats();
+			if ( ! project.getImageDataFormats().contains( imageDataFormat ) )
+			{
+				throw new RuntimeException( "The requested image data format " + imageDataFormat + " is not supported by the project: " + projectLocation );
+			}
+		}
+		else // automatically determine the correct image format
+		{
+			final List< ImageDataFormat > imageDataFormats = project.getImageDataFormats();
 			if ( projectLocation.startsWith( "http" ) )
 			{
 				if ( imageDataFormats.contains( ImageDataFormat.OmeZarrS3 ) )
@@ -286,8 +306,8 @@ public class MoBIE
 		final String imagePath = getImagePath( imageSource );
         IJ.log( "Opening image:\n" + imagePath );
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
-        SpimData spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
-        sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
+		SpimData spimData = tryOpenSpimData( imagePath, imageDataFormat );
+		sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 
         final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
         SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
@@ -295,7 +315,27 @@ public class MoBIE
         return sourceAndConverter;
     }
 
-    public void setDataset( String dataset )
+	private SpimData tryOpenSpimData( String imagePath, ImageDataFormat imageDataFormat )
+	{
+		try
+		{
+			if ( imageDataFormat.equals( ImageDataFormat.BdvOmeZarrS3 ) )
+			{
+				// TODO enable shared queues
+				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
+			}
+			else
+			{
+				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
+			}
+		}
+		catch ( SpimDataException e )
+		{
+			throw new RuntimeException( e );
+		}
+	}
+
+	public void setDataset( String dataset )
     {
         setDatasetName( dataset );
         viewManager.close();
