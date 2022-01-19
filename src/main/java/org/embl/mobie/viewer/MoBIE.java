@@ -321,8 +321,8 @@ public class MoBIE
 		{
 			if ( imageDataFormat.equals( ImageDataFormat.BdvOmeZarrS3 ) )
 			{
-				// TODO FIXME
-				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
+				// TODO enable shared queues
+				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
 			}
 			else
 			{

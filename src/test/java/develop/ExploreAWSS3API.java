@@ -27,20 +27,14 @@ public class ExploreAWSS3API
 	public static void main( String[] args ) throws IOException
 	{
 		// Get credentials
-//		final GenericDialog dialog = new GenericDialog( "" );
-//		dialog.addStringField( "accessKey", "" );
-//		dialog.addStringField( "secretKey", "" );
-//		dialog.showDialog();
-//		if (!dialog.wasCanceled());
-//		final String accessKey = dialog.getNextString();
-//		final String secretKey = dialog.getNextString();
+		final GenericDialog dialog = new GenericDialog( "" );
+		dialog.addStringField( "accessKey", "" );
+		dialog.addStringField( "secretKey", "" );
+		dialog.showDialog();
+		if (!dialog.wasCanceled());
+		final String accessKey = dialog.getNextString();
+		final String secretKey = dialog.getNextString();
 
-		// Create AWS service
-		String accessKey = "cbb-bigdata";
-		String secretKey = "UZUTutgnW7";
-
-		accessKey = "UYP3FNN3V5F0P86DR2O3";
-		secretKey = "3EL7Czzg0vVwx2L4v27GQiX0Ct1GkMHS+tbcJR3D";
 
 		final String serviceEndpoint = "https://s3.embl.de";
 		final String signingRegion = "us-west-2";
