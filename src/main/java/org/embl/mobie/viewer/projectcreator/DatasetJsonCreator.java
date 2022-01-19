@@ -9,7 +9,7 @@ import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.source.*;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.view.View;
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.color.ColoringLuts;
 
 import java.io.IOException;

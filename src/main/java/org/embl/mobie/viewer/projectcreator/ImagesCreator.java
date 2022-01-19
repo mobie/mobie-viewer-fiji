@@ -17,7 +17,7 @@ import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 import org.embl.mobie.viewer.projectcreator.ui.ManualExportPanel;
 import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.source.SpimDataOpener;
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.ImagePlus;

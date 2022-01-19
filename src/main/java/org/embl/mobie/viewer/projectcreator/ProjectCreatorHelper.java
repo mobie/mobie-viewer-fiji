@@ -10,7 +10,7 @@ import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.additionalviews.AdditionalViews;
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;

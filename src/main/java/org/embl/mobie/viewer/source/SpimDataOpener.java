@@ -2,7 +2,7 @@ package org.embl.mobie.viewer.source;
 
 import bdv.util.volatiles.SharedQueue;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import mpicbg.spim.data.SpimData;
 import net.imglib2.util.Cast;
 import org.embl.mobie.io.n5.openers.N5Opener;

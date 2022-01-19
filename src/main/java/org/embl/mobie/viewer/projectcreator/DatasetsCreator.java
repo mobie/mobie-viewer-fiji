@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.projectcreator;
 import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.ImageDataFormat;
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import ij.IJ;
 
 import java.io.File;

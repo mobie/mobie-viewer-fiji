@@ -7,7 +7,7 @@ import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.command.OpenMoBIEProjectCommand;
 import org.embl.mobie.viewer.projectcreator.ProjectCreator;
 import org.embl.mobie.viewer.source.ImageDataFormat;
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.ImagePlus;

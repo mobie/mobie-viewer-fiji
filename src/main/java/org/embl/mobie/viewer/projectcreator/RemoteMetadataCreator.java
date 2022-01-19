@@ -7,7 +7,7 @@ import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.source.SpimDataOpener;
 import org.embl.mobie.viewer.source.StorageLocation;
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
