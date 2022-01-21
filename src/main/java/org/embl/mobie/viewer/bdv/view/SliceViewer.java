@@ -7,6 +7,7 @@ import org.embl.mobie.viewer.bdv.MobieBdvSupplier;
 import org.embl.mobie.viewer.bdv.MobieSerializableBdvOptions;
 import org.embl.mobie.viewer.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.viewer.bdv.ViewerTransformLogger;
+import org.embl.mobie.viewer.command.BigWarpLauncherCommand;
 import org.embl.mobie.viewer.command.ImageVolumeRenderingConfiguratorCommand;
 import org.embl.mobie.viewer.command.NonSelectedSegmentsOpacityAdjusterCommand;
 import org.embl.mobie.viewer.command.SegmentsVolumeRenderingConfiguratorCommand;
@@ -100,6 +101,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		final String[] actions = {
 				sacService.getCommandName( ScreenShotMakerCommand.class ),
 				sacService.getCommandName( ViewerTransformLogger.class ),
+				sacService.getCommandName( BigWarpLauncherCommand.class ),
 				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
 				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
 				sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ),
