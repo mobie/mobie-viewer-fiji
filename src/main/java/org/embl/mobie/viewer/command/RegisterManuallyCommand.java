@@ -26,16 +26,13 @@ public class RegisterManuallyCommand implements BdvPlaygroundActionCommand
 	{
 		final NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Registration - Manual" );
 		dialog.hideCancelButton();
-		dialog.addMessage( "Manual affine, similarity, rigid and translation transformations.\n\n" +
+		dialog.addMessage( "Manual translation, rotation and scaling transformations.\n\n" +
 				"- Select the BDV window and press P and select the source to be transformed as the current source\n" +
-				"- Press T to start the manual transform\n" +
-				"- Transform\n" +
-				"  - Press X,Y, or Z to change the axis of rotation\n" +
-				"  - Use the LEFT and RIGHT arrow keys to rotate\n" +
-				"  - Use the UP and DOWN to re-scale\n" +
-				"" +
+				"- Press T to start the manual transform mode\n" +
+				"  - While in manual transform mode the mouse and keyboard actions that normally change the view will now transform the current source\n" +
+				"  - For example, right mouse button and mouse drag will translate the source\n\n" +
 				"Press [ T ] again to fix the transformation\n" +
-				"Press [ ESC ] to abort");
+				"Press [ ESC ] to abort the transformation");
 
 		dialog.showDialog();
 		if ( dialog.wasCanceled() )
