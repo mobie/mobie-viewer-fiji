@@ -1,14 +1,9 @@
 package org.embl.mobie.viewer.projectcreator;
 
-import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.viewer.Project;
-import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import ij.IJ;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class DatasetsCreator {
@@ -37,13 +32,8 @@ public class DatasetsCreator {
                 new File(datasetDir, "tables").mkdirs();
                 new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "misc", "views")).mkdirs();
 
-
-                // if this is the first dataset, then make this the default
-                if ( currentDatasets.size() == 0 ) {
-                    projectCreator.getProject().setDefaultDataset( datasetName );
-                }
-                currentDatasets.add( datasetName );
-                writeProjectJson();
+                // update project json
+                projectCreator.getProjectJsonCreator().addDataset( datasetName );
             } else {
                 IJ.log( "Dataset creation failed - this name already exists" );
             }
@@ -66,17 +56,8 @@ public class DatasetsCreator {
 
                 if (oldDatasetDir.exists()) {
                     if (oldDatasetDir.renameTo(newDatasetDir)) {
-
-                        // update json
-                        if ( projectCreator.getProject().getDefaultDataset().equals(oldName) ) {
-                            projectCreator.getProject().setDefaultDataset( newName );
-                        }
-
-                        int indexOld = projectCreator.getProject().getDatasets().indexOf(oldName);
-                        projectCreator.getProject().getDatasets().set(indexOld, newName);
-
-                        writeProjectJson();
-
+                        // update project json
+                        projectCreator.getProjectJsonCreator().renameDataset( oldName, newName );
                     } else {
                         IJ.log("Rename directory failed");
                     }
@@ -91,36 +72,7 @@ public class DatasetsCreator {
     }
 
     public void makeDefaultDataset ( String datasetName ) {
-        projectCreator.getProject().setDefaultDataset( datasetName );
-        writeProjectJson();
-    }
-
-    public void addImageDataFormat( ImageDataFormat imageDataFormat ) {
-        Project project = projectCreator.getProject();
-        if ( project.getImageDataFormats() == null ) {
-            project.setImageDataFormats( new ArrayList<>() );
-        }
-
-        List< ImageDataFormat > imageDataFormats = project.getImageDataFormats();
-        if ( !imageDataFormats.contains( imageDataFormat ) ) {
-            imageDataFormats.add( imageDataFormat );
-            writeProjectJson();
-        }
-    }
-
-    private void writeProjectJson() {
-        try {
-            new ProjectJsonParser().saveProject( projectCreator.getProject(), projectCreator.getProjectJson().getAbsolutePath() );
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // whether the project writing succeeded or not, we now read the current state of the project
-        try {
-            projectCreator.reloadProject();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        projectCreator.getProjectJsonCreator().setDefaultDataset( datasetName );
     }
 
 }

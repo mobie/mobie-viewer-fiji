@@ -6,6 +6,7 @@ import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.n5.loaders.xml.XmlIoN5S3ImageLoader;
 import org.embl.mobie.io.ome.zarr.loaders.xml.XmlN5S3OmeZarrImageLoader;
 import org.embl.mobie.viewer.Dataset;
+import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.io.util.FileAndUrlUtils;
@@ -25,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 public class RemoteMetadataCreator {
 
@@ -51,6 +53,8 @@ public class RemoteMetadataCreator {
                 projectCreator.getDatasetJsonCreator().writeDatasetJson( datasetName, dataset );
             }
         }
+
+        projectCreator.getProjectJsonCreator().removeImageDataFormat( remoteImageDataFormat );
     }
 
     private void deleteRemoteMetadataForImage( String datasetName, String imageName ) throws IOException {
@@ -189,6 +193,10 @@ public class RemoteMetadataCreator {
                 addRemoteMetadataForDataset( datasetName );
             }
         }
+
+        IJ.log( "Adding metadata to project json." );
+        projectCreator.getProjectJsonCreator().addImageDataFormat( remoteImageDataFormat );
+        IJ.log( "Done." );
     }
 
     public void createRemoteMetadata( String signingRegion, String serviceEndpoint, String bucketName, ImageDataFormat imageDataFormat ) {
