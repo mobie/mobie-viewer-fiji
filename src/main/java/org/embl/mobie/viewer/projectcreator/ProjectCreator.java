@@ -28,6 +28,7 @@ public class ProjectCreator {
     private final DatasetsCreator datasetsCreator;
     private final ImagesCreator imagesCreator;
     private final DatasetJsonCreator datasetJsonCreator;
+    private final ProjectJsonCreator projectJsonCreator;
     private final RemoteMetadataCreator remoteMetadataCreator;
 
     public enum ImageType {
@@ -56,6 +57,7 @@ public class ProjectCreator {
 
         this.datasetsCreator = new DatasetsCreator( this );
         this.datasetJsonCreator = new DatasetJsonCreator( this );
+        this.projectJsonCreator = new ProjectJsonCreator( this );
         this.imagesCreator = new ImagesCreator( this );
         this.remoteMetadataCreator = new RemoteMetadataCreator( this );
     }
@@ -137,6 +139,8 @@ public class ProjectCreator {
     public DatasetJsonCreator getDatasetJsonCreator() {
         return datasetJsonCreator;
     }
+
+    public ProjectJsonCreator getProjectJsonCreator() { return projectJsonCreator; }
 
     public RemoteMetadataCreator getRemoteMetadataCreator() {
         return remoteMetadataCreator;

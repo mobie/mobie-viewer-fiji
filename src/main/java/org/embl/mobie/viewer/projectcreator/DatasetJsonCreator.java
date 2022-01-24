@@ -45,7 +45,7 @@ public class DatasetJsonCreator {
         }
 
         writeDatasetJson( datasetName, dataset );
-        projectCreator.getDatasetsCreator().addImageDataFormat( imageDataFormat );
+        projectCreator.getProjectJsonCreator().addImageDataFormat( imageDataFormat );
     }
 
     public void addSegmentationToDatasetJson( String imageName, String datasetName, String uiSelectionGroup,
@@ -64,7 +64,7 @@ public class DatasetJsonCreator {
         }
 
         writeDatasetJson( datasetName, dataset );
-        projectCreator.getDatasetsCreator().addImageDataFormat( imageDataFormat );
+        projectCreator.getProjectJsonCreator().addImageDataFormat( imageDataFormat );
     }
 
     private Dataset fetchDataset( String datasetName, boolean is2D, int nTimepoints ) {
