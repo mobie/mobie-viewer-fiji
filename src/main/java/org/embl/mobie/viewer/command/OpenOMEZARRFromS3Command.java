@@ -11,6 +11,7 @@ import java.io.IOException;
 
 @Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME ZARR>Open OME ZARR From S3...")
 public class OpenOMEZARRFromS3Command implements Command {
+
     @Parameter(label = "S3 URL")
     public String s3URL = "https://s3.embl.de/i2k-2020/em-raw.ome.zarr";
 
