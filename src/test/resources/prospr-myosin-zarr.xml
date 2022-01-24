@@ -30,7 +30,6 @@
       <SigningRegion>us-west-2</SigningRegion>
       <ServiceEndpoint>https://s3.embl.de</ServiceEndpoint>
       <BucketName>i2k-2020</BucketName>
-      <Authentication>Anonymous</Authentication>
     </ImageLoader>
   </SequenceDescription>
   <ViewRegistrations>
