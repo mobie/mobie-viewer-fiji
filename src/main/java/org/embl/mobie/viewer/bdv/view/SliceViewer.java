@@ -37,6 +37,8 @@ public class SliceViewer implements Supplier< BdvHandle >
 	public static final String CHANGE_RANDOM_COLOR_SEED = "Change Random Color Seed";
 	public static final String LOAD_ADDITIONAL_VIEWS = "Load Additional Views";
 	public static final String SAVE_CURRENT_SETTINGS_AS_VIEW = "Save Current Settings As View";
+    private static final String CREATE_OR_EDIT_GRID_VIEW = "Create Grid View";
+    private static final String SHOW_VIEW_DESCRIPTION = "Show View Description";
 	private final SourceAndConverterBdvDisplayService sacDisplayService;
 	private BdvHandle bdvHandle;
 	private final boolean is2D;
@@ -54,7 +56,6 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
-
 		bdvHandle = createBdv( timepoints );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
@@ -96,6 +97,14 @@ public class SliceViewer implements Supplier< BdvHandle >
 			viewManager.getViewsSaver().saveCurrentSettingsAsViewDialog();
 		} );
 
+        sacService.registerAction( SHOW_VIEW_DESCRIPTION, sourceAndConverters -> {
+            viewManager.getUserInterface().getUserInterfaceHelper().showViewDescription();
+        } );
+
+		sacService.registerAction( CREATE_OR_EDIT_GRID_VIEW, sourceAndConverters -> {
+		    viewManager.getUserInterface().getUserInterfaceHelper().showDynamicGridViewsDialog();
+        } );
+
 		final Set< String > actionsKeys = sacService.getActionsKeys();
 
 		final String[] actions = {
@@ -111,7 +120,9 @@ public class SliceViewer implements Supplier< BdvHandle >
 				sacService.getCommandName( ImageVolumeRenderingConfiguratorCommand.class ),
 				UNDO_SEGMENT_SELECTIONS,
 				LOAD_ADDITIONAL_VIEWS,
-				SAVE_CURRENT_SETTINGS_AS_VIEW
+				SAVE_CURRENT_SETTINGS_AS_VIEW,
+                CREATE_OR_EDIT_GRID_VIEW,
+                SHOW_VIEW_DESCRIPTION
 		};
 
 		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions );

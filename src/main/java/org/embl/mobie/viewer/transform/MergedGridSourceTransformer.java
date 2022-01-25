@@ -45,7 +45,10 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		if ( positions == null )
 			positions = createPositions( gridSources.size() );
 
-		SourceAndConverter< ? > mergedSourceAndConverter = createMergedSourceAndConverter( gridSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ), gridSources.get( 0 ).asVolatile().getConverter(), gridSources.get( 0 ).getConverter() );
+		SourceAndConverter< ? > mergedSourceAndConverter = createMergedSourceAndConverter(
+		        gridSources.stream().map( SourceAndConverter::getSpimSource ).collect( Collectors.toList() ),
+                gridSources.get( 0 ).asVolatile().getConverter(),
+                gridSources.get( 0 ).getConverter() );
 
 		sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
 

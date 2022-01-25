@@ -9,9 +9,7 @@ import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TransformHelper
@@ -79,10 +77,10 @@ public class TransformHelper
 		return realDimensions;
 	}
 
-	public static double[] getMaximalSourceUnionRealDimensions( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, Collection< List< String > > sourceNamesList )
+	public static double[] getMaximalSourceUnionRealDimensions( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, HashMap<String, List<String>> sourceNamesList )
 	{
 		double[] maximalDimensions = new double[ 2 ];
-		for ( List< String > sourceNames : sourceNamesList )
+		for ( List< String > sourceNames : sourceNamesList.values() )
 		{
 			final List< SourceAndConverter< ? > > sourceAndConverters = sourceNames.stream().map( name -> sourceNameToSourceAndConverter.get( name ) ).collect( Collectors.toList() );
 			final double[] realDimensions = computeSourceUnionRealDimensions( sourceAndConverters, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );

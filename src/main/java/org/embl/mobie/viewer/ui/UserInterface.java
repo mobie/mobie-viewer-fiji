@@ -158,7 +158,12 @@ public class UserInterface
 		return groupNames;
 	}
 
-	public void close()
+    public UserInterfaceHelper getUserInterfaceHelper()
+    {
+        return userInterfaceHelper;
+    }
+
+    public void close()
 	{
 		frame.dispose();
 	}

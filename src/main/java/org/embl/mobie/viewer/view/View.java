@@ -15,6 +15,7 @@ public class View
 	private ViewerTransform viewerTransform;
 	private boolean isExclusive = false;
 	private String name;
+	private String description;
 
 	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays,
 				 List< SourceTransformer > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
@@ -73,4 +74,14 @@ public class View
 	{
 		this.name = name;
 	}
+
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
 }

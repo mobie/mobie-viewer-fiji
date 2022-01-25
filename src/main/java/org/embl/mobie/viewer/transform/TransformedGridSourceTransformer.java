@@ -7,6 +7,7 @@ import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -16,15 +17,22 @@ import java.util.concurrent.Future;
 public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 {
 	// Serialization
-	protected List< List< String > > sources;
-	protected List< List< String > > sourceNamesAfterTransform;
+	protected LinkedHashMap<String, List<String>> sources;
+	protected LinkedHashMap<String, List<String>> sourceNamesAfterTransform;
 	protected List< int[] > positions;
 	protected boolean centerAtOrigin = true;
 
 	// Static
 	public static final double RELATIVE_CELL_MARGIN = 0.1;
 
-	@Override
+    public TransformedGridSourceTransformer( String name, LinkedHashMap<String, List<String>> sources, LinkedHashMap<String, List<String>> sourceNamesAfterTransform)
+    {
+        this.name = name;
+        this.sources = sources;
+        this.sourceNamesAfterTransform = sourceNamesAfterTransform;
+    }
+
+    @Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
 		Logger.info("Transforming " + sources.size() + " sources into a grid...");
@@ -40,7 +48,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	public List< String > getSources()
 	{
 		final ArrayList< String > allSources = new ArrayList<>();
-		for ( List< String > sourcesAtGridPosition : sources )
+		for ( List< String > sourcesAtGridPosition : sources.values() )
 			allSources.addAll( sourcesAtGridPosition );
 		return allSources;
 	}
@@ -55,7 +63,11 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			int finalGridIndex = gridIndex;
 			futures.add( ThreadUtils.executorService.submit( () -> {
 				if ( sourceNamesAfterTransform != null )
-					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), sourceNamesAfterTransform.get( finalGridIndex ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
+					translate( sourceNameToSourceAndConverter, sources.get( String.valueOf(finalGridIndex) ),
+                            sourceNamesAfterTransform.get( String.valueOf( finalGridIndex) ),
+                            centerAtOrigin,
+                            cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ],
+                            cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
 				else
 					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), null, centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
 			} ) );
