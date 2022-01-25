@@ -20,7 +20,6 @@ import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
 import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
-import org.embl.mobie.viewer.bdv.view.SliceViewer;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import org.embl.mobie.viewer.display.*;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
@@ -46,7 +45,7 @@ import org.embl.mobie.viewer.volume.UniverseManager;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-
+import org.embl.mobie.viewer.bdv.view.SliceViewer;
 import javax.swing.*;
 import java.util.*;
 import java.util.stream.Collectors;

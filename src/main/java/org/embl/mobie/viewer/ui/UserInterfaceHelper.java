@@ -16,11 +16,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.viewer.MoBIEUtils;
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIEInfo;
-import org.embl.mobie.viewer.Utils;
-import org.embl.mobie.viewer.VisibilityListener;
+import org.embl.mobie.viewer.*;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.display.*;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
@@ -34,7 +30,6 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -252,15 +247,18 @@ public class UserInterfaceHelper
         } );
         List<int[]> positions = new ArrayList<>( sourcesForGridViewSelectors.values() );
         MergedGridSource mergedGridSource = new MergedGridSource(
-                sources, positions,
-                newMergedGridViewName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+                sources,
+                positions,
+                newMergedGridViewName,
+                TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN,
+                false);
 
         Map<String, SourceAndConverter<?>> sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( sourcesForGridViewSelectors.keySet() );
         final List<SourceAndConverter<?>> gridSources = new ArrayList<>();
         for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
             gridSources.add( sourceNameToSourceAndConverters.get( sourceName ) );
         }
-        final VolatileSource<?, ?> volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
+        final VolatileSource<?, ?> volatileMergedGridSource = new VolatileSource<>( mergedGridSource, ThreadUtils.sharedQueue );
         final SourceAndConverter<?> volatileSourceAndConverter = new SourceAndConverter( volatileMergedGridSource, gridSources.get( 0 ).asVolatile().getConverter() );
         final SourceAndConverter<?> mergedSourceAndConverter = new SourceAndConverter( mergedGridSource, gridSources.get( 0 ).getConverter(), volatileSourceAndConverter );
         Map<String, SourceAndConverter<?>> sourceNameToSourceAndConverter = new HashMap<>();
@@ -977,10 +975,13 @@ public class UserInterfaceHelper
         List<Source> sources = new ArrayList<>();
         sourceAndConverters.forEach( sourceAndConverter -> sources.add( sourceAndConverter.getSpimSource() ) );
         MergedGridSource mergedGridSource = new MergedGridSource(
-                sources, positions,
-                "TMP", TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+                sources,
+                positions,
+                "TMP",
+                TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN,
+                false );
         final List<SourceAndConverter<?>> gridSources = new ArrayList<>( sourceAndConverters );
-        final VolatileSource<?, ?> volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MoBIE.sharedQueue );
+        final VolatileSource<?, ?> volatileMergedGridSource = new VolatileSource<>( mergedGridSource, ThreadUtils.sharedQueue );
         final SourceAndConverter<?> volatileSourceAndConverter = new SourceAndConverter( volatileMergedGridSource, gridSources.get( 0 ).asVolatile().getConverter() );
         final SourceAndConverter<?> mergedSourceAndConverter = new SourceAndConverter( mergedGridSource, gridSources.get( 0 ).getConverter(), volatileSourceAndConverter );
         return mergedSourceAndConverter;

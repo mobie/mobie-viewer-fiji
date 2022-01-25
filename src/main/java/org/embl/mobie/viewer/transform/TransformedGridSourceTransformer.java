@@ -7,6 +7,7 @@ import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -16,7 +17,7 @@ import java.util.concurrent.Future;
 public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 {
 	// Serialization
-	protected LinkedHashMap<String, List<String>>  sources;
+	protected LinkedHashMap<String, List<String>> sources;
 	protected LinkedHashMap<String, List<String>> sourceNamesAfterTransform;
 	protected List< int[] > positions;
 	protected boolean centerAtOrigin = true;
