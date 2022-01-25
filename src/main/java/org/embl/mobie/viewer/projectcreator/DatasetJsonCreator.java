@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.projectcreator;
 
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.display.ImageSourceDisplay;
@@ -9,7 +10,7 @@ import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.source.*;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.view.View;
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.color.ColoringLuts;
 
 import java.io.IOException;
@@ -28,8 +29,8 @@ public class DatasetJsonCreator {
     }
 
     public void addImageToDatasetJson( String imageName, String datasetName,
-                                  String uiSelectionGroup, boolean is2D, int nTimepoints,
-                                  ImageDataFormat imageDataFormat, double[] contrastLimits, String colour ) {
+                                       String uiSelectionGroup, boolean is2D, int nTimepoints,
+                                       ImageDataFormat imageDataFormat, double[] contrastLimits, String colour ) {
         Dataset dataset = fetchDataset( datasetName, is2D, nTimepoints );
 
         addNewImageSource( dataset, imageName, imageDataFormat );
@@ -44,7 +45,7 @@ public class DatasetJsonCreator {
         }
 
         writeDatasetJson( datasetName, dataset );
-        projectCreator.getDatasetsCreator().addImageDataFormat( imageDataFormat );
+        projectCreator.getProjectJsonCreator().addImageDataFormat( imageDataFormat );
     }
 
     public void addSegmentationToDatasetJson( String imageName, String datasetName, String uiSelectionGroup,
@@ -63,7 +64,7 @@ public class DatasetJsonCreator {
         }
 
         writeDatasetJson( datasetName, dataset );
-        projectCreator.getDatasetsCreator().addImageDataFormat( imageDataFormat );
+        projectCreator.getProjectJsonCreator().addImageDataFormat( imageDataFormat );
     }
 
     private Dataset fetchDataset( String datasetName, boolean is2D, int nTimepoints ) {
@@ -88,7 +89,7 @@ public class DatasetJsonCreator {
     }
 
     private void addNewImageSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat ) {
-        Map<ImageDataFormat, StorageLocation> imageDataLocations;
+        Map< ImageDataFormat, StorageLocation > imageDataLocations;
         ImageSource imageSource = new ImageSource();
         imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
         imageSource.imageData = imageDataLocations;
@@ -98,7 +99,7 @@ public class DatasetJsonCreator {
     }
 
     private void addNewSegmentationSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat ) {
-        Map<ImageDataFormat, StorageLocation> imageDataLocations;
+        Map< ImageDataFormat, StorageLocation > imageDataLocations;
 
         SegmentationSource segmentationSource = new SegmentationSource();
         segmentationSource.tableData = new HashMap<>();
@@ -114,9 +115,9 @@ public class DatasetJsonCreator {
         dataset.sources.put( imageName, sourceSupplier );
     }
 
-    private Map<ImageDataFormat, StorageLocation> makeImageDataLocations( ImageDataFormat imageDataFormat,
-                                                                          String imageName ) {
-        Map<ImageDataFormat, StorageLocation> imageDataLocations = new HashMap<>();
+    private Map< ImageDataFormat, StorageLocation > makeImageDataLocations( ImageDataFormat imageDataFormat,
+                                                                            String imageName ) {
+        Map< ImageDataFormat, StorageLocation > imageDataLocations = new HashMap<>();
         StorageLocation imageStorageLocation = new StorageLocation();
         if ( imageDataFormat == ImageDataFormat.OmeZarr ) {
             imageStorageLocation.relativePath = "images/" + imageFormatToFolderName( imageDataFormat ) +

@@ -5,7 +5,6 @@ import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.project.PublishedProject;
 import org.embl.mobie.viewer.project.PublishedProjectsCreator;
 import ij.gui.GenericDialog;
-import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 
@@ -16,6 +15,8 @@ import java.util.HashMap;
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open>Open Published MoBIE Project..." )
 public class OpenMoBIEPublishedProjectCommand implements Command
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	@Override
 	public void run()
 	{
@@ -44,13 +45,5 @@ public class OpenMoBIEPublishedProjectCommand implements Command
 		{
 			e.printStackTrace();
 		}
-	}
-
-	public static void main( String[] args )
-	{
-		final ImageJ ij = new ImageJ();
-		ij.ui().showUI();
-
-		ij.command().run( OpenMoBIEPublishedProjectCommand.class, true );
 	}
 }

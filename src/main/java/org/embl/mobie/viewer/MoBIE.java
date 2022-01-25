@@ -1,31 +1,29 @@
 package org.embl.mobie.viewer;
 
-import bdv.tools.transformation.TransformedSource;
-import bdv.util.BdvFunctions;
-import bdv.util.volatiles.SharedQueue;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
-import net.imglib2.realtransform.AffineTransform3D;
+import mpicbg.spim.data.SpimDataException;
+import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
+import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
-import org.embl.mobie.viewer.playground.SourceChanger;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
-import org.embl.mobie.viewer.source.SpimDataOpener;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.ViewManager;
-import de.embl.cba.tables.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.github.GitHubUtils;
@@ -34,25 +32,22 @@ import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
 import sc.fiji.bdvpg.PlaygroundPrefs;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
-import sc.fiji.bdvpg.sourceandconverter.transform.SourceAffineTransformer;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.Function;
+import java.util.concurrent.Future;
 
 public class MoBIE
 {
-	public static final int N_THREADS = 8;
-	public static final SharedQueue sharedQueue = new SharedQueue( N_THREADS );
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
-	public static final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
+
 	private final String projectName;
 	private MoBIESettings settings;
 	private String datasetName;
@@ -64,7 +59,6 @@ public class MoBIE
 	private String imageRoot;
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
-	private SourceAndConverterService sacService;
 	private Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
 
     public HashMap<String, ImgLoader> getSourceNameToImgLoader()
@@ -81,20 +75,37 @@ public class MoBIE
 	{
 		IJ.log("MoBIE");
 		this.settings = settings.projectLocation( projectLocation );
+		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations( );
-		projectName = Utils.getName( projectLocation );
+		projectName = MoBIEUtils.getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
 		this.settings = setImageDataFormat( projectLocation );
-		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 		openDataset();
+	}
+
+	private void setS3Credentials( MoBIESettings settings )
+	{
+		if ( settings.values.getS3AccessAndSecretKey() != null )
+		{
+			S3Utils.setS3AccessAndSecretKey( settings.values.getS3AccessAndSecretKey() );
+		}
 	}
 
 	private MoBIESettings setImageDataFormat( String projectLocation )
 	{
-		if ( settings.values.getImageDataFormat() == null )
+		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
+
+		if ( imageDataFormat != null )
 		{
-			final List<ImageDataFormat> imageDataFormats = project.getImageDataFormats();
+			if ( ! project.getImageDataFormats().contains( imageDataFormat ) )
+			{
+				throw new RuntimeException( "The requested image data format " + imageDataFormat + " is not supported by the project: " + projectLocation );
+			}
+		}
+		else // automatically determine the correct image format
+		{
+			final List< ImageDataFormat > imageDataFormats = project.getImageDataFormats();
 			if ( projectLocation.startsWith( "http" ) )
 			{
 				if ( imageDataFormats.contains( ImageDataFormat.OmeZarrS3 ) )
@@ -132,8 +143,8 @@ public class MoBIE
 		// deal with the fact that the grid ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
-		Utils.toDoubleStrings( gridIdColumn );
-		Utils.toDoubleStrings( columns.get( TableColumnNames.ANNOTATION_ID ) );
+		MoBIEUtils.toDoubleStrings( gridIdColumn );
+		MoBIEUtils.toDoubleStrings( columns.get( TableColumnNames.ANNOTATION_ID ) );
 
 		final Map< String, List< String > > newColumns = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, columns );
 
@@ -191,17 +202,16 @@ public class MoBIE
 
 		Map< String, SourceAndConverter< ? > > sourceAndConverters = new ConcurrentHashMap< >();
 
-		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
+		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( String sourceName : sources )
 		{
-			executorService.execute( () -> {
-				sourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) );
-			} );
+			futures.add(
+					ThreadUtils.ioExecutorService.submit( () -> { sourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) ); }
+				) );
 		}
+		ThreadUtils.waitUntilFinished( futures );
 
-		Utils.waitUntilFinishedAndShutDown( executorService );
-
-		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
+		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
 
 		return sourceAndConverters;
 	}
@@ -212,6 +222,7 @@ public class MoBIE
 		sourceNameToSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
+		//dataset.sources
 
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
@@ -289,7 +300,7 @@ public class MoBIE
 //		userInterface.dispose();
 	}
 
-	public synchronized ImageSource getSource(String sourceName )
+	public synchronized ImageSource getSource( String sourceName )
 	{
 		return dataset.sources.get( sourceName ).get();
 	}
@@ -298,11 +309,10 @@ public class MoBIE
 	{
 		final ImageSource imageSource = getSource( sourceName );
 		final String imagePath = getImagePath( imageSource );
-        //new Thread( () -> IJ.log( "Opening image:\n" + imagePath ) ).start();
-		IJ.log( "Opening image:\n" + imagePath );
+        IJ.log( "Opening image:\n" + imagePath );
         final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
-        SpimData spimData = new SpimDataOpener().openSpimData( imagePath, imageDataFormat, sharedQueue );
-        sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
+		SpimData spimData = tryOpenSpimData( imagePath, imageDataFormat );
+		sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 
         final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
         SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
@@ -310,7 +320,27 @@ public class MoBIE
         return sourceAndConverter;
     }
 
-    public void setDataset( String dataset )
+	private SpimData tryOpenSpimData( String imagePath, ImageDataFormat imageDataFormat )
+	{
+		try
+		{
+			if ( imageDataFormat.equals( ImageDataFormat.BdvOmeZarrS3 ) )
+			{
+				// TODO enable shared queues
+				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
+			}
+			else
+			{
+				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
+			}
+		}
+		catch ( SpimDataException e )
+		{
+			throw new RuntimeException( e );
+		}
+	}
+
+	public void setDataset( String dataset )
     {
         setDatasetName( dataset );
         viewManager.close();
@@ -367,13 +397,13 @@ public class MoBIE
 		return location;
 	}
 
-	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String table )
+	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName )
 	{
-		final SegmentationSource source = ( SegmentationSource ) getSource( sourceName );
+		final SegmentationSource tableSource = ( SegmentationSource ) getSource( sourceName );
 
-		final String defaultTablePath = getTablePath( source, table );
+		final String defaultTablePath = getTablePath( tableSource, tableName );
 
-		final List< TableRowImageSegment > segments = Utils.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
+		final List< TableRowImageSegment > segments = MoBIEUtils.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
 
 		return segments;
 	}
@@ -391,37 +421,61 @@ public class MoBIE
 		final List< Map< String, List< String > > > additionalTables = new CopyOnWriteArrayList<>();
 
 		final long start = System.currentTimeMillis();
-		final ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
-
+		final ExecutorService executorService = ThreadUtils.ioExecutorService;
+		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( String sourceName : sources )
 		{
-			executorService.execute( () -> {
-				Map< String, List< String > > columns =
-						loadAdditionalTable( sourceName, getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
+			futures.add(
+				executorService.submit( () -> {
+					Map< String, List< String > > columns = loadAdditionalTable( sourceName, getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
 				additionalTables.add( columns );
-			} );
+				} )
+			);
 		}
+		ThreadUtils.waitUntilFinished( futures );
 
-		Utils.waitUntilFinishedAndShutDown( executorService );
-
-		System.out.println( "Fetched " + sources.size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + N_THREADS + " thread(s).");
+		System.out.println( "Fetched " + sources.size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
 
 		return additionalTables;
 	}
 
-
-	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables(SegmentationSourceDisplay segmentationDisplay, String table )
+	public Map< String, SourceAndConverter< ? > > getSourceNameToSourceAndConverter()
 	{
-		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
+		return sourceNameToSourceAndConverter;
+	}
 
-		// TODO: make parallel
-		for ( String sourceName : segmentationDisplay.getSources() )
+	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay, String table )
+	{
+		final List< String > segmentationDisplaySources = segmentationDisplay.getSources();
+		final ConcurrentHashMap< String, Set< Source > > sourceNameToRootSources = new ConcurrentHashMap();
+
+		for ( String sourceName : segmentationDisplaySources )
 		{
-			final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( sourceName, table );
-			primaryTables.add( primaryTable );
+			Set< Source > rootSources = ConcurrentHashMap.newKeySet();
+			BdvPlaygroundUtils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSources );
+			sourceNameToRootSources.put( sourceName, rootSources );
 		}
 
+
+		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
+		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
+		for ( String displayedSourceName : segmentationDisplaySources )
+		{
+			final Set< Source > rootSources = sourceNameToRootSources.get( displayedSourceName );
+			for ( Source rootSource : rootSources )
+			{
+				futures.add( ThreadUtils.ioExecutorService.submit( () -> 				loadAndAddPrimaryTable( table, primaryTables, rootSource.getName() ) ) );
+			}
+		}
+		ThreadUtils.waitUntilFinished( futures );
+
 		return primaryTables;
+	}
+
+	private void loadAndAddPrimaryTable( String tableName, ArrayList< List< TableRowImageSegment > > primaryTables, String tableSourceName )
+	{
+		final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( tableSourceName, tableName );
+		primaryTables.add( primaryTable );
 	}
 
 	private Map< String, List< String > > createColumnsForMerging( List< TableRowImageSegment > segments, Map< String, List< String > > newColumns )
@@ -435,8 +489,8 @@ public class MoBIE
 		// deal with the fact that the label ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
-		Utils.toDoubleStrings( segmentIdColumn );
-		Utils.toDoubleStrings( newColumns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
+		MoBIEUtils.toDoubleStrings( segmentIdColumn );
+		MoBIEUtils.toDoubleStrings( newColumns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
 
 		final Map< String, List< String > > columnsForMerging = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, newColumns );
 
@@ -505,7 +559,7 @@ public class MoBIE
 		for ( String table : annotationDisplay.getTables() )
 		{
 			String tablePath = getTablePath( annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
-			tablePath = Utils.resolveTablePath( tablePath );
+			tablePath = MoBIEUtils.resolveTablePath( tablePath );
 			Logger.log( "Opening table:\n" + tablePath );
 			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
 		}
@@ -549,8 +603,6 @@ public class MoBIE
 
         switch (imageDataFormat) {
             case BdvN5:
-                final String path = source.imageData.get( imageDataFormat ).relativePath.split( "\\." )[0] + ".n5";
-                return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), path );
             case BdvOmeZarr:
             case OmeZarr:
             case BdvOmeZarrS3:

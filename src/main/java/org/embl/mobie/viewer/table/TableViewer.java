@@ -30,6 +30,7 @@ package org.embl.mobie.viewer.table;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
 import org.embl.mobie.viewer.annotate.Annotator;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
@@ -63,11 +64,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.embl.mobie.viewer.Utils.*;
+import static org.embl.mobie.viewer.MoBIEUtils.*;
 import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_GREY;
 
 public class TableViewer< T extends TableRow > implements SelectionListener< T >, ColoringListener, TableRowListener
 {
+
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	private final MoBIE moBIE;
 	private final List< T > tableRows;
 	private final SelectionModel< T > selectionModel;
@@ -125,6 +129,16 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 		// TODO: reconsider
 		registerAsTableRowListener( tableRows );
+
+		configureJTable();
+
+		if ( selectionModel != null )
+			installSelectionModelNotification();
+
+		if ( coloringModel != null)
+			configureTableRowColoring();
+
+		createFrame();
 	}
 
 	public TableViewer< T > show()
@@ -137,7 +151,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		if ( coloringModel != null)
 			configureTableRowColoring();
 
-		createAndShowMenu();
+		createFrame();
 
 		return this;
 	}
@@ -412,7 +426,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	}
 
 	private Map< String, List< String > > openTable( String tablePath ) {
-		String resolvedPath = org.embl.mobie.viewer.Utils.resolveTablePath( tablePath );
+		String resolvedPath = MoBIEUtils.resolveTablePath( tablePath );
 		Logger.info( "Opening table:\n" + resolvedPath );
 		return TableColumns.stringColumnsFromTableFile( resolvedPath );
 	}
@@ -749,7 +763,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		annotator.showDialog();
 	}
 
-	private void createAndShowMenu()
+	private void createFrame()
 	{
 		final JPanel panel = new JPanel( new GridLayout( 1, 0 ) );
 		JScrollPane scrollPane = new JScrollPane(
@@ -777,8 +791,11 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				frame.setVisible( false );
 			}
 		});
+	}
 
-		SwingUtilities.invokeLater( () -> frame.setVisible( true ) );
+	public void setVisible( boolean visible )
+	{
+		SwingUtilities.invokeLater( () -> frame.setVisible( visible ) );
 	}
 
 	public void addColumn( String column, Object defaultValue )

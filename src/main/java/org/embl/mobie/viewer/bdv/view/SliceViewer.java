@@ -2,10 +2,12 @@ package org.embl.mobie.viewer.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.MobieBdvSupplier;
 import org.embl.mobie.viewer.bdv.MobieSerializableBdvOptions;
 import org.embl.mobie.viewer.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.viewer.bdv.ViewerTransformLogger;
+import org.embl.mobie.viewer.command.ImageVolumeRenderingConfiguratorCommand;
 import org.embl.mobie.viewer.command.NonSelectedSegmentsOpacityAdjusterCommand;
 import org.embl.mobie.viewer.command.SegmentsVolumeRenderingConfiguratorCommand;
 import org.embl.mobie.viewer.command.SelectedSegmentsColorConfiguratorCommand;
@@ -112,6 +114,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 				sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ),
 				sacService.getCommandName( SelectedSegmentsColorConfiguratorCommand.class ),
 				sacService.getCommandName( SegmentsVolumeRenderingConfiguratorCommand.class ),
+				sacService.getCommandName( ImageVolumeRenderingConfiguratorCommand.class ),
 				UNDO_SEGMENT_SELECTIONS,
 				LOAD_ADDITIONAL_VIEWS,
 				SAVE_CURRENT_SETTINGS_AS_VIEW,

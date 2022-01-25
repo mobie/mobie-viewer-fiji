@@ -10,6 +10,9 @@ import java.awt.*;
 
 public class WindowArrangementHelper
 {
+
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static int getDefaultWindowWidth()
 	{
 		// TODO: does not work for multiple screens

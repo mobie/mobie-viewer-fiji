@@ -74,16 +74,17 @@ import static sc.fiji.bdvpg.bdv.BdvHandleHelper.isSourceIntersectingCurrentView;
 
 public class ScreenShotMaker
 {
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     private final BdvHandle bdvHandle;
-    private double physicalPixelSpacingInXY = 1;
+    private double samplingXY = 1;
     private String physicalUnit = "Pixels";
     private boolean sourceInteractionWithViewerPlaneOnly2D = false; // TODO: maybe remove in the future
     ImagePlus screenShot = null;
     private CompositeImage rawImageData = null;
     private final SourceAndConverterBdvDisplayService displayService;
     //private final ISourceAndConverterService sacService;
-    private long captureWidth;
-    private long captureHeight;
+    private long[] captureImageSizeInPixels = new long[2];
 
     public ScreenShotMaker( BdvHandle bdvHandle) {
         this.bdvHandle = bdvHandle;
@@ -93,7 +94,7 @@ public class ScreenShotMaker
 
     public void setPhysicalPixelSpacingInXY(double spacing, String unit) {
         this.screenShot = null;
-        this.physicalPixelSpacingInXY = spacing;
+        this.samplingXY = spacing;
         this.physicalUnit = unit;
     }
 
@@ -120,19 +121,37 @@ public class ScreenShotMaker
         return rawImageData;
     }
 
+    public static long[] getCaptureImageSizeInPixels( BdvHandle bdvHandle, double samplingXY )
+    {
+        final double viewerVoxelSpacing = getViewerVoxelSpacing( bdvHandle );
+
+        final double[] bdvWindowPhysicalSize = getBdvWindowPhysicalSize( bdvHandle, viewerVoxelSpacing );
+
+        final long[] capturePixelSize = new long[ 2 ];
+        for ( int d = 0; d < 2; d++ )
+        {
+            capturePixelSize[ d ] = ( long ) ( Math.ceil( bdvWindowPhysicalSize[ d ] / samplingXY ) );
+        }
+
+        return capturePixelSize;
+    }
+
+    private static double[] getBdvWindowPhysicalSize( BdvHandle bdvHandle, double viewerVoxelSpacing )
+    {
+        final double[] bdvWindowPhysicalSize = new double[ 2 ];
+        final int w = bdvHandle.getViewerPanel().getWidth();
+        final int h = bdvHandle.getViewerPanel().getHeight();
+        bdvWindowPhysicalSize[ 0 ] = w * viewerVoxelSpacing;
+        bdvWindowPhysicalSize[ 1 ] = h * viewerVoxelSpacing;
+        return bdvWindowPhysicalSize;
+    }
+
     private void createScreenShot()
     {
         final AffineTransform3D viewerTransform = new AffineTransform3D();
         bdvHandle.getViewerPanel().state().getViewerTransform( viewerTransform );
 
-        final double viewerVoxelSpacing = getViewerVoxelSpacing( bdvHandle );
-        double dxy = physicalPixelSpacingInXY / viewerVoxelSpacing;
-
-        final int w = bdvHandle.getViewerPanel().getWidth();
-        final int h = bdvHandle.getViewerPanel().getHeight();
-
-        captureWidth = ( long ) Math.ceil( w / dxy );
-        captureHeight = ( long ) Math.ceil( h / dxy );
+        captureImageSizeInPixels = getCaptureImageSizeInPixels( bdvHandle, samplingXY );
 
         final ArrayList< RandomAccessibleInterval< UnsignedShortType > > rawCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< ARGBType > > argbSources = new ArrayList<>();
@@ -157,14 +176,14 @@ public class ScreenShotMaker
         for ( SourceAndConverter< ?  > sac : sacs )
         {
             final RandomAccessibleInterval< UnsignedShortType > rawCapture
-                    = ArrayImgs.unsignedShorts( captureWidth, captureHeight );
+                    = ArrayImgs.unsignedShorts( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ] );
             final RandomAccessibleInterval< ARGBType > argbCapture
-                    = ArrayImgs.argbs( captureWidth, captureHeight );
+                    = ArrayImgs.argbs( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ]  );
 
             Source< ? > source = sac.getSpimSource();
             final Converter converter = sac.getConverter();
 
-            final int level = getLevel( source, physicalPixelSpacingInXY );
+            final int level = getLevel( source, samplingXY );
             final AffineTransform3D sourceTransform =
                     BdvHandleHelper.getSourceTransform( source, t, level );
 
@@ -172,9 +191,10 @@ public class ScreenShotMaker
             viewerToSourceTransform.preConcatenate( viewerTransform.inverse() );
             viewerToSourceTransform.preConcatenate( sourceTransform.inverse() );
 
-            // TODO: Once we have a logic for segmentation images, make this choice depend on this
-            boolean interpolate = true;
+            final double canvasStepSize = samplingXY / getViewerVoxelSpacing( bdvHandle );
 
+            // TODO: Once we have a logic for segmentation images, make this choice depend on this
+            final boolean interpolate = true;
             Grids.collectAllContainedIntervals(
                     Intervals.dimensionsAsLongArray( argbCapture ),
                     new int[]{100, 100}).parallelStream().forEach( interval ->
@@ -198,6 +218,7 @@ public class ScreenShotMaker
 
                 final ARGBType argbType = new ARGBType();
 
+                // iterate through the target image in pixel units
                 while ( rawCaptureCursor.hasNext() )
                 {
                     rawCaptureCursor.fwd();
@@ -206,10 +227,10 @@ public class ScreenShotMaker
                     argbCaptureAccess.setPosition( rawCaptureCursor );
 
                     // canvasPosition is the position on the canvas, in calibrated units
-                    // dxy is the step size that is needed to get the desired resolution in the
-                    // output image
-                    canvasPosition[ 0 ] *= dxy;
-                    canvasPosition[ 1 ] *= dxy;
+                    // dxy is the step size that is needed to get
+                    // the desired resolution in the output image
+                    canvasPosition[ 0 ] *= canvasStepSize;
+                    canvasPosition[ 1 ] *= canvasStepSize;
 
                     viewerToSourceTransform.apply( canvasPosition, sourceRealPosition );
 
@@ -226,9 +247,9 @@ public class ScreenShotMaker
 
         final double[] voxelSpacing = new double[ 3 ];
         for ( int d = 0; d < 2; d++ )
-            voxelSpacing[ d ] = physicalPixelSpacingInXY;
+            voxelSpacing[ d ] = samplingXY;
 
-        voxelSpacing[ 2 ] = viewerVoxelSpacing; // TODO: What to put here?
+        voxelSpacing[ 2 ] = getViewerVoxelSpacing( bdvHandle ); // TODO: What to put here?
 
         if ( rawCaptures.size() > 0 )
         {
@@ -309,7 +330,7 @@ public class ScreenShotMaker
             double[] voxelSpacing,
             List< SourceAndConverter< ? > > sacs )
     {
-        final RandomAccessibleInterval< ARGBType > argbTarget = ArrayImgs.argbs( captureWidth, captureHeight );
+        final RandomAccessibleInterval< ARGBType > argbTarget = ArrayImgs.argbs( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ]  );
 
         project( argbSources, argbTarget, sacs );
 

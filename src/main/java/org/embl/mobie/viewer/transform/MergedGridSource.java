@@ -1,10 +1,10 @@
 package org.embl.mobie.viewer.transform;
 
+import bdv.tools.transformation.TransformedSource;
 import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import net.imglib2.util.LinAlgHelpers;
-import org.embl.mobie.viewer.Utils;
+import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
 import net.imglib2.FinalInterval;
@@ -20,8 +20,12 @@ import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
+import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
+import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.SourceNameEncoder;
+import org.embl.mobie.viewer.source.LabelSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 public class MergedGridSource< T extends NativeType< T > & NumericType< T > > implements Source< T >
 {
@@ -40,22 +45,40 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	private final List< Source< T > > gridSources;
 	private final List< int[] > positions;
 	private final double relativeCellMargin;
+	private final boolean encodeSource;
 	private int currentTimepoint = 0;
 	private Map< String, long[] > sourceNameToVoxelTranslation;
 	private int[][] cellDimensions;
 	private double[] cellRealDimensions;
+	private Set< SourceAndConverter > containedSourceAndConverters;
 
-	public MergedGridSource( List< Source< T > > gridSources, List< int[] > positions, String mergedGridSourceName, double relativeCellMargin )
+	public MergedGridSource( List< Source< T > > gridSources, List< int[] > positions, String mergedGridSourceName, double relativeCellMargin, boolean encodeSource )
 	{
 		this.gridSources = gridSources;
 		this.positions = positions;
 		this.relativeCellMargin = relativeCellMargin;
+		this.encodeSource = encodeSource;
 		this.interpolators = new DefaultInterpolators<>();
 		this.referenceSource = gridSources.get( 0 );
 		this.mergedGridSourceName = mergedGridSourceName;
 		this.type = Util.getTypeFromInterval( referenceSource.getSource( 0, 0 ) );
 
 		mergedRandomAccessibleIntervals = createMergedRandomAccessibleIntervals();
+	}
+
+	public static boolean instanceOf( SourceAndConverter< ? > sourceAndConverter )
+	{
+		final Source< ? > source = sourceAndConverter.getSpimSource();
+		return instanceOf( source );
+	}
+
+	public static boolean instanceOf( Source< ? > source )
+	{
+		if ( source instanceof LabelSource )  source = ( ( LabelSource ) source ).getWrappedSource();
+
+		final Source wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
+
+		return wrappedSource instanceof MergedGridSource || source instanceof MergedGridSource;
 	}
 
 	public List< Source< T > > getGridSources()
@@ -101,7 +124,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 
 	private FinalInterval createInterval()
 	{
-		final long[] max = Utils.asLongs( cellDimensions[ 0 ] );
+		final long[] max = MoBIEUtils.asLongs( cellDimensions[ 0 ] );
 		for ( int d = 0; d < max.length; d++ )
 			max[ d ] -= 1;
 		final long[] min = new long[ 3 ];
@@ -155,7 +178,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		// positions.
 		final RandomAccessibleInterval< T > source = referenceSource.getSource( 0, 0 );
 		final long[] referenceSourceDimensions = source.dimensionsAsLongArray();
-		cellDimensions[ 0 ] = Utils.asInts( referenceSourceDimensions );
+		cellDimensions[ 0 ] = MoBIEUtils.asInts( referenceSourceDimensions );
 		for ( int d = 0; d < 2; d++ )
 		{
 			cellDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeCellMargin );
@@ -242,6 +265,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		return translation;
 	}
 
+	// TODO: not used
 	public Map< String, long[] > getSourceNameToVoxelTranslation()
 	{
 		return sourceNameToVoxelTranslation;
@@ -310,6 +334,16 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		return referenceSource.getNumMipmapLevels();
 	}
 
+	public void setContainedSourceAndConverters( Set< SourceAndConverter > containedSourceAndConverters )
+	{
+		this.containedSourceAndConverters = containedSourceAndConverters;
+	}
+
+	public Set< SourceAndConverter > getContainedSourceAndConverters()
+	{
+		return containedSourceAndConverters;
+	}
+
 	class RandomAccessibleIntervalCellLoader< T extends NativeType< T > > implements CellLoader< T >
 	{
 		private final Map< String, Source< T > > cellKeyToSource;
@@ -337,18 +371,31 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 				RandomAccessibleInterval< T > data = source.getSource( currentTimepoint, level );
 
 				// Create a view that is shifted to the cell position
-				final long[] offset = computeTranslation( Utils.asInts( cell.dimensionsAsLongArray() ), cell.minAsLongArray(), data.dimensionsAsLongArray() );
+				final long[] offset = computeTranslation( MoBIEUtils.asInts( cell.dimensionsAsLongArray() ), cell.minAsLongArray(), data.dimensionsAsLongArray() );
 				data = Views.translate( Views.zeroMin( data ), offset );
-
 
 				// copy RAI into cell
 				Cursor< T > sourceCursor = Views.iterable( data ).cursor();
 				RandomAccess< T > targetAccess = cell.randomAccess();
 
-				while ( sourceCursor.hasNext() )
+				if ( encodeSource )
 				{
-					sourceCursor.fwd();
-					targetAccess.setPositionAndGet( sourceCursor ).set( sourceCursor.get() );
+					final String name = source.getName();
+					while ( sourceCursor.hasNext() )
+					{
+						sourceCursor.fwd();
+						// copy the sourceCursor in order not to modify it by the source name encoding
+						targetAccess.setPositionAndGet( sourceCursor ).set( sourceCursor.get().copy() );
+						SourceNameEncoder.encodeName( ( UnsignedIntType ) targetAccess.get(), name );
+					}
+				}
+				else
+				{
+					while ( sourceCursor.hasNext() )
+					{
+						sourceCursor.fwd();
+						targetAccess.setPositionAndGet( sourceCursor ).set( sourceCursor.get() );
+					}
 				}
 			}
 		}

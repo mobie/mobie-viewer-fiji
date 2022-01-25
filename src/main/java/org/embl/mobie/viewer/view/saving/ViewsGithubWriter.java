@@ -19,6 +19,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class ViewsGithubWriter {
+
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
+
     public static final String ACCESS_TOKEN = "MoBIE.GitHub access token";
     private String accessToken;
     private GitLocation viewJsonGitLocation;

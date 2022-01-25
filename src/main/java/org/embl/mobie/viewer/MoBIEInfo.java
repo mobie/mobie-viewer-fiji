@@ -1,12 +1,14 @@
 package org.embl.mobie.viewer;
 
 import bdv.tools.HelpDialog;
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.Help;
 import ij.IJ;
 
 public class MoBIEInfo
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static final String MOBIE_VIEWER = "MoBIE Viewer";
 	public static final String MOBIE_FRAMEWORK = "MoBIE Framework";
 	public static final String BIG_DATA_VIEWER = "BigDataViewer";

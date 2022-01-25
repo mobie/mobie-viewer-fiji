@@ -15,6 +15,8 @@ import net.imglib2.type.numeric.ARGBType;
 
 public class SegmentedParapodiumMusclesToSegmentedBaselMuscles
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static void main( String[] args )
 	{
 		final ImagePlus musclesParaImp = IJ.openImage( "/Users/tischer/Documents/rachel-mellwig-em-prospr-registration/data/FIB segmentation/muscle.tif" );

@@ -2,7 +2,6 @@ package org.embl.mobie.viewer.command;
 
 import org.embl.mobie.viewer.projectcreator.ui.ProjectsCreatorPanel;
 import ij.IJ;
-import net.imagej.ImageJ;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -14,6 +13,8 @@ import static org.embl.mobie.viewer.ui.UserInterfaceHelper.*;
 
 @Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Create New MoBIE Project..." )
 public class CreateNewMoBIEProjectCommand implements Command {
+
+	  static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     @Parameter( label= "Choose a project name:")
     public String projectName;
@@ -43,13 +44,5 @@ public class CreateNewMoBIEProjectCommand implements Command {
                 }
             }
         }
-
     }
-
-    public static void main(final String... args)
-    {
-        final ImageJ ij = new ImageJ();
-        ij.ui().showUI();
-    }
-
 }

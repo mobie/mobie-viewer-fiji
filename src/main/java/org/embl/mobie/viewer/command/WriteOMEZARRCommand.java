@@ -1,11 +1,10 @@
 package org.embl.mobie.viewer.command;
 
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 import org.embl.mobie.viewer.projectcreator.ui.ManualExportPanel;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import ij.ImagePlus;
-import net.imagej.ImageJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.janelia.saalfeldlab.n5.GzipCompression;
 import org.scijava.command.Command;
@@ -17,6 +16,8 @@ import static org.embl.mobie.viewer.ui.UserInterfaceHelper.tidyString;
 
 @Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME ZARR>Export Current Image To OME-ZARR...")
 public class WriteOMEZARRCommand implements Command {
+
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     @Parameter
     public ImagePlus currentImage;
@@ -54,14 +55,8 @@ public class WriteOMEZARRCommand implements Command {
                 new WriteImgPlusToN5OmeZarr().export(currentImage, filePath, sourceTransform, method,
                         new GzipCompression(), new String[]{imageName});
             } else {
-                new ManualExportPanel( currentImage, filePath, sourceTransform, method, imageName,
-                        ImageDataFormat.OmeZarr ).getManualExportParameters();
+                new ManualExportPanel( currentImage, filePath, sourceTransform, method, imageName, ImageDataFormat.OmeZarr ).getManualExportParameters();
             }
         }
-    }
-
-    public static void main(String[] args) {
-        final ImageJ ij = new ImageJ();
-        ij.ui().showUI();
     }
 }

@@ -4,14 +4,15 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>30.0.0</version>
+		<version>31.1.0</version>
 	</parent>
 
 	<groupId>org.embl.mobie</groupId>
 	<artifactId>mobie-viewer-fiji</artifactId>
-	<version>2.0.0-SNAPSHOT</version>
+	<version>2.0.8-SNAPSHOT</version>
 
-	<!-- mvn clean install "-Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app" -->
+	<!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
+	<!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
 
 	<url>https://github.com/mobie/mobie-viewer-fiji</url>
 	<name>MoBIE Fiji Viewer</name>
@@ -78,16 +79,21 @@
 		<enforcer.skip>true</enforcer.skip>
 
 		<!-- Java 8	Update Site	-->
-		<imglib2.version>5.11.1</imglib2.version>
+		<imglib2.version>5.12.0</imglib2.version>
 		<imglib2-cache.version>1.0.0-beta-16</imglib2-cache.version>
-        <bigdataviewer-core.version>10.2.1-SNAPSHOT</bigdataviewer-core.version>
-		<bigdataviewer-vistools.version>1.0.0-beta-28</bigdataviewer-vistools.version>
+		<bigdataviewer-core.version>10.2.1</bigdataviewer-core.version>
+		<bigdataviewer-vistools.version>1.0.0-beta-29</bigdataviewer-vistools.version>
+
+		<!-- Other	-->
+		<!-- spim_data.version required for fix that closes xml files properly after creation - should soon be in main fiji	-->
+		<spim_data.version>2.2.5</spim_data.version>
 
 		<!-- BIOP -->
-		<bigdataviewer-playground.version>0.3.8-SNAPSHOT</bigdataviewer-playground.version>
+		<bigdataviewer-playground.version>0.3.13</bigdataviewer-playground.version>
 
 		<!-- EMBL CBA -->
-		<imagej-utils.version>0.6.4-SNAPSHOT</imagej-utils.version>
+		<imagej-utils.version>0.6.4</imagej-utils.version>
+		<mobie-io.version>1.1.1</mobie-io.version>
 
 		<!-- Version 1.6.0-scijava-3-SNAPSHOT of j3dcore addresses a minor issue
 		https://github.com/fiji/3D_Viewer/issues/26
@@ -113,15 +119,25 @@
 	</repositories>
 	<dependencies>
 		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>imagej</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.imagej</groupId>
+			<artifactId>imagej-legacy</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-playground</artifactId>
 			<version>${bigdataviewer-playground.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>net.imagej</groupId>
+					<artifactId>imagej</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-		<!--		<dependency>-->
-		<!--			<groupId>sc.fiji.bigdataviewer</groupId>-->
-		<!--			<artifactId>bigdataviewer-playground-display</artifactId>-->
-		<!--			<version>${bigdataviewer-playground-display.version}</version>-->
-		<!--		</dependency>-->
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
@@ -138,16 +154,15 @@
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-vistools</artifactId>
 		</dependency>
-		<!-- required for fix that closes xml files properly after creation - should soon be in main fiji	-->
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>spim_data</artifactId>
-			<version>2.2.5</version>
+			<version>${spim_data.version}</version>
 		</dependency>
         <dependency>
             <groupId>org.embl.mobie</groupId>
             <artifactId>mobie-io</artifactId>
-            <version>1.0.7-SNAPSHOT</version>
+            <version>${mobie-io.version}</version>
         </dependency>
 		<dependency>
 			<groupId>org.janelia.saalfeldlab</groupId>
@@ -173,6 +188,12 @@
 			<groupId>de.embl.cba</groupId>
 			<artifactId>imagej-utils</artifactId>
 			<version>${imagej-utils.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>net.imagej</groupId>
+					<artifactId>imagej</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains</groupId>
@@ -187,7 +208,6 @@
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>ij</artifactId>
-			<version>1.53d</version>
 		</dependency>
         <dependency>
             <groupId>trove</groupId>
@@ -196,9 +216,15 @@
         </dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter</artifactId>
-			<version>5.7.2</version>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>5.4.2</version>
 			<scope>test</scope>
 		</dependency>
-    </dependencies>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>5.4.2</version>
+			<scope>test</scope>
+		</dependency>
+  </dependencies>
 </project>

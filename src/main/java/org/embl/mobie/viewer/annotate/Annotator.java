@@ -49,6 +49,8 @@ import java.util.Set;
 
 public class Annotator< T extends TableRow > extends JFrame
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	public static final String LAST = "You are already at the last object in table.";
 	public static final String NO_MORE_SEGMENTS = "No more segments.";
 	private final String annotationColumnName;

@@ -29,6 +29,8 @@ import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
 public class ImageSliceView
 {
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
+
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final MoBIE moBIE;
 	private final ImageSourceDisplay display;

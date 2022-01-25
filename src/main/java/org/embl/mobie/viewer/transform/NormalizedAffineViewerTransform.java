@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.transform;
 
 public class NormalizedAffineViewerTransform implements ViewerTransform
 {
+	// Serialization
 	private double[] normalizedAffine;
 	private Integer timepoint;
 

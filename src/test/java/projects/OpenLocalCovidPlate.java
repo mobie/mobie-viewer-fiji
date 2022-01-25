@@ -1,9 +1,8 @@
 package projects;
 
-import ij.IJ;
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import net.imagej.ImageJ;
 
 import java.io.IOException;
@@ -16,8 +15,7 @@ public class OpenLocalCovidPlate
 		imageJ.ui().showUI();
 
 		try {
-			new MoBIE("/g/kreshuk/pape/Work/mobie/covid-if-project/data",
-					MoBIESettings.settings().imageDataFormat( ImageDataFormat.OmeZarr ) );
+			new MoBIE("/g/kreshuk/pape/Work/mobie/covid-if-project/data", MoBIESettings.settings().imageDataFormat( ImageDataFormat.OmeZarr ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

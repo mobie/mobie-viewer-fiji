@@ -16,6 +16,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEInfo;
 import org.embl.mobie.viewer.Utils;
@@ -498,7 +499,7 @@ public class UserInterfaceHelper
 		// Checkboxes
 		panel.add( createSpace() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
-		panel.add( createCheckboxPlaceholder() ); // TODO: createVolume...
+		panel.add( createImageVolumeViewerVisibilityCheckbox( display ) );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createCheckboxPlaceholder() );
 
@@ -548,7 +549,7 @@ public class UserInterfaceHelper
 		if ( display.tableRows != null )
 		{
 			// segments 3D view
-			panel.add( createVolumeViewerVisibilityCheckbox( display ) );
+			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );
 			// table view
 			panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableViewer.getWindow() ) );
 			// scatter plot view
@@ -679,6 +680,8 @@ public class UserInterfaceHelper
 		return horizontalLayoutPanel;
 	}
 
+	// Levelling vector for MoBIE:
+	// private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
 	public JPanel createLevelingPanel( double[] levelingVector )
 	{
 		final double[] targetNormalVector = Arrays.copyOf( levelingVector, 3 );
@@ -687,23 +690,6 @@ public class UserInterfaceHelper
 
 		final JButton button = createButton( LEVEL );
 		horizontalLayoutPanel.add( button );
-
-		// TODO: if below code is needed make an own Levelling class
-//		final JButton changeReference = new JButton( "Set new level vector" );
-//		horizontalLayoutPanel.add( changeReference );
-
-//		final JButton defaultReference = new JButton( "Set default level vector" );
-//		horizontalLayoutPanel.add( defaultReference );
-
-//		changeReference.addActionListener( e -> {
-//			targetNormalVector = BdvUtils.getCurrentViewNormalVector( bdv );
-//			Utils.logVector( "New reference normal vector: ", targetNormalVector );
-//		} );
-
-//		defaultReference.addActionListener( e -> {
-//			targetNormalVector = Arrays.copyOf( levelingVector, 3);
-//			Utils.logVector( "New reference normal vector (default): ", levelingVector );
-//		} );
 
 		button.addActionListener( e -> BdvUtils.levelCurrentView( moBIE.getViewManager().getSliceViewer().getBdvHandle(), targetNormalVector ) );
 
@@ -808,6 +794,40 @@ public class UserInterfaceHelper
 		return Box.createRigidArea( PREFERRED_CHECKBOX_SIZE );
 	}
 
+	public static JCheckBox createSegmentsVolumeViewerVisibilityCheckbox( SegmentationSourceDisplay display )
+	{
+		JCheckBox checkBox = new JCheckBox( "V" );
+		checkBox.setSelected( display.showSelectedSegmentsIn3d() );
+		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
+
+		checkBox.addActionListener( new ActionListener()
+		{
+			@Override
+			public void actionPerformed( ActionEvent e )
+			{
+				new Thread( () -> {
+						display.segmentsVolumeViewer.showSegments( checkBox.isSelected() );
+				}).start();
+			}
+		} );
+
+		display.segmentsVolumeViewer.getListeners().add( new VisibilityListener()
+		{
+			@Override
+			public void visibility( boolean isVisible )
+			{
+				SwingUtilities.invokeLater( () ->
+				{
+					checkBox.setSelected( isVisible );
+				});
+			}
+		} );
+
+
+		return checkBox;
+	}
+
+
 	private static JCheckBox createSliceViewerVisibilityCheckbox(
 			boolean isVisible,
 			final List< SourceAndConverter< ? > > sourceAndConverters )
@@ -838,7 +858,7 @@ public class UserInterfaceHelper
 		JCheckBox checkBox = new JCheckBox( "T" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
-		window.setVisible( checkBox.isSelected() );
+		window.setVisible( isVisible );
 		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> window.setVisible( checkBox.isSelected() ) ) );
 
 		window.addWindowListener(
@@ -882,10 +902,10 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JCheckBox createVolumeViewerVisibilityCheckbox( SegmentationSourceDisplay display )
+	public static JCheckBox createImageVolumeViewerVisibilityCheckbox( ImageSourceDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "V" );
-		checkBox.setSelected( display.showSelectedSegmentsIn3d() );
+		checkBox.setSelected( display.showImagesIn3d() );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
 		checkBox.addActionListener( new ActionListener()
@@ -894,19 +914,12 @@ public class UserInterfaceHelper
 			public void actionPerformed( ActionEvent e )
 			{
 				new Thread( () -> {
-					if ( checkBox.isSelected() )
-					{
-						display.segmentsVolumeViewer.showSegments( true );
-					}
-					else
-					{
-						display.segmentsVolumeViewer.showSegments( false );
-					}
+						display.imageVolumeViewer.showImages( checkBox.isSelected() );
 				}).start();
 			}
 		} );
 
-		display.segmentsVolumeViewer.getListeners().add( new VisibilityListener()
+		display.imageVolumeViewer.getListeners().add( new VisibilityListener()
 		{
 			@Override
 			public void visibility( boolean isVisible )
@@ -1086,12 +1099,12 @@ public class UserInterfaceHelper
 		String tidyString = string.replaceAll("\\s+","_");
 
 		if ( !string.equals(tidyString) ) {
-			Utils.log( "Spaces were removed from name, and replaced by _");
+			MoBIEUtils.log( "Spaces were removed from name, and replaced by _");
 		}
 
 		// check only contains alphanumerics, or _ -
 		if ( !tidyString.matches("^[a-zA-Z0-9_-]+$") ) {
-			Utils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
+			MoBIEUtils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
 					"with a different name.");
 			tidyString = null;
 		}

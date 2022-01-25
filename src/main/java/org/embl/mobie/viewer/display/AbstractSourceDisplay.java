@@ -33,10 +33,7 @@ public abstract class AbstractSourceDisplay implements SourceDisplay
 	{
 		return opacity;
 	}
-	public boolean isVisible()
-	{
-		return visible;
-	}
+	public boolean isVisible() { return visible; }
 
 	// Runtime
 	public transient Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
