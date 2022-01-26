@@ -436,7 +436,7 @@ public class ProjectsCreatorPanel extends JFrame {
             gd.addChoice( "Image format", imageFormats, imageFormats[0] );
             gd.addStringField("Affine", defaultAffineTransform, 35 );
             gd.addCheckbox("Use default export settings", true);
-            gd.addCheckbox( "Create view for this image", true );
+            gd.addCheckbox("Make view exclusive", false );
 
             gd.showDialog();
 
@@ -446,7 +446,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 ImageDataFormat imageFormat = ImageDataFormat.fromString( gd.getNextChoice() );
                 String affineTransform = gd.getNextString().trim();
                 boolean useDefaultSettings = gd.getNextBoolean();
-                boolean createView = gd.getNextBoolean();
+                boolean exclusive = gd.getNextBoolean();
 
                 // tidy up image name, remove any spaces
                 imageName = UserInterfaceHelper.tidyString( imageName );
@@ -455,16 +455,11 @@ public class ProjectsCreatorPanel extends JFrame {
 
                 if ( imageName != null && sourceTransform != null ) {
                     String uiSelectionGroup = null;
-                    if ( createView ) {
-                        uiSelectionGroup = selectUiSelectionGroupDialog( datasetName );
-                        if ( uiSelectionGroup != null ) {
-                            projectsCreator.getImagesCreator().addImage( currentImage, imageName,
-                                    datasetName, imageFormat, imageType, sourceTransform, useDefaultSettings, uiSelectionGroup );
-                            updateComboBoxesForNewImage( imageName, uiSelectionGroup );
-                        }
-                    } else {
+                    uiSelectionGroup = selectUiSelectionGroupDialog( datasetName );
+                    if ( uiSelectionGroup != null ) {
                         projectsCreator.getImagesCreator().addImage( currentImage, imageName,
-                                datasetName, imageFormat, imageType, sourceTransform, useDefaultSettings, uiSelectionGroup );
+                                datasetName, imageFormat, imageType, sourceTransform, useDefaultSettings,
+                                uiSelectionGroup, exclusive );
                         updateComboBoxesForNewImage( imageName, uiSelectionGroup );
                     }
                 }
@@ -496,7 +491,7 @@ public class ProjectsCreatorPanel extends JFrame {
             String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
                     ProjectCreator.ImageType.segmentation.toString() };
             gd.addChoice("Image Type", imageTypes, imageTypes[0]);
-            gd.addCheckbox( "Create view for this image", true );
+            gd.addCheckbox("Make view exclusive", false );
 
             gd.showDialog();
 
@@ -504,7 +499,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 ImageDataFormat imageDataFormat = ImageDataFormat.fromString( gd.getNextChoice() );
                 ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.valueOf( gd.getNextChoice() );
                 ProjectCreator.ImageType imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
-                boolean createView = gd.getNextBoolean();
+                boolean exclusive = gd.getNextBoolean();
 
                 if ( imageDataFormat == ImageDataFormat.OmeZarr && addMethod == ProjectCreator.AddMethod.link ) {
                     IJ.log( "link is currently unsupported for ome-zarr. Please choose copy or move instead for this" +
@@ -541,16 +536,10 @@ public class ProjectsCreatorPanel extends JFrame {
 
                     try {
                         String uiSelectionGroup = null;
-                        if (createView) {
-                            uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
-                            if (uiSelectionGroup != null) {
-                                projectsCreator.getImagesCreator().addBdvFormatImage(imageFile, datasetName, imageType,
-                                        addMethod, uiSelectionGroup, imageDataFormat );
-                                updateComboBoxesForNewImage(imageName, uiSelectionGroup);
-                            }
-                        } else {
+                        uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
+                        if (uiSelectionGroup != null) {
                             projectsCreator.getImagesCreator().addBdvFormatImage(imageFile, datasetName, imageType,
-                                    addMethod, uiSelectionGroup, imageDataFormat );
+                                    addMethod, uiSelectionGroup, imageDataFormat, exclusive );
                             updateComboBoxesForNewImage(imageName, uiSelectionGroup);
                         }
                     } catch (SpimDataException | IOException e) {

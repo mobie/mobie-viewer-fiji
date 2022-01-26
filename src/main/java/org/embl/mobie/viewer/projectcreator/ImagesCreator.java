@@ -92,7 +92,8 @@ public class ImagesCreator {
 
     public void addImage ( ImagePlus imp, String imageName, String datasetName,
                            ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
-                           AffineTransform3D sourceTransform, boolean useDefaultSettings, String uiSelectionGroup ) {
+                           AffineTransform3D sourceTransform, boolean useDefaultSettings,
+                           String uiSelectionGroup, boolean exclusive ) {
 
         // either xml file path or zarr file path depending on imageDataFormat
         String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
@@ -135,10 +136,10 @@ public class ImagesCreator {
                         String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" +
                                 lut.getBlue(255) + ",a=" + lut.getAlpha(255);
                         updateTableAndJsonsForNewImage(imageName, datasetName, uiSelectionGroup, is2D,
-                                imp.getNFrames(), imageDataFormat, contrastLimits, colour );
+                                imp.getNFrames(), imageDataFormat, contrastLimits, colour, exclusive );
                     } else {
                         updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup, is2D,
-                                imp.getNFrames(), imageDataFormat);
+                                imp.getNFrames(), imageDataFormat, exclusive );
                     }
                 } catch (SpimDataException e) {
                     e.printStackTrace();
@@ -178,7 +179,7 @@ public class ImagesCreator {
 
     public void addBdvFormatImage ( File fileLocation, String datasetName, ProjectCreator.ImageType imageType,
                                     ProjectCreator.AddMethod addMethod, String uiSelectionGroup,
-                                    ImageDataFormat imageDataFormat ) throws SpimDataException, IOException {
+                                    ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
 
         if ( fileLocation.exists() ) {
 
@@ -223,12 +224,12 @@ public class ImagesCreator {
                 }
 
                 if (imageType == ProjectCreator.ImageType.image) {
-                    updateTableAndJsonsForNewImage(imageName, datasetName, uiSelectionGroup,
+                    updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup,
                             isSpimData2D(spimData), getNTimepointsFromSpimData(spimData),
-                            imageDataFormat, new double[]{0.0, 255.0}, "white" );
+                            imageDataFormat, new double[]{0.0, 255.0}, "white", exclusive );
                 } else {
-                    updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup,
-                            isSpimData2D(spimData), getNTimepointsFromSpimData(spimData), imageDataFormat);
+                    updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup,
+                            isSpimData2D(spimData), getNTimepointsFromSpimData(spimData), imageDataFormat, exclusive );
                 }
 
                 IJ.log( "Bdv format image " + imageName + " added to project" );
@@ -357,18 +358,20 @@ public class ImagesCreator {
 
     private void updateTableAndJsonsForNewImage ( String imageName, String datasetName, String uiSelectionGroup,
                                                   boolean is2D, int nTimepoints, ImageDataFormat imageDataFormat,
-                                                  double[] contrastLimits, String colour ) throws SpimDataException {
+                                                  double[] contrastLimits, String colour,
+                                                  boolean exclusive ) throws SpimDataException {
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
         datasetJsonCreator.addImageToDatasetJson( imageName, datasetName, uiSelectionGroup, is2D, nTimepoints,
-                imageDataFormat, contrastLimits, colour );
+                imageDataFormat, contrastLimits, colour, exclusive );
     }
 
     private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup,
-                                                        boolean is2D, int nTimepoints, ImageDataFormat imageDataFormat ) {
+                                                        boolean is2D, int nTimepoints, ImageDataFormat imageDataFormat,
+                                                        boolean exclusive ) {
         addDefaultTableForImage( imageName, datasetName, imageDataFormat );
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
         datasetJsonCreator.addSegmentationToDatasetJson( imageName, datasetName, uiSelectionGroup, is2D, nTimepoints,
-                imageDataFormat );
+                imageDataFormat, exclusive );
     }
 
     private void copyImage ( ImageDataFormat imageFormat, SpimData spimData,

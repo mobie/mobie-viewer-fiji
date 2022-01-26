@@ -30,13 +30,14 @@ public class DatasetJsonCreator {
 
     public void addImageToDatasetJson( String imageName, String datasetName,
                                        String uiSelectionGroup, boolean is2D, int nTimepoints,
-                                       ImageDataFormat imageDataFormat, double[] contrastLimits, String colour ) {
+                                       ImageDataFormat imageDataFormat, double[] contrastLimits, String colour,
+                                       boolean exclusive ) {
         Dataset dataset = fetchDataset( datasetName, is2D, nTimepoints );
 
         addNewImageSource( dataset, imageName, imageDataFormat );
         if ( uiSelectionGroup != null ) {
             // add a view with the same name as the image, and sensible defaults
-            addNewImageView( dataset, imageName, uiSelectionGroup, contrastLimits, colour );
+            addNewImageView( dataset, imageName, uiSelectionGroup, contrastLimits, colour, exclusive );
         }
 
         // if there is no default view, make one with this image and sensible defaults
@@ -49,13 +50,14 @@ public class DatasetJsonCreator {
     }
 
     public void addSegmentationToDatasetJson( String imageName, String datasetName, String uiSelectionGroup,
-                                              boolean is2D, int nTimepoints, ImageDataFormat imageDataFormat ) {
+                                              boolean is2D, int nTimepoints, ImageDataFormat imageDataFormat,
+                                              boolean exclusive ) {
         Dataset dataset = fetchDataset( datasetName, is2D, nTimepoints );
 
         addNewSegmentationSource( dataset, imageName, imageDataFormat );
         if ( uiSelectionGroup != null ) {
             // add a view with the same name as the image, and sensible defaults
-            addNewSegmentationView( dataset, imageName, uiSelectionGroup );
+            addNewSegmentationView( dataset, imageName, uiSelectionGroup, exclusive );
         }
 
         // if there is no default view, make one with this image and sensible defaults
@@ -132,13 +134,13 @@ public class DatasetJsonCreator {
     }
 
     private void addNewImageView( Dataset dataset, String imageName, String uiSelectionGroup,
-                                  double[] contrastLimits, String colour ) {
-        View view = createImageView( imageName, uiSelectionGroup, false, contrastLimits, colour );
+                                  double[] contrastLimits, String colour, boolean exclusive ) {
+        View view = createImageView( imageName, uiSelectionGroup, exclusive, contrastLimits, colour );
         dataset.views.put( imageName, view );
     }
 
-    private void addNewSegmentationView( Dataset dataset, String imageName, String uiSelectionGroup ) {
-        View view = createSegmentationView( imageName, uiSelectionGroup, false );
+    private void addNewSegmentationView( Dataset dataset, String imageName, String uiSelectionGroup, boolean exclusive ) {
+        View view = createSegmentationView( imageName, uiSelectionGroup, exclusive );
         dataset.views.put( imageName, view );
     }
 
