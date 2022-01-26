@@ -93,7 +93,7 @@
 
 		<!-- EMBL CBA -->
 		<imagej-utils.version>0.6.4</imagej-utils.version>
-		<mobie-io.version>1.1.1</mobie-io.version>
+		<mobie-io.version>1.2.1-SNAPSHOT</mobie-io.version>
 
 		<!-- Version 1.6.0-scijava-3-SNAPSHOT of j3dcore addresses a minor issue
 		https://github.com/fiji/3D_Viewer/issues/26
