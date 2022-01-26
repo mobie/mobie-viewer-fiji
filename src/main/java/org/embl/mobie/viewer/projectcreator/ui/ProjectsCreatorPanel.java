@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.projectcreator.ui;
 
+import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
@@ -424,7 +425,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
             gd.addMessage( "Make sure your pixel size, and unit,\n are set properly under Image > Properties...");
-            gd.addStringField( "Image Name", "", 35 );
+            gd.addStringField( "Image Name", FilenameUtils.removeExtension(currentImage.getTitle()), 35 );
             String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
                     ProjectCreator.ImageType.segmentation.toString() };
             gd.addChoice( "Image Type", imageTypes, imageTypes[0] );
