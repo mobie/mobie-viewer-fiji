@@ -45,8 +45,9 @@ class RemoteMetadataCreatorTest {
     void testAddingRemoteMetadataForCertainFormat( ImageDataFormat imageDataFormat ) throws IOException {
 
         // add image of right type
-        projectCreator.getImagesCreator().addImage( ProjectCreatorTestHelper.makeImage(imageName), imageName, datasetName, imageDataFormat,
-                ProjectCreator.ImageType.image, new AffineTransform3D(), true, uiSelectionGroup);
+        projectCreator.getImagesCreator().addImage( ProjectCreatorTestHelper.makeImage(imageName), imageName,
+                datasetName, imageDataFormat, ProjectCreator.ImageType.image, new AffineTransform3D(),
+                true, uiSelectionGroup, false );
 
         ImageDataFormat remoteFormat = null;
         switch( imageDataFormat ) {
