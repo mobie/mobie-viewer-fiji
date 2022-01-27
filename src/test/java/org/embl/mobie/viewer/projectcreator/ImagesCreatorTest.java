@@ -158,7 +158,7 @@ class ImagesCreatorTest {
 
         imagesCreator.addImage( imp, imageName, datasetName,
                 imageDataFormat, ProjectCreator.ImageType.image,
-                sourceTransform, useDefaultSettings, uiSelectionGroup );
+                sourceTransform, useDefaultSettings, uiSelectionGroup, false );
 
         assertionsForImageAdded( imageDataFormat, false );
     }
@@ -168,7 +168,7 @@ class ImagesCreatorTest {
 
         imagesCreator.addImage( seg, imageName, datasetName,
                 imageDataFormat, ProjectCreator.ImageType.segmentation,
-                sourceTransform, useDefaultSettings, uiSelectionGroup );
+                sourceTransform, useDefaultSettings, uiSelectionGroup, false );
 
         assertionsForImageAdded( imageDataFormat, false );
         assertionsForTableAdded( imageDataFormat );
@@ -180,7 +180,7 @@ class ImagesCreatorTest {
         String filePath = writeImageAndGetPath( imageDataFormat );
 
         imagesCreator.addBdvFormatImage( new File(filePath), datasetName, ProjectCreator.ImageType.image,
-                ProjectCreator.AddMethod.link, uiSelectionGroup, imageDataFormat );
+                ProjectCreator.AddMethod.link, uiSelectionGroup, imageDataFormat, false );
 
         assertionsForImageAdded( imageDataFormat, true );
     }
@@ -191,7 +191,7 @@ class ImagesCreatorTest {
         String filePath = writeImageAndGetPath( imageDataFormat );
 
         imagesCreator.addBdvFormatImage( new File(filePath), datasetName, ProjectCreator.ImageType.image,
-                ProjectCreator.AddMethod.copy, uiSelectionGroup, imageDataFormat );
+                ProjectCreator.AddMethod.copy, uiSelectionGroup, imageDataFormat, false );
 
         assertionsForImageAdded( imageDataFormat, false );
     }
@@ -202,7 +202,7 @@ class ImagesCreatorTest {
         String filePath = writeImageAndGetPath( imageDataFormat );
 
         imagesCreator.addBdvFormatImage( new File(filePath), datasetName, ProjectCreator.ImageType.image,
-                ProjectCreator.AddMethod.move, uiSelectionGroup, imageDataFormat );
+                ProjectCreator.AddMethod.move, uiSelectionGroup, imageDataFormat, false );
 
         assertionsForImageAdded( imageDataFormat, false );
     }
