@@ -37,8 +37,6 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 	@Parameter( label = "Source(s)" )
 	SourceAndConverter[] sourceAndConverterArray;
 
-	private static final int MAX_ARRAY_LENGTH = Integer.MAX_VALUE - 100;
-
 	@Override
 	public void run()
 	{
@@ -50,9 +48,10 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 			executorService.submit( () -> {
 				final Source< T > source = sourceAndConverter.getSpimSource();
 				final Source< T > rootSource = getRootSource( source );
-				IJ.log("Fetching " + rootSource.getName() + "..." );
+				IJ.log("Exporting: " + rootSource.getName() + "..." );
 				final ImagePlus imagePlus = getImagePlus( rootSource, 0 );
 				imagePlus.show();
+				IJ.log("Export done: " + rootSource.getName() + "!" );
 			});
 		}
 	}
