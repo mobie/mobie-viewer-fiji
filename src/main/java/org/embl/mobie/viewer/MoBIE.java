@@ -442,11 +442,11 @@ public class MoBIE
 	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay, String table )
 	{
 		final List< String > segmentationDisplaySources = segmentationDisplay.getSources();
-		final ConcurrentHashMap< String, Set< Source > > sourceNameToRootSources = new ConcurrentHashMap();
+		final ConcurrentHashMap< String, Set< Source< ? > > > sourceNameToRootSources = new ConcurrentHashMap();
 
 		for ( String sourceName : segmentationDisplaySources )
 		{
-			Set< Source > rootSources = ConcurrentHashMap.newKeySet();
+			Set< Source< ? > > rootSources = ConcurrentHashMap.newKeySet();
 			BdvPlaygroundUtils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSources );
 			sourceNameToRootSources.put( sourceName, rootSources );
 		}
@@ -456,7 +456,7 @@ public class MoBIE
 		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( String displayedSourceName : segmentationDisplaySources )
 		{
-			final Set< Source > rootSources = sourceNameToRootSources.get( displayedSourceName );
+			final Set< Source< ? > > rootSources = sourceNameToRootSources.get( displayedSourceName );
 			for ( Source rootSource : rootSources )
 			{
 				futures.add( ThreadUtils.ioExecutorService.submit( () -> 				loadAndAddPrimaryTable( table, primaryTables, rootSource.getName() ) ) );

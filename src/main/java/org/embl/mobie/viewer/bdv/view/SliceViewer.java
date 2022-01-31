@@ -2,14 +2,13 @@ package org.embl.mobie.viewer.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import ij.ImagePlus;
 import org.embl.mobie.viewer.bdv.MobieBdvSupplier;
 import org.embl.mobie.viewer.bdv.MobieSerializableBdvOptions;
 import org.embl.mobie.viewer.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.viewer.bdv.ViewerTransformLogger;
 import org.embl.mobie.viewer.command.ImagePlusExportCommand;
-import org.embl.mobie.viewer.command.RegisterManuallyCommand;
-import org.embl.mobie.viewer.command.RegisterWithBigWarpCommand;
+import org.embl.mobie.viewer.command.ManualRegistrationCommand;
+import org.embl.mobie.viewer.command.BigWarpRegistrationCommand;
 import org.embl.mobie.viewer.command.ImageVolumeRenderingConfiguratorCommand;
 import org.embl.mobie.viewer.command.NonSelectedSegmentsOpacityAdjusterCommand;
 import org.embl.mobie.viewer.command.SegmentsVolumeRenderingConfiguratorCommand;
@@ -104,8 +103,8 @@ public class SliceViewer implements Supplier< BdvHandle >
 				sacService.getCommandName( ScreenShotMakerCommand.class ),
 				sacService.getCommandName( ImagePlusExportCommand.class ),
 				sacService.getCommandName( ViewerTransformLogger.class ),
-				sacService.getCommandName( RegisterWithBigWarpCommand.class ),
-				sacService.getCommandName( RegisterManuallyCommand.class ),
+				sacService.getCommandName( BigWarpRegistrationCommand.class ),
+				sacService.getCommandName( ManualRegistrationCommand.class ),
 				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
 				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
 				sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ),

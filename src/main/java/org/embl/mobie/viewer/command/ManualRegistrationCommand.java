@@ -11,7 +11,7 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import javax.swing.*;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Transform>Registration - Manual")
-public class RegisterManuallyCommand implements BdvPlaygroundActionCommand
+public class ManualRegistrationCommand implements BdvPlaygroundActionCommand
 {
 
 	private AffineTransform3D originalFixedTransform;

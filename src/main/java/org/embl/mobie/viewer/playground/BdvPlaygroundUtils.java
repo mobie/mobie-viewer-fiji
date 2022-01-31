@@ -41,11 +41,11 @@ public class BdvPlaygroundUtils
 	}
 
 	/**
-	 * Recursively fetch the names of all root sources
+	 * Recursively fetch all root sources
 	 * @param source
 	 * @param rootSources
 	 */
-	public static void fetchRootSources( Source< ? > source, Set< Source > rootSources )
+	public static void fetchRootSources( Source< ? > source, Set< Source< ? > > rootSources )
 	{
 		if ( source instanceof SpimSource )
 		{

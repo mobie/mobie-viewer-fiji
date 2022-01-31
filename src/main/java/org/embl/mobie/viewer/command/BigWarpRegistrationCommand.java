@@ -19,7 +19,6 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.sourceandconverter.register.BigWarpLauncher;
 
-import javax.swing.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -27,50 +26,40 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Transform>Registration - BigWarp")
-public class RegisterWithBigWarpCommand implements BdvPlaygroundActionCommand, TransformListener< InvertibleRealTransform >
+public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, TransformListener< InvertibleRealTransform >
 {
 	@Parameter
 	BdvHandle bdvHandle;
 
 	@Parameter(label = "Moving Source(s)")
-	SourceAndConverter< ? >[] movingSources;
+	SourceAndConverter[] movingSources;
 
 	@Parameter(label = "Fixed Source(s)")
-	SourceAndConverter< ? >[] fixedSources;
+	SourceAndConverter[] fixedSources;
 
 	@Parameter
 	SourceAndConverterBdvDisplayService bdvDisplayService;
 
-	@Parameter(type = ItemIO.OUTPUT)
-	BdvHandle bigWarpBdvHandle1;
-
-	@Parameter(type = ItemIO.OUTPUT)
-	BdvHandle bigWarpBdvHandle2;
-
 	private BigWarp bigWarp;
 	private Map< SourceAndConverter< ? >, AffineTransform3D > sacToOriginalFixedTransform;
-	private List< SourceAndConverter > movingSacList;
-	private List< SourceAndConverter > fixedSacList;
+	private List< SourceAndConverter > movingSacs;
+	private List< SourceAndConverter > fixedSacs;
 
 	@Override
 	public void run()
 	{
-		movingSacList = Arrays.stream( movingSources ).collect( Collectors.toList() );
-		fixedSacList = Arrays.stream( fixedSources ).collect( Collectors.toList() );
+		movingSacs = Arrays.stream( movingSources ).collect( Collectors.toList() );
+		fixedSacs = Arrays.stream( fixedSources ).collect( Collectors.toList() );
 
-		storeOriginalTransforms( movingSacList );
+		storeOriginalTransforms( movingSacs );
 
 		List< ConverterSetup > converterSetups = Arrays.stream( movingSources ).map( src -> bdvDisplayService.getConverterSetup(src)).collect( Collectors.toList() );
 		converterSetups.addAll( Arrays.stream( fixedSources ).map( src -> bdvDisplayService.getConverterSetup( src) ).collect( Collectors.toList() ) );
 
-		BigWarpLauncher bigWarpLauncher = new BigWarpLauncher( movingSacList, fixedSacList, "Big Warp", converterSetups);
+		BigWarpLauncher bigWarpLauncher = new BigWarpLauncher( movingSacs, fixedSacs, "Big Warp", converterSetups);
 		bigWarpLauncher.run();
 
-		// TODO: Why do we need this?
-		bigWarpBdvHandle1 = bigWarpLauncher.getBdvHandleQ();
-		bigWarpBdvHandle2 = bigWarpLauncher.getBdvHandleP();
-
-		bdvDisplayService.pairClosing( bigWarpBdvHandle1, bigWarpBdvHandle2 );
+		bdvDisplayService.pairClosing( bigWarpLauncher.getBdvHandleQ(), bigWarpLauncher.getBdvHandleP() );
 
 		bigWarp = bigWarpLauncher.getBigWarp();
 		bigWarp.setTransformType( TransformTypeSelectDialog.AFFINE );
@@ -100,7 +89,7 @@ public class RegisterWithBigWarpCommand implements BdvPlaygroundActionCommand, T
 
 	private void resetMovingTransforms()
 	{
-		for ( SourceAndConverter movingSac : movingSacList )
+		for ( SourceAndConverter movingSac : movingSacs )
 		{
 			( ( TransformedSource) movingSac.getSpimSource() ).setFixedTransform( sacToOriginalFixedTransform.get( movingSac ) );
 		}
