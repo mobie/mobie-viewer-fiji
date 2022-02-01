@@ -27,25 +27,37 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Show Array Data")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+ "Sources>Show " + ImagePlusExportCommand.RAW + " Data" )
 public class ImagePlusExportCommand< T extends NumericType< T > > implements BdvPlaygroundActionCommand
 {
-	@Parameter( label = "Source(s)" )
-	SourceAndConverter[] sourceAndConverterArray;
+	public static final String RAW = "Raw"; // aka "Array" or "Voxel Grid", ... (not sure yet...)
 
-	private int maxNumPixelsXY = 2000 * 2000;
+	@Parameter( label = "Source(s)" )
+	public SourceAndConverter[] sourceAndConverterArray;
+
+	@Parameter( label = "Maximum number of pixels in X" )
+	public int maxNumX = 2000;
+
+	@Parameter( label = "Maximum number of pixels in Y" )
+	public int maxNumY = 2000;
 
 	@Override
 	public void run()
 	{
+		final long maxNumPixelsXY = ( long ) maxNumX * ( long ) maxNumY;
+		if ( maxNumPixelsXY > Integer.MAX_VALUE )
+		{
+			IJ.showMessage( "The maximum number of pixels that can be shown in one plane are " + Integer.MAX_VALUE + ".\n" +
+					"With the current choice of maxNumX and maxNumY a higher value could be reached: " + maxNumPixelsXY + ".\n" +
+					"Please reduce the number of pixels in x or y.");
+			return;
+		}
+
 		final List< SourceAndConverter< T > > sourceAndConverters = getSacs();
 
-		final ExecutorService executorService = ThreadUtils.executorService;
 		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
 		{
-			//executorService.submit( () -> {
-			exportAsImagePlus( sourceAndConverter, maxNumPixelsXY );
-			//});
+			exportAsImagePlus( sourceAndConverter, (int) maxNumPixelsXY );
 		}
 	}
 
@@ -60,7 +72,7 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 			return;
 		}
 
-		IJ.log(source.getName() + ": Array data = " + rootSource.getName() );
+		IJ.log(source.getName() + ": " + RAW + " data = " + rootSource.getName() );
 
 		int exportLevel = getExportLevel( source, rootSource, maxNumPixelsXY );
 
@@ -94,8 +106,8 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 
 		IJ.log( source.getName() + ": Scale = " + Arrays.toString( sourceScale ) );
 		IJ.log( source.getName() + ": Transform = " + sourceTransform );
-		IJ.log( source.getName() + ": Array data scale = " + Arrays.toString( rootSourceScale ) );
-		IJ.log( source.getName() + ": Array data transform = " + rootSourceTransform );
+		IJ.log( source.getName() + ": " + RAW + " data scale = " + Arrays.toString( rootSourceScale ) );
+		IJ.log( source.getName() + ": " + RAW + " data transform = " + rootSourceTransform );
 
 		final ImagePlus imagePlus = getImagePlus( rootSource, exportLevel );
 		imagePlus.getCalibration().setUnit( rootSource.getVoxelDimensions().unit() );
