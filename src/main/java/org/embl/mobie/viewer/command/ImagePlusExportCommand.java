@@ -1,10 +1,9 @@
 package org.embl.mobie.viewer.command;
 
 import bdv.tools.transformation.TransformedSource;
+import bdv.util.Affine3DHelpers;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.tables.Utils;
 import ij.IJ;
 import ij.ImagePlus;
 import net.imglib2.RandomAccessibleInterval;
@@ -15,27 +14,26 @@ import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.ThreadUtils;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
-import org.embl.mobie.viewer.source.SegmentationSource;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Export Images as ImagePlus")
 public class ImagePlusExportCommand< T extends NumericType< T > > implements BdvPlaygroundActionCommand
 {
 	@Parameter( label = "Source(s)" )
 	SourceAndConverter[] sourceAndConverterArray;
+
+	private int maxNumPixelsXY = 2000 * 2000;
 
 	@Override
 	public void run()
@@ -45,15 +43,79 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 		final ExecutorService executorService = ThreadUtils.executorService;
 		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
 		{
-			executorService.submit( () -> {
-				final Source< T > source = sourceAndConverter.getSpimSource();
-				final Source< T > rootSource = getRootSource( source );
-				IJ.log("Exporting: " + rootSource.getName() + "..." );
-				final ImagePlus imagePlus = getImagePlus( rootSource, 0 );
-				imagePlus.show();
-				IJ.log("Export done: " + rootSource.getName() + "!" );
-			});
+			//executorService.submit( () -> {
+			exportAsImagePlus( sourceAndConverter, maxNumPixelsXY );
+			//});
 		}
+	}
+
+	private void exportAsImagePlus( SourceAndConverter< T > sourceAndConverter, int maxNumPixelsXY )
+	{
+		final Source< T > source = sourceAndConverter.getSpimSource();
+		final Source< T > rootSource = getRootSource( source );
+
+		if ( rootSource == null )
+		{
+			IJ.log( source.getName() + ": Consists of multiple sources and export to ImagePlus is not yet supported.");
+			return;
+		}
+
+		IJ.log(source.getName() + ": Root image = " + rootSource.getName() );
+
+		int exportLevel = getExportLevel( source, rootSource, maxNumPixelsXY );
+
+		if ( exportLevel == -1 )
+		{
+			IJ.log(source.getName() + " is too big at all resolution levels and thus cannot be exported.");
+			return;
+		}
+
+		long[] dimensions = source.getSource( 0, exportLevel ).dimensionsAsLongArray();
+		double fractionMaxNumPixelsXY = ( double ) dimensions[ 0 ] * ( double ) dimensions[ 1 ] / Integer.MAX_VALUE;
+
+		IJ.log( source.getName() + ": Exporting at resolution level = " + exportLevel );
+		IJ.log( source.getName() + ": [nx, yz, nz] = " + Arrays.toString( dimensions ) + "; nx*ny/nMax = " + fractionMaxNumPixelsXY );
+
+		final AffineTransform3D sourceTransform = new AffineTransform3D();
+		source.getSourceTransform( 0, exportLevel, sourceTransform );
+		IJ.log( source.getName() + ": Transform = " + sourceTransform );
+		final AffineTransform3D rootSourceTransform = new AffineTransform3D();
+		rootSource.getSourceTransform( 0, exportLevel, rootSourceTransform );
+		IJ.log( source.getName() + ": Root transform = " + rootSourceTransform );
+
+		double[] sourceScale = new double[ 3 ];
+		double[] rootSourceScale = new double[ 3 ];
+
+		for ( int d = 0; d < 3; d++ )
+		{
+			sourceScale[ d ] = Affine3DHelpers.extractScale( sourceTransform, d );
+			rootSourceScale[ d ] = Affine3DHelpers.extractScale( rootSourceTransform, d );
+		}
+
+		IJ.log( source.getName() + ": Scale = " + Arrays.toString( sourceScale ) );
+		IJ.log( source.getName() + ": Root scale = " + Arrays.toString( rootSourceScale ) );
+
+
+		final ImagePlus imagePlus = getImagePlus( rootSource, exportLevel );
+		imagePlus.show();
+
+		IJ.log(source.getName() + ": Export done!" );
+	}
+
+	private int getExportLevel( Source< T > source, Source< T > rootSource, int maxNumPixelsXY )
+	{
+		final int numMipmapLevels = rootSource.getNumMipmapLevels();
+
+		for ( int level = 0; level < numMipmapLevels; level++ )
+		{
+			long[] dimensions = source.getSource( 0, level ).dimensionsAsLongArray();
+			double fractionMaxNumPixelsXY = ( double ) dimensions[ 0 ] * ( double ) dimensions[ 1 ] / maxNumPixelsXY;
+			if ( fractionMaxNumPixelsXY < 1 )
+			{
+				return level;
+			}
+		}
+		return -1;
 	}
 
 	private Source< T > getRootSource( Source< T > source )
@@ -62,7 +124,7 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 		BdvPlaygroundUtils.fetchRootSources( source, rootSources );
 		if ( rootSources.size() > 1 )
 		{
-			throw new RuntimeException( source.getName() + " consists of multiple sources and export to ImagePlus is not supported.");
+			return null;
 		}
 		final Source< T > rootSource = ( Source< T > ) rootSources.iterator().next();
 		return rootSource;

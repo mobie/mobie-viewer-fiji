@@ -35,8 +35,6 @@ import static org.embl.mobie.viewer.ui.SwingHelper.selectionDialog;
 
 public abstract class MoBIEUtils
 {
-	private static final int MAX_ARRAY_LENGTH = Integer.MAX_VALUE - 100;
-
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	public static int[] asInts( long[] longs) {
