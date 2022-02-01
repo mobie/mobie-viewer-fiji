@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Export Images as ImagePlus")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Show Array Data")
 public class ImagePlusExportCommand< T extends NumericType< T > > implements BdvPlaygroundActionCommand
 {
 	@Parameter( label = "Source(s)" )
@@ -60,7 +60,7 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 			return;
 		}
 
-		IJ.log(source.getName() + ": Root image = " + rootSource.getName() );
+		IJ.log(source.getName() + ": Array data = " + rootSource.getName() );
 
 		int exportLevel = getExportLevel( source, rootSource, maxNumPixelsXY );
 
@@ -78,10 +78,10 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 
 		final AffineTransform3D sourceTransform = new AffineTransform3D();
 		source.getSourceTransform( 0, exportLevel, sourceTransform );
-		IJ.log( source.getName() + ": Transform = " + sourceTransform );
+
 		final AffineTransform3D rootSourceTransform = new AffineTransform3D();
 		rootSource.getSourceTransform( 0, exportLevel, rootSourceTransform );
-		IJ.log( source.getName() + ": Root transform = " + rootSourceTransform );
+
 
 		double[] sourceScale = new double[ 3 ];
 		double[] rootSourceScale = new double[ 3 ];
@@ -93,10 +93,16 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 		}
 
 		IJ.log( source.getName() + ": Scale = " + Arrays.toString( sourceScale ) );
-		IJ.log( source.getName() + ": Root scale = " + Arrays.toString( rootSourceScale ) );
-
+		IJ.log( source.getName() + ": Transform = " + sourceTransform );
+		IJ.log( source.getName() + ": Array data scale = " + Arrays.toString( rootSourceScale ) );
+		IJ.log( source.getName() + ": Array data transform = " + rootSourceTransform );
 
 		final ImagePlus imagePlus = getImagePlus( rootSource, exportLevel );
+		imagePlus.getCalibration().setUnit( rootSource.getVoxelDimensions().unit() );
+		imagePlus.getCalibration().pixelWidth = rootSourceScale[ 0 ];
+		imagePlus.getCalibration().pixelHeight = rootSourceScale[ 1 ];
+		imagePlus.getCalibration().pixelDepth = rootSourceScale[ 2 ];
+
 		imagePlus.show();
 
 		IJ.log(source.getName() + ": Export done!" );
