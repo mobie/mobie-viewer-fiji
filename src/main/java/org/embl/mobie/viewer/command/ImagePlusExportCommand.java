@@ -83,17 +83,15 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 		}
 
 		long[] dimensions = source.getSource( 0, exportLevel ).dimensionsAsLongArray();
-		double fractionMaxNumPixelsXY = ( double ) dimensions[ 0 ] * ( double ) dimensions[ 1 ] / Integer.MAX_VALUE;
 
 		IJ.log( source.getName() + ": Exporting at resolution level = " + exportLevel );
-		IJ.log( source.getName() + ": [nx, yz, nz] = " + Arrays.toString( dimensions ) + "; nx*ny/nMax = " + fractionMaxNumPixelsXY );
+		IJ.log( source.getName() + ": [nx, yz, nz] = " + Arrays.toString( dimensions ) );
 
 		final AffineTransform3D sourceTransform = new AffineTransform3D();
 		source.getSourceTransform( 0, exportLevel, sourceTransform );
 
 		final AffineTransform3D rootSourceTransform = new AffineTransform3D();
 		rootSource.getSourceTransform( 0, exportLevel, rootSourceTransform );
-
 
 		double[] sourceScale = new double[ 3 ];
 		double[] rootSourceScale = new double[ 3 ];
