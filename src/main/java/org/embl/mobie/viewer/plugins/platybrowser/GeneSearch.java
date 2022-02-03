@@ -16,7 +16,9 @@ import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.ThreadUtils;
 import org.embl.mobie.viewer.source.ImageSource;
+import org.embl.mobie.viewer.view.View;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -28,30 +30,58 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 import static org.embl.mobie.viewer.plugins.platybrowser.GeneSearch.GeneSearchUtils.getFractionOfNonZeroVoxels;
 import static org.embl.mobie.viewer.plugins.platybrowser.GeneSearch.GeneSearchUtils.sortByValue;
 
 public class GeneSearch
 {
+	private static final String PROSPR_UI_SELECTION_GROUP = "prospr";
+
 	private final double micrometerRadius;
 	private final double[] micrometerPosition;
+	private final MoBIE moBIE;
 	private Map< String, Double > localExpression;
+	private Collection< String > prosprSourceNames;
+	private Map< String, SourceAndConverter< ? > > prosprSources;
 
 	public GeneSearch( double micrometerRadius,
-					   double[] micrometerPosition )
+					   double[] micrometerPosition,
+					   MoBIE moBIE )
 	{
 		this.micrometerRadius = micrometerRadius;
 		this.micrometerPosition = micrometerPosition;
+		this.moBIE = moBIE;
 	}
 
 	public void searchGenes( )
 	{
-		final Map< String, Double > geneExpressionLevels = runSearchAndGetLocalExpression();
+		prosprSourceNames = fetchProsprSourceNames();
+
+		// TODO: One should not open the raw sources but the views,
+		//  because there may be additional transformations in the views.
+		//  This could be done using those methods:
+		//  moBIE.getViewManager().openAndTransformViewSources( view );
+		//  Since the Prospr sources are not transformed, this does not matter (yet)...
+
+		IJ.log( "WARNING: Current code will result false results in case the ProSPR sources become transformed on the view level." );
+
+		if ( prosprSources == null )
+			prosprSources = moBIE.openSourceAndConverters( prosprSourceNames );
+
+		final Map< String, Double > geneExpressionLevels = runSearchAndGetLocalExpression( prosprSources );
 
 		GeneSearchUtils.addRowToGeneExpressionTable( micrometerPosition, micrometerRadius, geneExpressionLevels );
 
 		GeneSearchUtils.logGeneExpression( micrometerPosition, micrometerRadius, geneExpressionLevels );
+	}
+
+	private Collection< String> fetchProsprSourceNames()
+	{
+		final Map< String, Map< String, View > > groupingsToViews = moBIE.getUserInterface().getGroupingsToViews();
+		return groupingsToViews.get( PROSPR_UI_SELECTION_GROUP ).keySet();
 	}
 
 	private Map< String, Double > getExpressionLevelsSortedByValue()
@@ -61,37 +91,41 @@ public class GeneSearch
 		return localSortedExpression;
 	}
 
-	private Map< String, Double > runSearchAndGetLocalExpression()
+	private Map< String, Double > runSearchAndGetLocalExpression( Map< String, SourceAndConverter< ? > > sources )
 	{
-		localExpression = new LinkedHashMap<>(  );
+		localExpression = new ConcurrentHashMap<>();
 
 		IJ.log( "# Gene search" );
-
-
-		final Map< String, SourceAndConverter< ? > > prosprSources = GeneSearchUtils.getProsprSources();
-
-		// TODO: do this multi-threaded?
-		for ( String sourceName : prosprSources.keySet() )
+		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
+		for ( String gene : sources.keySet() )
 		{
-			final SourceAndConverter< ? > sourceAndConverter = prosprSources.get( sourceName );
-
-			final Source< ? > source = sourceAndConverter.getSpimSource();
-
-			final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
-
-			final VoxelDimensions voxelDimensions = source.getVoxelDimensions();
-
-			final double fractionOfNonZeroVoxels = getFractionOfNonZeroVoxels(
-					( RandomAccessibleInterval ) rai,
-					micrometerPosition,
-					micrometerRadius,
-					voxelDimensions.dimension( 0 ) );
-
-			localExpression.put( sourceName, fractionOfNonZeroVoxels );
-			IJ.log("Gene Search: Fraction of non-zero voxels in search region: " + sourceName + ": " + fractionOfNonZeroVoxels );
+			futures.add(
+				ThreadUtils.executorService.submit( () -> {
+					searchGene( sources.get( gene ) );
+			}));
 		}
+		ThreadUtils.waitUntilFinished( futures );
 
 		return localExpression;
+	}
+
+	private void searchGene( SourceAndConverter< ? > sourceAndConverter )
+	{
+		final Source< ? > source = sourceAndConverter.getSpimSource();
+
+		final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
+
+		final VoxelDimensions voxelDimensions = source.getVoxelDimensions();
+
+		final double fractionOfNonZeroVoxels = getFractionOfNonZeroVoxels(
+				( RandomAccessibleInterval ) rai,
+				micrometerPosition,
+				micrometerRadius,
+				voxelDimensions.dimension( 0 ) );
+
+		localExpression.put( source.getName(), fractionOfNonZeroVoxels );
+
+		IJ.log( "Gene Search: Fraction of non-zero voxels in search region: " + source.getName() + ": " + fractionOfNonZeroVoxels );
 	}
 
 	private void removeGenesWithZeroExpression( Map< String, Double > localSortedExpression)
@@ -114,7 +148,6 @@ public class GeneSearch
 	// TODO: It makes no sense to have this as an extra class => move all methods into GeneSearch
 	public static class GeneSearchUtils
 	{
-		public static final String PROSPR = "prospr-";
 		private static Map< String, SourceAndConverter< ? > > prosprSources;
 
 		private static JTable table;
@@ -293,19 +326,11 @@ public class GeneSearch
 				final ImageSource imageSource = dataset.sources.get( sourceName ).get();
 				final String relativePath = imageSource.imageData.get( imageDataFormat ).relativePath;
 
-				if ( relativePath.contains( PROSPR ) )
+				if ( relativePath.contains( PROSPR_UI_SELECTION_GROUP ) )
 				{
 					prosprSourceNames.add( sourceName );
 				};
 			}
-		}
-
-		// TODO: note that if we ever apply an additional registration one would need to open those source via a view
-		public static Map< String, SourceAndConverter< ? > > getProsprSources()
-		{
-			if ( prosprSources == null )
-				prosprSources = moBIE.openSourceAndConverters( prosprSourceNames );
-			return prosprSources;
 		}
 
 		public static void setMoBIE( MoBIE moBIE )

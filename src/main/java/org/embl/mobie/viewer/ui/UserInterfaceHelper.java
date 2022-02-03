@@ -422,6 +422,11 @@ public class UserInterfaceHelper
 		viewsSelectionPanelHeight = groupingsToViews.keySet().size() * 40;
 	}
 
+	public Map< String, Map< String, View > > getGroupingsToViews()
+	{
+		return groupingsToViews;
+	}
+
 	public int getViewsSelectionPanelHeight()
 	{
 		return viewsSelectionPanelHeight;

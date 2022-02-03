@@ -69,21 +69,9 @@ public class ViewManager
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewsSaver viewsSaver;
 
-	private View currentView;
-
-    public void setCurrentView( View currentView )
-    {
-        this.currentView = currentView;
-    }
-
     public List<SourceTransformer> getCurrentSourceTransformers()
     {
         return currentSourceTransformers;
-    }
-
-    public View getCurrentView()
-    {
-        return currentView;
     }
 
     public UserInterface getUserInterface()
@@ -97,7 +85,7 @@ public class ViewManager
 		this.userInterface = userInterface;
 		currentSourceDisplays = new ArrayList<>();
 		currentSourceTransformers = new ArrayList<>();
-		sliceViewer = new SliceViewer( is2D, this, timepoints, moBIE.getProjectSpecificCommands() );
+		sliceViewer = new SliceViewer( is2D, this, timepoints, moBIE.getProjectCommands() );
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
@@ -272,15 +260,29 @@ public class ViewManager
 		{
 			removeAllSourceDisplays();
 		}
-		currentView = view;
 
+		openAndTransformViewSources( view );
+
+		// show the displays
+		MoBIELookAndFeelToggler.setMoBIELaf();
+		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
+		for ( SourceDisplay sourceDisplay : sourceDisplays )
+			showSourceDisplay( sourceDisplay );
+		MoBIELookAndFeelToggler.resetMoBIELaf();
+
+		// adjust viewer transform
+		adjustViewerTransform( view );
+	}
+
+	public void openAndTransformViewSources( View view )
+	{
 		// fetch the names of all sources that are either shown or to be transformed
 		final Set< String > sources = fetchSources( view );
 		SourceNameEncoder.addNames( sources );
-		final Set< String > datasetSources = sources.stream().filter( s -> moBIE.getDataset().sources.containsKey( s ) ).collect( Collectors.toSet() );
+		final Set< String > rawSources = sources.stream().filter( s -> moBIE.getDataset().sources.containsKey( s ) ).collect( Collectors.toSet() );
 
 		// open all raw sources
-		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( datasetSources );
+		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( rawSources );
 
 		// create transformed sources
 		final List< SourceTransformer > sourceTransformers = view.getSourceTransforms();
@@ -299,17 +301,9 @@ public class ViewManager
 		}
 
 		// register all available (transformed) sources in MoBIE
+		// this is where the source and segmentation displays will
+		// get the sources from
 		moBIE.addTransformedSourceAndConverters( sourceNameToSourceAndConverters );
-
-		// show the displays
-		MoBIELookAndFeelToggler.setMoBIELaf();
-		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
-		for ( SourceDisplay sourceDisplay : sourceDisplays )
-			showSourceDisplay( sourceDisplay );
-		MoBIELookAndFeelToggler.resetMoBIELaf();
-
-		// adjust viewer transform
-		adjustViewerTransform( view );
 	}
 
 	public void adjustViewerTransform( View view )

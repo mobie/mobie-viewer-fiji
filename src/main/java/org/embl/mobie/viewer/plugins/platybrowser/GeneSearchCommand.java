@@ -4,6 +4,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import net.imglib2.RealPoint;
+import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.color.LabelConverter;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -26,6 +27,13 @@ public class GeneSearchCommand implements BdvPlaygroundActionCommand
 	@Parameter ( label = "Search radius [micrometer]")
 	private double micrometerRadius = 3.0;
 
+	private static MoBIE moBIE;
+
+	public static void setMoBIE( MoBIE moBIE )
+	{
+		GeneSearchCommand.moBIE = moBIE;
+	}
+
 	@Override
 	public void run()
 	{
@@ -38,7 +46,7 @@ public class GeneSearchCommand implements BdvPlaygroundActionCommand
 		{
 			IJ.log( "Gene search at [um]: " + Arrays.toString( micrometerPosition ) );
 			IJ.log( "Gene search: In progress, please wait..." );
-			final GeneSearch geneSearch = new GeneSearch( micrometerRadius, micrometerPosition );
+			final GeneSearch geneSearch = new GeneSearch( micrometerRadius, micrometerPosition, moBIE );
 			geneSearch.searchGenes();
 			IJ.log( "Gene search: Done!" );
 		}

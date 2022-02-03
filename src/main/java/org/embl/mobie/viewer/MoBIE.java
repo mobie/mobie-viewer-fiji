@@ -15,7 +15,6 @@ import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
-import org.embl.mobie.viewer.plugins.platybrowser.GeneSearch;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
@@ -63,7 +62,7 @@ public class MoBIE
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private Map< String, SourceAndConverter< ? > > sourceNameToTransformedSourceAndConverter;
-	private ArrayList< String > projectSpecificCommands;
+	private ArrayList< String > projectCommands = new ArrayList<>();;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -76,6 +75,7 @@ public class MoBIE
 		this.settings = settings.projectLocation( projectLocation );
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations( );
+		registerProjectPlugins( settings.values.getProjectLocation() );
 		projectName = MoBIEUtils.getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
@@ -83,14 +83,15 @@ public class MoBIE
 		openDataset();
 	}
 
-	private void registerProjectSpecificCommands( String projectLocation, Dataset dataset )
+	// TODO: probably such plugins should rather come with the MoBIESettings
+	//  such that additional commands could be registered without
+	//  changing the core code
+	private void registerProjectPlugins( String projectLocation )
 	{
 		if( projectLocation.contains( "platybrowser" ) )
 		{
-			GeneSearch.GeneSearchUtils.setProsprSourceNames( settings.values.getImageDataFormat(), dataset );
-			GeneSearch.GeneSearchUtils.setMoBIE( this );
-			projectSpecificCommands = new ArrayList<>();
-			projectSpecificCommands.add( SourceAndConverterService.getCommandName(  GeneSearchCommand.class ) );
+			GeneSearchCommand.setMoBIE( this );
+			projectCommands.add( SourceAndConverterService.getCommandName(  GeneSearchCommand.class ) );
 		}
 	}
 
@@ -209,9 +210,9 @@ public class MoBIE
 	/*
 	 * Opens "raw" SourceAndConverters.
 	 * Note that they do not yet contain all source transforms that may be applied by a view.
-	 * However sourceAndConverters obtained via the getSourceAndConverter method
-	 * are containing all the current sourceTransforms.
-	 * This is confusing...
+	 * However, sourceAndConverters obtained via the getSourceAndConverter method
+	 * are containing all the sourceTransforms.
+	 * This can be confusing...
 	 */
 	public Map< String, SourceAndConverter< ? > > openSourceAndConverters( Collection< String > sources )
 	{
@@ -239,7 +240,6 @@ public class MoBIE
 		sourceNameToTransformedSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
-		registerProjectSpecificCommands( settings.values.getProjectLocation(), dataset );
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
 		final View view = dataset.views.get( settings.values.getView() );
@@ -643,8 +643,8 @@ public class MoBIE
 		return sourceNameToTransformedSourceAndConverter.get( sourceName );
 	}
 
-	public ArrayList< String > getProjectSpecificCommands()
+	public ArrayList< String > getProjectCommands()
 	{
-		return projectSpecificCommands;
+		return projectCommands;
 	}
 }
