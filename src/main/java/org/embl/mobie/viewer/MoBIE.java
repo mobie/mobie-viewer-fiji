@@ -15,6 +15,7 @@ import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
+import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.ImageSource;
@@ -32,6 +33,7 @@ import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.sequence.ImgLoader;
 import sc.fiji.bdvpg.PlaygroundPrefs;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
@@ -60,6 +62,7 @@ public class MoBIE
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
+	private ArrayList< String > projectCommands;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -72,6 +75,12 @@ public class MoBIE
 		this.settings = settings.projectLocation( projectLocation );
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations( );
+		if( projectLocation.contains( "platybrowser" ) )
+		{
+			projectCommands = new ArrayList<>();
+			projectCommands.add( SourceAndConverterService.getCommandName(  GeneSearchCommand.class ) );
+
+		}
 		projectName = MoBIEUtils.getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
@@ -620,5 +629,10 @@ public class MoBIE
 	public SourceAndConverter< ? > getSourceAndConverter( String sourceName )
 	{
 		return this.sourceNameToSourceAndConverter.get( sourceName );
+	}
+
+	public ArrayList< String > getProjectCommands()
+	{
+		return projectCommands;
 	}
 }

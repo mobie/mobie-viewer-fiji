@@ -1,8 +1,9 @@
 package org.embl.mobie.viewer.plugins.platybrowser;
 
+import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.tables.image.ImageSourcesModel;
 import de.embl.cba.tables.image.SourceAndMetadata;
 import ij.IJ;
 import mpicbg.spim.data.sequence.VoxelDimensions;
@@ -10,6 +11,7 @@ import net.imglib2.RandomAccessibleInterval;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.embl.mobie.viewer.plugins.platybrowser.GeneSearchUtils.getFractionOfNonZeroVoxels;
@@ -20,16 +22,16 @@ public class GeneSearch
 {
 	private final double micrometerRadius;
 	private final double[] micrometerPosition;
-	private final ImageSourcesModel imageSourcesModel;
+	private final List< SourceAndConverter< ? > > sourceAndConverters;
 	private Map< String, Double > localExpression;
 
 	public GeneSearch( double micrometerRadius,
 					   double[] micrometerPosition,
-					   ImageSourcesModel imageSourcesModel )
+					   List< SourceAndConverter< ? > > sourceAndConverters )
 	{
 		this.micrometerRadius = micrometerRadius;
 		this.micrometerPosition = micrometerPosition;
-		this.imageSourcesModel = imageSourcesModel;
+		this.sourceAndConverters = sourceAndConverters;
 	}
 
 	public void searchGenes( )
@@ -52,25 +54,19 @@ public class GeneSearch
 
 	private Map< String, Double > runSearchAndGetLocalExpression()
 	{
-		final Map< String, SourceAndMetadata< ? > > sources = imageSourcesModel.sources();
-
 		localExpression = new LinkedHashMap<>(  );
 
 		IJ.log( "# Gene search" );
-		for ( String sourceName : sources.keySet() )
+
+		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			final Metadata.Type type = sources.get( sourceName ).metadata().type;
-			if ( ! type.equals( Metadata.Type.Image )  ) continue;
-			if ( ! sourceName.contains( GeneSearchUtils.PROSPR ) ) continue;
+			final Source< ? > source = sourceAndConverter.getSpimSource();
 
-			final SourceAndMetadata sourceAndMetadata =
-					sources.get( sourceName );
+			if ( ! source.getName().contains( GeneSearchUtils.PROSPR ) ) continue;
 
-			final RandomAccessibleInterval< ? > rai =
-					BdvUtils.getRealTypeNonVolatileRandomAccessibleInterval(
-							sourceAndMetadata.source(), 0, 0 );
+			final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
 
-			final VoxelDimensions voxelDimensions = sourceAndMetadata.source().getVoxelDimensions();
+			final VoxelDimensions voxelDimensions = source.getVoxelDimensions();
 
 			final double fractionOfNonZeroVoxels = getFractionOfNonZeroVoxels(
 					( RandomAccessibleInterval ) rai,
@@ -78,7 +74,7 @@ public class GeneSearch
 					micrometerRadius,
 					voxelDimensions.dimension( 0 ) );
 
-			final String simplifiedSourceName = getSimplifiedSourceName( sourceName, true );
+			final String simplifiedSourceName = getSimplifiedSourceName( source.getName(), true );
 			localExpression.put( simplifiedSourceName, fractionOfNonZeroVoxels );
 			IJ.log(simplifiedSourceName + ": " + fractionOfNonZeroVoxels );
 		}

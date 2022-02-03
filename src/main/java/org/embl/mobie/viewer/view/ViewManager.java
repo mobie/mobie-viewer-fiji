@@ -97,7 +97,7 @@ public class ViewManager
 		this.userInterface = userInterface;
 		currentSourceDisplays = new ArrayList<>();
 		currentSourceTransformers = new ArrayList<>();
-		sliceViewer = new SliceViewer( is2D, this, timepoints );
+		sliceViewer = new SliceViewer( is2D, this, timepoints, moBIE.getProjectCommands() );
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
