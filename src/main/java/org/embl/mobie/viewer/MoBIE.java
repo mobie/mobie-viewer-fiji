@@ -63,7 +63,7 @@ public class MoBIE
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
-	private ArrayList< String > projectCommands;
+	private ArrayList< String > projectSpecificCommands;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -83,15 +83,14 @@ public class MoBIE
 		openDataset();
 	}
 
-	private void registerProjectSpecificCommands( String projectLocation )
+	private void registerProjectSpecificCommands( String projectLocation, Dataset dataset )
 	{
 		if( projectLocation.contains( "platybrowser" ) )
 		{
 			GeneSearchUtils.setProsprSourceNames( settings.values.getImageDataFormat(), dataset );
 			GeneSearchUtils.setMoBIE( this );
-			projectCommands = new ArrayList<>();
-			projectCommands.add( SourceAndConverterService.getCommandName(  GeneSearchCommand.class ) );
-
+			projectSpecificCommands = new ArrayList<>();
+			projectSpecificCommands.add( SourceAndConverterService.getCommandName(  GeneSearchCommand.class ) );
 		}
 	}
 
@@ -207,10 +206,6 @@ public class MoBIE
 		}
 	}
 
-	/*
-	 * This method is only called once when initializing the project.
-	 * From then on use the getSourceAndConverter method.
-	 */
 	public Map< String, SourceAndConverter< ? > > openSourceAndConverters( Collection< String > sources )
 	{
 		final long start = System.currentTimeMillis();
@@ -237,7 +232,7 @@ public class MoBIE
 		sourceNameToSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
-		registerProjectSpecificCommands( settings.values.getProjectLocation() );
+		registerProjectSpecificCommands( settings.values.getProjectLocation(), dataset );
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
 		final View view = dataset.views.get( settings.values.getView() );
@@ -639,15 +634,12 @@ public class MoBIE
 	public SourceAndConverter< ? > getSourceAndConverter( String sourceName )
 	{
 		if ( ! sourceNameToSourceAndConverter.containsKey( sourceName ) )
-		{
-			final SourceAndConverter< ? > sourceAndConverter = openSourceAndConverter( sourceName );
-			sourceNameToSourceAndConverter.put( sourceName, sourceAndConverter );
-		}
+			sourceNameToSourceAndConverter.put( sourceName, openSourceAndConverter( sourceName ) );
 		return sourceNameToSourceAndConverter.get( sourceName );
 	}
 
-	public ArrayList< String > getProjectCommands()
+	public ArrayList< String > getProjectSpecificCommands()
 	{
-		return projectCommands;
+		return projectSpecificCommands;
 	}
 }
