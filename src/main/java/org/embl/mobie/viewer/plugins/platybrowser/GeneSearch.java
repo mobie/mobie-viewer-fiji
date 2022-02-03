@@ -22,27 +22,22 @@ public class GeneSearch
 {
 	private final double micrometerRadius;
 	private final double[] micrometerPosition;
-	private final List< SourceAndConverter< ? > > sourceAndConverters;
 	private Map< String, Double > localExpression;
 
 	public GeneSearch( double micrometerRadius,
-					   double[] micrometerPosition,
-					   List< SourceAndConverter< ? > > sourceAndConverters )
+					   double[] micrometerPosition )
 	{
 		this.micrometerRadius = micrometerRadius;
 		this.micrometerPosition = micrometerPosition;
-		this.sourceAndConverters = sourceAndConverters;
 	}
 
 	public void searchGenes( )
 	{
 		final Map< String, Double > geneExpressionLevels = runSearchAndGetLocalExpression();
 
-		GeneSearchUtils.addRowToGeneExpressionTable(
-				micrometerPosition, micrometerRadius, geneExpressionLevels );
+		GeneSearchUtils.addRowToGeneExpressionTable( micrometerPosition, micrometerRadius, geneExpressionLevels );
 
-		GeneSearchUtils.logGeneExpression(
-				micrometerPosition, micrometerRadius, geneExpressionLevels );
+		GeneSearchUtils.logGeneExpression( micrometerPosition, micrometerRadius, geneExpressionLevels );
 	}
 
 	private Map< String, Double > getExpressionLevelsSortedByValue()
@@ -58,11 +53,12 @@ public class GeneSearch
 
 		IJ.log( "# Gene search" );
 
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+		final ArrayList< String > sourceNames = GeneSearchUtils.getProsprSourceNames();
+		for ( String sourceName : sourceNames )
 		{
-			final Source< ? > source = sourceAndConverter.getSpimSource();
+			final SourceAndConverter< ? > sourceAndConverter = GeneSearchUtils.getMoBIE().getSourceAndConverter( sourceName );
 
-			if ( ! source.getName().contains( GeneSearchUtils.PROSPR ) ) continue;
+			final Source< ? > source = sourceAndConverter.getSpimSource();
 
 			final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
 
@@ -74,9 +70,8 @@ public class GeneSearch
 					micrometerRadius,
 					voxelDimensions.dimension( 0 ) );
 
-			final String simplifiedSourceName = getSimplifiedSourceName( source.getName(), true );
-			localExpression.put( simplifiedSourceName, fractionOfNonZeroVoxels );
-			IJ.log(simplifiedSourceName + ": " + fractionOfNonZeroVoxels );
+			localExpression.put( sourceName, fractionOfNonZeroVoxels );
+			IJ.log("Gene Search: Fraction of non-zero voxels:" + sourceName + ": " + fractionOfNonZeroVoxels );
 		}
 
 		return localExpression;

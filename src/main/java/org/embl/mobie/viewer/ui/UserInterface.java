@@ -86,7 +86,7 @@ public class UserInterface
 	}
 
 	public void addViews( Map<String, View> views ) {
-		userInterfaceHelper.addViewsToSelectionPanel(views);
+		userInterfaceHelper.addViewsToSelectionPanel( views );
 		refreshSelection();
 	}
 

@@ -16,6 +16,7 @@ import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
+import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchUtils;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.ImageSource;
@@ -75,17 +76,23 @@ public class MoBIE
 		this.settings = settings.projectLocation( projectLocation );
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations( );
-		if( projectLocation.contains( "platybrowser" ) )
-		{
-			projectCommands = new ArrayList<>();
-			projectCommands.add( SourceAndConverterService.getCommandName(  GeneSearchCommand.class ) );
-
-		}
 		projectName = MoBIEUtils.getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
 		this.settings = setImageDataFormat( projectLocation );
 		openDataset();
+	}
+
+	private void registerProjectSpecificCommands( String projectLocation )
+	{
+		if( projectLocation.contains( "platybrowser" ) )
+		{
+			GeneSearchUtils.setProsprSourceNames( settings.values.getImageDataFormat(), dataset );
+			GeneSearchUtils.setMoBIE( this );
+			projectCommands = new ArrayList<>();
+			projectCommands.add( SourceAndConverterService.getCommandName(  GeneSearchCommand.class ) );
+
+		}
 	}
 
 	private void setS3Credentials( MoBIESettings settings )
@@ -200,6 +207,10 @@ public class MoBIE
 		}
 	}
 
+	/*
+	 * This method is only called once when initializing the project.
+	 * From then on use the getSourceAndConverter method.
+	 */
 	public Map< String, SourceAndConverter< ? > > openSourceAndConverters( Collection< String > sources )
 	{
 		final long start = System.currentTimeMillis();
@@ -215,7 +226,7 @@ public class MoBIE
 		}
 		ThreadUtils.waitUntilFinished( futures );
 
-		System.out.println( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
+		IJ.log( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
 
 		return sourceAndConverters;
 	}
@@ -226,8 +237,7 @@ public class MoBIE
 		sourceNameToSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
-		//dataset.sources
-
+		registerProjectSpecificCommands( settings.values.getProjectLocation() );
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
 		final View view = dataset.views.get( settings.values.getView() );
@@ -623,12 +633,17 @@ public class MoBIE
 
 	public void addSourceAndConverters( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters )
 	{
-		this.sourceNameToSourceAndConverter.putAll( sourceNameToSourceAndConverters );
+		sourceNameToSourceAndConverter.putAll( sourceNameToSourceAndConverters );
 	}
 
 	public SourceAndConverter< ? > getSourceAndConverter( String sourceName )
 	{
-		return this.sourceNameToSourceAndConverter.get( sourceName );
+		if ( ! sourceNameToSourceAndConverter.containsKey( sourceName ) )
+		{
+			final SourceAndConverter< ? > sourceAndConverter = openSourceAndConverter( sourceName );
+			sourceNameToSourceAndConverter.put( sourceName, sourceAndConverter );
+		}
+		return sourceNameToSourceAndConverter.get( sourceName );
 	}
 
 	public ArrayList< String > getProjectCommands()

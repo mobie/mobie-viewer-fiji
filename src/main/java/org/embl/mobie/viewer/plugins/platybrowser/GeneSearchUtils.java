@@ -10,6 +10,10 @@ import net.imglib2.algorithm.neighborhood.HyperSphereShape;
 import net.imglib2.algorithm.neighborhood.Neighborhood;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.viewer.Dataset;
+import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.source.ImageSource;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -28,6 +32,8 @@ public class GeneSearchUtils
 
 	private static JTable table;
 	private static DefaultTableModel model;
+	private static ArrayList< String > prosprSourceNames;
+	private static MoBIE moBIE;
 
 	public static void logGeneExpression(
 			double[] micrometerPosition,
@@ -221,5 +227,34 @@ public class GeneSearchUtils
 		return geneNames;
 	}
 
+	public static void setProsprSourceNames( ImageDataFormat imageDataFormat, Dataset dataset )
+	{
+		GeneSearchUtils.prosprSourceNames = new ArrayList<>();
+		for ( String sourceName : dataset.sources.keySet() )
+		{
+			final ImageSource imageSource = dataset.sources.get( sourceName ).get();
+			final String relativePath = imageSource.imageData.get( imageDataFormat ).relativePath;
+
+			if ( relativePath.contains( PROSPR ) )
+			{
+				prosprSourceNames.add( sourceName );
+			};
+		}
+	}
+
+	public static ArrayList< String > getProsprSourceNames()
+	{
+		return prosprSourceNames;
+	}
+
+	public static void setMoBIE( MoBIE moBIE )
+	{
+		GeneSearchUtils.moBIE = moBIE;
+	}
+
+	public static MoBIE getMoBIE()
+	{
+		return moBIE;
+	}
 }
 
