@@ -54,7 +54,7 @@ public class ImageSliceView
 		// show
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter = new HashMap<>();
 		for ( String name : display.getSources() ) {
-			sourceNameToSourceAndConverter.put( name, moBIE.getSourceAndConverter( name ) );
+			sourceNameToSourceAndConverter.put( name, moBIE.getTransformedSourceAndConverter( name ) );
 		}
 
 		display.sourceNameToSourceAndConverter = new HashMap<>();

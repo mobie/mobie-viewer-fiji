@@ -294,13 +294,12 @@ public class ViewManager
 		// wrap all in a final transformed source. This is so any manual transformations can be
 		// retrieved separate from any from sourceTransformers.
 		for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
-			SourceAndConverter<?> sourceAndConverter = new SourceAffineTransformer(
-					sourceNameToSourceAndConverters.get( sourceName ), new AffineTransform3D()).getSourceOut();
+			SourceAndConverter<?> sourceAndConverter = new SourceAffineTransformer( sourceNameToSourceAndConverters.get( sourceName ), new AffineTransform3D()).getSourceOut();
 			sourceNameToSourceAndConverters.put( sourceName, sourceAndConverter );
 		}
 
-		// register all available sources in MoBIE
-		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
+		// register all available (transformed) sources in MoBIE
+		moBIE.addTransformedSourceAndConverters( sourceNameToSourceAndConverters );
 
 		// show the displays
 		MoBIELookAndFeelToggler.setMoBIELaf();

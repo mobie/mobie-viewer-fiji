@@ -15,8 +15,8 @@ import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
+import org.embl.mobie.viewer.plugins.platybrowser.GeneSearch;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
-import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchUtils;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.ImageSource;
@@ -62,7 +62,7 @@ public class MoBIE
 	private String imageRoot;
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
-	private Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
+	private Map< String, SourceAndConverter< ? > > sourceNameToTransformedSourceAndConverter;
 	private ArrayList< String > projectSpecificCommands;
 
 	public MoBIE( String projectRoot ) throws IOException
@@ -87,8 +87,8 @@ public class MoBIE
 	{
 		if( projectLocation.contains( "platybrowser" ) )
 		{
-			GeneSearchUtils.setProsprSourceNames( settings.values.getImageDataFormat(), dataset );
-			GeneSearchUtils.setMoBIE( this );
+			GeneSearch.GeneSearchUtils.setProsprSourceNames( settings.values.getImageDataFormat(), dataset );
+			GeneSearch.GeneSearchUtils.setMoBIE( this );
 			projectSpecificCommands = new ArrayList<>();
 			projectSpecificCommands.add( SourceAndConverterService.getCommandName(  GeneSearchCommand.class ) );
 		}
@@ -206,6 +206,13 @@ public class MoBIE
 		}
 	}
 
+	/*
+	 * Opens "raw" SourceAndConverters.
+	 * Note that they do not yet contain all source transforms that may be applied by a view.
+	 * However sourceAndConverters obtained via the getSourceAndConverter method
+	 * are containing all the current sourceTransforms.
+	 * This is confusing...
+	 */
 	public Map< String, SourceAndConverter< ? > > openSourceAndConverters( Collection< String > sources )
 	{
 		final long start = System.currentTimeMillis();
@@ -229,7 +236,7 @@ public class MoBIE
 	private void openDataset( String datasetName ) throws IOException
 	{
 		sourceNameToImgLoader = new HashMap<>();
-		sourceNameToSourceAndConverter = new ConcurrentHashMap<>();
+		sourceNameToTransformedSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 		registerProjectSpecificCommands( settings.values.getProjectLocation(), dataset );
@@ -448,9 +455,9 @@ public class MoBIE
 		return additionalTables;
 	}
 
-	public Map< String, SourceAndConverter< ? > > getSourceNameToSourceAndConverter()
+	public Map< String, SourceAndConverter< ? > > getSourceNameToTransformedSourceAndConverter()
 	{
-		return sourceNameToSourceAndConverter;
+		return sourceNameToTransformedSourceAndConverter;
 	}
 
 	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay, String table )
@@ -461,7 +468,7 @@ public class MoBIE
 		for ( String sourceName : segmentationDisplaySources )
 		{
 			Set< Source< ? > > rootSources = ConcurrentHashMap.newKeySet();
-			BdvPlaygroundUtils.fetchRootSources( getSourceAndConverter( sourceName ).getSpimSource(), rootSources );
+			BdvPlaygroundUtils.fetchRootSources( getTransformedSourceAndConverter( sourceName ).getSpimSource(), rootSources );
 			sourceNameToRootSources.put( sourceName, rootSources );
 		}
 
@@ -576,7 +583,7 @@ public class MoBIE
 		// create primary AnnotatedIntervalTableRow table
 		final Map< String, List< String > > referenceTable = tables.get( 0 );
 		// TODO: The AnnotatedIntervalCreator does not need the sources, but just the source's real intervals
-		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), (String sourceName ) -> this.getSourceAndConverter( sourceName )  );
+		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), (String sourceName ) -> this.getTransformedSourceAndConverter( sourceName )  );
 		final List< AnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getAnnotatedIntervalTableRows();
 
 		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
@@ -626,16 +633,14 @@ public class MoBIE
         }
     }
 
-	public void addSourceAndConverters( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters )
+	public void addTransformedSourceAndConverters( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters )
 	{
-		sourceNameToSourceAndConverter.putAll( sourceNameToSourceAndConverters );
+		sourceNameToTransformedSourceAndConverter.putAll( sourceNameToSourceAndConverters );
 	}
 
-	public SourceAndConverter< ? > getSourceAndConverter( String sourceName )
+	public SourceAndConverter< ? > getTransformedSourceAndConverter( String sourceName )
 	{
-		if ( ! sourceNameToSourceAndConverter.containsKey( sourceName ) )
-			sourceNameToSourceAndConverter.put( sourceName, openSourceAndConverter( sourceName ) );
-		return sourceNameToSourceAndConverter.get( sourceName );
+		return sourceNameToTransformedSourceAndConverter.get( sourceName );
 	}
 
 	public ArrayList< String > getProjectSpecificCommands()
