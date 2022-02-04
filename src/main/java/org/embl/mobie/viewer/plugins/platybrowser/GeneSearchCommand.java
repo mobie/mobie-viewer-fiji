@@ -41,10 +41,7 @@ public class GeneSearchCommand implements BdvPlaygroundActionCommand
 			double[] position = new BdvGlobalMousePositionProvider( bdvHandle ).getPositionAsDoubles();
 
 			final BdvPointOverlay bdvPointOverlay = new BdvPointOverlay( position, radius );
-			BdvFunctions.showOverlay(
-					bdvPointOverlay,
-					"",
-					BdvOptions.options().addTo( bdvHandle ) );
+			BdvFunctions.showOverlay( bdvPointOverlay, "", BdvOptions.options().addTo( bdvHandle ) );
 
 			IJ.log( "Gene search at [um]: " + Arrays.toString( position ) );
 			IJ.log( "Gene search: In progress, please wait..." );
