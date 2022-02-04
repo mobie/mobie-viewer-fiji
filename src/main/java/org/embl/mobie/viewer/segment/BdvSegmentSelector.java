@@ -5,7 +5,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.SourceNameEncoder;
-import org.embl.mobie.viewer.bdv.BdvMousePositionProvider;
+import org.embl.mobie.viewer.bdv.BdvGlobalMousePositionProvider;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import net.imglib2.RandomAccess;
@@ -17,7 +17,6 @@ import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.function.Supplier;
 
 public class BdvSegmentSelector implements Runnable
@@ -52,9 +51,9 @@ public class BdvSegmentSelector implements Runnable
 
 	private synchronized void toggleSelectionAtMousePosition()
 	{
-		final BdvMousePositionProvider positionProvider = new BdvMousePositionProvider( bdvHandle );
+		final BdvGlobalMousePositionProvider positionProvider = new BdvGlobalMousePositionProvider( bdvHandle );
 		final int timePoint = positionProvider.getTimePoint();
-		final RealPoint position = positionProvider.getPosition();
+		final RealPoint position = positionProvider.getPositionAsRealPoint();
 
 		final Collection< SegmentationSourceDisplay > segmentationDisplays = segmentationDisplaySupplier.get();
 
