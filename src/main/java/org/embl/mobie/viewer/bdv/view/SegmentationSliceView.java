@@ -49,7 +49,7 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter = new HashMap<>();
 		for ( String name : display.getSources() ) {
-			sourceNameToSourceAndConverter.put( name, moBIE.getSourceAndConverter( name ) );
+			sourceNameToSourceAndConverter.put( name, moBIE.getTransformedSourceAndConverter( name ) );
 		}
 
 		// convert to labelSource
@@ -172,7 +172,7 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 	private void adaptPosition( double[] position, String sourceName )
 	{
 		// get source transform
-		final SourceAndConverter< ? > sourceAndConverter = moBIE.getSourceAndConverter( sourceName );
+		final SourceAndConverter< ? > sourceAndConverter = moBIE.getTransformedSourceAndConverter( sourceName );
 		AffineTransform3D sourceTransform = new AffineTransform3D();
 		sourceAndConverter.getSpimSource().getSourceTransform( 0,0, sourceTransform );
 

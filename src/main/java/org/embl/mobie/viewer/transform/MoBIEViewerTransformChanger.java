@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.transform;
 import bdv.util.*;
 import bdv.viewer.animate.SimilarityTransformAnimator;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
-import org.embl.mobie.viewer.bdv.BdvPointOverlay;
+import org.embl.mobie.viewer.bdv.BdvCircleOverlay;
 import org.embl.mobie.viewer.MoBIEUtils;
 import net.imglib2.realtransform.AffineTransform3D;
 
@@ -14,7 +14,7 @@ public abstract class MoBIEViewerTransformChanger
 	public static int animationDurationMillis = 3000;
 
 	private static BdvOverlaySource< BdvOverlay > pointOverlaySource;
-	private static BdvPointOverlay bdvPointOverlay;
+	private static BdvCircleOverlay bdvCircleOverlay;
 	private static boolean pointOverlaySourceIsActive;
 	private static boolean isPointOverlayEnabled;
 
@@ -66,18 +66,18 @@ public abstract class MoBIEViewerTransformChanger
 
 	private static void addPointOverlay( Bdv bdv, double[] doubles )
 	{
-		if ( bdvPointOverlay == null )
+		if ( bdvCircleOverlay == null )
 		{
-			bdvPointOverlay = new BdvPointOverlay( doubles, 5.0 );
+			bdvCircleOverlay = new BdvCircleOverlay( doubles, 5.0 );
 			pointOverlaySource = BdvFunctions.showOverlay(
-					bdvPointOverlay,
+					bdvCircleOverlay,
 					"point-overlay-" + Arrays.toString( doubles ),
 					BdvOptions.options().addTo( bdv ) );
 			pointOverlaySourceIsActive = true;
 		}
 		else
 		{
-			bdvPointOverlay.addPoint( doubles );
+			bdvCircleOverlay.addCircle( doubles );
 		}
 	}
 

@@ -24,11 +24,11 @@ public class SourcesAtMousePositionSupplier implements Supplier< Collection< Sou
 	@Override
 	public Collection< SourceAndConverter< ? > > get()
 	{
-		final BdvMousePositionProvider positionProvider = new BdvMousePositionProvider( bdvHandle );
+		final BdvGlobalMousePositionProvider positionProvider = new BdvGlobalMousePositionProvider( bdvHandle );
 
 		final List< SourceAndConverter< ? > > sourceAndConverters = SourceAndConverterServices.getBdvDisplayService().getSourceAndConverterOf( bdvHandle )
 				.stream()
-				.filter( sac -> SourceAndConverterHelper.isPositionWithinSourceInterval( sac, positionProvider.getPosition(), positionProvider.getTimePoint(), is2D ) )
+				.filter( sac -> SourceAndConverterHelper.isPositionWithinSourceInterval( sac, positionProvider.getPositionAsRealPoint(), positionProvider.getTimePoint(), is2D ) )
 				.filter( sac -> SourceAndConverterServices.getBdvDisplayService().isVisible( sac, bdvHandle ) )
 				.collect( Collectors.toList() );
 

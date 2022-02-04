@@ -23,6 +23,7 @@ import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
 import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
+import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -43,15 +44,17 @@ public class SliceViewer implements Supplier< BdvHandle >
 	private final boolean is2D;
 	private final ViewManager viewManager;
 	private final int timepoints;
+	private final ArrayList< String > projectCommands;
 
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
 
-	public SliceViewer( boolean is2D, ViewManager viewManager, int timepoints )
+	public SliceViewer( boolean is2D, ViewManager viewManager, int timepoints, ArrayList< String > projectCommands )
 	{
 		this.is2D = is2D;
 		this.viewManager = viewManager;
 		this.timepoints = timepoints;
+		this.projectCommands = projectCommands;
 
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
@@ -82,10 +85,11 @@ public class SliceViewer implements Supplier< BdvHandle >
 			segmentBdvSelector.clearSelection();
 		} );
 
-		sacService.registerAction( sacService.getCommandName( RandomColorSeedChangerCommand.class ), sourceAndConverters -> {
-			// TODO: Maybe only do this for the sacs at the mouse position
-			RandomColorSeedChangerCommand.incrementRandomColorSeed( sourceAndConverters );
-		} );
+		// TODO: why is this needed here (and not just in below list?)
+//		sacService.registerAction( sacService.getCommandName( RandomColorSeedChangerCommand.class ), sourceAndConverters -> {
+//			// TODO: Maybe only do this for the sacs at the mouse position
+//			RandomColorSeedChangerCommand.incrementRandomColorSeed( sourceAndConverters );
+//		} );
 
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
@@ -99,24 +103,31 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 		final Set< String > actionsKeys = sacService.getActionsKeys();
 
-		final String[] actions = {
-				sacService.getCommandName( ScreenShotMakerCommand.class ),
-				sacService.getCommandName( ImagePlusExportCommand.class ),
-				sacService.getCommandName( ViewerTransformLogger.class ),
-				sacService.getCommandName( BigWarpRegistrationCommand.class ),
-				sacService.getCommandName( ManualRegistrationCommand.class ),
-				sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ),
-				sacService.getCommandName( RandomColorSeedChangerCommand.class ),
-				sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ),
-				sacService.getCommandName( SelectedSegmentsColorConfiguratorCommand.class ),
-				sacService.getCommandName( SegmentsVolumeRenderingConfiguratorCommand.class ),
-				sacService.getCommandName( ImageVolumeRenderingConfiguratorCommand.class ),
-				UNDO_SEGMENT_SELECTIONS,
-				LOAD_ADDITIONAL_VIEWS,
-				SAVE_CURRENT_SETTINGS_AS_VIEW
-		};
+		final ArrayList< String > actions = new ArrayList< String >();
+		actions.add( sacService.getCommandName( ScreenShotMakerCommand.class ) );
+		actions.add( sacService.getCommandName( ImagePlusExportCommand.class ) );
+		actions.add( sacService.getCommandName( ViewerTransformLogger.class ) );
+		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
+		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
+		actions.add( sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ) );
+		actions.add( sacService.getCommandName( RandomColorSeedChangerCommand.class ) );
+		actions.add( sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ) );
+		actions.add( sacService.getCommandName( SelectedSegmentsColorConfiguratorCommand.class ) );
+		actions.add( sacService.getCommandName( SegmentsVolumeRenderingConfiguratorCommand.class ) );
+		actions.add( sacService.getCommandName( ImageVolumeRenderingConfiguratorCommand.class ) );
+		actions.add( UNDO_SEGMENT_SELECTIONS );
+		actions.add( LOAD_ADDITIONAL_VIEWS );
+		actions.add( SAVE_CURRENT_SETTINGS_AS_VIEW );
 
-		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions );
+		if ( projectCommands != null )
+		{
+			for ( String commandName : projectCommands )
+			{
+				actions.add( commandName );
+			}
+		}
+
+		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions.toArray( new String[0] ) );
 
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");

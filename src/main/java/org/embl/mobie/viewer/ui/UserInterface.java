@@ -85,9 +85,15 @@ public class UserInterface
 		frame.repaint();
 	}
 
-	public void addViews( Map<String, View> views ) {
-		userInterfaceHelper.addViewsToSelectionPanel(views);
+	public void addViews( Map<String, View> views )
+	{
+		userInterfaceHelper.addViewsToSelectionPanel( views );
 		refreshSelection();
+	}
+
+	public Map< String, Map< String, View > > getGroupingsToViews()
+	{
+		return userInterfaceHelper.getGroupingsToViews();
 	}
 
 	public void addSourceDisplay( SourceDisplay sourceDisplay )
