@@ -38,6 +38,20 @@ public class ProjectsCreatorPanel extends JFrame {
     private JComboBox<String> groupsComboBox;
     private JComboBox<String> viewsComboBox;
 
+    private int lastImageTypeIndex = 0;
+    private int lastImageDataFormatIndex = 0;
+    private int lastAddMethodIndex = 0;
+    private boolean lastUseDefaultExportSettings = true;
+    private boolean lastExclusive = false;
+
+    // TODO - ImageDataFormat.OmeZarr removed from here for now. Add it back when transforms are supported
+    // so the voxel size can be maintained.
+    private String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
+            ImageDataFormat.BdvOmeZarr.toString() };
+    private String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
+            ProjectCreator.ImageType.segmentation.toString() };
+
+
     public ProjectsCreatorPanel ( File projectLocation ) throws IOException {
 
         // account for projects with and without the top 'data' directory
@@ -426,27 +440,25 @@ public class ProjectsCreatorPanel extends JFrame {
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
             gd.addMessage( "Make sure your pixel size, and unit,\n are set properly under Image > Properties...");
             gd.addStringField( "Image Name", FilenameUtils.removeExtension(currentImage.getTitle()), 35 );
-            String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
-                    ProjectCreator.ImageType.segmentation.toString() };
-            gd.addChoice( "Image Type", imageTypes, imageTypes[0] );
-            // TODO - ImageDataFormat.OmeZarr removed from here for now. Add it back when transforms are supported
-            // so the voxel size can be maintained.
-            String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
-                    ImageDataFormat.BdvOmeZarr.toString() };
-            gd.addChoice( "Image format", imageFormats, imageFormats[0] );
+            gd.addChoice( "Image Type", imageTypes, imageTypes[lastImageTypeIndex] );
+            gd.addChoice( "Image format", imageFormats, imageFormats[lastImageDataFormatIndex] );
             gd.addStringField("Affine", defaultAffineTransform, 35 );
-            gd.addCheckbox("Use default export settings", true);
-            gd.addCheckbox("Make view exclusive", false );
+            gd.addCheckbox("Use default export settings", lastUseDefaultExportSettings );
+            gd.addCheckbox("Make view exclusive", lastExclusive );
 
             gd.showDialog();
 
             if ( !gd.wasCanceled() ) {
                 String imageName = gd.getNextString();
-                ProjectCreator.ImageType imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
-                ImageDataFormat imageFormat = ImageDataFormat.fromString( gd.getNextChoice() );
+                lastImageTypeIndex = gd.getNextChoiceIndex();
+                ProjectCreator.ImageType imageType = ProjectCreator.ImageType.valueOf( imageTypes[lastImageTypeIndex] );
+                lastImageDataFormatIndex = gd.getNextChoiceIndex();
+                ImageDataFormat imageFormat = ImageDataFormat.fromString( imageFormats[lastImageDataFormatIndex] );
                 String affineTransform = gd.getNextString().trim();
-                boolean useDefaultSettings = gd.getNextBoolean();
-                boolean exclusive = gd.getNextBoolean();
+                lastUseDefaultExportSettings = gd.getNextBoolean();
+                boolean useDefaultSettings = lastUseDefaultExportSettings;
+                lastExclusive = gd.getNextBoolean();
+                boolean exclusive = lastExclusive;
 
                 // tidy up image name, remove any spaces
                 imageName = UserInterfaceHelper.tidyString( imageName );
@@ -479,27 +491,24 @@ public class ProjectsCreatorPanel extends JFrame {
             gd.addMessage( "Note: You can only 'link' to images outside the project folder \n" +
                     " for local projects. 'copy' or 'move' if you wish to upload to s3");
 
-            // TODO - ImageDataFormat.OmeZarr removed from here for now. Add it back when transforms are supported
-            // so the voxel size can be maintained.
-            String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
-                    ImageDataFormat.BdvOmeZarr.toString() };
-            gd.addChoice( "Image format", imageFormats, imageFormats[0] );
-
+            gd.addChoice( "Image format", imageFormats, imageFormats[lastImageDataFormatIndex] );
             String[] addMethods = new String[]{ ProjectCreator.AddMethod.link.toString(),
                     ProjectCreator.AddMethod.copy.toString(), ProjectCreator.AddMethod.move.toString() };
-            gd.addChoice("Add method:", addMethods, addMethods[0]);
-            String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
-                    ProjectCreator.ImageType.segmentation.toString() };
-            gd.addChoice("Image Type", imageTypes, imageTypes[0]);
-            gd.addCheckbox("Make view exclusive", false );
+            gd.addChoice("Add method:", addMethods, addMethods[lastAddMethodIndex]);
+            gd.addChoice("Image Type", imageTypes, imageTypes[lastImageTypeIndex]);
+            gd.addCheckbox("Make view exclusive", lastExclusive );
 
             gd.showDialog();
 
             if (!gd.wasCanceled()) {
-                ImageDataFormat imageDataFormat = ImageDataFormat.fromString( gd.getNextChoice() );
-                ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.valueOf( gd.getNextChoice() );
-                ProjectCreator.ImageType imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
-                boolean exclusive = gd.getNextBoolean();
+                lastImageDataFormatIndex = gd.getNextChoiceIndex();
+                ImageDataFormat imageDataFormat = ImageDataFormat.fromString( imageFormats[lastImageDataFormatIndex] );
+                lastAddMethodIndex = gd.getNextChoiceIndex();
+                ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.valueOf( addMethods[lastAddMethodIndex] );
+                lastImageTypeIndex = gd.getNextChoiceIndex();
+                ProjectCreator.ImageType imageType = ProjectCreator.ImageType.valueOf( imageTypes[lastImageTypeIndex] );
+                lastExclusive = gd.getNextBoolean();
+                boolean exclusive = lastExclusive;
 
                 if ( imageDataFormat == ImageDataFormat.OmeZarr && addMethod == ProjectCreator.AddMethod.link ) {
                     IJ.log( "link is currently unsupported for ome-zarr. Please choose copy or move instead for this" +

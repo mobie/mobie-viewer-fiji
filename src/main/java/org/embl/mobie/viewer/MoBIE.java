@@ -319,7 +319,8 @@ public class MoBIE
 	{
 		try
 		{
-			if ( imageDataFormat.equals( ImageDataFormat.BdvOmeZarrS3 ) )
+			if ( imageDataFormat.equals( ImageDataFormat.BdvOmeZarrS3) ||
+					imageDataFormat.equals( ImageDataFormat.BdvOmeZarr) )
 			{
 				// TODO enable shared queues
 				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
