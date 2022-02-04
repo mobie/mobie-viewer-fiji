@@ -45,8 +45,8 @@ public class GeneSearchCommand implements BdvPlaygroundActionCommand
 
 			IJ.log( "Gene search at [um]: " + Arrays.toString( position ) );
 			IJ.log( "Gene search: In progress, please wait..." );
-//			final GeneSearch geneSearch = new GeneSearch( radius, position, moBIE );
-//			geneSearch.searchGenes();
+			final GeneSearch geneSearch = new GeneSearch( radius, position, moBIE );
+			geneSearch.searchGenes();
 			IJ.log( "Gene search: Done!" );
 		}
 		).start();
