@@ -8,13 +8,15 @@ import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.BdvGlobalMousePositionProvider;
 import org.embl.mobie.viewer.bdv.BdvCircleOverlay;
+import org.embl.mobie.viewer.command.CommandConstants;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.Arrays;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = "Platybrowser>ProSPr Gene Search")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "ProSPr Gene Search")
 public class GeneSearchCommand implements BdvPlaygroundActionCommand
 {
 	@Parameter

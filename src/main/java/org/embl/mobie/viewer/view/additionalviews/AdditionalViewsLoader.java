@@ -24,6 +24,8 @@ public class AdditionalViewsLoader {
         try {
             String selectedFilePath = null;
             MoBIEUtils.FileLocation fileLocation = MoBIEUtils.loadFromProjectOrFileSystemDialog();
+            if ( fileLocation == null )
+                return;
             if ( fileLocation == MoBIEUtils.FileLocation.Project ) {
                 selectedFilePath = MoBIEUtils.selectPathFromProject( moBIE.getDatasetPath("misc", "views" ), "View" );
             } else {

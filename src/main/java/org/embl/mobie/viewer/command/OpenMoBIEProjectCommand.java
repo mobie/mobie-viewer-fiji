@@ -9,7 +9,7 @@ import org.scijava.plugin.Plugin;
 import java.io.IOException;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open>Open MoBIE Project..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Open MoBIE Project..." )
 public class OpenMoBIEProjectCommand implements Command
 {
 	@Parameter ( label = "Project Location" )

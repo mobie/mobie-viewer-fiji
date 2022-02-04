@@ -502,7 +502,10 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 						fileLocation = FileLocation.Project;
 					} else {
 						fileLocation = loadFromProjectOrFileSystemDialog();
+						if ( fileLocation == null )
+							return;
 					}
+
 
 					if ( fileLocation == FileLocation.Project )
 					{

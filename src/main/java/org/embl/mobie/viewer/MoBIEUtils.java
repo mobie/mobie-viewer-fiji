@@ -99,8 +99,7 @@ public abstract class MoBIEUtils
 
 	public static FileLocation loadFromProjectOrFileSystemDialog() {
 		final GenericDialog gd = new GenericDialog("Choose source");
-		gd.addChoice("Load from", new String[]{FileLocation.Project.toString(),
-				FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
+		gd.addChoice("Load from", new String[]{FileLocation.Project.toString(), FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
 		gd.showDialog();
 		if (gd.wasCanceled()) return null;
 		return FileLocation.valueOf(gd.getNextChoice());

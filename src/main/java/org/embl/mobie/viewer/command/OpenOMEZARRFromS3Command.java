@@ -15,6 +15,9 @@ public class OpenOMEZARRFromS3Command implements Command {
     @Parameter(label = "S3 URL")
     public String s3URL = "https://s3.embl.de/i2k-2020/em-raw.ome.zarr";
 
+    @Parameter ( label = "Log chunk loading" )
+    public boolean logChunkLoading = false;
+
     protected static void openAndShow(String s3URL) throws IOException {
         SpimData spimData = OMEZarrS3Opener.readURL(s3URL);
         final OMEZarrViewer viewer = new OMEZarrViewer(spimData);
@@ -24,6 +27,7 @@ public class OpenOMEZARRFromS3Command implements Command {
     @Override
     public void run() {
         try {
+            OMEZarrS3Opener.setLogChunkLoading( logChunkLoading );
             openAndShow(s3URL);
         } catch (IOException e) {
             e.printStackTrace();

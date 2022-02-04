@@ -9,7 +9,7 @@ import org.scijava.plugin.Plugin;
 import java.io.IOException;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open>Open PlatyBrowser")
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Open PlatyBrowser")
 public class OpenPlatyBrowserCommand implements Command
 {
 	@Override

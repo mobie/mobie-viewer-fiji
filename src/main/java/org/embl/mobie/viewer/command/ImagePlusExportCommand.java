@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+ "Sources>Show " + ImagePlusExportCommand.RAW + " Data" )
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Show " + ImagePlusExportCommand.RAW + " Data" )
 public class ImagePlusExportCommand< T extends NumericType< T > > implements BdvPlaygroundActionCommand
 {
 	public static final String RAW = "Raw"; // aka "Array" or "Voxel Grid", ... (not sure yet...)

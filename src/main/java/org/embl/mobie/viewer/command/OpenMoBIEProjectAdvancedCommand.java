@@ -9,7 +9,7 @@ import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open>Advanced>Open MoBIE Project Expert Mode..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Advanced>Open MoBIE Project Expert Mode..." )
 public class OpenMoBIEProjectAdvancedCommand implements Command
 {
 	@Parameter ( label = "Project Location" )

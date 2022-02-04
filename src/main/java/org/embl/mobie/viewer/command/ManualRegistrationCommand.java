@@ -10,7 +10,7 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import javax.swing.*;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Transform>Registration - Manual")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
 public class ManualRegistrationCommand implements BdvPlaygroundActionCommand
 {
 

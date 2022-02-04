@@ -8,7 +8,7 @@ import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Display>Change Opacity Of Non-selected Segments")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Change Opacity Of Non-selected Segments")
 public class NonSelectedSegmentsOpacityAdjusterCommand implements BdvPlaygroundActionCommand
 {
 	@Parameter

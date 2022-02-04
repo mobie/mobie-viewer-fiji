@@ -11,7 +11,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import static org.scijava.ItemVisibility.MESSAGE;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"Sources>Display>Configure Segments Volume Rendering")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Segments Volume Rendering")
 public class SegmentsVolumeRenderingConfiguratorCommand implements BdvPlaygroundActionCommand
 {
 	@Parameter

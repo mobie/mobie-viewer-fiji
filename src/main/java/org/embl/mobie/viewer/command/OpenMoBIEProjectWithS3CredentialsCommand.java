@@ -8,7 +8,7 @@ import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open>Advanced>Open MoBIE Project With S3 Credentials..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Advanced>Open MoBIE Project With S3 Credentials..." )
 public class OpenMoBIEProjectWithS3CredentialsCommand implements Command
 {
 	@Parameter ( label = "S3 Project Location" )
