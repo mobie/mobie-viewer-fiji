@@ -64,7 +64,7 @@ public class BdvPointOverlay extends BdvOverlay
 			setViewDiameter( depth, scale, viewDiameter );
 			final int x = ( int ) ( viewPosition[ 0 ] - 0.5 * viewDiameter [ 0 ] );
 			final int y = ( int ) ( viewPosition[ 1 ] - 0.5 * viewDiameter [ 1 ] );
-			final Color color = new Color( 255, 0, 255, 100 );
+			final Color color = new Color( 255, 0, 255, 50 );
 			g.setColor( color );
 			g.fillOval( x, y, viewDiameter[ 0 ], viewDiameter[ 1 ] );
 		}
