@@ -38,11 +38,11 @@ public class ProjectsCreatorPanel extends JFrame {
     private JComboBox<String> groupsComboBox;
     private JComboBox<String> viewsComboBox;
 
-    private ProjectCreator.ImageType imageType = ProjectCreator.ImageType.image;
-    private ImageDataFormat imageDataFormat = ImageDataFormat.BdvN5;
-    private ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.link;
-    private boolean useDefaultExportSettings = true;
-    private boolean exclusive = false;
+    private static ProjectCreator.ImageType imageType = ProjectCreator.ImageType.image;
+    private static ImageDataFormat imageDataFormat = ImageDataFormat.BdvN5;
+    private static ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.link;
+    private static boolean useDefaultExportSettings = true;
+    private static boolean exclusive = false;
 
     // TODO - ImageDataFormat.OmeZarr removed from here for now. Add it back when transforms are supported
     // so the voxel size can be maintained.
