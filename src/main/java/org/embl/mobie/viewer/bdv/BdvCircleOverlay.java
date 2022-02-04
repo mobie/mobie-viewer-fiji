@@ -9,13 +9,12 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
-public class BdvPointOverlay extends BdvOverlay
+public class BdvCircleOverlay extends BdvOverlay
 {
 	final List< RealPoint > points;
 	private final double radius;
 
-	public BdvPointOverlay( double[] location, double radius )
+	public BdvCircleOverlay( double[] location, double radius )
 	{
 		super();
 		this.points = new ArrayList< RealPoint >();
@@ -23,7 +22,7 @@ public class BdvPointOverlay extends BdvOverlay
 		this.radius = radius;
 	}
 
-	public BdvPointOverlay( RealPoint point, double radius )
+	public BdvCircleOverlay( RealPoint point, double radius )
 	{
 		super();
 		this.points = new ArrayList< RealPoint >();
@@ -31,14 +30,14 @@ public class BdvPointOverlay extends BdvOverlay
 		this.radius = radius;
 	}
 
-	public BdvPointOverlay( List< RealPoint > points, double radius )
+	public BdvCircleOverlay( List< RealPoint > points, double radius )
 	{
 		super();
 		this.points = points;
 		this.radius = radius;
 	}
 
-	public void addPoint( double[] point )
+	public void addCircle( double[] point )
 	{
 		this.points.add( new RealPoint( point ) );
 	}
@@ -62,11 +61,13 @@ public class BdvPointOverlay extends BdvOverlay
 
 			final double depth = Math.abs( viewPosition[ 2 ] ) / scale[ 2 ];
 			setViewDiameter( depth, scale, viewDiameter );
+			if ( viewDiameter[ 0 ] == 0 || viewDiameter[ 1 ] == 0 )
+				return;
 			final int x = ( int ) ( viewPosition[ 0 ] - 0.5 * viewDiameter [ 0 ] );
 			final int y = ( int ) ( viewPosition[ 1 ] - 0.5 * viewDiameter [ 1 ] );
-			final Color color = new Color( 255, 0, 255, 50 );
+			final Color color = new Color( 255, 0, 255, 150 );
 			g.setColor( color );
-			g.fillOval( x, y, viewDiameter[ 0 ], viewDiameter[ 1 ] );
+			g.drawOval( x, y, viewDiameter[ 0 ], viewDiameter[ 1 ] );
 		}
 	}
 

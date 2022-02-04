@@ -7,7 +7,7 @@ import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.BdvGlobalMousePositionProvider;
-import org.embl.mobie.viewer.bdv.BdvPointOverlay;
+import org.embl.mobie.viewer.bdv.BdvCircleOverlay;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
@@ -40,13 +40,13 @@ public class GeneSearchCommand implements BdvPlaygroundActionCommand
 		{
 			double[] position = new BdvGlobalMousePositionProvider( bdvHandle ).getPositionAsDoubles();
 
-			final BdvPointOverlay bdvPointOverlay = new BdvPointOverlay( position, radius );
-			BdvFunctions.showOverlay( bdvPointOverlay, "", BdvOptions.options().addTo( bdvHandle ) );
+			final BdvCircleOverlay bdvCircleOverlay = new BdvCircleOverlay( position, radius );
+			BdvFunctions.showOverlay( bdvCircleOverlay, "", BdvOptions.options().addTo( bdvHandle ) );
 
 			IJ.log( "Gene search at [um]: " + Arrays.toString( position ) );
 			IJ.log( "Gene search: In progress, please wait..." );
-			final GeneSearch geneSearch = new GeneSearch( radius, position, moBIE );
-			geneSearch.searchGenes();
+//			final GeneSearch geneSearch = new GeneSearch( radius, position, moBIE );
+//			geneSearch.searchGenes();
 			IJ.log( "Gene search: Done!" );
 		}
 		).start();
