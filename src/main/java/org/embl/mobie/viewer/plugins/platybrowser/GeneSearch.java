@@ -45,7 +45,7 @@ public class GeneSearch
 	private final MoBIE moBIE;
 	private Map< String, Double > localExpression;
 	private Collection< String > prosprSourceNames;
-	private Map< String, SourceAndConverter< ? > > prosprSources;
+	private static Map< String, SourceAndConverter< ? > > prosprSources;
 
 	public GeneSearch( double micrometerRadius,
 					   double[] micrometerPosition,
@@ -65,9 +65,6 @@ public class GeneSearch
 		//  This could be done using those methods:
 		//  moBIE.getViewManager().openAndTransformViewSources( view );
 		//  Since the Prospr sources are not transformed, this does not matter (yet)...
-
-		IJ.log( "WARNING: Current code will result false results in case the ProSPR sources become transformed on the view level." );
-
 		if ( prosprSources == null )
 			prosprSources = moBIE.openSourceAndConverters( prosprSourceNames );
 
