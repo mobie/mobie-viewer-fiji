@@ -1,6 +1,7 @@
 package org.embl.mobie.viewer.bdv;
 
 import bdv.util.BdvHandle;
+import bdv.util.PlaceHolderSource;
 import bdv.viewer.SourceAndConverter;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
@@ -28,6 +29,7 @@ public class SourcesAtMousePositionSupplier implements Supplier< Collection< Sou
 
 		final List< SourceAndConverter< ? > > sourceAndConverters = SourceAndConverterServices.getBdvDisplayService().getSourceAndConverterOf( bdvHandle )
 				.stream()
+				.filter( sac -> ! ( sac.getSpimSource() instanceof PlaceHolderSource ) )
 				.filter( sac -> SourceAndConverterHelper.isPositionWithinSourceInterval( sac, positionProvider.getPositionAsRealPoint(), positionProvider.getTimePoint(), is2D ) )
 				.filter( sac -> SourceAndConverterServices.getBdvDisplayService().isVisible( sac, bdvHandle ) )
 				.collect( Collectors.toList() );
