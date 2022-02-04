@@ -1,10 +1,13 @@
 package org.embl.mobie.viewer.plugins.platybrowser;
 
+import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
+import bdv.util.BdvOptions;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.BdvGlobalMousePositionProvider;
+import org.embl.mobie.viewer.bdv.BdvPointOverlay;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
@@ -33,10 +36,16 @@ public class GeneSearchCommand implements BdvPlaygroundActionCommand
 	@Override
 	public void run()
 	{
-		double[] position = new BdvGlobalMousePositionProvider( bdvHandle ).getPositionAsDoubles();
-
 		new Thread( () ->
 		{
+			double[] position = new BdvGlobalMousePositionProvider( bdvHandle ).getPositionAsDoubles();
+
+			final BdvPointOverlay bdvPointOverlay = new BdvPointOverlay( position, radius );
+			BdvFunctions.showOverlay(
+					bdvPointOverlay,
+					"",
+					BdvOptions.options().addTo( bdvHandle ) );
+
 			IJ.log( "Gene search at [um]: " + Arrays.toString( position ) );
 			IJ.log( "Gene search: In progress, please wait..." );
 			final GeneSearch geneSearch = new GeneSearch( radius, position, moBIE );
