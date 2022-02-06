@@ -60,7 +60,7 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     String message = CAPTURE_SIZE_PIXELS +"";
 
     @Parameter( visibility = MESSAGE, required = false )
-    String scaleBarMessage = "Add Scale Bar: [ Analyze > Tools > Scale Bar.. ]";
+    String scaleBarMessage = "Add Scale Bar: [ Analyze > Tools > Scale Bar... ]";
 
     private String pixelUnit = "Pixels";
 
