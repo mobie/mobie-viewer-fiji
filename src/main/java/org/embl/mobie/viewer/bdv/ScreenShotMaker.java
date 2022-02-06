@@ -80,8 +80,8 @@ public class ScreenShotMaker
     private double samplingXY = 1;
     private String physicalUnit = "Pixels";
     private boolean sourceInteractionWithViewerPlaneOnly2D = false; // TODO: maybe remove in the future
-    ImagePlus screenShot = null;
-    private CompositeImage rawImageData = null;
+    ImagePlus rgbImagePlus = null;
+    private CompositeImage compositeImagePlus = null;
     private final SourceAndConverterBdvDisplayService displayService;
     //private final ISourceAndConverterService sacService;
     private long[] captureImageSizeInPixels = new long[2];
@@ -93,18 +93,18 @@ public class ScreenShotMaker
     }
 
     public void setPhysicalPixelSpacingInXY(double spacing, String unit) {
-        this.screenShot = null;
+        this.rgbImagePlus = null;
         this.samplingXY = spacing;
         this.physicalUnit = unit;
     }
 
     public void setSourceInteractionWithViewerPlaneOnly2D(boolean sourceInteractionWithViewerPlaneOnly2D) {
-        this.screenShot = null;
+        this.rgbImagePlus = null;
         this.sourceInteractionWithViewerPlaneOnly2D = sourceInteractionWithViewerPlaneOnly2D;
     }
 
     private void process() {
-        if (screenShot != null) {
+        if ( rgbImagePlus != null) {
             return;
         }
         createScreenShot();
@@ -112,13 +112,13 @@ public class ScreenShotMaker
 
     public ImagePlus getRgbScreenShot() {
         process();
-        return screenShot;
+        return rgbImagePlus;
     }
 
     public CompositeImage getRawScreenShot()
     {
         process();
-        return rawImageData;
+        return compositeImagePlus;
     }
 
     public static long[] getCaptureImageSizeInPixels( BdvHandle bdvHandle, double samplingXY )
@@ -253,8 +253,8 @@ public class ScreenShotMaker
 
         if ( rawCaptures.size() > 0 )
         {
-            screenShot = createImagePlus( physicalUnit, argbSources, voxelSpacing, sacs );
-            rawImageData  = createCompositeImage( voxelSpacing, physicalUnit, rawCaptures, colors, displayRanges );
+            rgbImagePlus = createImagePlus( physicalUnit, argbSources, voxelSpacing, sacs );
+            compositeImagePlus = createCompositeImage( voxelSpacing, physicalUnit, rawCaptures, colors, displayRanges );
         }
     }
 
@@ -407,7 +407,7 @@ public class ScreenShotMaker
 
     private ImagePlus asImagePlus( RandomAccessibleInterval< ARGBType > argbCapture, String physicalUnit, double[] voxelSpacing )
     {
-        final ImagePlus rgbImage = ImageJFunctions.wrap( argbCapture, "View Capture RGB" );
+        final ImagePlus rgbImage = ImageJFunctions.wrap( argbCapture, "RGB" );
 
         IJ.run( rgbImage,
                 "Properties...",
@@ -428,7 +428,7 @@ public class ScreenShotMaker
     {
         final RandomAccessibleInterval< UnsignedShortType > stack = Views.stack( rais );
 
-        final ImagePlus imp = ImageJFunctions.wrap( stack, "View Capture Raw" );
+        final ImagePlus imp = ImageJFunctions.wrap( stack, "Multi-Channel" );
 
         // duplicate: otherwise it is virtual and cannot be modified
         final ImagePlus dup = new Duplicator().run( imp );
@@ -453,7 +453,7 @@ public class ScreenShotMaker
             compositeImage.setDisplayRange( range[ 0 ], range[ 1 ] );
         }
 
-        compositeImage.setTitle( "View Capture Raw" );
+        compositeImage.setTitle( "Multi-Channel" );
         return compositeImage;
     }
 

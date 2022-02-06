@@ -26,30 +26,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.playground;
+package org.embl.mobie.viewer.command;
 
 import bdv.util.BdvHandle;
-import fiji.util.gui.GenericDialogPlus;
-import ij.gui.GenericDialog;
-import ij.gui.NonBlockingGenericDialog;
 import org.embl.mobie.viewer.bdv.ScreenShotMaker;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import static org.scijava.ItemVisibility.MESSAGE;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = ScijavaBdvDefaults.RootMenu+"BDV>BDV - Screenshot",
-        description = "Creates a screenshot of the current BDV view. The sampling can be chosen to upscale or downscale" +
-                " the image compared to the current view. A single RGB image resulting from the projection" +
-                " of all sources is displayed. Raw image data can also be exported as multi-channel grayscale.")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Take Screenshot")
 public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
 {
-
     public static final String CAPTURE_SIZE_PIXELS = "Capture size [pixels]: ";
 
     @Parameter
@@ -58,11 +50,17 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Parameter(label="Screenshot Sampling [UNIT]", callback = "showNumPixels", min = "0.0", style="format:#.00000", stepSize = "0.01")
     public Double targetSamplingInXY = 1D;
 
+    @Parameter(label="Show RGB Image")
+    public boolean showRGB = true;
+
+    @Parameter(label="Show Multi-Channel Image")
+    public boolean showMultiChannel = true;
+
     @Parameter( visibility = MESSAGE, required = false )
     String message = CAPTURE_SIZE_PIXELS +"";
 
-    @Parameter(label="Show Raw Data")
-    public boolean showRawData = false;
+    @Parameter( visibility = MESSAGE, required = false )
+    String scaleBarMessage = "Add Scale Bar: [ Analyze > Tools > Scale Bar.. ]";
 
     private String pixelUnit = "Pixels";
 
@@ -70,8 +68,12 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     public void run() {
         ScreenShotMaker screenShotMaker = new ScreenShotMaker( bdvh );
         screenShotMaker.setPhysicalPixelSpacingInXY( targetSamplingInXY, pixelUnit );
-        screenShotMaker.getRgbScreenShot().show();
-        if( showRawData ) screenShotMaker.getRawScreenShot().show();
+
+        if( showRGB )
+            screenShotMaker.getRgbScreenShot().show();
+
+        if( showMultiChannel )
+            screenShotMaker.getRawScreenShot().show();
     }
 
     @Override

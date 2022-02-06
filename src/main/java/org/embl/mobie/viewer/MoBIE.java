@@ -229,7 +229,7 @@ public class MoBIE
 		}
 		ThreadUtils.waitUntilFinished( futures );
 
-		IJ.log( "Fetched " + sourceAndConverters.size() + " image source(s) in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
+		IJ.log( "Fetched " + sourceAndConverters.size() + " image(s)  in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
 
 		return sourceAndConverters;
 	}
