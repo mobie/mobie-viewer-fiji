@@ -116,6 +116,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 						cellLoader,
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions[ level ] ) );
 
+
 			mergedRandomAccessibleIntervals.add( cachedCellImg );
 		}
 

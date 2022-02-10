@@ -7,6 +7,7 @@ import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 
 import java.util.ArrayList;
@@ -38,44 +39,6 @@ public class BdvPlaygroundUtils
 		final double[] centreInCalibratedUnits = new double[ 3 ];
 		affineTransform3D.inverse().apply( centreInPixelUnits, centreInCalibratedUnits );
 		return centreInCalibratedUnits;
-	}
-
-	/**
-	 * Recursively fetch all root sources
-	 * @param source
-	 * @param rootSources
-	 */
-	public static void fetchRootSources( Source< ? > source, Set< Source< ? > > rootSources )
-	{
-		if ( source instanceof SpimSource )
-		{
-			rootSources.add( source );
-		}
-		else if ( source instanceof TransformedSource )
-		{
-			final Source< ? > wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
-
-			fetchRootSources( wrappedSource, rootSources );
-		}
-		else if (  source instanceof MergedGridSource )
-		{
-			final MergedGridSource< ? > mergedGridSource = ( MergedGridSource ) source;
-			final List< ? extends Source< ? > > gridSources = mergedGridSource.getGridSources();
-			for ( Source< ? > gridSource : gridSources )
-			{
-				fetchRootSources( gridSource, rootSources );
-			}
-		}
-		else if (  source instanceof ResampledSource )
-		{
-			final ResampledSource resampledSource = ( ResampledSource ) source;
-			final Source< ? > wrappedSource = resampledSource.getOriginalSource();
-			fetchRootSources( wrappedSource, rootSources );
-		}
-		else
-		{
-			throw new IllegalArgumentException("For sources of type " + source.getClass().getName() + " the root source currently cannot be determined.");
-		}
 	}
 
 	public static int getLevel( Source< ? > source, long maxNumVoxels )

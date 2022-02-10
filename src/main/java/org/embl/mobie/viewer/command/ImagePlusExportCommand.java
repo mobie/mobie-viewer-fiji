@@ -12,11 +12,9 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import org.embl.mobie.viewer.ThreadUtils;
-import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
+import org.embl.mobie.viewer.MoBIEUtils;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.ArrayList;
@@ -25,9 +23,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Show " + ImagePlusExportCommand.RAW + " Data" )
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Open " + ImagePlusExportCommand.RAW + " Data" )
 public class ImagePlusExportCommand< T extends NumericType< T > > implements BdvPlaygroundActionCommand
 {
 	public static final String RAW = "Raw"; // aka "Array" or "Voxel Grid", ... (not sure yet...)
@@ -35,33 +32,21 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 	@Parameter( label = "Source(s)" )
 	public SourceAndConverter[] sourceAndConverterArray;
 
-	@Parameter( label = "Maximum number of pixels in X" )
-	public int maxNumX = 2000;
-
-	@Parameter( label = "Maximum number of pixels in Y" )
-	public int maxNumY = 2000;
+	@Parameter( label = "Maximum number of voxels [10^6]" )
+	public int maxNumMegaVoxels = 1;
 
 	@Override
 	public void run()
 	{
-		final long maxNumPixelsXY = ( long ) maxNumX * ( long ) maxNumY;
-		if ( maxNumPixelsXY > Integer.MAX_VALUE )
-		{
-			IJ.showMessage( "The maximum number of pixels that can be shown in one plane are " + Integer.MAX_VALUE + ".\n" +
-					"With the current choice of maxNumX and maxNumY a higher value could be reached: " + maxNumPixelsXY + ".\n" +
-					"Please reduce the number of pixels in x or y.");
-			return;
-		}
-
 		final List< SourceAndConverter< T > > sourceAndConverters = getSacs();
 
 		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
 		{
-			exportAsImagePlus( sourceAndConverter, (int) maxNumPixelsXY );
+			exportAsImagePlus( sourceAndConverter, maxNumMegaVoxels * 1000000L );
 		}
 	}
 
-	private void exportAsImagePlus( SourceAndConverter< T > sourceAndConverter, int maxNumPixelsXY )
+	private void exportAsImagePlus( SourceAndConverter< T > sourceAndConverter, long maxNumVoxels )
 	{
 		final Source< T > source = sourceAndConverter.getSpimSource();
 		final Source< T > rootSource = getRootSource( source );
@@ -74,7 +59,7 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 
 		IJ.log(source.getName() + ": " + RAW + " data = " + rootSource.getName() );
 
-		int exportLevel = getExportLevel( source, rootSource, maxNumPixelsXY );
+		int exportLevel = getExportLevel( source, rootSource, maxNumVoxels );
 
 		if ( exportLevel == -1 )
 		{
@@ -118,18 +103,20 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 		IJ.log(source.getName() + ": Export done!" );
 	}
 
-	private int getExportLevel( Source< T > source, Source< T > rootSource, int maxNumPixelsXY )
+	private int getExportLevel( Source< T > source, Source< T > rootSource, long maxNumPixels )
 	{
 		final int numMipmapLevels = rootSource.getNumMipmapLevels();
 
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
 			long[] dimensions = source.getSource( 0, level ).dimensionsAsLongArray();
-			double fractionMaxNumPixelsXY = ( double ) dimensions[ 0 ] * ( double ) dimensions[ 1 ] / maxNumPixelsXY;
-			if ( fractionMaxNumPixelsXY < 1 )
-			{
+
+			final boolean javaIndexingOK = dimensions[ 0 ] * dimensions[ 1 ] < Integer.MAX_VALUE - 1;
+
+			final boolean sizeOK = dimensions[ 0 ] * dimensions[ 1 ] * dimensions[ 2 ] < maxNumPixels;
+
+			if( javaIndexingOK && sizeOK )
 				return level;
-			}
 		}
 		return -1;
 	}
@@ -137,7 +124,7 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 	private Source< T > getRootSource( Source< T > source )
 	{
 		final Set< Source< ? > > rootSources = new HashSet<>();
-		BdvPlaygroundUtils.fetchRootSources( source, rootSources );
+		MoBIEUtils.fetchRootSources( source, rootSources );
 		if ( rootSources.size() > 1 )
 		{
 			return null;

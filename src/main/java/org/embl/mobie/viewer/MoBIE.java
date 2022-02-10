@@ -14,7 +14,6 @@ import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
-import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
@@ -469,7 +468,7 @@ public class MoBIE
 		for ( String sourceName : segmentationDisplaySources )
 		{
 			Set< Source< ? > > rootSources = ConcurrentHashMap.newKeySet();
-			BdvPlaygroundUtils.fetchRootSources( getTransformedSourceAndConverter( sourceName ).getSpimSource(), rootSources );
+			MoBIEUtils.fetchRootSources( getTransformedSourceAndConverter( sourceName ).getSpimSource(), rootSources );
 			sourceNameToRootSources.put( sourceName, rootSources );
 		}
 

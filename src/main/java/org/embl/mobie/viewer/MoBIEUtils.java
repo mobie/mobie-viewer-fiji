@@ -1,6 +1,9 @@
 package org.embl.mobie.viewer;
 
+import bdv.SpimSource;
+import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
+import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
@@ -15,6 +18,8 @@ import net.imglib2.FinalRealInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
+import org.embl.mobie.viewer.source.LabelSource;
+import org.embl.mobie.viewer.transform.MergedGridSource;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -26,6 +31,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
@@ -57,6 +63,50 @@ public abstract class MoBIEUtils
 		}
 
 		return longs;
+	}
+
+	/**
+	 * Recursively fetch all root sources
+	 * @param source
+	 * @param rootSources
+	 */
+	public static void fetchRootSources( Source< ? > source, Set< Source< ? > > rootSources )
+	{
+		if ( source instanceof SpimSource )
+		{
+			rootSources.add( source );
+		}
+		else if ( source instanceof TransformedSource )
+		{
+			final Source< ? > wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
+
+			fetchRootSources( wrappedSource, rootSources );
+		}
+		else if (  source instanceof LabelSource )
+		{
+			final Source< ? > wrappedSource = (( LabelSource ) source).getWrappedSource();
+
+			fetchRootSources( wrappedSource, rootSources );
+		}
+		else if (  source instanceof MergedGridSource )
+		{
+			final MergedGridSource< ? > mergedGridSource = ( MergedGridSource ) source;
+			final List< ? extends Source< ? > > gridSources = mergedGridSource.getGridSources();
+			for ( Source< ? > gridSource : gridSources )
+			{
+				fetchRootSources( gridSource, rootSources );
+			}
+		}
+		else if (  source instanceof ResampledSource )
+		{
+			final ResampledSource resampledSource = ( ResampledSource ) source;
+			final Source< ? > wrappedSource = resampledSource.getOriginalSource();
+			fetchRootSources( wrappedSource, rootSources );
+		}
+		else
+		{
+			throw new IllegalArgumentException("For sources of type " + source.getClass().getName() + " the root source currently cannot be determined.");
+		}
 	}
 
 	public enum FileLocation {
