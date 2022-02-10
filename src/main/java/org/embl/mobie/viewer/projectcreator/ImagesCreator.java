@@ -38,6 +38,7 @@ import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
 import org.apache.commons.io.FileUtils;
+import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.GzipCompression;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 import mpicbg.spim.data.sequence.SequenceDescription;
@@ -98,9 +99,17 @@ public class ImagesCreator {
 
     public void addImage ( ImagePlus imp, String imageName, String datasetName,
                            ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
-                           AffineTransform3D sourceTransform, boolean useDefaultSettings,
-                           String uiSelectionGroup, boolean exclusive ) {
+                           AffineTransform3D sourceTransform, String uiSelectionGroup,
+                           boolean exclusive ) {
+        addImage( imp, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup,
+                exclusive, null, null, null );
 
+    }
+
+    public void addImage ( ImagePlus imp, String imageName, String datasetName,
+                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
+                           AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive,
+                           int[][] resolutions, int[][] subdivisions, Compression compression ) {
         // either xml file path or zarr file path depending on imageDataFormat
         String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
         File imageFile = new File(filePath);
@@ -109,24 +118,18 @@ public class ImagesCreator {
             IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
         }
 
-        DownsampleBlock.DownsamplingMethod downsamplingMethod;
-        switch( imageType ) {
-            case image:
-                downsamplingMethod = DownsampleBlock.DownsamplingMethod.Average;
-                break;
-            default:
-                downsamplingMethod = DownsampleBlock.DownsamplingMethod.Centre;
-        }
+        DownsampleBlock.DownsamplingMethod downsamplingMethod = getDownsamplingMethod( imageType );
 
         File imageDir = new File(imageFile.getParent());
         if ( !imageDir.exists() ) {
             imageDir.mkdirs();
         }
 
-        if ( !useDefaultSettings ) {
-            new ManualExportPanel( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat).getManualExportParameters();
-        } else {
+        if ( resolutions == null || subdivisions == null || compression == null ) {
             writeDefaultImage( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat );
+        } else {
+            writeDefaultImage( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat,
+                    resolutions, subdivisions, compression );
         }
 
         // check image written successfully, before writing jsons
@@ -153,6 +156,20 @@ public class ImagesCreator {
                 e.printStackTrace();
             }
         }
+
+    }
+
+    private DownsampleBlock.DownsamplingMethod getDownsamplingMethod( ProjectCreator.ImageType imageType ) {
+        DownsampleBlock.DownsamplingMethod downsamplingMethod;
+        switch( imageType ) {
+            case image:
+                downsamplingMethod = DownsampleBlock.DownsamplingMethod.Average;
+                break;
+            default:
+                downsamplingMethod = DownsampleBlock.DownsamplingMethod.Centre;
+        }
+
+        return downsamplingMethod;
     }
 
     private void writeDefaultImage( ImagePlus imp, String filePath, AffineTransform3D sourceTransform,
@@ -179,6 +196,32 @@ public class ImagesCreator {
             default:
                 throw new UnsupportedOperationException();
 
+        }
+    }
+
+    private void writeDefaultImage( ImagePlus imp, String filePath, AffineTransform3D sourceTransform,
+                             DownsampleBlock.DownsamplingMethod downsamplingMethod,
+                             String imageName, ImageDataFormat imageDataFormat,
+                             int[][] resolutions, int[][] subdivisions, Compression compression ) {
+
+        switch( imageDataFormat ) {
+            case BdvN5:
+                new WriteImgPlusToN5().export(imp, resolutions, subdivisions, filePath, sourceTransform,
+                        downsamplingMethod, compression, new String[]{imageName});
+                break;
+
+            case BdvOmeZarr:
+                new WriteImgPlusToN5BdvOmeZarr().export(imp, resolutions, subdivisions, filePath, sourceTransform,
+                        downsamplingMethod, compression, new String[]{imageName});
+                break;
+
+            case OmeZarr:
+                new WriteImgPlusToN5OmeZarr().export(imp, resolutions, subdivisions, filePath, sourceTransform,
+                        downsamplingMethod, compression, new String[]{imageName});
+                break;
+
+            default:
+                throw new UnsupportedOperationException();
         }
     }
 

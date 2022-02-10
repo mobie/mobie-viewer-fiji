@@ -39,7 +39,6 @@ class ImagesCreatorTest {
     private String imageName;
     private String datasetName;
     private AffineTransform3D sourceTransform;
-    private boolean useDefaultSettings;
     private String uiSelectionGroup;
     private String datasetJsonPath;
     private File tempDir;
@@ -54,7 +53,6 @@ class ImagesCreatorTest {
         datasetName = "test";
         uiSelectionGroup = "testGroup";
         sourceTransform = new AffineTransform3D();
-        useDefaultSettings = true;
 
         projectCreator.getDatasetsCreator().addDataset(datasetName);
 
@@ -158,7 +156,7 @@ class ImagesCreatorTest {
 
         imagesCreator.addImage( imp, imageName, datasetName,
                 imageDataFormat, ProjectCreator.ImageType.image,
-                sourceTransform, useDefaultSettings, uiSelectionGroup, false );
+                sourceTransform, uiSelectionGroup, false );
 
         assertionsForImageAdded( imageDataFormat, false );
     }
@@ -168,7 +166,7 @@ class ImagesCreatorTest {
 
         imagesCreator.addImage( seg, imageName, datasetName,
                 imageDataFormat, ProjectCreator.ImageType.segmentation,
-                sourceTransform, useDefaultSettings, uiSelectionGroup, false );
+                sourceTransform, uiSelectionGroup, false );
 
         assertionsForImageAdded( imageDataFormat, false );
         assertionsForTableAdded( imageDataFormat );

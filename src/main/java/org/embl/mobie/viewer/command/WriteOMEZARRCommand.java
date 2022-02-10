@@ -6,6 +6,7 @@ import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 import org.embl.mobie.viewer.projectcreator.ui.ManualExportPanel;
 import ij.ImagePlus;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.GzipCompression;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -55,7 +56,15 @@ public class WriteOMEZARRCommand implements Command {
                 new WriteImgPlusToN5OmeZarr().export(currentImage, filePath, sourceTransform, method,
                         new GzipCompression(), new String[]{imageName});
             } else {
-                new ManualExportPanel( currentImage, filePath, sourceTransform, method, imageName, ImageDataFormat.OmeZarr ).getManualExportParameters();
+                ManualExportPanel manualExportPanel = new ManualExportPanel( ImageDataFormat.OmeZarr );
+                int[][] resolutions = manualExportPanel.getResolutions();
+                int[][] subdivisions = manualExportPanel.getSubdivisions();
+                Compression compression = manualExportPanel.getCompression();
+
+                if ( resolutions != null && subdivisions != null && compression != null ) {
+                    new WriteImgPlusToN5OmeZarr().export(currentImage, resolutions, subdivisions, filePath, sourceTransform,
+                            method, compression, new String[]{imageName});
+                }
             }
         }
     }
