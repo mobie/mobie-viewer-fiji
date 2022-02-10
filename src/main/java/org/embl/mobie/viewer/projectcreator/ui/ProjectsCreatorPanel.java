@@ -7,6 +7,7 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.command.OpenMoBIEProjectCommand;
+import org.embl.mobie.viewer.projectcreator.ImagesCreator;
 import org.embl.mobie.viewer.projectcreator.ProjectCreator;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.SwingUtils;
@@ -430,6 +431,18 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
+    private boolean overwriteImageDialog() {
+        int result = JOptionPane.showConfirmDialog(null,
+                "This image name already exists. Overwrite image?", "Are you sure?",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+        if (result == JOptionPane.YES_OPTION) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public void addCurrentOpenImageDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
@@ -458,17 +471,25 @@ public class ProjectsCreatorPanel extends JFrame {
 
                 // tidy up image name, remove any spaces
                 imageName = UserInterfaceHelper.tidyString( imageName );
-
                 AffineTransform3D sourceTransform = ProjectCreatorHelper.parseAffineString( affineTransform );
 
                 if ( imageName != null && sourceTransform != null ) {
-                    String uiSelectionGroup = null;
-                    uiSelectionGroup = selectUiSelectionGroupDialog( datasetName );
-                    if ( uiSelectionGroup != null ) {
-                        projectsCreator.getImagesCreator().addImage( currentImage, imageName,
-                                datasetName, imageDataFormat, imageType, sourceTransform, useDefaultExportSettings,
-                                uiSelectionGroup, exclusive );
-                        updateComboBoxesForNewImage( imageName, uiSelectionGroup );
+                    ImagesCreator imagesCreator = projectsCreator.getImagesCreator();
+
+                    boolean overwriteImage = true;
+                    if ( imagesCreator.imageExists( datasetName, imageName, imageDataFormat ) ) {
+                        overwriteImage = overwriteImageDialog();
+                    }
+
+                    if ( overwriteImage ) {
+                        String uiSelectionGroup = null;
+                        uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
+                        if (uiSelectionGroup != null) {
+                            imagesCreator.addImage(currentImage, imageName,
+                                    datasetName, imageDataFormat, imageType, sourceTransform, useDefaultExportSettings,
+                                    uiSelectionGroup, exclusive);
+                            updateComboBoxesForNewImage(imageName, uiSelectionGroup);
+                        }
                     }
                 }
             }
@@ -535,16 +556,24 @@ public class ProjectsCreatorPanel extends JFrame {
                     File imageFile = new File( filePath );
                     String imageName = imageFile.getName().split("\\.")[0];
 
-                    try {
-                        String uiSelectionGroup = null;
-                        uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
-                        if (uiSelectionGroup != null) {
-                            projectsCreator.getImagesCreator().addBdvFormatImage(imageFile, datasetName, imageType,
-                                    addMethod, uiSelectionGroup, imageDataFormat, exclusive );
-                            updateComboBoxesForNewImage(imageName, uiSelectionGroup);
+                    ImagesCreator imagesCreator = projectsCreator.getImagesCreator();
+                    boolean overwriteImage = true;
+                    if ( imagesCreator.imageExists( datasetName, imageName, imageDataFormat ) ) {
+                        overwriteImage = overwriteImageDialog();
+                    }
+
+                    if ( overwriteImage ) {
+                        try {
+                            String uiSelectionGroup = null;
+                            uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
+                            if (uiSelectionGroup != null) {
+                                imagesCreator.addBdvFormatImage(imageFile, datasetName, imageType,
+                                        addMethod, uiSelectionGroup, imageDataFormat, exclusive);
+                                updateComboBoxesForNewImage(imageName, uiSelectionGroup);
+                            }
+                        } catch (SpimDataException | IOException e) {
+                            e.printStackTrace();
                         }
-                    } catch (SpimDataException | IOException e) {
-                        e.printStackTrace();
                     }
                 }
             }

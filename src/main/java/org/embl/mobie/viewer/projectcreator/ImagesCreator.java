@@ -90,6 +90,12 @@ public class ImagesCreator {
         return FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(), datasetName, "tables", imageName );
     }
 
+    public boolean imageExists( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
+        // either xml file path or zarr file path depending on imageDataFormat
+        String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
+        return new File (filePath).exists();
+    }
+
     public void addImage ( ImagePlus imp, String imageName, String datasetName,
                            ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
                            AffineTransform3D sourceTransform, boolean useDefaultSettings,
@@ -98,6 +104,10 @@ public class ImagesCreator {
         // either xml file path or zarr file path depending on imageDataFormat
         String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
         File imageFile = new File(filePath);
+
+        if ( imageFile.exists() ) {
+            IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
+        }
 
         DownsampleBlock.DownsamplingMethod downsamplingMethod;
         switch( imageType ) {
@@ -108,45 +118,40 @@ public class ImagesCreator {
                 downsamplingMethod = DownsampleBlock.DownsamplingMethod.Centre;
         }
 
-        if ( !imageFile.exists() ) {
+        File imageDir = new File(imageFile.getParent());
+        if ( !imageDir.exists() ) {
+            imageDir.mkdirs();
+        }
 
-            File imageDir = new File(imageFile.getParent());
-            if ( !imageDir.exists() ) {
-                imageDir.mkdirs();
-            }
-
-            if ( !useDefaultSettings ) {
-                new ManualExportPanel( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat).getManualExportParameters();
-            } else {
-                writeDefaultImage( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat );
-            }
-
-            // check image written successfully, before writing jsons
-            if ( imageFile.exists() ) {
-                boolean is2D;
-                if ( imp.getNDimensions() <= 2 ) {
-                    is2D = true;
-                } else {
-                    is2D = false;
-                }
-                try {
-                    if (imageType == ProjectCreator.ImageType.image) {
-                        double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
-                        LUT lut = imp.getLuts()[0];
-                        String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" +
-                                lut.getBlue(255) + ",a=" + lut.getAlpha(255);
-                        updateTableAndJsonsForNewImage(imageName, datasetName, uiSelectionGroup, is2D,
-                                imp.getNFrames(), imageDataFormat, contrastLimits, colour, exclusive );
-                    } else {
-                        updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup, is2D,
-                                imp.getNFrames(), imageDataFormat, exclusive );
-                    }
-                } catch (SpimDataException e) {
-                    e.printStackTrace();
-                }
-            }
+        if ( !useDefaultSettings ) {
+            new ManualExportPanel( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat).getManualExportParameters();
         } else {
-            IJ.log( "Adding image to project failed - this image name already exists" );
+            writeDefaultImage( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat );
+        }
+
+        // check image written successfully, before writing jsons
+        if ( imageFile.exists() ) {
+            boolean is2D;
+            if ( imp.getNDimensions() <= 2 ) {
+                is2D = true;
+            } else {
+                is2D = false;
+            }
+            try {
+                if (imageType == ProjectCreator.ImageType.image) {
+                    double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
+                    LUT lut = imp.getLuts()[0];
+                    String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" +
+                            lut.getBlue(255) + ",a=" + lut.getAlpha(255);
+                    updateTableAndJsonsForNewImage(imageName, datasetName, uiSelectionGroup, is2D,
+                            imp.getNFrames(), imageDataFormat, contrastLimits, colour, exclusive );
+                } else {
+                    updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup, is2D,
+                            imp.getNFrames(), imageDataFormat, exclusive );
+                }
+            } catch (SpimDataException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -202,40 +207,39 @@ public class ImagesCreator {
                     break;
             }
 
-            if ( !newImageFile.exists() ) {
-
-                // make directory for that image file format, if doesn't exist already
-                File imageDir = new File( newImageFile.getParent() );
-                if ( !imageDir.exists() ) {
-                    imageDir.mkdirs();
-                }
-
-                switch (addMethod) {
-                    case link:
-                        // TODO - linking currently not supported for ome-zarr
-                        new XmlIoSpimData().save(spimData, newImageFile.getAbsolutePath());
-                        break;
-                    case copy:
-                        copyImage( imageDataFormat, spimData, imageDirectory, imageName);
-                        break;
-                    case move:
-                        moveImage( imageDataFormat, spimData, imageDirectory, imageName);
-                        break;
-                }
-
-                if (imageType == ProjectCreator.ImageType.image) {
-                    updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup,
-                            isSpimData2D(spimData), getNTimepointsFromSpimData(spimData),
-                            imageDataFormat, new double[]{0.0, 255.0}, "white", exclusive );
-                } else {
-                    updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup,
-                            isSpimData2D(spimData), getNTimepointsFromSpimData(spimData), imageDataFormat, exclusive );
-                }
-
-                IJ.log( "Bdv format image " + imageName + " added to project" );
-            } else {
-                IJ.log("Adding image to project failed - this image name already exists");
+            if ( newImageFile.exists() ) {
+                IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
             }
+
+            // make directory for that image file format, if doesn't exist already
+            File imageDir = new File( newImageFile.getParent() );
+            if ( !imageDir.exists() ) {
+                imageDir.mkdirs();
+            }
+
+            switch (addMethod) {
+                case link:
+                    // TODO - linking currently not supported for ome-zarr
+                    new XmlIoSpimData().save(spimData, newImageFile.getAbsolutePath());
+                    break;
+                case copy:
+                    copyImage( imageDataFormat, spimData, imageDirectory, imageName);
+                    break;
+                case move:
+                    moveImage( imageDataFormat, spimData, imageDirectory, imageName);
+                    break;
+            }
+
+            if (imageType == ProjectCreator.ImageType.image) {
+                updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup,
+                        isSpimData2D(spimData), getNTimepointsFromSpimData(spimData),
+                        imageDataFormat, new double[]{0.0, 255.0}, "white", exclusive );
+            } else {
+                updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup,
+                        isSpimData2D(spimData), getNTimepointsFromSpimData(spimData), imageDataFormat, exclusive );
+            }
+
+            IJ.log( "Bdv format image " + imageName + " added to project" );
         } else {
             IJ.log( "Adding image to project failed - " + fileLocation.getAbsolutePath() + " does not exist" );
         }
