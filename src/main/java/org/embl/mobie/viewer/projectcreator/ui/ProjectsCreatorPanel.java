@@ -491,22 +491,26 @@ public class ProjectsCreatorPanel extends JFrame {
                         return;
                     }
 
-                    if ( useDefaultExportSettings ) {
-                        imagesCreator.addImage(currentImage, imageName, datasetName, imageDataFormat,
-                                imageType, sourceTransform, uiSelectionGroup, exclusive);
-                        updateComboBoxesForNewImage(imageName, uiSelectionGroup);
-                    } else {
-                        ManualExportPanel manualExportPanel = new ManualExportPanel( imageDataFormat );
-                        int[][] resolutions = manualExportPanel.getResolutions();
-                        int[][] subdivisions = manualExportPanel.getSubdivisions();
-                        Compression compression = manualExportPanel.getCompression();
+                    try {
+                        if ( useDefaultExportSettings ) {
+                            imagesCreator.addImage(currentImage, imageName, datasetName, imageDataFormat,
+                                    imageType, sourceTransform, uiSelectionGroup, exclusive);
+                            updateComboBoxesForNewImage(imageName, uiSelectionGroup);
+                        } else {
+                            ManualExportPanel manualExportPanel = new ManualExportPanel( imageDataFormat );
+                            int[][] resolutions = manualExportPanel.getResolutions();
+                            int[][] subdivisions = manualExportPanel.getSubdivisions();
+                            Compression compression = manualExportPanel.getCompression();
 
-                        if ( resolutions != null && subdivisions != null && compression != null ) {
-                            imagesCreator.addImage( currentImage, imageName, datasetName, imageDataFormat, imageType,
-                                    sourceTransform, uiSelectionGroup, exclusive, resolutions, subdivisions,
-                                    compression );
-                            updateComboBoxesForNewImage( imageName, uiSelectionGroup );
+                            if ( resolutions != null && subdivisions != null && compression != null ) {
+                                imagesCreator.addImage( currentImage, imageName, datasetName, imageDataFormat, imageType,
+                                        sourceTransform, uiSelectionGroup, exclusive, resolutions, subdivisions,
+                                        compression );
+                                updateComboBoxesForNewImage( imageName, uiSelectionGroup );
+                            }
                         }
+                    } catch (SpimDataException | IOException e) {
+                        e.printStackTrace();
                     }
                 }
             }
@@ -578,19 +582,22 @@ public class ProjectsCreatorPanel extends JFrame {
                     if ( imagesCreator.imageExists( datasetName, imageName, imageDataFormat ) ) {
                         overwriteImage = overwriteImageDialog();
                     }
+                    if ( !overwriteImage ) {
+                        return;
+                    }
 
-                    if ( overwriteImage ) {
-                        try {
-                            String uiSelectionGroup = null;
-                            uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
-                            if (uiSelectionGroup != null) {
-                                imagesCreator.addBdvFormatImage(imageFile, datasetName, imageType,
-                                        addMethod, uiSelectionGroup, imageDataFormat, exclusive);
-                                updateComboBoxesForNewImage(imageName, uiSelectionGroup);
-                            }
-                        } catch (SpimDataException | IOException e) {
-                            e.printStackTrace();
-                        }
+                    String uiSelectionGroup = null;
+                    uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
+                    if ( uiSelectionGroup == null ) {
+                        return;
+                    }
+
+                    try {
+                            imagesCreator.addBdvFormatImage(imageFile, datasetName, imageType,
+                                    addMethod, uiSelectionGroup, imageDataFormat, exclusive);
+                            updateComboBoxesForNewImage(imageName, uiSelectionGroup);
+                    } catch (SpimDataException | IOException e) {
+                        e.printStackTrace();
                     }
                 }
             }

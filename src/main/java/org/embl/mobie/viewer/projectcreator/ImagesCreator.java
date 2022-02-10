@@ -44,8 +44,10 @@ import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataC
 import mpicbg.spim.data.sequence.SequenceDescription;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -73,13 +75,18 @@ public class ImagesCreator {
     }
 
     private String getDefaultLocalImageXmlPath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
-        return FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(), datasetName,
-                "images", imageFormatToFolderName( imageDataFormat ), imageName + ".xml");
+        return FileAndUrlUtils.combinePath(getDefaultLocalImageDirPath(datasetName, imageDataFormat),
+                imageName + ".xml");
     }
 
     private String getDefaultLocalImageZarrPath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
-        return FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(), datasetName,
-                "images", imageFormatToFolderName( imageDataFormat ), imageName + ".ome.zarr");
+        return FileAndUrlUtils.combinePath(getDefaultLocalImageDirPath(datasetName, imageDataFormat),
+                imageName + ".ome.zarr");
+    }
+
+    private String getDefaultLocalN5Path( String datasetName, String imageName ) {
+        return FileAndUrlUtils.combinePath( getDefaultLocalImageDirPath( datasetName, ImageDataFormat.BdvN5),
+                imageName + ".n5" );
     }
 
     private String getDefaultLocalImageDirPath( String datasetName, ImageDataFormat imageDataFormat ) {
@@ -88,7 +95,12 @@ public class ImagesCreator {
     }
 
     private String getDefaultTableDirPath( String datasetName, String imageName ) {
-        return FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(), datasetName, "tables", imageName );
+        return FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
+                datasetName, "tables", imageName );
+    }
+
+    private String getDefaultTablePath( String datasetName, String imageName ) {
+        return FileAndUrlUtils.combinePath( getDefaultTableDirPath(datasetName, imageName), "default.tsv" );
     }
 
     public boolean imageExists( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
@@ -100,7 +112,7 @@ public class ImagesCreator {
     public void addImage ( ImagePlus imp, String imageName, String datasetName,
                            ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
                            AffineTransform3D sourceTransform, String uiSelectionGroup,
-                           boolean exclusive ) {
+                           boolean exclusive ) throws SpimDataException, IOException {
         addImage( imp, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup,
                 exclusive, null, null, null );
 
@@ -109,13 +121,14 @@ public class ImagesCreator {
     public void addImage ( ImagePlus imp, String imageName, String datasetName,
                            ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
                            AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive,
-                           int[][] resolutions, int[][] subdivisions, Compression compression ) {
+                           int[][] resolutions, int[][] subdivisions, Compression compression ) throws IOException, SpimDataException {
         // either xml file path or zarr file path depending on imageDataFormat
         String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
         File imageFile = new File(filePath);
 
         if ( imageFile.exists() ) {
             IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
+            deleteImageFiles( datasetName, imageName, imageDataFormat );
         }
 
         DownsampleBlock.DownsamplingMethod downsamplingMethod = getDownsamplingMethod( imageType );
@@ -140,20 +153,16 @@ public class ImagesCreator {
             } else {
                 is2D = false;
             }
-            try {
-                if (imageType == ProjectCreator.ImageType.image) {
-                    double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
-                    LUT lut = imp.getLuts()[0];
-                    String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" +
-                            lut.getBlue(255) + ",a=" + lut.getAlpha(255);
-                    updateTableAndJsonsForNewImage(imageName, datasetName, uiSelectionGroup, is2D,
-                            imp.getNFrames(), imageDataFormat, contrastLimits, colour, exclusive );
-                } else {
-                    updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup, is2D,
-                            imp.getNFrames(), imageDataFormat, exclusive );
-                }
-            } catch (SpimDataException e) {
-                e.printStackTrace();
+            if (imageType == ProjectCreator.ImageType.image) {
+                double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
+                LUT lut = imp.getLuts()[0];
+                String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" +
+                        lut.getBlue(255) + ",a=" + lut.getAlpha(255);
+                updateTableAndJsonsForNewImage(imageName, datasetName, uiSelectionGroup, is2D,
+                        imp.getNFrames(), imageDataFormat, contrastLimits, colour, exclusive );
+            } else {
+                updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup, is2D,
+                        imp.getNFrames(), imageDataFormat, exclusive );
             }
         }
 
@@ -225,6 +234,48 @@ public class ImagesCreator {
         }
     }
 
+    private void deleteImageFiles( String datasetName, String imageName, ImageDataFormat imageDataFormat ) throws IOException {
+
+        File xmlFile = null;
+        File n5File = null;
+        File zarrFile = null;
+        switch( imageDataFormat ) {
+            case BdvN5:
+                xmlFile = new File( getDefaultLocalImageXmlPath( datasetName, imageName, imageDataFormat ) );
+                n5File = new File( getDefaultLocalN5Path( datasetName, imageName ) );
+                break;
+
+            case BdvOmeZarr:
+                xmlFile = new File( getDefaultLocalImageXmlPath( datasetName, imageName, imageDataFormat ) );
+                zarrFile = new File( getDefaultLocalImageZarrPath( datasetName, imageName, imageDataFormat ) );
+                break;
+
+            case OmeZarr:
+                zarrFile = new File( getDefaultLocalImageZarrPath( datasetName, imageName, imageDataFormat ) );
+                break;
+
+            default:
+                throw new UnsupportedOperationException();
+
+        }
+
+        File tableFile = new File( getDefaultTablePath( datasetName, imageName ) );
+
+        // delete files
+        for ( File file : new File[] {xmlFile, tableFile}) {
+            if ( file != null && file.exists() ) {
+                Files.delete( file.toPath() );
+            }
+        }
+
+        // delete directories
+        for ( File file : new File[]{ zarrFile, n5File }) {
+            if ( file != null && file.exists() ) {
+                FileUtils.deleteDirectory( file );
+            }
+        }
+    }
+
     public void addBdvFormatImage ( File fileLocation, String datasetName, ProjectCreator.ImageType imageType,
                                     ProjectCreator.AddMethod addMethod, String uiSelectionGroup,
                                     ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
@@ -252,6 +303,7 @@ public class ImagesCreator {
 
             if ( newImageFile.exists() ) {
                 IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
+                deleteImageFiles( datasetName, imageName, imageDataFormat );
             }
 
             // make directory for that image file format, if doesn't exist already
@@ -344,7 +396,7 @@ public class ImagesCreator {
     // TODO - is this efficient for big images?
     private void addDefaultTableForImage ( String imageName, String datasetName, ImageDataFormat imageDataFormat ) {
         File tableFolder = new File( getDefaultTableDirPath( datasetName, imageName ) );
-        File defaultTable = new File( tableFolder, "default.tsv" );
+        File defaultTable = new File( getDefaultTablePath( datasetName, imageName ) );
         if ( !tableFolder.exists() ){
             tableFolder.mkdirs();
         }

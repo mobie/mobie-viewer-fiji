@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.projectcreator;
 
+import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
@@ -42,7 +43,7 @@ class RemoteMetadataCreatorTest {
                 datasetName, "dataset.json" );
     }
 
-    void testAddingRemoteMetadataForCertainFormat( ImageDataFormat imageDataFormat ) throws IOException {
+    void testAddingRemoteMetadataForCertainFormat( ImageDataFormat imageDataFormat ) throws IOException, SpimDataException {
 
         // add image of right type
         projectCreator.getImagesCreator().addImage( ProjectCreatorTestHelper.makeImage(imageName), imageName,
@@ -76,17 +77,17 @@ class RemoteMetadataCreatorTest {
     }
 
     @Test
-    void createRemoteMetadataBdvN5() throws IOException {
+    void createRemoteMetadataBdvN5() throws IOException, SpimDataException {
         testAddingRemoteMetadataForCertainFormat( ImageDataFormat.BdvN5 );
     }
 
     @Test
-    void createRemoteMetadataBdvOmeZarr() throws IOException {
+    void createRemoteMetadataBdvOmeZarr() throws IOException, SpimDataException {
         testAddingRemoteMetadataForCertainFormat( ImageDataFormat.BdvOmeZarr );
     }
 
     @Test
-    void createRemoteMetadataOmeZarr() throws IOException {
+    void createRemoteMetadataOmeZarr() throws IOException, SpimDataException {
         testAddingRemoteMetadataForCertainFormat( ImageDataFormat.OmeZarr);
     }
 }
