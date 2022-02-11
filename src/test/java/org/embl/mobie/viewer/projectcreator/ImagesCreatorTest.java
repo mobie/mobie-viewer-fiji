@@ -39,7 +39,6 @@ class ImagesCreatorTest {
     private String imageName;
     private String datasetName;
     private AffineTransform3D sourceTransform;
-    private boolean useDefaultSettings;
     private String uiSelectionGroup;
     private String datasetJsonPath;
     private File tempDir;
@@ -54,7 +53,6 @@ class ImagesCreatorTest {
         datasetName = "test";
         uiSelectionGroup = "testGroup";
         sourceTransform = new AffineTransform3D();
-        useDefaultSettings = true;
 
         projectCreator.getDatasetsCreator().addDataset(datasetName);
 
@@ -151,24 +149,24 @@ class ImagesCreatorTest {
         return filePath;
     }
 
-    void testAddingImageInCertainFormat( ImageDataFormat imageDataFormat ) throws IOException {
+    void testAddingImageInCertainFormat( ImageDataFormat imageDataFormat ) throws IOException, SpimDataException {
 
         // make an image with random values, same size as the imagej sample head image
         ImagePlus imp = makeImage( imageName );
 
         imagesCreator.addImage( imp, imageName, datasetName,
                 imageDataFormat, ProjectCreator.ImageType.image,
-                sourceTransform, useDefaultSettings, uiSelectionGroup, false );
+                sourceTransform, uiSelectionGroup, false );
 
         assertionsForImageAdded( imageDataFormat, false );
     }
 
-    void testAddingSegmentationInCertainFormat( ImageDataFormat imageDataFormat ) throws IOException {
+    void testAddingSegmentationInCertainFormat( ImageDataFormat imageDataFormat ) throws IOException, SpimDataException {
         ImagePlus seg = makeSegmentation( imageName );
 
         imagesCreator.addImage( seg, imageName, datasetName,
                 imageDataFormat, ProjectCreator.ImageType.segmentation,
-                sourceTransform, useDefaultSettings, uiSelectionGroup, false );
+                sourceTransform, uiSelectionGroup, false );
 
         assertionsForImageAdded( imageDataFormat, false );
         assertionsForTableAdded( imageDataFormat );
@@ -179,7 +177,7 @@ class ImagesCreatorTest {
         // save example image
         String filePath = writeImageAndGetPath( imageDataFormat );
 
-        imagesCreator.addBdvFormatImage( new File(filePath), datasetName, ProjectCreator.ImageType.image,
+        imagesCreator.addBdvFormatImage( new File(filePath), imageName, datasetName, ProjectCreator.ImageType.image,
                 ProjectCreator.AddMethod.link, uiSelectionGroup, imageDataFormat, false );
 
         assertionsForImageAdded( imageDataFormat, true );
@@ -190,7 +188,7 @@ class ImagesCreatorTest {
         // save example image
         String filePath = writeImageAndGetPath( imageDataFormat );
 
-        imagesCreator.addBdvFormatImage( new File(filePath), datasetName, ProjectCreator.ImageType.image,
+        imagesCreator.addBdvFormatImage( new File(filePath), imageName, datasetName, ProjectCreator.ImageType.image,
                 ProjectCreator.AddMethod.copy, uiSelectionGroup, imageDataFormat, false );
 
         assertionsForImageAdded( imageDataFormat, false );
@@ -201,39 +199,39 @@ class ImagesCreatorTest {
         // save example image
         String filePath = writeImageAndGetPath( imageDataFormat );
 
-        imagesCreator.addBdvFormatImage( new File(filePath), datasetName, ProjectCreator.ImageType.image,
+        imagesCreator.addBdvFormatImage( new File(filePath), imageName, datasetName, ProjectCreator.ImageType.image,
                 ProjectCreator.AddMethod.move, uiSelectionGroup, imageDataFormat, false );
 
         assertionsForImageAdded( imageDataFormat, false );
     }
 
     @Test
-    void addImageBdvN5() throws IOException {
+    void addImageBdvN5() throws IOException, SpimDataException {
         testAddingImageInCertainFormat( ImageDataFormat.BdvN5 );
     }
 
     @Test
-    void addSegmentationBdvN5() throws IOException {
+    void addSegmentationBdvN5() throws IOException, SpimDataException {
         testAddingSegmentationInCertainFormat( ImageDataFormat.BdvN5 );
     }
 
     @Test
-    void addImageBdvOmeZarr() throws IOException {
+    void addImageBdvOmeZarr() throws IOException, SpimDataException {
         testAddingImageInCertainFormat( ImageDataFormat.BdvOmeZarr );
     }
 
     @Test
-    void addSegmentationBdvOmeZarr() throws IOException {
+    void addSegmentationBdvOmeZarr() throws IOException, SpimDataException {
         testAddingSegmentationInCertainFormat( ImageDataFormat.BdvOmeZarr );
     }
 
     @Test
-    void addImageOmeZarr() throws IOException {
+    void addImageOmeZarr() throws IOException, SpimDataException {
         testAddingImageInCertainFormat( ImageDataFormat.OmeZarr );
     }
 
     @Test
-    void addSegmentationOmeZarr() throws IOException {
+    void addSegmentationOmeZarr() throws IOException, SpimDataException {
         testAddingSegmentationInCertainFormat( ImageDataFormat.OmeZarr );
     }
 
