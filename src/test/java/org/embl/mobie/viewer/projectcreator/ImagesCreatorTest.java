@@ -177,7 +177,7 @@ class ImagesCreatorTest {
         // save example image
         String filePath = writeImageAndGetPath( imageDataFormat );
 
-        imagesCreator.addBdvFormatImage( new File(filePath), datasetName, ProjectCreator.ImageType.image,
+        imagesCreator.addBdvFormatImage( new File(filePath), imageName, datasetName, ProjectCreator.ImageType.image,
                 ProjectCreator.AddMethod.link, uiSelectionGroup, imageDataFormat, false );
 
         assertionsForImageAdded( imageDataFormat, true );
@@ -188,7 +188,7 @@ class ImagesCreatorTest {
         // save example image
         String filePath = writeImageAndGetPath( imageDataFormat );
 
-        imagesCreator.addBdvFormatImage( new File(filePath), datasetName, ProjectCreator.ImageType.image,
+        imagesCreator.addBdvFormatImage( new File(filePath), imageName, datasetName, ProjectCreator.ImageType.image,
                 ProjectCreator.AddMethod.copy, uiSelectionGroup, imageDataFormat, false );
 
         assertionsForImageAdded( imageDataFormat, false );
@@ -199,7 +199,7 @@ class ImagesCreatorTest {
         // save example image
         String filePath = writeImageAndGetPath( imageDataFormat );
 
-        imagesCreator.addBdvFormatImage( new File(filePath), datasetName, ProjectCreator.ImageType.image,
+        imagesCreator.addBdvFormatImage( new File(filePath), imageName, datasetName, ProjectCreator.ImageType.image,
                 ProjectCreator.AddMethod.move, uiSelectionGroup, imageDataFormat, false );
 
         assertionsForImageAdded( imageDataFormat, false );

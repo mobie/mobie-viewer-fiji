@@ -276,14 +276,13 @@ public class ImagesCreator {
         }
     }
 
-    public void addBdvFormatImage ( File fileLocation, String datasetName, ProjectCreator.ImageType imageType,
-                                    ProjectCreator.AddMethod addMethod, String uiSelectionGroup,
-                                    ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
+    public void addBdvFormatImage ( File fileLocation, String imageName, String datasetName,
+                                    ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod,
+                                    String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
 
         if ( fileLocation.exists() ) {
 
             SpimData spimData = ( SpimData ) new SpimDataOpener().openSpimData( fileLocation.getAbsolutePath(), imageDataFormat );
-            String imageName = fileLocation.getName().split("\\.")[0];
             File imageDirectory = new File( getDefaultLocalImageDirPath( datasetName, imageDataFormat ));
 
             File newImageFile = null;

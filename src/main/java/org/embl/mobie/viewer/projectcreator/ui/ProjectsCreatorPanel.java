@@ -45,6 +45,7 @@ public class ProjectsCreatorPanel extends JFrame {
     private static ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.link;
     private static boolean useDefaultExportSettings = true;
     private static boolean exclusive = false;
+    private static boolean useFileNameAsImageName = true;
 
     // TODO - ImageDataFormat.OmeZarr removed from here for now. Add it back when transforms are supported
     // so the voxel size can be maintained.
@@ -444,6 +445,20 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
+    private String imageNameDialog( File imageFile ) {
+        final GenericDialog gd = new GenericDialog( "Choose image name..." );
+        gd.addStringField( "Image Name", imageFile.getName().split("\\.")[0], 35 );
+        gd.showDialog();
+
+        String imageName = null;
+        if ( !gd.wasCanceled() ) {
+            imageName = gd.getNextString();
+            // tidy up image name, remove any spaces
+            imageName = UserInterfaceHelper.tidyString( imageName );
+        }
+        return imageName;
+    }
+
     public void addCurrentOpenImageDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
@@ -535,6 +550,7 @@ public class ProjectsCreatorPanel extends JFrame {
             gd.addChoice("Add method:", addMethods, addMethod.toString() );
             gd.addChoice("Image Type", imageTypes, imageType.toString() );
             gd.addCheckbox("Make view exclusive", exclusive );
+            gd.addCheckbox("Use filename as image name", useFileNameAsImageName );
 
             gd.showDialog();
 
@@ -543,6 +559,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 addMethod = ProjectCreator.AddMethod.valueOf( gd.getNextChoice() );
                 imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
                 exclusive = gd.getNextBoolean();
+                useFileNameAsImageName = gd.getNextBoolean();
 
                 if ( imageDataFormat == ImageDataFormat.OmeZarr && addMethod == ProjectCreator.AddMethod.link ) {
                     IJ.log( "link is currently unsupported for ome-zarr. Please choose copy or move instead for this" +
@@ -554,9 +571,6 @@ public class ProjectsCreatorPanel extends JFrame {
                 String filePath = null;
                 switch ( imageDataFormat ) {
                     case BdvN5:
-                        filePath = MoBIEUtils.selectOpenPathFromFileSystem("bdv .xml file", "xml");
-                        break;
-
                     case BdvOmeZarr:
                         filePath = MoBIEUtils.selectOpenPathFromFileSystem("bdv .xml file", "xml");
                         break;
@@ -576,6 +590,12 @@ public class ProjectsCreatorPanel extends JFrame {
 
                     File imageFile = new File( filePath );
                     String imageName = imageFile.getName().split("\\.")[0];
+                    if ( !useFileNameAsImageName ) {
+                        imageName = imageNameDialog( imageFile );
+                        if ( imageName == null ) {
+                            return;
+                        }
+                    }
 
                     ImagesCreator imagesCreator = projectsCreator.getImagesCreator();
                     boolean overwriteImage = true;
@@ -593,7 +613,7 @@ public class ProjectsCreatorPanel extends JFrame {
                     }
 
                     try {
-                            imagesCreator.addBdvFormatImage(imageFile, datasetName, imageType,
+                            imagesCreator.addBdvFormatImage(imageFile, imageName, datasetName, imageType,
                                     addMethod, uiSelectionGroup, imageDataFormat, exclusive);
                             updateComboBoxesForNewImage(imageName, uiSelectionGroup);
                     } catch (SpimDataException | IOException e) {
