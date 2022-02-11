@@ -314,6 +314,7 @@ public class ImagesCreator {
             switch (addMethod) {
                 case link:
                     // TODO - linking currently not supported for ome-zarr
+                    spimData.setBasePath( imageDir );
                     new XmlIoSpimData().save(spimData, newImageFile.getAbsolutePath());
                     break;
                 case copy:
