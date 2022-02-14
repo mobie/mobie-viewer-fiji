@@ -465,6 +465,12 @@ public class ProjectsCreatorPanel extends JFrame {
         if ( !datasetName.equals("") ) {
             ImagePlus currentImage = IJ.getImage();
 
+            if ( currentImage.getNChannels() > 1 ) {
+                IJ.log("Image " + currentImage.getTitle() + " has multiple channels. \n Please split " +
+                        "the channels [ Image > Color > Split Channels], and add each separately." );
+                return;
+            }
+
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
             gd.addMessage( "Make sure your pixel size, and unit,\n are set properly under Image > Properties...");
             gd.addStringField( "Image Name", FilenameUtils.removeExtension(currentImage.getTitle()), 35 );
