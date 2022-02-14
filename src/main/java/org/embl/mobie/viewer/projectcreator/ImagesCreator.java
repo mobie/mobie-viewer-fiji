@@ -127,8 +127,8 @@ public class ImagesCreator {
         File imageFile = new File(filePath);
 
         if ( imp.getNChannels() > 1 ) {
-            throw new UnsupportedOperationException("Multi-channel images are not supported. " +
-                    "Please add each channel individually.");
+            throw new UnsupportedOperationException("Multi-channel images are not supported.\n" +
+                    "Please add each channel individually ([ Image > Color > Split Channels ]).\n" );
         }
 
         if ( imageFile.exists() ) {
