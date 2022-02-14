@@ -17,6 +17,9 @@ import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
+import sc.fiji.bdvpg.services.ISourceAndConverterService;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.register.BigWarpLauncher;
 
 import java.util.Arrays;
@@ -37,24 +40,27 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 	@Parameter(label = "Fixed Source(s)")
 	SourceAndConverter[] fixedSources;
 
-	@Parameter
-	SourceAndConverterBdvDisplayService bdvDisplayService;
-
 	private BigWarp bigWarp;
 	private Map< SourceAndConverter< ? >, AffineTransform3D > sacToOriginalFixedTransform;
 	private List< SourceAndConverter > movingSacs;
 	private List< SourceAndConverter > fixedSacs;
 
+	private ISourceAndConverterService sacService;
+	private SourceAndConverterBdvDisplayService bdvDisplayService;
+
 	@Override
 	public void run()
 	{
+		sacService = SourceAndConverterServices.getSourceAndConverterService();
+		bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
+
 		movingSacs = Arrays.stream( movingSources ).collect( Collectors.toList() );
 		fixedSacs = Arrays.stream( fixedSources ).collect( Collectors.toList() );
 
 		storeOriginalTransforms( movingSacs );
 
-		List< ConverterSetup > converterSetups = Arrays.stream( movingSources ).map( src -> bdvDisplayService.getConverterSetup(src)).collect( Collectors.toList() );
-		converterSetups.addAll( Arrays.stream( fixedSources ).map( src -> bdvDisplayService.getConverterSetup( src) ).collect( Collectors.toList() ) );
+		List< ConverterSetup > converterSetups = Arrays.stream( movingSources ).map( src -> sacService.getConverterSetup(src)).collect( Collectors.toList() );
+		converterSetups.addAll( Arrays.stream( fixedSources ).map( src -> sacService.getConverterSetup( src) ).collect( Collectors.toList() ) );
 
 		BigWarpLauncher bigWarpLauncher = new BigWarpLauncher( movingSacs, fixedSacs, "Big Warp", converterSetups);
 		bigWarpLauncher.run();

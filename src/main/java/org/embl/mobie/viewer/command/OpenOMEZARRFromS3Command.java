@@ -27,7 +27,7 @@ public class OpenOMEZARRFromS3Command implements Command {
     @Override
     public void run() {
         try {
-            OMEZarrS3Opener.setLogChunkLoading( logChunkLoading );
+            OMEZarrS3Opener.setLogging( logChunkLoading );
             openAndShow(s3URL);
         } catch (IOException e) {
             e.printStackTrace();

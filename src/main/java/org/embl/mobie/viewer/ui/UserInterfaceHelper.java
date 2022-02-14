@@ -295,7 +295,7 @@ public class UserInterfaceHelper
 		// make the panel color listen to color changes of the sources
 		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
 		{
-			SourceAndConverterServices.getBdvDisplayService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
+			SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
 				// color changed listener
 				setPanelColor( panel, setup.getColor() );
 			} );
@@ -753,7 +753,7 @@ public class UserInterfaceHelper
 			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
 			for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceNameToSourceAndConverter.values() )
 			{
-				converterSetups.add( SourceAndConverterServices.getBdvDisplayService().getConverterSetup( sourceAndConverter ) );
+				converterSetups.add( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ) );
 			}
 
 			UserInterfaceHelper.showBrightnessDialog(

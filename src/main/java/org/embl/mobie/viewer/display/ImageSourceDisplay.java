@@ -77,7 +77,7 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 		this.sources.addAll( imageDisplay.sourceNameToSourceAndConverter.keySet() );
 
 		final SourceAndConverter< ? > sourceAndConverter = imageDisplay.sourceNameToSourceAndConverter.values().iterator().next();
-		final ConverterSetup converterSetup = SourceAndConverterServices.getBdvDisplayService().getConverterSetup( sourceAndConverter );
+		final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
 
 		if( sourceAndConverter.getConverter() instanceof AdjustableOpacityColorConverter )
 		{

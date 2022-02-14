@@ -31,20 +31,15 @@ public class ImageSliceView
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	private final SourceAndConverterBdvDisplayService displayService;
 	private final MoBIE moBIE;
 	private final ImageSourceDisplay display;
 	private final BdvHandle bdvHandle;
-	private final SourceAndConverterService sacService;
 
 	public ImageSliceView( MoBIE moBIE, ImageSourceDisplay display, BdvHandle bdvHandle )
 	{
 		this.moBIE = moBIE;
 		this.display = display;
 		this.bdvHandle = bdvHandle;
-
-		displayService = SourceAndConverterServices.getBdvDisplayService();
-		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 
 		show();
 	}
@@ -74,10 +69,10 @@ public class ImageSliceView
 				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
 
 			// show
-			displayService.show( bdvHandle, display.isVisible(), sourceAndConverter );
+			SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
 
 			// adapt contrast limits
-			final ConverterSetup converterSetup = displayService.getConverterSetup( sourceAndConverter );
+			final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
 			converterSetup.setDisplayRange( display.getContrastLimits()[ 0 ], display.getContrastLimits()[ 1 ] );
 
 			// register	the actually displayed sac (for serialisation)

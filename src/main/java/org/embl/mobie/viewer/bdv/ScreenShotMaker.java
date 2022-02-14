@@ -55,6 +55,7 @@ import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
+import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.awt.*;
@@ -77,19 +78,17 @@ public class ScreenShotMaker
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     private final BdvHandle bdvHandle;
+    private final ISourceAndConverterService sacService;
     private double samplingXY = 1;
     private String physicalUnit = "Pixels";
     private boolean sourceInteractionWithViewerPlaneOnly2D = false; // TODO: maybe remove in the future
     ImagePlus rgbImagePlus = null;
     private CompositeImage compositeImagePlus = null;
-    private final SourceAndConverterBdvDisplayService displayService;
-    //private final ISourceAndConverterService sacService;
     private long[] captureImageSizeInPixels = new long[2];
 
     public ScreenShotMaker( BdvHandle bdvHandle) {
         this.bdvHandle = bdvHandle;
-        this.displayService = SourceAndConverterServices.getBdvDisplayService();
-        //this.sacService = SourceAndConverterServices.getSourceAndConverterService();
+        this.sacService = SourceAndConverterServices.getSourceAndConverterService();
     }
 
     public void setPhysicalPixelSpacingInXY(double spacing, String unit) {
@@ -242,7 +241,7 @@ public class ScreenShotMaker
             rawCaptures.add( rawCapture );
             argbSources.add( argbCapture );
             // colors.add( getSourceColor( bdv, sourceIndex ) ); Not used, show GrayScale
-            displayRanges.add( BdvHandleHelper.getDisplayRange( displayService.getConverterSetup( sac ) ) );
+            displayRanges.add( BdvHandleHelper.getDisplayRange( sacService.getConverterSetup( sac ) ) );
         }
 
         final double[] voxelSpacing = new double[ 3 ];
