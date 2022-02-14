@@ -126,6 +126,11 @@ public class ImagesCreator {
         String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
         File imageFile = new File(filePath);
 
+        if ( imp.getNChannels() > 1 ) {
+            throw new UnsupportedOperationException("Multi-channel images are not supported.\n" +
+                    "Please add each channel individually ([ Image > Color > Split Channels ]).\n" );
+        }
+
         if ( imageFile.exists() ) {
             IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
             deleteImageFiles( datasetName, imageName, imageDataFormat );
