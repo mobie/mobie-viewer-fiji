@@ -27,6 +27,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -459,6 +460,15 @@ public class ProjectsCreatorPanel extends JFrame {
         return imageName;
     }
 
+    private String getVoxelSizeString( ImagePlus imp ) {
+        DecimalFormat df = new DecimalFormat("#.###");
+        String voxelString =  "Voxel size: " + df.format( imp.getCalibration().pixelWidth ) + ", " +
+                df.format( imp.getCalibration().pixelHeight ) + ", " + df.format( imp.getCalibration().pixelDepth ) +
+                " " + imp.getCalibration().getUnit();
+
+        return voxelString;
+    }
+
     public void addCurrentOpenImageDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
@@ -472,14 +482,16 @@ public class ProjectsCreatorPanel extends JFrame {
             }
 
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
-            gd.addMessage( "Make sure your pixel size, and unit,\n are set properly under Image > Properties...");
+            gd.addMessage( "Make sure your voxel size, and unit,\n are set properly under Image > Properties...");
             gd.addStringField( "Image Name", FilenameUtils.removeExtension(currentImage.getTitle()), 35 );
             gd.addChoice( "Image Type", imageTypes, imageType.toString() );
             gd.addChoice( "Image format", imageFormats, imageDataFormat.toString() );
             gd.addCheckbox("Use default export settings", useDefaultExportSettings );
             gd.addCheckbox("Make view exclusive", exclusive );
 
-            gd.addMessage("Affine transform:");
+            gd.addMessage( getVoxelSizeString( currentImage ) );
+
+            gd.addMessage("Additional view affine transform:");
             gd.addStringField("Row 1", "1.0, 0.0, 0.0, 0.0", 25 );
             gd.addStringField( "Row 2", "0.0, 1.0, 0.0, 0.0", 25 );
             gd.addStringField( "Row 3", "0.0, 0.0, 1.0, 0.0", 25 );
