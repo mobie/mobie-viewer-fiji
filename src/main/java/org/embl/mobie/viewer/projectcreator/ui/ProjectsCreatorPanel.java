@@ -27,6 +27,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -459,6 +460,15 @@ public class ProjectsCreatorPanel extends JFrame {
         return imageName;
     }
 
+    private String getVoxelSizeString( ImagePlus imp ) {
+        DecimalFormat df = new DecimalFormat("#.###");
+        String voxelString =  "Voxel size: " + df.format( imp.getCalibration().pixelWidth ) + ", " +
+                df.format( imp.getCalibration().pixelHeight ) + ", " + df.format( imp.getCalibration().pixelDepth ) +
+                " " + imp.getCalibration().getUnit();
+
+        return voxelString;
+    }
+
     public void addCurrentOpenImageDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
@@ -471,16 +481,20 @@ public class ProjectsCreatorPanel extends JFrame {
                 return;
             }
 
-            String defaultAffineTransform = ProjectCreatorHelper.generateDefaultAffine( currentImage );
-
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
-            gd.addMessage( "Make sure your pixel size, and unit,\n are set properly under Image > Properties...");
+            gd.addMessage( "Make sure your voxel size, and unit,\n are set properly under Image > Properties...");
             gd.addStringField( "Image Name", FilenameUtils.removeExtension(currentImage.getTitle()), 35 );
             gd.addChoice( "Image Type", imageTypes, imageType.toString() );
             gd.addChoice( "Image format", imageFormats, imageDataFormat.toString() );
-            gd.addStringField("Affine", defaultAffineTransform, 35 );
             gd.addCheckbox("Use default export settings", useDefaultExportSettings );
             gd.addCheckbox("Make view exclusive", exclusive );
+
+            gd.addMessage( getVoxelSizeString( currentImage ) );
+
+            gd.addMessage("Additional view affine transform:");
+            gd.addStringField("Row 1", "1.0, 0.0, 0.0, 0.0", 25 );
+            gd.addStringField( "Row 2", "0.0, 1.0, 0.0, 0.0", 25 );
+            gd.addStringField( "Row 3", "0.0, 0.0, 1.0, 0.0", 25 );
 
             gd.showDialog();
 
@@ -488,9 +502,13 @@ public class ProjectsCreatorPanel extends JFrame {
                 String imageName = gd.getNextString();
                 imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
                 imageDataFormat = ImageDataFormat.fromString( gd.getNextChoice() );
-                String affineTransform = gd.getNextString().trim();
                 useDefaultExportSettings = gd.getNextBoolean();
                 exclusive = gd.getNextBoolean();
+
+                String affineRow1 = gd.getNextString().trim();
+                String affineRow2 = gd.getNextString().trim();
+                String affineRow3 = gd.getNextString().trim();
+                String affineTransform = String.join(",", affineRow1, affineRow2, affineRow3 );
 
                 // tidy up image name, remove any spaces
                 imageName = UserInterfaceHelper.tidyString( imageName );

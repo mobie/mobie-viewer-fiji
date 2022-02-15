@@ -120,6 +120,44 @@ public class ImagesCreator {
 
     public void addImage ( ImagePlus imp, String imageName, String datasetName,
                            ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
+                           String uiSelectionGroup, boolean exclusive ) throws SpimDataException, IOException {
+        addImage( imp, imageName, datasetName, imageDataFormat, imageType, new AffineTransform3D(), uiSelectionGroup,
+                exclusive, null, null, null );
+
+    }
+
+    public void addImage ( ImagePlus imp, String imageName, String datasetName,
+                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
+                           String uiSelectionGroup, boolean exclusive,
+                           int[][] resolutions, int[][] subdivisions, Compression compression ) throws SpimDataException, IOException {
+        addImage( imp, imageName, datasetName, imageDataFormat, imageType, new AffineTransform3D(), uiSelectionGroup,
+                exclusive, resolutions, subdivisions, compression );
+    }
+
+    /**
+     * Add an image to a MoBIE project. Make sure the ImagePlus scale is set properly, so that imp.getCalibration()
+     * returns the correct values. Note that multi-channel images are not supported - you will need to
+     * split these channels and add each as its own image.
+     * @param imp image to add
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param imageDataFormat image format
+     * @param imageType Image or Segmentation - segmentations will additionally generate a table.
+     * @param sourceTransform Affine transform - this will be added to the image view, and will be added on top
+     *                        of the normal scaling coming from imp.getCalibration()
+     * @param uiSelectionGroup Name of MoBIE drop-down menu to place view in
+     * @param exclusive Whether to make the view exclusive.
+     * @param resolutions Resolution/downsampling levels to write e.g. new int[][]{ {1,1,1}, {2,2,2}, {4,4,4} }
+     *                    will write one full resolution level, then one 2x downsampled, and one 4x downsampled.
+     *                    The order is {x, y, z}.
+     * @param subdivisions Chunk size. Must have the same number of entries as 'resolutions'. e.g.
+     *                     new int[][]{ {64,64,64}, {64,64,64}, {64,64,64} }. The order is {x, y, z}.
+     * @param compression type of compression to use
+     * @throws SpimDataException
+     * @throws IOException
+     */
+    public void addImage ( ImagePlus imp, String imageName, String datasetName,
+                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
                            AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive,
                            int[][] resolutions, int[][] subdivisions, Compression compression ) throws IOException, SpimDataException {
         // either xml file path or zarr file path depending on imageDataFormat
@@ -144,9 +182,9 @@ public class ImagesCreator {
         }
 
         if ( resolutions == null || subdivisions == null || compression == null ) {
-            writeDefaultImage( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat );
+            writeDefaultImage( imp, filePath, downsamplingMethod, imageName, imageDataFormat );
         } else {
-            writeDefaultImage( imp, filePath, sourceTransform, downsamplingMethod, imageName, imageDataFormat,
+            writeDefaultImage( imp, filePath, downsamplingMethod, imageName, imageDataFormat,
                     resolutions, subdivisions, compression );
         }
 
@@ -163,11 +201,11 @@ public class ImagesCreator {
                 LUT lut = imp.getLuts()[0];
                 String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" +
                         lut.getBlue(255) + ",a=" + lut.getAlpha(255);
-                updateTableAndJsonsForNewImage(imageName, datasetName, uiSelectionGroup, is2D,
-                        imp.getNFrames(), imageDataFormat, contrastLimits, colour, exclusive );
+                updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup, is2D,
+                        imp.getNFrames(), imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
             } else {
                 updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup, is2D,
-                        imp.getNFrames(), imageDataFormat, exclusive );
+                        imp.getNFrames(), imageDataFormat, exclusive, sourceTransform );
             }
         }
 
@@ -186,9 +224,12 @@ public class ImagesCreator {
         return downsamplingMethod;
     }
 
-    private void writeDefaultImage( ImagePlus imp, String filePath, AffineTransform3D sourceTransform,
+    private void writeDefaultImage( ImagePlus imp, String filePath,
                                     DownsampleBlock.DownsamplingMethod downsamplingMethod,
                                     String imageName, ImageDataFormat imageDataFormat ) {
+
+        // transform only including scaling from image
+        AffineTransform3D sourceTransform = ProjectCreatorHelper.generateDefaultAffine( imp );
 
         // gzip compression by default
         switch( imageDataFormat ) {
@@ -213,10 +254,13 @@ public class ImagesCreator {
         }
     }
 
-    private void writeDefaultImage( ImagePlus imp, String filePath, AffineTransform3D sourceTransform,
+    private void writeDefaultImage( ImagePlus imp, String filePath,
                              DownsampleBlock.DownsamplingMethod downsamplingMethod,
                              String imageName, ImageDataFormat imageDataFormat,
                              int[][] resolutions, int[][] subdivisions, Compression compression ) {
+
+        // transform only including scaling from image
+        AffineTransform3D sourceTransform = ProjectCreatorHelper.generateDefaultAffine( imp );
 
         switch( imageDataFormat ) {
             case BdvN5:
@@ -333,10 +377,11 @@ public class ImagesCreator {
             if (imageType == ProjectCreator.ImageType.image) {
                 updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup,
                         isSpimData2D(spimData), getNTimepointsFromSpimData(spimData),
-                        imageDataFormat, new double[]{0.0, 255.0}, "white", exclusive );
+                        imageDataFormat, new double[]{0.0, 255.0}, "white", exclusive, new AffineTransform3D() );
             } else {
                 updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup,
-                        isSpimData2D(spimData), getNTimepointsFromSpimData(spimData), imageDataFormat, exclusive );
+                        isSpimData2D(spimData), getNTimepointsFromSpimData(spimData), imageDataFormat, exclusive,
+                        new AffineTransform3D() );
             }
 
             IJ.log( "Bdv format image " + imageName + " added to project" );
@@ -463,19 +508,19 @@ public class ImagesCreator {
     private void updateTableAndJsonsForNewImage ( String imageName, String datasetName, String uiSelectionGroup,
                                                   boolean is2D, int nTimepoints, ImageDataFormat imageDataFormat,
                                                   double[] contrastLimits, String colour,
-                                                  boolean exclusive ) throws SpimDataException {
+                                                  boolean exclusive, AffineTransform3D sourceTransform ) {
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
         datasetJsonCreator.addImageToDatasetJson( imageName, datasetName, uiSelectionGroup, is2D, nTimepoints,
-                imageDataFormat, contrastLimits, colour, exclusive );
+                imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
     }
 
     private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup,
                                                         boolean is2D, int nTimepoints, ImageDataFormat imageDataFormat,
-                                                        boolean exclusive ) {
+                                                        boolean exclusive, AffineTransform3D sourceTransform ) {
         addDefaultTableForImage( imageName, datasetName, imageDataFormat );
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
         datasetJsonCreator.addSegmentationToDatasetJson( imageName, datasetName, uiSelectionGroup, is2D, nTimepoints,
-                imageDataFormat, exclusive );
+                imageDataFormat, exclusive, sourceTransform );
     }
 
     private void copyImage ( ImageDataFormat imageFormat, SpimData spimData,
@@ -607,40 +652,6 @@ public class ImagesCreator {
         spimData.setBasePath( saveDirectory );
         spimData.getSequenceDescription().setImgLoader(imgLoader);
         new XmlIoSpimData().save(spimData, new File( saveDirectory, imageName + ".xml").getAbsolutePath() );
-    }
-
-    private void addAffineTransformToXml ( String xmlPath, String affineTransform )  {
-        if ( affineTransform != null ) {
-            try {
-                SpimDataMinimal spimDataMinimal = new XmlIoSpimDataMinimal().load( xmlPath );
-                int numTimepoints = spimDataMinimal.getSequenceDescription().getTimePoints().size();
-                int numSetups = spimDataMinimal.getSequenceDescription().getViewSetupsOrdered().size();
-
-                AffineTransform3D sourceTransform = new AffineTransform3D();
-                String[] splitAffineTransform = affineTransform.split(" ");
-                double[] doubleAffineTransform = new double[splitAffineTransform.length];
-                for ( int i = 0; i < splitAffineTransform.length; i++ ) {
-                    doubleAffineTransform[i] = Double.parseDouble( splitAffineTransform[i] );
-                }
-                sourceTransform.set( doubleAffineTransform );
-
-                final ArrayList<ViewRegistration> registrations = new ArrayList<>();
-                for ( int t = 0; t < numTimepoints; ++t ) {
-                    for (int s = 0; s < numSetups; ++s) {
-                        registrations.add(new ViewRegistration(t, s, sourceTransform));
-                    }
-                }
-
-                SpimDataMinimal updatedSpimDataMinimial = new SpimDataMinimal(spimDataMinimal.getBasePath(),
-                        spimDataMinimal.getSequenceDescription(), new ViewRegistrations( registrations) );
-
-                new XmlIoSpimDataMinimal().save( updatedSpimDataMinimial, xmlPath);
-            } catch (SpimDataException e) {
-                IJ.log( "Error adding affine transform to xml file. Check xml manually.");
-                e.printStackTrace();
-            }
-
-        }
     }
 
 }

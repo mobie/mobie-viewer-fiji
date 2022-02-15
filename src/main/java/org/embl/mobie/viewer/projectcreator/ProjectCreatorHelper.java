@@ -56,12 +56,12 @@ public class ProjectCreatorHelper {
     }
 
     public static boolean isValidAffine(String affine) {
-        if (!affine.matches("^[0-9. ]+$")) {
-            IJ.log("Invalid affine transform - must contain only numbers and spaces");
+        if (!affine.matches("^[0-9., ]+$")) {
+            IJ.log("Invalid affine transform - must contain only numbers, commas and spaces");
             return false;
         }
 
-        String[] splitAffine = affine.split(" ");
+        String[] splitAffine = affine.split(",");
         if (splitAffine.length != 12) {
             IJ.log("Invalid affine transform - must be of length 12");
             return false;
@@ -73,7 +73,9 @@ public class ProjectCreatorHelper {
     public static AffineTransform3D parseAffineString(String affine) {
         if (isValidAffine(affine)) {
             AffineTransform3D sourceTransform = new AffineTransform3D();
-            String[] splitAffineTransform = affine.split(" ");
+            // remove spaces
+            affine = affine.replaceAll("\\s","");
+            String[] splitAffineTransform = affine.split(",");
             double[] doubleAffineTransform = new double[splitAffineTransform.length];
             for (int i = 0; i < splitAffineTransform.length; i++) {
                 doubleAffineTransform[i] = Double.parseDouble(splitAffineTransform[i]);
@@ -85,12 +87,14 @@ public class ProjectCreatorHelper {
         }
     }
 
-    public static String generateDefaultAffine(ImagePlus imp) {
+    public static AffineTransform3D generateDefaultAffine(ImagePlus imp) {
         final double pixelWidth = imp.getCalibration().pixelWidth;
         final double pixelHeight = imp.getCalibration().pixelHeight;
         final double pixelDepth = imp.getCalibration().pixelDepth;
 
-        String defaultAffine = pixelWidth + " 0.0 0.0 0.0 0.0 " + pixelHeight + " 0.0 0.0 0.0 0.0 " + pixelDepth + " 0.0";
+        AffineTransform3D defaultAffine = new AffineTransform3D();
+        defaultAffine.scale( pixelWidth, pixelHeight, pixelDepth );
+
         return defaultAffine;
     }
 
