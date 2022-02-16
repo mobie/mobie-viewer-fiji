@@ -1,8 +1,6 @@
 package org.embl.mobie.viewer.projectcreator;
 
 import bdv.img.n5.N5ImageLoader;
-import bdv.spimdata.SpimDataMinimal;
-import bdv.spimdata.XmlIoSpimDataMinimal;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.process.LUT;
@@ -12,11 +10,8 @@ import org.embl.mobie.io.n5.loaders.N5FSImageLoader;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.n5.writers.WriteImgPlusToN5;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
-import org.embl.mobie.io.ome.zarr.readers.N5OmeZarrReader;
-import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 
-import org.embl.mobie.viewer.projectcreator.ui.ManualExportPanel;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
 import ij.IJ;
@@ -26,8 +21,6 @@ import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.XmlIoSpimData;
 import mpicbg.spim.data.generic.base.Entity;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
-import mpicbg.spim.data.registration.ViewRegistration;
-import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.*;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.RealTypeConverters;
@@ -44,7 +37,6 @@ import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataC
 import mpicbg.spim.data.sequence.SequenceDescription;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -238,11 +230,6 @@ public class ImagesCreator {
                         new GzipCompression(), new String[]{imageName} );
                 break;
 
-            case BdvOmeZarr:
-                new WriteImgPlusToN5BdvOmeZarr().export(imp, filePath, sourceTransform, downsamplingMethod,
-                        new GzipCompression(), new String[]{imageName} );
-                break;
-
             case OmeZarr:
                 new WriteImgPlusToN5OmeZarr().export(imp, filePath, sourceTransform, downsamplingMethod,
                         new GzipCompression(), new String[]{imageName});
@@ -268,11 +255,6 @@ public class ImagesCreator {
                         downsamplingMethod, compression, new String[]{imageName});
                 break;
 
-            case BdvOmeZarr:
-                new WriteImgPlusToN5BdvOmeZarr().export(imp, resolutions, subdivisions, filePath, sourceTransform,
-                        downsamplingMethod, compression, new String[]{imageName});
-                break;
-
             case OmeZarr:
                 new WriteImgPlusToN5OmeZarr().export(imp, resolutions, subdivisions, filePath, sourceTransform,
                         downsamplingMethod, compression, new String[]{imageName});
@@ -292,11 +274,6 @@ public class ImagesCreator {
             case BdvN5:
                 xmlFile = new File( getDefaultLocalImageXmlPath( datasetName, imageName, imageDataFormat ) );
                 n5File = new File( getDefaultLocalN5Path( datasetName, imageName ) );
-                break;
-
-            case BdvOmeZarr:
-                xmlFile = new File( getDefaultLocalImageXmlPath( datasetName, imageName, imageDataFormat ) );
-                zarrFile = new File( getDefaultLocalImageZarrPath( datasetName, imageName, imageDataFormat ) );
                 break;
 
             case OmeZarr:
@@ -337,8 +314,6 @@ public class ImagesCreator {
             File newImageFile = null;
             switch( imageDataFormat ) {
                 case BdvN5:
-
-                case BdvOmeZarr:
                     newImageFile = new File(imageDirectory, imageName + ".xml");
                     // The view setup name must be the same as the image name
                     spimData = fixSetupName( spimData, imageName );
@@ -535,12 +510,6 @@ public class ImagesCreator {
                 writeNewBdvXml( spimData, newImageFile, imageDirectory, imageName, imageFormat );
                 break;
 
-            case BdvOmeZarr:
-                newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
-                FileUtils.copyDirectory(imageLocation, newImageFile);
-                writeNewBdvXml( spimData, newImageFile, imageDirectory, imageName, imageFormat );
-                break;
-
             case OmeZarr:
                 newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
                 FileUtils.copyDirectory(imageLocation, newImageFile);
@@ -557,13 +526,6 @@ public class ImagesCreator {
             case BdvN5:
                 newImageFile = new File(imageDirectory, imageName + ".n5" );
                 // have to explicitly close the image loader, so we can delete the original file
-                closeImgLoader( spimData, imageFormat );
-                FileUtils.moveDirectory( imageLocation, newImageFile );
-                writeNewBdvXml( spimData, newImageFile, imageDirectory, imageName, imageFormat );
-                break;
-
-            case BdvOmeZarr:
-                newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
                 closeImgLoader( spimData, imageFormat );
                 FileUtils.moveDirectory( imageLocation, newImageFile );
                 writeNewBdvXml( spimData, newImageFile, imageDirectory, imageName, imageFormat );
@@ -588,8 +550,6 @@ public class ImagesCreator {
                     ( (N5FSImageLoader) imgLoader ).close();
                 }
                 break;
-
-            case BdvOmeZarr:
 
             case OmeZarr:
                 if (imgLoader instanceof N5OMEZarrImageLoader ) {
@@ -634,19 +594,11 @@ public class ImagesCreator {
     }
 
     private void writeNewBdvXml ( SpimData spimData, File imageFile, File saveDirectory, String imageName,
-                                  ImageDataFormat imageFormat ) throws SpimDataException, IOException {
+                                  ImageDataFormat imageFormat ) throws SpimDataException {
 
         ImgLoader imgLoader = null;
-        switch ( imageFormat ) {
-            case BdvN5:
-                imgLoader = new N5ImageLoader( imageFile, null);
-                break;
-
-            case BdvOmeZarr:
-                imgLoader = new N5OMEZarrImageLoader(
-                        new N5OmeZarrReader(imageFile.getAbsolutePath()), spimData.getSequenceDescription());
-                break;
-
+        if (imageFormat == ImageDataFormat.BdvN5) {
+            imgLoader = new N5ImageLoader(imageFile, null);
         }
 
         spimData.setBasePath( saveDirectory );

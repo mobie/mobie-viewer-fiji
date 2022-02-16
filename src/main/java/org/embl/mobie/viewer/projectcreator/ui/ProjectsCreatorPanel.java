@@ -48,10 +48,8 @@ public class ProjectsCreatorPanel extends JFrame {
     private static boolean exclusive = false;
     private static boolean useFileNameAsImageName = true;
 
-    // TODO - ImageDataFormat.OmeZarr removed from here for now. Add it back when transforms are supported
-    // so the voxel size can be maintained.
     private String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
-            ImageDataFormat.BdvOmeZarr.toString() };
+            ImageDataFormat.OmeZarr.toString() };
     private String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
             ProjectCreator.ImageType.segmentation.toString() };
 
@@ -596,9 +594,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 String filePath = null;
                 switch ( imageDataFormat ) {
                     case BdvN5:
-                    case BdvOmeZarr:
                         filePath = MoBIEUtils.selectOpenPathFromFileSystem("bdv .xml file", "xml");
-                        break;
 
                     case OmeZarr:
                         filePath = MoBIEUtils.selectOpenDirFromFileSystem(".ome.zarr file" );
