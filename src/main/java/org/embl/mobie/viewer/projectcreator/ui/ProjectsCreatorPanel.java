@@ -27,9 +27,10 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper.getVoxelSizeString;
 
 public class ProjectsCreatorPanel extends JFrame {
 
@@ -456,15 +457,6 @@ public class ProjectsCreatorPanel extends JFrame {
             imageName = UserInterfaceHelper.tidyString( imageName );
         }
         return imageName;
-    }
-
-    private String getVoxelSizeString( ImagePlus imp ) {
-        DecimalFormat df = new DecimalFormat("#.###");
-        String voxelString =  "Voxel size: " + df.format( imp.getCalibration().pixelWidth ) + ", " +
-                df.format( imp.getCalibration().pixelHeight ) + ", " + df.format( imp.getCalibration().pixelDepth ) +
-                " " + imp.getCalibration().getUnit();
-
-        return voxelString;
     }
 
     public void addCurrentOpenImageDialog() {

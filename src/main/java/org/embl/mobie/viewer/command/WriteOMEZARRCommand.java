@@ -8,6 +8,7 @@ import ij.ImagePlus;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.GzipCompression;
+import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -22,6 +23,9 @@ public class WriteOMEZARRCommand implements Command {
 
     @Parameter
     public ImagePlus currentImage;
+
+    @Parameter (visibility = ItemVisibility.MESSAGE, required = false)
+    public String message = "Make sure your voxel size, and unit,\n are set properly under Image > Properties...";
 
     @Parameter(label="Image name:")
     public String imageName;
@@ -48,13 +52,13 @@ public class WriteOMEZARRCommand implements Command {
         }
 
         // affine transforms are currently not supported in the ome-zarr spec, so here we just generate a default
-        // identity affine
+        // identity affine - it will automatically write the image scaling anyway
         AffineTransform3D sourceTransform = new AffineTransform3D();
 
         if ( name != null ) {
             if ( useDefaults ) {
                 new WriteImgPlusToN5OmeZarr().export(currentImage, filePath, sourceTransform, method,
-                        new GzipCompression(), new String[]{imageName});
+                        new GzipCompression() );
             } else {
                 ManualExportPanel manualExportPanel = new ManualExportPanel( ImageDataFormat.OmeZarr );
                 int[][] resolutions = manualExportPanel.getResolutions();
@@ -63,7 +67,7 @@ public class WriteOMEZARRCommand implements Command {
 
                 if ( resolutions != null && subdivisions != null && compression != null ) {
                     new WriteImgPlusToN5OmeZarr().export(currentImage, resolutions, subdivisions, filePath, sourceTransform,
-                            method, compression, new String[]{imageName});
+                            method, compression );
                 }
             }
         }

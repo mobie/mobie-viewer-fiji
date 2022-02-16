@@ -232,7 +232,7 @@ public class ImagesCreator {
 
             case OmeZarr:
                 new WriteImgPlusToN5OmeZarr().export(imp, filePath, sourceTransform, downsamplingMethod,
-                        new GzipCompression(), new String[]{imageName});
+                        new GzipCompression() );
                 break;
 
             default:
@@ -257,7 +257,7 @@ public class ImagesCreator {
 
             case OmeZarr:
                 new WriteImgPlusToN5OmeZarr().export(imp, resolutions, subdivisions, filePath, sourceTransform,
-                        downsamplingMethod, compression, new String[]{imageName});
+                        downsamplingMethod, compression );
                 break;
 
             default:
