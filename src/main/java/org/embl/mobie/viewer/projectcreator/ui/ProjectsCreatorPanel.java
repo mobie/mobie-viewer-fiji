@@ -587,6 +587,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 switch ( imageDataFormat ) {
                     case BdvN5:
                         filePath = MoBIEUtils.selectOpenPathFromFileSystem("bdv .xml file", "xml");
+                        break;
 
                     case OmeZarr:
                         filePath = MoBIEUtils.selectOpenDirFromFileSystem(".ome.zarr file" );
