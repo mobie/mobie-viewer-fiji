@@ -23,6 +23,7 @@ import net.imglib2.FinalDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -282,5 +283,14 @@ public class ProjectCreatorHelper {
 
     public static String imageFormatToFolderName( ImageDataFormat imageFormat ) {
         return imageFormat.toString().replaceAll("\\.", "-");
+    }
+
+    public static String getVoxelSizeString( ImagePlus imp ) {
+        DecimalFormat df = new DecimalFormat("#.###");
+        String voxelString =  "Voxel size: " + df.format( imp.getCalibration().pixelWidth ) + ", " +
+                df.format( imp.getCalibration().pixelHeight ) + ", " + df.format( imp.getCalibration().pixelDepth ) +
+                " " + imp.getCalibration().getUnit();
+
+        return voxelString;
     }
 }

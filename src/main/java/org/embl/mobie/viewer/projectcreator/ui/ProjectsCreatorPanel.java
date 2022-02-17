@@ -27,9 +27,10 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper.getVoxelSizeString;
 
 public class ProjectsCreatorPanel extends JFrame {
 
@@ -48,10 +49,8 @@ public class ProjectsCreatorPanel extends JFrame {
     private static boolean exclusive = false;
     private static boolean useFileNameAsImageName = true;
 
-    // TODO - ImageDataFormat.OmeZarr removed from here for now. Add it back when transforms are supported
-    // so the voxel size can be maintained.
     private String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
-            ImageDataFormat.BdvOmeZarr.toString() };
+            ImageDataFormat.OmeZarr.toString() };
     private String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
             ProjectCreator.ImageType.segmentation.toString() };
 
@@ -460,15 +459,6 @@ public class ProjectsCreatorPanel extends JFrame {
         return imageName;
     }
 
-    private String getVoxelSizeString( ImagePlus imp ) {
-        DecimalFormat df = new DecimalFormat("#.###");
-        String voxelString =  "Voxel size: " + df.format( imp.getCalibration().pixelWidth ) + ", " +
-                df.format( imp.getCalibration().pixelHeight ) + ", " + df.format( imp.getCalibration().pixelDepth ) +
-                " " + imp.getCalibration().getUnit();
-
-        return voxelString;
-    }
-
     public void addCurrentOpenImageDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
@@ -596,9 +586,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 String filePath = null;
                 switch ( imageDataFormat ) {
                     case BdvN5:
-                    case BdvOmeZarr:
                         filePath = MoBIEUtils.selectOpenPathFromFileSystem("bdv .xml file", "xml");
-                        break;
 
                     case OmeZarr:
                         filePath = MoBIEUtils.selectOpenDirFromFileSystem(".ome.zarr file" );

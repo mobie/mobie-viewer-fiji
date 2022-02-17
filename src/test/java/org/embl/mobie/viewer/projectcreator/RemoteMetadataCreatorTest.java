@@ -55,9 +55,6 @@ class RemoteMetadataCreatorTest {
             case BdvN5:
                 remoteFormat = ImageDataFormat.BdvN5S3;
                 break;
-            case BdvOmeZarr:
-                remoteFormat = ImageDataFormat.BdvOmeZarrS3;
-                break;
             case OmeZarr:
                 remoteFormat = ImageDataFormat.OmeZarrS3;
                 break;
@@ -79,11 +76,6 @@ class RemoteMetadataCreatorTest {
     @Test
     void createRemoteMetadataBdvN5() throws IOException, SpimDataException {
         testAddingRemoteMetadataForCertainFormat( ImageDataFormat.BdvN5 );
-    }
-
-    @Test
-    void createRemoteMetadataBdvOmeZarr() throws IOException, SpimDataException {
-        testAddingRemoteMetadataForCertainFormat( ImageDataFormat.BdvOmeZarr );
     }
 
     @Test

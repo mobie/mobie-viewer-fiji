@@ -3,7 +3,6 @@ package org.embl.mobie.viewer.projectcreator;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.n5.writers.WriteImgPlusToN5;
-import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
@@ -74,13 +73,6 @@ class ImagesCreatorTest {
                         datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".n5");
                 break;
 
-            case BdvOmeZarr:
-                xmlLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
-                        datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".xml");
-                imageLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
-                        datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".ome.zarr");
-                break;
-
             case OmeZarr:
                 imageLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
                         datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".ome.zarr");
@@ -127,12 +119,6 @@ class ImagesCreatorTest {
                 filePath = new File(tempDir, imageName + ".xml").getAbsolutePath();
                 new WriteImgPlusToN5().export(imp, filePath, sourceTransform, downsamplingMethod,
                         compression, new String[]{imageName} );
-                break;
-
-            case BdvOmeZarr:
-                filePath = new File(tempDir, imageName + ".xml").getAbsolutePath();
-                new WriteImgPlusToN5BdvOmeZarr().export(imp, filePath, sourceTransform,
-                        downsamplingMethod, compression, new String[]{imageName} );
                 break;
 
             case OmeZarr:
@@ -216,16 +202,6 @@ class ImagesCreatorTest {
     }
 
     @Test
-    void addImageBdvOmeZarr() throws IOException, SpimDataException {
-        testAddingImageInCertainFormat( ImageDataFormat.BdvOmeZarr );
-    }
-
-    @Test
-    void addSegmentationBdvOmeZarr() throws IOException, SpimDataException {
-        testAddingSegmentationInCertainFormat( ImageDataFormat.BdvOmeZarr );
-    }
-
-    @Test
     void addImageOmeZarr() throws IOException, SpimDataException {
         testAddingImageInCertainFormat( ImageDataFormat.OmeZarr );
     }
@@ -241,18 +217,8 @@ class ImagesCreatorTest {
     }
 
     @Test
-    void linkToImageBdvOmeZarr() throws IOException, SpimDataException {
-        testLinkingImagesInCertainFormat( ImageDataFormat.BdvOmeZarr );
-    }
-
-    @Test
     void copyImageBdvN5() throws IOException, SpimDataException {
         testCopyingImagesInCertainFormat( ImageDataFormat.BdvN5 );
-    }
-
-    @Test
-    void copyImageBdvOmeZarr() throws IOException, SpimDataException {
-        testCopyingImagesInCertainFormat( ImageDataFormat.BdvOmeZarr );
     }
 
     @Test
@@ -263,11 +229,6 @@ class ImagesCreatorTest {
     @Test
     void moveImageBdvN5() throws IOException, SpimDataException {
         testMovingImagesInCertainFormat( ImageDataFormat.BdvN5 );
-    }
-
-    @Test
-    void moveImageBdvOmeZarr() throws IOException, SpimDataException {
-        testMovingImagesInCertainFormat( ImageDataFormat.BdvOmeZarr );
     }
 
     @Test
