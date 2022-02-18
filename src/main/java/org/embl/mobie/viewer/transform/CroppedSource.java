@@ -33,14 +33,11 @@ import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.InverseRealTransform;
-import net.imglib2.realtransform.RealTransformRandomAccessible;
 import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.util.Intervals;
@@ -49,30 +46,31 @@ import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
 import java.util.HashMap;
-import java.util.function.Function;
 
 public class CroppedSource< T extends NumericType<T> > implements Source< T > //, Function< Source< T >, Source< T > >
 {
     private Source< T > source;
     private final String name;
-    private final RealInterval crop;
+    private final RealInterval realInterval;
     private final boolean zeroMin;
 
     protected transient final DefaultInterpolators< T > interpolators;
     private transient HashMap< Integer, Interval > levelToVoxelInterval;
 
-    public CroppedSource( Source< T > source, String name, RealInterval crop, boolean zeroMin )
+    // TODO: add affine transform to orient the crop
+    public CroppedSource( Source< T > source, String name, RealInterval realInterval, boolean zeroMin )
     {
         this.source = source;
         this.name = name;
-        this.crop = crop;
+        this.realInterval = realInterval;
         this.zeroMin = zeroMin;
         this.interpolators = new DefaultInterpolators();
 
-        initCropIntervals( source, crop );
+        initVoxelCropIntervals( source, realInterval );
     }
 
-    private void initCropIntervals( Source< T > source, RealInterval crop )
+    // TODO: this only makes sense if the crop is specified in the corrdinate system of the RAI, which typically would not be the case :(
+    private void initVoxelCropIntervals( Source< T > source, RealInterval crop )
     {
         final AffineTransform3D transform3D = new AffineTransform3D();
         levelToVoxelInterval = new HashMap<>();

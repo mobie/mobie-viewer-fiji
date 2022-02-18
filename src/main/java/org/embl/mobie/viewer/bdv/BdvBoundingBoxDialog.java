@@ -54,6 +54,9 @@ public class BdvBoundingBoxDialog
 
     private Interval initialInterval;
     private Interval rangeInterval;
+    private RealInterval interval;
+    private int minTimepoint;
+    private int maxTimepoint;
 
     public BdvBoundingBoxDialog( BdvHandle bdvHandle, List< SourceAndConverter > sourceAndConverters)
     {
@@ -69,10 +72,25 @@ public class BdvBoundingBoxDialog
 
         if ( result.isValid() )
         {
-            final RealInterval interval = result.getInterval();
-            final int minTimepoint = result.getMinTimepoint();
-            final int maxTimepoint = result.getMaxTimepoint();
+            interval = result.getInterval();
+            minTimepoint = result.getMinTimepoint();
+            maxTimepoint = result.getMaxTimepoint();
         }
+    }
+
+    public RealInterval getInterval()
+    {
+        return interval;
+    }
+
+    public int getMinTimepoint()
+    {
+        return minTimepoint;
+    }
+
+    public int getMaxTimepoint()
+    {
+        return maxTimepoint;
     }
 
     private TransformedRealBoxSelectionDialog.Result showRealBox( )
@@ -98,13 +116,13 @@ public class BdvBoundingBoxDialog
         double[] initialCenter = new double[ 3 ];
         double[] initialSize = new double[ 3 ];
 
-        for (int d = 0; d < 2; d++)
+        for (int d = 0; d < 3; d++)
         {
             initialCenter[ d ] = ( viewerBoundingInterval.realMax( d ) + viewerBoundingInterval.realMin( d ) ) / 2.0;
             initialSize[ d ] = ( viewerBoundingInterval.realMax( d ) - viewerBoundingInterval.realMin( d ) );
         }
 
-        initialSize[ 3 ] = 10.0;
+        initialSize[ 2 ] = 10.0;
 
         double[] minInitial = new double[ 3 ];
         double[] maxInitial = new double[ 3 ];

@@ -1,11 +1,8 @@
 package org.embl.mobie.viewer.transform;
 
 import bdv.viewer.SourceAndConverter;
-import mpicbg.spim.data.sequence.FinalVoxelDimensions;
-import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
-import sc.fiji.bdvpg.sourceandconverter.importer.EmptySourceAndConverterCreator;
-import sc.fiji.bdvpg.sourceandconverter.transform.SourceResampler;
+import net.imglib2.RealInterval;
 
 import java.util.List;
 import java.util.Map;
@@ -28,20 +25,7 @@ public class CropSourceTransformer extends AbstractSourceTransformer
 				final SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
 				String transformedSourceName = getTransformedSourceName( sourceName );
 
-				// determine number of voxels for resampling
-				// the current method may over-sample quite a bit
-				final double smallestVoxelSize = getSmallestVoxelSize( sourceAndConverter );
-				final FinalVoxelDimensions croppedSourceVoxelDimensions = new FinalVoxelDimensions( sourceAndConverter.getSpimSource().getVoxelDimensions().unit(), smallestVoxelSize, smallestVoxelSize, smallestVoxelSize );
-				int[] numVoxels = getNumVoxels( smallestVoxelSize );
-				SourceAndConverter< ? > cropModel = new EmptySourceAndConverterCreator("Model", new FinalRealInterval( min, max ), numVoxels[ 0 ], numVoxels[ 1 ], numVoxels[ 2 ], croppedSourceVoxelDimensions ).get();
-
-				// resample generative source as model source
-				SourceAndConverter< ? > croppedSourceAndConverter = new SourceResampler( sourceAndConverter, cropModel, transformedSourceName, false,false, false,0).get();
-
-				if ( centerAtOrigin )
-				{
-					croppedSourceAndConverter = TransformHelper.centerAtOrigin( croppedSourceAndConverter );
-				}
+				SourceAndConverter< ? > croppedSourceAndConverter = SourceCropper.crop( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), centerAtOrigin );
 
 				// store result
 				sourceNameToSourceAndConverter.put( croppedSourceAndConverter.getSpimSource().getName(), croppedSourceAndConverter );
@@ -56,28 +40,14 @@ public class CropSourceTransformer extends AbstractSourceTransformer
 	}
 
 
-	private int[] getNumVoxels( double smallestVoxelSize )
+	public static int[] getNumVoxels( double smallestVoxelSize, RealInterval interval )
 	{
 		int[] numVoxels = new int[ 3 ];
 		for ( int d = 0; d < 3; d++ )
 		{
-			numVoxels[ d ] = (int) Math.ceil( ( max[ d ] - min[ d ] ) / smallestVoxelSize );
+			numVoxels[ d ] = (int) Math.ceil( ( interval.realMax( d ) - interval.realMin( d ) ) / smallestVoxelSize );
 		}
 		return numVoxels;
-	}
-
-	public static double getSmallestVoxelSize( SourceAndConverter< ? > sourceAndConverter )
-	{
-		final VoxelDimensions voxelDimensions = sourceAndConverter.getSpimSource().getVoxelDimensions();
-		double smallestVoxelSize = Double.MAX_VALUE;
-		for ( int d = 0; d < 3; d++ )
-		{
-			if ( voxelDimensions.dimension( d ) < smallestVoxelSize )
-			{
-				smallestVoxelSize = voxelDimensions.dimension( d );
-			}
-		}
-		return smallestVoxelSize;
 	}
 
 	private String getTransformedSourceName( String inputSourceName )
