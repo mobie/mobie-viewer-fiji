@@ -13,6 +13,6 @@ public class OpenRemoteCOMULIS
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("https://s3.embl.de/comulis", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvOmeZarrS3 ).s3AccessAndSecretKey( new String[]{"abc","def"} ) );
+		new MoBIE("https://s3.embl.de/comulis", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvOmeZarrS3 ).s3AccessAndSecretKey( new String[]{"UYP3FNN3V5F0P86DR2O3","3EL7Czzg0vVwx2L4v27GQiX0Ct1GkMHS+tbcJR3D "} ) );
 	}
 }
