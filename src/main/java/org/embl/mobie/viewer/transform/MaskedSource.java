@@ -56,7 +56,8 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     // TODO serialise
     private Source< T > source;
     private final String name;
-    private final RealInterval maskInterval; // maybe double min and max?
+    private final double[] maskMin;
+    private final double[] maskMax;
     private final AffineTransform3D maskTransform;
     private final boolean center;
 
@@ -64,21 +65,23 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     private transient HashMap< Integer, Interval > levelToVoxelInterval;
     private transient RealMaskRealInterval mask;
 
-    public MaskedSource( Source< T > source, String name, RealInterval maskInterval, AffineTransform3D maskTransform, boolean center )
+    public MaskedSource( Source< T > source, String name, double[] maskMin, double[] maskMax, AffineTransform3D maskTransform, boolean center  )
     {
         this.source = source;
         this.name = name;
-        this.maskInterval = maskInterval;
+        this.maskMin = maskMin;
+        this.maskMax = maskMax;
         this.maskTransform = maskTransform;
         this.center = center;
 
         this.interpolators = new DefaultInterpolators();
-        this.mask = GeomMasks.closedBox( Intervals.minAsDoubleArray( maskInterval ), Intervals.maxAsDoubleArray( maskInterval ) ).transform( maskTransform.inverse() );
+        this.mask = GeomMasks.closedBox( maskMin, maskMax ).transform( maskTransform.inverse() );
 
         // TODO Do we need this? It could be nice for the bounding box culling
-        initVoxelCropIntervals( source, maskInterval );
+       // initVoxelCropIntervals( source, maskInterval );
     }
 
+    // TODO: remove or keep?
     private void initVoxelCropIntervals( Source< T > source, RealInterval crop )
     {
         final AffineTransform3D transform3D = new AffineTransform3D();

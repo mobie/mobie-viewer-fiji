@@ -7,9 +7,9 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import net.imagej.patcher.LegacyInjector;
 import net.imglib2.RealInterval;
-import net.imglib2.RealLocalizable;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.bdv.BdvBoundingBoxDialog;
 import org.embl.mobie.viewer.transform.MaskedSource;
 import org.scijava.plugin.Parameter;
@@ -50,14 +50,11 @@ public class CroppedViewCommand implements BdvPlaygroundActionCommand
 			final AffineTransform3D maskTransform = new AffineTransform3D();
 			result.getTransform( maskTransform );
 
-			final boolean test = result.asMask().test( new RealPoint( new double[]{ 0, 0, 0 } ) );
-			final boolean test2 = result.asMask().test( new RealPoint( new double[]{ 130, 130, 140 } ) );
-
 			for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 			{
-				final MaskedSource maskedSource = new MaskedSource<>( sourceAndConverter.getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", maskInterval, maskTransform, false );
+				final MaskedSource maskedSource = new MaskedSource<>( sourceAndConverter.getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray(), maskTransform, false );
 
-				final MaskedSource volatileMaskedSource = new MaskedSource<>( sourceAndConverter.asVolatile().getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", maskInterval, maskTransform, false );
+				final MaskedSource volatileMaskedSource = new MaskedSource<>( sourceAndConverter.asVolatile().getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray(), maskTransform, false  );
 
 				final SourceAndConverter croppedSourceAndConverter = new SourceAndConverter( maskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.getConverter(), sourceAndConverter ), new SourceAndConverter( volatileMaskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.asVolatile().getConverter(), sourceAndConverter.asVolatile() ) ) );
 
