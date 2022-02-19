@@ -62,25 +62,22 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     private final double[] maskMin;
     private final double[] maskMax;
     private final AffineTransform3D maskTransform; // mask coordinates to physical
-    private final boolean center;
 
     // Runtime
     protected transient final DefaultInterpolators< T > interpolators;
-    private transient Map< Integer, Interval > levelToVoxelInterval;
     private final transient Map< Integer, RealMaskRealInterval > dataMasks;
     private final transient Map< Integer, AffineTransform3D > sourceTransforms;
     private final transient Map< Integer, FinalInterval > dataIntervals;
     private final transient T type;
 
-    public MaskedSource( Source< T > source, String name, double[] maskMin, double[] maskMax, AffineTransform3D maskTransform, boolean center  )
+    public MaskedSource( Source< T > source, String name, double[] maskMin, double[] maskMax, AffineTransform3D maskTransform )
     {
         this.source = source;
         this.name = name;
         this.maskMin = maskMin;
         this.maskMax = maskMax;
         this.maskTransform = maskTransform; 
-        this.center = center; // FIXME: not implemented
-        this.type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
+         this.type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
         this.interpolators = new DefaultInterpolators();
 
         dataMasks = new ConcurrentHashMap<>();

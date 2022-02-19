@@ -52,9 +52,9 @@ public class MaskSourcesCommand implements BdvPlaygroundActionCommand
 
 			for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 			{
-				final MaskedSource maskedSource = new MaskedSource<>( sourceAndConverter.getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray(), maskTransform, false );
+				final MaskedSource maskedSource = new MaskedSource<>( sourceAndConverter.getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray(), maskTransform );
 
-				final MaskedSource volatileMaskedSource = new MaskedSource<>( sourceAndConverter.asVolatile().getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray(), maskTransform, false  );
+				final MaskedSource volatileMaskedSource = new MaskedSource<>( sourceAndConverter.asVolatile().getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray(), maskTransform );
 
 				final SourceAndConverter maskedSourceAndConverter = new SourceAndConverter( maskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.getConverter(), sourceAndConverter ), new SourceAndConverter( volatileMaskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.asVolatile().getConverter(), sourceAndConverter.asVolatile() ) ) );
 
