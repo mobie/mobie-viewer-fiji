@@ -6,6 +6,7 @@ import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import net.imagej.patcher.LegacyInjector;
+import net.imglib2.RealInterval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -45,24 +46,24 @@ public class CroppedViewCommand implements BdvPlaygroundActionCommand
 			boxDialog.showDialog();
 			final TransformedRealBoxSelectionDialog.Result result = boxDialog.getResult();
 			if ( ! result.isValid() ) return;
+			final RealInterval maskInterval = result.getInterval();
+			final AffineTransform3D maskTransform = new AffineTransform3D();
+			result.getTransform( maskTransform );
 
 			final boolean test = result.asMask().test( new RealPoint( new double[]{ 0, 0, 0 } ) );
 			final boolean test2 = result.asMask().test( new RealPoint( new double[]{ 130, 130, 140 } ) );
 
 			for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 			{
-//				final SourceAndConverter< ? > crop = SourceCropper.crop( sourceAndConverter, sourceAndConverter.getSpimSource().getName() + "-crop", interval, true );
+				final MaskedSource maskedSource = new MaskedSource<>( sourceAndConverter.getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", maskInterval, maskTransform, false );
 
-				final MaskedSource maskedSource = new MaskedSource<>( sourceAndConverter.getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", result.asMask(), true );
-
-				final MaskedSource volatileMaskedSource = new MaskedSource<>( sourceAndConverter.asVolatile().getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", result.asMask(), true );
+				final MaskedSource volatileMaskedSource = new MaskedSource<>( sourceAndConverter.asVolatile().getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", maskInterval, maskTransform, false );
 
 				final SourceAndConverter croppedSourceAndConverter = new SourceAndConverter( maskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.getConverter(), sourceAndConverter ), new SourceAndConverter( volatileMaskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.asVolatile().getConverter(), sourceAndConverter.asVolatile() ) ) );
 
 				BdvFunctions.show( croppedSourceAndConverter );
 			}
 		}).start();
-
 	}
 
 	private HashMap< SourceAndConverter< ? >, AffineTransform3D > fetchTransforms( List< SourceAndConverter< ? > > sourceAndConverters )

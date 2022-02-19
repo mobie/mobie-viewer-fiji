@@ -41,35 +41,42 @@ import net.imglib2.RealRandomAccessible;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.util.Intervals;
 import net.imglib2.util.Util;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.Views;
+import org.embl.mobie.viewer.source.SourceWrapper;
 
 import java.util.HashMap;
 
-public class MaskedSource< T extends NumericType<T> > implements Source< T > //, Function< Source< T >, Source< T > >
+public class MaskedSource< T extends NumericType<T> > implements Source< T >, SourceWrapper< T >
 {
+    // TODO serialise
     private Source< T > source;
     private final String name;
-    private final RealMaskRealInterval mask;
+    private final RealInterval maskInterval; // maybe double min and max?
+    private final AffineTransform3D maskTransform;
     private final boolean center;
 
     protected transient final DefaultInterpolators< T > interpolators;
     private transient HashMap< Integer, Interval > levelToVoxelInterval;
+    private transient RealMaskRealInterval mask;
 
-    // TODO: add affine transform to orient the crop
-    public MaskedSource( Source< T > source, String name, RealMaskRealInterval mask, boolean center )
+    public MaskedSource( Source< T > source, String name, RealInterval maskInterval, AffineTransform3D maskTransform, boolean center )
     {
         this.source = source;
         this.name = name;
-        this.mask = mask;
+        this.maskInterval = maskInterval;
+        this.maskTransform = maskTransform;
         this.center = center;
+
         this.interpolators = new DefaultInterpolators();
+        this.mask = GeomMasks.closedBox( Intervals.minAsDoubleArray( maskInterval ), Intervals.maxAsDoubleArray( maskInterval ) ).transform( maskTransform.inverse() );
 
         // TODO Do we need this? It could be nice for the bounding box culling
-        initVoxelCropIntervals( source, mask );
+        initVoxelCropIntervals( source, maskInterval );
     }
 
     private void initVoxelCropIntervals( Source< T > source, RealInterval crop )
@@ -101,7 +108,7 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T > //,
         return intersect;
     }
 
-    public Source< ? > getWrappedSource() {
+    public Source< T > getWrappedSource() {
         return source;
     }
 

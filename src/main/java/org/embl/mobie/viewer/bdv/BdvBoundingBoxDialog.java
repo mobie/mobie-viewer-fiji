@@ -66,33 +66,29 @@ public class BdvBoundingBoxDialog
         // viewer transform: physical to screen (0,0,w,h)
         this.boxTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
 
-        // now: physical to screen with (-w/2,-h/2,w/2,h/2)
+        // physical to screen with (-w/2,-h/2,w/2,h/2)
         boxTransform.translate( -0.5 * bdvHandle.getViewerPanel().getDisplay().getWidth(), -0.5 * bdvHandle.getViewerPanel().getDisplay().getHeight(), 0 );
 
-        // remove the bdv window scale from the transform
+        // remove bdv window scale from transform
         // note that the scale of the viewer transform is uniform in 3-D
         // thus we can just pick either width or height
         final double scale = 1.0 / bdvHandle.getViewerPanel().getDisplay().getWidth();
-        final Scale3D scale3D = new Scale3D(
-                scale,
-                scale,
-                scale
-        );
+        final Scale3D scale3D = new Scale3D( scale, scale, scale );
         boxTransform.preConcatenate( scale3D );
 
+        // inverse: box to physical
+        boxTransform = boxTransform.inverse();
+
+        // check that it is correct (just for debugging)
         final double[] center = { 0, 0, 0 };
         final double[] left = { -0.5, -0.5, -0.5 };
         final double[] right = { 0.5, 0.5, 0.5 };
         final double[] physicalLeft = { 0, 0, 0 };
         final double[] physicalRight = { 0, 0, 0 };
         final double[] physicalCenter = { 0, 0, 0 };
-
-        // inverse viewer (box) transform: screen (box) to physical
-        boxTransform = boxTransform.inverse();
         boxTransform.apply( left, physicalLeft );
         boxTransform.apply( right, physicalRight );
         boxTransform.apply( center, physicalCenter );
-
     }
 
     public void showDialog()
