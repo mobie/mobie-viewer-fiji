@@ -31,59 +31,47 @@ package org.embl.mobie.viewer.transform;
 import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import de.embl.cba.tables.plot.RealPointARGBTypeBiConsumerSupplier;
-import mpicbg.models.PointMatch;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
-import net.imglib2.RealLocalizable;
 import net.imglib2.RealPoint;
 import net.imglib2.RealRandomAccessible;
-import net.imglib2.converter.Converter;
-import net.imglib2.converter.Converters;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.RealViews;
-import net.imglib2.roi.RealMask;
 import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.roi.geom.GeomMasks;
-import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.util.Intervals;
 import net.imglib2.util.Util;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
-import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
 import java.util.HashMap;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 
-public class CroppedSource< T extends NumericType<T> > implements Source< T > //, Function< Source< T >, Source< T > >
+public class MaskedSource< T extends NumericType<T> > implements Source< T > //, Function< Source< T >, Source< T > >
 {
     private Source< T > source;
     private final String name;
-    private final RealInterval realCrop;
-    private final boolean zeroMin;
+    private final RealMaskRealInterval mask;
+    private final boolean center;
 
     protected transient final DefaultInterpolators< T > interpolators;
     private transient HashMap< Integer, Interval > levelToVoxelInterval;
 
     // TODO: add affine transform to orient the crop
-    public CroppedSource( Source< T > source, String name, RealInterval realCrop, boolean zeroMin )
+    public MaskedSource( Source< T > source, String name, RealMaskRealInterval mask, boolean center )
     {
         this.source = source;
         this.name = name;
-        this.realCrop = realCrop;
-        this.zeroMin = zeroMin;
+        this.mask = mask;
+        this.center = center;
         this.interpolators = new DefaultInterpolators();
 
-        initVoxelCropIntervals( source, realCrop );
+        // TODO Do we need this? It could be nice for the bounding box culling
+        initVoxelCropIntervals( source, mask );
     }
 
-    // TODO: this only makes sense if the crop is specified in the corrdinate system of the RAI, which typically would not be the case :(
     private void initVoxelCropIntervals( Source< T > source, RealInterval crop )
     {
         final AffineTransform3D transform3D = new AffineTransform3D();
@@ -125,47 +113,44 @@ public class CroppedSource< T extends NumericType<T> > implements Source< T > //
     @Override
     public RandomAccessibleInterval< T > getSource(int t, int level)
     {
-        final RandomAccessibleInterval< T > rai = source.getSource( t, level );
-        final IntervalView< T > croppedRai = Views.interval( rai, levelToVoxelInterval.get( level ) );
-
-        if ( zeroMin )
-            return Views.zeroMin( croppedRai );
-        else
-            return croppedRai;
+        return source.getSource( t, level );
     }
 
     @Override
     public RealRandomAccessible< T > getInterpolatedSource( int t, int level, Interpolation method )
     {
         final RandomAccessibleInterval< T > rai = getSource( t, level );
-        ExtendedRandomAccessibleInterval<T, RandomAccessibleInterval< T >>
-                extendedRai = Views.extendZero( rai );
+        ExtendedRandomAccessibleInterval<T, RandomAccessibleInterval< T >> extendedRai = Views.extendZero( rai );
         RealRandomAccessible< T > rra = Views.interpolate( extendedRai, interpolators.get(method) );
 
-        // Note that the rra is not yet in the coordinate space of this source,
-        // which is defined by source.getSourceTransform( t, level, affineTransform3D );
-
+        // sourceTransform: data space (of rra) to physical space
         final AffineTransform3D sourceTransform = new AffineTransform3D();
         source.getSourceTransform( t, level, sourceTransform );
 
-        final T type = rai.randomAccess().get();
+        final T type = Util.getTypeFromInterval( rai );
 
-        final FunctionRealRandomAccessible< T > realRandomAccessible = new FunctionRealRandomAccessible< T >( 3,
-                ( p, value ) -> {
-                    final RealPoint globalCoordinates = new RealPoint( 3 );
-                    sourceTransform.applyInverse( globalCoordinates, p );
-                    final boolean contains = Intervals.contains( realCrop, globalCoordinates );
-                    if ( contains )
-                    {
-                        value.set( rra.getAt( p ) );
-                    }
+        final FunctionRealRandomAccessible< T > realRandomAccessible = new FunctionRealRandomAccessible< T >(
+                3,
+                ( dataCoordinates, value ) -> {
+
+                    final RealPoint physicalCoordinates = new RealPoint( 3 );
+                    sourceTransform.apply( dataCoordinates, physicalCoordinates );
+
+                    if ( mask.test( physicalCoordinates ) )
+                        value.set( rra.getAt( dataCoordinates ) );
                     else
-                    {
                         value.setZero();
-                    }
-                }, () -> type.copy() );
+
+                },
+                () -> type.createVariable() );
 
         return realRandomAccessible;
+    }
+
+    @Override
+    public boolean doBoundingBoxCulling()
+    {
+        return true;
     }
 
     @Override

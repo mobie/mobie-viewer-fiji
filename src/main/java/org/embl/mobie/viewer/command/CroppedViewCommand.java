@@ -1,21 +1,20 @@
 package org.embl.mobie.viewer.command;
 
+import bdv.tools.boundingbox.TransformedRealBoxSelectionDialog;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import net.imagej.patcher.LegacyInjector;
-import net.imglib2.RealInterval;
+import net.imglib2.RealLocalizable;
+import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.bdv.BdvBoundingBoxDialog;
-import org.embl.mobie.viewer.playground.SourceChanger;
-import org.embl.mobie.viewer.transform.CroppedSource;
-import org.embl.mobie.viewer.transform.SourceCropper;
+import org.embl.mobie.viewer.transform.MaskedSource;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
-import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterDuplicator;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,24 +37,27 @@ public class CroppedViewCommand implements BdvPlaygroundActionCommand
 	@Override
 	public void run()
 	{
-
 		final List< SourceAndConverter > sourceAndConverters = Arrays.stream( sourceAndConverterArray ).collect( Collectors.toList() );
 		if ( sourceAndConverters.size() == 0 ) return;
 
 		new Thread( () -> {
 			final BdvBoundingBoxDialog boxDialog = new BdvBoundingBoxDialog( bdvHandle, sourceAndConverters );
-			boxDialog.showRealBoxAndWaitForResult();
-			final RealInterval interval = boxDialog.getInterval();
+			boxDialog.showDialog();
+			final TransformedRealBoxSelectionDialog.Result result = boxDialog.getResult();
+			if ( ! result.isValid() ) return;
+
+			final boolean test = result.asMask().test( new RealPoint( new double[]{ 0, 0, 0 } ) );
+			final boolean test2 = result.asMask().test( new RealPoint( new double[]{ 130, 130, 140 } ) );
 
 			for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 			{
 //				final SourceAndConverter< ? > crop = SourceCropper.crop( sourceAndConverter, sourceAndConverter.getSpimSource().getName() + "-crop", interval, true );
 
-				final CroppedSource croppedSource = new CroppedSource<>( sourceAndConverter.getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", interval, true );
+				final MaskedSource maskedSource = new MaskedSource<>( sourceAndConverter.getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", result.asMask(), true );
 
-				final CroppedSource volatileCroppedSource = new CroppedSource<>( sourceAndConverter.asVolatile().getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", interval, true );
+				final MaskedSource volatileMaskedSource = new MaskedSource<>( sourceAndConverter.asVolatile().getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", result.asMask(), true );
 
-				final SourceAndConverter croppedSourceAndConverter = new SourceAndConverter( croppedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.getConverter(), sourceAndConverter ), new SourceAndConverter( volatileCroppedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.asVolatile().getConverter(), sourceAndConverter.asVolatile() ) ) );
+				final SourceAndConverter croppedSourceAndConverter = new SourceAndConverter( maskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.getConverter(), sourceAndConverter ), new SourceAndConverter( volatileMaskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.asVolatile().getConverter(), sourceAndConverter.asVolatile() ) ) );
 
 				BdvFunctions.show( croppedSourceAndConverter );
 			}

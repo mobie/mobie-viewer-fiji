@@ -368,7 +368,7 @@ public abstract class MoBIEUtils
 		view.preConcatenate( translate.inverse() );
 
 		// divide by window width
-		final int bdvWindowWidth = BdvUtils.getBdvWindowWidth( bdv );
+		final int bdvWindowWidth = bdv.getBdvHandle().getViewerPanel().getDisplay().getWidth();
 		final Scale3D scale = new Scale3D( 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth );
 		view.preConcatenate( scale );
 

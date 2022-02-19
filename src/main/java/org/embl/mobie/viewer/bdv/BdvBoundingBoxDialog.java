@@ -29,8 +29,8 @@
 package org.embl.mobie.viewer.bdv;
 
 import bdv.tools.boundingbox.BoxSelectionOptions;
-import bdv.tools.boundingbox.TransformedBoxSelectionDialog;
 import bdv.tools.boundingbox.TransformedRealBoxSelectionDialog;
+import bdv.util.Affine3DHelpers;
 import bdv.util.Bdv;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
@@ -38,65 +38,76 @@ import bdv.viewer.SourceAndConverter;
 import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.RealType;
+import net.imglib2.realtransform.Scale3D;
 import net.imglib2.util.Intervals;
 
 import java.util.List;
 
 public class BdvBoundingBoxDialog
 {
-    private Bdv bdvHandle;
+    private BdvHandle bdvHandle;
     private final List< SourceAndConverter > sourceAndConverters;
 
-    private Interval initialInterval;
-    private Interval rangeInterval;
+    private FinalRealInterval initialInterval;
+    private FinalRealInterval rangeInterval;
     private RealInterval interval;
     private int minTimepoint;
     private int maxTimepoint;
+    private AffineTransform3D boxTransform;
+    private TransformedRealBoxSelectionDialog.Result result;
 
-    public BdvBoundingBoxDialog( BdvHandle bdvHandle, List< SourceAndConverter > sourceAndConverters)
+    public BdvBoundingBoxDialog( BdvHandle bdvHandle, List< SourceAndConverter > sourceAndConverters )
     {
         this.bdvHandle = bdvHandle;
         this.sourceAndConverters = sourceAndConverters;
+
+        // viewer transform: physical to screen (0,0,w,h)
+        this.boxTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
+
+        // now: physical to screen with (-w/2,-h/2,w/2,h/2)
+        boxTransform.translate( -0.5 * bdvHandle.getViewerPanel().getDisplay().getWidth(), -0.5 * bdvHandle.getViewerPanel().getDisplay().getHeight(), 0 );
+
+        // remove the bdv window scale from the transform
+        // note that the scale of the viewer transform is uniform in 3-D
+        // thus we can just pick either width or height
+        final double scale = 1.0 / bdvHandle.getViewerPanel().getDisplay().getWidth();
+        final Scale3D scale3D = new Scale3D(
+                scale,
+                scale,
+                scale
+        );
+        boxTransform.preConcatenate( scale3D );
+
+        final double[] center = { 0, 0, 0 };
+        final double[] left = { -0.5, -0.5, -0.5 };
+        final double[] right = { 0.5, 0.5, 0.5 };
+        final double[] physicalLeft = { 0, 0, 0 };
+        final double[] physicalRight = { 0, 0, 0 };
+        final double[] physicalCenter = { 0, 0, 0 };
+
+        // inverse viewer (box) transform: screen (box) to physical
+        boxTransform = boxTransform.inverse();
+        boxTransform.apply( left, physicalLeft );
+        boxTransform.apply( right, physicalRight );
+        boxTransform.apply( center, physicalCenter );
+
     }
 
-    public void showRealBoxAndWaitForResult()
+    public void showDialog()
     {
-        setInitialSelectionAndRange( );
-
-        final TransformedRealBoxSelectionDialog.Result result = showRealBox( );
-
-        if ( result.isValid() )
-        {
-            interval = result.getInterval();
-            minTimepoint = result.getMinTimepoint();
-            maxTimepoint = result.getMaxTimepoint();
-        }
+        setInitialSelectionAndRange();
+        result = showRealBox( boxTransform );
     }
 
-    public RealInterval getInterval()
+    public TransformedRealBoxSelectionDialog.Result getResult()
     {
-        return interval;
+        return result;
     }
 
-    public int getMinTimepoint()
+    private TransformedRealBoxSelectionDialog.Result showRealBox( AffineTransform3D boxTransform )
     {
-        return minTimepoint;
-    }
-
-    public int getMaxTimepoint()
-    {
-        return maxTimepoint;
-    }
-
-    private TransformedRealBoxSelectionDialog.Result showRealBox( )
-    {
-        final AffineTransform3D boxTransform = new AffineTransform3D();
-
         return BdvFunctions.selectRealBox(
                 bdvHandle,
                 boxTransform,
@@ -104,8 +115,8 @@ public class BdvBoundingBoxDialog
                 rangeInterval,
                 BoxSelectionOptions.options()
                         .title( "Crop" )
-                        .initialTimepointRange( 0, 0 )
-                        .selectTimepointRange( 0, 0 )
+                        .initialTimepointRange( bdvHandle.getViewerPanel().state().getCurrentTimepoint(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() )
+                        .selectTimepointRange( 0, bdvHandle.getViewerPanel().state().getNumTimepoints() - 1  )
         );
     }
 
@@ -137,13 +148,20 @@ public class BdvBoundingBoxDialog
             maxRange[  d ] = initialCenter[ d ] + initialSize[ d ] / 2;
         }
 
-        initialInterval = Intervals.createMinMax(
-                (long) minInitial[0], (long) minInitial[1], (long) minInitial[2],
-                (long) maxInitial[0], (long) maxInitial[1], (long) maxInitial[2]);
+//        initialInterval = Intervals.createMinMax(
+//                (long) minInitial[0], (long) minInitial[1], (long) minInitial[2],
+//                (long) maxInitial[0], (long) maxInitial[1], (long) maxInitial[2]);
 
-        rangeInterval = Intervals.createMinMax(
-                (long) minRange[0], (long) minRange[1], (long) minRange[2],
-                (long) maxRange[0], (long) maxRange[1], (long) maxRange[2]);
+//        rangeInterval = Intervals.createMinMax(
+//                (long) minRange[0], (long) minRange[1], (long) minRange[2],
+//                (long) maxRange[0], (long) maxRange[1], (long) maxRange[2]);
+
+        initialInterval = new FinalRealInterval(
+                new double[]{-0.25,-0.25,-0.25},
+                new double[]{+0.25,+0.25,+0.25});
+        rangeInterval = new FinalRealInterval(
+                new double[]{-0.5,-0.5,-0.5},
+                new double[]{+0.5,+0.5,+0.5});
     }
 
     private static FinalRealInterval getViewerGlobalBoundingInterval( Bdv bdv )
