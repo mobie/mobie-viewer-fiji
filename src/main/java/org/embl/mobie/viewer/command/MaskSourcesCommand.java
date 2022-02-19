@@ -62,6 +62,7 @@ public class MaskSourcesCommand implements BdvPlaygroundActionCommand
 				final SourceAndConverter sourceOut = new SourceAffineTransformer( maskedSourceAndConverter, new AffineTransform3D() ).getSourceOut();
 
 				BdvFunctions.show( sourceOut, BdvOptions.options().addTo( bdvHandle ) );
+				BdvFunctions.show( sourceOut );
 			}
 		}).start();
 	}
