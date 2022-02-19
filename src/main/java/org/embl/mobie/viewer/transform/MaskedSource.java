@@ -32,38 +32,40 @@ import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
-import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealInterval;
-import net.imglib2.RealPoint;
 import net.imglib2.RealRandomAccessible;
+import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.numeric.NumericType;
-import net.imglib2.util.Intervals;
 import net.imglib2.util.Util;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.source.SourceWrapper;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MaskedSource< T extends NumericType<T> > implements Source< T >, SourceWrapper< T >
 {
-    // TODO serialise
+    // Serialisation
     private Source< T > source;
     private final String name;
     private final double[] maskMin;
     private final double[] maskMax;
-    private final AffineTransform3D maskTransform;
+    private final AffineTransform3D maskTransform; // maskInterval to physical
     private final boolean center;
 
+    // Runtime
     protected transient final DefaultInterpolators< T > interpolators;
     private transient HashMap< Integer, Interval > levelToVoxelInterval;
-    private transient RealMaskRealInterval mask;
+    private final transient Map< Integer, RealMaskRealInterval > dataMasks;
+    private final transient Map< Integer, AffineTransform3D > sourceTransforms;
+    private final transient T type;
 
     public MaskedSource( Source< T > source, String name, double[] maskMin, double[] maskMax, AffineTransform3D maskTransform, boolean center  )
     {
@@ -71,44 +73,28 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
         this.name = name;
         this.maskMin = maskMin;
         this.maskMax = maskMax;
-        this.maskTransform = maskTransform;
+        this.maskTransform = maskTransform; 
         this.center = center;
-
+        this.type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
         this.interpolators = new DefaultInterpolators();
-        this.mask = GeomMasks.closedBox( maskMin, maskMax ).transform( maskTransform.inverse() );
 
-        // TODO Do we need this? It could be nice for the bounding box culling
-       // initVoxelCropIntervals( source, maskInterval );
-    }
+        dataMasks = new ConcurrentHashMap<>();
+        sourceTransforms = new ConcurrentHashMap<>();
 
-    // TODO: remove or keep?
-    private void initVoxelCropIntervals( Source< T > source, RealInterval crop )
-    {
-        final AffineTransform3D transform3D = new AffineTransform3D();
-        levelToVoxelInterval = new HashMap<>();
-        final int numMipmapLevels = source.getNumMipmapLevels();
-        for ( int level = 0; level < numMipmapLevels; level++ )
+        for ( int level = 0; level < getNumMipmapLevels(); level++ )
         {
-            source.getSourceTransform( 0, level, transform3D );
-            final AffineTransform3D inverse = transform3D.inverse();
-            final Interval voxelInterval = Intervals.smallestContainingInterval( inverse.estimateBounds( crop ) );
-            final FinalInterval containedVoxelInterval = intersectWithSourceInterval( source, crop, level, voxelInterval );
-            levelToVoxelInterval.put( level, containedVoxelInterval );
-        }
-    }
+            final AffineTransform3D sourceTransform = new AffineTransform3D();
+            source.getSourceTransform( 0, level, sourceTransform );
 
-    private FinalInterval intersectWithSourceInterval( Source< T > source, RealInterval crop, int level, Interval voxelInterval )
-    {
-        // If the interval is outside the bounds of the RAI then there is nothing to show.
-        // Moreover the fetcher threads throw errors when trying to access pixels outside the RAI.
-        // Thus let's limit the interval to where there actually is data.
-        final RandomAccessibleInterval< T > rai = source.getSource( 0, level );
-        final FinalInterval intersect = Intervals.intersect( rai, voxelInterval );
-        if ( Intervals.numElements( intersect ) <= 0 )
-        {
-            throw new RuntimeException( "The crop interval " + crop + " is not within the image source " + source.getName() );
+            final RealMaskRealInterval physicalMask = GeomMasks.closedBox( maskMin, maskMax ).transform( maskTransform.inverse() );
+            final RealMaskRealInterval dataMask = physicalMask.transform( sourceTransform.copy() );
+
+            dataMasks.put( level, dataMask );
+
+            // copy the original source transforms, because they
+            // may be altered, e.g., by a manual transform
+            sourceTransforms.put( level, sourceTransform );
         }
-        return intersect;
     }
 
     public Source< T > getWrappedSource() {
@@ -123,50 +109,43 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     @Override
     public RandomAccessibleInterval< T > getSource(int t, int level)
     {
-        return source.getSource( t, level );
+        final RandomAccessibleInterval< T > rai = source.getSource( t, level );
+
+        final RealMaskRealInterval dataMask = dataMasks.get( level );
+        final FunctionRandomAccessible< T > maskedRA = new FunctionRandomAccessible< T >(
+                3,
+                ( dataCoordinates, value ) -> {
+                    if ( dataMask.test( dataCoordinates ) )
+                        value.set( rai.getAt( dataCoordinates ) );
+                    else
+                        value.setZero();
+                },
+                () -> type.createVariable() );
+
+        // TODO: here we could change the interval to reflect the crop!
+        return Views.interval( maskedRA, rai );
     }
 
     @Override
     public RealRandomAccessible< T > getInterpolatedSource( int t, int level, Interpolation method )
     {
+        // interpolate the masked rai
         final RandomAccessibleInterval< T > rai = getSource( t, level );
         ExtendedRandomAccessibleInterval<T, RandomAccessibleInterval< T >> extendedRai = Views.extendZero( rai );
         RealRandomAccessible< T > rra = Views.interpolate( extendedRai, interpolators.get(method) );
-
-        // sourceTransform: data space (of rra) to physical space
-        final AffineTransform3D sourceTransform = new AffineTransform3D();
-        source.getSourceTransform( t, level, sourceTransform );
-
-        final T type = Util.getTypeFromInterval( rai );
-
-        final FunctionRealRandomAccessible< T > realRandomAccessible = new FunctionRealRandomAccessible< T >(
-                3,
-                ( dataCoordinates, value ) -> {
-
-                    final RealPoint physicalCoordinates = new RealPoint( 3 );
-                    sourceTransform.apply( dataCoordinates, physicalCoordinates );
-
-                    if ( mask.test( physicalCoordinates ) )
-                        value.set( rra.getAt( dataCoordinates ) );
-                    else
-                        value.setZero();
-
-                },
-                () -> type.createVariable() );
-
-        return realRandomAccessible;
+        return rra;
     }
 
     @Override
     public boolean doBoundingBoxCulling()
     {
-        return true;
+        return source.doBoundingBoxCulling();
     }
 
     @Override
     public void getSourceTransform(int t, int level, AffineTransform3D transform)
     {
-        source.getSourceTransform( t, level, transform );
+        transform.set( sourceTransforms.get( level ) );
     }
 
     @Override

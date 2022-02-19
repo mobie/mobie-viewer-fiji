@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer.command;
 
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.Affine3DHelpers;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;

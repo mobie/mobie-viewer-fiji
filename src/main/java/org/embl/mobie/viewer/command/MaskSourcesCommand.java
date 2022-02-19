@@ -4,13 +4,13 @@ import bdv.tools.boundingbox.TransformedRealBoxSelectionDialog;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
+import bdv.util.BdvOptions;
 import bdv.viewer.SourceAndConverter;
 import net.imagej.patcher.LegacyInjector;
 import net.imglib2.RealInterval;
-import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.bdv.BdvBoundingBoxDialog;
+import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.transform.MaskedSource;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -22,12 +22,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + CroppedViewCommand.NAME )
-public class CroppedViewCommand implements BdvPlaygroundActionCommand
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + MaskSourcesCommand.NAME )
+public class MaskSourcesCommand implements BdvPlaygroundActionCommand
 {
 	static{ LegacyInjector.preinit(); }
 
-	public static final String NAME = "Crop Source(s)";
+	public static final String NAME = "Create Masked Source(s)";
 
 	@Parameter( label = "Bdv" )
 	BdvHandle bdvHandle;
@@ -56,9 +56,12 @@ public class CroppedViewCommand implements BdvPlaygroundActionCommand
 
 				final MaskedSource volatileMaskedSource = new MaskedSource<>( sourceAndConverter.asVolatile().getSpimSource(), sourceAndConverter.getSpimSource().getName() + "-crop", maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray(), maskTransform, false  );
 
-				final SourceAndConverter croppedSourceAndConverter = new SourceAndConverter( maskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.getConverter(), sourceAndConverter ), new SourceAndConverter( volatileMaskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.asVolatile().getConverter(), sourceAndConverter.asVolatile() ) ) );
+				final SourceAndConverter maskedSourceAndConverter = new SourceAndConverter( maskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.getConverter(), sourceAndConverter ), new SourceAndConverter( volatileMaskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.asVolatile().getConverter(), sourceAndConverter.asVolatile() ) ) );
 
-				BdvFunctions.show( croppedSourceAndConverter );
+				// Wrap into TransformedSource for, e.g., manual transformation
+				final SourceAndConverter sourceOut = new SourceAffineTransformer( maskedSourceAndConverter, new AffineTransform3D() ).getSourceOut();
+
+				BdvFunctions.show( sourceOut, BdvOptions.options().addTo( bdvHandle ) );
 			}
 		}).start();
 	}
