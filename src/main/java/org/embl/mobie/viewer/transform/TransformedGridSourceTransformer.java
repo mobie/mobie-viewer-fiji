@@ -9,8 +9,6 @@ import net.imglib2.realtransform.AffineTransform3D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class TransformedGridSourceTransformer extends AbstractSourceTransformer
@@ -54,13 +52,24 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		{
 			int finalGridIndex = gridIndex;
 			futures.add( ThreadUtils.executorService.submit( () -> {
-				if ( sourceNamesAfterTransform != null )
-					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), sourceNamesAfterTransform.get( finalGridIndex ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
-				else
-					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), null, centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
+				translate(
+						sourceNameToSourceAndConverter,
+						sources.get( finalGridIndex ),
+						getSourceNamesAfterTransform( finalGridIndex ),
+						centerAtOrigin,
+						cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ],
+						cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
 			} ) );
 		}
 		ThreadUtils.waitUntilFinished( futures );
+	}
+
+	private List< String > getSourceNamesAfterTransform( int finalGridIndex )
+	{
+		if ( sourceNamesAfterTransform != null )
+			return sourceNamesAfterTransform.get( finalGridIndex );
+		else
+			return null;
 	}
 
 	public static void translate( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< String > sourceNames, List< String > sourceNamesAfterTransform, boolean centerAtOrigin, double translationX, double translationY )

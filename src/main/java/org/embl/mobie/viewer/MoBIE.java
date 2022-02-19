@@ -1,6 +1,7 @@
 package org.embl.mobie.viewer;
 
 import bdv.img.n5.N5ImageLoader;
+import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
@@ -47,7 +48,7 @@ public class MoBIE
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
+	private static ConcurrentHashMap< Object, MoBIE > objectToMoBIE = new ConcurrentHashMap<>();;
 
 	private final String projectName;
 	private MoBIESettings settings;
@@ -63,6 +64,7 @@ public class MoBIE
 	private Map< String, SourceAndConverter< ? > > sourceNameToTransformedSourceAndConverter;
 	private ArrayList< String > projectCommands = new ArrayList<>();;
 
+
 	public MoBIE( String projectRoot ) throws IOException
 	{
 		this( projectRoot, MoBIESettings.settings() );
@@ -70,6 +72,7 @@ public class MoBIE
 
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
+
 		IJ.log("MoBIE");
 		this.settings = settings.projectLocation( projectLocation );
 		setS3Credentials( settings );
@@ -646,5 +649,15 @@ public class MoBIE
 	public ArrayList< String > getProjectCommands()
 	{
 		return projectCommands;
+	}
+
+	public void register( Object object )
+	{
+		MoBIE.objectToMoBIE.put( object, this );
+	}
+
+	public static MoBIE getInstance( Object object )
+	{
+		return MoBIE.objectToMoBIE.get( object );
 	}
 }

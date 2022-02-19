@@ -88,6 +88,7 @@ public class ViewManager
 		sliceViewer = new SliceViewer( is2D, this, timepoints, moBIE.getProjectCommands() );
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
+		moBIE.register( bdvHandle );
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewsSaver = new ViewsSaver( moBIE );
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();

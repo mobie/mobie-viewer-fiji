@@ -3,7 +3,6 @@ package org.embl.mobie.viewer.projectcreator.ui;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.Dataset;
-import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.command.OpenMoBIEProjectCommand;
@@ -131,7 +130,7 @@ public class ProjectsCreatorPanel extends JFrame {
         datasetComboBox = new JComboBox<>( datasetNames );
         datasetComboBox.setSelectedItem( datasetNames[0] );
         setComboBoxDimensions(datasetComboBox);
-        datasetComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
+        datasetComboBox.setPrototypeDisplayValue( UserInterfaceHelper.PROTOTYPE_DISPLAY_VALUE);
         datasetComboBox.addItemListener( new SyncAllWithDatasetComboBox() );
     }
 
@@ -147,7 +146,7 @@ public class ProjectsCreatorPanel extends JFrame {
             sourcesComboBox.setSelectedItem( "" );
         }
         setComboBoxDimensions(sourcesComboBox);
-        sourcesComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
+        sourcesComboBox.setPrototypeDisplayValue( UserInterfaceHelper.PROTOTYPE_DISPLAY_VALUE);
     }
 
     private void createGroupsCombobox() {
@@ -165,7 +164,7 @@ public class ProjectsCreatorPanel extends JFrame {
             groupsComboBox.setSelectedItem( "" );
         }
         setComboBoxDimensions(groupsComboBox);
-        groupsComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
+        groupsComboBox.setPrototypeDisplayValue( UserInterfaceHelper.PROTOTYPE_DISPLAY_VALUE);
         groupsComboBox.addItemListener( new SyncGroupAndViewComboBox() );
     }
 
@@ -186,12 +185,12 @@ public class ProjectsCreatorPanel extends JFrame {
         }
 
         setComboBoxDimensions(viewsComboBox);
-        viewsComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
+        viewsComboBox.setPrototypeDisplayValue( UserInterfaceHelper.PROTOTYPE_DISPLAY_VALUE);
     }
 
     public static void setComboBoxDimensions( JComboBox< String > comboBox )
     {
-        comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE );
+        comboBox.setPrototypeDisplayValue( UserInterfaceHelper.PROTOTYPE_DISPLAY_VALUE );
         comboBox.setPreferredSize( new Dimension( 350, 20 ) );
         comboBox.setMaximumSize( new Dimension( 350, 20 ) );
     }

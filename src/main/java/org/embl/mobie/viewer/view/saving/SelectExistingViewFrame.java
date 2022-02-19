@@ -1,8 +1,8 @@
 package org.embl.mobie.viewer.view.saving;
 
 import org.embl.mobie.viewer.Dataset;
-import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
+import org.embl.mobie.viewer.ui.UserInterfaceHelper;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.SwingUtils;
@@ -142,7 +142,7 @@ public class SelectExistingViewFrame extends JFrame {
 
     private void setComboBoxDimensions( JComboBox< String > comboBox )
     {
-        comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE );
+        comboBox.setPrototypeDisplayValue( UserInterfaceHelper.PROTOTYPE_DISPLAY_VALUE );
         comboBox.setPreferredSize( new Dimension( 200, 20 ) );
         comboBox.setMaximumSize( new Dimension( 200, 20 ) );
     }
