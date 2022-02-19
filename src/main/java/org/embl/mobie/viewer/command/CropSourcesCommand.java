@@ -48,8 +48,6 @@ public class CropSourcesCommand implements BdvPlaygroundActionCommand
 		final List< SourceAndConverter > sourceAndConverters = Arrays.stream( sourceAndConverterArray ).collect( Collectors.toList() );
 		if ( sourceAndConverters.size() == 0 ) return;
 
-		final MoBIE moBIE = MoBIE.getInstance( bdvHandle );
-
 		new Thread( () -> {
 			final BdvBoundingBoxDialog boxDialog = new BdvBoundingBoxDialog( bdvHandle, sourceAndConverters );
 			boxDialog.showDialog();
@@ -64,6 +62,8 @@ public class CropSourcesCommand implements BdvPlaygroundActionCommand
 				final SourceAndConverter cropSource = cropSource( maskInterval, maskTransform, sourceAndConverter );
 
 				// TODO: can we create a view for this?
+				final MoBIE moBIE = MoBIE.getInstance( bdvHandle );
+				moBIE.getViewManager(); // ....
 
 				if ( addToCurrentView )
 				{
@@ -72,6 +72,7 @@ public class CropSourcesCommand implements BdvPlaygroundActionCommand
 				}
 
 				// TODO: Add to UI (maybe simply to same UI group as the input source)
+
 
 			}
 		}).start();
