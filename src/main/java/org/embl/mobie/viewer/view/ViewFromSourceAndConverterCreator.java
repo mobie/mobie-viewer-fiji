@@ -36,12 +36,6 @@ public class ViewFromSourceAndConverterCreator
 		final ArrayList< SourceTransformer > sourceTransformers = new ArrayList<>();
 		final View view = new View( uiSelectionGroup, sourceDisplays, sourceTransformers, false );
 
-		// recursively add all transformations
-		// FIXME: in fact this will be the wrong order.
-		addSourceTransformers( sourceAndConverter.getSpimSource(), sourceTransformers );
-
-		Collections.reverse( sourceTransformers );
-
 		if ( sourceAndConverter.getConverter() instanceof LabelConverter )
 		{
 			throwError( sourceAndConverter.getConverter() );
@@ -50,6 +44,10 @@ public class ViewFromSourceAndConverterCreator
 		{
 			sourceDisplays.add( new ImageSourceDisplay( sourceAndConverter ) );
 		}
+
+		// recursively add all transformations
+		addSourceTransformers( sourceAndConverter.getSpimSource(), sourceTransformers );
+		Collections.reverse( sourceTransformers );
 
 		return view;
 	}
