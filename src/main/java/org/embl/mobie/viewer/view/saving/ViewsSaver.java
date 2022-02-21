@@ -18,10 +18,13 @@ import org.embl.mobie.viewer.ui.UserInterfaceHelper;
 import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 import static org.embl.mobie.io.github.GitHubUtils.isGithub;
 import static org.embl.mobie.io.util.FileAndUrlUtils.getFileNames;
 import static org.embl.mobie.io.util.S3Utils.isS3;
+import static org.embl.mobie.viewer.view.saving.ViewSavingHelpers.writeAdditionalViewsJson;
+import static org.embl.mobie.viewer.view.saving.ViewSavingHelpers.writeDatasetJson;
 
 public class ViewsSaver {
 
@@ -155,6 +158,7 @@ public class ViewsSaver {
         if ( jsonPath != null ) {
             try {
                 saveNewViewToAdditionalViewsJson( view, viewName, jsonPath );
+                addViewToUi( viewName, view );
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -187,6 +191,7 @@ public class ViewsSaver {
                         saveNewViewToAdditionalViewsJson( view, viewName, viewJsonPath);
                     }
                 }
+                addViewToUi( viewName, view );
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -216,6 +221,14 @@ public class ViewsSaver {
         }
     }
 
+    private void addViewToUi( String viewName, View view ) {
+        moBIE.getViews().put( viewName, view );
+
+        Map<String, View> views = new HashMap<>();
+        views.put( viewName, view );
+        moBIE.getUserInterface().addViews( views );
+    }
+
     private void saveNewViewToDatasetJson( View view, String viewName ) throws IOException {
         String datasetJsonPath = moBIE.getDatasetPath( "dataset.json");
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
@@ -234,7 +247,12 @@ public class ViewsSaver {
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
 
         if ( dataset.views.keySet().size() > 0 ) {
-            new SelectExistingViewFrame( dataset, view, datasetJsonPath );
+            String selectedView = new SelectExistingViewDialog( dataset ).getSelectedView();
+            if ( selectedView != null ) {
+                writeDatasetJson( dataset, view, selectedView, datasetJsonPath );
+                IJ.log( selectedView + " overwritten in dataset.json" );
+                addViewToUi( selectedView, view );
+            }
         } else {
             IJ.log( "View saving aborted - dataset.json contains no views" );
         }
@@ -256,7 +274,13 @@ public class ViewsSaver {
         }
 
         AdditionalViews additionalViews = new AdditionalViewsJsonParser().getViews( jsonPath );
-        new SelectExistingViewFrame( additionalViews, view, jsonPath );
+        String selectedView = new SelectExistingViewDialog( additionalViews ).getSelectedView();
+
+        if ( selectedView != null ) {
+            writeAdditionalViewsJson( additionalViews, view, selectedView, jsonPath );
+            IJ.log( selectedView + " overwritten in " + new File(jsonPath).getName() );
+            addViewToUi( selectedView, view );
+        }
     }
 
     private void saveNewViewToAdditionalViewsJson( View view, String viewName, String jsonPath ) throws IOException {
