@@ -1,9 +1,12 @@
 package org.embl.mobie.viewer.transform;
 
+import bdv.tools.transformation.TransformedSource;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +30,16 @@ public class AffineSourceTransformer extends AbstractSourceTransformer
 		this.parameters = parameters;
 		this.sources = sources;
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
+	}
+
+	public AffineSourceTransformer( TransformedSource< ? > transformedSource )
+	{
+		AffineTransform3D fixedTransform = new AffineTransform3D();
+		transformedSource.getFixedTransform( fixedTransform );
+		name = "manualTransform";
+		parameters = fixedTransform.getRowPackedCopy();
+		sources	= Arrays.asList( transformedSource.getWrappedSource().getName() );
+		sourceNamesAfterTransform =	Arrays.asList( transformedSource.getName() );
 	}
 
 	@Override

@@ -8,6 +8,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.LabelConverter;
@@ -80,9 +81,6 @@ public class ViewFromSourceAndConverterCreator
 		contrastLimits[1] = converterSetup.getDisplayRangeMax();
 
 		blendingMode = (BlendingMode) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
-
-
-
 	}
 
 	private void addSourceTransformers( Source< ? > source, List< SourceTransformer > sourceTransformers )
@@ -93,11 +91,16 @@ public class ViewFromSourceAndConverterCreator
 		}
 		else if ( source instanceof TransformedSource )
 		{
-			final AffineSourceTransformer sourceTransformer = ViewHelpers.createAffineSourceTransformer( ( TransformedSource< ? > ) source );
-			if ( sourceTransformer != null )
-				sourceTransformers.add( sourceTransformer );
+			final TransformedSource transformedSource = ( TransformedSource ) source;
 
-			final Source< ? > wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
+			AffineTransform3D fixedTransform = new AffineTransform3D();
+			transformedSource.getFixedTransform( fixedTransform );
+			if ( ! fixedTransform.isIdentity() )
+			{
+				sourceTransformers.add( new AffineSourceTransformer( transformedSource ) );
+			}
+
+			final Source< ? > wrappedSource = transformedSource.getWrappedSource();
 
 			addSourceTransformers( wrappedSource, sourceTransformers );
 		}
