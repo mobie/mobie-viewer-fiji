@@ -39,11 +39,11 @@ public class ViewFromSourceAndConverterCreator
 		this.sourceAndConverter = sourceAndConverter;
 	}
 
-	public View getView()
+	public View createView( String uiSelectionGroup )
 	{
 		final ArrayList< SourceDisplay > sourceDisplays = new ArrayList<>();
 		final ArrayList< SourceTransformer > sourceTransformers = new ArrayList<>();
-		final View view = new View( "uiSelectionGroup", sourceDisplays, sourceTransformers, false );
+		final View view = new View( uiSelectionGroup, sourceDisplays, sourceTransformers, false );
 
 		// recursively add all transformations
 		// FIXME: in fact this will be the wrong order.

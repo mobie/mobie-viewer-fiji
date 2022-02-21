@@ -245,7 +245,6 @@ public class MoBIE
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
 		final View view = dataset.views.get( settings.values.getView() );
-		view.setName( settings.values.getView() );
 		viewManager.show( view );
 
 		// arrange windows
