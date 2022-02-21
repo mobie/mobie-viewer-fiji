@@ -11,6 +11,7 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.BdvBoundingBoxDialog;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.transform.MaskedSource;
+import org.embl.mobie.viewer.transform.SourceAndConverterMasker;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.ViewFromSourceAndConverterCreator;
 import org.scijava.plugin.Parameter;
@@ -77,10 +78,16 @@ public class CropSourcesCommand implements BdvPlaygroundActionCommand
 		moBIE.getUserInterface().addView( cropSource.getSpimSource().getName(), view );
 
 		moBIE.getViewManager().show( view );
-
 	}
 
 	private SourceAndConverter cropSource( RealInterval maskInterval, AffineTransform3D maskTransform, SourceAndConverter sourceAndConverter )
+	{
+		final SourceAndConverterMasker creator = new SourceAndConverterMasker<>( sourceAndConverter, sourceAndConverter.getSpimSource().getName() + suffix, maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray(), maskTransform );
+
+		return creator.getMaskedSourceAndConverter();
+	}
+
+	private SourceAndConverter getSourceAndConverter( RealInterval maskInterval, AffineTransform3D maskTransform, SourceAndConverter sourceAndConverter )
 	{
 		final MaskedSource maskedSource = new MaskedSource<>( sourceAndConverter.getSpimSource(), sourceAndConverter.getSpimSource().getName() + suffix, maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray(), maskTransform );
 

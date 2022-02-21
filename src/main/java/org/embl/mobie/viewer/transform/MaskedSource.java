@@ -77,7 +77,7 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
         this.maskMin = maskMin;
         this.maskMax = maskMax;
         this.maskTransform = maskTransform; 
-         this.type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
+        this.type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
         this.interpolators = new DefaultInterpolators();
 
         dataMasks = new ConcurrentHashMap<>();

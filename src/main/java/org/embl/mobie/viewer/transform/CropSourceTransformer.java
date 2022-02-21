@@ -1,13 +1,14 @@
 package org.embl.mobie.viewer.transform;
 
 import bdv.viewer.SourceAndConverter;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.NumericType;
 
 import java.util.List;
 import java.util.Map;
 
-public class CropSourceTransformer extends AbstractSourceTransformer
+public class CropSourceTransformer< T extends NumericType< T >> extends AbstractSourceTransformer
 {
 	protected double[] min;
 	protected double[] max;
@@ -25,7 +26,10 @@ public class CropSourceTransformer extends AbstractSourceTransformer
 				final SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
 				String transformedSourceName = getTransformedSourceName( sourceName );
 
-				SourceAndConverter< ? > croppedSourceAndConverter = SourceCropper.crop( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), centerAtOrigin );
+//				SourceAndConverter< ? > croppedSourceAndConverter = SourceCropper.crop( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), centerAtOrigin );
+
+				final SourceAndConverterMasker creator = new SourceAndConverterMasker( sourceAndConverter, transformedSourceName, min, max, new AffineTransform3D() );
+				SourceAndConverter< ? > croppedSourceAndConverter = creator.getMaskedSourceAndConverter();
 
 				// store result
 				sourceNameToSourceAndConverter.put( croppedSourceAndConverter.getSpimSource().getName(), croppedSourceAndConverter );
