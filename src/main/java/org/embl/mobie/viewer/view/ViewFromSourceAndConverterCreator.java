@@ -1,38 +1,29 @@
 package org.embl.mobie.viewer.view;
 
 import bdv.SpimSource;
-import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import net.imglib2.converter.Converter;
-import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.viewer.bdv.render.BlendingMode;
+import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.color.LabelConverter;
-import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.display.ImageSourceDisplay;
 import org.embl.mobie.viewer.display.SourceDisplay;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
+import org.embl.mobie.viewer.transform.CropSourceTransformer;
+import org.embl.mobie.viewer.transform.MaskedSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import org.embl.mobie.viewer.transform.SourceTransformer;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ViewFromSourceAndConverterCreator
 {
 	private final SourceAndConverter sourceAndConverter;
-
-	// display settings
-	private double opacity;
-	private BlendingMode blendingMode;
-	private double[] contrastLimits;
-	private String color;
 
 	public ViewFromSourceAndConverterCreator( SourceAndConverter sourceAndConverter )
 	{
@@ -49,6 +40,8 @@ public class ViewFromSourceAndConverterCreator
 		// FIXME: in fact this will be the wrong order.
 		addSourceTransformers( sourceAndConverter.getSpimSource(), sourceTransformers );
 
+		Collections.reverse( sourceTransformers );
+
 		if ( sourceAndConverter.getConverter() instanceof LabelConverter )
 		{
 			throwError( sourceAndConverter.getConverter() );
@@ -59,28 +52,6 @@ public class ViewFromSourceAndConverterCreator
 		}
 
 		return view;
-	}
-
-	private void createSourceDisplay( SourceAndConverter< ? > sourceAndConverter  )
-	{
-		final Converter< ?, ARGBType > converter = sourceAndConverter.getConverter();
-		final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
-
-		if( converter instanceof OpacityAdjuster )
-			opacity = ( ( OpacityAdjuster ) converter ).getOpacity();
-
-		if ( converter instanceof ColorConverter )
-		{
-			// needs to be of form r=(\\d+),g=(\\d+),b=(\\d+),a=(\\d+)"
-			color = ( ( ColorConverter ) converter ).getColor().toString();
-			color = color.replaceAll("[()]", "");
-		}
-
-		contrastLimits = new double[2];
-		contrastLimits[0] = converterSetup.getDisplayRangeMin();
-		contrastLimits[1] = converterSetup.getDisplayRangeMax();
-
-		blendingMode = (BlendingMode) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
 	}
 
 	private void addSourceTransformers( Source< ? > source, List< SourceTransformer > sourceTransformers )
@@ -99,16 +70,17 @@ public class ViewFromSourceAndConverterCreator
 			{
 				sourceTransformers.add( new AffineSourceTransformer( transformedSource ) );
 			}
-
-			final Source< ? > wrappedSource = transformedSource.getWrappedSource();
-
-			addSourceTransformers( wrappedSource, sourceTransformers );
+			addSourceTransformers( transformedSource.getWrappedSource(), sourceTransformers );
+		}
+		else if ( source instanceof MaskedSource )
+		{
+			final MaskedSource maskedSource = ( MaskedSource ) source;
+			sourceTransformers.add( new CropSourceTransformer<>( maskedSource ) );
+			addSourceTransformers( maskedSource.getWrappedSource(), sourceTransformers );
 		}
 		else if (  source instanceof LabelSource )
 		{
-			final Source< ? > wrappedSource = (( LabelSource ) source).getWrappedSource();
-
-			addSourceTransformers( wrappedSource, sourceTransformers );
+			addSourceTransformers( (( LabelSource ) source).getWrappedSource(), sourceTransformers );
 		}
 		else if (  source instanceof MergedGridSource )
 		{
@@ -122,6 +94,7 @@ public class ViewFromSourceAndConverterCreator
 		{
 			throwError( source );
 		}
+
 	}
 
 	private void throwError( Object object )

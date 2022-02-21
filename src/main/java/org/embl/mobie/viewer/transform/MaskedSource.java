@@ -31,14 +31,11 @@ package org.embl.mobie.viewer.transform;
 import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import edu.mines.jtk.mesh.TetMesh;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
-import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.position.FunctionRandomAccessible;
-import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
@@ -50,7 +47,6 @@ import net.imglib2.view.Views;
 import org.embl.mobie.viewer.source.SourceWrapper;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -59,9 +55,9 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     // Serialisation
     private Source< T > source;
     private final String name;
-    private final double[] maskMin;
-    private final double[] maskMax;
-    private final AffineTransform3D maskTransform; // mask coordinates to physical
+    private final double[] min;
+    private final double[] max;
+    private final AffineTransform3D transform; // mask coordinates to physical
 
     // Runtime
     protected transient final DefaultInterpolators< T > interpolators;
@@ -70,13 +66,14 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     private final transient Map< Integer, FinalInterval > dataIntervals;
     private final transient T type;
 
-    public MaskedSource( Source< T > source, String name, double[] maskMin, double[] maskMax, AffineTransform3D maskTransform )
+    // FIXME: Should this be able to center at origin??
+    public MaskedSource( Source< T > source, String name, double[] min, double[] max, AffineTransform3D transform )
     {
         this.source = source;
         this.name = name;
-        this.maskMin = maskMin;
-        this.maskMax = maskMax;
-        this.maskTransform = maskTransform; 
+        this.min = min;
+        this.max = max;
+        this.transform = transform;
         this.type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
         this.interpolators = new DefaultInterpolators();
 
@@ -89,15 +86,15 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
             final AffineTransform3D sourceTransform = new AffineTransform3D();
             source.getSourceTransform( 0, level, sourceTransform );
 
-            final RealMaskRealInterval physicalMask = GeomMasks.closedBox( maskMin, maskMax ).transform( maskTransform.inverse() );
+            final RealMaskRealInterval physicalMask = GeomMasks.closedBox( min, max ).transform( transform.inverse() );
             final RealMaskRealInterval dataMask = physicalMask.transform( sourceTransform.copy() );
 
             dataMasks.put( level, dataMask );
 
             final double[] maskPhysicalMin = new double[ 3 ];
-            maskTransform.apply( maskMin, maskPhysicalMin );
+            transform.apply( min, maskPhysicalMin );
             final double[] maskPhysicalMax = new double[ 3 ];
-            maskTransform.apply( maskMax, maskPhysicalMax );
+            transform.apply( max, maskPhysicalMax );
 
             final double[] maskDataMin = new double[ 3 ];
             sourceTransform.inverse().apply( maskPhysicalMin, maskDataMin );
@@ -191,4 +188,18 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
         return source.getNumMipmapLevels();
     }
 
+    public double[] getMin()
+    {
+        return min;
+    }
+
+    public double[] getMax()
+    {
+        return max;
+    }
+
+    public AffineTransform3D getTransform()
+    {
+        return transform;
+    }
 }

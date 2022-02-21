@@ -288,11 +288,11 @@ public class ViewManager
 		// create transformed sources
 		final List< SourceTransformer > sourceTransformers = view.getSourceTransforms();
 		if ( sourceTransformers != null )
-		for ( SourceTransformer sourceTransformer : sourceTransformers )
-		{
-			currentSourceTransformers.add( sourceTransformer );
-			sourceTransformer.transform( sourceNameToSourceAndConverters );
-		}
+			for ( SourceTransformer sourceTransformer : sourceTransformers )
+			{
+				currentSourceTransformers.add( sourceTransformer );
+				sourceTransformer.transform( sourceNameToSourceAndConverters );
+			}
 
 		// wrap all in a final transformed source. This is so any manual transformations can be
 		// retrieved separate from any from sourceTransformers.

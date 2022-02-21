@@ -86,6 +86,7 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 
 	public ImageSourceDisplay( SourceAndConverter< ? > sourceAndConverter )
 	{
+		name = sourceAndConverter.getSpimSource().getName();
 		sources = Arrays.asList( sourceAndConverter.getSpimSource().getName() );
 		setDisplaySettings( sourceAndConverter );
 	}

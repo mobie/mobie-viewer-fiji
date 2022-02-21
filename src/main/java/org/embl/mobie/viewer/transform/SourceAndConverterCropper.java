@@ -31,24 +31,23 @@ package org.embl.mobie.viewer.transform;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
-import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
-public class SourceAndConverterMasker< T extends NumericType<T> >
+public class SourceAndConverterCropper< T extends NumericType<T> >
 {
-    private final SourceAndConverter maskedSourceAndConverter;
+    private final SourceAndConverter croppedSourceAndConverter;
 
-    public SourceAndConverterMasker( SourceAndConverter< T > sourceAndConverter, String name, double[] maskMin, double[] maskMax, AffineTransform3D maskTransform )
+    public SourceAndConverterCropper( SourceAndConverter< T > sourceAndConverter, String name, double[] maskMin, double[] maskMax, AffineTransform3D maskTransform )
     {
         final MaskedSource maskedSource = new MaskedSource( sourceAndConverter.getSpimSource(), name, maskMin, maskMax, maskTransform );
 
         final MaskedSource volatileMaskedSource = new MaskedSource( sourceAndConverter.asVolatile().getSpimSource(), name, maskMin, maskMax, maskTransform );
 
-        maskedSourceAndConverter = new SourceAndConverter( maskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.getConverter(), sourceAndConverter ), new SourceAndConverter( volatileMaskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.asVolatile().getConverter(), sourceAndConverter.asVolatile() ) ) );
+        croppedSourceAndConverter = new SourceAndConverter( maskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.getConverter(), sourceAndConverter ), new SourceAndConverter( volatileMaskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.asVolatile().getConverter(), sourceAndConverter.asVolatile() ) ) );
     }
 
-    public SourceAndConverter getMaskedSourceAndConverter()
+    public SourceAndConverter get()
     {
-        return maskedSourceAndConverter;
+        return croppedSourceAndConverter;
     }
 }
