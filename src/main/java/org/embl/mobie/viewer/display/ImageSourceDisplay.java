@@ -10,6 +10,7 @@ import org.embl.mobie.viewer.volume.ImageVolumeViewer;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ImageSourceDisplay extends AbstractSourceDisplay
@@ -77,28 +78,38 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 		this.sources.addAll( imageDisplay.sourceNameToSourceAndConverter.keySet() );
 
 		final SourceAndConverter< ? > sourceAndConverter = imageDisplay.sourceNameToSourceAndConverter.values().iterator().next();
+
+		setDisplaySettings( sourceAndConverter );
+
+		// TODO - show images in 3d (currently not supported in viewer)
+	}
+
+	public ImageSourceDisplay( SourceAndConverter< ? > sourceAndConverter )
+	{
+		sources = Arrays.asList( sourceAndConverter.getSpimSource().getName() );
+		setDisplaySettings( sourceAndConverter );
+	}
+
+	private void setDisplaySettings( SourceAndConverter< ? > sourceAndConverter )
+	{
 		final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
 
 		if( sourceAndConverter.getConverter() instanceof AdjustableOpacityColorConverter )
 		{
-			this.opacity = ( ( AdjustableOpacityColorConverter ) sourceAndConverter.getConverter() ).getOpacity();
+			opacity = ( ( AdjustableOpacityColorConverter ) sourceAndConverter.getConverter() ).getOpacity();
 		}
 
 		if ( sourceAndConverter.getConverter() instanceof ColorConverter)
 		{
 			// needs to be of form r=(\\d+),g=(\\d+),b=(\\d+),a=(\\d+)"
-			String colorString = ( ( ColorConverter ) sourceAndConverter.getConverter() ).getColor().toString();
-			colorString = colorString.replaceAll("[()]", "");
-			this.color = colorString;
+			color = ( ( ColorConverter ) sourceAndConverter.getConverter() ).getColor().toString();
+			color = color.replaceAll("[()]", "");
 		}
 
-		double[] contrastLimits = new double[2];
+		contrastLimits = new double[2];
 		contrastLimits[0] = converterSetup.getDisplayRangeMin();
 		contrastLimits[1] = converterSetup.getDisplayRangeMax();
-		this.contrastLimits = contrastLimits;
 
-		this.blendingMode = (BlendingMode) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
-
-		// TODO - show images in 3d (currently not supported in viewer)
+		blendingMode = (BlendingMode) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
 	}
 }

@@ -18,9 +18,15 @@ public class AffineSourceTransformer extends AbstractSourceTransformer
 	private transient AffineTransform3D affineTransform3D;
 
 	public AffineSourceTransformer( String name, double[] parameters, List< String > sources ) {
+		this( name, parameters, sources, null );
+	}
+
+	public AffineSourceTransformer( String name, double[] parameters, List< String > sources, List< String > sourceNamesAfterTransform )
+	{
 		this.name = name;
 		this.parameters = parameters;
 		this.sources = sources;
+		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
 	}
 
 	@Override
