@@ -13,6 +13,7 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Cast;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
+import org.embl.mobie.viewer.color.LazyLabelConverter;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -28,7 +29,7 @@ public abstract class Sources {
     }
 
     public static <R extends NumericType<R> & RealType<R>> BdvStackSource<?> showAsLabelMask(BdvStackSource<?> bdvStackSource) {
-        LabelConverter converter = new LabelConverter();
+        LazyLabelConverter converter = new LazyLabelConverter();
         SourceAndConverter<R> sac = replaceConverter(bdvStackSource.getSources().get(0), converter);
         BdvHandle bdvHandle = bdvStackSource.getBdvHandle();
         bdvStackSource.removeFromBdv();

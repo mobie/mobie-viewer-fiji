@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.source;
+package org.embl.mobie.viewer.color;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
@@ -36,12 +36,12 @@ import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 
-public class LabelConverter implements Converter<RealType<?>, ARGBType>, ColorConverter {
+public class LazyLabelConverter implements Converter<RealType<?>, ARGBType>, ColorConverter {
     private final LazyCategoryColoringModel<Double> coloringModel;
     private ARGBType singleColor;
     private double max = 500;
 
-    public LabelConverter() {
+    public LazyLabelConverter() {
         this.coloringModel = new LazyCategoryColoringModel<>(new GlasbeyARGBLut(255));
     }
 
