@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer.transform;
 
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
@@ -37,11 +38,11 @@ public class SourceAndConverterCropper< T extends NumericType<T> >
 {
     private final SourceAndConverter croppedSourceAndConverter;
 
-    public SourceAndConverterCropper( SourceAndConverter< T > sourceAndConverter, String name, double[] maskMin, double[] maskMax, AffineTransform3D maskTransform )
+    public SourceAndConverterCropper( SourceAndConverter< T > sourceAndConverter, String name, RealInterval maskInterval, AffineTransform3D maskTransform )
     {
-        final MaskedSource maskedSource = new MaskedSource( sourceAndConverter.getSpimSource(), name, maskMin, maskMax, maskTransform );
+        final MaskedSource maskedSource = new MaskedSource( sourceAndConverter.getSpimSource(), name, maskInterval, maskTransform );
 
-        final MaskedSource volatileMaskedSource = new MaskedSource( sourceAndConverter.asVolatile().getSpimSource(), name, maskMin, maskMax, maskTransform );
+        final MaskedSource volatileMaskedSource = new MaskedSource( sourceAndConverter.asVolatile().getSpimSource(), name, maskInterval, maskTransform );
 
         croppedSourceAndConverter = new SourceAndConverter( maskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.getConverter(), sourceAndConverter ), new SourceAndConverter( volatileMaskedSource, SourceAndConverterHelper.cloneConverter( sourceAndConverter.asVolatile().getConverter(), sourceAndConverter.asVolatile() ) ) );
     }

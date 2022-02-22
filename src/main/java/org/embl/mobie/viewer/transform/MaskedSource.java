@@ -33,9 +33,12 @@ import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.position.FunctionRandomAccessible;
+import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
@@ -52,32 +55,29 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MaskedSource< T extends NumericType<T> > implements Source< T >, SourceWrapper< T >
 {
-    // Serialisation
     private Source< T > source;
     private final String name;
-    private final double[] min;
-    private final double[] max;
-    private final AffineTransform3D transform; // mask coordinates to physical
-
-    // Runtime
+    private final RealInterval maskInterval;
+    private final AffineTransform3D maskToPhysicalTransform;
     protected transient final DefaultInterpolators< T > interpolators;
     private final transient Map< Integer, RealMaskRealInterval > dataMasks;
+    private final transient Map< Integer, RealMaskRealInterval > physicalMasks;
     private final transient Map< Integer, AffineTransform3D > sourceTransforms;
     private final transient Map< Integer, FinalInterval > dataIntervals;
     private final transient T type;
 
     // FIXME: Should this be able to center at origin??
-    public MaskedSource( Source< T > source, String name, double[] min, double[] max, AffineTransform3D transform )
+    public MaskedSource( Source< T > source, String name, RealInterval maskInterval, AffineTransform3D maskToPhysicalTransform )
     {
         this.source = source;
         this.name = name;
-        this.min = min;
-        this.max = max;
-        this.transform = transform;
+        this.maskInterval = maskInterval;
+        this.maskToPhysicalTransform = maskToPhysicalTransform;
         this.type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
         this.interpolators = new DefaultInterpolators();
 
         dataMasks = new ConcurrentHashMap<>();
+        physicalMasks = new ConcurrentHashMap<>();
         sourceTransforms = new ConcurrentHashMap<>();
         dataIntervals = new ConcurrentHashMap<>();
 
@@ -86,22 +86,19 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
             final AffineTransform3D sourceTransform = new AffineTransform3D();
             source.getSourceTransform( 0, level, sourceTransform );
 
-            final RealMaskRealInterval physicalMask = GeomMasks.closedBox( min, max ).transform( transform.inverse() );
-            final RealMaskRealInterval dataMask = physicalMask.transform( sourceTransform.copy() );
+            final AffineTransform3D maskToDataTransform = maskToPhysicalTransform.copy().preConcatenate( sourceTransform.inverse() );
+
+            final FinalRealInterval dataBounds = maskToDataTransform.estimateBounds( maskInterval );
+
+            final RealMaskRealInterval dataMask = GeomMasks.closedBox( maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray() ).transform( maskToDataTransform.inverse() );
+
+            final RealMaskRealInterval physicalMask = GeomMasks.closedBox( maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray() ).transform( maskToPhysicalTransform.inverse() );
 
             dataMasks.put( level, dataMask );
 
-            final double[] maskPhysicalMin = new double[ 3 ];
-            transform.apply( min, maskPhysicalMin );
-            final double[] maskPhysicalMax = new double[ 3 ];
-            transform.apply( max, maskPhysicalMax );
+            physicalMasks.put( level, physicalMask );
 
-            final double[] maskDataMin = new double[ 3 ];
-            sourceTransform.inverse().apply( maskPhysicalMin, maskDataMin );
-            final double[] maskDataMax = new double[ 3 ];
-            sourceTransform.inverse().apply( maskPhysicalMax, maskDataMax );
-
-            final FinalInterval dataInterval = new FinalInterval( Arrays.stream( maskDataMin ).mapToLong( x -> ( long ) x ).toArray(), Arrays.stream( maskDataMax ).mapToLong( x -> ( long ) x ).toArray() );
+            final FinalInterval dataInterval = new FinalInterval( Arrays.stream( dataBounds.minAsDoubleArray() ).mapToLong( x -> ( long ) x ).toArray(), Arrays.stream( dataBounds.maxAsDoubleArray()  ).mapToLong( x -> ( long ) x ).toArray() );
 
             dataIntervals.put( level, dataInterval );
 
@@ -121,13 +118,14 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     }
 
     @Override
+    // TODO: if we can also present a RealMask, it would be better to do the masking in RealSpace
     public RandomAccessibleInterval< T > getSource(int t, int level)
     {
         final RandomAccessibleInterval< T > rai = source.getSource( t, level );
 
         final RealMaskRealInterval dataMask = dataMasks.get( level );
 
-        // apply mask
+        // apply mask in data space
         final FunctionRandomAccessible< T > maskedRA = new FunctionRandomAccessible< T >(
                 3,
                 ( dataCoordinates, value ) -> {
@@ -139,6 +137,8 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
                 () -> type.createVariable() );
 
         // crop interval
+        // generally larger than the mask,
+        // because the box may lie oblique in data space
         final IntervalView< T > interval = Views.interval( maskedRA, dataIntervals.get( level ) );
 
         return interval;
@@ -147,11 +147,29 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     @Override
     public RealRandomAccessible< T > getInterpolatedSource( int t, int level, Interpolation method )
     {
-        // interpolate the masked rai
-        final RandomAccessibleInterval< T > rai = getSource( t, level );
-        ExtendedRandomAccessibleInterval<T, RandomAccessibleInterval< T >> extendedRai = Views.extendZero( rai );
-        RealRandomAccessible< T > rra = Views.interpolate( extendedRai, interpolators.get( method ) );
-        return rra;
+        // interpolate the masked rai (leads to ugly boundaries)
+//        final RandomAccessibleInterval< T > rai = getSource( t, level );
+//        ExtendedRandomAccessibleInterval<T, RandomAccessibleInterval< T >> extendedRai = Views.extendZero( rai );
+//        RealRandomAccessible< T > rra = Views.interpolate( extendedRai, interpolators.get( method ) );
+//
+
+        final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, method );
+
+        final RealMaskRealInterval dataMask = dataMasks.get( level );
+
+        // apply mask in data space
+        final FunctionRealRandomAccessible< T > maskedRra = new FunctionRealRandomAccessible< T >(
+                3,
+                ( dataCoordinates, value ) -> {
+                    if ( dataMask.test( dataCoordinates ) )
+                        value.set( rra.getAt( dataCoordinates ) );
+                    else
+                        value.setZero();
+                },
+                () -> type.createVariable() );
+
+
+        return maskedRra;
     }
 
     @Override
@@ -188,18 +206,13 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
         return source.getNumMipmapLevels();
     }
 
-    public double[] getMin()
+    public RealInterval getMaskInterval()
     {
-        return min;
+        return maskInterval;
     }
 
-    public double[] getMax()
+    public AffineTransform3D getMaskToPhysicalTransform()
     {
-        return max;
-    }
-
-    public AffineTransform3D getTransform()
-    {
-        return transform;
+        return maskToPhysicalTransform;
     }
 }

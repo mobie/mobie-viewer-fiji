@@ -11,17 +11,21 @@ import org.embl.mobie.viewer.bdv.BdvBoundingBoxDialog;
 import org.embl.mobie.viewer.transform.SourceAndConverterCropper;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.ViewFromSourceAndConverterCreator;
+import org.scijava.Initializable;
+import org.scijava.command.DynamicCommand;
+import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + CropSourcesCommand.NAME )
-public class CropSourcesCommand implements BdvPlaygroundActionCommand
+public class CropSourcesCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
 {
 	static{ LegacyInjector.preinit(); }
 
@@ -33,16 +37,32 @@ public class CropSourcesCommand implements BdvPlaygroundActionCommand
 	@Parameter( label = "Source(s)" )
 	public SourceAndConverter[] sourceAndConverterArray;
 
-	@Parameter( label = "Suffix" )
+	@Parameter( label = "Cropped Sources Suffix" )
 	public String suffix = "_crop";
+
+	@Parameter( label = "Copped Source UI Selection Group" )
+	public String uiSelectionGroup;
+
+	private MoBIE moBIE;
+
+	@Override
+	public void initialize() {
+
+		moBIE = MoBIE.getInstance( bdvHandle );
+
+		final MutableModuleItem< String > item =
+				getInfo().getMutableInput("uiSelectionGroup", String.class);
+
+		final ArrayList< String > choices = new ArrayList<>( moBIE.getViewManager().getUserInterface().getGroupingsToViews().keySet() );
+
+		item.setChoices( choices );
+	}
 
 	@Override
 	public void run()
 	{
 		final List< SourceAndConverter > sourceAndConverters = Arrays.stream( sourceAndConverterArray ).collect( Collectors.toList() );
 		if ( sourceAndConverters.size() == 0 ) return;
-
-		final MoBIE moBIE = MoBIE.getInstance( bdvHandle );
 
 		new Thread( () -> {
 			final BdvBoundingBoxDialog boxDialog = new BdvBoundingBoxDialog( bdvHandle, sourceAndConverters );
@@ -57,17 +77,15 @@ public class CropSourcesCommand implements BdvPlaygroundActionCommand
 			{
 				final SourceAndConverter cropSource = cropSource( maskInterval, maskTransform, sourceAndConverter );
 
-				final ViewFromSourceAndConverterCreator creator = new ViewFromSourceAndConverterCreator( cropSource );
-
-				addViewToUi( moBIE, cropSource, creator );
+				addViewToUi( moBIE, cropSource );
 			}
 		}).start();
 	}
 
-	private void addViewToUi( MoBIE moBIE, SourceAndConverter cropSource, ViewFromSourceAndConverterCreator creator )
+	private void addViewToUi( MoBIE moBIE, SourceAndConverter cropSource )
 	{
-		final Map< String, Map< String, View > > groupingsToViews = moBIE.getUserInterface().getGroupingsToViews();
-		final View view = creator.createView( groupingsToViews.keySet().iterator().next() );
+		final ViewFromSourceAndConverterCreator creator = new ViewFromSourceAndConverterCreator( cropSource );
+		final View view = creator.createView( uiSelectionGroup, false );
 
 		moBIE.getViews().put( cropSource.getSpimSource().getName(), view );
 		moBIE.getUserInterface().addView( cropSource.getSpimSource().getName(), view );
@@ -77,7 +95,7 @@ public class CropSourcesCommand implements BdvPlaygroundActionCommand
 
 	private SourceAndConverter cropSource( RealInterval maskInterval, AffineTransform3D maskTransform, SourceAndConverter sourceAndConverter )
 	{
-		final SourceAndConverterCropper creator = new SourceAndConverterCropper<>( sourceAndConverter, sourceAndConverter.getSpimSource().getName() + suffix, maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray(), maskTransform );
+		final SourceAndConverterCropper creator = new SourceAndConverterCropper<>( sourceAndConverter, sourceAndConverter.getSpimSource().getName() + suffix, maskInterval, maskTransform );
 
 		return creator.get();
 	}

@@ -6,7 +6,6 @@ import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.display.ImageSourceDisplay;
 import org.embl.mobie.viewer.display.SourceDisplay;
@@ -30,11 +29,11 @@ public class ViewFromSourceAndConverterCreator
 		this.sourceAndConverter = sourceAndConverter;
 	}
 
-	public View createView( String uiSelectionGroup )
+	public View createView( String uiSelectionGroup, boolean isExclusive )
 	{
 		final ArrayList< SourceDisplay > sourceDisplays = new ArrayList<>();
 		final ArrayList< SourceTransformer > sourceTransformers = new ArrayList<>();
-		final View view = new View( uiSelectionGroup, sourceDisplays, sourceTransformers, false );
+		final View view = new View( uiSelectionGroup, sourceDisplays, sourceTransformers, isExclusive );
 
 		if ( sourceAndConverter.getConverter() instanceof LabelConverter )
 		{
