@@ -282,6 +282,11 @@ public class ViewManager
 		SourceNameEncoder.addNames( sources );
 		final Set< String > rawSources = sources.stream().filter( s -> moBIE.getDataset().sources.containsKey( s ) ).collect( Collectors.toSet() );
 
+		if ( rawSources.size() == 0 )
+		{
+			throw new RuntimeException( "Could not find any raw sources to be displayed among: " + String.join(",", sources) );
+		}
+
 		// open all raw sources
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( rawSources );
 
@@ -315,11 +320,18 @@ public class ViewManager
 		}
 		else
 		{
-			if ( view.isExclusive() || currentSourceDisplays.size() == 1 )
+			if ( view.isExclusive()  )
 			{
 				// TODO: rethink what should happen here...
-				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() > 0 ? currentSourceDisplays.size() - 1 : 0 );
-				new ViewerTransformAdjuster( bdvHandle, ((AbstractSourceDisplay) sourceDisplay).sourceNameToSourceAndConverter.values().iterator().next() ).run();
+				final ArrayList< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
+				for ( SourceDisplay sourceDisplay : view.getSourceDisplays() )
+				{
+					sourceAndConverters.addAll(
+						sourceDisplay.getSources().stream().map( s -> moBIE.getTransformedSourceAndConverter( s ) ).collect( Collectors.toList() )
+					);
+				}
+
+				new ViewerTransformAdjuster( bdvHandle, sourceAndConverters.toArray( new SourceAndConverter[0] ) ).run();
 			}
 		}
 	}

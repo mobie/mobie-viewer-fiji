@@ -407,14 +407,6 @@ public abstract class MoBIEUtils
 		return view;
 	}
 
-	public static FinalRealInterval estimateBounds( Source< ? > source )
-	{
-		final AffineTransform3D affineTransform3D = new AffineTransform3D();
-		source.getSourceTransform( 0, 0, affineTransform3D );
-		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
-		return bounds;
-	}
-
 	public static String getName( String path )
 	{
 		if ( path.startsWith( "http" ) )

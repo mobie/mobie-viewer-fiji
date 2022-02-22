@@ -34,6 +34,8 @@ import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;
+import net.imglib2.Interval;
+import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.RealRandomAccessible;
@@ -41,8 +43,10 @@ import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.Regions;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.numeric.NumericType;
+import net.imglib2.util.Intervals;
 import net.imglib2.util.Util;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
@@ -61,9 +65,7 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     private final AffineTransform3D maskToPhysicalTransform;
     protected transient final DefaultInterpolators< T > interpolators;
     private final transient Map< Integer, RealMaskRealInterval > dataMasks;
-    private final transient Map< Integer, RealMaskRealInterval > physicalMasks;
     private final transient Map< Integer, AffineTransform3D > sourceTransforms;
-    private final transient Map< Integer, FinalInterval > dataIntervals;
     private final transient T type;
 
     // FIXME: Should this be able to center at origin??
@@ -77,9 +79,7 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
         this.interpolators = new DefaultInterpolators();
 
         dataMasks = new ConcurrentHashMap<>();
-        physicalMasks = new ConcurrentHashMap<>();
         sourceTransforms = new ConcurrentHashMap<>();
-        dataIntervals = new ConcurrentHashMap<>();
 
         for ( int level = 0; level < getNumMipmapLevels(); level++ )
         {
@@ -88,19 +88,9 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
 
             final AffineTransform3D maskToDataTransform = maskToPhysicalTransform.copy().preConcatenate( sourceTransform.inverse() );
 
-            final FinalRealInterval dataBounds = maskToDataTransform.estimateBounds( maskInterval );
-
             final RealMaskRealInterval dataMask = GeomMasks.closedBox( maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray() ).transform( maskToDataTransform.inverse() );
 
-            final RealMaskRealInterval physicalMask = GeomMasks.closedBox( maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray() ).transform( maskToPhysicalTransform.inverse() );
-
             dataMasks.put( level, dataMask );
-
-            physicalMasks.put( level, physicalMask );
-
-            final FinalInterval dataInterval = new FinalInterval( Arrays.stream( dataBounds.minAsDoubleArray() ).mapToLong( x -> ( long ) x ).toArray(), Arrays.stream( dataBounds.maxAsDoubleArray()  ).mapToLong( x -> ( long ) x ).toArray() );
-
-            dataIntervals.put( level, dataInterval );
 
             // copy the original source transforms, because they
             // may be altered, e.g., by a manual transform
@@ -118,7 +108,6 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     }
 
     @Override
-    // TODO: if we can also present a RealMask, it would be better to do the masking in RealSpace
     public RandomAccessibleInterval< T > getSource(int t, int level)
     {
         final RandomAccessibleInterval< T > rai = source.getSource( t, level );
@@ -139,7 +128,16 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
         // crop interval
         // generally larger than the mask,
         // because the box may lie oblique in data space
-        final IntervalView< T > interval = Views.interval( maskedRA, dataIntervals.get( level ) );
+        // consider combining this with the RAI size (if
+        Interval dataInterval = Intervals.smallestContainingInterval( dataMask );
+
+        // TODO: not sure whether below intersect would help...
+        //dataInterval = Intervals.intersect( rai, dataInterval );
+        if ( ! Intervals.contains( rai, dataInterval ) )
+        {
+            int a = 1;
+        }
+        final IntervalView< T > interval = Views.interval( maskedRA, dataInterval );
 
         return interval;
     }
@@ -147,17 +145,10 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     @Override
     public RealRandomAccessible< T > getInterpolatedSource( int t, int level, Interpolation method )
     {
-        // interpolate the masked rai (leads to ugly boundaries)
-//        final RandomAccessibleInterval< T > rai = getSource( t, level );
-//        ExtendedRandomAccessibleInterval<T, RandomAccessibleInterval< T >> extendedRai = Views.extendZero( rai );
-//        RealRandomAccessible< T > rra = Views.interpolate( extendedRai, interpolators.get( method ) );
-//
-
         final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, method );
 
         final RealMaskRealInterval dataMask = dataMasks.get( level );
 
-        // apply mask in data space
         final FunctionRealRandomAccessible< T > maskedRra = new FunctionRealRandomAccessible< T >(
                 3,
                 ( dataCoordinates, value ) -> {
@@ -175,7 +166,7 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     @Override
     public boolean doBoundingBoxCulling()
     {
-        return source.doBoundingBoxCulling();
+        return true;
     }
 
     @Override

@@ -2,7 +2,6 @@ package org.embl.mobie.viewer.transform;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
@@ -14,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class TransformHelper
+public class TransformHelpers
 {
 	public static RealInterval unionRealInterval( List< ? extends Source< ? > > sources )
 	{
@@ -22,7 +21,7 @@ public class TransformHelper
 
 		for ( Source< ? > source : sources )
 		{
-			final FinalRealInterval bounds = MoBIEUtils.estimateBounds( source );
+			final FinalRealInterval bounds = estimateBounds( source );
 
 			if ( union == null )
 				union = bounds;
@@ -33,21 +32,18 @@ public class TransformHelper
 		return union;
 	}
 
-	public static SourceAndConverter< ? > centerAtOrigin( SourceAndConverter< ? > sourceAndConverter )
+	public static SourceAndConverter< ? > centerAtPhysicalOrigin( SourceAndConverter< ? > sourceAndConverter )
 	{
+		final double[] center = getPhysicalCenter( sourceAndConverter.getSpimSource() );
 		final AffineTransform3D translate = new AffineTransform3D();
-		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		sourceAndConverter.getSpimSource().getSourceTransform( 0,0, sourceTransform );
-		final double[] center = getCenter( sourceAndConverter );
 		translate.translate( center );
-		final SourceAffineTransformer transformer = new SourceAffineTransformer( translate.inverse() );
-		sourceAndConverter = transformer.apply( sourceAndConverter );
-		return sourceAndConverter;
+		final SourceAffineTransformer transformer = new SourceAffineTransformer( sourceAndConverter, translate.inverse() );
+		return transformer.getSourceOut();
 	}
 
-	public static double[] getCenter( SourceAndConverter< ? > sourceAndConverter )
+	public static double[] getPhysicalCenter( Source< ? > spimSource )
 	{
-		final FinalRealInterval bounds = MoBIEUtils.estimateBounds( sourceAndConverter.getSpimSource() );
+		final FinalRealInterval bounds = estimateBounds( spimSource );
 		final double[] center = bounds.minAsDoubleArray();
 		final double[] max = bounds.maxAsDoubleArray();
 		for ( int d = 0; d < max.length; d++ )
@@ -57,12 +53,12 @@ public class TransformHelper
 		return center;
 	}
 
-	public static AffineTransform3D createTranslationTransform3D( double translationX, double translationY, SourceAndConverter< ? > sourceAndConverter, boolean centerAtOrigin )
+	public static AffineTransform3D createTranslationTransform3D( double translationX, double translationY, boolean centerAtOrigin, Source< ? > source )
 	{
 		AffineTransform3D translationTransform = new AffineTransform3D();
 		if ( centerAtOrigin )
 		{
-			final double[] center = getCenter( sourceAndConverter );
+			final double[] center = getPhysicalCenter( source );
 			translationTransform.translate( center );
 			translationTransform = translationTransform.inverse();
 		}
@@ -91,5 +87,13 @@ public class TransformHelper
 		}
 
 		return maximalDimensions;
+	}
+
+	public static FinalRealInterval estimateBounds( Source< ? > source )
+	{
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+		source.getSourceTransform( 0, 0, affineTransform3D );
+		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
+		return bounds;
 	}
 }

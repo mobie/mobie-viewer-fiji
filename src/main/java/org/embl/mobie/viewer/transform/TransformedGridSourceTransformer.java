@@ -1,12 +1,18 @@
 package org.embl.mobie.viewer.transform;
 
+import bdv.util.Affine3DHelpers;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
+import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.viewer.ThreadUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -29,7 +35,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		if ( positions == null )
 			autoSetPositions();
 
-		final double[] cellRealDimensions = TransformHelper.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
+		final double[] cellRealDimensions = TransformHelpers.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
 
 		transform( sourceNameToSourceAndConverter, cellRealDimensions );
 	}
@@ -81,12 +87,53 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			if ( sourceAndConverter == null )
 			  continue;
 
-			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( translationX, translationY, sourceAndConverter, centerAtOrigin );
+			AffineTransform3D transform = new AffineTransform3D();
 
-			final SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, translationTransform );
+			final Source< ? > source = sourceAndConverter.getSpimSource();
 
-			final SourceAndConverter transformedSource = transformer.apply( sourceNameToSourceAndConverter.get( sourceName ) );
+			if ( source instanceof MaskedSource )
+			{
+				final AffineTransform3D maskToPhysicalTransform = ( ( MaskedSource ) source ).getMaskToPhysicalTransform().copy();
+				System.out.println( sourceName + ": " + maskToPhysicalTransform.toString() );
 
+				final double[] q = new double[ 4 ];
+				//Affine3DHelpers.extractRotationAnisotropic(  );
+				Affine3DHelpers.extractRotation( maskToPhysicalTransform.inverse(), q );
+				final double[][] affine = new double[ 3 ][ 4 ];
+				LinAlgHelpers.quaternionToR( q, affine );
+
+				final AffineTransform3D rectifyTransform = new AffineTransform3D();
+				rectifyTransform.set( affine );
+
+				final double[] originToCenter = TransformHelpers.getPhysicalCenter( source );
+				final double[] centerToOrigin = Arrays.stream( originToCenter ).map( x -> -x ).toArray();
+
+				final AffineTransform3D rotateAroundCenter = new AffineTransform3D();
+				rotateAroundCenter.translate( centerToOrigin );
+				rotateAroundCenter.preConcatenate( rectifyTransform );
+				rotateAroundCenter.translate( originToCenter );
+				transform = rotateAroundCenter;
+				System.out.println( "rac: " + rotateAroundCenter.toString() );
+
+			}
+
+			// translation
+			AffineTransform3D translationTransform = TransformHelpers.createTranslationTransform3D( translationX, translationY, centerAtOrigin, source );
+
+			//transform = translationTransform;
+			transform.preConcatenate( translationTransform );
+
+			final double[] doubles = new double[ 3 ];
+			for ( int d = 0; d < 3; d++ )
+			{
+				doubles[ d ] = Affine3DHelpers.extractScale( transform, d );
+			}
+			System.out.println(Arrays.toString( doubles ));
+
+			// apply transformation
+			final SourceAndConverter< ? > transformedSource = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, transform ).apply( sourceAndConverter );
+
+			// store the resulting transformed source
 			sourceNameToSourceAndConverter.put( transformedSource.getSpimSource().getName(), transformedSource );
 		}
 	}

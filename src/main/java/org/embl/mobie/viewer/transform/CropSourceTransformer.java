@@ -19,7 +19,7 @@ public class CropSourceTransformer< T extends NumericType< T >> extends Abstract
 	// Serialisation
 	protected double[] min;
 	protected double[] max;
-	protected double[] affine; // from box to physical
+	protected double[] boxAffine; // from box to physical
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
 	protected boolean centerAtOrigin = true;
@@ -28,7 +28,7 @@ public class CropSourceTransformer< T extends NumericType< T >> extends Abstract
 	{
 		min = maskedSource.getMaskInterval().minAsDoubleArray();
 		max = maskedSource.getMaskInterval().maxAsDoubleArray();
-		affine = maskedSource.getMaskToPhysicalTransform().getRowPackedCopy();
+		boxAffine = maskedSource.getMaskToPhysicalTransform().getRowPackedCopy();
 		sources = Arrays.asList( maskedSource.getWrappedSource().getName() );
 		if ( ! maskedSource.getName().equals( maskedSource.getWrappedSource().getName() ))
 			sourceNamesAfterTransform = Arrays.asList( maskedSource.getName() );
@@ -39,8 +39,8 @@ public class CropSourceTransformer< T extends NumericType< T >> extends Abstract
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
 		AffineTransform3D transform = new AffineTransform3D() ;
-		if ( affine != null )
-			transform.set( affine );
+		if ( boxAffine != null )
+			transform.set( boxAffine );
 
 		for ( String sourceName : sourceNameToSourceAndConverter.keySet() )
 		{
@@ -53,10 +53,11 @@ public class CropSourceTransformer< T extends NumericType< T >> extends Abstract
 //				if ( affine == null )
 //					croppedSourceAndConverter = cropViaResampling( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), centerAtOrigin );
 //				else // TODO: Below does not seem to work?!...check with Martin
-					croppedSourceAndConverter = new SourceAndConverterCropper( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), transform ).get();
+
+				croppedSourceAndConverter = new SourceAndConverterCropper( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), transform ).get();
 
 				if ( centerAtOrigin )
-					croppedSourceAndConverter = TransformHelper.centerAtOrigin( croppedSourceAndConverter );
+					croppedSourceAndConverter = TransformHelpers.centerAtPhysicalOrigin( croppedSourceAndConverter );
 
 				// store result
 				sourceNameToSourceAndConverter.put( croppedSourceAndConverter.getSpimSource().getName(), croppedSourceAndConverter );
