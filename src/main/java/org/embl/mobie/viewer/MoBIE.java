@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer;
 
+import bdv.export.ProposeMipmaps;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
