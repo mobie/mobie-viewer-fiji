@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.serialize;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonWriter;
+import ij.IJ;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 
@@ -27,13 +28,15 @@ public class DatasetJsonParser
 
 	public void saveDataset( Dataset dataset, String path ) throws IOException {
 		Gson gson = JsonHelper.buildGson( false );
-		Type type = new TypeToken< Dataset >() {}.getType();
+		final String json = gson.toJson( dataset );
+		FileAndUrlUtils.write( path, json );
 
-		try (OutputStream outputStream = new FileOutputStream( path );
-			 final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8")) ) {
-			writer.setIndent("  ");
-			gson.toJson(dataset, type, writer);
-		}
+//		Type type = new TypeToken< Dataset >() {}.getType();
+//		try (OutputStream outputStream = new FileOutputStream( path );
+//			 final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8")) ) {
+//			writer.setIndent("  ");
+//			gson.toJson(dataset, type, writer);
+//		}
 	}
 
 	public String datasetToJsonString( Dataset dataset, boolean prettyPrinting ) {

@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.view.saving;
 
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
@@ -177,25 +178,18 @@ public class ViewsSaver {
     }
 
     private void saveNewViewToProject( View view, String viewName, ProjectSaveLocation projectSaveLocation ) {
-        if ( isS3(settings.values.getProjectLocation()) ) {
-            // TODO - support saving views to s3?
-            IJ.log("View saving aborted - saving directly to s3 is not yet supported!");
-        } else {
-
-            try {
-                if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
-                    saveNewViewToDatasetJson( view, viewName );
-                } else {
-                    String viewJsonPath = chooseAdditionalViewsJson( true );
-                    if (viewJsonPath != null) {
-                        saveNewViewToAdditionalViewsJson( view, viewName, viewJsonPath);
-                    }
+        try {
+            if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
+                saveNewViewToDatasetJson( view, viewName );
+            } else {
+                String viewJsonPath = chooseAdditionalViewsJson( true );
+                if (viewJsonPath != null) {
+                    saveNewViewToAdditionalViewsJson( view, viewName, viewJsonPath);
                 }
-                addViewToUi( viewName, view );
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-
+            addViewToUi( viewName, view );
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
