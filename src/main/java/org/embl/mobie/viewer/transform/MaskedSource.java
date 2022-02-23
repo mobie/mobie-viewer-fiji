@@ -132,13 +132,12 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
         Interval dataInterval = Intervals.smallestContainingInterval( dataMask );
 
         // TODO: not sure whether below intersect would help...
-        //dataInterval = Intervals.intersect( rai, dataInterval );
-        if ( ! Intervals.contains( rai, dataInterval ) )
-        {
-            int a = 1;
-        }
-        final IntervalView< T > interval = Views.interval( maskedRA, dataInterval );
+//        if ( ! Intervals.contains( rai, dataInterval ) )
+//        {
+//            dataInterval = Intervals.intersect( rai, dataInterval );
+//        }
 
+        final IntervalView< T > interval = Views.interval( maskedRA, dataInterval );
         return interval;
     }
 
@@ -158,7 +157,6 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
                         value.setZero();
                 },
                 () -> type.createVariable() );
-
 
         return maskedRra;
     }
