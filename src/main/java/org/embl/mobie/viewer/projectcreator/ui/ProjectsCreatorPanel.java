@@ -48,6 +48,7 @@ public class ProjectsCreatorPanel extends JFrame {
     private static boolean useDefaultExportSettings = true;
     private static boolean exclusive = false;
     private static boolean useFileNameAsImageName = true;
+    private static String uiSelectionGroup = "Make New Ui Selection Group";
 
     private final String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
             ImageDataFormat.OmeZarr.toString() };
@@ -407,7 +408,7 @@ public class ProjectsCreatorPanel extends JFrame {
             for (int i = 0; i < currentSelectionGroups.length; i++) {
                 choices[i + 1] = currentSelectionGroups[i];
             }
-            gd.addChoice("Ui Selection Group", choices, choices[0]);
+            gd.addChoice("Ui Selection Group", choices, uiSelectionGroup);
             gd.showDialog();
 
             if ( !gd.wasCanceled() ) {
@@ -514,10 +515,11 @@ public class ProjectsCreatorPanel extends JFrame {
                         return;
                     }
 
-                    String uiSelectionGroup = null;
-                    uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
-                    if ( uiSelectionGroup == null ) {
+                    String chosenUiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
+                    if ( chosenUiSelectionGroup == null ) {
                         return;
+                    } else {
+                        uiSelectionGroup = chosenUiSelectionGroup;
                     }
 
                     try {
@@ -619,10 +621,11 @@ public class ProjectsCreatorPanel extends JFrame {
                         return;
                     }
 
-                    String uiSelectionGroup = null;
-                    uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
-                    if ( uiSelectionGroup == null ) {
+                    String chosenUiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
+                    if ( chosenUiSelectionGroup == null ) {
                         return;
+                    } else {
+                        uiSelectionGroup = chosenUiSelectionGroup;
                     }
 
                     try {
