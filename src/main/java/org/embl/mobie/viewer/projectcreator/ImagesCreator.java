@@ -156,9 +156,13 @@ public class ImagesCreator {
         String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
         File imageFile = new File(filePath);
 
-        if ( imp.getNChannels() > 1 ) {
-            throw new UnsupportedOperationException("Multi-channel images are not supported.\n" +
-                    "Please add each channel individually ([ Image > Color > Split Channels ]).\n" );
+        if ( !isImageValid( imp.getNChannels(), imp.getCalibration().getUnit(),
+                projectCreator.getVoxelUnit(), false ) ) {
+            return;
+        }
+
+        if ( projectCreator.getVoxelUnit() == null ) {
+            projectCreator.setVoxelUnit( imp.getCalibration().getUnit() );
         }
 
         if ( imageFile.exists() ) {
@@ -310,6 +314,17 @@ public class ImagesCreator {
 
             SpimData spimData = ( SpimData ) new SpimDataOpener().openSpimData( fileLocation.getAbsolutePath(), imageDataFormat );
             File imageDirectory = new File( getDefaultLocalImageDirPath( datasetName, imageDataFormat ));
+
+            int nChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
+            String imageUnit = spimData.getSequenceDescription().getViewSetupsOrdered().get(0).getVoxelSize().unit();
+
+            if ( !isImageValid( nChannels, imageUnit, projectCreator.getVoxelUnit(), true ) ) {
+                return;
+            }
+
+            if ( projectCreator.getVoxelUnit() == null ) {
+                projectCreator.setVoxelUnit( imageUnit );
+            }
 
             File newImageFile = null;
             switch( imageDataFormat ) {

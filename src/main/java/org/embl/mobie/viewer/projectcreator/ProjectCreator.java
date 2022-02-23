@@ -139,6 +139,10 @@ public class ProjectCreator {
         return voxelUnit;
     }
 
+    public void setVoxelUnit(String voxelUnit) {
+        this.voxelUnit = voxelUnit;
+    }
+
     public void reloadCurrentDataset() throws IOException {
         if ( currentDatasetName != null ) {
             this.currentDataset = new DatasetJsonParser().parseDataset(currentDatasetJson.getAbsolutePath());
