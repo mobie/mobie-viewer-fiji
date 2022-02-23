@@ -1,18 +1,18 @@
 package projects;
 
+import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
-import net.imagej.ImageJ;
 
 import java.io.IOException;
 
-public class OpenLocalJulianNoTables
+public class OpenLocalConstantinNoTables
 {
 	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		final MoBIE moBIE = new MoBIE("/Volumes/emcf/hennies/for_constantin/mobie_no_table_test/", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ));
+		final MoBIE moBIE = new MoBIE("/Volumes/emcf/pape/jil", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ));
 	}
 }

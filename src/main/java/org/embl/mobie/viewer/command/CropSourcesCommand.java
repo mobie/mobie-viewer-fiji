@@ -11,6 +11,8 @@ import org.embl.mobie.viewer.bdv.BdvBoundingBoxDialog;
 import org.embl.mobie.viewer.transform.SourceAndConverterCropper;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.ViewFromSourceAndConverterCreator;
+import org.embl.mobie.viewer.view.saving.ViewSavingHelpers;
+import org.embl.mobie.viewer.view.saving.ViewsSaver;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
 import org.scijava.module.MutableModuleItem;
@@ -21,12 +23,16 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + CropSourcesCommand.NAME )
 public class CropSourcesCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
 {
+
+	protected static final String DO_NOT_SAVE = "Do not save";
+	protected static final String SAVE_TO_PROJECT = "Save to project";
+	protected static final String SAVE_TO_FILE_SYSTEM = "Save to file system";
+
 	static{ LegacyInjector.preinit(); }
 
 	public static final String NAME = "Crop Source(s)";
@@ -37,11 +43,14 @@ public class CropSourcesCommand extends DynamicCommand implements BdvPlaygroundA
 	@Parameter( label = "Source(s)" )
 	public SourceAndConverter[] sourceAndConverterArray;
 
-	@Parameter( label = "Cropped Sources Suffix" )
+	@Parameter( label = "Cropped Source(s) View Suffix" )
 	public String suffix = "_crop";
 
-	@Parameter( label = "Copped Source UI Selection Group" )
+	@Parameter( label = "Cropped Source(s) View Selection Group" )
 	public String uiSelectionGroup;
+
+	@Parameter( label = "Save Cropped Source(s) View", choices = { DO_NOT_SAVE, SAVE_TO_PROJECT, SAVE_TO_FILE_SYSTEM } )
+	public String saveChoice = SAVE_TO_PROJECT;
 
 	private MoBIE moBIE;
 
@@ -77,20 +86,28 @@ public class CropSourcesCommand extends DynamicCommand implements BdvPlaygroundA
 			{
 				final SourceAndConverter cropSource = cropSource( maskInterval, maskTransform, sourceAndConverter );
 
-				addViewToUi( moBIE, cropSource );
+				final View view = addViewToUi( moBIE, cropSource );
+
+				if ( saveChoice.equals( SAVE_TO_PROJECT ) )
+				{
+					final ViewsSaver viewsSaver = new ViewsSaver( moBIE );
+					//viewsSaver.viewSettingsDialog(  );
+				}
 			}
 		}).start();
 	}
 
-	private void addViewToUi( MoBIE moBIE, SourceAndConverter cropSource )
+	private View addViewToUi( MoBIE moBIE, SourceAndConverter cropSource )
 	{
 		final ViewFromSourceAndConverterCreator creator = new ViewFromSourceAndConverterCreator( cropSource );
-		final View view = creator.createView( uiSelectionGroup, false );
+		final View view = creator.createView( saveChoice, false );
 
 		moBIE.getViews().put( cropSource.getSpimSource().getName(), view );
 		moBIE.getUserInterface().addView( cropSource.getSpimSource().getName(), view );
 
 		moBIE.getViewManager().show( view );
+
+		return view;
 	}
 
 	private SourceAndConverter cropSource( RealInterval maskInterval, AffineTransform3D maskTransform, SourceAndConverter sourceAndConverter )

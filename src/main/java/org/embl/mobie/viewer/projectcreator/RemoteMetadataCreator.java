@@ -168,7 +168,7 @@ public class RemoteMetadataCreator {
             // give absolute s3 path to ome.zarr file
             StorageLocation storageLocation = new StorageLocation();
             String relativePath = imageSource.imageData.get(localImageDataFormat).relativePath;
-            storageLocation.s3Address = serviceEndpoint + bucketName + "/data/" + datasetName + "/" + relativePath;
+            storageLocation.s3Address = serviceEndpoint + bucketName + "/" + datasetName + "/" + relativePath;
             imageSource.imageData.put( remoteImageDataFormat, storageLocation );
         }
 
