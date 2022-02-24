@@ -27,16 +27,9 @@ public class DatasetJsonParser
 	}
 
 	public void saveDataset( Dataset dataset, String path ) throws IOException {
-		Gson gson = JsonHelper.buildGson( false );
-		final String json = gson.toJson( dataset );
+		Gson gson = JsonHelper.buildGson( true );
+		final String json = gson.toJson( dataset ).replaceAll("\t", "  ");;
 		FileAndUrlUtils.write( path, json );
-
-//		Type type = new TypeToken< Dataset >() {}.getType();
-//		try (OutputStream outputStream = new FileOutputStream( path );
-//			 final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8")) ) {
-//			writer.setIndent("  ");
-//			gson.toJson(dataset, type, writer);
-//		}
 	}
 
 	public String datasetToJsonString( Dataset dataset, boolean prettyPrinting ) {
