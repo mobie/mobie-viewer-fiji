@@ -23,6 +23,7 @@ public class CropSourceTransformer< T extends NumericType< T >> extends Abstract
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
 	protected boolean centerAtOrigin = true;
+	protected boolean rectify = true;
 
 	public CropSourceTransformer( MaskedSource maskedSource )
 	{
@@ -33,6 +34,8 @@ public class CropSourceTransformer< T extends NumericType< T >> extends Abstract
 		if ( ! maskedSource.getName().equals( maskedSource.getWrappedSource().getName() ))
 			sourceNamesAfterTransform = Arrays.asList( maskedSource.getName() );
 		centerAtOrigin = false;
+		rectify = maskedSource.isRectify();
+		centerAtOrigin = maskedSource.isCenter();
 	}
 
 	@Override
@@ -54,10 +57,7 @@ public class CropSourceTransformer< T extends NumericType< T >> extends Abstract
 //					croppedSourceAndConverter = cropViaResampling( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), centerAtOrigin );
 //				else // TODO: Below does not seem to work?!...check with Martin
 
-				croppedSourceAndConverter = new SourceAndConverterCropper( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), transform ).get();
-
-				if ( centerAtOrigin )
-					croppedSourceAndConverter = TransformHelpers.centerAtPhysicalOrigin( croppedSourceAndConverter );
+				croppedSourceAndConverter = new SourceAndConverterCropper( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), transform, rectify, centerAtOrigin ).get();
 
 				// store result
 				sourceNameToSourceAndConverter.put( croppedSourceAndConverter.getSpimSource().getName(), croppedSourceAndConverter );

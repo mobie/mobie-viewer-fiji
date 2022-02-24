@@ -11,7 +11,6 @@ import org.embl.mobie.viewer.bdv.BdvBoundingBoxDialog;
 import org.embl.mobie.viewer.transform.SourceAndConverterCropper;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.ViewFromSourceAndConverterCreator;
-import org.embl.mobie.viewer.view.saving.ViewSavingHelpers;
 import org.embl.mobie.viewer.view.saving.ViewsSaver;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
@@ -42,6 +41,12 @@ public class CropSourcesCommand extends DynamicCommand implements BdvPlaygroundA
 
 	@Parameter( label = "Source(s)" )
 	public SourceAndConverter[] sourceAndConverterArray;
+
+	@Parameter( label = "Rectify Crop" )
+	public boolean rectify;
+
+	@Parameter( label = "Center Crop at Origin" )
+	public boolean centerAtOrigin;
 
 	@Parameter( label = "Cropped Source(s) View Suffix" )
 	public String suffix = "_crop";
@@ -84,7 +89,7 @@ public class CropSourcesCommand extends DynamicCommand implements BdvPlaygroundA
 
 			for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 			{
-				final SourceAndConverter cropSource = cropSource( maskInterval, maskTransform, sourceAndConverter );
+				final SourceAndConverter cropSource = cropSource( maskInterval, maskTransform, sourceAndConverter, rectify, centerAtOrigin );
 
 				final View view = addViewToUi( moBIE, cropSource );
 
@@ -110,9 +115,9 @@ public class CropSourcesCommand extends DynamicCommand implements BdvPlaygroundA
 		return view;
 	}
 
-	private SourceAndConverter cropSource( RealInterval maskInterval, AffineTransform3D maskTransform, SourceAndConverter sourceAndConverter )
+	private SourceAndConverter cropSource( RealInterval maskInterval, AffineTransform3D maskTransform, SourceAndConverter sourceAndConverter, boolean rectify, boolean center )
 	{
-		final SourceAndConverterCropper creator = new SourceAndConverterCropper<>( sourceAndConverter, sourceAndConverter.getSpimSource().getName() + suffix, maskInterval, maskTransform );
+		final SourceAndConverterCropper creator = new SourceAndConverterCropper<>( sourceAndConverter, sourceAndConverter.getSpimSource().getName() + suffix, maskInterval, maskTransform, rectify, center );
 
 		return creator.get();
 	}

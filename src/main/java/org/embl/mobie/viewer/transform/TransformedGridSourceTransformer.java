@@ -91,32 +91,6 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 
 			final Source< ? > source = sourceAndConverter.getSpimSource();
 
-			if ( source instanceof MaskedSource )
-			{
-				final AffineTransform3D maskToPhysicalTransform = ( ( MaskedSource ) source ).getMaskToPhysicalTransform().copy();
-				System.out.println( sourceName + ": " + maskToPhysicalTransform.toString() );
-
-				final double[] q = new double[ 4 ];
-				//Affine3DHelpers.extractRotationAnisotropic(  );
-				Affine3DHelpers.extractRotation( maskToPhysicalTransform.inverse(), q );
-				final double[][] affine = new double[ 3 ][ 4 ];
-				LinAlgHelpers.quaternionToR( q, affine );
-
-				final AffineTransform3D rectifyTransform = new AffineTransform3D();
-				rectifyTransform.set( affine );
-
-				final double[] originToCenter = TransformHelpers.getPhysicalCenter( source );
-				final double[] centerToOrigin = Arrays.stream( originToCenter ).map( x -> -x ).toArray();
-
-				final AffineTransform3D rotateAroundCenter = new AffineTransform3D();
-				rotateAroundCenter.translate( centerToOrigin );
-				rotateAroundCenter.preConcatenate( rectifyTransform );
-				rotateAroundCenter.translate( originToCenter );
-				transform = rotateAroundCenter;
-				System.out.println( "rac: " + rotateAroundCenter.toString() );
-
-			}
-
 			// translation
 			AffineTransform3D translationTransform = TransformHelpers.createTranslationTransform3D( translationX, translationY, centerAtOrigin, source );
 

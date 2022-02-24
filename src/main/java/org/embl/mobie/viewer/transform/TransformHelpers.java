@@ -1,13 +1,16 @@
 package org.embl.mobie.viewer.transform;
 
+import bdv.util.Affine3DHelpers;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -44,8 +47,14 @@ public class TransformHelpers
 	public static double[] getPhysicalCenter( Source< ? > spimSource )
 	{
 		final FinalRealInterval bounds = estimateBounds( spimSource );
-		final double[] center = bounds.minAsDoubleArray();
-		final double[] max = bounds.maxAsDoubleArray();
+		final double[] center = getCenter( bounds );
+		return center;
+	}
+
+	public static double[] getCenter( FinalRealInterval realInterval )
+	{
+		final double[] center = realInterval.minAsDoubleArray();
+		final double[] max = realInterval.maxAsDoubleArray();
 		for ( int d = 0; d < max.length; d++ )
 		{
 			center[ d ] = ( center[ d ] + max[ d ] ) / 2;
@@ -95,5 +104,29 @@ public class TransformHelpers
 		source.getSourceTransform( 0, 0, affineTransform3D );
 		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
 		return bounds;
+	}
+
+	/*
+		Returns a transformation that reverses the rotation that may
+		be included in the transform.
+		The rotation is applied around the center of the given interval.
+	 */
+	public static AffineTransform3D getRectifyAffineTransform3D( RealInterval interval, AffineTransform3D transform )
+	{
+		final double[] q = new double[ 4 ];
+		Affine3DHelpers.extractRotationAnisotropic( transform.inverse(), q );
+		final double[][] affine = new double[ 3 ][ 4 ];
+		LinAlgHelpers.quaternionToR( q, affine );
+
+		final AffineTransform3D rectifyTransform = new AffineTransform3D();
+		rectifyTransform.set( affine );
+
+		final double[] maskPhysicalCenter = getCenter( transform.estimateBounds( interval ) );
+
+		final AffineTransform3D rotateAroundCenter = new AffineTransform3D();
+		rotateAroundCenter.translate(  Arrays.stream( maskPhysicalCenter ).map( x -> -x ).toArray() );
+		rotateAroundCenter.preConcatenate( rectifyTransform );
+		rotateAroundCenter.translate( maskPhysicalCenter );
+		return rotateAroundCenter;
 	}
 }

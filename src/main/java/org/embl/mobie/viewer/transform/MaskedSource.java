@@ -32,10 +32,7 @@ import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
-import net.imglib2.FinalInterval;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
-import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.RealRandomAccessible;
@@ -43,12 +40,10 @@ import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.roi.Regions;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.util.Intervals;
 import net.imglib2.util.Util;
-import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.source.SourceWrapper;
@@ -57,8 +52,13 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.embl.mobie.viewer.transform.TransformHelpers.getCenter;
+
 public class MaskedSource< T extends NumericType<T> > implements Source< T >, SourceWrapper< T >
 {
+    private final RealMaskRealInterval physicalMask;
+    private final boolean rectify;
+    private final boolean center;
     private Source< T > source;
     private final String name;
     private final RealInterval maskInterval;
@@ -69,14 +69,18 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     private final transient T type;
 
     // FIXME: Should this be able to center at origin??
-    public MaskedSource( Source< T > source, String name, RealInterval maskInterval, AffineTransform3D maskToPhysicalTransform )
+    public MaskedSource( Source< T > source, String name, RealInterval maskInterval, AffineTransform3D maskToPhysicalTransform, boolean rectify, boolean center )
     {
         this.source = source;
         this.name = name;
         this.maskInterval = maskInterval;
         this.maskToPhysicalTransform = maskToPhysicalTransform;
         this.type = Util.getTypeFromInterval( source.getSource( 0, 0 ) );
+        this.rectify = rectify;
+        this.center = center;
         this.interpolators = new DefaultInterpolators();
+
+        physicalMask = GeomMasks.closedBox( maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray() ).transform( maskToPhysicalTransform );
 
         dataMasks = new ConcurrentHashMap<>();
         sourceTransforms = new ConcurrentHashMap<>();
@@ -91,6 +95,20 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
             final RealMaskRealInterval dataMask = GeomMasks.closedBox( maskInterval.minAsDoubleArray(), maskInterval.maxAsDoubleArray() ).transform( maskToDataTransform.inverse() );
 
             dataMasks.put( level, dataMask );
+
+            if ( rectify )
+            {
+                final AffineTransform3D rotateAroundCenter = TransformHelpers.getRectifyAffineTransform3D( maskInterval, maskToPhysicalTransform );
+                sourceTransform.preConcatenate( rotateAroundCenter );
+            }
+
+            if ( center )
+            {
+                final double[] maskPhysicalCenter = getCenter( maskToPhysicalTransform.estimateBounds( maskInterval ) );
+                final AffineTransform3D translateToOrigin = new AffineTransform3D();
+                translateToOrigin.translate( Arrays.stream( maskPhysicalCenter ).map( x -> -x ).toArray()  );
+                sourceTransform.preConcatenate( translateToOrigin );
+            }
 
             // copy the original source transforms, because they
             // may be altered, e.g., by a manual transform
@@ -203,5 +221,15 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     public AffineTransform3D getMaskToPhysicalTransform()
     {
         return maskToPhysicalTransform;
+    }
+
+    public boolean isRectify()
+    {
+        return rectify;
+    }
+
+    public boolean isCenter()
+    {
+        return center;
     }
 }
