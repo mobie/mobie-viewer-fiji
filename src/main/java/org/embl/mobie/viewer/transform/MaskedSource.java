@@ -68,7 +68,6 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     private final transient Map< Integer, AffineTransform3D > sourceTransforms;
     private final transient T type;
 
-    // FIXME: Should this be able to center at origin??
     public MaskedSource( Source< T > source, String name, RealInterval maskInterval, AffineTransform3D maskToPhysicalTransform, boolean rectify, boolean center )
     {
         this.source = source;

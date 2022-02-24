@@ -17,23 +17,23 @@ import java.util.Map;
 public class CropSourceTransformer< T extends NumericType< T >> extends AbstractSourceTransformer
 {
 	// Serialisation
-	protected double[] min;
-	protected double[] max;
-	protected double[] boxAffine; // from box to physical
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
-	protected boolean centerAtOrigin = true;
-	protected boolean rectify = true;
+	protected double[] boxMin;
+	protected double[] boxMax;
+	protected double[] boxAffine; // from box to physical, if null, it will default to identity transform
+	protected Boolean centerAtOrigin; // if null, it will default to true
+	protected Boolean rectify;// if null, it will default to true
 
+	// Serialisation of MaskedSource
 	public CropSourceTransformer( MaskedSource maskedSource )
 	{
-		min = maskedSource.getMaskInterval().minAsDoubleArray();
-		max = maskedSource.getMaskInterval().maxAsDoubleArray();
+		boxMin = maskedSource.getMaskInterval().minAsDoubleArray();
+		boxMax = maskedSource.getMaskInterval().maxAsDoubleArray();
 		boxAffine = maskedSource.getMaskToPhysicalTransform().getRowPackedCopy();
 		sources = Arrays.asList( maskedSource.getWrappedSource().getName() );
 		if ( ! maskedSource.getName().equals( maskedSource.getWrappedSource().getName() ))
 			sourceNamesAfterTransform = Arrays.asList( maskedSource.getName() );
-		centerAtOrigin = false;
 		rectify = maskedSource.isRectify();
 		centerAtOrigin = maskedSource.isCenter();
 	}
@@ -41,9 +41,18 @@ public class CropSourceTransformer< T extends NumericType< T >> extends Abstract
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
-		AffineTransform3D transform = new AffineTransform3D() ;
+		AffineTransform3D boxToPhysicalTransform = new AffineTransform3D() ;
 		if ( boxAffine != null )
-			transform.set( boxAffine );
+		{
+			boxToPhysicalTransform.set( boxAffine );
+		}
+		else
+		{
+			// leave as the identity transform
+		}
+
+		rectify = rectify == null ? true : rectify;
+		centerAtOrigin = centerAtOrigin == null ? true : centerAtOrigin;
 
 		for ( String sourceName : sourceNameToSourceAndConverter.keySet() )
 		{
@@ -57,7 +66,7 @@ public class CropSourceTransformer< T extends NumericType< T >> extends Abstract
 //					croppedSourceAndConverter = cropViaResampling( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), centerAtOrigin );
 //				else // TODO: Below does not seem to work?!...check with Martin
 
-				croppedSourceAndConverter = new SourceAndConverterCropper( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), transform, rectify, centerAtOrigin ).get();
+				croppedSourceAndConverter = new SourceAndConverterCropper( sourceAndConverter, transformedSourceName, new FinalRealInterval( boxMin, boxMax ), boxToPhysicalTransform, rectify, centerAtOrigin ).get();
 
 				// store result
 				sourceNameToSourceAndConverter.put( croppedSourceAndConverter.getSpimSource().getName(), croppedSourceAndConverter );
