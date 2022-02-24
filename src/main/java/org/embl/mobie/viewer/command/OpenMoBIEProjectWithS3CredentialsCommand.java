@@ -14,7 +14,7 @@ public class OpenMoBIEProjectWithS3CredentialsCommand implements Command
 	@Parameter ( label = "S3 Project Location" )
 	public String projectLocation = "https://s3.embl.de/comulis";
 
-	@Parameter ( label = "S3 Access Key", persist = false )
+	@Parameter ( label = "S3 Access Key" )
 	public String s3AccessKey = "";
 
 	@Parameter ( label = "S3 Secret Key", persist = false )
