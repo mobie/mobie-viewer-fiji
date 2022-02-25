@@ -11,13 +11,10 @@ import bigwarp.transforms.BigWarpTransform;
 import ij.gui.NonBlockingGenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.InvertibleRealTransform;
-import org.scijava.ItemIO;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.register.BigWarpLauncher;
@@ -40,6 +37,10 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 	@Parameter(label = "Fixed Source(s)")
 	SourceAndConverter[] fixedSources;
 
+	@Parameter(label = "2D")
+	boolean is2D = false;
+
+
 	private BigWarp bigWarp;
 	private Map< SourceAndConverter< ? >, AffineTransform3D > sacToOriginalFixedTransform;
 	private List< SourceAndConverter > movingSacs;
@@ -51,6 +52,8 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 	@Override
 	public void run()
 	{
+		// FIXME put all of this into a new thread?
+		
 		sacService = SourceAndConverterServices.getSourceAndConverterService();
 		bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
@@ -62,13 +65,16 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 		List< ConverterSetup > converterSetups = Arrays.stream( movingSources ).map( src -> sacService.getConverterSetup(src)).collect( Collectors.toList() );
 		converterSetups.addAll( Arrays.stream( fixedSources ).map( src -> sacService.getConverterSetup( src) ).collect( Collectors.toList() ) );
 
+		// TODO: if the sacs are transformed sources, me changing the preview in MoBIE will also move the source around in BigWarp, which is not what I wan
 		BigWarpLauncher bigWarpLauncher = new BigWarpLauncher( movingSacs, fixedSacs, "Big Warp", converterSetups);
+		if ( is2D )
+			bigWarpLauncher.set2d();
 		bigWarpLauncher.run();
 
 		bdvDisplayService.pairClosing( bigWarpLauncher.getBdvHandleQ(), bigWarpLauncher.getBdvHandleP() );
 
 		bigWarp = bigWarpLauncher.getBigWarp();
-		bigWarp.setTransformType( TransformTypeSelectDialog.AFFINE );
+		bigWarp.setTransformType( TransformTypeSelectDialog.ROTATION );
 		bigWarp.addTransformListener( this );
 
 		new Thread( () -> showDialog() ).start();
@@ -89,6 +95,7 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 		}
 		else
 		{
+			setMovingTransforms();
 			bigWarp.closeAll();
 		}
 	}
@@ -123,14 +130,21 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 		}
 		else
 		{
-			final BigWarpTransform bwTransform = bigWarp.getBwTransform();
-			final AffineTransform3D affineTransform3D = bwTransform.affine3d();
-			for ( SourceAndConverter< ? > movingSource : movingSources )
-			{
-				// FIXME: Shouldn't this concatenate with the old fixed transform?
-				(( TransformedSource< ? > ) movingSource.getSpimSource()).setFixedTransform( affineTransform3D );
-			}
-			bdvHandle.getViewerPanel().requestRepaint();
+			//setMovingTransforms();
 		}
+	}
+
+	private void setMovingTransforms()
+	{
+		final BigWarpTransform bwTransform = bigWarp.getBwTransform();
+		final AffineTransform3D bwAffineTransform = bwTransform.affine3d();
+		for ( SourceAndConverter< ? > movingSource : movingSources )
+		{
+			final AffineTransform3D combinedTransform = sacToOriginalFixedTransform.get( movingSource ).copy();
+			combinedTransform.preConcatenate( bwAffineTransform.copy().inverse() );
+			final TransformedSource< ? > transformedSource = ( TransformedSource< ? > ) movingSource.getSpimSource();
+			transformedSource.setFixedTransform( combinedTransform );
+		}
+		bdvHandle.getViewerPanel().requestRepaint();
 	}
 }

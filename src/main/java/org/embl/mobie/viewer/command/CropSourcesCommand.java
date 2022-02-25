@@ -19,6 +19,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -88,15 +89,21 @@ public class CropSourcesCommand extends DynamicCommand implements BdvPlaygroundA
 
 			for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 			{
-				final SourceAndConverter cropSource = new SourceAndConverterCropper<>( sourceAndConverter, sourceAndConverter.getSpimSource().getName() + suffix, maskInterval, maskTransform, rectify, centerAtOrigin ).get();
+				final String croppedSourceName = sourceAndConverter.getSpimSource().getName() + suffix;
+				final SourceAndConverter cropSource = new SourceAndConverterCropper<>( sourceAndConverter, croppedSourceName, maskInterval, maskTransform, rectify, centerAtOrigin ).get();
 
 				final View view = addViewToUi( moBIE, cropSource, uiSelectionGroup );
 
 				if ( saveChoice.equals( SAVE_TO_PROJECT ) )
 				{
 					final ViewsSaver viewsSaver = new ViewsSaver( moBIE );
-					// public boolean saveViewToProject( View view, String viewName, boolean overwrite );
-					//viewsSaver.viewSettingsDialog(  );
+					try
+					{
+						viewsSaver.saveViewToDatasetJson( view, croppedSourceName, true );
+					} catch ( IOException e )
+					{
+						throw new RuntimeException( e );
+					}
 				}
 			}
 		}).start();
