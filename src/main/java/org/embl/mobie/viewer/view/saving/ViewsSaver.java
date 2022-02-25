@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer.view.saving;
 
-import org.embl.mobie.io.util.FileAndUrlUtils;
 import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
@@ -180,7 +179,7 @@ public class ViewsSaver {
     private void saveNewViewToProject( View view, String viewName, ProjectSaveLocation projectSaveLocation ) {
         try {
             if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
-                saveNewViewToDatasetJson( view, viewName );
+                saveViewToDatasetJson( view, viewName, false );
             } else {
                 String viewJsonPath = chooseAdditionalViewsJson( true );
                 if (viewJsonPath != null) {
@@ -223,17 +222,17 @@ public class ViewsSaver {
         moBIE.getUserInterface().addViews( views );
     }
 
-    private void saveNewViewToDatasetJson( View view, String viewName ) throws IOException {
+    public void saveViewToDatasetJson( View view, String viewName, boolean overwrite ) throws IOException
+    {
         String datasetJsonPath = moBIE.getDatasetPath( "dataset.json");
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
 
-        if ( dataset.views.keySet().size() > 0 && dataset.views.containsKey( viewName ) ) {
-                IJ.log( "View saving aborted - this view name already exists!" );
-                return;
-        }
+        if ( ! overwrite )
+            if ( dataset.views.containsKey( viewName ) )
+                throw new IOException( "View saving aborted - this view name already exists!" );
 
         ViewSavingHelpers.writeDatasetJson( dataset, view, viewName, datasetJsonPath );
-        IJ.log( "New view, " + viewName + ", written to dataset.json" );
+        IJ.log( " View, " + viewName + ", written to dataset.json" );
     }
 
     private void overwriteExistingViewInDatasetJson( View view ) throws IOException {
