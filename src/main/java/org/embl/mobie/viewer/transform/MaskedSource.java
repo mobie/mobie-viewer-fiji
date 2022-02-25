@@ -162,6 +162,7 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
         Interval dataInterval = Intervals.smallestContainingInterval( dataMask );
 
         // TODO: not sure whether below intersect would help...
+        // Maybe if the source is 2D and the crop in 3D is much larger?
 //        if ( ! Intervals.contains( rai, dataInterval ) )
 //        {
 //            dataInterval = Intervals.intersect( rai, dataInterval );

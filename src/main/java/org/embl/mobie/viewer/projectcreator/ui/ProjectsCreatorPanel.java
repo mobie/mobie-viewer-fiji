@@ -16,6 +16,7 @@ import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimDataException;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
+import org.embl.mobie.viewer.transform.TransformHelpers;
 import org.embl.mobie.viewer.ui.SwingHelper;
 import org.embl.mobie.viewer.ui.UserInterfaceHelper;
 import org.janelia.saalfeldlab.n5.Compression;
@@ -501,7 +502,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
                 // tidy up image name, remove any spaces
                 imageName = UserInterfaceHelper.tidyString( imageName );
-                AffineTransform3D sourceTransform = ProjectCreatorHelper.parseAffineString( affineTransform );
+                AffineTransform3D sourceTransform = TransformHelpers.toAffineTransform3D( affineTransform );
 
                 if ( imageName != null && sourceTransform != null ) {
                     ImagesCreator imagesCreator = projectsCreator.getImagesCreator();

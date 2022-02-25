@@ -735,9 +735,18 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			final SourceAndConverter[] array = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
-			final AffineTransform3D transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), array ).getTransformMultiSources();
-			new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
+			if( sourceAndConverters.size() > 1 )
+			{
+				// FIXME Does not always work...
+				final SourceAndConverter[] array = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
+				final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), array ).getTransformMultiSources();
+				new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
+			}
+			else
+			{
+				final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
+				new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
+			}
 		} );
 
 		return button;

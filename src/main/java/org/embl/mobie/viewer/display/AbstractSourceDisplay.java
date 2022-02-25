@@ -14,6 +14,7 @@ public abstract class AbstractSourceDisplay implements SourceDisplay
 	protected double opacity = 1.0;
 	protected boolean visible = true;
 
+	@Override
 	public String getName()
 	{
 		return name;

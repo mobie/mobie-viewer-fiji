@@ -356,7 +356,7 @@ public class ViewManager
 
 	public synchronized void showSourceDisplay( SourceDisplay sourceDisplay )
 	{
-		if ( currentSourceDisplays.contains( sourceDisplay ) ) return;
+		if ( isAlreadyDisplayed( sourceDisplay ) ) return;
 
 		if ( sourceDisplay instanceof ImageSourceDisplay )
 		{
@@ -373,6 +373,12 @@ public class ViewManager
 
 		userInterface.addSourceDisplay( sourceDisplay );
 		currentSourceDisplays.add( sourceDisplay );
+	}
+
+	private boolean isAlreadyDisplayed( SourceDisplay sourceDisplay )
+	{
+		final List< String > names = currentSourceDisplays.stream().map( sd -> sd.getName() ).collect( Collectors.toList() );
+		return names.contains( sourceDisplay.getName() );
 	}
 
 	public void removeAllSourceDisplays()

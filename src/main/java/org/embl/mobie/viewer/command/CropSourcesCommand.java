@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + CropSourcesCommand.NAME )
 public class CropSourcesCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
 {
-
 	protected static final String DO_NOT_SAVE = "Do not save";
 	protected static final String SAVE_TO_PROJECT = "Save to project";
 	protected static final String SAVE_TO_FILE_SYSTEM = "Save to file system";
@@ -37,7 +36,7 @@ public class CropSourcesCommand extends DynamicCommand implements BdvPlaygroundA
 	public static final String NAME = "Crop Source(s)";
 
 	@Parameter( label = "Bdv" )
-	BdvHandle bdvHandle;
+	public BdvHandle bdvHandle;
 
 	@Parameter( label = "Source(s)" )
 	public SourceAndConverter[] sourceAndConverterArray;
@@ -89,9 +88,9 @@ public class CropSourcesCommand extends DynamicCommand implements BdvPlaygroundA
 
 			for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 			{
-				final SourceAndConverter cropSource = cropSource( maskInterval, maskTransform, sourceAndConverter, rectify, centerAtOrigin );
+				final SourceAndConverter cropSource = new SourceAndConverterCropper<>( sourceAndConverter, sourceAndConverter.getSpimSource().getName() + suffix, maskInterval, maskTransform, rectify, centerAtOrigin ).get();
 
-				final View view = addViewToUi( moBIE, cropSource );
+				final View view = addViewToUi( moBIE, cropSource, uiSelectionGroup );
 
 				if ( saveChoice.equals( SAVE_TO_PROJECT ) )
 				{
@@ -103,23 +102,16 @@ public class CropSourcesCommand extends DynamicCommand implements BdvPlaygroundA
 		}).start();
 	}
 
-	private View addViewToUi( MoBIE moBIE, SourceAndConverter cropSource )
+	private View addViewToUi( MoBIE moBIE, SourceAndConverter cropSource, String uiSelectionGroup )
 	{
 		final ViewFromSourceAndConverterCreator creator = new ViewFromSourceAndConverterCreator( cropSource );
-		final View view = creator.createView( saveChoice, false );
+		final View view = creator.createView( uiSelectionGroup, false );
 
 		moBIE.getViews().put( cropSource.getSpimSource().getName(), view );
 		moBIE.getUserInterface().addView( cropSource.getSpimSource().getName(), view );
-
 		moBIE.getViewManager().show( view );
 
 		return view;
 	}
 
-	private SourceAndConverter cropSource( RealInterval maskInterval, AffineTransform3D maskTransform, SourceAndConverter sourceAndConverter, boolean rectify, boolean center )
-	{
-		final SourceAndConverterCropper creator = new SourceAndConverterCropper<>( sourceAndConverter, sourceAndConverter.getSpimSource().getName() + suffix, maskInterval, maskTransform, rectify, center );
-
-		return creator.get();
-	}
 }

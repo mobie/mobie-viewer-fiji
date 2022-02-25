@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.transform;
 import bdv.util.Affine3DHelpers;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import ij.IJ;
 import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.FinalRealInterval;
@@ -135,5 +136,38 @@ public class TransformHelpers
 		final AffineTransform3D rectifyTransform = new AffineTransform3D();
 		rectifyTransform.set( affine );
 		return rectifyTransform;
+	}
+
+	public static AffineTransform3D toAffineTransform3D( String affine )
+	{
+		if ( isValidAffine( affine ) ) {
+			AffineTransform3D sourceTransform = new AffineTransform3D();
+			// remove spaces
+			affine = affine.replaceAll("\\s","");
+			String[] splitAffineTransform = affine.split(",");
+			double[] doubleAffineTransform = new double[splitAffineTransform.length];
+			for (int i = 0; i < splitAffineTransform.length; i++) {
+				doubleAffineTransform[i] = Double.parseDouble(splitAffineTransform[i]);
+			}
+			sourceTransform.set(doubleAffineTransform);
+			return sourceTransform;
+		} else {
+			return null;
+		}
+	}
+
+	public static boolean isValidAffine( String affine ) {
+		if (!affine.matches("^[0-9., ]+$")) {
+			IJ.log("Invalid affine transform - must contain only numbers, commas and spaces");
+			return false;
+		}
+
+		String[] splitAffine = affine.split(",");
+		if (splitAffine.length != 12) {
+			IJ.log("Invalid affine transform - must be of length 12");
+			return false;
+		}
+
+		return true;
 	}
 }

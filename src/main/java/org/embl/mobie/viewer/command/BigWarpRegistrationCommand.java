@@ -127,6 +127,7 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 			final AffineTransform3D affineTransform3D = bwTransform.affine3d();
 			for ( SourceAndConverter< ? > movingSource : movingSources )
 			{
+				// FIXME: Shouldn't this concatenate with the old fixed transform?
 				(( TransformedSource< ? > ) movingSource.getSpimSource()).setFixedTransform( affineTransform3D );
 			}
 			bdvHandle.getViewerPanel().requestRepaint();

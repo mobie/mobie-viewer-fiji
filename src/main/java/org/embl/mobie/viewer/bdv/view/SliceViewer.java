@@ -6,6 +6,7 @@ import org.embl.mobie.viewer.bdv.MobieBdvSupplier;
 import org.embl.mobie.viewer.bdv.MobieSerializableBdvOptions;
 import org.embl.mobie.viewer.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.viewer.bdv.ViewerTransformLogger;
+import org.embl.mobie.viewer.command.AffineTransformSourcesCommand;
 import org.embl.mobie.viewer.command.CropSourcesCommand;
 import org.embl.mobie.viewer.command.ImagePlusExportCommand;
 import org.embl.mobie.viewer.command.ManualRegistrationCommand;
@@ -108,6 +109,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		actions.add( sacService.getCommandName( ImagePlusExportCommand.class ) );
 		actions.add( sacService.getCommandName( ViewerTransformLogger.class ) );
 		actions.add( sacService.getCommandName( CropSourcesCommand.class ) );
+		actions.add( sacService.getCommandName( AffineTransformSourcesCommand.class ) );
 		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ) );
