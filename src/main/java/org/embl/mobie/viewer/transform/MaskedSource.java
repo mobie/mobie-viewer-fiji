@@ -103,19 +103,19 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
 
             dataMasks.put( level, dataMask );
 
-//            if ( rectify )
-//            {
-//                final AffineTransform3D rotateAroundMaskCenter = TransformHelpers.getRectifyAffineTransform3D( maskInterval, maskToPhysicalTransform );
-//                sourceTransform.preConcatenate( rotateAroundMaskCenter );
-//            }
-//
-//            if ( center )
-//            {
-//                final double[] maskPhysicalCenter = getCenter( maskToPhysicalTransform.estimateBounds( maskInterval ) );
-//                final AffineTransform3D translateToOrigin = new AffineTransform3D();
-//                translateToOrigin.translate( Arrays.stream( maskPhysicalCenter ).map( x -> -x ).toArray()  );
-//                sourceTransform.preConcatenate( translateToOrigin );
-//            }
+            if ( rectify )
+            {
+                final AffineTransform3D rotateAroundMaskCenter = TransformHelpers.getRectifyAffineTransform3D( maskInterval, maskToPhysicalTransform );
+                sourceTransform.preConcatenate( rotateAroundMaskCenter );
+            }
+
+            if ( center )
+            {
+                final double[] maskPhysicalCenter = getCenter( maskToPhysicalTransform.estimateBounds( maskInterval ) );
+                final AffineTransform3D translateToOrigin = new AffineTransform3D();
+                translateToOrigin.translate( Arrays.stream( maskPhysicalCenter ).map( x -> -x ).toArray()  );
+                sourceTransform.preConcatenate( translateToOrigin );
+            }
 
             // TODO: depending on whether the mask is now centered
             //  one may have to rotate around the center?
@@ -172,7 +172,7 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
         }
 
         final IntervalView< T > interval = Views.interval( maskedRA, dataInterval );
-        return source.getSource( t, level );
+        return interval; //source.getSource( t, level );
     }
 
     @Override

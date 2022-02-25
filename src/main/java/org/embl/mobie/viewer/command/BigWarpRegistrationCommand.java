@@ -31,15 +31,11 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 	@Parameter
 	BdvHandle bdvHandle;
 
-	@Parameter(label = "Moving Source(s)")
-	SourceAndConverter[] movingSources;
-
 	@Parameter(label = "Fixed Source(s)")
 	SourceAndConverter[] fixedSources;
 
-	@Parameter(label = "2D")
-	boolean is2D = false;
-
+	@Parameter(label = "Moving Source(s)")
+	SourceAndConverter[] movingSources;
 
 	private BigWarp bigWarp;
 	private Map< SourceAndConverter< ? >, AffineTransform3D > sacToOriginalFixedTransform;
@@ -65,16 +61,13 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 		List< ConverterSetup > converterSetups = Arrays.stream( movingSources ).map( src -> sacService.getConverterSetup(src)).collect( Collectors.toList() );
 		converterSetups.addAll( Arrays.stream( fixedSources ).map( src -> sacService.getConverterSetup( src) ).collect( Collectors.toList() ) );
 
-		// TODO: if the sacs are transformed sources, me changing the preview in MoBIE will also move the source around in BigWarp, which is not what I wan
 		BigWarpLauncher bigWarpLauncher = new BigWarpLauncher( movingSacs, fixedSacs, "Big Warp", converterSetups);
-		if ( is2D )
-			bigWarpLauncher.set2d();
 		bigWarpLauncher.run();
 
 		bdvDisplayService.pairClosing( bigWarpLauncher.getBdvHandleQ(), bigWarpLauncher.getBdvHandleP() );
 
 		bigWarp = bigWarpLauncher.getBigWarp();
-		bigWarp.setTransformType( TransformTypeSelectDialog.ROTATION );
+		bigWarp.setTransformType( TransformTypeSelectDialog.AFFINE );
 		bigWarp.addTransformListener( this );
 
 		new Thread( () -> showDialog() ).start();
