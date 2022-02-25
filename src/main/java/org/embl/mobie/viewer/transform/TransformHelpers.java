@@ -27,7 +27,7 @@ public class TransformHelpers
 			final FinalRealInterval bounds = estimateBounds( source );
 
 			if ( union == null )
-				union = bounds;
+				union = bounds; // init with first source
 			else
 				union = Intervals.union( bounds, union );
 		}
@@ -98,6 +98,8 @@ public class TransformHelpers
 		return maximalDimensions;
 	}
 
+	// Note that these bounds are aligned with the global coordinate system
+	// which may not always make sense
 	public static FinalRealInterval estimateBounds( Source< ? > source )
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
@@ -113,13 +115,7 @@ public class TransformHelpers
 	 */
 	public static AffineTransform3D getRectifyAffineTransform3D( RealInterval interval, AffineTransform3D transform )
 	{
-		final double[] q = new double[ 4 ];
-		Affine3DHelpers.extractRotationAnisotropic( transform.inverse(), q );
-		final double[][] affine = new double[ 3 ][ 4 ];
-		LinAlgHelpers.quaternionToR( q, affine );
-
-		final AffineTransform3D rectifyTransform = new AffineTransform3D();
-		rectifyTransform.set( affine );
+		final AffineTransform3D rectifyTransform = extractRectifyAffineTransform3D( transform );
 
 		final double[] maskPhysicalCenter = getCenter( transform.estimateBounds( interval ) );
 
@@ -128,5 +124,16 @@ public class TransformHelpers
 		rotateAroundCenter.preConcatenate( rectifyTransform );
 		rotateAroundCenter.translate( maskPhysicalCenter );
 		return rotateAroundCenter;
+	}
+
+	public static AffineTransform3D extractRectifyAffineTransform3D( AffineTransform3D transform )
+	{
+		final double[] q = new double[ 4 ];
+		Affine3DHelpers.extractRotationAnisotropic( transform.inverse(), q );
+		final double[][] affine = new double[ 3 ][ 4 ];
+		LinAlgHelpers.quaternionToR( q, affine );
+		final AffineTransform3D rectifyTransform = new AffineTransform3D();
+		rectifyTransform.set( affine );
+		return rectifyTransform;
 	}
 }

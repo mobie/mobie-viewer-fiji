@@ -97,13 +97,6 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			//transform = translationTransform;
 			transform.preConcatenate( translationTransform );
 
-			final double[] doubles = new double[ 3 ];
-			for ( int d = 0; d < 3; d++ )
-			{
-				doubles[ d ] = Affine3DHelpers.extractScale( transform, d );
-			}
-			System.out.println(Arrays.toString( doubles ));
-
 			// apply transformation
 			final SourceAndConverter< ? > transformedSource = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, transform ).apply( sourceAndConverter );
 

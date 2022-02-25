@@ -19,8 +19,8 @@ public class CropSourceTransformer< T extends NumericType< T >> extends Abstract
 	// Serialisation
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
-	protected double[] boxMin;
-	protected double[] boxMax;
+	protected double[] min;
+	protected double[] max;
 	protected double[] boxAffine; // from box to physical, if null, it will default to identity transform
 	protected Boolean centerAtOrigin; // if null, it will default to true
 	protected Boolean rectify;// if null, it will default to true
@@ -28,8 +28,8 @@ public class CropSourceTransformer< T extends NumericType< T >> extends Abstract
 	// Serialisation of MaskedSource
 	public CropSourceTransformer( MaskedSource maskedSource )
 	{
-		boxMin = maskedSource.getMaskInterval().minAsDoubleArray();
-		boxMax = maskedSource.getMaskInterval().maxAsDoubleArray();
+		min = maskedSource.getMaskInterval().minAsDoubleArray();
+		max = maskedSource.getMaskInterval().maxAsDoubleArray();
 		boxAffine = maskedSource.getMaskToPhysicalTransform().getRowPackedCopy();
 		sources = Arrays.asList( maskedSource.getWrappedSource().getName() );
 		if ( ! maskedSource.getName().equals( maskedSource.getWrappedSource().getName() ))
@@ -66,7 +66,7 @@ public class CropSourceTransformer< T extends NumericType< T >> extends Abstract
 //					croppedSourceAndConverter = cropViaResampling( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), centerAtOrigin );
 //				else // TODO: Below does not seem to work?!...check with Martin
 
-				croppedSourceAndConverter = new SourceAndConverterCropper( sourceAndConverter, transformedSourceName, new FinalRealInterval( boxMin, boxMax ), boxToPhysicalTransform, rectify, centerAtOrigin ).get();
+				croppedSourceAndConverter = new SourceAndConverterCropper( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), boxToPhysicalTransform, rectify, centerAtOrigin ).get();
 
 				// store result
 				sourceNameToSourceAndConverter.put( croppedSourceAndConverter.getSpimSource().getName(), croppedSourceAndConverter );

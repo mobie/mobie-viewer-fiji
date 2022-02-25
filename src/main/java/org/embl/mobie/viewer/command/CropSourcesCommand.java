@@ -96,6 +96,7 @@ public class CropSourcesCommand extends DynamicCommand implements BdvPlaygroundA
 				if ( saveChoice.equals( SAVE_TO_PROJECT ) )
 				{
 					final ViewsSaver viewsSaver = new ViewsSaver( moBIE );
+					// public boolean saveViewToProject( View view, String viewName, boolean overwrite );
 					//viewsSaver.viewSettingsDialog(  );
 				}
 			}

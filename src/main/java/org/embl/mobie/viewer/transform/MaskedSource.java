@@ -32,6 +32,7 @@ import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
@@ -39,6 +40,7 @@ import net.imglib2.RealRandomAccessible;
 import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.RealViews;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.numeric.NumericType;
@@ -47,11 +49,13 @@ import net.imglib2.util.Util;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.source.SourceWrapper;
+import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.embl.mobie.viewer.transform.TransformHelpers.extractRectifyAffineTransform3D;
 import static org.embl.mobie.viewer.transform.TransformHelpers.getCenter;
 
 public class MaskedSource< T extends NumericType<T> > implements Source< T >, SourceWrapper< T >
@@ -66,6 +70,7 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
     protected transient final DefaultInterpolators< T > interpolators;
     private final transient Map< Integer, RealMaskRealInterval > dataMasks;
     private final transient Map< Integer, AffineTransform3D > sourceTransforms;
+    private final transient Map< Integer, AffineTransform3D > rotationTransforms;
     private final transient T type;
 
     public MaskedSource( Source< T > source, String name, RealInterval maskInterval, AffineTransform3D maskToPhysicalTransform, boolean rectify, boolean center )
@@ -83,6 +88,7 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
 
         dataMasks = new ConcurrentHashMap<>();
         sourceTransforms = new ConcurrentHashMap<>();
+        rotationTransforms = new ConcurrentHashMap<>();
 
         for ( int level = 0; level < getNumMipmapLevels(); level++ )
         {
@@ -97,8 +103,8 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
 
             if ( rectify )
             {
-                final AffineTransform3D rotateAroundCenter = TransformHelpers.getRectifyAffineTransform3D( maskInterval, maskToPhysicalTransform );
-                sourceTransform.preConcatenate( rotateAroundCenter );
+                final AffineTransform3D rotateAroundMaskCenter = TransformHelpers.getRectifyAffineTransform3D( maskInterval, maskToPhysicalTransform );
+                sourceTransform.preConcatenate( rotateAroundMaskCenter );
             }
 
             if ( center )
@@ -109,10 +115,18 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
                 sourceTransform.preConcatenate( translateToOrigin );
             }
 
+            // TODO: depending on whether the mask is now centered
+            //  one may have to rotate around the center?
+//            final AffineTransform3D rectifyAffineTransform3D = extractRectifyAffineTransform3D( sourceTransform );
+//            sourceTransform.preConcatenate( rectifyAffineTransform3D );
+//            rotationTransforms.put( level, rectifyAffineTransform3D );
+
             // copy the original source transforms, because they
             // may be altered, e.g., by a manual transform
             sourceTransforms.put( level, sourceTransform );
         }
+
+        final FinalRealInterval bounds = TransformHelpers.estimateBounds( this );
     }
 
     public Source< T > getWrappedSource() {
@@ -145,7 +159,6 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
         // crop interval
         // generally larger than the mask,
         // because the box may lie oblique in data space
-        // consider combining this with the RAI size (if
         Interval dataInterval = Intervals.smallestContainingInterval( dataMask );
 
         // TODO: not sure whether below intersect would help...
@@ -165,7 +178,7 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
 
         final RealMaskRealInterval dataMask = dataMasks.get( level );
 
-        final FunctionRealRandomAccessible< T > maskedRra = new FunctionRealRandomAccessible< T >(
+        RealRandomAccessible< T > maskedRra = new FunctionRealRandomAccessible< T >(
                 3,
                 ( dataCoordinates, value ) -> {
                     if ( dataMask.test( dataCoordinates ) )

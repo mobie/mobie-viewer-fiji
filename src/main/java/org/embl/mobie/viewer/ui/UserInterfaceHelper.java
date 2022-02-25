@@ -728,15 +728,15 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JButton createFocusButton(AbstractSourceDisplay sourceDisplay, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
+	public static JButton createFocusButton( AbstractSourceDisplay sourceDisplay, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
 	{
 		JButton button = new JButton( "F" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
 		{
-			// TODO: make this work for multiple sources!
-			final AffineTransform3D transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
+			final SourceAndConverter[] array = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
+			final AffineTransform3D transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), array ).getTransformMultiSources();
 			new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
 		} );
 
