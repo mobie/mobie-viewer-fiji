@@ -177,25 +177,18 @@ public class ViewsSaver {
     }
 
     private void saveNewViewToProject( View view, String viewName, ProjectSaveLocation projectSaveLocation ) {
-        if ( isS3(settings.values.getProjectLocation()) ) {
-            // TODO - support saving views to s3?
-            IJ.log("View saving aborted - saving directly to s3 is not yet supported!");
-        } else {
-
-            try {
-                if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
-                    saveNewViewToDatasetJson( view, viewName );
-                } else {
-                    String viewJsonPath = chooseAdditionalViewsJson( true );
-                    if (viewJsonPath != null) {
-                        saveNewViewToAdditionalViewsJson( view, viewName, viewJsonPath);
-                    }
+        try {
+            if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
+                saveViewToDatasetJson( view, viewName, false );
+            } else {
+                String viewJsonPath = chooseAdditionalViewsJson( true );
+                if (viewJsonPath != null) {
+                    saveNewViewToAdditionalViewsJson( view, viewName, viewJsonPath);
                 }
-                addViewToUi( viewName, view );
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-
+            addViewToUi( viewName, view );
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -229,17 +222,17 @@ public class ViewsSaver {
         moBIE.getUserInterface().addViews( views );
     }
 
-    private void saveNewViewToDatasetJson( View view, String viewName ) throws IOException {
+    public void saveViewToDatasetJson( View view, String viewName, boolean overwrite ) throws IOException
+    {
         String datasetJsonPath = moBIE.getDatasetPath( "dataset.json");
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
 
-        if ( dataset.views.keySet().size() > 0 && dataset.views.containsKey( viewName ) ) {
-                IJ.log( "View saving aborted - this view name already exists!" );
-                return;
-        }
+        if ( ! overwrite )
+            if ( dataset.views.containsKey( viewName ) )
+                throw new IOException( "View saving aborted - this view name already exists!" );
 
         ViewSavingHelpers.writeDatasetJson( dataset, view, viewName, datasetJsonPath );
-        IJ.log( "New view, " + viewName + ", written to dataset.json" );
+        IJ.log( " View, " + viewName + ", written to dataset.json" );
     }
 
     private void overwriteExistingViewInDatasetJson( View view ) throws IOException {

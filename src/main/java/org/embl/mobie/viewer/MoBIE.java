@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer;
 
+import bdv.export.ProposeMipmaps;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -600,18 +601,24 @@ public class MoBIE
 	{
 		SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
 		String sourceName = sourceAndConverter.getSpimSource().getName();
-		final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
-		if ( imgLoader instanceof N5ImageLoader )
+
+		// Do not run below code for testing purposes...
+		// https://github.com/mobie/mobie-viewer-fiji/issues/624
+		// https://github.com/mobie/mobie-viewer-fiji/issues/329
+		if ( false )
 		{
-			( ( N5ImageLoader ) imgLoader ).close();
-		} else if ( imgLoader instanceof N5OMEZarrImageLoader ) {
-            ((N5OMEZarrImageLoader) imgLoader).close();
-        }
+			final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
+			if ( imgLoader instanceof N5ImageLoader )
+			{
+				( ( N5ImageLoader ) imgLoader ).close();
+			} else if ( imgLoader instanceof N5OMEZarrImageLoader )
+			{
+				( ( N5OMEZarrImageLoader ) imgLoader ).close();
+			}
+		}
 
 		sourceNameToImgLoader.remove( sourceName );
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
-
-		// TODO - when we support more image formats e.g. OME-ZARR, we should explicitly close their imgloaders here too
 	}
 
     public synchronized String getImagePath(ImageSource source) {

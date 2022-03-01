@@ -24,8 +24,7 @@ public class ViewSavingHelpers {
         }
     }
 
-    public static void writeAdditionalViewsJson( AdditionalViews additionalViews, View view, String viewName,
-                                                 String additionalViewsJsonPath ) throws IOException {
+    public static void writeAdditionalViewsJson( AdditionalViews additionalViews, View view, String viewName, String additionalViewsJsonPath ) throws IOException {
         if ( viewName != null ) {
             additionalViews.views.put(viewName, view);
 
