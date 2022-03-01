@@ -600,12 +600,13 @@ public class MoBIE
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter )
 	{
 		SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
+		String sourceName = sourceAndConverter.getSpimSource().getName();
+
 		// Do not run below code for testing purposes...
 		// https://github.com/mobie/mobie-viewer-fiji/issues/624
 		// https://github.com/mobie/mobie-viewer-fiji/issues/329
 		if ( false )
 		{
-			String sourceName = sourceAndConverter.getSpimSource().getName();
 			final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
 			if ( imgLoader instanceof N5ImageLoader )
 			{
