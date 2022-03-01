@@ -600,19 +600,20 @@ public class MoBIE
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter )
 	{
 		SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
+		// Commenting out this code for testing purposes...
+		// https://github.com/mobie/mobie-viewer-fiji/issues/624#issuecomment-1051001980
+		// https://github.com/mobie/mobie-viewer-fiji/issues/329
 		String sourceName = sourceAndConverter.getSpimSource().getName();
 		final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
 		if ( imgLoader instanceof N5ImageLoader )
 		{
 			( ( N5ImageLoader ) imgLoader ).close();
 		} else if ( imgLoader instanceof N5OMEZarrImageLoader ) {
-            ((N5OMEZarrImageLoader) imgLoader).close();
+            ( (N5OMEZarrImageLoader) imgLoader).close();
         }
 
 		sourceNameToImgLoader.remove( sourceName );
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
-
-		// TODO - when we support more image formats e.g. OME-ZARR, we should explicitly close their imgloaders here too
 	}
 
     public synchronized String getImagePath(ImageSource source) {
