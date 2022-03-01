@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper.getVoxelSizeString;
+import static org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper.*;
 
 public class ProjectsCreatorPanel extends JFrame {
 
@@ -48,10 +48,11 @@ public class ProjectsCreatorPanel extends JFrame {
     private static boolean useDefaultExportSettings = true;
     private static boolean exclusive = false;
     private static boolean useFileNameAsImageName = true;
+    private static String uiSelectionGroup = "Make New Ui Selection Group";
 
-    private String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
+    private final String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
             ImageDataFormat.OmeZarr.toString() };
-    private String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
+    private final String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
             ProjectCreator.ImageType.segmentation.toString() };
 
 
@@ -407,7 +408,7 @@ public class ProjectsCreatorPanel extends JFrame {
             for (int i = 0; i < currentSelectionGroups.length; i++) {
                 choices[i + 1] = currentSelectionGroups[i];
             }
-            gd.addChoice("Ui Selection Group", choices, choices[0]);
+            gd.addChoice("Ui Selection Group", choices, uiSelectionGroup);
             gd.showDialog();
 
             if ( !gd.wasCanceled() ) {
@@ -465,9 +466,8 @@ public class ProjectsCreatorPanel extends JFrame {
         if ( !datasetName.equals("") ) {
             ImagePlus currentImage = IJ.getImage();
 
-            if ( currentImage.getNChannels() > 1 ) {
-                IJ.log("Image " + currentImage.getTitle() + " has multiple channels. \n Please split " +
-                        "the channels [ Image > Color > Split Channels], and add each separately." );
+            if ( !isImageValid( currentImage.getNChannels(), currentImage.getCalibration().getUnit(),
+                    projectsCreator.getVoxelUnit(), false ) ) {
                 return;
             }
 
@@ -515,10 +515,11 @@ public class ProjectsCreatorPanel extends JFrame {
                         return;
                     }
 
-                    String uiSelectionGroup = null;
-                    uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
-                    if ( uiSelectionGroup == null ) {
+                    String chosenUiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
+                    if ( chosenUiSelectionGroup == null ) {
                         return;
+                    } else {
+                        uiSelectionGroup = chosenUiSelectionGroup;
                     }
 
                     try {
@@ -620,10 +621,11 @@ public class ProjectsCreatorPanel extends JFrame {
                         return;
                     }
 
-                    String uiSelectionGroup = null;
-                    uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
-                    if ( uiSelectionGroup == null ) {
+                    String chosenUiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
+                    if ( chosenUiSelectionGroup == null ) {
                         return;
+                    } else {
+                        uiSelectionGroup = chosenUiSelectionGroup;
                     }
 
                     try {
