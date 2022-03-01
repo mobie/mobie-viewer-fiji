@@ -608,9 +608,8 @@ public class MoBIE
 		{
 			( ( N5ImageLoader ) imgLoader ).close();
 		} else if ( imgLoader instanceof N5OMEZarrImageLoader ) {
-            ((N5OMEZarrImageLoader) imgLoader).close();
+            ( ( N5OMEZarrImageLoader ) imgLoader ).close();
         }
-
 		sourceNameToImgLoader.remove( sourceName );
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 

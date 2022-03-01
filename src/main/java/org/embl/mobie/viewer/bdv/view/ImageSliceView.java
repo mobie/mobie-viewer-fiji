@@ -69,6 +69,7 @@ public class ImageSliceView
 				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
 
 			// show
+			final String unit = sourceAndConverter.getSpimSource().getVoxelDimensions().unit();
 			SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
 
 			// adapt contrast limits
