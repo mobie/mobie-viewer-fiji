@@ -86,27 +86,28 @@ public class SourceAffineTransformer implements Runnable, Function<SourceAndConv
 
     @Override
     public void run() {
-       sourceOut = apply(sourceIn);
+       sourceOut = apply( sourceIn );
     }
 
     public SourceAndConverter getSourceOut() {
-        return apply(sourceIn);//sourceOut;
+        return apply( sourceIn );
     }
 
     public SourceAndConverter apply(SourceAndConverter in) {
+
         SourceAndConverter sac;
 
         TransformedSource src = getTransformedSource( in );
 
         // TODO: can I use the SourceChanger for this??
-        if (in.asVolatile()!=null)
+        if ( in.asVolatile() != null )
         {
-            TransformedSource vsrc = new TransformedSource(in.asVolatile().getSpimSource(), src);
-            SourceAndConverter vout = new SourceAndConverter<>(vsrc, SourceAndConverterHelper.cloneConverter(in.asVolatile().getConverter(), in.asVolatile()));
+            TransformedSource vsrc = new TransformedSource( in.asVolatile().getSpimSource(), src );
+            SourceAndConverter vout = new SourceAndConverter<>( vsrc, SourceAndConverterHelper.cloneConverter(in.asVolatile().getConverter(), in.asVolatile()) );
             sac = new SourceAndConverter<>(src, SourceAndConverterHelper.cloneConverter(in.getConverter(), in), vout);
         }
         else
-            {
+        {
             sac = new SourceAndConverter<>(src, SourceAndConverterHelper.cloneConverter(in.getConverter(), in));
         }
         return sac;

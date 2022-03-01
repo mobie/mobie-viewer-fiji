@@ -14,10 +14,8 @@ public class View
 	private List< SourceTransformer > sourceTransforms;
 	private ViewerTransform viewerTransform;
 	private boolean isExclusive = false;
-	private String name;
 
-	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays,
-				 List< SourceTransformer > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
+	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays, List< SourceTransformer > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;
 		this.sourceTransforms = sourceTransforms;
@@ -25,8 +23,7 @@ public class View
 		this.isExclusive = isExclusive;
 	}
 
-	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays,
-				 List< SourceTransformer > sourceTransforms, boolean isExclusive ) {
+	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays, List< SourceTransformer > sourceTransforms, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;
 		this.sourceTransforms = sourceTransforms;
@@ -64,13 +61,4 @@ public class View
 		return viewerTransform;
 	}
 
-	public String getName()
-	{
-		return name;
-	}
-
-	public void setName( String name )
-	{
-		this.name = name;
-	}
 }

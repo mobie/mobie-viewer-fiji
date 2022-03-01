@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer.ui;
 
-import org.embl.mobie.viewer.MoBIE;
 import ij.gui.GenericDialog;
 
 import javax.swing.*;
@@ -55,7 +54,7 @@ public class SwingHelper
 
 	public static void setComboBoxDimensions( JComboBox< String > comboBox )
 	{
-		comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE );
+		comboBox.setPrototypeDisplayValue( UserInterfaceHelper.PROTOTYPE_DISPLAY_VALUE );
 		comboBox.setPreferredSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
 		comboBox.setMaximumSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
 	}

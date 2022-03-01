@@ -11,13 +11,10 @@ import bigwarp.transforms.BigWarpTransform;
 import ij.gui.NonBlockingGenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.InvertibleRealTransform;
-import org.scijava.ItemIO;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.ISourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.register.BigWarpLauncher;
@@ -34,11 +31,11 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 	@Parameter
 	BdvHandle bdvHandle;
 
-	@Parameter(label = "Moving Source(s)")
-	SourceAndConverter[] movingSources;
-
 	@Parameter(label = "Fixed Source(s)")
 	SourceAndConverter[] fixedSources;
+
+	@Parameter(label = "Moving Source(s)")
+	SourceAndConverter[] movingSources;
 
 	private BigWarp bigWarp;
 	private Map< SourceAndConverter< ? >, AffineTransform3D > sacToOriginalFixedTransform;
@@ -51,6 +48,8 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 	@Override
 	public void run()
 	{
+		// FIXME put all of this into a new thread?
+		
 		sacService = SourceAndConverterServices.getSourceAndConverterService();
 		bdvDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
@@ -89,6 +88,7 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 		}
 		else
 		{
+			setMovingTransforms();
 			bigWarp.closeAll();
 		}
 	}
@@ -123,13 +123,21 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 		}
 		else
 		{
-			final BigWarpTransform bwTransform = bigWarp.getBwTransform();
-			final AffineTransform3D affineTransform3D = bwTransform.affine3d();
-			for ( SourceAndConverter< ? > movingSource : movingSources )
-			{
-				(( TransformedSource< ? > ) movingSource.getSpimSource()).setFixedTransform( affineTransform3D );
-			}
-			bdvHandle.getViewerPanel().requestRepaint();
+			//setMovingTransforms();
 		}
+	}
+
+	private void setMovingTransforms()
+	{
+		final BigWarpTransform bwTransform = bigWarp.getBwTransform();
+		final AffineTransform3D bwAffineTransform = bwTransform.affine3d();
+		for ( SourceAndConverter< ? > movingSource : movingSources )
+		{
+			final AffineTransform3D combinedTransform = sacToOriginalFixedTransform.get( movingSource ).copy();
+			combinedTransform.preConcatenate( bwAffineTransform.copy().inverse() );
+			final TransformedSource< ? > transformedSource = ( TransformedSource< ? > ) movingSource.getSpimSource();
+			transformedSource.setFixedTransform( combinedTransform );
+		}
+		bdvHandle.getViewerPanel().requestRepaint();
 	}
 }

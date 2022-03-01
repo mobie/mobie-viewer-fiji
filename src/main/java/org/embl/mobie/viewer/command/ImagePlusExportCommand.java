@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer.command;
 
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.Affine3DHelpers;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -177,15 +176,4 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 		return Views.stack( rais );
 	}
 
-	private HashMap< SourceAndConverter< T >, AffineTransform3D > fetchTransforms( List< SourceAndConverter< T > > movingSacs )
-	{
-		final HashMap< SourceAndConverter< T >, AffineTransform3D > sacToTransform = new HashMap<>();
-		for ( SourceAndConverter movingSac : movingSacs )
-		{
-			final AffineTransform3D fixedTransform = new AffineTransform3D();
-			( ( TransformedSource ) movingSac.getSpimSource()).getFixedTransform( fixedTransform );
-			sacToTransform.put( movingSac, fixedTransform );
-		}
-		return sacToTransform;
-	}
 }

@@ -44,6 +44,7 @@ import java.util.List;
 
 public class UserInterfaceHelper
 {
+	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 	private static final Dimension PREFERRED_BUTTON_SIZE = new Dimension( 30, 30 );
 	private static final Dimension PREFERRED_CHECKBOX_SIZE = new Dimension( 40, 30 );
 	private static final Dimension PREFERRED_SPACE_SIZE = new Dimension( 10, 30 );
@@ -456,7 +457,6 @@ public class UserInterfaceHelper
 				{
 					final String viewName = ( String ) comboBox.getSelectedItem();
 					final View view = views.get( viewName );
-					view.setName( viewName );
 					moBIE.getViewManager().show( view );
 				}).start();
 			} );
@@ -525,7 +525,7 @@ public class UserInterfaceHelper
 		button.addActionListener( e -> {
 			moBIEInfo.showInfo( ( String ) comboBox.getSelectedItem() );
 		} );
-		comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE  );
+		comboBox.setPrototypeDisplayValue( PROTOTYPE_DISPLAY_VALUE  );
 
 		horizontalLayoutPanel.setSize( 0, 80 );
 		final ImageIcon icon = createMobieIcon( 80 );
@@ -728,16 +728,25 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JButton createFocusButton(AbstractSourceDisplay sourceDisplay, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
+	public static JButton createFocusButton( AbstractSourceDisplay sourceDisplay, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
 	{
 		JButton button = new JButton( "F" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
 		{
-			// TODO: make this work for multiple sources!
-			final AffineTransform3D transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
-			new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
+			if( sourceAndConverters.size() > 1 )
+			{
+				// FIXME Does not always work...
+				final SourceAndConverter[] array = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
+				final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), array ).getTransformMultiSources();
+				new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
+			}
+			else
+			{
+				final AffineTransform3D transform = new ViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
+				new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
+			}
 		} );
 
 		return button;

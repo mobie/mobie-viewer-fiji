@@ -4,23 +4,56 @@ import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
+import net.imglib2.RealInterval;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.NumericType;
 import sc.fiji.bdvpg.sourceandconverter.importer.EmptySourceAndConverterCreator;
 import sc.fiji.bdvpg.sourceandconverter.transform.SourceResampler;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class CropSourceTransformer extends AbstractSourceTransformer
+public class CropSourceTransformer< T extends NumericType< T >> extends AbstractSourceTransformer
 {
-	protected double[] min;
-	protected double[] max;
+	// Serialisation
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
-	protected boolean centerAtOrigin = true;
+	protected double[] min;
+	protected double[] max;
+	protected double[] boxAffine; // from box to physical, if null, it will default to identity transform
+	protected Boolean centerAtOrigin; // if null, it will default to true
+	protected Boolean rectify;// if null, it will default to true
+
+	// Serialisation of MaskedSource
+	public CropSourceTransformer( MaskedSource maskedSource )
+	{
+		min = maskedSource.getMaskInterval().minAsDoubleArray();
+		max = maskedSource.getMaskInterval().maxAsDoubleArray();
+		boxAffine = maskedSource.getMaskToPhysicalTransform().getRowPackedCopy();
+		sources = Arrays.asList( maskedSource.getWrappedSource().getName() );
+		if ( ! maskedSource.getName().equals( maskedSource.getWrappedSource().getName() ))
+			sourceNamesAfterTransform = Arrays.asList( maskedSource.getName() );
+		rectify = maskedSource.isRectify();
+		centerAtOrigin = maskedSource.isCenter();
+	}
 
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
+		AffineTransform3D boxToPhysicalTransform = new AffineTransform3D() ;
+		if ( boxAffine != null )
+		{
+			boxToPhysicalTransform.set( boxAffine );
+		}
+		else
+		{
+			// leave as the identity transform
+		}
+
+		rectify = rectify == null ? true : rectify;
+		centerAtOrigin = centerAtOrigin == null ? true : centerAtOrigin;
+
 		for ( String sourceName : sourceNameToSourceAndConverter.keySet() )
 		{
 			if ( sources.contains( sourceName ) )
@@ -28,20 +61,12 @@ public class CropSourceTransformer extends AbstractSourceTransformer
 				final SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
 				String transformedSourceName = getTransformedSourceName( sourceName );
 
-				// determine number of voxels for resampling
-				// the current method may over-sample quite a bit
-				final double smallestVoxelSize = getSmallestVoxelSize( sourceAndConverter );
-				final FinalVoxelDimensions croppedSourceVoxelDimensions = new FinalVoxelDimensions( sourceAndConverter.getSpimSource().getVoxelDimensions().unit(), smallestVoxelSize, smallestVoxelSize, smallestVoxelSize );
-				int[] numVoxels = getNumVoxels( smallestVoxelSize );
-				SourceAndConverter< ? > cropModel = new EmptySourceAndConverterCreator("Model", new FinalRealInterval( min, max ), numVoxels[ 0 ], numVoxels[ 1 ], numVoxels[ 2 ], croppedSourceVoxelDimensions ).get();
+				SourceAndConverter< ? > croppedSourceAndConverter;
+//				if ( affine == null )
+//					croppedSourceAndConverter = cropViaResampling( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), centerAtOrigin );
+//				else // TODO: Below does not seem to work?!...check with Martin
 
-				// resample generative source as model source
-				SourceAndConverter< ? > croppedSourceAndConverter = new SourceResampler( sourceAndConverter, cropModel, transformedSourceName, false,false, false,0).get();
-
-				if ( centerAtOrigin )
-				{
-					croppedSourceAndConverter = TransformHelper.centerAtOrigin( croppedSourceAndConverter );
-				}
+				croppedSourceAndConverter = new SourceAndConverterCropper( sourceAndConverter, transformedSourceName, new FinalRealInterval( min, max ), boxToPhysicalTransform, rectify, centerAtOrigin ).get();
 
 				// store result
 				sourceNameToSourceAndConverter.put( croppedSourceAndConverter.getSpimSource().getName(), croppedSourceAndConverter );
@@ -55,15 +80,41 @@ public class CropSourceTransformer extends AbstractSourceTransformer
 		return sources;
 	}
 
-
-	private int[] getNumVoxels( double smallestVoxelSize )
+	public static int[] getNumVoxels( double smallestVoxelSize, RealInterval interval )
 	{
 		int[] numVoxels = new int[ 3 ];
 		for ( int d = 0; d < 3; d++ )
 		{
-			numVoxels[ d ] = (int) Math.ceil( ( max[ d ] - min[ d ] ) / smallestVoxelSize );
+			numVoxels[ d ] = (int) Math.ceil( ( interval.realMax( d ) - interval.realMin( d ) ) / smallestVoxelSize );
 		}
 		return numVoxels;
+	}
+
+	private String getTransformedSourceName( String inputSourceName )
+	{
+		if ( sourceNamesAfterTransform != null )
+		{
+			return sourceNamesAfterTransform.get( this.sources.indexOf( inputSourceName ) );
+		}
+		else
+		{
+			return inputSourceName;
+		}
+	}
+
+	private static SourceAndConverter< ? > cropViaResampling( SourceAndConverter< ? > sourceAndConverter, String transformedSourceName, RealInterval interval, boolean centerAtOrigin )
+	{
+		// determine number of voxels for resampling
+		// TODO the current method may over-sample quite a bit
+		final double smallestVoxelSize = getSmallestVoxelSize( sourceAndConverter );
+		final FinalVoxelDimensions croppedSourceVoxelDimensions = new FinalVoxelDimensions( sourceAndConverter.getSpimSource().getVoxelDimensions().unit(), smallestVoxelSize, smallestVoxelSize, smallestVoxelSize );
+		int[] numVoxels = getNumVoxels( smallestVoxelSize, interval );
+		SourceAndConverter< ? > cropModel = new EmptySourceAndConverterCreator("Model", interval, numVoxels[ 0 ], numVoxels[ 1 ], numVoxels[ 2 ], croppedSourceVoxelDimensions ).get();
+
+		// resample generative source as model source
+		SourceAndConverter< ? > croppedSourceAndConverter = new SourceResampler( sourceAndConverter, cropModel, transformedSourceName, false,false, false,0).get();
+
+		return croppedSourceAndConverter;
 	}
 
 	public static double getSmallestVoxelSize( SourceAndConverter< ? > sourceAndConverter )
@@ -80,15 +131,6 @@ public class CropSourceTransformer extends AbstractSourceTransformer
 		return smallestVoxelSize;
 	}
 
-	private String getTransformedSourceName( String inputSourceName )
-	{
-		if ( sourceNamesAfterTransform != null )
-		{
-			return sourceNamesAfterTransform.get( this.sources.indexOf( inputSourceName ) );
-		}
-		else
-		{
-			return inputSourceName;
-		}
-	}
 }
+
+

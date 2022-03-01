@@ -368,7 +368,7 @@ public abstract class MoBIEUtils
 		view.preConcatenate( translate.inverse() );
 
 		// divide by window width
-		final int bdvWindowWidth = BdvUtils.getBdvWindowWidth( bdv );
+		final int bdvWindowWidth = bdv.getBdvHandle().getViewerPanel().getDisplay().getWidth();
 		final Scale3D scale = new Scale3D( 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth );
 		view.preConcatenate( scale );
 
@@ -405,14 +405,6 @@ public abstract class MoBIEUtils
 		final AffineTransform3D view = new AffineTransform3D( );
 		view.set( doubles );
 		return view;
-	}
-
-	public static FinalRealInterval estimateBounds( Source< ? > source )
-	{
-		final AffineTransform3D affineTransform3D = new AffineTransform3D();
-		source.getSourceTransform( 0, 0, affineTransform3D );
-		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
-		return bounds;
 	}
 
 	public static String getName( String path )

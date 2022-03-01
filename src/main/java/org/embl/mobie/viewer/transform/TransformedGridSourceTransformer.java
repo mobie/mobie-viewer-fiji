@@ -1,16 +1,20 @@
 package org.embl.mobie.viewer.transform;
 
+import bdv.util.Affine3DHelpers;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
+import net.imglib2.util.LinAlgHelpers;
 import org.embl.mobie.viewer.ThreadUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class TransformedGridSourceTransformer extends AbstractSourceTransformer
@@ -31,7 +35,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		if ( positions == null )
 			autoSetPositions();
 
-		final double[] cellRealDimensions = TransformHelper.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
+		final double[] cellRealDimensions = TransformHelpers.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
 
 		transform( sourceNameToSourceAndConverter, cellRealDimensions );
 	}
@@ -54,13 +58,24 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		{
 			int finalGridIndex = gridIndex;
 			futures.add( ThreadUtils.executorService.submit( () -> {
-				if ( sourceNamesAfterTransform != null )
-					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), sourceNamesAfterTransform.get( finalGridIndex ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
-				else
-					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), null, centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
+				translate(
+						sourceNameToSourceAndConverter,
+						sources.get( finalGridIndex ),
+						getSourceNamesAfterTransform( finalGridIndex ),
+						centerAtOrigin,
+						cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ],
+						cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
 			} ) );
 		}
 		ThreadUtils.waitUntilFinished( futures );
+	}
+
+	private List< String > getSourceNamesAfterTransform( int finalGridIndex )
+	{
+		if ( sourceNamesAfterTransform != null )
+			return sourceNamesAfterTransform.get( finalGridIndex );
+		else
+			return null;
 	}
 
 	public static void translate( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< String > sourceNames, List< String > sourceNamesAfterTransform, boolean centerAtOrigin, double translationX, double translationY )
@@ -72,12 +87,20 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			if ( sourceAndConverter == null )
 			  continue;
 
-			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( translationX, translationY, sourceAndConverter, centerAtOrigin );
+			AffineTransform3D transform = new AffineTransform3D();
 
-			final SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, translationTransform );
+			final Source< ? > source = sourceAndConverter.getSpimSource();
 
-			final SourceAndConverter transformedSource = transformer.apply( sourceNameToSourceAndConverter.get( sourceName ) );
+			// translation
+			AffineTransform3D translationTransform = TransformHelpers.createTranslationTransform3D( translationX, translationY, centerAtOrigin, source );
 
+			//transform = translationTransform;
+			transform.preConcatenate( translationTransform );
+
+			// apply transformation
+			final SourceAndConverter< ? > transformedSource = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, transform ).apply( sourceAndConverter );
+
+			// store the resulting transformed source
 			sourceNameToSourceAndConverter.put( transformedSource.getSpimSource().getName(), transformedSource );
 		}
 	}

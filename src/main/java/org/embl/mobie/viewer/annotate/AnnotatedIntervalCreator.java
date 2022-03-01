@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.annotate;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.TableColumnNames;
-import org.embl.mobie.viewer.transform.TransformHelper;
+import org.embl.mobie.viewer.transform.TransformHelpers;
 import net.imglib2.RealInterval;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public class AnnotatedIntervalCreator
 		for ( String annotationId : annotationIds )
 		{
 			final List< ? extends Source< ? > > sources = annotationIdToSources.get( annotationId ).stream().map( name -> sourceAndConverterSupplier.apply( name ).getSpimSource() ).collect( Collectors.toList() );
-			final RealInterval realInterval = TransformHelper.unionRealInterval( sources );
+			final RealInterval realInterval = TransformHelpers.unionRealInterval( sources );
 
 			final int rowIndex = annotationIdColumn.indexOf( annotationId );
 

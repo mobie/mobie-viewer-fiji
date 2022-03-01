@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.viewer.color.opacity;
 
+import net.imglib2.display.RealARGBColorConverter;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;

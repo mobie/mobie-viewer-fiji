@@ -85,6 +85,14 @@ public class UserInterface
 		frame.repaint();
 	}
 
+	// The name must be unique!
+	public void addView( String name, View view )
+	{
+		Map<String, View> views = new HashMap<>();
+		views.put( name, view );
+		addViews( views );
+	}
+
 	public void addViews( Map<String, View> views )
 	{
 		userInterfaceHelper.addViewsToSelectionPanel( views );

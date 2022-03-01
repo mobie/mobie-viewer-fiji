@@ -88,6 +88,7 @@ public class ViewManager
 		sliceViewer = new SliceViewer( is2D, this, timepoints, moBIE.getProjectCommands() );
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
+		moBIE.register( bdvHandle );
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewsSaver = new ViewsSaver( moBIE );
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
@@ -281,17 +282,22 @@ public class ViewManager
 		SourceNameEncoder.addNames( sources );
 		final Set< String > rawSources = sources.stream().filter( s -> moBIE.getDataset().sources.containsKey( s ) ).collect( Collectors.toSet() );
 
+		if ( rawSources.size() == 0 )
+		{
+			throw new RuntimeException( "Could not find any raw sources to be displayed among: " + String.join(",", sources) );
+		}
+
 		// open all raw sources
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( rawSources );
 
 		// create transformed sources
 		final List< SourceTransformer > sourceTransformers = view.getSourceTransforms();
 		if ( sourceTransformers != null )
-		for ( SourceTransformer sourceTransformer : sourceTransformers )
-		{
-			currentSourceTransformers.add( sourceTransformer );
-			sourceTransformer.transform( sourceNameToSourceAndConverters );
-		}
+			for ( SourceTransformer sourceTransformer : sourceTransformers )
+			{
+				currentSourceTransformers.add( sourceTransformer );
+				sourceTransformer.transform( sourceNameToSourceAndConverters );
+			}
 
 		// wrap all in a final transformed source. This is so any manual transformations can be
 		// retrieved separate from any from sourceTransformers.
@@ -314,11 +320,18 @@ public class ViewManager
 		}
 		else
 		{
-			if ( view.isExclusive() || currentSourceDisplays.size() == 1 )
+			if ( view.isExclusive()  )
 			{
 				// TODO: rethink what should happen here...
-				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() > 0 ? currentSourceDisplays.size() - 1 : 0 );
-				new ViewerTransformAdjuster( bdvHandle, ((AbstractSourceDisplay) sourceDisplay).sourceNameToSourceAndConverter.values().iterator().next() ).run();
+				final ArrayList< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>();
+				for ( SourceDisplay sourceDisplay : view.getSourceDisplays() )
+				{
+					sourceAndConverters.addAll(
+						sourceDisplay.getSources().stream().map( s -> moBIE.getTransformedSourceAndConverter( s ) ).collect( Collectors.toList() )
+					);
+				}
+
+				new ViewerTransformAdjuster( bdvHandle, sourceAndConverters.toArray( new SourceAndConverter[0] ) ).run();
 			}
 		}
 	}
@@ -343,7 +356,7 @@ public class ViewManager
 
 	public synchronized void showSourceDisplay( SourceDisplay sourceDisplay )
 	{
-		if ( currentSourceDisplays.contains( sourceDisplay ) ) return;
+		if ( isAlreadyDisplayed( sourceDisplay ) ) return;
 
 		if ( sourceDisplay instanceof ImageSourceDisplay )
 		{
@@ -360,6 +373,12 @@ public class ViewManager
 
 		userInterface.addSourceDisplay( sourceDisplay );
 		currentSourceDisplays.add( sourceDisplay );
+	}
+
+	private boolean isAlreadyDisplayed( SourceDisplay sourceDisplay )
+	{
+		final List< String > names = currentSourceDisplays.stream().map( sd -> sd.getName() ).collect( Collectors.toList() );
+		return names.contains( sourceDisplay.getName() );
 	}
 
 	public void removeAllSourceDisplays()

@@ -56,38 +56,6 @@ public class ProjectCreatorHelper {
         return true;
     }
 
-    public static boolean isValidAffine(String affine) {
-        if (!affine.matches("^[0-9., ]+$")) {
-            IJ.log("Invalid affine transform - must contain only numbers, commas and spaces");
-            return false;
-        }
-
-        String[] splitAffine = affine.split(",");
-        if (splitAffine.length != 12) {
-            IJ.log("Invalid affine transform - must be of length 12");
-            return false;
-        }
-
-        return true;
-    }
-
-    public static AffineTransform3D parseAffineString(String affine) {
-        if (isValidAffine(affine)) {
-            AffineTransform3D sourceTransform = new AffineTransform3D();
-            // remove spaces
-            affine = affine.replaceAll("\\s","");
-            String[] splitAffineTransform = affine.split(",");
-            double[] doubleAffineTransform = new double[splitAffineTransform.length];
-            for (int i = 0; i < splitAffineTransform.length; i++) {
-                doubleAffineTransform[i] = Double.parseDouble(splitAffineTransform[i]);
-            }
-            sourceTransform.set(doubleAffineTransform);
-            return sourceTransform;
-        } else {
-            return null;
-        }
-    }
-
     public static AffineTransform3D generateDefaultAffine(ImagePlus imp) {
         final double pixelWidth = imp.getCalibration().pixelWidth;
         final double pixelHeight = imp.getCalibration().pixelHeight;

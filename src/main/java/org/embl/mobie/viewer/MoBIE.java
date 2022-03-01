@@ -2,6 +2,7 @@ package org.embl.mobie.viewer;
 
 import bdv.export.ProposeMipmaps;
 import bdv.img.n5.N5ImageLoader;
+import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
@@ -48,7 +49,7 @@ public class MoBIE
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
+	private static ConcurrentHashMap< Object, MoBIE > objectToMoBIE = new ConcurrentHashMap<>();;
 
 	private final String projectName;
 	private MoBIESettings settings;
@@ -64,6 +65,7 @@ public class MoBIE
 	private Map< String, SourceAndConverter< ? > > sourceNameToTransformedSourceAndConverter;
 	private ArrayList< String > projectCommands = new ArrayList<>();;
 
+
 	public MoBIE( String projectRoot ) throws IOException
 	{
 		this( projectRoot, MoBIESettings.settings() );
@@ -71,6 +73,7 @@ public class MoBIE
 
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
+
 		IJ.log("MoBIE");
 		this.settings = settings.projectLocation( projectLocation );
 		setS3Credentials( settings );
@@ -243,7 +246,6 @@ public class MoBIE
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
 		final View view = dataset.views.get( settings.values.getView() );
-		view.setName( settings.values.getView() );
 		viewManager.show( view );
 
 		// arrange windows
@@ -606,9 +608,8 @@ public class MoBIE
 		{
 			( ( N5ImageLoader ) imgLoader ).close();
 		} else if ( imgLoader instanceof N5OMEZarrImageLoader ) {
-            ((N5OMEZarrImageLoader) imgLoader).close();
+            ( ( N5OMEZarrImageLoader ) imgLoader ).close();
         }
-
 		sourceNameToImgLoader.remove( sourceName );
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 
@@ -647,5 +648,15 @@ public class MoBIE
 	public ArrayList< String > getProjectCommands()
 	{
 		return projectCommands;
+	}
+
+	public void register( Object object )
+	{
+		MoBIE.objectToMoBIE.put( object, this );
+	}
+
+	public static MoBIE getInstance( Object object )
+	{
+		return MoBIE.objectToMoBIE.get( object );
 	}
 }
