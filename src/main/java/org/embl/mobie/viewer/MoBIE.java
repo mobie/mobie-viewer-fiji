@@ -600,17 +600,21 @@ public class MoBIE
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter )
 	{
 		SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
-		// Commenting out this code for testing purposes...
-		// https://github.com/mobie/mobie-viewer-fiji/issues/624#issuecomment-1051001980
+		// Do not run below code for testing purposes...
+		// https://github.com/mobie/mobie-viewer-fiji/issues/624
 		// https://github.com/mobie/mobie-viewer-fiji/issues/329
-		String sourceName = sourceAndConverter.getSpimSource().getName();
-		final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
-		if ( imgLoader instanceof N5ImageLoader )
+		if ( false )
 		{
-			( ( N5ImageLoader ) imgLoader ).close();
-		} else if ( imgLoader instanceof N5OMEZarrImageLoader ) {
-            ( (N5OMEZarrImageLoader) imgLoader).close();
-        }
+			String sourceName = sourceAndConverter.getSpimSource().getName();
+			final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
+			if ( imgLoader instanceof N5ImageLoader )
+			{
+				( ( N5ImageLoader ) imgLoader ).close();
+			} else if ( imgLoader instanceof N5OMEZarrImageLoader )
+			{
+				( ( N5OMEZarrImageLoader ) imgLoader ).close();
+			}
+		}
 
 		sourceNameToImgLoader.remove( sourceName );
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
