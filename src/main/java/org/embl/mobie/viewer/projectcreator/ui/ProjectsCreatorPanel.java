@@ -18,7 +18,7 @@ import mpicbg.spim.data.SpimDataException;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
 import org.embl.mobie.viewer.ui.SwingHelper;
-import org.embl.mobie.viewer.ui.UserInterfaceHelper;
+import org.embl.mobie.viewer.ui.UserInterfaceHelpers;
 import org.janelia.saalfeldlab.n5.Compression;
 
 import javax.swing.*;
@@ -455,7 +455,7 @@ public class ProjectsCreatorPanel extends JFrame {
         if ( !gd.wasCanceled() ) {
             imageName = gd.getNextString();
             // tidy up image name, remove any spaces
-            imageName = UserInterfaceHelper.tidyString( imageName );
+            imageName = UserInterfaceHelpers.tidyString( imageName );
         }
         return imageName;
     }
@@ -501,7 +501,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 String affineTransform = String.join(",", affineRow1, affineRow2, affineRow3 );
 
                 // tidy up image name, remove any spaces
-                imageName = UserInterfaceHelper.tidyString( imageName );
+                imageName = UserInterfaceHelpers.tidyString( imageName );
                 AffineTransform3D sourceTransform = ProjectCreatorHelper.parseAffineString( affineTransform );
 
                 if ( imageName != null && sourceTransform != null ) {
@@ -649,7 +649,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
         if ( !gd.wasCanceled() ) {
             String datasetName = gd.getNextString();
-            datasetName = UserInterfaceHelper.tidyString( datasetName );
+            datasetName = UserInterfaceHelpers.tidyString( datasetName );
 
             if ( datasetName != null ) {
                 projectsCreator.getDatasetsCreator().addDataset(datasetName);
@@ -674,7 +674,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
             if (!gd.wasCanceled()) {
                 String newName = gd.getNextString();
-                newName = UserInterfaceHelper.tidyString( newName );
+                newName = UserInterfaceHelpers.tidyString( newName );
                 if ( newName != null ) {
                     projectsCreator.getDatasetsCreator().renameDataset( oldName, newName );
                     updateDatasetsComboBox( newName );
