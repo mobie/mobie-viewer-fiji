@@ -50,7 +50,11 @@ public class ProjectCreator {
         move
     }
 
-    // data location is the folder that contains the projects.json and the individual dataset folders
+    /**
+     * Make a project creator, allowing creation / editing of projects
+     * @param dataLocation directory that contains the project.json and individual dataset directories
+     * @throws IOException
+     */
     public ProjectCreator(File dataLocation ) throws IOException {
         this.dataLocation = dataLocation;
         projectJson = new File( FileAndUrlUtils.combinePath(  dataLocation.getAbsolutePath(), "project.json") );
@@ -84,6 +88,10 @@ public class ProjectCreator {
 
     public File getProjectJson() { return projectJson; }
 
+    /**
+     * Reload project by parsing the project.json again
+     * @throws IOException
+     */
     public void reloadProject() throws IOException {
         this.project = new ProjectJsonParser().parseProject( projectJson.getAbsolutePath() );
     }
@@ -109,6 +117,11 @@ public class ProjectCreator {
         }
     }
 
+    /**
+     * Get names of uiSelectionGroups in this dataset
+     * @param datasetName dataset name
+     * @return names of uiSelectionGroups
+     */
     public String[] getGroups( String datasetName ) {
         if ( !datasetName.equals(currentDatasetName) ) {
             getDataset( datasetName );
@@ -122,6 +135,12 @@ public class ProjectCreator {
         return groups;
     }
 
+    /**
+     * Get names of views in this dataset and uiSelectionGroup
+     * @param datasetName dataset name
+     * @param uiSelectionGroup uiSelectionGroup
+     * @return names of views
+     */
     public String[] getViews( String datasetName, String uiSelectionGroup ) {
         if ( !datasetName.equals(currentDatasetName) ) {
             getDataset( datasetName );
@@ -143,6 +162,10 @@ public class ProjectCreator {
         this.voxelUnit = voxelUnit;
     }
 
+    /**
+     * Reload current dataset by parsing the dataset.json again
+     * @throws IOException
+     */
     public void reloadCurrentDataset() throws IOException {
         if ( currentDatasetName != null ) {
             this.currentDataset = new DatasetJsonParser().parseDataset(currentDatasetJson.getAbsolutePath());

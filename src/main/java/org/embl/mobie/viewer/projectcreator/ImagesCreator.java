@@ -54,6 +54,10 @@ public class ImagesCreator {
 
     ProjectCreator projectCreator;
 
+    /**
+     * Make an imagesCreator - includes all functions for adding images to a project
+     * @param projectCreator projectCreator
+     */
     public ImagesCreator( ProjectCreator projectCreator ) {
         this.projectCreator = projectCreator;
     }
@@ -101,6 +105,14 @@ public class ImagesCreator {
         return new File (filePath).exists();
     }
 
+    /**
+     *  Same as
+     *  {@link #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D,
+     *  String, boolean, int[][], int[][], Compression) }, but calculates reasonable defaults for resolutions,
+     *  subdivisions and compression settings.
+     *
+     * @see #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D, String, boolean, int[][], int[][], Compression)
+     */
     public void addImage ( ImagePlus imp, String imageName, String datasetName,
                            ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
                            AffineTransform3D sourceTransform, String uiSelectionGroup,
@@ -110,6 +122,14 @@ public class ImagesCreator {
 
     }
 
+    /**
+     *  Same as
+     *  {@link #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D,
+     *  String, boolean, int[][], int[][], Compression) }, but assumes identity sourceTransform, and calculates
+     *  reasonable defaults for resolutions, subdivisions and compression settings.
+     *
+     * @see #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D, String, boolean, int[][], int[][], Compression)
+     */
     public void addImage ( ImagePlus imp, String imageName, String datasetName,
                            ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
                            String uiSelectionGroup, boolean exclusive ) throws SpimDataException, IOException {
@@ -118,6 +138,13 @@ public class ImagesCreator {
 
     }
 
+    /**
+     *  Same as
+     *  {@link #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D,
+     *  String, boolean, int[][], int[][], Compression) }, but assumes identity sourceTransform
+     *
+     * @see #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D, String, boolean, int[][], int[][], Compression)
+     */
     public void addImage ( ImagePlus imp, String imageName, String datasetName,
                            ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
                            String uiSelectionGroup, boolean exclusive,
@@ -127,7 +154,7 @@ public class ImagesCreator {
     }
 
     /**
-     * Add an image to a MoBIE project. Make sure the ImagePlus scale is set properly, so that imp.getCalibration()
+     * Add an image to a MoBIE project. Make sure the ImagePlus scale and unit is set properly, so that imp.getCalibration()
      * returns the correct values. Note that multi-channel images are not supported - you will need to
      * split these channels and add each as its own image.
      * @param imp image to add
@@ -306,6 +333,24 @@ public class ImagesCreator {
         }
     }
 
+    /**
+     * Add a bdv format image to a MoBIE project (e.g. N5 or OME-ZARR). Make sure the scale and unit is set properly
+     * in the file. Note that multi-channel images are not supported - you will need to split these channels and add
+     * each as its own image.
+     * @param fileLocation Location of image file to add - for n5, location of the xml,
+     *                     for ome-zarr, the location of the .ome.zarr directory.
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param imageType Image or Segmentation - segmentations will additionally generate a table.
+     * @param addMethod Add method - link (leave image as-is, and link to this location. Only supported for
+     *                  N5 and local projects), copy (copy image into project), or move (move image into project -
+     *                  be careful as this will delete the image from its original location!)
+     * @param uiSelectionGroup Name of MoBIE drop-down menu to place view in
+     * @param imageDataFormat image format
+     * @param exclusive Whether to make the view exclusive.
+     * @throws SpimDataException
+     * @throws IOException
+     */
     public void addBdvFormatImage ( File fileLocation, String imageName, String datasetName,
                                     ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod,
                                     String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
