@@ -16,8 +16,6 @@ import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
@@ -122,11 +120,11 @@ public class ImageSliceView
 		}
 	}
 
-	public void close( )
+	public void close( boolean closeImgLoader )
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
 		{
-			moBIE.closeSourceAndConverter( sourceAndConverter );
+			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
 		}
 		display.sourceNameToSourceAndConverter.clear();
 	}

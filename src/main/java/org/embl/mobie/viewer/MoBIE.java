@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer;
 
-import bdv.export.ProposeMipmaps;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -597,15 +596,12 @@ public class MoBIE
 		return intervalTableRows;
 	}
 
-	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter )
+	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, boolean closeImgLoader )
 	{
 		SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
 		String sourceName = sourceAndConverter.getSpimSource().getName();
 
-		// Do not run below code for testing purposes...
-		// https://github.com/mobie/mobie-viewer-fiji/issues/624
-		// https://github.com/mobie/mobie-viewer-fiji/issues/329
-		if ( false )
+		if ( closeImgLoader )
 		{
 			final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
 			if ( imgLoader instanceof N5ImageLoader )

@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MAX_Z;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
-import static org.embl.mobie.viewer.ui.SwingHelper.selectionDialog;
+import static org.embl.mobie.viewer.ui.SwingHelpers.selectionDialog;
 
 public abstract class MoBIEUtils
 {

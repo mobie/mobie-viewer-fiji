@@ -123,16 +123,11 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		return new SourceAndConverter( labelSource, labelConverter, volatileSourceAndConverter );
 	}
 
-	public void close()
+	public void close( boolean closeImgLoader )
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
 		{
-			SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
-		}
-
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
-		{
-			moBIE.closeSourceAndConverter( sourceAndConverter );
+			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
 		}
 		display.sourceNameToSourceAndConverter.clear();
 	};

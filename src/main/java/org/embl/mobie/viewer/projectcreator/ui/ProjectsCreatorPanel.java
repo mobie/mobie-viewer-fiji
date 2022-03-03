@@ -17,7 +17,7 @@ import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimDataException;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
-import org.embl.mobie.viewer.ui.SwingHelper;
+import org.embl.mobie.viewer.ui.SwingHelpers;
 import org.embl.mobie.viewer.ui.UserInterfaceHelpers;
 import org.janelia.saalfeldlab.n5.Compression;
 
@@ -91,8 +91,8 @@ public class ProjectsCreatorPanel extends JFrame {
     private void addDatasetPanel() {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-        final JButton addButton = SwingHelper.createButton("Add");
-        final JButton editButton = SwingHelper.createButton("Edit");
+        final JButton addButton = SwingHelpers.createButton("Add");
+        final JButton editButton = SwingHelpers.createButton("Edit");
 
         createDatasetComboBox();
         addButton.addActionListener( e ->
@@ -105,7 +105,7 @@ public class ProjectsCreatorPanel extends JFrame {
             new Thread( () -> { editDatasetDialog(); } ).start();
         } );
 
-        horizontalLayoutPanel.add(SwingHelper.getJLabel("dataset", 60, 10));
+        horizontalLayoutPanel.add( SwingHelpers.getJLabel("dataset", 60, 10));
         horizontalLayoutPanel.add(datasetComboBox);
         horizontalLayoutPanel.add(addButton);
         horizontalLayoutPanel.add(editButton);
@@ -219,7 +219,7 @@ public class ProjectsCreatorPanel extends JFrame {
     private void addSourcesPanel() {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-        final JButton addButton = SwingHelper.createButton( "Add" );
+        final JButton addButton = SwingHelpers.createButton( "Add" );
         // for now we don't support editing any image properties, but this is likely to change in future,
         // so keep this code for now
         // final JButton editButton = createButton("Edit");
@@ -235,10 +235,10 @@ public class ProjectsCreatorPanel extends JFrame {
         //     new Thread( () -> { editImageDialog(); } ).start();
         // } );
 
-        horizontalLayoutPanel.add(SwingHelper.getJLabel("source", 60, 10));
+        horizontalLayoutPanel.add( SwingHelpers.getJLabel("source", 60, 10));
         horizontalLayoutPanel.add(sourcesComboBox);
         horizontalLayoutPanel.add( addButton );
-        horizontalLayoutPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
+        horizontalLayoutPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
         // horizontalLayoutPanel.add( editButton );
         horizontalLayoutPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
@@ -252,14 +252,14 @@ public class ProjectsCreatorPanel extends JFrame {
         createGroupsCombobox();
         createViewsCombobox();
 
-        groupPanel.add(SwingHelper.getJLabel("group", 60, 10));
-        viewsPanel.add(SwingHelper.getJLabel("view", 60, 10));
+        groupPanel.add( SwingHelpers.getJLabel("group", 60, 10));
+        viewsPanel.add( SwingHelpers.getJLabel("view", 60, 10));
         groupPanel.add( groupsComboBox );
         viewsPanel.add( viewsComboBox );
-        groupPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
-        groupPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
-        viewsPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
-        viewsPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
+        groupPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
+        groupPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
+        viewsPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
+        viewsPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
         groupPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
         viewsPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
