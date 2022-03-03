@@ -27,18 +27,16 @@ public class UserInterface
 	{
 		MoBIELookAndFeelToggler.setMoBIELaf();
 		userInterfaceHelpers = new UserInterfaceHelpers( moBIE );
-
 		selectionContainer = userInterfaceHelpers.createSelectionPanel();
 		displaySettingsContainer = userInterfaceHelpers.createDisplaySettingsContainer();
 		displaySettingsScrollPane = userInterfaceHelpers.createDisplaySettingsScrollPane( displaySettingsContainer );
 		JPanel displaySettingsPanel = userInterfaceHelpers.createDisplaySettingsPanel( displaySettingsScrollPane );
 		displayToPanel = new HashMap<>();
-
 		frame = createAndShowFrame( selectionContainer, displaySettingsPanel, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
 		MoBIELookAndFeelToggler.resetMoBIELaf();
 	}
 
-	private JFrame createAndShowFrame( JPanel actionPanel, JPanel displaySettingsPanel, String panelName )
+	private JFrame createAndShowFrame( JPanel selectionPanel, JPanel displaySettingsPanel, String panelName )
 	{
 		JFrame frame = new JFrame( "MoBIE: " + panelName );
 
@@ -48,7 +46,7 @@ public class UserInterface
 
 
 		splitPane.setDividerLocation( actionPanelHeight );
-		splitPane.setTopComponent( actionPanel );
+		splitPane.setTopComponent( selectionPanel );
 		splitPane.setBottomComponent( displaySettingsPanel );
 		splitPane.setAutoscrolls( true );
 

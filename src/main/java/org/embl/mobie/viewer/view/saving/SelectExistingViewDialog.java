@@ -6,7 +6,7 @@ import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
 import org.embl.mobie.viewer.view.additionalviews.AdditionalViews;
 import de.embl.cba.tables.SwingUtils;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
-import org.embl.mobie.viewer.ui.SwingHelper;
+import org.embl.mobie.viewer.ui.SwingHelpers;
 
 import javax.swing.*;
 import java.awt.*;
@@ -75,10 +75,10 @@ public class SelectExistingViewDialog {
         groupsComboBox.addItemListener( new SyncGroupAndViewComboBox() );
 
         JPanel groupPanel = SwingUtils.horizontalLayoutPanel();
-        groupPanel.add(SwingHelper.getJLabel("Ui selection group", 120, 10));
+        groupPanel.add( SwingHelpers.getJLabel("Ui selection group", 120, 10));
         groupPanel.add( groupsComboBox );
         JPanel viewPanel = SwingUtils.horizontalLayoutPanel();
-        viewPanel.add(SwingHelper.getJLabel("View name", 120, 10));
+        viewPanel.add( SwingHelpers.getJLabel("View name", 120, 10));
         viewPanel.add( viewsComboBox );
 
         dialog.getContentPane().add( groupPanel );
@@ -87,7 +87,7 @@ public class SelectExistingViewDialog {
 
     private void createAcceptPanel() {
         JPanel acceptPanel = SwingUtils.horizontalLayoutPanel();
-        JButton selectButton = SwingHelper.createButton("Select");
+        JButton selectButton = SwingHelpers.createButton("Select");
         selectButton.addActionListener( e ->
         {
             new Thread( () -> {
@@ -95,7 +95,7 @@ public class SelectExistingViewDialog {
                 dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
             } ).start();
         } );
-        JButton cancelButton = SwingHelper.createButton("Cancel");
+        JButton cancelButton = SwingHelpers.createButton("Cancel");
         cancelButton.addActionListener( e ->
         {
             new Thread( () -> {
