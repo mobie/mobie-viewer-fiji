@@ -9,7 +9,7 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 
-import static org.embl.mobie.viewer.ui.UserInterfaceHelper.*;
+import static org.embl.mobie.viewer.ui.UserInterfaceHelpers.*;
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create>Create New MoBIE Project..." )
 public class CreateNewMoBIEProjectCommand implements Command {

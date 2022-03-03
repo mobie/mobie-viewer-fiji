@@ -42,7 +42,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.List;
 
-public class UserInterfaceHelper
+public class UserInterfaceHelpers
 {
 	private static final Dimension PREFERRED_BUTTON_SIZE = new Dimension( 30, 30 );
 	private static final Dimension PREFERRED_CHECKBOX_SIZE = new Dimension( 40, 30 );
@@ -61,7 +61,7 @@ public class UserInterfaceHelper
 	private Map< String, Map< String, View> > groupingsToViews;
 	private Map< String, JComboBox > groupingsToComboBox;
 
-	public UserInterfaceHelper( MoBIE moBIE )
+	public UserInterfaceHelpers( MoBIE moBIE )
 	{
 		this.moBIE = moBIE;
 	}
@@ -95,41 +95,46 @@ public class UserInterfaceHelper
 
 	public static void showBrightnessDialog(
 			String name,
-			List< ConverterSetup > converterSetups,
-			double rangeMin,
-			double rangeMax )
+			List< ConverterSetup > converterSetups )
 	{
 		JFrame frame = new JFrame( name );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
-		final double currentRangeMin = converterSetups.get( 0 ).getDisplayRangeMin();
-		final double currentRangeMax = converterSetups.get( 0 ).getDisplayRangeMax();
+		final double currentContrastLimitsMin = converterSetups.get( 0 ).getDisplayRangeMin();
+		final double currentContrastLimitsMax = converterSetups.get( 0 ).getDisplayRangeMax();
+		final double absCurrentRange = Math.abs( currentContrastLimitsMax - currentContrastLimitsMin );
+
+		final double rangeFactor = 1.0; // could be changed...
+
+		final double rangeMin = currentContrastLimitsMin - rangeFactor * absCurrentRange;
+		final double rangeMax = currentContrastLimitsMax + rangeFactor * absCurrentRange;
 
 		final BoundedValueDouble min =
 				new BoundedValueDouble(
 						rangeMin,
 						rangeMax,
-						currentRangeMin );
+						currentContrastLimitsMin );
 
 		final BoundedValueDouble max =
 				new BoundedValueDouble(
 						rangeMin,
 						rangeMax,
-						currentRangeMax );
+						currentContrastLimitsMax );
 
-		double spinnerStepSize = Math.abs( currentRangeMax - currentRangeMin ) / 100.0;
+
+		double spinnerStepSize = absCurrentRange / 100.0;
 
 		JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
 		final SliderPanelDouble minSlider =
 				new SliderPanelDouble( "Min", min, spinnerStepSize );
 		minSlider.setNumColummns( 7 );
-		minSlider.setDecimalFormat( "####E0" );
+		//minSlider.setDecimalFormat( "####E0" );
 
 		final SliderPanelDouble maxSlider =
 				new SliderPanelDouble( "Max", max, spinnerStepSize );
 		maxSlider.setNumColummns( 7 );
-		maxSlider.setDecimalFormat( "####E0" );
+		//maxSlider.setDecimalFormat( "####E0" );
 
 		final BrightnessUpdateListener brightnessUpdateListener = new BrightnessUpdateListener( min, max, minSlider, maxSlider, converterSetups );
 
@@ -191,7 +196,6 @@ public class UserInterfaceHelper
 		frame.setResizable( false );
 		frame.pack();
 		frame.setVisible( true );
-
 	}
 
 	public JPanel createAnnotatedIntervalDisplaySettingsPanel( AnnotatedIntervalDisplay display )
@@ -541,7 +545,7 @@ public class UserInterfaceHelper
 
 	public ImageIcon createMobieIcon( int size )
 	{
-		final URL resource = UserInterfaceHelper.class.getResource( "/mobie.jpeg" );
+		final URL resource = UserInterfaceHelpers.class.getResource( "/mobie.jpeg" );
 		final ImageIcon imageIcon = new ImageIcon( resource );
 		final Image scaledInstance = imageIcon.getImage().getScaledInstance( size, size, Image.SCALE_SMOOTH );
 		return new ImageIcon( scaledInstance );
@@ -756,11 +760,9 @@ public class UserInterfaceHelper
 				converterSetups.add( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ) );
 			}
 
-			UserInterfaceHelper.showBrightnessDialog(
+			UserInterfaceHelpers.showBrightnessDialog(
 					imageDisplay.getName(),
-					converterSetups,
-					0,   // TODO: determine somehow...
-					65535 );
+					converterSetups);
 		} );
 
 		return button;
@@ -785,7 +787,7 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			UserInterfaceHelper.showOpacityDialog(
+			UserInterfaceHelpers.showOpacityDialog(
 					name,
 					sourceAndConverters,
 					bdvHandle );

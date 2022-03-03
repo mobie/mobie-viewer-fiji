@@ -13,7 +13,7 @@ import ij.gui.GenericDialog;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
-import org.embl.mobie.viewer.ui.UserInterfaceHelper;
+import org.embl.mobie.viewer.ui.UserInterfaceHelpers;
 
 import java.io.*;
 import java.util.Arrays;
@@ -102,7 +102,7 @@ public class ViewsSaver {
 
             String viewName = null;
             if( saveMethod == SaveMethod.saveAsNewView ) {
-                viewName = UserInterfaceHelper.tidyString( gd.getNextString() );
+                viewName = UserInterfaceHelpers.tidyString( gd.getNextString() );
                 if ( viewName == null ) {
                     return;
                 }
@@ -348,7 +348,7 @@ public class ViewsSaver {
 
         // get rid of any spaces, warn for unusual characters in basename (without the .json)
         if ( viewFileName != null ) {
-            viewFileName = UserInterfaceHelper.tidyString( viewFileName);
+            viewFileName = UserInterfaceHelpers.tidyString( viewFileName);
         }
 
         if ( viewFileName != null ) {

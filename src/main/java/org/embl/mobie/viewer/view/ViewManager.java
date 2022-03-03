@@ -382,7 +382,6 @@ public class ViewManager
 		imageDisplay.sliceViewer = sliceViewer;
 		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle );
 		initImageVolumeViewer( imageDisplay );
-
 	}
 
 	// compare with initSegmentationVolumeViewer

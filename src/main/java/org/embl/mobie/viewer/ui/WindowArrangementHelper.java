@@ -47,16 +47,16 @@ public class WindowArrangementHelper
 		final Frame log = WindowManager.getFrame( "Log" );
 		if (log != null) {
 			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			final int logWindowHeight = screenSize.height - ( reference.getLocationOnScreen().y + reference.getHeight() + 2 * UserInterfaceHelper.SPACING );
+			final int logWindowHeight = screenSize.height - ( reference.getLocationOnScreen().y + reference.getHeight() + 2 * UserInterfaceHelpers.SPACING );
 			log.setSize( reference.getWidth(), logWindowHeight  );
-			log.setLocation( reference.getLocationOnScreen().x, reference.getLocationOnScreen().y + UserInterfaceHelper.SPACING + reference.getHeight() );
+			log.setLocation( reference.getLocationOnScreen().x, reference.getLocationOnScreen().y + UserInterfaceHelpers.SPACING + reference.getHeight() );
 		}
 	}
 
 	public static void rightAlignWindow( Window reference, Window window, boolean adjustWidth, boolean adjustHeight )
 	{
 		window.setLocation(
-				reference.getLocationOnScreen().x + reference.getWidth() + UserInterfaceHelper.SPACING,
+				reference.getLocationOnScreen().x + reference.getWidth() + UserInterfaceHelpers.SPACING,
 				reference.getLocationOnScreen().y );
 
 		if ( adjustWidth )
@@ -70,7 +70,7 @@ public class WindowArrangementHelper
 	{
 		window.setLocation(
 				reference.getLocationOnScreen().x,
-				reference.getLocationOnScreen().y + reference.getHeight() + UserInterfaceHelper.SPACING
+				reference.getLocationOnScreen().y + reference.getHeight() + UserInterfaceHelpers.SPACING
 		);
 	}
 }
