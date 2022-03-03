@@ -24,6 +24,7 @@ import org.embl.mobie.viewer.bdv.view.SliceViewer;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import org.embl.mobie.viewer.display.*;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
+import org.embl.mobie.viewer.playground.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
@@ -331,7 +332,9 @@ public class ViewManager
 					);
 				}
 
-				new ViewerTransformAdjuster( bdvHandle, sourceAndConverters.toArray( new SourceAndConverter[0] ) ).run();
+//				new ViewerTransformAdjuster( bdvHandle, sourceAndConverters.toArray( new SourceAndConverter[0] ) ).run();
+				new MoBIEViewerTransformAdjuster( bdvHandle, sourceAndConverters ).run();
+
 			}
 		}
 	}

@@ -37,7 +37,7 @@ public class AnnotatedIntervalCreator
 		for ( String annotationId : annotationIds )
 		{
 			final List< ? extends Source< ? > > sources = annotationIdToSources.get( annotationId ).stream().map( name -> sourceAndConverterSupplier.apply( name ).getSpimSource() ).collect( Collectors.toList() );
-			final RealInterval realInterval = TransformHelpers.unionRealInterval( sources );
+			final RealInterval realInterval = TransformHelpers.estimateBounds( sources, 0 );
 
 			final int rowIndex = annotationIdColumn.indexOf( annotationId );
 

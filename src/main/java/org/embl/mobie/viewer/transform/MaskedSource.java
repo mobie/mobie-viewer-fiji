@@ -40,7 +40,6 @@ import net.imglib2.RealRandomAccessible;
 import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.RealViews;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.numeric.NumericType;
@@ -49,13 +48,11 @@ import net.imglib2.util.Util;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.source.SourceWrapper;
-import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.embl.mobie.viewer.transform.TransformHelpers.extractRectifyAffineTransform3D;
 import static org.embl.mobie.viewer.transform.TransformHelpers.getCenter;
 
 public class MaskedSource< T extends NumericType<T> > implements Source< T >, SourceWrapper< T >
@@ -128,7 +125,7 @@ public class MaskedSource< T extends NumericType<T> > implements Source< T >, So
             sourceTransforms.put( level, sourceTransform );
         }
 
-        final FinalRealInterval bounds = TransformHelpers.estimateBounds( this );
+        final FinalRealInterval bounds = TransformHelpers.estimateBounds( this, 0 );
     }
 
     public Source< T > getWrappedSource() {
