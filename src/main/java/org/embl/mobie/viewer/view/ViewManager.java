@@ -44,7 +44,6 @@ import org.embl.mobie.viewer.view.saving.ViewsSaver;
 import org.embl.mobie.viewer.volume.ImageVolumeViewer;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 import org.embl.mobie.viewer.volume.UniverseManager;
-import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
@@ -292,7 +291,7 @@ public class ViewManager
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( rawSources );
 
 		// create transformed sources
-		final List< SourceTransformer > sourceTransformers = view.getSourceTransforms();
+		final List< SourceTransformer > sourceTransformers = view.getSourceTransformers();
 		if ( sourceTransformers != null )
 			for ( SourceTransformer sourceTransformer : sourceTransformers )
 			{
@@ -349,7 +348,7 @@ public class ViewManager
 			sources.addAll( sourceDisplay.getSources() );
 		}
 
-		for ( SourceTransformer sourceTransformer : view.getSourceTransforms() )
+		for ( SourceTransformer sourceTransformer : view.getSourceTransformers() )
 		{
 			sources.addAll( sourceTransformer.getSources() );
 		}

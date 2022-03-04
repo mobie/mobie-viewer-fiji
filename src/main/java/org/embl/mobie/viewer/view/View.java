@@ -11,22 +11,22 @@ public class View
 {
 	private String uiSelectionGroup;
 	private List< SourceDisplay > sourceDisplays;
-	private List< SourceTransformer > sourceTransforms;
+	private List< SourceTransformer > sourceTransformers;
 	private ViewerTransform viewerTransform;
 	private boolean isExclusive = false;
 
-	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays, List< SourceTransformer > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
+	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays, List< SourceTransformer > sourceTransformers, ViewerTransform viewerTransform, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;
-		this.sourceTransforms = sourceTransforms;
+		this.sourceTransformers = sourceTransformers;
 		this.viewerTransform = viewerTransform;
 		this.isExclusive = isExclusive;
 	}
 
-	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays, List< SourceTransformer > sourceTransforms, boolean isExclusive ) {
+	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays, List< SourceTransformer > sourceTransformers, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;
-		this.sourceTransforms = sourceTransforms;
+		this.sourceTransformers = sourceTransformers;
 		this.isExclusive = isExclusive;
 	}
 
@@ -35,12 +35,12 @@ public class View
 		return isExclusive;
 	}
 
-	public List< SourceTransformer > getSourceTransforms()
+	public List< SourceTransformer > getSourceTransformers()
 	{
-		if ( sourceTransforms == null )
+		if ( sourceTransformers == null )
 			return new ArrayList<>();
 		else
-			return sourceTransforms;
+			return sourceTransformers;
 	}
 
 	public List< SourceDisplay > getSourceDisplays()

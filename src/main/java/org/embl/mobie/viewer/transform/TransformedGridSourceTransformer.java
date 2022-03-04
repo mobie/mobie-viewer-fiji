@@ -1,18 +1,13 @@
 package org.embl.mobie.viewer.transform;
 
-import bdv.util.Affine3DHelpers;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
-import net.imglib2.util.LinAlgHelpers;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.ThreadUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
-import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
