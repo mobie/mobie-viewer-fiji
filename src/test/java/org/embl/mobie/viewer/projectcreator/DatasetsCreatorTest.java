@@ -24,7 +24,7 @@ class DatasetsCreatorTest {
     @org.junit.jupiter.api.Test
     void addDataset() throws IOException {
         String datasetName = "test";
-        datasetsCreator.addDataset(datasetName);
+        datasetsCreator.addDataset(datasetName, false);
 
         Project project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
         assertEquals(project.getDatasets().size(), 1);
@@ -36,7 +36,7 @@ class DatasetsCreatorTest {
     void renameDataset() throws IOException {
         String oldDatasetName = "test";
         String newDatasetName = "newName";
-        datasetsCreator.addDataset(oldDatasetName);
+        datasetsCreator.addDataset(oldDatasetName, false);
         datasetsCreator.renameDataset(oldDatasetName, newDatasetName);
 
         Project project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
@@ -50,8 +50,8 @@ class DatasetsCreatorTest {
     void makeDefaultDataset() throws IOException {
         String dataset1Name = "dataset1";
         String dataset2Name = "dataset2";
-        datasetsCreator.addDataset(dataset1Name);
-        datasetsCreator.addDataset(dataset2Name);
+        datasetsCreator.addDataset(dataset1Name, false);
+        datasetsCreator.addDataset(dataset2Name, false);
 
         Project project;
         project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );

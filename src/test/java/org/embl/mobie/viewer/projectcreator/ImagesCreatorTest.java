@@ -53,7 +53,7 @@ class ImagesCreatorTest {
         uiSelectionGroup = "testGroup";
         sourceTransform = new AffineTransform3D();
 
-        projectCreator.getDatasetsCreator().addDataset(datasetName);
+        projectCreator.getDatasetsCreator().addDataset(datasetName, false);
 
         datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
                 datasetName, "dataset.json" );
