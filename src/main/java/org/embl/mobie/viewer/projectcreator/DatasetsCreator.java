@@ -23,8 +23,9 @@ public class DatasetsCreator {
     /**
      * Create a new, empty dataset
      * @param datasetName dataset name
+     * @param is2D whether dataset only contains 2D images
      */
-    public void addDataset ( String datasetName ) {
+    public void addDataset ( String datasetName, boolean is2D ) {
         List<String> currentDatasets = projectCreator.getProject().getDatasets();
         boolean contains = currentDatasets.contains(datasetName);
         if ( !contains ) {
@@ -42,6 +43,9 @@ public class DatasetsCreator {
 
                 // update project json
                 projectCreator.getProjectJsonCreator().addDataset( datasetName );
+
+                // create dataset json
+                projectCreator.getDatasetJsonCreator().addDataset( datasetName, is2D );
             } else {
                 IJ.log( "Dataset creation failed - this name already exists" );
             }
@@ -90,6 +94,16 @@ public class DatasetsCreator {
      */
     public void makeDefaultDataset ( String datasetName ) {
         projectCreator.getProjectJsonCreator().setDefaultDataset( datasetName );
+    }
+
+
+    /**
+     * Make a dataset 2D or 3D
+     * @param datasetName dataset name
+     * @param is2D 2D or not
+     */
+    public void makeDataset2D( String datasetName, boolean is2D ) {
+        projectCreator.getDatasetJsonCreator().makeDataset2D( datasetName, is2D );
     }
 
 }
