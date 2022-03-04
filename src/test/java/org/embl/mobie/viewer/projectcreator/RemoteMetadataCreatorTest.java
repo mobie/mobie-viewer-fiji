@@ -46,7 +46,7 @@ class RemoteMetadataCreatorTest {
     void testAddingRemoteMetadataForCertainFormat( ImageDataFormat imageDataFormat ) throws IOException, SpimDataException {
 
         // add image of right type
-        projectCreator.getImagesCreator().addImage( ProjectCreatorTestHelper.makeImage(imageName), imageName,
+        projectCreator.getImagesCreator().addImage( ProjectCreatorTestHelper.makeImage(imageName, false), imageName,
                 datasetName, imageDataFormat, ProjectCreator.ImageType.image, new AffineTransform3D(),
                 uiSelectionGroup, false );
 

@@ -8,9 +8,13 @@ public class ProjectCreatorTestHelper {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    public static ImagePlus makeImage( String imageName ) {
+    public static ImagePlus makeImage( String imageName, boolean is2D ) {
         // make an image with random values, same size as the imagej sample head image
-        return IJ.createImage(imageName, "8-bit noise", 186, 226, 27);
+        if ( !is2D ) {
+            return IJ.createImage(imageName, "8-bit noise", 186, 226, 27);
+        } else {
+            return IJ.createImage(imageName, "8-bit noise", 186, 226, 0);
+        }
     }
 
     public static ImagePlus makeSegmentation( String imageName ) {
