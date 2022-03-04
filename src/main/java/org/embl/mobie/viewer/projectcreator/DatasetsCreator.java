@@ -23,6 +23,7 @@ public class DatasetsCreator {
     /**
      * Create a new, empty dataset
      * @param datasetName dataset name
+     * @param is2D whether dataset only contains 2D images
      */
     public void addDataset ( String datasetName, boolean is2D ) {
         List<String> currentDatasets = projectCreator.getProject().getDatasets();
