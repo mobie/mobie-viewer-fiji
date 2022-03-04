@@ -691,7 +691,7 @@ public class ProjectsCreatorPanel extends JFrame {
     public void addDatasetDialog () {
         final GenericDialog gd = new GenericDialog( "Create a new dataset" );
         gd.addStringField( "Name of dataset", "", 35 );
-        gd.addCheckbox("2D only?", is2D );
+        gd.addCheckbox("Limit images and display to only 2D?", is2D );
         gd.showDialog();
 
         if ( !gd.wasCanceled() ) {
