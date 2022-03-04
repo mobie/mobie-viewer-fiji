@@ -12,10 +12,18 @@ public class DatasetsCreator {
 
     private ProjectCreator projectCreator;
 
+    /**
+     * Make a datasetsCreator - includes all functions for creating and modifying datasets in projects
+     * @param projectCreator projectCreator
+     */
     public DatasetsCreator(ProjectCreator projectCreator ) {
         this.projectCreator = projectCreator;
     }
 
+    /**
+     * Create a new, empty dataset
+     * @param datasetName dataset name
+     */
     public void addDataset ( String datasetName ) {
         List<String> currentDatasets = projectCreator.getProject().getDatasets();
         boolean contains = currentDatasets.contains(datasetName);
@@ -42,6 +50,11 @@ public class DatasetsCreator {
         }
     }
 
+    /**
+     * Rename an existing dataset
+     * @param oldName old dataset name
+     * @param newName new dataset name
+     */
     public void renameDataset( String oldName, String newName ) {
 
         if ( !newName.equals(oldName) ) {
@@ -71,6 +84,10 @@ public class DatasetsCreator {
 
     }
 
+    /**
+     * Make the dataset the default when MoBIE is opened
+     * @param datasetName dataset name
+     */
     public void makeDefaultDataset ( String datasetName ) {
         projectCreator.getProjectJsonCreator().setDefaultDataset( datasetName );
     }
