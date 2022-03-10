@@ -346,7 +346,7 @@ public class ProjectsCreatorPanel extends JFrame {
             formats[i] = remoteFormats.get(i).toString();
         }
         gd.addChoice("Image format:", formats, formats[0]);
-        gd.addStringField("Signing Region", "us-west-2", 20);
+        gd.addStringField("Signing Region", "", 20);
         gd.addStringField("Service endpoint", "https://...", 20);
         gd.addStringField("Bucket Name", "", 20);
 

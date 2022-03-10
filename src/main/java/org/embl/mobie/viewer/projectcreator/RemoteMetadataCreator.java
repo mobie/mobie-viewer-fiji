@@ -171,6 +171,7 @@ public class RemoteMetadataCreator {
             StorageLocation storageLocation = new StorageLocation();
             String relativePath = imageSource.imageData.get(localImageDataFormat).relativePath;
             storageLocation.s3Address = serviceEndpoint + bucketName + "/" + datasetName + "/" + relativePath;
+            storageLocation.signingRegion = signingRegion;
             imageSource.imageData.put( remoteImageDataFormat, storageLocation );
         }
 
@@ -218,6 +219,10 @@ public class RemoteMetadataCreator {
         this.serviceEndpoint = serviceEndpoint;
         this.bucketName = bucketName;
         this.remoteImageDataFormat = imageDataFormat;
+
+        if ( this.signingRegion.equals("") ) {
+            this.signingRegion = null;
+        }
 
         if ( !this.serviceEndpoint.endsWith("/") ) {
             this.serviceEndpoint = this.serviceEndpoint + "/";
