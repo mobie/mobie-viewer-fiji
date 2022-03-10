@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
@@ -200,9 +201,22 @@ public abstract class MoBIEUtils
 
 	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
 	public static String selectOpenPathFromFileSystem( String objectName, String fileExtension ) {
-		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
-		jFileChooser.setFileFilter(new FileNameExtensionFilter( fileExtension, fileExtension ));
-		return selectOpenPathFromFileSystem( objectName, jFileChooser );
+		final AtomicBoolean isDone = new AtomicBoolean( false );
+		final String[] path = new String[ 1 ];
+		Runnable r = () -> {
+			final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
+			jFileChooser.setFileFilter(new FileNameExtensionFilter( fileExtension, fileExtension ));
+			path[ 0 ] = selectOpenPathFromFileSystem( objectName, jFileChooser );
+			isDone.set( true );
+		};
+		SwingUtilities.invokeLater(r);
+		while ( ! isDone.get() ){
+			try {
+				Thread.sleep( 100 );
+			} catch ( InterruptedException e )
+			{ e.printStackTrace(); }
+		};
+		return path[ 0 ];
 	}
 
 	public static String selectOpenPathFromFileSystem( String objectName ) {

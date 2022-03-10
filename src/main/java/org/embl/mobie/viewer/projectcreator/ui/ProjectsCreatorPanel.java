@@ -55,8 +55,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
     private final String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
             ImageDataFormat.OmeZarr.toString() };
-    private final String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
-            ProjectCreator.ImageType.segmentation.toString() };
+    private final String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(), ProjectCreator.ImageType.segmentation.toString() };
 
 
     public ProjectsCreatorPanel ( File projectLocation ) throws IOException {
@@ -578,64 +577,83 @@ public class ProjectsCreatorPanel extends JFrame {
     public void addBdvFormatImageDialog() {
         String datasetName = (String) datasetComboBox.getSelectedItem();
 
-        if (!datasetName.equals("")) {
-            final GenericDialog gd = new GenericDialog("Add Bdv Format Image To Project...");
+        if (!datasetName.equals(""))
+        {
+            final GenericDialog gd = new GenericDialog( "Add Bdv Format Image To Project..." );
 
             gd.addMessage( "Note: You can only 'link' to images outside the project folder \n" +
-                    " for local projects. 'copy' or 'move' if you wish to upload to s3");
+                    " for local projects. 'copy' or 'move' if you wish to upload to s3" );
 
             gd.addChoice( "Image format", imageFormats, imageDataFormat.toString() );
             String[] addMethods = new String[]{ ProjectCreator.AddMethod.link.toString(),
                     ProjectCreator.AddMethod.copy.toString(), ProjectCreator.AddMethod.move.toString() };
-            gd.addChoice("Add method:", addMethods, addMethod.toString() );
-            gd.addChoice("Image Type", imageTypes, imageType.toString() );
-            gd.addCheckbox("Make view exclusive", exclusive );
-            gd.addCheckbox("Use filename as image name", useFileNameAsImageName );
+            gd.addChoice( "Add method:", addMethods, addMethod.toString() );
+            gd.addChoice( "Image Type", imageTypes, imageType.toString() );
+            gd.addCheckbox( "Make view exclusive", exclusive );
+            gd.addCheckbox( "Use filename as image name", useFileNameAsImageName );
 
             gd.showDialog();
 
-            if (!gd.wasCanceled()) {
-                imageDataFormat = ImageDataFormat.fromString( gd.getNextChoice() );
-                addMethod = ProjectCreator.AddMethod.valueOf( gd.getNextChoice() );
-                imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
-                exclusive = gd.getNextBoolean();
-                useFileNameAsImageName = gd.getNextBoolean();
+            if ( gd.wasCanceled() )
+            {
+                IJ.log( "Add image failed - create a dataset first" );
+                return;
+            }
 
-                if ( imageDataFormat == ImageDataFormat.OmeZarr && addMethod == ProjectCreator.AddMethod.link ) {
-                    IJ.log( "link is currently unsupported for ome-zarr. Please choose copy or move instead for this" +
-                            "file format." );
-                    return;
-                }
+            imageDataFormat = ImageDataFormat.fromString( gd.getNextChoice() );
+            addMethod = ProjectCreator.AddMethod.valueOf( gd.getNextChoice() );
+            imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
+            exclusive = gd.getNextBoolean();
+            useFileNameAsImageName = gd.getNextBoolean();
 
-                // select the image file - either .xml or .ome.zarr
-                String filePath = null;
-                switch ( imageDataFormat ) {
-                    case BdvN5:
-                        filePath = MoBIEUtils.selectOpenPathFromFileSystem("bdv .xml file", "xml");
-                        break;
+            if ( imageDataFormat == ImageDataFormat.OmeZarr && addMethod == ProjectCreator.AddMethod.link )
+            {
+                IJ.log( "link is currently unsupported for ome-zarr. Please choose copy or move instead for this file format." );
+                return;
+            }
 
-                    case OmeZarr:
-                        filePath = MoBIEUtils.selectOpenDirFromFileSystem(".ome.zarr file" );
-                        // quick check that basic criteria for ome-zarr are met i.e. contains right files in top of dir
-                        if( !(new File( FileAndUrlUtils.combinePath(filePath, ".zgroup") ).exists() &&
-                                new File( FileAndUrlUtils.combinePath( filePath, ".zattrs")).exists() )) {
-                            IJ.log( "Add image failed - not a valid ome.zarr file." );
-                            return;
-                        }
-                        break;
-                }
+            String filePath = getFilePath();
 
-                if ( filePath != null ) {
-                    try {
-                        addBdvFile( filePath, datasetName );
-                    } catch (SpimDataException e) {
-                        e.printStackTrace();
-                    }
+            if ( filePath != null )
+            {
+                try
+                {
+                    addBdvFile( filePath, datasetName );
+                } catch ( SpimDataException e )
+                {
+                    e.printStackTrace();
                 }
             }
-        } else {
-            IJ.log( "Add image failed - create a dataset first" );
         }
+    }
+
+    private String getFilePath()
+    {
+        switch ( imageDataFormat )
+        {
+            case BdvN5:
+                return MoBIEUtils.selectOpenPathFromFileSystem( "bdv .xml file", "xml" );
+
+            case OmeZarr:
+                String filePath = MoBIEUtils.selectOpenDirFromFileSystem( ".ome.zarr file" );
+                // quick check that basic criteria for ome-zarr are met i.e. contains right files in top of dir
+                if ( ! isValidOMEZarr( filePath ) )
+                {
+                    IJ.log( "Add image failed - not a valid ome.zarr file." );
+                    return null;
+                }
+                else
+                {
+                    return filePath;
+                }
+            default:
+                return null;
+        }
+    }
+
+    private boolean isValidOMEZarr( String filePath )
+    {
+        return ( new File( FileAndUrlUtils.combinePath( filePath, ".zgroup" ) ).exists() && new File( FileAndUrlUtils.combinePath( filePath, ".zattrs" ) ).exists() );
     }
 
     private void addBdvFile( String filePath, String datasetName ) throws SpimDataException {
