@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer;
 
-import bdv.export.ProposeMipmaps;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -218,20 +217,20 @@ public class MoBIE
 	{
 		final long start = System.currentTimeMillis();
 
-		Map< String, SourceAndConverter< ? > > sourceAndConverters = new ConcurrentHashMap< >();
+		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = new ConcurrentHashMap< >();
 
 		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( String sourceName : sources )
 		{
 			futures.add(
-					ThreadUtils.ioExecutorService.submit( () -> { sourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) ); }
+					ThreadUtils.ioExecutorService.submit( () -> { sourceNameToSourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) ); }
 				) );
 		}
 		ThreadUtils.waitUntilFinished( futures );
 
-		IJ.log( "Fetched " + sourceAndConverters.size() + " image(s)  in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
+		IJ.log( "Fetched " + sourceNameToSourceAndConverters.size() + " image(s)  in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
 
-		return sourceAndConverters;
+		return sourceNameToSourceAndConverters;
 	}
 
 	private void openDataset( String datasetName ) throws IOException
@@ -325,15 +324,24 @@ public class MoBIE
 	{
 		final ImageSource imageSource = getSource( sourceName );
 		final String imagePath = getImagePath( imageSource );
-        IJ.log( "Opening image:\n" + imagePath );
-        final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
-		SpimData spimData = tryOpenSpimData( imagePath, imageDataFormat );
-		sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
+		IJ.log( "Opening image:\n" + imagePath );
+		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
 
-        final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
-        SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+		try
+		{
+			SpimData spimData = tryOpenSpimData( imagePath, imageDataFormat );
+			sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 
-        return sourceAndConverter;
+			final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
+			SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+			return sourceAndConverter;
+		}
+		catch ( Exception e )
+		{
+			System.err.println( "Error opening: " + imagePath );
+			e.printStackTrace();
+			throw new RuntimeException();
+		}
     }
 
 	private SpimData tryOpenSpimData( String imagePath, ImageDataFormat imageDataFormat )
@@ -597,22 +605,25 @@ public class MoBIE
 		return intervalTableRows;
 	}
 
-	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter )
+	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, boolean closeImgLoader )
 	{
 		SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );
 		String sourceName = sourceAndConverter.getSpimSource().getName();
-		final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
-		if ( imgLoader instanceof N5ImageLoader )
+
+		if ( closeImgLoader )
 		{
-			( ( N5ImageLoader ) imgLoader ).close();
-		} else if ( imgLoader instanceof N5OMEZarrImageLoader ) {
-            ((N5OMEZarrImageLoader) imgLoader).close();
-        }
+			final ImgLoader imgLoader = sourceNameToImgLoader.get( sourceName );
+			if ( imgLoader instanceof N5ImageLoader )
+			{
+				( ( N5ImageLoader ) imgLoader ).close();
+			} else if ( imgLoader instanceof N5OMEZarrImageLoader )
+			{
+				( ( N5OMEZarrImageLoader ) imgLoader ).close();
+			}
+		}
 
 		sourceNameToImgLoader.remove( sourceName );
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
-
-		// TODO - when we support more image formats e.g. OME-ZARR, we should explicitly close their imgloaders here too
 	}
 
     public synchronized String getImagePath(ImageSource source) {

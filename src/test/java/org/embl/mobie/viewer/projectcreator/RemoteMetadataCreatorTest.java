@@ -38,7 +38,7 @@ class RemoteMetadataCreatorTest {
         signingRegion = "us-west-2";
         serviceEndpoint = "https://s3.test.de/test/";
         bucketName = "test-bucket";
-        projectCreator.getDatasetsCreator().addDataset(datasetName);
+        projectCreator.getDatasetsCreator().addDataset(datasetName, false);
         datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
                 datasetName, "dataset.json" );
     }
@@ -46,7 +46,7 @@ class RemoteMetadataCreatorTest {
     void testAddingRemoteMetadataForCertainFormat( ImageDataFormat imageDataFormat ) throws IOException, SpimDataException {
 
         // add image of right type
-        projectCreator.getImagesCreator().addImage( ProjectCreatorTestHelper.makeImage(imageName), imageName,
+        projectCreator.getImagesCreator().addImage( ProjectCreatorTestHelper.makeImage(imageName, false), imageName,
                 datasetName, imageDataFormat, ProjectCreator.ImageType.image, new AffineTransform3D(),
                 uiSelectionGroup, false );
 

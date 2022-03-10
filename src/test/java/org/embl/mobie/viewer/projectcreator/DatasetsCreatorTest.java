@@ -1,8 +1,13 @@
 package org.embl.mobie.viewer.projectcreator;
 
+import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.Project;
+import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,16 +20,16 @@ class DatasetsCreatorTest {
     private ProjectCreator projectCreator;
     private DatasetsCreator datasetsCreator;
 
-    @org.junit.jupiter.api.BeforeEach
+    @BeforeEach
     void setUp( @TempDir Path tempDir ) throws IOException {
         projectCreator = new ProjectCreator( tempDir.toFile() );
         datasetsCreator = projectCreator.getDatasetsCreator();
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void addDataset() throws IOException {
         String datasetName = "test";
-        datasetsCreator.addDataset(datasetName);
+        datasetsCreator.addDataset(datasetName, false);
 
         Project project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
         assertEquals(project.getDatasets().size(), 1);
@@ -32,11 +37,11 @@ class DatasetsCreatorTest {
         assertTrue(new File(projectCreator.getDataLocation(), datasetName).exists());
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void renameDataset() throws IOException {
         String oldDatasetName = "test";
         String newDatasetName = "newName";
-        datasetsCreator.addDataset(oldDatasetName);
+        datasetsCreator.addDataset(oldDatasetName, false);
         datasetsCreator.renameDataset(oldDatasetName, newDatasetName);
 
         Project project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
@@ -46,12 +51,12 @@ class DatasetsCreatorTest {
         assertFalse(new File(projectCreator.getDataLocation(), oldDatasetName).exists());
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void makeDefaultDataset() throws IOException {
         String dataset1Name = "dataset1";
         String dataset2Name = "dataset2";
-        datasetsCreator.addDataset(dataset1Name);
-        datasetsCreator.addDataset(dataset2Name);
+        datasetsCreator.addDataset(dataset1Name, false);
+        datasetsCreator.addDataset(dataset2Name, false);
 
         Project project;
         project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
@@ -61,5 +66,21 @@ class DatasetsCreatorTest {
 
         project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
         assertEquals( project.getDefaultDataset(), dataset2Name );
+    }
+
+    @Test
+    void makeDataset2D() throws IOException {
+        String datasetName = "test";
+        String datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
+                datasetName, "dataset.json" );
+
+        Dataset dataset;
+        datasetsCreator.addDataset(datasetName, false);
+        dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
+        assertFalse( dataset.is2D );
+
+        datasetsCreator.makeDataset2D(datasetName, true);
+        dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
+        assertTrue( dataset.is2D );
     }
 }

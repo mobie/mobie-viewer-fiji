@@ -13,44 +13,40 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.embl.mobie.viewer.ui.UserInterfaceHelper.*;
-
 public class UserInterface
 {
 	private final JPanel displaySettingsContainer;
 	private final JScrollPane displaySettingsScrollPane;
 	private final JFrame frame;
 	private final JPanel selectionContainer;
-	private final UserInterfaceHelper userInterfaceHelper;
+	private final UserInterfaceHelpers userInterfaceHelpers;
 	private Map< Object, JPanel > displayToPanel;
 	private JSplitPane splitPane;
 
 	public UserInterface( MoBIE moBIE )
 	{
 		MoBIELookAndFeelToggler.setMoBIELaf();
-		userInterfaceHelper = new UserInterfaceHelper( moBIE );
-
-		selectionContainer = userInterfaceHelper.createSelectionPanel();
-		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsContainer();
-		displaySettingsScrollPane = userInterfaceHelper.createDisplaySettingsScrollPane( displaySettingsContainer );
-		JPanel displaySettingsPanel = userInterfaceHelper.createDisplaySettingsPanel( displaySettingsScrollPane );
+		userInterfaceHelpers = new UserInterfaceHelpers( moBIE );
+		selectionContainer = userInterfaceHelpers.createSelectionPanel();
+		displaySettingsContainer = userInterfaceHelpers.createDisplaySettingsContainer();
+		displaySettingsScrollPane = userInterfaceHelpers.createDisplaySettingsScrollPane( displaySettingsContainer );
+		JPanel displaySettingsPanel = userInterfaceHelpers.createDisplaySettingsPanel( displaySettingsScrollPane );
 		displayToPanel = new HashMap<>();
-
 		frame = createAndShowFrame( selectionContainer, displaySettingsPanel, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
 		MoBIELookAndFeelToggler.resetMoBIELaf();
 	}
 
-	private JFrame createAndShowFrame( JPanel actionPanel, JPanel displaySettingsPanel, String panelName )
+	private JFrame createAndShowFrame( JPanel selectionPanel, JPanel displaySettingsPanel, String panelName )
 	{
 		JFrame frame = new JFrame( "MoBIE: " + panelName );
 
 		splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
+		final int actionPanelHeight = userInterfaceHelpers.getActionPanelHeight();
 
 
 		splitPane.setDividerLocation( actionPanelHeight );
-		splitPane.setTopComponent( actionPanel );
+		splitPane.setTopComponent( selectionPanel );
 		splitPane.setBottomComponent( displaySettingsPanel );
 		splitPane.setAutoscrolls( true );
 
@@ -79,7 +75,7 @@ public class UserInterface
 		selectionContainer.revalidate();
 		selectionContainer.repaint();
 		// update the location of the splitpane divider, so any new uiSelectionGroups are visible
-		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
+		final int actionPanelHeight = userInterfaceHelpers.getActionPanelHeight();
 		splitPane.setDividerLocation( actionPanelHeight );
 		frame.revalidate();
 		frame.repaint();
@@ -87,13 +83,13 @@ public class UserInterface
 
 	public void addViews( Map<String, View> views )
 	{
-		userInterfaceHelper.addViewsToSelectionPanel( views );
+		userInterfaceHelpers.addViewsToSelectionPanel( views );
 		refreshSelection();
 	}
 
 	public Map< String, Map< String, View > > getGroupingsToViews()
 	{
-		return userInterfaceHelper.getGroupingsToViews();
+		return userInterfaceHelpers.getGroupingsToViews();
 	}
 
 	public void addSourceDisplay( SourceDisplay sourceDisplay )
@@ -106,15 +102,15 @@ public class UserInterface
 	{
 		if ( sourceDisplay instanceof ImageSourceDisplay)
 		{
-			return userInterfaceHelper.createImageDisplaySettingsPanel( ( ImageSourceDisplay ) sourceDisplay );
+			return userInterfaceHelpers.createImageDisplaySettingsPanel( ( ImageSourceDisplay ) sourceDisplay );
 		}
 		else if ( sourceDisplay instanceof SegmentationSourceDisplay)
 		{
-			return userInterfaceHelper.createSegmentationDisplaySettingsPanel( ( SegmentationSourceDisplay ) sourceDisplay );
+			return userInterfaceHelpers.createSegmentationDisplaySettingsPanel( ( SegmentationSourceDisplay ) sourceDisplay );
 		}
 		else if ( sourceDisplay instanceof AnnotatedIntervalDisplay)
 		{
-			return userInterfaceHelper.createAnnotatedIntervalDisplaySettingsPanel( ( AnnotatedIntervalDisplay ) sourceDisplay );
+			return userInterfaceHelpers.createAnnotatedIntervalDisplaySettingsPanel( ( AnnotatedIntervalDisplay ) sourceDisplay );
 		}
 		else
 		{
@@ -154,7 +150,7 @@ public class UserInterface
 
 	public String[] getUISelectionGroupNames() {
 
-		Set<String> groupings = userInterfaceHelper.getGroupings();
+		Set<String> groupings = userInterfaceHelpers.getGroupings();
 		String[] groupNames = new String[groupings.size()];
 		int i = 0;
 		for ( String groupName: groupings ) {

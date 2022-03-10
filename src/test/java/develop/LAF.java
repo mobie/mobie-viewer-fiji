@@ -1,7 +1,5 @@
 package develop;
 
-import org.embl.mobie.viewer.ui.UserInterfaceHelper;
-
 import javax.swing.*;
 
 public class LAF

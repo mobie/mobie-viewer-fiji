@@ -3,9 +3,7 @@ package org.embl.mobie.viewer.projectcreator;
 import bdv.img.n5.N5ImageLoader;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.n5.loaders.N5FSImageLoader;
-import org.embl.mobie.io.n5.loaders.N5S3ImageLoader;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
-import org.embl.mobie.io.ome.zarr.loaders.N5S3OMEZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.readers.N5OmeZarrReader;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.view.View;
@@ -18,9 +16,8 @@ import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
-import mpicbg.spim.data.sequence.FinalVoxelDimensions;
-import net.imglib2.FinalDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
+import ucar.units.*;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -29,32 +26,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.embl.mobie.viewer.ui.UserInterfaceHelper.tidyString;
+import static org.embl.mobie.viewer.ui.UserInterfaceHelpers.tidyString;
 
 public class ProjectCreatorHelper {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-    public static boolean isImageSuitable(ImagePlus imp) {
-        // check the image type
-        switch (imp.getType()) {
-            case ImagePlus.GRAY8:
-            case ImagePlus.GRAY16:
-            case ImagePlus.GRAY32:
-                break;
-            default:
-                IJ.showMessage("Only 8, 16, 32-bit images are supported currently!");
-                return false;
-        }
-
-        // check the image dimensionality
-        if (imp.getNDimensions() < 2) {
-            IJ.showMessage("Image must be at least 2-dimensional!");
-            return false;
-        }
-
-        return true;
-    }
 
     public static boolean isValidAffine(String affine) {
         if (!affine.matches("^[0-9., ]+$")) {
@@ -97,69 +73,6 @@ public class ProjectCreatorHelper {
         defaultAffine.scale( pixelWidth, pixelHeight, pixelDepth );
 
         return defaultAffine;
-    }
-
-    public static FinalVoxelDimensions getVoxelSize(ImagePlus imp) {
-        final double pw = imp.getCalibration().pixelWidth;
-        final double ph = imp.getCalibration().pixelHeight;
-        final double pd = imp.getCalibration().pixelDepth;
-        String punit = imp.getCalibration().getUnit();
-        if (punit == null || punit.isEmpty())
-            punit = "px";
-        final FinalVoxelDimensions voxelSize = new FinalVoxelDimensions(punit, pw, ph, pd);
-        return voxelSize;
-    }
-
-    public static FinalDimensions getSize(ImagePlus imp) {
-        final int w = imp.getWidth();
-        final int h = imp.getHeight();
-        final int d = imp.getNSlices();
-        final FinalDimensions size = new FinalDimensions(w, h, d);
-        return size;
-    }
-
-    public static File getSeqFileFromPath(String seqFilename) {
-        final File seqFile = new File(seqFilename);
-        final File parent = seqFile.getParentFile();
-        if (parent == null || !parent.exists() || !parent.isDirectory()) {
-            IJ.showMessage("Invalid export filename " + seqFilename);
-            return null;
-        }
-        return seqFile;
-    }
-
-    public static AffineTransform3D generateSourceTransform(FinalVoxelDimensions voxelSize) {
-        // create SourceTransform from the images calibration
-        final AffineTransform3D sourceTransform = new AffineTransform3D();
-        sourceTransform.set(voxelSize.dimension(0), 0, 0, 0, 0, voxelSize.dimension(1),
-                0, 0, 0, 0, voxelSize.dimension(2), 0);
-        return sourceTransform;
-    }
-
-    public static File getN5FileFromXmlPath(String xmlPath) {
-        final String n5Filename = xmlPath.substring(0, xmlPath.length() - 4) + ".n5";
-        return new File(n5Filename);
-    }
-
-    public static File getOmeZarrFileFromXmlPath(String xmlPath) {
-        final String omeZarrFileName = xmlPath.substring(0, xmlPath.length() - 4) + ".ome.zarr";
-        return new File(omeZarrFileName);
-    }
-
-    public static ImageDataFormat getImageFormatFromSpimDataMinimal( SpimData spimData ) {
-        ImageDataFormat imageFormat = null;
-        BasicImgLoader imgLoader = spimData.getSequenceDescription().getImgLoader();
-        if ( imgLoader instanceof N5FSImageLoader | imgLoader instanceof N5ImageLoader ) {
-            imageFormat = ImageDataFormat.BdvN5;
-        } else if ( imgLoader instanceof N5S3ImageLoader ) {
-            imageFormat = ImageDataFormat.BdvN5S3;
-        } else if ( imgLoader instanceof N5OMEZarrImageLoader ) {
-            imageFormat = ImageDataFormat.OmeZarr;
-        } else if ( imgLoader instanceof N5S3OMEZarrImageLoader ) {
-            imageFormat = ImageDataFormat.OmeZarrS3;
-        }
-
-        return imageFormat;
     }
 
     public static File getImageLocationFromSequenceDescription( AbstractSequenceDescription seq, ImageDataFormat imageFormat ) {
@@ -293,4 +206,53 @@ public class ProjectCreatorHelper {
 
         return voxelString;
     }
+
+    private static String replaceMu( String string ) {
+        // Convert the mu symbol into "u" - as udunits can't handle this
+        return  string.replace("\u00B5", "u");
+    }
+
+    public static boolean unitsEqual( String unit1, String unit2 ) throws PrefixDBException, UnitSystemException, SpecificationException, UnitDBException {
+        // check with udunits that units are equivalent
+        UnitFormat unitFormatter = UnitFormatManager.instance();
+        Unit parsedUnit1 = unitFormatter.parse(replaceMu(unit1));
+        Unit parsedUnit2 = unitFormatter.parse(replaceMu(unit2));
+
+        return parsedUnit1.getCanonicalString().equals(parsedUnit2.getCanonicalString());
+    }
+
+    public static boolean isImageValid( int nChannels, String imageUnit, String projectUnit, boolean bdvFormat ) {
+        // reject multi-channel images
+        if ( nChannels > 1 ) {
+            // for bdv format images, don't print the fiji shortcuts
+            String channelMessage = "Multi-channel images are not supported. \n Please split the channels";
+            if ( !bdvFormat ) {
+                IJ.log( channelMessage + " [ Image > Color > Split Channels], and add each separately.");
+            } else {
+                IJ.log(channelMessage + ", and add each separately.");
+            }
+            return false;
+        }
+
+        // reject images with a different unit to the rest of the project
+        try {
+            if ( projectUnit != null && !unitsEqual( imageUnit, projectUnit) ) {
+                String unitMessage = "Image has a different unit (" + imageUnit + ") to the rest of the project (" +
+                        projectUnit + "). \n Please set your image unit";
+                if (! bdvFormat ) {
+                    IJ.log( unitMessage + " under [ Image > Properties... ] to match the project.");
+                } else {
+                    IJ.log( unitMessage + " to match the project." );
+                }
+                return false;
+            }
+        } catch (PrefixDBException | UnitSystemException | SpecificationException | UnitDBException e) {
+            IJ.log("Couldn't parse unit.");
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
 }

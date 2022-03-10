@@ -6,7 +6,6 @@ import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.n5.loaders.xml.XmlIoN5S3ImageLoader;
 import org.embl.mobie.io.ome.zarr.loaders.xml.XmlN5S3OmeZarrImageLoader;
 import org.embl.mobie.viewer.Dataset;
-import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.io.util.FileAndUrlUtils;
@@ -26,7 +25,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 public class RemoteMetadataCreator {
 
@@ -39,6 +37,10 @@ public class RemoteMetadataCreator {
     ImageDataFormat remoteImageDataFormat;
     ImageDataFormat localImageDataFormat;
 
+    /**
+     * Make a remoteMetadataCreator - includes all functions for creation/modification of remote metadata
+     * @param projectCreator projectCreator
+     */
     public RemoteMetadataCreator( ProjectCreator projectCreator ) {
         this.projectCreator = projectCreator;
     }
@@ -77,7 +79,7 @@ public class RemoteMetadataCreator {
         }
     }
 
-    public String getRelativeKey( SpimData spimData, String datasetName, String imageName,
+    private String getRelativeKey( SpimData spimData, String datasetName, String imageName,
                                   ImageDataFormat imageFormat ) throws IOException {
         // check image is within the project folder (if people 'link' to bdv format images they may be outside)
         Path imagePath = Paths.get( ProjectCreatorHelper.getImageLocationFromSequenceDescription( spimData.getSequenceDescription(),
@@ -96,7 +98,7 @@ public class RemoteMetadataCreator {
         return FilenameUtils.separatorsToUnix( relativeKey.toString() );
     }
 
-    public Element createImageLoaderXmlElement ( SpimData spimData,
+    private Element createImageLoaderXmlElement ( SpimData spimData,
                                                  ImageDataFormat imageFormat,
                                                  String datasetName, String imageName ) throws IOException {
         Element element = null;
@@ -113,7 +115,7 @@ public class RemoteMetadataCreator {
         return element;
     }
 
-    public void saveXml( final SpimData spimData, String datasetName, String imagename, final String xmlFile, ImageDataFormat imageFormat ) throws SpimDataException, IOException {
+    private void saveXml( final SpimData spimData, String datasetName, String imagename, final String xmlFile, ImageDataFormat imageFormat ) throws SpimDataException, IOException {
         XmlIoSpimData io = new XmlIoSpimData();
         final File xmlFileDirectory = new File( xmlFile ).getParentFile();
         final Document doc = new Document( io.toXml( spimData, xmlFileDirectory ) );
@@ -200,6 +202,13 @@ public class RemoteMetadataCreator {
         IJ.log( "Done." );
     }
 
+    /**
+     * Add remote metadata. Note this will overwrite any existing remote metadata for the given image format.
+     * @param signingRegion signing region e.g. us-west-2
+     * @param serviceEndpoint service endpoint e.g. https://s3.embl.de
+     * @param bucketName bucket name
+     * @param imageDataFormat image format
+     */
     public void createRemoteMetadata( String signingRegion, String serviceEndpoint, String bucketName, ImageDataFormat imageDataFormat ) {
 
         if ( !imageDataFormat.isRemote() ) {

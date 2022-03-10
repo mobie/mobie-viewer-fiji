@@ -38,6 +38,7 @@ import mpicbg.spim.data.sequence.SequenceDescription;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -54,6 +55,10 @@ public class ImagesCreator {
 
     ProjectCreator projectCreator;
 
+    /**
+     * Make an imagesCreator - includes all functions for adding images to a project
+     * @param projectCreator projectCreator
+     */
     public ImagesCreator( ProjectCreator projectCreator ) {
         this.projectCreator = projectCreator;
     }
@@ -101,6 +106,14 @@ public class ImagesCreator {
         return new File (filePath).exists();
     }
 
+    /**
+     *  Same as
+     *  {@link #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D,
+     *  String, boolean, int[][], int[][], Compression) }, but calculates reasonable defaults for resolutions,
+     *  subdivisions and compression settings.
+     *
+     * @see #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D, String, boolean, int[][], int[][], Compression)
+     */
     public void addImage ( ImagePlus imp, String imageName, String datasetName,
                            ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
                            AffineTransform3D sourceTransform, String uiSelectionGroup,
@@ -110,6 +123,14 @@ public class ImagesCreator {
 
     }
 
+    /**
+     *  Same as
+     *  {@link #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D,
+     *  String, boolean, int[][], int[][], Compression) }, but assumes identity sourceTransform, and calculates
+     *  reasonable defaults for resolutions, subdivisions and compression settings.
+     *
+     * @see #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D, String, boolean, int[][], int[][], Compression)
+     */
     public void addImage ( ImagePlus imp, String imageName, String datasetName,
                            ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
                            String uiSelectionGroup, boolean exclusive ) throws SpimDataException, IOException {
@@ -118,6 +139,13 @@ public class ImagesCreator {
 
     }
 
+    /**
+     *  Same as
+     *  {@link #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D,
+     *  String, boolean, int[][], int[][], Compression) }, but assumes identity sourceTransform
+     *
+     * @see #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D, String, boolean, int[][], int[][], Compression)
+     */
     public void addImage ( ImagePlus imp, String imageName, String datasetName,
                            ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
                            String uiSelectionGroup, boolean exclusive,
@@ -127,7 +155,7 @@ public class ImagesCreator {
     }
 
     /**
-     * Add an image to a MoBIE project. Make sure the ImagePlus scale is set properly, so that imp.getCalibration()
+     * Add an image to a MoBIE project. Make sure the ImagePlus scale and unit is set properly, so that imp.getCalibration()
      * returns the correct values. Note that multi-channel images are not supported - you will need to
      * split these channels and add each as its own image.
      * @param imp image to add
@@ -156,9 +184,17 @@ public class ImagesCreator {
         String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
         File imageFile = new File(filePath);
 
-        if ( imp.getNChannels() > 1 ) {
-            throw new UnsupportedOperationException("Multi-channel images are not supported.\n" +
-                    "Please add each channel individually ([ Image > Color > Split Channels ]).\n" );
+        if ( !isImageValid( imp.getNChannels(), imp.getCalibration().getUnit(),
+                projectCreator.getVoxelUnit(), false ) ) {
+            return;
+        }
+
+        if ( imp.getNDimensions() > 2 && projectCreator.getDataset( datasetName ).is2D ) {
+            throw new UnsupportedOperationException("Can't add a " + imp.getNDimensions() + "D image to a 2D dataset" );
+        }
+
+        if ( projectCreator.getVoxelUnit() == null ) {
+            projectCreator.setVoxelUnit( imp.getCalibration().getUnit() );
         }
 
         if ( imageFile.exists() ) {
@@ -182,21 +218,15 @@ public class ImagesCreator {
 
         // check image written successfully, before writing jsons
         if ( imageFile.exists() ) {
-            boolean is2D;
-            if ( imp.getNDimensions() <= 2 ) {
-                is2D = true;
-            } else {
-                is2D = false;
-            }
             if (imageType == ProjectCreator.ImageType.image) {
                 double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
                 LUT lut = imp.getLuts()[0];
                 String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" +
                         lut.getBlue(255) + ",a=" + lut.getAlpha(255);
-                updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup, is2D,
+                updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup,
                         imp.getNFrames(), imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
             } else {
-                updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup, is2D,
+                updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup,
                         imp.getNFrames(), imageDataFormat, exclusive, sourceTransform );
             }
         }
@@ -302,67 +332,124 @@ public class ImagesCreator {
         }
     }
 
+    /**
+     * Add a bdv format image to a MoBIE project (e.g. N5 or OME-ZARR). Make sure the scale and unit is set properly
+     * in the file. Note that multi-channel images are not supported - you will need to split these channels and add
+     * each as its own image.
+     * @param fileLocation Location of image file to add - for n5, location of the xml,
+     *                     for ome-zarr, the location of the .ome.zarr directory.
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param imageType Image or Segmentation - segmentations will additionally generate a table.
+     * @param addMethod Add method - link (leave image as-is, and link to this location. Only supported for
+     *                  N5 and local projects), copy (copy image into project), or move (move image into project -
+     *                  be careful as this will delete the image from its original location!)
+     * @param uiSelectionGroup Name of MoBIE drop-down menu to place view in
+     * @param imageDataFormat image format
+     * @param exclusive Whether to make the view exclusive.
+     * @throws SpimDataException
+     * @throws IOException
+     */
     public void addBdvFormatImage ( File fileLocation, String imageName, String datasetName,
                                     ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod,
                                     String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
 
         if ( fileLocation.exists() ) {
-
             SpimData spimData = ( SpimData ) new SpimDataOpener().openSpimData( fileLocation.getAbsolutePath(), imageDataFormat );
-            File imageDirectory = new File( getDefaultLocalImageDirPath( datasetName, imageDataFormat ));
-
-            File newImageFile = null;
-            switch( imageDataFormat ) {
-                case BdvN5:
-                    newImageFile = new File(imageDirectory, imageName + ".xml");
-                    // The view setup name must be the same as the image name
-                    spimData = fixSetupName( spimData, imageName );
-                    break;
-
-                case OmeZarr:
-                    newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
-                    break;
-            }
-
-            if ( newImageFile.exists() ) {
-                IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
-                deleteImageFiles( datasetName, imageName, imageDataFormat );
-            }
-
-            // make directory for that image file format, if doesn't exist already
-            File imageDir = new File( newImageFile.getParent() );
-            if ( !imageDir.exists() ) {
-                imageDir.mkdirs();
-            }
-
-            switch (addMethod) {
-                case link:
-                    // TODO - linking currently not supported for ome-zarr
-                    spimData.setBasePath( imageDir );
-                    new XmlIoSpimData().save(spimData, newImageFile.getAbsolutePath());
-                    break;
-                case copy:
-                    copyImage( imageDataFormat, spimData, imageDirectory, imageName);
-                    break;
-                case move:
-                    moveImage( imageDataFormat, spimData, imageDirectory, imageName);
-                    break;
-            }
-
-            if (imageType == ProjectCreator.ImageType.image) {
-                updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup,
-                        isSpimData2D(spimData), getNTimepointsFromSpimData(spimData),
-                        imageDataFormat, new double[]{0.0, 255.0}, "white", exclusive, new AffineTransform3D() );
-            } else {
-                updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup,
-                        isSpimData2D(spimData), getNTimepointsFromSpimData(spimData), imageDataFormat, exclusive,
-                        new AffineTransform3D() );
-            }
-
-            IJ.log( "Bdv format image " + imageName + " added to project" );
+            addBdvFormatImage( spimData, imageName, datasetName, imageType, addMethod, uiSelectionGroup,
+                    imageDataFormat, exclusive );
         } else {
-            IJ.log( "Adding image to project failed - " + fileLocation.getAbsolutePath() + " does not exist" );
+            throw new FileNotFoundException(
+                    "Adding image to project failed - " + fileLocation.getAbsolutePath() + " does not exist" );
         }
+    }
+
+    /**
+     * Add a bdv format image to a MoBIE project (e.g. N5 or OME-ZARR). Make sure the scale and unit is set properly
+     * in the file. Note that multi-channel images are not supported - you will need to split these channels and add
+     * each as its own image.
+     * @param spimData spimData of n5 or ome-zarr file
+     * @param imageName image name
+     * @param datasetName dataset name
+     * @param imageType Image or Segmentation - segmentations will additionally generate a table.
+     * @param addMethod Add method - link (leave image as-is, and link to this location. Only supported for
+     *                  N5 and local projects), copy (copy image into project), or move (move image into project -
+     *                  be careful as this will delete the image from its original location!)
+     * @param uiSelectionGroup Name of MoBIE drop-down menu to place view in
+     * @param imageDataFormat image format
+     * @param exclusive Whether to make the view exclusive.
+     * @throws SpimDataException
+     * @throws IOException
+     */
+    public void addBdvFormatImage ( SpimData spimData, String imageName, String datasetName,
+                                    ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod,
+                                    String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
+
+        File imageDirectory = new File( getDefaultLocalImageDirPath( datasetName, imageDataFormat ));
+
+        int nChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
+        String imageUnit = spimData.getSequenceDescription().getViewSetupsOrdered().get(0).getVoxelSize().unit();
+
+        if ( !isImageValid( nChannels, imageUnit, projectCreator.getVoxelUnit(), true ) ) {
+            return;
+        }
+
+        if ( !isSpimData2D(spimData) && projectCreator.getDataset( datasetName ).is2D ) {
+            throw new UnsupportedOperationException("Can't add a 3D image to a 2D dataset" );
+        }
+
+        if ( projectCreator.getVoxelUnit() == null ) {
+            projectCreator.setVoxelUnit( imageUnit );
+        }
+
+        File newImageFile = null;
+        switch( imageDataFormat ) {
+            case BdvN5:
+                newImageFile = new File(imageDirectory, imageName + ".xml");
+                // The view setup name must be the same as the image name
+                spimData = fixSetupName( spimData, imageName );
+                break;
+
+            case OmeZarr:
+                newImageFile = new File(imageDirectory, imageName + ".ome.zarr" );
+                break;
+        }
+
+        if ( newImageFile.exists() ) {
+            IJ.log("Overwriting image " + imageName + " in dataset " + datasetName );
+            deleteImageFiles( datasetName, imageName, imageDataFormat );
+        }
+
+        // make directory for that image file format, if doesn't exist already
+        File imageDir = new File( newImageFile.getParent() );
+        if ( !imageDir.exists() ) {
+            imageDir.mkdirs();
+        }
+
+        switch (addMethod) {
+            case link:
+                // TODO - linking currently not supported for ome-zarr
+                spimData.setBasePath( imageDir );
+                new XmlIoSpimData().save(spimData, newImageFile.getAbsolutePath());
+                break;
+            case copy:
+                copyImage( imageDataFormat, spimData, imageDirectory, imageName);
+                break;
+            case move:
+                moveImage( imageDataFormat, spimData, imageDirectory, imageName);
+                break;
+        }
+
+        if (imageType == ProjectCreator.ImageType.image) {
+            updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup,
+                    getNTimepointsFromSpimData(spimData), imageDataFormat, new double[]{0.0, 255.0},
+                    "white", exclusive, new AffineTransform3D() );
+        } else {
+            updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup,
+                    getNTimepointsFromSpimData(spimData), imageDataFormat, exclusive, new AffineTransform3D() );
+        }
+
+        IJ.log( "Bdv format image " + imageName + " added to project" );
     }
 
     private ArrayList<Object[]> makeDefaultTableRowsForTimepoint( Source labelsSource, int timepoint, boolean addTimepointColumn ) {
@@ -481,20 +568,20 @@ public class ImagesCreator {
     }
 
     private void updateTableAndJsonsForNewImage ( String imageName, String datasetName, String uiSelectionGroup,
-                                                  boolean is2D, int nTimepoints, ImageDataFormat imageDataFormat,
+                                                  int nTimepoints, ImageDataFormat imageDataFormat,
                                                   double[] contrastLimits, String colour,
                                                   boolean exclusive, AffineTransform3D sourceTransform ) {
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
-        datasetJsonCreator.addImageToDatasetJson( imageName, datasetName, uiSelectionGroup, is2D, nTimepoints,
+        datasetJsonCreator.addImage( imageName, datasetName, uiSelectionGroup, nTimepoints,
                 imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
     }
 
     private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup,
-                                                        boolean is2D, int nTimepoints, ImageDataFormat imageDataFormat,
+                                                        int nTimepoints, ImageDataFormat imageDataFormat,
                                                         boolean exclusive, AffineTransform3D sourceTransform ) {
         addDefaultTableForImage( imageName, datasetName, imageDataFormat );
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
-        datasetJsonCreator.addSegmentationToDatasetJson( imageName, datasetName, uiSelectionGroup, is2D, nTimepoints,
+        datasetJsonCreator.addSegmentation( imageName, datasetName, uiSelectionGroup, nTimepoints,
                 imageDataFormat, exclusive, sourceTransform );
     }
 

@@ -32,11 +32,19 @@ public class DatasetJsonCreator {
         this.projectCreator = projectCreator;
     }
 
-    public void addImageToDatasetJson( String imageName, String datasetName,
-                                      String uiSelectionGroup, boolean is2D, int nTimepoints,
-                                      ImageDataFormat imageDataFormat, double[] contrastLimits, String colour,
-                                      boolean exclusive, AffineTransform3D sourceTransform ) {
-        Dataset dataset = fetchDataset( datasetName, is2D, nTimepoints );
+    public void addDataset( String datasetName, boolean is2D ) {
+        Dataset dataset = new Dataset();
+        dataset.sources = new HashMap<>();
+        dataset.views = new HashMap<>();
+        dataset.is2D = is2D;
+        writeDatasetJson( datasetName, dataset );
+    }
+
+    public void addImage(String imageName, String datasetName,
+                         String uiSelectionGroup, int nTimepoints,
+                         ImageDataFormat imageDataFormat, double[] contrastLimits, String colour,
+                         boolean exclusive, AffineTransform3D sourceTransform ) {
+        Dataset dataset = fetchDataset( datasetName, nTimepoints );
 
         addNewImageSource( dataset, imageName, imageDataFormat );
         if ( uiSelectionGroup != null ) {
@@ -53,10 +61,10 @@ public class DatasetJsonCreator {
         projectCreator.getProjectJsonCreator().addImageDataFormat( imageDataFormat );
     }
 
-    public void addSegmentationToDatasetJson( String imageName, String datasetName, String uiSelectionGroup,
-                                              boolean is2D, int nTimepoints, ImageDataFormat imageDataFormat,
-                                              boolean exclusive, AffineTransform3D sourceTransform ) {
-        Dataset dataset = fetchDataset( datasetName, is2D, nTimepoints );
+    public void addSegmentation(String imageName, String datasetName, String uiSelectionGroup,
+                                int nTimepoints, ImageDataFormat imageDataFormat,
+                                boolean exclusive, AffineTransform3D sourceTransform ) {
+        Dataset dataset = fetchDataset( datasetName, nTimepoints );
 
         addNewSegmentationSource( dataset, imageName, imageDataFormat );
         if ( uiSelectionGroup != null ) {
@@ -73,19 +81,14 @@ public class DatasetJsonCreator {
         projectCreator.getProjectJsonCreator().addImageDataFormat( imageDataFormat );
     }
 
-    private Dataset fetchDataset( String datasetName, boolean is2D, int nTimepoints ) {
+    public void makeDataset2D( String datasetName, boolean is2D ) {
         Dataset dataset = projectCreator.getDataset( datasetName );
-        if ( dataset == null ) {
-            dataset = new Dataset();
-            dataset.sources = new HashMap<>();
-            dataset.views = new HashMap<>();
-            // start new datasets with is2D as true, then for the first 3D image added it can be set to false
-            dataset.is2D = true;
-        }
+        dataset.is2D = is2D;
+        writeDatasetJson( datasetName, dataset );
+    }
 
-        if ( !is2D ) {
-            dataset.is2D = false;
-        }
+    private Dataset fetchDataset( String datasetName, int nTimepoints ) {
+        Dataset dataset = projectCreator.getDataset( datasetName );
 
         if ( nTimepoints > dataset.timepoints ) {
             dataset.timepoints = nTimepoints;

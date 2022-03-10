@@ -1,7 +1,9 @@
 package org.embl.mobie.viewer.projectcreator.ui;
 
+import mpicbg.spim.data.SpimData;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Project;
@@ -17,8 +19,8 @@ import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimDataException;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
-import org.embl.mobie.viewer.ui.SwingHelper;
-import org.embl.mobie.viewer.ui.UserInterfaceHelper;
+import org.embl.mobie.viewer.ui.SwingHelpers;
+import org.embl.mobie.viewer.ui.UserInterfaceHelpers;
 import org.janelia.saalfeldlab.n5.Compression;
 
 import javax.swing.*;
@@ -30,7 +32,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper.getVoxelSizeString;
+import static org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper.*;
 
 public class ProjectsCreatorPanel extends JFrame {
 
@@ -48,10 +50,12 @@ public class ProjectsCreatorPanel extends JFrame {
     private static boolean useDefaultExportSettings = true;
     private static boolean exclusive = false;
     private static boolean useFileNameAsImageName = true;
+    private static String uiSelectionGroup = "Make New Ui Selection Group";
+    private static boolean is2D = false;
 
-    private String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
+    private final String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
             ImageDataFormat.OmeZarr.toString() };
-    private String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
+    private final String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(),
             ProjectCreator.ImageType.segmentation.toString() };
 
 
@@ -90,8 +94,8 @@ public class ProjectsCreatorPanel extends JFrame {
     private void addDatasetPanel() {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-        final JButton addButton = SwingHelper.createButton("Add");
-        final JButton editButton = SwingHelper.createButton("Edit");
+        final JButton addButton = SwingHelpers.createButton("Add");
+        final JButton editButton = SwingHelpers.createButton("Edit");
 
         createDatasetComboBox();
         addButton.addActionListener( e ->
@@ -104,7 +108,7 @@ public class ProjectsCreatorPanel extends JFrame {
             new Thread( () -> { editDatasetDialog(); } ).start();
         } );
 
-        horizontalLayoutPanel.add(SwingHelper.getJLabel("dataset", 60, 10));
+        horizontalLayoutPanel.add( SwingHelpers.getJLabel("dataset", 60, 10));
         horizontalLayoutPanel.add(datasetComboBox);
         horizontalLayoutPanel.add(addButton);
         horizontalLayoutPanel.add(editButton);
@@ -218,7 +222,7 @@ public class ProjectsCreatorPanel extends JFrame {
     private void addSourcesPanel() {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-        final JButton addButton = SwingHelper.createButton( "Add" );
+        final JButton addButton = SwingHelpers.createButton( "Add" );
         // for now we don't support editing any image properties, but this is likely to change in future,
         // so keep this code for now
         // final JButton editButton = createButton("Edit");
@@ -234,10 +238,10 @@ public class ProjectsCreatorPanel extends JFrame {
         //     new Thread( () -> { editImageDialog(); } ).start();
         // } );
 
-        horizontalLayoutPanel.add(SwingHelper.getJLabel("source", 60, 10));
+        horizontalLayoutPanel.add( SwingHelpers.getJLabel("source", 60, 10));
         horizontalLayoutPanel.add(sourcesComboBox);
         horizontalLayoutPanel.add( addButton );
-        horizontalLayoutPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
+        horizontalLayoutPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
         // horizontalLayoutPanel.add( editButton );
         horizontalLayoutPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
@@ -251,14 +255,14 @@ public class ProjectsCreatorPanel extends JFrame {
         createGroupsCombobox();
         createViewsCombobox();
 
-        groupPanel.add(SwingHelper.getJLabel("group", 60, 10));
-        viewsPanel.add(SwingHelper.getJLabel("view", 60, 10));
+        groupPanel.add( SwingHelpers.getJLabel("group", 60, 10));
+        viewsPanel.add( SwingHelpers.getJLabel("view", 60, 10));
         groupPanel.add( groupsComboBox );
         viewsPanel.add( viewsComboBox );
-        groupPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
-        groupPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
-        viewsPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
-        viewsPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
+        groupPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
+        groupPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
+        viewsPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
+        viewsPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
         groupPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
         viewsPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
@@ -407,7 +411,7 @@ public class ProjectsCreatorPanel extends JFrame {
             for (int i = 0; i < currentSelectionGroups.length; i++) {
                 choices[i + 1] = currentSelectionGroups[i];
             }
-            gd.addChoice("Ui Selection Group", choices, choices[0]);
+            gd.addChoice("Ui Selection Group", choices, uiSelectionGroup);
             gd.showDialog();
 
             if ( !gd.wasCanceled() ) {
@@ -445,6 +449,21 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
+    private boolean changeDatasetDimensionDialog( String datasetName ) {
+        int result = JOptionPane.showConfirmDialog(null,
+                "This image is 3D, but the dataset (" + datasetName + ") is 2D. \n" +
+                        "Change the dataset to be 3D?", "Are you sure?",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+        if (result == JOptionPane.YES_OPTION) {
+            projectsCreator.getDatasetsCreator().makeDataset2D( datasetName, false );
+            return true;
+        } else {
+            IJ.log("Adding image aborted - can't add a 3D image to a 2D dataset" );
+            return false;
+        }
+    }
+
     private String imageNameDialog( File imageFile ) {
         final GenericDialog gd = new GenericDialog( "Choose image name..." );
         gd.addStringField( "Image Name", imageFile.getName().split("\\.")[0], 35 );
@@ -454,7 +473,7 @@ public class ProjectsCreatorPanel extends JFrame {
         if ( !gd.wasCanceled() ) {
             imageName = gd.getNextString();
             // tidy up image name, remove any spaces
-            imageName = UserInterfaceHelper.tidyString( imageName );
+            imageName = UserInterfaceHelpers.tidyString( imageName );
         }
         return imageName;
     }
@@ -465,10 +484,15 @@ public class ProjectsCreatorPanel extends JFrame {
         if ( !datasetName.equals("") ) {
             ImagePlus currentImage = IJ.getImage();
 
-            if ( currentImage.getNChannels() > 1 ) {
-                IJ.log("Image " + currentImage.getTitle() + " has multiple channels. \n Please split " +
-                        "the channels [ Image > Color > Split Channels], and add each separately." );
+            if ( !isImageValid( currentImage.getNChannels(), currentImage.getCalibration().getUnit(),
+                    projectsCreator.getVoxelUnit(), false ) ) {
                 return;
+            }
+
+            if ( currentImage.getNDimensions() > 2 && projectsCreator.getDataset( datasetName ).is2D ) {
+                if ( !changeDatasetDimensionDialog(datasetName) ) {
+                    return;
+                }
             }
 
             final GenericDialog gd = new GenericDialog( "Add Current Image To MoBIE Project..." );
@@ -501,7 +525,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 String affineTransform = String.join(",", affineRow1, affineRow2, affineRow3 );
 
                 // tidy up image name, remove any spaces
-                imageName = UserInterfaceHelper.tidyString( imageName );
+                imageName = UserInterfaceHelpers.tidyString( imageName );
                 AffineTransform3D sourceTransform = ProjectCreatorHelper.parseAffineString( affineTransform );
 
                 if ( imageName != null && sourceTransform != null ) {
@@ -515,10 +539,11 @@ public class ProjectsCreatorPanel extends JFrame {
                         return;
                     }
 
-                    String uiSelectionGroup = null;
-                    uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
-                    if ( uiSelectionGroup == null ) {
+                    String chosenUiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
+                    if ( chosenUiSelectionGroup == null ) {
                         return;
+                    } else {
+                        uiSelectionGroup = chosenUiSelectionGroup;
                     }
 
                     try {
@@ -601,36 +626,9 @@ public class ProjectsCreatorPanel extends JFrame {
                 }
 
                 if ( filePath != null ) {
-
-                    File imageFile = new File( filePath );
-                    String imageName = imageFile.getName().split("\\.")[0];
-                    if ( !useFileNameAsImageName ) {
-                        imageName = imageNameDialog( imageFile );
-                        if ( imageName == null ) {
-                            return;
-                        }
-                    }
-
-                    ImagesCreator imagesCreator = projectsCreator.getImagesCreator();
-                    boolean overwriteImage = true;
-                    if ( imagesCreator.imageExists( datasetName, imageName, imageDataFormat ) ) {
-                        overwriteImage = overwriteImageDialog();
-                    }
-                    if ( !overwriteImage ) {
-                        return;
-                    }
-
-                    String uiSelectionGroup = null;
-                    uiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
-                    if ( uiSelectionGroup == null ) {
-                        return;
-                    }
-
                     try {
-                            imagesCreator.addBdvFormatImage(imageFile, imageName, datasetName, imageType,
-                                    addMethod, uiSelectionGroup, imageDataFormat, exclusive);
-                            updateComboBoxesForNewImage(imageName, uiSelectionGroup);
-                    } catch (SpimDataException | IOException e) {
+                        addBdvFile( filePath, datasetName );
+                    } catch (SpimDataException e) {
                         e.printStackTrace();
                     }
                 }
@@ -640,17 +638,69 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
+    private void addBdvFile( String filePath, String datasetName ) throws SpimDataException {
+        SpimData spimData = ( SpimData ) new SpimDataOpener().openSpimData( filePath, imageDataFormat );
+
+        int nChannels = spimData.getSequenceDescription().getViewSetupsOrdered().size();
+        String imageUnit = spimData.getSequenceDescription().getViewSetupsOrdered().get(0).getVoxelSize().unit();
+
+        if ( !isImageValid( nChannels, imageUnit, projectsCreator.getVoxelUnit(), true ) ) {
+            return;
+        }
+
+        if ( !isSpimData2D(spimData) && projectsCreator.getDataset( datasetName ).is2D ) {
+            if ( !changeDatasetDimensionDialog(datasetName) ) {
+                return;
+            }
+        }
+
+        File imageFile = new File( filePath );
+        String imageName = imageFile.getName().split("\\.")[0];
+        if ( !useFileNameAsImageName ) {
+            imageName = imageNameDialog( imageFile );
+            if ( imageName == null ) {
+                return;
+            }
+        }
+
+        ImagesCreator imagesCreator = projectsCreator.getImagesCreator();
+        boolean overwriteImage = true;
+        if ( imagesCreator.imageExists( datasetName, imageName, imageDataFormat ) ) {
+            overwriteImage = overwriteImageDialog();
+        }
+        if ( !overwriteImage ) {
+            return;
+        }
+
+        String chosenUiSelectionGroup = selectUiSelectionGroupDialog(datasetName);
+        if ( chosenUiSelectionGroup == null ) {
+            return;
+        } else {
+            uiSelectionGroup = chosenUiSelectionGroup;
+        }
+
+        try {
+            imagesCreator.addBdvFormatImage(spimData, imageName, datasetName, imageType,
+                    addMethod, uiSelectionGroup, imageDataFormat, exclusive);
+            updateComboBoxesForNewImage(imageName, uiSelectionGroup);
+        } catch (SpimDataException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void addDatasetDialog () {
         final GenericDialog gd = new GenericDialog( "Create a new dataset" );
         gd.addStringField( "Name of dataset", "", 35 );
+        gd.addCheckbox("Limit images and display to only 2D?", is2D );
         gd.showDialog();
 
         if ( !gd.wasCanceled() ) {
             String datasetName = gd.getNextString();
-            datasetName = UserInterfaceHelper.tidyString( datasetName );
+            datasetName = UserInterfaceHelpers.tidyString( datasetName );
+            is2D = gd.getNextBoolean();
 
             if ( datasetName != null ) {
-                projectsCreator.getDatasetsCreator().addDataset(datasetName);
+                projectsCreator.getDatasetsCreator().addDataset( datasetName, is2D );
                 updateDatasetsComboBox( datasetName );
             }
         }
@@ -672,7 +722,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
             if (!gd.wasCanceled()) {
                 String newName = gd.getNextString();
-                newName = UserInterfaceHelper.tidyString( newName );
+                newName = UserInterfaceHelpers.tidyString( newName );
                 if ( newName != null ) {
                     projectsCreator.getDatasetsCreator().renameDataset( oldName, newName );
                     updateDatasetsComboBox( newName );

@@ -14,7 +14,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.File;
-import static org.embl.mobie.viewer.ui.UserInterfaceHelper.tidyString;
+import static org.embl.mobie.viewer.ui.UserInterfaceHelpers.tidyString;
 
 @Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME ZARR>Export Current Image To OME-ZARR...")
 public class WriteOMEZARRCommand implements Command {

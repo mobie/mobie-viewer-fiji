@@ -37,7 +37,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 	public static final String UNDO_SEGMENT_SELECTIONS = "Undo Segment Selections [ Ctrl Shift N ]";
 	public static final String CHANGE_RANDOM_COLOR_SEED = "Change Random Color Seed";
 	public static final String LOAD_ADDITIONAL_VIEWS = "Load Additional Views";
-	public static final String SAVE_CURRENT_SETTINGS_AS_VIEW = "Save Current Settings As View";
+	public static final String SAVE_CURRENT_SETTINGS_AS_VIEW = "Save Current View";
 	private final SourceAndConverterBdvDisplayService sacDisplayService;
 	private BdvHandle bdvHandle;
 	private final boolean is2D;

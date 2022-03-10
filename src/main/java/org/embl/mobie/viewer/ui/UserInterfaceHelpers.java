@@ -42,15 +42,15 @@ import java.net.URL;
 import java.util.*;
 import java.util.List;
 
-public class UserInterfaceHelper
+import static org.embl.mobie.viewer.ui.SwingHelpers.TEXT_FIELD_HEIGHT;
+
+public class UserInterfaceHelpers
 {
 	private static final Dimension PREFERRED_BUTTON_SIZE = new Dimension( 30, 30 );
 	private static final Dimension PREFERRED_CHECKBOX_SIZE = new Dimension( 40, 30 );
 	private static final Dimension PREFERRED_SPACE_SIZE = new Dimension( 10, 30 );
-	private static final String VIEW = "view";
 	private static final String MOVE = "move";
 	private static final String HELP = "show";
-	private static final String SWITCH = "switch";
 	private static final String LEVEL = "level";
 	private static final String ADD = "view";
 	public static final int SPACING = 20;
@@ -61,7 +61,7 @@ public class UserInterfaceHelper
 	private Map< String, Map< String, View> > groupingsToViews;
 	private Map< String, JComboBox > groupingsToComboBox;
 
-	public UserInterfaceHelper( MoBIE moBIE )
+	public UserInterfaceHelpers( MoBIE moBIE )
 	{
 		this.moBIE = moBIE;
 	}
@@ -95,41 +95,46 @@ public class UserInterfaceHelper
 
 	public static void showBrightnessDialog(
 			String name,
-			List< ConverterSetup > converterSetups,
-			double rangeMin,
-			double rangeMax )
+			List< ConverterSetup > converterSetups )
 	{
 		JFrame frame = new JFrame( name );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
-		final double currentRangeMin = converterSetups.get( 0 ).getDisplayRangeMin();
-		final double currentRangeMax = converterSetups.get( 0 ).getDisplayRangeMax();
+		final double currentContrastLimitsMin = converterSetups.get( 0 ).getDisplayRangeMin();
+		final double currentContrastLimitsMax = converterSetups.get( 0 ).getDisplayRangeMax();
+		final double absCurrentRange = Math.abs( currentContrastLimitsMax - currentContrastLimitsMin );
+
+		final double rangeFactor = 1.0; // could be changed...
+
+		final double rangeMin = currentContrastLimitsMin - rangeFactor * absCurrentRange;
+		final double rangeMax = currentContrastLimitsMax + rangeFactor * absCurrentRange;
 
 		final BoundedValueDouble min =
 				new BoundedValueDouble(
 						rangeMin,
 						rangeMax,
-						currentRangeMin );
+						currentContrastLimitsMin );
 
 		final BoundedValueDouble max =
 				new BoundedValueDouble(
 						rangeMin,
 						rangeMax,
-						currentRangeMax );
+						currentContrastLimitsMax );
 
-		double spinnerStepSize = Math.abs( currentRangeMax - currentRangeMin ) / 100.0;
+
+		double spinnerStepSize = absCurrentRange / 100.0;
 
 		JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
 		final SliderPanelDouble minSlider =
 				new SliderPanelDouble( "Min", min, spinnerStepSize );
 		minSlider.setNumColummns( 7 );
-		minSlider.setDecimalFormat( "####E0" );
+		//minSlider.setDecimalFormat( "####E0" );
 
 		final SliderPanelDouble maxSlider =
 				new SliderPanelDouble( "Max", max, spinnerStepSize );
 		maxSlider.setNumColummns( 7 );
-		maxSlider.setDecimalFormat( "####E0" );
+		//maxSlider.setDecimalFormat( "####E0" );
 
 		final BrightnessUpdateListener brightnessUpdateListener = new BrightnessUpdateListener( min, max, minSlider, maxSlider, converterSetups );
 
@@ -191,7 +196,6 @@ public class UserInterfaceHelper
 		frame.setResizable( false );
 		frame.pack();
 		frame.setVisible( true );
-
 	}
 
 	public JPanel createAnnotatedIntervalDisplaySettingsPanel( AnnotatedIntervalDisplay display )
@@ -258,6 +262,7 @@ public class UserInterfaceHelper
 		panel.add( createDatasetSelectionPanel() );
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		panel.add( createViewsSelectionPanel() );
+
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		panel.add( createMoveToLocationPanel()  );
 
@@ -365,7 +370,8 @@ public class UserInterfaceHelper
 		return viewSelectionPanel;
 	}
 
-	public void addViewsToSelectionPanel( Map< String, View > views ) {
+	public void addViewsToSelectionPanel( Map< String, View > views )
+	{
 		for ( String viewName : views.keySet() )
 		{
 			final View view = views.get( viewName );
@@ -419,7 +425,8 @@ public class UserInterfaceHelper
 			}
 		}
 
-		viewsSelectionPanelHeight = groupingsToViews.keySet().size() * 40;
+		viewSelectionPanel.add( createRemoveAllViewsPanel( moBIE ) );
+		viewsSelectionPanelHeight = ( groupingsToViews.keySet().size() + 1 ) * 40;
 	}
 
 	public Map< String, Map< String, View > > getGroupingsToViews()
@@ -441,13 +448,36 @@ public class UserInterfaceHelper
 		return groupingsToViews.keySet();
 	}
 
+	private JPanel createRemoveAllViewsPanel( MoBIE moBIE )
+	{
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+
+		final JButton button = SwingHelpers.createButton( "clear", new Dimension( 80, TEXT_FIELD_HEIGHT ) );
+		button.addActionListener( e ->
+		{
+			SwingUtilities.invokeLater( () ->
+			{
+				new Thread( () ->
+				{
+					moBIE.getViewManager().removeAllSourceDisplays();
+				}).start();
+			} );
+		} );
+
+		horizontalLayoutPanel.add( SwingHelpers.getJLabel( "" ) );
+		horizontalLayoutPanel.add( SwingHelpers.getJLabel( "" ) );
+		horizontalLayoutPanel.add( button );
+
+		return horizontalLayoutPanel;
+	}
+
 	private JPanel createViewSelectionPanel(MoBIE moBIE, String panelName, Map< String, View > views )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		final JComboBox< String > comboBox = new JComboBox<>( views.keySet().toArray( new String[ 0 ] ) );
 
-		final JButton button = SwingHelper.createButton( ADD );
+		final JButton button = SwingHelpers.createButton( ADD );
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -462,9 +492,9 @@ public class UserInterfaceHelper
 			} );
 		} );
 
-		SwingHelper.setComboBoxDimensions( comboBox );
+		SwingHelpers.setComboBoxDimensions( comboBox );
 
-		horizontalLayoutPanel.add( SwingHelper.getJLabel( panelName ) );
+		horizontalLayoutPanel.add( SwingHelpers.getJLabel( panelName ) );
 		horizontalLayoutPanel.add( comboBox );
 		horizontalLayoutPanel.add( button );
 
@@ -473,30 +503,14 @@ public class UserInterfaceHelper
 		return horizontalLayoutPanel;
 	}
 
-	// Levelling vector for MoBIE:
-	// private double[] defaultTargetNormalVector = new double[]{0.70,0.56,0.43};
-	public JPanel createLevelingPanel( double[] levelingVector )
-	{
-		final double[] targetNormalVector = Arrays.copyOf( levelingVector, 3 );
-
-		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-
-		final JButton button = SwingHelper.createButton( LEVEL );
-		horizontalLayoutPanel.add( button );
-
-		button.addActionListener( e -> BdvUtils.levelCurrentView( moBIE.getViewManager().getSliceViewer().getBdvHandle(), targetNormalVector ) );
-
-		return horizontalLayoutPanel;
-	}
-
 	public JPanel createMoveToLocationPanel( )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-		final JButton button = SwingHelper.createButton( MOVE );
+		final JButton button = SwingHelpers.createButton( MOVE );
 
 		final JTextField jTextField = new JTextField( "{\"position\":[120.5,115.3,201.5]}" );
-		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, SwingHelper.TEXT_FIELD_HEIGHT ) );
-		jTextField.setMaximumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setPreferredSize( new Dimension( SwingHelpers.COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
+		jTextField.setMaximumSize( new Dimension( SwingHelpers.COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		button.addActionListener( e ->
 		{
 			final Gson gson = JsonHelper.buildGson( false );
@@ -504,7 +518,7 @@ public class UserInterfaceHelper
 			MoBIEViewerTransformChanger.changeViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
 		} );
 
-		horizontalLayoutPanel.add( SwingHelper.getJLabel( "location" ) );
+		horizontalLayoutPanel.add( SwingHelpers.getJLabel( "location" ) );
 		horizontalLayoutPanel.add( jTextField );
 		horizontalLayoutPanel.add( button );
 
@@ -515,12 +529,12 @@ public class UserInterfaceHelper
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = SwingHelper.createButton( HELP );
+		final JButton button = SwingHelpers.createButton( HELP );
 
 		final MoBIEInfo moBIEInfo = new MoBIEInfo( projectLocation, publicationURL );
 
 		final JComboBox< String > comboBox = new JComboBox<>( moBIEInfo.getInfoChoices() );
-		SwingHelper.setComboBoxDimensions( comboBox );
+		SwingHelpers.setComboBoxDimensions( comboBox );
 
 		button.addActionListener( e -> {
 			moBIEInfo.showInfo( ( String ) comboBox.getSelectedItem() );
@@ -541,7 +555,7 @@ public class UserInterfaceHelper
 
 	public ImageIcon createMobieIcon( int size )
 	{
-		final URL resource = UserInterfaceHelper.class.getResource( "/mobie.jpeg" );
+		final URL resource = UserInterfaceHelpers.class.getResource( "/mobie.jpeg" );
 		final ImageIcon imageIcon = new ImageIcon( resource );
 		final Image scaledInstance = imageIcon.getImage().getScaledInstance( size, size, Image.SCALE_SMOOTH );
 		return new ImageIcon( scaledInstance );
@@ -553,7 +567,7 @@ public class UserInterfaceHelper
 
 		final JComboBox< String > comboBox = new JComboBox<>( moBIE.getDatasets().toArray( new String[ 0 ] ) );
 
-		final JButton button = SwingHelper.createButton( ADD );
+		final JButton button = SwingHelpers.createButton( ADD );
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -564,9 +578,9 @@ public class UserInterfaceHelper
 		} );
 
 		comboBox.setSelectedItem( moBIE.getDatasetName() );
-		SwingHelper.setComboBoxDimensions( comboBox );
+		SwingHelpers.setComboBoxDimensions( comboBox );
 
-		panel.add( SwingHelper.getJLabel( "dataset" ) );
+		panel.add( SwingHelpers.getJLabel( "dataset" ) );
 		panel.add( comboBox );
 		panel.add( button );
 
@@ -756,11 +770,9 @@ public class UserInterfaceHelper
 				converterSetups.add( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ) );
 			}
 
-			UserInterfaceHelper.showBrightnessDialog(
+			UserInterfaceHelpers.showBrightnessDialog(
 					imageDisplay.getName(),
-					converterSetups,
-					0,   // TODO: determine somehow...
-					65535 );
+					converterSetups);
 		} );
 
 		return button;
@@ -785,7 +797,7 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			UserInterfaceHelper.showOpacityDialog(
+			UserInterfaceHelpers.showOpacityDialog(
 					name,
 					sourceAndConverters,
 					bdvHandle );
@@ -845,7 +857,9 @@ public class UserInterfaceHelper
 
 		removeButton.addActionListener( e ->
 		{
-			moBIE.getViewManager().removeSourceDisplay( sourceDisplay );
+			// remove the display but do not close the ImgLoader
+			// because some derived sources may currently be shown
+			moBIE.getViewManager().removeSourceDisplay( sourceDisplay, false );
 		} );
 
 		return removeButton;

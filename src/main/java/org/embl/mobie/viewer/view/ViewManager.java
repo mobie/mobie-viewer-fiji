@@ -362,7 +362,7 @@ public class ViewManager
 		currentSourceDisplays.add( sourceDisplay );
 	}
 
-	public void removeAllSourceDisplays()
+	public synchronized void removeAllSourceDisplays()
 	{
 		// create a copy of the currently shown displays...
 		final ArrayList< SourceDisplay > currentSourceDisplays = new ArrayList<>( this.currentSourceDisplays ) ;
@@ -373,7 +373,8 @@ public class ViewManager
 		{
 			// removes display from all viewers and
 			// also from the list of currently shown sourceDisplays
-			removeSourceDisplay( sourceDisplay );
+			// also close all ImgLoaders to free the cache
+			removeSourceDisplay( sourceDisplay, true );
 		}
 	}
 
@@ -382,7 +383,6 @@ public class ViewManager
 		imageDisplay.sliceViewer = sliceViewer;
 		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle );
 		initImageVolumeViewer( imageDisplay );
-
 	}
 
 	// compare with initSegmentationVolumeViewer
@@ -523,12 +523,12 @@ public class ViewManager
 		}
 	}
 
-	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay )
+	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay, boolean closeImgLoader )
 	{
 		if ( sourceDisplay instanceof SegmentationSourceDisplay )
 		{
 			final SegmentationSourceDisplay segmentationDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
-			segmentationDisplay.sliceView.close();
+			segmentationDisplay.sliceView.close( closeImgLoader );
 			if ( segmentationDisplay.tableRows != null )
 			{
 				segmentationDisplay.tableViewer.close();
@@ -539,13 +539,13 @@ public class ViewManager
 		else if ( sourceDisplay instanceof ImageSourceDisplay )
 		{
 			final ImageSourceDisplay imageDisplay = ( ImageSourceDisplay ) sourceDisplay;
-			imageDisplay.imageSliceView.close();
+			imageDisplay.imageSliceView.close( false );
 		}
 		else if ( sourceDisplay instanceof AnnotatedIntervalDisplay )
 		{
 			// TODO: Code duplication (sourceDisplay instanceof SegmentationSourceDisplay)
 			final AnnotatedIntervalDisplay annotatedIntervalDisplay = ( AnnotatedIntervalDisplay ) sourceDisplay;
-			annotatedIntervalDisplay.sliceView.close();
+			annotatedIntervalDisplay.sliceView.close( false );
 			annotatedIntervalDisplay.tableViewer.close();
 			annotatedIntervalDisplay.scatterPlotViewer.close();
 		}

@@ -12,11 +12,20 @@ public class DatasetsCreator {
 
     private ProjectCreator projectCreator;
 
+    /**
+     * Make a datasetsCreator - includes all functions for creating and modifying datasets in projects
+     * @param projectCreator projectCreator
+     */
     public DatasetsCreator(ProjectCreator projectCreator ) {
         this.projectCreator = projectCreator;
     }
 
-    public void addDataset ( String datasetName ) {
+    /**
+     * Create a new, empty dataset
+     * @param datasetName dataset name
+     * @param is2D whether dataset only contains 2D images
+     */
+    public void addDataset ( String datasetName, boolean is2D ) {
         List<String> currentDatasets = projectCreator.getProject().getDatasets();
         boolean contains = currentDatasets.contains(datasetName);
         if ( !contains ) {
@@ -34,6 +43,9 @@ public class DatasetsCreator {
 
                 // update project json
                 projectCreator.getProjectJsonCreator().addDataset( datasetName );
+
+                // create dataset json
+                projectCreator.getDatasetJsonCreator().addDataset( datasetName, is2D );
             } else {
                 IJ.log( "Dataset creation failed - this name already exists" );
             }
@@ -42,6 +54,11 @@ public class DatasetsCreator {
         }
     }
 
+    /**
+     * Rename an existing dataset
+     * @param oldName old dataset name
+     * @param newName new dataset name
+     */
     public void renameDataset( String oldName, String newName ) {
 
         if ( !newName.equals(oldName) ) {
@@ -71,8 +88,22 @@ public class DatasetsCreator {
 
     }
 
+    /**
+     * Make the dataset the default when MoBIE is opened
+     * @param datasetName dataset name
+     */
     public void makeDefaultDataset ( String datasetName ) {
         projectCreator.getProjectJsonCreator().setDefaultDataset( datasetName );
+    }
+
+
+    /**
+     * Make a dataset 2D or 3D
+     * @param datasetName dataset name
+     * @param is2D 2D or not
+     */
+    public void makeDataset2D( String datasetName, boolean is2D ) {
+        projectCreator.getDatasetJsonCreator().makeDataset2D( datasetName, is2D );
     }
 
 }
