@@ -265,6 +265,7 @@ public class UserInterfaceHelpers
 
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		panel.add( createMoveToLocationPanel()  );
+		panel.add( createRemoveAllViewsPanel( moBIE ) );
 
 		return panel;
 	}
@@ -425,8 +426,7 @@ public class UserInterfaceHelpers
 			}
 		}
 
-		viewSelectionPanel.add( createRemoveAllViewsPanel( moBIE ) );
-		viewsSelectionPanelHeight = ( groupingsToViews.keySet().size() + 1 ) * 40;
+		viewsSelectionPanelHeight = groupingsToViews.keySet().size() * 40;
 	}
 
 	public Map< String, Map< String, View > > getGroupingsToViews()
@@ -450,9 +450,14 @@ public class UserInterfaceHelpers
 
 	private JPanel createRemoveAllViewsPanel( MoBIE moBIE )
 	{
-		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+		panel.add(Box.createHorizontalGlue());
+		panel.setAlignmentX(0.0F);
 
 		final JButton button = SwingHelpers.createButton( "clear", new Dimension( 80, TEXT_FIELD_HEIGHT ) );
+		button.setAlignmentX(Component.CENTER_ALIGNMENT);
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -464,11 +469,8 @@ public class UserInterfaceHelpers
 			} );
 		} );
 
-		horizontalLayoutPanel.add( SwingHelpers.getJLabel( "" ) );
-		horizontalLayoutPanel.add( SwingHelpers.getJLabel( "" ) );
-		horizontalLayoutPanel.add( button );
-
-		return horizontalLayoutPanel;
+		panel.add( button );
+		return panel;
 	}
 
 	private JPanel createViewSelectionPanel(MoBIE moBIE, String panelName, Map< String, View > views )
