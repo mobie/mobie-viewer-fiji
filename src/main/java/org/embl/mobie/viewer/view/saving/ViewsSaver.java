@@ -144,7 +144,7 @@ public class ViewsSaver {
     }
 
     private String chooseFileSystemJson() {
-        String jsonPath = MoBIEUtils.selectSavePathFromFileSystem( "json" );
+        String jsonPath = MoBIEUtils.selectFilePath( "json", "json file", false );
 
         if ( jsonPath != null && !jsonPath.endsWith(".json") ) {
                 jsonPath += ".json";
@@ -154,26 +154,30 @@ public class ViewsSaver {
     }
 
     private void saveNewViewToFileSystem( View view, String viewName ) {
-        String jsonPath = chooseFileSystemJson();
-        if ( jsonPath != null ) {
-            try {
-                saveNewViewToAdditionalViewsJson( view, viewName, jsonPath );
-                addViewToUi( viewName, view );
-            } catch (IOException e) {
-                e.printStackTrace();
+        new Thread( () -> {
+            String jsonPath = chooseFileSystemJson();
+            if ( jsonPath != null ) {
+                try {
+                    saveNewViewToAdditionalViewsJson( view, viewName, jsonPath );
+                    addViewToUi( viewName, view );
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        }
+        }).start();
     }
 
     private void overwriteExistingViewOnFileSystem( View view ) {
-        String jsonPath = chooseFileSystemJson();
-        if ( jsonPath != null ) {
-            try {
-                overwriteExistingViewInAdditionalViewsJson( view, jsonPath );
-            } catch (IOException e) {
-                e.printStackTrace();
+        new Thread( () -> {
+            String jsonPath = chooseFileSystemJson();
+            if ( jsonPath != null ) {
+                try {
+                    overwriteExistingViewInAdditionalViewsJson( view, jsonPath );
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        }
+        }).start();
     }
 
     private void saveNewViewToProject( View view, String viewName, ProjectSaveLocation projectSaveLocation ) {

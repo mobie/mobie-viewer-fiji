@@ -53,10 +53,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -459,7 +456,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private void loadColumnsFromFileSystem()
 	{
-		String path = selectOpenPathFromFileSystem( "Table" );
+		String path = selectFilePath( null, "Table", true );
 
 		if ( path != null ) {
 			new Thread( () -> {
@@ -494,28 +491,24 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	{
 		final JMenuItem menuItem = new JMenuItem( "Load Columns..." );
 		menuItem.addActionListener( e ->
-				SwingUtilities.invokeLater( () ->
-				{
+				new Thread( () -> {
 					FileLocation fileLocation;
-					if ( sourceNameToTableDir.size() > 1 ) {
+					if (sourceNameToTableDir.size() > 1) {
 						// For multi-source tables, we only allow loading from the project
 						fileLocation = FileLocation.Project;
 					} else {
 						fileLocation = loadFromProjectOrFileSystemDialog();
-						if ( fileLocation == null )
+						if (fileLocation == null)
 							return;
 					}
 
 
-					if ( fileLocation == FileLocation.Project )
-					{
+					if (fileLocation == FileLocation.Project) {
 						loadColumnsFromProject();
-					}
-					else
-					{
+					} else {
 						loadColumnsFromFileSystem();
 					}
-				} ) );
+				}).start() );
 
 		return menuItem;
 	}
