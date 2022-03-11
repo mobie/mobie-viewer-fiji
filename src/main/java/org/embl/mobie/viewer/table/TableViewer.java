@@ -491,28 +491,24 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	{
 		final JMenuItem menuItem = new JMenuItem( "Load Columns..." );
 		menuItem.addActionListener( e ->
-				SwingUtilities.invokeLater( () ->
-				{
+				new Thread( () -> {
 					FileLocation fileLocation;
-					if ( sourceNameToTableDir.size() > 1 ) {
+					if (sourceNameToTableDir.size() > 1) {
 						// For multi-source tables, we only allow loading from the project
 						fileLocation = FileLocation.Project;
 					} else {
 						fileLocation = loadFromProjectOrFileSystemDialog();
-						if ( fileLocation == null )
+						if (fileLocation == null)
 							return;
 					}
 
 
-					if ( fileLocation == FileLocation.Project )
-					{
+					if (fileLocation == FileLocation.Project) {
 						loadColumnsFromProject();
-					}
-					else
-					{
+					} else {
 						loadColumnsFromFileSystem();
 					}
-				} ) );
+				}).start() );
 
 		return menuItem;
 	}
