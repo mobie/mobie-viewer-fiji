@@ -53,10 +53,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -459,7 +456,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private void loadColumnsFromFileSystem()
 	{
-		String path = selectOpenPathFromFileSystem( "Table" );
+		String path = selectFilePath( null, "Table", true );
 
 		if ( path != null ) {
 			new Thread( () -> {

@@ -182,7 +182,7 @@ public class ProjectCreatorHelper {
     }
 
     public static String chooseNewSelectionGroupNameDialog() {
-        final GenericDialog gd = new GenericDialog("Choose ui selection group Name:");
+        final GenericDialog gd = new GenericDialog("Choose ui selection group name:");
 
         gd.addStringField("New ui selection group name:", "", 25 );
         gd.showDialog();

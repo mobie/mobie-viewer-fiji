@@ -190,26 +190,38 @@ public abstract class MoBIEUtils
 
 	public static File lastSelectedDir;
 
-	private static void setLastSelectedDir( String filePath ) {
-		File selectedFile = new File( filePath );
-		if ( selectedFile.isDirectory() ) {
-			lastSelectedDir = selectedFile;
-		} else {
-			lastSelectedDir = selectedFile.getParentFile();
+	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
+	public static String selectFilePath( String fileExtension, String objectName, boolean open ) {
+		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
+		if ( fileExtension != null ) {
+			jFileChooser.setFileFilter(new FileNameExtensionFilter(fileExtension, fileExtension));
 		}
+		jFileChooser.setDialogTitle( "Select " + objectName );
+		return selectPath( jFileChooser, open );
 	}
 
 	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
-	public static String selectOpenPathFromFileSystem( String objectName, String fileExtension ) {
+	public static String selectDirectoryPath( String objectName, boolean open ) {
+		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
+		jFileChooser.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
+		jFileChooser.setDialogTitle( "Select " + objectName );
+		return selectPath( jFileChooser, open );
+	}
+
+	private static String selectPath( JFileChooser jFileChooser, boolean open ) {
 		final AtomicBoolean isDone = new AtomicBoolean( false );
 		final String[] path = new String[ 1 ];
 		Runnable r = () -> {
-			final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
-			jFileChooser.setFileFilter(new FileNameExtensionFilter( fileExtension, fileExtension ));
-			path[ 0 ] = selectOpenPathFromFileSystem( objectName, jFileChooser );
+			if ( open ) {
+				path[0] = selectOpenPathFromFileSystem( jFileChooser);
+			} else {
+				path[0] = selectSavePathFromFileSystem( jFileChooser );
+			}
 			isDone.set( true );
 		};
+
 		SwingUtilities.invokeLater(r);
+
 		while ( ! isDone.get() ){
 			try {
 				Thread.sleep( 100 );
@@ -219,43 +231,31 @@ public abstract class MoBIEUtils
 		return path[ 0 ];
 	}
 
-	public static String selectOpenPathFromFileSystem( String objectName ) {
-		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
-		return selectOpenPathFromFileSystem( objectName, jFileChooser );
+	private static void setLastSelectedDir( String filePath ) {
+		File selectedFile = new File( filePath );
+		if ( selectedFile.isDirectory() ) {
+			lastSelectedDir = selectedFile;
+		} else {
+			lastSelectedDir = selectedFile.getParentFile();
+		}
 	}
 
-	public static String selectOpenPathFromFileSystem( String objectName, JFileChooser jFileChooser ) {
+	public static String selectOpenPathFromFileSystem( JFileChooser jFileChooser ) {
 		String filePath = null;
-		jFileChooser.setDialogTitle( "Select " + objectName );
 		if (jFileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 			filePath = jFileChooser.getSelectedFile().getAbsolutePath();
 			setLastSelectedDir( filePath );
 		}
-
 		return filePath;
 	}
 
-	public static String selectOpenDirFromFileSystem( String objectName ) {
-		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
-		return selectOpenDirFromFileSystem( objectName, jFileChooser );
-	}
-
-	public static String selectOpenDirFromFileSystem( String objectName, JFileChooser jFileChooser ) {
-		jFileChooser.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
-		return selectOpenPathFromFileSystem( objectName, jFileChooser );
-	}
-
-	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
-	public static String selectSavePathFromFileSystem( String fileExtension )
+	public static String selectSavePathFromFileSystem( JFileChooser jFileChooser )
 	{
 		String filePath = null;
-		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
-		jFileChooser.setFileFilter(new FileNameExtensionFilter( fileExtension, fileExtension ));
 		if (jFileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 			filePath = jFileChooser.getSelectedFile().getAbsolutePath();
 			setLastSelectedDir( filePath );
 		}
-
 		return filePath;
 	}
 

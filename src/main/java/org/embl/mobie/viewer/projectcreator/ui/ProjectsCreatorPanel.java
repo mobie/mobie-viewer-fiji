@@ -632,10 +632,11 @@ public class ProjectsCreatorPanel extends JFrame {
         switch ( imageDataFormat )
         {
             case BdvN5:
-                return MoBIEUtils.selectOpenPathFromFileSystem( "bdv .xml file", "xml" );
+                return MoBIEUtils.selectFilePath( "xml", "bdv .xml file", true );
 
             case OmeZarr:
-                String filePath = MoBIEUtils.selectOpenDirFromFileSystem( ".ome.zarr file" );
+                String filePath = MoBIEUtils.selectDirectoryPath( ".ome.zarr file", true );
+
                 // quick check that basic criteria for ome-zarr are met i.e. contains right files in top of dir
                 if ( ! isValidOMEZarr( filePath ) )
                 {

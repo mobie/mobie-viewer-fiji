@@ -29,7 +29,7 @@ public class AdditionalViewsLoader {
             if ( fileLocation == MoBIEUtils.FileLocation.Project ) {
                 selectedFilePath = MoBIEUtils.selectPathFromProject( moBIE.getDatasetPath("misc", "views" ), "View" );
             } else {
-                selectedFilePath = MoBIEUtils.selectOpenPathFromFileSystem( "View" );
+                selectedFilePath = MoBIEUtils.selectFilePath( "json", "View", true );
             }
 
             if (selectedFilePath != null) {
