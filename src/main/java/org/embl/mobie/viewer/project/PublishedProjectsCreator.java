@@ -30,6 +30,13 @@ public class PublishedProjectsCreator
 		covidFIBProject.pulicationURL = "https://www.sciencedirect.com/science/article/pii/S193131282030620X";
 
 		publishedProjects.put( covidFIBProject.name, covidFIBProject );
+		
+		final PublishedProject dAPEX2Project = new PublishedProject();
+		dAPEX2Project.name = "Ayuso-Jimeno et al. (2022) PAG-dAPEX2 FIB-SEM, bioRxiv";
+		dAPEX2Project.location = "https://github.com/mobie/pag-dapex2-fibsem";
+		dAPEX2Project.pulicationURL = "https://www.biorxiv.org/content/10.1101/2021.12.13.472405v1";
+
+		publishedProjects.put( dAPEX2Project.name, dAPEX2Project );
 
 	}
 
