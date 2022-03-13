@@ -44,7 +44,7 @@ public abstract class MoBIEViewerTransformChanger
 		}
 		else if ( viewerTransform instanceof NormalizedAffineViewerTransform )
 		{
-			final AffineTransform3D transform = MoBIEUtils.createUnnormalizedViewerTransform( MoBIEUtils.asAffineTransform3D( viewerTransform.getParameters() ), bdv );
+			final AffineTransform3D transform = TransformHelper.createUnnormalizedViewerTransform( MoBIEUtils.asAffineTransform3D( viewerTransform.getParameters() ), bdv.getBdvHandle().getViewerPanel() );
 			changeViewerTransform( bdv, transform, animationDurationMillis );
 			adaptTimepoint( bdv, viewerTransform );
 		}
@@ -106,7 +106,7 @@ public abstract class MoBIEViewerTransformChanger
 		}
 
 		newViewerTransform.translate( locationOfTargetCoordinatesInCurrentViewer );
-		final double[] bdvWindowCenter = BdvPlaygroundUtils.getWindowCentreInPixelUnits( bdv );
+		final double[] bdvWindowCenter = BdvPlaygroundUtils.getWindowCentreInPixelUnits( bdv.getViewerPanel() );
 		newViewerTransform.translate( bdvWindowCenter );
 
 		if ( durationMillis <= 0 )

@@ -1,18 +1,12 @@
 package org.embl.mobie.viewer.playground;
 
-import bdv.SpimSource;
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
-import bdv.util.ResampledSource;
 import bdv.viewer.Source;
+import bdv.viewer.ViewerPanel;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
-import org.embl.mobie.viewer.source.LabelSource;
-import org.embl.mobie.viewer.transform.MergedGridSource;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 import static de.embl.cba.tables.Utils.getVoxelSpacings;
 
@@ -23,17 +17,17 @@ import static de.embl.cba.tables.Utils.getVoxelSpacings;
  */
 public class BdvPlaygroundUtils
 {
-	public static double[] getWindowCentreInPixelUnits( BdvHandle bdvHandle )
+	public static double[] getWindowCentreInPixelUnits( ViewerPanel viewerPanel )
 	{
 		final double[] windowCentreInPixelUnits = new double[ 3 ];
-		windowCentreInPixelUnits[ 0 ] = bdvHandle.getViewerPanel().getDisplay().getWidth() / 2.0;
-		windowCentreInPixelUnits[ 1 ] = bdvHandle.getViewerPanel().getDisplay().getHeight() / 2.0;
+		windowCentreInPixelUnits[ 0 ] = viewerPanel.getDisplay().getWidth() / 2.0;
+		windowCentreInPixelUnits[ 1 ] = viewerPanel.getDisplay().getHeight() / 2.0;
 		return windowCentreInPixelUnits;
 	}
 
 	public static double[] getWindowCentreInCalibratedUnits( BdvHandle bdvHandle )
 	{
-		final double[] centreInPixelUnits = getWindowCentreInPixelUnits( bdvHandle );
+		final double[] centreInPixelUnits = getWindowCentreInPixelUnits( bdvHandle.getViewerPanel() );
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		bdvHandle.getViewerPanel().state().getViewerTransform( affineTransform3D );
 		final double[] centreInCalibratedUnits = new double[ 3 ];

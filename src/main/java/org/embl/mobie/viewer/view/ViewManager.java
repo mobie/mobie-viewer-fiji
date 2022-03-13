@@ -13,7 +13,6 @@ import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
@@ -35,6 +34,7 @@ import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SourceTransformer;
+import org.embl.mobie.viewer.transform.TransformHelper;
 import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
@@ -239,8 +239,7 @@ public class ViewManager
 
 		if ( includeViewerTransform )
 		{
-			AffineTransform3D normalisedViewTransform = MoBIEUtils.createNormalisedViewerTransform( bdvHandle,
-					BdvPlaygroundUtils.getWindowCentreInPixelUnits( bdvHandle ) );
+			AffineTransform3D normalisedViewTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
 
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
 			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, transform, isExclusive);

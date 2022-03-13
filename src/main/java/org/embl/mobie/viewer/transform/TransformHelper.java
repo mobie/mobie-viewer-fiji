@@ -2,7 +2,10 @@ package org.embl.mobie.viewer.transform;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import bdv.viewer.ViewerPanel;
+import net.imglib2.realtransform.Scale3D;
 import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
@@ -91,5 +94,44 @@ public class TransformHelper
 		}
 
 		return maximalDimensions;
+	}
+
+	public static AffineTransform3D createNormalisedViewerTransform( ViewerPanel viewerPanel )
+	{
+		return createNormalisedViewerTransform( viewerPanel, BdvPlaygroundUtils.getWindowCentreInPixelUnits( viewerPanel ) );
+	}
+
+	public static AffineTransform3D createNormalisedViewerTransform( ViewerPanel viewerPanel, double[] position )
+	{
+		final AffineTransform3D view = new AffineTransform3D();
+		viewerPanel.state().getViewerTransform( view );
+
+		// translate position to upper left corner of the Window (0,0)
+		final AffineTransform3D translate = new AffineTransform3D();
+		translate.translate( position );
+		view.preConcatenate( translate.inverse() );
+
+		// divide by window width
+		final int bdvWindowWidth = viewerPanel.getDisplay().getWidth();;
+		final Scale3D scale = new Scale3D( 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth );
+		view.preConcatenate( scale );
+
+		return view;
+	}
+
+	public static AffineTransform3D createUnnormalizedViewerTransform( AffineTransform3D normalisedTransform, ViewerPanel viewerPanel )
+	{
+		final AffineTransform3D transform = normalisedTransform.copy();
+
+		final int bdvWindowWidth = viewerPanel.getDisplay().getWidth();
+		final Scale3D scale = new Scale3D( 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth );
+		transform.preConcatenate( scale.inverse() );
+
+		AffineTransform3D translate = new AffineTransform3D();
+		translate.translate( BdvPlaygroundUtils.getWindowCentreInPixelUnits( viewerPanel ) );
+
+		transform.preConcatenate( translate );
+
+		return transform;
 	}
 }

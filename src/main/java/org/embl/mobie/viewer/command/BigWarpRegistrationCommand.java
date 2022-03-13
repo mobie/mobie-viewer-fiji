@@ -4,6 +4,7 @@ import bdv.gui.TransformTypeSelectDialog;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
+import bdv.viewer.BigWarpViewerPanel;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TransformListener;
 import bigwarp.BigWarp;
@@ -11,6 +12,7 @@ import bigwarp.transforms.BigWarpTransform;
 import ij.gui.NonBlockingGenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.InvertibleRealTransform;
+import org.embl.mobie.viewer.transform.TransformHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
@@ -67,21 +69,25 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 		bdvDisplayService.pairClosing( bigWarpLauncher.getBdvHandleQ(), bigWarpLauncher.getBdvHandleP() );
 
 		bigWarp = bigWarpLauncher.getBigWarp();
-		bigWarp.getViewerFrameQ().getViewerPanel().state().setViewerTransform( bdvHandle.getViewerPanel().state().getViewerTransform() );
-		bigWarp.getViewerFrameP().getViewerPanel().state().setViewerTransform( bdvHandle.getViewerPanel().state().getViewerTransform() );
+
+		final AffineTransform3D normalisedViewerTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
+		applyViewerTransform( normalisedViewerTransform, bigWarp.getViewerFrameQ().getViewerPanel() );
+		applyViewerTransform( normalisedViewerTransform, bigWarp.getViewerFrameP().getViewerPanel() );
 		bigWarp.setTransformType( TransformTypeSelectDialog.AFFINE );
 		bigWarp.addTransformListener( this );
 
 		new Thread( () -> showDialog() ).start();
 	}
 
+	private void applyViewerTransform( AffineTransform3D normalisedViewerTransform, BigWarpViewerPanel viewerPanel )
+	{
+		viewerPanel.state().setViewerTransform( TransformHelper.createUnnormalizedViewerTransform( normalisedViewerTransform, viewerPanel ) );
+	}
+
 	private void showDialog()
 	{
 		final NonBlockingGenericDialog dialog = new NonBlockingGenericDialog( "Registration - BigWarp" );
-		dialog.addMessage( "Landmark based affine, similarity, rigid and translation transformations.\n\nPlease read the BigWarp help.\n" +
-				"The transformation will be applied in MoBIE immediately.\n" +
-				"Press [ Cancel ] to revert the changes and close BigWarp.\n" +
-				"Press [ OK ] to close BigWarp and keep the changes.");
+		dialog.addMessage( "Landmark based affine, similarity, rigid and translation transformations.\nPlease read the BigWarp help.\n" + "Press [ OK ] to close BigWarp and apply the current registration in MoBIE.");
 		dialog.showDialog();
 		if ( dialog.wasCanceled() )
 		{

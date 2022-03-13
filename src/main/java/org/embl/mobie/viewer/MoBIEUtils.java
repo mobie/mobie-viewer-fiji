@@ -6,7 +6,7 @@ import bdv.util.BdvHandle;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.bdv.utils.BdvUtils;
+import bdv.viewer.ViewerPanel;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
@@ -18,8 +18,10 @@ import net.imglib2.FinalRealInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
+import org.embl.mobie.viewer.transform.TransformHelper;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -35,7 +37,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MAX_Z;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
 import static org.embl.mobie.viewer.ui.SwingHelpers.selectionDialog;
@@ -365,28 +366,10 @@ public abstract class MoBIEUtils
 
 	public static String createNormalisedViewerTransformString( BdvHandle bdv, double[] position )
 	{
-		final AffineTransform3D view = createNormalisedViewerTransform( bdv, position );
+		final AffineTransform3D view = TransformHelper.createNormalisedViewerTransform( bdv.getViewerPanel(), position );
 		final String replace = view.toString().replace( "3d-affine: (", "" ).replace( ")", "" );
 		final String collect = Arrays.stream( replace.split( "," ) ).map( x -> "n" + x.trim() ).collect( Collectors.joining( "," ) );
 		return collect;
-	}
-
-	public static AffineTransform3D createNormalisedViewerTransform( BdvHandle bdv, double[] position )
-	{
-		final AffineTransform3D view = new AffineTransform3D();
-		bdv.getViewerPanel().state().getViewerTransform( view );
-
-		// translate position to upper left corner of the Window (0,0)
-		final AffineTransform3D translate = new AffineTransform3D();
-		translate.translate( position );
-		view.preConcatenate( translate.inverse() );
-
-		// divide by window width
-		final int bdvWindowWidth = BdvUtils.getBdvWindowWidth( bdv );
-		final Scale3D scale = new Scale3D( 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth );
-		view.preConcatenate( scale );
-
-		return view;
 	}
 
 	public static double[] getMousePosition( BdvHandle bdv )
@@ -396,22 +379,6 @@ public abstract class MoBIEUtils
 		final double[] doubles = new double[ 3 ];
 		realPoint.localize( doubles );
 		return doubles;
-	}
-
-	public static AffineTransform3D createUnnormalizedViewerTransform( AffineTransform3D normalisedTransform, BdvHandle bdv )
-	{
-		final AffineTransform3D transform = normalisedTransform.copy();
-
-		final int bdvWindowWidth = BdvUtils.getBdvWindowWidth( bdv );
-		final Scale3D scale = new Scale3D( 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth );
-		transform.preConcatenate( scale.inverse() );
-
-		AffineTransform3D translate = new AffineTransform3D();
-		translate.translate( getBdvWindowCenter( bdv ) );
-
-		transform.preConcatenate( translate );
-
-		return transform;
 	}
 
 	public static AffineTransform3D asAffineTransform3D( double[] doubles )
