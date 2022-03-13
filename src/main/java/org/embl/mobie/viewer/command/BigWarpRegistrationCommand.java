@@ -68,6 +68,8 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 		bdvDisplayService.pairClosing( bigWarpLauncher.getBdvHandleQ(), bigWarpLauncher.getBdvHandleP() );
 
 		bigWarp = bigWarpLauncher.getBigWarp();
+		bigWarp.getViewerFrameQ().getViewerPanel().state().setViewerTransform( bdvHandle.getViewerPanel().state().getViewerTransform() );
+		bigWarp.getViewerFrameP().getViewerPanel().state().setViewerTransform( bdvHandle.getViewerPanel().state().getViewerTransform() );
 		bigWarp.setTransformType( TransformTypeSelectDialog.AFFINE );
 		bigWarp.addTransformListener( this );
 
