@@ -6,46 +6,44 @@ import bdv.util.BdvHandle;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.tables.FileAndUrlUtils;
+import bdv.viewer.ViewerPanel;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
 import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import ij.gui.GenericDialog;
-import net.imglib2.*;
+import net.imglib2.FinalRealInterval;
+import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
+import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
+import org.embl.mobie.viewer.transform.TransformHelper;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.io.*;
+import java.io.File;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static de.embl.cba.bdv.utils.BdvUtils.getBdvWindowCenter;
-import static org.embl.mobie.viewer.ui.SwingHelper.selectionDialog;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MAX_Z;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
+import static org.embl.mobie.viewer.ui.SwingHelpers.selectionDialog;
 
-public abstract class Utils
+public abstract class MoBIEUtils
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
-
-	public static void waitUntilFinishedAndShutDown( ExecutorService executorService )
-	{
-		executorService.shutdown();
-		try {
-			executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-		} catch (InterruptedException e) {
-		}
-	}
 
 	public static int[] asInts( long[] longs) {
 		int[] ints = new int[longs.length];
@@ -70,11 +68,11 @@ public abstract class Utils
 	}
 
 	/**
-	 * Recursively fetch the names of all root sources
+	 * Recursively fetch all root sources
 	 * @param source
 	 * @param rootSources
 	 */
-	public static void fetchRootSources( Source< ? > source, Set< Source > rootSources )
+	public static void fetchRootSources( Source< ? > source, Set< Source< ? > > rootSources )
 	{
 		if ( source instanceof SpimSource )
 		{
@@ -83,6 +81,12 @@ public abstract class Utils
 		else if ( source instanceof TransformedSource )
 		{
 			final Source< ? > wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
+
+			fetchRootSources( wrappedSource, rootSources );
+		}
+		else if (  source instanceof LabelSource )
+		{
+			final Source< ? > wrappedSource = (( LabelSource ) source).getWrappedSource();
 
 			fetchRootSources( wrappedSource, rootSources );
 		}
@@ -147,8 +151,7 @@ public abstract class Utils
 
 	public static FileLocation loadFromProjectOrFileSystemDialog() {
 		final GenericDialog gd = new GenericDialog("Choose source");
-		gd.addChoice("Load from", new String[]{FileLocation.Project.toString(),
-				FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
+		gd.addChoice("Load from", new String[]{FileLocation.Project.toString(), FileLocation.FileSystem.toString()}, FileLocation.Project.toString());
 		gd.showDialog();
 		if (gd.wasCanceled()) return null;
 		return FileLocation.valueOf(gd.getNextChoice());
@@ -188,6 +191,47 @@ public abstract class Utils
 
 	public static File lastSelectedDir;
 
+	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
+	public static String selectFilePath( String fileExtension, String objectName, boolean open ) {
+		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
+		if ( fileExtension != null ) {
+			jFileChooser.setFileFilter(new FileNameExtensionFilter(fileExtension, fileExtension));
+		}
+		jFileChooser.setDialogTitle( "Select " + objectName );
+		return selectPath( jFileChooser, open );
+	}
+
+	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
+	public static String selectDirectoryPath( String objectName, boolean open ) {
+		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
+		jFileChooser.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
+		jFileChooser.setDialogTitle( "Select " + objectName );
+		return selectPath( jFileChooser, open );
+	}
+
+	private static String selectPath( JFileChooser jFileChooser, boolean open ) {
+		final AtomicBoolean isDone = new AtomicBoolean( false );
+		final String[] path = new String[ 1 ];
+		Runnable r = () -> {
+			if ( open ) {
+				path[0] = selectOpenPathFromFileSystem( jFileChooser);
+			} else {
+				path[0] = selectSavePathFromFileSystem( jFileChooser );
+			}
+			isDone.set( true );
+		};
+
+		SwingUtilities.invokeLater(r);
+
+		while ( ! isDone.get() ){
+			try {
+				Thread.sleep( 100 );
+			} catch ( InterruptedException e )
+			{ e.printStackTrace(); }
+		};
+		return path[ 0 ];
+	}
+
 	private static void setLastSelectedDir( String filePath ) {
 		File selectedFile = new File( filePath );
 		if ( selectedFile.isDirectory() ) {
@@ -197,50 +241,22 @@ public abstract class Utils
 		}
 	}
 
-	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
-	public static String selectOpenPathFromFileSystem( String objectName, String fileExtension ) {
-		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
-		jFileChooser.setFileFilter(new FileNameExtensionFilter( fileExtension, fileExtension ));
-		return selectOpenPathFromFileSystem( objectName, jFileChooser );
-	}
-
-	public static String selectOpenPathFromFileSystem( String objectName ) {
-		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
-		return selectOpenPathFromFileSystem( objectName, jFileChooser );
-	}
-
-	public static String selectOpenPathFromFileSystem( String objectName, JFileChooser jFileChooser ) {
+	public static String selectOpenPathFromFileSystem( JFileChooser jFileChooser ) {
 		String filePath = null;
-		jFileChooser.setDialogTitle( "Select " + objectName );
 		if (jFileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 			filePath = jFileChooser.getSelectedFile().getAbsolutePath();
 			setLastSelectedDir( filePath );
 		}
-
 		return filePath;
 	}
 
-	public static String selectOpenDirFromFileSystem( String objectName ) {
-		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
-		return selectOpenDirFromFileSystem( objectName, jFileChooser );
-	}
-
-	public static String selectOpenDirFromFileSystem( String objectName, JFileChooser jFileChooser ) {
-		jFileChooser.setFileSelectionMode( JFileChooser.DIRECTORIES_ONLY );
-		return selectOpenPathFromFileSystem( objectName, jFileChooser );
-	}
-
-	// objectName is used for the dialog labels e.g. 'table', 'bookmark' etc...
-	public static String selectSavePathFromFileSystem( String fileExtension )
+	public static String selectSavePathFromFileSystem( JFileChooser jFileChooser )
 	{
 		String filePath = null;
-		final JFileChooser jFileChooser = new JFileChooser( lastSelectedDir );
-		jFileChooser.setFileFilter(new FileNameExtensionFilter( fileExtension, fileExtension ));
 		if (jFileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 			filePath = jFileChooser.getSelectedFile().getAbsolutePath();
 			setLastSelectedDir( filePath );
 		}
-
 		return filePath;
 	}
 
@@ -350,28 +366,10 @@ public abstract class Utils
 
 	public static String createNormalisedViewerTransformString( BdvHandle bdv, double[] position )
 	{
-		final AffineTransform3D view = createNormalisedViewerTransform( bdv, position );
+		final AffineTransform3D view = TransformHelper.createNormalisedViewerTransform( bdv.getViewerPanel(), position );
 		final String replace = view.toString().replace( "3d-affine: (", "" ).replace( ")", "" );
 		final String collect = Arrays.stream( replace.split( "," ) ).map( x -> "n" + x.trim() ).collect( Collectors.joining( "," ) );
 		return collect;
-	}
-
-	public static AffineTransform3D createNormalisedViewerTransform( BdvHandle bdv, double[] position )
-	{
-		final AffineTransform3D view = new AffineTransform3D();
-		bdv.getViewerPanel().state().getViewerTransform( view );
-
-		// translate position to upper left corner of the Window (0,0)
-		final AffineTransform3D translate = new AffineTransform3D();
-		translate.translate( position );
-		view.preConcatenate( translate.inverse() );
-
-		// divide by window width
-		final int bdvWindowWidth = BdvUtils.getBdvWindowWidth( bdv );
-		final Scale3D scale = new Scale3D( 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth );
-		view.preConcatenate( scale );
-
-		return view;
 	}
 
 	public static double[] getMousePosition( BdvHandle bdv )
@@ -381,22 +379,6 @@ public abstract class Utils
 		final double[] doubles = new double[ 3 ];
 		realPoint.localize( doubles );
 		return doubles;
-	}
-
-	public static AffineTransform3D createUnnormalizedViewerTransform( AffineTransform3D normalisedTransform, BdvHandle bdv )
-	{
-		final AffineTransform3D transform = normalisedTransform.copy();
-
-		final int bdvWindowWidth = BdvUtils.getBdvWindowWidth( bdv );
-		final Scale3D scale = new Scale3D( 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth, 1.0 / bdvWindowWidth );
-		transform.preConcatenate( scale.inverse() );
-
-		AffineTransform3D translate = new AffineTransform3D();
-		translate.translate( getBdvWindowCenter( bdv ) );
-
-		transform.preConcatenate( translate );
-
-		return transform;
 	}
 
 	public static AffineTransform3D asAffineTransform3D( double[] doubles )

@@ -2,10 +2,10 @@ package projects;
 
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import net.imagej.ImageJ;
 
 import java.io.IOException;
+import org.embl.mobie.io.ImageDataFormat;
 
 public class OpenRemotePlatynereis
 {
@@ -16,7 +16,7 @@ public class OpenRemotePlatynereis
 
 		try {
 			new MoBIE("https://github.com/platybrowser/platybrowser",
-					MoBIESettings.settings().gitProjectBranch("spec-v2").imageDataFormat( ImageDataFormat.BdvN5S3 ) );
+					MoBIESettings.settings().gitProjectBranch("main").imageDataFormat( ImageDataFormat.BdvN5S3 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

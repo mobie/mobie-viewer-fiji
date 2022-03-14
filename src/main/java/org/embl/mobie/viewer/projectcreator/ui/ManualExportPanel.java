@@ -1,17 +1,11 @@
 package org.embl.mobie.viewer.projectcreator.ui;
 
 import bdv.ij.util.PluginHelper;
-import org.embl.mobie.io.n5.util.DownsampleBlock;
-import org.embl.mobie.io.n5.writers.WriteImgPlusToN5;
-import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
-import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
-import org.embl.mobie.viewer.source.ImageDataFormat;
+import org.embl.mobie.io.ImageDataFormat;
 
 import fiji.util.gui.GenericDialogPlus;
 import ij.IJ;
-import ij.ImagePlus;
 import ij.gui.GenericDialog;
-import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.janelia.saalfeldlab.n5.*;
 
@@ -22,30 +16,16 @@ public class ManualExportPanel {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    ImagePlus imp;
-    String filePath;
-    AffineTransform3D sourceTransform;
-    DownsampleBlock.DownsamplingMethod downsamplingMethod;
-    String imageName;
-    ImageDataFormat imageDataFormat;
+    private int[][] subdivisions;
+    private int[][] resolutions;
+    private Compression compression;
 
     static String lastSubsampling = "{ {1,1,1} }";
     static String lastChunkSizes = "{ {64,64,64} }";
     static int lastCompressionChoice = 0;
     static boolean lastCompressionDefaultSettings = true;
 
-    public ManualExportPanel(ImagePlus imp, String filePath, AffineTransform3D sourceTransform,
-                             DownsampleBlock.DownsamplingMethod downsamplingMethod, String imageName,
-                             ImageDataFormat imageDataFormat ) {
-        this.imp = imp;
-        this.filePath = filePath;
-        this.sourceTransform = sourceTransform;
-        this.downsamplingMethod = downsamplingMethod;
-        this.imageName = imageName;
-        this.imageDataFormat = imageDataFormat;
-    }
-
-    public void getManualExportParameters() {
+    public ManualExportPanel( ImageDataFormat imageDataFormat ) {
 
         final GenericDialog manualSettings = new GenericDialog( "Manual Settings for " +
                 imageDataFormat.toString() );
@@ -69,6 +49,9 @@ public class ManualExportPanel {
         if ( !manualSettings.wasCanceled() ) {
             lastSubsampling = manualSettings.getNextString();
             lastChunkSizes = manualSettings.getNextString();
+
+            subdivisions = PluginHelper.parseResolutionsString( lastChunkSizes );
+            resolutions = PluginHelper.parseResolutionsString( lastSubsampling );
             if ( imageDataFormat == ImageDataFormat.BdvN5 ) {
                 lastCompressionChoice = manualSettings.getNextChoiceIndex();
                 lastCompressionDefaultSettings = manualSettings.getNextBoolean();
@@ -76,18 +59,27 @@ public class ManualExportPanel {
                 lastCompressionChoice = 2;
                 lastCompressionDefaultSettings = true;
             }
-
-            parseInputAndWriteImage();
+            parseCompression();
+        } else {
+            subdivisions = null;
+            resolutions = null;
+            compression = null;
         }
-
     }
 
-    private void parseInputAndWriteImage() {
-        // parse mipmap resolutions and cell sizes
-        final int[][] resolutions = PluginHelper.parseResolutionsString( lastSubsampling );
-        final int[][] subdivisions = PluginHelper.parseResolutionsString( lastChunkSizes );
+    public int[][] getSubdivisions() {
+        return subdivisions;
+    }
 
-        final Compression compression;
+    public int[][] getResolutions() {
+        return resolutions;
+    }
+
+    public Compression getCompression() {
+        return compression;
+    }
+
+    private void parseCompression(){
         switch ( lastCompressionChoice )
         {
             default:
@@ -114,32 +106,6 @@ public class ManualExportPanel {
                         ? new XzCompression()
                         : getXzSettings();
                 break;
-        }
-        if ( compression == null )
-            return;
-
-        writeImage( resolutions, subdivisions, compression );
-    }
-
-    private void writeImage( int[][] resolutions, int[][] subdivisions, Compression compression ) {
-        switch( imageDataFormat ) {
-            case BdvN5:
-                new WriteImgPlusToN5().export(imp, resolutions, subdivisions, filePath, sourceTransform,
-                        downsamplingMethod, compression, new String[]{imageName});
-                break;
-
-            case BdvOmeZarr:
-                new WriteImgPlusToN5BdvOmeZarr().export(imp, resolutions, subdivisions, filePath, sourceTransform,
-                        downsamplingMethod, compression, new String[]{imageName});
-                break;
-
-            case OmeZarr:
-                new WriteImgPlusToN5OmeZarr().export(imp, resolutions, subdivisions, filePath, sourceTransform,
-                        downsamplingMethod, compression, new String[]{imageName});
-                break;
-
-            default:
-                throw new UnsupportedOperationException();
         }
     }
 

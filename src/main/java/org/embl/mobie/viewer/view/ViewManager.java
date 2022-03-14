@@ -12,9 +12,8 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.lang.ArrayUtils;
-import org.embl.mobie.io.n5.source.LabelSource;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
 import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
@@ -23,10 +22,11 @@ import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.bdv.view.SliceViewer;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import org.embl.mobie.viewer.display.*;
-import org.embl.mobie.viewer.playground.PlaygroundUtils;
+import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
+import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableViewer;
@@ -34,11 +34,13 @@ import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SourceTransformer;
+import org.embl.mobie.viewer.transform.TransformHelper;
 import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
 import org.embl.mobie.viewer.view.saving.ViewsSaver;
+import org.embl.mobie.viewer.volume.ImageVolumeViewer;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 import org.embl.mobie.viewer.volume.UniverseManager;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
@@ -49,7 +51,7 @@ import javax.swing.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.embl.mobie.viewer.Utils.containsAtLeastOne;
+import static org.embl.mobie.viewer.MoBIEUtils.containsAtLeastOne;
 
 public class ViewManager
 {
@@ -67,21 +69,9 @@ public class ViewManager
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewsSaver viewsSaver;
 
-	private View currentView;
-
-    public void setCurrentView( View currentView )
-    {
-        this.currentView = currentView;
-    }
-
     public List<SourceTransformer> getCurrentSourceTransformers()
     {
         return currentSourceTransformers;
-    }
-
-    public View getCurrentView()
-    {
-        return currentView;
     }
 
     public UserInterface getUserInterface()
@@ -95,7 +85,7 @@ public class ViewManager
 		this.userInterface = userInterface;
 		currentSourceDisplays = new ArrayList<>();
 		currentSourceTransformers = new ArrayList<>();
-		sliceViewer = new SliceViewer( is2D, this, timepoints );
+		sliceViewer = new SliceViewer( is2D, this, timepoints, moBIE.getProjectCommands() );
 		universeManager = new UniverseManager();
 		bdvHandle = sliceViewer.get();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
@@ -145,7 +135,7 @@ public class ViewManager
 		}
 	}
 
-	public void showInTableViewer( SegmentationSourceDisplay display  )
+	public void initTableViewer( SegmentationSourceDisplay display  )
 	{
 		Map<String, String> sourceNameToTableDir = new HashMap<>();
 		for ( String source: display.getSources() )
@@ -160,7 +150,8 @@ public class ViewManager
 				sourceNameToTableDir.put( source, null );
 			}
 		}
-		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel, display.getName(), sourceNameToTableDir, false ).show();
+		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel, display.getName(), sourceNameToTableDir, false );
+		display.tableViewer.setVisible( display.showTable() );
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
@@ -248,8 +239,7 @@ public class ViewManager
 
 		if ( includeViewerTransform )
 		{
-			AffineTransform3D normalisedViewTransform = Utils.createNormalisedViewerTransform( bdvHandle,
-					PlaygroundUtils.getWindowCentreInPixelUnits( bdvHandle ) );
+			AffineTransform3D normalisedViewTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
 
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
 			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, transform, isExclusive);
@@ -269,14 +259,29 @@ public class ViewManager
 		{
 			removeAllSourceDisplays();
 		}
-		currentView = view;
 
+		openAndTransformViewSources( view );
+
+		// show the displays
+		MoBIELookAndFeelToggler.setMoBIELaf();
+		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
+		for ( SourceDisplay sourceDisplay : sourceDisplays )
+			showSourceDisplay( sourceDisplay );
+		MoBIELookAndFeelToggler.resetMoBIELaf();
+
+		// adjust viewer transform
+		adjustViewerTransform( view );
+	}
+
+	public void openAndTransformViewSources( View view )
+	{
 		// fetch the names of all sources that are either shown or to be transformed
 		final Set< String > sources = fetchSources( view );
-		final Set< String > datasetSources = sources.stream().filter( s -> moBIE.getDataset().sources.containsKey( s ) ).collect( Collectors.toSet() );
+		SourceNameEncoder.addNames( sources );
+		final Set< String > rawSources = sources.stream().filter( s -> moBIE.getDataset().sources.containsKey( s ) ).collect( Collectors.toSet() );
 
 		// open all raw sources
-		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( datasetSources );
+		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( rawSources );
 
 		// create transformed sources
 		final List< SourceTransformer > sourceTransformers = view.getSourceTransforms();
@@ -290,23 +295,14 @@ public class ViewManager
 		// wrap all in a final transformed source. This is so any manual transformations can be
 		// retrieved separate from any from sourceTransformers.
 		for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
-			SourceAndConverter<?> sourceAndConverter = new SourceAffineTransformer(
-					sourceNameToSourceAndConverters.get( sourceName ), new AffineTransform3D()).getSourceOut();
+			SourceAndConverter<?> sourceAndConverter = new SourceAffineTransformer( sourceNameToSourceAndConverters.get( sourceName ), new AffineTransform3D()).getSourceOut();
 			sourceNameToSourceAndConverters.put( sourceName, sourceAndConverter );
 		}
 
-		// register all available sources
-		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
-
-		// show the displays
-		MoBIELookAndFeelToggler.setMoBIELaf();
-		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
-		for ( SourceDisplay sourceDisplay : sourceDisplays )
-			showSourceDisplay( sourceDisplay );
-		MoBIELookAndFeelToggler.resetMoBIELaf();
-
-		// adjust viewer transform
-		adjustViewerTransform( view );
+		// register all available (transformed) sources in MoBIE
+		// this is where the source and segmentation displays will
+		// get the sources from
+		moBIE.addTransformedSourceAndConverters( sourceNameToSourceAndConverters );
 	}
 
 	public void adjustViewerTransform( View view )
@@ -365,7 +361,7 @@ public class ViewManager
 		currentSourceDisplays.add( sourceDisplay );
 	}
 
-	public void removeAllSourceDisplays()
+	public synchronized void removeAllSourceDisplays()
 	{
 		// create a copy of the currently shown displays...
 		final ArrayList< SourceDisplay > currentSourceDisplays = new ArrayList<>( this.currentSourceDisplays ) ;
@@ -376,7 +372,8 @@ public class ViewManager
 		{
 			// removes display from all viewers and
 			// also from the list of currently shown sourceDisplays
-			removeSourceDisplay( sourceDisplay );
+			// also close all ImgLoaders to free the cache
+			removeSourceDisplay( sourceDisplay, true );
 		}
 	}
 
@@ -384,6 +381,17 @@ public class ViewManager
 	{
 		imageDisplay.sliceViewer = sliceViewer;
 		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle );
+		initImageVolumeViewer( imageDisplay );
+	}
+
+	// compare with initSegmentationVolumeViewer
+	private void initImageVolumeViewer( ImageSourceDisplay imageDisplay )
+	{
+		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.sourceNameToSourceAndConverter, universeManager );
+		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceNameToSourceAndConverter.values() )
+		{
+			sacService.setMetadata( sourceAndConverter, ImageVolumeViewer.class.getName(), imageDisplay.imageVolumeViewer );
+		}
 	}
 
 	private void showAnnotatedIntervalDisplay( AnnotatedIntervalDisplay annotationDisplay )
@@ -404,7 +412,7 @@ public class ViewManager
 		}
 
 		showInSliceViewer( annotationDisplay );
-		showInTableViewer( annotationDisplay );
+		initTableViewer( annotationDisplay );
 		initScatterPlotViewer( annotationDisplay );
 
 		SwingUtilities.invokeLater( () ->
@@ -413,7 +421,7 @@ public class ViewManager
 		} );
 	}
 
-	private void showInTableViewer( AnnotatedIntervalDisplay annotationDisplay )
+	private void initTableViewer( AnnotatedIntervalDisplay annotationDisplay )
 	{
 		HashMap<String, String> nameToTableDir = new HashMap<>();
 		nameToTableDir.put( annotationDisplay.getName(), annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ) );
@@ -449,7 +457,7 @@ public class ViewManager
 
 		if ( segmentationDisplay.tableRows != null )
 		{
-			showInTableViewer( segmentationDisplay );
+			initTableViewer( segmentationDisplay );
 			initScatterPlotViewer( segmentationDisplay );
 
 			SwingUtilities.invokeLater( () ->
@@ -457,7 +465,7 @@ public class ViewManager
 				WindowArrangementHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
 			} );
 
-			initVolumeViewer( segmentationDisplay );
+			initSegmentationVolumeViewer( segmentationDisplay );
 		}
 	}
 
@@ -497,29 +505,29 @@ public class ViewManager
 		annotatedIntervalDisplay.sliceView = new AnnotatedIntervalSliceView( moBIE, annotatedIntervalDisplay, bdvHandle );
 	}
 
-	private void initVolumeViewer( SegmentationSourceDisplay display )
+	private void initSegmentationVolumeViewer( SegmentationSourceDisplay segmentationDisplay )
 	{
-		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.coloringModel, display.sourceNameToSourceAndConverter.values(), universeManager );
-		Double[] resolution3dView = display.getResolution3dView();
+		segmentationDisplay.segmentsVolumeViewer = new SegmentsVolumeViewer<>( segmentationDisplay.selectionModel, segmentationDisplay.coloringModel, segmentationDisplay.sourceNameToSourceAndConverter.values(), universeManager );
+		Double[] resolution3dView = segmentationDisplay.getResolution3dView();
 		if ( resolution3dView != null ) {
-			display.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(display.getResolution3dView()) );
+			segmentationDisplay.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(segmentationDisplay.getResolution3dView()) );
 		}
-		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d() );
-		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
-		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
+		segmentationDisplay.segmentsVolumeViewer.showSegments( segmentationDisplay.showSelectedSegmentsIn3d() );
+		segmentationDisplay.coloringModel.listeners().add( segmentationDisplay.segmentsVolumeViewer );
+		segmentationDisplay.selectionModel.listeners().add( segmentationDisplay.segmentsVolumeViewer );
 
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
+		for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceNameToSourceAndConverter.values() )
 		{
-			sacService.setMetadata( sourceAndConverter, SegmentsVolumeViewer.VOLUME_VIEW, display.segmentsVolumeViewer  );
+			sacService.setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), segmentationDisplay.segmentsVolumeViewer );
 		}
 	}
 
-	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay )
+	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay, boolean closeImgLoader )
 	{
 		if ( sourceDisplay instanceof SegmentationSourceDisplay )
 		{
 			final SegmentationSourceDisplay segmentationDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
-			segmentationDisplay.sliceView.close();
+			segmentationDisplay.sliceView.close( closeImgLoader );
 			if ( segmentationDisplay.tableRows != null )
 			{
 				segmentationDisplay.tableViewer.close();
@@ -530,13 +538,13 @@ public class ViewManager
 		else if ( sourceDisplay instanceof ImageSourceDisplay )
 		{
 			final ImageSourceDisplay imageDisplay = ( ImageSourceDisplay ) sourceDisplay;
-			imageDisplay.imageSliceView.close();
+			imageDisplay.imageSliceView.close( false );
 		}
 		else if ( sourceDisplay instanceof AnnotatedIntervalDisplay )
 		{
 			// TODO: Code duplication (sourceDisplay instanceof SegmentationSourceDisplay)
 			final AnnotatedIntervalDisplay annotatedIntervalDisplay = ( AnnotatedIntervalDisplay ) sourceDisplay;
-			annotatedIntervalDisplay.sliceView.close();
+			annotatedIntervalDisplay.sliceView.close( false );
 			annotatedIntervalDisplay.tableViewer.close();
 			annotatedIntervalDisplay.scatterPlotViewer.close();
 		}

@@ -1,15 +1,15 @@
 package org.embl.mobie.viewer.command;
 
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open>Advanced>Open MoBIE Project Expert Mode..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Advanced>Open MoBIE Project Expert Mode..." )
 public class OpenMoBIEProjectAdvancedCommand implements Command
 {
 	@Parameter ( label = "Project Location" )

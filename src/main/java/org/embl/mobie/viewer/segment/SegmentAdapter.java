@@ -11,6 +11,7 @@ import java.util.List;
 public class SegmentAdapter< T extends ImageSegment >
 {
 	private HashMap< LabelFrameAndImage, T > labelFrameAndImageToSegment;
+	private boolean isLazy = false;
 
 	/**
 	 * For lazy initialization
@@ -18,6 +19,7 @@ public class SegmentAdapter< T extends ImageSegment >
 	public SegmentAdapter()
 	{
 		labelFrameAndImageToSegment = new HashMap<>();
+		isLazy = true;
 	}
 
 	public SegmentAdapter( List< T > segments )
@@ -28,15 +30,17 @@ public class SegmentAdapter< T extends ImageSegment >
 			labelFrameAndImageToSegment.put( new LabelFrameAndImage( segment ), segment );
 	}
 
-	public T getSegment( double label, int t, String imageId )
+	public synchronized boolean containsSegment( double label, int t, String imageId )
 	{
 		final LabelFrameAndImage labelFrameAndImage = new LabelFrameAndImage( label, t, imageId  );
 
-		return getSegment( labelFrameAndImage );
+		return labelFrameAndImageToSegment.containsKey( labelFrameAndImage );
 	}
 
-	private T getSegment( LabelFrameAndImage labelFrameAndImage )
+	public synchronized T getSegmentCreateIfNotExist( double label, int t, String imageId )
 	{
+		final LabelFrameAndImage labelFrameAndImage = new LabelFrameAndImage( label, t, imageId  );
+
 		if ( ! labelFrameAndImageToSegment.containsKey( labelFrameAndImage ) )
 		{
 			final DefaultImageSegment defaultImageSegment = new DefaultImageSegment( labelFrameAndImage.getImage(), labelFrameAndImage.getLabel(), labelFrameAndImage.getFrame(), 0, 0, 0, null );
@@ -44,6 +48,24 @@ public class SegmentAdapter< T extends ImageSegment >
 		}
 
 		return labelFrameAndImageToSegment.get( labelFrameAndImage );
+	}
+
+	public synchronized T getSegment( double label, int t, String imageId )
+	{
+		if ( isLazy )
+		{
+			return getSegmentCreateIfNotExist( label, t, imageId );
+		}
+		else
+		{
+			final LabelFrameAndImage labelFrameAndImage = new LabelFrameAndImage( label, t, imageId );
+			return getSegment( labelFrameAndImage );
+		}
+	}
+
+	public synchronized T getSegment( LabelFrameAndImage labelFrameAndImage )
+	{
+		return labelFrameAndImageToSegment.get( labelFrameAndImage  );
 	}
 
 	// deserialize

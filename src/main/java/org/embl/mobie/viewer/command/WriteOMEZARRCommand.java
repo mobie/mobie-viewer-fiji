@@ -1,18 +1,20 @@
 package org.embl.mobie.viewer.command;
 
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 import org.embl.mobie.viewer.projectcreator.ui.ManualExportPanel;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import ij.ImagePlus;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.GzipCompression;
+import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.File;
-import static org.embl.mobie.viewer.ui.UserInterfaceHelper.tidyString;
+import static org.embl.mobie.viewer.ui.UserInterfaceHelpers.tidyString;
 
 @Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME ZARR>Export Current Image To OME-ZARR...")
 public class WriteOMEZARRCommand implements Command {
@@ -21,6 +23,9 @@ public class WriteOMEZARRCommand implements Command {
 
     @Parameter
     public ImagePlus currentImage;
+
+    @Parameter (visibility = ItemVisibility.MESSAGE, required = false)
+    public String message = "Make sure your voxel size, and unit,\n are set properly under Image > Properties...";
 
     @Parameter(label="Image name:")
     public String imageName;
@@ -47,16 +52,23 @@ public class WriteOMEZARRCommand implements Command {
         }
 
         // affine transforms are currently not supported in the ome-zarr spec, so here we just generate a default
-        // identity affine
+        // identity affine - it will automatically write the image scaling anyway
         AffineTransform3D sourceTransform = new AffineTransform3D();
 
         if ( name != null ) {
             if ( useDefaults ) {
                 new WriteImgPlusToN5OmeZarr().export(currentImage, filePath, sourceTransform, method,
-                        new GzipCompression(), new String[]{imageName});
+                        new GzipCompression() );
             } else {
-                new ManualExportPanel( currentImage, filePath, sourceTransform, method, imageName,
-                        ImageDataFormat.OmeZarr ).getManualExportParameters();
+                ManualExportPanel manualExportPanel = new ManualExportPanel( ImageDataFormat.OmeZarr );
+                int[][] resolutions = manualExportPanel.getResolutions();
+                int[][] subdivisions = manualExportPanel.getSubdivisions();
+                Compression compression = manualExportPanel.getCompression();
+
+                if ( resolutions != null && subdivisions != null && compression != null ) {
+                    new WriteImgPlusToN5OmeZarr().export(currentImage, resolutions, subdivisions, filePath, sourceTransform,
+                            method, compression );
+                }
             }
         }
     }

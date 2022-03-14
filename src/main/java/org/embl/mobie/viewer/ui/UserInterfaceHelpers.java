@@ -5,7 +5,6 @@ import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
 import bdv.viewer.SourceAndConverter;
-import com.formdev.flatlaf.FlatLightLaf;
 import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
@@ -27,7 +26,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.MoBIEUtils;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -43,15 +42,15 @@ import java.net.URL;
 import java.util.*;
 import java.util.List;
 
-public class UserInterfaceHelper
+import static org.embl.mobie.viewer.ui.SwingHelpers.TEXT_FIELD_HEIGHT;
+
+public class UserInterfaceHelpers
 {
 	private static final Dimension PREFERRED_BUTTON_SIZE = new Dimension( 30, 30 );
 	private static final Dimension PREFERRED_CHECKBOX_SIZE = new Dimension( 40, 30 );
 	private static final Dimension PREFERRED_SPACE_SIZE = new Dimension( 10, 30 );
-	private static final String VIEW = "view";
 	private static final String MOVE = "move";
 	private static final String HELP = "show";
-	private static final String SWITCH = "switch";
 	private static final String LEVEL = "level";
 	private static final String ADD = "view";
 	public static final int SPACING = 20;
@@ -62,7 +61,7 @@ public class UserInterfaceHelper
 	private Map< String, Map< String, View> > groupingsToViews;
 	private Map< String, JComboBox > groupingsToComboBox;
 
-	public UserInterfaceHelper( MoBIE moBIE )
+	public UserInterfaceHelpers( MoBIE moBIE )
 	{
 		this.moBIE = moBIE;
 	}
@@ -96,41 +95,46 @@ public class UserInterfaceHelper
 
 	public static void showBrightnessDialog(
 			String name,
-			List< ConverterSetup > converterSetups,
-			double rangeMin,
-			double rangeMax )
+			List< ConverterSetup > converterSetups )
 	{
 		JFrame frame = new JFrame( name );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
-		final double currentRangeMin = converterSetups.get( 0 ).getDisplayRangeMin();
-		final double currentRangeMax = converterSetups.get( 0 ).getDisplayRangeMax();
+		final double currentContrastLimitsMin = converterSetups.get( 0 ).getDisplayRangeMin();
+		final double currentContrastLimitsMax = converterSetups.get( 0 ).getDisplayRangeMax();
+		final double absCurrentRange = Math.abs( currentContrastLimitsMax - currentContrastLimitsMin );
+
+		final double rangeFactor = 1.0; // could be changed...
+
+		final double rangeMin = currentContrastLimitsMin - rangeFactor * absCurrentRange;
+		final double rangeMax = currentContrastLimitsMax + rangeFactor * absCurrentRange;
 
 		final BoundedValueDouble min =
 				new BoundedValueDouble(
 						rangeMin,
 						rangeMax,
-						currentRangeMin );
+						currentContrastLimitsMin );
 
 		final BoundedValueDouble max =
 				new BoundedValueDouble(
 						rangeMin,
 						rangeMax,
-						currentRangeMax );
+						currentContrastLimitsMax );
 
-		double spinnerStepSize = Math.abs( currentRangeMax - currentRangeMin ) / 100.0;
+
+		double spinnerStepSize = absCurrentRange / 100.0;
 
 		JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
 		final SliderPanelDouble minSlider =
 				new SliderPanelDouble( "Min", min, spinnerStepSize );
 		minSlider.setNumColummns( 7 );
-		minSlider.setDecimalFormat( "####E0" );
+		//minSlider.setDecimalFormat( "####E0" );
 
 		final SliderPanelDouble maxSlider =
 				new SliderPanelDouble( "Max", max, spinnerStepSize );
 		maxSlider.setNumColummns( 7 );
-		maxSlider.setDecimalFormat( "####E0" );
+		//maxSlider.setDecimalFormat( "####E0" );
 
 		final BrightnessUpdateListener brightnessUpdateListener = new BrightnessUpdateListener( min, max, minSlider, maxSlider, converterSetups );
 
@@ -192,7 +196,6 @@ public class UserInterfaceHelper
 		frame.setResizable( false );
 		frame.pack();
 		frame.setVisible( true );
-
 	}
 
 	public JPanel createAnnotatedIntervalDisplaySettingsPanel( AnnotatedIntervalDisplay display )
@@ -259,8 +262,10 @@ public class UserInterfaceHelper
 		panel.add( createDatasetSelectionPanel() );
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		panel.add( createViewsSelectionPanel() );
+
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		panel.add( createMoveToLocationPanel()  );
+		panel.add( createRemoveAllViewsPanel( moBIE ) );
 
 		return panel;
 	}
@@ -288,7 +293,7 @@ public class UserInterfaceHelper
 		// Checkboxes
 		panel.add( createSpace() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
-		panel.add( createCheckboxPlaceholder() ); // TODO: createVolume...
+		panel.add( createImageVolumeViewerVisibilityCheckbox( display ) );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createCheckboxPlaceholder() );
 
@@ -296,7 +301,7 @@ public class UserInterfaceHelper
 		// make the panel color listen to color changes of the sources
 		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
 		{
-			SourceAndConverterServices.getBdvDisplayService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
+			SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
 				// color changed listener
 				setPanelColor( panel, setup.getColor() );
 			} );
@@ -336,7 +341,7 @@ public class UserInterfaceHelper
 		if ( display.tableRows != null )
 		{
 			// segments 3D view
-			panel.add( createVolumeViewerVisibilityCheckbox( display ) );
+			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );
 			// table view
 			panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableViewer.getWindow() ) );
 			// scatter plot view
@@ -366,7 +371,8 @@ public class UserInterfaceHelper
 		return viewSelectionPanel;
 	}
 
-	public void addViewsToSelectionPanel( Map< String, View > views ) {
+	public void addViewsToSelectionPanel( Map< String, View > views )
+	{
 		for ( String viewName : views.keySet() )
 		{
 			final View view = views.get( viewName );
@@ -423,6 +429,11 @@ public class UserInterfaceHelper
 		viewsSelectionPanelHeight = groupingsToViews.keySet().size() * 40;
 	}
 
+	public Map< String, Map< String, View > > getGroupingsToViews()
+	{
+		return groupingsToViews;
+	}
+
 	public int getViewsSelectionPanelHeight()
 	{
 		return viewsSelectionPanelHeight;
@@ -437,13 +448,38 @@ public class UserInterfaceHelper
 		return groupingsToViews.keySet();
 	}
 
+	private JPanel createRemoveAllViewsPanel( MoBIE moBIE )
+	{
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+		panel.add(Box.createHorizontalGlue());
+		panel.setAlignmentX(0.0F);
+
+		final JButton button = SwingHelpers.createButton( "clear", new Dimension( 80, TEXT_FIELD_HEIGHT ) );
+		button.setAlignmentX(Component.CENTER_ALIGNMENT);
+		button.addActionListener( e ->
+		{
+			SwingUtilities.invokeLater( () ->
+			{
+				new Thread( () ->
+				{
+					moBIE.getViewManager().removeAllSourceDisplays();
+				}).start();
+			} );
+		} );
+
+		panel.add( button );
+		return panel;
+	}
+
 	private JPanel createViewSelectionPanel(MoBIE moBIE, String panelName, Map< String, View > views )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		final JComboBox< String > comboBox = new JComboBox<>( views.keySet().toArray( new String[ 0 ] ) );
 
-		final JButton button = SwingHelper.createButton( ADD );
+		final JButton button = SwingHelpers.createButton( ADD );
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -458,9 +494,9 @@ public class UserInterfaceHelper
 			} );
 		} );
 
-		SwingHelper.setComboBoxDimensions( comboBox );
+		SwingHelpers.setComboBoxDimensions( comboBox );
 
-		horizontalLayoutPanel.add( SwingHelper.getJLabel( panelName ) );
+		horizontalLayoutPanel.add( SwingHelpers.getJLabel( panelName ) );
 		horizontalLayoutPanel.add( comboBox );
 		horizontalLayoutPanel.add( button );
 
@@ -469,45 +505,14 @@ public class UserInterfaceHelper
 		return horizontalLayoutPanel;
 	}
 
-	public JPanel createLevelingPanel( double[] levelingVector )
-	{
-		final double[] targetNormalVector = Arrays.copyOf( levelingVector, 3 );
-
-		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-
-		final JButton button = SwingHelper.createButton( LEVEL );
-		horizontalLayoutPanel.add( button );
-
-		// TODO: if below code is needed make an own Levelling class
-//		final JButton changeReference = new JButton( "Set new level vector" );
-//		horizontalLayoutPanel.add( changeReference );
-
-//		final JButton defaultReference = new JButton( "Set default level vector" );
-//		horizontalLayoutPanel.add( defaultReference );
-
-//		changeReference.addActionListener( e -> {
-//			targetNormalVector = BdvUtils.getCurrentViewNormalVector( bdv );
-//			Utils.logVector( "New reference normal vector: ", targetNormalVector );
-//		} );
-
-//		defaultReference.addActionListener( e -> {
-//			targetNormalVector = Arrays.copyOf( levelingVector, 3);
-//			Utils.logVector( "New reference normal vector (default): ", levelingVector );
-//		} );
-
-		button.addActionListener( e -> BdvUtils.levelCurrentView( moBIE.getViewManager().getSliceViewer().getBdvHandle(), targetNormalVector ) );
-
-		return horizontalLayoutPanel;
-	}
-
 	public JPanel createMoveToLocationPanel( )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
-		final JButton button = SwingHelper.createButton( MOVE );
+		final JButton button = SwingHelpers.createButton( MOVE );
 
 		final JTextField jTextField = new JTextField( "{\"position\":[120.5,115.3,201.5]}" );
-		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, SwingHelper.TEXT_FIELD_HEIGHT ) );
-		jTextField.setMaximumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, SwingHelper.TEXT_FIELD_HEIGHT ) );
+		jTextField.setPreferredSize( new Dimension( SwingHelpers.COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
+		jTextField.setMaximumSize( new Dimension( SwingHelpers.COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		button.addActionListener( e ->
 		{
 			final Gson gson = JsonHelper.buildGson( false );
@@ -515,7 +520,7 @@ public class UserInterfaceHelper
 			MoBIEViewerTransformChanger.changeViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
 		} );
 
-		horizontalLayoutPanel.add( SwingHelper.getJLabel( "location" ) );
+		horizontalLayoutPanel.add( SwingHelpers.getJLabel( "location" ) );
 		horizontalLayoutPanel.add( jTextField );
 		horizontalLayoutPanel.add( button );
 
@@ -526,12 +531,12 @@ public class UserInterfaceHelper
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton button = SwingHelper.createButton( HELP );
+		final JButton button = SwingHelpers.createButton( HELP );
 
 		final MoBIEInfo moBIEInfo = new MoBIEInfo( projectLocation, publicationURL );
 
 		final JComboBox< String > comboBox = new JComboBox<>( moBIEInfo.getInfoChoices() );
-		SwingHelper.setComboBoxDimensions( comboBox );
+		SwingHelpers.setComboBoxDimensions( comboBox );
 
 		button.addActionListener( e -> {
 			moBIEInfo.showInfo( ( String ) comboBox.getSelectedItem() );
@@ -552,7 +557,7 @@ public class UserInterfaceHelper
 
 	public ImageIcon createMobieIcon( int size )
 	{
-		final URL resource = UserInterfaceHelper.class.getResource( "/mobie.jpeg" );
+		final URL resource = UserInterfaceHelpers.class.getResource( "/mobie.jpeg" );
 		final ImageIcon imageIcon = new ImageIcon( resource );
 		final Image scaledInstance = imageIcon.getImage().getScaledInstance( size, size, Image.SCALE_SMOOTH );
 		return new ImageIcon( scaledInstance );
@@ -564,7 +569,7 @@ public class UserInterfaceHelper
 
 		final JComboBox< String > comboBox = new JComboBox<>( moBIE.getDatasets().toArray( new String[ 0 ] ) );
 
-		final JButton button = SwingHelper.createButton( ADD );
+		final JButton button = SwingHelpers.createButton( ADD );
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -575,9 +580,9 @@ public class UserInterfaceHelper
 		} );
 
 		comboBox.setSelectedItem( moBIE.getDatasetName() );
-		SwingHelper.setComboBoxDimensions( comboBox );
+		SwingHelpers.setComboBoxDimensions( comboBox );
 
-		panel.add( SwingHelper.getJLabel( "dataset" ) );
+		panel.add( SwingHelpers.getJLabel( "dataset" ) );
 		panel.add( comboBox );
 		panel.add( button );
 
@@ -597,6 +602,40 @@ public class UserInterfaceHelper
 	{
 		return Box.createRigidArea( PREFERRED_CHECKBOX_SIZE );
 	}
+
+	public static JCheckBox createSegmentsVolumeViewerVisibilityCheckbox( SegmentationSourceDisplay display )
+	{
+		JCheckBox checkBox = new JCheckBox( "V" );
+		checkBox.setSelected( display.showSelectedSegmentsIn3d() );
+		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
+
+		checkBox.addActionListener( new ActionListener()
+		{
+			@Override
+			public void actionPerformed( ActionEvent e )
+			{
+				new Thread( () -> {
+						display.segmentsVolumeViewer.showSegments( checkBox.isSelected() );
+				}).start();
+			}
+		} );
+
+		display.segmentsVolumeViewer.getListeners().add( new VisibilityListener()
+		{
+			@Override
+			public void visibility( boolean isVisible )
+			{
+				SwingUtilities.invokeLater( () ->
+				{
+					checkBox.setSelected( isVisible );
+				});
+			}
+		} );
+
+
+		return checkBox;
+	}
+
 
 	private static JCheckBox createSliceViewerVisibilityCheckbox(
 			boolean isVisible,
@@ -628,7 +667,7 @@ public class UserInterfaceHelper
 		JCheckBox checkBox = new JCheckBox( "T" );
 		checkBox.setSelected( isVisible );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
-		window.setVisible( checkBox.isSelected() );
+		window.setVisible( isVisible );
 		checkBox.addActionListener( e -> SwingUtilities.invokeLater( () -> window.setVisible( checkBox.isSelected() ) ) );
 
 		window.addWindowListener(
@@ -672,10 +711,10 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JCheckBox createVolumeViewerVisibilityCheckbox( SegmentationSourceDisplay display )
+	public static JCheckBox createImageVolumeViewerVisibilityCheckbox( ImageSourceDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "V" );
-		checkBox.setSelected( display.showSelectedSegmentsIn3d() );
+		checkBox.setSelected( display.showImagesIn3d() );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
 		checkBox.addActionListener( new ActionListener()
@@ -684,19 +723,12 @@ public class UserInterfaceHelper
 			public void actionPerformed( ActionEvent e )
 			{
 				new Thread( () -> {
-					if ( checkBox.isSelected() )
-					{
-						display.segmentsVolumeViewer.showSegments( true );
-					}
-					else
-					{
-						display.segmentsVolumeViewer.showSegments( false );
-					}
+						display.imageVolumeViewer.showImages( checkBox.isSelected() );
 				}).start();
 			}
 		} );
 
-		display.segmentsVolumeViewer.getListeners().add( new VisibilityListener()
+		display.imageVolumeViewer.getListeners().add( new VisibilityListener()
 		{
 			@Override
 			public void visibility( boolean isVisible )
@@ -737,14 +769,12 @@ public class UserInterfaceHelper
 			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
 			for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceNameToSourceAndConverter.values() )
 			{
-				converterSetups.add( SourceAndConverterServices.getBdvDisplayService().getConverterSetup( sourceAndConverter ) );
+				converterSetups.add( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ) );
 			}
 
-			UserInterfaceHelper.showBrightnessDialog(
+			UserInterfaceHelpers.showBrightnessDialog(
 					imageDisplay.getName(),
-					converterSetups,
-					0,   // TODO: determine somehow...
-					65535 );
+					converterSetups);
 		} );
 
 		return button;
@@ -769,7 +799,7 @@ public class UserInterfaceHelper
 
 		button.addActionListener( e ->
 		{
-			UserInterfaceHelper.showOpacityDialog(
+			UserInterfaceHelpers.showOpacityDialog(
 					name,
 					sourceAndConverters,
 					bdvHandle );
@@ -829,7 +859,9 @@ public class UserInterfaceHelper
 
 		removeButton.addActionListener( e ->
 		{
-			moBIE.getViewManager().removeSourceDisplay( sourceDisplay );
+			// remove the display but do not close the ImgLoader
+			// because some derived sources may currently be shown
+			moBIE.getViewManager().removeSourceDisplay( sourceDisplay, false );
 		} );
 
 		return removeButton;
@@ -840,12 +872,12 @@ public class UserInterfaceHelper
 		String tidyString = string.replaceAll("\\s+","_");
 
 		if ( !string.equals(tidyString) ) {
-			Utils.log( "Spaces were removed from name, and replaced by _");
+			MoBIEUtils.log( "Spaces were removed from name, and replaced by _");
 		}
 
 		// check only contains alphanumerics, or _ -
 		if ( !tidyString.matches("^[a-zA-Z0-9_-]+$") ) {
-			Utils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
+			MoBIEUtils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
 					"with a different name.");
 			tidyString = null;
 		}

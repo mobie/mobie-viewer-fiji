@@ -1,14 +1,9 @@
 package org.embl.mobie.viewer.projectcreator;
 
-import org.embl.mobie.viewer.Project;
-import org.embl.mobie.viewer.serialize.ProjectJsonParser;
-import org.embl.mobie.viewer.source.ImageDataFormat;
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import ij.IJ;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class DatasetsCreator {
@@ -17,11 +12,20 @@ public class DatasetsCreator {
 
     private ProjectCreator projectCreator;
 
+    /**
+     * Make a datasetsCreator - includes all functions for creating and modifying datasets in projects
+     * @param projectCreator projectCreator
+     */
     public DatasetsCreator(ProjectCreator projectCreator ) {
         this.projectCreator = projectCreator;
     }
 
-    public void addDataset ( String datasetName ) {
+    /**
+     * Create a new, empty dataset
+     * @param datasetName dataset name
+     * @param is2D whether dataset only contains 2D images
+     */
+    public void addDataset ( String datasetName, boolean is2D ) {
         List<String> currentDatasets = projectCreator.getProject().getDatasets();
         boolean contains = currentDatasets.contains(datasetName);
         if ( !contains ) {
@@ -37,13 +41,11 @@ public class DatasetsCreator {
                 new File(datasetDir, "tables").mkdirs();
                 new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "misc", "views")).mkdirs();
 
+                // update project json
+                projectCreator.getProjectJsonCreator().addDataset( datasetName );
 
-                // if this is the first dataset, then make this the default
-                if ( currentDatasets.size() == 0 ) {
-                    projectCreator.getProject().setDefaultDataset( datasetName );
-                }
-                currentDatasets.add( datasetName );
-                writeProjectJson();
+                // create dataset json
+                projectCreator.getDatasetJsonCreator().addDataset( datasetName, is2D );
             } else {
                 IJ.log( "Dataset creation failed - this name already exists" );
             }
@@ -52,6 +54,11 @@ public class DatasetsCreator {
         }
     }
 
+    /**
+     * Rename an existing dataset
+     * @param oldName old dataset name
+     * @param newName new dataset name
+     */
     public void renameDataset( String oldName, String newName ) {
 
         if ( !newName.equals(oldName) ) {
@@ -66,17 +73,8 @@ public class DatasetsCreator {
 
                 if (oldDatasetDir.exists()) {
                     if (oldDatasetDir.renameTo(newDatasetDir)) {
-
-                        // update json
-                        if ( projectCreator.getProject().getDefaultDataset().equals(oldName) ) {
-                            projectCreator.getProject().setDefaultDataset( newName );
-                        }
-
-                        int indexOld = projectCreator.getProject().getDatasets().indexOf(oldName);
-                        projectCreator.getProject().getDatasets().set(indexOld, newName);
-
-                        writeProjectJson();
-
+                        // update project json
+                        projectCreator.getProjectJsonCreator().renameDataset( oldName, newName );
                     } else {
                         IJ.log("Rename directory failed");
                     }
@@ -90,37 +88,22 @@ public class DatasetsCreator {
 
     }
 
+    /**
+     * Make the dataset the default when MoBIE is opened
+     * @param datasetName dataset name
+     */
     public void makeDefaultDataset ( String datasetName ) {
-        projectCreator.getProject().setDefaultDataset( datasetName );
-        writeProjectJson();
+        projectCreator.getProjectJsonCreator().setDefaultDataset( datasetName );
     }
 
-    public void addImageDataFormat( ImageDataFormat imageDataFormat ) {
-        Project project = projectCreator.getProject();
-        if ( project.getImageDataFormats() == null ) {
-            project.setImageDataFormats( new ArrayList<>() );
-        }
 
-        List<ImageDataFormat> imageDataFormats = project.getImageDataFormats();
-        if ( !imageDataFormats.contains( imageDataFormat ) ) {
-            imageDataFormats.add( imageDataFormat );
-            writeProjectJson();
-        }
-    }
-
-    private void writeProjectJson() {
-        try {
-            new ProjectJsonParser().saveProject( projectCreator.getProject(), projectCreator.getProjectJson().getAbsolutePath() );
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // whether the project writing succeeded or not, we now read the current state of the project
-        try {
-            projectCreator.reloadProject();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    /**
+     * Make a dataset 2D or 3D
+     * @param datasetName dataset name
+     * @param is2D 2D or not
+     */
+    public void makeDataset2D( String datasetName, boolean is2D ) {
+        projectCreator.getDatasetJsonCreator().makeDataset2D( datasetName, is2D );
     }
 
 }

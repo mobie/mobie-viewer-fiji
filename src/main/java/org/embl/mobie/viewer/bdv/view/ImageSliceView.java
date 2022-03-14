@@ -16,8 +16,6 @@ import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
@@ -31,20 +29,15 @@ public class ImageSliceView
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	private final SourceAndConverterBdvDisplayService displayService;
 	private final MoBIE moBIE;
 	private final ImageSourceDisplay display;
 	private final BdvHandle bdvHandle;
-	private final SourceAndConverterService sacService;
 
 	public ImageSliceView( MoBIE moBIE, ImageSourceDisplay display, BdvHandle bdvHandle )
 	{
 		this.moBIE = moBIE;
 		this.display = display;
 		this.bdvHandle = bdvHandle;
-
-		displayService = SourceAndConverterServices.getBdvDisplayService();
-		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 
 		show();
 	}
@@ -54,7 +47,7 @@ public class ImageSliceView
 		// show
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter = new HashMap<>();
 		for ( String name : display.getSources() ) {
-			sourceNameToSourceAndConverter.put( name, moBIE.getSourceAndConverter( name ) );
+			sourceNameToSourceAndConverter.put( name, moBIE.getTransformedSourceAndConverter( name ) );
 		}
 
 		display.sourceNameToSourceAndConverter = new HashMap<>();
@@ -74,10 +67,10 @@ public class ImageSliceView
 				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
 
 			// show
-			displayService.show( bdvHandle, display.isVisible(), sourceAndConverter );
+			SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
 
 			// adapt contrast limits
-			final ConverterSetup converterSetup = displayService.getConverterSetup( sourceAndConverter );
+			final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
 			converterSetup.setDisplayRange( display.getContrastLimits()[ 0 ], display.getContrastLimits()[ 1 ] );
 
 			// register	the actually displayed sac (for serialisation)
@@ -127,11 +120,11 @@ public class ImageSliceView
 		}
 	}
 
-	public void close( )
+	public void close( boolean closeImgLoader )
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
 		{
-			moBIE.closeSourceAndConverter( sourceAndConverter );
+			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
 		}
 		display.sourceNameToSourceAndConverter.clear();
 	}

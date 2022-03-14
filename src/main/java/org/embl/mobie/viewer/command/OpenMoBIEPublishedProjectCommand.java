@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Open>Open Published MoBIE Project..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Open Published MoBIE Project..." )
 public class OpenMoBIEPublishedProjectCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }

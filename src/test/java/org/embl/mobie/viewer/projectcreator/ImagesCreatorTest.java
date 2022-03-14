@@ -1,12 +1,11 @@
 package org.embl.mobie.viewer.projectcreator;
 
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.n5.writers.WriteImgPlusToN5;
-import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5BdvOmeZarr;
 import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
-import org.embl.mobie.viewer.source.ImageDataFormat;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 
@@ -39,7 +38,6 @@ class ImagesCreatorTest {
     private String imageName;
     private String datasetName;
     private AffineTransform3D sourceTransform;
-    private boolean useDefaultSettings;
     private String uiSelectionGroup;
     private String datasetJsonPath;
     private File tempDir;
@@ -54,15 +52,14 @@ class ImagesCreatorTest {
         datasetName = "test";
         uiSelectionGroup = "testGroup";
         sourceTransform = new AffineTransform3D();
-        useDefaultSettings = true;
 
-        projectCreator.getDatasetsCreator().addDataset(datasetName);
+        projectCreator.getDatasetsCreator().addDataset(datasetName, false);
 
         datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
                 datasetName, "dataset.json" );
     }
 
-    void assertionsForImageAdded(ImageDataFormat imageDataFormat, boolean onlyXmls ) throws IOException {
+    void assertionsForImageAdded( ImageDataFormat imageDataFormat, boolean onlyXmls ) throws IOException {
         assertTrue( new File(datasetJsonPath).exists() );
 
         List<String> filePaths = new ArrayList<>();
@@ -74,13 +71,6 @@ class ImagesCreatorTest {
                         datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".xml");
                 imageLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
                         datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".n5");
-                break;
-
-            case BdvOmeZarr:
-                xmlLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
-                        datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".xml");
-                imageLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
-                        datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".ome.zarr");
                 break;
 
             case OmeZarr:
@@ -107,7 +97,7 @@ class ImagesCreatorTest {
         assertTrue( dataset.sources.get(imageName).get().imageData.containsKey(imageDataFormat) );
     }
 
-    void assertionsForTableAdded( ImageDataFormat imageDataFormat ) throws IOException {
+    void assertionsForTableAdded( ) throws IOException {
         String tablePath = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(), datasetName, "tables", imageName, "default.tsv" );
         assertTrue( new File(tablePath).exists() );
 
@@ -116,9 +106,9 @@ class ImagesCreatorTest {
         assertTrue( segmentationSource.tableData.containsKey(TableDataFormat.TabDelimitedFile) );
     }
 
-    String writeImageAndGetPath( ImageDataFormat imageDataFormat ) {
+    String writeImageAndGetPath( ImageDataFormat imageDataFormat, boolean is2D ) {
         // save example image for testing adding bdv format images
-        ImagePlus imp = makeImage( imageName );
+        ImagePlus imp = makeImage( imageName, is2D );
         DownsampleBlock.DownsamplingMethod downsamplingMethod = DownsampleBlock.DownsamplingMethod.Average;
         Compression compression = new GzipCompression();
         String filePath;
@@ -129,12 +119,6 @@ class ImagesCreatorTest {
                 filePath = new File(tempDir, imageName + ".xml").getAbsolutePath();
                 new WriteImgPlusToN5().export(imp, filePath, sourceTransform, downsamplingMethod,
                         compression, new String[]{imageName} );
-                break;
-
-            case BdvOmeZarr:
-                filePath = new File(tempDir, imageName + ".xml").getAbsolutePath();
-                new WriteImgPlusToN5BdvOmeZarr().export(imp, filePath, sourceTransform,
-                        downsamplingMethod, compression, new String[]{imageName} );
                 break;
 
             case OmeZarr:
@@ -151,129 +135,134 @@ class ImagesCreatorTest {
         return filePath;
     }
 
-    void testAddingImageInCertainFormat( ImageDataFormat imageDataFormat ) throws IOException {
-
+    void addImageInCertainFormat( ImageDataFormat imageDataFormat, boolean is2D ) throws SpimDataException, IOException {
         // make an image with random values, same size as the imagej sample head image
-        ImagePlus imp = makeImage( imageName );
+        ImagePlus imp = makeImage( imageName, is2D );
 
         imagesCreator.addImage( imp, imageName, datasetName,
                 imageDataFormat, ProjectCreator.ImageType.image,
-                sourceTransform, useDefaultSettings, uiSelectionGroup );
+                sourceTransform, uiSelectionGroup, false );
+    }
 
+    void testAddingImageInCertainFormat( ImageDataFormat imageDataFormat, boolean is2D ) throws IOException, SpimDataException {
+        addImageInCertainFormat( imageDataFormat, is2D );
         assertionsForImageAdded( imageDataFormat, false );
     }
 
-    void testAddingSegmentationInCertainFormat( ImageDataFormat imageDataFormat ) throws IOException {
+    void testAddingSegmentationInCertainFormat( ImageDataFormat imageDataFormat ) throws IOException, SpimDataException {
         ImagePlus seg = makeSegmentation( imageName );
 
         imagesCreator.addImage( seg, imageName, datasetName,
                 imageDataFormat, ProjectCreator.ImageType.segmentation,
-                sourceTransform, useDefaultSettings, uiSelectionGroup );
+                sourceTransform, uiSelectionGroup, false );
 
         assertionsForImageAdded( imageDataFormat, false );
-        assertionsForTableAdded( imageDataFormat );
+        assertionsForTableAdded();
     }
 
-    void testLinkingImagesInCertainFormat( ImageDataFormat imageDataFormat ) throws IOException, SpimDataException {
+    void testLinkingImagesInCertainFormat( ImageDataFormat imageDataFormat, boolean is2D ) throws IOException, SpimDataException {
 
         // save example image
-        String filePath = writeImageAndGetPath( imageDataFormat );
+        String filePath = writeImageAndGetPath( imageDataFormat, is2D );
 
-        imagesCreator.addBdvFormatImage( new File(filePath), datasetName, ProjectCreator.ImageType.image,
-                ProjectCreator.AddMethod.link, uiSelectionGroup, imageDataFormat );
+        imagesCreator.addBdvFormatImage( new File(filePath), imageName, datasetName, ProjectCreator.ImageType.image,
+                ProjectCreator.AddMethod.link, uiSelectionGroup, imageDataFormat, false );
 
         assertionsForImageAdded( imageDataFormat, true );
     }
 
-    void testCopyingImagesInCertainFormat( ImageDataFormat imageDataFormat ) throws IOException, SpimDataException {
-
+    void copyImageInCertainFormat( ImageDataFormat imageDataFormat, boolean is2D ) throws SpimDataException, IOException {
         // save example image
-        String filePath = writeImageAndGetPath( imageDataFormat );
+        String filePath = writeImageAndGetPath( imageDataFormat, is2D );
 
-        imagesCreator.addBdvFormatImage( new File(filePath), datasetName, ProjectCreator.ImageType.image,
-                ProjectCreator.AddMethod.copy, uiSelectionGroup, imageDataFormat );
+        imagesCreator.addBdvFormatImage( new File(filePath), imageName, datasetName, ProjectCreator.ImageType.image,
+                ProjectCreator.AddMethod.copy, uiSelectionGroup, imageDataFormat, false );
+    }
 
+    void testCopyingImagesInCertainFormat( ImageDataFormat imageDataFormat, boolean is2D ) throws IOException, SpimDataException {
+        copyImageInCertainFormat( imageDataFormat, is2D );
         assertionsForImageAdded( imageDataFormat, false );
     }
 
-    void testMovingImagesInCertainFormat( ImageDataFormat imageDataFormat ) throws IOException, SpimDataException {
+    void testMovingImagesInCertainFormat( ImageDataFormat imageDataFormat, boolean is2D ) throws IOException, SpimDataException {
 
         // save example image
-        String filePath = writeImageAndGetPath( imageDataFormat );
+        String filePath = writeImageAndGetPath( imageDataFormat, is2D );
 
-        imagesCreator.addBdvFormatImage( new File(filePath), datasetName, ProjectCreator.ImageType.image,
-                ProjectCreator.AddMethod.move, uiSelectionGroup, imageDataFormat );
+        imagesCreator.addBdvFormatImage( new File(filePath), imageName, datasetName, ProjectCreator.ImageType.image,
+                ProjectCreator.AddMethod.move, uiSelectionGroup, imageDataFormat, false );
 
         assertionsForImageAdded( imageDataFormat, false );
     }
 
     @Test
-    void addImageBdvN5() throws IOException {
-        testAddingImageInCertainFormat( ImageDataFormat.BdvN5 );
+    void addImageBdvN5() throws IOException, SpimDataException {
+        testAddingImageInCertainFormat( ImageDataFormat.BdvN5, false );
     }
 
     @Test
-    void addSegmentationBdvN5() throws IOException {
+    void addSegmentationBdvN5() throws IOException, SpimDataException {
         testAddingSegmentationInCertainFormat( ImageDataFormat.BdvN5 );
     }
 
     @Test
-    void addImageBdvOmeZarr() throws IOException {
-        testAddingImageInCertainFormat( ImageDataFormat.BdvOmeZarr );
+    void addImageOmeZarr() throws IOException, SpimDataException {
+        testAddingImageInCertainFormat( ImageDataFormat.OmeZarr, false );
     }
 
     @Test
-    void addSegmentationBdvOmeZarr() throws IOException {
-        testAddingSegmentationInCertainFormat( ImageDataFormat.BdvOmeZarr );
-    }
-
-    @Test
-    void addImageOmeZarr() throws IOException {
-        testAddingImageInCertainFormat( ImageDataFormat.OmeZarr );
-    }
-
-    @Test
-    void addSegmentationOmeZarr() throws IOException {
+    void addSegmentationOmeZarr() throws IOException, SpimDataException {
         testAddingSegmentationInCertainFormat( ImageDataFormat.OmeZarr );
     }
 
     @Test
     void linkToImageBdvN5() throws IOException, SpimDataException {
-        testLinkingImagesInCertainFormat( ImageDataFormat.BdvN5 );
-    }
-
-    @Test
-    void linkToImageBdvOmeZarr() throws IOException, SpimDataException {
-        testLinkingImagesInCertainFormat( ImageDataFormat.BdvOmeZarr );
+        testLinkingImagesInCertainFormat( ImageDataFormat.BdvN5, false );
     }
 
     @Test
     void copyImageBdvN5() throws IOException, SpimDataException {
-        testCopyingImagesInCertainFormat( ImageDataFormat.BdvN5 );
-    }
-
-    @Test
-    void copyImageBdvOmeZarr() throws IOException, SpimDataException {
-        testCopyingImagesInCertainFormat( ImageDataFormat.BdvOmeZarr );
+        testCopyingImagesInCertainFormat( ImageDataFormat.BdvN5, false );
     }
 
     @Test
     void copyImageOmeZarr() throws IOException, SpimDataException {
-        testCopyingImagesInCertainFormat( ImageDataFormat.OmeZarr );
+        testCopyingImagesInCertainFormat( ImageDataFormat.OmeZarr, false );
     }
 
     @Test
     void moveImageBdvN5() throws IOException, SpimDataException {
-        testMovingImagesInCertainFormat( ImageDataFormat.BdvN5 );
-    }
-
-    @Test
-    void moveImageBdvOmeZarr() throws IOException, SpimDataException {
-        testMovingImagesInCertainFormat( ImageDataFormat.BdvOmeZarr );
+        testMovingImagesInCertainFormat( ImageDataFormat.BdvN5, false );
     }
 
     @Test
     void moveImageOmeZarr() throws IOException, SpimDataException {
-        testMovingImagesInCertainFormat( ImageDataFormat.OmeZarr );
+        testMovingImagesInCertainFormat( ImageDataFormat.OmeZarr, false );
+    }
+
+    @Test
+    void add2DImageTo3DDataset() throws SpimDataException, IOException {
+        testAddingImageInCertainFormat( ImageDataFormat.BdvN5, true );
+    }
+
+    @Test
+    void copy2DImageTo3DDataset() throws SpimDataException, IOException {
+        testCopyingImagesInCertainFormat( ImageDataFormat.BdvN5, true );
+    }
+
+    @Test
+    void add3DImageTo2DDataset() {
+        projectCreator.getDatasetsCreator().makeDataset2D(datasetName, true);
+        assertThrows( UnsupportedOperationException.class, () -> {
+            addImageInCertainFormat( ImageDataFormat.BdvN5, false);
+        } );
+    }
+
+    @Test
+    void copy3DImageTo2DDataset() {
+        projectCreator.getDatasetsCreator().makeDataset2D(datasetName, true);
+        assertThrows( UnsupportedOperationException.class, () -> {
+            copyImageInCertainFormat( ImageDataFormat.BdvN5, false);
+        } );
     }
 }

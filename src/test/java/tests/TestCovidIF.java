@@ -1,15 +1,6 @@
 package tests;
 
-import net.imagej.ImageJ;
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIESettings;
-import org.embl.mobie.viewer.source.ImageDataFormat;
-import org.embl.mobie.viewer.view.View;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
-import org.junit.Test;
-
 import java.io.IOException;
-import java.util.Map;
 
 public class TestCovidIF
 {

@@ -9,7 +9,7 @@
 
 	<groupId>org.embl.mobie</groupId>
 	<artifactId>mobie-viewer-fiji</artifactId>
-	<version>2.0.7</version>
+	<version>2.1.7-SNAPSHOT</version>
 
 	<!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
 	<!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
@@ -60,8 +60,8 @@
 		</mailingList>
 	</mailingLists>
 	<scm>
-		<connection>scm:git:git://github.com/mobie/mobie-viewer-fiji</connection>
-		<developerConnection>scm:git:git@github.com/mobie/mobie-viewer-fiji</developerConnection>
+		<connection>scm:git:https://github.com/mobie/mobie-viewer-fiji</connection>
+		<developerConnection>scm:git:git@github.com:mobie/mobie-viewer-fiji</developerConnection>
 		<tag>HEAD</tag>
 		<url>https://github.com/mobie/mobie-viewer-fiji</url>
 	</scm>
@@ -70,7 +70,8 @@
 		<url>https://github.com/mobie/mobie-viewer-fiji/issues</url>
 	</issueManagement>
 	<ciManagement>
-		<system>None</system>
+		<system>Github Actions</system>
+		<url>https://github.com/mobie/mobie-viewer-fiji/actions</url>
 	</ciManagement>
 	<properties>
 		<package-name>de.embl.cba.mobie</package-name>
@@ -79,7 +80,7 @@
 		<enforcer.skip>true</enforcer.skip>
 
 		<!-- Java 8	Update Site	-->
-		<imglib2.version>5.12.0</imglib2.version>
+<!--		<imglib2.version>5.12.0</imglib2.version>-->
 		<imglib2-cache.version>1.0.0-beta-16</imglib2-cache.version>
 		<bigdataviewer-core.version>10.2.1</bigdataviewer-core.version>
 		<bigdataviewer-vistools.version>1.0.0-beta-29</bigdataviewer-vistools.version>
@@ -89,11 +90,12 @@
 		<spim_data.version>2.2.5</spim_data.version>
 
 		<!-- BIOP -->
-		<bigdataviewer-playground.version>0.3.13</bigdataviewer-playground.version>
+		<bigdataviewer-playground.version>0.4.1</bigdataviewer-playground.version>
 
 		<!-- EMBL CBA -->
 		<imagej-utils.version>0.6.4</imagej-utils.version>
-		<mobie-io.version>1.0.8</mobie-io.version>
+
+		<mobie-io.version>1.2.8</mobie-io.version>
 
 		<!-- Version 1.6.0-scijava-3-SNAPSHOT of j3dcore addresses a minor issue
 		https://github.com/fiji/3D_Viewer/issues/26

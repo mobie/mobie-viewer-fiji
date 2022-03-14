@@ -7,7 +7,7 @@ import com.google.gson.stream.JsonReader;
 import org.embl.mobie.viewer.display.SourceDisplay;
 import org.embl.mobie.viewer.transform.SourceTransformer;
 import org.embl.mobie.viewer.transform.ViewerTransform;
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;

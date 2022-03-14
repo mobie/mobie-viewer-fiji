@@ -9,12 +9,12 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 
-import static org.embl.mobie.viewer.ui.UserInterfaceHelper.*;
+import static org.embl.mobie.viewer.ui.UserInterfaceHelpers.*;
 
-@Plugin(type = Command.class, menuPath = "Plugins>MoBIE>Create>Create New MoBIE Project..." )
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create>Create New MoBIE Project..." )
 public class CreateNewMoBIEProjectCommand implements Command {
 
-	  static { net.imagej.patcher.LegacyInjector.preinit(); }
+    static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     @Parameter( label= "Choose a project name:")
     public String projectName;

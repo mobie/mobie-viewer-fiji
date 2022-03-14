@@ -8,7 +8,7 @@ import org.embl.mobie.viewer.table.TableDataFormat;
 
 import java.util.*;
 
-public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay<AnnotatedIntervalTableRow>
+public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedIntervalTableRow >
 {
 	// Serialization
 	protected Map< String, List< String > > sources;

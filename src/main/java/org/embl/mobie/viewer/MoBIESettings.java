@@ -1,6 +1,6 @@
 package org.embl.mobie.viewer;
 
-import org.embl.mobie.viewer.source.ImageDataFormat;
+import org.embl.mobie.io.ImageDataFormat;
 
 public class MoBIESettings
 {
@@ -65,8 +65,15 @@ public class MoBIESettings
 		return this;
 	}
 
+	public MoBIESettings s3AccessAndSecretKey( String[] s3AccessAndSecretKey )
+	{
+		this.values.s3AccessAndSecretKey = s3AccessAndSecretKey;
+		return this;
+	}
+
 	public static class Values
 	{
+		public String[] s3AccessAndSecretKey;
 		private String publicationURL;
 		private String dataset;
 		private String projectBranch = "main"; // project and images
@@ -122,6 +129,11 @@ public class MoBIESettings
 		public String getView()
 		{
 			return view;
+		}
+
+		public String[] getS3AccessAndSecretKey()
+		{
+			return s3AccessAndSecretKey;
 		}
 	}
 }

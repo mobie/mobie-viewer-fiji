@@ -11,17 +11,20 @@ import de.embl.cba.tables.github.GitHubUtils;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import org.apache.commons.io.FilenameUtils;
-import org.embl.mobie.viewer.Utils;
+import org.embl.mobie.viewer.MoBIEUtils;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
-import org.embl.mobie.viewer.ui.UserInterfaceHelper;
+import org.embl.mobie.viewer.ui.UserInterfaceHelpers;
 
 import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
-import static de.embl.cba.tables.FileAndUrlUtils.getFileNames;
-import static de.embl.cba.tables.S3Utils.isS3;
-import static de.embl.cba.tables.github.GitHubUtils.isGithub;
+import static org.embl.mobie.io.github.GitHubUtils.isGithub;
+import static org.embl.mobie.io.util.FileAndUrlUtils.getFileNames;
+import static org.embl.mobie.io.util.S3Utils.isS3;
+import static org.embl.mobie.viewer.view.saving.ViewSavingHelpers.writeAdditionalViewsJson;
+import static org.embl.mobie.viewer.view.saving.ViewSavingHelpers.writeDatasetJson;
 
 public class ViewsSaver {
 
@@ -50,13 +53,13 @@ public class ViewsSaver {
 
         String[] choices = new String[]{ "Save as new view", "Overwrite existing view" };
         gd.addChoice("Save method:", choices, choices[0] );
-        gd.addChoice("Save to", new String[]{ Utils.FileLocation.Project.toString(),
-                Utils.FileLocation.FileSystem.toString()}, Utils.FileLocation.Project.toString());
+        gd.addChoice("Save to", new String[]{ MoBIEUtils.FileLocation.Project.toString(),
+                MoBIEUtils.FileLocation.FileSystem.toString()}, MoBIEUtils.FileLocation.Project.toString());
         gd.showDialog();
 
         if (!gd.wasCanceled()) {
             String saveMethodString = gd.getNextChoice();
-            Utils.FileLocation fileLocation = Utils.FileLocation.valueOf(gd.getNextChoice());
+            MoBIEUtils.FileLocation fileLocation = MoBIEUtils.FileLocation.valueOf(gd.getNextChoice());
 
             SaveMethod saveMethod;
             if (saveMethodString.equals("Save as new view")) {
@@ -70,7 +73,7 @@ public class ViewsSaver {
 
     }
 
-    public void viewSettingsDialog( SaveMethod saveMethod, Utils.FileLocation fileLocation ) {
+    public void viewSettingsDialog( SaveMethod saveMethod, MoBIEUtils.FileLocation fileLocation ) {
         final GenericDialog gd = new GenericDialog("View settings");
 
         if ( saveMethod == SaveMethod.saveAsNewView ) {
@@ -85,7 +88,7 @@ public class ViewsSaver {
         }
         gd.addChoice("Ui Selection Group", choices, choices[0]);
 
-        if ( fileLocation == Utils.FileLocation.Project ) {
+        if ( fileLocation == MoBIEUtils.FileLocation.Project ) {
             String[] jsonChoices = new String[]{"dataset.json", "views.json"};
             gd.addChoice("Save location:", jsonChoices, jsonChoices[0]);
         }
@@ -99,7 +102,7 @@ public class ViewsSaver {
 
             String viewName = null;
             if( saveMethod == SaveMethod.saveAsNewView ) {
-                viewName = UserInterfaceHelper.tidyString( gd.getNextString() );
+                viewName = UserInterfaceHelpers.tidyString( gd.getNextString() );
                 if ( viewName == null ) {
                     return;
                 }
@@ -107,7 +110,7 @@ public class ViewsSaver {
 
             String uiSelectionGroup = gd.getNextChoice();
             ProjectSaveLocation projectSaveLocation = null;
-            if ( fileLocation == Utils.FileLocation.Project ) {
+            if ( fileLocation == MoBIEUtils.FileLocation.Project ) {
                 String projectSaveLocationString = gd.getNextChoice();
                 if ( projectSaveLocationString.equals("dataset.json") ) {
                     projectSaveLocation =  ProjectSaveLocation.datasetJson;
@@ -127,13 +130,13 @@ public class ViewsSaver {
             View currentView = moBIE.getViewManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
 
             if ( uiSelectionGroup != null && currentView != null ) {
-                if ( fileLocation == Utils.FileLocation.Project && saveMethod == SaveMethod.saveAsNewView ) {
+                if ( fileLocation == MoBIEUtils.FileLocation.Project && saveMethod == SaveMethod.saveAsNewView ) {
                     saveNewViewToProject( currentView, viewName, projectSaveLocation );
-                } else if ( fileLocation == Utils.FileLocation.Project && saveMethod == SaveMethod.overwriteExistingView ) {
+                } else if ( fileLocation == MoBIEUtils.FileLocation.Project && saveMethod == SaveMethod.overwriteExistingView ) {
                     overwriteExistingViewInProject( currentView, projectSaveLocation );
-                } else if ( fileLocation == Utils.FileLocation.FileSystem && saveMethod == SaveMethod.saveAsNewView ) {
+                } else if ( fileLocation == MoBIEUtils.FileLocation.FileSystem && saveMethod == SaveMethod.saveAsNewView ) {
                     saveNewViewToFileSystem( currentView, viewName );
-                } else if ( fileLocation == Utils.FileLocation.FileSystem && saveMethod == SaveMethod.overwriteExistingView ) {
+                } else if ( fileLocation == MoBIEUtils.FileLocation.FileSystem && saveMethod == SaveMethod.overwriteExistingView ) {
                     overwriteExistingViewOnFileSystem( currentView );
                 }
             }
@@ -141,7 +144,7 @@ public class ViewsSaver {
     }
 
     private String chooseFileSystemJson() {
-        String jsonPath = Utils.selectSavePathFromFileSystem( "json" );
+        String jsonPath = MoBIEUtils.selectFilePath( "json", "json file", false );
 
         if ( jsonPath != null && !jsonPath.endsWith(".json") ) {
                 jsonPath += ".json";
@@ -151,46 +154,45 @@ public class ViewsSaver {
     }
 
     private void saveNewViewToFileSystem( View view, String viewName ) {
-        String jsonPath = chooseFileSystemJson();
-        if ( jsonPath != null ) {
-            try {
-                saveNewViewToAdditionalViewsJson( view, viewName, jsonPath );
-            } catch (IOException e) {
-                e.printStackTrace();
+        new Thread( () -> {
+            String jsonPath = chooseFileSystemJson();
+            if ( jsonPath != null ) {
+                try {
+                    saveNewViewToAdditionalViewsJson( view, viewName, jsonPath );
+                    addViewToUi( viewName, view );
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        }
+        }).start();
     }
 
     private void overwriteExistingViewOnFileSystem( View view ) {
-        String jsonPath = chooseFileSystemJson();
-        if ( jsonPath != null ) {
-            try {
-                overwriteExistingViewInAdditionalViewsJson( view, jsonPath );
-            } catch (IOException e) {
-                e.printStackTrace();
+        new Thread( () -> {
+            String jsonPath = chooseFileSystemJson();
+            if ( jsonPath != null ) {
+                try {
+                    overwriteExistingViewInAdditionalViewsJson( view, jsonPath );
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        }
+        }).start();
     }
 
     private void saveNewViewToProject( View view, String viewName, ProjectSaveLocation projectSaveLocation ) {
-        if ( isS3(settings.values.getProjectLocation()) ) {
-            // TODO - support saving views to s3?
-            IJ.log("View saving aborted - saving directly to s3 is not yet supported!");
-        } else {
-
-            try {
-                if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
-                    saveNewViewToDatasetJson( view, viewName );
-                } else {
-                    String viewJsonPath = chooseAdditionalViewsJson( true );
-                    if (viewJsonPath != null) {
-                        saveNewViewToAdditionalViewsJson( view, viewName, viewJsonPath);
-                    }
+        try {
+            if (projectSaveLocation == ProjectSaveLocation.datasetJson) {
+                saveViewToDatasetJson( view, viewName, false );
+            } else {
+                String viewJsonPath = chooseAdditionalViewsJson( true );
+                if (viewJsonPath != null) {
+                    saveNewViewToAdditionalViewsJson( view, viewName, viewJsonPath);
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-
+            addViewToUi( viewName, view );
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -216,17 +218,25 @@ public class ViewsSaver {
         }
     }
 
-    private void saveNewViewToDatasetJson( View view, String viewName ) throws IOException {
+    private void addViewToUi( String viewName, View view ) {
+        moBIE.getViews().put( viewName, view );
+
+        Map<String, View> views = new HashMap<>();
+        views.put( viewName, view );
+        moBIE.getUserInterface().addViews( views );
+    }
+
+    public void saveViewToDatasetJson( View view, String viewName, boolean overwrite ) throws IOException
+    {
         String datasetJsonPath = moBIE.getDatasetPath( "dataset.json");
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
 
-        if ( dataset.views.keySet().size() > 0 && dataset.views.containsKey( viewName ) ) {
-                IJ.log( "View saving aborted - this view name already exists!" );
-                return;
-        }
+        if ( ! overwrite )
+            if ( dataset.views.containsKey( viewName ) )
+                throw new IOException( "View saving aborted - this view name already exists!" );
 
         ViewSavingHelpers.writeDatasetJson( dataset, view, viewName, datasetJsonPath );
-        IJ.log( "New view, " + viewName + ", written to dataset.json" );
+        IJ.log( " View, " + viewName + ", written to dataset.json" );
     }
 
     private void overwriteExistingViewInDatasetJson( View view ) throws IOException {
@@ -234,7 +244,12 @@ public class ViewsSaver {
         Dataset dataset = new DatasetJsonParser().parseDataset( datasetJsonPath );
 
         if ( dataset.views.keySet().size() > 0 ) {
-            new SelectExistingViewFrame( dataset, view, datasetJsonPath );
+            String selectedView = new SelectExistingViewDialog( dataset ).getSelectedView();
+            if ( selectedView != null ) {
+                writeDatasetJson( dataset, view, selectedView, datasetJsonPath );
+                IJ.log( selectedView + " overwritten in dataset.json" );
+                addViewToUi( selectedView, view );
+            }
         } else {
             IJ.log( "View saving aborted - dataset.json contains no views" );
         }
@@ -256,7 +271,13 @@ public class ViewsSaver {
         }
 
         AdditionalViews additionalViews = new AdditionalViewsJsonParser().getViews( jsonPath );
-        new SelectExistingViewFrame( additionalViews, view, jsonPath );
+        String selectedView = new SelectExistingViewDialog( additionalViews ).getSelectedView();
+
+        if ( selectedView != null ) {
+            writeAdditionalViewsJson( additionalViews, view, selectedView, jsonPath );
+            IJ.log( selectedView + " overwritten in " + new File(jsonPath).getName() );
+            addViewToUi( selectedView, view );
+        }
     }
 
     private void saveNewViewToAdditionalViewsJson( View view, String viewName, String jsonPath ) throws IOException {
@@ -331,7 +352,7 @@ public class ViewsSaver {
 
         // get rid of any spaces, warn for unusual characters in basename (without the .json)
         if ( viewFileName != null ) {
-            viewFileName = UserInterfaceHelper.tidyString( viewFileName);
+            viewFileName = UserInterfaceHelpers.tidyString( viewFileName);
         }
 
         if ( viewFileName != null ) {
