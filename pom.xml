@@ -60,8 +60,8 @@
 		</mailingList>
 	</mailingLists>
 	<scm>
-		<connection>scm:git:git://github.com/mobie/mobie-viewer-fiji</connection>
-		<developerConnection>scm:git:git@github.com/mobie/mobie-viewer-fiji</developerConnection>
+		<connection>scm:git:https://github.com/mobie/mobie-viewer-fiji</connection>
+		<developerConnection>scm:git:git@github.com:mobie/mobie-viewer-fiji</developerConnection>
 		<tag>HEAD</tag>
 		<url>https://github.com/mobie/mobie-viewer-fiji</url>
 	</scm>
@@ -70,7 +70,8 @@
 		<url>https://github.com/mobie/mobie-viewer-fiji/issues</url>
 	</issueManagement>
 	<ciManagement>
-		<system>None</system>
+		<system>Github Actions</system>
+		<url>https://github.com/mobie/mobie-viewer-fiji/actions</url>
 	</ciManagement>
 	<properties>
 		<package-name>de.embl.cba.mobie</package-name>
@@ -94,7 +95,7 @@
 		<!-- EMBL CBA -->
 		<imagej-utils.version>0.6.4</imagej-utils.version>
 
-		<mobie-io.version>1.2.7-SNAPSHOT</mobie-io.version>
+		<mobie-io.version>1.2.8</mobie-io.version>
 
 		<!-- Version 1.6.0-scijava-3-SNAPSHOT of j3dcore addresses a minor issue
 		https://github.com/fiji/3D_Viewer/issues/26
