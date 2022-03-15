@@ -2,7 +2,7 @@ package org.embl.mobie.viewer.view.additionalviews;
 
 import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
 import org.embl.mobie.viewer.view.View;
@@ -24,13 +24,13 @@ public class AdditionalViewsLoader {
         new Thread( () -> {
             try {
                 String selectedFilePath = null;
-                MoBIEUtils.FileLocation fileLocation = MoBIEUtils.loadFromProjectOrFileSystemDialog();
+                MoBIEHelper.FileLocation fileLocation = MoBIEHelper.loadFromProjectOrFileSystemDialog();
                 if ( fileLocation == null )
                     return;
-                if ( fileLocation == MoBIEUtils.FileLocation.Project ) {
-                    selectedFilePath = MoBIEUtils.selectPathFromProject( moBIE.getDatasetPath("misc", "views" ), "View" );
+                if ( fileLocation == MoBIEHelper.FileLocation.Project ) {
+                    selectedFilePath = MoBIEHelper.selectPathFromProject( moBIE.getDatasetPath("misc", "views" ), "View" );
                 } else {
-                    selectedFilePath = MoBIEUtils.selectFilePath( "json", "View", true );
+                    selectedFilePath = MoBIEHelper.selectFilePath( "json", "View", true );
                 }
 
                 if (selectedFilePath != null) {

@@ -5,7 +5,7 @@ import bdv.util.VolatileSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
-import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.MoBIEHelper;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
@@ -84,7 +82,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealDimensions )
 	{
-		final FinalRealInterval dataRealBounds = MoBIEUtils.estimateBounds( gridSources.get( 0 ).getSpimSource() );
+		final FinalRealInterval dataRealBounds = MoBIEHelper.estimateBounds( gridSources.get( 0 ).getSpimSource() );
 
 		final double[] dataRealDimensions = new double[ 3 ];
 		for ( int d = 0; d < 3; d++ )

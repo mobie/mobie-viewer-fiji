@@ -4,7 +4,7 @@ import bdv.util.*;
 import bdv.viewer.animate.SimilarityTransformAnimator;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.bdv.BdvCircleOverlay;
-import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.MoBIEHelper;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.Arrays;
@@ -39,12 +39,12 @@ public abstract class MoBIEViewerTransformChanger
 		}
 		else if ( viewerTransform instanceof AffineViewerTransform )
 		{
-			changeViewerTransform( bdv, MoBIEUtils.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
+			changeViewerTransform( bdv, MoBIEHelper.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
 			adaptTimepoint( bdv, viewerTransform );
 		}
 		else if ( viewerTransform instanceof NormalizedAffineViewerTransform )
 		{
-			final AffineTransform3D transform = TransformHelper.createUnnormalizedViewerTransform( MoBIEUtils.asAffineTransform3D( viewerTransform.getParameters() ), bdv.getBdvHandle().getViewerPanel() );
+			final AffineTransform3D transform = TransformHelper.createUnnormalizedViewerTransform( MoBIEHelper.asAffineTransform3D( viewerTransform.getParameters() ), bdv.getBdvHandle().getViewerPanel() );
 			changeViewerTransform( bdv, transform, animationDurationMillis );
 			adaptTimepoint( bdv, viewerTransform );
 		}

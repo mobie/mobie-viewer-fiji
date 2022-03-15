@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.projectcreator;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imagej.patcher.LegacyInjector;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.viewer.Dataset;
@@ -22,8 +23,9 @@ import static org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper.getGroup
 
 public class ProjectCreator {
 
-    private final File dataLocation;
+    static { LegacyInjector.preinit(); }
 
+    private final File projectLocation;
     private final File projectJson;
     private Project project;
 
@@ -52,12 +54,14 @@ public class ProjectCreator {
 
     /**
      * Make a project creator, allowing creation / editing of projects
-     * @param dataLocation directory that contains the project.json and individual dataset directories
+     * @param projectLocation directory that contains the project.json and individual dataset directories
      * @throws IOException
      */
-    public ProjectCreator(File dataLocation ) throws IOException {
-        this.dataLocation = dataLocation;
-        projectJson = new File( FileAndUrlUtils.combinePath(  dataLocation.getAbsolutePath(), "project.json") );
+    public ProjectCreator( File projectLocation ) throws IOException {
+        this.projectLocation = projectLocation;
+        if ( ! projectLocation.exists() )
+            projectLocation.mkdirs();
+        projectJson = new File( FileAndUrlUtils.combinePath(  projectLocation.getAbsolutePath(), "project.json") );
         if ( projectJson.exists() ) {
             reloadProject();
         } else {
@@ -80,7 +84,7 @@ public class ProjectCreator {
         }
     }
 
-    public File getDataLocation() { return dataLocation; }
+    public File getProjectLocation() { return projectLocation; }
 
     public Project getProject() {
         return project;
@@ -100,7 +104,7 @@ public class ProjectCreator {
         if ( datasetName.equals(currentDatasetName) ) {
             return currentDataset;
         } else {
-            File datasetJson = new File( FileAndUrlUtils.combinePath( dataLocation.getAbsolutePath(), datasetName, "dataset.json") );
+            File datasetJson = new File( FileAndUrlUtils.combinePath( projectLocation.getAbsolutePath(), datasetName, "dataset.json") );
             if ( datasetJson.exists() ) {
                 try {
                     currentDatasetJson = datasetJson;
@@ -205,7 +209,7 @@ public class ProjectCreator {
                     // open one of the local images
                     for (ImageDataFormat format : imageSource.imageData.keySet()) {
                         if (!format.isRemote()) {
-                            String imagePath = FileAndUrlUtils.combinePath( dataLocation.getAbsolutePath(), datasetName,
+                            String imagePath = FileAndUrlUtils.combinePath( projectLocation.getAbsolutePath(), datasetName,
                                     imageSource.imageData.get(format).relativePath);
                             SpimData spimData = (SpimData) new SpimDataOpener().openSpimData( imagePath, format );
                             VoxelDimensions voxelDimensions = spimData.getSequenceDescription().

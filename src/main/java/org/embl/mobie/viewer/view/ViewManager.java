@@ -22,7 +22,6 @@ import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.bdv.view.SliceViewer;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import org.embl.mobie.viewer.display.*;
-import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
@@ -51,7 +50,7 @@ import javax.swing.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.embl.mobie.viewer.MoBIEUtils.containsAtLeastOne;
+import static org.embl.mobie.viewer.MoBIEHelper.containsAtLeastOne;
 
 public class ViewManager
 {

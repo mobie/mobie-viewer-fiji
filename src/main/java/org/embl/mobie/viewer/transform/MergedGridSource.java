@@ -23,7 +23,7 @@ import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
-import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.source.LabelSource;
 
@@ -125,7 +125,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 
 	private FinalInterval createInterval()
 	{
-		final long[] max = MoBIEUtils.asLongs( cellDimensions[ 0 ] );
+		final long[] max = MoBIEHelper.asLongs( cellDimensions[ 0 ] );
 		for ( int d = 0; d < max.length; d++ )
 			max[ d ] -= 1;
 		final long[] min = new long[ 3 ];
@@ -179,7 +179,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		// positions.
 		final RandomAccessibleInterval< T > source = referenceSource.getSource( 0, 0 );
 		final long[] referenceSourceDimensions = source.dimensionsAsLongArray();
-		cellDimensions[ 0 ] = MoBIEUtils.asInts( referenceSourceDimensions );
+		cellDimensions[ 0 ] = MoBIEHelper.asInts( referenceSourceDimensions );
 		for ( int d = 0; d < 2; d++ )
 		{
 			cellDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeCellMargin );
@@ -372,7 +372,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 				RandomAccessibleInterval< T > data = source.getSource( currentTimepoint, level );
 
 				// Create a view that is shifted to the cell position
-				final long[] offset = computeTranslation( MoBIEUtils.asInts( cell.dimensionsAsLongArray() ), cell.minAsLongArray(), data.dimensionsAsLongArray() );
+				final long[] offset = computeTranslation( MoBIEHelper.asInts( cell.dimensionsAsLongArray() ), cell.minAsLongArray(), data.dimensionsAsLongArray() );
 				data = Views.translate( Views.zeroMin( data ), offset );
 
 				// copy RAI into cell

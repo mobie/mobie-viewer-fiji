@@ -65,7 +65,7 @@ public class RemoteMetadataCreator {
 
             if ( remoteImageDataFormat.hasXml() ) {
                 // delete any existing remote metadata .xml files
-                File currentRemoteXmlLocation = new File(FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
+                File currentRemoteXmlLocation = new File(FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                         datasetName, imageSource.imageData.get(remoteImageDataFormat).relativePath));
                 if (currentRemoteXmlLocation.exists()) {
                     if (!currentRemoteXmlLocation.delete()) {
@@ -84,7 +84,7 @@ public class RemoteMetadataCreator {
         // check image is within the project folder (if people 'link' to bdv format images they may be outside)
         Path imagePath = Paths.get( ProjectCreatorHelper.getImageLocationFromSequenceDescription( spimData.getSequenceDescription(),
                 imageFormat ).getAbsolutePath() ).normalize();
-        Path projectDataFolder = Paths.get( projectCreator.getDataLocation().getAbsolutePath() ).normalize();
+        Path projectDataFolder = Paths.get( projectCreator.getProjectLocation().getAbsolutePath() ).normalize();
 
         if ( !imagePath.startsWith( projectDataFolder )) {
             String errorMesage = "Image: " + imageName + " for dataset:" + datasetName + " is not in project folder. \n" +
@@ -145,10 +145,10 @@ public class RemoteMetadataCreator {
         if ( localImageDataFormat.hasXml() ) {
 
             // make new xml containing bucket name etc, and give relative path
-            String localXmlLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
+            String localXmlLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, imageSource.imageData.get(localImageDataFormat).relativePath);
 
-            String remoteXmlLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
+            String remoteXmlLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName( remoteImageDataFormat ));
 
             // make directory for that image file format, if doesn't exist already

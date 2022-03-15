@@ -11,7 +11,7 @@ import de.embl.cba.tables.github.GitHubUtils;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import org.apache.commons.io.FilenameUtils;
-import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
 import org.embl.mobie.viewer.ui.UserInterfaceHelpers;
 
@@ -53,13 +53,13 @@ public class ViewsSaver {
 
         String[] choices = new String[]{ "Save as new view", "Overwrite existing view" };
         gd.addChoice("Save method:", choices, choices[0] );
-        gd.addChoice("Save to", new String[]{ MoBIEUtils.FileLocation.Project.toString(),
-                MoBIEUtils.FileLocation.FileSystem.toString()}, MoBIEUtils.FileLocation.Project.toString());
+        gd.addChoice("Save to", new String[]{ MoBIEHelper.FileLocation.Project.toString(),
+                MoBIEHelper.FileLocation.FileSystem.toString()}, MoBIEHelper.FileLocation.Project.toString());
         gd.showDialog();
 
         if (!gd.wasCanceled()) {
             String saveMethodString = gd.getNextChoice();
-            MoBIEUtils.FileLocation fileLocation = MoBIEUtils.FileLocation.valueOf(gd.getNextChoice());
+            MoBIEHelper.FileLocation fileLocation = MoBIEHelper.FileLocation.valueOf(gd.getNextChoice());
 
             SaveMethod saveMethod;
             if (saveMethodString.equals("Save as new view")) {
@@ -73,7 +73,7 @@ public class ViewsSaver {
 
     }
 
-    public void viewSettingsDialog( SaveMethod saveMethod, MoBIEUtils.FileLocation fileLocation ) {
+    public void viewSettingsDialog( SaveMethod saveMethod, MoBIEHelper.FileLocation fileLocation ) {
         final GenericDialog gd = new GenericDialog("View settings");
 
         if ( saveMethod == SaveMethod.saveAsNewView ) {
@@ -88,7 +88,7 @@ public class ViewsSaver {
         }
         gd.addChoice("Ui Selection Group", choices, choices[0]);
 
-        if ( fileLocation == MoBIEUtils.FileLocation.Project ) {
+        if ( fileLocation == MoBIEHelper.FileLocation.Project ) {
             String[] jsonChoices = new String[]{"dataset.json", "views.json"};
             gd.addChoice("Save location:", jsonChoices, jsonChoices[0]);
         }
@@ -110,7 +110,7 @@ public class ViewsSaver {
 
             String uiSelectionGroup = gd.getNextChoice();
             ProjectSaveLocation projectSaveLocation = null;
-            if ( fileLocation == MoBIEUtils.FileLocation.Project ) {
+            if ( fileLocation == MoBIEHelper.FileLocation.Project ) {
                 String projectSaveLocationString = gd.getNextChoice();
                 if ( projectSaveLocationString.equals("dataset.json") ) {
                     projectSaveLocation =  ProjectSaveLocation.datasetJson;
@@ -130,13 +130,13 @@ public class ViewsSaver {
             View currentView = moBIE.getViewManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
 
             if ( uiSelectionGroup != null && currentView != null ) {
-                if ( fileLocation == MoBIEUtils.FileLocation.Project && saveMethod == SaveMethod.saveAsNewView ) {
+                if ( fileLocation == MoBIEHelper.FileLocation.Project && saveMethod == SaveMethod.saveAsNewView ) {
                     saveNewViewToProject( currentView, viewName, projectSaveLocation );
-                } else if ( fileLocation == MoBIEUtils.FileLocation.Project && saveMethod == SaveMethod.overwriteExistingView ) {
+                } else if ( fileLocation == MoBIEHelper.FileLocation.Project && saveMethod == SaveMethod.overwriteExistingView ) {
                     overwriteExistingViewInProject( currentView, projectSaveLocation );
-                } else if ( fileLocation == MoBIEUtils.FileLocation.FileSystem && saveMethod == SaveMethod.saveAsNewView ) {
+                } else if ( fileLocation == MoBIEHelper.FileLocation.FileSystem && saveMethod == SaveMethod.saveAsNewView ) {
                     saveNewViewToFileSystem( currentView, viewName );
-                } else if ( fileLocation == MoBIEUtils.FileLocation.FileSystem && saveMethod == SaveMethod.overwriteExistingView ) {
+                } else if ( fileLocation == MoBIEHelper.FileLocation.FileSystem && saveMethod == SaveMethod.overwriteExistingView ) {
                     overwriteExistingViewOnFileSystem( currentView );
                 }
             }
@@ -144,7 +144,7 @@ public class ViewsSaver {
     }
 
     private String chooseFileSystemJson() {
-        String jsonPath = MoBIEUtils.selectFilePath( "json", "json file", false );
+        String jsonPath = MoBIEHelper.selectFilePath( "json", "json file", false );
 
         if ( jsonPath != null && !jsonPath.endsWith(".json") ) {
                 jsonPath += ".json";

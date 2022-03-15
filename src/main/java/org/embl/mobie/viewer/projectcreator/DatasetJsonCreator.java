@@ -220,7 +220,7 @@ public class DatasetJsonCreator {
 
     public void writeDatasetJson ( String datasetName, Dataset dataset ) {
         try {
-            String datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
+            String datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, "dataset.json" );
             new DatasetJsonParser().saveDataset( dataset, datasetJsonPath );
         } catch (IOException e) {

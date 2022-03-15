@@ -7,7 +7,7 @@ import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Project;
-import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.command.OpenMoBIEProjectCommand;
 import org.embl.mobie.viewer.projectcreator.ImagesCreator;
 import org.embl.mobie.viewer.projectcreator.ProjectCreator;
@@ -284,7 +284,7 @@ public class ProjectsCreatorPanel extends JFrame {
         {
             new Thread( () -> {
                 OpenMoBIEProjectCommand openMoBIE = new OpenMoBIEProjectCommand();
-                openMoBIE.projectLocation = this.projectsCreator.getDataLocation().getAbsolutePath();
+                openMoBIE.projectLocation = this.projectsCreator.getProjectLocation().getAbsolutePath();
                 openMoBIE.run();
             } ).start();
         } );
@@ -632,10 +632,10 @@ public class ProjectsCreatorPanel extends JFrame {
         switch ( imageDataFormat )
         {
             case BdvN5:
-                return MoBIEUtils.selectFilePath( "xml", "bdv .xml file", true );
+                return MoBIEHelper.selectFilePath( "xml", "bdv .xml file", true );
 
             case OmeZarr:
-                String filePath = MoBIEUtils.selectDirectoryPath( ".ome.zarr file", true );
+                String filePath = MoBIEHelper.selectDirectoryPath( ".ome.zarr file", true );
 
                 // quick check that basic criteria for ome-zarr are met i.e. contains right files in top of dir
                 if ( ! isValidOMEZarr( filePath ) )

@@ -34,7 +34,7 @@ class DatasetsCreatorTest {
         Project project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
         assertEquals(project.getDatasets().size(), 1);
         assertEquals(project.getDatasets().get(0), datasetName);
-        assertTrue(new File(projectCreator.getDataLocation(), datasetName).exists());
+        assertTrue(new File(projectCreator.getProjectLocation(), datasetName).exists());
     }
 
     @Test
@@ -47,8 +47,8 @@ class DatasetsCreatorTest {
         Project project = new ProjectJsonParser().parseProject( projectCreator.getProjectJson().getAbsolutePath() );
         assertEquals(project.getDatasets().size(), 1);
         assertEquals(project.getDatasets().get(0), newDatasetName);
-        assertTrue(new File(projectCreator.getDataLocation(), newDatasetName).exists());
-        assertFalse(new File(projectCreator.getDataLocation(), oldDatasetName).exists());
+        assertTrue(new File(projectCreator.getProjectLocation(), newDatasetName).exists());
+        assertFalse(new File(projectCreator.getProjectLocation(), oldDatasetName).exists());
     }
 
     @Test
@@ -71,7 +71,7 @@ class DatasetsCreatorTest {
     @Test
     void makeDataset2D() throws IOException {
         String datasetName = "test";
-        String datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
+        String datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "dataset.json" );
 
         Dataset dataset;
