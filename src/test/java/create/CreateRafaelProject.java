@@ -6,6 +6,7 @@ import ij.gui.Roi;
 import ij.plugin.ChannelSplitter;
 import ij.plugin.Duplicator;
 import ij.plugin.frame.RoiManager;
+import ij.process.LUT;
 import mpicbg.spim.data.SpimDataException;
 import net.imagej.ImageJ;
 import net.imagej.patcher.LegacyInjector;
@@ -75,8 +76,14 @@ public class CreateRafaelProject
 			ImagePlus[] channels = ChannelSplitter.split( sectionCrop );
 			for ( int c = 0; c < channels.length; c++ )
 			{
+				final ImagePlus channel = channels[ c ];
+				if ( c == 0 )
+					IJ.run(channel, "Green", "");
+				else
+					IJ.run(channel, "Grays", "");
+
 				final String imageName = "Sections_B_z" + sectionIndex + "_c" + c;
-				images.addImage( channels[ c ], imageName, datasetName, ImageDataFormat.OmeZarr, ProjectCreator.ImageType.image, affineTransform3D, uiSelectionGroup );
+				images.addImage( channel, imageName, datasetName, ImageDataFormat.OmeZarr, ProjectCreator.ImageType.image, affineTransform3D, uiSelectionGroup );
 			}
 		}
 

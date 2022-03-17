@@ -11,6 +11,7 @@ import org.embl.mobie.viewer.command.ManualRegistrationCommand;
 import org.embl.mobie.viewer.command.BigWarpRegistrationCommand;
 import org.embl.mobie.viewer.command.ImageVolumeRenderingConfiguratorCommand;
 import org.embl.mobie.viewer.command.NonSelectedSegmentsOpacityAdjusterCommand;
+import org.embl.mobie.viewer.command.SIFTRegistrationCommand;
 import org.embl.mobie.viewer.command.SegmentsVolumeRenderingConfiguratorCommand;
 import org.embl.mobie.viewer.command.SelectedSegmentsColorConfiguratorCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
@@ -106,8 +107,9 @@ public class SliceViewer implements Supplier< BdvHandle >
 		actions.add( sacService.getCommandName( ScreenShotMakerCommand.class ) );
 		actions.add( sacService.getCommandName( ImagePlusExportCommand.class ) );
 		actions.add( sacService.getCommandName( ViewerTransformLogger.class ) );
-		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
+		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
+		actions.add( sacService.getCommandName( SIFTRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ) );
 		actions.add( sacService.getCommandName( RandomColorSeedChangerCommand.class ) );
 		actions.add( sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ) );
