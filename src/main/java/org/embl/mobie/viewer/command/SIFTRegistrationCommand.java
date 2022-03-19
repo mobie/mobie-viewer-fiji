@@ -1,31 +1,23 @@
 package org.embl.mobie.viewer.command;
 
-import bdv.gui.TransformTypeSelectDialog;
-import bdv.tools.brightness.ConverterSetup;
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
-import bdv.viewer.BigWarpViewerPanel;
 import bdv.viewer.SourceAndConverter;
-import bdv.viewer.TransformListener;
-import bigwarp.BigWarp;
-import bigwarp.transforms.BigWarpTransform;
-import ij.gui.NonBlockingGenericDialog;
-import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.InvertibleRealTransform;
-import org.embl.mobie.viewer.transform.TransformHelper;
+import mpicbg.models.AffineModel2D;
+import mpicbg.models.InterpolatedAffineModel2D;
+import mpicbg.models.RigidModel2D;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.realtransform.AffineTransform2D;
+import net.imglib2.type.numeric.real.FloatType;
+import org.embl.mobie.viewer.bdv.SourceViewRasterizer;
+import org.janelia.saalfeldlab.hotknife.MultiConsensusFilter;
+import org.janelia.saalfeldlab.hotknife.util.Align;
+import org.janelia.saalfeldlab.hotknife.util.Transform;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.services.ISourceAndConverterService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import sc.fiji.bdvpg.sourceandconverter.register.BigWarpLauncher;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.io.Serializable;
+import java.util.function.Supplier;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - SIFT")
 public class SIFTRegistrationCommand implements BdvPlaygroundActionCommand
@@ -39,10 +31,38 @@ public class SIFTRegistrationCommand implements BdvPlaygroundActionCommand
 	@Parameter(label = "Moving Source")
 	SourceAndConverter movingSource;
 
+
 	@Override
 	public void run()
 	{
-		int a = 1;
+		final RandomAccessibleInterval< FloatType > fixedRai = new SourceViewRasterizer( bdvHandle, fixedSource.getSpimSource() ).getRasterizedSourceView();
+
+		final RandomAccessibleInterval< FloatType > movingRai = new SourceViewRasterizer( bdvHandle, movingSource.getSpimSource() ).getRasterizedSourceView();
+
+		final Transform.InterpolatedAffineModel2DSupplier<AffineModel2D, RigidModel2D> filterModelSupplier =
+				new Transform.InterpolatedAffineModel2DSupplier<AffineModel2D, RigidModel2D>( ( Supplier<AffineModel2D> & Serializable )AffineModel2D::new, (Supplier<RigidModel2D> & Serializable)RigidModel2D::new, 0.25 );
+
+		final MultiConsensusFilter< InterpolatedAffineModel2D< AffineModel2D, RigidModel2D > > filter = new MultiConsensusFilter<InterpolatedAffineModel2D<AffineModel2D, RigidModel2D>>(
+				filterModelSupplier,
+				10000,
+				3,
+				0.0,
+				7);
+
+		final AffineTransform2D affineTransform2D = Align.alignSIFT(
+				fixedRai,
+				movingRai,
+				1.0,
+				0.75,
+				4,
+				0.92,
+				1.0,
+				filter,
+				filterModelSupplier,
+				Transform::convertAndInvertAffine2DtoAffineTransform2D );
+
+		System.out.println( affineTransform2D );
+
 	}
 
 }

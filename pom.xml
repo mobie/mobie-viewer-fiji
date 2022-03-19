@@ -212,6 +212,11 @@
 			<groupId>net.imagej</groupId>
 			<artifactId>ij</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>saalfeldlab</groupId>
+			<artifactId>hot-knife</artifactId>
+			<version>0.0.4-SNAPSHOT</version>
+		</dependency>
         <dependency>
             <groupId>trove</groupId>
             <artifactId>trove</artifactId>
