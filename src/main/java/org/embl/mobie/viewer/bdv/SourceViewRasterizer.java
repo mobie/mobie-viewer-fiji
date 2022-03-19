@@ -61,39 +61,35 @@ public class SourceViewRasterizer
 
 		final double canvasStepSize = samplingPhysical / getViewerVoxelSpacing( bdvHandle );
 
-		Grids.collectAllContainedIntervals(
-				Intervals.dimensionsAsLongArray( rai ),
-				new int[]{200, 200}).parallelStream().forEach( interval ->
+		RealRandomAccess< ? extends RealType< ? > > realTypeAccess =
+				(RealRandomAccess<? extends RealType<?>>) source.getInterpolatedSource(t, level, Interpolation.NEARESTNEIGHBOR).realRandomAccess();
+
+		final Cursor< FloatType > cursor = Views.iterable( rai ).localizingCursor();
+		final RandomAccess< FloatType > access = rai.randomAccess();
+
+		final double[] canvasPosition = new double[ 3 ];
+		final double[] sourcePixelPosition = new double[ 3 ];
+
+		// iterate through the target image in pixel units
+		while ( cursor.hasNext() )
 		{
-			RealRandomAccess< ? extends RealType< ? > > realTypeAccess =
-					(RealRandomAccess<? extends RealType<?>>) source.getInterpolatedSource(t, level, Interpolation.NLINEAR).realRandomAccess();
+			cursor.fwd();
+			cursor.localize( canvasPosition );
+			access.setPosition( cursor );
 
-			final IntervalView< FloatType > crop = Views.interval( rai, interval );
-			final Cursor< FloatType > cursor = Views.iterable( crop ).localizingCursor();
-			final RandomAccess< FloatType > access = crop.randomAccess();
+			// canvasPosition is the position on the canvas
+			// in physical units
+			// dxy is the step size that is needed to get
+			// the desired resolution in the output image
+			canvasPosition[ 0 ] *= canvasStepSize;
+			canvasPosition[ 1 ] *= canvasStepSize;
 
-			final double[] canvasPosition = new double[ 3 ];
-			final double[] sourcePixelPosition = new double[ 3 ];
+			viewerToSourceTransform.apply( canvasPosition, sourcePixelPosition );
 
-			// iterate through the target image in pixel units
-			while ( cursor.hasNext() )
-			{
-				cursor.fwd();
-				cursor.localize( canvasPosition );
-				access.setPosition( cursor );
+			access.get().setReal( realTypeAccess.setPositionAndGet( sourcePixelPosition ).getRealFloat() );
 
-				// canvasPosition is the position on the canvas, in calibrated units
-				// dxy is the step size that is needed to get
-				// the desired resolution in the output image
-				canvasPosition[ 0 ] *= canvasStepSize;
-				canvasPosition[ 1 ] *= canvasStepSize;
+		}
 
-				viewerToSourceTransform.apply( canvasPosition, sourcePixelPosition );
-
-				access.get().setReal( realTypeAccess.setPositionAndGet( sourcePixelPosition ).getRealFloat() );
-
-			}
-		});
 		return rai;
 	}
 }

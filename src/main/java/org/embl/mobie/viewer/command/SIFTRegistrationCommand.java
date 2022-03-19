@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.command;
 
+import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.models.AffineModel2D;
@@ -31,13 +32,15 @@ public class SIFTRegistrationCommand implements BdvPlaygroundActionCommand
 	@Parameter(label = "Moving Source")
 	SourceAndConverter movingSource;
 
-
 	@Override
 	public void run()
 	{
 		final RandomAccessibleInterval< FloatType > fixedRai = new SourceViewRasterizer( bdvHandle, fixedSource.getSpimSource() ).getRasterizedSourceView();
 
 		final RandomAccessibleInterval< FloatType > movingRai = new SourceViewRasterizer( bdvHandle, movingSource.getSpimSource() ).getRasterizedSourceView();
+
+		BdvFunctions.show( fixedRai, "fixedRai" );
+		BdvFunctions.show( movingRai, "movingRai" );
 
 		final Transform.InterpolatedAffineModel2DSupplier<AffineModel2D, RigidModel2D> filterModelSupplier =
 				new Transform.InterpolatedAffineModel2DSupplier<AffineModel2D, RigidModel2D>( ( Supplier<AffineModel2D> & Serializable )AffineModel2D::new, (Supplier<RigidModel2D> & Serializable)RigidModel2D::new, 0.25 );
@@ -62,7 +65,6 @@ public class SIFTRegistrationCommand implements BdvPlaygroundActionCommand
 				Transform::convertAndInvertAffine2DtoAffineTransform2D );
 
 		System.out.println( affineTransform2D );
-
 	}
 
 }
