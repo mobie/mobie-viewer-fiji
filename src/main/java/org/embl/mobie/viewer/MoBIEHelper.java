@@ -7,6 +7,10 @@ import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
+import ij.ImagePlus;
+import loci.plugins.in.ImagePlusReader;
+import loci.plugins.in.ImportProcess;
+import loci.plugins.in.ImporterOptions;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
@@ -41,7 +45,7 @@ import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MAX_Z;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
 import static org.embl.mobie.viewer.ui.SwingHelpers.selectionDialog;
 
-public abstract class MoBIEUtils
+public abstract class MoBIEHelper
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -108,6 +112,26 @@ public abstract class MoBIEUtils
 		else
 		{
 			throw new IllegalArgumentException("For sources of type " + source.getClass().getName() + " the root source currently cannot be determined.");
+		}
+	}
+
+	public static ImagePlus openWithBioFormats( String path, int seriesIndex )
+	{
+		try
+		{
+			ImporterOptions opts = new ImporterOptions();
+			opts.setId( path );
+			opts.setSeriesOn( seriesIndex, true );
+			ImportProcess process = new ImportProcess( opts );
+			process.execute();
+			ImagePlusReader impReader = new ImagePlusReader( process );
+			ImagePlus[] imps = impReader.openImagePlus();
+			return imps[ 0 ];
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+			return null;
 		}
 	}
 

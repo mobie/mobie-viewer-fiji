@@ -6,7 +6,6 @@ import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
 import bdv.viewer.SourceAndConverter;
 import com.google.gson.Gson;
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import org.embl.mobie.viewer.*;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
@@ -26,7 +25,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.MoBIEHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -872,12 +871,12 @@ public class UserInterfaceHelpers
 		String tidyString = string.replaceAll("\\s+","_");
 
 		if ( !string.equals(tidyString) ) {
-			MoBIEUtils.log( "Spaces were removed from name, and replaced by _");
+			MoBIEHelper.log( "Spaces were removed from name, and replaced by _");
 		}
 
 		// check only contains alphanumerics, or _ -
 		if ( !tidyString.matches("^[a-zA-Z0-9_-]+$") ) {
-			MoBIEUtils.log( "Names must only contain letters, numbers, _ or -. Please try again " +
+			MoBIEHelper.log( "Names must only contain letters, numbers, _ or -. Please try again " +
 					"with a different name.");
 			tidyString = null;
 		}

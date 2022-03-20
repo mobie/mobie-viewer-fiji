@@ -55,7 +55,7 @@ class ImagesCreatorTest {
 
         projectCreator.getDatasetsCreator().addDataset(datasetName, false);
 
-        datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
+        datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "dataset.json" );
     }
 
@@ -67,14 +67,14 @@ class ImagesCreatorTest {
         String imageLocation = null;
         switch( imageDataFormat ) {
             case BdvN5:
-                xmlLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
+                xmlLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                         datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".xml");
-                imageLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
+                imageLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                         datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".n5");
                 break;
 
             case OmeZarr:
-                imageLocation = FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(),
+                imageLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                         datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".ome.zarr");
                 break;
         }
@@ -98,7 +98,7 @@ class ImagesCreatorTest {
     }
 
     void assertionsForTableAdded( ) throws IOException {
-        String tablePath = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(), datasetName, "tables", imageName, "default.tsv" );
+        String tablePath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "tables", imageName, "default.tsv" );
         assertTrue( new File(tablePath).exists() );
 
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);

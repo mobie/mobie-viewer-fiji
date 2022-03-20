@@ -29,7 +29,7 @@ public class DatasetsCreator {
         List<String> currentDatasets = projectCreator.getProject().getDatasets();
         boolean contains = currentDatasets.contains(datasetName);
         if ( !contains ) {
-            File datasetDir = new File ( FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
+            File datasetDir = new File ( FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName ) );
 
             if ( !datasetDir.exists() ) {
@@ -67,9 +67,9 @@ public class DatasetsCreator {
             boolean contains = currentDatasets.contains( newName );
             if ( !contains ) {
                 File oldDatasetDir = new File( FileAndUrlUtils.combinePath(
-                        projectCreator.getDataLocation().getAbsolutePath(), oldName) );
+                        projectCreator.getProjectLocation().getAbsolutePath(), oldName) );
                 File newDatasetDir = new File( FileAndUrlUtils.combinePath(
-                        projectCreator.getDataLocation().getAbsolutePath(), newName ));
+                        projectCreator.getProjectLocation().getAbsolutePath(), newName ));
 
                 if (oldDatasetDir.exists()) {
                     if (oldDatasetDir.renameTo(newDatasetDir)) {

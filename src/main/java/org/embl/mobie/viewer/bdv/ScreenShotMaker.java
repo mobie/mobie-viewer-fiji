@@ -97,11 +97,6 @@ public class ScreenShotMaker
         this.physicalUnit = unit;
     }
 
-    public void setSourceInteractionWithViewerPlaneOnly2D(boolean sourceInteractionWithViewerPlaneOnly2D) {
-        this.rgbImagePlus = null;
-        this.sourceInteractionWithViewerPlaneOnly2D = sourceInteractionWithViewerPlaneOnly2D;
-    }
-
     private void process() {
         if ( rgbImagePlus != null) {
             return;
@@ -120,7 +115,7 @@ public class ScreenShotMaker
         return compositeImagePlus;
     }
 
-    public static long[] getCaptureImageSizeInPixels( BdvHandle bdvHandle, double samplingXY )
+    public static long[] captureImageSizeInPixels( BdvHandle bdvHandle, double samplingXY )
     {
         final double viewerVoxelSpacing = getViewerVoxelSpacing( bdvHandle );
 
@@ -145,12 +140,79 @@ public class ScreenShotMaker
         return bdvWindowPhysicalSize;
     }
 
+    private void capture( SourceAndConverter< ? > sac, AffineTransform3D viewerTransform, ArrayList< RandomAccessibleInterval< UnsignedShortType > > rawCaptures, ArrayList< RandomAccessibleInterval< ARGBType > > argbCaptures, int t )
+    {
+        final RandomAccessibleInterval< UnsignedShortType > rawCapture = ArrayImgs.unsignedShorts( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ] );
+        final RandomAccessibleInterval< ARGBType > argbCapture = ArrayImgs.argbs( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ]  );
+
+        Source< ? > source = sac.getSpimSource();
+        final Converter converter = sac.getConverter();
+
+        final int level = getLevel( source, samplingXY );
+        final AffineTransform3D sourceTransform =
+                BdvHandleHelper.getSourceTransform( source, t, level );
+
+        AffineTransform3D viewerToSourceTransform = new AffineTransform3D();
+        viewerToSourceTransform.preConcatenate( viewerTransform.inverse() );
+        viewerToSourceTransform.preConcatenate( sourceTransform.inverse() );
+
+        final double canvasStepSize = samplingXY / getViewerVoxelSpacing( bdvHandle );
+
+        // TODO: Once we have a logic for segmentation images, make this choice depend on this
+        final boolean interpolate = true;
+        Grids.collectAllContainedIntervals(
+                Intervals.dimensionsAsLongArray( argbCapture ),
+                new int[]{100, 100}).parallelStream().forEach( interval ->
+        {
+            RealRandomAccess< ? extends RealType< ? > > realTypeAccess =
+                    getRealTypeRealRandomAccess( t, source, level, interpolate );
+            RealRandomAccess< ? > access =
+                    getRealRandomAccess( t, source, level, interpolate );
+
+            // to collect raw data
+            final IntervalView< UnsignedShortType > rawCrop = Views.interval( rawCapture, interval );
+            final Cursor< UnsignedShortType > rawCaptureCursor = Views.iterable( rawCrop ).localizingCursor();
+            final RandomAccess< UnsignedShortType > rawCaptureAccess = rawCrop.randomAccess();
+
+            // to collect coloured data
+            final IntervalView< ARGBType > argbCrop = Views.interval( argbCapture, interval );
+            final RandomAccess< ARGBType > argbCaptureAccess = argbCrop.randomAccess();
+
+            final double[] canvasPosition = new double[ 3 ];
+            final double[] sourceRealPosition = new double[ 3 ];
+
+            final ARGBType argbType = new ARGBType();
+
+            // iterate through the target image in pixel units
+            while ( rawCaptureCursor.hasNext() )
+            {
+                rawCaptureCursor.fwd();
+                rawCaptureCursor.localize( canvasPosition );
+                rawCaptureAccess.setPosition( rawCaptureCursor );
+                argbCaptureAccess.setPosition( rawCaptureCursor );
+
+                // canvasPosition is the position on the canvas, in calibrated units
+                // dxy is the step size that is needed to get
+                // the desired resolution in the output image
+                canvasPosition[ 0 ] *= canvasStepSize;
+                canvasPosition[ 1 ] *= canvasStepSize;
+
+                viewerToSourceTransform.apply( canvasPosition, sourceRealPosition );
+
+                setRawCapturePixelValue( realTypeAccess, rawCaptureAccess, sourceRealPosition );
+                setArgbCapturePixelValue( converter, access, argbCaptureAccess, sourceRealPosition, argbType );
+            }
+        });
+
+        rawCaptures.add( rawCapture );
+        argbCaptures.add( argbCapture );
+    }
+
     private void createScreenShot()
     {
         final AffineTransform3D viewerTransform = new AffineTransform3D();
         bdvHandle.getViewerPanel().state().getViewerTransform( viewerTransform );
-
-        captureImageSizeInPixels = getCaptureImageSizeInPixels( bdvHandle, samplingXY );
+        captureImageSizeInPixels = captureImageSizeInPixels( bdvHandle, samplingXY );
 
         final ArrayList< RandomAccessibleInterval< UnsignedShortType > > rawCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< ARGBType > > argbSources = new ArrayList<>();
@@ -164,7 +226,7 @@ public class ScreenShotMaker
         List< SourceAndConverter< ? > > sacs = new ArrayList<>();
         for ( SourceAndConverter< ?  > sac : visibleSacs )
         {
-            if ( !isSourceIntersectingCurrentView( bdvHandle, sac.getSpimSource(), sourceInteractionWithViewerPlaneOnly2D ) )
+            if ( ! isSourceIntersectingCurrentView( bdvHandle, sac.getSpimSource(), sourceInteractionWithViewerPlaneOnly2D ) )
                 continue;
             sacs.add( sac );
         }
@@ -174,73 +236,7 @@ public class ScreenShotMaker
 
         for ( SourceAndConverter< ?  > sac : sacs )
         {
-            final RandomAccessibleInterval< UnsignedShortType > rawCapture
-                    = ArrayImgs.unsignedShorts( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ] );
-            final RandomAccessibleInterval< ARGBType > argbCapture
-                    = ArrayImgs.argbs( captureImageSizeInPixels[ 0 ], captureImageSizeInPixels[ 1 ]  );
-
-            Source< ? > source = sac.getSpimSource();
-            final Converter converter = sac.getConverter();
-
-            final int level = getLevel( source, samplingXY );
-            final AffineTransform3D sourceTransform =
-                    BdvHandleHelper.getSourceTransform( source, t, level );
-
-            AffineTransform3D viewerToSourceTransform = new AffineTransform3D();
-            viewerToSourceTransform.preConcatenate( viewerTransform.inverse() );
-            viewerToSourceTransform.preConcatenate( sourceTransform.inverse() );
-
-            final double canvasStepSize = samplingXY / getViewerVoxelSpacing( bdvHandle );
-
-            // TODO: Once we have a logic for segmentation images, make this choice depend on this
-            final boolean interpolate = true;
-            Grids.collectAllContainedIntervals(
-                    Intervals.dimensionsAsLongArray( argbCapture ),
-                    new int[]{100, 100}).parallelStream().forEach( interval ->
-            {
-                RealRandomAccess< ? extends RealType< ? > > realTypeAccess =
-                        getRealTypeRealRandomAccess( t, source, level, interpolate );
-                RealRandomAccess< ? > access =
-                        getRealRandomAccess( t, source, level, interpolate );
-
-                // to collect raw data
-                final IntervalView< UnsignedShortType > rawCrop = Views.interval( rawCapture, interval );
-                final Cursor< UnsignedShortType > rawCaptureCursor = Views.iterable( rawCrop ).localizingCursor();
-                final RandomAccess< UnsignedShortType > rawCaptureAccess = rawCrop.randomAccess();
-
-                // to collect coloured data
-                final IntervalView< ARGBType > argbCrop = Views.interval( argbCapture, interval );
-                final RandomAccess< ARGBType > argbCaptureAccess = argbCrop.randomAccess();
-
-                final double[] canvasPosition = new double[ 3 ];
-                final double[] sourceRealPosition = new double[ 3 ];
-
-                final ARGBType argbType = new ARGBType();
-
-                // iterate through the target image in pixel units
-                while ( rawCaptureCursor.hasNext() )
-                {
-                    rawCaptureCursor.fwd();
-                    rawCaptureCursor.localize( canvasPosition );
-                    rawCaptureAccess.setPosition( rawCaptureCursor );
-                    argbCaptureAccess.setPosition( rawCaptureCursor );
-
-                    // canvasPosition is the position on the canvas, in calibrated units
-                    // dxy is the step size that is needed to get
-                    // the desired resolution in the output image
-                    canvasPosition[ 0 ] *= canvasStepSize;
-                    canvasPosition[ 1 ] *= canvasStepSize;
-
-                    viewerToSourceTransform.apply( canvasPosition, sourceRealPosition );
-
-                    setRawCapturePixelValue( realTypeAccess, rawCaptureAccess, sourceRealPosition );
-                    setArgbCapturePixelValue( converter, access, argbCaptureAccess, sourceRealPosition, argbType );
-                }
-            });
-
-            rawCaptures.add( rawCapture );
-            argbSources.add( argbCapture );
-            // colors.add( getSourceColor( bdv, sourceIndex ) ); Not used, show GrayScale
+            capture( sac, viewerTransform, rawCaptures, argbSources, t );
             displayRanges.add( BdvHandleHelper.getDisplayRange( sacService.getConverterSetup( sac ) ) );
         }
 

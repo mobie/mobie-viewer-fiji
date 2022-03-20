@@ -75,7 +75,7 @@ public class MoBIE
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations( );
 		registerProjectPlugins( settings.values.getProjectLocation() );
-		projectName = MoBIEUtils.getName( projectLocation );
+		projectName = MoBIEHelper.getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
 		this.settings = setImageDataFormat( projectLocation );
@@ -153,8 +153,8 @@ public class MoBIE
 		// deal with the fact that the grid ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
-		MoBIEUtils.toDoubleStrings( gridIdColumn );
-		MoBIEUtils.toDoubleStrings( columns.get( TableColumnNames.ANNOTATION_ID ) );
+		MoBIEHelper.toDoubleStrings( gridIdColumn );
+		MoBIEHelper.toDoubleStrings( columns.get( TableColumnNames.ANNOTATION_ID ) );
 
 		final Map< String, List< String > > newColumns = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, columns );
 
@@ -428,7 +428,7 @@ public class MoBIE
 
 		final String defaultTablePath = getTablePath( tableSource, tableName );
 
-		final List< TableRowImageSegment > segments = MoBIEUtils.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
+		final List< TableRowImageSegment > segments = MoBIEHelper.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
 
 		return segments;
 	}
@@ -477,7 +477,7 @@ public class MoBIE
 		for ( String sourceName : segmentationDisplaySources )
 		{
 			Set< Source< ? > > rootSources = ConcurrentHashMap.newKeySet();
-			MoBIEUtils.fetchRootSources( getTransformedSourceAndConverter( sourceName ).getSpimSource(), rootSources );
+			MoBIEHelper.fetchRootSources( getTransformedSourceAndConverter( sourceName ).getSpimSource(), rootSources );
 			sourceNameToRootSources.put( sourceName, rootSources );
 		}
 
@@ -514,8 +514,8 @@ public class MoBIE
 		// deal with the fact that the label ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
-		MoBIEUtils.toDoubleStrings( segmentIdColumn );
-		MoBIEUtils.toDoubleStrings( newColumns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
+		MoBIEHelper.toDoubleStrings( segmentIdColumn );
+		MoBIEHelper.toDoubleStrings( newColumns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
 
 		final Map< String, List< String > > columnsForMerging = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, newColumns );
 
@@ -584,7 +584,7 @@ public class MoBIE
 		for ( String table : annotationDisplay.getTables() )
 		{
 			String tablePath = getTablePath( annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
-			tablePath = MoBIEUtils.resolveTablePath( tablePath );
+			tablePath = MoBIEHelper.resolveTablePath( tablePath );
 			Logger.log( "Opening table:\n" + tablePath );
 			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
 		}

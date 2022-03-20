@@ -12,6 +12,7 @@
 	<version>2.1.8-SNAPSHOT</version>
 
 	<!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
+	<!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
 	<!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
 
 	<url>https://github.com/mobie/mobie-viewer-fiji</url>
@@ -210,6 +211,11 @@
 		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>ij</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>saalfeldlab</groupId>
+			<artifactId>hot-knife</artifactId>
+			<version>0.0.4-SNAPSHOT</version>
 		</dependency>
         <dependency>
             <groupId>trove</groupId>

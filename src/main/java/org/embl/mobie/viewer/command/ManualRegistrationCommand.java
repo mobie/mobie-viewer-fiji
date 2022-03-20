@@ -10,12 +10,9 @@ import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import javax.swing.*;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - Manual")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - 3D Manual")
 public class ManualRegistrationCommand implements BdvPlaygroundActionCommand
 {
-
-	private AffineTransform3D originalFixedTransform;
-
 	@Override
 	public void run()
 	{
@@ -33,28 +30,6 @@ public class ManualRegistrationCommand implements BdvPlaygroundActionCommand
 				"  - For example, right mouse button and mouse drag will translate the source\n\n" +
 				"Press [ T ] again to fix the transformation\n" +
 				"Press [ ESC ] to abort the transformation");
-
 		dialog.showDialog();
-		if ( dialog.wasCanceled() )
-		{
-			//resetMovingTransform();
-		}
-		else
-		{
-			// accept
-		}
-	}
-
-	private void storeOriginalTransform(  )
-	{
-//		originalFixedTransform = new AffineTransform3D();
-//		( ( TransformedSource ) .getSpimSource()).getFixedTransform( originalFixedTransform );
-	}
-
-	private void resetMovingTransform()
-	{
-//		( ( TransformedSource) movingSac.getSpimSource() ).setFixedTransform( sacToOriginalFixedTransform.get( movingSac ) );
-//		}
-//		bdvHandle.getViewerPanel().requestRepaint();
 	}
 }

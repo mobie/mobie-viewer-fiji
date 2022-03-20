@@ -87,12 +87,12 @@ public class ImagesCreator {
     }
 
     private String getDefaultLocalImageDirPath( String datasetName, ImageDataFormat imageDataFormat ) {
-        return FileAndUrlUtils.combinePath(projectCreator.getDataLocation().getAbsolutePath(), datasetName,
+        return FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(), datasetName,
                 "images", imageFormatToFolderName( imageDataFormat ) );
     }
 
     private String getDefaultTableDirPath( String datasetName, String imageName ) {
-        return FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
+        return FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "tables", imageName );
     }
 
@@ -104,6 +104,12 @@ public class ImagesCreator {
         // either xml file path or zarr file path depending on imageDataFormat
         String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
         return new File (filePath).exists();
+    }
+
+    // with exclusive=false
+    public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup ) throws SpimDataException, IOException
+    {
+        addImage( imp, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup, false, null, null, null );
     }
 
     /**

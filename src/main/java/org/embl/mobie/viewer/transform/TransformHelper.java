@@ -3,8 +3,9 @@ package org.embl.mobie.viewer.transform;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
+import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.realtransform.Scale3D;
-import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.FinalRealInterval;
@@ -25,7 +26,7 @@ public class TransformHelper
 
 		for ( Source< ? > source : sources )
 		{
-			final FinalRealInterval bounds = MoBIEUtils.estimateBounds( source );
+			final FinalRealInterval bounds = MoBIEHelper.estimateBounds( source );
 
 			if ( union == null )
 				union = bounds;
@@ -50,7 +51,7 @@ public class TransformHelper
 
 	public static double[] getCenter( SourceAndConverter< ? > sourceAndConverter )
 	{
-		final FinalRealInterval bounds = MoBIEUtils.estimateBounds( sourceAndConverter.getSpimSource() );
+		final FinalRealInterval bounds = MoBIEHelper.estimateBounds( sourceAndConverter.getSpimSource() );
 		final double[] center = bounds.minAsDoubleArray();
 		final double[] max = bounds.maxAsDoubleArray();
 		for ( int d = 0; d < max.length; d++ )
@@ -133,5 +134,26 @@ public class TransformHelper
 		transform.preConcatenate( translate );
 
 		return transform;
+	}
+
+	public static AffineTransform3D asAffineTransform3D( AffineTransform2D affineTransform2D )
+	{
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+		// matrix
+		for ( int r = 0; r < 2; r++ )
+		{
+			for ( int c = 0; c < 2; c++ )
+			{
+				affineTransform3D.set( affineTransform2D.get( r, c ), r, c);
+			}
+		}
+
+		// translation
+		for ( int r = 0; r < 2; r++ )
+		{
+			affineTransform3D.set( affineTransform2D.get( r, 2 ), r, 3 );
+		}
+
+		return affineTransform3D;
 	}
 }

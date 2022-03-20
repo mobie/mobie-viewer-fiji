@@ -39,7 +39,7 @@ class RemoteMetadataCreatorTest {
         serviceEndpoint = "https://s3.test.de/test/";
         bucketName = "test-bucket";
         projectCreator.getDatasetsCreator().addDataset(datasetName, false);
-        datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
+        datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "dataset.json" );
     }
 
@@ -67,7 +67,7 @@ class RemoteMetadataCreatorTest {
         assertTrue( dataset.sources.containsKey(imageName) );
         assertTrue( dataset.sources.get(imageName).get().imageData.containsKey(remoteFormat) );
         if ( imageDataFormat.hasXml() ) {
-            String remoteXmlPath = FileAndUrlUtils.combinePath( projectCreator.getDataLocation().getAbsolutePath(),
+            String remoteXmlPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName( remoteFormat ), imageName + ".xml" );
             assertTrue( new File(remoteXmlPath).exists() );
         }

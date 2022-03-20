@@ -30,7 +30,7 @@ package org.embl.mobie.viewer.table;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIEUtils;
+import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
 import org.embl.mobie.viewer.annotate.Annotator;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
@@ -61,7 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.embl.mobie.viewer.MoBIEUtils.*;
+import static org.embl.mobie.viewer.MoBIEHelper.*;
 import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_GREY;
 
 public class TableViewer< T extends TableRow > implements SelectionListener< T >, ColoringListener, TableRowListener
@@ -423,7 +423,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	}
 
 	private Map< String, List< String > > openTable( String tablePath ) {
-		String resolvedPath = MoBIEUtils.resolveTablePath( tablePath );
+		String resolvedPath = MoBIEHelper.resolveTablePath( tablePath );
 		Logger.info( "Opening table:\n" + resolvedPath );
 		return TableColumns.stringColumnsFromTableFile( resolvedPath );
 	}

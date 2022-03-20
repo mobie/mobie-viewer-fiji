@@ -90,7 +90,7 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     // callback
     private void showNumPixels()
     {
-        final long[] sizeInPixels = ScreenShotMaker.getCaptureImageSizeInPixels( bdvh, targetSamplingInXY );
+        final long[] sizeInPixels = ScreenShotMaker.captureImageSizeInPixels( bdvh, targetSamplingInXY );
         final MutableModuleItem< String > message = getInfo().getMutableInput("message", String.class);
         message.setValue( this, CAPTURE_SIZE_PIXELS + sizeInPixels[ 0 ] + ", " + sizeInPixels[ 1 ] );
     }
