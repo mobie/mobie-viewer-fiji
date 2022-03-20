@@ -75,7 +75,7 @@ public class SIFTRegistrationCommand implements BdvPlaygroundActionCommand
 				filter,
 				filterModelSupplier,
 				Transform::convertAndInvertAffine2DtoAffineTransform2D );
-
+		
 		if ( affineSIFT2D == null )
 		{
 			IJ.log("SIFT registration failed.");
