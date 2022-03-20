@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.transform;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
+import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.realtransform.Scale3D;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
@@ -133,5 +134,26 @@ public class TransformHelper
 		transform.preConcatenate( translate );
 
 		return transform;
+	}
+
+	public static AffineTransform3D asAffineTransform3D( AffineTransform2D affineTransform2D )
+	{
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+		// matrix
+		for ( int r = 0; r < 2; r++ )
+		{
+			for ( int c = 0; c < 2; c++ )
+			{
+				affineTransform3D.set( affineTransform2D.get( r, c ), r, c);
+			}
+		}
+
+		// translation
+		for ( int r = 0; r < 2; r++ )
+		{
+			affineTransform3D.set( affineTransform2D.get( r, 2 ), r, 3 );
+		}
+
+		return affineTransform3D;
 	}
 }

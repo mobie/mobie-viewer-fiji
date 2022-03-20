@@ -5,64 +5,98 @@ import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
 import net.imglib2.Cursor;
+import net.imglib2.FinalInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccess;
-import net.imglib2.algorithm.util.Grids;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.util.Intervals;
-import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
+import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
-import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getLevel;
+import java.util.ArrayList;
+import java.util.List;
+
+import static de.embl.cba.bdv.utils.BdvUtils.getLevel;
 import static sc.fiji.bdvpg.bdv.BdvHandleHelper.getViewerVoxelSpacing;
 
 public class SourceViewRasterizer
 {
 	private final BdvHandle bdvHandle;
-	private final Source< ? > source;
+	private final List< Source< ? > > sources;
 
-	private RandomAccessibleInterval< FloatType > rasterizedSourceView;
+	private int currentTimepoint;
+	private double rasterVoxelSize;
+	private ArrayList< RandomAccessibleInterval< FloatType > > rasterRais;
+	private long[] rasterDimensions;
+	private AffineTransform3D rasterTransform;
 
-	public SourceViewRasterizer( BdvHandle bdvHandle, Source< ? > source )
+	public SourceViewRasterizer( BdvHandle bdvHandle, List< Source< ? > > sources )
 	{
 		this.bdvHandle = bdvHandle;
-		this.source = source;
+		this.sources = sources;
+		currentTimepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 	}
 
-	public RandomAccessibleInterval< FloatType > getRasterizedSourceView()
+	public List< RandomAccessibleInterval< FloatType > > getRasterRais()
 	{
-		if ( rasterizedSourceView == null )
-			rasterizedSourceView = raster( bdvHandle, source );
+		if ( rasterRais == null )
+			raster();
 
-		return rasterizedSourceView;
+		return rasterRais;
+	}
+	
+	public double getRasterVoxelSize()
+	{
+		return rasterVoxelSize;
 	}
 
-	private RandomAccessibleInterval< FloatType > raster( BdvHandle bdvHandle, Source< ? > source )
+	public AffineTransform3D getRasterTransform()
 	{
-		final int t = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
-		final double samplingPhysical = BdvUtils.getViewerVoxelSpacing( bdvHandle );
-		long[] sizePixels = ScreenShotMaker.getCaptureImageSizeInPixels( bdvHandle, samplingPhysical );
+		return rasterTransform;
+	}
 
-		final RandomAccessibleInterval< FloatType > rai = ArrayImgs.floats( sizePixels[ 0 ], sizePixels[ 1 ] );
+	private void raster()
+	{
+		rasterTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
+		rasterVoxelSize = determineRasterVoxelSize();
+		rasterDimensions = ScreenShotMaker.captureImageSizeInPixels( bdvHandle, rasterVoxelSize );
+		rasterRais = new ArrayList<>();
 
-		final int level = getLevel( source, samplingPhysical );
+		for ( Source< ? > source : sources )
+		{
+			final RandomAccessibleInterval< FloatType > rai = raster( source );
+			rasterRais.add( rai );
+		}
+	}
 
+	private RandomAccessibleInterval< FloatType > raster( Source< ? > source )
+	{
+		final RandomAccessibleInterval< FloatType > rai = ArrayImgs.floats( rasterDimensions[ 0 ], rasterDimensions[ 1 ] );
+		final int level = getLevel( source, rasterVoxelSize );
 		AffineTransform3D sourceTransform = new AffineTransform3D();
-		source.getSourceTransform( t, level, sourceTransform );
-		final AffineTransform3D viewerTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
+		source.getSourceTransform( currentTimepoint, level, sourceTransform );
 
 		AffineTransform3D viewerToSourceTransform = new AffineTransform3D();
-		viewerToSourceTransform.preConcatenate( viewerTransform.inverse() );
+		viewerToSourceTransform.preConcatenate( rasterTransform.inverse() );
 		viewerToSourceTransform.preConcatenate( sourceTransform.inverse() );
 
-		final double canvasStepSize = samplingPhysical / getViewerVoxelSpacing( bdvHandle );
+		final double canvasStepSize = rasterVoxelSize / getViewerVoxelSpacing( bdvHandle );
 
-		RealRandomAccess< ? extends RealType< ? > > realTypeAccess =
-				(RealRandomAccess<? extends RealType<?>>) source.getInterpolatedSource(t, level, Interpolation.NEARESTNEIGHBOR).realRandomAccess();
+		RealRandomAccess< ? extends RealType< ? > > realTypeAccess = (RealRandomAccess<? extends RealType<?>>) source.getInterpolatedSource( currentTimepoint, level, Interpolation.NLINEAR).realRandomAccess();
+
+		// TODO: Make below code work (i.e. render in ImageJ or BDVFunctions)
+		final RandomAccessibleInterval< ? > interval = Views.interval(
+				Views.raster(
+						RealViews.affine( source.getInterpolatedSource( currentTimepoint, level, Interpolation.NLINEAR ), viewerToSourceTransform )
+				),
+				new FinalInterval( bdvHandle.getViewerPanel().getWidth(), bdvHandle.getViewerPanel().getHeight() ) );
+		//BdvFunctions.show( interval, "" );
+		// ImageJFunctions.show( (RandomAccessibleInterval) interval, "" );
+
 
 		final Cursor< FloatType > cursor = Views.iterable( rai ).localizingCursor();
 		final RandomAccess< FloatType > access = rai.randomAccess();
@@ -85,11 +119,21 @@ public class SourceViewRasterizer
 			canvasPosition[ 1 ] *= canvasStepSize;
 
 			viewerToSourceTransform.apply( canvasPosition, sourcePixelPosition );
-
 			access.get().setReal( realTypeAccess.setPositionAndGet( sourcePixelPosition ).getRealFloat() );
-
 		}
 
 		return rai;
+	}
+
+	private double determineRasterVoxelSize()
+	{
+		double rasterVoxelSize = BdvUtils.getViewerVoxelSpacing( bdvHandle );
+		for ( Source< ? > source : sources )
+		{
+			final int level = getLevel( source, rasterVoxelSize );
+			final double sourceVoxelSize = SourceAndConverterHelper.getCharacteristicVoxelSize( source, currentTimepoint, level );
+			rasterVoxelSize = Math.max( rasterVoxelSize, sourceVoxelSize );
+		}
+		return BdvUtils.getViewerVoxelSpacing( bdvHandle );
 	}
 }

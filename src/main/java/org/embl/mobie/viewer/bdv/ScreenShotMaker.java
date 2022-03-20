@@ -115,7 +115,7 @@ public class ScreenShotMaker
         return compositeImagePlus;
     }
 
-    public static long[] getCaptureImageSizeInPixels( BdvHandle bdvHandle, double samplingXY )
+    public static long[] captureImageSizeInPixels( BdvHandle bdvHandle, double samplingXY )
     {
         final double viewerVoxelSpacing = getViewerVoxelSpacing( bdvHandle );
 
@@ -212,7 +212,7 @@ public class ScreenShotMaker
     {
         final AffineTransform3D viewerTransform = new AffineTransform3D();
         bdvHandle.getViewerPanel().state().getViewerTransform( viewerTransform );
-        captureImageSizeInPixels = getCaptureImageSizeInPixels( bdvHandle, samplingXY );
+        captureImageSizeInPixels = captureImageSizeInPixels( bdvHandle, samplingXY );
 
         final ArrayList< RandomAccessibleInterval< UnsignedShortType > > rawCaptures = new ArrayList<>();
         final ArrayList< RandomAccessibleInterval< ARGBType > > argbSources = new ArrayList<>();
