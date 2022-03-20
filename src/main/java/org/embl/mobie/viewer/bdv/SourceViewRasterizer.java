@@ -7,9 +7,9 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import net.imglib2.Cursor;
 import net.imglib2.FinalInterval;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccess;
-import net.imglib2.RealRandomAccessible;
 import net.imglib2.converter.Converters;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.display.imagej.ImageJFunctions;
@@ -19,7 +19,6 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.RandomAccessibleOnRealRandomAccessible;
 import net.imglib2.view.Views;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,12 +36,21 @@ public class SourceViewRasterizer
 	private ArrayList< RandomAccessibleInterval< FloatType > > rasterRais;
 	private long[] rasterDimensions;
 	private AffineTransform3D rasterTransform;
+	private boolean raster2DSources;
+	private boolean showRasterImage;
 
-	public SourceViewRasterizer( BdvHandle bdvHandle, List< Source< ? > > sources )
+	/**
+	 * @param bdvHandle
+	 * @param sources
+	 * @param raster2DSources    If true, raster 2-D sources as if they were in the viewer xy plane. This is useful, e.g., to rasterize serial sections that are not visible in the same z-plane.
+	 * @param showRasterImage
+	 */
+	public SourceViewRasterizer( BdvHandle bdvHandle, List< Source< ? > > sources, boolean raster2DSources, boolean showRasterImage )
 	{
 		this.bdvHandle = bdvHandle;
 		this.sources = sources;
-		currentTimepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
+		this.raster2DSources = raster2DSources;
+		this.showRasterImage = showRasterImage;
 	}
 
 	public List< RandomAccessibleInterval< FloatType > > getRasterRais()
@@ -65,7 +73,11 @@ public class SourceViewRasterizer
 
 	private void raster()
 	{
+		currentTimepoint = bdvHandle.getViewerPanel().state().getCurrentTimepoint();
 		rasterTransform = bdvHandle.getViewerPanel().state().getViewerTransform();
+		// TODO: the two variables below are not really used anymore
+		//  they were only needed for the rasterViaCursor function, which
+		//  currently is not used.
 		rasterVoxelSize = determineRasterVoxelSize();
 		rasterDimensions = ScreenShotMaker.captureImageSizeInPixels( bdvHandle, rasterVoxelSize );
 		rasterRais = new ArrayList<>();
@@ -81,38 +93,43 @@ public class SourceViewRasterizer
 	{
 		final int level = getLevel( source, rasterVoxelSize );
 
-		AffineTransform3D rasterToSourceTransform = getAffineTransform3D( source, level );
+		AffineTransform3D rasterToSourceTransform = getRasterToSourceTransform( source, level, raster2DSources );
 
-		final RandomAccessibleInterval< FloatType > rai = rasterViaView( source, level, rasterToSourceTransform );
+		final RandomAccessibleInterval< FloatType > rai = raster( source, level, rasterToSourceTransform );
 
 		//final RandomAccessibleInterval< FloatType > rai = rasterViaCursor( rasterToSourceTransform, source, level );
 
 		return rai;
 	}
 
-	private RandomAccessibleInterval< FloatType > rasterViaView( Source< ? extends RealType<?> > source, int level, AffineTransform3D rasterToSourceTransform )
+	private RandomAccessibleInterval< FloatType > raster( Source< ? extends RealType< ? > > source, int level, AffineTransform3D rasterToSourceTransform )
 	{
-		final RandomAccessibleOnRealRandomAccessible< ? extends RealType< ? > > raster = Views.raster( RealViews.affine( ( source.getInterpolatedSource( currentTimepoint, level, Interpolation.NLINEAR ) ), rasterToSourceTransform.inverse() ) );
+		final RandomAccessible< ? extends RealType< ? > > ra = Views.raster( RealViews.affine( ( source.getInterpolatedSource( currentTimepoint, level, Interpolation.NLINEAR ) ), rasterToSourceTransform.inverse() ) );
 
-		final RandomAccessibleInterval< ? extends RealType< ? > > interval = Views.interval(
-				raster,
-				new FinalInterval( bdvHandle.getViewerPanel().getWidth(), bdvHandle.getViewerPanel().getHeight(), 1 ) );
+		final FinalInterval interval = new FinalInterval( bdvHandle.getViewerPanel().getWidth(), bdvHandle.getViewerPanel().getHeight(), 1 );
 
-		ImageJFunctions.show( (RandomAccessibleInterval) interval, "aaa" );
+		RandomAccessibleInterval< ? extends RealType< ? > > rai = Views.interval( ra, interval );
 
-		final RandomAccessibleInterval< FloatType > convert = Converters.convert( interval, ( i, o ) -> o.setReal( i.getRealFloat() ), new FloatType() );
+		rai = Views.dropSingletonDimensions( rai );
 
-		return Views.dropSingletonDimensions( convert );
+		final RandomAccessibleInterval< FloatType > floatTypeRai = Converters.convert( rai, ( i, o ) -> o.setReal( i.getRealFloat() ), new FloatType() );
+
+		if ( showRasterImage )
+			ImageJFunctions.show( floatTypeRai, source.getName() );
+
+		return Views.dropSingletonDimensions( floatTypeRai );
 	}
 
-	private AffineTransform3D getAffineTransform3D( Source< ? > source, int level )
+	private AffineTransform3D getRasterToSourceTransform( Source< ? > source, int level, boolean ignoreZ )
 	{
 		AffineTransform3D sourceTransform = new AffineTransform3D();
 		source.getSourceTransform( currentTimepoint, level, sourceTransform );
-		AffineTransform3D viewerToSourceTransform = new AffineTransform3D();
-		viewerToSourceTransform.preConcatenate( rasterTransform.inverse() );
-		viewerToSourceTransform.preConcatenate( sourceTransform.inverse() );
-		return viewerToSourceTransform;
+		AffineTransform3D rasterToSourceTransform = new AffineTransform3D();
+		rasterToSourceTransform.preConcatenate( rasterTransform.inverse() );
+		rasterToSourceTransform.preConcatenate( sourceTransform.inverse() );
+		if ( ignoreZ )
+			rasterToSourceTransform.set( 0.0, 2, 3 );
+		return rasterToSourceTransform;
 	}
 
 	private RandomAccessibleInterval< FloatType > rasterViaCursor( AffineTransform3D viewerToSourceTransform, Source< ? > source, int level )
@@ -153,13 +170,18 @@ public class SourceViewRasterizer
 
 	private double determineRasterVoxelSize()
 	{
-		double rasterVoxelSize = BdvUtils.getViewerVoxelSpacing( bdvHandle );
-		for ( Source< ? > source : sources )
-		{
-			final int level = getLevel( source, rasterVoxelSize );
-			final double sourceVoxelSize = SourceAndConverterHelper.getCharacteristicVoxelSize( source, currentTimepoint, level );
-			rasterVoxelSize = Math.max( rasterVoxelSize, sourceVoxelSize );
-		}
+		// TODO: the current code "rasterViaView" requires that the
+		//  rasterVoxelSize is equal to the voxelSize in the BDV viewer!
+		//  Otherwise the returned rasterTransform would be wrong.
+		//  If other sampling is needed this should probably be done by
+		//  changing the rasterTransform.
+//		double rasterVoxelSize = BdvUtils.getViewerVoxelSpacing( bdvHandle );
+//		for ( Source< ? > source : sources )
+//		{
+//			final int level = getLevel( source, rasterVoxelSize );
+//			final double sourceVoxelSize = SourceAndConverterHelper.getCharacteristicVoxelSize( source, currentTimepoint, level );
+//			rasterVoxelSize = Math.max( rasterVoxelSize, sourceVoxelSize );
+//		}
 		return BdvUtils.getViewerVoxelSpacing( bdvHandle );
 	}
 }

@@ -9,7 +9,6 @@ import mpicbg.models.AffineModel2D;
 import mpicbg.models.InterpolatedAffineModel2D;
 import mpicbg.models.RigidModel2D;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.real.FloatType;
@@ -27,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - SIFT")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Transform>Registration - 2D SIFT")
 public class SIFTRegistrationCommand implements BdvPlaygroundActionCommand
 {
 	@Parameter
@@ -39,6 +38,12 @@ public class SIFTRegistrationCommand implements BdvPlaygroundActionCommand
 	@Parameter(label = "Moving Source")
 	SourceAndConverter movingSource;
 
+	@Parameter(label = "Images are 2-D Sources in different Z-planes")
+	private boolean raster2DSources = false;
+
+	@Parameter(label = "Show Registration Input Images")
+	private boolean showRasterImages = false;
+
 	@Override
 	public void run()
 	{
@@ -46,8 +51,7 @@ public class SIFTRegistrationCommand implements BdvPlaygroundActionCommand
 		sources.add( fixedSource.getSpimSource() );
 		sources.add( movingSource.getSpimSource() );
 
-
-		final SourceViewRasterizer rasterizer = new SourceViewRasterizer( bdvHandle, sources );
+		final SourceViewRasterizer rasterizer = new SourceViewRasterizer( bdvHandle, sources, raster2DSources, showRasterImages );
 		final List< RandomAccessibleInterval< FloatType > > rasterRais = rasterizer.getRasterRais();
 
 		IJ.log( "SIFT registration sampling: " + rasterizer.getRasterVoxelSize() + " " + sources.get( 0 ).getVoxelDimensions().unit() );
@@ -55,7 +59,7 @@ public class SIFTRegistrationCommand implements BdvPlaygroundActionCommand
 		//ImageJFunctions.show( rasterRais.get( 0 ), "fixedRai" );
 		//ImageJFunctions.show( rasterRais.get( 1 ), "movingRai" );
 
-		final Transform.InterpolatedAffineModel2DSupplier<AffineModel2D, RigidModel2D> filterModelSupplier = new Transform.InterpolatedAffineModel2DSupplier<AffineModel2D, RigidModel2D>( ( Supplier<AffineModel2D> & Serializable )AffineModel2D::new, (Supplier<RigidModel2D> & Serializable)RigidModel2D::new, 0.25 );
+		final Transform.InterpolatedAffineModel2DSupplier<AffineModel2D, RigidModel2D> filterModelSupplier = new Transform.InterpolatedAffineModel2DSupplier<AffineModel2D, RigidModel2D>( ( Supplier<AffineModel2D> & Serializable )AffineModel2D::new, (Supplier<RigidModel2D> & Serializable )RigidModel2D::new, 0.25 );
 
 		final MultiConsensusFilter< InterpolatedAffineModel2D< AffineModel2D, RigidModel2D > > filter = new MultiConsensusFilter<InterpolatedAffineModel2D<AffineModel2D, RigidModel2D>>(
 				filterModelSupplier,
