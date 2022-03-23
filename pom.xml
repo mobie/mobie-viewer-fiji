@@ -11,6 +11,7 @@
 	<artifactId>mobie-viewer-fiji</artifactId>
 	<version>2.1.8-SNAPSHOT</version>
 
+	<!-- mvn clean compile -Dmaven.test.skip=true -->
 	<!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
 	<!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
 	<!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE.app -->
