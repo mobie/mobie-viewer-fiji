@@ -24,8 +24,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Show " + ImagePlusExportCommand.RAW + " Images" )
-public class ImagePlusExportCommand< T extends NumericType< T > > implements BdvPlaygroundActionCommand
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Show " + ShowRasterImagesCommand.RAW + " Images" )
+public class ShowRasterImagesCommand< T extends NumericType< T > > implements BdvPlaygroundActionCommand
 {
 	public static final String RAW = "Raster"; // aka "Array" or "Voxel Grid", ... (not sure yet...)
 
