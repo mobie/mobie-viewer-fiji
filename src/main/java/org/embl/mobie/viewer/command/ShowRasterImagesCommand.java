@@ -6,6 +6,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.GenericDialog;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -24,16 +25,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Show " + ShowRasterImagesCommand.RAW + " Images" )
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Show " + ShowRasterImagesCommand.RAW + " Image(s)" )
 public class ShowRasterImagesCommand< T extends NumericType< T > > implements BdvPlaygroundActionCommand
 {
-	public static final String RAW = "Raster"; // aka "Array" or "Voxel Grid", ... (not sure yet...)
+	public static final String RAW = "Raw";
 
 	@Parameter( label = "Source(s)" )
 	public SourceAndConverter[] sourceAndConverterArray;
-
-	@Parameter( label = "Maximum number of voxels [10^6]" )
-	public int maxNumMegaVoxels = 1;
 
 	@Override
 	public void run()
@@ -42,11 +40,31 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 
 		for ( SourceAndConverter< T > sourceAndConverter : sourceAndConverters )
 		{
-			exportAsImagePlus( sourceAndConverter, maxNumMegaVoxels * 1000000L );
+			export( sourceAndConverter );
 		}
 	}
 
-	private void exportAsImagePlus( SourceAndConverter< T > sourceAndConverter, long maxNumVoxels )
+	private void export( SourceAndConverter< T > sourceAndConverter )
+	{
+		final Source< T > source = getRootSource( sourceAndConverter.getSpimSource() );
+		final int levels = source.getNumMipmapLevels();
+		final String[] choices = new String[ levels ];
+		for ( int level = 0; level < levels; level++ )
+		{
+			long[] dimensions = source.getSource( 0, level ).dimensionsAsLongArray();
+			choices[ level ] = Arrays.toString( dimensions );
+		}
+
+		final GenericDialog dialog = new GenericDialog( source.getName() );
+		dialog.addChoice( "Resolution level", choices, choices[ 0 ] );
+		dialog.showDialog();
+		if ( dialog.wasCanceled() ) return;
+		final int level = dialog.getNextChoiceIndex();
+
+		showImagePlus( sourceAndConverter, level );
+	}
+
+	private void showImagePlus( SourceAndConverter< T > sourceAndConverter, int level )
 	{
 		final Source< T > source = sourceAndConverter.getSpimSource();
 		final Source< T > rootSource = getRootSource( source );
@@ -59,24 +77,16 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 
 		IJ.log(source.getName() + ": " + RAW + " data = " + rootSource.getName() );
 
-		int exportLevel = getExportLevel( source, rootSource, maxNumVoxels );
+		long[] dimensions = source.getSource( 0, level ).dimensionsAsLongArray();
 
-		if ( exportLevel == -1 )
-		{
-			IJ.log(source.getName() + " is too big at all resolution levels and thus cannot be exported.");
-			return;
-		}
-
-		long[] dimensions = source.getSource( 0, exportLevel ).dimensionsAsLongArray();
-
-		IJ.log( source.getName() + ": Exporting at resolution level = " + exportLevel );
+		IJ.log( source.getName() + ": Exporting at resolution level = " + level );
 		IJ.log( source.getName() + ": [nx, yz, nz] = " + Arrays.toString( dimensions ) );
 
 		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		source.getSourceTransform( 0, exportLevel, sourceTransform );
+		source.getSourceTransform( 0, level, sourceTransform );
 
 		final AffineTransform3D rootSourceTransform = new AffineTransform3D();
-		rootSource.getSourceTransform( 0, exportLevel, rootSourceTransform );
+		rootSource.getSourceTransform( 0, level, rootSourceTransform );
 
 		double[] sourceScale = new double[ 3 ];
 		double[] rootSourceScale = new double[ 3 ];
@@ -92,7 +102,7 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 		IJ.log( source.getName() + ": " + RAW + " data scale = " + Arrays.toString( rootSourceScale ) );
 		IJ.log( source.getName() + ": " + RAW + " data transform = " + rootSourceTransform );
 
-		final ImagePlus imagePlus = getImagePlus( rootSource, exportLevel );
+		final ImagePlus imagePlus = getImagePlus( rootSource, level );
 		imagePlus.getCalibration().setUnit( rootSource.getVoxelDimensions().unit() );
 		imagePlus.getCalibration().pixelWidth = rootSourceScale[ 0 ];
 		imagePlus.getCalibration().pixelHeight = rootSourceScale[ 1 ];
@@ -103,13 +113,13 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 		IJ.log(source.getName() + ": Export done!" );
 	}
 
-	private int getExportLevel( Source< T > source, Source< T > rootSource, long maxNumPixels )
+	private int getExportLevel( Source< T > rootSource, long maxNumPixels )
 	{
 		final int numMipmapLevels = rootSource.getNumMipmapLevels();
 
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
-			long[] dimensions = source.getSource( 0, level ).dimensionsAsLongArray();
+			long[] dimensions = rootSource.getSource( 0, level ).dimensionsAsLongArray();
 
 			final boolean javaIndexingOK = dimensions[ 0 ] * dimensions[ 1 ] < Integer.MAX_VALUE - 1;
 
@@ -126,9 +136,7 @@ public class ShowRasterImagesCommand< T extends NumericType< T > > implements Bd
 		final Set< Source< ? > > rootSources = new HashSet<>();
 		MoBIEHelper.fetchRootSources( source, rootSources );
 		if ( rootSources.size() > 1 )
-		{
-			return null;
-		}
+			throw new UnsupportedOperationException("Cannot show raw image(s) of a source that is composed of multiple sources.");
 		final Source< T > rootSource = ( Source< T > ) rootSources.iterator().next();
 		return rootSource;
 	}
