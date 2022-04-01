@@ -1,9 +1,11 @@
 package org.embl.mobie.viewer.projectcreator;
 
+import mpicbg.spim.data.SpimData;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
-import org.embl.mobie.io.n5.writers.WriteImgPlusToN5;
-import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
+import org.embl.mobie.io.n5.writers.WriteImagePlusToN5;
+import org.embl.mobie.io.ome.zarr.writers.imageplus.WriteImagePlusToN5OmeZarr;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.source.SegmentationSource;
@@ -22,8 +24,6 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.embl.mobie.viewer.projectcreator.ProjectCreatorTestHelper.makeImage;
 import static org.embl.mobie.viewer.projectcreator.ProjectCreatorTestHelper.makeSegmentation;
@@ -59,42 +59,64 @@ class ImagesCreatorTest {
                 datasetName, "dataset.json" );
     }
 
-    void assertionsForImageAdded( ImageDataFormat imageDataFormat, boolean onlyXmls ) throws IOException {
+    void assertionsForSpimData( SpimData spimData ) {
+        // check setup name is equal to image name
+        assertEquals( spimData.getSequenceDescription().getViewSetupsOrdered().get(0).getName(), imageName );
+    }
+
+    void assertionsForDataset( ImageDataFormat imageDataFormat ) throws IOException {
         assertTrue( new File(datasetJsonPath).exists() );
-
-        List<String> filePaths = new ArrayList<>();
-        String xmlLocation = null;
-        String imageLocation = null;
-        switch( imageDataFormat ) {
-            case BdvN5:
-                xmlLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
-                        datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".xml");
-                imageLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
-                        datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".n5");
-                break;
-
-            case OmeZarr:
-                imageLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
-                        datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".ome.zarr");
-                break;
-        }
-
-        if ( xmlLocation != null ) {
-            filePaths.add( xmlLocation );
-        }
-
-        if ( !onlyXmls ) {
-            filePaths.add(imageLocation);
-        }
-
-        for ( String filePath: filePaths ) {
-            assertTrue( new File(filePath).exists() );
-        }
-
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
         assertTrue( dataset.sources.containsKey(imageName) );
         assertTrue( dataset.views.containsKey(imageName) );
         assertTrue( dataset.sources.get(imageName).get().imageData.containsKey(imageDataFormat) );
+    }
+
+    void assertionsForN5( boolean onlyXmls ) throws SpimDataException {
+        ImageDataFormat imageDataFormat = ImageDataFormat.BdvN5;
+
+        String xmlLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
+                datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat),
+                imageName + ".xml");
+        String imageLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
+                datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat),
+                imageName + ".n5");
+
+        assertTrue( new File(xmlLocation).exists() );
+
+        if ( !onlyXmls ) {
+            assertTrue( new File(imageLocation).exists() );
+        }
+
+        SpimData spimData = (SpimData) new SpimDataOpener().openSpimData( xmlLocation, imageDataFormat );
+        assertionsForSpimData( spimData );
+    }
+
+    void assertionsForOmeZarr() throws SpimDataException {
+        ImageDataFormat imageDataFormat = ImageDataFormat.OmeZarr;
+
+        String imageLocation = FileAndUrlUtils.combinePath(
+                projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "images",
+                ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".ome.zarr");
+
+        assertTrue( new File(imageLocation).exists() );
+
+        SpimData spimData = (SpimData) new SpimDataOpener().openSpimData( imageLocation, imageDataFormat );
+        assertionsForSpimData( spimData );
+    }
+
+    void assertionsForImageAdded( ImageDataFormat imageDataFormat, boolean onlyXmls ) throws IOException, SpimDataException {
+        assertionsForDataset( imageDataFormat );
+
+        switch( imageDataFormat ) {
+            case BdvN5:
+                assertionsForN5( onlyXmls );
+                break;
+
+            case OmeZarr:
+                assertionsForOmeZarr();
+                break;
+        }
     }
 
     void assertionsForTableAdded( ) throws IOException {
@@ -117,13 +139,13 @@ class ImagesCreatorTest {
         switch( imageDataFormat ) {
             case BdvN5:
                 filePath = new File(tempDir, imageName + ".xml").getAbsolutePath();
-                new WriteImgPlusToN5().export(imp, filePath, sourceTransform, downsamplingMethod,
+                new WriteImagePlusToN5().export(imp, filePath, sourceTransform, downsamplingMethod,
                         compression, new String[]{imageName} );
                 break;
 
             case OmeZarr:
                 filePath = new File(tempDir, imageName + ".ome.zarr").getAbsolutePath();
-                new WriteImgPlusToN5OmeZarr().export(imp, filePath, sourceTransform,
+                new WriteImagePlusToN5OmeZarr().export(imp, filePath, sourceTransform,
                         downsamplingMethod, compression, new String[]{imageName});
                 break;
 
