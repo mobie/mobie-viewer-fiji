@@ -58,7 +58,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
-		bdvHandle = createBdv( timepoints );
+		bdvHandle = createBdv( timepoints, is2D );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
 		installContextMenuAndKeyboardShortCuts();
@@ -69,7 +69,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 	{
 		if ( bdvHandle == null )
 		{
-			bdvHandle = createBdv( timepoints );
+			bdvHandle = createBdv( timepoints, is2D );
 			sacDisplayService.registerBdvHandle( bdvHandle );
 		}
 		return bdvHandle;
@@ -155,26 +155,14 @@ public class SliceViewer implements Supplier< BdvHandle >
 				"Change random color seed", "ctrl L" ) ;
 	}
 
-	public SourceAndConverterService getSacService()
-	{
-		return sacService;
-	}
-
-	public SourceAndConverterContextMenuClickBehaviour getContextMenu()
-	{
-		return contextMenu;
-	}
-
-	private BdvHandle createBdv( int numTimepoints )
+	public static BdvHandle createBdv( int numTimepoints, boolean is2D )
 	{
 		final MobieSerializableBdvOptions sOptions = new MobieSerializableBdvOptions();
 		sOptions.is2D = is2D;
 		sOptions.numTimePoints = numTimepoints;
 
 		IBdvSupplier bdvSupplier = new MobieBdvSupplier( sOptions );
-
 		SourceAndConverterServices.getBdvDisplayService().setDefaultBdvSupplier(bdvSupplier);
-
 		BdvHandle bdvHandle = SourceAndConverterServices.getBdvDisplayService().getNewBdv();
 
 		return bdvHandle;
