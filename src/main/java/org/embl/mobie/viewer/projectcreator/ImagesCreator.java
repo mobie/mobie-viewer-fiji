@@ -8,9 +8,9 @@ import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.n5.loaders.N5FSImageLoader;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
-import org.embl.mobie.io.n5.writers.WriteImgPlusToN5;
+import org.embl.mobie.io.n5.writers.WriteImagePlusToN5;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
-import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
+import org.embl.mobie.io.ome.zarr.writers.imageplus.WriteImagePlusToN5OmeZarr;
 
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.Tables;
@@ -262,12 +262,12 @@ public class ImagesCreator {
         // gzip compression by default
         switch( imageDataFormat ) {
             case BdvN5:
-                new WriteImgPlusToN5().export(imp, filePath, sourceTransform, downsamplingMethod,
+                new WriteImagePlusToN5().export(imp, filePath, sourceTransform, downsamplingMethod,
                         new GzipCompression(), new String[]{imageName} );
                 break;
 
             case OmeZarr:
-                new WriteImgPlusToN5OmeZarr().export(imp, filePath, sourceTransform, downsamplingMethod,
+                new WriteImagePlusToN5OmeZarr().export(imp, filePath, sourceTransform, downsamplingMethod,
                         new GzipCompression() );
                 break;
 
@@ -287,12 +287,12 @@ public class ImagesCreator {
 
         switch( imageDataFormat ) {
             case BdvN5:
-                new WriteImgPlusToN5().export(imp, resolutions, subdivisions, filePath, sourceTransform,
+                new WriteImagePlusToN5().export(imp, resolutions, subdivisions, filePath, sourceTransform,
                         downsamplingMethod, compression, new String[]{imageName});
                 break;
 
             case OmeZarr:
-                new WriteImgPlusToN5OmeZarr().export(imp, resolutions, subdivisions, filePath, sourceTransform,
+                new WriteImagePlusToN5OmeZarr().export(imp, resolutions, subdivisions, filePath, sourceTransform,
                         downsamplingMethod, compression );
                 break;
 

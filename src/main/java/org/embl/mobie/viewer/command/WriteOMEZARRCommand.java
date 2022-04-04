@@ -2,7 +2,7 @@ package org.embl.mobie.viewer.command;
 
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
-import org.embl.mobie.io.ome.zarr.writers.imgplus.WriteImgPlusToN5OmeZarr;
+import org.embl.mobie.io.ome.zarr.writers.imageplus.WriteImagePlusToN5OmeZarr;
 import org.embl.mobie.viewer.projectcreator.ui.ManualExportPanel;
 import ij.ImagePlus;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -57,7 +57,7 @@ public class WriteOMEZARRCommand implements Command {
 
         if ( name != null ) {
             if ( useDefaults ) {
-                new WriteImgPlusToN5OmeZarr().export(currentImage, filePath, sourceTransform, method,
+                new WriteImagePlusToN5OmeZarr().export(currentImage, filePath, sourceTransform, method,
                         new GzipCompression() );
             } else {
                 ManualExportPanel manualExportPanel = new ManualExportPanel( ImageDataFormat.OmeZarr );
@@ -66,7 +66,7 @@ public class WriteOMEZARRCommand implements Command {
                 Compression compression = manualExportPanel.getCompression();
 
                 if ( resolutions != null && subdivisions != null && compression != null ) {
-                    new WriteImgPlusToN5OmeZarr().export(currentImage, resolutions, subdivisions, filePath, sourceTransform,
+                    new WriteImagePlusToN5OmeZarr().export(currentImage, resolutions, subdivisions, filePath, sourceTransform,
                             method, compression );
                 }
             }
