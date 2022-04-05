@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer.command;
 
 import bdv.util.BdvHandle;
+import ij.IJ;
 import org.embl.mobie.viewer.bdv.ScreenShotMaker;
 import org.scijava.Initializable;
 import org.scijava.command.DynamicCommand;
@@ -36,6 +37,8 @@ import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
+
+import java.util.Arrays;
 
 import static org.scijava.ItemVisibility.MESSAGE;
 
@@ -47,7 +50,7 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Parameter
     public BdvHandle bdvh;
 
-    @Parameter(label="Screenshot Sampling [UNIT]", callback = "showNumPixels", min = "0.0", style="format:#.00000", stepSize = "0.01")
+    @Parameter(label="Sampling", callback = "showNumPixels", min = "0.0", style="format:#.00000", stepSize = "0.01")
     public Double targetSamplingInXY = 1D;
 
     @Parameter(label="Show RGB Image")
@@ -56,11 +59,11 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     @Parameter(label="Show Multi-Channel Image")
     public boolean showMultiChannel = true;
 
-    @Parameter( visibility = MESSAGE, required = false )
-    String message = CAPTURE_SIZE_PIXELS +"";
-
-    @Parameter( visibility = MESSAGE, required = false )
-    String scaleBarMessage = "Add Scale Bar: [ Analyze > Tools > Scale Bar... ]";
+//    @Parameter( visibility = MESSAGE, required = false )
+//    String message = CAPTURE_SIZE_PIXELS +"";
+//
+//    @Parameter( visibility = MESSAGE, required = false )
+//    String scaleBarMessage = "Add Scale Bar: [ Analyze > Tools > Scale Bar... ]";
 
     private String pixelUnit = "Pixels";
 
@@ -91,7 +94,8 @@ public class ScreenShotMakerCommand extends DynamicCommand implements BdvPlaygro
     private void showNumPixels()
     {
         final long[] sizeInPixels = ScreenShotMaker.getCaptureImageSizeInPixels( bdvh, targetSamplingInXY );
-        final MutableModuleItem< String > message = getInfo().getMutableInput("message", String.class);
-        message.setValue( this, CAPTURE_SIZE_PIXELS + sizeInPixels[ 0 ] + ", " + sizeInPixels[ 1 ] );
+        IJ.log( CAPTURE_SIZE_PIXELS + Arrays.toString( sizeInPixels ) );
+//        final MutableModuleItem< String > message = getInfo().getMutableInput("message", String.class);
+//        message.setValue( this, CAPTURE_SIZE_PIXELS + sizeInPixels[ 0 ] + ", " + sizeInPixels[ 1 ] );
     }
 }

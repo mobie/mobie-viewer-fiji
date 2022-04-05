@@ -1,9 +1,7 @@
 package org.embl.mobie.viewer.view;
 
-import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
-import bdv.util.BdvStackSource;
 import bdv.util.Prefs;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.SpimData;
@@ -14,8 +12,6 @@ import org.embl.mobie.viewer.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.viewer.bdv.view.SliceViewer;
 import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
 import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
-import org.embl.mobie.viewer.display.AbstractSourceDisplay;
-import org.embl.mobie.viewer.source.Sources;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 import sc.fiji.bdvpg.PlaygroundPrefs;
@@ -57,7 +53,7 @@ public class OMEZarrViewer
         Prefs.showMultibox( true );
         Prefs.scaleBarColor( ARGBType.rgba( 255, 255, 255, 255 ) );
         PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
-        bdvHandle = SliceViewer.createBdv( numTimePoints, false );
+        bdvHandle = SliceViewer.createBdv( numTimePoints, false, "OME-Zarr - BigDataViewer" );
         sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
         sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
 

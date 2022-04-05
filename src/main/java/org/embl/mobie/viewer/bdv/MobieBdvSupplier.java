@@ -30,7 +30,6 @@ public class MobieBdvSupplier implements IBdvSupplier {
         // create dummy image to instantiate the BDV
         ArrayImg<ByteType, ByteArray> dummyImg = ArrayImgs.bytes(2, 2, 2);
         options = options.sourceTransform( new AffineTransform3D() );
-        options = options.frameTitle( "MoBIE - BigDataViewer" );
 
         Prefs.showScaleBar( true );
         Prefs.showMultibox( false );

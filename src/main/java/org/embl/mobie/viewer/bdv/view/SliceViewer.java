@@ -6,13 +6,13 @@ import org.embl.mobie.viewer.bdv.MobieBdvSupplier;
 import org.embl.mobie.viewer.bdv.MobieSerializableBdvOptions;
 import org.embl.mobie.viewer.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.viewer.bdv.ViewerTransformLogger;
-import org.embl.mobie.viewer.command.ImagePlusExportCommand;
 import org.embl.mobie.viewer.command.ManualRegistrationCommand;
 import org.embl.mobie.viewer.command.BigWarpRegistrationCommand;
 import org.embl.mobie.viewer.command.ImageVolumeRenderingConfiguratorCommand;
 import org.embl.mobie.viewer.command.NonSelectedSegmentsOpacityAdjusterCommand;
 import org.embl.mobie.viewer.command.SegmentsVolumeRenderingConfiguratorCommand;
 import org.embl.mobie.viewer.command.SelectedSegmentsColorConfiguratorCommand;
+import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
 import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
 import org.embl.mobie.viewer.segment.BdvSegmentSelector;
@@ -38,6 +38,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 	public static final String CHANGE_RANDOM_COLOR_SEED = "Change Random Color Seed";
 	public static final String LOAD_ADDITIONAL_VIEWS = "Load Additional Views";
 	public static final String SAVE_CURRENT_SETTINGS_AS_VIEW = "Save Current View";
+	protected static final String FRAME_TITLE = "MoBIE - BigDataViewer";
 	private final SourceAndConverterBdvDisplayService sacDisplayService;
 	private BdvHandle bdvHandle;
 	private final boolean is2D;
@@ -58,7 +59,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
-		bdvHandle = createBdv( timepoints, is2D );
+		bdvHandle = createBdv( timepoints, is2D, FRAME_TITLE );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
 		installContextMenuAndKeyboardShortCuts();
@@ -69,7 +70,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 	{
 		if ( bdvHandle == null )
 		{
-			bdvHandle = createBdv( timepoints, is2D );
+			bdvHandle = createBdv( timepoints, is2D, FRAME_TITLE );
 			sacDisplayService.registerBdvHandle( bdvHandle );
 		}
 		return bdvHandle;
@@ -104,7 +105,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 		final ArrayList< String > actions = new ArrayList< String >();
 		actions.add( sacService.getCommandName( ScreenShotMakerCommand.class ) );
-		actions.add( sacService.getCommandName( ImagePlusExportCommand.class ) );
+		actions.add( sacService.getCommandName( ShowRasterImagesCommand.class ) );
 		actions.add( sacService.getCommandName( ViewerTransformLogger.class ) );
 		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
@@ -155,11 +156,12 @@ public class SliceViewer implements Supplier< BdvHandle >
 				"Change random color seed", "ctrl L" ) ;
 	}
 
-	public static BdvHandle createBdv( int numTimepoints, boolean is2D )
+	public static BdvHandle createBdv( int numTimepoints, boolean is2D, String frameTitle )
 	{
 		final MobieSerializableBdvOptions sOptions = new MobieSerializableBdvOptions();
 		sOptions.is2D = is2D;
 		sOptions.numTimePoints = numTimepoints;
+		sOptions.frameTitle = frameTitle;
 
 		IBdvSupplier bdvSupplier = new MobieBdvSupplier( sOptions );
 		SourceAndConverterServices.getBdvDisplayService().setDefaultBdvSupplier(bdvSupplier);
