@@ -9,7 +9,7 @@ import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME ZARR>Open OME ZARR From S3...")
+@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME-Zarr>Open OME-Zarr From S3...")
 public class OpenOMEZARRFromS3Command implements Command {
 
     @Parameter(label = "S3 URL")

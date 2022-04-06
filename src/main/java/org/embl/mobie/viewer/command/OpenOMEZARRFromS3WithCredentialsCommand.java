@@ -10,8 +10,8 @@ import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME ZARR>" +
-        "Open OME ZARR From S3 with Credentials...")
+@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME-Zarr>" +
+        "Open OME-Zarr From S3 with Credentials...")
 public class OpenOMEZARRFromS3WithCredentialsCommand extends OpenOMEZARRFromS3Command {
 
     @Parameter ( label = "S3 Access Key", persist = false )

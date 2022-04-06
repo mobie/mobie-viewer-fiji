@@ -11,7 +11,7 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME ZARR>Open OME ZARR From File System...")
+@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME-Zarr>Open OME-Zarr From File System...")
 public class OpenOMEZARRCommand implements Command {
     @Parameter(label = "File path", style = "directory")
     public File directory;
