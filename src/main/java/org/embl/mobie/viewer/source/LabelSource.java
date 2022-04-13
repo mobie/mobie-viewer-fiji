@@ -10,6 +10,7 @@ import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
 import net.imglib2.algorithm.neighborhood.CenteredRectangleShape;
+import net.imglib2.converter.Converters;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
@@ -58,31 +59,7 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
     @Override
     public RandomAccessibleInterval<T> getSource(final int t, final int level)
     {
-        RandomAccessibleInterval< T > rai = source.getSource( t, level );
-
-        if ( showAsBoundaries )
-        {
-            // TODO: The neighborhood may only operate on 2D for 2D data
-            //   check whether the RAI is effectively 2-D and then change the view
-            //   accordingly
-            NeighborhoodBoundariesConverter< T > boundariesConverter = new NeighborhoodBoundariesConverter< T >( rai, background );
-
-            final int radius = ( boundaryWidth - 1 ) / 2;
-            final int[] span = { radius, radius, ( int ) Math.min( radius, rai.dimension( 2 ) - 1 ) };
-            final CenteredRectangleShape rectangleShape = new CenteredRectangleShape( span, false );
-            RandomAccessibleInterval< T > boundaries = NeighborhoodBoundariesConverter.getNeighborhoodConvertedView(
-                    rai,
-                    boundariesConverter,
-                    rectangleShape,
-                    background );
-
-            return boundaries;
-        }
-        else
-        {
-            return rai;
-        }
-
+       return source.getSource( t, level );
     }
 
     @Override
@@ -92,62 +69,103 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
 
         if ( showAsBoundaries  )
         {
+            final int nD = getWrappedSource().getSource( 0, 0 ).dimension( 2 ) == 1 ? 2 : 3;
             if ( rra.realRandomAccess().get() instanceof Volatile )
             {
-                BiConsumer< RealLocalizable, T > biConsumer = ( l, o ) ->
-                {
-                    final RealRandomAccess< T > access = rra.realRandomAccess();
-                    Volatile< T > value = ( Volatile< T > ) access.setPositionAndGet( l );
-                    Volatile< T > vo = ( Volatile< T > ) o;
-                    if ( ! value.isValid() )
-                    {
-                        vo.setValid( false );
-                        return;
-                    }
-                    final float centerFloat = value.get().getRealFloat();
-                    if ( centerFloat == background )
-                    {
-                        vo.get().setReal( background );
-                        vo.setValid( true );
-                        return;
-                    }
-                    for ( int d = 0; d < 3; d++ ) // dimensions
-                    {
-                        for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
-                        {
-                            access.move( signum * boundaryWidth, d );
-                            value = ( Volatile< T > ) access.get();
-                            if ( ! value.isValid() )
-                            {
-                                vo.setValid( false );
-                                return;
-                            }
-                            else if ( centerFloat != value.get().getRealFloat() )
-                            {
-                                vo.get().setReal( centerFloat );
-                                vo.setValid( true );
-                                return;
-                            }
-                            access.move( - signum * boundaryWidth, d ); // move back to center
-                        }
-                    }
-                    vo.get().setReal( background );
-                    vo.setValid( true );
-                    return;
-                };
-                final T type = rra.realRandomAccess().get();
-                final FunctionRealRandomAccessible< T > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.copy() );
-                return randomAccessible;
+                return createVolatileBoundaryRRA( rra, nD );
             }
             else
             {
-                throw new UnsupportedOperationException();
+                return createBoundaryRRA( rra, nD );
             }
         }
         else
         {
             return rra;
         }
+    }
+
+    private FunctionRealRandomAccessible< T > createBoundaryRRA( RealRandomAccessible< T > rra, int nD )
+    {
+        BiConsumer< RealLocalizable, T > biConsumer = ( l, o ) ->
+        {
+            final RealRandomAccess< T > access = rra.realRandomAccess();
+            T value = access.setPositionAndGet( l );
+            final float centerFloat = value.getRealFloat();
+            if ( centerFloat == background )
+            {
+                o.setReal( background );
+                return;
+            }
+            for ( int d = 0; d < nD; d++ ) // dimensions
+            {
+                for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
+                {
+                    access.move( signum * boundaryWidth, d );
+                    value = access.get();
+                    if ( centerFloat != value.getRealFloat() )
+                    {
+                        // it is a boundary pixel!
+                        o.setReal( centerFloat );
+                        return;
+                    }
+                    access.move( - signum * boundaryWidth, d ); // move back to center
+                }
+            }
+            o.setReal( background );
+            return;
+        };
+        final T type = rra.realRandomAccess().get();
+        final FunctionRealRandomAccessible< T > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.copy() );
+        return randomAccessible;
+    }
+
+    private FunctionRealRandomAccessible< T > createVolatileBoundaryRRA( RealRandomAccessible< T > rra, int nD )
+    {
+        BiConsumer< RealLocalizable, T > biConsumer = ( l, o ) ->
+        {
+            final RealRandomAccess< T > access = rra.realRandomAccess();
+            Volatile< T > value = ( Volatile< T > ) access.setPositionAndGet( l );
+            Volatile< T > vo = ( Volatile< T > ) o;
+            if ( ! value.isValid() )
+            {
+                vo.setValid( false );
+                return;
+            }
+            final float centerFloat = value.get().getRealFloat();
+            if ( centerFloat == background )
+            {
+                vo.get().setReal( background );
+                vo.setValid( true );
+                return;
+            }
+            for ( int d = 0; d < nD; d++ ) // dimensions
+            {
+                for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
+                {
+                    access.move( signum * boundaryWidth, d );
+                    value = ( Volatile< T > ) access.get();
+                    if ( ! value.isValid() )
+                    {
+                        vo.setValid( false );
+                        return;
+                    }
+                    else if ( centerFloat != value.get().getRealFloat() )
+                    {
+                        vo.get().setReal( centerFloat );
+                        vo.setValid( true );
+                        return;
+                    }
+                    access.move( - signum * boundaryWidth, d ); // move back to center
+                }
+            }
+            vo.get().setReal( background );
+            vo.setValid( true );
+            return;
+        };
+        final T type = rra.realRandomAccess().get();
+        final FunctionRealRandomAccessible< T > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.copy() );
+        return randomAccessible;
     }
 
     @Override
