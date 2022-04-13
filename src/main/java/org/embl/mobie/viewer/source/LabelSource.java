@@ -5,33 +5,39 @@ import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealLocalizable;
+import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
+import net.imglib2.Volatile;
+import net.imglib2.algorithm.neighborhood.CenteredRectangleShape;
+import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.view.Views;
 
-/**
- * A {@link Source} that wraps another {@link Source}
- * <p>
- * This extra transformation is made to capture manual editing of the actual
- * transform in the SpimViewer.
- *
- * @param <T> the type of the original source.
- * @author Christian Tischer - Oct 2020
- */
+import java.util.function.BiConsumer;
+
 public class LabelSource<T extends NumericType<T> & RealType<T>> implements Source<T> {
     protected final Source<T> source;
-    private final DefaultInterpolators<T> interpolators;
     private boolean showAsBoundaries;
+    private int boundaryWidth;
 
-    public LabelSource(final Source<T> source) {
+    private float background = 0;
+
+    public LabelSource( final Source<T> source )
+    {
         this.source = source;
-        this.interpolators = new DefaultInterpolators<>();
     }
 
-    public void showAsBoundary(boolean showAsBoundaries, int boundaryWidth) {
+    public LabelSource( final Source<T> source, float background )
+    {
+        this.source = source;
+        this.background = background;
+    }
+
+    public void showAsBoundary( boolean showAsBoundaries, int boundaryWidth ) {
         this.showAsBoundaries = showAsBoundaries;
+        this.boundaryWidth = boundaryWidth;
     }
 
     @Override
@@ -50,35 +56,97 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
     }
 
     @Override
-    public RandomAccessibleInterval<T> getSource(final int t, final int level) {
-        return source.getSource(t, level);
+    public RandomAccessibleInterval<T> getSource(final int t, final int level)
+    {
+        RandomAccessibleInterval< T > rai = source.getSource( t, level );
 
-        // below code is not needed, because BDV (I think) always shows the interpolated source
-//		RandomAccessibleInterval< T > source = this.source.getSource( t, level );
-//
-//		if ( showAsBoundaries )
-//		{
-//			NeighborhoodNonZeroBoundariesConverter2< T > boundariesConverter = new NeighborhoodNonZeroBoundariesConverter2< T >( source );
-//			RandomAccessibleInterval boundaries = NeighborhoodViews.neighborhoodConvertedView(
-//					source,
-//					boundariesConverter,
-//					new HyperSphereShape( boundaryWidth ) );
-//			return boundaries;
-//		}
-//		else
-//		{
-//			return source;
-//		}
+        if ( showAsBoundaries )
+        {
+            // TODO: The neighborhood may only operate on 2D for 2D data
+            //   check whether the RAI is effectively 2-D and then change the view
+            //   accordingly
+            NeighborhoodBoundariesConverter< T > boundariesConverter = new NeighborhoodBoundariesConverter< T >( rai, background );
+
+            final int radius = ( boundaryWidth - 1 ) / 2;
+            final int[] span = { radius, radius, ( int ) Math.min( radius, rai.dimension( 2 ) - 1 ) };
+            final CenteredRectangleShape rectangleShape = new CenteredRectangleShape( span, false );
+            RandomAccessibleInterval< T > boundaries = NeighborhoodBoundariesConverter.getNeighborhoodConvertedView(
+                    rai,
+                    boundariesConverter,
+                    rectangleShape,
+                    background );
+
+            return boundaries;
+        }
+        else
+        {
+            return rai;
+        }
+
     }
 
     @Override
-    public RealRandomAccessible<T> getInterpolatedSource(final int t, final int level, final Interpolation method) {
-        // do not interpolate for label images, but always use NEARESTNEIGHBOR
-        if (showAsBoundaries) {
-            RandomAccessibleInterval<T> rai = getSource(t, level);
-            return Views.interpolate(Views.extendZero(rai), interpolators.get(Interpolation.NEARESTNEIGHBOR));
-        } else {
-            return source.getInterpolatedSource(t, level, Interpolation.NEARESTNEIGHBOR);
+    public RealRandomAccessible<T> getInterpolatedSource(final int t, final int level, final Interpolation method)
+    {
+        final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
+
+        if ( showAsBoundaries  )
+        {
+            if ( rra.realRandomAccess().get() instanceof Volatile )
+            {
+                BiConsumer< RealLocalizable, T > biConsumer = ( l, o ) ->
+                {
+                    final RealRandomAccess< T > access = rra.realRandomAccess();
+                    Volatile< T > value = ( Volatile< T > ) access.setPositionAndGet( l );
+                    Volatile< T > vo = ( Volatile< T > ) o;
+                    if ( ! value.isValid() )
+                    {
+                        vo.setValid( false );
+                        return;
+                    }
+                    final float centerFloat = value.get().getRealFloat();
+                    if ( centerFloat == background )
+                    {
+                        vo.get().setReal( background );
+                        vo.setValid( true );
+                        return;
+                    }
+                    for ( int d = 0; d < 3; d++ ) // dimensions
+                    {
+                        for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
+                        {
+                            access.move( signum * boundaryWidth, d );
+                            value = ( Volatile< T > ) access.get();
+                            if ( ! value.isValid() )
+                            {
+                                vo.setValid( false );
+                                return;
+                            }
+                            else if ( centerFloat != value.get().getRealFloat() )
+                            {
+                                vo.get().setReal( centerFloat );
+                                vo.setValid( true );
+                                return;
+                            }
+                            access.move( - signum * boundaryWidth, d ); // move back to center
+                        }
+                    }
+                    vo.get().setReal( background );
+                    vo.setValid( true );
+                    return;
+                };
+                final T type = rra.realRandomAccess().get();
+                final FunctionRealRandomAccessible< T > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.copy() );
+                return randomAccessible;
+            }
+            else
+            {
+                throw new UnsupportedOperationException();
+            }
+        }
+        else
+        {
+            return rra;
         }
     }
 
