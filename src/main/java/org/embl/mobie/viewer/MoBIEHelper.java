@@ -448,7 +448,9 @@ public abstract class MoBIEHelper
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		source.getSourceTransform( 0, 0, affineTransform3D );
 		final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
-		final RealMaskRealInterval mask = GeomMasks.closedBox( rai.minAsDoubleArray(), rai.maxAsDoubleArray() ).transform( affineTransform3D );
+		final RealMaskRealInterval mask = GeomMasks.closedBox( rai.minAsDoubleArray(), rai.maxAsDoubleArray() ).transform( affineTransform3D ).test(  );
+		mask.test(  )
+
 		return mask;
 	}
 
