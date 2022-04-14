@@ -11,9 +11,11 @@ import ij.ImagePlus;
 import loci.plugins.in.ImagePlusReader;
 import loci.plugins.in.ImportProcess;
 import loci.plugins.in.ImporterOptions;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.roi.RealMask;
 import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
@@ -139,18 +141,18 @@ public abstract class MoBIEHelper
 		}
 	}
 
-	public static RealMask unionRealMask( List< ? extends Source< ? > > sources )
+	public static RealMaskRealInterval unionRealMask( List< ? extends Source< ? > > sources )
 	{
-		RealInterval union = null;
+		RealMaskRealInterval union = null;
 
 		for ( Source< ? > source : sources )
 		{
-			final FinalRealInterval bounds = estimateBounds( source );
+			final RealMaskRealInterval mask = getMask( source );
 
 			if ( union == null )
-				union = bounds;
+				union = mask;
 			else
-				union = Intervals.union( bounds, union );
+				union = union.or( mask );
 		}
 
 		return union;
@@ -441,13 +443,13 @@ public abstract class MoBIEHelper
 		return bounds;
 	}
 
-	public static RealMask getMask( Source< ? > source )
+	public static RealMaskRealInterval getMask( Source< ? > source )
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		source.getSourceTransform( 0, 0, affineTransform3D );
-		final RealMaskRealInterval realMaskRealInterval = new RealMaskRealInterval();
-		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
-		return bounds;
+		final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
+		final RealMaskRealInterval mask = GeomMasks.closedBox( rai.minAsDoubleArray(), rai.maxAsDoubleArray() ).transform( affineTransform3D );
+		return mask;
 	}
 
 	public static String getName( String path )
