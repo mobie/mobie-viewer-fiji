@@ -85,14 +85,14 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         }
     }
 
-    private FunctionRealRandomAccessible< T > createBoundaryRRA( RealRandomAccessible< T > rra, int nD )
+    private FunctionRealRandomAccessible< T > createBoundaryRRA( RealRandomAccessible< T > labels, int nD )
     {
         BiConsumer< RealLocalizable, T > biConsumer = ( l, o ) ->
         {
-            final RealRandomAccess< T > access = rra.realRandomAccess();
+            final RealRandomAccess< T > access = labels.realRandomAccess();
             T value = access.setPositionAndGet( l );
-            final float centerFloat = value.getRealFloat();
-            if ( centerFloat == background )
+            final float floatValue = value.getRealFloat();
+            if ( floatValue == background )
             {
                 o.setReal( background );
                 return;
@@ -103,10 +103,10 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
                 {
                     access.move( signum * boundaryWidth, d );
                     value = access.get();
-                    if ( centerFloat != value.getRealFloat() )
+                    if ( floatValue != value.getRealFloat() )
                     {
                         // it is a boundary pixel!
-                        o.setReal( centerFloat );
+                        o.setReal( floatValue );
                         return;
                     }
                     access.move( - signum * boundaryWidth, d ); // move back to center
@@ -115,9 +115,9 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
             o.setReal( background );
             return;
         };
-        final T type = rra.realRandomAccess().get();
-        final FunctionRealRandomAccessible< T > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.copy() );
-        return randomAccessible;
+        final T type = labels.realRandomAccess().get();
+        final FunctionRealRandomAccessible< T > labelBoundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.copy() );
+        return labelBoundaries;
     }
 
     private FunctionRealRandomAccessible< T > createVolatileBoundaryRRA( RealRandomAccessible< T > rra, int nD )
