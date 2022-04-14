@@ -1,8 +1,10 @@
 package org.embl.mobie.viewer.source;
 
+import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvStackSource;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.Converter;
@@ -20,7 +22,9 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 import java.lang.reflect.Method;
 
-public abstract class Sources {
+public abstract class SourceHelpers
+{
+
     public static <R extends NumericType<R> & RealType<R>> SourceAndConverter<R> replaceConverter(SourceAndConverter<?> source, Converter<RealType<?>, ARGBType> converter) {
         LabelSource<?> labelVolatileSource = new LabelSource(source.asVolatile().getSpimSource());
         SourceAndConverter<?> volatileSourceAndConverter = new SourceAndConverter(labelVolatileSource, converter);
@@ -58,15 +62,33 @@ public abstract class Sources {
 
     }
 
-    /**
-     * TODO: add time
-     *
-     * @param bdvStackSource
-     * @param level
-     */
     public static void viewAsHyperstack(BdvStackSource<?> bdvStackSource, int level) {
         RandomAccessibleInterval<?> rai = bdvStackSource.getSources().get(0).getSpimSource().getSource(0, level);
         IntervalView<?> permute = Views.permute(Views.addDimension(rai, 0, 0), 2, 3);
         ImageJFunctions.wrap(Cast.unchecked(permute), "em").show();
+    }
+
+    // TODO: implement this recursively
+    public static LabelSource< ? > getLabelSource( SourceAndConverter sac )
+    {
+        if ( sac.getSpimSource() instanceof LabelSource )
+        {
+            return ( LabelSource< ? > ) sac.getSpimSource();
+        }
+        else if ( sac.getSpimSource() instanceof TransformedSource )
+        {
+            if ( ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource() instanceof LabelSource )
+            {
+                return ( LabelSource< ? > ) ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource();
+            }
+            else
+            {
+                return null;
+            }
+        }
+        else
+        {
+            return null;
+        }
     }
 }

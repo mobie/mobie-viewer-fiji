@@ -7,7 +7,7 @@ import org.embl.mobie.viewer.MoBIESettings;
 import java.io.IOException;
 import org.embl.mobie.io.ImageDataFormat;
 
-public class OpenRemoteCovidScreen
+public class OpenRemoteCovidIF
 {
 	public static void main( String[] args )
 	{
@@ -16,7 +16,7 @@ public class OpenRemoteCovidScreen
 
 		try {
 			new MoBIE("https://github.com/mobie/covid-if-project",
-					MoBIESettings.settings().gitProjectBranch( "main" ).imageDataFormat( ImageDataFormat.OmeZarrS3 ).view( "single_image" ) );
+					MoBIESettings.settings().gitProjectBranch( "main" ).imageDataFormat( ImageDataFormat.OmeZarrS3 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

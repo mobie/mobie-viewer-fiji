@@ -908,7 +908,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		recentlySelectedRowInView = r;
 	}
 
-	private synchronized void moveToSelectedTableRow( TableRow selection )
+	private synchronized void moveToSelectedTableRow( T selection )
 	{
 		final int rowInView = jTable.convertRowIndexToView( tableRows.indexOf( selection ) );
 

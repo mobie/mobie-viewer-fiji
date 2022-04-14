@@ -12,6 +12,7 @@ import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.viewer.source.LabelSource;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -86,7 +87,7 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 
 		final ListItemsARGBConverter< T > argbConverter = new ListItemsARGBConverter<>( tableRows, coloringModel );
 
-		sourceAndConverter = new SourceAndConverter( source, argbConverter );
+		sourceAndConverter = new SourceAndConverter( new LabelSource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX ), argbConverter );
 
 		contrastLimits = new double[]{ 0, 255 };
 	}
