@@ -31,7 +31,7 @@ package org.embl.mobie.viewer.table;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
+import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.annotate.Annotator;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import de.embl.cba.tables.*;
@@ -447,7 +447,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				for ( String tableDir: sourceNameToTableDir.values() )
 				{
 					final Map< String, List< String > > table = openTable( FileAndUrlUtils.combinePath( tableDir, tableName ) );
-					MoBIE.mergeAnnotatedIntervalTable( (List<AnnotatedIntervalTableRow>) tableRows, table );
+					MoBIE.mergeAnnotatedIntervalTable( (List< AnnotatedMaskTableRow >) tableRows, table );
 				}
 			}
 			addAdditionalTable( tableName );
@@ -470,7 +470,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				{
 
 					Map< String, List< String > > table = openTable( path );
-					MoBIE.mergeAnnotatedIntervalTable( ( List< AnnotatedIntervalTableRow > ) tableRows, table );
+					MoBIE.mergeAnnotatedIntervalTable( ( List< AnnotatedMaskTableRow > ) tableRows, table );
 				}
 				enableRowSorting( true );
 			}).start();

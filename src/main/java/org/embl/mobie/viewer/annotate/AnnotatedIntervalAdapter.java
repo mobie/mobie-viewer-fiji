@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-public class AnnotatedIntervalAdapter< T extends AnnotatedInterval >
+public class AnnotatedIntervalAdapter< T extends AnnotatedMask >
 {
 	class TimepointAndAnnotationId
 	{
@@ -18,10 +18,10 @@ public class AnnotatedIntervalAdapter< T extends AnnotatedInterval >
 			this.annotationId = annotationId;
 		}
 
-		public TimepointAndAnnotationId( AnnotatedInterval annotatedInterval )
+		public TimepointAndAnnotationId( AnnotatedMask annotatedMask )
 		{
-			this.timepoint = annotatedInterval.getTimepoint();
-			this.annotationId = annotatedInterval.getName();
+			this.timepoint = annotatedMask.getTimepoint();
+			this.annotationId = annotatedMask.getName();
 		}
 
 		@Override

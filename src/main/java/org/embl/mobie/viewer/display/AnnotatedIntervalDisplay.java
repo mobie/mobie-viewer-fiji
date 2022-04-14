@@ -1,14 +1,14 @@
 package org.embl.mobie.viewer.display;
 
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
-import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
+import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
 
 import java.util.*;
 
-public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedIntervalTableRow >
+public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedMaskTableRow >
 {
 	// Serialization
 	protected Map< String, List< String > > sources;
@@ -16,8 +16,8 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedI
 	protected Map< TableDataFormat, StorageLocation > tableData;
 
 	// Runtime
-	public transient AnnotatedIntervalAdapter< AnnotatedIntervalTableRow > annotatedIntervalAdapter;
-	public transient AnnotatedIntervalSliceView< AnnotatedIntervalTableRow > sliceView;
+	public transient AnnotatedIntervalAdapter< AnnotatedMaskTableRow > annotatedIntervalAdapter;
+	public transient AnnotatedIntervalSliceView< AnnotatedMaskTableRow > sliceView;
 
 	// Getters for the serialised fields
 	public List< String > getSelectedAnnotationIds()
@@ -72,10 +72,10 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedI
 		this.sources = new HashMap<>();
 		this.sources.putAll( annotatedIntervalDisplay.sources );
 
-		Set<AnnotatedIntervalTableRow> currentSelectedRows = annotatedIntervalDisplay.selectionModel.getSelected();
+		Set< AnnotatedMaskTableRow > currentSelectedRows = annotatedIntervalDisplay.selectionModel.getSelected();
 		if ( currentSelectedRows != null && currentSelectedRows.size() > 0 ) {
 			ArrayList<String> selectedIds = new ArrayList<>();
-			for ( AnnotatedIntervalTableRow row : currentSelectedRows ) {
+			for ( AnnotatedMaskTableRow row : currentSelectedRows ) {
 				selectedIds.add( row.getTimepoint() + ";" + row.getName() );
 			}
 			this.selectedAnnotationIds = selectedIds;

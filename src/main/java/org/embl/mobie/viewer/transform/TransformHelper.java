@@ -4,6 +4,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
 import net.imglib2.realtransform.Scale3D;
+import net.imglib2.roi.RealMask;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
@@ -35,6 +36,7 @@ public class TransformHelper
 
 		return union;
 	}
+
 
 	public static SourceAndConverter< ? > centerAtOrigin( SourceAndConverter< ? > sourceAndConverter )
 	{

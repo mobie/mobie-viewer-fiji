@@ -1,6 +1,6 @@
 package org.embl.mobie.viewer.source;
 
-import bdv.util.DefaultInterpolators;
+import bdv.util.Affine3DHelpers;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
@@ -9,19 +9,18 @@ import net.imglib2.RealLocalizable;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
-import net.imglib2.algorithm.neighborhood.CenteredRectangleShape;
-import net.imglib2.converter.Converters;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 
+import java.util.Arrays;
 import java.util.function.BiConsumer;
 
 public class LabelSource<T extends NumericType<T> & RealType<T>> implements Source<T> {
     protected final Source<T> source;
     private boolean showAsBoundaries;
-    private int boundaryWidth;
+    private double boundaryWidth;
 
     private float background = 0;
 
@@ -36,7 +35,7 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         this.background = background;
     }
 
-    public void showAsBoundary( boolean showAsBoundaries, int boundaryWidth ) {
+    public void showAsBoundary( boolean showAsBoundaries, double boundaryWidth ) {
         this.showAsBoundaries = showAsBoundaries;
         this.boundaryWidth = boundaryWidth;
     }
@@ -69,14 +68,17 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
 
         if ( showAsBoundaries  )
         {
-            final int nD = getWrappedSource().getSource( 0, 0 ).dimension( 2 ) == 1 ? 2 : 3;
+            final int numDimensions = getWrappedSource().getSource( 0, 0 ).dimension( 2 ) == 1 ? 2 : 3;
+
+            final float[] boundaries = getBoundaries( t, level );
+
             if ( rra.realRandomAccess().get() instanceof Volatile )
             {
-                return createVolatileBoundaryRRA( rra, nD );
+                return createVolatileBoundaryRRA( rra, numDimensions, boundaries );
             }
             else
             {
-                return createBoundaryRRA( rra, nD );
+                return createBoundaryRRA( rra, numDimensions, boundaries );
             }
         }
         else
@@ -85,7 +87,21 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         }
     }
 
-    private FunctionRealRandomAccessible< T > createBoundaryRRA( RealRandomAccessible< T > rra, int nD )
+    private float[] getBoundaries( int t, int level )
+    {
+        final float[] boundaries = new float[ 3 ];
+        Arrays.fill( boundaries, (float) boundaryWidth );
+        final AffineTransform3D sourceTransform = new AffineTransform3D();
+        getSourceTransform( t, level, sourceTransform );
+        for ( int d = 0; d < 3; d++ )
+        {
+            final double scale = Affine3DHelpers.extractScale( sourceTransform, d );
+            boundaries[ d ] /= scale;
+        }
+        return boundaries;
+    }
+
+    private FunctionRealRandomAccessible< T > createBoundaryRRA( RealRandomAccessible< T > rra, int nD, float[] boundaryWidth )
     {
         BiConsumer< RealLocalizable, T > biConsumer = ( l, o ) ->
         {
@@ -101,15 +117,15 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
             {
                 for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
                 {
-                    access.move( signum * boundaryWidth, d );
+                    access.move( signum * boundaryWidth[ d ], d );
                     value = access.get();
                     if ( centerFloat != value.getRealFloat() )
                     {
-                        // it is a boundary pixel!
+                        // it is a boundary pixel
                         o.setReal( centerFloat );
                         return;
                     }
-                    access.move( - signum * boundaryWidth, d ); // move back to center
+                    access.move( - signum * boundaryWidth[ d ], d ); // move back to center
                 }
             }
             o.setReal( background );
@@ -120,7 +136,7 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         return randomAccessible;
     }
 
-    private FunctionRealRandomAccessible< T > createVolatileBoundaryRRA( RealRandomAccessible< T > rra, int nD )
+    private FunctionRealRandomAccessible< T > createVolatileBoundaryRRA( RealRandomAccessible< T > rra, int nD, float[] boundaryWidth )
     {
         BiConsumer< RealLocalizable, T > biConsumer = ( l, o ) ->
         {
@@ -143,7 +159,7 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
             {
                 for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
                 {
-                    access.move( signum * boundaryWidth, d );
+                    access.move( signum * boundaryWidth[ d ], d );
                     value = ( Volatile< T > ) access.get();
                     if ( ! value.isValid() )
                     {
@@ -156,7 +172,7 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
                         vo.setValid( true );
                         return;
                     }
-                    access.move( - signum * boundaryWidth, d ); // move back to center
+                    access.move( - signum * boundaryWidth[ d ], d ); // move back to center
                 }
             }
             vo.get().setReal( background );

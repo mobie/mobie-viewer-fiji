@@ -13,7 +13,7 @@ import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
-import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
+import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
@@ -144,7 +144,7 @@ public class MoBIE
 		return settings;
 	}
 
-	public static void mergeAnnotatedIntervalTable(List<AnnotatedIntervalTableRow> intervalTableRows, Map< String, List< String > > columns )
+	public static void mergeAnnotatedIntervalTable( List< AnnotatedMaskTableRow > intervalTableRows, Map< String, List< String > > columns )
 	{
 		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
 		final ArrayList< String > gridIdColumn = TableColumns.getColumn( intervalTableRows, TableColumnNames.ANNOTATION_ID );
@@ -577,7 +577,7 @@ public class MoBIE
 		}
 	}
 
-	public List< AnnotatedIntervalTableRow > loadAnnotatedIntervalTables( AnnotatedIntervalDisplay annotationDisplay )
+	public List< AnnotatedMaskTableRow > loadAnnotatedIntervalTables( AnnotatedIntervalDisplay annotationDisplay )
 	{
 		// open
 		final List< Map< String, List< String > > > tables = new ArrayList<>();
@@ -593,7 +593,7 @@ public class MoBIE
 		final Map< String, List< String > > referenceTable = tables.get( 0 );
 		// TODO: The AnnotatedIntervalCreator does not need the sources, but just the source's real intervals
 		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), (String sourceName ) -> this.getTransformedSourceAndConverter( sourceName )  );
-		final List< AnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getAnnotatedIntervalTableRows();
+		final List< AnnotatedMaskTableRow > intervalTableRows = annotatedIntervalCreator.getAnnotatedIntervalTableRows();
 
 		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
 

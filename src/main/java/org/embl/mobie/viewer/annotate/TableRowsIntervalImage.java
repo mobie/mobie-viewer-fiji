@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
+public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 {
 	private final List< T > tableRows;
 	private final ColoringModel< T > coloringModel;
@@ -56,9 +56,9 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 			nameToTableRow.put( tableRow.getName(), tableRow );
 			nameToTableRowIndex.put( tableRow.getName(), rowIndex++ );
 			if ( union == null )
-				union = tableRow.getInterval();
+				union = tableRow.getMask();
 			else
-				union = Intervals.union( tableRow.getInterval(), union );
+				union = Intervals.union( tableRow.getMask(), union );
 		}
 	}
 
@@ -70,7 +70,7 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 
 			for ( int i = 0; i < size; i++ )
 			{
-				final RealInterval interval = tableRows.get( i ).getInterval();
+				final RealInterval interval = tableRows.get( i ).getMask();
 
 				if ( Intervals.contains( interval, l ) )
 				{
