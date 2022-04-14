@@ -2,9 +2,9 @@ package org.embl.mobie.viewer.annotate;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.roi.RealMaskRealInterval;
+import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.TableColumnNames;
-import org.embl.mobie.viewer.transform.TransformHelper;
-import net.imglib2.RealInterval;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ public class AnnotatedIntervalCreator
 	private final Map< String, List< String > > columns;
 	private final Map< String, List< String > > annotationIdToSources;
 	private final Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier;
-	private List< AnnotatedIntervalTableRow > annotatedIntervalTableRows;
+	private List< AnnotatedMaskTableRow > annotatedIntervalTableRows;
 
 	public AnnotatedIntervalCreator( Map< String, List< String > > columns, Map< String, List< String > > annotationIdToSources, Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier)
 	{
@@ -37,21 +37,21 @@ public class AnnotatedIntervalCreator
 		for ( String annotationId : annotationIds )
 		{
 			final List< ? extends Source< ? > > sources = annotationIdToSources.get( annotationId ).stream().map( name -> sourceAndConverterSupplier.apply( name ).getSpimSource() ).collect( Collectors.toList() );
-			final RealInterval realInterval = TransformHelper.unionRealInterval( sources );
+			final RealMaskRealInterval mask = MoBIEHelper.unionRealMask( sources );
 
 			final int rowIndex = annotationIdColumn.indexOf( annotationId );
 
 			annotatedIntervalTableRows.add(
-					new DefaultAnnotatedIntervalTableRow(
+					new DefaultAnnotatedMaskTableRow(
 							annotationId,
-							realInterval,
+							mask,
 							columns,
 							rowIndex )
 			);
 		}
 	}
 
-	public List< AnnotatedIntervalTableRow > getAnnotatedIntervalTableRows()
+	public List< AnnotatedMaskTableRow > getAnnotatedIntervalTableRows()
 	{
 		return annotatedIntervalTableRows;
 	}

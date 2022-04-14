@@ -1,7 +1,8 @@
 package org.embl.mobie.viewer.annotate;
 
 import de.embl.cba.tables.tablerow.AbstractTableRow;
-import net.imglib2.RealInterval;
+import net.imglib2.roi.RealMask;
+import net.imglib2.roi.RealMaskRealInterval;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,20 +11,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implements AnnotatedIntervalTableRow
+public class DefaultAnnotatedMaskTableRow extends AbstractTableRow implements AnnotatedMaskTableRow
 {
-	protected final RealInterval interval;
+	protected final RealMaskRealInterval mask;
 	protected final Map< String, String > cells;
 	protected final String siteName;
 
-	public DefaultAnnotatedIntervalTableRow(
+	public DefaultAnnotatedMaskTableRow(
 			String siteName,
-			RealInterval interval,
+			RealMaskRealInterval mask,
 			Map< String, List< String > > columns,
 			int rowIndex )
 	{
 		this.siteName = siteName;
-		this.interval = interval;
+		this.mask = mask;
 
 		// set cells
 		this.cells = new LinkedHashMap<>();
@@ -36,9 +37,9 @@ public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implement
 	}
 
 	@Override
-	public RealInterval getInterval()
+	public RealMaskRealInterval getMask()
 	{
-		return interval;
+		return mask;
 	}
 
 	@Override

@@ -14,6 +14,6 @@ public class OpenRemoteCLEMExample
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		new MoBIE("https://github.com/mobie/clem-example-project/", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5S3 ) );
+		new MoBIE("https://github.com/mobie/clem-example-project/", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5S3 ).gitProjectBranch( "more-views" ) );
 	}
 }

@@ -22,8 +22,8 @@ public class LabelRenderingConfiguratorCommand implements BdvPlaygroundActionCom
 	@Parameter ( label = "Show as boundaries")
 	boolean showAsBoundary;
 
-	@Parameter ( label = "Boundary thickness [pixels]", min = "1")
-	int boundaryThickness;
+	@Parameter ( label = "Boundary thickness" )
+	double boundaryThickness = 1.0;
 
 	@Override
 	public void run()

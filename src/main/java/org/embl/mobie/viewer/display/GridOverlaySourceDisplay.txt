@@ -5,7 +5,7 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
 import Utils;
 import MoBIE;
-import AnnotatedIntervalCreator;
+import AnnotatedOME-Zarrator;
 import AnnotatedIntervalTableRow;
 import DefaultAnnotatedIntervalTableRow;
 import TableRowsIntervalImage;

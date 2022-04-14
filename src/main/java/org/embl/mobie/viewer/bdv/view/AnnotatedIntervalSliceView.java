@@ -3,8 +3,8 @@ package org.embl.mobie.viewer.bdv.view;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.annotate.AnnotatedInterval;
-import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
+import org.embl.mobie.viewer.annotate.AnnotatedMask;
+import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.annotate.TableRowsIntervalImage;
 import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
@@ -23,7 +23,7 @@ import java.util.HashMap;
 
 
 // TODO: code duplication with SegmentationSourceDisplay => derive from a parent class
-public class AnnotatedIntervalSliceView< S extends AnnotatedInterval > implements ColoringListener, SelectionListener< S >
+public class AnnotatedIntervalSliceView< S extends AnnotatedMask > implements ColoringListener, SelectionListener< S >
 {
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final MoBIE moBIE;
@@ -45,7 +45,7 @@ public class AnnotatedIntervalSliceView< S extends AnnotatedInterval > implement
 		display.coloringModel.listeners().add( this );
 
 		// TODO: Make a SourceAnnotationSliceView with the listeners for the focussing.
-		final TableRowsIntervalImage< AnnotatedIntervalTableRow > intervalImage = new TableRowsIntervalImage<>( display.tableRows, display.coloringModel, display.getName() );
+		final TableRowsIntervalImage< AnnotatedMaskTableRow > intervalImage = new TableRowsIntervalImage<>( display.tableRows, display.coloringModel, display.getName() );
 		SourceAndConverter< IntType > sourceAndConverter = intervalImage.getSourceAndConverter();
 		display.sourceNameToSourceAndConverter = new HashMap<>();
 		display.sourceNameToSourceAndConverter.put( intervalImage.getName(), sourceAndConverter );
@@ -91,8 +91,8 @@ public class AnnotatedIntervalSliceView< S extends AnnotatedInterval > implement
 			getBdvHandle().getViewerPanel().state().setCurrentTimepoint( selection.getTimepoint() );
 		}
 
-		final double[] max = selection.getInterval().maxAsDoubleArray();
-		final double[] min = selection.getInterval().minAsDoubleArray();
+		final double[] max = selection.getMask().maxAsDoubleArray();
+		final double[] min = selection.getMask().minAsDoubleArray();
 		final double[] center = new double[ min.length ];
 		for ( int d = 0; d < 3; d++ )
 		{

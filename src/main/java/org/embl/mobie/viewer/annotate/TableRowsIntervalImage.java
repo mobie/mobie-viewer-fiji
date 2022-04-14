@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.annotate;
 import bdv.util.BdvOverlay;
 import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringModel;
@@ -19,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
+public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 {
 	private final List< T > tableRows;
 	private final ColoringModel< T > coloringModel;
@@ -56,9 +57,9 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 			nameToTableRow.put( tableRow.getName(), tableRow );
 			nameToTableRowIndex.put( tableRow.getName(), rowIndex++ );
 			if ( union == null )
-				union = tableRow.getInterval();
+				union = tableRow.getMask();
 			else
-				union = Intervals.union( tableRow.getInterval(), union );
+				union = Intervals.union( tableRow.getMask(), union );
 		}
 	}
 
@@ -70,9 +71,9 @@ public class TableRowsIntervalImage< T extends AnnotatedIntervalTableRow >
 
 			for ( int i = 0; i < size; i++ )
 			{
-				final RealInterval interval = tableRows.get( i ).getInterval();
+				final RealMaskRealInterval mask = tableRows.get( i ).getMask();
 
-				if ( Intervals.contains( interval, l ) )
+				if ( mask.test( l ) )
 				{
 					t.setInteger( i );
 					return;
