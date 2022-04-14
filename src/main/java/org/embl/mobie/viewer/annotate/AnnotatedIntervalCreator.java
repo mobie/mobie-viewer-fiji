@@ -5,8 +5,6 @@ import bdv.viewer.SourceAndConverter;
 import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.TableColumnNames;
-import org.embl.mobie.viewer.transform.TransformHelper;
-import net.imglib2.RealInterval;
 
 import java.util.ArrayList;
 import java.util.List;

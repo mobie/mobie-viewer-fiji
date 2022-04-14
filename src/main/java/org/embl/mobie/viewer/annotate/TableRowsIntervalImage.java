@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.annotate;
 import bdv.util.BdvOverlay;
 import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringModel;
@@ -70,9 +71,9 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 
 			for ( int i = 0; i < size; i++ )
 			{
-				final RealInterval interval = tableRows.get( i ).getMask();
+				final RealMaskRealInterval mask = tableRows.get( i ).getMask();
 
-				if ( Intervals.contains( interval, l ) )
+				if ( mask.test( l ) )
 				{
 					t.setInteger( i );
 					return;

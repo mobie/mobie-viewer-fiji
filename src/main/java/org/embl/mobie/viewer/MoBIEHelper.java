@@ -6,29 +6,23 @@ import bdv.util.BdvHandle;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import bdv.viewer.ViewerPanel;
-import ij.ImagePlus;
-import loci.plugins.in.ImagePlusReader;
-import loci.plugins.in.ImportProcess;
-import loci.plugins.in.ImporterOptions;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealInterval;
-import net.imglib2.roi.RealMask;
-import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.roi.geom.GeomMasks;
-import net.imglib2.util.Intervals;
-import org.embl.mobie.io.util.FileAndUrlUtils;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
 import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
+import ij.ImagePlus;
 import ij.gui.GenericDialog;
+import loci.plugins.in.ImagePlusReader;
+import loci.plugins.in.ImportProcess;
+import loci.plugins.in.ImporterOptions;
 import net.imglib2.FinalRealInterval;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.Scale3D;
-import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
+import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.geom.GeomMasks;
+import org.embl.mobie.io.util.FileAndUrlUtils;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import org.embl.mobie.viewer.transform.TransformHelper;
@@ -448,9 +442,7 @@ public abstract class MoBIEHelper
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		source.getSourceTransform( 0, 0, affineTransform3D );
 		final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
-		final RealMaskRealInterval mask = GeomMasks.closedBox( rai.minAsDoubleArray(), rai.maxAsDoubleArray() ).transform( affineTransform3D ).test(  );
-		mask.test(  )
-
+		final RealMaskRealInterval mask = GeomMasks.closedBox( rai.minAsDoubleArray(), rai.maxAsDoubleArray() ).transform( affineTransform3D.inverse() );
 		return mask;
 	}
 
