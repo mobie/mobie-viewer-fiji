@@ -38,7 +38,6 @@ public class AnnotatedIntervalCreator
 		{
 			final List< ? extends Source< ? > > sources = annotationIdToSources.get( annotationId ).stream().map( name -> sourceAndConverterSupplier.apply( name ).getSpimSource() ).collect( Collectors.toList() );
 			final RealMaskRealInterval mask = MoBIEHelper.unionRealMask( sources );
-
 			final int rowIndex = annotationIdColumn.indexOf( annotationId );
 
 			annotatedIntervalTableRows.add(

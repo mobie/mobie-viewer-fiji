@@ -11,9 +11,11 @@ import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 
@@ -21,23 +23,31 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
     protected final Source<T> source;
     private boolean showAsBoundaries;
     private double boundaryWidth;
-
-    private float background = 0;
+    private float background;
+    private final RealMaskRealInterval bounds;
+    private ArrayList< Integer > boundaryDimensions;
 
     public LabelSource( final Source<T> source )
     {
-        this.source = source;
+        this( source, 0 );
     }
 
     public LabelSource( final Source<T> source, float background )
     {
+        this( source, background, null );
+    }
+
+    public LabelSource( final Source<T> source, float background, RealMaskRealInterval bounds )
+    {
         this.source = source;
         this.background = background;
+        this.bounds = bounds;
     }
 
     public void showAsBoundary( boolean showAsBoundaries, double boundaryWidth ) {
         this.showAsBoundaries = showAsBoundaries;
         this.boundaryWidth = boundaryWidth;
+        this.boundaryDimensions = boundaryDimensions();
     }
 
     @Override
@@ -68,17 +78,19 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
 
         if ( showAsBoundaries  )
         {
-            final int numDimensions = getWrappedSource().getSource( 0, 0 ).dimension( 2 ) == 1 ? 2 : 3;
-
-            final float[] boundaries = getBoundaries( t, level );
+            // Ultimately we need the boundaries in pixel units, because
+            // we have to check the voxel values in the rra, which is in voxel units.
+            // However, it feels like we could stay longer in physical units here to
+            // make this less confusing...
+            final float[] boundarySizePixelUnits = getBoundarySize( t, level );
 
             if ( rra.realRandomAccess().get() instanceof Volatile )
             {
-                return createVolatileBoundaryRRA( rra, numDimensions, boundaries );
+                return createVolatileBoundaryRRA( rra, boundaryDimensions, boundarySizePixelUnits );
             }
             else
             {
-                return createBoundaryRRA( rra, numDimensions, boundaries );
+                return createBoundaryRRA( rra, boundaryDimensions, boundarySizePixelUnits );
             }
         }
         else
@@ -87,7 +99,28 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         }
     }
 
-    private float[] getBoundaries( int t, int level )
+    private ArrayList< Integer > boundaryDimensions()
+    {
+        final ArrayList< Integer > dimensions = new ArrayList<>();
+        if ( bounds != null )
+        {
+            for ( int d = 0; d < 3; d++ )
+            {
+                final double sourceBound = Math.abs( bounds.realMax( d ) - bounds.realMin( d ) );
+                if ( sourceBound > 3 * boundaryWidth )
+                    dimensions.add( d );
+            }
+        }
+        else
+        {
+            dimensions.add( 0 );
+            dimensions.add( 1 );
+            dimensions.add( 2 );
+        }
+        return dimensions;
+    }
+
+    private float[] getBoundarySize( int t, int level )
     {
         final float[] boundaries = new float[ 3 ];
         Arrays.fill( boundaries, (float) boundaryWidth );
@@ -101,28 +134,27 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         return boundaries;
     }
 
-    private FunctionRealRandomAccessible< T > createBoundaryRRA( RealRandomAccessible< T > rra, int nD, float[] boundaryWidth )
+    private FunctionRealRandomAccessible< T > createBoundaryRRA( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
     {
         BiConsumer< RealLocalizable, T > biConsumer = ( l, o ) ->
         {
             final RealRandomAccess< T > access = rra.realRandomAccess();
-            T value = access.setPositionAndGet( l );
-            final float floatValue = value.getRealFloat();
-            if ( floatValue == background )
+            T centerPixel = access.setPositionAndGet( l );
+            final float realFloat = centerPixel.getRealFloat();
+            if ( realFloat == background )
             {
                 o.setReal( background );
                 return;
             }
-            for ( int d = 0; d < nD; d++ ) // dimensions
+            for ( Integer d : dimensions )
             {
                 for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
                 {
                     access.move( signum * boundaryWidth[ d ], d );
-                    value = access.get();
-                    if ( floatValue != value.getRealFloat() )
+                    if ( realFloat != access.get().getRealFloat() )
                     {
                         // it is a boundary pixel!
-                        o.setReal( floatValue );
+                        o.setReal( realFloat );
                         return;
                     }
                     access.move( - signum * boundaryWidth[ d ], d ); // move back to center
@@ -136,7 +168,7 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         return labelBoundaries;
     }
 
-    private FunctionRealRandomAccessible< T > createVolatileBoundaryRRA( RealRandomAccessible< T > rra, int nD, float[] boundaryWidth )
+    private FunctionRealRandomAccessible< T > createVolatileBoundaryRRA( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
     {
         BiConsumer< RealLocalizable, T > biConsumer = ( l, o ) ->
         {
@@ -155,7 +187,7 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
                 vo.setValid( true );
                 return;
             }
-            for ( int d = 0; d < nD; d++ ) // dimensions
+            for ( Integer d : dimensions )
             {
                 for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
                 {

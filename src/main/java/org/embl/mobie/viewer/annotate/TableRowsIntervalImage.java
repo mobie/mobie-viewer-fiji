@@ -29,7 +29,7 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 	private HashMap< String, Integer > nameToTableRowIndex;
 	private String name;
 	private SourceAndConverter< IntType > sourceAndConverter;
-	private RealInterval union;
+	private RealMaskRealInterval union;
 	private int size;
 
 	public TableRowsIntervalImage(
@@ -59,8 +59,9 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 			if ( union == null )
 				union = tableRow.getMask();
 			else
-				union = Intervals.union( tableRow.getMask(), union );
+				union = union.or( tableRow.getMask() );
 		}
+
 	}
 
 	private void createImage( )
@@ -88,7 +89,7 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 
 		final ListItemsARGBConverter< T > argbConverter = new ListItemsARGBConverter<>( tableRows, coloringModel );
 
-		sourceAndConverter = new SourceAndConverter( new LabelSource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX ), argbConverter );
+		sourceAndConverter = new SourceAndConverter( new LabelSource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX, union ), argbConverter );
 
 		contrastLimits = new double[]{ 0, 255 };
 	}
