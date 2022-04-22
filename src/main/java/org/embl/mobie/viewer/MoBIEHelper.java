@@ -18,6 +18,7 @@ import loci.plugins.in.ImportProcess;
 import loci.plugins.in.ImporterOptions;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
@@ -25,6 +26,7 @@ import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
+import org.embl.mobie.viewer.transform.RealMaskSource;
 import org.embl.mobie.viewer.transform.TransformHelpers;
 
 import javax.swing.*;
@@ -440,10 +442,26 @@ public abstract class MoBIEHelper
 		return view;
 	}
 
-	public static FinalRealInterval estimateBounds( Source< ? > source, int t )
+	public static RealInterval estimateBounds( Source< ? > source, int t )
 	{
+		if ( source instanceof RealMaskSource )
+		{
+			final RealMaskRealInterval realMask = ( ( RealMaskSource ) source ).getRealMask();
+			return realMask;
+		}
+
+		if ( source instanceof TransformedSource )
+		{
+			final Source< ? > wrappedSource = ( ( TransformedSource< ? > ) source ).getWrappedSource();
+			if ( wrappedSource instanceof RealMaskSource )
+			{
+				final RealMaskRealInterval realMask = ( ( RealMaskSource ) wrappedSource ).getRealMask();
+				return realMask;
+			}
+		}
+
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
-		source.getSourceTransform( 0, 0, affineTransform3D );
+		source.getSourceTransform( t, 0, affineTransform3D );
 		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( t, 0 ) );
 		return bounds;
 	}

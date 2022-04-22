@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-public class MergedGridSource< T extends NativeType< T > & NumericType< T > > implements Source< T >
+public class MergedGridSource< T extends NativeType< T > & NumericType< T > > implements Source< T >, RealMaskSource
 {
 	private final T type;
 	private final Source< T > referenceSource;
@@ -139,7 +139,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		}
 	}
 
-	public RealMaskRealInterval getMask()
+	public RealMaskRealInterval getRealMask()
 	{
 		return mask;
 	}
@@ -272,7 +272,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		final AffineTransform3D referenceTransform = new AffineTransform3D();
 		referenceSource.getSourceTransform( 0, 0, referenceTransform );
 
-		for ( int d = 0; d < 3; d++ )
+		for ( int d = 0; d < 2; d++ )
 		{
 			final double scale = Affine3DHelpers.extractScale( referenceTransform, d );
 			min[ d ] = minPos[ d ] * cellDimensions[ d ] * scale;

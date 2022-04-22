@@ -21,13 +21,13 @@ import java.util.stream.Collectors;
 
 public class TransformHelpers
 {
-	public static RealInterval estimateBounds( List< ? extends Source< ? > > sources, int currentTimepoint )
+	public static RealInterval estimateBounds( List< ? extends Source< ? > > sources, int t )
 	{
 		RealInterval union = null;
 
 		for ( Source< ? > source : sources )
 		{
-			final FinalRealInterval bounds = MoBIEHelper.estimateBounds( source, 0 );
+			final RealInterval bounds = MoBIEHelper.estimateBounds( source, t );
 
 			if ( union == null )
 				union = bounds;
@@ -53,7 +53,7 @@ public class TransformHelpers
 
 	public static double[] getCenter( SourceAndConverter< ? > sourceAndConverter )
 	{
-		final FinalRealInterval bounds = MoBIEHelper.estimateBounds( sourceAndConverter.getSpimSource(), 0 );
+		final RealInterval bounds = MoBIEHelper.estimateBounds( sourceAndConverter.getSpimSource(), 0 );
 		final double[] center = bounds.minAsDoubleArray();
 		final double[] max = bounds.maxAsDoubleArray();
 		for ( int d = 0; d < max.length; d++ )
@@ -156,8 +156,15 @@ public class TransformHelpers
 		bdvWindowDimensions[ 0 ] = bdv.getBdvHandle().getViewerPanel().getWidth();
 		bdvWindowDimensions[ 1 ] = bdv.getBdvHandle().getViewerPanel().getHeight();
 
-		final double intervalSize = interval.realMax( 0 ) - interval.realMin( 0 );
-		affineTransform3D.scale(  1.0 * bdvWindowDimensions[ 0 ] / intervalSize );
+		// TODO: check both dimensions and take the smaller scale
+		double scale = Double.MAX_VALUE;
+		for ( int d = 0; d < 2; d++ )
+		{
+			final double size = interval.realMax( d ) - interval.realMin( d );
+			scale = Math.min( scale, 1.0 * bdvWindowDimensions[ d ] / size );
+		}
+
+		affineTransform3D.scale( scale );
 
 		double[] shiftToBdvWindowCenter = new double[ 3 ];
 
