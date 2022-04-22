@@ -50,7 +50,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	private int currentTimepoint = 0;
 	private Map< String, long[] > sourceNameToVoxelTranslation;
 	private int[][] cellDimensions;
-	private double[] cellRealDimensions;
+	private double[] cellRealMax;
 	private Set< SourceAndConverter > containedSourceAndConverters;
 	private RealMaskRealInterval mask;
 
@@ -92,7 +92,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	{
 		final int numMipmapLevels = referenceSource.getNumMipmapLevels();
 		setCellDimensions( numMipmapLevels );
-		setCellRealDimensions();
+		setCellRealMax( cellDimensions[ 0 ] );
 		setMask( positions, cellDimensions[ 0 ] );
 		return createMergedRAIs( numMipmapLevels );
 	}
@@ -128,14 +128,14 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		return mergedRandomAccessibleIntervals;
 	}
 
-	private void setCellRealDimensions()
+	private void setCellRealMax( int[] cellDimension )
 	{
 		final AffineTransform3D referenceTransform = new AffineTransform3D();
 		referenceSource.getSourceTransform( 0, 0, referenceTransform );
-		cellRealDimensions = new double[ 3 ];
+		cellRealMax = new double[ 3 ];
 		for ( int d = 0; d < 2; d++ )
 		{
-			cellRealDimensions[ d ] = ( cellDimensions[ 0 ][ 0 ] - 1 ) * Affine3DHelpers.extractScale( referenceTransform, d );
+			cellRealMax[ d ] = ( cellDimension[ d ] - 1 ) * Affine3DHelpers.extractScale( referenceTransform, d );
 		}
 	}
 
@@ -144,9 +144,9 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		return mask;
 	}
 
-	public double[] getCellRealDimensions()
+	public double[] getCellRealMax()
 	{
-		return cellRealDimensions;
+		return cellRealMax;
 	}
 
 	private void setCellDimensions( int numMipmapLevels )

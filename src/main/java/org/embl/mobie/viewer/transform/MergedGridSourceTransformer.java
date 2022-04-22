@@ -60,10 +60,10 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		final ArrayList< SourceAndConverter< ? > > referenceSources = new ArrayList<>();
 		referenceSources.add( gridSources.get( 0 ) );
 
-		final double[] gridCellRealDimensions = mergedGridSource.getCellRealDimensions();
+		final double[] gridCellRealMax = mergedGridSource.getCellRealMax();
 
 		// account for grid margin
-		translationRealOffset = computeTranslationOffset( gridSources, gridCellRealDimensions );
+		translationRealOffset = computeTranslationOffset( gridSources, gridCellRealMax );
 
 		final int numSources = gridSources.size();
 		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
@@ -74,13 +74,13 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 			final ArrayList< String > sourceNamesAtGridPosition = getSourcesAtGridPosition( gridSources, finalPositionIndex );
 
 			futures.add( ThreadUtils.executorService.submit( () -> {
-				recursivelyTransformSources( sourceNameToSourceAndConverter, gridCellRealDimensions, finalPositionIndex, sourceNamesAtGridPosition );
+				recursivelyTransformSources( sourceNameToSourceAndConverter, gridCellRealMax, finalPositionIndex, sourceNamesAtGridPosition );
 			} ) );
 		}
 		ThreadUtils.waitUntilFinished( futures );
 	}
 
-	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealDimensions )
+	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealMax )
 	{
 		final FinalRealInterval dataRealBounds = MoBIEHelper.estimateBounds( gridSources.get( 0 ).getSpimSource(), 0 );
 
@@ -90,7 +90,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 		final double[] translationOffset = new double[ 2 ];
 		for ( int d = 0; d < 2; d++ )
-			translationOffset[ d ] = 0.5 * ( gridCellRealDimensions[ d ] - dataRealDimensions[ d ] );
+			translationOffset[ d ] = 0.5 * ( gridCellRealMax[ d ] - dataRealDimensions[ d ] );
 
 		return translationOffset;
 	}
