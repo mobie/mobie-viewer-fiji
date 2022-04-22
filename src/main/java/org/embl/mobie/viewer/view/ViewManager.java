@@ -33,7 +33,7 @@ import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SourceTransformer;
-import org.embl.mobie.viewer.transform.TransformHelper;
+import org.embl.mobie.viewer.transform.TransformHelpers;
 import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
@@ -238,7 +238,7 @@ public class ViewManager
 
 		if ( includeViewerTransform )
 		{
-			AffineTransform3D normalisedViewTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
+			AffineTransform3D normalisedViewTransform = TransformHelpers.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
 
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
 			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, transform, isExclusive);
@@ -259,7 +259,7 @@ public class ViewManager
 			removeAllSourceDisplays();
 		}
 
-		openAndTransformViewSources( view );
+		openAndTransformSources( view );
 
 		// show the displays
 		MoBIELookAndFeelToggler.setMoBIELaf();
@@ -272,7 +272,7 @@ public class ViewManager
 		adjustViewerTransform( view );
 	}
 
-	public void openAndTransformViewSources( View view )
+	public void openAndTransformSources( View view )
 	{
 		// fetch the names of all sources that are either shown or to be transformed
 		final Set< String > sources = fetchSources( view );

@@ -9,8 +9,6 @@ import net.imglib2.realtransform.AffineTransform3D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class TransformedGridSourceTransformer extends AbstractSourceTransformer
@@ -31,7 +29,8 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		if ( positions == null )
 			autoSetPositions();
 
-		final double[] cellRealDimensions = TransformHelper.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
+		// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/674
+		final double[] cellRealDimensions = TransformHelpers.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
 
 		transform( sourceNameToSourceAndConverter, cellRealDimensions );
 	}
@@ -72,7 +71,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			if ( sourceAndConverter == null )
 			  continue;
 
-			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( translationX, translationY, sourceAndConverter, centerAtOrigin );
+			AffineTransform3D translationTransform = TransformHelpers.createTranslationTransform3D( translationX, translationY, sourceAndConverter, centerAtOrigin );
 
 			final SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, translationTransform );
 

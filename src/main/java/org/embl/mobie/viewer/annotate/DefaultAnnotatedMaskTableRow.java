@@ -1,7 +1,6 @@
 package org.embl.mobie.viewer.annotate;
 
 import de.embl.cba.tables.tablerow.AbstractTableRow;
-import net.imglib2.roi.RealMask;
 import net.imglib2.roi.RealMaskRealInterval;
 
 import java.util.ArrayList;
@@ -15,15 +14,15 @@ public class DefaultAnnotatedMaskTableRow extends AbstractTableRow implements An
 {
 	protected final RealMaskRealInterval mask;
 	protected final Map< String, String > cells;
-	protected final String siteName;
+	protected final String name;
 
 	public DefaultAnnotatedMaskTableRow(
-			String siteName,
+			String name,
 			RealMaskRealInterval mask,
 			Map< String, List< String > > columns,
 			int rowIndex )
 	{
-		this.siteName = siteName;
+		this.name = name;
 		this.mask = mask;
 
 		// set cells
@@ -54,7 +53,7 @@ public class DefaultAnnotatedMaskTableRow extends AbstractTableRow implements An
 	@Override
 	public String getName()
 	{
-		return siteName;
+		return name;
 	}
 
 	@Override

@@ -1,10 +1,11 @@
 package org.embl.mobie.viewer.transform;
 
+import bdv.util.Bdv;
+import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
 import net.imglib2.realtransform.Scale3D;
-import net.imglib2.roi.RealMask;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
@@ -18,15 +19,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class TransformHelper
+public class TransformHelpers
 {
-	public static RealInterval unionRealInterval( List< ? extends Source< ? > > sources )
+	public static RealInterval estimateBounds( List< ? extends Source< ? > > sources, int currentTimepoint )
 	{
 		RealInterval union = null;
 
 		for ( Source< ? > source : sources )
 		{
-			final FinalRealInterval bounds = MoBIEHelper.estimateBounds( source );
+			final FinalRealInterval bounds = MoBIEHelper.estimateBounds( source, 0 );
 
 			if ( union == null )
 				union = bounds;
@@ -52,7 +53,7 @@ public class TransformHelper
 
 	public static double[] getCenter( SourceAndConverter< ? > sourceAndConverter )
 	{
-		final FinalRealInterval bounds = MoBIEHelper.estimateBounds( sourceAndConverter.getSpimSource() );
+		final FinalRealInterval bounds = MoBIEHelper.estimateBounds( sourceAndConverter.getSpimSource(), 0 );
 		final double[] center = bounds.minAsDoubleArray();
 		final double[] max = bounds.maxAsDoubleArray();
 		for ( int d = 0; d < max.length; d++ )
@@ -75,9 +76,9 @@ public class TransformHelper
 		return translationTransform;
 	}
 
-	public static double[] computeSourceUnionRealDimensions( List< SourceAndConverter< ? > > sources, double relativeMargin )
+	public static double[] computeSourceUnionRealDimensions( List< SourceAndConverter< ? > > sources, double relativeMargin, int t )
 	{
-		RealInterval bounds = unionRealInterval( sources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ));
+		RealInterval bounds = estimateBounds( sources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ), t );
 		final double[] realDimensions = new double[ 2 ];
 		for ( int d = 0; d < 2; d++ )
 			realDimensions[ d ] = ( 1.0 + 2.0 * relativeMargin ) * ( bounds.realMax( d ) - bounds.realMin( d ) );
@@ -90,7 +91,7 @@ public class TransformHelper
 		for ( List< String > sourceNames : sourceNamesList )
 		{
 			final List< SourceAndConverter< ? > > sourceAndConverters = sourceNames.stream().map( name -> sourceNameToSourceAndConverter.get( name ) ).collect( Collectors.toList() );
-			final double[] realDimensions = computeSourceUnionRealDimensions( sourceAndConverters, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+			final double[] realDimensions = computeSourceUnionRealDimensions( sourceAndConverters, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN, 0 );
 			for ( int d = 0; d < 2; d++ )
 				maximalDimensions[ d ] = realDimensions[ d ] > maximalDimensions[ d ] ? realDimensions[ d ] : maximalDimensions[ d ];
 		}
@@ -135,5 +136,38 @@ public class TransformHelper
 		transform.preConcatenate( translate );
 
 		return transform;
+	}
+
+	public static AffineTransform3D getIntervalViewerTransform( BdvHandle bdv, RealInterval interval  )
+	{
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+
+		double[] centerPosition = new double[ 3 ];
+
+		for( int d = 0; d < 3; ++d )
+		{
+			final double center = ( interval.realMin( d ) + interval.realMax( d ) ) / 2.0;
+			centerPosition[ d ] = - center;
+		}
+
+		affineTransform3D.translate( centerPosition );
+
+		int[] bdvWindowDimensions = new int[ 2 ];
+		bdvWindowDimensions[ 0 ] = bdv.getBdvHandle().getViewerPanel().getWidth();
+		bdvWindowDimensions[ 1 ] = bdv.getBdvHandle().getViewerPanel().getHeight();
+
+		final double intervalSize = interval.realMax( 0 ) - interval.realMin( 0 );
+		affineTransform3D.scale(  1.0 * bdvWindowDimensions[ 0 ] / intervalSize );
+
+		double[] shiftToBdvWindowCenter = new double[ 3 ];
+
+		for( int d = 0; d < 2; ++d )
+		{
+			shiftToBdvWindowCenter[ d ] += bdvWindowDimensions[ d ] / 2.0;
+		}
+
+		affineTransform3D.translate( shiftToBdvWindowCenter );
+
+		return affineTransform3D;
 	}
 }

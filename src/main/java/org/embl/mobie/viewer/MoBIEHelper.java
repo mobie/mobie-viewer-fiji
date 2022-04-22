@@ -25,7 +25,7 @@ import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
-import org.embl.mobie.viewer.transform.TransformHelper;
+import org.embl.mobie.viewer.transform.TransformHelpers;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -144,9 +144,20 @@ public abstract class MoBIEHelper
 			final RealMaskRealInterval mask = getMask( source );
 
 			if ( union == null )
+			{
 				union = mask;
+			}
 			else
-				union = union.or( mask );
+			{
+				if ( Arrays.equals( mask.minAsDoubleArray(), union.minAsDoubleArray() ) && Arrays.equals( mask.maxAsDoubleArray(), union.maxAsDoubleArray() ))
+				{
+					continue;
+				}
+				else
+				{
+					union = union.or( mask );
+				}
+			}
 		}
 
 		return union;
@@ -407,7 +418,7 @@ public abstract class MoBIEHelper
 
 	public static String createNormalisedViewerTransformString( BdvHandle bdv, double[] position )
 	{
-		final AffineTransform3D view = TransformHelper.createNormalisedViewerTransform( bdv.getViewerPanel(), position );
+		final AffineTransform3D view = TransformHelpers.createNormalisedViewerTransform( bdv.getViewerPanel(), position );
 		final String replace = view.toString().replace( "3d-affine: (", "" ).replace( ")", "" );
 		final String collect = Arrays.stream( replace.split( "," ) ).map( x -> "n" + x.trim() ).collect( Collectors.joining( "," ) );
 		return collect;
@@ -429,11 +440,11 @@ public abstract class MoBIEHelper
 		return view;
 	}
 
-	public static FinalRealInterval estimateBounds( Source< ? > source )
+	public static FinalRealInterval estimateBounds( Source< ? > source, int t )
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		source.getSourceTransform( 0, 0, affineTransform3D );
-		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
+		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( t, 0 ) );
 		return bounds;
 	}
 

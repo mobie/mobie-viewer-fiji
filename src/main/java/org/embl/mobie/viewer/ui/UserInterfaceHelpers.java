@@ -12,6 +12,7 @@ import org.embl.mobie.viewer.display.AbstractSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.serialize.JsonHelper;
+import org.embl.mobie.viewer.transform.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.viewer.transform.ViewerTransform;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
@@ -26,7 +27,6 @@ import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.MoBIEHelper;
-import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
@@ -750,8 +750,9 @@ public class UserInterfaceHelpers
 
 		button.addActionListener( e ->
 		{
-			// TODO: make this work for multiple sources!
-			final AffineTransform3D transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
+//			final AffineTransform3D transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
+
+			final AffineTransform3D transform = new MoBIEViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters ).getMultiSourceTransform();
 			new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
 		} );
 

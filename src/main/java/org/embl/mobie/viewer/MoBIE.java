@@ -243,6 +243,13 @@ public class MoBIE
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
 		final View view = dataset.views.get( settings.values.getView() );
 		view.setName( settings.values.getView() );
+
+		System.out.println("# Views");
+		for ( String viewName : dataset.views.keySet() )
+		{
+			System.out.println( viewName );
+		}
+
 		viewManager.show( view );
 
 		// arrange windows
@@ -592,7 +599,7 @@ public class MoBIE
 		// create primary AnnotatedIntervalTableRow table
 		final Map< String, List< String > > referenceTable = tables.get( 0 );
 		// TODO: The AnnotatedIntervalCreator does not need the sources, but just the source's real intervals
-		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), (String sourceName ) -> this.getTransformedSourceAndConverter( sourceName )  );
+		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), (String sourceName ) -> getTransformedSourceAndConverter( sourceName )  );
 		final List< AnnotatedMaskTableRow > intervalTableRows = annotatedIntervalCreator.getAnnotatedIntervalTableRows();
 
 		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );

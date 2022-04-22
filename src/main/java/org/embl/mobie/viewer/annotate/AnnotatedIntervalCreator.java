@@ -7,6 +7,7 @@ import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.TableColumnNames;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +38,13 @@ public class AnnotatedIntervalCreator
 		for ( String annotationId : annotationIds )
 		{
 			final List< ? extends Source< ? > > sources = annotationIdToSources.get( annotationId ).stream().map( name -> sourceAndConverterSupplier.apply( name ).getSpimSource() ).collect( Collectors.toList() );
+			// TODO: if all the sources cover the same interval, could we simplify the below call?
 			final RealMaskRealInterval mask = MoBIEHelper.unionRealMask( sources );
+			System.out.println( annotationId );
+			System.out.println( sources.size() );
+			System.out.println( Arrays.toString( mask.minAsDoubleArray() ));
+
+			// TODO: do we still need the row index?
 			final int rowIndex = annotationIdColumn.indexOf( annotationId );
 
 			annotatedIntervalTableRows.add(
