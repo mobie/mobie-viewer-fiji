@@ -4,6 +4,7 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
@@ -40,6 +41,7 @@ import java.awt.event.WindowEvent;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.embl.mobie.viewer.ui.SwingHelpers.TEXT_FIELD_HEIGHT;
 
@@ -284,7 +286,7 @@ public class UserInterfaceHelpers
 
 		// Buttons
 		panel.add( createSpace() );
-		panel.add( createFocusButton( display, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
+		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createColorButton( panel, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
 		panel.add( createImageDisplayBrightnessButton( display ) );
@@ -330,7 +332,7 @@ public class UserInterfaceHelpers
 				new ArrayList<>( display.sourceNameToSourceAndConverter.values() );
 
 		panel.add( createSpace() );
-		panel.add( createFocusButton( display, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
+		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createButtonPlaceholder() );
@@ -743,7 +745,7 @@ public class UserInterfaceHelpers
 		return checkBox;
 	}
 
-	public static JButton createFocusButton(AbstractSourceDisplay sourceDisplay, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
+	public static JButton createFocusButton( AbstractSourceDisplay sourceDisplay, BdvHandle bdvHandle, List< Source< ? > > sources )
 	{
 		JButton button = new JButton( "F" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -752,8 +754,8 @@ public class UserInterfaceHelpers
 		{
 //			final AffineTransform3D transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
 
-			final AffineTransform3D transform = new MoBIEViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters ).getMultiSourceTransform();
-			new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
+			final AffineTransform3D transform = new MoBIEViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sources ).getMultiSourceTransform();
+			new ViewerTransformChanger( bdvHandle, transform, false, 500 ).run();
 		} );
 
 		return button;

@@ -2,7 +2,7 @@ package org.embl.mobie.viewer.transform;
 
 import bdv.util.Affine3DHelpers;
 import bdv.util.BdvHandle;
-import bdv.viewer.SourceAndConverter;
+import bdv.viewer.Source;
 import bdv.viewer.SynchronizedViewerState;
 import net.imglib2.Interval;
 import net.imglib2.RealInterval;
@@ -10,13 +10,12 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.LinAlgHelpers;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class MoBIEViewerTransformAdjuster {
 	private final BdvHandle bdvHandle;
-	private final List< SourceAndConverter< ? > > sources;
+	private final List< Source< ? > > sources;
 
-	public MoBIEViewerTransformAdjuster( BdvHandle bdvHandle, List< SourceAndConverter< ? > > sources) {
+	public MoBIEViewerTransformAdjuster( BdvHandle bdvHandle, List< Source< ? > > sources) {
 		this.bdvHandle = bdvHandle;
 		this.sources = sources;
 	}
@@ -29,13 +28,13 @@ public class MoBIEViewerTransformAdjuster {
 		double cX = (double)viewerWidth / 2.0D;
 		double cY = (double)viewerHeight / 2.0D;
 		int timepoint = state.getCurrentTimepoint();
-		SourceAndConverter source = sources.get( 0 );
-		if (! source.getSpimSource().isPresent(timepoint)) {
+		Source< ? > source = sources.get( 0 );
+		if (! source.isPresent(timepoint)) {
 			return new AffineTransform3D();
 		} else {
 			AffineTransform3D sourceTransform = new AffineTransform3D();
-			source.getSpimSource().getSourceTransform(timepoint, 0, sourceTransform);
-			Interval sourceInterval = source.getSpimSource().getSource(timepoint, 0);
+			source.getSourceTransform(timepoint, 0, sourceTransform);
+			Interval sourceInterval = source.getSource(timepoint, 0);
 			double sX0 = (double)sourceInterval.min(0);
 			double sX1 = (double)sourceInterval.max(0);
 			double sY0 = (double)sourceInterval.min(1);
@@ -81,9 +80,10 @@ public class MoBIEViewerTransformAdjuster {
 	}
 
 	public AffineTransform3D getMultiSourceTransform() {
-		SynchronizedViewerState state = this.bdvHandle.getViewerPanel().state();
-		final RealInterval bounds = TransformHelpers.estimateBounds( sources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ), state.getCurrentTimepoint() );
-		return TransformHelpers.getIntervalViewerTransform( bdvHandle, bounds );
+		SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
+		final RealInterval bounds = TransformHelpers.estimateBounds( sources, state.getCurrentTimepoint() );
+		final AffineTransform3D transform = TransformHelpers.getIntervalViewerTransform( bdvHandle, bounds );
+		return transform;
 	}
 
 }

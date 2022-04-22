@@ -122,6 +122,7 @@ public class BdvSegmentSelector implements Runnable
 		return sourceName;
 	}
 
+	@Deprecated
 	private Collection< SourceAndConverter< ? > > getContainedSourceAndConverters( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final Collection< SourceAndConverter< ? > > containedSourceAndConverters = new HashSet<>();
