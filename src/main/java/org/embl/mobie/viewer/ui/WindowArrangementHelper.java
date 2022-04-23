@@ -19,27 +19,18 @@ public class WindowArrangementHelper
 		return (int) ( Toolkit.getDefaultToolkit().getScreenSize().width / 3.1 );
 	}
 
-	@Deprecated
-	public static void setImageJLogWindowPositionAndSize( JFrame parentComponent )
+	public static void setBdvWindowPositionAndSize( BdvHandle bdvHandle )
 	{
-		final Frame log = WindowManager.getFrame( "Log" );
-		if (log != null) {
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			final int logWindowHeight = screenSize.height - ( parentComponent.getLocationOnScreen().y + parentComponent.getHeight() + 20 );
-			log.setSize( parentComponent.getWidth(), logWindowHeight  );
-			log.setLocation( parentComponent.getLocationOnScreen().x, parentComponent.getLocationOnScreen().y + parentComponent.getHeight() );
-		}
-	}
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		final double relativeHeight = 2.0/3;
+		final int height = (int) ( relativeHeight * screenSize.height - 2 * UserInterfaceHelpers.SPACING );
+		final int width = screenSize.width / 2 - 2 * UserInterfaceHelpers.SPACING;
 
-	public static void setBdvWindowPositionAndSize( BdvHandle bdvHandle, JFrame frame )
-	{
 		BdvUtils.getViewerFrame( bdvHandle ).setLocation(
-				frame.getLocationOnScreen().x + frame.getWidth(),
-				frame.getLocationOnScreen().y );
+				screenSize.width / 2 + UserInterfaceHelpers.SPACING,
+				UserInterfaceHelpers.SPACING );
 
-		BdvUtils.getViewerFrame( bdvHandle ).setSize( frame.getHeight(), frame.getHeight() );
-
-		bdvHandle.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
+		BdvUtils.getViewerFrame( bdvHandle ).setSize( width, height );
 	}
 
 	public static void setLogWindowPositionAndSize( Window reference )
@@ -50,6 +41,19 @@ public class WindowArrangementHelper
 			final int logWindowHeight = screenSize.height - ( reference.getLocationOnScreen().y + reference.getHeight() + 2 * UserInterfaceHelpers.SPACING );
 			log.setSize( reference.getWidth(), logWindowHeight  );
 			log.setLocation( reference.getLocationOnScreen().x, reference.getLocationOnScreen().y + UserInterfaceHelpers.SPACING + reference.getHeight() );
+		}
+	}
+
+	public static void setLogWindowPositionAndSize()
+	{
+		final Frame log = WindowManager.getFrame( "Log" );
+		if (log != null) {
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			final double relativeHeight = 1.0/3;
+			final int height = (int) ( relativeHeight * screenSize.height ) - 2 * UserInterfaceHelpers.SPACING;
+			final int width = screenSize.width - 2 * UserInterfaceHelpers.SPACING;
+			log.setSize( width, height  );
+			log.setLocation( UserInterfaceHelpers.SPACING, (int) ( ( 1.0 - relativeHeight ) * screenSize.height ) + UserInterfaceHelpers.SPACING );
 		}
 	}
 

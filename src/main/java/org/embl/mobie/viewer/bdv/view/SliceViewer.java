@@ -33,6 +33,8 @@ import java.awt.*;
 import java.util.*;
 import java.util.function.Supplier;
 
+import static org.embl.mobie.viewer.ui.WindowArrangementHelper.setBdvWindowPositionAndSize;
+
 public class SliceViewer implements Supplier< BdvHandle >
 {
 	public static final String UNDO_SEGMENT_SELECTIONS = "Undo Segment Selections [ Ctrl Shift N ]";
@@ -61,6 +63,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
 		bdvHandle = createBdv( timepoints, is2D, FRAME_TITLE );
+		setBdvWindowPositionAndSize( bdvHandle );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
 		installContextMenuAndKeyboardShortCuts();

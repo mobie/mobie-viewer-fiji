@@ -76,6 +76,7 @@ public class MoBIE
 	{
 		IJ.log("# MoBIE\n" );
 		IJ.log("Opening project: " + projectLocation + "\n" );
+		WindowArrangementHelper.setLogWindowPositionAndSize();
 
 		this.settings = settings.projectLocation( projectLocation );
 		setS3Credentials( settings );
@@ -292,8 +293,8 @@ public class MoBIE
 		IJ.log("Opened view: " + view.getName() + ", in " + (System.currentTimeMillis() - startTime) + " ms.\n" );
 
 		// arrange windows
-		WindowArrangementHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
-		WindowArrangementHelper.rightAlignWindow( userInterface.getWindow(), viewManager.getSliceViewer().getWindow(), false, true );
+		//WindowArrangementHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
+		//WindowArrangementHelper.rightAlignWindow( userInterface.getWindow(), viewManager.getSliceViewer().getWindow(), false, true );
 	}
 
 	private void setDatasetName( String datasetName )
