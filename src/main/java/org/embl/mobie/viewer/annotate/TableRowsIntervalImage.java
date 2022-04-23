@@ -39,7 +39,9 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 			ColoringModel< T > coloringModel,
 			String name )
 	{
-		IJ.log("Creating table image...");
+		IJ.log("Creating annotation image...");
+		final long currentTimeMillis = System.currentTimeMillis();
+
 		this.tableRows = tableRows;
 		this.coloringModel = coloringModel;
 		this.name = name;
@@ -47,6 +49,7 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 
 		setUnionMask( tableRows );
 		createImage();
+		IJ.log("Created annotation image in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms." );
 	}
 
 	public void setUnionMask( List< T > tableRows )

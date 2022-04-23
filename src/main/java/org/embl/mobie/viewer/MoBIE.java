@@ -341,6 +341,9 @@ public class MoBIE
 
 			final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 			SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+			// Touch the source once to initiate the cache
+			// This will speed up future access significantly
+			sourceAndConverter.getSpimSource().getSource( 0,0 );
 			return sourceAndConverter;
 		}
 		catch ( Exception e )

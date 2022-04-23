@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.annotate;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import ij.IJ;
 import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.TableColumnNames;
@@ -31,6 +32,9 @@ public class AnnotatedIntervalCreator
 
 	private void createAnnotatedIntervals()
 	{
+		IJ.log("Creating annotated intervals..." );
+		final long currentTimeMillis = System.currentTimeMillis();
+
 		annotatedIntervalTableRows = new ArrayList<>();
 		final Set< String > annotationIds = annotationIdToSources.keySet();
 		final List< String > annotationIdColumn = columns.get( TableColumnNames.ANNOTATION_ID );
@@ -44,17 +48,16 @@ public class AnnotatedIntervalCreator
 			System.out.println( sources.size() );
 			System.out.println( Arrays.toString( mask.minAsDoubleArray() ));
 
-			// TODO: do we still need the row index?
-			final int rowIndex = annotationIdColumn.indexOf( annotationId );
-
 			annotatedIntervalTableRows.add(
 					new DefaultAnnotatedMaskTableRow(
 							annotationId,
 							mask,
 							columns,
-							rowIndex )
+							annotationIdColumn.indexOf( annotationId ) )
 			);
 		}
+
+		IJ.log("Created " + annotationIds.size() + " annotated intervals in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms.");
 	}
 
 	public List< AnnotatedMaskTableRow > getAnnotatedIntervalTableRows()

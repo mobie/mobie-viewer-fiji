@@ -192,13 +192,17 @@ public class TransformHelpers
 			if ( wrappedSource instanceof RealMaskSource )
 			{
 				final RealMaskRealInterval realMask = ( ( RealMaskSource ) wrappedSource ).getRealMask();
-				final AffineTransform3D fixedTransform = new AffineTransform3D();
-				( ( TransformedSource<?> ) source ).getFixedTransform( fixedTransform );
-				final FinalRealInterval realInterval = fixedTransform.estimateBounds( realMask );
-				return realInterval;
+				if ( realMask != null )
+				{
+					final AffineTransform3D fixedTransform = new AffineTransform3D();
+					( ( TransformedSource< ? > ) source ).getFixedTransform( fixedTransform );
+					final FinalRealInterval realInterval = fixedTransform.estimateBounds( realMask );
+					return realInterval;
+				}
 			}
 		}
 
+		// else:
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		source.getSourceTransform( t, 0, affineTransform3D );
 		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( t, 0 ) );
