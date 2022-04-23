@@ -32,11 +32,6 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/674
 		final double[] cellRealDimensions = TransformHelpers.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
 
-		if ( sources.size() == 2 )
-		{
-			int a = 1;
-		}
-
 		transform( sourceNameToSourceAndConverter, cellRealDimensions );
 	}
 
@@ -71,8 +66,6 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	{
 		for ( String sourceName : sourceNames )
 		{
-			System.out.println( sourceName );
-
 			final SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
 
 			if ( sourceAndConverter == null )

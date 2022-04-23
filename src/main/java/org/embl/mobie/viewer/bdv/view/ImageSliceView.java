@@ -72,12 +72,6 @@ public class ImageSliceView
 
 			final AffineTransform3D transform3D = new AffineTransform3D();
 			sourceAndConverter.getSpimSource().getSourceTransform( 0,0, transform3D );
-			System.out.println( sourceAndConverter.getSpimSource().getName() + ": " + transform3D );
-
-			if ( sourceAndConverter.getSpimSource().getName().contains( "nuclei_WellE06" ))
-			{
-				int a = 1;
-			}
 
 			// adapt contrast limits
 			final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
