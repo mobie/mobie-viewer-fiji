@@ -6,8 +6,6 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
 import net.imglib2.RealInterval;
-import org.embl.mobie.viewer.MoBIEHelper;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.ThreadUtils;
@@ -83,7 +81,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealMax )
 	{
-		final RealInterval dataRealBounds = MoBIEHelper.estimateBounds( gridSources.get( 0 ).getSpimSource(), 0 );
+		final RealInterval dataRealBounds = TransformHelpers.estimateBounds( gridSources.get( 0 ).getSpimSource(), 0 );
 
 		final double[] dataRealDimensions = new double[ 3 ];
 		for ( int d = 0; d < 3; d++ )

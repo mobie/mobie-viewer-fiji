@@ -206,7 +206,7 @@ public class UserInterfaceHelpers
 
 		// Buttons
 		panel.add( createSpace() );
-		panel.add( createButtonPlaceholder() ); // focus
+		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() ); // color
 		panel.add( createButtonPlaceholder() ); // brightness

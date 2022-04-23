@@ -442,30 +442,6 @@ public abstract class MoBIEHelper
 		return view;
 	}
 
-	public static RealInterval estimateBounds( Source< ? > source, int t )
-	{
-		if ( source instanceof RealMaskSource )
-		{
-			final RealMaskRealInterval realMask = ( ( RealMaskSource ) source ).getRealMask();
-			return realMask;
-		}
-
-		if ( source instanceof TransformedSource )
-		{
-			final Source< ? > wrappedSource = ( ( TransformedSource< ? > ) source ).getWrappedSource();
-			if ( wrappedSource instanceof RealMaskSource )
-			{
-				final RealMaskRealInterval realMask = ( ( RealMaskSource ) wrappedSource ).getRealMask();
-				return realMask;
-			}
-		}
-
-		final AffineTransform3D affineTransform3D = new AffineTransform3D();
-		source.getSourceTransform( t, 0, affineTransform3D );
-		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( t, 0 ) );
-		return bounds;
-	}
-
 	public static RealMaskRealInterval getMask( Source< ? > source )
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
