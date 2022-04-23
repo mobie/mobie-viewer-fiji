@@ -8,6 +8,7 @@ import net.imglib2.Interval;
 import net.imglib2.RealInterval;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
+import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringModel;
@@ -39,7 +40,6 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 			ColoringModel< T > coloringModel,
 			String name )
 	{
-		IJ.log("Creating annotation image...");
 		final long currentTimeMillis = System.currentTimeMillis();
 
 		this.tableRows = tableRows;
@@ -49,7 +49,10 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 
 		setUnionMask( tableRows );
 		createImage();
-		IJ.log("Created annotation image in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms." );
+
+		final long duration = System.currentTimeMillis() - currentTimeMillis;
+		if ( duration > MoBIE.minLogTimeMillis )
+			IJ.log("Created annotation image "+name+" in " + duration + " ms." );
 	}
 
 	public void setUnionMask( List< T > tableRows )

@@ -143,9 +143,10 @@ public class ViewManager
 			{
 				sourceNameToTableDir.put( source, moBIE.getTablesDirectoryPath( ( SegmentationSource ) moBIE.getSource( source ) )
 				);
-			} catch ( Exception e )
+			}
+			catch ( Exception e )
 			{
-				Logger.info("[WARNING] Could not store table directory for " + source );
+				System.out.println("[WARNING] Could not store table directory for " + source );
 				sourceNameToTableDir.put( source, null );
 			}
 		}

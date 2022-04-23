@@ -8,6 +8,7 @@ import de.embl.cba.tables.Logger;
 import net.imglib2.RealInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.ThreadUtils;
 
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
-		Logger.info("Merging " + sources.size() + " sources into " + mergedGridSourceName );
+		final long startTime = System.currentTimeMillis();
 
 		final List< SourceAndConverter< ? > > gridSources = getGridSources( sourceNameToSourceAndConverter );
 
@@ -52,6 +53,10 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		transformedSourceAndConverters = ConcurrentHashMap.newKeySet();
 		transformContainedSources( sourceNameToSourceAndConverter, gridSources );
 		mergedGridSource.setContainedSourceAndConverters( transformedSourceAndConverters );
+
+		final long duration = System.currentTimeMillis() - startTime;
+		if ( duration > MoBIE.minLogTimeMillis )
+			Logger.info("Merged " + sources.size() + " sources into " + mergedGridSourceName + " in " + duration + "ms.");
 	}
 
 	private void transformContainedSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > gridSources )

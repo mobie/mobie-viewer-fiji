@@ -63,11 +63,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		this.interpolators = new DefaultInterpolators<>();
 		this.referenceSource = gridSources.get( 0 );
 		this.mergedGridSourceName = mergedGridSourceName;
-
-		// TODO: this is quite slow when opening from S3 as it has to read the metadata JSON:
-		//  - https://github.com/mobie/mobie-viewer-fiji/issues/677
-		//  - https://github.com/mobie/mobie-io/issues/91
-		this.type = Util.getTypeFromInterval( referenceSource.getSource( 0, 0 ) );
+		this.type = referenceSource.getType();
 
 		mergedRandomAccessibleIntervals = createMergedRAIs();
 	}

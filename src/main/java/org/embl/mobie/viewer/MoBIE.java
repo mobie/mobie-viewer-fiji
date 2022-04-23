@@ -44,6 +44,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class MoBIE
 {
@@ -64,6 +65,7 @@ public class MoBIE
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private Map< String, SourceAndConverter< ? > > sourceNameToTransformedSourceAndConverter;
 	private ArrayList< String > projectCommands = new ArrayList<>();;
+	public static int minLogTimeMillis = 100;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -72,7 +74,9 @@ public class MoBIE
 
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
-		IJ.log("MoBIE");
+		IJ.log("# MoBIE\n" );
+		IJ.log("Opening project: " + projectLocation + "\n" );
+
 		this.settings = settings.projectLocation( projectLocation );
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations( );
@@ -217,32 +221,52 @@ public class MoBIE
 	 */
 	public Map< String, SourceAndConverter< ? > > openSourceAndConverters( Collection< String > sources )
 	{
-		final long start = System.currentTimeMillis();
+		final long startTime = System.currentTimeMillis();
 
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = new ConcurrentHashMap< >();
 
 		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		AtomicInteger sourceIndex = new AtomicInteger(0);
 		final int numImages = sources.size();
-		final int sourceLoggingModulo = (int) Math.ceil( numImages / 10.0 );
+		AtomicInteger sourceLoggingModulo = new AtomicInteger(1);
+		AtomicLong lastLogMillis = new AtomicLong( System.currentTimeMillis() );
+
 		for ( String sourceName : sources )
 		{
 			futures.add(
 					ThreadUtils.ioExecutorService.submit( () -> {
-						String log = null;
-						if ( ( sourceIndex.incrementAndGet() - 1 ) % sourceLoggingModulo == 0  )
-						{
-							log = "Opening image (" + sourceIndex.get() + "/" + numImages + "): \n";
-						}
+						String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
 						sourceNameToSourceAndConverters.put( sourceName, openSourceAndConverter( sourceName, log ) );
 					}
 				) );
 		}
 		ThreadUtils.waitUntilFinished( futures );
 
-		IJ.log( "Opened " + sourceNameToSourceAndConverters.size() + " image(s)  in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
+		IJ.log( "Opened " + sourceNameToSourceAndConverters.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using " + ThreadUtils.getnIoThreads() + " thread(s).\n");
 
 		return sourceNameToSourceAndConverters;
+	}
+
+	private String getLog( AtomicInteger index, int numTotal, AtomicInteger modulo, AtomicLong lastLogMillis )
+	{
+		if ( ( index.incrementAndGet() - 1 ) % modulo.get() == 0  )
+		{
+			final long currentTimeMillis = System.currentTimeMillis();
+			if ( currentTimeMillis - lastLogMillis.get() < 4000 )
+			{
+				modulo.set( modulo.get() * 2 );
+			}
+			else if ( currentTimeMillis - lastLogMillis.get() > 6000 )
+			{
+				modulo.set( modulo.get() / 2 );
+			}
+			lastLogMillis.set( currentTimeMillis );
+			return "Opening (" + index.get() + "/" + numTotal + "): ";
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	private void openDataset( String datasetName ) throws IOException
@@ -262,7 +286,10 @@ public class MoBIE
 			System.out.println( viewName );
 		}
 
+		IJ.log( "Opening view: " + view.getName() + "\n" );
+		final long startTime = System.currentTimeMillis();
 		viewManager.show( view );
+		IJ.log("Opened view: " + view.getName() + ", in " + (System.currentTimeMillis() - startTime) + " ms.\n" );
 
 		// arrange windows
 		WindowArrangementHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
@@ -483,7 +510,10 @@ public class MoBIE
 		}
 		ThreadUtils.waitUntilFinished( futures );
 
-		System.out.println( "Fetched " + sources.size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
+		final long durationMillis = System.currentTimeMillis() - start;
+
+		if ( durationMillis > minLogTimeMillis )
+			IJ.log( "Read " + sources.size() + " table(s) in " + durationMillis + " ms, using " + ThreadUtils.getnIoThreads() + " thread(s).\n");
 
 		return additionalTables;
 	}
@@ -507,8 +537,9 @@ public class MoBIE
 
 		final Queue< List< TableRowImageSegment > > primaryTables = new ConcurrentLinkedQueue<>();
 		final int numTables = getNumTables( segmentationDisplaySources, sourceNameToRootSources );
-		final long timeMillis = System.currentTimeMillis();
-		final int tableLoggingModulo = (int) Math.ceil( numTables / 10.0 );
+		final long startTimeMillis = System.currentTimeMillis();
+		final AtomicLong lastLogMillis = new AtomicLong(startTimeMillis);
+		final AtomicInteger tableLoggingModulo = new AtomicInteger(1);
 		final AtomicInteger tableIndex = new AtomicInteger();
 		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( String displayedSourceName : segmentationDisplaySources )
@@ -518,18 +549,14 @@ public class MoBIE
 			{
 				futures.add( ThreadUtils.ioExecutorService.submit( () ->
 				{
-					String log = null;
-					if ( ( tableIndex.incrementAndGet() - 1 ) % tableLoggingModulo == 0 )
-					{
-						log = "Fetching table ("+ tableIndex.get() +"/" + numTables +"): " ;
-					}
+					final String log = getLog( tableIndex, numTables, tableLoggingModulo, lastLogMillis );
 					final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( rootSource.getName(), tableName, log );
 					primaryTables.add( primaryTable );
 				} ) );
 			}
 		}
 		ThreadUtils.waitUntilFinished( futures );
-		IJ.log( "Fetched " + numTables + " tables(s)  in " + (System.currentTimeMillis() - timeMillis) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
+		IJ.log( "Fetched " + numTables + " tables(s) in " + (System.currentTimeMillis() - startTimeMillis) + " ms, using " + ThreadUtils.getnIoThreads() + " thread(s).\n");
 		return primaryTables;
 	}
 
@@ -622,14 +649,15 @@ public class MoBIE
 	{
 		// open
 		final List< Map< String, List< String > > > tables = new ArrayList<>();
-		final int numTables = annotationDisplay.getTables().size();
-		IJ.log( "Opening " + numTables + " annotation tables..." );
 		for ( String table : annotationDisplay.getTables() )
 		{
 			String tablePath = getTablePath( annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
 			tablePath = MoBIEHelper.resolveTablePath( tablePath );
-			Logger.log( "Opening annotation table: " + tablePath );
+			final long startTime = System.currentTimeMillis();
 			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
+			final long durationMillis = System.currentTimeMillis() - startTime;
+			if ( durationMillis > minLogTimeMillis )
+				Logger.log( "Read in "+ durationMillis +" ms: " + tablePath );
 		}
 
 		// create primary AnnotatedIntervalTableRow table

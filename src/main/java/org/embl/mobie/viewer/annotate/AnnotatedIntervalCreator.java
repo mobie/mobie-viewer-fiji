@@ -32,7 +32,6 @@ public class AnnotatedIntervalCreator
 
 	private void createAnnotatedIntervals()
 	{
-		IJ.log("Creating annotated intervals..." );
 		final long currentTimeMillis = System.currentTimeMillis();
 
 		annotatedIntervalTableRows = new ArrayList<>();
@@ -57,7 +56,9 @@ public class AnnotatedIntervalCreator
 			);
 		}
 
-		IJ.log("Created " + annotationIds.size() + " annotated intervals in " + ( System.currentTimeMillis() - currentTimeMillis ) + " ms.");
+		final long durationMillis = System.currentTimeMillis() - currentTimeMillis;
+		if ( durationMillis > 100 )
+			IJ.log("Created " + annotationIds.size() + " annotated intervals in " + durationMillis + " ms.");
 	}
 
 	public List< AnnotatedMaskTableRow > getAnnotatedIntervalTableRows()
