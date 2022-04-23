@@ -25,12 +25,17 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
-		Logger.info("Transforming " + sources.size() + " sources into a grid...");
+		Logger.info("Transforming " + sources.size() + " group(s) with "+ sources.get( 0 ).size() +" source(s) each into a grid...");
 		if ( positions == null )
 			autoSetPositions();
 
 		// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/674
 		final double[] cellRealDimensions = TransformHelpers.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
+
+		if ( sources.size() == 2 )
+		{
+			int a = 1;
+		}
 
 		transform( sourceNameToSourceAndConverter, cellRealDimensions );
 	}
@@ -66,6 +71,8 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	{
 		for ( String sourceName : sourceNames )
 		{
+			System.out.println( sourceName );
+
 			final SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
 
 			if ( sourceAndConverter == null )

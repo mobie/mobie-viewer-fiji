@@ -4,6 +4,7 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
@@ -68,6 +69,15 @@ public class ImageSliceView
 
 			// show
 			SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
+
+			final AffineTransform3D transform3D = new AffineTransform3D();
+			sourceAndConverter.getSpimSource().getSourceTransform( 0,0, transform3D );
+			System.out.println( sourceAndConverter.getSpimSource().getName() + ": " + transform3D );
+
+			if ( sourceAndConverter.getSpimSource().getName().contains( "nuclei_WellE06" ))
+			{
+				int a = 1;
+			}
 
 			// adapt contrast limits
 			final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
