@@ -67,6 +67,8 @@ public class Annotator< T extends TableRow > extends JFrame
 	private JScrollPane annotationButtonsScrollPane;
 	private T currentlySelectedRow;
 	private Set< String > annotationNames;
+	private String objectName = "entity";
+	private String id = "ID";
 
 	public Annotator( String columnName, List< T > tableRows, SelectionModel< T > selectionModel, CategoryTableRowColumnColoringModel< T > coloringModel, RowSorter< ? extends TableModel > rowSorter )
 	{
@@ -79,8 +81,24 @@ public class Annotator< T extends TableRow > extends JFrame
 		this.rowSorter = rowSorter;
 		this.currentlySelectedRow = tableRows.get( rowSorter.convertRowIndexToModel( 0 ) );
 		this.coloringModel.fixedColorMode( true );
+		setNames( tableRows );
+
 		this.panel = new JPanel();
 
+	}
+
+	private void setNames( List< T > tableRows )
+	{
+		if ( tableRows.get( 0 ) instanceof TableRowImageSegment )
+		{
+			objectName = "segment";
+			id = "label ID";
+		}
+		else if ( tableRows.get( 0 ) instanceof AnnotatedMaskTableRow )
+		{
+			objectName = "region";
+			id = "annotation ID";
+		}
 	}
 
 	public void showDialog()
@@ -143,7 +161,7 @@ public class Annotator< T extends TableRow > extends JFrame
 		panel.add( annotationButtonsPanel );
 
 		final JPanel panel = SwingUtils.horizontalLayoutPanel();
-		panel.add( new JLabel( "Annotate selected segment(s) as:" ) );
+		panel.add( new JLabel( "Annotate selected " + objectName + "(s) as:" ) );
 		panel.add( new JLabel( "      " ) );
 		annotationButtonsPanel.add( panel );
 
@@ -344,7 +362,7 @@ public class Annotator< T extends TableRow > extends JFrame
 
 	private JButton createSelectButton()
 	{
-		final JButton button = new JButton( "Select segment with label id" );
+		final JButton button = new JButton( "Select " + objectName + " with " + id );
 		button.setAlignmentX( Component.CENTER_ALIGNMENT );
 
 		button.addActionListener( e ->
@@ -358,7 +376,6 @@ public class Annotator< T extends TableRow > extends JFrame
 
 	private T getSelectedRow()
 	{
-		// TODO: in principle a flaw in logic as it assumes that all tableRows are of same type...
 		if ( tableRows.get( 0 ) instanceof TableRowImageSegment )
 		{
 			final double selectedLabelId = Double.parseDouble( goToRowIndexTextField.getText() );
@@ -370,7 +387,20 @@ public class Annotator< T extends TableRow > extends JFrame
 					return tableRow;
 				}
 			}
-			throw new UnsupportedOperationException( "Could not find segment with label " + selectedLabelId );
+			throw new UnsupportedOperationException( "Could not find " + objectName + " with ID " + selectedLabelId );
+		}
+		else if ( tableRows.get( 0 ) instanceof AnnotatedMaskTableRow )
+		{
+			final String annotationID = goToRowIndexTextField.getText();
+			for ( T tableRow : tableRows )
+			{
+				final String name = ( ( AnnotatedMaskTableRow ) tableRow ).getName();
+				if ( name.equals( annotationID ) )
+				{
+					return tableRow;
+				}
+			}
+			throw new UnsupportedOperationException( "Could not find " + objectName + " with ID " + annotationID );
 		}
 		else
 		{
