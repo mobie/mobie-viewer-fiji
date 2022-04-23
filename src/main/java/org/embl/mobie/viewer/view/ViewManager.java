@@ -4,7 +4,6 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.select.DefaultSelectionModel;
@@ -14,7 +13,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.SourceNameEncoder;
-import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
+import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
@@ -398,16 +397,16 @@ public class ViewManager
 	{
 		annotationDisplay.sliceViewer = sliceViewer;
 		annotationDisplay.tableRows = moBIE.loadAnnotatedIntervalTables( annotationDisplay );
-		annotationDisplay.annotatedIntervalAdapter = new AnnotatedIntervalAdapter<>( annotationDisplay.tableRows );
+		annotationDisplay.annotatedMaskAdapter = new AnnotatedMaskAdapter( annotationDisplay.tableRows );
 
 		configureMoBIEColoringModel( annotationDisplay );
 		annotationDisplay.selectionModel = new DefaultSelectionModel<>();
-		annotationDisplay.coloringModel.setSelectionModel(  annotationDisplay.selectionModel );
+		annotationDisplay.coloringModel.setSelectionModel( annotationDisplay.selectionModel );
 
 		// set selected segments
 		if ( annotationDisplay.getSelectedAnnotationIds() != null )
 		{
-			final List< AnnotatedMaskTableRow > annotatedIntervals = annotationDisplay.annotatedIntervalAdapter.getAnnotatedIntervals( annotationDisplay.getSelectedAnnotationIds() );
+			final List< AnnotatedMaskTableRow > annotatedIntervals = annotationDisplay.annotatedMaskAdapter.getAnnotatedIntervals( annotationDisplay.getSelectedAnnotationIds() );
 			annotationDisplay.selectionModel.setSelected( annotatedIntervals, true );
 		}
 
@@ -421,11 +420,13 @@ public class ViewManager
 		} );
 	}
 
-	private void initTableViewer( AnnotatedIntervalDisplay annotationDisplay )
+	private void initTableViewer( AnnotatedIntervalDisplay display )
 	{
 		HashMap<String, String> nameToTableDir = new HashMap<>();
-		nameToTableDir.put( annotationDisplay.getName(), annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ) );
-		annotationDisplay.tableViewer = new TableViewer<>( moBIE, annotationDisplay.tableRows, annotationDisplay.selectionModel, annotationDisplay.coloringModel, annotationDisplay.getName(), nameToTableDir, true ).show();
+		nameToTableDir.put( display.getName(), display.getTableDataFolder( TableDataFormat.TabDelimitedFile ) );
+		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel, display.getName(), nameToTableDir, true ).show();
+		display.selectionModel.listeners().add( display.tableViewer );
+		display.coloringModel.listeners().add( display.tableViewer );
 	}
 
 	private void showSegmentationDisplay( SegmentationSourceDisplay segmentationDisplay )
@@ -569,11 +570,11 @@ public class ViewManager
 		}
 	}
 
-	public Collection< SegmentationSourceDisplay > getSegmentationDisplays()
+	public Collection< AnnotatedRegionDisplay > getAnnotatedRegionDisplays()
 	{
-		final List< SegmentationSourceDisplay > segmentationDisplays = getCurrentSourceDisplays().stream().filter( s -> s instanceof SegmentationSourceDisplay ).map( s -> ( SegmentationSourceDisplay ) s ).collect( Collectors.toList() );
+		final List< AnnotatedRegionDisplay > displays = getCurrentSourceDisplays().stream().filter( s -> s instanceof AnnotatedRegionDisplay ).map( s -> ( AnnotatedRegionDisplay ) s ).collect( Collectors.toList() );
 
-		return segmentationDisplays;
+		return displays;
 	}
 
 	public void close()

@@ -76,11 +76,19 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 
 	public static boolean instanceOf( Source< ? > source )
 	{
-		if ( source instanceof LabelSource )  source = ( ( LabelSource ) source ).getWrappedSource();
+		if ( source instanceof LabelSource )
+			source = ( ( LabelSource ) source ).getWrappedSource();
 
-		final Source wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
+		if ( source instanceof MergedGridSource )
+			return true;
 
-		return wrappedSource instanceof MergedGridSource || source instanceof MergedGridSource;
+		if ( source instanceof TransformedSource )
+			source = ( ( TransformedSource ) source ).getWrappedSource();
+
+		if ( source instanceof MergedGridSource )
+			return true;
+
+		return false;
 	}
 
 	public List< Source< T > > getGridSources()

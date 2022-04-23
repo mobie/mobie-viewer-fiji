@@ -1,6 +1,6 @@
 package org.embl.mobie.viewer.display;
 
-import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
+import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
 import org.embl.mobie.viewer.source.StorageLocation;
@@ -16,7 +16,7 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedM
 	protected Map< TableDataFormat, StorageLocation > tableData;
 
 	// Runtime
-	public transient AnnotatedIntervalAdapter< AnnotatedMaskTableRow > annotatedIntervalAdapter;
+	public transient AnnotatedMaskAdapter annotatedMaskAdapter;
 	public transient AnnotatedIntervalSliceView< AnnotatedMaskTableRow > sliceView;
 
 	// Getters for the serialised fields

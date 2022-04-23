@@ -4,6 +4,7 @@ import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
+import org.embl.mobie.viewer.display.AnnotatedRegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
 import org.junit.jupiter.api.Test;
@@ -29,14 +30,14 @@ public class TestRemoteZebrafish
 		moBIE.getViewManager().show( "small-grid-view" );
 
 		// select some image segments
-		final SegmentationSourceDisplay display = moBIE.getViewManager().getSegmentationDisplays().iterator().next();
+		final AnnotatedRegionDisplay display = moBIE.getViewManager().getAnnotatedRegionDisplays().iterator().next();
 		display.selectionModel.setSelected( display.tableRows.get( 0 ), true );
 		display.selectionModel.focus( display.tableRows.get( 0 ) );
 		display.selectionModel.setSelected( display.tableRows.get( 1 ), true );
 		display.selectionModel.focus( display.tableRows.get( 1 ) );
 
 		// show in 3D
-		display.segmentsVolumeViewer.showSegments( true );
+		((SegmentationSourceDisplay) display).segmentsVolumeViewer.showSegments( true );
 	}
 
 	@Test
@@ -52,7 +53,7 @@ public class TestRemoteZebrafish
 		moBIE.getViewManager().show( "test-transformed-grid" );
 
 		// select some image segments
-		final SegmentationSourceDisplay display = moBIE.getViewManager().getSegmentationDisplays().iterator().next();
+		final AnnotatedRegionDisplay display = moBIE.getViewManager().getAnnotatedRegionDisplays().iterator().next();
 		display.selectionModel.setSelected( display.tableRows.get( 0 ), true );
 		display.selectionModel.focus( display.tableRows.get( 0 ) );
 	}

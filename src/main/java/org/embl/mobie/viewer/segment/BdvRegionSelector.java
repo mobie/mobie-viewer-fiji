@@ -4,13 +4,16 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.SourceNameEncoder;
-import org.embl.mobie.viewer.bdv.BdvGlobalMousePositionProvider;
-import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import de.embl.cba.tables.tablerow.TableRow;
 import net.imglib2.RandomAccess;
 import net.imglib2.RealPoint;
 import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.viewer.SourceNameEncoder;
+import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
+import org.embl.mobie.viewer.bdv.BdvGlobalMousePositionProvider;
+import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
+import org.embl.mobie.viewer.display.AnnotatedRegionDisplay;
+import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
@@ -19,34 +22,32 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.function.Supplier;
 
-public class BdvSegmentSelector implements Runnable
+public class BdvRegionSelector implements Runnable
 {
 	private BdvHandle bdvHandle;
 	private boolean is2D;
-	private Supplier< Collection< SegmentationSourceDisplay > > segmentationDisplaySupplier;
+	private Supplier< Collection< AnnotatedRegionDisplay > > annotatedRegionDisplaySupplier;
 
-	// A segmentationDisplaySupplier is used such that the segmentation images can
-	// change during runtime.
-	public BdvSegmentSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< SegmentationSourceDisplay > > segmentationDisplaySupplier )
+	public BdvRegionSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< AnnotatedRegionDisplay > > annotatedRegionDisplaySupplier )
 	{
 		this.bdvHandle = bdvHandle;
 		this.is2D = is2D;
-		this.segmentationDisplaySupplier = segmentationDisplaySupplier;
+		this.annotatedRegionDisplaySupplier = annotatedRegionDisplaySupplier;
 	}
 
 	public synchronized void clearSelection()
 	{
-		final Collection< SegmentationSourceDisplay > segmentationDisplays = getCurrent();
+		final Collection< AnnotatedRegionDisplay > regionDisplays = getCurrent();
 
-		for ( SegmentationSourceDisplay segmentationDisplay : segmentationDisplays )
+		for ( AnnotatedRegionDisplay regionDisplay : regionDisplays )
 		{
-			segmentationDisplay.selectionModel.clearSelection();
+			regionDisplay.selectionModel.clearSelection();
 		}
 	}
 
-	private Collection< SegmentationSourceDisplay > getCurrent()
+	private Collection< AnnotatedRegionDisplay > getCurrent()
 	{
-		return segmentationDisplaySupplier.get();
+		return annotatedRegionDisplaySupplier.get();
 	}
 
 	private synchronized void toggleSelectionAtMousePosition()
@@ -55,13 +56,13 @@ public class BdvSegmentSelector implements Runnable
 		final int timePoint = positionProvider.getTimePoint();
 		final RealPoint position = positionProvider.getPositionAsRealPoint();
 
-		final Collection< SegmentationSourceDisplay > segmentationDisplays = segmentationDisplaySupplier.get();
+		final Collection< AnnotatedRegionDisplay > regionDisplays = annotatedRegionDisplaySupplier.get();
 
-		for ( SegmentationSourceDisplay segmentationDisplay : segmentationDisplays )
+		for ( AnnotatedRegionDisplay regionDisplay : regionDisplays )
 		{
-			final Collection< SourceAndConverter< ? > > segmentationSourceAndConverters = segmentationDisplay.sourceNameToSourceAndConverter.values();
+			final Collection< SourceAndConverter< ? > > sourceAndConverters = regionDisplay.sourceNameToSourceAndConverter.values();
 
-			for ( SourceAndConverter< ? > sourceAndConverter : segmentationSourceAndConverters )
+			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{
 				if ( ! bdvHandle.getViewerPanel().state().isSourceVisible( sourceAndConverter ) )
 				{
@@ -76,27 +77,48 @@ public class BdvSegmentSelector implements Runnable
 					final String sourceName = getSourceName( source, pixelValue );
 					double labelIndex = getLabelIndex( source, pixelValue );
 
-					if ( labelIndex == 0 ) continue; // image background
+					TableRow tableRow = getTableRow( timePoint, regionDisplay, sourceName, labelIndex );
 
-					final boolean containsSegment = segmentationDisplay.segmentAdapter.containsSegment( labelIndex, timePoint, sourceName );
-
-					if ( ! containsSegment )
+					if ( tableRow != null )
 					{
-						// This happens when there is a segmentation without
-						// a segment table
-						continue;
-					}
+						regionDisplay.selectionModel.toggle( tableRow );
 
-					final TableRowImageSegment segment = segmentationDisplay.segmentAdapter.getSegment( labelIndex, timePoint, sourceName );
-
-					segmentationDisplay.selectionModel.toggle( segment );
-
-					if ( segmentationDisplay.selectionModel.isSelected( segment ) )
-					{
-						segmentationDisplay.selectionModel.focus( segment );
+						if ( regionDisplay.selectionModel.isSelected( tableRow ) )
+						{
+							regionDisplay.selectionModel.focus( tableRow );
+						}
 					}
 				}
 			}
+		}
+	}
+
+	private TableRow getTableRow( int timePoint, AnnotatedRegionDisplay regionDisplay, String sourceName, double labelIndex )
+	{
+		if ( regionDisplay instanceof SegmentationSourceDisplay )
+		{
+			final boolean containsSegment = (( SegmentationSourceDisplay ) regionDisplay ).segmentAdapter.containsSegment( labelIndex, timePoint, sourceName );
+
+			if ( ! containsSegment )
+			{
+				// This happens when there is a segmentation without
+				// a segment table, or when the background label has been selected
+				return null;
+			}
+			else
+			{
+				return ( ( SegmentationSourceDisplay ) regionDisplay ).segmentAdapter.getSegment( labelIndex, timePoint, sourceName );
+			}
+		}
+		else if ( regionDisplay instanceof AnnotatedIntervalDisplay )
+		{
+			final AnnotatedIntervalDisplay annotatedIntervalDisplay = ( AnnotatedIntervalDisplay ) regionDisplay;
+			final AnnotatedMaskAdapter adapter = annotatedIntervalDisplay.annotatedMaskAdapter;
+			return adapter.getAnnotatedMask( timePoint, labelIndex );
+		}
+		else
+		{
+			throw new UnsupportedOperationException( "Region display of type " + regionDisplay.getClass().getName() + " is not supported for selection.");
 		}
 	}
 
@@ -118,8 +140,11 @@ public class BdvSegmentSelector implements Runnable
 		{
 			return SourceNameEncoder.getName( Double.valueOf( labelIndex ).longValue() );
 		}
-		final String sourceName = source.getName();
-		return sourceName;
+		else
+		{
+			final String sourceName = source.getName();
+			return sourceName;
+		}
 	}
 
 	@Deprecated

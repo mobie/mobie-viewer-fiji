@@ -16,7 +16,7 @@ import org.embl.mobie.viewer.command.SelectedSegmentsColorConfiguratorCommand;
 import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
 import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
-import org.embl.mobie.viewer.segment.BdvSegmentSelector;
+import org.embl.mobie.viewer.segment.BdvRegionSelector;
 import org.embl.mobie.viewer.command.RandomColorSeedChangerCommand;
 import org.embl.mobie.viewer.view.ViewManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -79,7 +79,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 	private void installContextMenuAndKeyboardShortCuts( )
 	{
-		final BdvSegmentSelector segmentBdvSelector = new BdvSegmentSelector( bdvHandle, is2D, () -> viewManager.getSegmentationDisplays() );
+		final BdvRegionSelector segmentBdvSelector = new BdvRegionSelector( bdvHandle, is2D, () -> viewManager.getAnnotatedRegionDisplays() );
 
 		sacService.registerAction( UNDO_SEGMENT_SELECTIONS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position

@@ -100,7 +100,6 @@ public class AnnotatedIntervalSliceView< S extends AnnotatedMask > implements Co
 		}
 
 		MoBIEViewerTransformChanger.changeViewerTransform( bdvHandle, new PositionViewerTransform( center, bdvHandle.getViewerPanel().state().getCurrentTimepoint() ) );
-
 	}
 
 	public BdvHandle getBdvHandle()
