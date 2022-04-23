@@ -39,9 +39,11 @@ import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataC
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MoBIE
 {
@@ -220,15 +222,25 @@ public class MoBIE
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = new ConcurrentHashMap< >();
 
 		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
+		AtomicInteger sourceIndex = new AtomicInteger(0);
+		final int numImages = sources.size();
+		final int sourceLoggingModulo = (int) Math.ceil( numImages / 10.0 );
 		for ( String sourceName : sources )
 		{
 			futures.add(
-					ThreadUtils.ioExecutorService.submit( () -> { sourceNameToSourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) ); }
+					ThreadUtils.ioExecutorService.submit( () -> {
+						String log = null;
+						if ( ( sourceIndex.incrementAndGet() - 1 ) % sourceLoggingModulo == 0  )
+						{
+							log = "Opening image (" + sourceIndex.get() + "/" + numImages + "): \n";
+						}
+						sourceNameToSourceAndConverters.put( sourceName, openSourceAndConverter( sourceName, log ) );
+					}
 				) );
 		}
 		ThreadUtils.waitUntilFinished( futures );
 
-		IJ.log( "Fetched " + sourceNameToSourceAndConverters.size() + " image(s)  in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
+		IJ.log( "Opened " + sourceNameToSourceAndConverters.size() + " image(s)  in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
 
 		return sourceNameToSourceAndConverters;
 	}
@@ -327,11 +339,14 @@ public class MoBIE
 		return dataset.sources.get( sourceName ).get();
 	}
 
-	public SourceAndConverter< ? > openSourceAndConverter( String sourceName )
+	public SourceAndConverter< ? > openSourceAndConverter( String sourceName, String log )
 	{
 		final ImageSource imageSource = getSource( sourceName );
 		final String imagePath = getImagePath( imageSource );
-		IJ.log( "Opening image:\n" + imagePath );
+
+		if( log != null )
+			IJ.log( log + imagePath );
+
 		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
 
 		try
@@ -341,8 +356,8 @@ public class MoBIE
 
 			final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 			SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-			// Touch the source once to initiate the cache
-			// This will speed up future access significantly
+			// Touch the source once to initiate the cache,
+			// as this speeds up future accesses significantly
 			sourceAndConverter.getSpimSource().getSource( 0,0 );
 			return sourceAndConverter;
 		}
@@ -432,20 +447,19 @@ public class MoBIE
 		return location;
 	}
 
-	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName )
+	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName, String log )
 	{
 		final SegmentationSource tableSource = ( SegmentationSource ) getSource( sourceName );
-
 		final String defaultTablePath = getTablePath( tableSource, tableName );
-
+		if ( log != null )
+			IJ.log( log + defaultTablePath );
 		final List< TableRowImageSegment > segments = MoBIEHelper.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
-
 		return segments;
 	}
 
 	private Map< String, List< String > > loadAdditionalTable( String imageID, String tablePath )
 	{
-		Logger.log( "Opening table:\n" + tablePath );
+		Logger.log( "Opening additional table:\n" + tablePath );
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
 		TableColumns.addLabelImageIdColumn( columns, TableColumnNames.LABEL_IMAGE_ID, imageID );
 		return columns;
@@ -479,7 +493,7 @@ public class MoBIE
 		return sourceNameToTransformedSourceAndConverter;
 	}
 
-	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay, String table )
+	private Collection< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay, String tableName )
 	{
 		final List< String > segmentationDisplaySources = segmentationDisplay.getSources();
 		final ConcurrentHashMap< String, Set< Source< ? > > > sourceNameToRootSources = new ConcurrentHashMap();
@@ -491,26 +505,43 @@ public class MoBIE
 			sourceNameToRootSources.put( sourceName, rootSources );
 		}
 
-
-		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
+		final Queue< List< TableRowImageSegment > > primaryTables = new ConcurrentLinkedQueue<>();
+		final int numTables = getNumTables( segmentationDisplaySources, sourceNameToRootSources );
+		final long timeMillis = System.currentTimeMillis();
+		final int tableLoggingModulo = (int) Math.ceil( numTables / 10.0 );
+		final AtomicInteger tableIndex = new AtomicInteger();
 		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( String displayedSourceName : segmentationDisplaySources )
 		{
 			final Set< Source< ? > > rootSources = sourceNameToRootSources.get( displayedSourceName );
 			for ( Source rootSource : rootSources )
 			{
-				futures.add( ThreadUtils.ioExecutorService.submit( () -> 				loadAndAddPrimaryTable( table, primaryTables, rootSource.getName() ) ) );
+				futures.add( ThreadUtils.ioExecutorService.submit( () ->
+				{
+					String log = null;
+					if ( ( tableIndex.incrementAndGet() - 1 ) % tableLoggingModulo == 0 )
+					{
+						log = "Fetching table ("+ tableIndex.get() +"/" + numTables +"): " ;
+					}
+					final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( rootSource.getName(), tableName, log );
+					primaryTables.add( primaryTable );
+				} ) );
 			}
 		}
 		ThreadUtils.waitUntilFinished( futures );
-
+		IJ.log( "Fetched " + numTables + " tables(s)  in " + (System.currentTimeMillis() - timeMillis) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
 		return primaryTables;
 	}
 
-	private void loadAndAddPrimaryTable( String tableName, ArrayList< List< TableRowImageSegment > > primaryTables, String tableSourceName )
+	private int getNumTables( List< String > segmentationDisplaySources, ConcurrentHashMap< String, Set< Source< ? > > > sourceNameToRootSources )
 	{
-		final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( tableSourceName, tableName );
-		primaryTables.add( primaryTable );
+		int numTables = 0;
+		for ( String displayedSourceName : segmentationDisplaySources )
+		{
+			final Set< Source< ? > > rootSources = sourceNameToRootSources.get( displayedSourceName );
+			numTables += rootSources.size();
+		}
+		return numTables;
 	}
 
 	private Map< String, List< String > > createColumnsForMerging( List< TableRowImageSegment > segments, Map< String, List< String > > newColumns )
@@ -579,7 +610,7 @@ public class MoBIE
 	public void loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay )
 	{
 		segmentationDisplay.tableRows = new ArrayList<>();
-		final ArrayList< List< TableRowImageSegment > > primaryTables = loadPrimarySegmentsTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
+		final Collection< List< TableRowImageSegment > > primaryTables = loadPrimarySegmentsTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
 
 		for ( List< TableRowImageSegment > primaryTable : primaryTables )
 		{
@@ -591,11 +622,13 @@ public class MoBIE
 	{
 		// open
 		final List< Map< String, List< String > > > tables = new ArrayList<>();
+		final int numTables = annotationDisplay.getTables().size();
+		IJ.log( "Opening " + numTables + " annotation tables..." );
 		for ( String table : annotationDisplay.getTables() )
 		{
 			String tablePath = getTablePath( annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
 			tablePath = MoBIEHelper.resolveTablePath( tablePath );
-			Logger.log( "Opening table:\n" + tablePath );
+			Logger.log( "Opening annotation table: " + tablePath );
 			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
 		}
 

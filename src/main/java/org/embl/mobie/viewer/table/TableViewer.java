@@ -422,7 +422,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		additionalTables.add(tableName);
 	}
 
-	private Map< String, List< String > > openTable( String tablePath ) {
+	private Map< String, List< String > > openTable( String tablePath )
+	{
 		String resolvedPath = MoBIEHelper.resolveTablePath( tablePath );
 		Logger.info( "Opening table:\n" + resolvedPath );
 		return TableColumns.stringColumnsFromTableFile( resolvedPath );
@@ -468,7 +469,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				}
 				else
 				{
-
 					Map< String, List< String > > table = openTable( path );
 					MoBIE.mergeAnnotatedIntervalTable( ( List< AnnotatedMaskTableRow > ) tableRows, table );
 				}

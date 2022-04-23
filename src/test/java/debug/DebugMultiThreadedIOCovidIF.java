@@ -24,7 +24,6 @@ public class DebugMultiThreadedIOCovidIF
 
 	private static void run() throws IOException
 	{
-		ThreadUtils.N_IO_THREADS = 16;
 		new MoBIE( "https://github.com/mobie/covid-if-project", MoBIESettings.settings().gitProjectBranch( "main" ).imageDataFormat( ImageDataFormat.OmeZarrS3 ).view( "default" ) ).close();
 
 //		ThreadUtils.N_IO_THREADS = 16;

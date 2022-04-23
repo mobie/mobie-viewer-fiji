@@ -345,8 +345,6 @@ public abstract class MoBIEHelper
 			String tablePath,
 			String imageId )
 	{
-		IJ.log( "Opening table:\n" + tablePath );
-
 		tablePath = resolveTablePath( tablePath );
 
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
