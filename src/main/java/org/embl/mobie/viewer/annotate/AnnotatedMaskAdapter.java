@@ -140,7 +140,7 @@ public class AnnotatedMaskAdapter
 	}
 
 	// deserialize
-	public List< AnnotatedMaskTableRow > getAnnotatedIntervals( List< String > strings )
+	public List< AnnotatedMaskTableRow > getAnnotatedMasks( List< String > strings )
 	{
 		final ArrayList< AnnotatedMaskTableRow > annotatedMasks = new ArrayList<>();
 		for ( String string : strings )

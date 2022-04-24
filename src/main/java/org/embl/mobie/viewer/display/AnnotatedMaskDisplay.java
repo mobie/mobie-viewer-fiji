@@ -2,13 +2,13 @@ package org.embl.mobie.viewer.display;
 
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
-import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
+import org.embl.mobie.viewer.bdv.view.AnnotatedMaskSliceView;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
 
 import java.util.*;
 
-public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedMaskTableRow >
+public class AnnotatedMaskDisplay extends AnnotatedRegionDisplay< AnnotatedMaskTableRow >
 {
 	// Serialization
 	protected Map< String, List< String > > sources;
@@ -17,7 +17,7 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedM
 
 	// Runtime
 	public transient AnnotatedMaskAdapter annotatedMaskAdapter;
-	public transient AnnotatedIntervalSliceView< AnnotatedMaskTableRow > sliceView;
+	public transient AnnotatedMaskSliceView< AnnotatedMaskTableRow > sliceView;
 
 	// Getters for the serialised fields
 	public List< String > getSelectedAnnotationIds()
@@ -44,9 +44,9 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedM
 		return allSources;
 	}
 
-	public AnnotatedIntervalDisplay() {}
+	public AnnotatedMaskDisplay() {}
 
-	public AnnotatedIntervalDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
+	public AnnotatedMaskDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -63,16 +63,16 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedM
 	/**
 	 * Create a serializable copy
 	 *
-	 * @param annotatedIntervalDisplay
+	 * @param annotatedMaskDisplay
 	 */
-	public AnnotatedIntervalDisplay( AnnotatedIntervalDisplay annotatedIntervalDisplay )
+	public AnnotatedMaskDisplay( AnnotatedMaskDisplay annotatedMaskDisplay )
 	{
-		fetchCurrentSettings( annotatedIntervalDisplay );
+		fetchCurrentSettings( annotatedMaskDisplay );
 
 		this.sources = new HashMap<>();
-		this.sources.putAll( annotatedIntervalDisplay.sources );
+		this.sources.putAll( annotatedMaskDisplay.sources );
 
-		Set< AnnotatedMaskTableRow > currentSelectedRows = annotatedIntervalDisplay.selectionModel.getSelected();
+		Set< AnnotatedMaskTableRow > currentSelectedRows = annotatedMaskDisplay.selectionModel.getSelected();
 		if ( currentSelectedRows != null && currentSelectedRows.size() > 0 ) {
 			ArrayList<String> selectedIds = new ArrayList<>();
 			for ( AnnotatedMaskTableRow row : currentSelectedRows ) {
@@ -82,6 +82,6 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedM
 		}
 
 		this.tableData = new HashMap<>();
-		this.tableData.putAll( annotatedIntervalDisplay.tableData );
+		this.tableData.putAll( annotatedMaskDisplay.tableData );
 	}
 }

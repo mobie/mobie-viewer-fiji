@@ -448,7 +448,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				for ( String tableDir: sourceNameToTableDir.values() )
 				{
 					final Map< String, List< String > > table = openTable( FileAndUrlUtils.combinePath( tableDir, tableName ) );
-					MoBIE.mergeAnnotatedIntervalTable( (List< AnnotatedMaskTableRow >) tableRows, table );
+					MoBIE.mergeAnnotatedMaskTable( (List< AnnotatedMaskTableRow >) tableRows, table );
 				}
 			}
 			addAdditionalTable( tableName );
@@ -470,7 +470,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				else
 				{
 					Map< String, List< String > > table = openTable( path );
-					MoBIE.mergeAnnotatedIntervalTable( ( List< AnnotatedMaskTableRow > ) tableRows, table );
+					MoBIE.mergeAnnotatedMaskTable( ( List< AnnotatedMaskTableRow > ) tableRows, table );
 				}
 				enableRowSorting( true );
 			}).start();

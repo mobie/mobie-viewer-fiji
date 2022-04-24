@@ -8,7 +8,7 @@ import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.annotate.TableRowsIntervalImage;
 import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
-import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
+import org.embl.mobie.viewer.display.AnnotatedMaskDisplay;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import de.embl.cba.tables.color.ColoringListener;
@@ -22,15 +22,15 @@ import java.awt.*;
 import java.util.HashMap;
 
 
-// TODO: code duplication with SegmentationSourceDisplay => derive from a parent class
-public class AnnotatedIntervalSliceView< S extends AnnotatedMask > implements ColoringListener, SelectionListener< S >
+// TODO: code duplication with SegmentationSliceView => derive from a parent class
+public class AnnotatedMaskSliceView< S extends AnnotatedMask > implements ColoringListener, SelectionListener< S >
 {
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final MoBIE moBIE;
-	private final AnnotatedIntervalDisplay display;
+	private final AnnotatedMaskDisplay display;
 	private BdvHandle bdvHandle;
 
-	public AnnotatedIntervalSliceView( MoBIE moBIE, AnnotatedIntervalDisplay display, BdvHandle bdvHandle  )
+	public AnnotatedMaskSliceView( MoBIE moBIE, AnnotatedMaskDisplay display, BdvHandle bdvHandle  )
 	{
 		this.moBIE = moBIE;
 		this.display = display;
@@ -44,7 +44,6 @@ public class AnnotatedIntervalSliceView< S extends AnnotatedMask > implements Co
 		display.selectionModel.listeners().add( this );
 		display.coloringModel.listeners().add( this );
 
-		// TODO: Make a SourceAnnotationSliceView with the listeners for the focussing.
 		final TableRowsIntervalImage< AnnotatedMaskTableRow > intervalImage = new TableRowsIntervalImage<>( display.tableRows, display.coloringModel, display.getName() );
 		SourceAndConverter< IntType > sourceAndConverter = intervalImage.getSourceAndConverter();
 		display.sourceNameToSourceAndConverter = new HashMap<>();

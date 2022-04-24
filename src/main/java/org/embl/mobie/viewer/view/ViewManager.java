@@ -15,7 +15,7 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
-import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
+import org.embl.mobie.viewer.bdv.view.AnnotatedMaskSliceView;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.bdv.view.SliceViewer;
@@ -223,11 +223,11 @@ public class ViewManager
 				if ( hasColumnsOutsideProject( segmentationSourceDisplay ) ) { return null; }
 				currentDisplay = new SegmentationSourceDisplay( segmentationSourceDisplay );
 				addManualTransforms( viewSourceTransforms, segmentationSourceDisplay.sourceNameToSourceAndConverter );
-			} else if ( sourceDisplay instanceof AnnotatedIntervalDisplay )
+			} else if ( sourceDisplay instanceof AnnotatedMaskDisplay )
 			{
-				AnnotatedIntervalDisplay annotatedIntervalDisplay = ( AnnotatedIntervalDisplay ) sourceDisplay;
-				if ( hasColumnsOutsideProject( annotatedIntervalDisplay ) ) { return null; }
-				currentDisplay = new AnnotatedIntervalDisplay( annotatedIntervalDisplay );
+				AnnotatedMaskDisplay annotatedMaskDisplay = ( AnnotatedMaskDisplay ) sourceDisplay;
+				if ( hasColumnsOutsideProject( annotatedMaskDisplay ) ) { return null; }
+				currentDisplay = new AnnotatedMaskDisplay( annotatedMaskDisplay );
 			}
 
 			if ( currentDisplay != null )
@@ -351,9 +351,9 @@ public class ViewManager
 		{
 			showSegmentationDisplay( ( SegmentationSourceDisplay ) sourceDisplay );
 		}
-		else if ( sourceDisplay instanceof AnnotatedIntervalDisplay )
+		else if ( sourceDisplay instanceof AnnotatedMaskDisplay )
 		{
-			showAnnotatedIntervalDisplay( ( AnnotatedIntervalDisplay ) sourceDisplay );
+			showAnnotatedMaskDisplay( ( AnnotatedMaskDisplay ) sourceDisplay );
 		}
 
 		userInterface.addSourceDisplay( sourceDisplay );
@@ -393,10 +393,10 @@ public class ViewManager
 		}
 	}
 
-	private void showAnnotatedIntervalDisplay( AnnotatedIntervalDisplay annotationDisplay )
+	private void showAnnotatedMaskDisplay( AnnotatedMaskDisplay annotationDisplay )
 	{
 		annotationDisplay.sliceViewer = sliceViewer;
-		annotationDisplay.tableRows = moBIE.loadAnnotatedIntervalTables( annotationDisplay );
+		annotationDisplay.tableRows = moBIE.loadAnnotatedMaskTables( annotationDisplay );
 		annotationDisplay.annotatedMaskAdapter = new AnnotatedMaskAdapter( annotationDisplay.tableRows );
 
 		configureMoBIEColoringModel( annotationDisplay );
@@ -406,8 +406,8 @@ public class ViewManager
 		// set selected segments
 		if ( annotationDisplay.getSelectedAnnotationIds() != null )
 		{
-			final List< AnnotatedMaskTableRow > annotatedIntervals = annotationDisplay.annotatedMaskAdapter.getAnnotatedIntervals( annotationDisplay.getSelectedAnnotationIds() );
-			annotationDisplay.selectionModel.setSelected( annotatedIntervals, true );
+			final List< AnnotatedMaskTableRow > annotatedMasks = annotationDisplay.annotatedMaskAdapter.getAnnotatedMasks( annotationDisplay.getSelectedAnnotationIds() );
+			annotationDisplay.selectionModel.setSelected( annotatedMasks, true );
 		}
 
 		showInSliceViewer( annotationDisplay );
@@ -420,7 +420,7 @@ public class ViewManager
 		} );
 	}
 
-	private void initTableViewer( AnnotatedIntervalDisplay display )
+	private void initTableViewer( AnnotatedMaskDisplay display )
 	{
 		HashMap<String, String> nameToTableDir = new HashMap<>();
 		nameToTableDir.put( display.getName(), display.getTableDataFolder( TableDataFormat.TabDelimitedFile ) );
@@ -501,9 +501,9 @@ public class ViewManager
 		segmentationDisplay.sliceView = new SegmentationSliceView<>( moBIE, segmentationDisplay, bdvHandle );
 	}
 
-	private void showInSliceViewer( AnnotatedIntervalDisplay annotatedIntervalDisplay )
+	private void showInSliceViewer( AnnotatedMaskDisplay annotatedMaskDisplay )
 	{
-		annotatedIntervalDisplay.sliceView = new AnnotatedIntervalSliceView( moBIE, annotatedIntervalDisplay, bdvHandle );
+		annotatedMaskDisplay.sliceView = new AnnotatedMaskSliceView( moBIE, annotatedMaskDisplay, bdvHandle );
 	}
 
 	private void initSegmentationVolumeViewer( SegmentationSourceDisplay segmentationDisplay )
@@ -541,13 +541,13 @@ public class ViewManager
 			final ImageSourceDisplay imageDisplay = ( ImageSourceDisplay ) sourceDisplay;
 			imageDisplay.imageSliceView.close( false );
 		}
-		else if ( sourceDisplay instanceof AnnotatedIntervalDisplay )
+		else if ( sourceDisplay instanceof AnnotatedMaskDisplay )
 		{
 			// TODO: Code duplication (sourceDisplay instanceof SegmentationSourceDisplay)
-			final AnnotatedIntervalDisplay annotatedIntervalDisplay = ( AnnotatedIntervalDisplay ) sourceDisplay;
-			annotatedIntervalDisplay.sliceView.close( false );
-			annotatedIntervalDisplay.tableViewer.close();
-			annotatedIntervalDisplay.scatterPlotViewer.close();
+			final AnnotatedMaskDisplay annotatedMaskDisplay = ( AnnotatedMaskDisplay ) sourceDisplay;
+			annotatedMaskDisplay.sliceView.close( false );
+			annotatedMaskDisplay.tableViewer.close();
+			annotatedMaskDisplay.scatterPlotViewer.close();
 		}
 
 		userInterface.removeDisplaySettingsPanel( sourceDisplay );

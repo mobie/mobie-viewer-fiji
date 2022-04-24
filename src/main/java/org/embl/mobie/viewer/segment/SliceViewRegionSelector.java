@@ -11,7 +11,7 @@ import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.bdv.BdvGlobalMousePositionProvider;
-import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
+import org.embl.mobie.viewer.display.AnnotatedMaskDisplay;
 import org.embl.mobie.viewer.display.AnnotatedRegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.source.LabelSource;
@@ -22,13 +22,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.function.Supplier;
 
-public class BdvRegionSelector implements Runnable
+public class SliceViewRegionSelector implements Runnable
 {
 	private BdvHandle bdvHandle;
 	private boolean is2D;
 	private Supplier< Collection< AnnotatedRegionDisplay > > annotatedRegionDisplaySupplier;
 
-	public BdvRegionSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< AnnotatedRegionDisplay > > annotatedRegionDisplaySupplier )
+	public SliceViewRegionSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< AnnotatedRegionDisplay > > annotatedRegionDisplaySupplier )
 	{
 		this.bdvHandle = bdvHandle;
 		this.is2D = is2D;
@@ -85,6 +85,7 @@ public class BdvRegionSelector implements Runnable
 
 						if ( regionDisplay.selectionModel.isSelected( tableRow ) )
 						{
+							//regionDisplay.
 							regionDisplay.selectionModel.focus( tableRow );
 						}
 					}
@@ -110,10 +111,10 @@ public class BdvRegionSelector implements Runnable
 				return ( ( SegmentationSourceDisplay ) regionDisplay ).segmentAdapter.getSegment( labelIndex, timePoint, sourceName );
 			}
 		}
-		else if ( regionDisplay instanceof AnnotatedIntervalDisplay )
+		else if ( regionDisplay instanceof AnnotatedMaskDisplay )
 		{
-			final AnnotatedIntervalDisplay annotatedIntervalDisplay = ( AnnotatedIntervalDisplay ) regionDisplay;
-			final AnnotatedMaskAdapter adapter = annotatedIntervalDisplay.annotatedMaskAdapter;
+			final AnnotatedMaskDisplay annotatedMaskDisplay = ( AnnotatedMaskDisplay ) regionDisplay;
+			final AnnotatedMaskAdapter adapter = annotatedMaskDisplay.annotatedMaskAdapter;
 			return adapter.getAnnotatedMask( timePoint, labelIndex );
 		}
 		else
