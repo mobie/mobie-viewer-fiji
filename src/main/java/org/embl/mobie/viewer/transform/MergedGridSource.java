@@ -22,7 +22,6 @@ import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
-import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.SourceNameEncoder;
@@ -50,7 +49,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	private int currentTimepoint = 0;
 	private Map< String, long[] > sourceNameToVoxelTranslation;
 	private int[][] cellDimensions;
-	private double[] cellRealMax;
+	private double[] cellRealDimensions;
 	private Set< SourceAndConverter > containedSourceAndConverters;
 	private RealMaskRealInterval mask;
 
@@ -100,7 +99,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	{
 		final int numMipmapLevels = referenceSource.getNumMipmapLevels();
 		setCellDimensions( numMipmapLevels );
-		setCellRealMax( cellDimensions[ 0 ] );
+		setCellRealDimensions( cellDimensions[ 0 ] );
 		setMask( positions, cellDimensions[ 0 ] );
 		return createMergedRAIs( numMipmapLevels );
 	}
@@ -136,14 +135,14 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		return mergedRandomAccessibleIntervals;
 	}
 
-	private void setCellRealMax( int[] cellDimension )
+	private void setCellRealDimensions( int[] cellDimension )
 	{
 		final AffineTransform3D referenceTransform = new AffineTransform3D();
 		referenceSource.getSourceTransform( 0, 0, referenceTransform );
-		cellRealMax = new double[ 3 ];
+		cellRealDimensions = new double[ 3 ];
 		for ( int d = 0; d < 2; d++ )
 		{
-			cellRealMax[ d ] = ( cellDimension[ d ] - 1 ) * Affine3DHelpers.extractScale( referenceTransform, d );
+			cellRealDimensions[ d ] = cellDimension[ d ] * Affine3DHelpers.extractScale( referenceTransform, d );
 		}
 	}
 
@@ -152,9 +151,9 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		return mask;
 	}
 
-	public double[] getCellRealMax()
+	public double[] getCellRealDimensions()
 	{
-		return cellRealMax;
+		return cellRealDimensions;
 	}
 
 	private void setCellDimensions( int numMipmapLevels )

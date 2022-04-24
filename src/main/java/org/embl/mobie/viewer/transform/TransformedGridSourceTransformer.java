@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.transform;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
+import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.ThreadUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -25,7 +26,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
-		Logger.info("Transforming " + sources.size() + " group(s) with "+ sources.get( 0 ).size() +" source(s) each into a grid...");
+		final long startTime = System.currentTimeMillis();
 		if ( positions == null )
 			autoSetPositions();
 
@@ -33,6 +34,9 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 		final double[] cellRealDimensions = TransformHelpers.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
 
 		transform( sourceNameToSourceAndConverter, cellRealDimensions );
+		final long duration = System.currentTimeMillis() - startTime;
+		//if ( duration > MoBIE.minLogTimeMillis )
+			Logger.info("Transformed " + sources.size() + " group(s) with "+ sources.get( 0 ).size() +" source(s) each into a grid in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
 	}
 
 	@Override

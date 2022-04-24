@@ -5,6 +5,7 @@ import bdv.util.VolatileSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
+import ij.IJ;
 import net.imglib2.RealInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
@@ -55,8 +56,8 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		mergedGridSource.setContainedSourceAndConverters( transformedSourceAndConverters );
 
 		final long duration = System.currentTimeMillis() - startTime;
-		if ( duration > MoBIE.minLogTimeMillis )
-			Logger.info("Merged " + sources.size() + " sources into " + mergedGridSourceName + " in " + duration + "ms.");
+		//if ( duration > MoBIE.minLogTimeMillis )
+			IJ.log("Merged " + sources.size() + " sources into " + mergedGridSourceName + " in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
 	}
 
 	private void transformContainedSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > gridSources )
@@ -64,10 +65,10 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		final ArrayList< SourceAndConverter< ? > > referenceSources = new ArrayList<>();
 		referenceSources.add( gridSources.get( 0 ) );
 
-		final double[] gridCellRealMax = mergedGridSource.getCellRealMax();
+		final double[] gridCellRealDimensions = mergedGridSource.getCellRealDimensions();
 
 		// account for grid margin
-		translationRealOffset = computeTranslationOffset( gridSources, gridCellRealMax );
+		translationRealOffset = computeTranslationOffset( gridSources, gridCellRealDimensions );
 
 		final int numSources = gridSources.size();
 		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
@@ -78,13 +79,13 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 			final ArrayList< String > sourceNamesAtGridPosition = getSourcesAtGridPosition( gridSources, finalPositionIndex );
 
 			futures.add( ThreadUtils.executorService.submit( () -> {
-				recursivelyTransformSources( sourceNameToSourceAndConverter, gridCellRealMax, finalPositionIndex, sourceNamesAtGridPosition );
+				recursivelyTransformSources( sourceNameToSourceAndConverter, gridCellRealDimensions, finalPositionIndex, sourceNamesAtGridPosition );
 			} ) );
 		}
 		ThreadUtils.waitUntilFinished( futures );
 	}
 
-	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealMax )
+	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealDimensions )
 	{
 		final RealInterval dataRealBounds = TransformHelpers.estimateBounds( gridSources.get( 0 ).getSpimSource(), 0 );
 
@@ -94,7 +95,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 		final double[] translationOffset = new double[ 2 ];
 		for ( int d = 0; d < 2; d++ )
-			translationOffset[ d ] = 0.5 * ( gridCellRealMax[ d ] - dataRealDimensions[ d ] );
+			translationOffset[ d ] = 0.5 * ( gridCellRealDimensions[ d ] - dataRealDimensions[ d ] );
 
 		return translationOffset;
 	}
