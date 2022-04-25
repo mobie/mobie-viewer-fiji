@@ -26,7 +26,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	protected List< String > sources;
 	protected String mergedGridSourceName;
 	protected List< int[] > positions;
-	protected boolean centerAtOrigin = false;
+	protected boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
 	protected boolean encodeSource = false;
 
 	// Runtime
@@ -37,6 +37,13 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
+		if ( centerAtOrigin == true )
+		{
+			// https://github.com/mobie/mobie-viewer-fiji/issues/685
+			IJ.log( "[WARNING]: centerAtOrigin = true, is currently not properly working for the merged grid; will thus try with centerAtOrigin = false. See here: https://github.com/mobie/mobie-viewer-fiji/issues/685" );
+			centerAtOrigin = false;
+		}
+
 		final long startTime = System.currentTimeMillis();
 
 		final List< SourceAndConverter< ? > > gridSources = getGridSources( sourceNameToSourceAndConverter );
