@@ -10,6 +10,7 @@ import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
+import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import de.embl.cba.tables.color.ColoringListener;
@@ -45,10 +46,14 @@ public class AnnotatedMaskSliceView< S extends AnnotatedMask > implements Colori
 		display.selectionModel.listeners().add( this );
 		display.coloringModel.listeners().add( this );
 
-		final TableRowsIntervalImage< AnnotatedMaskTableRow > intervalImage = new TableRowsIntervalImage<>( display.tableRows, display.coloringModel, display.getName() );
-		SourceAndConverter< IntType > sourceAndConverter = intervalImage.getSourceAndConverter();
+		final TableRowsIntervalImage< AnnotatedMaskTableRow > maskImage = new TableRowsIntervalImage<>( display.tableRows, display.coloringModel, display.getName() );
+		SourceAndConverter< IntType > sourceAndConverter = maskImage.getSourceAndConverter();
+
+		// set boundaries
+		( (LabelSource) sourceAndConverter.getSpimSource() ).showAsBoundary( display.isShowAsBoundaries(), display.getBoundaryThickness() );
+
 		display.sourceNameToSourceAndConverter = new HashMap<>();
-		display.sourceNameToSourceAndConverter.put( intervalImage.getName(), sourceAndConverter );
+		display.sourceNameToSourceAndConverter.put( maskImage.getName(), sourceAndConverter );
 
 		// set opacity
 		OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );

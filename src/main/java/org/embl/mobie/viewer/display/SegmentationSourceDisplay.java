@@ -50,6 +50,7 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 		return showSelectedSegmentsIn3d;
 	}
 
+	// Needed for Gson
 	public SegmentationSourceDisplay(){}
 
 	public SegmentationSourceDisplay( String name, double opacity, List< String > sources,

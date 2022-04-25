@@ -47,8 +47,10 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 		return allSources;
 	}
 
+	// Needed for Gson
 	public AnnotatedSourceDisplay() {}
 
+	// TODO: Looks like we do not need it? Maybe for the interactive grid view?
 	public AnnotatedSourceDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
 	{
 		this.name = name;

@@ -22,7 +22,7 @@ import java.util.function.BiConsumer;
 public class LabelSource<T extends NumericType<T> & RealType<T>> implements Source<T> {
     protected final Source<T> source;
     private boolean showAsBoundaries;
-    private double boundaryWidth;
+    private float boundaryWidth;
     private float background;
     private final RealMaskRealInterval bounds;
     private ArrayList< Integer > boundaryDimensions;
@@ -44,7 +44,7 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         this.bounds = bounds;
     }
 
-    public void showAsBoundary( boolean showAsBoundaries, double boundaryWidth ) {
+    public void showAsBoundary( boolean showAsBoundaries, float boundaryWidth ) {
         this.showAsBoundaries = showAsBoundaries;
         this.boundaryWidth = boundaryWidth;
         this.boundaryDimensions = boundaryDimensions();
@@ -249,5 +249,15 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
 
     public Source<T> getWrappedSource() {
         return source;
+    }
+
+    public boolean isShowAsBoundaries()
+    {
+        return showAsBoundaries;
+    }
+
+    public float getBoundaryWidth()
+    {
+        return boundaryWidth;
     }
 }

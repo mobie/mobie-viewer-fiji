@@ -60,6 +60,9 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		for ( String name : sourceNameToSourceAndConverter.keySet() )
 		{
 			SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( name );
+
+			adjustLabelRendering( sourceAndConverter );
+
 			// set opacity
 			OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
@@ -74,6 +77,15 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 
 			display.sourceNameToSourceAndConverter.put( name, sourceAndConverter );
 		}
+	}
+
+	private void adjustLabelRendering( SourceAndConverter< ? > sourceAndConverter )
+	{
+		final boolean showAsBoundaries = display.isShowAsBoundaries();
+		final float boundaryThickness = display.getBoundaryThickness();
+		( (LabelSource) sourceAndConverter.getSpimSource() ).showAsBoundary( showAsBoundaries, boundaryThickness );
+		if ( sourceAndConverter.asVolatile() != null )
+			( (LabelSource) sourceAndConverter.asVolatile().getSpimSource() ).showAsBoundary( showAsBoundaries, boundaryThickness );
 	}
 
 	private Map< String, SourceAndConverter< ? > > asLabelSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )

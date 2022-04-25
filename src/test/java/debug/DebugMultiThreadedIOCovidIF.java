@@ -25,8 +25,7 @@ public class DebugMultiThreadedIOCovidIF
 	private static void run() throws IOException
 	{
 		ThreadUtils.setnIoThreads( 16 );
-		new MoBIE( "https://github.com/mobie/covid-if-project", MoBIESettings.settings().gitProjectBranch( "main" ).imageDataFormat( ImageDataFormat.OmeZarrS3 ).view( "default" ) ).close();
-
+		new MoBIE( "https://github.com/mobie/covid-if-project", MoBIESettings.settings().gitProjectBranch( "main" ).imageDataFormat( ImageDataFormat.OmeZarrS3 ).view( "boundary-segment-test" ) ).close();
 		//"default_transform_grid_with_tables_with_segmentations_without_segmentation_tables"
 	}
 }
