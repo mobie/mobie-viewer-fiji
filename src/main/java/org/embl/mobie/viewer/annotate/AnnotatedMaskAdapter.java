@@ -20,8 +20,8 @@ public class AnnotatedMaskAdapter
 
 		public TimepointAndAnnotationId( AnnotatedMask annotatedMask )
 		{
-			this.timepoint = annotatedMask.getTimepoint();
-			this.annotationId = annotatedMask.getName();
+			this.timepoint = annotatedMask.timePoint();
+			this.annotationId = annotatedMask.name();
 		}
 
 		@Override
@@ -111,7 +111,7 @@ public class AnnotatedMaskAdapter
 		{
 			final AnnotatedMaskTableRow annotatedMaskTableRow = tableRows.get( rowIndex );
 			timepointAndAnnotationToObject.put( new TimepointAndAnnotationId( annotatedMaskTableRow ), annotatedMaskTableRow );
-			timePointAndLabelToObject.put( new TimePointAndLabel( annotatedMaskTableRow.getTimepoint(), rowIndex ), annotatedMaskTableRow );
+			timePointAndLabelToObject.put( new TimePointAndLabel( annotatedMaskTableRow.timePoint(), rowIndex ), annotatedMaskTableRow );
 		}
 	}
 

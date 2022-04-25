@@ -36,13 +36,13 @@ public class DefaultAnnotatedMaskTableRow extends AbstractTableRow implements An
 	}
 
 	@Override
-	public RealMaskRealInterval getMask()
+	public RealMaskRealInterval mask()
 	{
 		return mask;
 	}
 
 	@Override
-	public Integer getTimepoint()
+	public Integer timePoint()
 	{
 		if ( cells.containsKey( "timepoint" ) )
 			return Integer.parseInt( cells.get( "timepoint" ) );
@@ -51,7 +51,7 @@ public class DefaultAnnotatedMaskTableRow extends AbstractTableRow implements An
 	}
 
 	@Override
-	public String getName()
+	public String name()
 	{
 		return name;
 	}

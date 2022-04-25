@@ -20,7 +20,7 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 
 	// Runtime
 	public transient AnnotatedMaskAdapter annotatedMaskAdapter;
-	public transient AnnotatedMaskSliceView< AnnotatedMaskTableRow > sliceView;
+	public transient AnnotatedMaskSliceView sliceView;
 
 	// Getters for the serialised fields
 	public List< String > getSelectedAnnotationIds()
@@ -81,7 +81,7 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 		if ( currentSelectedRows != null && currentSelectedRows.size() > 0 ) {
 			ArrayList<String> selectedIds = new ArrayList<>();
 			for ( AnnotatedMaskTableRow row : currentSelectedRows ) {
-				selectedIds.add( row.getTimepoint() + ";" + row.getName() );
+				selectedIds.add( row.timePoint() + ";" + row.name() );
 			}
 			this.selectedAnnotationIds = selectedIds;
 		}

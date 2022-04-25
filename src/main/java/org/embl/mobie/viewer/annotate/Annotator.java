@@ -404,7 +404,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 			final String annotationID = goToRowIndexTextField.getText();
 			for ( T tableRow : tableRows )
 			{
-				final String name = ( ( AnnotatedMaskTableRow ) tableRow ).getName();
+				final String name = ( ( AnnotatedMaskTableRow ) tableRow ).name();
 				if ( name.equals( annotationID ) )
 				{
 					return tableRow;

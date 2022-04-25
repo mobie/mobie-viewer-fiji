@@ -61,7 +61,7 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 
 		for ( T tableRow : tableRows )
 		{
-			final RealMaskRealInterval mask = tableRow.getMask();
+			final RealMaskRealInterval mask = tableRow.mask();
 
 			if ( unionInterval == null )
 			{
@@ -98,7 +98,7 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 
 			for ( int i = 0; i < size; i++ )
 			{
-				final RealMaskRealInterval mask = tableRows.get( i ).getMask();
+				final RealMaskRealInterval mask = tableRows.get( i ).mask();
 
 				if ( mask.test( location ) )
 				{

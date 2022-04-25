@@ -2,133 +2,74 @@ package org.embl.mobie.viewer.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import bdv.viewer.TimePointListener;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
-import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
-import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.imagesegment.ImageSegment;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
-import org.embl.mobie.viewer.select.SelectionListener;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
-
-public class SegmentationSliceView< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
+public class SegmentationSliceView extends AnnotatedRegionSliceView< TableRowImageSegment >
 {
-	private final SourceAndConverterBdvDisplayService displayService;
-	private final MoBIE moBIE;
-	private final SegmentationSourceDisplay display;
-	private BdvHandle bdvHandle;
 
 	public SegmentationSliceView( MoBIE moBIE, SegmentationSourceDisplay display, BdvHandle bdvHandle )
 	{
-		this.moBIE = moBIE;
-		this.display = display;
-		this.bdvHandle = bdvHandle;
+		super( moBIE, display, bdvHandle );
 
-		displayService = SourceAndConverterServices.getBdvDisplayService();
-		show();
-	}
-
-	private void show( )
-	{
-		display.selectionModel.listeners().add( this );
-		display.coloringModel.listeners().add( this );
-
-		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter = new HashMap<>();
-		for ( String name : display.getSources() ) {
-			sourceNameToSourceAndConverter.put( name, moBIE.getTransformedSourceAndConverter( name ) );
-		}
-
-		// convert to labelSource
-		sourceNameToSourceAndConverter = asLabelSources( sourceNameToSourceAndConverter );
-
-		display.sourceNameToSourceAndConverter = new HashMap<>();
-		for ( String name : sourceNameToSourceAndConverter.keySet() )
+		for ( String name : display.getSources() )
 		{
-			SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( name );
+			final SourceAndConverter< ? > sourceAndConverter = moBIE.getTransformedSourceAndConverter( name );
 
-			adjustLabelRendering( sourceAndConverter );
+			SourceAndConverter< ? > labelSourceAndConverter = asLabelSourceAndConverter( display, sourceAndConverter );
 
-			// set opacity
-			OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
+			show( labelSourceAndConverter );
 
-			// show
-			displayService.show( bdvHandle, display.isVisible(), sourceAndConverter );
-
-			// set blending mode
 			if ( display.getBlendingMode() != null )
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
-
-			bdvHandle.getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
-
-			display.sourceNameToSourceAndConverter.put( name, sourceAndConverter );
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( labelSourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
 		}
 	}
 
-	private void adjustLabelRendering( SourceAndConverter< ? > sourceAndConverter )
+	private SourceAndConverter< ? > asLabelSourceAndConverter( SegmentationSourceDisplay display, SourceAndConverter< ? > sourceAndConverter )
 	{
-		final boolean showAsBoundaries = display.isShowAsBoundaries();
-		final float boundaryThickness = display.getBoundaryThickness();
-		( (LabelSource) sourceAndConverter.getSpimSource() ).showAsBoundary( showAsBoundaries, boundaryThickness );
-		if ( sourceAndConverter.asVolatile() != null )
-			( (LabelSource) sourceAndConverter.asVolatile().getSpimSource() ).showAsBoundary( showAsBoundaries, boundaryThickness );
+		LabelConverter labelConverter = getLabelConverter( display, sourceAndConverter );
+
+		SourceAndConverter< ? > labelSourceAndConverter = asLabelSourceAndConverter( sourceAndConverter, labelConverter );
+
+		return labelSourceAndConverter;
 	}
 
-	private Map< String, SourceAndConverter< ? > > asLabelSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
+	private LabelConverter getLabelConverter( SegmentationSourceDisplay display, SourceAndConverter< ? > sourceAndConverter )
 	{
-		Map< String, SourceAndConverter< ? > > sourceNameToLabelSourceAndConverter = new HashMap<>();
+		LabelConverter labelConverter;
 
-		for ( String name: sourceNameToSourceAndConverter.keySet() )
-		{
-			SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( name );
-
-			LabelConverter< S > labelConverter = getLabelConverter( sourceAndConverter );
-
-			SourceAndConverter< ? > sourceAndLabelConverter = asSourceAndLabelConverter( sourceAndConverter, labelConverter );
-
-			sourceNameToLabelSourceAndConverter.put( name, sourceAndLabelConverter );
-		}
-
-		return sourceNameToLabelSourceAndConverter;
-	}
-
-	private LabelConverter< S > getLabelConverter( SourceAndConverter< ? > sourceAndConverter )
-	{
 		if ( MergedGridSource.instanceOf( sourceAndConverter ) )
 		{
 			// The source name is not the one from which the
 			// image segments should be fetched.
 			// Thus, the constructor where the source name
 			// is determined from encoding in the label is chosen.
-
-			return new LabelConverter(
+			labelConverter = new LabelConverter(
 					display.segmentAdapter,
 					display.coloringModel );
 		}
 		else
 		{
-			return new LabelConverter(
+			labelConverter = new LabelConverter(
 					display.segmentAdapter,
 					sourceAndConverter.getSpimSource().getName(),
 					display.coloringModel );
 		}
+		return labelConverter;
 	}
 
-	private SourceAndConverter asSourceAndLabelConverter( SourceAndConverter< ? > sourceAndConverter, LabelConverter labelConverter )
+	private SourceAndConverter asLabelSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, LabelConverter labelConverter )
 	{
 		LabelSource volatileLabelSource = new LabelSource( sourceAndConverter.asVolatile().getSpimSource() );
 		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileLabelSource, labelConverter );
@@ -136,29 +77,8 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		return new SourceAndConverter( labelSource, labelConverter, volatileSourceAndConverter );
 	}
 
-	public void close( boolean closeImgLoader )
-	{
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
-		{
-			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
-		}
-		display.sourceNameToSourceAndConverter.clear();
-	};
-
 	@Override
-	public synchronized void coloringChanged()
-	{
-		bdvHandle.getViewerPanel().requestRepaint();
-	}
-
-	@Override
-	public synchronized void selectionChanged()
-	{
-		bdvHandle.getViewerPanel().requestRepaint();
-	}
-
-	@Override
-	public synchronized void focusEvent( S selection, Object origin  )
+	public synchronized void focusEvent( TableRowImageSegment selection, Object origin  )
 	{
 		if ( origin instanceof SliceViewRegionSelector )
 			return;
@@ -196,15 +116,4 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 		// adapt
 		sourceTransform.apply( position, position );
 	}
-
-	public BdvHandle getBdvHandle()
-	{
-		return bdvHandle;
-	}
-
-	public Window getWindow()
-	{
-		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
-	}
-
 }

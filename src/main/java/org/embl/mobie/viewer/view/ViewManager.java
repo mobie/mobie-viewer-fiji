@@ -498,7 +498,7 @@ public class ViewManager
 
 	private void showInSliceViewer( SegmentationSourceDisplay segmentationDisplay )
 	{
-		segmentationDisplay.sliceView = new SegmentationSliceView<>( moBIE, segmentationDisplay, bdvHandle );
+		segmentationDisplay.sliceView = new SegmentationSliceView( moBIE, segmentationDisplay, bdvHandle );
 	}
 
 	private void showInSliceViewer( AnnotatedSourceDisplay annotatedSourceDisplay )
