@@ -35,7 +35,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 
 		transform( sourceNameToSourceAndConverter, cellRealDimensions );
 		final long duration = System.currentTimeMillis() - startTime;
-		//if ( duration > MoBIE.minLogTimeMillis )
+		if ( duration > MoBIE.minLogTimeMillis )
 			Logger.info("Transformed " + sources.size() + " group(s) with "+ sources.get( 0 ).size() +" source(s) each into a grid in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
 	}
 

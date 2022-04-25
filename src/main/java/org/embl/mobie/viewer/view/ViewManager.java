@@ -6,7 +6,6 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
-import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -224,11 +223,11 @@ public class ViewManager
 				if ( hasColumnsOutsideProject( segmentationSourceDisplay ) ) { return null; }
 				currentDisplay = new SegmentationSourceDisplay( segmentationSourceDisplay );
 				addManualTransforms( viewSourceTransforms, segmentationSourceDisplay.sourceNameToSourceAndConverter );
-			} else if ( sourceDisplay instanceof AnnotatedMaskDisplay )
+			} else if ( sourceDisplay instanceof AnnotatedSourceDisplay )
 			{
-				AnnotatedMaskDisplay annotatedMaskDisplay = ( AnnotatedMaskDisplay ) sourceDisplay;
-				if ( hasColumnsOutsideProject( annotatedMaskDisplay ) ) { return null; }
-				currentDisplay = new AnnotatedMaskDisplay( annotatedMaskDisplay );
+				AnnotatedSourceDisplay annotatedSourceDisplay = ( AnnotatedSourceDisplay ) sourceDisplay;
+				if ( hasColumnsOutsideProject( annotatedSourceDisplay ) ) { return null; }
+				currentDisplay = new AnnotatedSourceDisplay( annotatedSourceDisplay );
 			}
 
 			if ( currentDisplay != null )
@@ -352,9 +351,9 @@ public class ViewManager
 		{
 			showSegmentationDisplay( ( SegmentationSourceDisplay ) sourceDisplay );
 		}
-		else if ( sourceDisplay instanceof AnnotatedMaskDisplay )
+		else if ( sourceDisplay instanceof AnnotatedSourceDisplay )
 		{
-			showAnnotatedMaskDisplay( ( AnnotatedMaskDisplay ) sourceDisplay );
+			showAnnotatedMaskDisplay( ( AnnotatedSourceDisplay ) sourceDisplay );
 		}
 
 		userInterface.addSourceDisplay( sourceDisplay );
@@ -394,7 +393,7 @@ public class ViewManager
 		}
 	}
 
-	private void showAnnotatedMaskDisplay( AnnotatedMaskDisplay annotationDisplay )
+	private void showAnnotatedMaskDisplay( AnnotatedSourceDisplay annotationDisplay )
 	{
 		annotationDisplay.sliceViewer = sliceViewer;
 		annotationDisplay.tableRows = moBIE.loadAnnotatedMaskTables( annotationDisplay );
@@ -421,7 +420,7 @@ public class ViewManager
 		} );
 	}
 
-	private void initTableViewer( AnnotatedMaskDisplay display )
+	private void initTableViewer( AnnotatedSourceDisplay display )
 	{
 		HashMap<String, String> nameToTableDir = new HashMap<>();
 		nameToTableDir.put( display.getName(), display.getTableDataFolder( TableDataFormat.TabDelimitedFile ) );
@@ -502,9 +501,9 @@ public class ViewManager
 		segmentationDisplay.sliceView = new SegmentationSliceView<>( moBIE, segmentationDisplay, bdvHandle );
 	}
 
-	private void showInSliceViewer( AnnotatedMaskDisplay annotatedMaskDisplay )
+	private void showInSliceViewer( AnnotatedSourceDisplay annotatedSourceDisplay )
 	{
-		annotatedMaskDisplay.sliceView = new AnnotatedMaskSliceView( moBIE, annotatedMaskDisplay, bdvHandle );
+		annotatedSourceDisplay.sliceView = new AnnotatedMaskSliceView( moBIE, annotatedSourceDisplay, bdvHandle );
 	}
 
 	private void initSegmentationVolumeViewer( SegmentationSourceDisplay segmentationDisplay )
@@ -542,13 +541,13 @@ public class ViewManager
 			final ImageSourceDisplay imageDisplay = ( ImageSourceDisplay ) sourceDisplay;
 			imageDisplay.imageSliceView.close( false );
 		}
-		else if ( sourceDisplay instanceof AnnotatedMaskDisplay )
+		else if ( sourceDisplay instanceof AnnotatedSourceDisplay )
 		{
 			// TODO: Code duplication (sourceDisplay instanceof SegmentationSourceDisplay)
-			final AnnotatedMaskDisplay annotatedMaskDisplay = ( AnnotatedMaskDisplay ) sourceDisplay;
-			annotatedMaskDisplay.sliceView.close( false );
-			annotatedMaskDisplay.tableViewer.close();
-			annotatedMaskDisplay.scatterPlotViewer.close();
+			final AnnotatedSourceDisplay annotatedSourceDisplay = ( AnnotatedSourceDisplay ) sourceDisplay;
+			annotatedSourceDisplay.sliceView.close( false );
+			annotatedSourceDisplay.tableViewer.close();
+			annotatedSourceDisplay.scatterPlotViewer.close();
 		}
 
 		userInterface.removeDisplaySettingsPanel( sourceDisplay );

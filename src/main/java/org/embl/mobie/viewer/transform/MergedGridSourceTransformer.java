@@ -63,7 +63,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		mergedGridSource.setContainedSourceAndConverters( transformedSourceAndConverters );
 
 		final long duration = System.currentTimeMillis() - startTime;
-		//if ( duration > MoBIE.minLogTimeMillis )
+		if ( duration > MoBIE.minLogTimeMillis )
 			IJ.log("Merged " + sources.size() + " sources into " + mergedGridSourceName + " in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
 	}
 

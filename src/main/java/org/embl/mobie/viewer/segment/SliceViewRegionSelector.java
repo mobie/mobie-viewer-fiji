@@ -11,7 +11,7 @@ import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.bdv.BdvGlobalMousePositionProvider;
-import org.embl.mobie.viewer.display.AnnotatedMaskDisplay;
+import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
 import org.embl.mobie.viewer.display.AnnotatedRegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.source.LabelSource;
@@ -111,10 +111,10 @@ public class SliceViewRegionSelector implements Runnable
 				return ( ( SegmentationSourceDisplay ) regionDisplay ).segmentAdapter.getSegment( labelIndex, timePoint, sourceName );
 			}
 		}
-		else if ( regionDisplay instanceof AnnotatedMaskDisplay )
+		else if ( regionDisplay instanceof AnnotatedSourceDisplay )
 		{
-			final AnnotatedMaskDisplay annotatedMaskDisplay = ( AnnotatedMaskDisplay ) regionDisplay;
-			final AnnotatedMaskAdapter adapter = annotatedMaskDisplay.annotatedMaskAdapter;
+			final AnnotatedSourceDisplay annotatedSourceDisplay = ( AnnotatedSourceDisplay ) regionDisplay;
+			final AnnotatedMaskAdapter adapter = annotatedSourceDisplay.annotatedMaskAdapter;
 			return adapter.getAnnotatedMask( timePoint, labelIndex );
 		}
 		else

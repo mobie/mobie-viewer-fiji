@@ -11,7 +11,7 @@ import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
-import org.embl.mobie.viewer.display.AnnotatedMaskDisplay;
+import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskCreator;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
@@ -646,7 +646,7 @@ public class MoBIE
 		}
 	}
 
-	public List< AnnotatedMaskTableRow > loadAnnotatedMaskTables( AnnotatedMaskDisplay annotationDisplay )
+	public List< AnnotatedMaskTableRow > loadAnnotatedMaskTables( AnnotatedSourceDisplay annotationDisplay )
 	{
 		// open
 		final List< Map< String, List< String > > > tables = new ArrayList<>();

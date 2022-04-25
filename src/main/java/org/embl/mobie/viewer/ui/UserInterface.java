@@ -1,7 +1,7 @@
 package org.embl.mobie.viewer.ui;
 
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.display.AnnotatedMaskDisplay;
+import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.display.ImageSourceDisplay;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
@@ -108,9 +108,9 @@ public class UserInterface
 		{
 			return userInterfaceHelpers.createSegmentationDisplaySettingsPanel( ( SegmentationSourceDisplay ) sourceDisplay );
 		}
-		else if ( sourceDisplay instanceof AnnotatedMaskDisplay )
+		else if ( sourceDisplay instanceof AnnotatedSourceDisplay )
 		{
-			return userInterfaceHelpers.createAnnotatedMaskDisplaySettingsPanel( ( AnnotatedMaskDisplay ) sourceDisplay );
+			return userInterfaceHelpers.createAnnotatedMaskDisplaySettingsPanel( ( AnnotatedSourceDisplay ) sourceDisplay );
 		}
 		else
 		{

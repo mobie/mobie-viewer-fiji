@@ -8,7 +8,7 @@ import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.annotate.TableRowsIntervalImage;
 import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
-import org.embl.mobie.viewer.display.AnnotatedMaskDisplay;
+import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
@@ -28,10 +28,10 @@ public class AnnotatedMaskSliceView< S extends AnnotatedMask > implements Colori
 {
 	private final SourceAndConverterBdvDisplayService displayService;
 	private final MoBIE moBIE;
-	private final AnnotatedMaskDisplay display;
+	private final AnnotatedSourceDisplay display;
 	private BdvHandle bdvHandle;
 
-	public AnnotatedMaskSliceView( MoBIE moBIE, AnnotatedMaskDisplay display, BdvHandle bdvHandle  )
+	public AnnotatedMaskSliceView( MoBIE moBIE, AnnotatedSourceDisplay display, BdvHandle bdvHandle  )
 	{
 		this.moBIE = moBIE;
 		this.display = display;

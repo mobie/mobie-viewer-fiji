@@ -104,6 +104,9 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         final ArrayList< Integer > dimensions = new ArrayList<>();
         if ( bounds != null )
         {
+            // check whether the source is effectively 2D,
+            // i.e. much thinner along one dimension than the
+            // requested boundary width
             for ( int d = 0; d < 3; d++ )
             {
                 final double sourceBound = Math.abs( bounds.realMax( d ) - bounds.realMin( d ) );
@@ -111,12 +114,20 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
                     dimensions.add( d );
             }
         }
+        else if ( source.getSource( 0,0 ).dimension( 2 ) == 1 )
+        {
+            // 2D source
+            dimensions.add( 0 );
+            dimensions.add( 1 );
+        }
         else
         {
+            // 3D source
             dimensions.add( 0 );
             dimensions.add( 1 );
             dimensions.add( 2 );
         }
+
         return dimensions;
     }
 

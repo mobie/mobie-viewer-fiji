@@ -10,7 +10,7 @@ import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import org.embl.mobie.viewer.*;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
-import org.embl.mobie.viewer.display.AnnotatedMaskDisplay;
+import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.serialize.JsonHelper;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformAdjuster;
@@ -199,7 +199,7 @@ public class UserInterfaceHelpers
 		frame.setVisible( true );
 	}
 
-	public JPanel createAnnotatedMaskDisplaySettingsPanel( AnnotatedMaskDisplay display )
+	public JPanel createAnnotatedMaskDisplaySettingsPanel( AnnotatedSourceDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.sourceNameToSourceAndConverter.values() );
