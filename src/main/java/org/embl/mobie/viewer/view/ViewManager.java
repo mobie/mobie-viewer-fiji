@@ -525,7 +525,7 @@ public class ViewManager
 
 	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay, boolean closeImgLoader )
 	{
-		if ( sourceDisplay instanceof SegmentationSourceDisplay )
+		if ( sourceDisplay instanceof AnnotatedRegionDisplay )
 		{
 			final SegmentationSourceDisplay segmentationDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
 			segmentationDisplay.sliceView.close( closeImgLoader );

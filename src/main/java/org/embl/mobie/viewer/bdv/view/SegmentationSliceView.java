@@ -18,7 +18,6 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 public class SegmentationSliceView extends AnnotatedRegionSliceView< TableRowImageSegment >
 {
-
 	public SegmentationSliceView( MoBIE moBIE, SegmentationSourceDisplay display, BdvHandle bdvHandle )
 	{
 		super( moBIE, display, bdvHandle );
@@ -47,26 +46,23 @@ public class SegmentationSliceView extends AnnotatedRegionSliceView< TableRowIma
 
 	private LabelConverter getLabelConverter( SegmentationSourceDisplay display, SourceAndConverter< ? > sourceAndConverter )
 	{
-		LabelConverter labelConverter;
-
 		if ( MergedGridSource.instanceOf( sourceAndConverter ) )
 		{
 			// The source name is not the one from which the
 			// image segments should be fetched.
 			// Thus, the constructor where the source name
 			// is determined from encoding in the label is chosen.
-			labelConverter = new LabelConverter(
+			return new LabelConverter(
 					display.segmentAdapter,
 					display.coloringModel );
 		}
 		else
 		{
-			labelConverter = new LabelConverter(
+			return new LabelConverter(
 					display.segmentAdapter,
 					sourceAndConverter.getSpimSource().getName(),
 					display.coloringModel );
 		}
-		return labelConverter;
 	}
 
 	private SourceAndConverter asLabelSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, LabelConverter labelConverter )
