@@ -24,6 +24,7 @@ import org.embl.mobie.viewer.display.*;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
+import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
@@ -400,7 +401,7 @@ public class ViewManager
 		annotationDisplay.annotatedMaskAdapter = new AnnotatedMaskAdapter( annotationDisplay.tableRows );
 
 		configureMoBIEColoringModel( annotationDisplay );
-		annotationDisplay.selectionModel = new DefaultSelectionModel<>();
+		annotationDisplay.selectionModel = new MoBIESelectionModel<>();
 		annotationDisplay.coloringModel.setSelectionModel( annotationDisplay.selectionModel );
 
 		// set selected segments
@@ -444,7 +445,7 @@ public class ViewManager
 		}
 
 		configureMoBIEColoringModel( segmentationDisplay );
-		segmentationDisplay.selectionModel = new DefaultSelectionModel<>();
+		segmentationDisplay.selectionModel = new MoBIESelectionModel<>();
 		segmentationDisplay.coloringModel.setSelectionModel(  segmentationDisplay.selectionModel );
 
 		// set selected segments

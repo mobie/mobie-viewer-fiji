@@ -10,7 +10,7 @@ import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.table.TableViewer;
 import de.embl.cba.tables.color.ColoringLuts;
-import de.embl.cba.tables.select.SelectionModel;
+import org.embl.mobie.viewer.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 
 import java.util.ArrayList;

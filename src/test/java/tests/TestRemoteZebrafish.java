@@ -32,9 +32,9 @@ public class TestRemoteZebrafish
 		// select some image segments
 		final AnnotatedRegionDisplay display = moBIE.getViewManager().getAnnotatedRegionDisplays().iterator().next();
 		display.selectionModel.setSelected( display.tableRows.get( 0 ), true );
-		display.selectionModel.focus( display.tableRows.get( 0 ) );
+		display.selectionModel.focus( display.tableRows.get( 0 ), this );
 		display.selectionModel.setSelected( display.tableRows.get( 1 ), true );
-		display.selectionModel.focus( display.tableRows.get( 1 ) );
+		display.selectionModel.focus( display.tableRows.get( 1 ), this );
 
 		// show in 3D
 		((SegmentationSourceDisplay) display).segmentsVolumeViewer.showSegments( true );
@@ -55,6 +55,6 @@ public class TestRemoteZebrafish
 		// select some image segments
 		final AnnotatedRegionDisplay display = moBIE.getViewManager().getAnnotatedRegionDisplays().iterator().next();
 		display.selectionModel.setSelected( display.tableRows.get( 0 ), true );
-		display.selectionModel.focus( display.tableRows.get( 0 ) );
+		display.selectionModel.focus( display.tableRows.get( 0 ), this );
 	}
 }

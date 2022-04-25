@@ -10,7 +10,8 @@ import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.imagesegment.ImageSegment;
-import de.embl.cba.tables.select.SelectionListener;
+import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
+import org.embl.mobie.viewer.select.SelectionListener;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.source.LabelSource;
@@ -145,8 +146,11 @@ public class SegmentationSliceView< S extends ImageSegment > implements Coloring
 	}
 
 	@Override
-	public synchronized void focusEvent( S selection )
+	public synchronized void focusEvent( S selection, Object origin  )
 	{
+		if ( origin instanceof SliceViewRegionSelector )
+			return;
+
 		if ( selection.timePoint() != getBdvHandle().getViewerPanel().state().getCurrentTimepoint() )
 		{
 			getBdvHandle().getViewerPanel().state().setCurrentTimepoint( selection.timePoint() );

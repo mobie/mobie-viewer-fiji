@@ -9,10 +9,11 @@ import org.embl.mobie.viewer.annotate.TableRowsIntervalImage;
 import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.display.AnnotatedMaskDisplay;
+import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.select.SelectionListener;
+import org.embl.mobie.viewer.select.SelectionListener;
 import net.imglib2.type.numeric.integer.IntType;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -83,8 +84,11 @@ public class AnnotatedMaskSliceView< S extends AnnotatedMask > implements Colori
 	}
 
 	@Override
-	public synchronized void focusEvent( S selection )
+	public synchronized void focusEvent( S selection, Object origin  )
 	{
+		if ( origin instanceof SliceViewRegionSelector )
+			return;
+
 		if ( selection.getTimepoint() != getBdvHandle().getViewerPanel().state().getCurrentTimepoint() )
 		{
 			getBdvHandle().getViewerPanel().state().setCurrentTimepoint( selection.getTimepoint() );

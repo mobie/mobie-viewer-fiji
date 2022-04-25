@@ -32,8 +32,8 @@ import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.CategoryTableRowColumnColoringModel;
 import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.select.SelectionListener;
-import de.embl.cba.tables.select.SelectionModel;
+import org.embl.mobie.viewer.select.SelectionListener;
+import org.embl.mobie.viewer.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
@@ -82,9 +82,9 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		this.currentlySelectedRow = tableRows.get( rowSorter.convertRowIndexToModel( 0 ) );
 		this.coloringModel.fixedColorMode( true );
 		setNames( tableRows );
+		selectionModel.listeners().add( this );
 
 		this.panel = new JPanel();
-
 	}
 
 	private void setNames( List< T > tableRows )
@@ -430,7 +430,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		currentlySelectedRow = row;
 		selectionModel.clearSelection();
 		selectionModel.setSelected( row, true );
-		selectionModel.focus( row );
+		selectionModel.focus( row, this );
 	}
 
 	private void addSkipNonePanel( )
@@ -514,7 +514,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 	}
 
 	@Override
-	public void focusEvent( T selection )
+	public void focusEvent( T selection, Object origin )
 	{
 		currentlySelectedRow = selection;
 	}
