@@ -116,7 +116,7 @@ public class MoBIE
 
 		if ( imageDataFormat.size()  != 0 )
 		{
-			if ( ! project.getImageDataFormats().contains( imageDataFormat ) )
+			if ( project.getImageDataFormats().stream().noneMatch(imageDataFormat::contains) )
 			{
 				throw new RuntimeException( "The requested image data format " + imageDataFormat + " is not supported by the project: " + projectLocation );
 			}
