@@ -44,7 +44,7 @@ public abstract class MoBIEViewerTransformChanger
 		}
 		else if ( viewerTransform instanceof NormalizedAffineViewerTransform )
 		{
-			final AffineTransform3D transform = TransformHelper.createUnnormalizedViewerTransform( MoBIEHelper.asAffineTransform3D( viewerTransform.getParameters() ), bdv.getBdvHandle().getViewerPanel() );
+			final AffineTransform3D transform = TransformHelpers.createUnnormalizedViewerTransform( MoBIEHelper.asAffineTransform3D( viewerTransform.getParameters() ), bdv.getBdvHandle().getViewerPanel() );
 			changeViewerTransform( bdv, transform, animationDurationMillis );
 			adaptTimepoint( bdv, viewerTransform );
 		}

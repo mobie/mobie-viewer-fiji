@@ -5,10 +5,11 @@ import bdv.util.VolatileSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
-import org.embl.mobie.viewer.MoBIEHelper;
-import net.imglib2.FinalRealInterval;
+import ij.IJ;
+import net.imglib2.RealInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.ThreadUtils;
 
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	protected List< String > sources;
 	protected String mergedGridSourceName;
 	protected List< int[] > positions;
-	protected boolean centerAtOrigin = false;
+	protected boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
 	protected boolean encodeSource = false;
 
 	// Runtime
@@ -36,7 +37,14 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
-		Logger.info("Merging " + sources.size() + " sources into " + mergedGridSourceName );
+		if ( centerAtOrigin == true )
+		{
+			// https://github.com/mobie/mobie-viewer-fiji/issues/685
+			IJ.log( "[WARNING]: centerAtOrigin = true, is currently not properly working for the merged grid; will thus try with centerAtOrigin = false. See here: https://github.com/mobie/mobie-viewer-fiji/issues/685" );
+			centerAtOrigin = false;
+		}
+
+		final long startTime = System.currentTimeMillis();
 
 		final List< SourceAndConverter< ? > > gridSources = getGridSources( sourceNameToSourceAndConverter );
 
@@ -53,6 +61,10 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		transformedSourceAndConverters = ConcurrentHashMap.newKeySet();
 		transformContainedSources( sourceNameToSourceAndConverter, gridSources );
 		mergedGridSource.setContainedSourceAndConverters( transformedSourceAndConverters );
+
+		final long duration = System.currentTimeMillis() - startTime;
+		if ( duration > MoBIE.minLogTimeMillis )
+			IJ.log("Merged " + sources.size() + " sources into " + mergedGridSourceName + " in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
 	}
 
 	private void transformContainedSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > gridSources )
@@ -82,7 +94,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealDimensions )
 	{
-		final FinalRealInterval dataRealBounds = MoBIEHelper.estimateBounds( gridSources.get( 0 ).getSpimSource() );
+		final RealInterval dataRealBounds = TransformHelpers.estimateBounds( gridSources.get( 0 ).getSpimSource(), 0 );
 
 		final double[] dataRealDimensions = new double[ 3 ];
 		for ( int d = 0; d < 3; d++ )

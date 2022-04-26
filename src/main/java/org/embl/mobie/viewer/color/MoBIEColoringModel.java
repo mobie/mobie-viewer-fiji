@@ -29,7 +29,7 @@
 package org.embl.mobie.viewer.color;
 
 import de.embl.cba.tables.color.*;
-import de.embl.cba.tables.select.SelectionModel;
+import org.embl.mobie.viewer.select.SelectionModel;
 import net.imglib2.type.numeric.ARGBType;
 
 public class MoBIEColoringModel< T > extends AbstractColoringModel< T >

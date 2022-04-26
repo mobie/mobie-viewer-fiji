@@ -22,7 +22,7 @@ import java.util.function.BiConsumer;
 public class LabelSource<T extends NumericType<T> & RealType<T>> implements Source<T> {
     protected final Source<T> source;
     private boolean showAsBoundaries;
-    private double boundaryWidth;
+    private float boundaryWidth;
     private float background;
     private final RealMaskRealInterval bounds;
     private ArrayList< Integer > boundaryDimensions;
@@ -44,7 +44,7 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         this.bounds = bounds;
     }
 
-    public void showAsBoundary( boolean showAsBoundaries, double boundaryWidth ) {
+    public void showAsBoundary( boolean showAsBoundaries, float boundaryWidth ) {
         this.showAsBoundaries = showAsBoundaries;
         this.boundaryWidth = boundaryWidth;
         this.boundaryDimensions = boundaryDimensions();
@@ -104,6 +104,9 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         final ArrayList< Integer > dimensions = new ArrayList<>();
         if ( bounds != null )
         {
+            // check whether the source is effectively 2D,
+            // i.e. much thinner along one dimension than the
+            // requested boundary width
             for ( int d = 0; d < 3; d++ )
             {
                 final double sourceBound = Math.abs( bounds.realMax( d ) - bounds.realMin( d ) );
@@ -111,12 +114,20 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
                     dimensions.add( d );
             }
         }
+        else if ( source.getSource( 0,0 ).dimension( 2 ) == 1 )
+        {
+            // 2D source
+            dimensions.add( 0 );
+            dimensions.add( 1 );
+        }
         else
         {
+            // 3D source
             dimensions.add( 0 );
             dimensions.add( 1 );
             dimensions.add( 2 );
         }
+
         return dimensions;
     }
 
@@ -238,5 +249,15 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
 
     public Source<T> getWrappedSource() {
         return source;
+    }
+
+    public boolean isShowAsBoundaries()
+    {
+        return showAsBoundaries;
+    }
+
+    public float getBoundaryWidth()
+    {
+        return boundaryWidth;
     }
 }

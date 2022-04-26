@@ -38,8 +38,8 @@ import de.embl.cba.tables.*;
 import de.embl.cba.tables.color.*;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
 
-import de.embl.cba.tables.select.SelectionListener;
-import de.embl.cba.tables.select.SelectionModel;
+import org.embl.mobie.viewer.select.SelectionListener;
+import org.embl.mobie.viewer.select.SelectionModel;
 import de.embl.cba.tables.tablerow.JTableFromTableRowsModelCreator;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
@@ -422,7 +422,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		additionalTables.add(tableName);
 	}
 
-	private Map< String, List< String > > openTable( String tablePath ) {
+	private Map< String, List< String > > openTable( String tablePath )
+	{
 		String resolvedPath = MoBIEHelper.resolveTablePath( tablePath );
 		Logger.info( "Opening table:\n" + resolvedPath );
 		return TableColumns.stringColumnsFromTableFile( resolvedPath );
@@ -447,7 +448,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				for ( String tableDir: sourceNameToTableDir.values() )
 				{
 					final Map< String, List< String > > table = openTable( FileAndUrlUtils.combinePath( tableDir, tableName ) );
-					MoBIE.mergeAnnotatedIntervalTable( (List< AnnotatedMaskTableRow >) tableRows, table );
+					MoBIE.mergeAnnotatedMaskTable( (List< AnnotatedMaskTableRow >) tableRows, table );
 				}
 			}
 			addAdditionalTable( tableName );
@@ -468,9 +469,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				}
 				else
 				{
-
 					Map< String, List< String > > table = openTable( path );
-					MoBIE.mergeAnnotatedIntervalTable( ( List< AnnotatedMaskTableRow > ) tableRows, table );
+					MoBIE.mergeAnnotatedMaskTable( ( List< AnnotatedMaskTableRow > ) tableRows, table );
 				}
 				enableRowSorting( true );
 			}).start();
@@ -891,13 +891,13 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 				if ( tableRowSelectionMode.equals( TableRowSelectionMode.FocusOnly ) )
 				{
-					selectionModel.focus( object );
+					selectionModel.focus( object, this );
 				}
 				else if ( tableRowSelectionMode.equals( TableRowSelectionMode.ToggleSelectionAndFocusIfSelected ) )
 				{
 					selectionModel.toggle( object );
 					if ( selectionModel.isSelected( object ) )
-						selectionModel.focus( object );
+						selectionModel.focus( object, this );
 				}
 			})
 		);
@@ -1017,7 +1017,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	}
 
 	@Override
-	public synchronized void focusEvent( T selection )
+	public synchronized void focusEvent( T selection, Object origin )
 	{
 		SwingUtilities.invokeLater( () -> moveToSelectedTableRow( selection ) );
 	}

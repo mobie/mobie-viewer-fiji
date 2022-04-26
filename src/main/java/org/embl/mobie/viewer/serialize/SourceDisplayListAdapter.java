@@ -2,7 +2,7 @@ package org.embl.mobie.viewer.serialize;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
+import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
 import org.embl.mobie.viewer.display.ImageSourceDisplay;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.display.SourceDisplay;
@@ -21,8 +21,8 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< SourceDis
 		classToName.put(ImageSourceDisplay.class.getName(), "imageDisplay");
 		nameToClass.put("segmentationDisplay", SegmentationSourceDisplay.class);
 		classToName.put(SegmentationSourceDisplay.class.getName(), "segmentationDisplay");
-		nameToClass.put("sourceAnnotationDisplay", AnnotatedIntervalDisplay.class);
-		classToName.put(AnnotatedIntervalDisplay.class.getName(), "sourceAnnotationDisplay");
+		nameToClass.put("sourceAnnotationDisplay", AnnotatedSourceDisplay.class);
+		classToName.put( AnnotatedSourceDisplay.class.getName(), "sourceAnnotationDisplay");
 	}
 
 	@Override
@@ -50,8 +50,8 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< SourceDis
 				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, ImageSourceDisplay > >() {}.getType() ) );
 			} else if ( sourceDisplay instanceof  SegmentationSourceDisplay ) {
 				ja.add( context.serialize( nameToSourceDisplay , new TypeToken< Map< String, SegmentationSourceDisplay > >() {}.getType() ) );
-			} else if ( sourceDisplay instanceof  AnnotatedIntervalDisplay ) {
-				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, AnnotatedIntervalDisplay > >() {}.getType() ) );
+			} else if ( sourceDisplay instanceof AnnotatedSourceDisplay ) {
+				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, AnnotatedSourceDisplay > >() {}.getType() ) );
 			} else
 			{
 				throw new UnsupportedOperationException( "Could not serialise SourceDisplay of type: " + sourceDisplay.getClass().toString() );

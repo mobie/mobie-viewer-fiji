@@ -1,14 +1,17 @@
 package org.embl.mobie.viewer.display;
 
-import org.embl.mobie.viewer.annotate.AnnotatedIntervalAdapter;
+import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
-import org.embl.mobie.viewer.bdv.view.AnnotatedIntervalSliceView;
+import org.embl.mobie.viewer.bdv.view.AnnotatedMaskSliceView;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
 
 import java.util.*;
 
-public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedMaskTableRow >
+// Even though within the rest of the code we call things now AnnotatedMask*
+// the name of this class for now remains AnnotatedSourceDisplay
+// in order to stay consistent with the nomenclature in dataset.json
+public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMaskTableRow >
 {
 	// Serialization
 	protected Map< String, List< String > > sources;
@@ -16,8 +19,8 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedM
 	protected Map< TableDataFormat, StorageLocation > tableData;
 
 	// Runtime
-	public transient AnnotatedIntervalAdapter< AnnotatedMaskTableRow > annotatedIntervalAdapter;
-	public transient AnnotatedIntervalSliceView< AnnotatedMaskTableRow > sliceView;
+	public transient AnnotatedMaskAdapter annotatedMaskAdapter;
+	public transient AnnotatedMaskSliceView sliceView;
 
 	// Getters for the serialised fields
 	public List< String > getSelectedAnnotationIds()
@@ -44,9 +47,11 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedM
 		return allSources;
 	}
 
-	public AnnotatedIntervalDisplay() {}
+	// Needed for Gson
+	public AnnotatedSourceDisplay() {}
 
-	public AnnotatedIntervalDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
+	// TODO: Looks like we do not need it? Maybe for the interactive grid view?
+	public AnnotatedSourceDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -63,25 +68,25 @@ public class AnnotatedIntervalDisplay extends AnnotatedRegionDisplay< AnnotatedM
 	/**
 	 * Create a serializable copy
 	 *
-	 * @param annotatedIntervalDisplay
+	 * @param annotatedSourceDisplay
 	 */
-	public AnnotatedIntervalDisplay( AnnotatedIntervalDisplay annotatedIntervalDisplay )
+	public AnnotatedSourceDisplay( AnnotatedSourceDisplay annotatedSourceDisplay )
 	{
-		fetchCurrentSettings( annotatedIntervalDisplay );
+		fetchCurrentSettings( annotatedSourceDisplay );
 
 		this.sources = new HashMap<>();
-		this.sources.putAll( annotatedIntervalDisplay.sources );
+		this.sources.putAll( annotatedSourceDisplay.sources );
 
-		Set< AnnotatedMaskTableRow > currentSelectedRows = annotatedIntervalDisplay.selectionModel.getSelected();
+		Set< AnnotatedMaskTableRow > currentSelectedRows = annotatedSourceDisplay.selectionModel.getSelected();
 		if ( currentSelectedRows != null && currentSelectedRows.size() > 0 ) {
 			ArrayList<String> selectedIds = new ArrayList<>();
 			for ( AnnotatedMaskTableRow row : currentSelectedRows ) {
-				selectedIds.add( row.getTimepoint() + ";" + row.getName() );
+				selectedIds.add( row.timePoint() + ";" + row.name() );
 			}
 			this.selectedAnnotationIds = selectedIds;
 		}
 
 		this.tableData = new HashMap<>();
-		this.tableData.putAll( annotatedIntervalDisplay.tableData );
+		this.tableData.putAll( annotatedSourceDisplay.tableData );
 	}
 }

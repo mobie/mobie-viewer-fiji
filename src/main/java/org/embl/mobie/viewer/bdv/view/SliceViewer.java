@@ -16,7 +16,7 @@ import org.embl.mobie.viewer.command.SelectedSegmentsColorConfiguratorCommand;
 import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
 import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
-import org.embl.mobie.viewer.segment.BdvSegmentSelector;
+import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import org.embl.mobie.viewer.command.RandomColorSeedChangerCommand;
 import org.embl.mobie.viewer.view.ViewManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -32,6 +32,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.function.Supplier;
+
+import static org.embl.mobie.viewer.ui.WindowArrangementHelper.setBdvWindowPositionAndSize;
 
 public class SliceViewer implements Supplier< BdvHandle >
 {
@@ -61,6 +63,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
 		bdvHandle = createBdv( timepoints, is2D, FRAME_TITLE );
+		setBdvWindowPositionAndSize( bdvHandle );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
 		installContextMenuAndKeyboardShortCuts();
@@ -79,18 +82,12 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 	private void installContextMenuAndKeyboardShortCuts( )
 	{
-		final BdvSegmentSelector segmentBdvSelector = new BdvSegmentSelector( bdvHandle, is2D, () -> viewManager.getSegmentationDisplays() );
+		final SliceViewRegionSelector sliceViewRegionSelector = new SliceViewRegionSelector( bdvHandle, is2D, () -> viewManager.getAnnotatedRegionDisplays() );
 
 		sacService.registerAction( UNDO_SEGMENT_SELECTIONS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
-			segmentBdvSelector.clearSelection();
+			sliceViewRegionSelector.clearSelection();
 		} );
-
-		// TODO: why is this needed here (and not just in below list?)
-//		sacService.registerAction( sacService.getCommandName( RandomColorSeedChangerCommand.class ), sourceAndConverters -> {
-//			// TODO: Maybe only do this for the sacs at the mouse position
-//			RandomColorSeedChangerCommand.incrementRandomColorSeed( sourceAndConverters );
-//		} );
 
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
@@ -137,15 +134,12 @@ public class SliceViewer implements Supplier< BdvHandle >
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
-						new Thread( () -> segmentBdvSelector.run() ).start(),
+						new Thread( () -> sliceViewRegionSelector.run() ).start(),
 				"Toggle selection", "ctrl button1" ) ;
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
-						new Thread( () ->
-						{
-							segmentBdvSelector.clearSelection();
-						}).start(),
+						new Thread( () -> sliceViewRegionSelector.clearSelection() ).start(),
 				"Clear selection", "ctrl shift N" ) ;
 
 		behaviours.behaviour(

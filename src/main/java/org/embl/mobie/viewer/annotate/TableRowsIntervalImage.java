@@ -3,11 +3,15 @@ package org.embl.mobie.viewer.annotate;
 import bdv.util.BdvOverlay;
 import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.SourceAndConverter;
+import ij.IJ;
+import net.imglib2.Interval;
+import net.imglib2.RealInterval;
 import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.geom.GeomMasks;
+import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringModel;
-import net.imglib2.RealInterval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
@@ -16,7 +20,7 @@ import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.source.LabelSource;
 
 import java.awt.*;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -25,11 +29,10 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 	private final List< T > tableRows;
 	private final ColoringModel< T > coloringModel;
 	private double[] contrastLimits;
-	private HashMap< String, T > nameToTableRow;
-	private HashMap< String, Integer > nameToTableRowIndex;
 	private String name;
 	private SourceAndConverter< IntType > sourceAndConverter;
-	private RealMaskRealInterval union;
+	private RealMaskRealInterval unionMask;
+	private RealInterval unionInterval;
 	private int size;
 
 	public TableRowsIntervalImage(
@@ -37,46 +40,69 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 			ColoringModel< T > coloringModel,
 			String name )
 	{
+		final long currentTimeMillis = System.currentTimeMillis();
+
 		this.tableRows = tableRows;
 		this.coloringModel = coloringModel;
 		this.name = name;
+		this.size = tableRows.size();
 
-		init( tableRows );
+		setUnionMask( tableRows );
 		createImage();
+
+		final long duration = System.currentTimeMillis() - currentTimeMillis;
+		if ( duration > MoBIE.minLogTimeMillis )
+			IJ.log("Created annotation image "+name+" in " + duration + " ms." );
 	}
 
-	public void init( List< T > tableRows )
+	public void setUnionMask( List< T > tableRows )
 	{
 		size = tableRows.size();
-		nameToTableRow = new HashMap<>();
-		nameToTableRowIndex = new HashMap();
 
-		int rowIndex = 0;
 		for ( T tableRow : tableRows )
 		{
-			nameToTableRow.put( tableRow.getName(), tableRow );
-			nameToTableRowIndex.put( tableRow.getName(), rowIndex++ );
-			if ( union == null )
-				union = tableRow.getMask();
+			final RealMaskRealInterval mask = tableRow.mask();
+
+			if ( unionInterval == null )
+			{
+				//unionMask = mask;
+				unionInterval = mask;
+			}
 			else
-				union = union.or( tableRow.getMask() );
+			{
+				if ( Arrays.equals( mask.minAsDoubleArray(), unionInterval.minAsDoubleArray() ) && Arrays.equals( mask.maxAsDoubleArray(), unionInterval.maxAsDoubleArray() ))
+				{
+					continue;
+				}
+				else
+				{
+					// TODO: Below hangs
+					//unionMask = unionMask.or( mask );
+					unionInterval = Intervals.union( unionInterval, mask );
+				}
+			}
+			//System.out.println( tableRow.getName() );
+			//System.out.println( Arrays.toString( mask.minAsDoubleArray() ) );
+			//System.out.println( Arrays.toString( unionMask.minAsDoubleArray() ) );
 		}
 
+		// TODO: this is a work around
+		unionMask = GeomMasks.closedBox( unionInterval.minAsDoubleArray(), unionInterval.maxAsDoubleArray() );
 	}
 
 	private void createImage( )
 	{
-		BiConsumer< RealLocalizable, IntType > biConsumer = ( l, t ) ->
+		BiConsumer< RealLocalizable, IntType > biConsumer = ( location, value ) ->
 		{
-			t.setInteger( ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX );
+			value.setInteger( ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX );
 
 			for ( int i = 0; i < size; i++ )
 			{
-				final RealMaskRealInterval mask = tableRows.get( i ).getMask();
+				final RealMaskRealInterval mask = tableRows.get( i ).mask();
 
-				if ( mask.test( l ) )
+				if ( mask.test( location ) )
 				{
-					t.setInteger( i );
+					value.setInteger( i );
 					return;
 				}
 			}
@@ -84,12 +110,14 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 
 		final FunctionRealRandomAccessible< IntType > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, IntType::new );
 
-		final IntType intType = randomAccessible.realRandomAccess().get();
-		final RealRandomAccessibleIntervalSource< IntType > source = new RealRandomAccessibleIntervalSource( randomAccessible, Intervals.smallestContainingInterval( union ), intType, name );
+		//final IntType intType = randomAccessible.realRandomAccess().get();
+		final double realMin = unionMask.realMin( 0 );
+		final Interval interval = Intervals.smallestContainingInterval( unionMask );
+		final RealRandomAccessibleIntervalSource< IntType > source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new IntType(), name );
 
 		final ListItemsARGBConverter< T > argbConverter = new ListItemsARGBConverter<>( tableRows, coloringModel );
 
-		sourceAndConverter = new SourceAndConverter( new LabelSource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX, union ), argbConverter );
+		sourceAndConverter = new SourceAndConverter( new LabelSource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX, unionMask ), argbConverter );
 
 		contrastLimits = new double[]{ 0, 255 };
 	}

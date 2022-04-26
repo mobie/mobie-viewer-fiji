@@ -4,14 +4,16 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import org.embl.mobie.viewer.*;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
-import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
+import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.serialize.JsonHelper;
+import org.embl.mobie.viewer.transform.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.viewer.transform.ViewerTransform;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
@@ -26,7 +28,6 @@ import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.MoBIEHelper;
-import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
@@ -40,6 +41,7 @@ import java.awt.event.WindowEvent;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.embl.mobie.viewer.ui.SwingHelpers.TEXT_FIELD_HEIGHT;
 
@@ -197,14 +199,14 @@ public class UserInterfaceHelpers
 		frame.setVisible( true );
 	}
 
-	public JPanel createAnnotatedIntervalDisplaySettingsPanel( AnnotatedIntervalDisplay display )
+	public JPanel createAnnotatedMaskDisplaySettingsPanel( AnnotatedSourceDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.sourceNameToSourceAndConverter.values() );
 
 		// Buttons
 		panel.add( createSpace() );
-		panel.add( createButtonPlaceholder() ); // focus
+		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() ); // color
 		panel.add( createButtonPlaceholder() ); // brightness
@@ -284,7 +286,7 @@ public class UserInterfaceHelpers
 
 		// Buttons
 		panel.add( createSpace() );
-		panel.add( createFocusButton( display, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
+		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createColorButton( panel, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
 		panel.add( createImageDisplayBrightnessButton( display ) );
@@ -330,7 +332,7 @@ public class UserInterfaceHelpers
 				new ArrayList<>( display.sourceNameToSourceAndConverter.values() );
 
 		panel.add( createSpace() );
-		panel.add( createFocusButton( display, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
+		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createButtonPlaceholder() );
@@ -743,16 +745,17 @@ public class UserInterfaceHelpers
 		return checkBox;
 	}
 
-	public static JButton createFocusButton(AbstractSourceDisplay sourceDisplay, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
+	public static JButton createFocusButton( AbstractSourceDisplay sourceDisplay, BdvHandle bdvHandle, List< Source< ? > > sources )
 	{
 		JButton button = new JButton( "F" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
 
 		button.addActionListener( e ->
 		{
-			// TODO: make this work for multiple sources!
-			final AffineTransform3D transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
-			new ViewerTransformChanger( bdvHandle, transform, false, 1000 ).run();
+//			final AffineTransform3D transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
+
+			final AffineTransform3D transform = new MoBIEViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sources ).getMultiSourceTransform();
+			new ViewerTransformChanger( bdvHandle, transform, false, 500 ).run();
 		} );
 
 		return button;

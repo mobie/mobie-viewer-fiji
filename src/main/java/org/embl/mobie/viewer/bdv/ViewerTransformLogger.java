@@ -11,7 +11,7 @@ import org.embl.mobie.viewer.transform.NormalVectorViewerTransform;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.transform.TransformHelper;
+import org.embl.mobie.viewer.transform.TransformHelpers;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
@@ -41,7 +41,7 @@ public class ViewerTransformLogger implements BdvPlaygroundActionCommand
 			final AffineViewerTransform affineViewerTransform = new AffineViewerTransform( affineTransform3D.getRowPackedCopy(), timepoint );
 
 			// normalized affine
-			final AffineTransform3D normalisedViewerTransform = TransformHelper.createNormalisedViewerTransform( bdv.getViewerPanel() );
+			final AffineTransform3D normalisedViewerTransform = TransformHelpers.createNormalisedViewerTransform( bdv.getViewerPanel() );
 			final NormalizedAffineViewerTransform normalizedAffineViewerTransform = new NormalizedAffineViewerTransform( normalisedViewerTransform.getRowPackedCopy(), timepoint );
 
 			// normal vector

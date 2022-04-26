@@ -193,29 +193,22 @@ public class DatasetJsonCreator {
         return view;
     }
 
-    private View createSegmentationView( String imageName, String uiSelectionGroup, boolean isExclusive,
-                                         AffineTransform3D sourceTransform ) {
+    private View createSegmentationView( String imageName, String uiSelectionGroup, boolean isExclusive, AffineTransform3D sourceTransform ) {
         ArrayList< SourceDisplay > sourceDisplays = new ArrayList<>();
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
 
         ArrayList<String> tables = new ArrayList<>();
         tables.add( "default.tsv" );
-        SegmentationSourceDisplay segmentationSourceDisplay = new SegmentationSourceDisplay(
-                imageName, 0.5, sources, ColoringLuts.GLASBEY,
-                null, null, null, false,
-                false, new String[]{ TableColumnNames.ANCHOR_X, TableColumnNames.ANCHOR_Y },
-                tables, null, null );
+        SegmentationSourceDisplay segmentationSourceDisplay = new SegmentationSourceDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ TableColumnNames.ANCHOR_X, TableColumnNames.ANCHOR_Y }, tables, null, null );
         sourceDisplays.add( segmentationSourceDisplay );
 
-        View view;
         if ( sourceTransform.isIdentity() ) {
-            view = new View( uiSelectionGroup, sourceDisplays, null, null, isExclusive );
+            return new View( uiSelectionGroup, sourceDisplays, null, null, isExclusive );
         } else {
             List<SourceTransformer> sourceTransformerList = createSourceTransformerList( sourceTransform, sources );
-            view = new View( uiSelectionGroup, sourceDisplays, sourceTransformerList, null, isExclusive );
+            return new View( uiSelectionGroup, sourceDisplays, sourceTransformerList, null, isExclusive );
         }
-        return view;
     }
 
     public void writeDatasetJson ( String datasetName, Dataset dataset ) {

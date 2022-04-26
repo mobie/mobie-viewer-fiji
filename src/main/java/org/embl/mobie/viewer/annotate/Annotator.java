@@ -32,7 +32,8 @@ import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.CategoryTableRowColumnColoringModel;
 import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.select.SelectionModel;
+import org.embl.mobie.viewer.select.SelectionListener;
+import org.embl.mobie.viewer.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
@@ -47,7 +48,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class Annotator< T extends TableRow > extends JFrame
+public class Annotator< T extends TableRow > extends JFrame implements SelectionListener< T >
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -60,13 +61,14 @@ public class Annotator< T extends TableRow > extends JFrame
 	private final RowSorter< ? extends TableModel > rowSorter;
 	private final JPanel panel;
 	private boolean skipNone;
-	private boolean isSingleRowBrowsingMode = false; // TODO: think about how to get out of this mode!
+	private boolean isKeepSelectedMode = false;
 	private JTextField goToRowIndexTextField;
 	private HashMap< String, T > annotationToTableRow;
 	private JPanel annotationButtonsContainer;
 	private JScrollPane annotationButtonsScrollPane;
 	private T currentlySelectedRow;
 	private Set< String > annotationNames;
+	private String objectName = "entity";
 
 	public Annotator( String columnName, List< T > tableRows, SelectionModel< T > selectionModel, CategoryTableRowColumnColoringModel< T > coloringModel, RowSorter< ? extends TableModel > rowSorter )
 	{
@@ -79,8 +81,22 @@ public class Annotator< T extends TableRow > extends JFrame
 		this.rowSorter = rowSorter;
 		this.currentlySelectedRow = tableRows.get( rowSorter.convertRowIndexToModel( 0 ) );
 		this.coloringModel.fixedColorMode( true );
-		this.panel = new JPanel();
+		setNames( tableRows );
+		selectionModel.listeners().add( this );
 
+		this.panel = new JPanel();
+	}
+
+	private void setNames( List< T > tableRows )
+	{
+		if ( tableRows.get( 0 ) instanceof TableRowImageSegment )
+		{
+			objectName = "segment";
+		}
+		else if ( tableRows.get( 0 ) instanceof AnnotatedMaskTableRow )
+		{
+			objectName = "region";
+		}
 	}
 
 	public void showDialog()
@@ -100,12 +116,14 @@ public class Annotator< T extends TableRow > extends JFrame
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		addAnnotationButtons();
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		addTableRowBrowserSelectPanel();
-		addTableRowBrowserSelectPreviousAndNextPanel();
+		addSelectPreviousAndNextPanel();
+		addSelectIDPanel();
 		addSkipNonePanel();
-		// this has to be done at the end, to make the packing work correctly
-		// otherwise, continuing an annotation with many categories will be
-		// packed to a size too large for the screen
+		addKeepSelectedPanel();
+		// The annotation button panel has to be added at the end
+		// to make the packing work correctly.
+		// Otherwise, continuing an annotation with many categories will be
+		// packed to a size too large for the screen.
 		addAnnotationButtonPanels();
 	}
 
@@ -143,7 +161,7 @@ public class Annotator< T extends TableRow > extends JFrame
 		panel.add( annotationButtonsPanel );
 
 		final JPanel panel = SwingUtils.horizontalLayoutPanel();
-		panel.add( new JLabel( "Annotate selected segment(s) as:" ) );
+		panel.add( new JLabel( "Annotate selected " + objectName + "(s) as:" ) );
 		panel.add( new JLabel( "      " ) );
 		annotationButtonsPanel.add( panel );
 
@@ -190,9 +208,7 @@ public class Annotator< T extends TableRow > extends JFrame
 				row.setCell( annotationColumnName, annotationName );
 			}
 
-			if ( selected.size() > 1 ) isSingleRowBrowsingMode = false;
-
-			if( isSingleRowBrowsingMode )
+			if( isKeepSelectedMode )
 			{
 				selectionModel.clearSelection(); // Hack to notify all listeners that the coloring might have changed.
 				// select again such that the user could still change its mind
@@ -219,17 +235,19 @@ public class Annotator< T extends TableRow > extends JFrame
 		MoBIELookAndFeelToggler.resetMoBIELaf();
 	}
 
-	private void addTableRowBrowserSelectPreviousAndNextPanel( )
+	private void addSelectPreviousAndNextPanel( )
 	{
 		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+		final JButton clear = createClearSelectionButton();
 		final JButton previous = createSelectPreviousButton();
 		final JButton next = createSelectNextButton();
+		panel.add( clear );
 		panel.add( previous );
 		panel.add( next );
 		this.panel.add( panel );
 	}
 
-	private void addTableRowBrowserSelectPanel( )
+	private void addSelectIDPanel( )
 	{
 		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 		final JButton button = createSelectButton();
@@ -248,8 +266,6 @@ public class Annotator< T extends TableRow > extends JFrame
 
 		next.addActionListener( e ->
 		{
-			isSingleRowBrowsingMode = true;
-
 			// rowIndex in sorted "units"
 			int rowIndex = rowSorter.convertRowIndexToView( tableRows.indexOf( currentlySelectedRow ) );
 			if ( rowIndex < tableRows.size() - 1 )
@@ -290,6 +306,21 @@ public class Annotator< T extends TableRow > extends JFrame
 		return next;
 	}
 
+	private JButton createClearSelectionButton()
+	{
+		final JButton clear = new JButton( "Clear selection" );
+		//previous.setFont( new Font("monospaced", Font.PLAIN, 12) );
+		clear.setAlignmentX( Component.CENTER_ALIGNMENT );
+
+		clear.addActionListener( e ->
+		{
+			selectionModel.clearSelection();
+		} );
+
+		return clear;
+	}
+
+
 	private JButton createSelectPreviousButton()
 	{
 		final JButton previous = new JButton( "Select previous" );
@@ -298,8 +329,6 @@ public class Annotator< T extends TableRow > extends JFrame
 
 		previous.addActionListener( e ->
 		{
-			isSingleRowBrowsingMode = true;
-
 			// row index in sorted "units"
 			int rowIndex = rowSorter.convertRowIndexToView( tableRows.indexOf( currentlySelectedRow ) );
 			if ( rowIndex > 0 )
@@ -344,12 +373,11 @@ public class Annotator< T extends TableRow > extends JFrame
 
 	private JButton createSelectButton()
 	{
-		final JButton button = new JButton( "Select segment with label id" );
+		final JButton button = new JButton( "Select " + objectName + " ID" );
 		button.setAlignmentX( Component.CENTER_ALIGNMENT );
 
 		button.addActionListener( e ->
 		{
-			isSingleRowBrowsingMode = true;
 			T selectedRow = getSelectedRow();
 			if ( selectedRow != null ) selectRow( selectedRow );
 		} );
@@ -358,7 +386,6 @@ public class Annotator< T extends TableRow > extends JFrame
 
 	private T getSelectedRow()
 	{
-		// TODO: in principle a flaw in logic as it assumes that all tableRows are of same type...
 		if ( tableRows.get( 0 ) instanceof TableRowImageSegment )
 		{
 			final double selectedLabelId = Double.parseDouble( goToRowIndexTextField.getText() );
@@ -370,7 +397,20 @@ public class Annotator< T extends TableRow > extends JFrame
 					return tableRow;
 				}
 			}
-			throw new UnsupportedOperationException( "Could not find segment with label " + selectedLabelId );
+			throw new UnsupportedOperationException( "Could not find " + objectName + " with ID " + selectedLabelId );
+		}
+		else if ( tableRows.get( 0 ) instanceof AnnotatedMaskTableRow )
+		{
+			final String annotationID = goToRowIndexTextField.getText();
+			for ( T tableRow : tableRows )
+			{
+				final String name = ( ( AnnotatedMaskTableRow ) tableRow ).name();
+				if ( name.equals( annotationID ) )
+				{
+					return tableRow;
+				}
+			}
+			throw new UnsupportedOperationException( "Could not find " + objectName + " with ID " + annotationID );
 		}
 		else
 		{
@@ -387,22 +427,10 @@ public class Annotator< T extends TableRow > extends JFrame
 
 	private void selectRow( T row )
 	{
-		//currentlySelectedRowIndex = sortedRowIndex;
 		currentlySelectedRow = row;
-
-
-//		if ( isNoneOrNan( row ) )
-//		{
-//			selectionColoringModel.setSelectionColoringMode( SelectionColoringModel.SelectionColoringMode.SelectionColor );
-//		}
-//		else
-//		{
-//			selectionColoringModel.setSelectionColoringMode( SelectionColoringModel.SelectionColoringMode.OnlyShowSelected );
-//		}
-
 		selectionModel.clearSelection();
 		selectionModel.setSelected( row, true );
-		selectionModel.focus( row );
+		selectionModel.focus( row, this );
 	}
 
 	private void addSkipNonePanel( )
@@ -415,6 +443,22 @@ public class Annotator< T extends TableRow > extends JFrame
 
 		checkBox.addActionListener( e -> {
 			skipNone = checkBox.isSelected();
+		}  );
+
+		panel.add( checkBox );
+		this.panel.add( panel );
+	}
+
+	private void addKeepSelectedPanel( )
+	{
+		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+
+		final JCheckBox checkBox = new JCheckBox( "Keep "+ objectName +"(s) selected after assignment" );
+		checkBox.setSelected( false );
+		isKeepSelectedMode = checkBox.isSelected();
+
+		checkBox.addActionListener( e -> {
+			isKeepSelectedMode = checkBox.isSelected();
 		}  );
 
 		panel.add( checkBox );
@@ -461,5 +505,17 @@ public class Annotator< T extends TableRow > extends JFrame
 		if ( annotationButtonsContainer.getComponentCount() < 6 ) {
 			this.pack();
 		}
+	}
+
+	@Override
+	public void selectionChanged()
+	{
+
+	}
+
+	@Override
+	public void focusEvent( T selection, Object origin )
+	{
+		currentlySelectedRow = selection;
 	}
 }

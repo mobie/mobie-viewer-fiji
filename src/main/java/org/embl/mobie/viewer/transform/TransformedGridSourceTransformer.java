@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.transform;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
+import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.ThreadUtils;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -9,8 +10,6 @@ import net.imglib2.realtransform.AffineTransform3D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class TransformedGridSourceTransformer extends AbstractSourceTransformer
@@ -27,13 +26,17 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
-		Logger.info("Transforming " + sources.size() + " sources into a grid...");
+		final long startTime = System.currentTimeMillis();
 		if ( positions == null )
 			autoSetPositions();
 
-		final double[] cellRealDimensions = TransformHelper.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
+		// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/674
+		final double[] cellRealDimensions = TransformHelpers.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
 
 		transform( sourceNameToSourceAndConverter, cellRealDimensions );
+		final long duration = System.currentTimeMillis() - startTime;
+		if ( duration > MoBIE.minLogTimeMillis )
+			Logger.info("Transformed " + sources.size() + " group(s) with "+ sources.get( 0 ).size() +" source(s) each into a grid in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
 	}
 
 	@Override
@@ -72,7 +75,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			if ( sourceAndConverter == null )
 			  continue;
 
-			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( translationX, translationY, sourceAndConverter, centerAtOrigin );
+			AffineTransform3D translationTransform = TransformHelpers.createTranslationTransform3D( translationX, translationY, sourceAndConverter, centerAtOrigin );
 
 			final SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, translationTransform );
 
