@@ -104,9 +104,9 @@ public class MoBIE
 
 	private MoBIESettings setImageDataFormat( String projectLocation )
 	{
-		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
+		final List<ImageDataFormat> imageDataFormat = settings.values.getImageDataFormat();
 
-		if ( imageDataFormat != null )
+		if ( imageDataFormat.size()  != 0 )
 		{
 			if ( ! project.getImageDataFormats().contains( imageDataFormat ) )
 			{
@@ -119,14 +119,15 @@ public class MoBIE
 			if ( projectLocation.startsWith( "http" ) )
 			{
 				if ( imageDataFormats.contains( ImageDataFormat.OmeZarrS3 ) )
-					return settings.imageDataFormat( ImageDataFormat.OmeZarrS3 );
-				else if ( imageDataFormats.contains( ImageDataFormat.BdvOmeZarrS3 ) )
-					return settings.imageDataFormat( ImageDataFormat.BdvOmeZarrS3 );
-				else if ( imageDataFormats.contains( ImageDataFormat.BdvN5S3 ) )
-					return settings.imageDataFormat( ImageDataFormat.BdvN5S3 );
-				else if ( imageDataFormats.contains( ImageDataFormat.OpenOrganelleS3 ) )
-					return settings.imageDataFormat( ImageDataFormat.OpenOrganelleS3 );
-				else
+					settings.imageDataFormat( ImageDataFormat.OmeZarrS3 );
+				if ( imageDataFormats.contains( ImageDataFormat.BdvOmeZarrS3 ) )
+					 settings.imageDataFormat( ImageDataFormat.BdvOmeZarrS3 );
+				if ( imageDataFormats.contains( ImageDataFormat.BdvN5S3 ) )
+					 settings.imageDataFormat( ImageDataFormat.BdvN5S3 );
+				if ( imageDataFormats.contains( ImageDataFormat.OpenOrganelleS3 ) )
+					 settings.imageDataFormat( ImageDataFormat.OpenOrganelleS3 );
+				if (!(imageDataFormats.contains( ImageDataFormat.OmeZarrS3 ) || imageDataFormats.contains( ImageDataFormat.BdvOmeZarrS3 )
+                || imageDataFormats.contains( ImageDataFormat.BdvN5S3 ) ||  imageDataFormats.contains( ImageDataFormat.OpenOrganelleS3 )))
 					throw new UnsupportedOperationException( "Could not find an S3 storage of the images." );
 			}
 			else
@@ -323,10 +324,20 @@ public class MoBIE
 	public SourceAndConverter< ? > openSourceAndConverter( String sourceName )
 	{
 		final ImageSource imageSource = getSource( sourceName );
-		final String imagePath = getImagePath( imageSource );
-		IJ.log( "Opening image:\n" + imagePath );
-		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
+        Set<ImageDataFormat> tmp = imageSource.imageData.keySet();
+        ImageDataFormat imageDataFormat = null;
+        for ( ImageDataFormat f : tmp ) {
+            if ( settings.values.getImageDataFormat().contains( f ) ) {
+                imageDataFormat = f;
+            }
+        }
+        if (imageDataFormat == null) {
+            System.err.println( "Error opening: " + imageSource );
+            throw new RuntimeException();
+        }
 
+		final String imagePath = getImagePath( imageSource, imageDataFormat );
+		IJ.log( "Opening image:\n" + imagePath );
 		try
 		{
 			SpimData spimData = tryOpenSpimData( imagePath, imageDataFormat );
@@ -348,16 +359,7 @@ public class MoBIE
 	{
 		try
 		{
-			if ( imageDataFormat.equals( ImageDataFormat.BdvOmeZarrS3) ||
-					imageDataFormat.equals( ImageDataFormat.BdvOmeZarr) )
-			{
-				// TODO enable shared queues
-				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
-			}
-			else
-			{
 				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
-			}
 		}
 		catch ( SpimDataException e )
 		{
@@ -626,8 +628,7 @@ public class MoBIE
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 	}
 
-    public synchronized String getImagePath(ImageSource source) {
-        final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
+    public synchronized String getImagePath(ImageSource source, ImageDataFormat imageDataFormat) {
 
         switch (imageDataFormat) {
             case BdvN5:
