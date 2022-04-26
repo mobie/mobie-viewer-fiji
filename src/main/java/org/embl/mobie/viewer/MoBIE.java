@@ -5,6 +5,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
 import mpicbg.spim.data.SpimDataException;
+import net.imglib2.RealInterval;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
@@ -74,8 +75,8 @@ public class MoBIE
 
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
-		IJ.log("# MoBIE\n" );
-		IJ.log("Opening project: " + projectLocation + "\n" );
+		IJ.log("\n# MoBIE" );
+		IJ.log("Opening project: " + projectLocation );
 		WindowArrangementHelper.setLogWindowPositionAndSize();
 
 		this.settings = settings.projectLocation( projectLocation );
@@ -89,7 +90,7 @@ public class MoBIE
 		openDataset();
 	}
 
-	// TODO: probably such plugins should rather come with the MoBIESettings
+	// TODO: probably such "plugins" should rather come with the MoBIESettings
 	//  such that additional commands could be registered without
 	//  changing the core code
 	private void registerProjectPlugins( String projectLocation )
@@ -97,7 +98,7 @@ public class MoBIE
 		if( projectLocation.contains( "platybrowser" ) )
 		{
 			GeneSearchCommand.setMoBIE( this );
-			projectCommands.add( SourceAndConverterService.getCommandName(  GeneSearchCommand.class ) );
+			projectCommands.add( SourceAndConverterService.getCommandName( GeneSearchCommand.class ) );
 		}
 	}
 

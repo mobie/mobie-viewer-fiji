@@ -16,9 +16,7 @@ import ij.gui.GenericDialog;
 import loci.plugins.in.ImagePlusReader;
 import loci.plugins.in.ImportProcess;
 import loci.plugins.in.ImporterOptions;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
@@ -26,7 +24,6 @@ import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
-import org.embl.mobie.viewer.transform.RealMaskSource;
 import org.embl.mobie.viewer.transform.TransformHelpers;
 
 import javax.swing.*;
