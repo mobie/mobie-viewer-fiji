@@ -112,11 +112,11 @@ public class MoBIE
 
 	private MoBIESettings setImageDataFormat( String projectLocation )
 	{
-		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
+		final List<ImageDataFormat> imageDataFormat = settings.values.getImageDataFormat();
 
-		if ( imageDataFormat != null )
+		if ( imageDataFormat.size()  != 0 )
 		{
-			if ( ! project.getImageDataFormats().contains( imageDataFormat ) )
+			if ( project.getImageDataFormats().stream().noneMatch(imageDataFormat::contains) )
 			{
 				throw new RuntimeException( "The requested image data format " + imageDataFormat + " is not supported by the project: " + projectLocation );
 			}
@@ -127,14 +127,15 @@ public class MoBIE
 			if ( projectLocation.startsWith( "http" ) )
 			{
 				if ( imageDataFormats.contains( ImageDataFormat.OmeZarrS3 ) )
-					return settings.imageDataFormat( ImageDataFormat.OmeZarrS3 );
-				else if ( imageDataFormats.contains( ImageDataFormat.BdvOmeZarrS3 ) )
-					return settings.imageDataFormat( ImageDataFormat.BdvOmeZarrS3 );
-				else if ( imageDataFormats.contains( ImageDataFormat.BdvN5S3 ) )
-					return settings.imageDataFormat( ImageDataFormat.BdvN5S3 );
-				else if ( imageDataFormats.contains( ImageDataFormat.OpenOrganelleS3 ) )
-					return settings.imageDataFormat( ImageDataFormat.OpenOrganelleS3 );
-				else
+					settings.imageDataFormat( ImageDataFormat.OmeZarrS3 );
+				if ( imageDataFormats.contains( ImageDataFormat.BdvOmeZarrS3 ) )
+					 settings.imageDataFormat( ImageDataFormat.BdvOmeZarrS3 );
+				if ( imageDataFormats.contains( ImageDataFormat.BdvN5S3 ) )
+					 settings.imageDataFormat( ImageDataFormat.BdvN5S3 );
+				if ( imageDataFormats.contains( ImageDataFormat.OpenOrganelleS3 ) )
+					 settings.imageDataFormat( ImageDataFormat.OpenOrganelleS3 );
+				if (!(imageDataFormats.contains( ImageDataFormat.OmeZarrS3 ) || imageDataFormats.contains( ImageDataFormat.BdvOmeZarrS3 )
+                || imageDataFormats.contains( ImageDataFormat.BdvN5S3 ) ||  imageDataFormats.contains( ImageDataFormat.OpenOrganelleS3 )))
 					throw new UnsupportedOperationException( "Could not find an S3 storage of the images." );
 			}
 			else
@@ -371,13 +372,22 @@ public class MoBIE
 	public SourceAndConverter< ? > openSourceAndConverter( String sourceName, String log )
 	{
 		final ImageSource imageSource = getSource( sourceName );
-		final String imagePath = getImagePath( imageSource );
+        Set<ImageDataFormat> tmp = imageSource.imageData.keySet();
+        ImageDataFormat imageDataFormat = null;
+        for ( ImageDataFormat f : tmp ) {
+            if ( settings.values.getImageDataFormat().contains( f ) ) {
+                imageDataFormat = f;
+            }
+        }
+        if (imageDataFormat == null) {
+            System.err.println( "Error opening: " + imageSource );
+            throw new RuntimeException();
+        }
 
-		if( log != null )
-			IJ.log( log + imagePath );
-
-		final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
-
+		final String imagePath = getImagePath( imageSource, imageDataFormat );
+        if( log != null )
+            IJ.log( log + imagePath );
+		IJ.log( "Opening image:\n" + imagePath );
 		try
 		{
 			SpimData spimData = tryOpenSpimData( imagePath, imageDataFormat );
@@ -385,9 +395,9 @@ public class MoBIE
 
 			final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 			SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-			// Touch the source once to initiate the cache,
-			// as this speeds up future accesses significantly
-			sourceAndConverter.getSpimSource().getSource( 0,0 );
+            // Touch the source once to initiate the cache,
+            // as this speeds up future accesses significantly
+            sourceAndConverter.getSpimSource().getSource( 0,0 );
 			return sourceAndConverter;
 		}
 		catch ( Exception e )
@@ -699,8 +709,7 @@ public class MoBIE
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 	}
 
-    public synchronized String getImagePath(ImageSource source) {
-        final ImageDataFormat imageDataFormat = settings.values.getImageDataFormat();
+    public synchronized String getImagePath(ImageSource source, ImageDataFormat imageDataFormat) {
 
         switch (imageDataFormat) {
             case BdvN5:

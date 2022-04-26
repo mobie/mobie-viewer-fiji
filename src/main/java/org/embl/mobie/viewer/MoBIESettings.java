@@ -2,6 +2,9 @@ package org.embl.mobie.viewer;
 
 import org.embl.mobie.io.ImageDataFormat;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MoBIESettings
 {
 	public final Values values = new Values();
@@ -31,7 +34,7 @@ public class MoBIESettings
 
 	public MoBIESettings imageDataFormat( ImageDataFormat imageDataFormat )
 	{
-		this.values.imageDataFormat = imageDataFormat;
+		this.values.imageDataFormats.add( imageDataFormat );
 		return this;
 	}
 
@@ -78,7 +81,7 @@ public class MoBIESettings
 		private String dataset;
 		private String projectBranch = "main"; // project and images
 		private String tableDataBranch;
-		private ImageDataFormat imageDataFormat;
+		private List<ImageDataFormat> imageDataFormats = new ArrayList<>();
 		private String projectLocation;
 		private String imageDataLocation;
 		private String tableDataLocation;
@@ -94,7 +97,7 @@ public class MoBIESettings
 			return projectBranch;
 		}
 
-		public ImageDataFormat getImageDataFormat() { return imageDataFormat; }
+		public List<ImageDataFormat> getImageDataFormat() { return imageDataFormats; }
 
 		public String getImageDataLocation()
 		{
