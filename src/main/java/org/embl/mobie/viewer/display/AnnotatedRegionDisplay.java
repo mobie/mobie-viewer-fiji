@@ -1,5 +1,7 @@
 package org.embl.mobie.viewer.display;
 
+import bdv.tools.transformation.TransformedSource;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
@@ -8,9 +10,10 @@ import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
+import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.table.TableViewer;
 import de.embl.cba.tables.color.ColoringLuts;
-import de.embl.cba.tables.select.SelectionModel;
+import org.embl.mobie.viewer.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 
 import java.util.ArrayList;
@@ -26,6 +29,8 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Abstr
 	protected String[] scatterPlotAxes = new String[]{ TableColumnNames.ANCHOR_X, TableColumnNames.ANCHOR_Y };
 	protected List< String > tables; // tables to display
 	protected boolean showTable = true;
+	protected boolean showAsBoundaries = false;
+	protected float boundaryThickness = 1.0F;
 
 	// Runtime
 	public transient SelectionModel< T > selectionModel;
@@ -69,14 +74,26 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Abstr
 		return showTable;
 	}
 
-	protected void fetchCurrentSettings ( AnnotatedRegionDisplay<T> annotatedRegionDisplay ) {
+	public boolean isShowAsBoundaries()
+	{
+		return showAsBoundaries;
+	}
+
+	public float getBoundaryThickness()
+	{
+		return boundaryThickness;
+	}
+
+	protected void fetchCurrentSettings( AnnotatedRegionDisplay<T> annotatedRegionDisplay )
+	{
 		this.name = annotatedRegionDisplay.name;
 
 		final SourceAndConverter< ? > sourceAndConverter = annotatedRegionDisplay.sourceNameToSourceAndConverter.values().iterator().next();
 
 		if( sourceAndConverter.getConverter() instanceof LabelConverter)
 		{
-			this.opacity = ( ( LabelConverter ) sourceAndConverter.getConverter() ).getOpacity();
+			final LabelConverter labelConverter = ( LabelConverter ) sourceAndConverter.getConverter();
+			this.opacity = labelConverter.getOpacity();
 		}
 
 		this.lut = annotatedRegionDisplay.coloringModel.getARGBLutName();
@@ -108,6 +125,16 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Abstr
 		}
 
 		this.showTable = annotatedRegionDisplay.tableViewer.getWindow().isVisible();
-	}
 
+		if ( sourceAndConverter.getSpimSource() instanceof TransformedSource )
+		{
+			final Source< ? > source = ( ( TransformedSource< ? > ) sourceAndConverter.getSpimSource() ).getWrappedSource();
+			if ( source instanceof LabelSource )
+			{
+				final LabelSource labelSource = ( LabelSource ) source;
+				this.showAsBoundaries = labelSource.isShowAsBoundaries();
+				this.boundaryThickness = labelSource.getBoundaryWidth();
+			}
+		}
+	}
 }

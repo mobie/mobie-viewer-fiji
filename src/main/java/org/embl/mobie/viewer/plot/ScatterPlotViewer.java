@@ -39,8 +39,8 @@ import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.plot.RealPointARGBTypeBiConsumerSupplier;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
 import de.embl.cba.tables.plot.TableRowKDTreeSupplier;
-import de.embl.cba.tables.select.SelectionListener;
-import de.embl.cba.tables.select.SelectionModel;
+import org.embl.mobie.viewer.select.SelectionListener;
+import org.embl.mobie.viewer.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import ij.IJ;
 import ij.gui.GenericDialog;
@@ -299,7 +299,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 				if ( selectionModel.isSelected( selection ) )
 				{
 					recentFocus = selection;
-					selectionModel.focus( selection );
+					selectionModel.focus( selection, this );
 				}
 			}
 		}
@@ -321,7 +321,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		if ( selection != null )
 		{
 			recentFocus = selection;
-			selectionModel.focus( selection );
+			selectionModel.focus( selection, this );
 		}
 		else
 		{
@@ -414,7 +414,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	}
 
 	@Override
-	public void focusEvent( T selection )
+	public void focusEvent( T selection, Object origin  )
 	{
 		if ( bdvHandle == null ) return;
 

@@ -1,14 +1,13 @@
 package org.embl.mobie.viewer.transform;
 
 import bdv.tools.transformation.TransformedSource;
+import bdv.util.Affine3DHelpers;
 import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
-import net.imglib2.FinalInterval;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
@@ -18,10 +17,11 @@ import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
-import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.SourceNameEncoder;
@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-public class MergedGridSource< T extends NativeType< T > & NumericType< T > > implements Source< T >
+public class MergedGridSource< T extends NativeType< T > & NumericType< T > > implements Source< T >, RealMaskSource
 {
 	private final T type;
 	private final Source< T > referenceSource;
@@ -51,6 +51,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	private int[][] cellDimensions;
 	private double[] cellRealDimensions;
 	private Set< SourceAndConverter > containedSourceAndConverters;
+	private RealMaskRealInterval mask;
 
 	public MergedGridSource( List< Source< T > > gridSources, List< int[] > positions, String mergedGridSourceName, double relativeCellMargin, boolean encodeSource )
 	{
@@ -61,9 +62,9 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		this.interpolators = new DefaultInterpolators<>();
 		this.referenceSource = gridSources.get( 0 );
 		this.mergedGridSourceName = mergedGridSourceName;
-		this.type = Util.getTypeFromInterval( referenceSource.getSource( 0, 0 ) );
+		this.type = referenceSource.getType();
 
-		mergedRandomAccessibleIntervals = createMergedRandomAccessibleIntervals();
+		mergedRandomAccessibleIntervals = createMergedRAIs();
 	}
 
 	public static boolean instanceOf( SourceAndConverter< ? > sourceAndConverter )
@@ -74,11 +75,19 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 
 	public static boolean instanceOf( Source< ? > source )
 	{
-		if ( source instanceof LabelSource )  source = ( ( LabelSource ) source ).getWrappedSource();
+		if ( source instanceof LabelSource )
+			source = ( ( LabelSource ) source ).getWrappedSource();
 
-		final Source wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
+		if ( source instanceof MergedGridSource )
+			return true;
 
-		return wrappedSource instanceof MergedGridSource || source instanceof MergedGridSource;
+		if ( source instanceof TransformedSource )
+			source = ( ( TransformedSource ) source ).getWrappedSource();
+
+		if ( source instanceof MergedGridSource )
+			return true;
+
+		return false;
 	}
 
 	public List< Source< T > > getGridSources()
@@ -86,15 +95,18 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		return gridSources;
 	}
 
-	private List< RandomAccessibleInterval< T > > createMergedRandomAccessibleIntervals()
+	private List< RandomAccessibleInterval< T > > createMergedRAIs()
+	{
+		final int numMipmapLevels = referenceSource.getNumMipmapLevels();
+		setCellDimensions( numMipmapLevels );
+		setCellRealDimensions( cellDimensions[ 0 ] );
+		setMask( positions, cellDimensions[ 0 ] );
+		return createMergedRAIs( numMipmapLevels );
+	}
+
+	private List< RandomAccessibleInterval< T > > createMergedRAIs( int numMipmapLevels )
 	{
 		final List< RandomAccessibleInterval< T >> mergedRandomAccessibleIntervals = new ArrayList<>();
-		final int numMipmapLevels = referenceSource.getNumMipmapLevels();
-		cellDimensions = computeCellDimensions( numMipmapLevels );
-		final AffineTransform3D affineTransform3D = new AffineTransform3D();
-		final FinalInterval interval = createInterval();
-		final FinalRealInterval bounds = affineTransform3D.estimateBounds( interval );
-		cellRealDimensions = bounds.maxAsDoubleArray();
 
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
@@ -123,14 +135,20 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		return mergedRandomAccessibleIntervals;
 	}
 
-	private FinalInterval createInterval()
+	private void setCellRealDimensions( int[] cellDimension )
 	{
-		final long[] max = MoBIEHelper.asLongs( cellDimensions[ 0 ] );
-		for ( int d = 0; d < max.length; d++ )
-			max[ d ] -= 1;
-		final long[] min = new long[ 3 ];
-		final FinalInterval interval = new FinalInterval( min, max );
-		return interval;
+		final AffineTransform3D referenceTransform = new AffineTransform3D();
+		referenceSource.getSourceTransform( 0, 0, referenceTransform );
+		cellRealDimensions = new double[ 3 ];
+		for ( int d = 0; d < 2; d++ )
+		{
+			cellRealDimensions[ d ] = cellDimension[ d ] * Affine3DHelpers.extractScale( referenceTransform, d );
+		}
+	}
+
+	public RealMaskRealInterval getRealMask()
+	{
+		return mask;
 	}
 
 	public double[] getCellRealDimensions()
@@ -138,7 +156,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		return cellRealDimensions;
 	}
 
-	private int[][] computeCellDimensions( int numMipmapLevels )
+	private void setCellDimensions( int numMipmapLevels )
 	{
 		final int numDimensions = referenceSource.getVoxelDimensions().numDimensions();
 
@@ -158,19 +176,19 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 						);
 		}
 
-		double[][] downsamplingFactors = new double[ numMipmapLevels ][ numDimensions ];
+		double[][] downSamplingFactors = new double[ numMipmapLevels ][ numDimensions ];
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
-				downsamplingFactors[ level ][ d ] = voxelSizes[ level ][ d ] / voxelSizes[ level - 1 ][ d ];
+				downSamplingFactors[ level ][ d ] = voxelSizes[ level ][ d ] / voxelSizes[ level - 1 ][ d ];
 
 		final double[] downsamplingFactorProducts = new double[ numDimensions ];
 		Arrays.fill( downsamplingFactorProducts, 1.0D );
 
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
-				downsamplingFactorProducts[ d ] *= downsamplingFactors[ level ][ d ];
+				downsamplingFactorProducts[ d ] *= downSamplingFactors[ level ][ d ];
 
-		int[][] cellDimensions = new int[ numMipmapLevels ][ numDimensions ];
+		cellDimensions = new int[ numMipmapLevels ][ numDimensions ];
 
 		// Adapt the cell dimensions such that they are divisible
 		// by all relative changes of the resolutions between the different levels.
@@ -189,10 +207,8 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
 			{
-				cellDimensions[ level ][ d ] = (int) ( cellDimensions[ level - 1 ][ d ] / downsamplingFactors[ level ][ d ] );
+				cellDimensions[ level ][ d ] = (int) ( cellDimensions[ level - 1 ][ d ] / downSamplingFactors[ level ][ d ] );
 			}
-
-		return cellDimensions;
 	}
 
 	private Map< String, Source< T > > createCellKeyToSource( int[] cellDimensions )
@@ -245,6 +261,34 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 
 		return dimensions;
 	}
+
+	private void setMask( List< int[] > positions, int[] cellDimensions )
+	{
+		final long[] minPos = new long[ 3 ];
+		final long[] maxPos = new long[ 3 ];
+		for ( int d = 0; d < 2; d++ )
+		{
+			final int finalD = d;
+			minPos[ d ] = positions.stream().mapToInt( pos -> pos[ finalD ] ).min().orElseThrow( NoSuchElementException::new );
+			maxPos[ d ] = positions.stream().mapToInt( pos -> pos[ finalD ] ).max().orElseThrow( NoSuchElementException::new );
+		}
+
+		final double[] min = new double[ 3 ];
+		final double[] max = new double[ 3 ];
+
+		final AffineTransform3D referenceTransform = new AffineTransform3D();
+		referenceSource.getSourceTransform( 0, 0, referenceTransform );
+
+		for ( int d = 0; d < 2; d++ )
+		{
+			final double scale = Affine3DHelpers.extractScale( referenceTransform, d );
+			min[ d ] = minPos[ d ] * cellDimensions[ d ] * scale;
+			max[ d ] = ( maxPos[ d ] + 1 ) * cellDimensions[ d ] * scale;
+		}
+
+		mask = GeomMasks.closedBox( min, max );
+	}
+
 
 	private static String getCellKey( long[] cellMins )
 	{
@@ -340,6 +384,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		this.containedSourceAndConverters = containedSourceAndConverters;
 	}
 
+	@Deprecated
 	public Set< SourceAndConverter > getContainedSourceAndConverters()
 	{
 		return containedSourceAndConverters;

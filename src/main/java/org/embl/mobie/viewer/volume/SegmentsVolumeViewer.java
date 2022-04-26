@@ -38,8 +38,8 @@ import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.ij3d.AnimatedViewAdjuster;
 import de.embl.cba.tables.imagesegment.ImageSegment;
-import de.embl.cba.tables.select.SelectionListener;
-import de.embl.cba.tables.select.SelectionModel;
+import org.embl.mobie.viewer.select.SelectionListener;
+import org.embl.mobie.viewer.select.SelectionModel;
 import ij3d.Content;
 import ij3d.Image3DUniverse;
 import ij3d.UniverseListener;
@@ -395,7 +395,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 				else
 				{
 					recentFocus = segment; // avoids "self-focusing"
-					selectionModel.focus( segment );
+					selectionModel.focus( segment, this );
 				}
 			}
 
@@ -457,7 +457,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	}
 
 	@Override
-	public synchronized void focusEvent( S selection )
+	public synchronized void focusEvent( S selection, Object origin  )
 	{
 		if ( ! showSegments ) return;
 

@@ -26,7 +26,7 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	// Runtime
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
 	public transient SegmentsVolumeViewer< TableRowImageSegment > segmentsVolumeViewer;
-	public transient SegmentationSliceView< TableRowImageSegment > sliceView;
+	public transient SegmentationSliceView sliceView;
 
 	public List< String > getSources()
 	{
@@ -50,6 +50,7 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 		return showSelectedSegmentsIn3d;
 	}
 
+	// Needed for Gson
 	public SegmentationSourceDisplay(){}
 
 	public SegmentationSourceDisplay( String name, double opacity, List< String > sources,

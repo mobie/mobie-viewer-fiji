@@ -20,6 +20,5 @@ public class ExploreJsonLoadingFromGitlab2
 
 		GsonBuilder builder = new GsonBuilder();
 		Object o = builder.create().fromJson(reader, Object.class);
-		int a = 1;
 	}
 }

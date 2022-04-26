@@ -5,15 +5,16 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
 import mpicbg.spim.data.SpimDataException;
+import net.imglib2.RealInterval;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
-import org.embl.mobie.viewer.display.AnnotatedIntervalDisplay;
-import org.embl.mobie.viewer.annotate.AnnotatedIntervalCreator;
-import org.embl.mobie.viewer.annotate.AnnotatedIntervalTableRow;
+import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
+import org.embl.mobie.viewer.annotate.AnnotatedMaskCreator;
+import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
@@ -39,9 +40,12 @@ import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataC
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class MoBIE
 {
@@ -62,6 +66,7 @@ public class MoBIE
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
 	private Map< String, SourceAndConverter< ? > > sourceNameToTransformedSourceAndConverter;
 	private ArrayList< String > projectCommands = new ArrayList<>();;
+	public static int minLogTimeMillis = 100;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -70,7 +75,10 @@ public class MoBIE
 
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
-		IJ.log("MoBIE");
+		IJ.log("\n# MoBIE" );
+		IJ.log("Opening project: " + projectLocation );
+		WindowArrangementHelper.setLogWindowPositionAndSize();
+
 		this.settings = settings.projectLocation( projectLocation );
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations( );
@@ -82,7 +90,7 @@ public class MoBIE
 		openDataset();
 	}
 
-	// TODO: probably such plugins should rather come with the MoBIESettings
+	// TODO: probably such "plugins" should rather come with the MoBIESettings
 	//  such that additional commands could be registered without
 	//  changing the core code
 	private void registerProjectPlugins( String projectLocation )
@@ -90,7 +98,7 @@ public class MoBIE
 		if( projectLocation.contains( "platybrowser" ) )
 		{
 			GeneSearchCommand.setMoBIE( this );
-			projectCommands.add( SourceAndConverterService.getCommandName(  GeneSearchCommand.class ) );
+			projectCommands.add( SourceAndConverterService.getCommandName( GeneSearchCommand.class ) );
 		}
 	}
 
@@ -145,7 +153,7 @@ public class MoBIE
 		return settings;
 	}
 
-	public static void mergeAnnotatedIntervalTable(List<AnnotatedIntervalTableRow> intervalTableRows, Map< String, List< String > > columns )
+	public static void mergeAnnotatedMaskTable( List< AnnotatedMaskTableRow > intervalTableRows, Map< String, List< String > > columns )
 	{
 		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
 		final ArrayList< String > gridIdColumn = TableColumns.getColumn( intervalTableRows, TableColumnNames.ANNOTATION_ID );
@@ -216,22 +224,52 @@ public class MoBIE
 	 */
 	public Map< String, SourceAndConverter< ? > > openSourceAndConverters( Collection< String > sources )
 	{
-		final long start = System.currentTimeMillis();
+		final long startTime = System.currentTimeMillis();
 
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = new ConcurrentHashMap< >();
 
 		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
+		AtomicInteger sourceIndex = new AtomicInteger(0);
+		final int numImages = sources.size();
+		AtomicInteger sourceLoggingModulo = new AtomicInteger(1);
+		AtomicLong lastLogMillis = new AtomicLong( System.currentTimeMillis() );
+
 		for ( String sourceName : sources )
 		{
 			futures.add(
-					ThreadUtils.ioExecutorService.submit( () -> { sourceNameToSourceAndConverters.put( sourceName, openSourceAndConverter( sourceName ) ); }
+					ThreadUtils.ioExecutorService.submit( () -> {
+						String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
+						sourceNameToSourceAndConverters.put( sourceName, openSourceAndConverter( sourceName, log ) );
+					}
 				) );
 		}
 		ThreadUtils.waitUntilFinished( futures );
 
-		IJ.log( "Fetched " + sourceNameToSourceAndConverters.size() + " image(s)  in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
+		IJ.log( "Opened " + sourceNameToSourceAndConverters.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using " + ThreadUtils.getnIoThreads() + " thread(s).\n");
 
 		return sourceNameToSourceAndConverters;
+	}
+
+	private String getLog( AtomicInteger index, int numTotal, AtomicInteger modulo, AtomicLong lastLogMillis )
+	{
+		if ( ( index.incrementAndGet() - 1 ) % modulo.get() == 0  )
+		{
+			final long currentTimeMillis = System.currentTimeMillis();
+			if ( currentTimeMillis - lastLogMillis.get() < 4000 )
+			{
+				modulo.set( modulo.get() * 2 );
+			}
+			else if ( currentTimeMillis - lastLogMillis.get() > 6000 )
+			{
+				modulo.set( modulo.get() / 2 );
+			}
+			lastLogMillis.set( currentTimeMillis );
+			return "Opening (" + index.get() + "/" + numTotal + "): ";
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	private void openDataset( String datasetName ) throws IOException
@@ -244,11 +282,21 @@ public class MoBIE
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
 		final View view = dataset.views.get( settings.values.getView() );
 		view.setName( settings.values.getView() );
+
+		System.out.println("# Views");
+		for ( String viewName : dataset.views.keySet() )
+		{
+			System.out.println( viewName );
+		}
+
+		IJ.log( "Opening view: " + view.getName() + "\n" );
+		final long startTime = System.currentTimeMillis();
 		viewManager.show( view );
+		IJ.log("Opened view: " + view.getName() + ", in " + (System.currentTimeMillis() - startTime) + " ms.\n" );
 
 		// arrange windows
-		WindowArrangementHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
-		WindowArrangementHelper.rightAlignWindow( userInterface.getWindow(), viewManager.getSliceViewer().getWindow(), false, true );
+		//WindowArrangementHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
+		//WindowArrangementHelper.rightAlignWindow( userInterface.getWindow(), viewManager.getSliceViewer().getWindow(), false, true );
 	}
 
 	private void setDatasetName( String datasetName )
@@ -321,7 +369,7 @@ public class MoBIE
 		return dataset.sources.get( sourceName ).get();
 	}
 
-	public SourceAndConverter< ? > openSourceAndConverter( String sourceName )
+	public SourceAndConverter< ? > openSourceAndConverter( String sourceName, String log )
 	{
 		final ImageSource imageSource = getSource( sourceName );
         Set<ImageDataFormat> tmp = imageSource.imageData.keySet();
@@ -337,6 +385,8 @@ public class MoBIE
         }
 
 		final String imagePath = getImagePath( imageSource, imageDataFormat );
+        if( log != null )
+            IJ.log( log + imagePath );
 		IJ.log( "Opening image:\n" + imagePath );
 		try
 		{
@@ -359,7 +409,16 @@ public class MoBIE
 	{
 		try
 		{
+			if ( imageDataFormat.equals( ImageDataFormat.BdvOmeZarrS3) ||
+					imageDataFormat.equals( ImageDataFormat.BdvOmeZarr) )
+			{
+				// TODO enable shared queues
+				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat );
+			}
+			else
+			{
 				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
+			}
 		}
 		catch ( SpimDataException e )
 		{
@@ -424,20 +483,19 @@ public class MoBIE
 		return location;
 	}
 
-	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName )
+	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName, String log )
 	{
 		final SegmentationSource tableSource = ( SegmentationSource ) getSource( sourceName );
-
 		final String defaultTablePath = getTablePath( tableSource, tableName );
-
+		if ( log != null )
+			IJ.log( log + defaultTablePath );
 		final List< TableRowImageSegment > segments = MoBIEHelper.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
-
 		return segments;
 	}
 
 	private Map< String, List< String > > loadAdditionalTable( String imageID, String tablePath )
 	{
-		Logger.log( "Opening table:\n" + tablePath );
+		Logger.log( "Opening additional table:\n" + tablePath );
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
 		TableColumns.addLabelImageIdColumn( columns, TableColumnNames.LABEL_IMAGE_ID, imageID );
 		return columns;
@@ -461,7 +519,10 @@ public class MoBIE
 		}
 		ThreadUtils.waitUntilFinished( futures );
 
-		System.out.println( "Fetched " + sources.size() + " table(s) in " + (System.currentTimeMillis() - start) + " ms, using " + ThreadUtils.N_IO_THREADS + " thread(s).");
+		final long durationMillis = System.currentTimeMillis() - start;
+
+		if ( durationMillis > minLogTimeMillis )
+			IJ.log( "Read " + sources.size() + " table(s) in " + durationMillis + " ms, using " + ThreadUtils.getnIoThreads() + " thread(s).\n");
 
 		return additionalTables;
 	}
@@ -471,7 +532,7 @@ public class MoBIE
 		return sourceNameToTransformedSourceAndConverter;
 	}
 
-	private ArrayList< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay, String table )
+	private Collection< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay, String tableName )
 	{
 		final List< String > segmentationDisplaySources = segmentationDisplay.getSources();
 		final ConcurrentHashMap< String, Set< Source< ? > > > sourceNameToRootSources = new ConcurrentHashMap();
@@ -483,26 +544,40 @@ public class MoBIE
 			sourceNameToRootSources.put( sourceName, rootSources );
 		}
 
-
-		final ArrayList< List< TableRowImageSegment > > primaryTables = new ArrayList<>();
+		final Queue< List< TableRowImageSegment > > primaryTables = new ConcurrentLinkedQueue<>();
+		final int numTables = getNumTables( segmentationDisplaySources, sourceNameToRootSources );
+		final long startTimeMillis = System.currentTimeMillis();
+		final AtomicLong lastLogMillis = new AtomicLong(startTimeMillis);
+		final AtomicInteger tableLoggingModulo = new AtomicInteger(1);
+		final AtomicInteger tableIndex = new AtomicInteger();
 		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
 		for ( String displayedSourceName : segmentationDisplaySources )
 		{
 			final Set< Source< ? > > rootSources = sourceNameToRootSources.get( displayedSourceName );
 			for ( Source rootSource : rootSources )
 			{
-				futures.add( ThreadUtils.ioExecutorService.submit( () -> 				loadAndAddPrimaryTable( table, primaryTables, rootSource.getName() ) ) );
+				futures.add( ThreadUtils.ioExecutorService.submit( () ->
+				{
+					final String log = getLog( tableIndex, numTables, tableLoggingModulo, lastLogMillis );
+					final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( rootSource.getName(), tableName, log );
+					primaryTables.add( primaryTable );
+				} ) );
 			}
 		}
 		ThreadUtils.waitUntilFinished( futures );
-
+		IJ.log( "Fetched " + numTables + " tables(s) in " + (System.currentTimeMillis() - startTimeMillis) + " ms, using " + ThreadUtils.getnIoThreads() + " thread(s).\n");
 		return primaryTables;
 	}
 
-	private void loadAndAddPrimaryTable( String tableName, ArrayList< List< TableRowImageSegment > > primaryTables, String tableSourceName )
+	private int getNumTables( List< String > segmentationDisplaySources, ConcurrentHashMap< String, Set< Source< ? > > > sourceNameToRootSources )
 	{
-		final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( tableSourceName, tableName );
-		primaryTables.add( primaryTable );
+		int numTables = 0;
+		for ( String displayedSourceName : segmentationDisplaySources )
+		{
+			final Set< Source< ? > > rootSources = sourceNameToRootSources.get( displayedSourceName );
+			numTables += rootSources.size();
+		}
+		return numTables;
 	}
 
 	private Map< String, List< String > > createColumnsForMerging( List< TableRowImageSegment > segments, Map< String, List< String > > newColumns )
@@ -571,7 +646,7 @@ public class MoBIE
 	public void loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay )
 	{
 		segmentationDisplay.tableRows = new ArrayList<>();
-		final ArrayList< List< TableRowImageSegment > > primaryTables = loadPrimarySegmentsTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
+		final Collection< List< TableRowImageSegment > > primaryTables = loadPrimarySegmentsTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
 
 		for ( List< TableRowImageSegment > primaryTable : primaryTables )
 		{
@@ -579,7 +654,7 @@ public class MoBIE
 		}
 	}
 
-	public List< AnnotatedIntervalTableRow > loadAnnotatedIntervalTables( AnnotatedIntervalDisplay annotationDisplay )
+	public List< AnnotatedMaskTableRow > loadAnnotatedMaskTables( AnnotatedSourceDisplay annotationDisplay )
 	{
 		// open
 		final List< Map< String, List< String > > > tables = new ArrayList<>();
@@ -587,21 +662,24 @@ public class MoBIE
 		{
 			String tablePath = getTablePath( annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
 			tablePath = MoBIEHelper.resolveTablePath( tablePath );
-			Logger.log( "Opening table:\n" + tablePath );
+			final long startTime = System.currentTimeMillis();
 			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
+			final long durationMillis = System.currentTimeMillis() - startTime;
+			if ( durationMillis > minLogTimeMillis )
+				Logger.log( "Read in "+ durationMillis +" ms: " + tablePath );
 		}
 
-		// create primary AnnotatedIntervalTableRow table
+		// create primary AnnotatedMaskTableRow table
 		final Map< String, List< String > > referenceTable = tables.get( 0 );
-		// TODO: The AnnotatedIntervalCreator does not need the sources, but just the source's real intervals
-		final AnnotatedIntervalCreator annotatedIntervalCreator = new AnnotatedIntervalCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), (String sourceName ) -> this.getTransformedSourceAndConverter( sourceName )  );
-		final List< AnnotatedIntervalTableRow > intervalTableRows = annotatedIntervalCreator.getAnnotatedIntervalTableRows();
+		// TODO: The AnnotatedMaskCreator does not need the sources, but just the source's real intervals
+		final AnnotatedMaskCreator annotatedMaskCreator = new AnnotatedMaskCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), (String sourceName ) -> getTransformedSourceAndConverter( sourceName )  );
+		final List< AnnotatedMaskTableRow > intervalTableRows = annotatedMaskCreator.getAnnotatedMaskTableRows();
 
 		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
 
 		for ( int i = 0; i < additionalTables.size(); i++ )
 		{
-			MoBIE.mergeAnnotatedIntervalTable( intervalTableRows, additionalTables.get( i ) );
+			MoBIE.mergeAnnotatedMaskTable( intervalTableRows, additionalTables.get( i ) );
 		}
 
 		return intervalTableRows;
