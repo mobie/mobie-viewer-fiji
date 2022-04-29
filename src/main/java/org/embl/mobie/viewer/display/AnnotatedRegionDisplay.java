@@ -24,7 +24,7 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Abstr
 	// Serialization
 	protected String lut = ColoringLuts.GLASBEY;
 	protected String colorByColumn;
-	protected Double[] valueLimits = new Double[]{ null, null };
+	protected Double[] valueLimits;
 	protected boolean showScatterPlot = false;
 	protected String[] scatterPlotAxes = new String[]{ TableColumnNames.ANCHOR_X, TableColumnNames.ANCHOR_Y };
 	protected List< String > tables; // tables to display

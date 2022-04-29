@@ -108,7 +108,7 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 		if (currentSelectedSegments != null) {
 			ArrayList<String> selectedSegmentIds = new ArrayList<>();
 			for (TableRowImageSegment segment : currentSelectedSegments) {
-				selectedSegmentIds.add( segment.imageId() + ";" + segment.timePoint() + ";" + segment.labelId() );
+				selectedSegmentIds.add( segment.imageId() + ";" + segment.timePoint() + ";" + (int) segment.labelId() );
 			}
 			this.selectedSegmentIds = selectedSegmentIds;
 		}
