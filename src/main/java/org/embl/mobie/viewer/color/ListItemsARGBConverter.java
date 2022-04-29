@@ -10,6 +10,11 @@ import net.imglib2.type.numeric.RealType;
 import java.util.HashMap;
 import java.util.List;
 
+import static net.imglib2.type.numeric.ARGBType.alpha;
+import static net.imglib2.type.numeric.ARGBType.blue;
+import static net.imglib2.type.numeric.ARGBType.green;
+import static net.imglib2.type.numeric.ARGBType.red;
+
 public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBType >, OpacityAdjuster, TimePointListener
 {
 	public static final int OUT_OF_BOUNDS_ROW_INDEX = -1;
@@ -58,11 +63,12 @@ public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBTyp
 		else
 		{
 			coloringModel.convert( item, color );
-			final int alpha = ARGBType.alpha( color.get() );
-			color.mul( alpha / 255.0 );
+			//final int alpha = ARGBType.alpha( color.get() );
+			//color.mul( alpha / 255.0 );
 		}
-
-		color.mul( opacity );
+		final int value = color.get();
+		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
+		//color.mul( opacity );
 	}
 
 	@Override

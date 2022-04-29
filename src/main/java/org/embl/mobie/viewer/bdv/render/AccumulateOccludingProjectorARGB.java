@@ -124,10 +124,11 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 			final int g = ARGBType.green( argb );
 			final int b = ARGBType.blue( argb );
 
+			final double alpha = a / 255.0;
 			aAccu += a; // does this make sense??
-			rAccu += r;
-			gAccu += g;
-			bAccu += b;
+			rAccu += r * alpha;
+			gAccu += g * alpha;
+			bAccu += b * alpha;
 		}
 
 		if ( aAccu > 255 )

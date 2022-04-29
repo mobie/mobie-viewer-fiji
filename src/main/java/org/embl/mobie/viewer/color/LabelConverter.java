@@ -40,6 +40,11 @@ import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 
+import static net.imglib2.type.numeric.ARGBType.alpha;
+import static net.imglib2.type.numeric.ARGBType.blue;
+import static net.imglib2.type.numeric.ARGBType.green;
+import static net.imglib2.type.numeric.ARGBType.red;
+
 public class LabelConverter< S extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, OpacityAdjuster
 {
 	private final SegmentAdapter< S > segmentAdapter;
@@ -112,9 +117,11 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	private void setColorBySegment( ARGBType color, S imageSegment )
 	{
 		coloringModel.convert( imageSegment, color );
-		final int alpha = ARGBType.alpha( color.get() );
-		color.mul( alpha / 255.0 );
-		color.mul( opacity );
+		final int value = color.get();
+		//final int alpha = alpha( value );
+		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
+		//color.mul( alpha / 255.0 );
+		//color.mul( opacity );
 	}
 
 	@Override
