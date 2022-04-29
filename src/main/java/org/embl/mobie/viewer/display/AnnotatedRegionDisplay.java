@@ -7,6 +7,7 @@ import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.NumericColoringModel;
 import org.embl.mobie.viewer.TableColumnNames;
+import org.embl.mobie.viewer.bdv.view.AnnotatedRegionSliceView;
 import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
@@ -38,6 +39,12 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Abstr
 	public transient TableViewer< T > tableViewer;
 	public transient ScatterPlotViewer< T > scatterPlotViewer;
 	public transient List< T > tableRows;
+
+	// Should be overwritten by child classes
+	public AnnotatedRegionSliceView< ? > getSliceView()
+	{
+		return null;
+	}
 
 	public String getLut()
 	{

@@ -527,27 +527,22 @@ public class ViewManager
 	{
 		if ( sourceDisplay instanceof AnnotatedRegionDisplay )
 		{
-			final SegmentationSourceDisplay segmentationDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
-			segmentationDisplay.sliceView.close( closeImgLoader );
-			if ( segmentationDisplay.tableRows != null )
+			final AnnotatedRegionDisplay< ? > regionDisplay = ( AnnotatedRegionDisplay< ? > ) sourceDisplay;
+			regionDisplay.getSliceView().close( closeImgLoader );
+
+			if ( regionDisplay.tableRows != null )
 			{
-				segmentationDisplay.tableViewer.close();
-				segmentationDisplay.scatterPlotViewer.close();
-				segmentationDisplay.segmentsVolumeViewer.close();
+				regionDisplay.tableViewer.close();
+				regionDisplay.scatterPlotViewer.close();
+				if ( regionDisplay instanceof SegmentationSourceDisplay )
+					( ( SegmentationSourceDisplay ) regionDisplay ).segmentsVolumeViewer.close();
 			}
+
 		}
 		else if ( sourceDisplay instanceof ImageSourceDisplay )
 		{
 			final ImageSourceDisplay imageDisplay = ( ImageSourceDisplay ) sourceDisplay;
 			imageDisplay.imageSliceView.close( false );
-		}
-		else if ( sourceDisplay instanceof AnnotatedSourceDisplay )
-		{
-			// TODO: Code duplication (sourceDisplay instanceof SegmentationSourceDisplay)
-			final AnnotatedSourceDisplay annotatedSourceDisplay = ( AnnotatedSourceDisplay ) sourceDisplay;
-			annotatedSourceDisplay.sliceView.close( false );
-			annotatedSourceDisplay.tableViewer.close();
-			annotatedSourceDisplay.scatterPlotViewer.close();
 		}
 
 		userInterface.removeDisplaySettingsPanel( sourceDisplay );

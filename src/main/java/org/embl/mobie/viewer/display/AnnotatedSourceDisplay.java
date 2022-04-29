@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.display;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.bdv.view.AnnotatedMaskSliceView;
+import org.embl.mobie.viewer.bdv.view.AnnotatedRegionSliceView;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
 
@@ -45,6 +46,12 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 		for ( List< String > sources : this.sources.values() )
 			allSources.addAll( sources );
 		return allSources;
+	}
+
+	@Override
+	public AnnotatedRegionSliceView< ? > getSliceView()
+	{
+		return sliceView;
 	}
 
 	// Needed for Gson

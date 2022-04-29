@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.display;
 
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
+import org.embl.mobie.viewer.bdv.view.AnnotatedRegionSliceView;
 import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
@@ -27,6 +28,12 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
 	public transient SegmentsVolumeViewer< TableRowImageSegment > segmentsVolumeViewer;
 	public transient SegmentationSliceView sliceView;
+
+	@Override
+	public AnnotatedRegionSliceView< ? > getSliceView()
+	{
+		return sliceView;
+	}
 
 	public List< String > getSources()
 	{

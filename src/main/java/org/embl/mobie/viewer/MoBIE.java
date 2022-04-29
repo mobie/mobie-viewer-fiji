@@ -6,6 +6,7 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
 import mpicbg.spim.data.SpimDataException;
 import net.imglib2.RealInterval;
+import net.imglib2.util.Intervals;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
