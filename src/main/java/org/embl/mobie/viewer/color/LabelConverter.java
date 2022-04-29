@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer.color;
 
 import bdv.viewer.TimePointListener;
+import ij.IJ;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.type.volatiles.VolatileUnsignedIntType;
 import org.embl.mobie.viewer.SourceNameEncoder;
