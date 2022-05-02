@@ -6,6 +6,7 @@ import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +22,6 @@ public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBTyp
 	private final ColoringModel< T > coloringModel;
 	private final List< T > list;
 	private int backgroundARGBIndex; // default, background color
-	private final HashMap< Integer, Integer > indexToColor;
 	private double opacity = 0.5;
 
 	public ListItemsARGBConverter(
@@ -30,8 +30,7 @@ public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBTyp
 	{
 		this.list = list;
 		this.coloringModel = coloringModel;
-		backgroundARGBIndex = ARGBType.rgba( 0,0,0,255 );
-		indexToColor = new HashMap<>();
+		backgroundARGBIndex = ARGBType.rgba( 0,0,0,0 );
 	}
 
 	@Override
@@ -63,12 +62,8 @@ public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBTyp
 		else
 		{
 			coloringModel.convert( item, color );
-			//final int alpha = ARGBType.alpha( color.get() );
-			//color.mul( alpha / 255.0 );
 		}
-		final int value = color.get();
-		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
-		//color.mul( opacity );
+		AdjustableOpacityColorConverter.adjustAlpha( color, opacity );
 	}
 
 	@Override

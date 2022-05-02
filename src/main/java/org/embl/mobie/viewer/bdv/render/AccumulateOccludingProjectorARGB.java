@@ -72,30 +72,26 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 	{
 		final ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
 
-		return sources.stream()
-				.map(sac -> sacService.getMetadata( sac, BlendingMode.BLENDING_MODE ) )
-				.map(it -> it==null ? BlendingMode.Sum:it)
-				.toArray( BlendingMode[]::new );
+		final BlendingMode[] blendingModes = new BlendingMode[ sources.size() ];
+		for ( int sourceIndex = 0; sourceIndex < sources.size(); sourceIndex++ )
+		{
+			final SourceAndConverter< ? > sourceAndConverter = sources.get( sourceIndex );
+			final BlendingMode blendingMode = ( BlendingMode ) sacService.getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
+			if ( blendingMode != null )
+				blendingModes[ sourceIndex ] = blendingMode;
+			else
+				blendingModes[ sourceIndex ] = BlendingMode.Sum;
+		}
+		return blendingModes;
 	}
 
 	private static void initOcclusions( BlendingMode[] blendingModes )
 	{
-		isOccludedBy = new ArrayList();
 		isOccluding = new ArrayList();
 
 		for ( int sourceIndex = 0; sourceIndex < blendingModes.length; sourceIndex++ )
 		{
 			isOccluding.add( BlendingMode.isOccluding( blendingModes[ sourceIndex ] ) );
-			final ArrayList< Integer > occludingSubsequentSourceIndices = new ArrayList<>();
-			isOccludedBy.add( occludingSubsequentSourceIndices );
-
-			for ( int subsequentSourceIndex = sourceIndex + 1; subsequentSourceIndex < blendingModes.length; subsequentSourceIndex++ )
-			{
-				if ( BlendingMode.isOccluding( blendingModes[ subsequentSourceIndex ] ) )
-				{
-					occludingSubsequentSourceIndices.add( subsequentSourceIndex );
-				}
-			}
 		}
 	}
 
@@ -124,8 +120,6 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 			final int g = ARGBType.green( argb );
 			final int b = ARGBType.blue( argb );
 
-			final double occludingAlpha = occludingAlpha( argbs, occludedBy.get( sourceIndex ) ) / 255.0;
-
 			if ( isOccluding.get( sourceIndex ) )
 			{
 				rAccu *= (1 - alpha);
@@ -136,11 +130,6 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 			rAccu += r * alpha;
 			gAccu += g * alpha;
 			bAccu += b * alpha;
-
-			if ( sourceIndex == 1 )
-			{
-				int sfsf = 0;
-			}
 		}
 
 		if ( aAccu > 255 )

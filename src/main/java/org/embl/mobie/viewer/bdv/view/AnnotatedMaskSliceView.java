@@ -5,12 +5,14 @@ import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.annotate.TableRowsIntervalImage;
+import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import net.imglib2.type.numeric.integer.IntType;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 
 public class AnnotatedMaskSliceView extends AnnotatedRegionSliceView< AnnotatedMaskTableRow >
@@ -20,6 +22,11 @@ public class AnnotatedMaskSliceView extends AnnotatedRegionSliceView< AnnotatedM
 		super( moBIE, display, bdvHandle );
 
 		final SourceAndConverter< IntType > sourceAndConverter = createSourceAndConverter();
+
+		// https://github.com/mobie/mobie-viewer-fiji/issues/695
+		// we decided to make all label sources occluding
+		SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
+		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, BlendingMode.SumOccluding );
 
 		show( sourceAndConverter );
 	}

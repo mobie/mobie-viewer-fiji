@@ -30,8 +30,15 @@ public class SegmentationSliceView extends AnnotatedRegionSliceView< TableRowIma
 
 			show( labelSourceAndConverter );
 
-			if ( display.getBlendingMode() != null )
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( labelSourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
+			BlendingMode blendingMode = display.getBlendingMode();
+			// https://github.com/mobie/mobie-viewer-fiji/issues/695
+			// we decided to make all label source occluding
+			blendingMode = BlendingMode.SumOccluding;
+			if ( blendingMode != null )
+			{
+				SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( labelSourceAndConverter, BlendingMode.BLENDING_MODE, blendingMode );
+			}
 		}
 	}
 
