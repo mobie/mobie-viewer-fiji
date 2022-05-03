@@ -1,11 +1,15 @@
 package org.embl.mobie.viewer.display;
 
+import bdv.viewer.SourceAndConverter;
+import net.imglib2.type.numeric.integer.IntType;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
+import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.AnnotatedMaskSliceView;
 import org.embl.mobie.viewer.bdv.view.AnnotatedRegionSliceView;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.*;
 
@@ -96,4 +100,5 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 		this.tableData = new HashMap<>();
 		this.tableData.putAll( annotatedSourceDisplay.tableData );
 	}
+
 }

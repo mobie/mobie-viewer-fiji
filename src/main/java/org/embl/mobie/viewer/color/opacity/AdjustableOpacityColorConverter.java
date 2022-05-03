@@ -34,11 +34,6 @@ import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 
-import static net.imglib2.type.numeric.ARGBType.alpha;
-import static net.imglib2.type.numeric.ARGBType.blue;
-import static net.imglib2.type.numeric.ARGBType.green;
-import static net.imglib2.type.numeric.ARGBType.red;
-
 public class AdjustableOpacityColorConverter implements OpacityAdjuster, ColorConverter, Converter< RealType, ARGBType >
 {
 	private final Converter< RealType, ARGBType > converter;
@@ -60,14 +55,8 @@ public class AdjustableOpacityColorConverter implements OpacityAdjuster, ColorCo
 		else
 		{
 			converter.convert( realType, color );
-			adjustAlpha( color, opacity );
+			OpacityAdjuster.adjustAlpha( color, opacity );
 		}
-	}
-
-	public static void adjustAlpha( ARGBType color, double opacity )
-	{
-		final int value = color.get();
-		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
 	}
 
 	@Override

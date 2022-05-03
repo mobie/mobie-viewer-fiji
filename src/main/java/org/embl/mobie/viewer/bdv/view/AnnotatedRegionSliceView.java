@@ -5,7 +5,9 @@ import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.tablerow.TableRow;
+import net.imglib2.type.numeric.integer.IntType;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.display.AnnotatedRegionDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
@@ -38,13 +40,16 @@ public abstract class AnnotatedRegionSliceView< T extends TableRow > implements 
 
 	protected void show( SourceAndConverter< ? > sourceAndConverter )
 	{
+		SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
+
+		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
+
 		adjustLabelRendering( sourceAndConverter );
 
 		OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
-		// show
-		final boolean visible = display.isVisible();
-		displayService.show( bdvHandle, visible, sourceAndConverter );
+		// show in Bdv
+		displayService.show( bdvHandle, display.isVisible(), sourceAndConverter );
 
 		bdvHandle.getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
 

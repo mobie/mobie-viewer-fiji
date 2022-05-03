@@ -6,15 +6,8 @@ import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
 
-import java.util.HashMap;
 import java.util.List;
-
-import static net.imglib2.type.numeric.ARGBType.alpha;
-import static net.imglib2.type.numeric.ARGBType.blue;
-import static net.imglib2.type.numeric.ARGBType.green;
-import static net.imglib2.type.numeric.ARGBType.red;
 
 public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBType >, OpacityAdjuster, TimePointListener
 {
@@ -63,7 +56,7 @@ public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBTyp
 		{
 			coloringModel.convert( item, color );
 		}
-		AdjustableOpacityColorConverter.adjustAlpha( color, opacity );
+		OpacityAdjuster.adjustAlpha( color, opacity );
 	}
 
 	@Override

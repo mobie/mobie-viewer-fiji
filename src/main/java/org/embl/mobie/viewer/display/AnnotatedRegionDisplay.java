@@ -7,6 +7,7 @@ import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.NumericColoringModel;
 import org.embl.mobie.viewer.TableColumnNames;
+import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.AnnotatedRegionSliceView;
 import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
@@ -32,6 +33,9 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Abstr
 	protected boolean showTable = true;
 	protected boolean showAsBoundaries = false;
 	protected float boundaryThickness = 1.0F;
+
+	// Fixed
+	protected final BlendingMode blendingMode = BlendingMode.SumOccluding;
 
 	// Runtime
 	public transient SelectionModel< T > selectionModel;
@@ -89,6 +93,11 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Abstr
 	public float getBoundaryThickness()
 	{
 		return boundaryThickness;
+	}
+
+	public BlendingMode getBlendingMode()
+	{
+		return blendingMode;
 	}
 
 	protected void fetchCurrentSettings( AnnotatedRegionDisplay<T> annotatedRegionDisplay )
