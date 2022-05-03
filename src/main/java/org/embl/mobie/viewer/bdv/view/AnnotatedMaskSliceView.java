@@ -2,15 +2,14 @@ package org.embl.mobie.viewer.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.type.numeric.integer.IntType;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.annotate.TableRowsIntervalImage;
-import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
-import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
-import net.imglib2.type.numeric.integer.IntType;
+import org.embl.mobie.viewer.transform.PositionViewerTransform;
 
 
 public class AnnotatedMaskSliceView extends AnnotatedRegionSliceView< AnnotatedMaskTableRow >
@@ -20,7 +19,6 @@ public class AnnotatedMaskSliceView extends AnnotatedRegionSliceView< AnnotatedM
 		super( moBIE, display, bdvHandle );
 
 		final SourceAndConverter< IntType > sourceAndConverter = createSourceAndConverter();
-
 		show( sourceAndConverter );
 	}
 

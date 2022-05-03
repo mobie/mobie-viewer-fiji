@@ -12,11 +12,11 @@ import java.util.concurrent.TimeUnit;
 
 public class ThreadUtils
 {
-	public static final int N_FETCHER_THREADS = Runtime.getRuntime().availableProcessors() - 1;
-	public static final SharedQueue sharedQueue = new SharedQueue( N_FETCHER_THREADS );
-
 	private static int N_IO_THREADS = 16;
 	public static ExecutorService ioExecutorService = Executors.newFixedThreadPool( N_IO_THREADS );
+
+	public static final int N_FETCHER_THREADS = Runtime.getRuntime().availableProcessors() - 1;
+	public static final SharedQueue sharedQueue = new SharedQueue( N_FETCHER_THREADS );
 
 	public static int N_THREADS = Runtime.getRuntime().availableProcessors() - 1;;
 	public static ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );

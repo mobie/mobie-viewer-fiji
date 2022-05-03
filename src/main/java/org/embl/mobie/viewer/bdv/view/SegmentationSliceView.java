@@ -29,9 +29,6 @@ public class SegmentationSliceView extends AnnotatedRegionSliceView< TableRowIma
 			SourceAndConverter< ? > labelSourceAndConverter = asLabelSourceAndConverter( display, sourceAndConverter );
 
 			show( labelSourceAndConverter );
-
-			if ( display.getBlendingMode() != null )
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( labelSourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
 		}
 	}
 

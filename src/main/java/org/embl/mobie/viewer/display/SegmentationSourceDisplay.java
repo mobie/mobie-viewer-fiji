@@ -22,7 +22,6 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	protected List< String > selectedSegmentIds;
 	protected boolean showSelectedSegmentsIn3d = false;
 	protected Double[] resolution3dView;
-	protected BlendingMode blendingMode;
 
 	// Runtime
 	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
@@ -42,11 +41,6 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 
 	public Double[] getResolution3dView(){ return resolution3dView; }
 
-	public BlendingMode getBlendingMode()
-	{
-		return blendingMode;
-	}
-
 	public List< String > getSelectedTableRows()
 	{
 		return selectedSegmentIds;
@@ -64,7 +58,7 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 									  String lut, String colorByColumn, Double[] valueLimits,
 									  List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d,
 									  boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables,
-									  Double[] resolution3dView, BlendingMode blendingMode )
+									  Double[] resolution3dView )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -78,7 +72,6 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 		this.scatterPlotAxes = scatterPlotAxes;
 		this.tables = tables;
 		this.resolution3dView = resolution3dView;
-		this.blendingMode = blendingMode;
 	}
 
 	/**
@@ -95,8 +88,6 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 
 		final SourceAndConverter< ? > sourceAndConverter =
 				segmentationDisplay.sourceNameToSourceAndConverter.values().iterator().next();
-
-		this.blendingMode = (BlendingMode) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
 
 		if ( segmentationDisplay.segmentsVolumeViewer != null )
 		{
