@@ -87,7 +87,6 @@ public class ImageSliceView
 		// replace converter such that one can change the opacity
 		// (this changes the hash-code of the sourceAndConverter)
 
-		// TODO: understand this madness
 		final Converter< RealType, ARGBType > converter = ( Converter< RealType, ARGBType > ) sourceAndConverter.getConverter();
 		final AdjustableOpacityColorConverter adjustableOpacityColorConverter = new AdjustableOpacityColorConverter( converter );
 		final Converter< ? extends Volatile< ? >, ARGBType > volatileConverter = sourceAndConverter.asVolatile().getConverter();

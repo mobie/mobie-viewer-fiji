@@ -85,7 +85,7 @@ public abstract class AnnotatedRegionSliceView< T extends TableRow > implements 
 	@Override
 	public synchronized void focusEvent( T selection, Object origin  )
 	{
-		// must be defined in child classes
+		// define in child classes
 	}
 
 	public BdvHandle getBdvHandle()

@@ -42,6 +42,8 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 	@Override
 	public List< String > getSources()
 	{
+		// TODO: This may be wrong, it should just return: getName();
+		//   because this is the name of the source it will display
 		final ArrayList< String > allSources = new ArrayList<>();
 		for ( List< String > sources : this.sources.values() )
 			allSources.addAll( sources );

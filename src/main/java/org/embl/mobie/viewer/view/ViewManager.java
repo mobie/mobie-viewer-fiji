@@ -89,6 +89,7 @@ public class ViewManager
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewsSaver = new ViewsSaver( moBIE );
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
+
 	}
 
 	public static void initScatterPlotViewer( AnnotatedRegionDisplay< ? > display )
@@ -559,7 +560,7 @@ public class ViewManager
 		}
 
 		for ( SourceTransformer sourceTransformer: sourceTransformersCopy ) {
-			if ( !containsAtLeastOne( currentlyDisplayedSources, sourceTransformer.getSources() )) {
+			if ( ! containsAtLeastOne( currentlyDisplayedSources, sourceTransformer.getSources() )) {
 				currentSourceTransformers.remove( sourceTransformer );
 			}
 		}

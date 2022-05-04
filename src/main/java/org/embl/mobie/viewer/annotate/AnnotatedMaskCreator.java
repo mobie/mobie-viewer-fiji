@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class AnnotatedMaskCreator
 {
@@ -40,12 +39,9 @@ public class AnnotatedMaskCreator
 
 		for ( String annotationId : annotationIds )
 		{
-			final List< ? extends Source< ? > > sources = annotationIdToSources.get( annotationId ).stream().map( name -> sourceAndConverterSupplier.apply( name ).getSpimSource() ).collect( Collectors.toList() );
-			// TODO: if all the sources cover the same interval, could we simplify the below call?
+			final List< Source< ? > > sources = getSources( annotationId );
+
 			final RealMaskRealInterval mask = MoBIEHelper.unionRealMask( sources );
-			System.out.println( annotationId );
-			System.out.println( sources.size() );
-			System.out.println( Arrays.toString( mask.minAsDoubleArray() ));
 
 			annotatedMaskTableRows.add(
 					new DefaultAnnotatedMaskTableRow(
@@ -59,6 +55,22 @@ public class AnnotatedMaskCreator
 		final long durationMillis = System.currentTimeMillis() - currentTimeMillis;
 		if ( durationMillis > 100 )
 			IJ.log("Created " + annotationIds.size() + " annotated intervals in " + durationMillis + " ms.");
+	}
+
+	private List< Source< ? > > getSources( String annotationId )
+	{
+		final List< Source< ? > > sources = new ArrayList<>();
+		final List< String > sourceNames = annotationIdToSources.get( annotationId );
+		for ( String sourceName : sourceNames )
+		{
+			final SourceAndConverter< ? > sourceAndConverter = sourceAndConverterSupplier.apply( sourceName );
+			if ( sourceAndConverter == null )
+			{
+				throw new RuntimeException( "Could not find " + sourceName + " in the list of all sources.\nA possible explanation is that " + sourceName + " is not part of any image display." );
+			}
+			sources.add( sourceAndConverter.getSpimSource() );
+		}
+		return sources;
 	}
 
 	public List< AnnotatedMaskTableRow > getAnnotatedMaskTableRows()
