@@ -35,7 +35,7 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Abstr
 	protected float boundaryThickness = 1.0F;
 
 	// Fixed
-	protected final BlendingMode blendingMode = BlendingMode.SumOccluding;
+	protected transient final BlendingMode blendingMode = BlendingMode.SumOccluding;
 
 	// Runtime
 	public transient SelectionModel< T > selectionModel;
