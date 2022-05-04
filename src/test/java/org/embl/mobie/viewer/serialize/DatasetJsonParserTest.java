@@ -11,6 +11,7 @@ import org.embl.mobie.viewer.source.SourceSupplier;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.view.View;
 import org.everit.json.schema.Schema;
+import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -101,6 +102,15 @@ class DatasetJsonParserTest {
         String jsonPath = new File( tempDir, datasetJsonName ).getAbsolutePath();
         datasetJsonParser.saveDataset( dataset, jsonPath );
 
-        validateJSON(jsonPath);
+        try {
+            validateJSON(jsonPath);
+        } catch ( ValidationException e ) {
+            // print details of individual errors - so error message is more informative, then re-throw the exception
+            System.out.println(e.getMessage());
+            e.getCausingExceptions().stream()
+                    .map(ValidationException::getMessage)
+                    .forEach(System.out::println);
+            throw e;
+        }
     }
 }
