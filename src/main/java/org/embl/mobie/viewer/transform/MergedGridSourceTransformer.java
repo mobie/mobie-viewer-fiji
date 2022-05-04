@@ -4,13 +4,12 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.VolatileSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.tables.Logger;
 import ij.IJ;
 import net.imglib2.RealInterval;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.ThreadUtils;
+import org.embl.mobie.viewer.MultiThreading;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,18 +77,18 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		translationRealOffset = computeTranslationOffset( gridSources, gridCellRealDimensions );
 
 		final int numSources = gridSources.size();
-		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
+		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
 		for ( int positionIndex = 0; positionIndex < numSources; positionIndex++ )
 		{
 			final int finalPositionIndex = positionIndex;
 
 			final ArrayList< String > sourceNamesAtGridPosition = getSourcesAtGridPosition( gridSources, finalPositionIndex );
 
-			futures.add( ThreadUtils.executorService.submit( () -> {
+			futures.add( MultiThreading.executorService.submit( () -> {
 				recursivelyTransformSources( sourceNameToSourceAndConverter, gridCellRealDimensions, finalPositionIndex, sourceNamesAtGridPosition );
 			} ) );
 		}
-		ThreadUtils.waitUntilFinished( futures );
+		MultiThreading.waitUntilFinished( futures );
 	}
 
 	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealDimensions )
@@ -166,7 +165,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	{
 		mergedGridSource = new MergedGridSource( gridSources, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN, encodeSource );
 
-		final VolatileSource< ?, ? > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, ThreadUtils.sharedQueue );
+		final VolatileSource< ?, ? > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MultiThreading.sharedQueue );
 
 		final SourceAndConverter< ? > volatileSourceAndConverter = new SourceAndConverter( volatileMergedGridSource, volatileConverter );
 

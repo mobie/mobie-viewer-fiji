@@ -6,6 +6,8 @@ import org.embl.mobie.viewer.bdv.MobieBdvSupplier;
 import org.embl.mobie.viewer.bdv.MobieSerializableBdvOptions;
 import org.embl.mobie.viewer.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.viewer.bdv.ViewerTransformLogger;
+import org.embl.mobie.viewer.bdv.render.BlendingMode;
+import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.command.LabelRenderingConfiguratorCommand;
 import org.embl.mobie.viewer.command.ManualRegistrationCommand;
 import org.embl.mobie.viewer.command.BigWarpRegistrationCommand;
@@ -16,6 +18,9 @@ import org.embl.mobie.viewer.command.SelectedSegmentsColorConfiguratorCommand;
 import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
 import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
+import org.embl.mobie.viewer.display.AbstractSourceDisplay;
+import org.embl.mobie.viewer.display.ImageSourceDisplay;
+import org.embl.mobie.viewer.display.SourceDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import org.embl.mobie.viewer.command.RandomColorSeedChangerCommand;
 import org.embl.mobie.viewer.view.ViewManager;
@@ -35,7 +40,7 @@ import java.util.function.Supplier;
 
 import static org.embl.mobie.viewer.ui.WindowArrangementHelper.setBdvWindowPositionAndSize;
 
-public class SliceViewer implements Supplier< BdvHandle >
+public class SliceViewer
 {
 	public static final String UNDO_SEGMENT_SELECTIONS = "Undo Segment Selections [ Ctrl Shift N ]";
 	public static final String CHANGE_RANDOM_COLOR_SEED = "Change Random Color Seed";
@@ -69,8 +74,7 @@ public class SliceViewer implements Supplier< BdvHandle >
 		installContextMenuAndKeyboardShortCuts();
 	}
 
-	@Override
-	public BdvHandle get()
+	public BdvHandle getBdvHandle()
 	{
 		if ( bdvHandle == null )
 		{
@@ -166,13 +170,24 @@ public class SliceViewer implements Supplier< BdvHandle >
 		return bdvHandle;
 	}
 
-	public BdvHandle getBdvHandle()
-	{
-		return bdvHandle;
-	}
-
 	public Window getWindow()
 	{
 		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
+	}
+
+	public void show( SourceAndConverter< ? > sourceAndConverter, AbstractSourceDisplay display )
+	{
+		// register
+		SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
+
+		// blending mode
+		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
+
+		// opacity
+		OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
+
+		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
+
+		display.sourceNameToSourceAndConverter.put( sourceAndConverter.getSpimSource().getName(), sourceAndConverter );
 	}
 }

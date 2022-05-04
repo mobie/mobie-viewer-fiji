@@ -2,9 +2,9 @@ package org.embl.mobie.viewer.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import bdv.viewer.SynchronizedViewerState;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
@@ -14,13 +14,12 @@ import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 public class SegmentationSliceView extends AnnotatedRegionSliceView< TableRowImageSegment >
 {
-	public SegmentationSliceView( MoBIE moBIE, SegmentationSourceDisplay display, BdvHandle bdvHandle )
+	public SegmentationSliceView( MoBIE moBIE, SegmentationSourceDisplay display )
 	{
-		super( moBIE, display, bdvHandle );
+		super( moBIE, display );
 
 		for ( String name : display.getSources() )
 		{
@@ -76,9 +75,12 @@ public class SegmentationSliceView extends AnnotatedRegionSliceView< TableRowIma
 		if ( origin instanceof SliceViewRegionSelector )
 			return;
 
-		if ( selection.timePoint() != getBdvHandle().getViewerPanel().state().getCurrentTimepoint() )
+		final BdvHandle bdvHandle = getSliceViewer().getBdvHandle();
+		final SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
+
+		if ( selection.timePoint() != state.getCurrentTimepoint() )
 		{
-			getBdvHandle().getViewerPanel().state().setCurrentTimepoint( selection.timePoint() );
+			state.setCurrentTimepoint( selection.timePoint() );
 		}
 
 		final double[] position = new double[ 3 ];

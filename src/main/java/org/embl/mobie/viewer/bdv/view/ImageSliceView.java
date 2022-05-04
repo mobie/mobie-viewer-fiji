@@ -1,22 +1,18 @@
 package org.embl.mobie.viewer.bdv.view;
 
 import bdv.tools.brightness.ConverterSetup;
-import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
-import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.bdv.render.BlendingMode;
-import org.embl.mobie.viewer.color.OpacityAdjuster;
-import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
-import org.embl.mobie.viewer.color.opacity.VolatileAdjustableOpacityColorConverter;
-import org.embl.mobie.viewer.display.ImageSourceDisplay;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
+import org.embl.mobie.viewer.color.opacity.VolatileAdjustableOpacityColorConverter;
+import org.embl.mobie.viewer.display.ImageSourceDisplay;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
@@ -26,68 +22,42 @@ import java.util.Map;
 
 import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
-public class ImageSliceView
+public class ImageSliceView extends AbstractSliceView
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	private final MoBIE moBIE;
 	private final ImageSourceDisplay display;
-	private final BdvHandle bdvHandle;
 
-	public ImageSliceView( MoBIE moBIE, ImageSourceDisplay display, BdvHandle bdvHandle )
+	public ImageSliceView( MoBIE moBIE, ImageSourceDisplay display )
 	{
-		this.moBIE = moBIE;
+		super( moBIE, display );
 		this.display = display;
-		this.bdvHandle = bdvHandle;
-
 		show();
 	}
 
 	private void show( )
 	{
-		// show
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter = new HashMap<>();
 		for ( String name : display.getSources() ) {
 			sourceNameToSourceAndConverter.put( name, moBIE.getTransformedSourceAndConverter( name ) );
 		}
 
-		display.sourceNameToSourceAndConverter = new HashMap<>();
 		for ( String name : sourceNameToSourceAndConverter.keySet() )
 		{
 			SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( name );
-			sourceAndConverter = adaptConverter( sourceAndConverter );
-
-			// set opacity
-			OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
-
-			// set color
+			sourceAndConverter = replaceConverterWithAdjustableOpacityConverter( sourceAndConverter );
 			adaptImageColor( sourceAndConverter );
 
-			// set blending mode
-			if ( display.getBlendingMode() != null )
-				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
-
-			// show
-			SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
-
-			final AffineTransform3D transform3D = new AffineTransform3D();
-			sourceAndConverter.getSpimSource().getSourceTransform( 0,0, transform3D );
+			display.sliceViewer.show( sourceAndConverter, display );
 
 			// adapt contrast limits
 			final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
 			converterSetup.setDisplayRange( display.getContrastLimits()[ 0 ], display.getContrastLimits()[ 1 ] );
-
-			// register	the actually displayed sac (for serialisation)
-			display.sourceNameToSourceAndConverter.put( name, sourceAndConverter );
 		}
 	}
 
-	private SourceAndConverter< ? > adaptConverter( SourceAndConverter< ? > sourceAndConverter )
+	private SourceAndConverter< ? > replaceConverterWithAdjustableOpacityConverter( SourceAndConverter< ? > sourceAndConverter )
 	{
-		// replace converter such that one can change the opacity
-		// (this changes the hash-code of the sourceAndConverter)
-
-		// TODO: understand this madness
 		final Converter< RealType, ARGBType > converter = ( Converter< RealType, ARGBType > ) sourceAndConverter.getConverter();
 		final AdjustableOpacityColorConverter adjustableOpacityColorConverter = new AdjustableOpacityColorConverter( converter );
 		final Converter< ? extends Volatile< ? >, ARGBType > volatileConverter = sourceAndConverter.asVolatile().getConverter();
@@ -123,14 +93,4 @@ public class ImageSliceView
 			}
 		}
 	}
-
-	public void close( boolean closeImgLoader )
-	{
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
-		{
-			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
-		}
-		display.sourceNameToSourceAndConverter.clear();
-	}
-
 }

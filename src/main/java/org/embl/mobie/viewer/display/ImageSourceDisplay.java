@@ -19,7 +19,6 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 	private List< String > sources;
 	private String color;
 	private double[] contrastLimits;
-	private BlendingMode blendingMode;
 	private boolean showImagesIn3d;
 
 	// Runtime

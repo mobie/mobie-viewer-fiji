@@ -1,21 +1,18 @@
 package org.embl.mobie.viewer.display;
 
-import bdv.viewer.SourceAndConverter;
-import net.imglib2.type.numeric.integer.IntType;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
-import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.AnnotatedMaskSliceView;
 import org.embl.mobie.viewer.bdv.view.AnnotatedRegionSliceView;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-// Even though within the rest of the code we call things now AnnotatedMask*
-// the name of this class for now remains AnnotatedSourceDisplay
-// in order to stay consistent with the nomenclature in dataset.json
 public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMaskTableRow >
 {
 	// Serialization
@@ -27,7 +24,6 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 	public transient AnnotatedMaskAdapter annotatedMaskAdapter;
 	public transient AnnotatedMaskSliceView sliceView;
 
-	// Getters for the serialised fields
 	public List< String > getSelectedAnnotationIds()
 	{
 		return selectedAnnotationIds;

@@ -5,8 +5,6 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
 import mpicbg.spim.data.SpimDataException;
-import net.imglib2.RealInterval;
-import net.imglib2.util.Intervals;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
@@ -229,7 +227,7 @@ public class MoBIE
 
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = new ConcurrentHashMap< >();
 
-		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
+		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
 		AtomicInteger sourceIndex = new AtomicInteger(0);
 		final int numImages = sources.size();
 		AtomicInteger sourceLoggingModulo = new AtomicInteger(1);
@@ -238,15 +236,15 @@ public class MoBIE
 		for ( String sourceName : sources )
 		{
 			futures.add(
-					ThreadUtils.ioExecutorService.submit( () -> {
+					MultiThreading.ioExecutorService.submit( () -> {
 						String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
 						sourceNameToSourceAndConverters.put( sourceName, openSourceAndConverter( sourceName, log ) );
 					}
 				) );
 		}
-		ThreadUtils.waitUntilFinished( futures );
+		MultiThreading.waitUntilFinished( futures );
 
-		IJ.log( "Opened " + sourceNameToSourceAndConverters.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using " + ThreadUtils.getnIoThreads() + " thread(s).\n");
+		IJ.log( "Opened " + sourceNameToSourceAndConverters.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).\n");
 
 		return sourceNameToSourceAndConverters;
 	}
@@ -421,7 +419,7 @@ public class MoBIE
 			}
 			else
 			{
-				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadUtils.sharedQueue );
+				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, MultiThreading.sharedQueue );
 			}
 		}
 		catch ( SpimDataException e )
@@ -510,8 +508,8 @@ public class MoBIE
 		final List< Map< String, List< String > > > additionalTables = new CopyOnWriteArrayList<>();
 
 		final long start = System.currentTimeMillis();
-		final ExecutorService executorService = ThreadUtils.ioExecutorService;
-		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
+		final ExecutorService executorService = MultiThreading.ioExecutorService;
+		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
 		for ( String sourceName : sources )
 		{
 			futures.add(
@@ -521,12 +519,12 @@ public class MoBIE
 				} )
 			);
 		}
-		ThreadUtils.waitUntilFinished( futures );
+		MultiThreading.waitUntilFinished( futures );
 
 		final long durationMillis = System.currentTimeMillis() - start;
 
 		if ( durationMillis > minLogTimeMillis )
-			IJ.log( "Read " + sources.size() + " table(s) in " + durationMillis + " ms, using " + ThreadUtils.getnIoThreads() + " thread(s).\n");
+			IJ.log( "Read " + sources.size() + " table(s) in " + durationMillis + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).\n");
 
 		return additionalTables;
 	}
@@ -554,13 +552,13 @@ public class MoBIE
 		final AtomicLong lastLogMillis = new AtomicLong(startTimeMillis);
 		final AtomicInteger tableLoggingModulo = new AtomicInteger(1);
 		final AtomicInteger tableIndex = new AtomicInteger();
-		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
+		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
 		for ( String displayedSourceName : segmentationDisplaySources )
 		{
 			final Set< Source< ? > > rootSources = sourceNameToRootSources.get( displayedSourceName );
 			for ( Source rootSource : rootSources )
 			{
-				futures.add( ThreadUtils.ioExecutorService.submit( () ->
+				futures.add( MultiThreading.ioExecutorService.submit( () ->
 				{
 					final String log = getLog( tableIndex, numTables, tableLoggingModulo, lastLogMillis );
 					final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( rootSource.getName(), tableName, log );
@@ -568,8 +566,8 @@ public class MoBIE
 				} ) );
 			}
 		}
-		ThreadUtils.waitUntilFinished( futures );
-		IJ.log( "Fetched " + numTables + " tables(s) in " + (System.currentTimeMillis() - startTimeMillis) + " ms, using " + ThreadUtils.getnIoThreads() + " thread(s).\n");
+		MultiThreading.waitUntilFinished( futures );
+		IJ.log( "Fetched " + numTables + " tables(s) in " + (System.currentTimeMillis() - startTimeMillis) + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).\n");
 		return primaryTables;
 	}
 

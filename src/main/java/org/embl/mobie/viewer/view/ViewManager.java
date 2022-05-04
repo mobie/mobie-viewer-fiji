@@ -62,20 +62,9 @@ public class ViewManager
 	private final SourceAndConverterService sacService;
 	private List<SourceDisplay> currentSourceDisplays;
 	private List<SourceTransformer> currentSourceTransformers;
-	private final BdvHandle bdvHandle;
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewsSaver viewsSaver;
-
-    public List<SourceTransformer> getCurrentSourceTransformers()
-    {
-        return currentSourceTransformers;
-    }
-
-    public UserInterface getUserInterface()
-    {
-        return userInterface;
-    }
 
     public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
 	{
@@ -85,7 +74,6 @@ public class ViewManager
 		currentSourceTransformers = new ArrayList<>();
 		sliceViewer = new SliceViewer( is2D, this, timepoints, moBIE.getProjectCommands() );
 		universeManager = new UniverseManager();
-		bdvHandle = sliceViewer.get();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewsSaver = new ViewsSaver( moBIE );
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
@@ -238,6 +226,7 @@ public class ViewManager
 
 		if ( includeViewerTransform )
 		{
+			final BdvHandle bdvHandle = sliceViewer.getBdvHandle();
 			AffineTransform3D normalisedViewTransform = TransformHelpers.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
 
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
@@ -306,6 +295,8 @@ public class ViewManager
 
 	public void adjustViewerTransform( View view )
 	{
+		final BdvHandle bdvHandle = sliceViewer.getBdvHandle();
+
 		if ( view.getViewerTransform() != null )
 		{
 			MoBIEViewerTransformChanger.changeViewerTransform( bdvHandle, view.getViewerTransform() );
@@ -379,7 +370,7 @@ public class ViewManager
 	private void showImageDisplay( ImageSourceDisplay imageDisplay )
 	{
 		imageDisplay.sliceViewer = sliceViewer;
-		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle );
+		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay );
 		initImageVolumeViewer( imageDisplay );
 	}
 
@@ -498,12 +489,12 @@ public class ViewManager
 
 	private void showInSliceViewer( SegmentationSourceDisplay segmentationDisplay )
 	{
-		segmentationDisplay.sliceView = new SegmentationSliceView( moBIE, segmentationDisplay, bdvHandle );
+		segmentationDisplay.sliceView = new SegmentationSliceView( moBIE, segmentationDisplay );
 	}
 
 	private void showInSliceViewer( AnnotatedSourceDisplay annotatedSourceDisplay )
 	{
-		annotatedSourceDisplay.sliceView = new AnnotatedMaskSliceView( moBIE, annotatedSourceDisplay, bdvHandle );
+		annotatedSourceDisplay.sliceView = new AnnotatedMaskSliceView( moBIE, annotatedSourceDisplay );
 	}
 
 	private void initSegmentationVolumeViewer( SegmentationSourceDisplay segmentationDisplay )

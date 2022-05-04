@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import bdv.viewer.SynchronizedViewerState;
 import net.imglib2.type.numeric.integer.IntType;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
@@ -14,9 +15,9 @@ import org.embl.mobie.viewer.transform.PositionViewerTransform;
 
 public class AnnotatedMaskSliceView extends AnnotatedRegionSliceView< AnnotatedMaskTableRow >
 {
-	public AnnotatedMaskSliceView( MoBIE moBIE, AnnotatedSourceDisplay display, BdvHandle bdvHandle  )
+	public AnnotatedMaskSliceView( MoBIE moBIE, AnnotatedSourceDisplay display )
 	{
-		super( moBIE, display, bdvHandle );
+		super( moBIE, display );
 
 		final SourceAndConverter< IntType > sourceAndConverter = createSourceAndConverter();
 		show( sourceAndConverter );
@@ -26,8 +27,7 @@ public class AnnotatedMaskSliceView extends AnnotatedRegionSliceView< AnnotatedM
 	{
 		final TableRowsIntervalImage< AnnotatedMaskTableRow > maskImage = new TableRowsIntervalImage<>( display.tableRows, display.coloringModel, display.getName() );
 
-		final SourceAndConverter< IntType > sourceAndConverter = maskImage.getSourceAndConverter();
-		return sourceAndConverter;
+		return maskImage.getSourceAndConverter();
 	}
 
 	@Override
@@ -36,14 +36,17 @@ public class AnnotatedMaskSliceView extends AnnotatedRegionSliceView< AnnotatedM
 		if ( origin instanceof SliceViewRegionSelector )
 			return;
 
-		if ( selection.timePoint() != getBdvHandle().getViewerPanel().state().getCurrentTimepoint() )
+		final BdvHandle bdvHandle = getSliceViewer().getBdvHandle();
+		final SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
+
+		if ( selection.timePoint() != state.getCurrentTimepoint() )
 		{
-			getBdvHandle().getViewerPanel().state().setCurrentTimepoint( selection.timePoint() );
+			state.setCurrentTimepoint( selection.timePoint() );
 		}
 
 		final double[] center = getPosition( selection );
 
-		MoBIEViewerTransformChanger.changeViewerTransform( bdvHandle, new PositionViewerTransform( center, bdvHandle.getViewerPanel().state().getCurrentTimepoint() ) );
+		MoBIEViewerTransformChanger.changeViewerTransform( bdvHandle, new PositionViewerTransform( center, state.getCurrentTimepoint() ) );
 	}
 
 	private double[] getPosition( AnnotatedMaskTableRow selection )
