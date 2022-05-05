@@ -41,7 +41,7 @@ public class AnnotatedMaskCreator
 		for ( String annotationId : annotationIds )
 		{
 			final List< ? extends Source< ? > > sources = annotationIdToSources.get( annotationId ).stream().map( name -> sourceAndConverterSupplier.apply( name ).getSpimSource() ).collect( Collectors.toList() );
-			// TODO: if all the sources cover the same interval, could we simplify the below call?
+
 			final RealMaskRealInterval mask = MoBIEHelper.unionRealMask( sources );
 			System.out.println( annotationId );
 			System.out.println( sources.size() );
