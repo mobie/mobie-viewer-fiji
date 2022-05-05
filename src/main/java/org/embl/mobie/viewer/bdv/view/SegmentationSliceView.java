@@ -70,9 +70,9 @@ public class SegmentationSliceView extends AnnotatedRegionSliceView< TableRowIma
 	}
 
 	@Override
-	public synchronized void focusEvent( TableRowImageSegment selection, Object origin  )
+	public synchronized void focusEvent( TableRowImageSegment selection, Object initiator )
 	{
-		if ( origin instanceof SliceViewRegionSelector )
+		if ( initiator instanceof SliceViewRegionSelector )
 			return;
 
 		final BdvHandle bdvHandle = getSliceViewer().getBdvHandle();

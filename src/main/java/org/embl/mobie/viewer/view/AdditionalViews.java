@@ -1,4 +1,4 @@
-package org.embl.mobie.viewer.view.additionalviews;
+package org.embl.mobie.viewer.view;
 
 import org.embl.mobie.viewer.view.View;
 

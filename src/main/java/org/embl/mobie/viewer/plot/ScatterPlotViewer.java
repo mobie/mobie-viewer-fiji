@@ -414,7 +414,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	}
 
 	@Override
-	public void focusEvent( T selection, Object origin  )
+	public void focusEvent( T selection, Object initiator )
 	{
 		if ( bdvHandle == null ) return;
 

@@ -31,9 +31,9 @@ public class AnnotatedMaskSliceView extends AnnotatedRegionSliceView< AnnotatedM
 	}
 
 	@Override
-	public synchronized void focusEvent( AnnotatedMaskTableRow selection, Object origin  )
+	public synchronized void focusEvent( AnnotatedMaskTableRow selection, Object initiator )
 	{
-		if ( origin instanceof SliceViewRegionSelector )
+		if ( initiator instanceof SliceViewRegionSelector )
 			return;
 
 		final BdvHandle bdvHandle = getSliceViewer().getBdvHandle();

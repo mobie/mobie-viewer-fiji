@@ -6,7 +6,7 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.view.View;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViews;
+import org.embl.mobie.viewer.view.AdditionalViews;
 import de.embl.cba.tables.github.GitHubUtils;
 import ij.IJ;
 import ij.gui.GenericDialog;

@@ -36,7 +36,6 @@ import org.embl.mobie.viewer.transform.TransformHelpers;
 import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
 import org.embl.mobie.viewer.view.saving.ViewsSaver;
 import org.embl.mobie.viewer.volume.ImageVolumeViewer;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;

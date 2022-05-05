@@ -26,14 +26,14 @@ public abstract class AnnotatedRegionSliceView< T extends TableRow > extends Abs
 
 	protected void show( SourceAndConverter< ? > sourceAndConverter )
 	{
-		adjustLabelRendering( sourceAndConverter );
+		configureLabelBoundaryRendering( sourceAndConverter );
 
 		show( sourceAndConverter );
 
 		getSliceViewer().getBdvHandle().getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
 	}
 
-	private void adjustLabelRendering( SourceAndConverter< ? > sourceAndConverter )
+	private void configureLabelBoundaryRendering( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final boolean showAsBoundaries = display.isShowAsBoundaries();
 		final float boundaryThickness = display.getBoundaryThickness();
@@ -55,9 +55,9 @@ public abstract class AnnotatedRegionSliceView< T extends TableRow > extends Abs
 	}
 
 	@Override
-	public synchronized void focusEvent( T selection, Object origin  )
+	public synchronized void focusEvent( T selection, Object initiator )
 	{
-		// must be defined in child classes
+		// define in child classes
 	}
 
 	public Window getWindow()

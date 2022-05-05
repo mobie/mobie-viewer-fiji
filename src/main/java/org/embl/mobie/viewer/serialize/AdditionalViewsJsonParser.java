@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.serialize;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonWriter;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViews;
+import org.embl.mobie.viewer.view.AdditionalViews;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 
 import java.io.*;

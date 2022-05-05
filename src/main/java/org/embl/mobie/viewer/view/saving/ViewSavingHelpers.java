@@ -4,7 +4,7 @@ import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.view.View;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViews;
+import org.embl.mobie.viewer.view.AdditionalViews;
 import de.embl.cba.tables.github.GitHubUtils;
 
 import java.io.IOException;

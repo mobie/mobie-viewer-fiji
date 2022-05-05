@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.view.saving;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViews;
+import org.embl.mobie.viewer.view.AdditionalViews;
 import de.embl.cba.tables.SwingUtils;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
 import org.embl.mobie.viewer.ui.SwingHelpers;
