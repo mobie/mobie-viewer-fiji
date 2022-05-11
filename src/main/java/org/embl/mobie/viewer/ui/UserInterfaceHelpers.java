@@ -558,7 +558,7 @@ public class UserInterfaceHelpers
 
 	public ImageIcon createMobieIcon( int size )
 	{
-		final URL resource = UserInterfaceHelpers.class.getResource( "/mobie.jpeg" );
+		final URL resource = UserInterfaceHelpers.class.getResource( "/mobie.png" );
 		final ImageIcon imageIcon = new ImageIcon( resource );
 		final Image scaledInstance = imageIcon.getImage().getScaledInstance( size, size, Image.SCALE_SMOOTH );
 		return new ImageIcon( scaledInstance );
