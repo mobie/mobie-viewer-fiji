@@ -11,6 +11,7 @@ import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.AnnotatedRegionSliceView;
 import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
+import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.table.TableViewer;
@@ -106,10 +107,10 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Abstr
 
 		final SourceAndConverter< ? > sourceAndConverter = annotatedRegionDisplay.sourceNameToSourceAndConverter.values().iterator().next();
 
-		if( sourceAndConverter.getConverter() instanceof LabelConverter)
+		if( sourceAndConverter.getConverter() instanceof OpacityAdjuster )
 		{
-			final LabelConverter labelConverter = ( LabelConverter ) sourceAndConverter.getConverter();
-			this.opacity = labelConverter.getOpacity();
+			final OpacityAdjuster opacityAdjuster = ( OpacityAdjuster ) sourceAndConverter.getConverter();
+			this.opacity = opacityAdjuster.getOpacity();
 		}
 
 		this.lut = annotatedRegionDisplay.coloringModel.getARGBLutName();

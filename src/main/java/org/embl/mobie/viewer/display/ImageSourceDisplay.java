@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.display;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
+import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
@@ -21,6 +22,7 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 	private double[] contrastLimits;
 	private BlendingMode blendingMode;
 	private boolean showImagesIn3d;
+	private Double[] resolution3dView;
 
 	// Runtime
 	public transient ImageSliceView imageSliceView;
@@ -81,7 +83,22 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 
 		setDisplaySettings( sourceAndConverter );
 
-		// TODO - show images in 3d (currently not supported in viewer)
+		if ( imageDisplay.imageVolumeViewer != null )
+		{
+			this.showImagesIn3d = imageDisplay.imageVolumeViewer.getShowImages();
+
+			double[] voxelSpacing = imageDisplay.imageVolumeViewer.getVoxelSpacing();
+			if ( voxelSpacing != null ) {
+				resolution3dView = new Double[voxelSpacing.length];
+				for (int i = 0; i < voxelSpacing.length; i++) {
+					resolution3dView[i] = voxelSpacing[i];
+				}
+			}
+		}
+
+		if ( imageDisplay.imageSliceView != null ) {
+			visible = imageDisplay.imageSliceView.isDisplayVisible();
+		}
 	}
 
 	public ImageSourceDisplay( SourceAndConverter< ? > sourceAndConverter )

@@ -104,5 +104,9 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 			}
 			this.selectedSegmentIds = selectedSegmentIds;
 		}
+
+		if ( segmentationDisplay.sliceView != null ) {
+			visible = segmentationDisplay.sliceView.isDisplayVisible();
+		}
 	}
 }
