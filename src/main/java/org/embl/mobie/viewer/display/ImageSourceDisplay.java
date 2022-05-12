@@ -44,6 +44,8 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 		return blendingMode;
 	}
 
+	public Double[] getResolution3dView() { return resolution3dView; }
+
 	public boolean showImagesIn3d()
 	{
 		return showImagesIn3d;
