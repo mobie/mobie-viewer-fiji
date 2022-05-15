@@ -99,6 +99,10 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 
 		this.tableData = new HashMap<>();
 		this.tableData.putAll( annotatedSourceDisplay.tableData );
+
+		if ( annotatedSourceDisplay.sliceView != null ) {
+			this.visible = annotatedSourceDisplay.sliceView.isDisplayVisible();
+		}
 	}
 
 }

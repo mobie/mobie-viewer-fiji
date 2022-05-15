@@ -21,6 +21,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -122,6 +123,12 @@ public class ImageSliceView
 				}
 			}
 		}
+	}
+
+	public boolean isDisplayVisible() {
+		Collection<SourceAndConverter<?>> sourceAndConverters = display.sourceNameToSourceAndConverter.values();
+		// check if first source is visible
+		return SourceAndConverterServices.getBdvDisplayService().isVisible( sourceAndConverters.iterator().next(), bdvHandle );
 	}
 
 	public void close( boolean closeImgLoader )

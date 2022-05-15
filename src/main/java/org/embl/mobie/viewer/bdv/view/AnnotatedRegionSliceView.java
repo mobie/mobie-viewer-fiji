@@ -17,6 +17,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collection;
 import java.util.HashMap;
 
 
@@ -74,6 +75,12 @@ public abstract class AnnotatedRegionSliceView< T extends TableRow > implements 
 		}
 		display.sourceNameToSourceAndConverter.clear();
 	};
+
+	public boolean isDisplayVisible() {
+		Collection<SourceAndConverter<?>> sourceAndConverters = display.sourceNameToSourceAndConverter.values();
+		// check if first source is visible
+		return SourceAndConverterServices.getBdvDisplayService().isVisible( sourceAndConverters.iterator().next(), bdvHandle );
+	}
 
 	@Override
 	public synchronized void coloringChanged()
