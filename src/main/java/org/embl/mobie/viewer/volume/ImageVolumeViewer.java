@@ -377,6 +377,8 @@ public class ImageVolumeViewer
 		return voxelSpacing;
 	}
 
+	public boolean getShowImages() { return showImages; }
+
 	public void close()
 	{
 		showImages( false );

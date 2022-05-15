@@ -20,6 +20,7 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 	private String color;
 	private double[] contrastLimits;
 	private boolean showImagesIn3d;
+	private Double[] resolution3dView;
 
 	// Runtime
 	public transient ImageSliceView imageSliceView;
@@ -40,6 +41,8 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 	{
 		return blendingMode;
 	}
+
+	public Double[] getResolution3dView() { return resolution3dView; }
 
 	public boolean showImagesIn3d()
 	{
@@ -80,7 +83,22 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 
 		setDisplaySettings( sourceAndConverter );
 
-		// TODO - show images in 3d (currently not supported in viewer)
+		if ( imageDisplay.imageVolumeViewer != null )
+		{
+			this.showImagesIn3d = imageDisplay.imageVolumeViewer.getShowImages();
+
+			double[] voxelSpacing = imageDisplay.imageVolumeViewer.getVoxelSpacing();
+			if ( voxelSpacing != null ) {
+				resolution3dView = new Double[voxelSpacing.length];
+				for (int i = 0; i < voxelSpacing.length; i++) {
+					resolution3dView[i] = voxelSpacing[i];
+				}
+			}
+		}
+
+		if ( imageDisplay.imageSliceView != null ) {
+			visible = imageDisplay.imageSliceView.isVisible();
+		}
 	}
 
 	public ImageSourceDisplay( SourceAndConverter< ? > sourceAndConverter )

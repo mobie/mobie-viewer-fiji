@@ -70,7 +70,8 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 			}
 			else
 			{
-				if ( Arrays.equals( mask.minAsDoubleArray(), unionInterval.minAsDoubleArray() ) && Arrays.equals( mask.maxAsDoubleArray(), unionInterval.maxAsDoubleArray() ))
+
+				if ( Intervals.equals(  mask, unionInterval ) )
 				{
 					continue;
 				}
@@ -81,9 +82,6 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 					unionInterval = Intervals.union( unionInterval, mask );
 				}
 			}
-			//System.out.println( tableRow.getName() );
-			//System.out.println( Arrays.toString( mask.minAsDoubleArray() ) );
-			//System.out.println( Arrays.toString( unionMask.minAsDoubleArray() ) );
 		}
 
 		// TODO: this is a work around

@@ -8,9 +8,11 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.display.AnnotatedRegionDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.source.LabelSource;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collection;
 
 public abstract class AnnotatedRegionSliceView< T extends TableRow > extends AbstractSliceView implements ColoringListener, SelectionListener< T >
 {
@@ -41,6 +43,15 @@ public abstract class AnnotatedRegionSliceView< T extends TableRow > extends Abs
 		if ( sourceAndConverter.asVolatile() != null )
 			( (LabelSource) sourceAndConverter.asVolatile().getSpimSource() ).showAsBoundary( showAsBoundaries, boundaryThickness );
 	}
+
+	public void close( boolean closeImgLoader )
+	{
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
+		{
+			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
+		}
+		display.sourceNameToSourceAndConverter.clear();
+	};
 
 	@Override
 	public synchronized void coloringChanged()

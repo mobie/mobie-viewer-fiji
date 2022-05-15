@@ -377,6 +377,12 @@ public class ViewManager
 	private void initImageVolumeViewer( ImageSourceDisplay imageDisplay )
 	{
 		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.sourceNameToSourceAndConverter, universeManager );
+		Double[] resolution3dView = imageDisplay.getResolution3dView();
+		if ( resolution3dView != null ) {
+			imageDisplay.imageVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(imageDisplay.getResolution3dView() ));
+		}
+		imageDisplay.imageVolumeViewer.showImages( imageDisplay.showImagesIn3d() );
+
 		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceNameToSourceAndConverter.values() )
 		{
 			sacService.setMetadata( sourceAndConverter, ImageVolumeViewer.class.getName(), imageDisplay.imageVolumeViewer );

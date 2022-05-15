@@ -4,4 +4,5 @@ public interface SliceView
 {
 	void close(  boolean closeImgLoader  );
 	SliceViewer getSliceViewer();
+	boolean isVisible();
 }

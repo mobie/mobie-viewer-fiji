@@ -1,17 +1,11 @@
 package org.embl.mobie.viewer.display;
 
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.AnnotatedRegionSliceView;
-import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
-import de.embl.cba.tables.color.ColoringModel;
-import de.embl.cba.tables.color.ColumnColoringModel;
-import de.embl.cba.tables.color.NumericColoringModel;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.*;
 
@@ -109,6 +103,10 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 				selectedSegmentIds.add( segment.imageId() + ";" + segment.timePoint() + ";" + (int) segment.labelId() );
 			}
 			this.selectedSegmentIds = selectedSegmentIds;
+		}
+
+		if ( segmentationDisplay.sliceView != null ) {
+			visible = segmentationDisplay.sliceView.isVisible();
 		}
 	}
 }

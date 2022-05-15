@@ -33,7 +33,7 @@ public class ProjectCreatorHelper {
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     public static boolean isValidAffine(String affine) {
-        if (!affine.matches("^[0-9., ]+$")) {
+        if (!affine.matches("^[-0-9., ]+$")) {
             IJ.log("Invalid affine transform - must contain only numbers, commas and spaces");
             return false;
         }

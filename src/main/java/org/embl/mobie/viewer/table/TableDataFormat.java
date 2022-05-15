@@ -15,7 +15,7 @@ public enum TableDataFormat
 			case TabDelimitedFile:
 				return "tsv";
 			default:
-				throw new UnsupportedOperationException( "Unknown file format: " + this );
+				throw new UnsupportedOperationException( "Unknown table file format: " + this );
 		}
 	}
 }
