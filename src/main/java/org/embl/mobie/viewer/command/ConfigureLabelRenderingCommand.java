@@ -16,8 +16,8 @@ import java.util.Arrays;
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Label Rendering")
 public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionCommand
 {
-	public static final String SELECTED_DEFAULT_COLOR = "Default selection color";
-	public static final String SELECTED_COLOR = "Selected labels color";
+	public static final String SEGMENT_COLOR = "Label color";
+	public static final String SELECTION_COLOR = "Selection color";
 
 	@Parameter
 	public BdvHandle bdvh;
@@ -25,17 +25,17 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	@Parameter
 	public SourceAndConverter[] sourceAndConverters;
 
-	@Parameter ( label = "Show as boundaries")
+	@Parameter ( label = "Show labels as boundaries")
 	public boolean showAsBoundary;
 
 	@Parameter ( label = "Boundary thickness", style="format:#.00" )
 	public float boundaryThickness = 1.0F;
 
-	@Parameter ( label = "Selected labels color", choices = { SELECTED_DEFAULT_COLOR, SELECTED_COLOR } )
-	public String coloringMode = SELECTED_DEFAULT_COLOR;
+	@Parameter ( label = "Selected labels coloring", choices = { SEGMENT_COLOR, SELECTION_COLOR } )
+	public String coloringMode = SEGMENT_COLOR;
 
-	@Parameter ( label = "Selected labels color")
-	public ColorRGB color = new ColorRGB(255,255,255);
+	@Parameter ( label = "Selection color")
+	public ColorRGB selectionColor = new ColorRGB(255,255,0);
 
 	@Parameter ( label = "Opacity of non-selected labels" )
 	public double opacity = 0.15;
@@ -54,13 +54,13 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 
 	private void configureSelectionColor()
 	{
-		if ( coloringMode.equals( SELECTED_DEFAULT_COLOR ) )
+		if ( coloringMode.equals( SEGMENT_COLOR ) )
 		{
 			setSelectedSegmentsColor( sourceAndConverters, null );
 		}
 		else
 		{
-			final ARGBType argbType = new ARGBType( ARGBType.rgba( color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha() ) );
+			final ARGBType argbType = new ARGBType( ARGBType.rgba( selectionColor.getRed(), selectionColor.getGreen(), selectionColor.getBlue(), selectionColor.getAlpha() ) );
 			setSelectedSegmentsColor( sourceAndConverters, argbType );
 		}
 	}
