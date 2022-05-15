@@ -18,7 +18,7 @@ public class UserInterface
 	private final JPanel displaySettingsContainer;
 	private final JScrollPane displaySettingsScrollPane;
 	private final JFrame frame;
-	private final JPanel selectionContainer;
+	private final JPanel selectionPanel;
 	private final UserInterfaceHelpers userInterfaceHelpers;
 	private Map< Object, JPanel > displayToPanel;
 	private JSplitPane splitPane;
@@ -27,12 +27,12 @@ public class UserInterface
 	{
 		MoBIELookAndFeelToggler.setMoBIELaf();
 		userInterfaceHelpers = new UserInterfaceHelpers( moBIE );
-		selectionContainer = userInterfaceHelpers.createSelectionPanel();
+		selectionPanel = userInterfaceHelpers.createSelectionPanel();
 		displaySettingsContainer = userInterfaceHelpers.createDisplaySettingsContainer();
 		displaySettingsScrollPane = userInterfaceHelpers.createDisplaySettingsScrollPane( displaySettingsContainer );
 		JPanel displaySettingsPanel = userInterfaceHelpers.createDisplaySettingsPanel( displaySettingsScrollPane );
 		displayToPanel = new HashMap<>();
-		frame = createAndShowFrame( selectionContainer, displaySettingsPanel, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
+		frame = createAndShowFrame( selectionPanel, displaySettingsPanel, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
 		MoBIELookAndFeelToggler.resetMoBIELaf();
 	}
 
@@ -72,8 +72,8 @@ public class UserInterface
 
 	private void refreshSelection()
 	{
-		selectionContainer.revalidate();
-		selectionContainer.repaint();
+		selectionPanel.revalidate();
+		selectionPanel.repaint();
 		// update the location of the splitpane divider, so any new uiSelectionGroups are visible
 		final int actionPanelHeight = userInterfaceHelpers.getActionPanelHeight();
 		splitPane.setDividerLocation( actionPanelHeight );

@@ -10,7 +10,7 @@ import org.scijava.util.ColorRGB;
 import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Coloring Of Selected Segments")
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Coloring of Selected Segments")
 public class SelectedSegmentsColorConfiguratorCommand implements BdvPlaygroundActionCommand
 {
 	public static final String DEFAULT_COLOR = "Default color";
