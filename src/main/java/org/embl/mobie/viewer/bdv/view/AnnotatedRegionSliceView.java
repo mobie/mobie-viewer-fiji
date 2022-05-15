@@ -5,20 +5,18 @@ import bdv.viewer.TimePointListener;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.tablerow.TableRow;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.display.AnnotatedRegionDisplay;
+import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.source.LabelSource;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collection;
 
 public abstract class AnnotatedRegionSliceView< T extends TableRow > extends AbstractSliceView implements ColoringListener, SelectionListener< T >
 {
-	protected final AnnotatedRegionDisplay< T > display;
+	protected final AnnotationDisplay< T > display;
 
-	public AnnotatedRegionSliceView( MoBIE moBIE, AnnotatedRegionDisplay< T > display )
+	public AnnotatedRegionSliceView( MoBIE moBIE, AnnotationDisplay< T > display )
 	{
 		super( moBIE, display );
 		this.display = display;
@@ -30,7 +28,7 @@ public abstract class AnnotatedRegionSliceView< T extends TableRow > extends Abs
 	{
 		configureLabelBoundaryRendering( sourceAndConverter );
 
-		show( sourceAndConverter );
+		display.sliceViewer.show( sourceAndConverter, display );
 
 		getSliceViewer().getBdvHandle().getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
 	}

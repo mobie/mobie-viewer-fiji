@@ -4,14 +4,14 @@ import bdv.util.BdvHandle;
 import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.Logger;
-import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
+import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.embl.mobie.viewer.serialize.JsonHelper;
 import org.embl.mobie.viewer.transform.AffineViewerTransform;
 import org.embl.mobie.viewer.transform.NormalVectorViewerTransform;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.transform.TransformHelpers;
+import org.embl.mobie.viewer.transform.TransformHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
@@ -30,7 +30,7 @@ public class ViewerTransformLogger implements BdvPlaygroundActionCommand
 		new Thread( () -> {
 
 			final int timepoint = bdv.getViewerPanel().state().getCurrentTimepoint();
-			final double[] position = BdvPlaygroundUtils.getWindowCentreInCalibratedUnits( bdv );
+			final double[] position = BdvPlaygroundHelper.getWindowCentreInCalibratedUnits( bdv );
 
 			// position
 			final PositionViewerTransform positionViewerTransform = new PositionViewerTransform( position, timepoint );
@@ -41,7 +41,7 @@ public class ViewerTransformLogger implements BdvPlaygroundActionCommand
 			final AffineViewerTransform affineViewerTransform = new AffineViewerTransform( affineTransform3D.getRowPackedCopy(), timepoint );
 
 			// normalized affine
-			final AffineTransform3D normalisedViewerTransform = TransformHelpers.createNormalisedViewerTransform( bdv.getViewerPanel() );
+			final AffineTransform3D normalisedViewerTransform = TransformHelper.createNormalisedViewerTransform( bdv.getViewerPanel() );
 			final NormalizedAffineViewerTransform normalizedAffineViewerTransform = new NormalizedAffineViewerTransform( normalisedViewerTransform.getRowPackedCopy(), timepoint );
 
 			// normal vector

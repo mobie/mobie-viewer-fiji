@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.embl.mobie.viewer.ui.UserInterfaceHelpers.tidyString;
+import static org.embl.mobie.viewer.ui.UserInterfaceHelper.tidyString;
 
 public class ProjectCreatorHelper {
 

@@ -9,7 +9,6 @@ import de.embl.cba.tables.color.NumericColoringModel;
 import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.AnnotatedRegionSliceView;
-import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
@@ -22,7 +21,7 @@ import de.embl.cba.tables.tablerow.TableRow;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AnnotatedRegionDisplay< T extends TableRow > extends AbstractSourceDisplay
+public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSourceDisplay
 {
 	// Serialization
 	protected String lut = ColoringLuts.GLASBEY;
@@ -101,11 +100,11 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Abstr
 		return blendingMode;
 	}
 
-	protected void fetchCurrentSettings( AnnotatedRegionDisplay<T> annotatedRegionDisplay )
+	protected void fetchCurrentSettings( AnnotationDisplay<T> annotationDisplay )
 	{
-		this.name = annotatedRegionDisplay.name;
+		this.name = annotationDisplay.name;
 
-		final SourceAndConverter< ? > sourceAndConverter = annotatedRegionDisplay.sourceNameToSourceAndConverter.values().iterator().next();
+		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.sourceNameToSourceAndConverter.values().iterator().next();
 
 		if( sourceAndConverter.getConverter() instanceof OpacityAdjuster )
 		{
@@ -113,9 +112,9 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Abstr
 			this.opacity = opacityAdjuster.getOpacity();
 		}
 
-		this.lut = annotatedRegionDisplay.coloringModel.getARGBLutName();
+		this.lut = annotationDisplay.coloringModel.getARGBLutName();
 
-		final ColoringModel<T> wrappedColoringModel = annotatedRegionDisplay.coloringModel.getWrappedColoringModel();
+		final ColoringModel<T> wrappedColoringModel = annotationDisplay.coloringModel.getWrappedColoringModel();
 
 		if ( wrappedColoringModel instanceof ColumnColoringModel)
 		{
@@ -130,10 +129,10 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Abstr
 			valueLimits[1] = numericColoringModel.getMax();
 		}
 
-		this.showScatterPlot = annotatedRegionDisplay.scatterPlotViewer.isVisible();
-		this.scatterPlotAxes = annotatedRegionDisplay.scatterPlotViewer.getSelectedColumns();
-		this.tables = annotatedRegionDisplay.tables;
-		List<String> additionalTables = annotatedRegionDisplay.tableViewer.getAdditionalTables();
+		this.showScatterPlot = annotationDisplay.scatterPlotViewer.isVisible();
+		this.scatterPlotAxes = annotationDisplay.scatterPlotViewer.getSelectedColumns();
+		this.tables = annotationDisplay.tables;
+		List<String> additionalTables = annotationDisplay.tableViewer.getAdditionalTables();
 		if ( additionalTables.size() > 0 ){
 			if ( this.tables == null ) {
 				this.tables = new ArrayList<>();
@@ -141,7 +140,7 @@ public abstract class AnnotatedRegionDisplay< T extends TableRow > extends Abstr
 			this.tables.addAll( additionalTables );
 		}
 
-		this.showTable = annotatedRegionDisplay.tableViewer.getWindow().isVisible();
+		this.showTable = annotationDisplay.tableViewer.getWindow().isVisible();
 
 		if ( sourceAndConverter.getSpimSource() instanceof TransformedSource )
 		{

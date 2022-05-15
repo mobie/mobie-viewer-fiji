@@ -7,7 +7,7 @@ import net.imglib2.type.numeric.integer.IntType;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.annotate.TableRowsIntervalImage;
-import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
+import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
@@ -15,12 +15,13 @@ import org.embl.mobie.viewer.transform.PositionViewerTransform;
 
 public class AnnotatedMaskSliceView extends AnnotatedRegionSliceView< AnnotatedMaskTableRow >
 {
-	public AnnotatedMaskSliceView( MoBIE moBIE, AnnotatedSourceDisplay display )
+	public AnnotatedMaskSliceView( MoBIE moBIE, RegionDisplay display )
 	{
 		super( moBIE, display );
 
 		final SourceAndConverter< IntType > sourceAndConverter = createSourceAndConverter();
-		show( sourceAndConverter );
+
+		display.sliceViewer.show( sourceAndConverter, display );
 	}
 
 	private SourceAndConverter< IntType > createSourceAndConverter()

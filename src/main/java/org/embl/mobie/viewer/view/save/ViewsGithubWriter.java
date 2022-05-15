@@ -1,4 +1,4 @@
-package org.embl.mobie.viewer.view.saving;
+package org.embl.mobie.viewer.view.save;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;

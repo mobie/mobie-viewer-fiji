@@ -1,4 +1,4 @@
-package org.embl.mobie.viewer.view.saving;
+package org.embl.mobie.viewer.view.save;
 
 import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.Dataset;
@@ -13,7 +13,7 @@ import ij.gui.GenericDialog;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
-import org.embl.mobie.viewer.ui.UserInterfaceHelpers;
+import org.embl.mobie.viewer.ui.UserInterfaceHelper;
 
 import java.io.*;
 import java.util.Arrays;
@@ -23,10 +23,11 @@ import java.util.Map;
 import static org.embl.mobie.io.github.GitHubUtils.isGithub;
 import static org.embl.mobie.io.util.FileAndUrlUtils.getFileNames;
 import static org.embl.mobie.io.util.S3Utils.isS3;
-import static org.embl.mobie.viewer.view.saving.ViewSavingHelpers.writeAdditionalViewsJson;
-import static org.embl.mobie.viewer.view.saving.ViewSavingHelpers.writeDatasetJson;
+import static org.embl.mobie.viewer.view.save.ViewSavingHelper.writeAdditionalViewsJson;
+import static org.embl.mobie.viewer.view.save.ViewSavingHelper.writeDatasetJson;
 
-public class ViewsSaver {
+public class ViewSaver
+{
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -43,7 +44,7 @@ public class ViewsSaver {
         overwriteExistingView
     }
 
-    public ViewsSaver(MoBIE moBIE) {
+    public ViewSaver( MoBIE moBIE) {
         this.moBIE = moBIE;
         this.settings = moBIE.getSettings();
     }
@@ -102,7 +103,7 @@ public class ViewsSaver {
 
             String viewName = null;
             if( saveMethod == SaveMethod.saveAsNewView ) {
-                viewName = UserInterfaceHelpers.tidyString( gd.getNextString() );
+                viewName = UserInterfaceHelper.tidyString( gd.getNextString() );
                 if ( viewName == null ) {
                     return;
                 }
@@ -235,7 +236,7 @@ public class ViewsSaver {
             if ( dataset.views.containsKey( viewName ) )
                 throw new IOException( "View saving aborted - this view name already exists!" );
 
-        ViewSavingHelpers.writeDatasetJson( dataset, view, viewName, datasetJsonPath );
+        ViewSavingHelper.writeDatasetJson( dataset, view, viewName, datasetJsonPath );
         IJ.log( " View, " + viewName + ", written to dataset.json" );
     }
 
@@ -294,7 +295,7 @@ public class ViewsSaver {
             additionalViews.views = new HashMap<>();
         }
 
-        ViewSavingHelpers.writeAdditionalViewsJson( additionalViews, view, viewName, jsonPath );
+        ViewSavingHelper.writeAdditionalViewsJson( additionalViews, view, viewName, jsonPath );
         IJ.log( "New view, " + viewName + ", written to " + new File( jsonPath ).getName() );
     }
 
@@ -352,7 +353,7 @@ public class ViewsSaver {
 
         // get rid of any spaces, warn for unusual characters in basename (without the .json)
         if ( viewFileName != null ) {
-            viewFileName = UserInterfaceHelpers.tidyString( viewFileName);
+            viewFileName = UserInterfaceHelper.tidyString( viewFileName);
         }
 
         if ( viewFileName != null ) {

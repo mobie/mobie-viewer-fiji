@@ -22,7 +22,7 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 import java.lang.reflect.Method;
 
-public abstract class SourceHelpers
+public abstract class SourceHelper
 {
 
     public static <R extends NumericType<R> & RealType<R>> SourceAndConverter<R> replaceConverter(SourceAndConverter<?> source, Converter<RealType<?>, ARGBType> converter) {

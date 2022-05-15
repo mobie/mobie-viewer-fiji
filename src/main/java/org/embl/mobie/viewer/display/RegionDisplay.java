@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.display;
 
+import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.bdv.view.AnnotatedMaskSliceView;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMaskTableRow >
+public class RegionDisplay extends AnnotationDisplay< AnnotatedMaskTableRow >
 {
 	// Serialization
 	protected Map< String, List< String > > sources;
@@ -42,10 +43,9 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 	@Override
 	public List< String > getSources()
 	{
-		final ArrayList< String > allSources = new ArrayList<>();
-		for ( List< String > sources : this.sources.values() )
-			allSources.addAll( sources );
-		return allSources;
+		final ArrayList< String > sources = new ArrayList<>();
+		sources.add( getName() );
+		return sources;
 	}
 
 	@Override
@@ -55,10 +55,10 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 	}
 
 	// Needed for Gson
-	public AnnotatedSourceDisplay() {}
+	public RegionDisplay() {}
 
 	// TODO: Looks like we do not need it? Maybe for the interactive grid view?
-	public AnnotatedSourceDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
+	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -75,16 +75,16 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 	/**
 	 * Create a serializable copy
 	 *
-	 * @param annotatedSourceDisplay
+	 * @param regionDisplay
 	 */
-	public AnnotatedSourceDisplay( AnnotatedSourceDisplay annotatedSourceDisplay )
+	public RegionDisplay( RegionDisplay regionDisplay )
 	{
-		fetchCurrentSettings( annotatedSourceDisplay );
+		fetchCurrentSettings( regionDisplay );
 
 		this.sources = new HashMap<>();
-		this.sources.putAll( annotatedSourceDisplay.sources );
+		this.sources.putAll( regionDisplay.sources );
 
-		Set< AnnotatedMaskTableRow > currentSelectedRows = annotatedSourceDisplay.selectionModel.getSelected();
+		Set< AnnotatedMaskTableRow > currentSelectedRows = regionDisplay.selectionModel.getSelected();
 		if ( currentSelectedRows != null && currentSelectedRows.size() > 0 ) {
 			ArrayList<String> selectedIds = new ArrayList<>();
 			for ( AnnotatedMaskTableRow row : currentSelectedRows ) {
@@ -94,10 +94,10 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 		}
 
 		this.tableData = new HashMap<>();
-		this.tableData.putAll( annotatedSourceDisplay.tableData );
+		this.tableData.putAll( regionDisplay.tableData );
 
-		if ( annotatedSourceDisplay.sliceView != null ) {
-			this.visible = annotatedSourceDisplay.sliceView.isVisible();
+		if ( regionDisplay.sliceView != null ) {
+			this.visible = regionDisplay.sliceView.isVisible();
 		}
 	}
 

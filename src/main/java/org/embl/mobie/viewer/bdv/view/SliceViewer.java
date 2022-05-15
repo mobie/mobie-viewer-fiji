@@ -19,8 +19,6 @@ import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
 import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
-import org.embl.mobie.viewer.display.ImageSourceDisplay;
-import org.embl.mobie.viewer.display.SourceDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import org.embl.mobie.viewer.command.RandomColorSeedChangerCommand;
 import org.embl.mobie.viewer.view.ViewManager;
@@ -36,7 +34,6 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
-import java.util.function.Supplier;
 
 import static org.embl.mobie.viewer.ui.WindowArrangementHelper.setBdvWindowPositionAndSize;
 

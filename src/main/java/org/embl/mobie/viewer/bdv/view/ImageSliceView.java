@@ -12,12 +12,11 @@ import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
 import org.embl.mobie.viewer.color.opacity.VolatileAdjustableOpacityColorConverter;
-import org.embl.mobie.viewer.display.ImageSourceDisplay;
+import org.embl.mobie.viewer.display.ImageDisplay;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,9 +26,9 @@ public class ImageSliceView extends AbstractSliceView
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	private final ImageSourceDisplay display;
+	private final ImageDisplay display;
 
-	public ImageSliceView( MoBIE moBIE, ImageSourceDisplay display )
+	public ImageSliceView( MoBIE moBIE, ImageDisplay display )
 	{
 		super( moBIE, display );
 		this.display = display;

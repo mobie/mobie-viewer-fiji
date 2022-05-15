@@ -40,7 +40,7 @@ public class CropSourceTransformer extends AbstractSourceTransformer
 
 				if ( centerAtOrigin )
 				{
-					croppedSourceAndConverter = TransformHelpers.centerAtOrigin( croppedSourceAndConverter );
+					croppedSourceAndConverter = TransformHelper.centerAtOrigin( croppedSourceAndConverter );
 				}
 
 				// store result

@@ -9,7 +9,7 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 
 import java.util.*;
 
-public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowImageSegment >
+public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment >
 {
 	// Serialization
 	protected List< String > sources;
@@ -46,13 +46,13 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	}
 
 	// Needed for Gson
-	public SegmentationSourceDisplay(){}
+	public SegmentationDisplay(){}
 
-	public SegmentationSourceDisplay( String name, double opacity, List< String > sources,
-									  String lut, String colorByColumn, Double[] valueLimits,
-									  List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d,
-									  boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables,
-									  Double[] resolution3dView )
+	public SegmentationDisplay( String name, double opacity, List< String > sources,
+								String lut, String colorByColumn, Double[] valueLimits,
+								List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d,
+								boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables,
+								Double[] resolution3dView )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -73,7 +73,7 @@ public class SegmentationSourceDisplay extends AnnotatedRegionDisplay< TableRowI
 	 *
 	 * @param segmentationDisplay
 	 */
-	public SegmentationSourceDisplay( SegmentationSourceDisplay segmentationDisplay )
+	public SegmentationDisplay( SegmentationDisplay segmentationDisplay )
 	{
 		fetchCurrentSettings( segmentationDisplay );
 

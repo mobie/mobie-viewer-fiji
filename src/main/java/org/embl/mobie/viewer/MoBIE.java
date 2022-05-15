@@ -10,8 +10,8 @@ import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.FileAndUrlUtils;
 import org.embl.mobie.io.util.S3Utils;
-import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
-import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
+import org.embl.mobie.viewer.display.SegmentationDisplay;
+import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskCreator;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
@@ -534,7 +534,7 @@ public class MoBIE
 		return sourceNameToTransformedSourceAndConverter;
 	}
 
-	private Collection< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay, String tableName )
+	private Collection< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationDisplay segmentationDisplay, String tableName )
 	{
 		final List< String > segmentationDisplaySources = segmentationDisplay.getSources();
 		final ConcurrentHashMap< String, Set< Source< ? > > > sourceNameToRootSources = new ConcurrentHashMap();
@@ -637,7 +637,7 @@ public class MoBIE
 		mergeSegmentsTable( tableRows, additionalTable );
 	}
 
-	public void appendSegmentsTables( SegmentationSourceDisplay segmentationDisplay, List< String > relativeTablePaths )
+	public void appendSegmentsTables( SegmentationDisplay segmentationDisplay, List< String > relativeTablePaths )
 	{
 		appendSegmentsTables( segmentationDisplay.getSources(), relativeTablePaths, segmentationDisplay.tableRows );
 	}
@@ -645,7 +645,7 @@ public class MoBIE
 	/**
 	 * Primary segment tables must contain the image segment properties.
 	 */
-	public void loadPrimarySegmentsTables( SegmentationSourceDisplay segmentationDisplay )
+	public void loadPrimarySegmentsTables( SegmentationDisplay segmentationDisplay )
 	{
 		segmentationDisplay.tableRows = new ArrayList<>();
 		final Collection< List< TableRowImageSegment > > primaryTables = loadPrimarySegmentsTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
@@ -656,7 +656,7 @@ public class MoBIE
 		}
 	}
 
-	public List< AnnotatedMaskTableRow > loadAnnotatedMaskTables( AnnotatedSourceDisplay annotationDisplay )
+	public List< AnnotatedMaskTableRow > loadAnnotatedMaskTables( RegionDisplay annotationDisplay )
 	{
 		// open
 		final List< Map< String, List< String > > > tables = new ArrayList<>();

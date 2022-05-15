@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.command;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.source.LabelSource;
-import org.embl.mobie.viewer.source.SourceHelpers;
+import org.embl.mobie.viewer.source.SourceHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
@@ -28,9 +28,9 @@ public class LabelRenderingConfiguratorCommand implements BdvPlaygroundActionCom
 	@Override
 	public void run()
 	{
-		Arrays.stream( sourceAndConverters ).filter( sac -> SourceHelpers.getLabelSource( sac ) != null ).forEach( sac ->
+		Arrays.stream( sourceAndConverters ).filter( sac -> SourceHelper.getLabelSource( sac ) != null ).forEach( sac ->
 		{
-			final LabelSource< ? > labelSource = SourceHelpers.getLabelSource( sac );
+			final LabelSource< ? > labelSource = SourceHelper.getLabelSource( sac );
 			labelSource.showAsBoundary( showAsBoundary, boundaryThickness );
 
 			if ( sac.asVolatile() != null )

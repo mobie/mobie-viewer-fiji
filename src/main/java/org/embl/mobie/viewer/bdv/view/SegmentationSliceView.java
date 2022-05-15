@@ -6,7 +6,7 @@ import bdv.viewer.SynchronizedViewerState;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.color.LabelConverter;
-import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
+import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -17,7 +17,7 @@ import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 
 public class SegmentationSliceView extends AnnotatedRegionSliceView< TableRowImageSegment >
 {
-	public SegmentationSliceView( MoBIE moBIE, SegmentationSourceDisplay display )
+	public SegmentationSliceView( MoBIE moBIE, SegmentationDisplay display )
 	{
 		super( moBIE, display );
 
@@ -31,7 +31,7 @@ public class SegmentationSliceView extends AnnotatedRegionSliceView< TableRowIma
 		}
 	}
 
-	private SourceAndConverter< ? > asLabelSourceAndConverter( SegmentationSourceDisplay display, SourceAndConverter< ? > sourceAndConverter )
+	private SourceAndConverter< ? > asLabelSourceAndConverter( SegmentationDisplay display, SourceAndConverter< ? > sourceAndConverter )
 	{
 		LabelConverter labelConverter = getLabelConverter( display, sourceAndConverter );
 
@@ -40,7 +40,7 @@ public class SegmentationSliceView extends AnnotatedRegionSliceView< TableRowIma
 		return labelSourceAndConverter;
 	}
 
-	private LabelConverter getLabelConverter( SegmentationSourceDisplay display, SourceAndConverter< ? > sourceAndConverter )
+	private LabelConverter getLabelConverter( SegmentationDisplay display, SourceAndConverter< ? > sourceAndConverter )
 	{
 		if ( MergedGridSource.instanceOf( sourceAndConverter ) )
 		{

@@ -2,8 +2,8 @@ package org.embl.mobie.viewer.transform;
 
 import bdv.util.*;
 import bdv.viewer.animate.SimilarityTransformAnimator;
-import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
-import org.embl.mobie.viewer.bdv.BdvCircleOverlay;
+import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
+import org.embl.mobie.viewer.bdv.CircleOverlay;
 import org.embl.mobie.viewer.MoBIEHelper;
 import net.imglib2.realtransform.AffineTransform3D;
 
@@ -14,7 +14,7 @@ public abstract class MoBIEViewerTransformChanger
 	public static int animationDurationMillis = 3000;
 
 	private static BdvOverlaySource< BdvOverlay > pointOverlaySource;
-	private static BdvCircleOverlay bdvCircleOverlay;
+	private static CircleOverlay circleOverlay;
 	private static boolean pointOverlaySourceIsActive;
 	private static boolean isPointOverlayEnabled;
 
@@ -44,7 +44,7 @@ public abstract class MoBIEViewerTransformChanger
 		}
 		else if ( viewerTransform instanceof NormalizedAffineViewerTransform )
 		{
-			final AffineTransform3D transform = TransformHelpers.createUnnormalizedViewerTransform( MoBIEHelper.asAffineTransform3D( viewerTransform.getParameters() ), bdv.getBdvHandle().getViewerPanel() );
+			final AffineTransform3D transform = TransformHelper.createUnnormalizedViewerTransform( MoBIEHelper.asAffineTransform3D( viewerTransform.getParameters() ), bdv.getBdvHandle().getViewerPanel() );
 			changeViewerTransform( bdv, transform, animationDurationMillis );
 			adaptTimepoint( bdv, viewerTransform );
 		}
@@ -66,18 +66,18 @@ public abstract class MoBIEViewerTransformChanger
 
 	private static void addPointOverlay( Bdv bdv, double[] doubles )
 	{
-		if ( bdvCircleOverlay == null )
+		if ( circleOverlay == null )
 		{
-			bdvCircleOverlay = new BdvCircleOverlay( doubles, 5.0 );
+			circleOverlay = new CircleOverlay( doubles, 5.0 );
 			pointOverlaySource = BdvFunctions.showOverlay(
-					bdvCircleOverlay,
+					circleOverlay,
 					"point-overlay-" + Arrays.toString( doubles ),
 					BdvOptions.options().addTo( bdv ) );
 			pointOverlaySourceIsActive = true;
 		}
 		else
 		{
-			bdvCircleOverlay.addCircle( doubles );
+			circleOverlay.addCircle( doubles );
 		}
 	}
 
@@ -106,7 +106,7 @@ public abstract class MoBIEViewerTransformChanger
 		}
 
 		newViewerTransform.translate( locationOfTargetCoordinatesInCurrentViewer );
-		final double[] bdvWindowCenter = BdvPlaygroundUtils.getWindowCentreInPixelUnits( bdv.getViewerPanel() );
+		final double[] bdvWindowCenter = BdvPlaygroundHelper.getWindowCentreInPixelUnits( bdv.getViewerPanel() );
 		newViewerTransform.translate( bdvWindowCenter );
 
 		if ( durationMillis <= 0 )

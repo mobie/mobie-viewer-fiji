@@ -1,4 +1,4 @@
-package org.embl.mobie.viewer.view.saving;
+package org.embl.mobie.viewer.view.save;
 
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
@@ -6,7 +6,7 @@ import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
 import org.embl.mobie.viewer.view.AdditionalViews;
 import de.embl.cba.tables.SwingUtils;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
-import org.embl.mobie.viewer.ui.SwingHelpers;
+import org.embl.mobie.viewer.ui.SwingHelper;
 
 import javax.swing.*;
 import java.awt.*;
@@ -75,10 +75,10 @@ public class SelectExistingViewDialog {
         groupsComboBox.addItemListener( new SyncGroupAndViewComboBox() );
 
         JPanel groupPanel = SwingUtils.horizontalLayoutPanel();
-        groupPanel.add( SwingHelpers.getJLabel("Ui selection group", 120, 10));
+        groupPanel.add( SwingHelper.getJLabel("Ui selection group", 120, 10));
         groupPanel.add( groupsComboBox );
         JPanel viewPanel = SwingUtils.horizontalLayoutPanel();
-        viewPanel.add( SwingHelpers.getJLabel("View name", 120, 10));
+        viewPanel.add( SwingHelper.getJLabel("View name", 120, 10));
         viewPanel.add( viewsComboBox );
 
         dialog.getContentPane().add( groupPanel );
@@ -87,7 +87,7 @@ public class SelectExistingViewDialog {
 
     private void createAcceptPanel() {
         JPanel acceptPanel = SwingUtils.horizontalLayoutPanel();
-        JButton selectButton = SwingHelpers.createButton("Select");
+        JButton selectButton = SwingHelper.createButton("Select");
         selectButton.addActionListener( e ->
         {
             new Thread( () -> {
@@ -95,7 +95,7 @@ public class SelectExistingViewDialog {
                 dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
             } ).start();
         } );
-        JButton cancelButton = SwingHelpers.createButton("Cancel");
+        JButton cancelButton = SwingHelper.createButton("Cancel");
         cancelButton.addActionListener( e ->
         {
             new Thread( () -> {
