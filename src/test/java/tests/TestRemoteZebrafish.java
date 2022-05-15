@@ -9,6 +9,7 @@ import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.view.AdditionalViewsLoader;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.*;
 import java.io.IOException;
 
 public class TestRemoteZebrafish
@@ -37,7 +38,8 @@ public class TestRemoteZebrafish
 		display.selectionModel.focus( display.tableRows.get( 1 ), this );
 
 		// show in 3D
-		(( SegmentationDisplay ) display).segmentsVolumeViewer.showSegments( true );
+		new Thread( () -> { (( SegmentationDisplay ) display).segmentsVolumeViewer.showSegments( true ); } ).start();
+		//(( SegmentationDisplay ) display).segmentsVolumeViewer.showSegments( true );
 	}
 
 	@Test
