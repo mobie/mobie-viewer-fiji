@@ -6,11 +6,11 @@ public class TestCovidIF
 {
 	public static void main( String[] args ) throws IOException
 	{
-		new TestCovidIF().testDefaultView();
+		new TestCovidIF().test();
 	}
 
 	//@Test
-	public void testDefaultView() throws IOException
+	public void test() throws IOException
 	{
 		// TODO: Bug loading the multi-scales
 //		final ImageJ imageJ = new ImageJ();
