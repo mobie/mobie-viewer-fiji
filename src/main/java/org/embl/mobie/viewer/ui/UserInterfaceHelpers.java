@@ -72,7 +72,6 @@ public class UserInterfaceHelpers
 		displaySettingsContainer.setLayout( new BoxLayout( displaySettingsContainer, BoxLayout.PAGE_AXIS ));
 		displaySettingsContainer.setBorder( BorderFactory.createEmptyBorder() );
 		displaySettingsContainer.setAlignmentX( Component.LEFT_ALIGNMENT );
-
 		return displaySettingsContainer;
 	}
 
@@ -80,7 +79,6 @@ public class UserInterfaceHelpers
 		JScrollPane displaySettingsScrollPane = new JScrollPane( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
 		displaySettingsScrollPane.setBorder( BorderFactory.createEmptyBorder() );
-
 		displaySettingsScrollPane.setViewportView( displaySettingsContainer );
 		return displaySettingsScrollPane;
 	}
@@ -90,7 +88,6 @@ public class UserInterfaceHelpers
 		panel.setLayout( new BoxLayout(panel, BoxLayout.Y_AXIS ) );
 		panel.setAlignmentX( Component.LEFT_ALIGNMENT );
 		panel.add( displaySettingsScrollPane );
-
 		return panel;
 	}
 
