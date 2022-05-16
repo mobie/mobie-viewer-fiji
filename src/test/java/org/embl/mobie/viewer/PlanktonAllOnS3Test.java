@@ -1,23 +1,21 @@
-package tests;
+package org.embl.mobie.viewer;
 
 import net.imagej.ImageJ;
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.view.View;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Map;
 
-public class TestRemotePlanktonS3
+public class PlanktonAllOnS3Test
 {
 	public static void main( String[] args ) throws IOException
 	{
-		new TestRemotePlanktonS3().run();
+		new PlanktonAllOnS3Test().allOnS3Test();
 	}
 
 	@Test
-	public void run() throws IOException
+	public void allOnS3Test() throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();

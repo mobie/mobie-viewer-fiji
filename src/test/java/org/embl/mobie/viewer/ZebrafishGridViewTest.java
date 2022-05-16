@@ -1,9 +1,7 @@
-package tests;
+package org.embl.mobie.viewer;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.display.AnnotatedRegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
 import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
@@ -11,12 +9,12 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-public class TestRemoteZebrafish
+public class ZebrafishGridViewTest
 {
 	public static void main( String[] args ) throws IOException
 	{
-		new TestRemoteZebrafish().testSmallGridView();
-		new TestRemoteZebrafish().testTransformedGridView();
+		new ZebrafishGridViewTest().testSmallGridView();
+		new ZebrafishGridViewTest().testTransformedGridView();
 	}
 
 	@Test
