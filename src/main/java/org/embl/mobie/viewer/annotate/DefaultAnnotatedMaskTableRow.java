@@ -29,7 +29,7 @@ public class DefaultAnnotatedMaskTableRow extends AbstractTableRow implements An
 		// set cells
 		this.cells = new LinkedHashMap<>();
 		final List< String > columnNames = new ArrayList<>( columns.keySet() );
-		Collections.sort( columnNames ); // TODO: why do we sort here?
+		//Collections.sort( columnNames ); // TODO: why do we sort here?
 		for ( String column : columnNames )
 		{
 			cells.put( column, columns.get( column ).get( rowIndex ) );
