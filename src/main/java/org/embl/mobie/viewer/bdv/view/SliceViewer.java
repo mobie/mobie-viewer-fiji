@@ -8,19 +8,17 @@ import org.embl.mobie.viewer.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.viewer.bdv.ViewerTransformLogger;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
-import org.embl.mobie.viewer.command.LabelRenderingConfiguratorCommand;
-import org.embl.mobie.viewer.command.ManualRegistrationCommand;
 import org.embl.mobie.viewer.command.BigWarpRegistrationCommand;
+import org.embl.mobie.viewer.command.ConfigureLabelRenderingCommand;
 import org.embl.mobie.viewer.command.ImageVolumeRenderingConfiguratorCommand;
-import org.embl.mobie.viewer.command.NonSelectedSegmentsOpacityAdjusterCommand;
-import org.embl.mobie.viewer.command.SegmentsVolumeRenderingConfiguratorCommand;
-import org.embl.mobie.viewer.command.SelectedSegmentsColorConfiguratorCommand;
+import org.embl.mobie.viewer.command.LabelVolumeRenderingConfiguratorCommand;
+import org.embl.mobie.viewer.command.ManualRegistrationCommand;
+import org.embl.mobie.viewer.command.RandomColorSeedChangerCommand;
+import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
 import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
-import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
-import org.embl.mobie.viewer.command.RandomColorSeedChangerCommand;
 import org.embl.mobie.viewer.view.ViewManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -33,7 +31,8 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Set;
 
 import static org.embl.mobie.viewer.ui.WindowArrangementHelper.setBdvWindowPositionAndSize;
 
@@ -110,10 +109,8 @@ public class SliceViewer
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ) );
 		actions.add( sacService.getCommandName( RandomColorSeedChangerCommand.class ) );
-		actions.add( sacService.getCommandName( NonSelectedSegmentsOpacityAdjusterCommand.class ) );
-		actions.add( sacService.getCommandName( SelectedSegmentsColorConfiguratorCommand.class ) );
-		actions.add( sacService.getCommandName( LabelRenderingConfiguratorCommand.class ) );
-		actions.add( sacService.getCommandName( SegmentsVolumeRenderingConfiguratorCommand.class ) );
+		actions.add( sacService.getCommandName( ConfigureLabelRenderingCommand.class ) );
+		actions.add( sacService.getCommandName( LabelVolumeRenderingConfiguratorCommand.class ) );
 		actions.add( sacService.getCommandName( ImageVolumeRenderingConfiguratorCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
 		actions.add( LOAD_ADDITIONAL_VIEWS );
