@@ -398,9 +398,9 @@ public class ViewManager
 		annotationDisplay.coloringModel.setSelectionModel( annotationDisplay.selectionModel );
 
 		// set selected segments
-		if ( annotationDisplay.getSelectedAnnotationIds() != null )
+		if ( annotationDisplay.getSelectedRegionIds() != null )
 		{
-			final List< AnnotatedMaskTableRow > annotatedMasks = annotationDisplay.annotatedMaskAdapter.getAnnotatedMasks( annotationDisplay.getSelectedAnnotationIds() );
+			final List< AnnotatedMaskTableRow > annotatedMasks = annotationDisplay.annotatedMaskAdapter.getAnnotatedMasks( annotationDisplay.getSelectedRegionIds() );
 			annotationDisplay.selectionModel.setSelected( annotatedMasks, true );
 		}
 
