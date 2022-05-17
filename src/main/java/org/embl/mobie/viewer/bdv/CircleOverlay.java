@@ -9,12 +9,12 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BdvCircleOverlay extends BdvOverlay
+public class CircleOverlay extends BdvOverlay
 {
 	final List< RealPoint > points;
 	private final double radius;
 
-	public BdvCircleOverlay( double[] location, double radius )
+	public CircleOverlay( double[] location, double radius )
 	{
 		super();
 		this.points = new ArrayList< RealPoint >();
@@ -22,7 +22,7 @@ public class BdvCircleOverlay extends BdvOverlay
 		this.radius = radius;
 	}
 
-	public BdvCircleOverlay( RealPoint point, double radius )
+	public CircleOverlay( RealPoint point, double radius )
 	{
 		super();
 		this.points = new ArrayList< RealPoint >();
@@ -30,7 +30,7 @@ public class BdvCircleOverlay extends BdvOverlay
 		this.radius = radius;
 	}
 
-	public BdvCircleOverlay( List< RealPoint > points, double radius )
+	public CircleOverlay( List< RealPoint > points, double radius )
 	{
 		super();
 		this.points = points;

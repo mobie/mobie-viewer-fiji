@@ -7,7 +7,7 @@ import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
 import net.imglib2.realtransform.Scale3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
+import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class TransformHelpers
+public class TransformHelper
 {
 	public static RealInterval estimateBounds( List< ? extends Source< ? > > sources, int t )
 	{
@@ -101,7 +101,7 @@ public class TransformHelpers
 
 	public static AffineTransform3D createNormalisedViewerTransform( ViewerPanel viewerPanel )
 	{
-		return createNormalisedViewerTransform( viewerPanel, BdvPlaygroundUtils.getWindowCentreInPixelUnits( viewerPanel ) );
+		return createNormalisedViewerTransform( viewerPanel, BdvPlaygroundHelper.getWindowCentreInPixelUnits( viewerPanel ) );
 	}
 
 	public static AffineTransform3D createNormalisedViewerTransform( ViewerPanel viewerPanel, double[] position )
@@ -131,7 +131,7 @@ public class TransformHelpers
 		transform.preConcatenate( scale.inverse() );
 
 		AffineTransform3D translate = new AffineTransform3D();
-		translate.translate( BdvPlaygroundUtils.getWindowCentreInPixelUnits( viewerPanel ) );
+		translate.translate( BdvPlaygroundHelper.getWindowCentreInPixelUnits( viewerPanel ) );
 
 		transform.preConcatenate( translate );
 

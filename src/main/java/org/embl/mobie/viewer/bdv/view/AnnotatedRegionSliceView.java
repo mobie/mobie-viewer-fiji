@@ -1,64 +1,39 @@
 package org.embl.mobie.viewer.bdv.view;
 
-import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TimePointListener;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.tablerow.TableRow;
-import net.imglib2.type.numeric.integer.IntType;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.bdv.render.BlendingMode;
-import org.embl.mobie.viewer.color.OpacityAdjuster;
-import org.embl.mobie.viewer.display.AnnotatedRegionDisplay;
+import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.source.LabelSource;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collection;
-import java.util.HashMap;
 
-
-public abstract class AnnotatedRegionSliceView< T extends TableRow > implements ColoringListener, SelectionListener< T >
+public abstract class AnnotatedRegionSliceView< T extends TableRow > extends AbstractSliceView implements ColoringListener, SelectionListener< T >
 {
-	protected final SourceAndConverterBdvDisplayService displayService;
-	protected final MoBIE moBIE;
-	protected final AnnotatedRegionDisplay< T > display;
-	protected BdvHandle bdvHandle;
+	protected final AnnotationDisplay< T > display;
 
-	public AnnotatedRegionSliceView( MoBIE moBIE, AnnotatedRegionDisplay< T > display, BdvHandle bdvHandle  )
+	public AnnotatedRegionSliceView( MoBIE moBIE, AnnotationDisplay< T > display )
 	{
-		this.moBIE = moBIE;
+		super( moBIE, display );
 		this.display = display;
-		this.bdvHandle = bdvHandle;
-		this.displayService = SourceAndConverterServices.getBdvDisplayService();
-		display.sourceNameToSourceAndConverter = new HashMap<>();
 		display.selectionModel.listeners().add( this );
 		display.coloringModel.listeners().add( this );
 	}
 
 	protected void show( SourceAndConverter< ? > sourceAndConverter )
 	{
-		SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
+		configureLabelBoundaryRendering( sourceAndConverter );
 
-		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
+		display.sliceViewer.show( sourceAndConverter, display );
 
-		adjustLabelRendering( sourceAndConverter );
-
-		OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
-
-		// show in Bdv
-		displayService.show( bdvHandle, display.isVisible(), sourceAndConverter );
-
-		bdvHandle.getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
-
-		// register
-		display.sourceNameToSourceAndConverter.put( sourceAndConverter.getSpimSource().getName(), sourceAndConverter );
+		getSliceViewer().getBdvHandle().getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
 	}
 
-	private void adjustLabelRendering( SourceAndConverter< ? > sourceAndConverter )
+	private void configureLabelBoundaryRendering( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final boolean showAsBoundaries = display.isShowAsBoundaries();
 		final float boundaryThickness = display.getBoundaryThickness();
@@ -76,37 +51,26 @@ public abstract class AnnotatedRegionSliceView< T extends TableRow > implements 
 		display.sourceNameToSourceAndConverter.clear();
 	};
 
-	public boolean isDisplayVisible() {
-		Collection<SourceAndConverter<?>> sourceAndConverters = display.sourceNameToSourceAndConverter.values();
-		// check if first source is visible
-		return SourceAndConverterServices.getBdvDisplayService().isVisible( sourceAndConverters.iterator().next(), bdvHandle );
-	}
-
 	@Override
 	public synchronized void coloringChanged()
 	{
-		bdvHandle.getViewerPanel().requestRepaint();
+		getSliceViewer().getBdvHandle().getViewerPanel().requestRepaint();
 	}
 
 	@Override
 	public synchronized void selectionChanged()
 	{
-		bdvHandle.getViewerPanel().requestRepaint();
+		getSliceViewer().getBdvHandle().getViewerPanel().requestRepaint();
 	}
 
 	@Override
-	public synchronized void focusEvent( T selection, Object origin  )
+	public synchronized void focusEvent( T selection, Object initiator )
 	{
-		// must be defined in child classes
-	}
-
-	public BdvHandle getBdvHandle()
-	{
-		return bdvHandle;
+		// define in child classes
 	}
 
 	public Window getWindow()
 	{
-		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
+		return SwingUtilities.getWindowAncestor( getSliceViewer().getBdvHandle().getViewerPanel() );
 	}
 }

@@ -2,7 +2,7 @@ package commands;
 
 import mpicbg.spim.data.SpimData;
 import org.embl.mobie.io.ome.zarr.openers.OMEZarrS3Opener;
-import org.embl.mobie.viewer.view.OMEZarrViewer;
+import org.embl.mobie.OMEZarrViewer;
 
 import java.io.IOException;
 

@@ -1,4 +1,4 @@
-package org.embl.mobie.viewer.view;
+package org.embl.mobie;
 
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;

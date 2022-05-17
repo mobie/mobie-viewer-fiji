@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.transform;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.ThreadUtils;
+import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
 
@@ -31,7 +31,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			autoSetPositions();
 
 		// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/674
-		final double[] cellRealDimensions = TransformHelpers.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
+		final double[] cellRealDimensions = TransformHelper.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
 
 		transform( sourceNameToSourceAndConverter, cellRealDimensions );
 		final long duration = System.currentTimeMillis() - startTime;
@@ -52,18 +52,18 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 	{
 		final int numGridPositions = sources.size();
 
-		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
+		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
 		for ( int gridIndex = 0; gridIndex < numGridPositions; gridIndex++ )
 		{
 			int finalGridIndex = gridIndex;
-			futures.add( ThreadUtils.executorService.submit( () -> {
+			futures.add( MultiThreading.executorService.submit( () -> {
 				if ( sourceNamesAfterTransform != null )
 					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), sourceNamesAfterTransform.get( finalGridIndex ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
 				else
 					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), null, centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
 			} ) );
 		}
-		ThreadUtils.waitUntilFinished( futures );
+		MultiThreading.waitUntilFinished( futures );
 	}
 
 	public static void translate( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< String > sourceNames, List< String > sourceNamesAfterTransform, boolean centerAtOrigin, double translationX, double translationY )
@@ -75,7 +75,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			if ( sourceAndConverter == null )
 			  continue;
 
-			AffineTransform3D translationTransform = TransformHelpers.createTranslationTransform3D( translationX, translationY, sourceAndConverter, centerAtOrigin );
+			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( translationX, translationY, sourceAndConverter, centerAtOrigin );
 
 			final SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, translationTransform );
 

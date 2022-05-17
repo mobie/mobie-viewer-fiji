@@ -514,7 +514,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 	}
 
 	@Override
-	public void focusEvent( T selection, Object origin )
+	public void focusEvent( T selection, Object initiator )
 	{
 		currentlySelectedRow = selection;
 	}

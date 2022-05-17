@@ -1017,7 +1017,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	}
 
 	@Override
-	public synchronized void focusEvent( T selection, Object origin )
+	public synchronized void focusEvent( T selection, Object initiator )
 	{
 		SwingUtilities.invokeLater( () -> moveToSelectedTableRow( selection ) );
 	}

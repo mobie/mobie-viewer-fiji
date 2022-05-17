@@ -32,12 +32,11 @@ import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SourceTransformer;
-import org.embl.mobie.viewer.transform.TransformHelpers;
+import org.embl.mobie.viewer.transform.TransformHelper;
 import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
-import org.embl.mobie.viewer.view.saving.ViewsSaver;
+import org.embl.mobie.viewer.view.save.ViewSaver;
 import org.embl.mobie.viewer.volume.ImageVolumeViewer;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 import org.embl.mobie.viewer.volume.UniverseManager;
@@ -48,8 +47,6 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import javax.swing.*;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static org.embl.mobie.viewer.MoBIEHelper.containsAtLeastOne;
 
 public class ViewManager
 {
@@ -62,20 +59,9 @@ public class ViewManager
 	private final SourceAndConverterService sacService;
 	private List<SourceDisplay> currentSourceDisplays;
 	private List<SourceTransformer> currentSourceTransformers;
-	private final BdvHandle bdvHandle;
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
-	private final ViewsSaver viewsSaver;
-
-    public List<SourceTransformer> getCurrentSourceTransformers()
-    {
-        return currentSourceTransformers;
-    }
-
-    public UserInterface getUserInterface()
-    {
-        return userInterface;
-    }
+	private final ViewSaver viewSaver;
 
     public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
 	{
@@ -85,13 +71,12 @@ public class ViewManager
 		currentSourceTransformers = new ArrayList<>();
 		sliceViewer = new SliceViewer( is2D, this, timepoints, moBIE.getProjectCommands() );
 		universeManager = new UniverseManager();
-		bdvHandle = sliceViewer.get();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
-		viewsSaver = new ViewsSaver( moBIE );
+		viewSaver = new ViewSaver( moBIE );
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 	}
 
-	public static void initScatterPlotViewer( AnnotatedRegionDisplay< ? > display )
+	public static void initScatterPlotViewer( AnnotationDisplay< ? > display )
 	{
 		if ( display.tableRows.size() == 0 ) return;
 
@@ -108,7 +93,7 @@ public class ViewManager
 		}
 	}
 
-	private static void configureMoBIEColoringModel( AnnotatedRegionDisplay< ? > display )
+	private static void configureMoBIEColoringModel( AnnotationDisplay< ? > display )
 	{
 		if ( display.getColorByColumn() != null )
 		{
@@ -133,7 +118,7 @@ public class ViewManager
 		}
 	}
 
-	public void initTableViewer( SegmentationSourceDisplay display  )
+	public void initTableViewer( SegmentationDisplay display  )
 	{
 		Map<String, String> sourceNameToTableDir = new HashMap<>();
 		for ( String source: display.getSources() )
@@ -167,10 +152,10 @@ public class ViewManager
 
 	public AdditionalViewsLoader getAdditionalViewsLoader() { return additionalViewsLoader; }
 
-	public ViewsSaver getViewsSaver() { return viewsSaver; }
+	public ViewSaver getViewsSaver() { return viewSaver; }
 
-	private boolean hasColumnsOutsideProject( AnnotatedRegionDisplay annotatedRegionDisplay ) {
-		if ( annotatedRegionDisplay.tableViewer.hasColumnsFromTablesOutsideProject() )
+	private boolean hasColumnsOutsideProject( AnnotationDisplay annotationDisplay ) {
+		if ( annotationDisplay.tableViewer.hasColumnsFromTablesOutsideProject() )
 		{
 			IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project)." );
 			return true;
@@ -212,22 +197,22 @@ public class ViewManager
 		{
 			SourceDisplay currentDisplay = null;
 
-			if ( sourceDisplay instanceof ImageSourceDisplay)
+			if ( sourceDisplay instanceof ImageDisplay )
 			{
-				ImageSourceDisplay imageSourceDisplay = ( ImageSourceDisplay ) sourceDisplay;
-				currentDisplay = new ImageSourceDisplay( imageSourceDisplay );
-				addManualTransforms( viewSourceTransforms, imageSourceDisplay.sourceNameToSourceAndConverter );
-			} else if ( sourceDisplay instanceof SegmentationSourceDisplay )
+				ImageDisplay imageDisplay = ( ImageDisplay ) sourceDisplay;
+				currentDisplay = new ImageDisplay( imageDisplay );
+				addManualTransforms( viewSourceTransforms, imageDisplay.sourceNameToSourceAndConverter );
+			} else if ( sourceDisplay instanceof SegmentationDisplay )
 			{
-				SegmentationSourceDisplay segmentationSourceDisplay = ( SegmentationSourceDisplay ) sourceDisplay;
-				if ( hasColumnsOutsideProject( segmentationSourceDisplay ) ) { return null; }
-				currentDisplay = new SegmentationSourceDisplay( segmentationSourceDisplay );
-				addManualTransforms( viewSourceTransforms, segmentationSourceDisplay.sourceNameToSourceAndConverter );
-			} else if ( sourceDisplay instanceof AnnotatedSourceDisplay )
+				SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) sourceDisplay;
+				if ( hasColumnsOutsideProject( segmentationDisplay ) ) { return null; }
+				currentDisplay = new SegmentationDisplay( segmentationDisplay );
+				addManualTransforms( viewSourceTransforms, segmentationDisplay.sourceNameToSourceAndConverter );
+			} else if ( sourceDisplay instanceof RegionDisplay )
 			{
-				AnnotatedSourceDisplay annotatedSourceDisplay = ( AnnotatedSourceDisplay ) sourceDisplay;
-				if ( hasColumnsOutsideProject( annotatedSourceDisplay ) ) { return null; }
-				currentDisplay = new AnnotatedSourceDisplay( annotatedSourceDisplay );
+				RegionDisplay regionDisplay = ( RegionDisplay ) sourceDisplay;
+				if ( hasColumnsOutsideProject( regionDisplay ) ) { return null; }
+				currentDisplay = new RegionDisplay( regionDisplay );
 			}
 
 			if ( currentDisplay != null )
@@ -238,7 +223,8 @@ public class ViewManager
 
 		if ( includeViewerTransform )
 		{
-			AffineTransform3D normalisedViewTransform = TransformHelpers.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
+			final BdvHandle bdvHandle = sliceViewer.getBdvHandle();
+			AffineTransform3D normalisedViewTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
 
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
 			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, transform, isExclusive);
@@ -306,6 +292,8 @@ public class ViewManager
 
 	public void adjustViewerTransform( View view )
 	{
+		final BdvHandle bdvHandle = sliceViewer.getBdvHandle();
+
 		if ( view.getViewerTransform() != null )
 		{
 			MoBIEViewerTransformChanger.changeViewerTransform( bdvHandle, view.getViewerTransform() );
@@ -343,17 +331,17 @@ public class ViewManager
 	{
 		if ( currentSourceDisplays.contains( sourceDisplay ) ) return;
 
-		if ( sourceDisplay instanceof ImageSourceDisplay )
+		if ( sourceDisplay instanceof ImageDisplay )
 		{
-			showImageDisplay( ( ImageSourceDisplay ) sourceDisplay );
+			showImageDisplay( ( ImageDisplay ) sourceDisplay );
 		}
-		else if ( sourceDisplay instanceof SegmentationSourceDisplay )
+		else if ( sourceDisplay instanceof SegmentationDisplay )
 		{
-			showSegmentationDisplay( ( SegmentationSourceDisplay ) sourceDisplay );
+			showSegmentationDisplay( ( SegmentationDisplay ) sourceDisplay );
 		}
-		else if ( sourceDisplay instanceof AnnotatedSourceDisplay )
+		else if ( sourceDisplay instanceof RegionDisplay )
 		{
-			showAnnotatedMaskDisplay( ( AnnotatedSourceDisplay ) sourceDisplay );
+			showAnnotatedMaskDisplay( ( RegionDisplay ) sourceDisplay );
 		}
 
 		userInterface.addSourceDisplay( sourceDisplay );
@@ -376,15 +364,15 @@ public class ViewManager
 		}
 	}
 
-	private void showImageDisplay( ImageSourceDisplay imageDisplay )
+	private void showImageDisplay( ImageDisplay imageDisplay )
 	{
 		imageDisplay.sliceViewer = sliceViewer;
-		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay, bdvHandle );
+		imageDisplay.imageSliceView = new ImageSliceView( moBIE, imageDisplay );
 		initImageVolumeViewer( imageDisplay );
 	}
 
 	// compare with initSegmentationVolumeViewer
-	private void initImageVolumeViewer( ImageSourceDisplay imageDisplay )
+	private void initImageVolumeViewer( ImageDisplay imageDisplay )
 	{
 		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.sourceNameToSourceAndConverter, universeManager );
 		Double[] resolution3dView = imageDisplay.getResolution3dView();
@@ -399,7 +387,7 @@ public class ViewManager
 		}
 	}
 
-	private void showAnnotatedMaskDisplay( AnnotatedSourceDisplay annotationDisplay )
+	private void showAnnotatedMaskDisplay( RegionDisplay annotationDisplay )
 	{
 		annotationDisplay.sliceViewer = sliceViewer;
 		annotationDisplay.tableRows = moBIE.loadAnnotatedMaskTables( annotationDisplay );
@@ -426,7 +414,7 @@ public class ViewManager
 		} );
 	}
 
-	private void initTableViewer( AnnotatedSourceDisplay display )
+	private void initTableViewer( RegionDisplay display )
 	{
 		HashMap<String, String> nameToTableDir = new HashMap<>();
 		nameToTableDir.put( display.getName(), display.getTableDataFolder( TableDataFormat.TabDelimitedFile ) );
@@ -435,7 +423,7 @@ public class ViewManager
 		display.coloringModel.listeners().add( display.tableViewer );
 	}
 
-	private void showSegmentationDisplay( SegmentationSourceDisplay segmentationDisplay )
+	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
 	{
 		segmentationDisplay.sliceViewer = sliceViewer;
 		loadTablesAndCreateImageSegments( segmentationDisplay );
@@ -476,7 +464,7 @@ public class ViewManager
 		}
 	}
 
-	private void loadTablesAndCreateImageSegments( SegmentationSourceDisplay segmentationDisplay )
+	private void loadTablesAndCreateImageSegments( SegmentationDisplay segmentationDisplay )
 	{
 		final List< String > tables = segmentationDisplay.getTables();
 
@@ -502,17 +490,17 @@ public class ViewManager
 		}
 	}
 
-	private void showInSliceViewer( SegmentationSourceDisplay segmentationDisplay )
+	private void showInSliceViewer( SegmentationDisplay segmentationDisplay )
 	{
-		segmentationDisplay.sliceView = new SegmentationSliceView( moBIE, segmentationDisplay, bdvHandle );
+		segmentationDisplay.sliceView = new SegmentationSliceView( moBIE, segmentationDisplay );
 	}
 
-	private void showInSliceViewer( AnnotatedSourceDisplay annotatedSourceDisplay )
+	private void showInSliceViewer( RegionDisplay regionDisplay )
 	{
-		annotatedSourceDisplay.sliceView = new AnnotatedMaskSliceView( moBIE, annotatedSourceDisplay, bdvHandle );
+		regionDisplay.sliceView = new AnnotatedMaskSliceView( moBIE, regionDisplay );
 	}
 
-	private void initSegmentationVolumeViewer( SegmentationSourceDisplay segmentationDisplay )
+	private void initSegmentationVolumeViewer( SegmentationDisplay segmentationDisplay )
 	{
 		segmentationDisplay.segmentsVolumeViewer = new SegmentsVolumeViewer<>( segmentationDisplay.selectionModel, segmentationDisplay.coloringModel, segmentationDisplay.sourceNameToSourceAndConverter.values(), universeManager );
 		Double[] resolution3dView = segmentationDisplay.getResolution3dView();
@@ -531,49 +519,53 @@ public class ViewManager
 
 	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay, boolean closeImgLoader )
 	{
-		if ( sourceDisplay instanceof AnnotatedRegionDisplay )
+		if ( sourceDisplay instanceof AnnotationDisplay )
 		{
-			final AnnotatedRegionDisplay< ? > regionDisplay = ( AnnotatedRegionDisplay< ? > ) sourceDisplay;
+			final AnnotationDisplay< ? > regionDisplay = ( AnnotationDisplay< ? > ) sourceDisplay;
 			regionDisplay.getSliceView().close( closeImgLoader );
 
 			if ( regionDisplay.tableRows != null )
 			{
 				regionDisplay.tableViewer.close();
 				regionDisplay.scatterPlotViewer.close();
-				if ( regionDisplay instanceof SegmentationSourceDisplay )
-					( ( SegmentationSourceDisplay ) regionDisplay ).segmentsVolumeViewer.close();
+				if ( regionDisplay instanceof SegmentationDisplay )
+					( ( SegmentationDisplay ) regionDisplay ).segmentsVolumeViewer.close();
 			}
 
 		}
-		else if ( sourceDisplay instanceof ImageSourceDisplay )
+		else if ( sourceDisplay instanceof ImageDisplay )
 		{
-			final ImageSourceDisplay imageDisplay = ( ImageSourceDisplay ) sourceDisplay;
+			final ImageDisplay imageDisplay = ( ImageDisplay ) sourceDisplay;
 			imageDisplay.imageSliceView.close( false );
 		}
 
 		userInterface.removeDisplaySettingsPanel( sourceDisplay );
 		currentSourceDisplays.remove( sourceDisplay );
 
-		// remove any sourceTransformers, where none of its relevant 'sources' are displayed
+		updateCurrentSourceTransformers();
+	}
+
+	private void updateCurrentSourceTransformers()
+	{
+		// remove any sourceTransformers, where none of its relevant sources are displayed
 
 		// create a copy of the currently shown source transformers, so we don't iterate over a list that we modify
 		final ArrayList< SourceTransformer > sourceTransformersCopy = new ArrayList<>( this.currentSourceTransformers ) ;
 
 		Set<String> currentlyDisplayedSources = new HashSet<>();
-		for ( SourceDisplay display: currentSourceDisplays ) {
+		for ( SourceDisplay display: currentSourceDisplays )
 			currentlyDisplayedSources.addAll( display.getSources() );
-		}
 
-		for ( SourceTransformer sourceTransformer: sourceTransformersCopy ) {
-			if ( !containsAtLeastOne( currentlyDisplayedSources, sourceTransformer.getSources() )) {
+		for ( SourceTransformer sourceTransformer: sourceTransformersCopy )
+		{
+			if ( ! currentlyDisplayedSources.stream().anyMatch( s -> sourceTransformer.getSources().contains( s ) ) )
 				currentSourceTransformers.remove( sourceTransformer );
-			}
 		}
 	}
 
-	public Collection< AnnotatedRegionDisplay > getAnnotatedRegionDisplays()
+	public Collection< AnnotationDisplay > getAnnotatedRegionDisplays()
 	{
-		final List< AnnotatedRegionDisplay > displays = getCurrentSourceDisplays().stream().filter( s -> s instanceof AnnotatedRegionDisplay ).map( s -> ( AnnotatedRegionDisplay ) s ).collect( Collectors.toList() );
+		final List< AnnotationDisplay > displays = getCurrentSourceDisplays().stream().filter( s -> s instanceof AnnotationDisplay ).map( s -> ( AnnotationDisplay ) s ).collect( Collectors.toList() );
 
 		return displays;
 	}

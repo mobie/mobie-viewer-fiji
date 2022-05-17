@@ -1,22 +1,20 @@
 package org.embl.mobie.viewer.display;
 
 import bdv.viewer.SourceAndConverter;
-import net.imglib2.type.numeric.integer.IntType;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
-import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.AnnotatedMaskSliceView;
 import org.embl.mobie.viewer.bdv.view.AnnotatedRegionSliceView;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
-import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-// Even though within the rest of the code we call things now AnnotatedMask*
-// the name of this class for now remains AnnotatedSourceDisplay
-// in order to stay consistent with the nomenclature in dataset.json
-public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMaskTableRow >
+public class RegionDisplay extends AnnotationDisplay< AnnotatedMaskTableRow >
 {
 	// Serialization
 	protected Map< String, List< String > > sources;
@@ -27,7 +25,6 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 	public transient AnnotatedMaskAdapter annotatedMaskAdapter;
 	public transient AnnotatedMaskSliceView sliceView;
 
-	// Getters for the serialised fields
 	public List< String > getSelectedAnnotationIds()
 	{
 		return selectedAnnotationIds;
@@ -46,10 +43,9 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 	@Override
 	public List< String > getSources()
 	{
-		final ArrayList< String > allSources = new ArrayList<>();
-		for ( List< String > sources : this.sources.values() )
-			allSources.addAll( sources );
-		return allSources;
+		final ArrayList< String > sources = new ArrayList<>();
+		sources.add( getName() );
+		return sources;
 	}
 
 	@Override
@@ -59,10 +55,10 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 	}
 
 	// Needed for Gson
-	public AnnotatedSourceDisplay() {}
+	public RegionDisplay() {}
 
 	// TODO: Looks like we do not need it? Maybe for the interactive grid view?
-	public AnnotatedSourceDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
+	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -79,16 +75,16 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 	/**
 	 * Create a serializable copy
 	 *
-	 * @param annotatedSourceDisplay
+	 * @param regionDisplay
 	 */
-	public AnnotatedSourceDisplay( AnnotatedSourceDisplay annotatedSourceDisplay )
+	public RegionDisplay( RegionDisplay regionDisplay )
 	{
-		fetchCurrentSettings( annotatedSourceDisplay );
+		fetchCurrentSettings( regionDisplay );
 
 		this.sources = new HashMap<>();
-		this.sources.putAll( annotatedSourceDisplay.sources );
+		this.sources.putAll( regionDisplay.sources );
 
-		Set< AnnotatedMaskTableRow > currentSelectedRows = annotatedSourceDisplay.selectionModel.getSelected();
+		Set< AnnotatedMaskTableRow > currentSelectedRows = regionDisplay.selectionModel.getSelected();
 		if ( currentSelectedRows != null && currentSelectedRows.size() > 0 ) {
 			ArrayList<String> selectedIds = new ArrayList<>();
 			for ( AnnotatedMaskTableRow row : currentSelectedRows ) {
@@ -98,10 +94,10 @@ public class AnnotatedSourceDisplay extends AnnotatedRegionDisplay< AnnotatedMas
 		}
 
 		this.tableData = new HashMap<>();
-		this.tableData.putAll( annotatedSourceDisplay.tableData );
+		this.tableData.putAll( regionDisplay.tableData );
 
-		if ( annotatedSourceDisplay.sliceView != null ) {
-			this.visible = annotatedSourceDisplay.sliceView.isDisplayVisible();
+		if ( regionDisplay.sliceView != null ) {
+			this.visible = regionDisplay.sliceView.isVisible();
 		}
 	}
 

@@ -2,9 +2,9 @@ package org.embl.mobie.viewer.serialize;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
-import org.embl.mobie.viewer.display.ImageSourceDisplay;
-import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
+import org.embl.mobie.viewer.display.RegionDisplay;
+import org.embl.mobie.viewer.display.ImageDisplay;
+import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.SourceDisplay;
 import org.embl.mobie.viewer.transform.SourceTransformer;
 
@@ -17,12 +17,12 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< SourceDis
 	private static Map<String, String> classToName = new TreeMap<>();
 
 	static {
-		nameToClass.put("imageDisplay", ImageSourceDisplay.class);
-		classToName.put(ImageSourceDisplay.class.getName(), "imageDisplay");
-		nameToClass.put("segmentationDisplay", SegmentationSourceDisplay.class);
-		classToName.put(SegmentationSourceDisplay.class.getName(), "segmentationDisplay");
-		nameToClass.put("sourceAnnotationDisplay", AnnotatedSourceDisplay.class);
-		classToName.put( AnnotatedSourceDisplay.class.getName(), "sourceAnnotationDisplay");
+		nameToClass.put("imageDisplay", ImageDisplay.class);
+		classToName.put( ImageDisplay.class.getName(), "imageDisplay");
+		nameToClass.put("segmentationDisplay", SegmentationDisplay.class);
+		classToName.put( SegmentationDisplay.class.getName(), "segmentationDisplay");
+		nameToClass.put("sourceAnnotationDisplay", RegionDisplay.class);
+		classToName.put( RegionDisplay.class.getName(), "sourceAnnotationDisplay");
 	}
 
 	@Override
@@ -46,12 +46,12 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< SourceDis
 			Map< String, SourceDisplay > nameToSourceDisplay = new HashMap<>();
 			nameToSourceDisplay.put( classToName.get( sourceDisplay.getClass().getName() ), sourceDisplay );
 
-			if ( sourceDisplay instanceof ImageSourceDisplay ) {
-				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, ImageSourceDisplay > >() {}.getType() ) );
-			} else if ( sourceDisplay instanceof  SegmentationSourceDisplay ) {
-				ja.add( context.serialize( nameToSourceDisplay , new TypeToken< Map< String, SegmentationSourceDisplay > >() {}.getType() ) );
-			} else if ( sourceDisplay instanceof AnnotatedSourceDisplay ) {
-				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, AnnotatedSourceDisplay > >() {}.getType() ) );
+			if ( sourceDisplay instanceof ImageDisplay ) {
+				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, ImageDisplay > >() {}.getType() ) );
+			} else if ( sourceDisplay instanceof SegmentationDisplay ) {
+				ja.add( context.serialize( nameToSourceDisplay , new TypeToken< Map< String, SegmentationDisplay > >() {}.getType() ) );
+			} else if ( sourceDisplay instanceof RegionDisplay ) {
+				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, RegionDisplay > >() {}.getType() ) );
 			} else
 			{
 				throw new UnsupportedOperationException( "Could not serialise SourceDisplay of type: " + sourceDisplay.getClass().toString() );
