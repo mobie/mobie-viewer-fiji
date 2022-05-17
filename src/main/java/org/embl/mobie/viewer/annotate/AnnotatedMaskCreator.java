@@ -36,7 +36,7 @@ public class AnnotatedMaskCreator
 
 		annotatedMaskTableRows = new ArrayList<>();
 		final Set< String > annotationIds = annotationIdToSources.keySet();
-		final List< String > annotationIdColumn = columns.get( TableColumnNames.ANNOTATION_ID );
+		final List< String > annotationIdColumn = columns.get( TableColumnNames.REGION_ID );
 
 		for ( String annotationId : annotationIds )
 		{

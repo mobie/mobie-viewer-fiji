@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer.display;
 
-import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.bdv.view.AnnotatedMaskSliceView;
