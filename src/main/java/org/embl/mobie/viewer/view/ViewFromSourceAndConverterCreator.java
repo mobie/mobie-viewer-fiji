@@ -34,6 +34,7 @@ public class ViewFromSourceAndConverterCreator
 	private double[] contrastLimits;
 	private String color;
 
+	// TODO: not used, what was this intended for?
 	public ViewFromSourceAndConverterCreator( SourceAndConverter sourceAndConverter )
 	{
 		this.sourceAndConverter = sourceAndConverter;
