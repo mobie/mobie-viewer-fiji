@@ -8,5 +8,5 @@ public class TableColumnNames
 	public static final String ANCHOR_Y = "anchor_y";
 	public static final String ANCHOR_Z = "anchor_z";
 	public static final String TIMEPOINT = "timepoint";
-	public static final String ANNOTATION_ID = "annotation_id";
+	public static final String REGION_ID = "region_id";
 }

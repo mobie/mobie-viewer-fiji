@@ -17,16 +17,16 @@ public class RegionDisplay extends AnnotationDisplay< AnnotatedMaskTableRow >
 {
 	// Serialization
 	protected Map< String, List< String > > sources;
-	protected List< String > selectedAnnotationIds;
+	protected List< String > selectedRegionIds;
 	protected Map< TableDataFormat, StorageLocation > tableData;
 
 	// Runtime
 	public transient AnnotatedMaskAdapter annotatedMaskAdapter;
 	public transient RegionSliceView sliceView;
 
-	public List< String > getSelectedAnnotationIds()
+	public List< String > getSelectedRegionIds()
 	{
-		return selectedAnnotationIds;
+		return selectedRegionIds;
 	}
 
 	public String getTableDataFolder( TableDataFormat tableDataFormat )
@@ -65,7 +65,7 @@ public class RegionDisplay extends AnnotationDisplay< AnnotatedMaskTableRow >
 		this.lut = lut;
 		this.colorByColumn = colorByColumn;
 		this.valueLimits = valueLimits;
-		this.selectedAnnotationIds = selectedSegmentIds;
+		this.selectedRegionIds = selectedSegmentIds;
 		this.showScatterPlot = showScatterPlot;
 		this.scatterPlotAxes = scatterPlotAxes;
 		this.tables = tables;
@@ -89,7 +89,7 @@ public class RegionDisplay extends AnnotationDisplay< AnnotatedMaskTableRow >
 			for ( AnnotatedMaskTableRow row : currentSelectedRows ) {
 				selectedIds.add( row.timePoint() + ";" + row.name() );
 			}
-			this.selectedAnnotationIds = selectedIds;
+			this.selectedRegionIds = selectedIds;
 		}
 
 		this.tableData = new HashMap<>();

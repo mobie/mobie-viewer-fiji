@@ -155,14 +155,14 @@ public class MoBIE
 	public static void mergeAnnotatedMaskTable( List< AnnotatedMaskTableRow > intervalTableRows, Map< String, List< String > > columns )
 	{
 		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
-		final ArrayList< String > gridIdColumn = TableColumns.getColumn( intervalTableRows, TableColumnNames.ANNOTATION_ID );
-		referenceColumns.put( TableColumnNames.ANNOTATION_ID, gridIdColumn );
+		final ArrayList< String > gridIdColumn = TableColumns.getColumn( intervalTableRows, TableColumnNames.REGION_ID );
+		referenceColumns.put( TableColumnNames.REGION_ID, gridIdColumn );
 
 		// deal with the fact that the grid ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
 		MoBIEHelper.toDoubleStrings( gridIdColumn );
-		MoBIEHelper.toDoubleStrings( columns.get( TableColumnNames.ANNOTATION_ID ) );
+		MoBIEHelper.toDoubleStrings( columns.get( TableColumnNames.REGION_ID ) );
 
 		final Map< String, List< String > > newColumns = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, columns );
 
