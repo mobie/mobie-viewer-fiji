@@ -12,7 +12,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import static org.scijava.ItemVisibility.MESSAGE;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Label Volume Rendering")
-public class LabelVolumeRenderingConfiguratorCommand implements BdvPlaygroundActionCommand
+public class ConfigureLabelVolumeRenderingCommand implements BdvPlaygroundActionCommand
 {
 	@Parameter
 	public SourceAndConverter[] sourceAndConverters;
