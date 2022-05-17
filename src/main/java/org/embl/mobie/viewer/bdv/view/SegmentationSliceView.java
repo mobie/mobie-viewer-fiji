@@ -15,7 +15,7 @@ import org.embl.mobie.viewer.transform.MergedGridSource;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 
-public class SegmentationSliceView extends AnnotatedRegionSliceView< TableRowImageSegment >
+public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSegment >
 {
 	public SegmentationSliceView( MoBIE moBIE, SegmentationDisplay display )
 	{

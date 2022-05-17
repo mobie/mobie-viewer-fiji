@@ -1,10 +1,9 @@
 package org.embl.mobie.viewer.display;
 
-import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
-import org.embl.mobie.viewer.bdv.view.AnnotatedMaskSliceView;
-import org.embl.mobie.viewer.bdv.view.AnnotatedRegionSliceView;
+import org.embl.mobie.viewer.bdv.view.RegionSliceView;
+import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
 
@@ -23,7 +22,7 @@ public class RegionDisplay extends AnnotationDisplay< AnnotatedMaskTableRow >
 
 	// Runtime
 	public transient AnnotatedMaskAdapter annotatedMaskAdapter;
-	public transient AnnotatedMaskSliceView sliceView;
+	public transient RegionSliceView sliceView;
 
 	public List< String > getSelectedAnnotationIds()
 	{
@@ -49,7 +48,7 @@ public class RegionDisplay extends AnnotationDisplay< AnnotatedMaskTableRow >
 	}
 
 	@Override
-	public AnnotatedRegionSliceView< ? > getSliceView()
+	public AnnotationSliceView< ? > getSliceView()
 	{
 		return sliceView;
 	}

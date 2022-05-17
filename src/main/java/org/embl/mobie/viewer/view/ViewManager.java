@@ -14,7 +14,7 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
-import org.embl.mobie.viewer.bdv.view.AnnotatedMaskSliceView;
+import org.embl.mobie.viewer.bdv.view.RegionSliceView;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.bdv.view.SliceViewer;
@@ -497,7 +497,7 @@ public class ViewManager
 
 	private void showInSliceViewer( RegionDisplay regionDisplay )
 	{
-		regionDisplay.sliceView = new AnnotatedMaskSliceView( moBIE, regionDisplay );
+		regionDisplay.sliceView = new RegionSliceView( moBIE, regionDisplay );
 	}
 
 	private void initSegmentationVolumeViewer( SegmentationDisplay segmentationDisplay )
