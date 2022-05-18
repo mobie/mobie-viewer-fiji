@@ -9,7 +9,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.Arrays;
 
-public abstract class MoBIEViewerTransformChanger
+public abstract class SliceViewLocationChanger
 {
 	public static int animationDurationMillis = 3000;
 
@@ -18,7 +18,7 @@ public abstract class MoBIEViewerTransformChanger
 	private static boolean pointOverlaySourceIsActive;
 	private static boolean isPointOverlayEnabled;
 
-	public static void changeViewerTransform( BdvHandle bdv, ViewerTransform viewerTransform )
+	public static void changeLocation( BdvHandle bdv, ViewerTransform viewerTransform )
 	{
 		if ( viewerTransform instanceof PositionViewerTransform )
 		{
@@ -34,18 +34,18 @@ public abstract class MoBIEViewerTransformChanger
 		else if ( viewerTransform instanceof NormalVectorViewerTransform )
 		{
 			final AffineTransform3D transform = NormalVectorViewerTransform.createTransform( bdv, viewerTransform.getParameters() );
-			changeViewerTransform( bdv, transform, animationDurationMillis );
+			changeLocation( bdv, transform, animationDurationMillis );
 			adaptTimepoint( bdv, viewerTransform );
 		}
 		else if ( viewerTransform instanceof AffineViewerTransform )
 		{
-			changeViewerTransform( bdv, MoBIEHelper.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
+			changeLocation( bdv, MoBIEHelper.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
 			adaptTimepoint( bdv, viewerTransform );
 		}
 		else if ( viewerTransform instanceof NormalizedAffineViewerTransform )
 		{
 			final AffineTransform3D transform = TransformHelper.createUnnormalizedViewerTransform( MoBIEHelper.asAffineTransform3D( viewerTransform.getParameters() ), bdv.getBdvHandle().getViewerPanel() );
-			changeViewerTransform( bdv, transform, animationDurationMillis );
+			changeLocation( bdv, transform, animationDurationMillis );
 			adaptTimepoint( bdv, viewerTransform );
 		}
 	}
@@ -83,7 +83,7 @@ public abstract class MoBIEViewerTransformChanger
 
 	public static void enablePointOverlay( boolean isPointOverlayEnabled )
 	{
-		MoBIEViewerTransformChanger.isPointOverlayEnabled = isPointOverlayEnabled;
+		SliceViewLocationChanger.isPointOverlayEnabled = isPointOverlayEnabled;
 	}
 
 	public static void moveToPosition( BdvHandle bdv, double[] xyz, long durationMillis )
@@ -127,7 +127,7 @@ public abstract class MoBIEViewerTransformChanger
 		}
 	}
 
-	public static void changeViewerTransform( Bdv bdv, AffineTransform3D newViewerTransform, long duration)
+	public static void changeLocation( Bdv bdv, AffineTransform3D newViewerTransform, long duration)
 	{
 		AffineTransform3D currentViewerTransform = new AffineTransform3D();
 		bdv.getBdvHandle().getViewerPanel().state().getViewerTransform( currentViewerTransform );

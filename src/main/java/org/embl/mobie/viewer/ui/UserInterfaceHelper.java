@@ -6,16 +6,14 @@ import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import com.google.gson.Gson;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import org.embl.mobie.viewer.*;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
-import org.embl.mobie.viewer.serialize.JsonHelper;
 import org.embl.mobie.viewer.transform.MoBIEViewerTransformAdjuster;
 import org.embl.mobie.viewer.transform.ViewerTransform;
-import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
+import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.display.ImageDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
@@ -262,7 +260,7 @@ public class UserInterfaceHelper
 		panel.add( createViewsSelectionPanel() );
 
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		panel.add( createMoveToLocationPanel()  );
+		panel.add( createMoveToLocationPanel( moBIE.getDataset().defaultLocation )  );
 		panel.add( createRemoveAllViewsPanel( moBIE ) );
 
 		return panel;
@@ -503,19 +501,17 @@ public class UserInterfaceHelper
 		return horizontalLayoutPanel;
 	}
 
-	public JPanel createMoveToLocationPanel( )
+	public JPanel createMoveToLocationPanel( ViewerTransform transform )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 		final JButton button = SwingHelper.createButton( MOVE );
-
-		final JTextField jTextField = new JTextField( "{\"position\":[120.5,115.3,201.5]}" );
+		final JTextField jTextField = new JTextField( ViewerTransform.toString( transform ) );
 		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		button.addActionListener( e ->
 		{
-			final Gson gson = JsonHelper.buildGson( false );
-			final ViewerTransform viewerTransform = gson.fromJson( jTextField.getText(), ViewerTransform.class );
-			MoBIEViewerTransformChanger.changeViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
+			ViewerTransform viewerTransform = ViewerTransform.toViewerTransform( jTextField.getText() );
+			SliceViewLocationChanger.changeLocation( this.moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
 		} );
 
 		horizontalLayoutPanel.add( SwingHelper.getJLabel( "location" ) );

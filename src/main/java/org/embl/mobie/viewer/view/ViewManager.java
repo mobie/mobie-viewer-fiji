@@ -29,7 +29,7 @@ import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableViewer;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
-import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
+import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SourceTransformer;
 import org.embl.mobie.viewer.transform.TransformHelper;
@@ -296,7 +296,7 @@ public class ViewManager
 
 		if ( view.getViewerTransform() != null )
 		{
-			MoBIEViewerTransformChanger.changeViewerTransform( bdvHandle, view.getViewerTransform() );
+			SliceViewLocationChanger.changeLocation( bdvHandle, view.getViewerTransform() );
 		}
 		else
 		{
