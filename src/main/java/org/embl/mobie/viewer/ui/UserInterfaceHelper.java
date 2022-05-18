@@ -262,7 +262,7 @@ public class UserInterfaceHelper
 		panel.add( createViewsSelectionPanel() );
 
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		panel.add( createMoveToLocationPanel()  );
+		panel.add( createMoveToLocationPanel( moBIE.getDataset().defaultLocation )  );
 		panel.add( createRemoveAllViewsPanel( moBIE ) );
 
 		return panel;
@@ -503,19 +503,19 @@ public class UserInterfaceHelper
 		return horizontalLayoutPanel;
 	}
 
-	public JPanel createMoveToLocationPanel( )
+	public JPanel createMoveToLocationPanel( ViewerTransform defaultLocation )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 		final JButton button = SwingHelper.createButton( MOVE );
 
-		final JTextField jTextField = new JTextField( "{\"position\":[120.5,115.3,201.5]}" );
+		final JTextField jTextField = new JTextField( defaultLocation.toString() );
 		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		jTextField.setMaximumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		button.addActionListener( e ->
 		{
 			final Gson gson = JsonHelper.buildGson( false );
 			final ViewerTransform viewerTransform = gson.fromJson( jTextField.getText(), ViewerTransform.class );
-			MoBIEViewerTransformChanger.changeViewerTransform( moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
+			MoBIEViewerTransformChanger.changeViewerTransform( this.moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
 		} );
 
 		horizontalLayoutPanel.add( SwingHelper.getJLabel( "location" ) );

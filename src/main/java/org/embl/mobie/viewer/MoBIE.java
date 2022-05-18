@@ -284,18 +284,12 @@ public class MoBIE
 
 		System.out.println("# Views");
 		for ( String viewName : dataset.views.keySet() )
-		{
 			System.out.println( viewName );
-		}
 
 		IJ.log( "Opening view: " + view.getName() + "\n" );
 		final long startTime = System.currentTimeMillis();
 		viewManager.show( view );
 		IJ.log("Opened view: " + view.getName() + ", in " + (System.currentTimeMillis() - startTime) + " ms.\n" );
-
-		// arrange windows
-		//WindowArrangementHelper.setLogWindowPositionAndSize( userInterface.getWindow() );
-		//WindowArrangementHelper.rightAlignWindow( userInterface.getWindow(), viewManager.getSliceViewer().getWindow(), false, true );
 	}
 
 	private void setDatasetName( String datasetName )
