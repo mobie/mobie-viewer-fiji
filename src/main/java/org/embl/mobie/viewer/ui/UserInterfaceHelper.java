@@ -510,7 +510,10 @@ public class UserInterfaceHelper
 
 		final String text;
 		if ( defaultLocation != null )
-			text = defaultLocation.toString();
+		{
+			final Gson gson = JsonHelper.buildGson( false );
+			text = gson.toJson( defaultLocation );
+		}
 		else
 			text = "";
 
@@ -519,8 +522,7 @@ public class UserInterfaceHelper
 		jTextField.setMaximumSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
 		button.addActionListener( e ->
 		{
-			final Gson gson = JsonHelper.buildGson( false );
-			final ViewerTransform viewerTransform = gson.fromJson( jTextField.getText(), ViewerTransform.class );
+			ViewerTransform viewerTransform = ViewerTransform.toViewerTransform( jTextField.getText() );
 			MoBIEViewerTransformChanger.changeViewerTransform( this.moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
 		} );
 
