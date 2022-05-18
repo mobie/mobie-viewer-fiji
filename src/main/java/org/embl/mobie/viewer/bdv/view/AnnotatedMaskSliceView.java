@@ -9,7 +9,7 @@ import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.annotate.TableRowsIntervalImage;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
-import org.embl.mobie.viewer.transform.MoBIEViewerTransformChanger;
+import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 
 
@@ -47,7 +47,7 @@ public class AnnotatedMaskSliceView extends AnnotatedRegionSliceView< AnnotatedM
 
 		final double[] center = getPosition( selection );
 
-		MoBIEViewerTransformChanger.changeViewerTransform( bdvHandle, new PositionViewerTransform( center, state.getCurrentTimepoint() ) );
+		SliceViewLocationChanger.changeLocation( bdvHandle, new PositionViewerTransform( center, state.getCurrentTimepoint() ) );
 	}
 
 	private double[] getPosition( AnnotatedMaskTableRow selection )

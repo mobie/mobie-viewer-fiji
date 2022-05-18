@@ -6,7 +6,19 @@ import org.embl.mobie.viewer.serialize.JsonHelper;
 public interface ViewerTransform
 {
 	double[] getParameters();
+
 	Integer getTimepoint();
+
+	static String toString( ViewerTransform viewerTransform )
+	{
+		if ( viewerTransform != null )
+		{
+			final Gson gson = JsonHelper.buildGson( false );
+			return gson.toJson( viewerTransform );
+		}
+		else
+			return  "";
+	}
 
 	static ViewerTransform toViewerTransform( String s )
 	{
@@ -18,8 +30,8 @@ public interface ViewerTransform
 		}
 		catch ( Exception gsonException )
 		{
+			// TODO: implement additional parsing: https://github.com/mobie/mobie-viewer-fiji/issues/731
 			throw gsonException;
-			//return new PositionViewerTransform(new double[]{0,0,0}, 0);
 		}
 	}
 
