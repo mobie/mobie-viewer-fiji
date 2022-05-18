@@ -3,12 +3,13 @@ package org.embl.mobie.viewer.display;
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.NumericColoringModel;
 import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
-import org.embl.mobie.viewer.bdv.view.AnnotatedRegionSliceView;
+import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
@@ -33,6 +34,7 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 	protected boolean showTable = true;
 	protected boolean showAsBoundaries = false;
 	protected float boundaryThickness = 1.0F;
+	protected int randomColorSeed;
 
 	// Fixed
 	protected transient final BlendingMode blendingMode = BlendingMode.SumOccluding;
@@ -45,7 +47,7 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 	public transient List< T > tableRows;
 
 	// Should be overwritten by child classes
-	public AnnotatedRegionSliceView< ? > getSliceView()
+	public AnnotationSliceView< ? > getSliceView()
 	{
 		return null;
 	}
@@ -100,6 +102,11 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 		return blendingMode;
 	}
 
+	public int getRandomColorSeed()
+	{
+		return randomColorSeed;
+	}
+
 	protected void fetchCurrentSettings( AnnotationDisplay<T> annotationDisplay )
 	{
 		this.name = annotationDisplay.name;
@@ -125,8 +132,13 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 		{
 			this.valueLimits = new Double[2];
 			NumericColoringModel numericColoringModel = ( NumericColoringModel ) ( wrappedColoringModel );
-			valueLimits[0] = numericColoringModel.getMin();
-			valueLimits[1] = numericColoringModel.getMax();
+			this.valueLimits[0] = numericColoringModel.getMin();
+			this.valueLimits[1] = numericColoringModel.getMax();
+		}
+
+		if ( wrappedColoringModel instanceof CategoryColoringModel )
+		{
+			this.randomColorSeed = ( ( CategoryColoringModel<?> ) wrappedColoringModel ).getRandomSeed();
 		}
 
 		this.showScatterPlot = annotationDisplay.scatterPlotViewer.isVisible();

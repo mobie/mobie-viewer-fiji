@@ -10,10 +10,9 @@ import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.command.BigWarpRegistrationCommand;
 import org.embl.mobie.viewer.command.ConfigureLabelRenderingCommand;
-import org.embl.mobie.viewer.command.ImageVolumeRenderingConfiguratorCommand;
-import org.embl.mobie.viewer.command.LabelVolumeRenderingConfiguratorCommand;
+import org.embl.mobie.viewer.command.ConfigureImageVolumeRenderingCommand;
+import org.embl.mobie.viewer.command.ConfigureLabelVolumeRenderingCommand;
 import org.embl.mobie.viewer.command.ManualRegistrationCommand;
-import org.embl.mobie.viewer.command.RandomColorSeedChangerCommand;
 import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
 import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
@@ -108,10 +107,9 @@ public class SliceViewer
 		actions.add( sacService.getCommandName( BigWarpRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( ManualRegistrationCommand.class ) );
 		actions.add( sacService.getCommandName( SourceAndConverterBlendingModeChangerCommand.class ) );
-		actions.add( sacService.getCommandName( RandomColorSeedChangerCommand.class ) );
 		actions.add( sacService.getCommandName( ConfigureLabelRenderingCommand.class ) );
-		actions.add( sacService.getCommandName( LabelVolumeRenderingConfiguratorCommand.class ) );
-		actions.add( sacService.getCommandName( ImageVolumeRenderingConfiguratorCommand.class ) );
+		actions.add( sacService.getCommandName( ConfigureLabelVolumeRenderingCommand.class ) );
+		actions.add( sacService.getCommandName( ConfigureImageVolumeRenderingCommand.class ) );
 		actions.add( UNDO_SEGMENT_SELECTIONS );
 		actions.add( LOAD_ADDITIONAL_VIEWS );
 		actions.add( SAVE_CURRENT_SETTINGS_AS_VIEW );
@@ -145,7 +143,7 @@ public class SliceViewer
 						new Thread( () ->
 						{
 							final SourceAndConverter[] sourceAndConverters = sacService.getSourceAndConverters().toArray( new SourceAndConverter[ 0 ] );
-							RandomColorSeedChangerCommand.incrementRandomColorSeed( sourceAndConverters );
+							ConfigureLabelRenderingCommand.incrementRandomColorSeed( sourceAndConverters );
 						}).start(),
 				"Change random color seed", "ctrl L" ) ;
 	}

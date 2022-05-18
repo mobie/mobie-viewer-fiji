@@ -96,7 +96,7 @@
 		<bigdataviewer-playground.version>0.4.1</bigdataviewer-playground.version>
 
 		<!-- EMBL CBA -->
-		<imagej-utils.version>0.6.4</imagej-utils.version>
+		<imagej-utils.version>0.6.6-SNAPSHOT</imagej-utils.version>
 
 		<mobie-io.version>1.2.11-SNAPSHOT</mobie-io.version>
 
