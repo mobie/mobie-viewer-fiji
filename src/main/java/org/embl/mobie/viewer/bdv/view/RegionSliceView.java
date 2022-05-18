@@ -13,9 +13,9 @@ import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 
 
-public class AnnotatedMaskSliceView extends AnnotatedRegionSliceView< AnnotatedMaskTableRow >
+public class RegionSliceView extends AnnotationSliceView< AnnotatedMaskTableRow >
 {
-	public AnnotatedMaskSliceView( MoBIE moBIE, RegionDisplay display )
+	public RegionSliceView( MoBIE moBIE, RegionDisplay display )
 	{
 		super( moBIE, display );
 

@@ -1,7 +1,7 @@
 package org.embl.mobie.viewer.display;
 
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.bdv.view.AnnotatedRegionSliceView;
+import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
@@ -23,7 +23,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 	public transient SegmentationSliceView sliceView;
 
 	@Override
-	public AnnotatedRegionSliceView< ? > getSliceView()
+	public AnnotationSliceView< ? > getSliceView()
 	{
 		return sliceView;
 	}
