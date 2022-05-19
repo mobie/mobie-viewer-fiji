@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.embl.mobie.io.github.GitHubUtils.isGithub;
-import static org.embl.mobie.io.util.FileAndUrlUtils.getFileNames;
+import static org.embl.mobie.io.util.IOHelper.getFileNames;
 import static org.embl.mobie.io.util.S3Utils.isS3;
 import static org.embl.mobie.viewer.view.save.ViewSavingHelper.writeAdditionalViewsJson;
 import static org.embl.mobie.viewer.view.save.ViewSavingHelper.writeDatasetJson;

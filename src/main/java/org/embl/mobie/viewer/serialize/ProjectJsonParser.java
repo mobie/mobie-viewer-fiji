@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonWriter;
 import org.embl.mobie.viewer.Project;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,7 +16,7 @@ public class ProjectJsonParser
 {
 	public Project parseProject( String path ) throws IOException
 	{
-		final String s = FileAndUrlUtils.read( path );
+		final String s = IOHelper.read( path );
 		Gson gson = new Gson();
 		Type type = new TypeToken< Project >() {}.getType();
 		Project project = gson.fromJson( s, type );

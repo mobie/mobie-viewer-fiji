@@ -83,7 +83,7 @@
 		<enforcer.skip>true</enforcer.skip>
 
         <bigdataviewer-playground.version>0.4.5</bigdataviewer-playground.version>
-		<imagej-utils.version>0.6.7-SNAPSHOT</imagej-utils.version>
+		<imagej-utils.version>0.6.7</imagej-utils.version>
 		<mobie-io.version>1.2.11-SNAPSHOT</mobie-io.version>
 		<bigdataviewer-core.version>10.2.1</bigdataviewer-core.version>
 

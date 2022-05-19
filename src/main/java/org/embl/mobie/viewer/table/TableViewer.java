@@ -447,7 +447,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			{
 				for ( String tableDir: sourceNameToTableDir.values() )
 				{
-					final Map< String, List< String > > table = openTable( FileAndUrlUtils.combinePath( tableDir, tableName ) );
+					final Map< String, List< String > > table = openTable( IOHelper.combinePath( tableDir, tableName ) );
 					MoBIE.mergeAnnotatedMaskTable( (List< AnnotatedMaskTableRow >) tableRows, table );
 				}
 			}

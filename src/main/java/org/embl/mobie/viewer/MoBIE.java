@@ -8,7 +8,7 @@ import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
@@ -84,7 +84,7 @@ public class MoBIE
 		registerProjectPlugins( settings.values.getProjectLocation() );
 		projectName = MoBIEHelper.getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
-		project = new ProjectJsonParser().parseProject( FileAndUrlUtils.combinePath( projectRoot,  "project.json" ) );
+		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
 		this.settings = setImageDataFormat( projectLocation );
 		openDataset();
 	}
@@ -190,27 +190,27 @@ public class MoBIE
 				settings.values.getProjectLocation(),
 				settings.values.getProjectBranch() );
 
-		if( ! FileAndUrlUtils.exists( FileAndUrlUtils.combinePath( projectRoot, "project.json" ) ) )
+		if( ! IOHelper.exists( IOHelper.combinePath( projectRoot, "project.json" ) ) )
 		{
-			projectRoot = FileAndUrlUtils.combinePath( projectRoot, "data" );
+			projectRoot = IOHelper.combinePath( projectRoot, "data" );
 		}
 
 		imageRoot = createPath(
 				settings.values.getImageDataLocation(),
 				settings.values.getImageDataBranch() );
 
-		if( ! FileAndUrlUtils.exists( FileAndUrlUtils.combinePath( imageRoot, "project.json" ) ) )
+		if( ! IOHelper.exists( IOHelper.combinePath( imageRoot, "project.json" ) ) )
 		{
-			imageRoot = FileAndUrlUtils.combinePath( imageRoot, "data" );
+			imageRoot = IOHelper.combinePath( imageRoot, "data" );
 		}
 
 		tableRoot = createPath(
 				settings.values.getTableDataLocation(),
 				settings.values.getTableDataBranch() );
 
-		if( ! FileAndUrlUtils.exists( FileAndUrlUtils.combinePath( tableRoot, "project.json" ) ) )
+		if( ! IOHelper.exists( IOHelper.combinePath( tableRoot, "project.json" ) ) )
 		{
-			tableRoot = FileAndUrlUtils.combinePath( tableRoot, "data" );
+			tableRoot = IOHelper.combinePath( tableRoot, "data" );
 		}
 	}
 
@@ -273,6 +273,7 @@ public class MoBIE
 
 	private void openDataset( String datasetName ) throws IOException
 	{
+		IJ.log("Opening dataset: " + datasetName );
 		sourceNameToImgLoader = new HashMap<>();
 		sourceNameToTransformedSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
@@ -312,7 +313,7 @@ public class MoBIE
 			strings.add( files[ i ] );
 		}
 
-		final String path = FileAndUrlUtils.combinePath( strings.toArray( new String[0] ) );
+		final String path = IOHelper.combinePath( strings.toArray( new String[0] ) );
 
 		return path;
 	}
@@ -452,7 +453,7 @@ public class MoBIE
 
     public String getTablesDirectoryPath( String relativeTableLocation )
     {
-        return FileAndUrlUtils.combinePath( tableRoot, getDatasetName(), relativeTableLocation );
+        return IOHelper.combinePath( tableRoot, getDatasetName(), relativeTableLocation );
     }
 
 	public String getTablePath( SegmentationSource source, String table )
@@ -462,12 +463,12 @@ public class MoBIE
 
 	public String getTablePath( String relativeTableLocation, String table )
 	{
-		return FileAndUrlUtils.combinePath( tableRoot, getDatasetName(), relativeTableLocation, table );
+		return IOHelper.combinePath( tableRoot, getDatasetName(), relativeTableLocation, table );
 	}
 
 	public String getDatasetPath( String... files )
 	{
-		final String datasetRoot = FileAndUrlUtils.combinePath( projectRoot, getDatasetName() );
+		final String datasetRoot = IOHelper.combinePath( projectRoot, getDatasetName() );
 		return createPath( datasetRoot, files );
 	}
 
@@ -475,7 +476,7 @@ public class MoBIE
 	{
 		String location = root;
 		for ( String file : files )
-			location = FileAndUrlUtils.combinePath( location, file );
+			location = IOHelper.combinePath( location, file );
 		return location;
 	}
 
@@ -711,7 +712,7 @@ public class MoBIE
             case BdvOmeZarrS3:
             case BdvN5S3:
                 final String relativePath = source.imageData.get( imageDataFormat ).relativePath;
-                return FileAndUrlUtils.combinePath( imageRoot, getDatasetName(), relativePath );
+                return IOHelper.combinePath( imageRoot, getDatasetName(), relativePath );
             case OpenOrganelleS3:
             case OmeZarrS3:
                 return source.imageData.get( imageDataFormat ).s3Address;

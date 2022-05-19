@@ -1,6 +1,6 @@
 package org.embl.mobie.viewer.projectcreator;
 
-import de.embl.cba.tables.FileAndUrlUtils;
+import de.embl.cba.tables.IOHelper;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
@@ -71,7 +71,7 @@ class DatasetsCreatorTest {
     @Test
     void makeDataset2D() throws IOException {
         String datasetName = "test";
-        String datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
+        String datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "dataset.json" );
 
         Dataset dataset;

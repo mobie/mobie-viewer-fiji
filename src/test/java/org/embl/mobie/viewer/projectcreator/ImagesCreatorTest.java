@@ -11,7 +11,7 @@ import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 
-import de.embl.cba.tables.FileAndUrlUtils;
+import de.embl.cba.tables.IOHelper;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -55,7 +55,7 @@ class ImagesCreatorTest {
 
         projectCreator.getDatasetsCreator().addDataset(datasetName, false);
 
-        datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
+        datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "dataset.json" );
     }
 
@@ -75,10 +75,10 @@ class ImagesCreatorTest {
     void assertionsForN5( boolean onlyXmls ) throws SpimDataException {
         ImageDataFormat imageDataFormat = ImageDataFormat.BdvN5;
 
-        String xmlLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
+        String xmlLocation = IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat),
                 imageName + ".xml");
-        String imageLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
+        String imageLocation = IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat),
                 imageName + ".n5");
 
@@ -95,7 +95,7 @@ class ImagesCreatorTest {
     void assertionsForOmeZarr() throws SpimDataException {
         ImageDataFormat imageDataFormat = ImageDataFormat.OmeZarr;
 
-        String imageLocation = FileAndUrlUtils.combinePath(
+        String imageLocation = IOHelper.combinePath(
                 projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "images",
                 ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".ome.zarr");
 
@@ -120,7 +120,7 @@ class ImagesCreatorTest {
     }
 
     void assertionsForTableAdded( ) throws IOException {
-        String tablePath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "tables", imageName, "default.tsv" );
+        String tablePath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "tables", imageName, "default.tsv" );
         assertTrue( new File(tablePath).exists() );
 
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);

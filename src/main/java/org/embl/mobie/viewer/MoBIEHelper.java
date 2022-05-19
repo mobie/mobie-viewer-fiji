@@ -22,7 +22,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.util.Intervals;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import org.embl.mobie.viewer.transform.TransformHelper;
@@ -172,7 +172,7 @@ public abstract class MoBIEHelper
 		ArrayList<String> commonFileNames = new ArrayList<>();
 
 		for ( String directory: directories ) {
-			String[] directoryFileNames = FileAndUrlUtils.getFileNames( directory );
+			String[] directoryFileNames = IOHelper.getFileNames( directory );
 			for ( String directoryFileName: directoryFileNames ) {
 				if ( fileNameCounts.containsKey( directoryFileName ) ) {
 					int count = fileNameCounts.get(directoryFileName);
@@ -219,7 +219,7 @@ public abstract class MoBIEHelper
 			// all of them
 			fileName = chooseCommonFileName(directories, objectName);
 		} else {
-			String[] fileNames = FileAndUrlUtils.getFileNames( directories.get(0) );
+			String[] fileNames = IOHelper.getFileNames( directories.get(0) );
 			fileName = selectionDialog( fileNames, objectName );
 		}
 
@@ -231,10 +231,10 @@ public abstract class MoBIEHelper
 			return null;
 		}
 
-		String[] fileNames = FileAndUrlUtils.getFileNames( directory );
+		String[] fileNames = IOHelper.getFileNames( directory );
 		String fileName = selectionDialog( fileNames, objectName );
 		if ( fileName != null ) {
-			return FileAndUrlUtils.combinePath( directory, fileName );
+			return IOHelper.combinePath( directory, fileName );
 		} else {
 			return null;
 		}
@@ -364,9 +364,9 @@ public abstract class MoBIEHelper
 	public static String resolveTablePath( String tablePath )
 	{
 		if ( tablePath.startsWith( "http" ) ) {
-			tablePath = FileAndUrlUtils.resolveURL( URI.create( tablePath ) );
+			tablePath = IOHelper.resolveURL( URI.create( tablePath ) );
 		} else {
-			tablePath = FileAndUrlUtils.resolvePath( tablePath );
+			tablePath = IOHelper.resolvePath( tablePath );
 		}
 		return tablePath;
 	}

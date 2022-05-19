@@ -12,15 +12,12 @@ import org.embl.mobie.viewer.view.View;
 
 public class OpenRemoteCovidIF
 {
-	public static void main( String[] args )
+	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		try {
-			final MoBIE moBIE = new MoBIE( "https://github.com/mobie/covid-if-project", MoBIESettings.settings().gitProjectBranch( "main" ).imageDataFormat( ImageDataFormat.OmeZarrS3 ).view( "merge-grid-no-tables" ) );
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/covid-if-project" );
+
 	}
 }
