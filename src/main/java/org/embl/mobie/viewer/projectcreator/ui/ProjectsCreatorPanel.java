@@ -11,7 +11,7 @@ import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.command.OpenMoBIEProjectCommand;
 import org.embl.mobie.viewer.projectcreator.ImagesCreator;
 import org.embl.mobie.viewer.projectcreator.ProjectCreator;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.ImagePlus;
@@ -654,7 +654,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
     private boolean isValidOMEZarr( String filePath )
     {
-        return ( new File( FileAndUrlUtils.combinePath( filePath, ".zgroup" ) ).exists() && new File( FileAndUrlUtils.combinePath( filePath, ".zattrs" ) ).exists() );
+        return ( new File( IOHelper.combinePath( filePath, ".zgroup" ) ).exists() && new File( IOHelper.combinePath( filePath, ".zattrs" ) ).exists() );
     }
 
     private void addBdvFile( String filePath, String datasetName ) throws SpimDataException {

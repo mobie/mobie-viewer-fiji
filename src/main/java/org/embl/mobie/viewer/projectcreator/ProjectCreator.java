@@ -10,7 +10,7 @@ import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.source.SourceSupplier;
 
@@ -61,7 +61,7 @@ public class ProjectCreator {
         this.projectLocation = projectLocation;
         if ( ! projectLocation.exists() )
             projectLocation.mkdirs();
-        projectJson = new File( FileAndUrlUtils.combinePath(  projectLocation.getAbsolutePath(), "project.json") );
+        projectJson = new File( IOHelper.combinePath(  projectLocation.getAbsolutePath(), "project.json") );
         if ( projectJson.exists() ) {
             reloadProject();
         } else {
@@ -104,7 +104,7 @@ public class ProjectCreator {
         if ( datasetName.equals(currentDatasetName) ) {
             return currentDataset;
         } else {
-            File datasetJson = new File( FileAndUrlUtils.combinePath( projectLocation.getAbsolutePath(), datasetName, "dataset.json") );
+            File datasetJson = new File( IOHelper.combinePath( projectLocation.getAbsolutePath(), datasetName, "dataset.json") );
             if ( datasetJson.exists() ) {
                 try {
                     currentDatasetJson = datasetJson;
@@ -209,7 +209,7 @@ public class ProjectCreator {
                     // open one of the local images
                     for (ImageDataFormat format : imageSource.imageData.keySet()) {
                         if (!format.isRemote()) {
-                            String imagePath = FileAndUrlUtils.combinePath( projectLocation.getAbsolutePath(), datasetName,
+                            String imagePath = IOHelper.combinePath( projectLocation.getAbsolutePath(), datasetName,
                                     imageSource.imageData.get(format).relativePath);
                             SpimData spimData = (SpimData) new SpimDataOpener().openSpimData( imagePath, format );
                             VoxelDimensions voxelDimensions = spimData.getSequenceDescription().

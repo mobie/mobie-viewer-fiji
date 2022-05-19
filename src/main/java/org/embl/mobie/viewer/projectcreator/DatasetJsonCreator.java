@@ -13,7 +13,7 @@ import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.SourceTransformer;
 import org.embl.mobie.viewer.view.View;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import de.embl.cba.tables.color.ColoringLuts;
 
 import java.io.IOException;
@@ -213,7 +213,7 @@ public class DatasetJsonCreator {
 
     public void writeDatasetJson ( String datasetName, Dataset dataset ) {
         try {
-            String datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
+            String datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, "dataset.json" );
             new DatasetJsonParser().saveDataset( dataset, datasetJsonPath );
         } catch (IOException e) {
