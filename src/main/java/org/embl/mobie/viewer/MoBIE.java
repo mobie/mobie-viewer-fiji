@@ -273,6 +273,7 @@ public class MoBIE
 
 	private void openDataset( String datasetName ) throws IOException
 	{
+		IJ.log("Opening dataset: " + datasetName );
 		sourceNameToImgLoader = new HashMap<>();
 		sourceNameToTransformedSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );

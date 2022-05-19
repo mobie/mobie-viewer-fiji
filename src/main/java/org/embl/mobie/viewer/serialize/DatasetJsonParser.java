@@ -18,9 +18,7 @@ public class DatasetJsonParser
 	public Dataset parseDataset( String path ) throws IOException
 	{
 		final String datasetJson = FileAndUrlUtils.read( path );
-
 		Gson gson = JsonHelper.buildGson( false );
-
 		Type type = new TypeToken< Dataset >() {}.getType();
 		Dataset dataset = gson.fromJson( datasetJson, type );
 		return dataset;
