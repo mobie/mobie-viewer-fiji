@@ -34,7 +34,7 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 	protected boolean showTable = true;
 	protected boolean showAsBoundaries = false;
 	protected float boundaryThickness = 1.0F;
-	protected int randomColorSeed;
+	protected int randomColorSeed = 42;
 
 	// Fixed
 	protected transient final BlendingMode blendingMode = BlendingMode.SumOccluding;
