@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer.table;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;

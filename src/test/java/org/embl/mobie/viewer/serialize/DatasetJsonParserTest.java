@@ -1,8 +1,8 @@
 package org.embl.mobie.viewer.serialize;
 
-import de.embl.cba.tables.IOHelper;
 import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
