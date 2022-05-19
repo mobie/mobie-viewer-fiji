@@ -4,11 +4,12 @@ import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
-import org.embl.mobie.viewer.display.AnnotatedRegionDisplay;
-import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViewsLoader;
+import org.embl.mobie.viewer.display.AnnotationDisplay;
+import org.embl.mobie.viewer.display.SegmentationDisplay;
+import org.embl.mobie.viewer.view.AdditionalViewsLoader;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.*;
 import java.io.IOException;
 
 public class TestRemoteZebrafish
@@ -30,14 +31,15 @@ public class TestRemoteZebrafish
 		moBIE.getViewManager().show( "small-grid-view" );
 
 		// select some image segments
-		final AnnotatedRegionDisplay display = moBIE.getViewManager().getAnnotatedRegionDisplays().iterator().next();
+		final AnnotationDisplay display = moBIE.getViewManager().getAnnotatedRegionDisplays().iterator().next();
 		display.selectionModel.setSelected( display.tableRows.get( 0 ), true );
 		display.selectionModel.focus( display.tableRows.get( 0 ), this );
 		display.selectionModel.setSelected( display.tableRows.get( 1 ), true );
 		display.selectionModel.focus( display.tableRows.get( 1 ), this );
 
 		// show in 3D
-		((SegmentationSourceDisplay) display).segmentsVolumeViewer.showSegments( true );
+		new Thread( () -> { (( SegmentationDisplay ) display).segmentsVolumeViewer.showSegments( true ); } ).start();
+		//(( SegmentationDisplay ) display).segmentsVolumeViewer.showSegments( true );
 	}
 
 	@Test
@@ -53,7 +55,7 @@ public class TestRemoteZebrafish
 		moBIE.getViewManager().show( "test-transformed-grid" );
 
 		// select some image segments
-		final AnnotatedRegionDisplay display = moBIE.getViewManager().getAnnotatedRegionDisplays().iterator().next();
+		final AnnotationDisplay display = moBIE.getViewManager().getAnnotatedRegionDisplays().iterator().next();
 		display.selectionModel.setSelected( display.tableRows.get( 0 ), true );
 		display.selectionModel.focus( display.tableRows.get( 0 ), this );
 	}

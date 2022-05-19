@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.command;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.project.PublishedProject;
-import org.embl.mobie.viewer.project.PublishedProjectsCreator;
+import org.embl.mobie.viewer.project.PublishedProjects;
 import ij.gui.GenericDialog;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
@@ -25,7 +25,7 @@ public class OpenMoBIEPublishedProjectCommand implements Command
 
 	private void selectProject()
 	{
-		final HashMap< String, PublishedProject> projects = new PublishedProjectsCreator().getPublishedProjects();
+		final HashMap< String, PublishedProject> projects = new PublishedProjects().getPublishedProjects();
 
 		final GenericDialog gd = new GenericDialog( "Please select a project" );
 

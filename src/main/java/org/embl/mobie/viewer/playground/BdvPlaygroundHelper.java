@@ -15,7 +15,7 @@ import static de.embl.cba.tables.Utils.getVoxelSpacings;
  * These helper functions either exist already in bdv-playground,
  * but in a too recent version, or should be moved to bdv-playground.
  */
-public class BdvPlaygroundUtils
+public class BdvPlaygroundHelper
 {
 	public static double[] getWindowCentreInPixelUnits( ViewerPanel viewerPanel )
 	{

@@ -12,7 +12,7 @@ import bigwarp.transforms.BigWarpTransform;
 import ij.gui.NonBlockingGenericDialog;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.InvertibleRealTransform;
-import org.embl.mobie.viewer.transform.TransformHelpers;
+import org.embl.mobie.viewer.transform.TransformHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
@@ -70,7 +70,7 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 
 		bigWarp = bigWarpLauncher.getBigWarp();
 
-		final AffineTransform3D normalisedViewerTransform = TransformHelpers.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
+		final AffineTransform3D normalisedViewerTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
 		applyViewerTransform( normalisedViewerTransform, bigWarp.getViewerFrameQ().getViewerPanel() );
 		applyViewerTransform( normalisedViewerTransform, bigWarp.getViewerFrameP().getViewerPanel() );
 		bigWarp.setTransformType( TransformTypeSelectDialog.AFFINE );
@@ -81,7 +81,7 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 
 	private void applyViewerTransform( AffineTransform3D normalisedViewerTransform, BigWarpViewerPanel viewerPanel )
 	{
-		viewerPanel.state().setViewerTransform( TransformHelpers.createUnnormalizedViewerTransform( normalisedViewerTransform, viewerPanel ) );
+		viewerPanel.state().setViewerTransform( TransformHelper.createUnnormalizedViewerTransform( normalisedViewerTransform, viewerPanel ) );
 	}
 
 	private void showDialog()

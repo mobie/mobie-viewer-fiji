@@ -1,4 +1,4 @@
-package org.embl.mobie.viewer.view.saving;
+package org.embl.mobie.viewer.view.save;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
@@ -6,7 +6,7 @@ import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.view.View;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViews;
+import org.embl.mobie.viewer.view.AdditionalViews;
 import de.embl.cba.tables.github.GitHubContentGetter;
 import de.embl.cba.tables.github.GitHubFileCommitter;
 import de.embl.cba.tables.github.GitLocation;

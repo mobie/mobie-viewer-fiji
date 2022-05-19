@@ -6,7 +6,7 @@ import ij.gui.GenericDialog;
 import javax.swing.*;
 import java.awt.*;
 
-public class SwingHelpers
+public class SwingHelper
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 

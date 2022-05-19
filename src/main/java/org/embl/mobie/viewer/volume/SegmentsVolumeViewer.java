@@ -457,7 +457,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	}
 
 	@Override
-	public synchronized void focusEvent( S selection, Object origin  )
+	public synchronized void focusEvent( S selection, Object initiator )
 	{
 		if ( ! showSegments ) return;
 

@@ -11,26 +11,26 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import static org.scijava.ItemVisibility.MESSAGE;
 
-@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Segments Volume Rendering")
-public class SegmentsVolumeRenderingConfiguratorCommand implements BdvPlaygroundActionCommand
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Label Volume Rendering")
+public class ConfigureLabelVolumeRenderingCommand implements BdvPlaygroundActionCommand
 {
 	@Parameter
-	SourceAndConverter[] sourceAndConverters;
+	public SourceAndConverter[] sourceAndConverters;
 
 	@Parameter ( label = "Resolution X", style="format:#.000" )
-	double sx;
+	public double sx;
 
 	@Parameter ( label = "Resolution Y", style="format:#.000" )
-	double sy;
+	public double sy;
 
 	@Parameter ( label = "Resolution Z", style="format:#.000" )
-	double sz;
+	public double sz;
 
 	@Parameter ( visibility = MESSAGE )
 	String msg = "( Resolution units: see BigDataViewer scale bar )";
 
 	@Parameter ( label = "Repaint segments")
-	boolean repaint;
+	public boolean repaint;
 
 	@Override
 	public void run()
@@ -38,7 +38,7 @@ public class SegmentsVolumeRenderingConfiguratorCommand implements BdvPlayground
 		setVoxelSpacing( sourceAndConverters, new double[]{ sx, sy, sz }, repaint );
 	}
 
-	public static void setVoxelSpacing( SourceAndConverter[] sourceAndConverters, double[] voxelSpacing, boolean repaint )
+	private void setVoxelSpacing( SourceAndConverter[] sourceAndConverters, double[] voxelSpacing, boolean repaint )
 	{
 		final SourceAndConverterService sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 

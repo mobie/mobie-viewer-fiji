@@ -16,7 +16,7 @@ import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.ThreadUtils;
+import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.view.View;
 
@@ -93,15 +93,15 @@ public class GeneSearch
 		localExpression = new ConcurrentHashMap<>();
 
 		IJ.log( "# Gene search" );
-		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
+		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
 		for ( String gene : sources.keySet() )
 		{
 			futures.add(
-				ThreadUtils.executorService.submit( () -> {
+				MultiThreading.executorService.submit( () -> {
 					searchGene( sources.get( gene ) );
 			}));
 		}
-		ThreadUtils.waitUntilFinished( futures );
+		MultiThreading.waitUntilFinished( futures );
 
 		return localExpression;
 	}
