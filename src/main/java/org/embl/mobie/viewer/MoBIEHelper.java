@@ -444,7 +444,8 @@ public abstract class MoBIEHelper
 		final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
 		final double[] min = rai.minAsDoubleArray();
 		final double[] max = rai.maxAsDoubleArray();
-		final double[] voxelSizes = source.getVoxelDimensions().dimensionsAsDoubleArray();
+		final double[] voxelSizes = new double[ 3 ];
+		source.getVoxelDimensions().dimensions( voxelSizes );
 		for ( int d = 0; d < 3; d++ )
 		{
 			min[ d ] -= voxelSizes[ d ];
