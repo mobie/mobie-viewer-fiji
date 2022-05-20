@@ -16,7 +16,7 @@ public class CropSourceTransformer extends AbstractSourceTransformer
 	protected double[] max;
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
-	protected boolean centerAtOrigin = true;
+	protected boolean centerAtOrigin = false;
 
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
