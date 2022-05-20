@@ -13,6 +13,6 @@ public class OpenRemoteCLEMExample
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		new MoBIE("https://github.com/mobie/clem-example-project/", MoBIESettings.settings().gitProjectBranch( "crop1" ).view( "test2" ));
+		new MoBIE("https://github.com/mobie/clem-example-project/", MoBIESettings.settings().gitProjectBranch( "crop1" ).view( "Figure2a" ));
 	}
 }

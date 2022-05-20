@@ -38,7 +38,7 @@ import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.viewer.ui.MoBIELookAndFeel;
+import org.embl.mobie.viewer.ui.MoBIELaf;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
@@ -101,10 +101,10 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 
 	public void showDialog()
 	{
-		MoBIELookAndFeel.MoBIELafOn();
+		MoBIELaf.MoBIELafOn();
 		createDialog();
 		showFrame();
-		MoBIELookAndFeel.MoBIELafOff();
+		MoBIELaf.MoBIELafOff();
 	}
 
 	private void createDialog()
@@ -183,7 +183,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 
 	private void addAnnotationButtonPanel( String annotationName, T tableRow )
 	{
-		MoBIELookAndFeel.MoBIELafOn();
+		MoBIELaf.MoBIELafOn();
 
 		annotationNames.add( annotationName );
 
@@ -233,7 +233,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		panel.add( changeColor );
 		annotationButtonsContainer.add( panel );
 		refreshDialog();
-		MoBIELookAndFeel.MoBIELafOff();
+		MoBIELaf.MoBIELafOff();
 	}
 
 	private void addSelectPreviousAndNextPanel( )

@@ -4,7 +4,6 @@ import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.serialize.AdditionalViewsJsonParser;
-import org.embl.mobie.viewer.ui.MoBIELookAndFeel;
 
 import java.io.IOException;
 import java.util.Map;

@@ -2,7 +2,7 @@ package org.embl.mobie.viewer.view.save;
 
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.ui.MoBIELookAndFeel;
+import org.embl.mobie.viewer.ui.MoBIELaf;
 import org.embl.mobie.viewer.view.AdditionalViews;
 import de.embl.cba.tables.SwingUtils;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
@@ -44,7 +44,7 @@ public class SelectExistingViewDialog {
     }
 
     private void showViewSelectionUI() {
-        MoBIELookAndFeel.MoBIELafOn();
+        MoBIELaf.MoBIELafOn();
         dialog = new JDialog((Frame)null, true);
         dialog.setTitle( "Choose an existing view..." );
         dialog.getContentPane().setLayout( new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS ) );
@@ -57,7 +57,7 @@ public class SelectExistingViewDialog {
             @Override
             public void windowClosing(WindowEvent e)
             {
-                MoBIELookAndFeel.MoBIELafOff();
+                MoBIELaf.MoBIELafOff();
                 e.getWindow().dispose();
             }
         });

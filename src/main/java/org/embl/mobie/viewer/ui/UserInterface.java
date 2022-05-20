@@ -25,7 +25,7 @@ public class UserInterface
 
 	public UserInterface( MoBIE moBIE )
 	{
-		MoBIELookAndFeel.MoBIELafOn();
+		MoBIELaf.MoBIELafOn();
 		userInterfaceHelper = new UserInterfaceHelper( moBIE );
 		selectionPanel = userInterfaceHelper.createSelectionPanel();
 		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsContainer();
@@ -33,7 +33,7 @@ public class UserInterface
 		JPanel displaySettingsPanel = userInterfaceHelper.createDisplaySettingsPanel( displaySettingsScrollPane );
 		displayToPanel = new HashMap<>();
 		frame = createAndShowFrame( selectionPanel, displaySettingsPanel, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
-		MoBIELookAndFeel.MoBIELafOff();
+		MoBIELaf.MoBIELafOff();
 	}
 
 	private JFrame createAndShowFrame( JPanel selectionPanel, JPanel displaySettingsPanel, String panelName )
@@ -83,10 +83,10 @@ public class UserInterface
 
 	public void addViews( Map<String, View> views )
 	{
-		MoBIELookAndFeel.MoBIELafOn();
+		MoBIELaf.MoBIELafOn();
 		userInterfaceHelper.addViewsToSelectionPanel( views );
 		refreshSelection();
-		MoBIELookAndFeel.MoBIELafOff();
+		MoBIELaf.MoBIELafOff();
 	}
 
 	public Map< String, Map< String, View > > getGroupingsToViews()
@@ -96,10 +96,10 @@ public class UserInterface
 
 	public void addSourceDisplay( SourceDisplay sourceDisplay )
 	{
-		MoBIELookAndFeel.MoBIELafOn();
+		MoBIELaf.MoBIELafOn();
 		final JPanel panel = createDisplaySettingPanel( sourceDisplay );
 		showDisplaySettingsPanel( sourceDisplay, panel );
-		MoBIELookAndFeel.MoBIELafOff();
+		MoBIELaf.MoBIELafOff();
 	}
 
 	private JPanel createDisplaySettingPanel( SourceDisplay sourceDisplay )

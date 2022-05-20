@@ -4,20 +4,18 @@ import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
 
-public class MoBIELookAndFeel
+public class MoBIELaf
 {
-
-    private static LookAndFeel before;
-
+    private static LookAndFeel systemLaf;
     private static boolean isMoBIELaf = false;
 
-    private static void storeCurrentLaf() {
-        before = UIManager.getLookAndFeel();
+    private static void storeSystemLaf() {
+        systemLaf = UIManager.getLookAndFeel();
     }
 
     public static void MoBIELafOn() {
         if ( isMoBIELaf ) return;
-        storeCurrentLaf();
+        storeSystemLaf();
         FlatLightLaf.install();
         System.setProperty("apple.laf.useScreenMenuBar", "false");
         isMoBIELaf = true;
@@ -30,7 +28,7 @@ public class MoBIELookAndFeel
 
     public static void MoBIELafOff() {
         try {
-            UIManager.setLookAndFeel( before );
+            UIManager.setLookAndFeel( systemLaf );
             isMoBIELaf = false;
         } catch (Exception e) {
             e.printStackTrace();
