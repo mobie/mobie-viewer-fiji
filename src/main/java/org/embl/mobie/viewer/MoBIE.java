@@ -347,9 +347,17 @@ public class MoBIE
 
 	public void close()
 	{
-		IJ.log( "Closing MoBIE..." );
-		viewManager.close();
-		IJ.log( "...MoBIE closed!" );
+		try
+		{
+			IJ.log( "Closing MoBIE..." );
+			viewManager.close();
+		}
+		catch ( Exception e )
+		{
+			IJ.log( "[ERROR] Could not fully close MoBIE!" );
+			e.printStackTrace();
+		}
+		IJ.log( "MoBIE closed." );
 	}
 
 	public synchronized ImageSource getSource( String sourceName )

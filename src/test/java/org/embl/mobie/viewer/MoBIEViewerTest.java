@@ -114,14 +114,6 @@ public class MoBIEViewerTest
 	@AfterEach
 	public void closeMoBIE()
 	{
-		try
-		{
-			moBIE.close();
-		}
-		catch ( Exception e )
-		{
-			// MoBIE sometimes is still lazy-loading something
-			// and thus will throw errors when being closed.
-		}
+		moBIE.close();
 	}
 }
