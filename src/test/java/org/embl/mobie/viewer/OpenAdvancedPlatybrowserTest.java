@@ -27,6 +27,5 @@ public class OpenAdvancedPlatybrowserTest
 						.imageDataLocation( "https://github.com/mobie/platybrowser-datasets" )
 						.tableDataLocation( "https://github.com/mobie/platybrowser-datasets" )
 						.gitTablesBranch( "main" ) );
-
 	}
 }
