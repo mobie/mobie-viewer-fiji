@@ -4,8 +4,7 @@ import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.serialize.AdditionalViewsJsonParser;
-import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
-import org.embl.mobie.viewer.view.View;
+import org.embl.mobie.viewer.ui.MoBIELookAndFeel;
 
 import java.io.IOException;
 import java.util.Map;
@@ -34,9 +33,7 @@ public class AdditionalViewsLoader {
                 }
 
                 if (selectedFilePath != null) {
-                    MoBIELookAndFeelToggler.setMoBIELaf();
                     loadViews( selectedFilePath );
-                    MoBIELookAndFeelToggler.resetMoBIELaf();
                 }
             } catch (IOException e) {
                 e.printStackTrace();

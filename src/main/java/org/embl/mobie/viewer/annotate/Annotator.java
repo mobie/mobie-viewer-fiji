@@ -38,7 +38,7 @@ import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
+import org.embl.mobie.viewer.ui.MoBIELookAndFeel;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
@@ -101,10 +101,10 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 
 	public void showDialog()
 	{
-		MoBIELookAndFeelToggler.setMoBIELaf();
+		MoBIELookAndFeel.MoBIELafOn();
 		createDialog();
 		showFrame();
-		MoBIELookAndFeelToggler.resetMoBIELaf();
+		MoBIELookAndFeel.MoBIELafOff();
 	}
 
 	private void createDialog()
@@ -183,10 +183,11 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 
 	private void addAnnotationButtonPanel( String annotationName, T tableRow )
 	{
-		MoBIELookAndFeelToggler.setMoBIELaf();
-		annotationNames.add( annotationName );
-		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+		MoBIELookAndFeel.MoBIELafOn();
 
+		annotationNames.add( annotationName );
+
+		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 		final JButton annotateButton = new JButton( String.format("%1$15s", annotationName) );
 		annotateButton.setFont( new Font("monospaced", Font.PLAIN, 12) );
 		annotateButton.setOpaque( true );
@@ -232,7 +233,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		panel.add( changeColor );
 		annotationButtonsContainer.add( panel );
 		refreshDialog();
-		MoBIELookAndFeelToggler.resetMoBIELaf();
+		MoBIELookAndFeel.MoBIELafOff();
 	}
 
 	private void addSelectPreviousAndNextPanel( )

@@ -33,7 +33,7 @@ import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SourceTransformer;
 import org.embl.mobie.viewer.transform.TransformHelper;
-import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
+import org.embl.mobie.viewer.ui.MoBIELookAndFeel;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.save.ViewSaver;
@@ -248,11 +248,9 @@ public class ViewManager
 		openAndTransformSources( view );
 
 		// show the displays
-		MoBIELookAndFeelToggler.setMoBIELaf();
 		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
 		for ( SourceDisplay sourceDisplay : sourceDisplays )
 			showSourceDisplay( sourceDisplay );
-		MoBIELookAndFeelToggler.resetMoBIELaf();
 
 		// adjust viewer transform
 		adjustViewerTransform( view );

@@ -5,6 +5,7 @@ import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
+import org.embl.mobie.viewer.ui.MoBIELookAndFeel;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.AdditionalViews;
 import de.embl.cba.tables.github.GitHubUtils;
@@ -29,6 +30,8 @@ import static org.embl.mobie.viewer.view.save.ViewSavingHelper.writeDatasetJson;
 public class ViewSaver
 {
 
+    public static final String NEW_VIEWS_JSON_FILE = "Make new views json file";
+
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
     private MoBIE moBIE;
@@ -44,18 +47,18 @@ public class ViewSaver
         overwriteExistingView
     }
 
-    public ViewSaver( MoBIE moBIE) {
+    public ViewSaver(MoBIE moBIE) {
         this.moBIE = moBIE;
         this.settings = moBIE.getSettings();
     }
 
-    public void saveCurrentSettingsAsViewDialog() {
+    public void saveCurrentSettingsAsViewDialog()
+    {
         final GenericDialog gd = new GenericDialog("Save current view");
 
         String[] choices = new String[]{ "Save as new view", "Overwrite existing view" };
         gd.addChoice("Save method:", choices, choices[0] );
-        gd.addChoice("Save to", new String[]{ MoBIEHelper.FileLocation.Project.toString(),
-                MoBIEHelper.FileLocation.FileSystem.toString()}, MoBIEHelper.FileLocation.Project.toString());
+        gd.addChoice("Save to", new String[]{ MoBIEHelper.FileLocation.Project.toString(), MoBIEHelper.FileLocation.FileSystem.toString()}, MoBIEHelper.FileLocation.Project.toString());
         gd.showDialog();
 
         if (!gd.wasCanceled()) {
@@ -68,10 +71,8 @@ public class ViewSaver
             } else {
                 saveMethod = SaveMethod.overwriteExistingView;
             }
-
             viewSettingsDialog( saveMethod, fileLocation );
         }
-
     }
 
     public void viewSettingsDialog( SaveMethod saveMethod, MoBIEHelper.FileLocation fileLocation ) {
@@ -122,7 +123,6 @@ public class ViewSaver
 
             boolean exclusive = gd.getNextBoolean();
             boolean includeViewerTransform = gd.getNextBoolean();
-
 
             if (uiSelectionGroup.equals("Make New Ui Selection Group")) {
                 uiSelectionGroup = ProjectCreatorHelper.makeNewUiSelectionGroup(currentUiSelectionGroups);
@@ -221,7 +221,6 @@ public class ViewSaver
 
     private void addViewToUi( String viewName, View view ) {
         moBIE.getViews().put( viewName, view );
-
         Map<String, View> views = new HashMap<>();
         views.put( viewName, view );
         moBIE.getUserInterface().addViews( views );
@@ -325,7 +324,7 @@ public class ViewSaver
         String[] choices;
         if ( includeOptionToMakeNewViewJson ) {
             choices = new String[viewFileNames.length + 1];
-            choices[0] = "Make new views json file";
+            choices[0] = NEW_VIEWS_JSON_FILE;
             for (int i = 0; i < viewFileNames.length; i++) {
                 choices[i + 1] = viewFileNames[i];
             }
@@ -338,7 +337,7 @@ public class ViewSaver
 
         if (!gd.wasCanceled()) {
             String choice = gd.getNextChoice();
-            if ( includeOptionToMakeNewViewJson && choice.equals("Make new views json file") ) {
+            if ( includeOptionToMakeNewViewJson && choice.equals( NEW_VIEWS_JSON_FILE ) ) {
                 choice = makeNewViewFile( viewFileNames );
             }
             return choice;

@@ -4,7 +4,8 @@ import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
 
-public class MoBIELookAndFeelToggler {
+public class MoBIELookAndFeel
+{
 
     private static LookAndFeel before;
 
@@ -14,7 +15,7 @@ public class MoBIELookAndFeelToggler {
         before = UIManager.getLookAndFeel();
     }
 
-    public static void setMoBIELaf() {
+    public static void MoBIELafOn() {
         if ( isMoBIELaf ) return;
         storeCurrentLaf();
         FlatLightLaf.install();
@@ -27,8 +28,7 @@ public class MoBIELookAndFeelToggler {
         }
     }
 
-    public static void resetMoBIELaf() {
-        // TODO: reset where the menu bar is?
+    public static void MoBIELafOff() {
         try {
             UIManager.setLookAndFeel( before );
             isMoBIELaf = false;
