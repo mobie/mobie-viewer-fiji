@@ -17,28 +17,6 @@ public class TestOpenAdvancedProject
 
 		/**
 		 * Project location (github or local): "https://github.com/mobie/platybrowser-datasets"
-		 * Project branch (for github): "master"
-		 * Load image data from: choice: local
-		 * Image data root path (for local): "/g/arendt/EM_6dpf_segmentation/platy-browser-data"
-		 * Table data location (github or local): "https://github.com/vzinche/platybrowser-backend"
-		 * Table data branch (for github):"bookmarks"
-		 */
-
-		// try {
-		// 	new MoBIE(
-		// 			"https://github.com/mobie/platybrowser-datasets",
-		// 			MoBIESettings.settings()
-		// 					.gitProjectBranch( "master" )
-		// 					.imageDataStorageModality( MoBIESettings.ImageDataStorageModality.FileSystem )
-		// 					.imageDataLocation( "/g/arendt/EM_6dpf_segmentation/platy-browser-data" )
-		// 					.tableDataLocation( "https://github.com/vzinche/platybrowser-backend" )
-		// 					.gitTablesBranch( "bookmarks" ) );
-		// } catch (IOException e) {
-		// 	e.printStackTrace();
-		// }
-
-		/**
-		 * Project location (github or local): "https://github.com/mobie/platybrowser-datasets"
 		 * Project branch (for github): "xray"
 		 * Load image data from: choice: local
 		 * Image data root path (for local): "/g/arendt/EM_6dpf_segmentation/platy-browser-data"
