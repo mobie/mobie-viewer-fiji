@@ -56,8 +56,7 @@ public class MoBIEViewerTest
 	@Test
 	public void testCellPublicationFigure2C() throws IOException
 	{
-		moBIE = new MoBIE( "https://github.com/mobie/platybrowser-datasets" );
-		moBIE.getViewManager().show( "Figure 2C: Muscle segmentation" );
+		moBIE = new MoBIE( "https://github.com/mobie/platybrowser-datasets", MoBIESettings.settings().view( "Figure 2C: Muscle segmentation" ) );
 	}
 
 	//@Test
