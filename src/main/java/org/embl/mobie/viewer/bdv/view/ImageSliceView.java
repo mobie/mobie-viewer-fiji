@@ -39,7 +39,7 @@ public class ImageSliceView extends AbstractSliceView
 	{
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter = new HashMap<>();
 		for ( String name : display.getSources() ) {
-			sourceNameToSourceAndConverter.put( name, moBIE.getTransformedSourceAndConverter( name ) );
+			sourceNameToSourceAndConverter.put( name, moBIE.sourceNameToSourceAndConverter().get( name ) );
 		}
 
 		for ( String name : sourceNameToSourceAndConverter.keySet() )

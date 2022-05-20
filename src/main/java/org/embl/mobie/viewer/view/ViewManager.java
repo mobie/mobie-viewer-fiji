@@ -68,7 +68,7 @@ public class ViewManager
 		this.userInterface = userInterface;
 		currentSourceDisplays = new ArrayList<>();
 		currentSourceTransformers = new ArrayList<>();
-		sliceViewer = new SliceViewer( is2D, this, timepoints, moBIE.getProjectCommands() );
+		sliceViewer = new SliceViewer( moBIE, is2D, timepoints );
 		universeManager = new UniverseManager();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewSaver = new ViewSaver( moBIE );
@@ -241,7 +241,7 @@ public class ViewManager
 	{
 		if ( view.isExclusive() )
 		{
-			removeAllSourceDisplays();
+			removeAllSourceDisplays( true );
 		}
 
 		openAndTransformSources( view );
@@ -345,7 +345,7 @@ public class ViewManager
 		currentSourceDisplays.add( sourceDisplay );
 	}
 
-	public synchronized void removeAllSourceDisplays()
+	public synchronized void removeAllSourceDisplays( boolean closeImgLoader )
 	{
 		// create a copy of the currently shown displays...
 		final ArrayList< SourceDisplay > currentSourceDisplays = new ArrayList<>( this.currentSourceDisplays ) ;
@@ -357,7 +357,7 @@ public class ViewManager
 			// removes display from all viewers and
 			// also from the list of currently shown sourceDisplays
 			// also close all ImgLoaders to free the cache
-			removeSourceDisplay( sourceDisplay, true );
+			removeSourceDisplay( sourceDisplay, closeImgLoader );
 		}
 	}
 
@@ -569,7 +569,7 @@ public class ViewManager
 
 	public void close()
 	{
-		removeAllSourceDisplays();
+		removeAllSourceDisplays( true );
 		sliceViewer.getBdvHandle().close();
 		universeManager.close();
 	}

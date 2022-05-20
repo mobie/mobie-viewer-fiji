@@ -460,7 +460,7 @@ public class UserInterfaceHelper
 			{
 				new Thread( () ->
 				{
-					moBIE.getViewManager().removeAllSourceDisplays();
+					moBIE.getViewManager().removeAllSourceDisplays( true );
 				}).start();
 			} );
 		} );

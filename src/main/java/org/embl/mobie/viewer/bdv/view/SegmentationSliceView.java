@@ -23,7 +23,7 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 
 		for ( String name : display.getSources() )
 		{
-			final SourceAndConverter< ? > sourceAndConverter = moBIE.getTransformedSourceAndConverter( name );
+			final SourceAndConverter< ? > sourceAndConverter = moBIE.sourceNameToSourceAndConverter().get( name );
 
 			SourceAndConverter< ? > labelSourceAndConverter = asLabelSourceAndConverter( display, sourceAndConverter );
 
@@ -98,7 +98,7 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 	private void adaptPosition( double[] position, String sourceName )
 	{
 		// get source transform
-		final SourceAndConverter< ? > sourceAndConverter = moBIE.getTransformedSourceAndConverter( sourceName );
+		final SourceAndConverter< ? > sourceAndConverter = moBIE.sourceNameToSourceAndConverter().get( sourceName );
 		AffineTransform3D sourceTransform = new AffineTransform3D();
 		sourceAndConverter.getSpimSource().getSourceTransform( 0,0, sourceTransform );
 

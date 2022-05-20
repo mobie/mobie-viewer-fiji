@@ -63,7 +63,7 @@ public class MoBIE
 	private String imageRoot;
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
-	private Map< String, SourceAndConverter< ? > > sourceNameToTransformedSourceAndConverter;
+	private Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
 	private ArrayList< String > projectCommands = new ArrayList<>();;
 	public static int minLogTimeMillis = 100;
 
@@ -275,18 +275,13 @@ public class MoBIE
 	{
 		IJ.log("Opening dataset: " + datasetName );
 		sourceNameToImgLoader = new HashMap<>();
-		sourceNameToTransformedSourceAndConverter = new ConcurrentHashMap<>();
+		sourceNameToSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
 		final View view = dataset.views.get( settings.values.getView() );
 		view.setName( settings.values.getView() );
-
-		System.out.println("# Views");
-		for ( String viewName : dataset.views.keySet() )
-			System.out.println( viewName );
-
 		IJ.log( "Opening view: " + view.getName() + "\n" );
 		final long startTime = System.currentTimeMillis();
 		viewManager.show( view );
@@ -352,10 +347,17 @@ public class MoBIE
 
 	public void close()
 	{
-		// TODO
-//		sourcesDisplayManager.removeAllSourcesFromViewers();
-//		sourcesDisplayManager.getBdv().close();
-//		userInterface.dispose();
+		try
+		{
+			IJ.log( "Closing MoBIE..." );
+			viewManager.close();
+		}
+		catch ( Exception e )
+		{
+			IJ.log( "[ERROR] Could not fully close MoBIE!" );
+			e.printStackTrace();
+		}
+		IJ.log( "MoBIE closed." );
 	}
 
 	public synchronized ImageSource getSource( String sourceName )
@@ -524,9 +526,9 @@ public class MoBIE
 		return additionalTables;
 	}
 
-	public Map< String, SourceAndConverter< ? > > getSourceNameToTransformedSourceAndConverter()
+	public Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter()
 	{
-		return sourceNameToTransformedSourceAndConverter;
+		return sourceNameToSourceAndConverter;
 	}
 
 	private Collection< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationDisplay segmentationDisplay, String tableName )
@@ -537,7 +539,7 @@ public class MoBIE
 		for ( String sourceName : segmentationDisplaySources )
 		{
 			Set< Source< ? > > rootSources = ConcurrentHashMap.newKeySet();
-			MoBIEHelper.fetchRootSources( getTransformedSourceAndConverter( sourceName ).getSpimSource(), rootSources );
+			MoBIEHelper.fetchRootSources( sourceNameToSourceAndConverter.get( sourceName ).getSpimSource(), rootSources );
 			sourceNameToRootSources.put( sourceName, rootSources );
 		}
 
@@ -669,7 +671,7 @@ public class MoBIE
 		// create primary AnnotatedMaskTableRow table
 		final Map< String, List< String > > referenceTable = tables.get( 0 );
 		// TODO: The AnnotatedMaskCreator does not need the sources, but just the source's real intervals
-		final AnnotatedMaskCreator annotatedMaskCreator = new AnnotatedMaskCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), (String sourceName ) -> getTransformedSourceAndConverter( sourceName )  );
+		final AnnotatedMaskCreator annotatedMaskCreator = new AnnotatedMaskCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), (String sourceName ) -> sourceNameToSourceAndConverter.get( sourceName )  );
 		final List< AnnotatedMaskTableRow > intervalTableRows = annotatedMaskCreator.getAnnotatedMaskTableRows();
 
 		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
@@ -693,13 +695,15 @@ public class MoBIE
 			if ( imgLoader instanceof N5ImageLoader )
 			{
 				( ( N5ImageLoader ) imgLoader ).close();
-			} else if ( imgLoader instanceof N5OMEZarrImageLoader )
+			}
+			else if ( imgLoader instanceof N5OMEZarrImageLoader )
 			{
 				( ( N5OMEZarrImageLoader ) imgLoader ).close();
 			}
 		}
 
 		sourceNameToImgLoader.remove( sourceName );
+		sourceNameToSourceAndConverter.remove( sourceName );
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 	}
 
@@ -723,12 +727,7 @@ public class MoBIE
 
 	public void addTransformedSourceAndConverters( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters )
 	{
-		sourceNameToTransformedSourceAndConverter.putAll( sourceNameToSourceAndConverters );
-	}
-
-	public SourceAndConverter< ? > getTransformedSourceAndConverter( String sourceName )
-	{
-		return sourceNameToTransformedSourceAndConverter.get( sourceName );
+		sourceNameToSourceAndConverter.putAll( sourceNameToSourceAndConverters );
 	}
 
 	public ArrayList< String > getProjectCommands()

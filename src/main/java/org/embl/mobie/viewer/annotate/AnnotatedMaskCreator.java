@@ -43,9 +43,9 @@ public class AnnotatedMaskCreator
 			final List< ? extends Source< ? > > sources = annotationIdToSources.get( annotationId ).stream().map( name -> sourceAndConverterSupplier.apply( name ).getSpimSource() ).collect( Collectors.toList() );
 
 			final RealMaskRealInterval mask = MoBIEHelper.unionRealMask( sources );
-			System.out.println( annotationId );
-			System.out.println( sources.size() );
-			System.out.println( Arrays.toString( mask.minAsDoubleArray() ));
+			//System.out.println( annotationId );
+			//System.out.println( sources.size() );
+			//System.out.println( Arrays.toString( mask.minAsDoubleArray() ));
 
 			annotatedMaskTableRows.add(
 					new DefaultAnnotatedMaskTableRow(

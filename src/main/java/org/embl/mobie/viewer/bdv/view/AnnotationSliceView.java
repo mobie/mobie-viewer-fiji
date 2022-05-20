@@ -31,9 +31,7 @@ public abstract class AnnotationSliceView< T extends TableRow > extends Abstract
 	protected void show( SourceAndConverter< ? > sourceAndConverter )
 	{
 		configureLabelRendering( sourceAndConverter );
-
 		display.sliceViewer.show( sourceAndConverter, display );
-
 		getSliceViewer().getBdvHandle().getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
 	}
 

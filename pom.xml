@@ -11,6 +11,7 @@
 	<artifactId>mobie-viewer-fiji</artifactId>
 	<version>2.1.9-SNAPSHOT</version>
 
+
 	<!-- mvn clean compile -Dmaven.test.skip=true -->
 	<!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
 	<!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
@@ -202,6 +203,7 @@
             <artifactId>trove</artifactId>
             <version>1.0.2</version>
         </dependency>
+		<!--  https://forum.image.sc/t/icy-crashes-when-clicking-3d-view-macos-catalina/40628/21 -->
 		<dependency>
 			<groupId>org.jogamp.jogl</groupId>
 			<artifactId>jogl-all</artifactId>
@@ -224,6 +226,13 @@
 			<systemPath>${project.basedir}/src/main/resources/jogl-all-natives-windows-amd64.jar</systemPath>
 		</dependency>
 		<dependency>
+			<groupId>org.jogamp.jogl</groupId>
+			<artifactId>jogl-all-natives-linux-amd64</artifactId>
+			<version>2.4.0-rc-20200307</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/resources/jogl-all-natives-linux-amd64.jar</systemPath>
+		</dependency>
+		<dependency>
 			<groupId>org.jogamp.gluegen</groupId>
 			<artifactId>gluegen-rt</artifactId>
 			<version>2.4.0-rc-20200307</version>
@@ -243,6 +252,13 @@
 			<version>2.4.0-rc-20200307</version>
 			<scope>system</scope>
 			<systemPath>${project.basedir}/src/main/resources/gluegen-rt-natives-windows-amd64.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.gluegen</groupId>
+			<artifactId>gluegen-rt-natives-linux-amd64</artifactId>
+			<version>2.4.0-rc-20200307</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/resources/gluegen-rt-natives-linux-amd64.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>

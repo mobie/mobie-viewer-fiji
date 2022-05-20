@@ -56,8 +56,8 @@ public class RegionDisplay extends AnnotationDisplay< AnnotatedMaskTableRow >
 	// Needed for Gson
 	public RegionDisplay() {}
 
-	// TODO: Looks like we do not need it? Maybe for the interactive grid view?
-	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables )
+	// Needed for Gson
+	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -69,6 +69,7 @@ public class RegionDisplay extends AnnotationDisplay< AnnotatedMaskTableRow >
 		this.showScatterPlot = showScatterPlot;
 		this.scatterPlotAxes = scatterPlotAxes;
 		this.tables = tables;
+		this.showAsBoundaries = showAsBoundaries;
 	}
 
 	/**

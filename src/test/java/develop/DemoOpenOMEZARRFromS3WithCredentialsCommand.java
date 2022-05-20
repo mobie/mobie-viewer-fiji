@@ -1,4 +1,4 @@
-package demo;
+package develop;
 
 import org.embl.mobie.viewer.command.OpenOMEZARRFromS3WithCredentialsCommand;
 

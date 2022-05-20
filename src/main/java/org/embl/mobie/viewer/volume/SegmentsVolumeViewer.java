@@ -278,11 +278,11 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 		}
 	}
 
-	public boolean getShowSegments() {
+	public boolean isShowSegments() {
 		return showSegments;
 	}
 
-	private void setShowSegments(boolean b )
+	private void setShowSegments( boolean b )
 	{
 		this.showSegments = b;
 	}
@@ -451,7 +451,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	@Override
 	public synchronized void selectionChanged()
 	{
-		if ( ! showSegments ) return;
+		if ( !showSegments ) return;
 
 		updateView( false );
 	}
@@ -459,7 +459,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	@Override
 	public synchronized void focusEvent( S selection, Object initiator )
 	{
-		if ( ! showSegments ) return;
+		if ( !showSegments ) return;
 
 		if ( selection.timePoint() != currentTimePoint )
 		{

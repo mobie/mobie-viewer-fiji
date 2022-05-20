@@ -85,7 +85,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 
 		if ( segmentationDisplay.segmentsVolumeViewer != null )
 		{
-			this.showSelectedSegmentsIn3d = segmentationDisplay.segmentsVolumeViewer.getShowSegments();
+			this.showSelectedSegmentsIn3d = segmentationDisplay.segmentsVolumeViewer.isShowSegments();
 
 			double[] voxelSpacing = segmentationDisplay.segmentsVolumeViewer.getVoxelSpacing();
 			if ( voxelSpacing != null ) {
