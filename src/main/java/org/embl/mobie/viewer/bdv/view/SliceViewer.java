@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.MobieBdvSupplier;
 import org.embl.mobie.viewer.bdv.MobieSerializableBdvOptions;
 import org.embl.mobie.viewer.bdv.SourcesAtMousePositionSupplier;
@@ -38,12 +39,12 @@ import static org.embl.mobie.viewer.ui.WindowArrangementHelper.setBdvWindowPosit
 public class SliceViewer
 {
 	public static final String UNDO_SEGMENT_SELECTIONS = "Undo Segment Selections [ Ctrl Shift N ]";
-	public static final String CHANGE_RANDOM_COLOR_SEED = "Change Random Color Seed";
 	public static final String LOAD_ADDITIONAL_VIEWS = "Load Additional Views";
 	public static final String SAVE_CURRENT_SETTINGS_AS_VIEW = "Save Current View";
 	protected static final String FRAME_TITLE = "MoBIE - BigDataViewer";
 	private final SourceAndConverterBdvDisplayService sacDisplayService;
 	private BdvHandle bdvHandle;
+	private final MoBIE moBIE;
 	private final boolean is2D;
 	private final ViewManager viewManager;
 	private final int timepoints;
@@ -52,12 +53,13 @@ public class SliceViewer
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
 
-	public SliceViewer( boolean is2D, ViewManager viewManager, int timepoints, ArrayList< String > projectCommands )
+	public SliceViewer( MoBIE moBIE, boolean is2D, int timepoints )
 	{
+		this.moBIE = moBIE;
 		this.is2D = is2D;
-		this.viewManager = viewManager;
+		this.viewManager = moBIE.getViewManager();
 		this.timepoints = timepoints;
-		this.projectCommands = projectCommands;
+		this.projectCommands = moBIE.getProjectCommands();
 
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
@@ -171,6 +173,8 @@ public class SliceViewer
 	{
 		// register
 		SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
+		display.sourceNameToSourceAndConverter.put( sourceAndConverter.getSpimSource().getName(), sourceAndConverter );
+		moBIE.sourceNameToSourceAndConverter().put( sourceAndConverter.getSpimSource().getName(), sourceAndConverter );
 
 		// blending mode
 		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
@@ -180,6 +184,6 @@ public class SliceViewer
 
 		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
 
-		display.sourceNameToSourceAndConverter.put( sourceAndConverter.getSpimSource().getName(), sourceAndConverter );
+
 	}
 }

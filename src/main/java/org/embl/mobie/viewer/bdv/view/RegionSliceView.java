@@ -19,9 +19,9 @@ public class RegionSliceView extends AnnotationSliceView< AnnotatedMaskTableRow 
 	{
 		super( moBIE, display );
 
-		final SourceAndConverter< IntType > sourceAndConverter = createSourceAndConverter();
+		final SourceAndConverter< IntType > regionSourceAndConverter = createSourceAndConverter();
 
-		display.sliceViewer.show( sourceAndConverter, display );
+		show( regionSourceAndConverter );
 	}
 
 	private SourceAndConverter< IntType > createSourceAndConverter()
