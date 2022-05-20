@@ -59,25 +59,6 @@ public class MoBIEViewerTest
 		moBIE = new MoBIE( "https://github.com/mobie/platybrowser-datasets", MoBIESettings.settings().view( "Figure 2C: Muscle segmentation" ) );
 	}
 
-	//@Test
-	public void testSubmissionFigure1c() throws IOException
-	{
-		// Open
-		moBIE = new MoBIE( "https://github.com/mobie/platybrowser-datasets", MoBIESettings.settings().view( "Figure1c" ) );
-
-		// The second display should be of the segmented cells.
-		final List< SourceDisplay > displays = moBIE.getViewManager().getCurrentSourceDisplays();
-		final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) displays.get( 1 );
-		System.out.println( segmentationDisplay.getName() );
-
-		// Both scatter plot and segment volume rendering
-		// should be enabled.
-		final boolean scatterPlotViewerVisible = segmentationDisplay.scatterPlotViewer.isVisible();
-		final boolean volumeViewerShowSegments = segmentationDisplay.segmentsVolumeViewer.isShowSegments();
-		assertTrue( scatterPlotViewerVisible );
-		assertTrue( volumeViewerShowSegments );
-	}
-
 	@Test
 	public void testAllOnS3() throws IOException
 	{
@@ -108,6 +89,28 @@ public class MoBIEViewerTest
 
 		// Show in 3D
 		(( SegmentationDisplay ) display).segmentsVolumeViewer.showSegments( true );
+	}
+
+	@Test
+	// This test is quite memory intensive and thus
+	// it probably is best if it runs last.
+	public void testSubmissionFigure1c() throws IOException
+	{
+		// Open
+		moBIE = new MoBIE( "https://github.com/mobie/platybrowser-datasets", MoBIESettings.settings().view( "Figure1c" ) );
+
+		// The second display should be of the segmented cells.
+		final List< SourceDisplay > displays = moBIE.getViewManager().getCurrentSourceDisplays();
+		final SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) displays.get( 1 );
+		System.out.println( segmentationDisplay.getName() );
+
+		// Both scatter plot and segment volume rendering
+		// should be enabled.
+		final boolean scatterPlotViewerVisible = segmentationDisplay.scatterPlotViewer.isVisible();
+		final boolean volumeViewerShowSegments = segmentationDisplay.segmentsVolumeViewer.isShowSegments();
+
+		assertTrue( scatterPlotViewerVisible );
+		assertTrue( volumeViewerShowSegments );
 	}
 
 	@AfterEach
