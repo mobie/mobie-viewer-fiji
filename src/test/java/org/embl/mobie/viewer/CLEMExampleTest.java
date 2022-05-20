@@ -19,12 +19,14 @@ public class CLEMExampleTest
 	@Test
 	public void testFigure2a() throws IOException
 	{
-		// needed to init all Services
+		// Init
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		// actual code
+		// Open
 		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/clem-example-project", MoBIESettings.settings().view( "Figure2a" ) );
+
+		// Test
 		moBIE.sourceNameToSourceAndConverter().keySet().stream().forEach( s -> System.out.println( s ) );
 		final SourceAndConverter< ? > sourceAndConverter = moBIE.sourceNameToSourceAndConverter().get( "fluorescence-annotations" );
 		final LabelSource< ? > labelSource = SourceHelper.getLabelSource( sourceAndConverter );
