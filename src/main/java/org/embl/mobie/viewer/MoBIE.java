@@ -282,11 +282,6 @@ public class MoBIE
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
 		final View view = dataset.views.get( settings.values.getView() );
 		view.setName( settings.values.getView() );
-
-		System.out.println("# Views");
-		for ( String viewName : dataset.views.keySet() )
-			System.out.println( viewName );
-
 		IJ.log( "Opening view: " + view.getName() + "\n" );
 		final long startTime = System.currentTimeMillis();
 		viewManager.show( view );
@@ -352,10 +347,9 @@ public class MoBIE
 
 	public void close()
 	{
-		// TODO
-//		sourcesDisplayManager.removeAllSourcesFromViewers();
-//		sourcesDisplayManager.getBdv().close();
-//		userInterface.dispose();
+		IJ.log( "Closing MoBIE..." );
+		viewManager.close();
+		IJ.log( "...MoBIE closed!" );
 	}
 
 	public synchronized ImageSource getSource( String sourceName )
@@ -693,7 +687,8 @@ public class MoBIE
 			if ( imgLoader instanceof N5ImageLoader )
 			{
 				( ( N5ImageLoader ) imgLoader ).close();
-			} else if ( imgLoader instanceof N5OMEZarrImageLoader )
+			}
+			else if ( imgLoader instanceof N5OMEZarrImageLoader )
 			{
 				( ( N5OMEZarrImageLoader ) imgLoader ).close();
 			}
