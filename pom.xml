@@ -82,23 +82,10 @@
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<enforcer.skip>true</enforcer.skip>
 
-		<!-- Java 8	Update Site	-->
-<!--		<imglib2.version>5.12.0</imglib2.version>-->
-		<imglib2-cache.version>1.0.0-beta-16</imglib2-cache.version>
+        <bigdataviewer-playground.version>0.4.5</bigdataviewer-playground.version>
+		<imagej-utils.version>0.6.7</imagej-utils.version>
+		<mobie-io.version>1.2.11</mobie-io.version>
 		<bigdataviewer-core.version>10.2.1</bigdataviewer-core.version>
-		<bigdataviewer-vistools.version>1.0.0-beta-29</bigdataviewer-vistools.version>
-
-		<!-- Other	-->
-		<!-- spim_data.version required for fix that closes xml files properly after creation - should soon be in main fiji	-->
-		<spim_data.version>2.2.5</spim_data.version>
-
-		<!-- BIOP -->
-		<bigdataviewer-playground.version>0.4.1</bigdataviewer-playground.version>
-
-		<!-- EMBL CBA -->
-		<imagej-utils.version>0.6.4</imagej-utils.version>
-
-		<mobie-io.version>1.2.11-SNAPSHOT</mobie-io.version>
 
 		<!-- Version 1.6.0-scijava-3-SNAPSHOT of j3dcore addresses a minor issue
 		https://github.com/fiji/3D_Viewer/issues/26
@@ -149,6 +136,7 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
+			<version>${bigdataviewer-core.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
@@ -214,6 +202,48 @@
             <artifactId>trove</artifactId>
             <version>1.0.2</version>
         </dependency>
+		<dependency>
+			<groupId>org.jogamp.jogl</groupId>
+			<artifactId>jogl-all</artifactId>
+			<version>2.4.0-rc-20200307</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/resources/jogl-all.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.jogl</groupId>
+			<artifactId>jogl-all-natives-macosx-universal</artifactId>
+			<version>2.4.0-rc-20200307</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/resources/jogl-all-natives-macosx-universal.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.jogl</groupId>
+			<artifactId>jogl-all-natives-windows-amd64</artifactId>
+			<version>2.4.0-rc-20200307</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/resources/jogl-all-natives-windows-amd64.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.gluegen</groupId>
+			<artifactId>gluegen-rt</artifactId>
+			<version>2.4.0-rc-20200307</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/resources/gluegen-rt.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.gluegen</groupId>
+			<artifactId>gluegen-rt-natives-macosx-universal</artifactId>
+			<version>2.4.0-rc-20200307</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/resources/gluegen-rt-natives-macosx-universal.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.gluegen</groupId>
+			<artifactId>gluegen-rt-natives-windows-amd64</artifactId>
+			<version>2.4.0-rc-20200307</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/resources/gluegen-rt-natives-windows-amd64.jar</systemPath>
+		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>

@@ -1,6 +1,6 @@
 package org.embl.mobie.viewer.projectcreator;
 
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import ij.IJ;
 
 import java.io.File;
@@ -29,7 +29,7 @@ public class DatasetsCreator {
         List<String> currentDatasets = projectCreator.getProject().getDatasets();
         boolean contains = currentDatasets.contains(datasetName);
         if ( !contains ) {
-            File datasetDir = new File ( FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
+            File datasetDir = new File ( IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName ) );
 
             if ( !datasetDir.exists() ) {
@@ -39,7 +39,7 @@ public class DatasetsCreator {
                 new File(datasetDir, "images").mkdirs();
                 new File(datasetDir, "misc").mkdirs();
                 new File(datasetDir, "tables").mkdirs();
-                new File(FileAndUrlUtils.combinePath(datasetDir.getAbsolutePath(), "misc", "views")).mkdirs();
+                new File(IOHelper.combinePath(datasetDir.getAbsolutePath(), "misc", "views")).mkdirs();
 
                 // update project json
                 projectCreator.getProjectJsonCreator().addDataset( datasetName );
@@ -66,9 +66,9 @@ public class DatasetsCreator {
             List<String> currentDatasets = projectCreator.getProject().getDatasets();
             boolean contains = currentDatasets.contains( newName );
             if ( !contains ) {
-                File oldDatasetDir = new File( FileAndUrlUtils.combinePath(
+                File oldDatasetDir = new File( IOHelper.combinePath(
                         projectCreator.getProjectLocation().getAbsolutePath(), oldName) );
-                File newDatasetDir = new File( FileAndUrlUtils.combinePath(
+                File newDatasetDir = new File( IOHelper.combinePath(
                         projectCreator.getProjectLocation().getAbsolutePath(), newName ));
 
                 if (oldDatasetDir.exists()) {

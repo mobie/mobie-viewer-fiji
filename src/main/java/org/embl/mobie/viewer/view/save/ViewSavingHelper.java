@@ -1,17 +1,18 @@
-package org.embl.mobie.viewer.view.saving;
+package org.embl.mobie.viewer.view.save;
 
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.view.View;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViews;
+import org.embl.mobie.viewer.view.AdditionalViews;
 import de.embl.cba.tables.github.GitHubUtils;
 
 import java.io.IOException;
 
 import static de.embl.cba.tables.github.GitHubUtils.isGithub;
 
-public class ViewSavingHelpers {
+public class ViewSavingHelper
+{
     public static void writeDatasetJson(Dataset dataset, View view, String viewName, String datasetJsonPath ) throws IOException {
         if ( viewName != null ) {
             dataset.views.put(viewName, view);

@@ -2,7 +2,6 @@ package org.embl.mobie.viewer.display;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
@@ -14,13 +13,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ImageSourceDisplay extends AbstractSourceDisplay
+public class ImageDisplay extends AbstractSourceDisplay
 {
 	// Serialization
 	private List< String > sources;
 	private String color;
 	private double[] contrastLimits;
-	private BlendingMode blendingMode;
 	private boolean showImagesIn3d;
 	private Double[] resolution3dView;
 
@@ -57,10 +55,10 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 		return sources;
 	}
 
-	public ImageSourceDisplay() {}
+	public ImageDisplay() {}
 
 	// Constructor for serialization
-	public ImageSourceDisplay( String name, double opacity, List< String > sources, String color, double[] contrastLimits, BlendingMode blendingMode, boolean showImagesIn3d ) {
+	public ImageDisplay( String name, double opacity, List< String > sources, String color, double[] contrastLimits, BlendingMode blendingMode, boolean showImagesIn3d ) {
 		this.name = name;
 		this.opacity = opacity;
 		this.sources = sources;
@@ -75,7 +73,7 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 	 *
 	 * @param imageDisplay
 	 */
-	public ImageSourceDisplay( ImageSourceDisplay imageDisplay )
+	public ImageDisplay( ImageDisplay imageDisplay )
 	{
 		this.name = imageDisplay.name;
 		this.sources = new ArrayList<>();
@@ -99,11 +97,11 @@ public class ImageSourceDisplay extends AbstractSourceDisplay
 		}
 
 		if ( imageDisplay.imageSliceView != null ) {
-			visible = imageDisplay.imageSliceView.isDisplayVisible();
+			visible = imageDisplay.imageSliceView.isVisible();
 		}
 	}
 
-	public ImageSourceDisplay( SourceAndConverter< ? > sourceAndConverter )
+	public ImageDisplay( SourceAndConverter< ? > sourceAndConverter )
 	{
 		sources = Arrays.asList( sourceAndConverter.getSpimSource().getName() );
 		setDisplaySettings( sourceAndConverter );

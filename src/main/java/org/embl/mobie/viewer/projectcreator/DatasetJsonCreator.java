@@ -4,8 +4,8 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.Dataset;
-import org.embl.mobie.viewer.display.ImageSourceDisplay;
-import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
+import org.embl.mobie.viewer.display.ImageDisplay;
+import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.SourceDisplay;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.source.*;
@@ -13,7 +13,7 @@ import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.SourceTransformer;
 import org.embl.mobie.viewer.view.View;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import de.embl.cba.tables.color.ColoringLuts;
 
 import java.io.IOException;
@@ -178,9 +178,9 @@ public class DatasetJsonCreator {
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
 
-        ImageSourceDisplay imageSourceDisplay = new ImageSourceDisplay( imageName, 1.0, sources,
+        ImageDisplay imageDisplay = new ImageDisplay( imageName, 1.0, sources,
                 colour, contrastLimits, null, false );
-        sourceDisplays.add( imageSourceDisplay );
+        sourceDisplays.add( imageDisplay );
 
         View view;
         if ( sourceTransform.isIdentity() ) {
@@ -200,8 +200,8 @@ public class DatasetJsonCreator {
 
         ArrayList<String> tables = new ArrayList<>();
         tables.add( "default.tsv" );
-        SegmentationSourceDisplay segmentationSourceDisplay = new SegmentationSourceDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ TableColumnNames.ANCHOR_X, TableColumnNames.ANCHOR_Y }, tables, null );
-        sourceDisplays.add( segmentationSourceDisplay );
+        SegmentationDisplay segmentationDisplay = new SegmentationDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ TableColumnNames.ANCHOR_X, TableColumnNames.ANCHOR_Y }, tables, null );
+        sourceDisplays.add( segmentationDisplay );
 
         if ( sourceTransform.isIdentity() ) {
             return new View( uiSelectionGroup, sourceDisplays, null, null, isExclusive );
@@ -213,7 +213,7 @@ public class DatasetJsonCreator {
 
     public void writeDatasetJson ( String datasetName, Dataset dataset ) {
         try {
-            String datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
+            String datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, "dataset.json" );
             new DatasetJsonParser().saveDataset( dataset, datasetJsonPath );
         } catch (IOException e) {

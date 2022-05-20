@@ -2,13 +2,16 @@ package org.embl.mobie.viewer.command;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.tables.color.CategoryColoringModel;
+import de.embl.cba.tables.color.ColoringModel;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.source.LabelSource;
-import org.embl.mobie.viewer.source.SourceHelpers;
+import org.embl.mobie.viewer.source.SourceHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.util.ColorRGB;
+import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.Arrays;
@@ -40,6 +43,28 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	@Parameter ( label = "Opacity of non-selected labels" )
 	public double opacity = 0.15;
 
+	@Parameter( label = "Increment random color seed [ Ctrl L ]", callback = "incrementRandomColorSeed" )
+	Button button;
+
+	public static void incrementRandomColorSeed( SourceAndConverter[] sourceAndConverters )
+	{
+		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
+		{
+			if ( sourceAndConverter.getConverter() instanceof LabelConverter< ? > )
+			{
+				final LabelConverter< ? > converter = ( LabelConverter< ? > ) sourceAndConverter.getConverter();
+
+				final ColoringModel< ? > coloringModel = converter.getColoringModel().getWrappedColoringModel();
+				if ( coloringModel instanceof CategoryColoringModel )
+				{
+					int randomSeed = ( ( CategoryColoringModel< ? > ) coloringModel ).getRandomSeed();
+					( ( CategoryColoringModel<?> ) coloringModel ).setRandomSeed( ++randomSeed );
+				}
+			}
+		}
+	}
+
+
 	@Override
 	public void run()
 	{
@@ -67,9 +92,9 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 
 	private void configureBoundaryRendering()
 	{
-		Arrays.stream( sourceAndConverters ).filter( sac -> SourceHelpers.getLabelSource( sac ) != null ).forEach( sac ->
+		Arrays.stream( sourceAndConverters ).filter( sac -> SourceHelper.getLabelSource( sac ) != null ).forEach( sac ->
 		{
-			final LabelSource< ? > labelSource = SourceHelpers.getLabelSource( sac );
+			final LabelSource< ? > labelSource = SourceHelper.getLabelSource( sac );
 			labelSource.showAsBoundary( showAsBoundary, boundaryThickness );
 
 			if ( sac.asVolatile() != null )

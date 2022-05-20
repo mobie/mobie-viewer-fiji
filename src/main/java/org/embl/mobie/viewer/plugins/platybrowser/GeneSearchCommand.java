@@ -6,12 +6,11 @@ import bdv.util.BdvOptions;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.bdv.BdvGlobalMousePositionProvider;
-import org.embl.mobie.viewer.bdv.BdvCircleOverlay;
+import org.embl.mobie.viewer.bdv.GlobalMousePositionProvider;
+import org.embl.mobie.viewer.bdv.CircleOverlay;
 import org.embl.mobie.viewer.command.CommandConstants;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import sc.fiji.bdvpg.scijava.ScijavaBdvDefaults;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.Arrays;
@@ -40,10 +39,10 @@ public class GeneSearchCommand implements BdvPlaygroundActionCommand
 	{
 		new Thread( () ->
 		{
-			double[] position = new BdvGlobalMousePositionProvider( bdvHandle ).getPositionAsDoubles();
+			double[] position = new GlobalMousePositionProvider( bdvHandle ).getPositionAsDoubles();
 
-			final BdvCircleOverlay bdvCircleOverlay = new BdvCircleOverlay( position, radius );
-			BdvFunctions.showOverlay( bdvCircleOverlay, "", BdvOptions.options().addTo( bdvHandle ) );
+			final CircleOverlay circleOverlay = new CircleOverlay( position, radius );
+			BdvFunctions.showOverlay( circleOverlay, "", BdvOptions.options().addTo( bdvHandle ) );
 
 			IJ.log( "Gene search at [um]: " + Arrays.toString( position ) );
 			IJ.log( "Gene search: In progress, please wait..." );

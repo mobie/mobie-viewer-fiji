@@ -3,8 +3,8 @@ package org.embl.mobie.viewer.serialize;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonWriter;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViews;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.viewer.view.AdditionalViews;
+import org.embl.mobie.io.util.IOHelper;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -12,7 +12,7 @@ import java.lang.reflect.Type;
 public class AdditionalViewsJsonParser {
     public AdditionalViews getViews( String path ) throws IOException
     {
-        final String s = FileAndUrlUtils.read( path );
+        final String s = IOHelper.read( path );
         Gson gson = JsonHelper.buildGson( false );
         Type type = new TypeToken< AdditionalViews >() {}.getType();
         return gson.fromJson( s, type );

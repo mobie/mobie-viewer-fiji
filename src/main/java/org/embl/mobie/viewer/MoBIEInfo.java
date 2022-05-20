@@ -1,7 +1,7 @@
 package org.embl.mobie.viewer;
 
 import bdv.tools.HelpDialog;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import de.embl.cba.tables.Help;
 import ij.IJ;
 
@@ -40,13 +40,13 @@ public class MoBIEInfo
 		switch ( selectedItem )
 		{
 			case MOBIE_VIEWER:
-				FileAndUrlUtils.openURI( "https://github.com/mobie/mobie-viewer-fiji/blob/master/README.md#mobie-fiji-viewer" );
+				IOHelper.openURI( "https://github.com/mobie/mobie-viewer-fiji/blob/master/README.md#mobie-fiji-viewer" );
 				break;
 			case MOBIE_FRAMEWORK:
-				FileAndUrlUtils.openURI( "https://github.com/mobie/mobie#mobie" );
+				IOHelper.openURI( "https://github.com/mobie/mobie#mobie" );
 				break;
 			case REPOSITORY:
-				FileAndUrlUtils.openURI( FileAndUrlUtils.combinePath( projectLocation, "blob/master/README.md" ) );
+				IOHelper.openURI( IOHelper.combinePath( projectLocation, "blob/master/README.md" ) );
 				break;
 			case PUBLICATION:
 				if ( publicationURL == null )
@@ -56,7 +56,7 @@ public class MoBIEInfo
 				}
 				else
 				{
-					FileAndUrlUtils.openURI( publicationURL );
+					IOHelper.openURI( publicationURL );
 				}
 				break;
 			case BIG_DATA_VIEWER:

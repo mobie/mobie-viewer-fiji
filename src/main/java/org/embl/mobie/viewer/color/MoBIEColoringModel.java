@@ -161,12 +161,4 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 
 		notifyListeners();
 	}
-
-	public void incrementRandomColorSeed()
-	{
-		if ( coloringModel instanceof CategoryColoringModel )
-		{
-			( ( CategoryColoringModel<?> ) coloringModel ).incRandomSeed();
-		}
-	}
 }

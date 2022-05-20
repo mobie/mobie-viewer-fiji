@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.transform;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.ThreadUtils;
+import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
 
@@ -15,7 +15,7 @@ import java.util.concurrent.Future;
 public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 {
 	// Serialization
-	protected List< List< String > > sources;
+	protected List< List< String > > nestedSources;
 	protected List< List< String > > sourceNamesAfterTransform;
 	protected List< int[] > positions;
 	protected boolean centerAtOrigin = true;
@@ -31,39 +31,39 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			autoSetPositions();
 
 		// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/674
-		final double[] cellRealDimensions = TransformHelpers.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, sources );
+		final double[] cellRealDimensions = TransformHelper.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, nestedSources );
 
 		transform( sourceNameToSourceAndConverter, cellRealDimensions );
 		final long duration = System.currentTimeMillis() - startTime;
 		if ( duration > MoBIE.minLogTimeMillis )
-			Logger.info("Transformed " + sources.size() + " group(s) with "+ sources.get( 0 ).size() +" source(s) each into a grid in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
+			Logger.info("Transformed " + nestedSources.size() + " group(s) with "+ nestedSources.get( 0 ).size() +" source(s) each into a grid in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
 	}
 
 	@Override
 	public List< String > getSources()
 	{
 		final ArrayList< String > allSources = new ArrayList<>();
-		for ( List< String > sourcesAtGridPosition : sources )
+		for ( List< String > sourcesAtGridPosition : nestedSources )
 			allSources.addAll( sourcesAtGridPosition );
 		return allSources;
 	}
 
 	private void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] cellRealDimensions )
 	{
-		final int numGridPositions = sources.size();
+		final int numGridPositions = nestedSources.size();
 
-		final ArrayList< Future< ? > > futures = ThreadUtils.getFutures();
+		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
 		for ( int gridIndex = 0; gridIndex < numGridPositions; gridIndex++ )
 		{
 			int finalGridIndex = gridIndex;
-			futures.add( ThreadUtils.executorService.submit( () -> {
+			futures.add( MultiThreading.executorService.submit( () -> {
 				if ( sourceNamesAfterTransform != null )
-					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), sourceNamesAfterTransform.get( finalGridIndex ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
+					translate( sourceNameToSourceAndConverter, nestedSources.get( finalGridIndex ), sourceNamesAfterTransform.get( finalGridIndex ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
 				else
-					translate( sourceNameToSourceAndConverter, sources.get( finalGridIndex ), null, centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
+					translate( sourceNameToSourceAndConverter, nestedSources.get( finalGridIndex ), null, centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
 			} ) );
 		}
-		ThreadUtils.waitUntilFinished( futures );
+		MultiThreading.waitUntilFinished( futures );
 	}
 
 	public static void translate( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< String > sourceNames, List< String > sourceNamesAfterTransform, boolean centerAtOrigin, double translationX, double translationY )
@@ -75,7 +75,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			if ( sourceAndConverter == null )
 			  continue;
 
-			AffineTransform3D translationTransform = TransformHelpers.createTranslationTransform3D( translationX, translationY, sourceAndConverter, centerAtOrigin );
+			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( translationX, translationY, sourceAndConverter, centerAtOrigin );
 
 			final SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, translationTransform );
 
@@ -99,7 +99,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 
 	private void autoSetPositions()
 	{
-		final int numPositions = sources.size();
+		final int numPositions = nestedSources.size();
 		final int numX = ( int ) Math.ceil( Math.sqrt( numPositions ) );
 		positions = new ArrayList<>();
 		int xPositionIndex = 0;

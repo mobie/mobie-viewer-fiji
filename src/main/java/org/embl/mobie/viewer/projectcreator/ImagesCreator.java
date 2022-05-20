@@ -12,7 +12,7 @@ import org.embl.mobie.io.n5.writers.WriteImagePlusToN5;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.writers.imageplus.WriteImagePlusToN5OmeZarr;
 
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import de.embl.cba.tables.Tables;
 import ij.IJ;
 import ij.ImagePlus;
@@ -72,32 +72,32 @@ public class ImagesCreator {
     }
 
     private String getDefaultLocalImageXmlPath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
-        return FileAndUrlUtils.combinePath(getDefaultLocalImageDirPath(datasetName, imageDataFormat),
+        return IOHelper.combinePath(getDefaultLocalImageDirPath(datasetName, imageDataFormat),
                 imageName + ".xml");
     }
 
     private String getDefaultLocalImageZarrPath( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {
-        return FileAndUrlUtils.combinePath(getDefaultLocalImageDirPath(datasetName, imageDataFormat),
+        return IOHelper.combinePath(getDefaultLocalImageDirPath(datasetName, imageDataFormat),
                 imageName + ".ome.zarr");
     }
 
     private String getDefaultLocalN5Path( String datasetName, String imageName ) {
-        return FileAndUrlUtils.combinePath( getDefaultLocalImageDirPath( datasetName, ImageDataFormat.BdvN5),
+        return IOHelper.combinePath( getDefaultLocalImageDirPath( datasetName, ImageDataFormat.BdvN5),
                 imageName + ".n5" );
     }
 
     private String getDefaultLocalImageDirPath( String datasetName, ImageDataFormat imageDataFormat ) {
-        return FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(), datasetName,
+        return IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(), datasetName,
                 "images", imageFormatToFolderName( imageDataFormat ) );
     }
 
     private String getDefaultTableDirPath( String datasetName, String imageName ) {
-        return FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
+        return IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "tables", imageName );
     }
 
     private String getDefaultTablePath( String datasetName, String imageName ) {
-        return FileAndUrlUtils.combinePath( getDefaultTableDirPath(datasetName, imageName), "default.tsv" );
+        return IOHelper.combinePath( getDefaultTableDirPath(datasetName, imageName), "default.tsv" );
     }
 
     public boolean imageExists( String datasetName, String imageName, ImageDataFormat imageDataFormat ) {

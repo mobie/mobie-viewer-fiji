@@ -1,19 +1,21 @@
 package org.embl.mobie.viewer.projectcreator;
 
-import de.embl.cba.tables.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DatasetsCreatorTest {
 
@@ -71,7 +73,7 @@ class DatasetsCreatorTest {
     @Test
     void makeDataset2D() throws IOException {
         String datasetName = "test";
-        String datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
+        String datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "dataset.json" );
 
         Dataset dataset;

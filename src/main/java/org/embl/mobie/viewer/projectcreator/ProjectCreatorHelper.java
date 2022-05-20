@@ -7,8 +7,8 @@ import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.readers.N5OmeZarrReader;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.view.View;
-import org.embl.mobie.viewer.view.additionalviews.AdditionalViews;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.viewer.view.AdditionalViews;
+import org.embl.mobie.io.util.IOHelper;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.embl.mobie.viewer.ui.UserInterfaceHelpers.tidyString;
+import static org.embl.mobie.viewer.ui.UserInterfaceHelper.tidyString;
 
 public class ProjectCreatorHelper {
 
@@ -105,7 +105,7 @@ public class ProjectCreatorHelper {
     }
 
     public static File getDataLocation( File projectLocation ) {
-        String dataDirectoryPath = FileAndUrlUtils.combinePath(projectLocation.getAbsolutePath(), "data");
+        String dataDirectoryPath = IOHelper.combinePath(projectLocation.getAbsolutePath(), "data");
         File dataDirectory = new File( dataDirectoryPath );
         if( !dataDirectory.exists() ) {
             return projectLocation;

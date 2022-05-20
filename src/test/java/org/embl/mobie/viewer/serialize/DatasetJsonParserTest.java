@@ -1,8 +1,8 @@
 package org.embl.mobie.viewer.serialize;
 
-import de.embl.cba.tables.FileAndUrlUtils;
 import net.imagej.ImageJ;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
@@ -41,7 +41,7 @@ class DatasetJsonParserTest {
 
     @BeforeAll
     static void downloadSchema() throws IOException {
-        try( InputStream schemaInputStream = FileAndUrlUtils.getInputStream(
+        try( InputStream schemaInputStream = IOHelper.getInputStream(
                 "https://raw.githubusercontent.com/mobie/mobie.github.io/master/schema/dataset.schema.json") ) {
             datasetSchema = new JSONObject(new JSONTokener(schemaInputStream));
         }

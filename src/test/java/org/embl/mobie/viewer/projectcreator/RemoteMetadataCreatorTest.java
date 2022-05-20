@@ -2,9 +2,9 @@ package org.embl.mobie.viewer.projectcreator;
 
 import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
-import de.embl.cba.tables.FileAndUrlUtils;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -39,7 +39,7 @@ class RemoteMetadataCreatorTest {
         serviceEndpoint = "https://s3.test.de/test/";
         bucketName = "test-bucket";
         projectCreator.getDatasetsCreator().addDataset(datasetName, false);
-        datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
+        datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "dataset.json" );
     }
 
@@ -67,7 +67,7 @@ class RemoteMetadataCreatorTest {
         assertTrue( dataset.sources.containsKey(imageName) );
         assertTrue( dataset.sources.get(imageName).get().imageData.containsKey(remoteFormat) );
         if ( imageDataFormat.hasXml() ) {
-            String remoteXmlPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
+            String remoteXmlPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName( remoteFormat ), imageName + ".xml" );
             assertTrue( new File(remoteXmlPath).exists() );
         }

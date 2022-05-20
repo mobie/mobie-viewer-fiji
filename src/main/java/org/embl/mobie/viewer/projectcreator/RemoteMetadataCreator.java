@@ -8,7 +8,7 @@ import org.embl.mobie.io.ome.zarr.loaders.xml.XmlN5S3OmeZarrImageLoader;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.source.StorageLocation;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
@@ -65,7 +65,7 @@ public class RemoteMetadataCreator {
 
             if ( remoteImageDataFormat.hasXml() ) {
                 // delete any existing remote metadata .xml files
-                File currentRemoteXmlLocation = new File(FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
+                File currentRemoteXmlLocation = new File(IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                         datasetName, imageSource.imageData.get(remoteImageDataFormat).relativePath));
                 if (currentRemoteXmlLocation.exists()) {
                     if (!currentRemoteXmlLocation.delete()) {
@@ -145,10 +145,10 @@ public class RemoteMetadataCreator {
         if ( localImageDataFormat.hasXml() ) {
 
             // make new xml containing bucket name etc, and give relative path
-            String localXmlLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
+            String localXmlLocation = IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, imageSource.imageData.get(localImageDataFormat).relativePath);
 
-            String remoteXmlLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
+            String remoteXmlLocation = IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName( remoteImageDataFormat ));
 
             // make directory for that image file format, if doesn't exist already

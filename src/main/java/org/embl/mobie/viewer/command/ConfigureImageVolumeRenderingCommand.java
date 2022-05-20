@@ -13,7 +13,7 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import static org.scijava.ItemVisibility.MESSAGE;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Image Volume Rendering")
-public class ImageVolumeRenderingConfiguratorCommand implements BdvPlaygroundActionCommand
+public class ConfigureImageVolumeRenderingCommand implements BdvPlaygroundActionCommand
 {
 	@Parameter
 	SourceAndConverter[] sourceAndConverters;

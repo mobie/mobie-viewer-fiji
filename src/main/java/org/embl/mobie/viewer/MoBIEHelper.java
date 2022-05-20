@@ -16,18 +16,16 @@ import ij.gui.GenericDialog;
 import loci.plugins.in.ImagePlusReader;
 import loci.plugins.in.ImportProcess;
 import loci.plugins.in.ImporterOptions;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.util.Intervals;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
-import org.embl.mobie.viewer.transform.TransformHelpers;
+import org.embl.mobie.viewer.transform.TransformHelper;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -35,7 +33,6 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +42,7 @@ import java.util.stream.Collectors;
 
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MAX_Z;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
-import static org.embl.mobie.viewer.ui.SwingHelpers.selectionDialog;
+import static org.embl.mobie.viewer.ui.SwingHelper.selectionDialog;
 
 public abstract class MoBIEHelper
 {
@@ -175,7 +172,7 @@ public abstract class MoBIEHelper
 		ArrayList<String> commonFileNames = new ArrayList<>();
 
 		for ( String directory: directories ) {
-			String[] directoryFileNames = FileAndUrlUtils.getFileNames( directory );
+			String[] directoryFileNames = IOHelper.getFileNames( directory );
 			for ( String directoryFileName: directoryFileNames ) {
 				if ( fileNameCounts.containsKey( directoryFileName ) ) {
 					int count = fileNameCounts.get(directoryFileName);
@@ -222,7 +219,7 @@ public abstract class MoBIEHelper
 			// all of them
 			fileName = chooseCommonFileName(directories, objectName);
 		} else {
-			String[] fileNames = FileAndUrlUtils.getFileNames( directories.get(0) );
+			String[] fileNames = IOHelper.getFileNames( directories.get(0) );
 			fileName = selectionDialog( fileNames, objectName );
 		}
 
@@ -234,10 +231,10 @@ public abstract class MoBIEHelper
 			return null;
 		}
 
-		String[] fileNames = FileAndUrlUtils.getFileNames( directory );
+		String[] fileNames = IOHelper.getFileNames( directory );
 		String fileName = selectionDialog( fileNames, objectName );
 		if ( fileName != null ) {
-			return FileAndUrlUtils.combinePath( directory, fileName );
+			return IOHelper.combinePath( directory, fileName );
 		} else {
 			return null;
 		}
@@ -367,9 +364,9 @@ public abstract class MoBIEHelper
 	public static String resolveTablePath( String tablePath )
 	{
 		if ( tablePath.startsWith( "http" ) ) {
-			tablePath = FileAndUrlUtils.resolveURL( URI.create( tablePath ) );
+			tablePath = IOHelper.resolveURL( URI.create( tablePath ) );
 		} else {
-			tablePath = FileAndUrlUtils.resolvePath( tablePath );
+			tablePath = IOHelper.resolvePath( tablePath );
 		}
 		return tablePath;
 	}
@@ -418,7 +415,7 @@ public abstract class MoBIEHelper
 
 	public static String createNormalisedViewerTransformString( BdvHandle bdv, double[] position )
 	{
-		final AffineTransform3D view = TransformHelpers.createNormalisedViewerTransform( bdv.getViewerPanel(), position );
+		final AffineTransform3D view = TransformHelper.createNormalisedViewerTransform( bdv.getViewerPanel(), position );
 		final String replace = view.toString().replace( "3d-affine: (", "" ).replace( ")", "" );
 		final String collect = Arrays.stream( replace.split( "," ) ).map( x -> "n" + x.trim() ).collect( Collectors.joining( "," ) );
 		return collect;
@@ -447,7 +444,8 @@ public abstract class MoBIEHelper
 		final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
 		final double[] min = rai.minAsDoubleArray();
 		final double[] max = rai.maxAsDoubleArray();
-		final double[] voxelSizes = source.getVoxelDimensions().dimensionsAsDoubleArray();
+		final double[] voxelSizes = new double[ 3 ];
+		source.getVoxelDimensions().dimensions( voxelSizes );
 		for ( int d = 0; d < 3; d++ )
 		{
 			min[ d ] -= voxelSizes[ d ];
@@ -480,12 +478,4 @@ public abstract class MoBIEHelper
 		}
 	}
 
-	public static boolean containsAtLeastOne( Collection<String> a, Collection<String> b ) {
-		for ( String item : b ) {
-			if ( a.contains( item ) ) {
-				return true;
-			}
-		}
-		return false;
-	}
 }

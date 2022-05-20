@@ -3,12 +3,12 @@ package org.embl.mobie.viewer.bdv;
 import bdv.util.BdvHandle;
 import net.imglib2.RealPoint;
 
-public class BdvGlobalMousePositionProvider
+public class GlobalMousePositionProvider
 {
 	private final RealPoint realPoint;
 	private final int timePoint;
 
-	public BdvGlobalMousePositionProvider( BdvHandle bdvHandle )
+	public GlobalMousePositionProvider( BdvHandle bdvHandle )
 	{
 		realPoint = new RealPoint( 3 );
 		bdvHandle.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( realPoint );

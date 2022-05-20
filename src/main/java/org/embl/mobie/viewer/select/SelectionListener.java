@@ -43,8 +43,6 @@ public interface SelectionListener< T >
 
 	/**
 	 * Notifies when a focus event happened.
-	 * Focus events do not necessarily enter the select at all..
 	 */
-	void focusEvent( T selection, Object origin );
-
+	void focusEvent( T selection, Object initiator );
 }

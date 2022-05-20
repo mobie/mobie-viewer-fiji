@@ -13,7 +13,7 @@ import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
-import org.embl.mobie.viewer.display.ImageSourceDisplay;
+import org.embl.mobie.viewer.display.ImageDisplay;
 import org.embl.mobie.viewer.display.SourceDisplay;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
@@ -34,6 +34,7 @@ public class ViewFromSourceAndConverterCreator
 	private double[] contrastLimits;
 	private String color;
 
+	// TODO: not used, what was this intended for?
 	public ViewFromSourceAndConverterCreator( SourceAndConverter sourceAndConverter )
 	{
 		this.sourceAndConverter = sourceAndConverter;
@@ -55,7 +56,7 @@ public class ViewFromSourceAndConverterCreator
 		}
 		else
 		{
-			sourceDisplays.add( new ImageSourceDisplay( sourceAndConverter ) );
+			sourceDisplays.add( new ImageDisplay( sourceAndConverter ) );
 		}
 
 		return view;
