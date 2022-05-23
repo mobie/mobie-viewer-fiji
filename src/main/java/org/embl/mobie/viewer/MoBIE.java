@@ -383,7 +383,7 @@ public class MoBIE
 		final String imagePath = getImagePath( imageSource, imageDataFormat );
         if( log != null )
             IJ.log( log + imagePath );
-		IJ.log( "Opening image:\n" + imagePath );
+
 		try
 		{
 			SpimData spimData = tryOpenSpimData( imagePath, imageDataFormat );
@@ -564,7 +564,7 @@ public class MoBIE
 			}
 		}
 		MultiThreading.waitUntilFinished( futures );
-		IJ.log( "Fetched " + numTables + " tables(s) in " + (System.currentTimeMillis() - startTimeMillis) + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).\n");
+		IJ.log( "Fetched " + numTables + " table(s) in " + (System.currentTimeMillis() - startTimeMillis) + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).\n");
 		return primaryTables;
 	}
 

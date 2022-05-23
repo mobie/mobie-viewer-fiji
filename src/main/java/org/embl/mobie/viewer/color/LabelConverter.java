@@ -40,12 +40,14 @@ import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 
+import java.util.function.Supplier;
+
 import static net.imglib2.type.numeric.ARGBType.alpha;
 import static net.imglib2.type.numeric.ARGBType.blue;
 import static net.imglib2.type.numeric.ARGBType.green;
 import static net.imglib2.type.numeric.ARGBType.red;
 
-public class LabelConverter< S extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, OpacityAdjuster
+public class LabelConverter< S extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, OpacityAdjuster, MoBIEColoringModelWrapper
 {
 	private final SegmentAdapter< S > segmentAdapter;
 	private final String imageId;
@@ -142,7 +144,8 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 		return opacity;
 	}
 
-	public MoBIEColoringModel< S > getColoringModel()
+	@Override
+	public MoBIEColoringModel getMoBIEColoringModel()
 	{
 		return coloringModel;
 	}

@@ -46,7 +46,6 @@ public class SliceViewer
 	private BdvHandle bdvHandle;
 	private final MoBIE moBIE;
 	private final boolean is2D;
-	private final ViewManager viewManager;
 	private final int timepoints;
 	private final ArrayList< String > projectCommands;
 
@@ -57,7 +56,6 @@ public class SliceViewer
 	{
 		this.moBIE = moBIE;
 		this.is2D = is2D;
-		this.viewManager = moBIE.getViewManager();
 		this.timepoints = timepoints;
 		this.projectCommands = moBIE.getProjectCommands();
 
@@ -83,7 +81,7 @@ public class SliceViewer
 
 	private void installContextMenuAndKeyboardShortCuts( )
 	{
-		final SliceViewRegionSelector sliceViewRegionSelector = new SliceViewRegionSelector( bdvHandle, is2D, () -> viewManager.getAnnotatedRegionDisplays() );
+		final SliceViewRegionSelector sliceViewRegionSelector = new SliceViewRegionSelector( bdvHandle, is2D, () -> moBIE.getViewManager().getAnnotatedRegionDisplays() );
 
 		sacService.registerAction( UNDO_SEGMENT_SELECTIONS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
@@ -92,12 +90,12 @@ public class SliceViewer
 
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
-			viewManager.getAdditionalViewsLoader().loadAdditionalViewsDialog();
+			moBIE.getViewManager().getAdditionalViewsLoader().loadAdditionalViewsDialog();
 		} );
 
 		sacService.registerAction( SAVE_CURRENT_SETTINGS_AS_VIEW, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
-			viewManager.getViewsSaver().saveCurrentSettingsAsViewDialog();
+			moBIE.getViewManager().getViewsSaver().saveCurrentSettingsAsViewDialog();
 		} );
 
 		final Set< String > actionsKeys = sacService.getActionsKeys();

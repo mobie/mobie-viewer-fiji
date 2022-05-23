@@ -53,6 +53,14 @@ public class MoBIEViewerTest
 		moBIE = new MoBIE( "https://github.com/mobie/covid-if-project" );
 	}
 
+	//@Test
+	// This loads the whole plate, thus probably too much
+	// to be run as an actual test.
+	public void testCovidIFFullPlate() throws IOException
+	{
+		moBIE = new MoBIE( "https://github.com/mobie/covid-if-project", MoBIESettings.settings().view( "full grid" ) );
+	}
+
 	@Test
 	public void testCellPublicationFigure2C() throws IOException
 	{
@@ -91,9 +99,10 @@ public class MoBIEViewerTest
 		(( SegmentationDisplay ) display).segmentsVolumeViewer.showSegments( true );
 	}
 
-	@Test
+	//@Test
 	// This test is quite memory intensive and thus
 	// it probably is best if it runs last.
+	// TODO: this crashes in the github actions CI
 	public void testSubmissionFigure1c() throws IOException
 	{
 		// Open

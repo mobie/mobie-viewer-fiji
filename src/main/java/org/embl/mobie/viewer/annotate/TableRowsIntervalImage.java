@@ -9,6 +9,7 @@ import net.imglib2.RealInterval;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringModel;
@@ -17,6 +18,7 @@ import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import org.embl.mobie.viewer.source.LabelSource;
 
 import java.awt.*;
@@ -27,7 +29,7 @@ import java.util.function.BiConsumer;
 public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 {
 	private final List< T > tableRows;
-	private final ColoringModel< T > coloringModel;
+	private final MoBIEColoringModel< T > coloringModel;
 	private double[] contrastLimits;
 	private String name;
 	private SourceAndConverter< IntType > sourceAndConverter;
@@ -37,7 +39,7 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 
 	public TableRowsIntervalImage(
 			List< T > tableRows,
-			ColoringModel< T > coloringModel,
+			MoBIEColoringModel< T > coloringModel,
 			String name )
 	{
 		final long currentTimeMillis = System.currentTimeMillis();

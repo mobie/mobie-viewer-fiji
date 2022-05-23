@@ -4,8 +4,12 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColoringModel;
+import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.color.LabelConverter;
+import org.embl.mobie.viewer.color.ListItemsARGBConverter;
+import org.embl.mobie.viewer.color.MoBIEColoringModel;
+import org.embl.mobie.viewer.color.MoBIEColoringModelWrapper;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.scijava.plugin.Parameter;
@@ -15,6 +19,7 @@ import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Label Rendering")
 public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionCommand
@@ -50,20 +55,19 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	{
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			if ( sourceAndConverter.getConverter() instanceof LabelConverter< ? > )
+			if ( sourceAndConverter.getConverter() instanceof MoBIEColoringModelWrapper )
 			{
-				final LabelConverter< ? > converter = ( LabelConverter< ? > ) sourceAndConverter.getConverter();
+				final MoBIEColoringModel moBIEColoringModel = ( ( MoBIEColoringModelWrapper ) sourceAndConverter.getConverter() ).getMoBIEColoringModel();
 
-				final ColoringModel< ? > coloringModel = converter.getColoringModel().getWrappedColoringModel();
-				if ( coloringModel instanceof CategoryColoringModel )
+				if ( moBIEColoringModel instanceof CategoryColoringModel )
 				{
-					int randomSeed = ( ( CategoryColoringModel< ? > ) coloringModel ).getRandomSeed();
-					( ( CategoryColoringModel<?> ) coloringModel ).setRandomSeed( ++randomSeed );
+					final CategoryColoringModel< ? > categoryColoringModel = ( CategoryColoringModel< ? > ) moBIEColoringModel;
+					int randomSeed = categoryColoringModel.getRandomSeed();
+					categoryColoringModel.setRandomSeed( ++randomSeed );
 				}
 			}
 		}
 	}
-
 
 	@Override
 	public void run()
@@ -108,11 +112,9 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	{
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			if ( sourceAndConverter.getConverter() instanceof LabelConverter< ? > )
+			if ( sourceAndConverter.getConverter() instanceof MoBIEColoringModelWrapper )
 			{
-				final LabelConverter< ? > converter = ( LabelConverter< ? > ) sourceAndConverter.getConverter();
-
-				converter.getColoringModel().setOpacityNotSelected( opacity );
+				( ( MoBIEColoringModelWrapper ) sourceAndConverter.getConverter() ).getMoBIEColoringModel().setOpacityNotSelected( opacity );
 			}
 		}
 	}
@@ -121,12 +123,11 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	{
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			if ( sourceAndConverter.getConverter() instanceof LabelConverter< ? > )
+			if ( sourceAndConverter.getConverter() instanceof MoBIEColoringModelWrapper )
 			{
-				final LabelConverter< ? > converter = ( LabelConverter< ? > ) sourceAndConverter.getConverter();
-
-				converter.getColoringModel().setSelectionColor( argbType );
+				( ( MoBIEColoringModelWrapper ) sourceAndConverter.getConverter() ).getMoBIEColoringModel().setSelectionColor( argbType );
 			}
 		}
 	}
+
 }

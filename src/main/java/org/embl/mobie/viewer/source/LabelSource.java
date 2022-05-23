@@ -179,9 +179,9 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         return labelBoundaries;
     }
 
-    private FunctionRealRandomAccessible< T > createVolatileBoundaryRRA( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
+    private FunctionRealRandomAccessible< T > createVolatileBoundaryRRA( RealRandomAccessible< T > rra, ArrayList< Integer > boundaryDimensions, float[] boundaryWidth )
     {
-        BiConsumer< RealLocalizable, T > biConsumer = ( l, o ) ->
+        BiConsumer< RealLocalizable, T > boundaries = ( l, o ) ->
         {
             final RealRandomAccess< T > access = rra.realRandomAccess();
             Volatile< T > value = ( Volatile< T > ) access.setPositionAndGet( l );
@@ -198,9 +198,9 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
                 vo.setValid( true );
                 return;
             }
-            for ( Integer d : dimensions )
+            for ( Integer d : boundaryDimensions )
             {
-                for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
+                for ( int signum = -1; signum <= +1; signum +=2  ) // back and forth
                 {
                     access.move( signum * boundaryWidth[ d ], d );
                     value = ( Volatile< T > ) access.get();
@@ -223,7 +223,7 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
             return;
         };
         final T type = rra.realRandomAccess().get();
-        final FunctionRealRandomAccessible< T > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.copy() );
+        final FunctionRealRandomAccessible< T > randomAccessible = new FunctionRealRandomAccessible( 3, boundaries, () -> type.copy() );
         return randomAccessible;
     }
 

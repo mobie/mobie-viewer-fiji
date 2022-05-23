@@ -40,16 +40,6 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	private ARGBType selectionColor;
 	private double opacityNotSelected;
 
-	public static final ARGBType YELLOW = new ARGBType( ARGBType.rgba( 255, 255, 0, 255 ) );
-	public static final ARGBType TRANSPARENT = new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) );
-
-	public enum SelectionColoringMode
-	{
-		SelectionColor,
-		SelectionColorAndDimNotSelected,
-		DimNotSelected
-	}
-
 	public MoBIEColoringModel( ColoringModel< T > coloringModel )
 	{
 		setColoringModel( coloringModel );

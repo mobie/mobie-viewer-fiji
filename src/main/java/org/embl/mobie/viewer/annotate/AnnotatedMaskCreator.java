@@ -40,7 +40,7 @@ public class AnnotatedMaskCreator
 
 		for ( String annotationId : annotationIds )
 		{
-			final List< ? extends Source< ? > > sources = annotationIdToSources.get( annotationId ).stream().map( name -> sourceAndConverterSupplier.apply( name ).getSpimSource() ).collect( Collectors.toList() );
+			final ArrayList< Source< ? > > sources = getSources( annotationId );
 
 			final RealMaskRealInterval mask = MoBIEHelper.unionRealMask( sources );
 			//System.out.println( annotationId );
@@ -59,6 +59,26 @@ public class AnnotatedMaskCreator
 		final long durationMillis = System.currentTimeMillis() - currentTimeMillis;
 		if ( durationMillis > 100 )
 			IJ.log("Created " + annotationIds.size() + " annotated intervals in " + durationMillis + " ms.");
+	}
+
+	private ArrayList< Source< ? > > getSources( String annotationId )
+	{
+		final ArrayList< Source< ? > > sources = new ArrayList<>();
+		final List< String > sourceNames = annotationIdToSources.get( annotationId );
+		for ( String sourceName : sourceNames )
+		{
+			try
+			{
+				final Source< ? > source = sourceAndConverterSupplier.apply( sourceName ).getSpimSource();
+				sources.add( source );
+			} catch ( Exception e )
+			{
+				System.err.println( "Could not find " + sourceName + " among the image sources that are associated to this project.\nPlease check the project's dataset.json file to see whether it may be missing. ");
+				e.printStackTrace();
+				throw e;
+			}
+		}
+		return sources;
 	}
 
 	public List< AnnotatedMaskTableRow > getAnnotatedMaskTableRows()
