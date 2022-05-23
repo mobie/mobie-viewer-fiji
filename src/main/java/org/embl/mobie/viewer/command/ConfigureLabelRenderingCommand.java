@@ -45,6 +45,7 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 
 	@Parameter( label = "Increment random color seed [ Ctrl L ]", callback = "incrementRandomColorSeed" )
 	Button button;
+	private ARGBType selectionARGB;
 
 	public static void incrementRandomColorSeed( SourceAndConverter[] sourceAndConverters )
 	{
@@ -69,23 +70,28 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	{
 		configureBoundaryRendering();
 
-		configureSelectionColor();
-
-		setNonSelectedLabelsOpacity();
+		configureSelectionColoring();
 
 		bdvh.getViewerPanel().requestRepaint();
 	}
 
-	private void configureSelectionColor()
+	private void configureSelectionColoring()
 	{
-		if ( coloringMode.equals( SEGMENT_COLOR ) )
+		selectionARGB = new ARGBType( ARGBType.rgba( selectionColor.getRed(), selectionColor.getGreen(), selectionColor.getBlue(), selectionColor.getAlpha() ) );
+
+		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			setSelectedSegmentsColor( sourceAndConverters, null );
-		}
-		else
-		{
-			final ARGBType argbType = new ARGBType( ARGBType.rgba( selectionColor.getRed(), selectionColor.getGreen(), selectionColor.getBlue(), selectionColor.getAlpha() ) );
-			setSelectedSegmentsColor( sourceAndConverters, argbType );
+			if ( sourceAndConverter.getConverter() instanceof SelectionColoringModelWrapper )
+			{
+				final SelectionColoringModel selectionColoringModel = ( ( SelectionColoringModelWrapper ) sourceAndConverter.getConverter() ).getSelectionColoringModel();
+
+				if ( coloringMode.equals( SEGMENT_COLOR ) )
+					selectionColoringModel.setSelectionColor( null );
+				else
+					selectionColoringModel.setSelectionColor( selectionARGB );
+
+				selectionColoringModel.setOpacityNotSelected( opacity );
+			}
 		}
 	}
 
@@ -94,6 +100,7 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 		Arrays.stream( sourceAndConverters ).filter( sac -> SourceHelper.getLabelSource( sac ) != null ).forEach( sac ->
 		{
 			final LabelSource< ? > labelSource = SourceHelper.getLabelSource( sac );
+
 			labelSource.showAsBoundary( showAsBoundary, boundaryThickness );
 
 			if ( sac.asVolatile() != null )
@@ -101,28 +108,6 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 				( ( LabelSource ) sac.asVolatile().getSpimSource() ).showAsBoundary( showAsBoundary, boundaryThickness );
 			}
 		});
-	}
-
-	private void setNonSelectedLabelsOpacity( )
-	{
-		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
-		{
-			if ( sourceAndConverter.getConverter() instanceof SelectionColoringModelWrapper )
-			{
-				( ( SelectionColoringModelWrapper ) sourceAndConverter.getConverter() ).getSelectionColoringModel().setOpacityNotSelected( opacity );
-			}
-		}
-	}
-
-	private void setSelectedSegmentsColor( SourceAndConverter[] sourceAndConverters, ARGBType argbType )
-	{
-		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
-		{
-			if ( sourceAndConverter.getConverter() instanceof SelectionColoringModelWrapper )
-			{
-				( ( SelectionColoringModelWrapper ) sourceAndConverter.getConverter() ).getSelectionColoringModel().setSelectionColor( argbType );
-			}
-		}
 	}
 
 }
