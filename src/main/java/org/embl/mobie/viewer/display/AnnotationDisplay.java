@@ -10,7 +10,7 @@ import de.embl.cba.tables.color.NumericColoringModel;
 import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
-import org.embl.mobie.viewer.color.MoBIEColoringModel;
+import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.source.LabelSource;
@@ -41,7 +41,7 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 
 	// Runtime
 	public transient SelectionModel< T > selectionModel;
-	public transient MoBIEColoringModel< T > coloringModel;
+	public transient SelectionColoringModel< T > coloringModel;
 	public transient TableViewer< T > tableViewer;
 	public transient ScatterPlotViewer< T > scatterPlotViewer;
 	public transient List< T > tableRows;

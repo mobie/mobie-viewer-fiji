@@ -34,7 +34,7 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
 import org.embl.mobie.viewer.annotate.Annotator;
-import org.embl.mobie.viewer.color.MoBIEColoringModel;
+import org.embl.mobie.viewer.color.SelectionColoringModel;
 import de.embl.cba.tables.*;
 import de.embl.cba.tables.color.*;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
@@ -73,7 +73,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private final MoBIE moBIE;
 	private final List< T > tableRows;
 	private final SelectionModel< T > selectionModel;
-	private final MoBIEColoringModel< T > coloringModel;
+	private final SelectionColoringModel< T > coloringModel;
 	private final String tableName;
 
 	private JTable jTable;
@@ -109,14 +109,14 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			final MoBIE moBIE,
 			final List< T > tableRows,
 			final SelectionModel< T > selectionModel,
-			final MoBIEColoringModel< T > moBIEColoringModel,
+			final SelectionColoringModel< T > selectionColoringModel,
 			String tableName,
 			Map< String, String > sourceNameToTableDir,
 			boolean isGridTable )
 	{
 		this.moBIE = moBIE;
 		this.tableRows = tableRows;
-		this.coloringModel = moBIEColoringModel;
+		this.coloringModel = selectionColoringModel;
 		this.selectionModel = selectionModel;
 		this.tableName = tableName;
 		this.recentlySelectedRowInView = -1;
@@ -312,11 +312,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			return Color.WHITE;
 		else
 			return ColorUtils.getColor( argbType );
-	}
-
-	private void registerAsColoringListener( SelectionColoringModel< T > selectionColoringModel )
-	{
-		selectionColoringModel.listeners().add( () -> SwingUtilities.invokeLater( () -> repaintTable() ) );
 	}
 
 	private synchronized void repaintTable()

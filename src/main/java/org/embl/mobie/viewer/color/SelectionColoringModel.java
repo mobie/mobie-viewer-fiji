@@ -29,10 +29,11 @@
 package org.embl.mobie.viewer.color;
 
 import de.embl.cba.tables.color.*;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import org.embl.mobie.viewer.select.SelectionModel;
 import net.imglib2.type.numeric.ARGBType;
 
-public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
+public class SelectionColoringModel< T > extends AbstractColoringModel< T >
 {
 	private ColoringModel< T > coloringModel;
 	private SelectionModel< T > selectionModel;
@@ -40,27 +41,22 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	private ARGBType selectionColor;
 	private double opacityNotSelected;
 
-	public MoBIEColoringModel( ColoringModel< T > coloringModel )
+	public SelectionColoringModel( ColoringModel< T > coloringModel, SelectionModel< T > selectionModel )
 	{
 		setColoringModel( coloringModel );
+		this.selectionModel = selectionModel;
 		init();
 	}
 
-	public MoBIEColoringModel( String lut )
+	public SelectionColoringModel( String lut, SelectionModel< T > selectionModel )
 	{
-		setColoringModel( new LazyCategoryColoringModel<>( new LutFactory().get( lut ) ) );
-		init();
+		this( new LazyCategoryColoringModel<>( new LutFactory().get( lut ) ), selectionModel );
 	}
 
 	private void init()
 	{
 		this.selectionColor = null;
 		this.opacityNotSelected = 0.15;
-	}
-
-	public void setSelectionModel( SelectionModel< T > selectionModel )
-	{
-		this.selectionModel = selectionModel;
 	}
 
 	@Override

@@ -6,6 +6,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
+import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -18,7 +19,7 @@ import org.embl.mobie.viewer.bdv.view.RegionSliceView;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.bdv.view.SliceViewer;
-import org.embl.mobie.viewer.color.MoBIEColoringModel;
+import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.display.*;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
@@ -92,7 +93,7 @@ public class ViewManager
 		}
 	}
 
-	private static void configureMoBIEColoringModel( AnnotationDisplay< ? > display )
+	private static void configureMoBIEColoringModel( AnnotationDisplay< ? extends TableRow > display )
 	{
 		if ( display.getColorByColumn() != null )
 		{
@@ -109,11 +110,11 @@ public class ViewManager
 				coloringModel = modelCreator.createColoringModel(display.getColorByColumn(), coloringLut, null, null );
 			}
 
-			display.coloringModel = new MoBIEColoringModel( coloringModel );
+			display.coloringModel = new SelectionColoringModel( coloringModel, display.selectionModel );
 		}
 		else
 		{
-			display.coloringModel = new MoBIEColoringModel<>( display.getLut() );
+			display.coloringModel = new SelectionColoringModel( display.getLut(), display.selectionModel );
 		}
 	}
 
@@ -390,9 +391,9 @@ public class ViewManager
 		annotationDisplay.tableRows = moBIE.loadAnnotatedMaskTables( annotationDisplay );
 		annotationDisplay.annotatedMaskAdapter = new AnnotatedMaskAdapter( annotationDisplay.tableRows );
 
-		configureMoBIEColoringModel( annotationDisplay );
 		annotationDisplay.selectionModel = new MoBIESelectionModel<>();
-		annotationDisplay.coloringModel.setSelectionModel( annotationDisplay.selectionModel );
+		configureMoBIEColoringModel( annotationDisplay );
+
 
 		// set selected segments
 		if ( annotationDisplay.getSelectedRegionIds() != null )
@@ -434,9 +435,8 @@ public class ViewManager
 			segmentationDisplay.segmentAdapter = new SegmentAdapter();
 		}
 
-		configureMoBIEColoringModel( segmentationDisplay );
 		segmentationDisplay.selectionModel = new MoBIESelectionModel<>();
-		segmentationDisplay.coloringModel.setSelectionModel(  segmentationDisplay.selectionModel );
+		configureMoBIEColoringModel( segmentationDisplay );
 
 		// set selected segments
 		if ( segmentationDisplay.getSelectedTableRows() != null )

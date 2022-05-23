@@ -3,13 +3,9 @@ package org.embl.mobie.viewer.command;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.CategoryColoringModel;
-import de.embl.cba.tables.color.ColoringModel;
-import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.viewer.color.LabelConverter;
-import org.embl.mobie.viewer.color.ListItemsARGBConverter;
-import org.embl.mobie.viewer.color.MoBIEColoringModel;
-import org.embl.mobie.viewer.color.MoBIEColoringModelWrapper;
+import org.embl.mobie.viewer.color.SelectionColoringModel;
+import org.embl.mobie.viewer.color.SelectionColoringModelWrapper;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.scijava.plugin.Parameter;
@@ -19,13 +15,12 @@ import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 import java.util.Arrays;
-import java.util.function.Supplier;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Label Rendering")
 public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionCommand
 {
-	public static final String SEGMENT_COLOR = "Label color";
-	public static final String SELECTION_COLOR = "Selection color";
+	public static final String SEGMENT_COLOR = "Keep current color";
+	public static final String SELECTION_COLOR = "Use below selection color";
 
 	@Parameter
 	public BdvHandle bdvh;
@@ -55,13 +50,13 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	{
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			if ( sourceAndConverter.getConverter() instanceof MoBIEColoringModelWrapper )
+			if ( sourceAndConverter.getConverter() instanceof SelectionColoringModelWrapper )
 			{
-				final MoBIEColoringModel moBIEColoringModel = ( ( MoBIEColoringModelWrapper ) sourceAndConverter.getConverter() ).getMoBIEColoringModel();
+				final SelectionColoringModel selectionColoringModel = ( ( SelectionColoringModelWrapper ) sourceAndConverter.getConverter() ).getSelectionColoringModel();
 
-				if ( moBIEColoringModel instanceof CategoryColoringModel )
+				if ( selectionColoringModel instanceof CategoryColoringModel )
 				{
-					final CategoryColoringModel< ? > categoryColoringModel = ( CategoryColoringModel< ? > ) moBIEColoringModel;
+					final CategoryColoringModel< ? > categoryColoringModel = ( CategoryColoringModel< ? > ) selectionColoringModel;
 					int randomSeed = categoryColoringModel.getRandomSeed();
 					categoryColoringModel.setRandomSeed( ++randomSeed );
 				}
@@ -112,9 +107,9 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	{
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			if ( sourceAndConverter.getConverter() instanceof MoBIEColoringModelWrapper )
+			if ( sourceAndConverter.getConverter() instanceof SelectionColoringModelWrapper )
 			{
-				( ( MoBIEColoringModelWrapper ) sourceAndConverter.getConverter() ).getMoBIEColoringModel().setOpacityNotSelected( opacity );
+				( ( SelectionColoringModelWrapper ) sourceAndConverter.getConverter() ).getSelectionColoringModel().setOpacityNotSelected( opacity );
 			}
 		}
 	}
@@ -123,9 +118,9 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	{
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			if ( sourceAndConverter.getConverter() instanceof MoBIEColoringModelWrapper )
+			if ( sourceAndConverter.getConverter() instanceof SelectionColoringModelWrapper )
 			{
-				( ( MoBIEColoringModelWrapper ) sourceAndConverter.getConverter() ).getMoBIEColoringModel().setSelectionColor( argbType );
+				( ( SelectionColoringModelWrapper ) sourceAndConverter.getConverter() ).getSelectionColoringModel().setSelectionColor( argbType );
 			}
 		}
 	}
