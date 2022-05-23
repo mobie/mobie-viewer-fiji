@@ -14,7 +14,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
-import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
+import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.bdv.view.RegionSliceView;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
@@ -26,8 +26,6 @@ import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.source.LabelSource;
-import org.embl.mobie.viewer.source.SegmentationSource;
-import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableViewer;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
@@ -120,20 +118,7 @@ public class ViewManager
 
 	public void initTableViewer( SegmentationDisplay display  )
 	{
-		Map<String, String> sourceNameToTableDir = new HashMap<>();
-		for ( String source: display.getSources() )
-		{
-			try
-			{
-				sourceNameToTableDir.put( source, moBIE.getTablesDirectoryPath( ( SegmentationSource ) moBIE.getSource( source ) )
-				);
-			}
-			catch ( Exception e )
-			{
-				System.out.println("[WARNING] Could not store table directory for " + source );
-				sourceNameToTableDir.put( source, null );
-			}
-		}
+		Map< String, String > sourceNameToTableDir = moBIE.getSegmentationTableDirectories( display );
 		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel, display.getName(), sourceNameToTableDir, false );
 		display.tableViewer.setVisible( display.showTable() );
 		display.selectionModel.listeners().add( display.tableViewer );
@@ -275,7 +260,8 @@ public class ViewManager
 			sourceTransformer.transform( sourceNameToSourceAndConverters );
 		}
 
-		// wrap all in a final transformed source. This is so any manual transformations can be
+		// Wrap all in a final transformed source.
+		// This is so any manual transformations can be
 		// retrieved separate from any from sourceTransformers.
 		for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
 			SourceAndConverter<?> sourceAndConverter = new SourceAffineTransformer( sourceNameToSourceAndConverters.get( sourceName ), new AffineTransform3D()).getSourceOut();
@@ -285,7 +271,7 @@ public class ViewManager
 		// register all available (transformed) sources in MoBIE
 		// this is where the source and segmentation displays will
 		// get the sources from
-		moBIE.addTransformedSourceAndConverters( sourceNameToSourceAndConverters );
+		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
 	}
 
 	public void adjustViewerTransform( View view )
@@ -388,17 +374,16 @@ public class ViewManager
 	private void showAnnotatedMaskDisplay( RegionDisplay annotationDisplay )
 	{
 		annotationDisplay.sliceViewer = sliceViewer;
-		annotationDisplay.tableRows = moBIE.loadAnnotatedMaskTables( annotationDisplay );
+		annotationDisplay.tableRows = moBIE.loadRegionTables( annotationDisplay );
 		annotationDisplay.annotatedMaskAdapter = new AnnotatedMaskAdapter( annotationDisplay.tableRows );
 
 		annotationDisplay.selectionModel = new MoBIESelectionModel<>();
 		configureMoBIEColoringModel( annotationDisplay );
 
-
 		// set selected segments
 		if ( annotationDisplay.getSelectedRegionIds() != null )
 		{
-			final List< AnnotatedMaskTableRow > annotatedMasks = annotationDisplay.annotatedMaskAdapter.getAnnotatedMasks( annotationDisplay.getSelectedRegionIds() );
+			final List< RegionTableRow > annotatedMasks = annotationDisplay.annotatedMaskAdapter.getAnnotatedMasks( annotationDisplay.getSelectedRegionIds() );
 			annotationDisplay.selectionModel.setSelected( annotatedMasks, true );
 		}
 
@@ -414,9 +399,8 @@ public class ViewManager
 
 	private void initTableViewer( RegionDisplay display )
 	{
-		HashMap<String, String> nameToTableDir = new HashMap<>();
-		nameToTableDir.put( display.getName(), display.getTableDataFolder( TableDataFormat.TabDelimitedFile ) );
-		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel, display.getName(), nameToTableDir, true ).show();
+		Map< String, String > sourceNameToTableDir = moBIE.getRegionTableDirectories( display );
+		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel, display.getName(), sourceNameToTableDir, true ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.coloringModel.listeners().add( display.tableViewer );
 	}

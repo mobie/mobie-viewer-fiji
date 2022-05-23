@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.annotate;
 
+import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvOverlay;
 import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.SourceAndConverter;
@@ -23,7 +24,7 @@ import java.awt.*;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
+public class TableRowsIntervalImage< T extends RegionTableRow >
 {
 	private final List< T > tableRows;
 	private final SelectionColoringModel< T > coloringModel;
@@ -114,7 +115,9 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 
 		final ListItemsARGBConverter< T > argbConverter = new ListItemsARGBConverter<>( tableRows, coloringModel );
 
-		sourceAndConverter = new SourceAndConverter( new LabelSource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX, unionMask ), argbConverter );
+		final LabelSource< IntType > labelSource = new LabelSource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX, unionMask );
+		final TransformedSource< IntType > transformedSource = new TransformedSource<>( labelSource );
+		sourceAndConverter = new SourceAndConverter( transformedSource, argbConverter );
 
 		contrastLimits = new double[]{ 0, 255 };
 	}

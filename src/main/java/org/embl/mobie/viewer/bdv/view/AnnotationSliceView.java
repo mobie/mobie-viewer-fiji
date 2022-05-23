@@ -5,13 +5,13 @@ import bdv.viewer.TimePointListener;
 import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;
-import de.embl.cba.tables.color.ColumnColoringModel;
-import de.embl.cba.tables.color.NumericColoringModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.source.LabelSource;
+import org.embl.mobie.viewer.source.SourceHelper;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,9 +39,13 @@ public abstract class AnnotationSliceView< T extends TableRow > extends Abstract
 	{
 		final boolean showAsBoundaries = display.isShowAsBoundaries();
 		final float boundaryThickness = display.getBoundaryThickness();
-		( (LabelSource) sourceAndConverter.getSpimSource() ).showAsBoundary( showAsBoundaries, boundaryThickness );
+		final LabelSource< ? > labelSource = SourceHelper.getLabelSource( sourceAndConverter );
+		labelSource.showAsBoundary( showAsBoundaries, boundaryThickness );
 		if ( sourceAndConverter.asVolatile() != null )
-			( (LabelSource) sourceAndConverter.asVolatile().getSpimSource() ).showAsBoundary( showAsBoundaries, boundaryThickness );
+		{
+			final LabelSource< ? > vLabelSource = SourceHelper.getLabelSource( sourceAndConverter.asVolatile() );
+			vLabelSource.showAsBoundary( showAsBoundaries, boundaryThickness );
+		}
 
 		final ColoringModel<T> coloringModel = display.coloringModel.getWrappedColoringModel();
 		if ( coloringModel instanceof CategoryColoringModel )

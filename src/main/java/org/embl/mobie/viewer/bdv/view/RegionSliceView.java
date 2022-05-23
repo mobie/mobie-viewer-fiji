@@ -5,7 +5,7 @@ import bdv.viewer.SourceAndConverter;
 import bdv.viewer.SynchronizedViewerState;
 import net.imglib2.type.numeric.integer.IntType;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
+import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.annotate.TableRowsIntervalImage;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
@@ -13,26 +13,24 @@ import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 
 
-public class RegionSliceView extends AnnotationSliceView< AnnotatedMaskTableRow >
+public class RegionSliceView extends AnnotationSliceView< RegionTableRow >
 {
 	public RegionSliceView( MoBIE moBIE, RegionDisplay display )
 	{
 		super( moBIE, display );
-
-		final SourceAndConverter< IntType > regionSourceAndConverter = createSourceAndConverter();
-
+		SourceAndConverter< IntType > regionSourceAndConverter = createSourceAndConverter();
 		show( regionSourceAndConverter );
 	}
 
 	private SourceAndConverter< IntType > createSourceAndConverter()
 	{
-		final TableRowsIntervalImage< AnnotatedMaskTableRow > maskImage = new TableRowsIntervalImage<>( display.tableRows, display.coloringModel, display.getName() );
+		final TableRowsIntervalImage< RegionTableRow > intervalImage = new TableRowsIntervalImage<>( display.tableRows, display.coloringModel, display.getName() );
 
-		return maskImage.getSourceAndConverter();
+		return intervalImage.getSourceAndConverter();
 	}
 
 	@Override
-	public synchronized void focusEvent( AnnotatedMaskTableRow selection, Object initiator )
+	public synchronized void focusEvent( RegionTableRow selection, Object initiator )
 	{
 		if ( initiator instanceof SliceViewRegionSelector )
 			return;
@@ -50,7 +48,7 @@ public class RegionSliceView extends AnnotationSliceView< AnnotatedMaskTableRow 
 		SliceViewLocationChanger.changeLocation( bdvHandle, new PositionViewerTransform( center, state.getCurrentTimepoint() ) );
 	}
 
-	private double[] getPosition( AnnotatedMaskTableRow selection )
+	private double[] getPosition( RegionTableRow selection )
 	{
 		final double[] max = selection.mask().maxAsDoubleArray();
 		final double[] min = selection.mask().minAsDoubleArray();

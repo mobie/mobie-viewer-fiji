@@ -90,8 +90,8 @@ public class AnnotatedMaskAdapter
 	}
 
 
-	private HashMap< TimepointAndAnnotationId, AnnotatedMaskTableRow > timepointAndAnnotationToObject;
-	private HashMap< TimePointAndLabel, AnnotatedMaskTableRow > timePointAndLabelToObject;
+	private HashMap< TimepointAndAnnotationId, RegionTableRow > timepointAndAnnotationToObject;
+	private HashMap< TimePointAndLabel, RegionTableRow > timePointAndLabelToObject;
 
 	/**
 	 * For lazy initialization
@@ -101,7 +101,7 @@ public class AnnotatedMaskAdapter
 		timepointAndAnnotationToObject = new HashMap<>();
 	}
 
-	public AnnotatedMaskAdapter( List< AnnotatedMaskTableRow > tableRows )
+	public AnnotatedMaskAdapter( List< RegionTableRow > tableRows )
 	{
 		timepointAndAnnotationToObject = new HashMap<>();
 		timePointAndLabelToObject = new HashMap<>();
@@ -109,40 +109,40 @@ public class AnnotatedMaskAdapter
 		final int numTableRows = tableRows.size();
 		for ( int rowIndex = 0; rowIndex < numTableRows; rowIndex++ )
 		{
-			final AnnotatedMaskTableRow annotatedMaskTableRow = tableRows.get( rowIndex );
-			timepointAndAnnotationToObject.put( new TimepointAndAnnotationId( annotatedMaskTableRow ), annotatedMaskTableRow );
-			timePointAndLabelToObject.put( new TimePointAndLabel( annotatedMaskTableRow.timePoint(), rowIndex ), annotatedMaskTableRow );
+			final RegionTableRow regionTableRow = tableRows.get( rowIndex );
+			timepointAndAnnotationToObject.put( new TimepointAndAnnotationId( regionTableRow ), regionTableRow );
+			timePointAndLabelToObject.put( new TimePointAndLabel( regionTableRow.timePoint(), rowIndex ), regionTableRow );
 		}
 	}
 
-	public AnnotatedMaskTableRow getAnnotatedMask( int timepoint, String annotationId )
+	public RegionTableRow getAnnotatedMask( int timepoint, String annotationId )
 	{
 		final TimepointAndAnnotationId timepointAndAnnotationId = new TimepointAndAnnotationId( timepoint, annotationId  );
 
 		return getAnnotatedMask( timepointAndAnnotationId );
 	}
 
-	public AnnotatedMaskTableRow getAnnotatedMask( int timepoint, double label )
+	public RegionTableRow getAnnotatedMask( int timepoint, double label )
 	{
 		final TimePointAndLabel timepointAndAnnotationId = new TimePointAndLabel( timepoint, label  );
 
 		return getAnnotatedMask( timepointAndAnnotationId );
 	}
 
-	private AnnotatedMaskTableRow getAnnotatedMask( TimepointAndAnnotationId timepointAndAnnotationId )
+	private RegionTableRow getAnnotatedMask( TimepointAndAnnotationId timepointAndAnnotationId )
 	{
 		return timepointAndAnnotationToObject.get( timepointAndAnnotationId );
 	}
 
-	private AnnotatedMaskTableRow getAnnotatedMask( TimePointAndLabel timePointAndLabel )
+	private RegionTableRow getAnnotatedMask( TimePointAndLabel timePointAndLabel )
 	{
 		return timePointAndLabelToObject.get( timePointAndLabel );
 	}
 
 	// deserialize
-	public List< AnnotatedMaskTableRow > getAnnotatedMasks( List< String > strings )
+	public List< RegionTableRow > getAnnotatedMasks( List< String > strings )
 	{
-		final ArrayList< AnnotatedMaskTableRow > annotatedMasks = new ArrayList<>();
+		final ArrayList< RegionTableRow > annotatedMasks = new ArrayList<>();
 		for ( String string : strings )
 		{
 			final String[] split = string.split( ";" );

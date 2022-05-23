@@ -1,7 +1,7 @@
 package org.embl.mobie.viewer.display;
 
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
-import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
+import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.bdv.view.RegionSliceView;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.source.StorageLocation;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class RegionDisplay extends AnnotationDisplay< AnnotatedMaskTableRow >
+public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 {
 	// Serialization
 	protected Map< String, List< String > > sources;
@@ -84,10 +84,10 @@ public class RegionDisplay extends AnnotationDisplay< AnnotatedMaskTableRow >
 		this.sources = new HashMap<>();
 		this.sources.putAll( regionDisplay.sources );
 
-		Set< AnnotatedMaskTableRow > currentSelectedRows = regionDisplay.selectionModel.getSelected();
+		Set< RegionTableRow > currentSelectedRows = regionDisplay.selectionModel.getSelected();
 		if ( currentSelectedRows != null && currentSelectedRows.size() > 0 ) {
 			ArrayList<String> selectedIds = new ArrayList<>();
-			for ( AnnotatedMaskTableRow row : currentSelectedRows ) {
+			for ( RegionTableRow row : currentSelectedRows ) {
 				selectedIds.add( row.timePoint() + ";" + row.name() );
 			}
 			this.selectedRegionIds = selectedIds;

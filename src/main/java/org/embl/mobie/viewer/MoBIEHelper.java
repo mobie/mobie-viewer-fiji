@@ -7,6 +7,7 @@ import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.imagesegment.SegmentProperty;
 import de.embl.cba.tables.imagesegment.SegmentUtils;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
@@ -220,6 +221,9 @@ public abstract class MoBIEHelper
 			fileName = chooseCommonFileName(directories, objectName);
 		} else {
 			String[] fileNames = IOHelper.getFileNames( directories.get(0) );
+			if ( fileNames == null )
+				throw new RuntimeException("Could not find any files at " + directories.get(0) );
+
 			fileName = selectionDialog( fileNames, objectName );
 		}
 
@@ -471,6 +475,9 @@ public abstract class MoBIEHelper
 
 	public static void toDoubleStrings( List< String > values )
 	{
+		if ( ! Tables.isNumeric( values.get( 0 ) ) )
+			return;
+
 		final int size = values.size();
 		for ( int i = 0; i < size; i++ )
 		{

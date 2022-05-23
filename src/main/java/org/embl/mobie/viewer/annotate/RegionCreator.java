@@ -8,21 +8,19 @@ import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.TableColumnNames;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-public class AnnotatedMaskCreator
+public class RegionCreator
 {
 	private final Map< String, List< String > > columns;
 	private final Map< String, List< String > > annotationIdToSources;
 	private final Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier;
-	private List< AnnotatedMaskTableRow > annotatedMaskTableRows;
+	private List< RegionTableRow > regionTableRows;
 
-	public AnnotatedMaskCreator( Map< String, List< String > > columns, Map< String, List< String > > annotationIdToSources, Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier)
+	public RegionCreator( Map< String, List< String > > columns, Map< String, List< String > > annotationIdToSources, Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier)
 	{
 		this.columns = columns;
 		this.annotationIdToSources = annotationIdToSources;
@@ -34,7 +32,7 @@ public class AnnotatedMaskCreator
 	{
 		final long currentTimeMillis = System.currentTimeMillis();
 
-		annotatedMaskTableRows = new ArrayList<>();
+		regionTableRows = new ArrayList<>();
 		final Set< String > annotationIds = annotationIdToSources.keySet();
 		final List< String > annotationIdColumn = columns.get( TableColumnNames.REGION_ID );
 
@@ -47,8 +45,8 @@ public class AnnotatedMaskCreator
 			//System.out.println( sources.size() );
 			//System.out.println( Arrays.toString( mask.minAsDoubleArray() ));
 
-			annotatedMaskTableRows.add(
-					new DefaultAnnotatedMaskTableRow(
+			regionTableRows.add(
+					new DefaultRegionTableRow(
 							annotationId,
 							mask,
 							columns,
@@ -81,8 +79,8 @@ public class AnnotatedMaskCreator
 		return sources;
 	}
 
-	public List< AnnotatedMaskTableRow > getAnnotatedMaskTableRows()
+	public List< RegionTableRow > getRegionTableRows()
 	{
-		return annotatedMaskTableRows;
+		return regionTableRows;
 	}
 }

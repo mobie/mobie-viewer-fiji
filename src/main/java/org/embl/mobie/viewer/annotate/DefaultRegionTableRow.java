@@ -3,21 +3,19 @@ package org.embl.mobie.viewer.annotate;
 import de.embl.cba.tables.tablerow.AbstractTableRow;
 import net.imglib2.roi.RealMaskRealInterval;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultAnnotatedMaskTableRow extends AbstractTableRow implements AnnotatedMaskTableRow
+public class DefaultRegionTableRow extends AbstractTableRow implements RegionTableRow
 {
 	protected final RealMaskRealInterval mask;
 	protected final Map< String, String > cells;
 	protected final String name;
 
 	// TODO: rename to annotated region?
-	public DefaultAnnotatedMaskTableRow(
+	public DefaultRegionTableRow(
 			String name,
 			RealMaskRealInterval mask,
 			Map< String, List< String > > columns,

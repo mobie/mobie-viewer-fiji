@@ -12,8 +12,8 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
-import org.embl.mobie.viewer.annotate.AnnotatedMaskCreator;
-import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
+import org.embl.mobie.viewer.annotate.RegionCreator;
+import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
@@ -89,6 +89,16 @@ public class MoBIE
 		openDataset();
 	}
 
+	public Map< String, String > getRegionTableDirectories( RegionDisplay display )
+	{
+		Map<String, String> sourceNameToTableDir = new HashMap<>();
+		final String relativePath = display.getTableDataFolder( TableDataFormat.TabDelimitedFile );
+		final String tablesDirectoryPath = getTablesDirectoryPath( relativePath );
+		// the source name is the same as the display name
+		sourceNameToTableDir.put( display.getName(), tablesDirectoryPath );
+		return sourceNameToTableDir;
+	}
+
 	// TODO: probably such "plugins" should rather come with the MoBIESettings
 	//  such that additional commands could be registered without
 	//  changing the core code
@@ -152,23 +162,23 @@ public class MoBIE
 		return settings;
 	}
 
-	public static void mergeAnnotatedMaskTable( List< AnnotatedMaskTableRow > intervalTableRows, Map< String, List< String > > columns )
+	public static void mergeRegionTables( List< RegionTableRow > tableRows, Map< String, List< String > > columns )
 	{
 		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
-		final ArrayList< String > gridIdColumn = TableColumns.getColumn( intervalTableRows, TableColumnNames.REGION_ID );
-		referenceColumns.put( TableColumnNames.REGION_ID, gridIdColumn );
+		final ArrayList< String > regionIdColumn = TableColumns.getColumn( tableRows, TableColumnNames.REGION_ID );
+		referenceColumns.put( TableColumnNames.REGION_ID, regionIdColumn );
 
 		// deal with the fact that the grid ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
-		MoBIEHelper.toDoubleStrings( gridIdColumn );
+		MoBIEHelper.toDoubleStrings( regionIdColumn );
 		MoBIEHelper.toDoubleStrings( columns.get( TableColumnNames.REGION_ID ) );
 
-		final Map< String, List< String > > newColumns = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, columns );
+		final Map< String, List< String > > columnsForMerging = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, columns );
 
-		for ( Map.Entry< String, List< String > > column : newColumns.entrySet() )
+		for ( Map.Entry< String, List< String > > column : columnsForMerging.entrySet() )
 		{
-			TableRows.addColumn( intervalTableRows, column.getKey(), column.getValue() );
+			TableRows.addColumn( tableRows, column.getKey(), column.getValue() );
 		}
 	}
 
@@ -244,7 +254,7 @@ public class MoBIE
 		}
 		MultiThreading.waitUntilFinished( futures );
 
-		IJ.log( "Opened " + sourceNameToSourceAndConverters.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).\n");
+		IJ.log( "Opened " + sourceNameToSourceAndConverters.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).");
 
 		return sourceNameToSourceAndConverters;
 	}
@@ -282,10 +292,10 @@ public class MoBIE
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
 		final View view = dataset.views.get( settings.values.getView() );
 		view.setName( settings.values.getView() );
-		IJ.log( "Opening view: " + view.getName() + "\n" );
+		IJ.log( "Opening view: " + view.getName() );
 		final long startTime = System.currentTimeMillis();
 		viewManager.show( view );
-		IJ.log("Opened view: " + view.getName() + ", in " + (System.currentTimeMillis() - startTime) + " ms.\n" );
+		IJ.log("Opened view: " + view.getName() + ", in " + (System.currentTimeMillis() - startTime) + " ms." );
 	}
 
 	private void setDatasetName( String datasetName )
@@ -494,7 +504,7 @@ public class MoBIE
 
 	private Map< String, List< String > > loadAdditionalTable( String imageID, String tablePath )
 	{
-		Logger.log( "Opening additional table:\n" + tablePath );
+		Logger.log( "Opening additional table: " + tablePath );
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
 		TableColumns.addLabelImageIdColumn( columns, TableColumnNames.LABEL_IMAGE_ID, imageID );
 		return columns;
@@ -521,7 +531,7 @@ public class MoBIE
 		final long durationMillis = System.currentTimeMillis() - start;
 
 		if ( durationMillis > minLogTimeMillis )
-			IJ.log( "Read " + sources.size() + " table(s) in " + durationMillis + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).\n");
+			IJ.log( "Read " + sources.size() + " table(s) in " + durationMillis + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).");
 
 		return additionalTables;
 	}
@@ -564,7 +574,7 @@ public class MoBIE
 			}
 		}
 		MultiThreading.waitUntilFinished( futures );
-		IJ.log( "Fetched " + numTables + " table(s) in " + (System.currentTimeMillis() - startTimeMillis) + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).\n");
+		IJ.log( "Read " + numTables + " table(s) in " + (System.currentTimeMillis() - startTimeMillis) + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).");
 		return primaryTables;
 	}
 
@@ -653,13 +663,13 @@ public class MoBIE
 		}
 	}
 
-	public List< AnnotatedMaskTableRow > loadAnnotatedMaskTables( RegionDisplay annotationDisplay )
+	public List< RegionTableRow > loadRegionTables( RegionDisplay regionDisplay )
 	{
 		// open
 		final List< Map< String, List< String > > > tables = new ArrayList<>();
-		for ( String table : annotationDisplay.getTables() )
+		for ( String table : regionDisplay.getTables() )
 		{
-			String tablePath = getTablePath( annotationDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
+			String tablePath = getTablePath( regionDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
 			tablePath = MoBIEHelper.resolveTablePath( tablePath );
 			final long startTime = System.currentTimeMillis();
 			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
@@ -671,17 +681,17 @@ public class MoBIE
 		// create primary AnnotatedMaskTableRow table
 		final Map< String, List< String > > referenceTable = tables.get( 0 );
 		// TODO: The AnnotatedMaskCreator does not need the sources, but just the source's real intervals
-		final AnnotatedMaskCreator annotatedMaskCreator = new AnnotatedMaskCreator( referenceTable, annotationDisplay.getAnnotationIdToSources(), (String sourceName ) -> sourceNameToSourceAndConverter.get( sourceName )  );
-		final List< AnnotatedMaskTableRow > intervalTableRows = annotatedMaskCreator.getAnnotatedMaskTableRows();
+		final RegionCreator regionCreator = new RegionCreator( referenceTable, regionDisplay.getAnnotationIdToSources(), ( String sourceName ) -> sourceNameToSourceAndConverter.get( sourceName )  );
+		final List< RegionTableRow > regionTableRows = regionCreator.getRegionTableRows();
 
 		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
 
 		for ( int i = 0; i < additionalTables.size(); i++ )
 		{
-			MoBIE.mergeAnnotatedMaskTable( intervalTableRows, additionalTables.get( i ) );
+			MoBIE.mergeRegionTables( regionTableRows, additionalTables.get( i ) );
 		}
 
-		return intervalTableRows;
+		return regionTableRows;
 	}
 
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, boolean closeImgLoader )
@@ -725,7 +735,7 @@ public class MoBIE
         }
     }
 
-	public void addTransformedSourceAndConverters( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters )
+	public void addSourceAndConverters( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters )
 	{
 		sourceNameToSourceAndConverter.putAll( sourceNameToSourceAndConverters );
 	}
@@ -733,5 +743,24 @@ public class MoBIE
 	public ArrayList< String > getProjectCommands()
 	{
 		return projectCommands;
+	}
+
+	public Map< String, String > getSegmentationTableDirectories( SegmentationDisplay display )
+	{
+		Map<String, String> sourceNameToTableDir = new HashMap<>();
+		for ( String source: display.getSources() )
+		{
+			try
+			{
+				sourceNameToTableDir.put( source, getTablesDirectoryPath( ( SegmentationSource ) getSource( source ) )
+				);
+			}
+			catch ( Exception e )
+			{
+				System.out.println("[WARNING] Could not store table directory for " + source );
+				sourceNameToTableDir.put( source, null );
+			}
+		}
+		return sourceNameToTableDir;
 	}
 }

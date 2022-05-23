@@ -32,7 +32,7 @@ import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
+import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.annotate.Annotator;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
 import de.embl.cba.tables.*;
@@ -427,9 +427,10 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private void loadColumnsFromProject()
 	{
-		ArrayList<String> tableNames = new ArrayList<>();
-		String tableName = selectCommonFileNameFromProject( new ArrayList<>( sourceNameToTableDir.values() ), "Table" );
+		final ArrayList< String > directories = new ArrayList<>( sourceNameToTableDir.values() );
+		String tableName = selectCommonFileNameFromProject( directories, "Table" );
 
+		ArrayList<String> tableNames = new ArrayList<>();
 		if ( tableName != null )
 		{
 			tableNames.add( tableName );
@@ -444,7 +445,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				for ( String tableDir: sourceNameToTableDir.values() )
 				{
 					final Map< String, List< String > > table = openTable( IOHelper.combinePath( tableDir, tableName ) );
-					MoBIE.mergeAnnotatedMaskTable( (List< AnnotatedMaskTableRow >) tableRows, table );
+					MoBIE.mergeRegionTables( (List< RegionTableRow >) tableRows, table );
 				}
 			}
 			addAdditionalTable( tableName );
@@ -466,7 +467,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				else
 				{
 					Map< String, List< String > > table = openTable( path );
-					MoBIE.mergeAnnotatedMaskTable( ( List< AnnotatedMaskTableRow > ) tableRows, table );
+					MoBIE.mergeRegionTables( ( List< RegionTableRow > ) tableRows, table );
 				}
 				enableRowSorting( true );
 			}).start();

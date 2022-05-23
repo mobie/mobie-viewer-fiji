@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.MobieBdvSupplier;
 import org.embl.mobie.viewer.bdv.MobieSerializableBdvOptions;
@@ -18,6 +19,7 @@ import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
 import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
+import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import org.embl.mobie.viewer.view.ViewManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -180,8 +182,8 @@ public class SliceViewer
 		// opacity
 		OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
+		// show in Bdv
 		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
-
 
 	}
 }

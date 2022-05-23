@@ -93,7 +93,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		{
 			objectName = "segment";
 		}
-		else if ( tableRows.get( 0 ) instanceof AnnotatedMaskTableRow )
+		else if ( tableRows.get( 0 ) instanceof RegionTableRow )
 		{
 			objectName = "region";
 		}
@@ -400,12 +400,12 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 			}
 			throw new UnsupportedOperationException( "Could not find " + objectName + " with ID " + selectedLabelId );
 		}
-		else if ( tableRows.get( 0 ) instanceof AnnotatedMaskTableRow )
+		else if ( tableRows.get( 0 ) instanceof RegionTableRow )
 		{
 			final String annotationID = goToRowIndexTextField.getText();
 			for ( T tableRow : tableRows )
 			{
-				final String name = ( ( AnnotatedMaskTableRow ) tableRow ).name();
+				final String name = ( ( RegionTableRow ) tableRow ).name();
 				if ( name.equals( annotationID ) )
 				{
 					return tableRow;
