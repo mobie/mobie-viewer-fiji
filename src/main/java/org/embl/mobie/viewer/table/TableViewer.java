@@ -520,7 +520,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createSaveTableAsMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Save Table as..." );
+		final JMenuItem menuItem = new JMenuItem( "Save Table As..." );
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
 						TableUIs.saveTableUI( jTable ) ) );
@@ -530,7 +530,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createSaveColumnsAsMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Save Columns as..." );
+		final JMenuItem menuItem = new JMenuItem( "Save Columns As..." );
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () -> TableUIs.saveColumns( jTable ) ) );
 
@@ -539,7 +539,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createSelectAllMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Select all" );
+		final JMenuItem menuItem = new JMenuItem( "Select All" );
 
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
@@ -550,7 +550,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createSelectEqualToMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Select equal to..." );
+		final JMenuItem menuItem = new JMenuItem( "Select Equal To..." );
 
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
@@ -561,7 +561,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createSelectLessThanMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Select less than..." );
+		final JMenuItem menuItem = new JMenuItem( "Select Less Than..." );
 
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
@@ -572,7 +572,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createSelectGreaterThanMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Select greater than..." );
+		final JMenuItem menuItem = new JMenuItem( "Select Greater Than..." );
 
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
@@ -583,7 +583,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createStartNewAnnotationMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Start new annotation..." );
+		final JMenuItem menuItem = new JMenuItem( "Start New Annotation..." );
 
 		menuItem.addActionListener( e -> showNewAnnotationDialog() );
 
@@ -592,7 +592,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createContinueAnnotationMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Continue annotation..." );
+		final JMenuItem menuItem = new JMenuItem( "Continue Annotation..." );
 
 		menuItem.addActionListener( e -> showContinueAnnotationDialog() );
 
@@ -929,7 +929,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private void addColorLoggingMenuItem( JMenu coloringMenu )
 	{
-		final JMenuItem menuItem = new JMenuItem( "Log Current Value to Color Map" );
+		final JMenuItem menuItem = new JMenuItem( "Log Current Color Map" );
 
 		menuItem.addActionListener( e ->
 				new Thread( () ->
