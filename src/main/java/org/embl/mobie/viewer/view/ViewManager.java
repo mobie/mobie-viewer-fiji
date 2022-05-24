@@ -558,5 +558,6 @@ public class ViewManager
 		removeAllSourceDisplays( true );
 		sliceViewer.getBdvHandle().close();
 		universeManager.close();
+		userInterface.close();
 	}
 }

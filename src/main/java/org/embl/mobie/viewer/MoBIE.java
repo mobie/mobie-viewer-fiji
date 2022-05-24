@@ -50,8 +50,9 @@ public class MoBIE
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
+	private static MoBIE moBIE;
 
+	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 	private final String projectName;
 	private MoBIESettings settings;
 	private String datasetName;
@@ -74,6 +75,12 @@ public class MoBIE
 
 	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
 	{
+		// Only allow one instance to avoid confusion
+		if ( moBIE != null )
+			moBIE.close();
+		moBIE = this;
+
+		// Open project
 		IJ.log("\n# MoBIE" );
 		IJ.log("Opening project: " + projectLocation );
 		WindowArrangementHelper.setLogWindowPositionAndSize();
@@ -364,7 +371,7 @@ public class MoBIE
 		}
 		catch ( Exception e )
 		{
-			IJ.log( "[ERROR] Could not fully close MoBIE!" );
+			IJ.log( "[ERROR] Could not fully close MoBIE." );
 			e.printStackTrace();
 		}
 		IJ.log( "MoBIE closed." );

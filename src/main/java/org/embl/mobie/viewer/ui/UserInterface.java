@@ -44,13 +44,13 @@ public class UserInterface
 	private void configureWindowClosing( MoBIE moBIE )
 	{
 		frame.addWindowListener(
-				new WindowAdapter() {
-					public void windowClosing( WindowEvent ev )
-					{
-						frame.dispose();
-						moBIE.close();
-					}
-				});
+			new WindowAdapter() {
+				public void windowClosing( WindowEvent ev )
+				{
+					frame.dispose();
+					moBIE.close();
+				}
+			});
 	}
 
 	private JFrame createAndShowFrame( JPanel selectionPanel, JPanel displaySettingsPanel, String panelName )
