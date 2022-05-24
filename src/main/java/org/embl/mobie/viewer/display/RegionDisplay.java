@@ -57,7 +57,7 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 	public RegionDisplay() {}
 
 	// Needed for Gson
-	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries )
+	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -70,6 +70,7 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 		this.scatterPlotAxes = scatterPlotAxes;
 		this.tables = tables;
 		this.showAsBoundaries = showAsBoundaries;
+		this.boundaryThickness = boundaryThickness;
 	}
 
 	/**
@@ -79,7 +80,7 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 	 */
 	public RegionDisplay( RegionDisplay regionDisplay )
 	{
-		fetchCurrentSettings( regionDisplay );
+		setAnnotationSettings( regionDisplay );
 
 		this.sources = new HashMap<>();
 		this.sources.putAll( regionDisplay.sources );

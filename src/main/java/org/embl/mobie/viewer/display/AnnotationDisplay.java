@@ -14,6 +14,7 @@ import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.source.LabelSource;
+import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.table.TableViewer;
 import de.embl.cba.tables.color.ColoringLuts;
 import org.embl.mobie.viewer.select.SelectionModel;
@@ -107,10 +108,11 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 		return randomColorSeed;
 	}
 
-	protected void fetchCurrentSettings( AnnotationDisplay<T> annotationDisplay )
+	protected void setAnnotationSettings( AnnotationDisplay<T> annotationDisplay )
 	{
 		this.name = annotationDisplay.name;
 
+		// Region displays only have one sourceAndConverter
 		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.sourceNameToSourceAndConverter.values().iterator().next();
 
 		if( sourceAndConverter.getConverter() instanceof OpacityAdjuster )
@@ -154,15 +156,8 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 
 		this.showTable = annotationDisplay.tableViewer.getWindow().isVisible();
 
-		if ( sourceAndConverter.getSpimSource() instanceof TransformedSource )
-		{
-			final Source< ? > source = ( ( TransformedSource< ? > ) sourceAndConverter.getSpimSource() ).getWrappedSource();
-			if ( source instanceof LabelSource )
-			{
-				final LabelSource labelSource = ( LabelSource ) source;
-				this.showAsBoundaries = labelSource.isShowAsBoundaries();
-				this.boundaryThickness = labelSource.getBoundaryWidth();
-			}
-		}
+		final LabelSource< ? > labelSource = SourceHelper.getLabelSource( sourceAndConverter );
+		this.showAsBoundaries = labelSource.isShowAsBoundaries();
+		this.boundaryThickness = labelSource.getBoundaryWidth();
 	}
 }

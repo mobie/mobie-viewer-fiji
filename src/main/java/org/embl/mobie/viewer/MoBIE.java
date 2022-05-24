@@ -663,9 +663,9 @@ public class MoBIE
 		}
 	}
 
-	public List< RegionTableRow > loadRegionTables( RegionDisplay regionDisplay )
+	public List< RegionTableRow > createRegionTableRows( RegionDisplay regionDisplay )
 	{
-		// open
+		// read
 		final List< Map< String, List< String > > > tables = new ArrayList<>();
 		for ( String table : regionDisplay.getTables() )
 		{
@@ -678,7 +678,7 @@ public class MoBIE
 				Logger.log( "Read in "+ durationMillis +" ms: " + tablePath );
 		}
 
-		// create primary AnnotatedMaskTableRow table
+		// create primary table
 		final Map< String, List< String > > referenceTable = tables.get( 0 );
 		// TODO: The AnnotatedMaskCreator does not need the sources, but just the source's real intervals
 		final RegionCreator regionCreator = new RegionCreator( referenceTable, regionDisplay.getAnnotationIdToSources(), ( String sourceName ) -> sourceNameToSourceAndConverter.get( sourceName )  );

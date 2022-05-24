@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer.display;
 
-import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
@@ -48,11 +47,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 	// Needed for Gson
 	public SegmentationDisplay(){}
 
-	public SegmentationDisplay( String name, double opacity, List< String > sources,
-								String lut, String colorByColumn, Double[] valueLimits,
-								List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d,
-								boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables,
-								Double[] resolution3dView )
+	public SegmentationDisplay( String name, double opacity, List< String > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, Double[] resolution3dView )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -75,13 +70,10 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 	 */
 	public SegmentationDisplay( SegmentationDisplay segmentationDisplay )
 	{
-		fetchCurrentSettings( segmentationDisplay );
+		setAnnotationSettings( segmentationDisplay );
 
 		this.sources = new ArrayList<>();
 		this.sources.addAll( segmentationDisplay.sourceNameToSourceAndConverter.keySet() );
-
-		final SourceAndConverter< ? > sourceAndConverter =
-				segmentationDisplay.sourceNameToSourceAndConverter.values().iterator().next();
 
 		if ( segmentationDisplay.segmentsVolumeViewer != null )
 		{

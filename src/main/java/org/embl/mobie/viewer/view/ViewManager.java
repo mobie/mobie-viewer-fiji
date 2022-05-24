@@ -91,7 +91,7 @@ public class ViewManager
 		}
 	}
 
-	private static void configureMoBIEColoringModel( AnnotationDisplay< ? extends TableRow > display )
+	private static void configureColoringModel( AnnotationDisplay< ? extends TableRow > display )
 	{
 		if ( display.getColorByColumn() != null )
 		{
@@ -187,13 +187,15 @@ public class ViewManager
 				ImageDisplay imageDisplay = ( ImageDisplay ) sourceDisplay;
 				currentDisplay = new ImageDisplay( imageDisplay );
 				addManualTransforms( viewSourceTransforms, imageDisplay.sourceNameToSourceAndConverter );
-			} else if ( sourceDisplay instanceof SegmentationDisplay )
+			}
+			else if ( sourceDisplay instanceof SegmentationDisplay )
 			{
 				SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) sourceDisplay;
 				if ( hasColumnsOutsideProject( segmentationDisplay ) ) { return null; }
 				currentDisplay = new SegmentationDisplay( segmentationDisplay );
 				addManualTransforms( viewSourceTransforms, segmentationDisplay.sourceNameToSourceAndConverter );
-			} else if ( sourceDisplay instanceof RegionDisplay )
+			}
+			else if ( sourceDisplay instanceof RegionDisplay )
 			{
 				RegionDisplay regionDisplay = ( RegionDisplay ) sourceDisplay;
 				if ( hasColumnsOutsideProject( regionDisplay ) ) { return null; }
@@ -325,7 +327,7 @@ public class ViewManager
 		}
 		else if ( sourceDisplay instanceof RegionDisplay )
 		{
-			showAnnotatedMaskDisplay( ( RegionDisplay ) sourceDisplay );
+			showRegionDisplay( ( RegionDisplay ) sourceDisplay );
 		}
 
 		userInterface.addSourceDisplay( sourceDisplay );
@@ -371,29 +373,29 @@ public class ViewManager
 		}
 	}
 
-	private void showAnnotatedMaskDisplay( RegionDisplay annotationDisplay )
+	private void showRegionDisplay( RegionDisplay regionDisplay )
 	{
-		annotationDisplay.sliceViewer = sliceViewer;
-		annotationDisplay.tableRows = moBIE.loadRegionTables( annotationDisplay );
-		annotationDisplay.annotatedMaskAdapter = new AnnotatedMaskAdapter( annotationDisplay.tableRows );
+		regionDisplay.sliceViewer = sliceViewer;
+		regionDisplay.tableRows = moBIE.createRegionTableRows( regionDisplay );
+		regionDisplay.annotatedMaskAdapter = new AnnotatedMaskAdapter( regionDisplay.tableRows );
 
-		annotationDisplay.selectionModel = new MoBIESelectionModel<>();
-		configureMoBIEColoringModel( annotationDisplay );
+		regionDisplay.selectionModel = new MoBIESelectionModel<>();
+		configureColoringModel( regionDisplay );
 
 		// set selected segments
-		if ( annotationDisplay.getSelectedRegionIds() != null )
+		if ( regionDisplay.getSelectedRegionIds() != null )
 		{
-			final List< RegionTableRow > annotatedMasks = annotationDisplay.annotatedMaskAdapter.getAnnotatedMasks( annotationDisplay.getSelectedRegionIds() );
-			annotationDisplay.selectionModel.setSelected( annotatedMasks, true );
+			final List< RegionTableRow > annotatedMasks = regionDisplay.annotatedMaskAdapter.getAnnotatedMasks( regionDisplay.getSelectedRegionIds() );
+			regionDisplay.selectionModel.setSelected( annotatedMasks, true );
 		}
 
-		showInSliceViewer( annotationDisplay );
-		initTableViewer( annotationDisplay );
-		initScatterPlotViewer( annotationDisplay );
+		showInSliceViewer( regionDisplay );
+		initTableViewer( regionDisplay );
+		initScatterPlotViewer( regionDisplay );
 
 		SwingUtilities.invokeLater( () ->
 		{
-			WindowArrangementHelper.bottomAlignWindow( annotationDisplay.sliceViewer.getWindow(), annotationDisplay.tableViewer.getWindow() );
+			WindowArrangementHelper.bottomAlignWindow( regionDisplay.sliceViewer.getWindow(), regionDisplay.tableViewer.getWindow() );
 		} );
 	}
 
@@ -420,7 +422,7 @@ public class ViewManager
 		}
 
 		segmentationDisplay.selectionModel = new MoBIESelectionModel<>();
-		configureMoBIEColoringModel( segmentationDisplay );
+		configureColoringModel( segmentationDisplay );
 
 		// set selected segments
 		if ( segmentationDisplay.getSelectedTableRows() != null )

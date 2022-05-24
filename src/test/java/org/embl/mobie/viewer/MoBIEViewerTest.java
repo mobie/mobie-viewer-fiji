@@ -27,7 +27,7 @@ public class MoBIEViewerTest
 	private MoBIE moBIE;
 
 	@BeforeAll
-	public static void initIJ() throws IOException
+	public static void initIJ()
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();

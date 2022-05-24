@@ -18,11 +18,11 @@ public class RegionSliceView extends AnnotationSliceView< RegionTableRow >
 	public RegionSliceView( MoBIE moBIE, RegionDisplay display )
 	{
 		super( moBIE, display );
-		SourceAndConverter< IntType > regionSourceAndConverter = createSourceAndConverter();
+		SourceAndConverter< IntType > regionSourceAndConverter = createRegionSourceAndConverter();
 		show( regionSourceAndConverter );
 	}
 
-	private SourceAndConverter< IntType > createSourceAndConverter()
+	private SourceAndConverter< IntType > createRegionSourceAndConverter()
 	{
 		final TableRowsIntervalImage< RegionTableRow > intervalImage = new TableRowsIntervalImage<>( display.tableRows, display.coloringModel, display.getName() );
 
