@@ -5,7 +5,6 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.project.PublishedFigure;
 import org.embl.mobie.viewer.project.PublishedFigures;
-import org.embl.mobie.viewer.project.PublishedProject;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 
