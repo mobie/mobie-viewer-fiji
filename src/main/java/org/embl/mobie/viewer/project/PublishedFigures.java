@@ -11,38 +11,38 @@ public class PublishedFigures
 
 	public PublishedFigures()
 	{
-		natureMethodsFigure1c();
-		natureMethodsFigure2a();
-		natureMethodsFigure3( "a" );
-		natureMethodsFigure3( "b" );
-		natureMethodsFigure3( "c" );
-		natureMethodsFigure3( "d" );
+		bioRxivFigure1c();
+		bioRxivFigure2a();
+		bioRxivFigure3( "a" );
+		bioRxivFigure3( "b" );
+		bioRxivFigure3( "c" );
+		bioRxivFigure3( "d" );
 	}
 
-	private void natureMethodsFigure1c()
+	private void bioRxivFigure1c()
 	{
 		final PublishedFigure publishedFigure = new PublishedFigure();
-		publishedFigure.name = "Nature Methods: Figure 1c";
+		publishedFigure.name = "bioRxiv: Figure 1c";
 		publishedFigure.location = "https://github.com/mobie/platybrowser-project";
 		publishedFigure.view = "Figure1c";
 		publishedFigure.publicationURL = "TBD";
 		publishedFigures.put( publishedFigure.name, publishedFigure );
 	}
 
-	private void natureMethodsFigure2a()
+	private void bioRxivFigure2a()
 	{
 		final PublishedFigure publishedFigure = new PublishedFigure();
-		publishedFigure.name = "Nature Methods: Figure 2a";
+		publishedFigure.name = "bioRxiv: Figure 2a";
 		publishedFigure.location = "https://github.com/mobie/clem-example-project";
 		publishedFigure.view = "Figure2a";
 		publishedFigure.publicationURL = "TBD";
 		publishedFigures.put( publishedFigure.name, publishedFigure );
 	}
 
-	private void natureMethodsFigure3( final String panel )
+	private void bioRxivFigure3( final String panel )
 	{
 		final PublishedFigure publishedFigure = new PublishedFigure();
-		publishedFigure.name = "Nature Methods: Figure 3" + panel;
+		publishedFigure.name = "bioRxiv: Figure 3" + panel;
 		publishedFigure.location = "https://github.com/mobie/coivd-if-project";
 		publishedFigure.view = "Figure3"+panel;
 		publishedFigure.publicationURL = "TBD";
