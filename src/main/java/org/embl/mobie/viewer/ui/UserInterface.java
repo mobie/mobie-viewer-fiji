@@ -1,6 +1,8 @@
 package org.embl.mobie.viewer.ui;
 
+import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.VisibilityListener;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.display.ImageDisplay;
@@ -9,6 +11,8 @@ import org.embl.mobie.viewer.display.SourceDisplay;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +38,19 @@ public class UserInterface
 		displayToPanel = new HashMap<>();
 		frame = createAndShowFrame( selectionPanel, displaySettingsPanel, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
 		MoBIELaf.MoBIELafOff();
+		configureWindowClosing( moBIE );
+	}
+
+	private void configureWindowClosing( MoBIE moBIE )
+	{
+		frame.addWindowListener(
+				new WindowAdapter() {
+					public void windowClosing( WindowEvent ev )
+					{
+						frame.dispose();
+						moBIE.close();
+					}
+				});
 	}
 
 	private JFrame createAndShowFrame( JPanel selectionPanel, JPanel displaySettingsPanel, String panelName )

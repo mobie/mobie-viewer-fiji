@@ -4,5 +4,5 @@ public class PublishedProject
 {
 	public String name;
 	public String location;
-	public String pulicationURL;
+	public String publicationURL;
 }

@@ -13,7 +13,7 @@ import java.util.HashMap;
 
 
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Open Published MoBIE Project..." )
-public class OpenMoBIEPublishedProjectCommand implements Command
+public class OpenPublishedMoBIEProjectCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -39,7 +39,7 @@ public class OpenMoBIEPublishedProjectCommand implements Command
 
 		try
 		{
-			new MoBIE( project.location, MoBIESettings.settings().publicationURL( project.pulicationURL ) );
+			new MoBIE( project.location, MoBIESettings.settings().publicationURL( project.publicationURL ) );
 		}
 		catch ( IOException e )
 		{

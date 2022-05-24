@@ -9,6 +9,5 @@ public class RunImageJ
 	{
 		final ImageJ imageJ = new net.imagej.ImageJ();
 		imageJ.ui().showUI();
-		final CommandService command = imageJ.command();
 	}
 }
