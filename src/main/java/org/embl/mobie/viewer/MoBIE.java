@@ -77,7 +77,10 @@ public class MoBIE
 	{
 		// Only allow one instance to avoid confusion
 		if ( moBIE != null )
+		{
+			IJ.log("Detected running MoBIE instance.");
 			moBIE.close();
+		}
 		moBIE = this;
 
 		// Open project
@@ -368,13 +371,14 @@ public class MoBIE
 		{
 			IJ.log( "Closing MoBIE..." );
 			viewManager.close();
+			IJ.log( "MoBIE closed." );
 		}
 		catch ( Exception e )
 		{
 			IJ.log( "[ERROR] Could not fully close MoBIE." );
 			e.printStackTrace();
 		}
-		IJ.log( "MoBIE closed." );
+
 	}
 
 	public synchronized ImageSource getSource( String sourceName )
@@ -446,7 +450,6 @@ public class MoBIE
     {
         setDatasetName( dataset );
         viewManager.close();
-        userInterface.close();
 
         try {
             openDataset( datasetName );

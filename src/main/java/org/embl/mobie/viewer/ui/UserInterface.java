@@ -26,6 +26,7 @@ public class UserInterface
 	private final UserInterfaceHelper userInterfaceHelper;
 	private Map< Object, JPanel > displayToPanel;
 	private JSplitPane splitPane;
+	private boolean closedByUser = true;
 
 	public UserInterface( MoBIE moBIE )
 	{

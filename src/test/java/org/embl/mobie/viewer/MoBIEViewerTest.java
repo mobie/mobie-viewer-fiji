@@ -1,6 +1,7 @@
 package org.embl.mobie.viewer;
 
 import bdv.viewer.SourceAndConverter;
+import ij.IJ;
 import net.imagej.ImageJ;
 import net.imagej.patcher.LegacyInjector;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
@@ -125,6 +126,8 @@ public class MoBIEViewerTest
 	@AfterEach
 	public void closeMoBIE()
 	{
-		moBIE.close();
+		IJ.log( "Waiting for MoBIE to finish initialization..." );
+		IJ.wait( 10000 );
+		//moBIE.close(); // currently not needed as opening a new MoBIE will automatically close the current one.
 	}
 }

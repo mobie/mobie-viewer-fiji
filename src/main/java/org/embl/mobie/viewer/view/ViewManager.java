@@ -232,15 +232,14 @@ public class ViewManager
 			removeAllSourceDisplays( true );
 		}
 
+		adjustViewerTransform( view );
+
 		openAndTransformSources( view );
 
 		// show the displays
 		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
 		for ( SourceDisplay sourceDisplay : sourceDisplays )
 			showSourceDisplay( sourceDisplay );
-
-		// adjust viewer transform
-		adjustViewerTransform( view );
 	}
 
 	public void openAndTransformSources( View view )
