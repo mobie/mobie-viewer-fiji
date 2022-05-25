@@ -43,7 +43,7 @@ public class PublishedFigures
 	{
 		final PublishedFigure publishedFigure = new PublishedFigure();
 		publishedFigure.name = "bioRxiv: Figure 3" + panel;
-		publishedFigure.location = "https://github.com/mobie/coivd-if-project";
+		publishedFigure.location = "https://github.com/mobie/covid-if-project";
 		publishedFigure.view = "Figure3"+panel;
 		publishedFigure.publicationURL = "TBD";
 		publishedFigures.put( publishedFigure.name, publishedFigure );
