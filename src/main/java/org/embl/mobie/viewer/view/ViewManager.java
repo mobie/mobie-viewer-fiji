@@ -232,7 +232,10 @@ public class ViewManager
 			removeAllSourceDisplays( true );
 		}
 
-		adjustViewerTransform( view );
+		if ( view.getViewerTransform() != null )
+		{
+			SliceViewLocationChanger.changeLocation( sliceViewer.getBdvHandle(), view.getViewerTransform() );
+		}
 
 		openAndTransformSources( view );
 
@@ -240,6 +243,12 @@ public class ViewManager
 		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
 		for ( SourceDisplay sourceDisplay : sourceDisplays )
 			showSourceDisplay( sourceDisplay );
+
+		if ( view.getViewerTransform() == null && currentSourceDisplays.size() > 0 && ( view.isExclusive() || currentSourceDisplays.size() == 1 ) )
+		{
+			final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1);
+			new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), ((AbstractSourceDisplay) sourceDisplay).sourceNameToSourceAndConverter.values().iterator().next() ).run();
+		}
 	}
 
 	public void openAndTransformSources( View view )
