@@ -11,7 +11,6 @@
 	<artifactId>mobie-viewer-fiji</artifactId>
 	<version>2.1.9-SNAPSHOT</version>
 
-
 	<!-- mvn clean compile -Dmaven.test.skip=true -->
 	<!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
 	<!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-MoBIE-beta.app -->
@@ -84,7 +83,7 @@
 		<enforcer.skip>true</enforcer.skip>
 
         <bigdataviewer-playground.version>0.4.5</bigdataviewer-playground.version>
-		<imagej-utils.version>0.6.8-SNAPSHOT</imagej-utils.version>
+		<imagej-utils.version>0.6.8</imagej-utils.version>
 		<mobie-io.version>1.2.11</mobie-io.version>
 		<bigdataviewer-core.version>10.2.1</bigdataviewer-core.version>
 
