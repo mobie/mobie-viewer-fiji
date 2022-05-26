@@ -39,7 +39,7 @@ import java.io.IOException;
 @Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Advanced>Open MoBIE Project With S3 Credentials..." )
 public class OpenMoBIEProjectWithS3CredentialsCommand implements Command
 {
-	@Parameter ( label = "S3 Project Location" )
+	@Parameter ( label = "Project Location" )
 	public String projectLocation = "https://s3.embl.de/comulis";
 
 	@Parameter ( label = "S3 Access Key" )
