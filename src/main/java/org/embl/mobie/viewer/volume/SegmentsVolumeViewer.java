@@ -67,7 +67,6 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	private final Collection< SourceAndConverter< ? > > sourceAndConverters;
 	private final UniverseManager universeManager;
 
-	private S recentFocus;
 	private ConcurrentHashMap< S, Content > segmentToContent;
 	private ConcurrentHashMap< Content, S > contentToSegment;
 	private double transparency;
@@ -97,7 +96,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 		this.sourceAndConverters = sourceAndConverters;
 		this.universeManager = universeManager;
 
-		this.transparency = 0.0;
+		this.transparency = 0.2;
 		this.meshSmoothingIterations = 5;
 		this.segmentFocusAnimationDurationMillis = 750;
 		this.segmentFocusZoomLevel = 0.8;
@@ -168,7 +167,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	{
 		new Thread( () ->
 		{
-			// TODO: It feels that below functions should be merged...
+			universe.setAutoAdjustView( true );
 			updateSelectedSegments( recomputeMeshes );
 			removeUnselectedSegments();
 		}).start();
@@ -239,7 +238,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 		return segment.labelId() + "-" + segment.timePoint();
 	}
 
-	public synchronized void showSegments( boolean showSegments )
+	public synchronized void showSegments( boolean showSegments, boolean autoAdjustView )
 	{
 		if ( showSegments && universe == null )
 		{
@@ -270,6 +269,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 			this.showSegments = showSegments;
 			if ( showSegments )
 			{
+				universe.setAutoAdjustView( autoAdjustView );
 				updateView( false );
 			}
 			else
@@ -378,24 +378,12 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 			}
 
 			@Override
-			public void contentSelected( Content c )
+			public void contentSelected( Content content )
 			{
-				if ( c == null ) return;
-
-				if ( ! contentToSegment.containsKey( c ) )
+				if ( content == null || ! contentToSegment.containsKey( content ) )
 					return;
 
-				final S segment = contentToSegment.get( c );
-
-				if ( selectionModel.isFocused( segment ) )
-				{
-					return;
-				}
-				else
-				{
-					recentFocus = segment; // avoids "self-focusing"
-					selectionModel.focus( segment, this );
-				}
+				selectionModel.focus( contentToSegment.get( content ), this );
 			}
 
 			@Override
@@ -438,7 +426,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 
 	public void close()
 	{
-		showSegments( false );
+		showSegments( false, true );
 	}
 
 	@Override
@@ -450,15 +438,31 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	@Override
 	public synchronized void selectionChanged()
 	{
-		if ( !showSegments ) return;
-
+		if ( ! showSegments ) return;
 		updateView( false );
 	}
 
 	@Override
 	public synchronized void focusEvent( S selection, Object initiator )
 	{
-		if ( !showSegments ) return;
+		if ( initiator == this ) return;
+		if ( universe.getContents().size() == 0 ) return;
+		if ( ! showSegments ) return;
+		if ( ! segmentToContent.containsKey( selection ) )
+		{
+			// selected segment is not shown in 3d
+			// thus select nothing
+			universe.select( null );
+			return;
+		}
+
+		final Content content = segmentToContent.get( selection );
+
+		if ( content == universe.getSelected() )
+		{
+			// content is already selected
+			return;
+		}
 
 		if ( selection.timePoint() != currentTimePoint )
 		{
@@ -466,19 +470,24 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 			updateView( false );
 		}
 
-		if ( universe.getContents().size() == 0 ) return;
-		if ( selection == recentFocus ) return;
-		if ( ! segmentToContent.containsKey( selection ) ) return;
+		// implement "focus" by setting the content "selected",
+		// which will paint a red box around it
+		universe.select( content );
 
-		recentFocus = selection;
+		// an alternative (addition) would be to also focus
+		// the object by zooming in on it:
+		// focus( content )
+	}
 
+	// TODO: needs improvement; if appears to first zoom out and then in again
+	private void focus( Content content )
+	{
 		final AnimatedViewAdjuster adjuster =
 				new AnimatedViewAdjuster(
 						universe,
 						AnimatedViewAdjuster.ADJUST_BOTH );
 
-		adjuster.apply(
-				segmentToContent.get( selection ),
+		adjuster.apply( content,
 				30,
 				segmentFocusAnimationDurationMillis,
 				segmentFocusZoomLevel,

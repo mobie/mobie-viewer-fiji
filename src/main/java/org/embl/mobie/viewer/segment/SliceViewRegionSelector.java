@@ -113,7 +113,6 @@ public class SliceViewRegionSelector implements Runnable
 
 						if ( regionDisplay.selectionModel.isSelected( tableRow ) )
 						{
-							//regionDisplay.
 							regionDisplay.selectionModel.focus( tableRow, this );
 						}
 					}

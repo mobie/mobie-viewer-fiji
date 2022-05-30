@@ -631,16 +631,10 @@ public class UserInterfaceHelper
 		checkBox.setSelected( display.showSelectedSegmentsIn3d() );
 		checkBox.setPreferredSize( PREFERRED_CHECKBOX_SIZE );
 
-		checkBox.addActionListener( new ActionListener()
+		checkBox.addActionListener( e -> new Thread( () ->
 		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				new Thread( () -> {
-						display.segmentsVolumeViewer.showSegments( checkBox.isSelected() );
-				}).start();
-			}
-		} );
+				display.segmentsVolumeViewer.showSegments( checkBox.isSelected(), false );
+		}).start() );
 
 		display.segmentsVolumeViewer.getListeners().add( new VisibilityListener()
 		{

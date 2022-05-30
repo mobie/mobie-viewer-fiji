@@ -101,12 +101,12 @@ public class MoBIESelectionModel< T > implements SelectionModel< T >
 	}
 
 	@Override
-	public synchronized void focus( T object, Object origin )
+	public synchronized void focus( T object, Object initiator )
 	{
 		focusObject = object;
 
 		for ( SelectionListener listener : listeners.list )
-			new Thread( () -> listener.focusEvent( object, origin ) ).start();
+			new Thread( () -> listener.focusEvent( object, initiator ) ).start();
 	}
 
 	@Override

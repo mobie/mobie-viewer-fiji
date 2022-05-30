@@ -526,7 +526,7 @@ public class ViewManager
 		if ( resolution3dView != null ) {
 			segmentationDisplay.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(segmentationDisplay.getResolution3dView()) );
 		}
-		segmentationDisplay.segmentsVolumeViewer.showSegments( segmentationDisplay.showSelectedSegmentsIn3d() );
+		segmentationDisplay.segmentsVolumeViewer.showSegments( segmentationDisplay.showSelectedSegmentsIn3d(), true );
 		segmentationDisplay.coloringModel.listeners().add( segmentationDisplay.segmentsVolumeViewer );
 		segmentationDisplay.selectionModel.listeners().add( segmentationDisplay.segmentsVolumeViewer );
 

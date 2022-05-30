@@ -125,7 +125,7 @@ public class MoBIEViewerTest
 		display.selectionModel.focus( display.tableRows.get( 1 ), this );
 
 		// Show in 3D
-		(( SegmentationDisplay ) display).segmentsVolumeViewer.showSegments( true );
+		(( SegmentationDisplay ) display).segmentsVolumeViewer.showSegments( true, true );
 	}
 
 	//@Test
