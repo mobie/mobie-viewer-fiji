@@ -28,14 +28,15 @@
  */
 package org.embl.mobie.viewer.project;
 
-import org.scijava.java3d.Link;
-
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PublishedFigures
 {
-	private final HashMap< String, PublishedFigure > publishedFigures = new LinkedHashMap<>();
+	public static final String MOBIE = "MoBIE";
+	public static final String PLATY = "Platy";
+
+	private final List< PublishedFigure > publishedFigures = new ArrayList<>();
 
 	public PublishedFigures()
 	{
@@ -50,34 +51,36 @@ public class PublishedFigures
 	private void bioRxivFigure1c()
 	{
 		final PublishedFigure publishedFigure = new PublishedFigure();
-		publishedFigure.name = "bioRxiv: Figure 1c";
+		publishedFigure.publicationAbbreviation = MOBIE;
+		publishedFigure.name = "Figure 1c";
 		publishedFigure.location = "https://github.com/mobie/platybrowser-project";
 		publishedFigure.view = "Figure1c";
 		publishedFigure.publicationURL = "TBD";
-		publishedFigures.put( publishedFigure.name, publishedFigure );
 	}
 
 	private void bioRxivFigure2a()
 	{
 		final PublishedFigure publishedFigure = new PublishedFigure();
-		publishedFigure.name = "bioRxiv: Figure 2a";
+		publishedFigure.publicationAbbreviation = MOBIE;
+		publishedFigure.name = "Figure 2a";
 		publishedFigure.location = "https://github.com/mobie/clem-example-project";
 		publishedFigure.view = "Figure2a";
 		publishedFigure.publicationURL = "TBD";
-		publishedFigures.put( publishedFigure.name, publishedFigure );
+		publishedFigures.add( publishedFigure );
 	}
 
 	private void bioRxivFigure3( final String panel )
 	{
 		final PublishedFigure publishedFigure = new PublishedFigure();
-		publishedFigure.name = "bioRxiv: Figure 3" + panel;
+		publishedFigure.publicationAbbreviation = MOBIE;
+		publishedFigure.name = "Figure 3" + panel;
 		publishedFigure.location = "https://github.com/mobie/covid-if-project";
 		publishedFigure.view = "Figure3"+panel;
 		publishedFigure.publicationURL = "TBD";
-		publishedFigures.put( publishedFigure.name, publishedFigure );
+		publishedFigures.add( publishedFigure );
 	}
 
-	public HashMap< String, PublishedFigure > getPublishedFigures()
+	public List< PublishedFigure > getPublishedFigures()
 	{
 		return publishedFigures;
 	}
