@@ -244,6 +244,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 		if ( showSegments && universe == null )
 		{
 			universe = universeManager.get();
+			configureUniverseListener();
 			window = universe.getWindow();
 			window.addWindowListener(
 				new WindowAdapter()
@@ -312,11 +313,9 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 
 		segmentToContent.put( segment, content );
 		contentToSegment.put( content, segment );
-
-		universe.setAutoAdjustView( false );
 	}
 
-	private boolean addUniverseListener()
+	private boolean configureUniverseListener()
 	{
 		universe.addUniverseListener( new UniverseListener()
 		{
