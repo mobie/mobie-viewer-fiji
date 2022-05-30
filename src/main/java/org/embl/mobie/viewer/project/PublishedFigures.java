@@ -40,44 +40,45 @@ public class PublishedFigures
 
 	public PublishedFigures()
 	{
-		bioRxivFigure1c();
-		bioRxivFigure2a();
-		bioRxivFigure3( "a" );
-		bioRxivFigure3( "b" );
-		bioRxivFigure3( "c" );
-		bioRxivFigure3( "d" );
+		mobieFigure1c();
+		mobieFigure2a();
+		mobieFigure3( "a" );
+		mobieFigure3( "b" );
+		mobieFigure3( "c" );
+		mobieFigure3( "d" );
 	}
 
-	private void bioRxivFigure1c()
+	private void mobieFigure1c()
 	{
-		final PublishedFigure publishedFigure = new PublishedFigure();
-		publishedFigure.publicationAbbreviation = MOBIE;
-		publishedFigure.name = "Figure 1c";
-		publishedFigure.location = "https://github.com/mobie/platybrowser-project";
-		publishedFigure.view = "Figure1c";
-		publishedFigure.publicationURL = "TBD";
+		final PublishedFigure figure = new PublishedFigure();
+		figure.publicationAbbreviation = MOBIE;
+		figure.name = "Figure 1c";
+		figure.location = "https://github.com/mobie/platybrowser-project";
+		figure.view = "Figure1c";
+		figure.publicationURL = "TBD";
+		publishedFigures.add( figure );
 	}
 
-	private void bioRxivFigure2a()
+	private void mobieFigure2a()
 	{
-		final PublishedFigure publishedFigure = new PublishedFigure();
-		publishedFigure.publicationAbbreviation = MOBIE;
-		publishedFigure.name = "Figure 2a";
-		publishedFigure.location = "https://github.com/mobie/clem-example-project";
-		publishedFigure.view = "Figure2a";
-		publishedFigure.publicationURL = "TBD";
-		publishedFigures.add( publishedFigure );
+		final PublishedFigure figure = new PublishedFigure();
+		figure.publicationAbbreviation = MOBIE;
+		figure.name = "Figure 2a";
+		figure.location = "https://github.com/mobie/clem-example-project";
+		figure.view = "Figure2a";
+		figure.publicationURL = "TBD";
+		publishedFigures.add( figure );
 	}
 
-	private void bioRxivFigure3( final String panel )
+	private void mobieFigure3( final String panel )
 	{
-		final PublishedFigure publishedFigure = new PublishedFigure();
-		publishedFigure.publicationAbbreviation = MOBIE;
-		publishedFigure.name = "Figure 3" + panel;
-		publishedFigure.location = "https://github.com/mobie/covid-if-project";
-		publishedFigure.view = "Figure3"+panel;
-		publishedFigure.publicationURL = "TBD";
-		publishedFigures.add( publishedFigure );
+		final PublishedFigure figure = new PublishedFigure();
+		figure.publicationAbbreviation = MOBIE;
+		figure.name = "Figure 3" + panel;
+		figure.location = "https://github.com/mobie/covid-if-project";
+		figure.view = "Figure3"+panel;
+		figure.publicationURL = "TBD";
+		publishedFigures.add( figure );
 	}
 
 	public List< PublishedFigure > getPublishedFigures()
