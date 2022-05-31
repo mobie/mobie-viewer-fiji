@@ -11,7 +11,7 @@ The MoBIE was initially developed to explore a cellular atlas for the biological
 
 ## Cite
 
-If you use MoBIE, please cite our [preprint on bioRxiv](https://www.biorxiv.org/content/10.1101/2022.05.27.493763v1).
+If you use MoBIE in your research, please cite our [preprint on bioRxiv](https://www.biorxiv.org/content/10.1101/2022.05.27.493763v1).
 
 <!---
 TODO we should also list important dependencies, FIJI, BDV, ?
