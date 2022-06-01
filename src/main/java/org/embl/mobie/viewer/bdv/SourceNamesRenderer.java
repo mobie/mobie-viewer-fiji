@@ -36,7 +36,9 @@ public class SourceNamesRenderer implements TransformListener< AffineTransform3D
 		final ViewerPanel viewerPanel = bdvHandle.getViewerPanel();
 		final ViewerState viewerState = viewerPanel.state().snapshot();
 
-		final FinalRealInterval globalInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( bdvHandle );
+		final AffineTransform3D viewerTransform = viewerState.getViewerTransform();
+
+		final FinalRealInterval viewerInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( bdvHandle );
 
 		final Set< SourceAndConverter< ? > > sources = viewerState.getVisibleAndPresentSources();
 
@@ -59,16 +61,16 @@ public class SourceNamesRenderer implements TransformListener< AffineTransform3D
 				sourceMin[ d ] = interval.realMin( d ) - expand;
 				sourceMax[ d ] = interval.realMax( d ) + expand;
 			}
-			final FinalRealInterval bb = sourceToGlobal.estimateBounds( new FinalRealInterval( sourceMin, sourceMax ) );
+			final FinalRealInterval sourceInterval = sourceToGlobal.estimateBounds( new FinalRealInterval( sourceMin, sourceMax ) );
 
-			if ( bb.realMax( 0 ) >= globalInterval.realMin(0 )
-					&& bb.realMin( 0 ) <= globalInterval.realMax(0 )
-					&& bb.realMax( 1 ) >= globalInterval.realMin(1 )
-					&& bb.realMin( 1 ) <= globalInterval.realMax(2 )
-					&& bb.realMax( 2 ) >= 0
-					&& bb.realMin( 2 ) <= 0 )
+			final FinalRealInterval intersect = Intervals.intersect( sourceInterval, viewerInterval );
+			if ( ! Intervals.isEmpty( intersect ) )
 			{
-				System.out.println( spimSource.getName() );
+				final FinalRealInterval bounds = viewerTransform.estimateBounds( intersect );
+				final int x = (int) bounds.realMin( 0 );
+				final int y = (int) bounds.realMax( 1 );
+				IJ.log( "x,y: " + x + "," + y );
+				// TODO: BdvOverlay at x,y
 			}
 		}
 	}
