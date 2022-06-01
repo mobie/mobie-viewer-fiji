@@ -35,7 +35,6 @@ import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.source.LabelSource;
@@ -53,7 +52,7 @@ public abstract class AnnotationSliceView< T extends TableRow > extends Abstract
 		super( moBIE, display );
 		this.display = display;
 		display.selectionModel.listeners().add( this );
-		display.coloringModel.listeners().add( this );
+		display.selectionColoringModel.listeners().add( this );
 	}
 
 	protected void show( SourceAndConverter< ? > sourceAndConverter )
@@ -75,7 +74,7 @@ public abstract class AnnotationSliceView< T extends TableRow > extends Abstract
 			vLabelSource.showAsBoundary( showAsBoundaries, boundaryThickness );
 		}
 
-		final ColoringModel<T> coloringModel = display.coloringModel.getWrappedColoringModel();
+		final ColoringModel<T> coloringModel = display.selectionColoringModel.getWrappedColoringModel();
 		if ( coloringModel instanceof CategoryColoringModel )
 			( ( CategoryColoringModel<?> ) coloringModel ).setRandomSeed( display.getRandomColorSeed() );
 	}

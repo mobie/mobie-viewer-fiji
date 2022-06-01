@@ -28,8 +28,6 @@
  */
 package org.embl.mobie.viewer.display;
 
-import bdv.tools.transformation.TransformedSource;
-import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColoringModel;
@@ -70,7 +68,7 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 
 	// Runtime
 	public transient SelectionModel< T > selectionModel;
-	public transient SelectionColoringModel< T > coloringModel;
+	public transient SelectionColoringModel< T > selectionColoringModel;
 	public transient TableViewer< T > tableViewer;
 	public transient ScatterPlotViewer< T > scatterPlotViewer;
 	public transient List< T > tableRows;
@@ -149,9 +147,9 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 			this.opacity = opacityAdjuster.getOpacity();
 		}
 
-		this.lut = annotationDisplay.coloringModel.getARGBLutName();
+		this.lut = annotationDisplay.selectionColoringModel.getARGBLutName();
 
-		final ColoringModel<T> wrappedColoringModel = annotationDisplay.coloringModel.getWrappedColoringModel();
+		final ColoringModel<T> wrappedColoringModel = annotationDisplay.selectionColoringModel.getWrappedColoringModel();
 
 		if ( wrappedColoringModel instanceof ColumnColoringModel)
 		{

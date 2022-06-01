@@ -78,14 +78,14 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 			// is determined from encoding in the label is chosen.
 			return new LabelConverter(
 					display.segmentAdapter,
-					display.coloringModel );
+					display.selectionColoringModel );
 		}
 		else
 		{
 			return new LabelConverter(
 					display.segmentAdapter,
 					sourceAndConverter.getSpimSource().getName(),
-					display.coloringModel );
+					display.selectionColoringModel );
 		}
 	}
 

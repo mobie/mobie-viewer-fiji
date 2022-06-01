@@ -31,6 +31,8 @@ package org.embl.mobie.viewer.command;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.CategoryColoringModel;
+import de.embl.cba.tables.color.ColoringModel;
+import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.color.SelectionColoringModelWrapper;
@@ -79,13 +81,15 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	{
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			if ( sourceAndConverter.getConverter() instanceof SelectionColoringModelWrapper )
-			{
-				final SelectionColoringModel selectionColoringModel = ( ( SelectionColoringModelWrapper ) sourceAndConverter.getConverter() ).getSelectionColoringModel();
+			final Converter converter = sourceAndConverter.getConverter();
 
-				if ( selectionColoringModel instanceof CategoryColoringModel )
+			if ( converter instanceof SelectionColoringModelWrapper )
+			{
+				final ColoringModel coloringModel = ( ( SelectionColoringModelWrapper ) converter ).getSelectionColoringModel().getWrappedColoringModel();
+
+				if ( coloringModel instanceof CategoryColoringModel )
 				{
-					final CategoryColoringModel< ? > categoryColoringModel = ( CategoryColoringModel< ? > ) selectionColoringModel;
+					final CategoryColoringModel< ? > categoryColoringModel = ( CategoryColoringModel< ? > ) coloringModel;
 					int randomSeed = categoryColoringModel.getRandomSeed();
 					categoryColoringModel.setRandomSeed( ++randomSeed );
 				}
