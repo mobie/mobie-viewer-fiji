@@ -1,14 +1,46 @@
+/*-
+ * #%L
+ * Fiji viewer for MoBIE projects
+ * %%
+ * Copyright (C) 2018 - 2022 EMBL
+ * %%
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * #L%
+ */
 package org.embl.mobie.viewer.ui;
 
+import de.embl.cba.bdv.utils.popup.BdvPopupMenus;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
+import org.embl.mobie.viewer.VisibilityListener;
+import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.view.View;
-import org.embl.mobie.viewer.display.ImageSourceDisplay;
-import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
+import org.embl.mobie.viewer.display.ImageDisplay;
+import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.SourceDisplay;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -18,22 +50,36 @@ public class UserInterface
 	private final JPanel displaySettingsContainer;
 	private final JScrollPane displaySettingsScrollPane;
 	private final JFrame frame;
-	private final JPanel selectionContainer;
-	private final UserInterfaceHelpers userInterfaceHelpers;
+	private final JPanel selectionPanel;
+	private final UserInterfaceHelper userInterfaceHelper;
 	private Map< Object, JPanel > displayToPanel;
 	private JSplitPane splitPane;
+	private boolean closedByUser = true;
 
 	public UserInterface( MoBIE moBIE )
 	{
-		MoBIELookAndFeelToggler.setMoBIELaf();
-		userInterfaceHelpers = new UserInterfaceHelpers( moBIE );
-		selectionContainer = userInterfaceHelpers.createSelectionPanel();
-		displaySettingsContainer = userInterfaceHelpers.createDisplaySettingsContainer();
-		displaySettingsScrollPane = userInterfaceHelpers.createDisplaySettingsScrollPane( displaySettingsContainer );
-		JPanel displaySettingsPanel = userInterfaceHelpers.createDisplaySettingsPanel( displaySettingsScrollPane );
+		MoBIELaf.MoBIELafOn();
+		userInterfaceHelper = new UserInterfaceHelper( moBIE );
+		selectionPanel = userInterfaceHelper.createSelectionPanel();
+		displaySettingsContainer = userInterfaceHelper.createDisplaySettingsContainer();
+		displaySettingsScrollPane = userInterfaceHelper.createDisplaySettingsScrollPane( displaySettingsContainer );
+		JPanel displaySettingsPanel = userInterfaceHelper.createDisplaySettingsPanel( displaySettingsScrollPane );
 		displayToPanel = new HashMap<>();
-		frame = createAndShowFrame( selectionContainer, displaySettingsPanel, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
-		MoBIELookAndFeelToggler.resetMoBIELaf();
+		frame = createAndShowFrame( selectionPanel, displaySettingsPanel, moBIE.getProjectName() + "-" + moBIE.getDatasetName() );
+		MoBIELaf.MoBIELafOff();
+		configureWindowClosing( moBIE );
+	}
+
+	private void configureWindowClosing( MoBIE moBIE )
+	{
+		frame.addWindowListener(
+			new WindowAdapter() {
+				public void windowClosing( WindowEvent ev )
+				{
+					frame.dispose();
+					moBIE.close();
+				}
+			});
 	}
 
 	private JFrame createAndShowFrame( JPanel selectionPanel, JPanel displaySettingsPanel, String panelName )
@@ -42,7 +88,7 @@ public class UserInterface
 
 		splitPane = new JSplitPane();
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-		final int actionPanelHeight = userInterfaceHelpers.getActionPanelHeight();
+		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
 
 
 		splitPane.setDividerLocation( actionPanelHeight );
@@ -72,10 +118,10 @@ public class UserInterface
 
 	private void refreshSelection()
 	{
-		selectionContainer.revalidate();
-		selectionContainer.repaint();
+		selectionPanel.revalidate();
+		selectionPanel.repaint();
 		// update the location of the splitpane divider, so any new uiSelectionGroups are visible
-		final int actionPanelHeight = userInterfaceHelpers.getActionPanelHeight();
+		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
 		splitPane.setDividerLocation( actionPanelHeight );
 		frame.revalidate();
 		frame.repaint();
@@ -83,34 +129,38 @@ public class UserInterface
 
 	public void addViews( Map<String, View> views )
 	{
-		userInterfaceHelpers.addViewsToSelectionPanel( views );
+		MoBIELaf.MoBIELafOn();
+		userInterfaceHelper.addViewsToSelectionPanel( views );
 		refreshSelection();
+		MoBIELaf.MoBIELafOff();
 	}
 
 	public Map< String, Map< String, View > > getGroupingsToViews()
 	{
-		return userInterfaceHelpers.getGroupingsToViews();
+		return userInterfaceHelper.getGroupingsToViews();
 	}
 
 	public void addSourceDisplay( SourceDisplay sourceDisplay )
 	{
+		MoBIELaf.MoBIELafOn();
 		final JPanel panel = createDisplaySettingPanel( sourceDisplay );
 		showDisplaySettingsPanel( sourceDisplay, panel );
+		MoBIELaf.MoBIELafOff();
 	}
 
 	private JPanel createDisplaySettingPanel( SourceDisplay sourceDisplay )
 	{
-		if ( sourceDisplay instanceof ImageSourceDisplay)
+		if ( sourceDisplay instanceof ImageDisplay )
 		{
-			return userInterfaceHelpers.createImageDisplaySettingsPanel( ( ImageSourceDisplay ) sourceDisplay );
+			return userInterfaceHelper.createImageDisplaySettingsPanel( ( ImageDisplay ) sourceDisplay );
 		}
-		else if ( sourceDisplay instanceof SegmentationSourceDisplay)
+		else if ( sourceDisplay instanceof SegmentationDisplay )
 		{
-			return userInterfaceHelpers.createSegmentationDisplaySettingsPanel( ( SegmentationSourceDisplay ) sourceDisplay );
+			return userInterfaceHelper.createSegmentationDisplaySettingsPanel( ( SegmentationDisplay ) sourceDisplay );
 		}
-		else if ( sourceDisplay instanceof AnnotatedSourceDisplay )
+		else if ( sourceDisplay instanceof RegionDisplay )
 		{
-			return userInterfaceHelpers.createAnnotatedMaskDisplaySettingsPanel( ( AnnotatedSourceDisplay ) sourceDisplay );
+			return userInterfaceHelper.createAnnotatedMaskDisplaySettingsPanel( ( RegionDisplay ) sourceDisplay );
 		}
 		else
 		{
@@ -150,7 +200,7 @@ public class UserInterface
 
 	public String[] getUISelectionGroupNames() {
 
-		Set<String> groupings = userInterfaceHelpers.getGroupings();
+		Set<String> groupings = userInterfaceHelper.getGroupings();
 		String[] groupNames = new String[groupings.size()];
 		int i = 0;
 		for ( String groupName: groupings ) {

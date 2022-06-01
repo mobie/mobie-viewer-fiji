@@ -1,8 +1,8 @@
 /*-
  * #%L
- * TODO
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2020 EMBL
+ * Copyright (C) 2018 - 2022 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,7 +29,6 @@
 package org.embl.mobie.viewer.color;
 
 import bdv.viewer.TimePointListener;
-import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.type.volatiles.VolatileUnsignedIntType;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
@@ -39,18 +38,23 @@ import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 
-public class LabelConverter< S extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, OpacityAdjuster
+import static net.imglib2.type.numeric.ARGBType.alpha;
+import static net.imglib2.type.numeric.ARGBType.blue;
+import static net.imglib2.type.numeric.ARGBType.green;
+import static net.imglib2.type.numeric.ARGBType.red;
+
+public class LabelConverter< S extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, OpacityAdjuster, SelectionColoringModelWrapper
 {
 	private final SegmentAdapter< S > segmentAdapter;
 	private final String imageId;
-	private final MoBIEColoringModel< S > coloringModel;
+	private final SelectionColoringModel< S > coloringModel;
 
 	private int timePointIndex = 0;
 	private double opacity = 1.0;
 
 	public LabelConverter(
 			SegmentAdapter< S > segmentAdapter,
-			MoBIEColoringModel< S > coloringModel )
+			SelectionColoringModel< S > coloringModel )
 	{
 		this.segmentAdapter = segmentAdapter;
 		this.imageId = null; // No imageId given => decode from pixel value
@@ -60,7 +64,7 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	public LabelConverter(
 			SegmentAdapter< S > segmentAdapter,
 			String imageId,
-			MoBIEColoringModel< S > coloringModel )
+			SelectionColoringModel< S > coloringModel )
 	{
 		this.segmentAdapter = segmentAdapter;
 		this.imageId = imageId;
@@ -111,9 +115,11 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	private void setColorBySegment( ARGBType color, S imageSegment )
 	{
 		coloringModel.convert( imageSegment, color );
-		final int alpha = ARGBType.alpha( color.get() );
-		color.mul( alpha / 255.0 );
-		color.mul( opacity );
+		final int value = color.get();
+		//final int alpha = alpha( value );
+		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
+		//color.mul( alpha / 255.0 );
+		//color.mul( opacity );
 	}
 
 	@Override
@@ -134,7 +140,8 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 		return opacity;
 	}
 
-	public MoBIEColoringModel< S > getColoringModel()
+	@Override
+	public SelectionColoringModel getSelectionColoringModel()
 	{
 		return coloringModel;
 	}

@@ -1,8 +1,8 @@
 /*-
  * #%L
- * Various Java code for ImageJ
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2021 EMBL
+ * Copyright (C) 2018 - 2022 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -43,8 +43,6 @@ public interface SelectionListener< T >
 
 	/**
 	 * Notifies when a focus event happened.
-	 * Focus events do not necessarily enter the select at all..
 	 */
-	void focusEvent( T selection, Object origin );
-
+	void focusEvent( T selection, Object initiator );
 }

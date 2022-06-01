@@ -1,3 +1,31 @@
+/*-
+ * #%L
+ * Fiji viewer for MoBIE projects
+ * %%
+ * Copyright (C) 2018 - 2022 EMBL
+ * %%
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * #L%
+ */
 package org.embl.mobie.viewer.segment;
 
 import bdv.tools.transformation.TransformedSource;
@@ -10,10 +38,10 @@ import net.imglib2.RealPoint;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
-import org.embl.mobie.viewer.bdv.BdvGlobalMousePositionProvider;
-import org.embl.mobie.viewer.display.AnnotatedSourceDisplay;
-import org.embl.mobie.viewer.display.AnnotatedRegionDisplay;
-import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
+import org.embl.mobie.viewer.bdv.GlobalMousePositionProvider;
+import org.embl.mobie.viewer.display.RegionDisplay;
+import org.embl.mobie.viewer.display.AnnotationDisplay;
+import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
@@ -26,9 +54,9 @@ public class SliceViewRegionSelector implements Runnable
 {
 	private BdvHandle bdvHandle;
 	private boolean is2D;
-	private Supplier< Collection< AnnotatedRegionDisplay > > annotatedRegionDisplaySupplier;
+	private Supplier< Collection< AnnotationDisplay > > annotatedRegionDisplaySupplier;
 
-	public SliceViewRegionSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< AnnotatedRegionDisplay > > annotatedRegionDisplaySupplier )
+	public SliceViewRegionSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< AnnotationDisplay > > annotatedRegionDisplaySupplier )
 	{
 		this.bdvHandle = bdvHandle;
 		this.is2D = is2D;
@@ -37,28 +65,28 @@ public class SliceViewRegionSelector implements Runnable
 
 	public synchronized void clearSelection()
 	{
-		final Collection< AnnotatedRegionDisplay > regionDisplays = getCurrent();
+		final Collection< AnnotationDisplay > regionDisplays = getCurrent();
 
-		for ( AnnotatedRegionDisplay regionDisplay : regionDisplays )
+		for ( AnnotationDisplay regionDisplay : regionDisplays )
 		{
 			regionDisplay.selectionModel.clearSelection();
 		}
 	}
 
-	private Collection< AnnotatedRegionDisplay > getCurrent()
+	private Collection< AnnotationDisplay > getCurrent()
 	{
 		return annotatedRegionDisplaySupplier.get();
 	}
 
 	private synchronized void toggleSelectionAtMousePosition()
 	{
-		final BdvGlobalMousePositionProvider positionProvider = new BdvGlobalMousePositionProvider( bdvHandle );
+		final GlobalMousePositionProvider positionProvider = new GlobalMousePositionProvider( bdvHandle );
 		final int timePoint = positionProvider.getTimePoint();
 		final RealPoint position = positionProvider.getPositionAsRealPoint();
 
-		final Collection< AnnotatedRegionDisplay > regionDisplays = annotatedRegionDisplaySupplier.get();
+		final Collection< AnnotationDisplay > regionDisplays = annotatedRegionDisplaySupplier.get();
 
-		for ( AnnotatedRegionDisplay regionDisplay : regionDisplays )
+		for ( AnnotationDisplay regionDisplay : regionDisplays )
 		{
 			final Collection< SourceAndConverter< ? > > sourceAndConverters = regionDisplay.sourceNameToSourceAndConverter.values();
 
@@ -85,7 +113,6 @@ public class SliceViewRegionSelector implements Runnable
 
 						if ( regionDisplay.selectionModel.isSelected( tableRow ) )
 						{
-							//regionDisplay.
 							regionDisplay.selectionModel.focus( tableRow, this );
 						}
 					}
@@ -94,11 +121,11 @@ public class SliceViewRegionSelector implements Runnable
 		}
 	}
 
-	private TableRow getTableRow( int timePoint, AnnotatedRegionDisplay regionDisplay, String sourceName, double labelIndex )
+	private TableRow getTableRow( int timePoint, AnnotationDisplay regionDisplay, String sourceName, double labelIndex )
 	{
-		if ( regionDisplay instanceof SegmentationSourceDisplay )
+		if ( regionDisplay instanceof SegmentationDisplay )
 		{
-			final boolean containsSegment = (( SegmentationSourceDisplay ) regionDisplay ).segmentAdapter.containsSegment( labelIndex, timePoint, sourceName );
+			final boolean containsSegment = (( SegmentationDisplay ) regionDisplay ).segmentAdapter.containsSegment( labelIndex, timePoint, sourceName );
 
 			if ( ! containsSegment )
 			{
@@ -108,12 +135,12 @@ public class SliceViewRegionSelector implements Runnable
 			}
 			else
 			{
-				return ( ( SegmentationSourceDisplay ) regionDisplay ).segmentAdapter.getSegment( labelIndex, timePoint, sourceName );
+				return ( ( SegmentationDisplay ) regionDisplay ).segmentAdapter.getSegment( labelIndex, timePoint, sourceName );
 			}
 		}
-		else if ( regionDisplay instanceof AnnotatedSourceDisplay )
+		else if ( regionDisplay instanceof RegionDisplay )
 		{
-			final AnnotatedSourceDisplay annotatedSourceDisplay = ( AnnotatedSourceDisplay ) regionDisplay;
+			final RegionDisplay annotatedSourceDisplay = ( RegionDisplay ) regionDisplay;
 			final AnnotatedMaskAdapter adapter = annotatedSourceDisplay.annotatedMaskAdapter;
 			return adapter.getAnnotatedMask( timePoint, labelIndex );
 		}

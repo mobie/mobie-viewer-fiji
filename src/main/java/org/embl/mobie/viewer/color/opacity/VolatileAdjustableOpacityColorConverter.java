@@ -1,8 +1,8 @@
 /*-
  * #%L
- * TODO
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2020 EMBL
+ * Copyright (C) 2018 - 2022 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -48,17 +48,17 @@ public class VolatileAdjustableOpacityColorConverter< V extends Volatile< RealTy
 	}
 
 	@Override
-	public void convert( V realTypeVolatile, ARGBType output )
+	public void convert( V realTypeVolatile, ARGBType color )
 	{
 		if ( realTypeVolatile.isValid() && realTypeVolatile.get().getRealDouble() == 0 )
 		{
-			// ...for the Accumulate projector to know where the source ends
-			output.set( new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) ) );
+			// For the Accumulate projector to know where the source ends
+			color.set( new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) ) );
 		}
 		else
 		{
-			converter.convert( realTypeVolatile, output );
-			output.mul( opacity );
+			converter.convert( realTypeVolatile, color );
+			OpacityAdjuster.adjustAlpha( color, opacity );
 		}
 	}
 

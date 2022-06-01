@@ -1,18 +1,18 @@
 /*-
  * #%L
- * Various Java code for ImageJ
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2021 EMBL
+ * Copyright (C) 2018 - 2022 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ * 
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -38,7 +38,7 @@ import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.viewer.ui.MoBIELookAndFeelToggler;
+import org.embl.mobie.viewer.ui.MoBIELaf;
 
 import javax.swing.*;
 import javax.swing.table.TableModel;
@@ -93,7 +93,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		{
 			objectName = "segment";
 		}
-		else if ( tableRows.get( 0 ) instanceof AnnotatedMaskTableRow )
+		else if ( tableRows.get( 0 ) instanceof RegionTableRow )
 		{
 			objectName = "region";
 		}
@@ -101,10 +101,10 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 
 	public void showDialog()
 	{
-		MoBIELookAndFeelToggler.setMoBIELaf();
+		MoBIELaf.MoBIELafOn();
 		createDialog();
 		showFrame();
-		MoBIELookAndFeelToggler.resetMoBIELaf();
+		MoBIELaf.MoBIELafOff();
 	}
 
 	private void createDialog()
@@ -183,10 +183,11 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 
 	private void addAnnotationButtonPanel( String annotationName, T tableRow )
 	{
-		MoBIELookAndFeelToggler.setMoBIELaf();
-		annotationNames.add( annotationName );
-		final JPanel panel = SwingUtils.horizontalLayoutPanel();
+		MoBIELaf.MoBIELafOn();
 
+		annotationNames.add( annotationName );
+
+		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 		final JButton annotateButton = new JButton( String.format("%1$15s", annotationName) );
 		annotateButton.setFont( new Font("monospaced", Font.PLAIN, 12) );
 		annotateButton.setOpaque( true );
@@ -232,7 +233,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		panel.add( changeColor );
 		annotationButtonsContainer.add( panel );
 		refreshDialog();
-		MoBIELookAndFeelToggler.resetMoBIELaf();
+		MoBIELaf.MoBIELafOff();
 	}
 
 	private void addSelectPreviousAndNextPanel( )
@@ -399,12 +400,12 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 			}
 			throw new UnsupportedOperationException( "Could not find " + objectName + " with ID " + selectedLabelId );
 		}
-		else if ( tableRows.get( 0 ) instanceof AnnotatedMaskTableRow )
+		else if ( tableRows.get( 0 ) instanceof RegionTableRow )
 		{
 			final String annotationID = goToRowIndexTextField.getText();
 			for ( T tableRow : tableRows )
 			{
-				final String name = ( ( AnnotatedMaskTableRow ) tableRow ).name();
+				final String name = ( ( RegionTableRow ) tableRow ).name();
 				if ( name.equals( annotationID ) )
 				{
 					return tableRow;
@@ -514,7 +515,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 	}
 
 	@Override
-	public void focusEvent( T selection, Object origin )
+	public void focusEvent( T selection, Object initiator )
 	{
 		currentlySelectedRow = selection;
 	}

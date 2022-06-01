@@ -1,8 +1,8 @@
 /*-
  * #%L
- * Various Java code for ImageJ
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2021 EMBL
+ * Copyright (C) 2018 - 2022 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -54,7 +54,7 @@ import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.VisibilityListener;
 import org.embl.mobie.viewer.mesh.MeshCreator;
-import org.embl.mobie.viewer.playground.BdvPlaygroundUtils;
+import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
 
@@ -176,9 +176,9 @@ public class ImageVolumeViewer
 	{
 		Integer level;
 		if ( voxelSpacing != null )
-			level = BdvPlaygroundUtils.getLevel( source, voxelSpacing );
+			level = BdvPlaygroundHelper.getLevel( source, voxelSpacing );
 		else
-			level = BdvPlaygroundUtils.getLevel( source, maxNumVoxels );
+			level = BdvPlaygroundHelper.getLevel( source, maxNumVoxels );
 
 		logVoxelSpacing( source, getVoxelSpacings( source ).get( level ) );
 
@@ -376,6 +376,8 @@ public class ImageVolumeViewer
 	{
 		return voxelSpacing;
 	}
+
+	public boolean getShowImages() { return showImages; }
 
 	public void close()
 	{

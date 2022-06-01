@@ -1,3 +1,31 @@
+/*-
+ * #%L
+ * Fiji viewer for MoBIE projects
+ * %%
+ * Copyright (C) 2018 - 2022 EMBL
+ * %%
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * #L%
+ */
 package org.embl.mobie.viewer.projectcreator;
 
 import mpicbg.spim.data.SpimData;
@@ -10,7 +38,7 @@ import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.source.SourceSupplier;
 
@@ -61,7 +89,7 @@ public class ProjectCreator {
         this.projectLocation = projectLocation;
         if ( ! projectLocation.exists() )
             projectLocation.mkdirs();
-        projectJson = new File( FileAndUrlUtils.combinePath(  projectLocation.getAbsolutePath(), "project.json") );
+        projectJson = new File( IOHelper.combinePath(  projectLocation.getAbsolutePath(), "project.json") );
         if ( projectJson.exists() ) {
             reloadProject();
         } else {
@@ -104,7 +132,7 @@ public class ProjectCreator {
         if ( datasetName.equals(currentDatasetName) ) {
             return currentDataset;
         } else {
-            File datasetJson = new File( FileAndUrlUtils.combinePath( projectLocation.getAbsolutePath(), datasetName, "dataset.json") );
+            File datasetJson = new File( IOHelper.combinePath( projectLocation.getAbsolutePath(), datasetName, "dataset.json") );
             if ( datasetJson.exists() ) {
                 try {
                     currentDatasetJson = datasetJson;
@@ -209,7 +237,7 @@ public class ProjectCreator {
                     // open one of the local images
                     for (ImageDataFormat format : imageSource.imageData.keySet()) {
                         if (!format.isRemote()) {
-                            String imagePath = FileAndUrlUtils.combinePath( projectLocation.getAbsolutePath(), datasetName,
+                            String imagePath = IOHelper.combinePath( projectLocation.getAbsolutePath(), datasetName,
                                     imageSource.imageData.get(format).relativePath);
                             SpimData spimData = (SpimData) new SpimDataOpener().openSpimData( imagePath, format );
                             VoxelDimensions voxelDimensions = spimData.getSequenceDescription().

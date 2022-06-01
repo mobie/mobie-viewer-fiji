@@ -1,8 +1,8 @@
 /*-
  * #%L
- * Various Java code for ImageJ
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2021 EMBL
+ * Copyright (C) 2018 - 2022 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -101,12 +101,12 @@ public class MoBIESelectionModel< T > implements SelectionModel< T >
 	}
 
 	@Override
-	public synchronized void focus( T object, Object origin )
+	public synchronized void focus( T object, Object initiator )
 	{
 		focusObject = object;
 
 		for ( SelectionListener listener : listeners.list )
-			new Thread( () -> listener.focusEvent( object, origin ) ).start();
+			new Thread( () -> listener.focusEvent( object, initiator ) ).start();
 	}
 
 	@Override

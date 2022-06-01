@@ -1,3 +1,31 @@
+/*-
+ * #%L
+ * Fiji viewer for MoBIE projects
+ * %%
+ * Copyright (C) 2018 - 2022 EMBL
+ * %%
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * #L%
+ */
 package org.embl.mobie.viewer.projectcreator.ui;
 
 import mpicbg.spim.data.SpimData;
@@ -11,7 +39,7 @@ import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.command.OpenMoBIEProjectCommand;
 import org.embl.mobie.viewer.projectcreator.ImagesCreator;
 import org.embl.mobie.viewer.projectcreator.ProjectCreator;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.ImagePlus;
@@ -19,8 +47,8 @@ import ij.gui.GenericDialog;
 import mpicbg.spim.data.SpimDataException;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.projectcreator.ProjectCreatorHelper;
-import org.embl.mobie.viewer.ui.SwingHelpers;
-import org.embl.mobie.viewer.ui.UserInterfaceHelpers;
+import org.embl.mobie.viewer.ui.SwingHelper;
+import org.embl.mobie.viewer.ui.UserInterfaceHelper;
 import org.janelia.saalfeldlab.n5.Compression;
 
 import javax.swing.*;
@@ -93,8 +121,8 @@ public class ProjectsCreatorPanel extends JFrame {
     private void addDatasetPanel() {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-        final JButton addButton = SwingHelpers.createButton("Add");
-        final JButton editButton = SwingHelpers.createButton("Edit");
+        final JButton addButton = SwingHelper.createButton("Add");
+        final JButton editButton = SwingHelper.createButton("Edit");
 
         createDatasetComboBox();
         addButton.addActionListener( e ->
@@ -107,7 +135,7 @@ public class ProjectsCreatorPanel extends JFrame {
             new Thread( () -> { editDatasetDialog(); } ).start();
         } );
 
-        horizontalLayoutPanel.add( SwingHelpers.getJLabel("dataset", 60, 10));
+        horizontalLayoutPanel.add( SwingHelper.getJLabel("dataset", 60, 10));
         horizontalLayoutPanel.add(datasetComboBox);
         horizontalLayoutPanel.add(addButton);
         horizontalLayoutPanel.add(editButton);
@@ -221,7 +249,7 @@ public class ProjectsCreatorPanel extends JFrame {
     private void addSourcesPanel() {
         final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-        final JButton addButton = SwingHelpers.createButton( "Add" );
+        final JButton addButton = SwingHelper.createButton( "Add" );
         // for now we don't support editing any image properties, but this is likely to change in future,
         // so keep this code for now
         // final JButton editButton = createButton("Edit");
@@ -237,10 +265,10 @@ public class ProjectsCreatorPanel extends JFrame {
         //     new Thread( () -> { editImageDialog(); } ).start();
         // } );
 
-        horizontalLayoutPanel.add( SwingHelpers.getJLabel("source", 60, 10));
+        horizontalLayoutPanel.add( SwingHelper.getJLabel("source", 60, 10));
         horizontalLayoutPanel.add(sourcesComboBox);
         horizontalLayoutPanel.add( addButton );
-        horizontalLayoutPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
+        horizontalLayoutPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
         // horizontalLayoutPanel.add( editButton );
         horizontalLayoutPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
@@ -254,14 +282,14 @@ public class ProjectsCreatorPanel extends JFrame {
         createGroupsCombobox();
         createViewsCombobox();
 
-        groupPanel.add( SwingHelpers.getJLabel("group", 60, 10));
-        viewsPanel.add( SwingHelpers.getJLabel("view", 60, 10));
+        groupPanel.add( SwingHelper.getJLabel("group", 60, 10));
+        viewsPanel.add( SwingHelper.getJLabel("view", 60, 10));
         groupPanel.add( groupsComboBox );
         viewsPanel.add( viewsComboBox );
-        groupPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
-        groupPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
-        viewsPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
-        viewsPanel.add( Box.createHorizontalStrut( SwingHelpers.BUTTON_DIMENSION.width ) );
+        groupPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
+        groupPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
+        viewsPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
+        viewsPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
         groupPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
         viewsPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
 
@@ -472,7 +500,7 @@ public class ProjectsCreatorPanel extends JFrame {
         if ( !gd.wasCanceled() ) {
             imageName = gd.getNextString();
             // tidy up image name, remove any spaces
-            imageName = UserInterfaceHelpers.tidyString( imageName );
+            imageName = UserInterfaceHelper.tidyString( imageName );
         }
         return imageName;
     }
@@ -524,7 +552,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 String affineTransform = String.join(",", affineRow1, affineRow2, affineRow3 );
 
                 // tidy up image name, remove any spaces
-                imageName = UserInterfaceHelpers.tidyString( imageName );
+                imageName = UserInterfaceHelper.tidyString( imageName );
                 AffineTransform3D sourceTransform = ProjectCreatorHelper.parseAffineString( affineTransform );
 
                 if ( imageName != null && sourceTransform != null ) {
@@ -654,7 +682,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
     private boolean isValidOMEZarr( String filePath )
     {
-        return ( new File( FileAndUrlUtils.combinePath( filePath, ".zgroup" ) ).exists() && new File( FileAndUrlUtils.combinePath( filePath, ".zattrs" ) ).exists() );
+        return ( new File( IOHelper.combinePath( filePath, ".zgroup" ) ).exists() && new File( IOHelper.combinePath( filePath, ".zattrs" ) ).exists() );
     }
 
     private void addBdvFile( String filePath, String datasetName ) throws SpimDataException {
@@ -715,7 +743,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
         if ( !gd.wasCanceled() ) {
             String datasetName = gd.getNextString();
-            datasetName = UserInterfaceHelpers.tidyString( datasetName );
+            datasetName = UserInterfaceHelper.tidyString( datasetName );
             is2D = gd.getNextBoolean();
 
             if ( datasetName != null ) {
@@ -741,7 +769,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
             if (!gd.wasCanceled()) {
                 String newName = gd.getNextString();
-                newName = UserInterfaceHelpers.tidyString( newName );
+                newName = UserInterfaceHelper.tidyString( newName );
                 if ( newName != null ) {
                     projectsCreator.getDatasetsCreator().renameDataset( oldName, newName );
                     updateDatasetsComboBox( newName );

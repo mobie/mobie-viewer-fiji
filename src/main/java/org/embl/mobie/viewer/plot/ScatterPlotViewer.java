@@ -1,8 +1,8 @@
 /*-
  * #%L
- * Various Java code for ImageJ
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2021 EMBL
+ * Copyright (C) 2018 - 2022 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -414,7 +414,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	}
 
 	@Override
-	public void focusEvent( T selection, Object origin  )
+	public void focusEvent( T selection, Object initiator )
 	{
 		if ( bdvHandle == null ) return;
 

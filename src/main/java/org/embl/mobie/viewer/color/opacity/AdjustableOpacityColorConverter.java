@@ -1,8 +1,8 @@
 /*-
  * #%L
- * TODO
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2020 EMBL
+ * Copyright (C) 2018 - 2022 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -45,17 +45,17 @@ public class AdjustableOpacityColorConverter implements OpacityAdjuster, ColorCo
 	}
 
 	@Override
-	public void convert( RealType realType, ARGBType output )
+	public void convert( RealType realType, ARGBType color )
 	{
 		if ( realType.getRealDouble() == 0 )
 		{
-			// ...for the Accumulate projector
-			output.set( new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) ) );
+			// For the Accumulate projector to know where the source ends
+			color.set( new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) ) );
 		}
 		else
 		{
-			converter.convert( realType, output );
-			output.mul( opacity );
+			converter.convert( realType, color );
+			OpacityAdjuster.adjustAlpha( color, opacity );
 		}
 	}
 

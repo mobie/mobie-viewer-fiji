@@ -1,8 +1,8 @@
 /*-
  * #%L
- * Various Java code for ImageJ
+ * Fiji viewer for MoBIE projects
  * %%
- * Copyright (C) 2018 - 2021 EMBL
+ * Copyright (C) 2018 - 2022 EMBL
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,11 +29,12 @@
 package org.embl.mobie.viewer.table;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.annotate.AnnotatedMaskTableRow;
+import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.annotate.Annotator;
-import org.embl.mobie.viewer.color.MoBIEColoringModel;
+import org.embl.mobie.viewer.color.SelectionColoringModel;
 import de.embl.cba.tables.*;
 import de.embl.cba.tables.color.*;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
@@ -71,7 +72,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private final MoBIE moBIE;
 	private final List< T > tableRows;
 	private final SelectionModel< T > selectionModel;
-	private final MoBIEColoringModel< T > coloringModel;
+	private final SelectionColoringModel< T > coloringModel;
 	private final String tableName;
 
 	private JTable jTable;
@@ -107,14 +108,14 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			final MoBIE moBIE,
 			final List< T > tableRows,
 			final SelectionModel< T > selectionModel,
-			final MoBIEColoringModel< T > moBIEColoringModel,
+			final SelectionColoringModel< T > selectionColoringModel,
 			String tableName,
 			Map< String, String > sourceNameToTableDir,
 			boolean isGridTable )
 	{
 		this.moBIE = moBIE;
 		this.tableRows = tableRows;
-		this.coloringModel = moBIEColoringModel;
+		this.coloringModel = selectionColoringModel;
 		this.selectionModel = selectionModel;
 		this.tableName = tableName;
 		this.recentlySelectedRowInView = -1;
@@ -312,11 +313,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			return ColorUtils.getColor( argbType );
 	}
 
-	private void registerAsColoringListener( SelectionColoringModel< T > selectionColoringModel )
-	{
-		selectionColoringModel.listeners().add( () -> SwingUtilities.invokeLater( () -> repaintTable() ) );
-	}
-
 	private synchronized void repaintTable()
 	{
 		jTable.repaint();
@@ -430,9 +426,10 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private void loadColumnsFromProject()
 	{
-		ArrayList<String> tableNames = new ArrayList<>();
-		String tableName = selectCommonFileNameFromProject( new ArrayList<>( sourceNameToTableDir.values() ), "Table" );
+		final ArrayList< String > directories = new ArrayList<>( sourceNameToTableDir.values() );
+		String tableName = selectCommonFileNameFromProject( directories, "Table" );
 
+		ArrayList<String> tableNames = new ArrayList<>();
 		if ( tableName != null )
 		{
 			tableNames.add( tableName );
@@ -446,8 +443,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			{
 				for ( String tableDir: sourceNameToTableDir.values() )
 				{
-					final Map< String, List< String > > table = openTable( FileAndUrlUtils.combinePath( tableDir, tableName ) );
-					MoBIE.mergeAnnotatedMaskTable( (List< AnnotatedMaskTableRow >) tableRows, table );
+					final Map< String, List< String > > table = openTable( IOHelper.combinePath( tableDir, tableName ) );
+					MoBIE.mergeRegionTables( (List< RegionTableRow >) tableRows, table );
 				}
 			}
 			addAdditionalTable( tableName );
@@ -469,7 +466,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				else
 				{
 					Map< String, List< String > > table = openTable( path );
-					MoBIE.mergeAnnotatedMaskTable( ( List< AnnotatedMaskTableRow > ) tableRows, table );
+					MoBIE.mergeRegionTables( ( List< RegionTableRow > ) tableRows, table );
 				}
 				enableRowSorting( true );
 			}).start();
@@ -522,7 +519,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createSaveTableAsMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Save Table as..." );
+		final JMenuItem menuItem = new JMenuItem( "Save Table As..." );
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
 						TableUIs.saveTableUI( jTable ) ) );
@@ -532,7 +529,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createSaveColumnsAsMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Save Columns as..." );
+		final JMenuItem menuItem = new JMenuItem( "Save Columns As..." );
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () -> TableUIs.saveColumns( jTable ) ) );
 
@@ -541,7 +538,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createSelectAllMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Select all" );
+		final JMenuItem menuItem = new JMenuItem( "Select All" );
 
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
@@ -552,7 +549,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createSelectEqualToMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Select equal to..." );
+		final JMenuItem menuItem = new JMenuItem( "Select Equal To..." );
 
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
@@ -563,7 +560,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createSelectLessThanMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Select less than..." );
+		final JMenuItem menuItem = new JMenuItem( "Select Less Than..." );
 
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
@@ -574,7 +571,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createSelectGreaterThanMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Select greater than..." );
+		final JMenuItem menuItem = new JMenuItem( "Select Greater Than..." );
 
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
@@ -585,7 +582,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createStartNewAnnotationMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Start new annotation..." );
+		final JMenuItem menuItem = new JMenuItem( "Start New Annotation..." );
 
 		menuItem.addActionListener( e -> showNewAnnotationDialog() );
 
@@ -594,7 +591,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private JMenuItem createContinueAnnotationMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "Continue annotation..." );
+		final JMenuItem menuItem = new JMenuItem( "Continue Annotation..." );
 
 		menuItem.addActionListener( e -> showContinueAnnotationDialog() );
 
@@ -931,7 +928,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private void addColorLoggingMenuItem( JMenu coloringMenu )
 	{
-		final JMenuItem menuItem = new JMenuItem( "Log Current Value to Color Map" );
+		final JMenuItem menuItem = new JMenuItem( "Log Current Color Map" );
 
 		menuItem.addActionListener( e ->
 				new Thread( () ->
@@ -1016,7 +1013,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	}
 
 	@Override
-	public synchronized void focusEvent( T selection, Object origin )
+	public synchronized void focusEvent( T selection, Object initiator )
 	{
 		SwingUtilities.invokeLater( () -> moveToSelectedTableRow( selection ) );
 	}

@@ -1,5 +1,34 @@
+/*-
+ * #%L
+ * Fiji viewer for MoBIE projects
+ * %%
+ * Copyright (C) 2018 - 2022 EMBL
+ * %%
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * #L%
+ */
 package org.embl.mobie.viewer.annotate;
 
+import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvOverlay;
 import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.SourceAndConverter;
@@ -11,23 +40,22 @@ import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.color.ColoringModel;
 import net.imglib2.RealLocalizable;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.source.LabelSource;
 
 import java.awt.*;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
+public class TableRowsIntervalImage< T extends RegionTableRow >
 {
 	private final List< T > tableRows;
-	private final ColoringModel< T > coloringModel;
+	private final SelectionColoringModel< T > coloringModel;
 	private double[] contrastLimits;
 	private String name;
 	private SourceAndConverter< IntType > sourceAndConverter;
@@ -37,7 +65,7 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 
 	public TableRowsIntervalImage(
 			List< T > tableRows,
-			ColoringModel< T > coloringModel,
+			SelectionColoringModel< T > coloringModel,
 			String name )
 	{
 		final long currentTimeMillis = System.currentTimeMillis();
@@ -70,7 +98,8 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 			}
 			else
 			{
-				if ( Arrays.equals( mask.minAsDoubleArray(), unionInterval.minAsDoubleArray() ) && Arrays.equals( mask.maxAsDoubleArray(), unionInterval.maxAsDoubleArray() ))
+
+				if ( Intervals.equals(  mask, unionInterval ) )
 				{
 					continue;
 				}
@@ -81,9 +110,6 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 					unionInterval = Intervals.union( unionInterval, mask );
 				}
 			}
-			//System.out.println( tableRow.getName() );
-			//System.out.println( Arrays.toString( mask.minAsDoubleArray() ) );
-			//System.out.println( Arrays.toString( unionMask.minAsDoubleArray() ) );
 		}
 
 		// TODO: this is a work around
@@ -117,7 +143,9 @@ public class TableRowsIntervalImage< T extends AnnotatedMaskTableRow >
 
 		final ListItemsARGBConverter< T > argbConverter = new ListItemsARGBConverter<>( tableRows, coloringModel );
 
-		sourceAndConverter = new SourceAndConverter( new LabelSource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX, unionMask ), argbConverter );
+		final LabelSource< IntType > labelSource = new LabelSource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX, unionMask );
+		final TransformedSource< IntType > transformedSource = new TransformedSource<>( labelSource );
+		sourceAndConverter = new SourceAndConverter( transformedSource, argbConverter );
 
 		contrastLimits = new double[]{ 0, 255 };
 	}

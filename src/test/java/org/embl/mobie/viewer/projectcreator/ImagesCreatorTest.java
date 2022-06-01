@@ -1,3 +1,31 @@
+/*-
+ * #%L
+ * Fiji viewer for MoBIE projects
+ * %%
+ * Copyright (C) 2018 - 2022 EMBL
+ * %%
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * #L%
+ */
 package org.embl.mobie.viewer.projectcreator;
 
 import mpicbg.spim.data.SpimData;
@@ -6,12 +34,12 @@ import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.n5.writers.WriteImagePlusToN5;
 import org.embl.mobie.io.ome.zarr.writers.imageplus.WriteImagePlusToN5OmeZarr;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 
-import de.embl.cba.tables.FileAndUrlUtils;
 import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -55,7 +83,7 @@ class ImagesCreatorTest {
 
         projectCreator.getDatasetsCreator().addDataset(datasetName, false);
 
-        datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
+        datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "dataset.json" );
     }
 
@@ -75,10 +103,10 @@ class ImagesCreatorTest {
     void assertionsForN5( boolean onlyXmls ) throws SpimDataException {
         ImageDataFormat imageDataFormat = ImageDataFormat.BdvN5;
 
-        String xmlLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
+        String xmlLocation = IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat),
                 imageName + ".xml");
-        String imageLocation = FileAndUrlUtils.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
+        String imageLocation = IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                 datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat),
                 imageName + ".n5");
 
@@ -95,7 +123,7 @@ class ImagesCreatorTest {
     void assertionsForOmeZarr() throws SpimDataException {
         ImageDataFormat imageDataFormat = ImageDataFormat.OmeZarr;
 
-        String imageLocation = FileAndUrlUtils.combinePath(
+        String imageLocation = IOHelper.combinePath(
                 projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "images",
                 ProjectCreatorHelper.imageFormatToFolderName(imageDataFormat), imageName + ".ome.zarr");
 
@@ -120,7 +148,7 @@ class ImagesCreatorTest {
     }
 
     void assertionsForTableAdded( ) throws IOException {
-        String tablePath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "tables", imageName, "default.tsv" );
+        String tablePath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(), datasetName, "tables", imageName, "default.tsv" );
         assertTrue( new File(tablePath).exists() );
 
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);

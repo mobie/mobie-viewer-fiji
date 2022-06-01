@@ -1,11 +1,39 @@
+/*-
+ * #%L
+ * Fiji viewer for MoBIE projects
+ * %%
+ * Copyright (C) 2018 - 2022 EMBL
+ * %%
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * #L%
+ */
 package org.embl.mobie.viewer.projectcreator;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.Dataset;
-import org.embl.mobie.viewer.display.ImageSourceDisplay;
-import org.embl.mobie.viewer.display.SegmentationSourceDisplay;
+import org.embl.mobie.viewer.display.ImageDisplay;
+import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.SourceDisplay;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.source.*;
@@ -13,7 +41,7 @@ import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.SourceTransformer;
 import org.embl.mobie.viewer.view.View;
-import org.embl.mobie.io.util.FileAndUrlUtils;
+import org.embl.mobie.io.util.IOHelper;
 import de.embl.cba.tables.color.ColoringLuts;
 
 import java.io.IOException;
@@ -178,9 +206,9 @@ public class DatasetJsonCreator {
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
 
-        ImageSourceDisplay imageSourceDisplay = new ImageSourceDisplay( imageName, 1.0, sources,
+        ImageDisplay imageDisplay = new ImageDisplay( imageName, 1.0, sources,
                 colour, contrastLimits, null, false );
-        sourceDisplays.add( imageSourceDisplay );
+        sourceDisplays.add( imageDisplay );
 
         View view;
         if ( sourceTransform.isIdentity() ) {
@@ -200,8 +228,8 @@ public class DatasetJsonCreator {
 
         ArrayList<String> tables = new ArrayList<>();
         tables.add( "default.tsv" );
-        SegmentationSourceDisplay segmentationSourceDisplay = new SegmentationSourceDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ TableColumnNames.ANCHOR_X, TableColumnNames.ANCHOR_Y }, tables, null, null );
-        sourceDisplays.add( segmentationSourceDisplay );
+        SegmentationDisplay segmentationDisplay = new SegmentationDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ TableColumnNames.ANCHOR_X, TableColumnNames.ANCHOR_Y }, tables, null );
+        sourceDisplays.add( segmentationDisplay );
 
         if ( sourceTransform.isIdentity() ) {
             return new View( uiSelectionGroup, sourceDisplays, null, null, isExclusive );
@@ -213,7 +241,7 @@ public class DatasetJsonCreator {
 
     public void writeDatasetJson ( String datasetName, Dataset dataset ) {
         try {
-            String datasetJsonPath = FileAndUrlUtils.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
+            String datasetJsonPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, "dataset.json" );
             new DatasetJsonParser().saveDataset( dataset, datasetJsonPath );
         } catch (IOException e) {
