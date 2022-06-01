@@ -3,19 +3,24 @@
 
 # MoBIE Fiji Viewer
 
-The MoBIE Fiji viewer is a Fiji plugin for the exploration of big multi-modal image and associated tabular data. 
+MoBIE is a Fiji plugin for exploring and sharing big multi-modal image and associated tabular data.
 
 ## History
 
-The MoBIE was initially developed to explore a cellular atlas for the biological model system _Platynereis dumerilii_, see: [Whole-body integration of gene expression and single-cell morphology](https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1). However, the framework turned out to be so useful and generalisable that it is now used for other projects as well, e.g. see all the repositories ending on "-datasets" [here](https://github.com/mobie).
+The MoBIE was initially developed to explore a cellular atlas for the biological model system _Platynereis dumerilii_, see: [Whole-body integration of gene expression and single-cell morphology](https://www.sciencedirect.com/science/article/pii/S009286742100876X). However, the framework turned out to be so useful and generalisable that it is now used for other projects as well, e.g. see all the repositories ending on "-project" [here](https://github.com/mobie).
 
 ## Cite
 
-If you use MoBIE, or the PlatyBrowser resource, please cite [Whole-body integration of gene expression and single-cell morphology](https://www.biorxiv.org/content/10.1101/2020.02.26.961037v1).
+If you use MoBIE in your research, please cite our [preprint on bioRxiv](https://www.biorxiv.org/content/10.1101/2022.05.27.493763v1).
 
 <!---
 TODO we should also list important dependencies, FIJI, BDV, ?
---->
+-->
+
+## Tutorials
+
+Tutorials for installing & using MoBIE are available at [https://mobie.github.io/](https://mobie.github.io/).
+For a quick start - see below:
 
 ## Install
 
@@ -23,11 +28,6 @@ TODO we should also list important dependencies, FIJI, BDV, ?
 2. Restart Fiji and install the MoBIE update site ([how to install an update site](https://imagej.net/Following_an_update_site#Introduction)).
     - [X] `MoBIE`
 3. Restart Fiji
-
-## Tutorials
-
-Tutorials for using MoBIE are available at [http://mobie.github.io/](http://mobie.github.io/).  
-For a quick start - see below:
 
 ## Starting up
 
