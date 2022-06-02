@@ -52,7 +52,7 @@ public class RegionSliceView extends AnnotationSliceView< RegionTableRow >
 
 	private SourceAndConverter< IntType > createRegionSourceAndConverter()
 	{
-		final TableRowsIntervalImage< RegionTableRow > intervalImage = new TableRowsIntervalImage<>( display.tableRows, display.coloringModel, display.getName() );
+		final TableRowsIntervalImage< RegionTableRow > intervalImage = new TableRowsIntervalImage<>( display.tableRows, display.selectionColoringModel, display.getName() );
 
 		return intervalImage.getSourceAndConverter();
 	}

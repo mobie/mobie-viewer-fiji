@@ -76,7 +76,6 @@ import java.util.stream.Collectors;
 
 public class ViewManager
 {
-
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	private final MoBIE moBIE;
@@ -108,9 +107,9 @@ public class ViewManager
 		if ( display.tableRows.size() == 0 ) return;
 
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
-		display.scatterPlotViewer = new ScatterPlotViewer( display.tableRows, display.selectionModel, display.coloringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
+		display.scatterPlotViewer = new ScatterPlotViewer( display.tableRows, display.selectionModel, display.selectionColoringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
-		display.coloringModel.listeners().add( display.scatterPlotViewer );
+		display.selectionColoringModel.listeners().add( display.scatterPlotViewer );
 		display.sliceViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
 
 		if ( display.showScatterPlot() )
@@ -137,21 +136,21 @@ public class ViewManager
 				coloringModel = modelCreator.createColoringModel(display.getColorByColumn(), coloringLut, null, null );
 			}
 
-			display.coloringModel = new SelectionColoringModel( coloringModel, display.selectionModel );
+			display.selectionColoringModel = new SelectionColoringModel( coloringModel, display.selectionModel );
 		}
 		else
 		{
-			display.coloringModel = new SelectionColoringModel( display.getLut(), display.selectionModel );
+			display.selectionColoringModel = new SelectionColoringModel( display.getLut(), display.selectionModel );
 		}
 	}
 
 	public void initTableViewer( SegmentationDisplay display  )
 	{
 		Map< String, String > sourceNameToTableDir = moBIE.getSegmentationTableDirectories( display );
-		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel, display.getName(), sourceNameToTableDir, false );
+		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.selectionColoringModel, display.getName(), sourceNameToTableDir, false );
 		display.tableViewer.setVisible( display.showTable() );
 		display.selectionModel.listeners().add( display.tableViewer );
-		display.coloringModel.listeners().add( display.tableViewer );
+		display.selectionColoringModel.listeners().add( display.tableViewer );
 	}
 
 	public List< SourceDisplay > getCurrentSourceDisplays()
@@ -284,6 +283,8 @@ public class ViewManager
 	{
 		// fetch the names of all sources that are either shown or to be transformed
 		final Set< String > sources = fetchSources( view );
+		if ( sources.size() == 0 ) return;
+
 		SourceNameEncoder.addNames( sources );
 		final Set< String > rawSources = sources.stream().filter( s -> moBIE.getDataset().sources.containsKey( s ) ).collect( Collectors.toSet() );
 
@@ -311,25 +312,6 @@ public class ViewManager
 		// this is where the source and segmentation displays will
 		// get the sources from
 		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
-	}
-
-	public void adjustViewerTransform( View view )
-	{
-		final BdvHandle bdvHandle = sliceViewer.getBdvHandle();
-
-		if ( view.getViewerTransform() != null )
-		{
-			SliceViewLocationChanger.changeLocation( bdvHandle, view.getViewerTransform() );
-		}
-		else
-		{
-			if ( view.isExclusive() || currentSourceDisplays.size() == 1 )
-			{
-				// TODO: rethink what should happen here...
-				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() > 0 ? currentSourceDisplays.size() - 1 : 0 );
-				new ViewerTransformAdjuster( bdvHandle, ((AbstractSourceDisplay) sourceDisplay).sourceNameToSourceAndConverter.values().iterator().next() ).run();
-			}
-		}
 	}
 
 	public Set< String > fetchSources( View view )
@@ -439,9 +421,9 @@ public class ViewManager
 	private void initTableViewer( RegionDisplay display )
 	{
 		Map< String, String > sourceNameToTableDir = moBIE.getRegionTableDirectories( display );
-		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.coloringModel, display.getName(), sourceNameToTableDir, true ).show();
+		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.selectionColoringModel, display.getName(), sourceNameToTableDir, true ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
-		display.coloringModel.listeners().add( display.tableViewer );
+		display.selectionColoringModel.listeners().add( display.tableViewer );
 	}
 
 	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
@@ -522,13 +504,13 @@ public class ViewManager
 
 	private void initSegmentationVolumeViewer( SegmentationDisplay segmentationDisplay )
 	{
-		segmentationDisplay.segmentsVolumeViewer = new SegmentsVolumeViewer<>( segmentationDisplay.selectionModel, segmentationDisplay.coloringModel, segmentationDisplay.sourceNameToSourceAndConverter.values(), universeManager );
+		segmentationDisplay.segmentsVolumeViewer = new SegmentsVolumeViewer<>( segmentationDisplay.selectionModel, segmentationDisplay.selectionColoringModel, segmentationDisplay.sourceNameToSourceAndConverter.values(), universeManager );
 		Double[] resolution3dView = segmentationDisplay.getResolution3dView();
 		if ( resolution3dView != null ) {
 			segmentationDisplay.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(segmentationDisplay.getResolution3dView()) );
 		}
 		segmentationDisplay.segmentsVolumeViewer.showSegments( segmentationDisplay.showSelectedSegmentsIn3d(), true );
-		segmentationDisplay.coloringModel.listeners().add( segmentationDisplay.segmentsVolumeViewer );
+		segmentationDisplay.selectionColoringModel.listeners().add( segmentationDisplay.segmentsVolumeViewer );
 		segmentationDisplay.selectionModel.listeners().add( segmentationDisplay.segmentsVolumeViewer );
 
 		for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceNameToSourceAndConverter.values() )
