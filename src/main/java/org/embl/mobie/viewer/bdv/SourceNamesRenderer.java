@@ -1,49 +1,53 @@
 package org.embl.mobie.viewer.bdv;
 
+import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
-import bdv.util.MipmapTransforms;
-import bdv.viewer.Interpolation;
+import bdv.util.BdvOptions;
+import bdv.util.BdvOverlay;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TransformListener;
-import bdv.viewer.ViewerPanel;
 import bdv.viewer.ViewerState;
-import ij.IJ;
-import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
-import org.embl.mobie.viewer.display.SourceDisplay;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
+import java.awt.*;
+import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class SourceNamesRenderer implements TransformListener< AffineTransform3D >
+public class SourceNamesRenderer extends BdvOverlay implements TransformListener< AffineTransform3D >
 {
 	private final BdvHandle bdvHandle;
+	private Map< String, FinalRealInterval > sourceNameToBounds = new ConcurrentHashMap< String, FinalRealInterval >();
+	private FinalRealInterval viewerInterval;
 
 	public SourceNamesRenderer( BdvHandle bdvHandle )
 	{
 		this.bdvHandle = bdvHandle;
 		bdvHandle.getViewerPanel().addTransformListener( this );
+		BdvFunctions.showOverlay(
+				this,
+				"sourceNameRenderer",
+				BdvOptions.options().addTo( bdvHandle ) );
 	}
 
 	@Override
-	public void transformChanged( AffineTransform3D transform3D )
+	public synchronized void transformChanged( AffineTransform3D transform3D )
 	{
-		final ViewerPanel viewerPanel = bdvHandle.getViewerPanel();
-		final ViewerState viewerState = viewerPanel.state().snapshot();
+		sourceNameToBounds.clear();
+		final ViewerState viewerState = bdvHandle.getViewerPanel().state().snapshot();
 
 		final AffineTransform3D viewerTransform = viewerState.getViewerTransform();
 
-		final FinalRealInterval viewerInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( bdvHandle );
+		viewerInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( bdvHandle );
 
 		final Set< SourceAndConverter< ? > > sources = viewerState.getVisibleAndPresentSources();
 
 		final int t = viewerState.getCurrentTimepoint();
-		final double expand = 0; //viewerState.getInterpolation() == Interpolation.NEARESTNEIGHBOR ? 0.5 : 1.0;
 
 		final AffineTransform3D sourceToGlobal = new AffineTransform3D();
 		final double[] sourceMin = new double[ 3 ];
@@ -58,8 +62,8 @@ public class SourceNamesRenderer implements TransformListener< AffineTransform3D
 			final Interval interval = spimSource.getSource( t, level );
 			for ( int d = 0; d < 3; d++ )
 			{
-				sourceMin[ d ] = interval.realMin( d ) - expand;
-				sourceMax[ d ] = interval.realMax( d ) + expand;
+				sourceMin[ d ] = interval.realMin( d );
+				sourceMax[ d ] = interval.realMax( d );
 			}
 			final FinalRealInterval sourceInterval = sourceToGlobal.estimateBounds( new FinalRealInterval( sourceMin, sourceMax ) );
 
@@ -67,11 +71,25 @@ public class SourceNamesRenderer implements TransformListener< AffineTransform3D
 			if ( ! Intervals.isEmpty( intersect ) )
 			{
 				final FinalRealInterval bounds = viewerTransform.estimateBounds( intersect );
-				final int x = (int) bounds.realMin( 0 );
-				final int y = (int) bounds.realMax( 1 );
-				IJ.log( "x,y: " + x + "," + y );
-				// TODO: BdvOverlay at x,y
+				// If we want the name to be always visible
+				// we could use intersect instead of bounds
+				sourceNameToBounds.put( spimSource.getName(), bounds );
 			}
+		}
+	}
+
+	@Override
+	protected void draw( Graphics2D g )
+	{
+		final double fieldOfViewWidth = viewerInterval.realMax( 0 ) - viewerInterval.realMin( 0 );
+		for ( Map.Entry< String, FinalRealInterval > entry : sourceNameToBounds.entrySet() )
+		{
+			final FinalRealInterval sourceBounds = entry.getValue();
+			final double sourceWidth = sourceBounds.realMax( 0 ) - sourceBounds.realMin( 0 );
+			final double relativeWidth = sourceWidth / fieldOfViewWidth;
+			final int fontSize = Math.min( 20,  (int) ( 20 * 4 * relativeWidth ));
+			g.setFont( new Font( "TimesRoman", Font.PLAIN, fontSize ) );
+			g.drawString( entry.getKey(), (int) sourceBounds.realMin( 0 ), (int) sourceBounds.realMax( 1 ) + fontSize );
 		}
 	}
 }
