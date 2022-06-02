@@ -76,7 +76,6 @@ import java.util.stream.Collectors;
 
 public class ViewManager
 {
-
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	private final MoBIE moBIE;
@@ -283,6 +282,8 @@ public class ViewManager
 	{
 		// fetch the names of all sources that are either shown or to be transformed
 		final Set< String > sources = fetchSources( view );
+		if ( sources.size() == 0 ) return;
+
 		SourceNameEncoder.addNames( sources );
 		final Set< String > rawSources = sources.stream().filter( s -> moBIE.getDataset().sources.containsKey( s ) ).collect( Collectors.toSet() );
 

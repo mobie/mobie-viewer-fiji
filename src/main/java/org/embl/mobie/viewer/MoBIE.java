@@ -292,7 +292,7 @@ public class MoBIE
 		}
 		MultiThreading.waitUntilFinished( futures );
 
-		IJ.log( "Opened " + sourceNameToSourceAndConverters.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).");
+		IJ.log( "Opened " + sourceNameToSourceAndConverters.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + MultiThreading.getNumIoThreads() + " thread(s).");
 
 		return sourceNameToSourceAndConverters;
 	}
@@ -569,7 +569,7 @@ public class MoBIE
 		final long durationMillis = System.currentTimeMillis() - start;
 
 		if ( durationMillis > minLogTimeMillis )
-			IJ.log( "Read " + sources.size() + " table(s) in " + durationMillis + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).");
+			IJ.log( "Read " + sources.size() + " table(s) in " + durationMillis + " ms, using up to " + MultiThreading.getNumIoThreads() + " thread(s).");
 
 		return additionalTables;
 	}
@@ -612,7 +612,7 @@ public class MoBIE
 			}
 		}
 		MultiThreading.waitUntilFinished( futures );
-		IJ.log( "Read " + numTables + " table(s) in " + (System.currentTimeMillis() - startTimeMillis) + " ms, using " + MultiThreading.getNumIoThreads() + " thread(s).");
+		IJ.log( "Read " + numTables + " table(s) in " + (System.currentTimeMillis() - startTimeMillis) + " ms, using up to " + MultiThreading.getNumIoThreads() + " thread(s).");
 		return primaryTables;
 	}
 
