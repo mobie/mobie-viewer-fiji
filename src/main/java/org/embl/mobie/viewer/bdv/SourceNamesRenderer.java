@@ -4,6 +4,7 @@ import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.BdvOverlay;
+import bdv.util.BdvOverlaySource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TransformListener;
@@ -24,21 +25,33 @@ public class SourceNamesRenderer extends BdvOverlay implements TransformListener
 	private final BdvHandle bdvHandle;
 	private Map< String, FinalRealInterval > sourceNameToBounds = new ConcurrentHashMap< String, FinalRealInterval >();
 	private FinalRealInterval viewerInterval;
+	private BdvOverlaySource< SourceNamesRenderer > overlaySource;
 
 	public SourceNamesRenderer( BdvHandle bdvHandle )
 	{
 		this.bdvHandle = bdvHandle;
 		bdvHandle.getViewerPanel().addTransformListener( this );
-		BdvFunctions.showOverlay(
+		overlaySource = BdvFunctions.showOverlay(
 				this,
 				"sourceNameRenderer",
 				BdvOptions.options().addTo( bdvHandle ) );
 	}
 
+	public void setActive( boolean isActive )
+	{
+		overlaySource.setActive( isActive );
+	}
+
 	@Override
-	public synchronized void transformChanged( AffineTransform3D transform3D )
+	public void transformChanged( AffineTransform3D transform3D )
+	{
+		determineVisibleSources();
+	}
+
+	private synchronized void determineVisibleSources()
 	{
 		sourceNameToBounds.clear();
+
 		final ViewerState viewerState = bdvHandle.getViewerPanel().state().snapshot();
 
 		final AffineTransform3D viewerTransform = viewerState.getViewerTransform();
@@ -56,6 +69,8 @@ public class SourceNamesRenderer extends BdvOverlay implements TransformListener
 		for ( final SourceAndConverter< ? > source : sources )
 		{
 			final Source< ? > spimSource = source.getSpimSource();
+			// TODO: maybe this is faster with another level?
+			//  in fact, as in BDV using the current level is probably best...
 			final int level = 0; // spimSource.getNumMipmapLevels() - 1;
 			spimSource.getSourceTransform( t, level, sourceToGlobal );
 

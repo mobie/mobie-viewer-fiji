@@ -102,6 +102,11 @@ public class SliceViewer
 		installContextMenuAndKeyboardShortCuts();
 	}
 
+	public SourceNamesRenderer getSourceNameRenderer()
+	{
+		return sourceNameRenderer;
+	}
+
 	public BdvHandle getBdvHandle()
 	{
 		if ( bdvHandle == null )

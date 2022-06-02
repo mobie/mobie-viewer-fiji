@@ -90,7 +90,6 @@ public class UserInterface
 		splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
 		final int actionPanelHeight = userInterfaceHelper.getActionPanelHeight();
 
-
 		splitPane.setDividerLocation( actionPanelHeight );
 		splitPane.setTopComponent( selectionPanel );
 		splitPane.setBottomComponent( displaySettingsPanel );

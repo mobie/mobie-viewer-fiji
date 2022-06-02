@@ -99,7 +99,6 @@ public class ViewManager
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewSaver = new ViewSaver( moBIE );
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-
 	}
 
 	public static void initScatterPlotViewer( AnnotationDisplay< ? > display )
@@ -277,6 +276,9 @@ public class ViewManager
 			final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1);
 			new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), ((AbstractSourceDisplay) sourceDisplay).sourceNameToSourceAndConverter.values().iterator().next() ).run();
 		}
+
+		// trigger rendering of source name overlay
+		getSliceViewer().getSourceNameRenderer().transformChanged( sliceViewer.getBdvHandle().getViewerPanel().state().getViewerTransform() );
 	}
 
 	public void openAndTransformSources( View view )
