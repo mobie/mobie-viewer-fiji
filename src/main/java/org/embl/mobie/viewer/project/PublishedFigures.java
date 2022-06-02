@@ -41,7 +41,11 @@ public class PublishedFigures
 	public PublishedFigures()
 	{
 		mobieFigure1c();
-		mobieFigure2a();
+		mobieFigure2( "a" );
+		mobieFigure2( "b" );
+		mobieFigure2( "c" );
+		mobieFigure2( "d" );
+		mobieFigure2( "e" );
 		mobieFigure3( "a" );
 		mobieFigure3( "b" );
 		mobieFigure3( "c" );
@@ -63,10 +67,10 @@ public class PublishedFigures
 	{
 		final PublishedFigure figure = new PublishedFigure();
 		figure.publicationAbbreviation = MOBIE;
-		figure.name = "Figure 2a";
+		figure.name = "Figure 2" + panel;
 		figure.location = "https://github.com/mobie/clem-example-project";
-		figure.view = "Figure2a";
-		figure.publicationURL = "TBD";
+		figure.view = "Figure2" + panel;
+		figure.publicationURL = "https://github.com/mobie/clem-example-project";
 		publishedFigures.add( figure );
 	}
 
@@ -76,7 +80,7 @@ public class PublishedFigures
 		figure.publicationAbbreviation = MOBIE;
 		figure.name = "Figure 3" + panel;
 		figure.location = "https://github.com/mobie/covid-if-project";
-		figure.view = "Figure3"+panel;
+		figure.view = "Figure3" + panel;
 		figure.publicationURL = "TBD";
 		publishedFigures.add( figure );
 	}
