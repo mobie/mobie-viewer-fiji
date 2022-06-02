@@ -313,25 +313,6 @@ public class ViewManager
 		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
 	}
 
-	public void adjustViewerTransform( View view )
-	{
-		final BdvHandle bdvHandle = sliceViewer.getBdvHandle();
-
-		if ( view.getViewerTransform() != null )
-		{
-			SliceViewLocationChanger.changeLocation( bdvHandle, view.getViewerTransform() );
-		}
-		else
-		{
-			if ( view.isExclusive() || currentSourceDisplays.size() == 1 )
-			{
-				// TODO: rethink what should happen here...
-				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() > 0 ? currentSourceDisplays.size() - 1 : 0 );
-				new ViewerTransformAdjuster( bdvHandle, ((AbstractSourceDisplay) sourceDisplay).sourceNameToSourceAndConverter.values().iterator().next() ).run();
-			}
-		}
-	}
-
 	public Set< String > fetchSources( View view )
 	{
 		final Set< String > sources = new HashSet<>();
