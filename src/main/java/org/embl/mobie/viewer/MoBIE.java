@@ -409,11 +409,12 @@ public class MoBIE
 		try
 		{
 			IJ.log( "Closing MoBIE..." );
-			IJ.log( "Closing MoBIE may lead to errors due to processes that are interrupted." );
-			IJ.log( "Usually it is fine to ignore those errors." );
+			IJ.log( "Closing I/O threads..." );
 			MultiThreading.resetIOThreads();
 			viewManager.close();
 			IJ.log( "MoBIE closed." );
+			IJ.log( "Closing MoBIE may have lead to errors due to processes that are interrupted." );
+			IJ.log( "Usually it is fine to ignore those errors." );
 		}
 		catch ( Exception e )
 		{

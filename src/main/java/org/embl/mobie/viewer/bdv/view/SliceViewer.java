@@ -30,6 +30,7 @@ package org.embl.mobie.viewer.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.MobieBdvSupplier;
 import org.embl.mobie.viewer.bdv.MobieSerializableBdvOptions;
@@ -48,6 +49,7 @@ import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
+import org.embl.mobie.viewer.source.SourceHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -56,7 +58,6 @@ import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import javax.swing.*;
 import java.awt.*;
@@ -225,13 +226,16 @@ public class SliceViewer
 	public void updateTimepointSlider( )
 	{
 		final List< SourceAndConverter< ? > > sources = bdvHandle.getViewerPanel().state().getSources();
+		if ( sources.size() == 0 ) return;
+
 		int numTimepoints = 1;
 		for ( SourceAndConverter< ? > source : sources )
 		{
-			final int numSourceTimepoints = SourceAndConverterHelper.getMaxTimepoint( source ); // See https://github.com/bigdataviewer/bigdataviewer-playground/issues/251
+			int numSourceTimepoints = SourceHelper.getNumTimepoints( source );
 			if ( numSourceTimepoints > numTimepoints )
 				numTimepoints = numSourceTimepoints;
 		}
 		bdvHandle.getViewerPanel().state().setNumTimepoints( numTimepoints );
 	}
+
 }

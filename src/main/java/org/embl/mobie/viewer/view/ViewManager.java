@@ -576,9 +576,12 @@ public class ViewManager
 
 	public void close()
 	{
+		IJ.log( "Closing BDV..." );
 		removeAllSourceDisplays( true );
 		sliceViewer.getBdvHandle().close();
+		IJ.log( "Closing 3D Viewer..." );
 		universeManager.close();
+		IJ.log( "Closing UI..." );
 		userInterface.close();
 	}
 }

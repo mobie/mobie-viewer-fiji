@@ -143,4 +143,21 @@ public abstract class SourceHelper
             return null;
         }
     }
+
+	public static int getNumTimepoints( SourceAndConverter< ? > source )
+	{
+		int numSourceTimepoints = 0;
+		for ( int t = 0; t < 10000; t++ )
+		{
+			if ( source.getSpimSource().isPresent( t ) )
+            {
+                numSourceTimepoints++;
+            }
+            else
+            {
+                return numSourceTimepoints;
+            }
+		}
+		return numSourceTimepoints;
+	}
 }

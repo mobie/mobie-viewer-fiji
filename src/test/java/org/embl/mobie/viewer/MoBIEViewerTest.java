@@ -150,12 +150,4 @@ public class MoBIEViewerTest
 		assertTrue( scatterPlotViewerVisible );
 		assertTrue( volumeViewerShowSegments );
 	}
-
-	@AfterEach
-	public void closeMoBIE()
-	{
-		IJ.log( "Waiting for MoBIE to finish initialization..." );
-		IJ.wait( 10000 );
-		//moBIE.close(); // currently not needed as opening a new MoBIE will automatically close the current one.
-	}
 }
