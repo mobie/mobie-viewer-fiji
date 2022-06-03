@@ -445,9 +445,10 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	@Override
 	public synchronized void focusEvent( S selection, Object initiator )
 	{
-		if ( initiator == this ) return;
-		if ( universe.getContents().size() == 0 ) return;
 		if ( ! showSegments ) return;
+		if ( initiator == this ) return;
+		if ( universe == null ) return;
+		if ( universe.getContents().size() == 0 ) return;
 		if ( ! segmentToContent.containsKey( selection ) )
 		{
 			// selected segment is not shown in 3d
