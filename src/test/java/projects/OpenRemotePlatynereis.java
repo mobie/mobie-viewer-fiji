@@ -37,15 +37,10 @@ import org.embl.mobie.io.ImageDataFormat;
 
 public class OpenRemotePlatynereis
 {
-	public static void main( String[] args )
+	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-
-		try {
-			new MoBIE("https://github.com/platybrowser/platybrowser" );
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		new MoBIE("https://github.com/platybrowser/platybrowser" );
 	}
 }

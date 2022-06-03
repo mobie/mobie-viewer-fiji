@@ -33,17 +33,26 @@ public class SourceNamesRenderer extends BdvOverlay implements TransformListener
 	{
 		this.bdvHandle = bdvHandle;
 		bdvHandle.getViewerPanel().addTransformListener( this );
-		overlaySource = BdvFunctions.showOverlay(
-				this,
-				"sourceNameRenderer",
-				BdvOptions.options().addTo( bdvHandle ) );
 		setActive( isActive );
 	}
 
 	public void setActive( boolean isActive )
 	{
 		this.isActive = isActive;
-		overlaySource.setActive( isActive );
+
+		if ( isActive && overlaySource == null )
+		{
+			// only add the overlay source once it is activated
+			// otherwise it interferes from unknown reasons
+			// with the scale bar overlay of BDV
+			overlaySource = BdvFunctions.showOverlay(
+					this,
+					"sourceNameRenderer",
+					BdvOptions.options().addTo( bdvHandle ) );
+		}
+
+		if ( overlaySource != null )
+			overlaySource.setActive( isActive );
 	}
 
 	public boolean isActive()

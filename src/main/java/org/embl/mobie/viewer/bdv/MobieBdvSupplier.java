@@ -38,6 +38,7 @@ import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.basictypeaccess.array.ByteArray;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.ByteType;
 import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
 
@@ -48,6 +49,9 @@ public class MobieBdvSupplier implements IBdvSupplier {
     public MobieBdvSupplier( MobieSerializableBdvOptions sOptions )
     {
         this.sOptions = sOptions;
+        Prefs.showScaleBar( true );
+        Prefs.showMultibox( false );
+        Prefs.sourceNameOverlayPosition( Prefs.OverlayPosition.TOP_RIGHT );
     }
 
     @Override
@@ -59,10 +63,6 @@ public class MobieBdvSupplier implements IBdvSupplier {
         ArrayImg<ByteType, ByteArray> dummyImg = ArrayImgs.bytes(2, 2, 2);
         options = options.sourceTransform( new AffineTransform3D() );
 
-        Prefs.showScaleBar( true );
-        Prefs.showMultibox( false );
-        Prefs.sourceNameOverlayPosition( Prefs.OverlayPosition.TOP_RIGHT );
-        
         BdvStackSource<ByteType> bss = BdvFunctions.show( dummyImg, "dummy", options );
         BdvHandle bdv = bss.getBdvHandle();
 
@@ -70,6 +70,10 @@ public class MobieBdvSupplier implements IBdvSupplier {
 
         // remove dummy image
         bdv.getViewerPanel().state().removeSource(bdv.getViewerPanel().state().getCurrentSource());
+
+        // TODO: this constructions appears a bit brittle.
+        //  BDV does not seem to handle it very well if there
+        //  is no image shown...
 
         return bdv;
     }
