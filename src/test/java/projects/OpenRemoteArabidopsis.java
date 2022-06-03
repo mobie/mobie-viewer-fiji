@@ -28,12 +28,10 @@
  */
 package projects;
 
-import org.embl.mobie.viewer.MoBIESettings;
-import org.embl.mobie.viewer.MoBIE;
 import net.imagej.ImageJ;
+import org.embl.mobie.viewer.MoBIE;
 
 import java.io.IOException;
-import org.embl.mobie.io.ImageDataFormat;
 
 public class OpenRemoteArabidopsis
 {
@@ -41,6 +39,6 @@ public class OpenRemoteArabidopsis
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("https://github.com/mobie/arabidopsis-root-lm-datasets", MoBIESettings.settings().gitProjectBranch( "main" ).addImageDataFormat( ImageDataFormat.BdvN5S3 ) );
+		new MoBIE("https://github.com/mobie/arabidopsis-root-lm-datasets" );
 	}
 }

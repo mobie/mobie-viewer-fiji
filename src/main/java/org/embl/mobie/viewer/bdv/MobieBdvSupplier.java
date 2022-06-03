@@ -70,7 +70,6 @@ public class MobieBdvSupplier implements IBdvSupplier {
 
         // remove dummy image
         bdv.getViewerPanel().state().removeSource(bdv.getViewerPanel().state().getCurrentSource());
-        bdv.getViewerPanel().setNumTimepoints( sOptions.numTimePoints );
 
         return bdv;
     }

@@ -72,7 +72,6 @@ public class OMEZarrViewer
 
         final Collection< SourceAndConverter > sourceAndConverters = creator.getSetupIdToSourceAndConverter().values();
 
-        int numTimePoints = 1;
         // TODO: numTimePoints
         // TODO: is2D
         // SourceAndConverterHelper.getMaxTimepoint(  )
@@ -81,7 +80,7 @@ public class OMEZarrViewer
         Prefs.showMultibox( true );
         Prefs.scaleBarColor( ARGBType.rgba( 255, 255, 255, 255 ) );
         PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
-        bdvHandle = SliceViewer.createBdv( numTimePoints, false, "OME-Zarr - BigDataViewer" );
+        bdvHandle = SliceViewer.createBdv( false, "OME-Zarr - BigDataViewer" );
         sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
         sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
 

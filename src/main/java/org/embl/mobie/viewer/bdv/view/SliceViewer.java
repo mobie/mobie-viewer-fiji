@@ -56,6 +56,7 @@ import sc.fiji.bdvpg.behaviour.SourceAndConverterContextMenuClickBehaviour;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import javax.swing.*;
 import java.awt.*;
@@ -91,7 +92,7 @@ public class SliceViewer
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
-		bdvHandle = createBdv( timepoints, is2D, FRAME_TITLE );
+		bdvHandle = createBdv( is2D, FRAME_TITLE );
 		setBdvWindowPositionAndSize( bdvHandle );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
@@ -109,7 +110,7 @@ public class SliceViewer
 	{
 		if ( bdvHandle == null )
 		{
-			bdvHandle = createBdv( timepoints, is2D, FRAME_TITLE );
+			bdvHandle = createBdv( is2D, FRAME_TITLE );
 			sacDisplayService.registerBdvHandle( bdvHandle );
 		}
 		return bdvHandle;
@@ -184,11 +185,10 @@ public class SliceViewer
 				"Change random color seed", "ctrl L" ) ;
 	}
 
-	public static BdvHandle createBdv( int numTimepoints, boolean is2D, String frameTitle )
+	public static BdvHandle createBdv( boolean is2D, String frameTitle )
 	{
 		final MobieSerializableBdvOptions sOptions = new MobieSerializableBdvOptions();
 		sOptions.is2D = is2D;
-		sOptions.numTimePoints = numTimepoints;
 		sOptions.frameTitle = frameTitle;
 
 		IBdvSupplier bdvSupplier = new MobieBdvSupplier( sOptions );
@@ -217,6 +217,10 @@ public class SliceViewer
 		OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
 		// show in Bdv
+		final int numViewerTimepoints = bdvHandle.getViewerPanel().state().getNumTimepoints();
+		final int numSourceTimepoints = SourceAndConverterHelper.getMaxTimepoint( sourceAndConverter ); // See https://github.com/bigdataviewer/bigdataviewer-playground/issues/251
+		if ( numSourceTimepoints > numViewerTimepoints )
+			bdvHandle.getViewerPanel().state().setNumTimepoints( numSourceTimepoints);
 		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
 
 	}

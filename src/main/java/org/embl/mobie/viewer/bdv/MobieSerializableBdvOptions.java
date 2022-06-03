@@ -56,8 +56,6 @@ public class MobieSerializableBdvOptions {
 
     public boolean interpolate = true;
 
-    public int numTimePoints = 1;
-
     public AccumulateProjectorFactory<ARGBType> accumulateProjectorFactory = new AccumulateOccludingProjectorARGBFactory();
 
     public BdvOptions getBdvOptions() {
