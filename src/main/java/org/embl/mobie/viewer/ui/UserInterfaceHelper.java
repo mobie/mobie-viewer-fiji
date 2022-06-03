@@ -36,7 +36,6 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import org.embl.mobie.viewer.*;
-import org.embl.mobie.viewer.bdv.SourceNamesRenderer;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
@@ -229,14 +228,14 @@ public class UserInterfaceHelper
 		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.sourceNameToSourceAndConverter.values() );
 
 		// Buttons
-		panel.add( createSpace() );
+		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() ); // color
 		panel.add( createButtonPlaceholder() ); // brightness
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
-		panel.add( createSpace() );
+		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
 		panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableViewer.getWindow() ) );
@@ -309,14 +308,14 @@ public class UserInterfaceHelper
 		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.sourceNameToSourceAndConverter.values() );
 
 		// Buttons
-		panel.add( createSpace() );
+		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createColorButton( panel, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
 		panel.add( createImageDisplayBrightnessButton( display ) );
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
-		panel.add( createSpace() );
+		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createImageVolumeViewerVisibilityCheckbox( display ) );
 		panel.add( createCheckboxPlaceholder() );
@@ -355,13 +354,13 @@ public class UserInterfaceHelper
 		List< SourceAndConverter< ? > > sourceAndConverters =
 				new ArrayList<>( display.sourceNameToSourceAndConverter.values() );
 
-		panel.add( createSpace() );
+		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createButtonPlaceholder() );
 		panel.add( createRemoveButton( display ) );
-		panel.add( createSpace() );
+		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		if ( display.tableRows != null )
 		{
@@ -497,6 +496,7 @@ public class UserInterfaceHelper
 		}).start() );
 
 		panel.add( checkBox );
+		panel.add( space() );
 		panel.add( button );
 		return panel;
 	}
@@ -615,10 +615,11 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	private static Component createSpace()
+	private static Component space()
 	{
 		return Box.createRigidArea( PREFERRED_SPACE_SIZE );
 	}
+
 	private static Component createButtonPlaceholder()
 	{
 		return Box.createRigidArea( PREFERRED_BUTTON_SIZE );

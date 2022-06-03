@@ -48,6 +48,12 @@ public class MultiThreading
 	public static final SharedQueue sharedQueue = new SharedQueue( N_FETCHER_THREADS );
 	public static ExecutorService executorService = Executors.newFixedThreadPool( N_THREADS );
 
+	public static void resetIOThreads()
+	{
+		ioExecutorService.shutdownNow();
+		ioExecutorService = Executors.newFixedThreadPool( N_IO_THREADS );
+	}
+
 	public static void setNumIoThreads( int numIoThreads )
 	{
 		N_IO_THREADS = numIoThreads;
@@ -68,10 +74,11 @@ public class MultiThreading
 				future.get();
 			} catch ( InterruptedException e )
 			{
-				e.printStackTrace();
-			} catch ( ExecutionException e )
+				break; // loading has been interrupted
+			}
+			catch ( ExecutionException e )
 			{
-				e.printStackTrace();
+				break; // loading has been interrupted
 			}
 		}
 	}

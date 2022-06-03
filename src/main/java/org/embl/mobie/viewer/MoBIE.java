@@ -328,12 +328,23 @@ public class MoBIE
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
-		final View view = dataset.views.get( settings.values.getView() );
+		final View view = getView();
 		view.setName( settings.values.getView() );
 		IJ.log( "Opening view: " + view.getName() );
 		final long startTime = System.currentTimeMillis();
 		viewManager.show( view );
 		IJ.log("Opened view: " + view.getName() + ", in " + (System.currentTimeMillis() - startTime) + " ms." );
+	}
+
+	private View getView() throws IOException
+	{
+		final View view = dataset.views.get( settings.values.getView() );
+		if ( view == null )
+		{
+			System.err.println("The view \"" + settings.values.getView() + "\" could not be found in this dataset." );
+			throw new IOException();
+		}
+		return view;
 	}
 
 	private void setDatasetName( String datasetName )
@@ -398,6 +409,9 @@ public class MoBIE
 		try
 		{
 			IJ.log( "Closing MoBIE..." );
+			IJ.log( "Closing MoBIE may lead to errors due to processes that are interrupted." );
+			IJ.log( "Usually it is fine to ignore those errors." );
+			MultiThreading.resetIOThreads();
 			viewManager.close();
 			IJ.log( "MoBIE closed." );
 		}
@@ -438,9 +452,8 @@ public class MoBIE
 		}
 		catch ( Exception e )
 		{
-			System.err.println( "Error opening: " + imagePath );
-			e.printStackTrace();
-			throw new RuntimeException();
+			System.err.println( "Error or interruption opening: " + imagePath );
+			throw e;
 		}
     }
 
