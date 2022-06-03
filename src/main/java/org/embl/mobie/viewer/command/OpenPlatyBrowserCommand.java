@@ -43,7 +43,7 @@ public class OpenPlatyBrowserCommand implements Command
 	@Override
 	public void run()
 	{
-		MoBIESettings options = MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5S3 );
+		MoBIESettings options = MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5S3 );
 
 		try
 		{

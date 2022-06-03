@@ -36,6 +36,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import org.embl.mobie.viewer.*;
+import org.embl.mobie.viewer.bdv.SourceNamesRenderer;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
@@ -489,7 +490,7 @@ public class UserInterfaceHelper
 		} );
 
 		JCheckBox checkBox = new JCheckBox( "overlay names" );
-		checkBox.setSelected( true );
+		checkBox.setSelected( moBIE.initiallyShowSourceNames );
 		checkBox.addActionListener( e -> new Thread( () ->
 		{
 			moBIE.getViewManager().getSliceViewer().getSourceNameRenderer().setActive( checkBox.isSelected() );

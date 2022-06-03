@@ -119,4 +119,28 @@ public abstract class SourceHelper
             return null;
         }
     }
+
+
+    public static LabelSource< ? > isAnnotationSource( SourceAndConverter sac )
+    {
+        if ( sac.getSpimSource() instanceof LabelSource )
+        {
+            return ( LabelSource< ? > ) sac.getSpimSource();
+        }
+        else if ( sac.getSpimSource() instanceof TransformedSource )
+        {
+            if ( ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource() instanceof LabelSource )
+            {
+                return ( LabelSource< ? > ) ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource();
+            }
+            else
+            {
+                return null;
+            }
+        }
+        else
+        {
+            return null;
+        }
+    }
 }

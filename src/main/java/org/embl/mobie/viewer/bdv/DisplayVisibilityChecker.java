@@ -1,7 +1,6 @@
 package org.embl.mobie.viewer.bdv;
 
 import bdv.util.BdvHandle;
-import javafx.beans.value.ObservableDoubleValue;
 import net.imglib2.FinalRealInterval;
 import org.embl.mobie.viewer.display.SourceDisplay;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;

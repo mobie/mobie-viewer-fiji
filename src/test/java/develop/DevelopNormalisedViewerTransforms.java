@@ -48,7 +48,7 @@ public class DevelopNormalisedViewerTransforms
 
 		try {
 			final MoBIE moBIE = new MoBIE("https://github.com/mobie-org/covid-em-datasets",
-					MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5S3 ) );
+					MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5S3 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

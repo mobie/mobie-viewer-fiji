@@ -13,6 +13,7 @@ import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.viewer.source.SourceHelper;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
 import java.awt.*;
@@ -26,8 +27,9 @@ public class SourceNamesRenderer extends BdvOverlay implements TransformListener
 	private Map< String, FinalRealInterval > sourceNameToBounds = new ConcurrentHashMap< String, FinalRealInterval >();
 	private FinalRealInterval viewerInterval;
 	private BdvOverlaySource< SourceNamesRenderer > overlaySource;
+	private boolean isActive;
 
-	public SourceNamesRenderer( BdvHandle bdvHandle )
+	public SourceNamesRenderer( BdvHandle bdvHandle, boolean isActive )
 	{
 		this.bdvHandle = bdvHandle;
 		bdvHandle.getViewerPanel().addTransformListener( this );
@@ -35,20 +37,28 @@ public class SourceNamesRenderer extends BdvOverlay implements TransformListener
 				this,
 				"sourceNameRenderer",
 				BdvOptions.options().addTo( bdvHandle ) );
+		setActive( isActive );
 	}
 
 	public void setActive( boolean isActive )
 	{
+		this.isActive = isActive;
 		overlaySource.setActive( isActive );
 	}
+
+	public boolean isActive()
+	{
+		return isActive;
+	}
+
 
 	@Override
 	public void transformChanged( AffineTransform3D transform3D )
 	{
-		determineVisibleSources();
+		adaptSourceNames();
 	}
 
-	private synchronized void determineVisibleSources()
+	private synchronized void adaptSourceNames()
 	{
 		sourceNameToBounds.clear();
 
@@ -68,9 +78,14 @@ public class SourceNamesRenderer extends BdvOverlay implements TransformListener
 
 		for ( final SourceAndConverter< ? > source : sources )
 		{
+			if( SourceHelper.getLabelSource( source ) != null )
+			{
+				// do not show names of "overlays"
+				continue;
+			}
+
 			final Source< ? > spimSource = source.getSpimSource();
-			// TODO: maybe this is faster with another level?
-			//  in fact, as in BDV using the current level is probably best...
+
 			final int level = 0; // spimSource.getNumMipmapLevels() - 1;
 			spimSource.getSourceTransform( t, level, sourceToGlobal );
 
@@ -81,14 +96,14 @@ public class SourceNamesRenderer extends BdvOverlay implements TransformListener
 				sourceMax[ d ] = interval.realMax( d );
 			}
 			final FinalRealInterval sourceInterval = sourceToGlobal.estimateBounds( new FinalRealInterval( sourceMin, sourceMax ) );
-
 			final FinalRealInterval intersect = Intervals.intersect( sourceInterval, viewerInterval );
 			if ( ! Intervals.isEmpty( intersect ) )
 			{
-				final FinalRealInterval bounds = viewerTransform.estimateBounds( intersect );
 				// If we want the name to be always visible
-				// we could use intersect instead of bounds
-				sourceNameToBounds.put( spimSource.getName(), bounds );
+				// we could use intersect:
+				// final FinalRealInterval boundsInViewer = viewerTransform.estimateBounds( intersect );
+				final FinalRealInterval boundsInViewer = viewerTransform.estimateBounds( sourceInterval );
+				sourceNameToBounds.put( spimSource.getName(), boundsInViewer );
 			}
 		}
 	}
@@ -96,15 +111,14 @@ public class SourceNamesRenderer extends BdvOverlay implements TransformListener
 	@Override
 	protected void draw( Graphics2D g )
 	{
-		final double fieldOfViewWidth = viewerInterval.realMax( 0 ) - viewerInterval.realMin( 0 );
 		for ( Map.Entry< String, FinalRealInterval > entry : sourceNameToBounds.entrySet() )
 		{
-			final FinalRealInterval sourceBounds = entry.getValue();
-			final double sourceWidth = sourceBounds.realMax( 0 ) - sourceBounds.realMin( 0 );
-			final double relativeWidth = sourceWidth / fieldOfViewWidth;
+			final FinalRealInterval sourceBoundsInViewer = entry.getValue();
+			final double sourceWidth = sourceBoundsInViewer.realMax( 0 ) - sourceBoundsInViewer.realMin( 0 );
+			final double relativeWidth = 1.0 * sourceWidth / bdvHandle.getViewerPanel().getWidth();
 			final int fontSize = Math.min( 20,  (int) ( 20 * 4 * relativeWidth ));
 			g.setFont( new Font( "TimesRoman", Font.PLAIN, fontSize ) );
-			g.drawString( entry.getKey(), (int) sourceBounds.realMin( 0 ), (int) sourceBounds.realMax( 1 ) + fontSize );
+			g.drawString( entry.getKey(), (int) sourceBoundsInViewer.realMin( 0 ), (int) sourceBoundsInViewer.realMax( 1 ) + fontSize );
 		}
 	}
 }

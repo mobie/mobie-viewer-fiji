@@ -42,7 +42,7 @@ public class OpenLocalAutophagosomesEM
 		new ImageJ().ui().showUI();
         try {
             new MoBIE("/g/kreshuk/pape/work/my_projects/autophagosoms-clem/data",
-                    MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ) );
+                    MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5 ) );
         } catch (IOException e) {
             e.printStackTrace();
         }

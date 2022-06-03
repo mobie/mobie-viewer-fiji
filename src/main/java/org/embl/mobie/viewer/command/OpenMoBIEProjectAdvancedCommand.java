@@ -67,7 +67,7 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 					projectLocation,
 					MoBIESettings.settings()
 							.gitProjectBranch( projectBranch )
-							.imageDataFormat( ImageDataFormat.valueOf( imageDataStorageModality ) )
+							.addImageDataFormat( ImageDataFormat.valueOf( imageDataStorageModality ) )
 							.imageDataLocation( imageDataLocation )
 							.tableDataLocation( tableDataLocation )
 							.gitTablesBranch( tableDataBranch ) );

@@ -41,7 +41,7 @@ public class OpenRemoteOmeZarr
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        new MoBIE("https://s3.embl.de/i2k-2020/project-ome-zarr", MoBIESettings.settings().gitProjectBranch( "master" ).imageDataFormat( ImageDataFormat.OmeZarrS3));
+        new MoBIE("https://s3.embl.de/i2k-2020/project-ome-zarr", MoBIESettings.settings().gitProjectBranch( "master" ).addImageDataFormat( ImageDataFormat.OmeZarrS3));
     }
 }
 

@@ -41,6 +41,6 @@ public class OpenLocalGiuliaMartinCLEM
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("/g/emcf/pape/clem-example-project", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ) );
+		new MoBIE("/g/emcf/pape/clem-example-project", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5 ) );
 	}
 }

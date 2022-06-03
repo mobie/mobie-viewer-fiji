@@ -28,9 +28,7 @@
  */
 package org.embl.mobie.viewer.bdv.view;
 
-import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
-import bdv.util.BdvOptions;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.MobieBdvSupplier;
@@ -97,7 +95,7 @@ public class SliceViewer
 		setBdvWindowPositionAndSize( bdvHandle );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
-		sourceNameRenderer = new SourceNamesRenderer( bdvHandle );
+		sourceNameRenderer = new SourceNamesRenderer( bdvHandle, moBIE.initiallyShowSourceNames );
 
 		installContextMenuAndKeyboardShortCuts();
 	}

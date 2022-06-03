@@ -95,6 +95,7 @@ public class MoBIE
 	private Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
 	private ArrayList< String > projectCommands = new ArrayList<>();;
 	public static int minLogTimeMillis = 100;
+	public static boolean initiallyShowSourceNames = false;
 
 	public MoBIE( String projectRoot ) throws IOException
 	{
@@ -123,7 +124,7 @@ public class MoBIE
 		projectName = MoBIEHelper.getName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
-		this.settings = setImageDataFormat( projectLocation );
+		setImageDataFormats( projectLocation );
 		openDataset();
 	}
 
@@ -157,47 +158,46 @@ public class MoBIE
 		}
 	}
 
-	private MoBIESettings setImageDataFormat( String projectLocation )
+	private void setImageDataFormats( String projectLocation )
 	{
-		final List<ImageDataFormat> imageDataFormat = settings.values.getImageDataFormat();
+		final Set< ImageDataFormat > imageDataFormat = settings.values.getImageDataFormats();
 
-		if ( imageDataFormat.size()  != 0 )
+		if ( imageDataFormat.size() > 0 )
 		{
 			if ( project.getImageDataFormats().stream().noneMatch(imageDataFormat::contains) )
 			{
 				throw new RuntimeException( "The requested image data format " + imageDataFormat + " is not supported by the project: " + projectLocation );
 			}
 		}
-		else // automatically determine the correct image format
+		else
 		{
 			final List< ImageDataFormat > imageDataFormats = project.getImageDataFormats();
 			if ( projectLocation.startsWith( "http" ) )
 			{
 				if ( imageDataFormats.contains( ImageDataFormat.OmeZarrS3 ) )
-					settings.imageDataFormat( ImageDataFormat.OmeZarrS3 );
+					 settings.addImageDataFormat( ImageDataFormat.OmeZarrS3 );
 				if ( imageDataFormats.contains( ImageDataFormat.BdvOmeZarrS3 ) )
-					 settings.imageDataFormat( ImageDataFormat.BdvOmeZarrS3 );
+					 settings.addImageDataFormat( ImageDataFormat.BdvOmeZarrS3 );
 				if ( imageDataFormats.contains( ImageDataFormat.BdvN5S3 ) )
-					 settings.imageDataFormat( ImageDataFormat.BdvN5S3 );
+					 settings.addImageDataFormat( ImageDataFormat.BdvN5S3 );
 				if ( imageDataFormats.contains( ImageDataFormat.OpenOrganelleS3 ) )
-					 settings.imageDataFormat( ImageDataFormat.OpenOrganelleS3 );
-				if (!(imageDataFormats.contains( ImageDataFormat.OmeZarrS3 ) || imageDataFormats.contains( ImageDataFormat.BdvOmeZarrS3 )
+					 settings.addImageDataFormat( ImageDataFormat.OpenOrganelleS3 );
+				if ( ! ( imageDataFormats.contains( ImageDataFormat.OmeZarrS3 ) || imageDataFormats.contains( ImageDataFormat.BdvOmeZarrS3 )
                 || imageDataFormats.contains( ImageDataFormat.BdvN5S3 ) ||  imageDataFormats.contains( ImageDataFormat.OpenOrganelleS3 )))
-					throw new UnsupportedOperationException( "Could not find an S3 storage of the images." );
+					throw new UnsupportedOperationException( "Could not find any S3 storage of the images." );
 			}
 			else
 			{
 				if ( imageDataFormats.contains( ImageDataFormat.OmeZarr ) )
-					return settings.imageDataFormat( ImageDataFormat.OmeZarr );
-				else if ( imageDataFormats.contains( ImageDataFormat.BdvOmeZarr ) )
-					return settings.imageDataFormat( ImageDataFormat.BdvOmeZarr );
-				else if ( imageDataFormats.contains( ImageDataFormat.BdvN5 ) )
-					return settings.imageDataFormat( ImageDataFormat.BdvN5 );
+					settings.addImageDataFormat( ImageDataFormat.OmeZarr );
+				if ( imageDataFormats.contains( ImageDataFormat.BdvOmeZarr ) )
+					settings.addImageDataFormat( ImageDataFormat.BdvOmeZarr );
+				if ( imageDataFormats.contains( ImageDataFormat.BdvN5 ) )
+					settings.addImageDataFormat( ImageDataFormat.BdvN5 );
 				else
-					throw new UnsupportedOperationException( "Could not find a file system storage of the images." );
+					throw new UnsupportedOperationException( "Could not find any file system storage of the images." );
 			}
 		}
-		return settings;
 	}
 
 	public static void mergeRegionTables( List< RegionTableRow > tableRows, Map< String, List< String > > columns )
@@ -417,17 +417,8 @@ public class MoBIE
 	public SourceAndConverter< ? > openSourceAndConverter( String sourceName, String log )
 	{
 		final ImageSource imageSource = getSource( sourceName );
-        Set<ImageDataFormat> tmp = imageSource.imageData.keySet();
-        ImageDataFormat imageDataFormat = null;
-        for ( ImageDataFormat f : tmp ) {
-            if ( settings.values.getImageDataFormat().contains( f ) ) {
-                imageDataFormat = f;
-            }
-        }
-        if (imageDataFormat == null) {
-            System.err.println( "Error opening: " + imageSource );
-            throw new RuntimeException();
-        }
+
+		ImageDataFormat imageDataFormat = getImageDataFormat( sourceName, imageSource.imageData.keySet() );
 
 		final String imagePath = getImagePath( imageSource, imageDataFormat );
         if( log != null )
@@ -452,6 +443,25 @@ public class MoBIE
 			throw new RuntimeException();
 		}
     }
+
+	private ImageDataFormat getImageDataFormat( String sourceName, Set< ImageDataFormat > sourceDataFormats )
+	{
+		for ( ImageDataFormat sourceDataFormat : sourceDataFormats )
+		{
+			if ( settings.values.getImageDataFormats().contains( sourceDataFormat ) )
+			{
+				return sourceDataFormat;
+			}
+		}
+
+		System.err.println("Error opening: " + sourceName );
+		for ( ImageDataFormat dataFormat : sourceDataFormats )
+			System.err.println("Source supports: " + dataFormat);
+		for ( ImageDataFormat dataFormat : settings.values.getImageDataFormats() )
+			System.err.println("Project settings support: " + dataFormat);
+		throw new RuntimeException();
+
+	}
 
 	private SpimData tryOpenSpimData( String imagePath, ImageDataFormat imageDataFormat )
 	{
