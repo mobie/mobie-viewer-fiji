@@ -122,13 +122,4 @@ public class ImageSliceView extends AbstractSliceView
 			}
 		}
 	}
-
-	public void close( boolean closeImgLoader )
-	{
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
-		{
-			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
-		}
-		display.sourceNameToSourceAndConverter.clear();
-	}
 }

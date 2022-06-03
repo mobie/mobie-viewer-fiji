@@ -79,15 +79,6 @@ public abstract class AnnotationSliceView< T extends TableRow > extends Abstract
 			( ( CategoryColoringModel<?> ) coloringModel ).setRandomSeed( display.getRandomColorSeed() );
 	}
 
-	public void close( boolean closeImgLoader )
-	{
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
-		{
-			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
-		}
-		display.sourceNameToSourceAndConverter.clear();
-	};
-
 	@Override
 	public synchronized void coloringChanged()
 	{

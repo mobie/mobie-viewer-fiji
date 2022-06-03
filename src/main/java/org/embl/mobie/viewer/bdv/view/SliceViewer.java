@@ -61,6 +61,7 @@ import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static org.embl.mobie.viewer.ui.WindowArrangementHelper.setBdvWindowPositionAndSize;
@@ -217,11 +218,20 @@ public class SliceViewer
 		OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
 		// show in Bdv
-		final int numViewerTimepoints = bdvHandle.getViewerPanel().state().getNumTimepoints();
-		final int numSourceTimepoints = SourceAndConverterHelper.getMaxTimepoint( sourceAndConverter ); // See https://github.com/bigdataviewer/bigdataviewer-playground/issues/251
-		if ( numSourceTimepoints > numViewerTimepoints )
-			bdvHandle.getViewerPanel().state().setNumTimepoints( numSourceTimepoints);
 		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
+		updateTimepointSlider();
+	}
 
+	public void updateTimepointSlider( )
+	{
+		final List< SourceAndConverter< ? > > sources = bdvHandle.getViewerPanel().state().getSources();
+		int numTimepoints = 1;
+		for ( SourceAndConverter< ? > source : sources )
+		{
+			final int numSourceTimepoints = SourceAndConverterHelper.getMaxTimepoint( source ); // See https://github.com/bigdataviewer/bigdataviewer-playground/issues/251
+			if ( numSourceTimepoints > numTimepoints )
+				numTimepoints = numSourceTimepoints;
+		}
+		bdvHandle.getViewerPanel().state().setNumTimepoints( numTimepoints );
 	}
 }
