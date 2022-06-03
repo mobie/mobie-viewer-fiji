@@ -41,6 +41,6 @@ public class OpenLocalTest
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("/Users/tischer/Desktop/mobie/MartinFloat", MoBIESettings.settings().imageDataFormat( ImageDataFormat.OmeZarr ));
+		new MoBIE("/Users/tischer/Desktop/mobie/MartinFloat", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.OmeZarr ));
 	}
 }

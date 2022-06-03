@@ -39,6 +39,6 @@ public class OpenLocalOmeZarr {
     public static void main(String[] args) throws IOException {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        new MoBIE( "/g/kreshuk/pape/Work/mobie/covid-if-project/data", MoBIESettings.settings().imageDataFormat( ImageDataFormat.OmeZarr ) );
+        new MoBIE( "/g/kreshuk/pape/Work/mobie/covid-if-project/data", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.OmeZarr ) );
     }
 }

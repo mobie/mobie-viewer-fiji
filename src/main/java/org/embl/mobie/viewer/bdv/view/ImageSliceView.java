@@ -66,7 +66,8 @@ public class ImageSliceView extends AbstractSliceView
 	private void show( )
 	{
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter = new HashMap<>();
-		for ( String name : display.getSources() ) {
+		for ( String name : display.getSources() )
+		{
 			sourceNameToSourceAndConverter.put( name, moBIE.sourceNameToSourceAndConverter().get( name ) );
 		}
 

@@ -42,7 +42,7 @@ public class OpenLocalCovidTomos
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 		try {
-			new MoBIE("/Volumes/kreshuk/pape/Work/mobie/covid-tomo-datasets", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ) );
+			new MoBIE("/Volumes/kreshuk/pape/Work/mobie/covid-tomo-datasets", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5 ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

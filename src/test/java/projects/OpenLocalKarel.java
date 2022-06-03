@@ -28,25 +28,18 @@
  */
 package projects;
 
+import net.imagej.ImageJ;
+import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
-import net.imagej.ImageJ;
 
 import java.io.IOException;
-import org.embl.mobie.io.ImageDataFormat;
 
-public class OpenRemoteCovidTomogramsBranch
+public class OpenLocalKarel
 {
-	public static void main( String[] args )
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
-
-		try {
-			new MoBIE("https://github.com/mobie/covid-tomo-datasets",
-					MoBIESettings.settings().gitProjectBranch( "new-spec" ).addImageDataFormat( ImageDataFormat.BdvN5S3 ) );
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+    public static void main(String[] args) throws IOException {
+        final ImageJ imageJ = new ImageJ();
+        imageJ.ui().showUI();
+        new MoBIE( "/Volumes/schwab/Karel/MOBIE/MOBIE1_bc" );
+    }
 }

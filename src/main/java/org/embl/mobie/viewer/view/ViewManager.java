@@ -276,6 +276,9 @@ public class ViewManager
 			final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1);
 			new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), ((AbstractSourceDisplay) sourceDisplay).sourceNameToSourceAndConverter.values().iterator().next() ).run();
 		}
+
+		// trigger rendering of source name overlay
+		getSliceViewer().getSourceNameRenderer().transformChanged( sliceViewer.getBdvHandle().getViewerPanel().state().getViewerTransform() );
 	}
 
 	public void openAndTransformSources( View view )
@@ -311,25 +314,6 @@ public class ViewManager
 		// this is where the source and segmentation displays will
 		// get the sources from
 		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
-	}
-
-	public void adjustViewerTransform( View view )
-	{
-		final BdvHandle bdvHandle = sliceViewer.getBdvHandle();
-
-		if ( view.getViewerTransform() != null )
-		{
-			SliceViewLocationChanger.changeLocation( bdvHandle, view.getViewerTransform() );
-		}
-		else
-		{
-			if ( view.isExclusive() || currentSourceDisplays.size() == 1 )
-			{
-				// TODO: rethink what should happen here...
-				final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() > 0 ? currentSourceDisplays.size() - 1 : 0 );
-				new ViewerTransformAdjuster( bdvHandle, ((AbstractSourceDisplay) sourceDisplay).sourceNameToSourceAndConverter.values().iterator().next() ).run();
-			}
-		}
 	}
 
 	public Set< String > fetchSources( View view )

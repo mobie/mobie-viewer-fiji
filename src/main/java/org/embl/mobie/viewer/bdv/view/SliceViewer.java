@@ -30,10 +30,10 @@ package org.embl.mobie.viewer.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.MobieBdvSupplier;
 import org.embl.mobie.viewer.bdv.MobieSerializableBdvOptions;
+import org.embl.mobie.viewer.bdv.SourceNamesRenderer;
 import org.embl.mobie.viewer.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.viewer.bdv.ViewerTransformLogger;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
@@ -47,9 +47,7 @@ import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
 import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
-import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
-import org.embl.mobie.viewer.view.ViewManager;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -81,6 +79,7 @@ public class SliceViewer
 
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
+	private SourceNamesRenderer sourceNameRenderer;
 
 	public SliceViewer( MoBIE moBIE, boolean is2D, int timepoints )
 	{
@@ -96,7 +95,14 @@ public class SliceViewer
 		setBdvWindowPositionAndSize( bdvHandle );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
+		sourceNameRenderer = new SourceNamesRenderer( bdvHandle, moBIE.initiallyShowSourceNames );
+
 		installContextMenuAndKeyboardShortCuts();
+	}
+
+	public SourceNamesRenderer getSourceNameRenderer()
+	{
+		return sourceNameRenderer;
 	}
 
 	public BdvHandle getBdvHandle()

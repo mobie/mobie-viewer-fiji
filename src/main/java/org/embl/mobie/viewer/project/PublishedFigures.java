@@ -40,43 +40,25 @@ public class PublishedFigures
 
 	public PublishedFigures()
 	{
-		mobieFigure1c();
-		mobieFigure2a();
-		mobieFigure3( "a" );
-		mobieFigure3( "b" );
-		mobieFigure3( "c" );
-		mobieFigure3( "d" );
+		addMobieFigure( "1c" );
+		addMobieFigure( "2a" );
+		addMobieFigure( "2b" );
+		addMobieFigure( "2c" );
+		addMobieFigure( "2d" );
+		addMobieFigure( "2e" );
+		addMobieFigure( "3a" );
+		addMobieFigure( "3b" );
+		addMobieFigure( "3c" );
+		addMobieFigure( "3d" );
 	}
 
-	private void mobieFigure1c()
+	private void addMobieFigure( final String name )
 	{
 		final PublishedFigure figure = new PublishedFigure();
 		figure.publicationAbbreviation = MOBIE;
-		figure.name = "Figure 1c";
-		figure.location = "https://github.com/mobie/platybrowser-project";
-		figure.view = "Figure1c";
-		figure.publicationURL = "TBD";
-		publishedFigures.add( figure );
-	}
-
-	private void mobieFigure2a()
-	{
-		final PublishedFigure figure = new PublishedFigure();
-		figure.publicationAbbreviation = MOBIE;
-		figure.name = "Figure 2a";
+		figure.name = "Figure " + name;
 		figure.location = "https://github.com/mobie/clem-example-project";
-		figure.view = "Figure2a";
-		figure.publicationURL = "TBD";
-		publishedFigures.add( figure );
-	}
-
-	private void mobieFigure3( final String panel )
-	{
-		final PublishedFigure figure = new PublishedFigure();
-		figure.publicationAbbreviation = MOBIE;
-		figure.name = "Figure 3" + panel;
-		figure.location = "https://github.com/mobie/covid-if-project";
-		figure.view = "Figure3"+panel;
+		figure.view = "Figure" + name;
 		figure.publicationURL = "TBD";
 		publishedFigures.add( figure );
 	}

@@ -41,6 +41,6 @@ public class OpenLocalJulianNoTables
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		final MoBIE moBIE = new MoBIE("/Volumes/emcf/hennies/for_constantin/mobie_no_table_test/", MoBIESettings.settings().imageDataFormat( ImageDataFormat.BdvN5 ));
+		final MoBIE moBIE = new MoBIE("/Volumes/emcf/hennies/for_constantin/mobie_no_table_test/", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.BdvN5 ));
 	}
 }

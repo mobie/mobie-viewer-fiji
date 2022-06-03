@@ -36,6 +36,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import org.embl.mobie.viewer.*;
+import org.embl.mobie.viewer.bdv.SourceNamesRenderer;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
@@ -289,7 +290,7 @@ public class UserInterfaceHelper
 
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		panel.add( createMoveToLocationPanel( moBIE.getDataset().defaultLocation )  );
-		panel.add( createRemoveAllViewsPanel( moBIE ) );
+		panel.add( createClearAndSourceNamesOverlayPanel( moBIE ) );
 
 		return panel;
 	}
@@ -472,16 +473,11 @@ public class UserInterfaceHelper
 		return groupingsToViews.keySet();
 	}
 
-	private JPanel createRemoveAllViewsPanel( MoBIE moBIE )
+	private JPanel createClearAndSourceNamesOverlayPanel( MoBIE moBIE )
 	{
-		JPanel panel = new JPanel();
-		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-		panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-		panel.add(Box.createHorizontalGlue());
-		panel.setAlignmentX(0.0F);
+		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 
 		final JButton button = SwingHelper.createButton( "clear", new Dimension( 80, TEXT_FIELD_HEIGHT ) );
-		button.setAlignmentX(Component.CENTER_ALIGNMENT);
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -493,6 +489,14 @@ public class UserInterfaceHelper
 			} );
 		} );
 
+		JCheckBox checkBox = new JCheckBox( "overlay names" );
+		checkBox.setSelected( moBIE.initiallyShowSourceNames );
+		checkBox.addActionListener( e -> new Thread( () ->
+		{
+			moBIE.getViewManager().getSliceViewer().getSourceNameRenderer().setActive( checkBox.isSelected() );
+		}).start() );
+
+		panel.add( checkBox );
 		panel.add( button );
 		return panel;
 	}
@@ -531,7 +535,7 @@ public class UserInterfaceHelper
 
 	public JPanel createMoveToLocationPanel( ViewerTransform transform )
 	{
-		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 		final JButton button = SwingHelper.createButton( MOVE );
 		final JTextField jTextField = new JTextField( ViewerTransform.toString( transform ) );
 		jTextField.setPreferredSize( new Dimension( SwingHelper.COMBOBOX_WIDTH - 3, TEXT_FIELD_HEIGHT ) );
@@ -542,11 +546,11 @@ public class UserInterfaceHelper
 			SliceViewLocationChanger.changeLocation( this.moBIE.getViewManager().getSliceViewer().getBdvHandle(), viewerTransform );
 		} );
 
-		horizontalLayoutPanel.add( SwingHelper.getJLabel( "location" ) );
-		horizontalLayoutPanel.add( jTextField );
-		horizontalLayoutPanel.add( button );
+		panel.add( SwingHelper.getJLabel( "location" ) );
+		panel.add( jTextField );
+		panel.add( button );
 
-		return horizontalLayoutPanel;
+		return panel;
 	}
 
 	public JPanel createInfoPanel( String projectLocation, String publicationURL )

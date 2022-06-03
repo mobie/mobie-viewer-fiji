@@ -42,8 +42,8 @@ import java.util.List;
 import java.util.Map;
 
 
-@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Open Published MoBIE Figure..." )
-public class OpenPublishedMoBIEFigureCommand implements Command
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Open MoBIE Figure..." )
+public class OpenMoBIEFigureCommand implements Command
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
