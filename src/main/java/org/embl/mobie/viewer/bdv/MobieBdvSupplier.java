@@ -74,6 +74,7 @@ public class MobieBdvSupplier implements IBdvSupplier {
         // TODO: this constructions appears a bit brittle.
         //  BDV does not seem to handle it very well if there
         //  is no image shown...
+        //  Maybe there is a better way to initialise an empty BDV?
 
         return bdv;
     }

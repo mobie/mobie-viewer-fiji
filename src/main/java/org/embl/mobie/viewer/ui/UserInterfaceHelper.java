@@ -282,8 +282,13 @@ public class UserInterfaceHelper
 		panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ) );
 
 		panel.add( createInfoPanel( moBIE.getSettings().values.getProjectLocation(), moBIE.getSettings().values.getPublicationURL() ) );
-		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
-		panel.add( createDatasetSelectionPanel() );
+
+		if ( moBIE.getDatasets().size() > 1 )
+		{
+			panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
+			panel.add( createDatasetSelectionPanel() );
+		}
+
 		panel.add( new JSeparator( SwingConstants.HORIZONTAL ) );
 		panel.add( createViewsSelectionPanel() );
 
