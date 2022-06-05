@@ -74,12 +74,10 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private final SelectionModel< T > selectionModel;
 	private final SelectionColoringModel< T > coloringModel;
 	private final String tableName;
-
 	private JTable jTable;
 
 	private int recentlySelectedRowInView;
 	private ColumnColoringModelCreator< T > columnColoringModelCreator;
-	private String mergeByColumnName; // for loading additional columns
 	private Map< String, String > sourceNameToTableDir; // for loading additional columns
 	private ArrayList< String > additionalTables; // tables from which additional columns are loaded
 	private boolean hasColumnsFromTablesOutsideProject; // whether additional columns have been loaded from tables outside the project

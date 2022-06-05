@@ -96,11 +96,11 @@ public class WindowArrangementHelper
 			window.setSize( window.getWidth(), reference.getHeight() );
 	}
 
-	public static void bottomAlignWindow( Window reference, Window window )
+	public static void bottomAlignWindow( Window reference, Window window, int offset )
 	{
 		window.setLocation(
-				reference.getLocationOnScreen().x,
-				reference.getLocationOnScreen().y + reference.getHeight() + UserInterfaceHelper.SPACING
+				reference.getLocationOnScreen().x + offset,
+				reference.getLocationOnScreen().y + reference.getHeight() + UserInterfaceHelper.SPACING + offset
 		);
 	}
 }

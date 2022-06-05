@@ -71,7 +71,9 @@ import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class ViewManager
@@ -87,8 +89,9 @@ public class ViewManager
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewSaver viewSaver;
+	private int numCurrentTables = 0;
 
-    public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
+	public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
 	{
 		this.moBIE = moBIE;
 		this.userInterface = userInterface;
@@ -101,7 +104,7 @@ public class ViewManager
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 	}
 
-	public static void initScatterPlotViewer( AnnotationDisplay< ? > display )
+	private void initScatterPlotViewer( AnnotationDisplay< ? > display )
 	{
 		if ( display.tableRows.size() == 0 ) return;
 
@@ -141,15 +144,6 @@ public class ViewManager
 		{
 			display.selectionColoringModel = new SelectionColoringModel( display.getLut(), display.selectionModel );
 		}
-	}
-
-	public void initTableViewer( SegmentationDisplay display  )
-	{
-		Map< String, String > sourceNameToTableDir = moBIE.getSegmentationTableDirectories( display );
-		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.selectionColoringModel, display.getName(), sourceNameToTableDir, false );
-		display.tableViewer.setVisible( display.showTable() );
-		display.selectionModel.listeners().add( display.tableViewer );
-		display.selectionColoringModel.listeners().add( display.tableViewer );
 	}
 
 	public List< SourceDisplay > getCurrentSourceDisplays()
@@ -410,22 +404,19 @@ public class ViewManager
 			regionDisplay.selectionModel.setSelected( annotatedMasks, true );
 		}
 
-		showInSliceViewer( regionDisplay );
+		regionDisplay.sliceView = new RegionSliceView( moBIE, regionDisplay );
 		initTableViewer( regionDisplay );
 		initScatterPlotViewer( regionDisplay );
-
-		SwingUtilities.invokeLater( () ->
-		{
-			WindowArrangementHelper.bottomAlignWindow( regionDisplay.sliceViewer.getWindow(), regionDisplay.tableViewer.getWindow() );
-		} );
+		setTablePosition( regionDisplay.sliceViewer.getWindow(), regionDisplay.tableViewer.getWindow() );
 	}
 
-	private void initTableViewer( RegionDisplay display )
+	private void initTableViewer( AnnotationDisplay< ? > display )
 	{
-		Map< String, String > sourceNameToTableDir = moBIE.getRegionTableDirectories( display );
-		display.tableViewer = new TableViewer<>( moBIE, display.tableRows, display.selectionModel, display.selectionColoringModel, display.getName(), sourceNameToTableDir, true ).show();
+		Map< String, String > sourceNameToTableDir = moBIE.getAnnotationTableDirectories( display );
+		display.tableViewer = new TableViewer( moBIE, display.tableRows, display.selectionModel, display.selectionColoringModel, display.getName(), sourceNameToTableDir, true ).show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.selectionColoringModel.listeners().add( display.tableViewer );
+		numCurrentTables++;
 	}
 
 	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
@@ -434,13 +425,9 @@ public class ViewManager
 		loadTablesAndCreateImageSegments( segmentationDisplay );
 
 		if ( segmentationDisplay.tableRows != null )
-		{
 			segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.tableRows );
-		}
 		else
-		{
 			segmentationDisplay.segmentAdapter = new SegmentAdapter();
-		}
 
 		segmentationDisplay.selectionModel = new MoBIESelectionModel<>();
 		configureColoringModel( segmentationDisplay );
@@ -452,20 +439,20 @@ public class ViewManager
 			segmentationDisplay.selectionModel.setSelected( segments, true );
 		}
 
-		showInSliceViewer( segmentationDisplay );
+		segmentationDisplay.sliceView = new SegmentationSliceView( moBIE, segmentationDisplay );
 
 		if ( segmentationDisplay.tableRows != null )
 		{
 			initTableViewer( segmentationDisplay );
 			initScatterPlotViewer( segmentationDisplay );
-
-			SwingUtilities.invokeLater( () ->
-			{
-				WindowArrangementHelper.bottomAlignWindow( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
-			} );
-
 			initSegmentationVolumeViewer( segmentationDisplay );
+			setTablePosition( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
 		}
+	}
+
+	private void setTablePosition( Window reference, Window table )
+	{
+		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numCurrentTables - 1 ) * 10 ) );
 	}
 
 	private void loadTablesAndCreateImageSegments( SegmentationDisplay segmentationDisplay )
@@ -492,16 +479,6 @@ public class ViewManager
 				throw new UnsupportedOperationException( "The table contains rows (image segments) with label index 0, which is not supported and will lead to errors. Please change the table accordingly." );
 			}
 		}
-	}
-
-	private void showInSliceViewer( SegmentationDisplay segmentationDisplay )
-	{
-		segmentationDisplay.sliceView = new SegmentationSliceView( moBIE, segmentationDisplay );
-	}
-
-	private void showInSliceViewer( RegionDisplay regionDisplay )
-	{
-		regionDisplay.sliceView = new RegionSliceView( moBIE, regionDisplay );
 	}
 
 	private void initSegmentationVolumeViewer( SegmentationDisplay segmentationDisplay )
@@ -531,6 +508,7 @@ public class ViewManager
 			if ( regionDisplay.tableRows != null )
 			{
 				regionDisplay.tableViewer.close();
+				numCurrentTables--;
 				regionDisplay.scatterPlotViewer.close();
 				if ( regionDisplay instanceof SegmentationDisplay )
 					( ( SegmentationDisplay ) regionDisplay ).segmentsVolumeViewer.close();

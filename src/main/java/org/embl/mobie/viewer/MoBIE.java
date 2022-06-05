@@ -38,6 +38,7 @@ import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
+import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.annotate.RegionCreator;
@@ -128,7 +129,17 @@ public class MoBIE
 		openDataset();
 	}
 
-	public Map< String, String > getRegionTableDirectories( RegionDisplay display )
+	public Map< String, String > getAnnotationTableDirectories( AnnotationDisplay display )
+	{
+		if ( display instanceof RegionDisplay )
+			return getRegionTableDirectories( ( RegionDisplay ) display );
+		else if ( display instanceof SegmentationDisplay )
+			return getSegmentationTableDirectories( ( SegmentationDisplay ) display );
+		else
+			throw new RuntimeException("Unsupported class: " + display.getClass().getName());
+	}
+
+	private Map< String, String > getRegionTableDirectories( RegionDisplay display )
 	{
 		Map<String, String> sourceNameToTableDir = new HashMap<>();
 		final String relativePath = display.getTableDataFolder( TableDataFormat.TabDelimitedFile );
@@ -807,7 +818,7 @@ public class MoBIE
 		return projectCommands;
 	}
 
-	public Map< String, String > getSegmentationTableDirectories( SegmentationDisplay display )
+	private Map< String, String > getSegmentationTableDirectories( SegmentationDisplay display )
 	{
 		Map<String, String> sourceNameToTableDir = new HashMap<>();
 		for ( String source: display.getSources() )
