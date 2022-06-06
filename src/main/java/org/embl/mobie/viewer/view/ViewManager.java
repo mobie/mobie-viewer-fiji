@@ -410,10 +410,9 @@ public class ViewManager
 		setTablePosition( regionDisplay.sliceViewer.getWindow(), regionDisplay.tableViewer.getWindow() );
 	}
 
-	private void initTableViewer( AnnotationDisplay< ? > display )
+	private void initTableViewer( AnnotationDisplay< ? extends TableRow > display )
 	{
-		Map< String, String > sourceNameToTableDir = moBIE.getAnnotationTableDirectories( display );
-		display.tableViewer = new TableViewer( moBIE, display.tableRows, display.selectionModel, display.selectionColoringModel, display.getName(), sourceNameToTableDir, display instanceof RegionDisplay );
+		display.tableViewer = new TableViewer( moBIE, display );
 		display.tableViewer.show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.selectionColoringModel.listeners().add( display.tableViewer );
@@ -444,6 +443,8 @@ public class ViewManager
 
 		if ( segmentationDisplay.tableRows != null )
 		{
+			// TODO: can one use the same code here for
+			//  annotation and segmentation?
 			initTableViewer( segmentationDisplay );
 			initScatterPlotViewer( segmentationDisplay );
 			initSegmentationVolumeViewer( segmentationDisplay );

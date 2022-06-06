@@ -32,6 +32,7 @@ import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
+import de.embl.cba.tables.tablerow.TableRow;
 import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
@@ -75,6 +76,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static org.embl.mobie.viewer.MoBIEHelper.selectCommonTableFileNameFromProject;
 
 public class MoBIE
 {
@@ -130,14 +133,41 @@ public class MoBIE
 		openDataset();
 	}
 
-	public Map< String, String > getAnnotationTableDirectories( AnnotationDisplay display )
+	public String addColumnsFromProject( AnnotationDisplay< ? extends TableRow > display )
+	{
+		final Map< String, String > sourceNameToTableDirectory = getTableDirectories( display );
+		String tableFileName = selectCommonTableFileNameFromProject( sourceNameToTableDirectory.values(), "Table" );
+		if ( tableFileName == null )
+			return null;
+
+		if ( display instanceof RegionDisplay )
+		{
+			for ( String tableDir : sourceNameToTableDirectory.values() )
+			{
+				String resolvedPath = MoBIEHelper.resolveTablePath( IOHelper.combinePath( tableDir, tableFileName ) );
+				IJ.log( "Opening table:\n" + resolvedPath );
+				final Map< String, List< String > > tableColumns = TableColumns.stringColumnsFromTableFile( resolvedPath );
+				TableHelper.appendRegionTableColumns( display.tableRows, tableColumns );
+			}
+		}
+		else if ( display instanceof SegmentationDisplay )
+		{
+			ArrayList< String > tableNames = new ArrayList<>( );
+			tableNames.add( tableFileName );
+			moBIE.appendSegmentTableColumns( display.tableRows, sourceNameToTableDirectory.keySet(), tableNames );
+		}
+
+		return tableFileName;
+	}
+
+	private Map< String, String > getTableDirectories( AnnotationDisplay display )
 	{
 		if ( display instanceof RegionDisplay )
 			return getRegionTableDirectories( ( RegionDisplay ) display );
 		else if ( display instanceof SegmentationDisplay )
 			return getSegmentationTableDirectories( ( SegmentationDisplay ) display );
 		else
-			throw new RuntimeException("Unsupported class: " + display.getClass().getName());
+			throw new RuntimeException();
 	}
 
 	private Map< String, String > getRegionTableDirectories( RegionDisplay display )
@@ -556,9 +586,9 @@ public class MoBIE
 		return segments;
 	}
 
-	private List< Map< String, List< String > > > loadAdditionalTables( List<String> sources, String table )
+	private List< Map< String, List< String > > > loadTables( Collection<String> sources, String tableName )
 	{
-		final List< Map< String, List< String > > > additionalTables = new CopyOnWriteArrayList<>();
+		final List< Map< String, List< String > > > tables = new CopyOnWriteArrayList<>();
 
 		final long start = System.currentTimeMillis();
 		final ExecutorService executorService = MultiThreading.ioExecutorService;
@@ -567,8 +597,8 @@ public class MoBIE
 		{
 			futures.add(
 				executorService.submit( () -> {
-					Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
-				additionalTables.add( columns );
+					Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( SegmentationSource ) getSource( sourceName ), tableName ) );
+				tables.add( columns );
 				} )
 			);
 		}
@@ -579,7 +609,7 @@ public class MoBIE
 		if ( durationMillis > minLogTimeMillis )
 			IJ.log( "Read " + sources.size() + " table(s) in " + durationMillis + " ms, using up to " + MultiThreading.getNumIoThreads() + " thread(s).");
 
-		return additionalTables;
+		return tables;
 	}
 
 	public Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter()
@@ -635,7 +665,7 @@ public class MoBIE
 		return numTables;
 	}
 
-	private void mergeSegmentsTable( List< TableRowImageSegment > tableRows, Map< String, List< String > > additionalTable )
+	private void mergeSegmentsTable( List< ? extends TableRow > tableRows, Map< String, List< String > > additionalTable )
 	{
 		// prepare
 		final Map< String, List< String > > columnsForMerging = TableHelper.createColumnsForMerging( tableRows, additionalTable );
@@ -647,12 +677,12 @@ public class MoBIE
 		}
 	}
 
-	public void appendSegmentTableColumns( List< TableRowImageSegment > tableRows, List< String > imageSourceNames, List< String > relativeTablePaths )
+	public void appendSegmentTableColumns( List< ? extends TableRow > tableRows, Collection< String > imageSourceNames, List< String > relativeTablePaths )
 	{
 		for ( String table : relativeTablePaths )
 		{
 			// load
-			final List< Map< String, List< String > > > additionalTables = loadAdditionalTables( imageSourceNames, table );
+			final List< Map< String, List< String > > > additionalTables = loadTables( imageSourceNames, table );
 
 			// concatenate
 			Map< String, List< String > > concatenatedTable = TableColumns.concatenate( additionalTables );
