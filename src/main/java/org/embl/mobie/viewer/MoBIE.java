@@ -49,6 +49,7 @@ import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
+import org.embl.mobie.viewer.table.TableHelper;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.View;
@@ -211,26 +212,6 @@ public class MoBIE
 		}
 	}
 
-	public static void mergeRegionTables( List< RegionTableRow > tableRows, Map< String, List< String > > columns )
-	{
-		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
-		final ArrayList< String > regionIdColumn = TableColumns.getColumn( tableRows, TableColumnNames.REGION_ID );
-		referenceColumns.put( TableColumnNames.REGION_ID, regionIdColumn );
-
-		// deal with the fact that the grid ids are sometimes
-		// stored as 1 and sometimes as 1.0
-		// after below operation they all will be 1.0, 2.0, ...
-		MoBIEHelper.toDoubleStrings( regionIdColumn );
-		MoBIEHelper.toDoubleStrings( columns.get( TableColumnNames.REGION_ID ) );
-
-		final Map< String, List< String > > columnsForMerging = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, columns );
-
-		for ( Map.Entry< String, List< String > > column : columnsForMerging.entrySet() )
-		{
-			TableRows.addColumn( tableRows, column.getKey(), column.getValue() );
-		}
-	}
-
 	private void openDataset() throws IOException
 	{
 		if ( settings.values.getDataset() != null )
@@ -338,7 +319,7 @@ public class MoBIE
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 		userInterface = new UserInterface( this );
-		viewManager = new ViewManager( this, userInterface, dataset.is2D, dataset.timepoints );
+		viewManager = new ViewManager( this, userInterface, dataset.is2D );
 		final View view = getView();
 		view.setName( settings.values.getView() );
 		IJ.log( "Opening view: " + view.getName() );
@@ -575,14 +556,6 @@ public class MoBIE
 		return segments;
 	}
 
-	private Map< String, List< String > > loadAdditionalTable( String imageID, String tablePath )
-	{
-		Logger.log( "Opening additional table: " + tablePath );
-		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
-		TableColumns.addLabelImageIdColumn( columns, TableColumnNames.LABEL_IMAGE_ID, imageID );
-		return columns;
-	}
-
 	private List< Map< String, List< String > > > loadAdditionalTables( List<String> sources, String table )
 	{
 		final List< Map< String, List< String > > > additionalTables = new CopyOnWriteArrayList<>();
@@ -594,7 +567,7 @@ public class MoBIE
 		{
 			futures.add(
 				executorService.submit( () -> {
-					Map< String, List< String > > columns = loadAdditionalTable( sourceName, getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
+					Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( SegmentationSource ) getSource( sourceName ), table ) );
 				additionalTables.add( columns );
 				} )
 			);
@@ -662,29 +635,10 @@ public class MoBIE
 		return numTables;
 	}
 
-	private Map< String, List< String > > createColumnsForMerging( List< TableRowImageSegment > segments, Map< String, List< String > > newColumns )
-	{
-		final ArrayList< String > segmentIdColumn = TableColumns.getColumn( segments, TableColumnNames.SEGMENT_LABEL_ID );
-		final ArrayList< String > imageIdColumn = TableColumns.getColumn( segments, TableColumnNames.LABEL_IMAGE_ID );
-		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
-		referenceColumns.put( TableColumnNames.LABEL_IMAGE_ID, imageIdColumn );
-		referenceColumns.put( TableColumnNames.SEGMENT_LABEL_ID, segmentIdColumn );
-
-		// deal with the fact that the label ids are sometimes
-		// stored as 1 and sometimes as 1.0
-		// after below operation they all will be 1.0, 2.0, ...
-		MoBIEHelper.toDoubleStrings( segmentIdColumn );
-		MoBIEHelper.toDoubleStrings( newColumns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
-
-		final Map< String, List< String > > columnsForMerging = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, newColumns );
-
-		return columnsForMerging;
-	}
-
 	private void mergeSegmentsTable( List< TableRowImageSegment > tableRows, Map< String, List< String > > additionalTable )
 	{
 		// prepare
-		final Map< String, List< String > > columnsForMerging = createColumnsForMerging( tableRows, additionalTable );
+		final Map< String, List< String > > columnsForMerging = TableHelper.createColumnsForMerging( tableRows, additionalTable );
 
 		// append
 		for ( Map.Entry< String, List< String > > column : columnsForMerging.entrySet() )
@@ -693,7 +647,7 @@ public class MoBIE
 		}
 	}
 
-	public void appendSegmentsTables( List< String > imageSourceNames, List< String > relativeTablePaths, List< TableRowImageSegment > tableRows )
+	public void appendSegmentTableColumns( List< TableRowImageSegment > tableRows, List< String > imageSourceNames, List< String > relativeTablePaths )
 	{
 		for ( String table : relativeTablePaths )
 		{
@@ -708,18 +662,18 @@ public class MoBIE
 		}
 	}
 
-	public void appendSegmentsTables( String source, String tablePath, List<TableRowImageSegment> tableRows )
+	public void appendSegmentTableColumns( String source, String tablePath, List<TableRowImageSegment> tableRows )
 	{
 		// load
-		Map< String, List< String > > additionalTable = loadAdditionalTable( source, tablePath );
+		Map< String, List< String > > additionalTable = TableHelper.loadTableAndAddImageIdColumn( source, tablePath );
 
 		// merge
 		mergeSegmentsTable( tableRows, additionalTable );
 	}
 
-	public void appendSegmentsTables( SegmentationDisplay segmentationDisplay, List< String > relativeTablePaths )
+	public void appendSegmentTableColumns( SegmentationDisplay segmentationDisplay, List< String > relativeTablePaths )
 	{
-		appendSegmentsTables( segmentationDisplay.getSources(), relativeTablePaths, segmentationDisplay.tableRows );
+		appendSegmentTableColumns( segmentationDisplay.tableRows, segmentationDisplay.getSources(), relativeTablePaths );
 	}
 
 	/**
@@ -761,7 +715,7 @@ public class MoBIE
 
 		for ( int i = 0; i < additionalTables.size(); i++ )
 		{
-			MoBIE.mergeRegionTables( regionTableRows, additionalTables.get( i ) );
+			TableHelper.appendRegionTableColumns( regionTableRows, additionalTables.get( i ) );
 		}
 
 		return regionTableRows;

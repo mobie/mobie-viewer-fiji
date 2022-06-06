@@ -780,7 +780,7 @@ public class UserInterfaceHelper
 //			final AffineTransform3D transform = new ViewerTransformAdjuster(  sourceDisplay.sliceViewer.getBdvHandle(), sourceAndConverters.get( 0 ) ).getTransform();
 
 			final AffineTransform3D transform = new MoBIEViewerTransformAdjuster( sourceDisplay.sliceViewer.getBdvHandle(), sources ).getMultiSourceTransform();
-			new ViewerTransformChanger( bdvHandle, transform, false, 500 ).run();
+			new ViewerTransformChanger( bdvHandle, transform, false, SliceViewLocationChanger.animationDurationMillis ).run();
 		} );
 
 		return button;

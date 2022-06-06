@@ -40,6 +40,7 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
+import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 
@@ -120,7 +121,7 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 				bdvHandle,
 				BdvHandleHelper.getViewerTransformWithNewCenter( bdvHandle, position ),
 				false,
-				500 ).run();
+				SliceViewLocationChanger.animationDurationMillis ).run();
 	}
 
 	private void adaptPosition( double[] position, String sourceName )

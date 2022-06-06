@@ -91,13 +91,13 @@ public class ViewManager
 	private final ViewSaver viewSaver;
 	private int numCurrentTables = 0;
 
-	public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D, int timepoints )
+	public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D )
 	{
 		this.moBIE = moBIE;
 		this.userInterface = userInterface;
 		currentSourceDisplays = new ArrayList<>();
 		currentSourceTransformers = new ArrayList<>();
-		sliceViewer = new SliceViewer( moBIE, is2D, timepoints );
+		sliceViewer = new SliceViewer( moBIE, is2D );
 		universeManager = new UniverseManager();
 		additionalViewsLoader = new AdditionalViewsLoader( moBIE );
 		viewSaver = new ViewSaver( moBIE );
@@ -413,7 +413,8 @@ public class ViewManager
 	private void initTableViewer( AnnotationDisplay< ? > display )
 	{
 		Map< String, String > sourceNameToTableDir = moBIE.getAnnotationTableDirectories( display );
-		display.tableViewer = new TableViewer( moBIE, display.tableRows, display.selectionModel, display.selectionColoringModel, display.getName(), sourceNameToTableDir, true ).show();
+		display.tableViewer = new TableViewer( moBIE, display.tableRows, display.selectionModel, display.selectionColoringModel, display.getName(), sourceNameToTableDir, display instanceof RegionDisplay );
+		display.tableViewer.show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.selectionColoringModel.listeners().add( display.tableViewer );
 		numCurrentTables++;
@@ -469,7 +470,7 @@ public class ViewManager
 		{
 			final List< String > additionalTables = tables.subList( 1, tables.size() );
 
-			moBIE.appendSegmentsTables( segmentationDisplay, additionalTables );
+			moBIE.appendSegmentTableColumns( segmentationDisplay, additionalTables );
 		}
 
 		for ( TableRowImageSegment segment : segmentationDisplay.tableRows )

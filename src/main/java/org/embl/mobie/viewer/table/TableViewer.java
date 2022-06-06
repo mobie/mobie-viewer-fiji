@@ -81,7 +81,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private Map< String, String > sourceNameToTableDir; // for loading additional columns
 	private ArrayList< String > additionalTables; // tables from which additional columns are loaded
 	private boolean hasColumnsFromTablesOutsideProject; // whether additional columns have been loaded from tables outside the project
-	private boolean isGridTable; // Needed as merging columns to a segments table is different to a grid table
+	private boolean isRegionTable; // Needed as merging columns to a segments table is different to a grid table
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
 
 	// TODO: this is only for the annotator (maybe move it there)
@@ -109,7 +109,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			final SelectionColoringModel< T > selectionColoringModel,
 			String tableName,
 			Map< String, String > sourceNameToTableDir,
-			boolean isGridTable )
+			boolean isRegionTable )
 	{
 		this.moBIE = moBIE;
 		this.tableRows = tableRows;
@@ -120,9 +120,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		this.additionalTables = new ArrayList<>();
 		this.sourceNameToTableDir = sourceNameToTableDir;
 		this.hasColumnsFromTablesOutsideProject = false;
-		this.isGridTable = isGridTable;
+		this.isRegionTable = isRegionTable;
 
-		// TODO: reconsider
 		registerAsTableRowListener( tableRows );
 
 		configureJTable();
@@ -132,23 +131,36 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 		if ( coloringModel != null)
 			configureTableRowColoring();
-
-		createFrame();
 	}
 
-	public TableViewer< T > show()
+	public void show()
 	{
-		configureJTable();
+		final JPanel panel = new JPanel( new GridLayout( 1, 0 ) );
+		JScrollPane scrollPane = new JScrollPane(
+				jTable,
+				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED );
+		panel.add( scrollPane );
 
-		if ( selectionModel != null )
-			installSelectionModelNotification();
+		jTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
+		panel.updateUI(); // TODO do we need this?
+		panel.setOpaque( true );
 
-		if ( coloringModel != null)
-			configureTableRowColoring();
+		frame = new JFrame( tableName );
+		final JMenuBar menuBar = createMenuBar();
+		frame.setJMenuBar( menuBar );
+		frame.setContentPane( panel );
 
-		createFrame();
+		// Display the window
+		frame.pack();
 
-		return this;
+		// Replace closing by making it invisible
+		frame.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
+		frame.addWindowListener( new WindowAdapter() {
+			public void windowClosing( WindowEvent ev) {
+				frame.setVisible( false );
+			}
+		});
 	}
 
 	public void registerAsTableRowListener( List< T > tableRows )
@@ -410,7 +422,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		return menu;
     }
 
-    public void addAdditionalTable(String tablePath) {
+    public void addAdditionalTable( String tablePath )
+	{
 		String tableName  = new File(tablePath).getName();
 		additionalTables.add(tableName);
 	}
@@ -426,27 +439,25 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	{
 		final ArrayList< String > directories = new ArrayList<>( sourceNameToTableDir.values() );
 		String tableName = selectCommonFileNameFromProject( directories, "Table" );
+		if ( tableName == null ) return;
 
-		ArrayList<String> tableNames = new ArrayList<>();
-		if ( tableName != null )
+		if ( isRegionTable )
 		{
-			tableNames.add( tableName );
-
-			if ( ! isGridTable )
+			for ( String tableDir : sourceNameToTableDir.values() )
 			{
-				List< String > sources = new ArrayList<>( sourceNameToTableDir.keySet() );
-				moBIE.appendSegmentsTables( sources, tableNames, (List<TableRowImageSegment>) tableRows);
+				final Map< String, List< String > > table = openTable( IOHelper.combinePath( tableDir, tableName ) );
+				TableHelper.appendRegionTableColumns( ( List< RegionTableRow > ) tableRows, table );
 			}
-			else
-			{
-				for ( String tableDir: sourceNameToTableDir.values() )
-				{
-					final Map< String, List< String > > table = openTable( IOHelper.combinePath( tableDir, tableName ) );
-					MoBIE.mergeRegionTables( (List< RegionTableRow >) tableRows, table );
-				}
-			}
-			addAdditionalTable( tableName );
 		}
+		else // == isSegmentTable
+		{
+			ArrayList<String> tableNames = new ArrayList<>( );
+			tableNames.add( tableName );
+			List< String > sources = new ArrayList<>( sourceNameToTableDir.keySet() );
+			moBIE.appendSegmentTableColumns( (List<TableRowImageSegment>) tableRows, sources, tableNames );
+		}
+
+		addAdditionalTable( tableName );
 	}
 
 	private void loadColumnsFromFileSystem()
@@ -456,15 +467,15 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		if ( path != null ) {
 			new Thread( () -> {
 				enableRowSorting( false ); // otherwise it can crash during loading.
-				if ( ! isGridTable )
+				if ( !isRegionTable )
 				{
 					final String sourceName = ( String ) sourceNameToTableDir.keySet().toArray()[ 0 ];
-					moBIE.appendSegmentsTables( sourceName, path, ( List< TableRowImageSegment > ) tableRows );
+					moBIE.appendSegmentTableColumns( sourceName, path, ( List< TableRowImageSegment > ) tableRows );
 				}
 				else
 				{
 					Map< String, List< String > > table = openTable( path );
-					MoBIE.mergeRegionTables( ( List< RegionTableRow > ) tableRows, table );
+					TableHelper.appendRegionTableColumns( ( List< RegionTableRow > ) tableRows, table );
 				}
 				enableRowSorting( true );
 			}).start();
@@ -495,7 +506,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 						if (fileLocation == null)
 							return;
 					}
-
 
 					if (fileLocation == FileLocation.Project) {
 						loadColumnsFromProject();
@@ -751,36 +761,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		);
 
 		annotator.showDialog();
-	}
-
-	private void createFrame()
-	{
-		final JPanel panel = new JPanel( new GridLayout( 1, 0 ) );
-		JScrollPane scrollPane = new JScrollPane(
-				jTable,
-				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED );
-		panel.add( scrollPane );
-
-		jTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
-		panel.updateUI(); // TODO do we need this?
-		panel.setOpaque( true );
-
-		frame = new JFrame( tableName );
-		final JMenuBar menuBar = createMenuBar();
-		frame.setJMenuBar( menuBar );
-		frame.setContentPane( panel );
-
-		// Display the window.
-		frame.pack();
-
-		// Replace closing by making it invisible
-		frame.setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
-		frame.addWindowListener( new WindowAdapter() {
-			public void windowClosing( WindowEvent ev) {
-				frame.setVisible( false );
-			}
-		});
 	}
 
 	public void setVisible( boolean visible )

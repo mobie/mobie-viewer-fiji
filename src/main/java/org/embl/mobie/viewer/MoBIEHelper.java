@@ -240,24 +240,20 @@ public abstract class MoBIEHelper
 	}
 
 	public static String selectCommonFileNameFromProject( List<String> directories, String objectName ) {
-		if ( directories == null ) {
+		if ( directories == null )
 			return null;
-		}
 
-		String fileName;
 		if ( directories.size() > 1) {
 			// when there are multiple directories, we only allow selection of items that are present with the same name in
 			// all of them
-			fileName = chooseCommonFileName(directories, objectName);
+			return chooseCommonFileName(directories, objectName);
 		} else {
 			String[] fileNames = IOHelper.getFileNames( directories.get(0) );
 			if ( fileNames == null )
 				throw new RuntimeException("Could not find any files at " + directories.get(0) );
 
-			fileName = selectionDialog( fileNames, objectName );
+			return selectionDialog( fileNames, objectName );
 		}
-
-		return fileName;
 	}
 
 	public static String selectPathFromProject( String directory, String objectName ) {

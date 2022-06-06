@@ -51,6 +51,7 @@ import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -437,7 +438,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 			recentFocus = selection;
 			double[] location = new double[ 3 ];
 			tableRowToRealPoint.get( selection ).localize( location );
-			BdvUtils.moveToPosition( bdvHandle, location, 0, 500 );
+			BdvUtils.moveToPosition( bdvHandle, location, 0, SliceViewLocationChanger.animationDurationMillis );
 		}
 	}
 

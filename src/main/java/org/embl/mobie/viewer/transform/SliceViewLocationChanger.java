@@ -39,7 +39,7 @@ import java.util.Arrays;
 
 public abstract class SliceViewLocationChanger
 {
-	public static int animationDurationMillis = 3000;
+	public static int animationDurationMillis = 1500;
 
 	private static BdvOverlaySource< BdvOverlay > pointOverlaySource;
 	private static CircleOverlay circleOverlay;

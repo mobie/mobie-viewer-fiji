@@ -77,18 +77,16 @@ public class SliceViewer
 	private BdvHandle bdvHandle;
 	private final MoBIE moBIE;
 	private final boolean is2D;
-	private final int timepoints;
 	private final ArrayList< String > projectCommands;
 
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
 	private SourceNamesRenderer sourceNameRenderer;
 
-	public SliceViewer( MoBIE moBIE, boolean is2D, int timepoints )
+	public SliceViewer( MoBIE moBIE, boolean is2D )
 	{
 		this.moBIE = moBIE;
 		this.is2D = is2D;
-		this.timepoints = timepoints;
 		this.projectCommands = moBIE.getProjectCommands();
 
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
