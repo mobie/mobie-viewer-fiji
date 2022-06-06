@@ -29,10 +29,8 @@
 package org.embl.mobie.viewer.table;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
-import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.annotate.Annotator;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
 import de.embl.cba.tables.*;
@@ -44,7 +42,6 @@ import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.select.SelectionModel;
 import de.embl.cba.tables.tablerow.JTableFromTableRowsModelCreator;
 import de.embl.cba.tables.tablerow.TableRow;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.tablerow.TableRowListener;
 import de.embl.cba.tables.TableRows;
 import ij.gui.GenericDialog;
@@ -82,7 +79,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private ColumnColoringModelCreator< T > columnColoringModelCreator;
 	private ArrayList< String > additionalTables = new ArrayList<>();; // tables from which additional columns are loaded
 	private boolean hasColumnsFromTablesOutsideProject; // whether additional columns have been loaded from tables outside the project
-	private boolean isRegionTable; // Needed as merging columns to a segments table is different to a grid table
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
 
 	// TODO: this is only for the annotator (maybe move it there)
@@ -426,30 +422,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		return TableColumns.stringColumnsFromTableFile( resolvedPath );
 	}
 
-	private void loadColumnsFromFileSystem()
-	{
-		String path = selectFilePath( null, "Table", true );
-
-		if ( path != null ) {
-			new Thread( () -> {
-				enableRowSorting( false ); // otherwise it can crash during loading.
-				if ( !isRegionTable )
-				{
-					final String sourceName = ( String ) sourceNameToTableDir.keySet().toArray()[ 0 ];
-					moBIE.appendSegmentTableColumns( sourceName, path, ( List< TableRowImageSegment > ) tableRows );
-				}
-				else
-				{
-					Map< String, List< String > > table = openTable( path );
-					TableHelper.appendRegionTableColumns( ( List< RegionTableRow > ) tableRows, table );
-				}
-				enableRowSorting( true );
-			}).start();
-			hasColumnsFromTablesOutsideProject = true;
-		}
-	}
-
-	private void enableRowSorting( boolean sortable )
+	public void enableRowSorting( boolean sortable )
 	{
 		final int columnCount = jTable.getColumnCount();
 		for ( int i = 0; i < columnCount; i++ )
@@ -462,13 +435,16 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	{
 		final JMenuItem menuItem = new JMenuItem( "Load Columns..." );
 		menuItem.addActionListener( e ->
-				new Thread( () -> {
-					FileLocation fileLocation = loadFromProjectOrFileSystemDialog();
-					if ( fileLocation.equals( FileLocation.Project ) )
-						moBIE.addColumnsFromProject( display );
-					else if ( fileLocation.equals( FileLocation.FileSystem ))
-						loadColumnsFromFileSystem();
-				}).start );
+			new Thread( () -> {
+				FileLocation fileLocation = loadFromProjectOrFileSystemDialog();
+				if ( fileLocation.equals( FileLocation.Project ) )
+					moBIE.appendColumnsFromProject( display );
+				else if ( fileLocation.equals( FileLocation.FileSystem ))
+				{
+					moBIE.appendColumnsFromFileSystem( display );
+				}
+			}).start()
+		);
 
 		return menuItem;
 	}
@@ -478,7 +454,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		return additionalTables;
 	}
 
-	public boolean hasColumnsFromTablesOutsideProject() {
+	public boolean hasColumnsFromTablesOutsideProject()
+	{
 		return hasColumnsFromTablesOutsideProject;
 	}
 

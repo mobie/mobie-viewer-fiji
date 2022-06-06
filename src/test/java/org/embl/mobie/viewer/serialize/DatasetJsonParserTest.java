@@ -123,7 +123,7 @@ class DatasetJsonParserTest {
         moBIE.getViewManager().show( views.get("Suppl. Fig. 2A: Neuron" ) );
 
         // grab the current view and save it
-        View view  = moBIE.getViewManager().getCurrentView( uiSelectionGroup, isExclusive, true );
+        View view  = moBIE.getViewManager().createCurrentView( uiSelectionGroup, isExclusive, true );
         dataset.views = new HashMap<>();
         dataset.views.put( viewName, view );
 

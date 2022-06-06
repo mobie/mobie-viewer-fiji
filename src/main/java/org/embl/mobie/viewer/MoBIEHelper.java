@@ -242,21 +242,21 @@ public abstract class MoBIEHelper
 		return FileLocation.valueOf(gd.getNextChoice());
 	}
 
-	// TODO: what does that do?
+	// TODO: what does that exactly do?
 	public static String selectCommonTableFileNameFromProject( Collection< String > directories, String objectName )
 	{
-		if ( directories == null )
-			return null;
-
-		if ( directories.size() > 1) {
-			// when there are multiple directories, we only allow selection of items that are present with the same name in
+		if ( directories.size() > 1 ) {
+			// when there are multiple directories,
+			// we only allow selection of items that are present with the same name in
 			// all of them
 			return chooseCommonFileName( directories, objectName );
-		} else {
-			String[] fileNames = IOHelper.getFileNames( directories.get(0) );
+		}
+		else // directories.size() == 1
+		{
+			final String directory = directories.iterator().next();
+			String[] fileNames = IOHelper.getFileNames( directory );
 			if ( fileNames == null )
-				throw new RuntimeException("Could not find any files at " + directories.get(0) );
-
+				throw new RuntimeException("Could not find any files at " + directory );
 			return selectionDialog( fileNames, objectName );
 		}
 	}

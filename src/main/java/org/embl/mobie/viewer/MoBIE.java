@@ -78,6 +78,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.embl.mobie.viewer.MoBIEHelper.selectCommonTableFileNameFromProject;
+import static org.embl.mobie.viewer.MoBIEHelper.selectFilePath;
 
 public class MoBIE
 {
@@ -133,31 +134,61 @@ public class MoBIE
 		openDataset();
 	}
 
-	public String addColumnsFromProject( AnnotationDisplay< ? extends TableRow > display )
+	public void appendColumnsFromFileSystem( AnnotationDisplay< ? extends TableRow > display )
+	{
+		String path = selectFilePath( null, "Table", true );
+
+		if ( path != null ) {
+			new Thread( () -> {
+				display.tableViewer.enableRowSorting( false );
+				if ( display instanceof SegmentationDisplay )
+				{
+					final String sourceName = display.getSources().get( 0 );
+					moBIE.appendSegmentTableColumns( display.tableRows, sourceName, path  );
+				}
+				else if ( display instanceof RegionDisplay )
+				{
+					Map< String, List< String > > table = readTable( path );
+					TableHelper.appendRegionTableColumns( display.tableRows, table );
+				}
+				display.tableViewer.enableRowSorting( true );
+			}).start();
+		}
+	}
+
+	public String appendColumnsFromProject( AnnotationDisplay< ? extends TableRow > display )
 	{
 		final Map< String, String > sourceNameToTableDirectory = getTableDirectories( display );
 		String tableFileName = selectCommonTableFileNameFromProject( sourceNameToTableDirectory.values(), "Table" );
-		if ( tableFileName == null )
-			return null;
 
 		if ( display instanceof RegionDisplay )
 		{
 			for ( String tableDir : sourceNameToTableDirectory.values() )
 			{
 				String resolvedPath = MoBIEHelper.resolveTablePath( IOHelper.combinePath( tableDir, tableFileName ) );
-				IJ.log( "Opening table:\n" + resolvedPath );
-				final Map< String, List< String > > tableColumns = TableColumns.stringColumnsFromTableFile( resolvedPath );
+				final Map< String, List< String > > tableColumns = readTable( resolvedPath );
+				display.tableViewer.enableRowSorting( false );
 				TableHelper.appendRegionTableColumns( display.tableRows, tableColumns );
+				display.tableViewer.enableRowSorting( true );
 			}
 		}
 		else if ( display instanceof SegmentationDisplay )
 		{
 			ArrayList< String > tableNames = new ArrayList<>( );
 			tableNames.add( tableFileName );
+			display.tableViewer.enableRowSorting( false );
 			moBIE.appendSegmentTableColumns( display.tableRows, sourceNameToTableDirectory.keySet(), tableNames );
+			display.tableViewer.enableRowSorting( true );
 		}
 
 		return tableFileName;
+	}
+
+	private static Map< String, List< String > > readTable( String path )
+	{
+		IJ.log( "Opening table:\n" + path );
+		final Map< String, List< String > > tableColumns = TableColumns.stringColumnsFromTableFile( path );
+		return tableColumns;
 	}
 
 	private Map< String, String > getTableDirectories( AnnotationDisplay display )
@@ -692,7 +723,7 @@ public class MoBIE
 		}
 	}
 
-	public void appendSegmentTableColumns( String source, String tablePath, List<TableRowImageSegment> tableRows )
+	public void appendSegmentTableColumns( List< ? extends TableRow > tableRows, String source, String tablePath )
 	{
 		// load
 		Map< String, List< String > > additionalTable = TableHelper.loadTableAndAddImageIdColumn( source, tablePath );
