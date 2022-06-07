@@ -37,16 +37,18 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 
-import java.util.List;
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public class TransformedTimepointSource<T extends NumericType<T> & RealType<T>> implements Source<T>, SourceWrapper<T>
 {
+    private final String name;
     private final Source<T> source;
     private Map< Integer, Integer > timePoints; // new to old
 
-    public TransformedTimepointSource( final Source<T> source, Map< Integer, Integer > timePoints )
+    public TransformedTimepointSource( @Nullable String name, final Source< T > source, Map< Integer, Integer > timePoints )
     {
+        this.name = name;
         this.source = source;
         this.timePoints = timePoints;
     }
@@ -86,7 +88,10 @@ public class TransformedTimepointSource<T extends NumericType<T> & RealType<T>> 
 
     @Override
     public String getName() {
-        return source.getName();
+        if ( name == null )
+            return source.getName();
+        else
+            return name;
     }
 
     @Override

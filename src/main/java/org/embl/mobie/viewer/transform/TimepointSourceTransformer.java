@@ -29,7 +29,11 @@
 package org.embl.mobie.viewer.transform;
 
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.Volatile;
+import org.embl.mobie.viewer.source.TransformedTimepointSource;
+import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -65,20 +69,42 @@ public class TimepointSourceTransformer extends AbstractSourceTransformer
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
-//		affineTransform3D = new AffineTransform3D();
-//		affineTransform3D.set( timePoints );
-//
-//		for ( String sourceName : sourceNameToSourceAndConverter.keySet() )
-//		{
-//			if ( sources.contains( sourceName ) )
-//			{
-//				SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName );
-//
-//				final SourceAndConverter transformedSource = transformer.apply( sourceNameToSourceAndConverter.get( sourceName ) );
-//
-//				sourceNameToSourceAndConverter.put( transformedSource.getSpimSource().getName(), transformedSource );
-//			}
-//		}
+		// Convert to Map (it comes as List< List< Integer > >,
+		// because this works better for the serialisation;
+		// in a Map the key in JSON always is a String, which
+		// is not appropriate here)
+		final HashMap< Integer, Integer > timepointMap = new HashMap<>();
+		for ( List< Integer > pair : timePoints )
+		{
+			timepointMap.put( pair.get( 0 ), pair.get( 1 ) );
+		}
+
+		for ( String sourceName : sourceNameToSourceAndConverter.keySet() )
+		{
+			if ( ! sources.contains( sourceName ) ) continue;
+
+			final SourceAndConverter< ? > sac = sourceNameToSourceAndConverter.get( sourceName );
+
+			if ( sourceNamesAfterTransform != null )
+				sourceName =  sourceNamesAfterTransform.get( sources.indexOf( sourceName ) );
+
+			final TransformedTimepointSource transformedSource = new TransformedTimepointSource( sourceName, sac.getSpimSource(), timepointMap );
+
+			SourceAndConverter transformedSac;
+			if ( sac.asVolatile() != null )
+			{
+				final SourceAndConverter< ? extends Volatile< ? > > vSac = sac.asVolatile();
+				TransformedTimepointSource vTransformedSource = new TransformedTimepointSource( name, vSac.getSpimSource(), timepointMap );
+				SourceAndConverter vTransformedSac = new SourceAndConverter<>( vTransformedSource, SourceAndConverterHelper.cloneConverter( vSac.getConverter(), vSac ) );
+				transformedSac = new SourceAndConverter( transformedSource, SourceAndConverterHelper.cloneConverter( sac.getConverter(), sac ), vTransformedSac );
+			}
+			else
+			{
+				transformedSac = new SourceAndConverter<>( transformedSource, SourceAndConverterHelper.cloneConverter( sac.getConverter(), sac ) );
+			}
+
+			sourceNameToSourceAndConverter
+		}
 	}
 
 	@Override
