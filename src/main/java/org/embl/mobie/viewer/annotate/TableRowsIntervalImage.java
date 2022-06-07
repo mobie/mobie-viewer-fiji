@@ -49,6 +49,7 @@ import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.source.LabelSource;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -134,20 +135,32 @@ public class TableRowsIntervalImage< T extends RegionTableRow >
 			}
 		};
 
+		final ArrayList< Integer > timePoints = configureTimePoints();
+
+
 		final FunctionRealRandomAccessible< IntType > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, IntType::new );
 
-		//final IntType intType = randomAccessible.realRandomAccess().get();
-		final double realMin = unionMask.realMin( 0 );
 		final Interval interval = Intervals.smallestContainingInterval( unionMask );
+
 		final RealRandomAccessibleIntervalSource< IntType > source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new IntType(), name );
 
 		final ListItemsARGBConverter< T > argbConverter = new ListItemsARGBConverter<>( tableRows, coloringModel );
 
-		final LabelSource< IntType > labelSource = new LabelSource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX, unionMask );
+		final LabelSource< IntType > labelSource = new LabelSource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX, unionMask, timePoints );
+
 		final TransformedSource< IntType > transformedSource = new TransformedSource<>( labelSource );
+
 		sourceAndConverter = new SourceAndConverter( transformedSource, argbConverter );
 
 		contrastLimits = new double[]{ 0, 255 };
+	}
+
+	private ArrayList< Integer > configureTimePoints()
+	{
+		// TODO: make this configurable in constructor or base it on the tableRows which have: tableRows.get( 0 ).timePoint()
+		final ArrayList< Integer > timepoints = new ArrayList<>();
+		timepoints.add( 0 );
+		return timepoints;
 	}
 
 	public String getName()

@@ -63,7 +63,7 @@ public class OpenMoBIEFigureCommand implements Command
 			figureNames.add( figure.publicationAbbreviation + ": " + figure.name );
 		}
 
-		final GenericDialog gd = new GenericDialog( "Please select a figure" );
+		final GenericDialog gd = new GenericDialog( "Please select a view" );
 
 		final String[] items = figureNames.toArray( new String[ figureNames.size() ]);
 		gd.addChoice( "Figure", items, items[ 0 ] );

@@ -45,14 +45,18 @@ import net.imglib2.type.numeric.RealType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.function.BiConsumer;
 
-public class LabelSource<T extends NumericType<T> & RealType<T>> implements Source<T> {
-    protected final Source<T> source;
+public class LabelSource<T extends NumericType<T> & RealType<T>> implements Source<T>
+{
+    private final Source<T> source;
+    private final float background;
+    private final RealMaskRealInterval bounds;
+    private final Collection< Integer > timePoints;
+
     private boolean showAsBoundaries;
     private float boundaryWidth;
-    private float background;
-    private final RealMaskRealInterval bounds;
     private ArrayList< Integer > boundaryDimensions;
 
     public LabelSource( final Source<T> source )
@@ -67,9 +71,15 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
 
     public LabelSource( final Source<T> source, float background, RealMaskRealInterval bounds )
     {
+        this( source, background, bounds, null );
+    }
+
+    public LabelSource( final Source<T> source, float background, RealMaskRealInterval bounds, Collection< Integer > timePoints )
+    {
         this.source = source;
         this.background = background;
         this.bounds = bounds;
+        this.timePoints = timePoints;
     }
 
     public void showAsBoundary( boolean showAsBoundaries, float boundaryWidth ) {
@@ -89,8 +99,12 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
     }
 
     @Override
-    public boolean isPresent(final int t) {
-        return source.isPresent(t);
+    public boolean isPresent(final int t)
+    {
+        if ( timePoints != null )
+            return timePoints.contains( t );
+        else
+            return source.isPresent(t);
     }
 
     @Override
