@@ -48,6 +48,7 @@ import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.ImageSource;
+import org.embl.mobie.viewer.source.LazySourceAndConverter;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableHelper;
@@ -77,8 +78,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.embl.mobie.viewer.MoBIEHelper.selectCommonTableFileNameFromProject;
 import static org.embl.mobie.viewer.MoBIEHelper.selectFilePath;
+import static org.embl.mobie.viewer.MoBIEHelper.selectTableFileNameFromProject;
 
 public class MoBIE
 {
@@ -159,7 +160,7 @@ public class MoBIE
 	public String appendColumnsFromProject( AnnotationDisplay< ? extends TableRow > display )
 	{
 		final Map< String, String > sourceNameToTableDirectory = getTableDirectories( display );
-		String tableFileName = selectCommonTableFileNameFromProject( sourceNameToTableDirectory.values(), "Table" );
+		String tableFileName = selectTableFileNameFromProject( sourceNameToTableDirectory.values(), "Table" );
 
 		if ( display instanceof RegionDisplay )
 		{
@@ -484,6 +485,13 @@ public class MoBIE
 
 	public SourceAndConverter< ? > openSourceAndConverter( String sourceName, String log )
 	{
+		boolean isLazy = true;
+		if ( isLazy )
+		{
+			final LazySourceAndConverter< Object > lazySac = new LazySourceAndConverter<>();
+			return lazySac;
+		}
+
 		final ImageSource imageSource = getSource( sourceName );
 
 		ImageDataFormat imageDataFormat = getImageDataFormat( sourceName, imageSource.imageData.keySet() );

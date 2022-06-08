@@ -56,6 +56,7 @@ import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.table.TableViewer;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
+import org.embl.mobie.viewer.transform.MergedGridSource;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SourceTransformer;
@@ -295,6 +296,9 @@ public class ViewManager
 		// open all raw sources
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( rawSources );
 
+		// add lazy sources
+		//sourceNameToSourceAndConverters.put( sourceName, openSourceAndConverter( sourceName, log ) );
+
 		// create transformed sources
 		final List< SourceTransformer > sourceTransformers = view.getSourceTransforms();
 		if ( sourceTransformers != null )
@@ -330,7 +334,15 @@ public class ViewManager
 
 		for ( SourceTransformer sourceTransformer : view.getSourceTransforms() )
 		{
-			sources.addAll( sourceTransformer.getSources() );
+			if ( sourceTransformer instanceof MergedGridSource )
+			{
+				// lazy (maybe return Map< String, boolean > instead of Set)
+				// boolean = isLazy or not
+			}
+			else
+			{
+				sources.addAll( sourceTransformer.getSources() );
+			}
 		}
 
 		return sources;
@@ -451,8 +463,6 @@ public class ViewManager
 
 		if ( segmentationDisplay.tableRows != null )
 		{
-			// TODO: can one use the same code here for
-			//  annotation and segmentation?
 			initTableViewer( segmentationDisplay );
 			initScatterPlotViewer( segmentationDisplay );
 			initSegmentationVolumeViewer( segmentationDisplay );

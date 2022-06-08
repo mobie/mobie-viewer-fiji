@@ -470,7 +470,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		}
 	}
 
-	private void enableRowSorting( boolean sortable )
+	public void enableRowSorting( boolean sortable )
 	{
 		final int columnCount = jTable.getColumnCount();
 		for ( int i = 0; i < columnCount; i++ )

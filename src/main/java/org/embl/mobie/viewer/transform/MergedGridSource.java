@@ -92,7 +92,8 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		this.mergedGridSourceName = mergedGridSourceName;
 		this.type = referenceSource.getType();
 
-		mergedRandomAccessibleIntervals = createMergedRAIs();
+		initDimensions();
+		mergedRandomAccessibleIntervals = createMergedRAIs( referenceSource.getNumMipmapLevels() );
 	}
 
 	public static boolean instanceOf( SourceAndConverter< ? > sourceAndConverter )
@@ -123,13 +124,12 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		return gridSources;
 	}
 
-	private List< RandomAccessibleInterval< T > > createMergedRAIs()
+	private void initDimensions()
 	{
 		final int numMipmapLevels = referenceSource.getNumMipmapLevels();
 		setCellDimensions( numMipmapLevels );
 		setCellRealDimensions( cellDimensions[ 0 ] );
 		setMask( positions, cellDimensions[ 0 ] );
-		return createMergedRAIs( numMipmapLevels );
 	}
 
 	private List< RandomAccessibleInterval< T > > createMergedRAIs( int numMipmapLevels )

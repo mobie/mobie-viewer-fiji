@@ -199,7 +199,7 @@ public abstract class MoBIEHelper
 		FileSystem
 	}
 
-	private static String chooseValidTableFileName( List<String> directories, String objectName ) {
+	private static String chooseValidTableFileName( Collection< String > directories, String objectName ) {
 		ArrayList< String > commonFileNames = getCommonFileNames( directories );
 		if ( commonFileNames.size() > 0 ) {
 			String[] choices = new String[commonFileNames.size()];
@@ -213,7 +213,7 @@ public abstract class MoBIEHelper
 	}
 
 	// find file names that occur in all directories
-	private static ArrayList< String > getCommonFileNames( List< String > directories )
+	private static ArrayList< String > getCommonFileNames( Collection< String > directories )
 	{
 		Map<String, Integer> fileNameCounts = new HashMap<>();
 		ArrayList<String> commonFileNames = new ArrayList<>();
@@ -246,7 +246,7 @@ public abstract class MoBIEHelper
 		return FileLocation.valueOf(gd.getNextChoice());
 	}
 
-	public static String selectTableFileNameFromProject( List<String> directories, String objectName ) {
+	public static String selectTableFileNameFromProject( Collection<String> directories, String objectName ) {
 		if ( directories == null )
 			return null;
 
@@ -254,9 +254,10 @@ public abstract class MoBIEHelper
 			// when there are multiple directories,
 			// we only allow selection of table file names
 			// that are present in all directories
-			return chooseValidTableFileName(directories, objectName);
+			return chooseValidTableFileName( directories, objectName );
 		} else {
-			String[] fileNames = IOHelper.getFileNames( directories.get(0) );
+			final String directory = directories.iterator().next();
+			String[] fileNames = IOHelper.getFileNames( directory );
 			if ( fileNames == null )
 				throw new RuntimeException("Could not find any files at " + directory );
 			return selectionDialog( fileNames, objectName );
