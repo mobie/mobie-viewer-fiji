@@ -147,7 +147,8 @@ public abstract class SourceHelper
 	public static int getNumTimepoints( SourceAndConverter< ? > source )
 	{
 		int numSourceTimepoints = 0;
-		for ( int t = 0; t < 10000; t++ )
+        final int maxNumTimePoints = 10000; // TODO
+        for ( int t = 0; t < maxNumTimePoints; t++ )
 		{
 			if ( source.getSpimSource().isPresent( t ) )
             {
@@ -158,6 +159,10 @@ public abstract class SourceHelper
                 return numSourceTimepoints;
             }
 		}
+
+        if ( numSourceTimepoints == maxNumTimePoints )
+            System.err.println( source.getSpimSource().getName() + " has more than " + maxNumTimePoints + " time-points. Is this an error?!" );
+
 		return numSourceTimepoints;
 	}
 }

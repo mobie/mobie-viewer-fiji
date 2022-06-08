@@ -231,7 +231,6 @@ public class ViewManager
 		{
 			final BdvHandle bdvHandle = sliceViewer.getBdvHandle();
 			AffineTransform3D normalisedViewTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
-
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
 			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, transform, isExclusive);
 		}
@@ -273,6 +272,15 @@ public class ViewManager
 
 		// trigger rendering of source name overlay
 		getSliceViewer().getSourceNameRenderer().transformChanged( sliceViewer.getBdvHandle().getViewerPanel().state().getViewerTransform() );
+
+		// adapt time point
+		if ( view.getViewerTransform() != null )
+		{
+			// This needs to be done after adding all the sources,
+			// because otherwise the requested timepoint may not yet
+			// exist in BDV
+			SliceViewLocationChanger.adaptTimepoint( sliceViewer.getBdvHandle(), view.getViewerTransform() );
+		}
 	}
 
 	public void openAndTransformSources( View view )
@@ -454,7 +462,9 @@ public class ViewManager
 
 	private void setTablePosition( Window reference, Window table )
 	{
-		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numCurrentTables - 1 ) * 10 ) );
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		final int shift = screenSize.height / 20;
+		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numCurrentTables - 1 ) * shift ) );
 	}
 
 	private void loadTablesAndCreateImageSegments( SegmentationDisplay segmentationDisplay )

@@ -34,6 +34,8 @@ import bdv.util.BdvOptions;
 import bdv.util.BdvStackSource;
 import bdv.util.Prefs;
 import bdv.viewer.Interpolation;
+import bdv.viewer.OverlayRenderer;
+import bdv.viewer.ViewerPanel;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.basictypeaccess.array.ByteArray;
@@ -42,6 +44,8 @@ import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.ByteType;
 import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
 
+import java.awt.*;
+
 public class MobieBdvSupplier implements IBdvSupplier {
 
     public final MobieSerializableBdvOptions sOptions;
@@ -49,14 +53,16 @@ public class MobieBdvSupplier implements IBdvSupplier {
     public MobieBdvSupplier( MobieSerializableBdvOptions sOptions )
     {
         this.sOptions = sOptions;
-        Prefs.showScaleBar( true );
-        Prefs.showMultibox( false );
-        Prefs.sourceNameOverlayPosition( Prefs.OverlayPosition.TOP_RIGHT );
     }
 
     @Override
     public BdvHandle get()
     {
+        Prefs.showTextOverlay();
+        Prefs.showScaleBar( true );
+        Prefs.showMultibox( false );
+        Prefs.sourceNameOverlayPosition( Prefs.OverlayPosition.TOP_RIGHT );
+
         BdvOptions options = sOptions.getBdvOptions();
 
         // create dummy image to instantiate the BDV
@@ -69,14 +75,34 @@ public class MobieBdvSupplier implements IBdvSupplier {
         if ( sOptions.interpolate ) bdv.getViewerPanel().setInterpolation( Interpolation.NLINEAR );
 
         // remove dummy image
-        bdv.getViewerPanel().state().removeSource(bdv.getViewerPanel().state().getCurrentSource());
+        bdv.getViewerPanel().state().removeSource( bdv.getViewerPanel().state().getCurrentSource() );
 
         // TODO: this constructions appears a bit brittle.
         //  BDV does not seem to handle it very well if there
         //  is no image shown...
         //  Maybe there is a better way to initialise an empty BDV?
 
+        setTimepointTextColor( bdv );
+
         return bdv;
+    }
+
+    // This is a hack that could be removed once it is
+    // fixed in BDV (discussion on bdv-core gitter with tpietzsch).
+    private void setTimepointTextColor( BdvHandle bdv )
+    {
+        ViewerPanel viewer = bdv.getViewerPanel();
+        viewer.getDisplay().overlays().add( 1, new OverlayRenderer()
+        {
+            @Override
+            public void drawOverlays( Graphics g )
+            {
+                g.setColor( Color.WHITE );
+            }
+
+            @Override
+            public void setCanvasSize( final int width, final int height ) {}
+        } );
     }
 
 }

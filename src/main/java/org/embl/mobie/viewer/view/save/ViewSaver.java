@@ -263,7 +263,7 @@ public class ViewSaver
                 throw new IOException( "View saving aborted - this view name already exists!" );
 
         ViewSavingHelper.writeDatasetJson( dataset, view, viewName, datasetJsonPath );
-        IJ.log( " View, " + viewName + ", written to dataset.json" );
+        IJ.log( "View \"" + viewName + "\" written to dataset.json" );
     }
 
     private void overwriteExistingViewInDatasetJson( View view ) throws IOException {
