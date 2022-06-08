@@ -78,7 +78,7 @@ public abstract class SliceViewLocationChanger
 		}
 	}
 
-	private static void adaptTimepoint( BdvHandle bdv, ViewerTransform viewerTransform )
+	public static void adaptTimepoint( BdvHandle bdv, ViewerTransform viewerTransform )
 	{
 		if ( viewerTransform.getTimepoint() != null )
 			bdv.getViewerPanel().setTimepoint( viewerTransform.getTimepoint() );

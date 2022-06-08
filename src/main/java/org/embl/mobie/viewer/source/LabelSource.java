@@ -48,7 +48,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 
-public class LabelSource<T extends NumericType<T> & RealType<T>> implements Source<T>
+public class LabelSource<T extends NumericType<T> & RealType<T>> implements Source<T>, SourceWrapper< T >
 {
     private final Source<T> source;
     private final float background;
@@ -289,6 +289,7 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         return source.getNumMipmapLevels();
     }
 
+    @Override
     public Source<T> getWrappedSource() {
         return source;
     }

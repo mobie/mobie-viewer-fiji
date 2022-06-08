@@ -39,8 +39,6 @@ public interface SourceTransformer
 {
 	void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter );
 
-	//AffineTransform3D getTransform( String name );
-
 	/**
 	 *
 	 * @return a list of the names of all sources that should be transformed using this transformer.
