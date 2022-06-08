@@ -160,7 +160,8 @@ public class ViewManager
 
 	public ViewSaver getViewsSaver() { return viewSaver; }
 
-	private boolean hasColumnsOutsideProject( AnnotationDisplay annotationDisplay ) {
+	private boolean hasColumnsOutsideProject( AnnotationDisplay annotationDisplay )
+	{
 		if ( annotationDisplay.tableViewer.hasColumnsFromTablesOutsideProject() )
 		{
 			IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project)." );
@@ -190,8 +191,8 @@ public class ViewManager
         }
     }
 
-	public View getCurrentView( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform ) {
-
+	public View createCurrentView( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform )
+	{
 		List< SourceDisplay > viewSourceDisplays = new ArrayList<>();
 		List< SourceTransformer > viewSourceTransforms = new ArrayList<>();
 
@@ -212,15 +213,12 @@ public class ViewManager
 			else if ( sourceDisplay instanceof SegmentationDisplay )
 			{
 				SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) sourceDisplay;
-				if ( hasColumnsOutsideProject( segmentationDisplay ) ) { return null; }
 				currentDisplay = new SegmentationDisplay( segmentationDisplay );
 				addManualTransforms( viewSourceTransforms, segmentationDisplay.sourceNameToSourceAndConverter );
 			}
 			else if ( sourceDisplay instanceof RegionDisplay )
 			{
-				RegionDisplay regionDisplay = ( RegionDisplay ) sourceDisplay;
-				if ( hasColumnsOutsideProject( regionDisplay ) ) { return null; }
-				currentDisplay = new RegionDisplay( regionDisplay );
+				currentDisplay = new RegionDisplay( ( RegionDisplay ) sourceDisplay );
 			}
 
 			if ( currentDisplay != null )
@@ -235,7 +233,9 @@ public class ViewManager
 			AffineTransform3D normalisedViewTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
 			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, transform, isExclusive);
-		} else {
+		}
+		else
+		{
 			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, isExclusive);
 		}
 	}
@@ -418,10 +418,9 @@ public class ViewManager
 		setTablePosition( regionDisplay.sliceViewer.getWindow(), regionDisplay.tableViewer.getWindow() );
 	}
 
-	private void initTableViewer( AnnotationDisplay< ? > display )
+	private void initTableViewer( AnnotationDisplay< ? extends TableRow > display )
 	{
-		Map< String, String > sourceNameToTableDir = moBIE.getAnnotationTableDirectories( display );
-		display.tableViewer = new TableViewer( moBIE, display.tableRows, display.selectionModel, display.selectionColoringModel, display.getName(), sourceNameToTableDir, display instanceof RegionDisplay );
+		display.tableViewer = new TableViewer( moBIE, display );
 		display.tableViewer.show();
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.selectionColoringModel.listeners().add( display.tableViewer );
@@ -452,6 +451,8 @@ public class ViewManager
 
 		if ( segmentationDisplay.tableRows != null )
 		{
+			// TODO: can one use the same code here for
+			//  annotation and segmentation?
 			initTableViewer( segmentationDisplay );
 			initScatterPlotViewer( segmentationDisplay );
 			initSegmentationVolumeViewer( segmentationDisplay );

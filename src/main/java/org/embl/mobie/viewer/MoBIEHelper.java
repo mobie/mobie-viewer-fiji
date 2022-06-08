@@ -59,9 +59,11 @@ import org.embl.mobie.viewer.transform.TransformHelper;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
+import java.net.CookieHandler;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -191,7 +193,8 @@ public abstract class MoBIEHelper
 		return union;
 	}
 
-	public enum FileLocation {
+	public enum FileLocation
+	{
 		Project,
 		FileSystem
 	}
@@ -255,8 +258,7 @@ public abstract class MoBIEHelper
 		} else {
 			String[] fileNames = IOHelper.getFileNames( directories.get(0) );
 			if ( fileNames == null )
-				throw new RuntimeException("Could not find any files at " + directories.get(0) );
-
+				throw new RuntimeException("Could not find any files at " + directory );
 			return selectionDialog( fileNames, objectName );
 		}
 	}

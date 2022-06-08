@@ -29,21 +29,19 @@
 package org.embl.mobie.viewer.table;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
-import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.annotate.Annotator;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
 import de.embl.cba.tables.*;
 import de.embl.cba.tables.color.*;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
 
+import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.select.SelectionModel;
 import de.embl.cba.tables.tablerow.JTableFromTableRowsModelCreator;
 import de.embl.cba.tables.tablerow.TableRow;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import de.embl.cba.tables.tablerow.TableRowListener;
 import de.embl.cba.tables.TableRows;
 import ij.gui.GenericDialog;
@@ -74,14 +72,13 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private final SelectionModel< T > selectionModel;
 	private final SelectionColoringModel< T > coloringModel;
 	private final String tableName;
+	private final AnnotationDisplay< T > display;
 	private JTable jTable;
 
 	private int recentlySelectedRowInView;
 	private ColumnColoringModelCreator< T > columnColoringModelCreator;
-	private Map< String, String > sourceNameToTableDir; // for loading additional columns
-	private ArrayList< String > additionalTables; // tables from which additional columns are loaded
+	private ArrayList< String > additionalTables = new ArrayList<>();; // tables from which additional columns are loaded
 	private boolean hasColumnsFromTablesOutsideProject; // whether additional columns have been loaded from tables outside the project
-	private boolean isRegionTable; // Needed as merging columns to a segments table is different to a grid table
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
 
 	// TODO: this is only for the annotator (maybe move it there)
@@ -90,11 +87,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private boolean controlDown;
 	private JFrame frame;
 
-	public void close()
-	{
-		frame.dispose();
-	}
-
 	private enum TableRowSelectionMode
 	{
 		None,
@@ -102,25 +94,15 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		ToggleSelectionAndFocusIfSelected
 	}
 
-	public TableViewer(
-			final MoBIE moBIE,
-			final List< T > tableRows,
-			final SelectionModel< T > selectionModel,
-			final SelectionColoringModel< T > selectionColoringModel,
-			String tableName,
-			Map< String, String > sourceNameToTableDir,
-			boolean isRegionTable )
+	public TableViewer( MoBIE moBIE, AnnotationDisplay< T > display )
 	{
 		this.moBIE = moBIE;
-		this.tableRows = tableRows;
-		this.coloringModel = selectionColoringModel;
-		this.selectionModel = selectionModel;
-		this.tableName = tableName;
+		this.display = display;
+		this.tableRows = display.tableRows;
+		this.coloringModel = display.selectionColoringModel;
+		this.selectionModel = display.selectionModel;
+		this.tableName = display.getName();
 		this.recentlySelectedRowInView = -1;
-		this.additionalTables = new ArrayList<>();
-		this.sourceNameToTableDir = sourceNameToTableDir;
-		this.hasColumnsFromTablesOutsideProject = false;
-		this.isRegionTable = isRegionTable;
 
 		registerAsTableRowListener( tableRows );
 
@@ -131,6 +113,11 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 		if ( coloringModel != null)
 			configureTableRowColoring();
+	}
+
+	public void close()
+	{
+		frame.dispose();
 	}
 
 	public void show()
@@ -496,32 +483,27 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	{
 		final JMenuItem menuItem = new JMenuItem( "Load Columns..." );
 		menuItem.addActionListener( e ->
-				new Thread( () -> {
-					FileLocation fileLocation;
-					if (sourceNameToTableDir.size() > 1) {
-						// For multi-source tables, we only allow loading from the project
-						fileLocation = FileLocation.Project;
-					} else {
-						fileLocation = loadFromProjectOrFileSystemDialog();
-						if (fileLocation == null)
-							return;
-					}
-
-					if (fileLocation == FileLocation.Project) {
-						loadColumnsFromProject();
-					} else {
-						loadColumnsFromFileSystem();
-					}
-				}).start() );
+			new Thread( () -> {
+				FileLocation fileLocation = loadFromProjectOrFileSystemDialog();
+				if ( fileLocation.equals( FileLocation.Project ) )
+					moBIE.appendColumnsFromProject( display );
+				else if ( fileLocation.equals( FileLocation.FileSystem ))
+				{
+					moBIE.appendColumnsFromFileSystem( display );
+				}
+			}).start()
+		);
 
 		return menuItem;
 	}
 
-	public ArrayList<String> getAdditionalTables() {
+	public ArrayList<String> getAdditionalTables()
+	{
 		return additionalTables;
 	}
 
-	public boolean hasColumnsFromTablesOutsideProject() {
+	public boolean hasColumnsFromTablesOutsideProject()
+	{
 		return hasColumnsFromTablesOutsideProject;
 	}
 

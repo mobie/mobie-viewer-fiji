@@ -31,6 +31,7 @@ package org.embl.mobie.viewer.table;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
+import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.TableColumnNames;
@@ -43,13 +44,13 @@ import java.util.Map;
 
 public class TableHelper
 {
-	public static void appendRegionTableColumns( List< RegionTableRow > tableRows, Map< String, List< String > > columns )
+	public static void appendRegionTableColumns( List< ? extends TableRow > tableRows, Map< String, List< String > > columns )
 	{
 		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
 		final ArrayList< String > regionIdColumn = TableColumns.getColumn( tableRows, TableColumnNames.REGION_ID );
 		referenceColumns.put( TableColumnNames.REGION_ID, regionIdColumn );
 
-		// deal with the fact that the grid ids are sometimes
+		// deal with the fact that the region ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
 		MoBIEHelper.toDoubleStrings( regionIdColumn );
@@ -71,7 +72,7 @@ public class TableHelper
 		return columns;
 	}
 
-	public static Map< String, List< String > > createColumnsForMerging( List< TableRowImageSegment > segments, Map< String, List< String > > newColumns )
+	public static Map< String, List< String > > createColumnsForMerging( List< ? extends TableRow > segments, Map< String, List< String > > newColumns )
 	{
 		final ArrayList< String > segmentIdColumn = TableColumns.getColumn( segments, TableColumnNames.SEGMENT_LABEL_ID );
 		final ArrayList< String > imageIdColumn = TableColumns.getColumn( segments, TableColumnNames.LABEL_IMAGE_ID );
