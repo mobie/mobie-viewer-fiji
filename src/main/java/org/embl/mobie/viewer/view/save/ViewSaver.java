@@ -155,7 +155,7 @@ public class ViewSaver
                 uiSelectionGroup = ProjectCreatorHelper.makeNewUiSelectionGroup(currentUiSelectionGroups);
             }
 
-            View currentView = moBIE.getViewManager().getCurrentView(uiSelectionGroup, exclusive, includeViewerTransform);
+            View currentView = moBIE.getViewManager().getCurrentView( uiSelectionGroup, exclusive, includeViewerTransform);
 
             if ( uiSelectionGroup != null && currentView != null ) {
                 if ( fileLocation == MoBIEHelper.FileLocation.Project && saveMethod == SaveMethod.saveAsNewView ) {

@@ -86,7 +86,9 @@ public class SourceTransformerListAdapter implements JsonSerializer< List<Source
 			} else if ( sourceTransformer instanceof CropSourceTransformer ) {
 				ja.add( context.serialize( nameToTransformer , new TypeToken< Map< String, CropSourceTransformer > >() {}.getType() ) );
 			} else if ( sourceTransformer instanceof MergedGridSourceTransformer ) {
-				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, MergedGridSourceTransformer > >(){}.getType()) );
+				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, MergedGridSourceTransformer > >() {}.getType() ) );
+			} else if ( sourceTransformer instanceof TimepointSourceTransformer ) {
+				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, TimepointSourceTransformer > >(){}.getType()) );
 			} else {
 				throw new UnsupportedOperationException( "Could not serialise SourceTransformer of type: " + sourceTransformer.getClass().toString() );
 			}
