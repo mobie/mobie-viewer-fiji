@@ -461,7 +461,9 @@ public class ViewManager
 
 	private void setTablePosition( Window reference, Window table )
 	{
-		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numCurrentTables - 1 ) * 10 ) );
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		final int shift = screenSize.height / 20;
+		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numCurrentTables - 1 ) * shift ) );
 	}
 
 	private void loadTablesAndCreateImageSegments( SegmentationDisplay segmentationDisplay )

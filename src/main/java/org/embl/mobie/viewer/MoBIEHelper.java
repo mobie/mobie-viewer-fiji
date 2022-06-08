@@ -46,10 +46,8 @@ import loci.plugins.in.ImagePlusReader;
 import loci.plugins.in.ImportProcess;
 import loci.plugins.in.ImporterOptions;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.roi.Bounds;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.util.Intervals;
@@ -198,7 +196,22 @@ public abstract class MoBIEHelper
 		FileSystem
 	}
 
-	private static String chooseCommonFileName( List<String> directories, String objectName ) {
+	private static String chooseValidTableFileName( List<String> directories, String objectName ) {
+		ArrayList< String > commonFileNames = getCommonFileNames( directories );
+		if ( commonFileNames.size() > 0 ) {
+			String[] choices = new String[commonFileNames.size()];
+			for (int i = 0; i < choices.length; i++) {
+				choices[i] = commonFileNames.get(i);
+			}
+			return selectionDialog(choices, objectName);
+		} else {
+			return null;
+		}
+	}
+
+	// find file names that occur in all directories
+	private static ArrayList< String > getCommonFileNames( List< String > directories )
+	{
 		Map<String, Integer> fileNameCounts = new HashMap<>();
 		ArrayList<String> commonFileNames = new ArrayList<>();
 
@@ -219,16 +232,7 @@ public abstract class MoBIEHelper
 				commonFileNames.add( fileName );
 			}
 		}
-
-		if ( commonFileNames.size() > 0 ) {
-			String[] choices = new String[commonFileNames.size()];
-			for (int i = 0; i < choices.length; i++) {
-				choices[i] = commonFileNames.get(i);
-			}
-			return selectionDialog(choices, objectName);
-		} else {
-			return null;
-		}
+		return commonFileNames;
 	}
 
 	public static FileLocation loadFromProjectOrFileSystemDialog() {
@@ -239,14 +243,15 @@ public abstract class MoBIEHelper
 		return FileLocation.valueOf(gd.getNextChoice());
 	}
 
-	public static String selectCommonFileNameFromProject( List<String> directories, String objectName ) {
+	public static String selectTableFileNameFromProject( List<String> directories, String objectName ) {
 		if ( directories == null )
 			return null;
 
 		if ( directories.size() > 1) {
-			// when there are multiple directories, we only allow selection of items that are present with the same name in
-			// all of them
-			return chooseCommonFileName(directories, objectName);
+			// when there are multiple directories,
+			// we only allow selection of table file names
+			// that are present in all directories
+			return chooseValidTableFileName(directories, objectName);
 		} else {
 			String[] fileNames = IOHelper.getFileNames( directories.get(0) );
 			if ( fileNames == null )

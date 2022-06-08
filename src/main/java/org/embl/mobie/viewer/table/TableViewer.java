@@ -438,26 +438,26 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private void loadColumnsFromProject()
 	{
 		final ArrayList< String > directories = new ArrayList<>( sourceNameToTableDir.values() );
-		String tableName = selectCommonFileNameFromProject( directories, "Table" );
-		if ( tableName == null ) return;
+		String tableFileName = selectTableFileNameFromProject( directories, "Table" );
+		if ( tableFileName == null ) return;
 
 		if ( isRegionTable )
 		{
 			for ( String tableDir : sourceNameToTableDir.values() )
 			{
-				final Map< String, List< String > > table = openTable( IOHelper.combinePath( tableDir, tableName ) );
+				final Map< String, List< String > > table = openTable( IOHelper.combinePath( tableDir, tableFileName ) );
 				TableHelper.appendRegionTableColumns( ( List< RegionTableRow > ) tableRows, table );
 			}
 		}
 		else // == isSegmentTable
 		{
 			ArrayList<String> tableNames = new ArrayList<>( );
-			tableNames.add( tableName );
+			tableNames.add( tableFileName );
 			List< String > sources = new ArrayList<>( sourceNameToTableDir.keySet() );
 			moBIE.appendSegmentTableColumns( (List<TableRowImageSegment>) tableRows, sources, tableNames );
 		}
 
-		addAdditionalTable( tableName );
+		addAdditionalTable( tableFileName );
 	}
 
 	private void loadColumnsFromFileSystem()
