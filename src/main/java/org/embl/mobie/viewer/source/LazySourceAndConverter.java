@@ -26,16 +26,15 @@ import org.embl.mobie.viewer.MoBIE;
 public class LazySourceAndConverter< T > extends SourceAndConverter< T >
 {
 	private final MoBIE moBIE;
-	private final String sourceName;
+	private String name;
 	private AffineTransform3D sourceTransform;
-	private final VoxelDimensions voxelDimensions;
-	private AffineTransform3D preconcatenateTransform = new AffineTransform3D();
+	private VoxelDimensions voxelDimensions;
 
-	public LazySourceAndConverter( MoBIE moBIE, String sourceName, AffineTransform3D sourceTransform, VoxelDimensions voxelDimensions )
+	public LazySourceAndConverter( MoBIE moBIE, String name, AffineTransform3D sourceTransform, VoxelDimensions voxelDimensions )
 	{
 		super( null );
 		this.moBIE = moBIE;
-		this.sourceName = sourceName;
+		this.name = name;
 		this.sourceTransform = sourceTransform;
 		this.voxelDimensions = voxelDimensions;
 	}
@@ -46,9 +45,9 @@ public class LazySourceAndConverter< T > extends SourceAndConverter< T >
 		return spimSource;
 	}
 
-	public AffineTransform3D getSourceTransform( )
+	public void getSourceTransform( AffineTransform3D transform3D )
 	{
-		return sourceTransform;
+		transform3D.set( sourceTransform );
 	}
 
 	public VoxelDimensions getVoxelDimensions()
@@ -59,5 +58,10 @@ public class LazySourceAndConverter< T > extends SourceAndConverter< T >
 	public void setSourceTransform( AffineTransform3D sourceTransform )
 	{
 		this.sourceTransform = sourceTransform;
+	}
+
+	public void setName( String name )
+	{
+		this.name = name;
 	}
 }
