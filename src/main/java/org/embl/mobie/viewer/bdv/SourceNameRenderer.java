@@ -49,15 +49,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SourceNamesRenderer extends BdvOverlay implements TransformListener< AffineTransform3D >
+public class SourceNameRenderer extends BdvOverlay implements TransformListener< AffineTransform3D >
 {
 	private final BdvHandle bdvHandle;
 	private Map< String, FinalRealInterval > sourceNameToBounds = new ConcurrentHashMap< String, FinalRealInterval >();
 	private FinalRealInterval viewerInterval;
-	private BdvOverlaySource< SourceNamesRenderer > overlaySource;
+	private BdvOverlaySource< SourceNameRenderer > overlaySource;
 	private boolean isActive;
 
-	public SourceNamesRenderer( BdvHandle bdvHandle, boolean isActive )
+	public SourceNameRenderer( BdvHandle bdvHandle, boolean isActive )
 	{
 		this.bdvHandle = bdvHandle;
 		bdvHandle.getViewerPanel().addTransformListener( this );

@@ -30,11 +30,10 @@ package org.embl.mobie.viewer.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.bdv.MobieBdvSupplier;
 import org.embl.mobie.viewer.bdv.MobieSerializableBdvOptions;
-import org.embl.mobie.viewer.bdv.SourceNamesRenderer;
+import org.embl.mobie.viewer.bdv.SourceNameRenderer;
 import org.embl.mobie.viewer.bdv.SourcesAtMousePositionSupplier;
 import org.embl.mobie.viewer.bdv.ViewerTransformLogger;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
@@ -81,7 +80,7 @@ public class SliceViewer
 
 	private SourceAndConverterContextMenuClickBehaviour contextMenu;
 	private final SourceAndConverterService sacService;
-	private SourceNamesRenderer sourceNameRenderer;
+	private SourceNameRenderer sourceNameRenderer;
 
 	public SliceViewer( MoBIE moBIE, boolean is2D )
 	{
@@ -96,12 +95,12 @@ public class SliceViewer
 		setBdvWindowPositionAndSize( bdvHandle );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
-		sourceNameRenderer = new SourceNamesRenderer( bdvHandle, moBIE.initiallyShowSourceNames );
+		sourceNameRenderer = new SourceNameRenderer( bdvHandle, moBIE.initiallyShowSourceNames );
 
 		installContextMenuAndKeyboardShortCuts();
 	}
 
-	public SourceNamesRenderer getSourceNameRenderer()
+	public SourceNameRenderer getSourceNameRenderer()
 	{
 		return sourceNameRenderer;
 	}
