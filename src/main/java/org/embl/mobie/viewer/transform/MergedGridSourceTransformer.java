@@ -54,7 +54,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	protected String mergedGridSourceName;
 	protected List< int[] > positions;
 	protected boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
-	protected boolean encodeSource = false;
+	protected boolean encodeSource = false; // true for label images
 
 	// Runtime
 	private transient MergedGridSource< ? > mergedGridSource;

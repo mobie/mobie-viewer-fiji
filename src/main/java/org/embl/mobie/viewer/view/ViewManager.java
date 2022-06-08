@@ -54,6 +54,7 @@ import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.source.LabelSource;
+import org.embl.mobie.viewer.source.LazySourceAndConverter;
 import org.embl.mobie.viewer.table.TableViewer;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.MergedGridSource;
@@ -76,6 +77,8 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.embl.mobie.viewer.MoBIE.*;
 
 public class ViewManager
 {
@@ -286,18 +289,28 @@ public class ViewManager
 
 	public void openAndTransformSources( View view )
 	{
-		// fetch the names of all sources that are either shown or to be transformed
-		final Set< String > sources = fetchSources( view );
+		// fetch the names of all sources that are either
+		// shown or to be transformed
+		final Map< String, String > sources = fetchSources( view );
 		if ( sources.size() == 0 ) return;
 
-		SourceNameEncoder.addNames( sources );
-		final Set< String > rawSources = sources.stream().filter( s -> moBIE.getDataset().sources.containsKey( s ) ).collect( Collectors.toSet() );
+		SourceNameEncoder.addNames( sources.keySet() );
+		final List< String > sourcesForOpening = sources.keySet().stream().filter( s -> ( moBIE.getDataset().sources.containsKey( s ) && sources.get( s ) == null ) ).collect( Collectors.toList() );
 
-		// open all raw sources
-		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( rawSources );
+		// open sources
+		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( sourcesForOpening );
 
 		// add lazy sources
-		//sourceNameToSourceAndConverters.put( sourceName, openSourceAndConverter( sourceName, log ) );
+		for ( String source : sources.keySet() )
+		{
+			if ( ! moBIE.getDataset().sources.containsKey( source ) )
+				continue; // cannot be opened but is derived (e.g. transformed)
+
+			if ( sources.get( source ) == null )
+				continue; // has been opened already
+
+			sourceNameToSourceAndConverters.put( source, createLazySourceAndConverter( sourceNameToSourceAndConverters, source ) );
+		}
 
 		// create transformed sources
 		final List< SourceTransformer > sourceTransformers = view.getSourceTransforms();
@@ -322,26 +335,54 @@ public class ViewManager
 		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
 	}
 
-	public Set< String > fetchSources( View view )
+	private LazySourceAndConverter createLazySourceAndConverter( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters, String source )
 	{
-		final Set< String > sources = new HashSet<>();
+		final Source< ? > spimSource = sourceNameToSourceAndConverters.get( source ).getSpimSource();
+		final AffineTransform3D sourceTransform = new AffineTransform3D();
+		spimSource.getSourceTransform( 0, 0, sourceTransform );
+		final LazySourceAndConverter sourceAndConverter = new LazySourceAndConverter( moBIE, source, sourceTransform, spimSource.getVoxelDimensions() );
+		return sourceAndConverter;
+	}
+
+	public Map< String, String > fetchSources( View view )
+	{
+		final Map< String, String > sources = new HashMap<>();
 		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
 
 		for ( SourceDisplay sourceDisplay : sourceDisplays )
 		{
-			sources.addAll( sourceDisplay.getSources() );
+			for ( String source : sourceDisplay.getSources() )
+			{
+				sources.put( source, null );
+			}
 		}
 
 		for ( SourceTransformer sourceTransformer : view.getSourceTransforms() )
 		{
+			final List< String > sourceTransformerSources = sourceTransformer.getSources();
+
 			if ( sourceTransformer instanceof MergedGridSource )
 			{
-				// lazy (maybe return Map< String, boolean > instead of Set)
-				// boolean = isLazy or not
+				for ( int i = 0; i < sourceTransformerSources.size(); i++ )
+				{
+					if ( i == 0 )
+					{
+						sources.put( sourceTransformerSources.get( 0 ), null );
+					}
+					else
+					{
+						// source should not be loaded but
+						// initialised as LazySourceAndConverter with first source
+						sources.put( sourceTransformerSources.get( i ), sourceTransformerSources.get( 0 ) );
+					}
+				}
 			}
 			else
 			{
-				sources.addAll( sourceTransformer.getSources() );
+				for ( String source : sourceTransformerSources )
+				{
+					sources.put( source, null );
+				}
 			}
 		}
 

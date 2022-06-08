@@ -2,7 +2,9 @@ package org.embl.mobie.viewer.source;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.bdv.utils.sources.LazySpimSource;
+import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.viewer.MoBIE;
 
 
 /**
@@ -23,14 +25,39 @@ import de.embl.cba.bdv.utils.sources.LazySpimSource;
  */
 public class LazySourceAndConverter< T > extends SourceAndConverter< T >
 {
-	public LazySourceAndConverter( )
+	private final MoBIE moBIE;
+	private final String sourceName;
+	private AffineTransform3D sourceTransform;
+	private final VoxelDimensions voxelDimensions;
+	private AffineTransform3D preconcatenateTransform = new AffineTransform3D();
+
+	public LazySourceAndConverter( MoBIE moBIE, String sourceName, AffineTransform3D sourceTransform, VoxelDimensions voxelDimensions )
 	{
 		super( null );
+		this.moBIE = moBIE;
+		this.sourceName = sourceName;
+		this.sourceTransform = sourceTransform;
+		this.voxelDimensions = voxelDimensions;
 	}
 
 	@Override
 	public Source< T > getSpimSource()
 	{
 		return spimSource;
+	}
+
+	public AffineTransform3D getSourceTransform( )
+	{
+		return sourceTransform;
+	}
+
+	public VoxelDimensions getVoxelDimensions()
+	{
+		return voxelDimensions;
+	}
+
+	public void setSourceTransform( AffineTransform3D sourceTransform )
+	{
+		this.sourceTransform = sourceTransform;
 	}
 }

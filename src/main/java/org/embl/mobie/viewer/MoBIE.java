@@ -485,13 +485,6 @@ public class MoBIE
 
 	public SourceAndConverter< ? > openSourceAndConverter( String sourceName, String log )
 	{
-		boolean isLazy = true;
-		if ( isLazy )
-		{
-			final LazySourceAndConverter< Object > lazySac = new LazySourceAndConverter<>();
-			return lazySac;
-		}
-
 		final ImageSource imageSource = getSource( sourceName );
 
 		ImageDataFormat imageDataFormat = getImageDataFormat( sourceName, imageSource.imageData.keySet() );

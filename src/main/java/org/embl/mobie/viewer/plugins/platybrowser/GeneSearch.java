@@ -48,6 +48,7 @@ import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.source.ImageSource;
 import org.embl.mobie.viewer.view.View;
 
+import javax.naming.ldap.HasControls;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -56,6 +57,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -94,7 +96,9 @@ public class GeneSearch
 		//  moBIE.getViewManager().openAndTransformViewSources( view );
 		//  Since the Prospr sources are not transformed, this does not matter (yet)...
 		if ( prosprSources == null )
+		{
 			prosprSources = moBIE.openSourceAndConverters( prosprSourceNames );
+		}
 
 		final Map< String, Double > geneExpressionLevels = runSearchAndGetLocalExpression( prosprSources );
 

@@ -80,21 +80,15 @@ public abstract class AnnotationSliceView< T extends TableRow > extends Abstract
 	}
 
 	@Override
-	public synchronized void coloringChanged()
-	{
-		getSliceViewer().getBdvHandle().getViewerPanel().requestRepaint();
-	}
-
-	@Override
 	public synchronized void selectionChanged()
 	{
 		getSliceViewer().getBdvHandle().getViewerPanel().requestRepaint();
 	}
 
 	@Override
-	public synchronized void focusEvent( T selection, Object initiator )
+	public void coloringChanged()
 	{
-		// define in child classes
+		getSliceViewer().getBdvHandle().getViewerPanel().requestRepaint();
 	}
 
 	public Window getWindow()

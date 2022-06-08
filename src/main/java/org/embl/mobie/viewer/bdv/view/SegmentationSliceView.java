@@ -106,11 +106,7 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 
 		final BdvHandle bdvHandle = getSliceViewer().getBdvHandle();
 		final SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
-
-		if ( selection.timePoint() != state.getCurrentTimepoint() )
-		{
-			state.setCurrentTimepoint( selection.timePoint() );
-		}
+		state.setCurrentTimepoint( selection.timePoint() );
 
 		final double[] position = new double[ 3 ];
 		selection.localize( position );
