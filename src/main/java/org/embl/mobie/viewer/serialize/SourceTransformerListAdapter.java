@@ -32,6 +32,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.CropSourceTransformer;
+import org.embl.mobie.viewer.transform.TimepointSourceTransformer;
 import org.embl.mobie.viewer.transform.TransformedGridSourceTransformer;
 import org.embl.mobie.viewer.transform.MergedGridSourceTransformer;
 import org.embl.mobie.viewer.transform.SourceTransformer;
@@ -51,6 +52,8 @@ public class SourceTransformerListAdapter implements JsonSerializer< List<Source
 		classToName.put( TransformedGridSourceTransformer.class.getName(), "transformedGrid");
 		nameToClass.put("affine", AffineSourceTransformer.class);
 		classToName.put(AffineSourceTransformer.class.getName(), "affine");
+		nameToClass.put("timepoints", TimepointSourceTransformer.class);
+		classToName.put(TimepointSourceTransformer.class.getName(), "timepoints");
 		nameToClass.put("crop", CropSourceTransformer.class);
 		classToName.put(CropSourceTransformer.class.getName(), "crop");
 	}

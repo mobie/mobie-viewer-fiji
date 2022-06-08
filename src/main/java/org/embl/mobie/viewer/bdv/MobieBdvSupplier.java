@@ -49,6 +49,8 @@ public class MobieBdvSupplier implements IBdvSupplier {
     public MobieBdvSupplier( MobieSerializableBdvOptions sOptions )
     {
         this.sOptions = sOptions;
+        Prefs.showTextOverlay();
+       
         Prefs.showScaleBar( true );
         Prefs.showMultibox( false );
         Prefs.sourceNameOverlayPosition( Prefs.OverlayPosition.TOP_RIGHT );

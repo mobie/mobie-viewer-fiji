@@ -44,13 +44,13 @@ public class TransformedTimepointSource<T extends NumericType<T> & RealType<T>> 
 {
     private final String name;
     private final Source<T> source;
-    private Map< Integer, Integer > timePoints; // new to old
+    private Map< Integer, Integer > timepoints; // new to old
 
-    public TransformedTimepointSource( @Nullable String name, final Source< T > source, Map< Integer, Integer > timePoints )
+    public TransformedTimepointSource( @Nullable String name, final Source< T > source, Map< Integer, Integer > timepoints )
     {
         this.name = name;
         this.source = source;
-        this.timePoints = timePoints;
+        this.timepoints = timepoints;
     }
 
     @Override
@@ -59,26 +59,50 @@ public class TransformedTimepointSource<T extends NumericType<T> & RealType<T>> 
     }
 
     @Override
-    public synchronized void getSourceTransform( final int t, final int level, final AffineTransform3D transform ) {
-        source.getSourceTransform( timePoints.get( t ), level, transform);
+    public synchronized void getSourceTransform( final int t, final int level, final AffineTransform3D transform )
+    {
+        // missing t=0 crashes: https://github.com/bigdataviewer/bigdataviewer-core/issues/140
+
+        // TODO remove this once we fixed wrong accesses to non-existing timepoints
+        if ( timepoints.get( t ) == null )
+        {
+            System.err.println( "Access of source transform at non-existing timepoint: " + t + "; returning the transform at t=0 instead.");
+            Thread.dumpStack();
+            source.getSourceTransform( 0, level, transform);
+        }
+        else
+        {
+            source.getSourceTransform( timepoints.get( t ), level, transform );
+        }
     }
 
     @Override
     public boolean isPresent(final int t)
     {
-        return timePoints.keySet().contains( t );
+        final boolean isPresent = timepoints.keySet().contains( t );
+        return isPresent;
     }
 
     @Override
     public RandomAccessibleInterval<T> getSource(final int t, final int level)
     {
-       return source.getSource( timePoints.get( t ), level );
+        // TODO remove this once we fixed wrong accesses to non-existing timepoints
+        if ( timepoints.get( t ) == null )
+        {
+            System.err.println( "Access of source at non-existing timepoint: " + t + "; returning the source at t=0 instead.");
+            Thread.dumpStack();
+            return source.getSource( 0, level );
+        }
+        else
+        {
+            return source.getSource( timepoints.get( t ), level );
+        }
     }
 
     @Override
     public RealRandomAccessible<T> getInterpolatedSource(final int t, final int level, final Interpolation method)
     {
-       return source.getInterpolatedSource( timePoints.get( t ), level, method );
+       return source.getInterpolatedSource( timepoints.get( t ), level, method );
     }
 
     @Override

@@ -40,7 +40,7 @@ import java.util.Map;
 public class TimepointSourceTransformer extends AbstractSourceTransformer
 {
 	// Serialisation
-	protected List< List< Integer > > timePoints;
+	protected List< List< Integer > > parameters;
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
 
@@ -51,20 +51,10 @@ public class TimepointSourceTransformer extends AbstractSourceTransformer
 	public TimepointSourceTransformer( String name, List< List< Integer > > timepoints, List< String > sources, List< String > sourceNamesAfterTransform )
 	{
 		this.name = name;
-		this.timePoints = timepoints;
+		this.parameters = timepoints;
 		this.sources = sources;
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
 	}
-
-//	public TimepointSourceTransformer( TransformedSource< ? > transformedSource )
-//	{
-//		AffineTransform3D fixedTransform = new AffineTransform3D();
-//		transformedSource.getFixedTransform( fixedTransform );
-//		name = "manualTransform";
-//		timePoints = fixedTransform.getRowPackedCopy();
-//		sources	= Arrays.asList( transformedSource.getWrappedSource().getName() );
-//		sourceNamesAfterTransform =	Arrays.asList( transformedSource.getName() );
-//	}
 
 	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
@@ -74,7 +64,7 @@ public class TimepointSourceTransformer extends AbstractSourceTransformer
 		// in a Map the key in JSON always is a String, which
 		// is not appropriate here)
 		final HashMap< Integer, Integer > timepointMap = new HashMap<>();
-		for ( List< Integer > pair : timePoints )
+		for ( List< Integer > pair : parameters )
 		{
 			timepointMap.put( pair.get( 0 ), pair.get( 1 ) );
 		}
@@ -85,25 +75,29 @@ public class TimepointSourceTransformer extends AbstractSourceTransformer
 
 			final SourceAndConverter< ? > sac = sourceNameToSourceAndConverter.get( sourceName );
 
-			if ( sourceNamesAfterTransform != null )
-				sourceName =  sourceNamesAfterTransform.get( sources.indexOf( sourceName ) );
+			SourceAndConverter transformedSac = transform( timepointMap, sourceName, sac );
 
-			final TransformedTimepointSource transformedSource = new TransformedTimepointSource( sourceName, sac.getSpimSource(), timepointMap );
+			sourceNameToSourceAndConverter.put( transformedSac.getSpimSource().getName(), transformedSac );
+		}
+	}
 
-			SourceAndConverter transformedSac;
-			if ( sac.asVolatile() != null )
-			{
-				final SourceAndConverter< ? extends Volatile< ? > > vSac = sac.asVolatile();
-				TransformedTimepointSource vTransformedSource = new TransformedTimepointSource( name, vSac.getSpimSource(), timepointMap );
-				SourceAndConverter vTransformedSac = new SourceAndConverter<>( vTransformedSource, SourceAndConverterHelper.cloneConverter( vSac.getConverter(), vSac ) );
-				transformedSac = new SourceAndConverter( transformedSource, SourceAndConverterHelper.cloneConverter( sac.getConverter(), sac ), vTransformedSac );
-			}
-			else
-			{
-				transformedSac = new SourceAndConverter<>( transformedSource, SourceAndConverterHelper.cloneConverter( sac.getConverter(), sac ) );
-			}
+	private SourceAndConverter transform( HashMap< Integer, Integer > timepointMap, String sourceName, SourceAndConverter< ? > sac )
+	{
+		if ( sourceNamesAfterTransform != null )
+			sourceName =  sourceNamesAfterTransform.get( sources.indexOf( sourceName ) );
 
-			sourceNameToSourceAndConverter
+		final TransformedTimepointSource transformedSource = new TransformedTimepointSource( sourceName, sac.getSpimSource(), timepointMap );
+
+		if ( sac.asVolatile() != null )
+		{
+			final SourceAndConverter< ? extends Volatile< ? > > vSac = sac.asVolatile();
+			TransformedTimepointSource vTransformedSource = new TransformedTimepointSource( sourceName, vSac.getSpimSource(), timepointMap );
+			SourceAndConverter vTransformedSac = new SourceAndConverter<>( vTransformedSource, SourceAndConverterHelper.cloneConverter( vSac.getConverter(), vSac ) );
+			return new SourceAndConverter( transformedSource, SourceAndConverterHelper.cloneConverter( sac.getConverter(), sac ), vTransformedSac );
+		}
+		else
+		{
+			return new SourceAndConverter<>( transformedSource, SourceAndConverterHelper.cloneConverter( sac.getConverter(), sac ) );
 		}
 	}
 
