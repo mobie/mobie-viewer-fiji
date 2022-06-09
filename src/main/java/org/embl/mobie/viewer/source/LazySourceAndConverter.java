@@ -7,6 +7,7 @@ import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.NumericType;
 import org.embl.mobie.viewer.MoBIE;
 
 
@@ -26,71 +27,70 @@ import org.embl.mobie.viewer.MoBIE;
  *
  * @param <T>
  */
-public class LazySourceAndConverter extends SourceAndConverter
+public class LazySourceAndConverter< T extends NumericType< T > > extends SourceAndConverter< T >
 {
 	private final MoBIE moBIE;
 	private String name;
-	private AffineTransform3D sourceTransform;
-	private VoxelDimensions voxelDimensions;
-	private SourceAndConverter< ? > sourceAndConverter;
+	private final T type;
+	private final double[] min;
+	private final double[] max;
+	private SourceAndConverter< T > sourceAndConverter;
+	private LazySpimSource< T > lazySpimSource;
+	private boolean isOpen = false;
 
-	public LazySourceAndConverter( MoBIE moBIE, String name, AffineTransform3D sourceTransform, VoxelDimensions voxelDimensions )
+	public LazySourceAndConverter( MoBIE moBIE, String name, AffineTransform3D sourceTransform, VoxelDimensions voxelDimensions, T type, double[] min, double[] max )
 	{
-		super( null );
+		super( null, null );
 		this.moBIE = moBIE;
 		this.name = name;
-		this.sourceTransform = sourceTransform;
-		this.voxelDimensions = voxelDimensions;
-	}
-
-	private void open()
-	{
-		sourceAndConverter = moBIE.openSourceAndConverter( name, "Opening " + name + "..." );
+		this.type = type;
+		this.min = min;
+		this.max = max;
+		this.lazySpimSource = new LazySpimSource( this, name, sourceTransform, voxelDimensions, min, max );
 	}
 
 	@Override
-	public Source< ? > getSpimSource()
+	public Source< T > getSpimSource()
 	{
-		if ( spimSource == null )
-			open();
-
-		return sourceAndConverter.getSpimSource();
+		return lazySpimSource;
 	}
 
 	@Override
-	public Converter< ?, ARGBType > getConverter()
+	public Converter< T, ARGBType > getConverter()
 	{
-		if ( spimSource == null )
-			open();
-
-		return sourceAndConverter.getConverter();
+		return getSourceAndConverter().getConverter();
 	}
 
-	public SourceAndConverter< ? extends Volatile< ? > > asVolatile()
+	@Override
+	public SourceAndConverter< ? extends Volatile< T > > asVolatile()
 	{
-		if ( spimSource == null )
-			open();
-
-		return sourceAndConverter.asVolatile();
+		return getSourceAndConverter().asVolatile();
 	}
 
-	public void getSourceTransform( AffineTransform3D transform3D )
+	public SourceAndConverter< T > getSourceAndConverter()
 	{
-		transform3D.set( sourceTransform );
+		if ( sourceAndConverter == null )
+		{
+			sourceAndConverter = ( SourceAndConverter< T > ) moBIE.openSourceAndConverter( name, null );
+			isOpen = true;
+		}
+
+		return sourceAndConverter;
 	}
 
-	public VoxelDimensions getVoxelDimensions()
+	public boolean isOpen()
 	{
-		return voxelDimensions;
-	}
-
-	public void setSourceTransform( AffineTransform3D sourceTransform )
-	{
-		this.sourceTransform = sourceTransform;
+		return isOpen;
 	}
 
 	public void setName( String name )
 	{
 		this.name = name;
+		lazySpimSource.setName( name );
+	}
+
+	public void setSourceTransform( AffineTransform3D sourceTransform )
+	{
+		lazySpimSource.setSourceTransform( sourceTransform );
 	}
 }

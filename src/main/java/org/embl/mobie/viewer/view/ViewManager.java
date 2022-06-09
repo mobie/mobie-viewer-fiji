@@ -38,6 +38,7 @@ import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.NumericType;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.SourceNameEncoder;
@@ -57,7 +58,7 @@ import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.source.LazySourceAndConverter;
 import org.embl.mobie.viewer.table.TableViewer;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
-import org.embl.mobie.viewer.transform.MergedGridSource;
+import org.embl.mobie.viewer.transform.MergedGridSourceTransformer;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SourceTransformer;
@@ -77,8 +78,6 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.embl.mobie.viewer.MoBIE.*;
 
 public class ViewManager
 {
@@ -291,25 +290,25 @@ public class ViewManager
 	{
 		// fetch the names of all sources that are either
 		// shown or to be transformed
-		final Map< String, String > sources = fetchSources( view );
-		if ( sources.size() == 0 ) return;
+		final Map< String, String > sourceToParent = fetchSources( view );
+		if ( sourceToParent.size() == 0 ) return;
 
-		SourceNameEncoder.addNames( sources.keySet() );
-		final List< String > sourcesForOpening = sources.keySet().stream().filter( s -> ( moBIE.getDataset().sources.containsKey( s ) && sources.get( s ) == null ) ).collect( Collectors.toList() );
+		SourceNameEncoder.addNames( sourceToParent.keySet() );
+		final List< String > sourcesForOpening = sourceToParent.keySet().stream().filter( s -> ( moBIE.getDataset().sources.containsKey( s ) && sourceToParent.get( s ) == null ) ).collect( Collectors.toList() );
 
 		// open sources
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( sourcesForOpening );
 
 		// add lazy sources
-		for ( String source : sources.keySet() )
+		for ( String source : sourceToParent.keySet() )
 		{
 			if ( ! moBIE.getDataset().sources.containsKey( source ) )
 				continue; // cannot be opened but is derived (e.g. transformed)
 
-			if ( sources.get( source ) == null )
+			if ( sourceToParent.get( source ) == null )
 				continue; // has been opened already
 
-			sourceNameToSourceAndConverters.put( source, createLazySourceAndConverter( sourceNameToSourceAndConverters, source ) );
+			sourceNameToSourceAndConverters.put( source, createLazySourceAndConverter( source, sourceNameToSourceAndConverters.get( sourceToParent.get( source ) ).getSpimSource() ) );
 		}
 
 		// create transformed sources
@@ -325,8 +324,13 @@ public class ViewManager
 		// This is so any manual transformations can be
 		// retrieved separate from any from sourceTransformers.
 		for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
-			SourceAndConverter<?> sourceAndConverter = new SourceAffineTransformer( sourceNameToSourceAndConverters.get( sourceName ), new AffineTransform3D()).getSourceOut();
-			sourceNameToSourceAndConverters.put( sourceName, sourceAndConverter );
+
+			final SourceAndConverter< ? > sac = sourceNameToSourceAndConverters.get( sourceName );
+			if ( sac instanceof LazySourceAndConverter )
+				continue;
+
+			SourceAndConverter<?> transformedSac = new SourceAffineTransformer( sac, new AffineTransform3D()).getSourceOut();
+			sourceNameToSourceAndConverters.put( sourceName, transformedSac );
 		}
 
 		// register all available (transformed) sources in MoBIE
@@ -335,12 +339,11 @@ public class ViewManager
 		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
 	}
 
-	private LazySourceAndConverter createLazySourceAndConverter( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters, String source )
+	private LazySourceAndConverter createLazySourceAndConverter( String sourceName, Source< ? > parentSource )
 	{
-		final Source< ? > spimSource = sourceNameToSourceAndConverters.get( source ).getSpimSource();
 		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		spimSource.getSourceTransform( 0, 0, sourceTransform );
-		final LazySourceAndConverter sourceAndConverter = new LazySourceAndConverter( moBIE, source, sourceTransform, spimSource.getVoxelDimensions() );
+		parentSource.getSourceTransform( 0, 0, sourceTransform );
+		final LazySourceAndConverter< ? > sourceAndConverter = new LazySourceAndConverter( moBIE, sourceName, sourceTransform, parentSource.getVoxelDimensions(), ( NumericType ) parentSource.getType(), parentSource.getSource( 0, 0 ).minAsDoubleArray(), parentSource.getSource( 0, 0 ).minAsDoubleArray() );
 		return sourceAndConverter;
 	}
 
@@ -361,7 +364,7 @@ public class ViewManager
 		{
 			final List< String > sourceTransformerSources = sourceTransformer.getSources();
 
-			if ( sourceTransformer instanceof MergedGridSource )
+			if ( sourceTransformer instanceof MergedGridSourceTransformer )
 			{
 				for ( int i = 0; i < sourceTransformerSources.size(); i++ )
 				{

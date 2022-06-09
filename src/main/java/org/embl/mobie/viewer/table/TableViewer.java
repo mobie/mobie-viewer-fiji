@@ -409,67 +409,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		return menu;
     }
 
-    public void addAdditionalTable( String tablePath )
-	{
-		String tableName  = new File(tablePath).getName();
-		additionalTables.add(tableName);
-	}
-
-	private Map< String, List< String > > openTable( String tablePath )
-	{
-		String resolvedPath = MoBIEHelper.resolveTablePath( tablePath );
-		Logger.info( "Opening table:\n" + resolvedPath );
-		return TableColumns.stringColumnsFromTableFile( resolvedPath );
-	}
-
-	private void loadColumnsFromProject()
-	{
-		final ArrayList< String > directories = new ArrayList<>( sourceNameToTableDir.values() );
-		String tableFileName = selectTableFileNameFromProject( directories, "Table" );
-		if ( tableFileName == null ) return;
-
-		if ( isRegionTable )
-		{
-			for ( String tableDir : sourceNameToTableDir.values() )
-			{
-				final Map< String, List< String > > table = openTable( IOHelper.combinePath( tableDir, tableFileName ) );
-				TableHelper.appendRegionTableColumns( ( List< RegionTableRow > ) tableRows, table );
-			}
-		}
-		else // == isSegmentTable
-		{
-			ArrayList<String> tableNames = new ArrayList<>( );
-			tableNames.add( tableFileName );
-			List< String > sources = new ArrayList<>( sourceNameToTableDir.keySet() );
-			moBIE.appendSegmentTableColumns( (List<TableRowImageSegment>) tableRows, sources, tableNames );
-		}
-
-		addAdditionalTable( tableFileName );
-	}
-
-	private void loadColumnsFromFileSystem()
-	{
-		String path = selectFilePath( null, "Table", true );
-
-		if ( path != null ) {
-			new Thread( () -> {
-				enableRowSorting( false ); // otherwise it can crash during loading.
-				if ( !isRegionTable )
-				{
-					final String sourceName = ( String ) sourceNameToTableDir.keySet().toArray()[ 0 ];
-					moBIE.appendSegmentTableColumns( sourceName, path, ( List< TableRowImageSegment > ) tableRows );
-				}
-				else
-				{
-					Map< String, List< String > > table = openTable( path );
-					TableHelper.appendRegionTableColumns( ( List< RegionTableRow > ) tableRows, table );
-				}
-				enableRowSorting( true );
-			}).start();
-			hasColumnsFromTablesOutsideProject = true;
-		}
-	}
-
 	public void enableRowSorting( boolean sortable )
 	{
 		final int columnCount = jTable.getColumnCount();

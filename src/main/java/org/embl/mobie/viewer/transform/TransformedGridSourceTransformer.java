@@ -114,10 +114,10 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			{
 				// TODO: instead of modifying this one in place
 				//   we should better create a copy
+				//   maybe it would now even work with actually transforming the lazySpimSource
 				final LazySourceAndConverter lazySourceAndConverter = ( LazySourceAndConverter ) sourceAndConverter;
 				lazySourceAndConverter.setName( transformedSourceName );
 				final AffineTransform3D transform3D = new AffineTransform3D();
-				lazySourceAndConverter.getSourceTransform( transform3D );
 				transform3D.preConcatenate( translationTransform ); // set by reference
 				sourceNameToSourceAndConverter.put( transformedSourceName, lazySourceAndConverter );
 			}

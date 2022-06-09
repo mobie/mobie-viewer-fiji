@@ -53,6 +53,9 @@ import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.source.LabelSource;
+import org.embl.mobie.viewer.source.LazySourceAndConverter;
+import org.embl.mobie.viewer.source.LazySpimSource;
+import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import org.embl.mobie.viewer.transform.TransformHelper;
 
@@ -65,6 +68,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -112,6 +116,10 @@ public abstract class MoBIEHelper
 		{
 			rootSources.add( source );
 		}
+		else if ( source instanceof LazySpimSource )
+		{
+			rootSources.add( source );
+		}
 		else if ( source instanceof TransformedSource )
 		{
 			final Source< ? > wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
@@ -127,10 +135,10 @@ public abstract class MoBIEHelper
 		else if (  source instanceof MergedGridSource )
 		{
 			final MergedGridSource< ? > mergedGridSource = ( MergedGridSource ) source;
-			final List< ? extends Source< ? > > gridSources = mergedGridSource.getGridSources();
-			for ( Source< ? > gridSource : gridSources )
+			final List< ? extends SourceAndConverter< ? > > gridSources = mergedGridSource.getGridSources();
+			for ( SourceAndConverter< ? > gridSource : gridSources )
 			{
-				fetchRootSources( gridSource, rootSources );
+				fetchRootSources( gridSource.getSpimSource(), rootSources );
 			}
 		}
 		else if (  source instanceof ResampledSource )
@@ -479,9 +487,20 @@ public abstract class MoBIEHelper
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		source.getSourceTransform( 0, 0, affineTransform3D );
-		final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
-		final double[] min = rai.minAsDoubleArray();
-		final double[] max = rai.maxAsDoubleArray();
+		// TODO: refactor into getMinMax( min, max ) and add to SourceHelper
+		final double[] min;
+		final double[] max;
+		if ( source instanceof LazySpimSource )
+		{
+			min = ( ( LazySpimSource ) source ).getMin();
+			max = ( ( LazySpimSource ) source ).getMax();
+		}
+		else
+		{
+			final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
+			min = rai.minAsDoubleArray();
+			max = rai.maxAsDoubleArray();
+		}
 		final double[] voxelSizes = new double[ 3 ];
 		source.getVoxelDimensions().dimensions( voxelSizes );
 		for ( int d = 0; d < 3; d++ )
