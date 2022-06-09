@@ -114,7 +114,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			{
 				// TODO: instead of modifying this one in place
 				//   we should better create a copy
-				final LazySourceAndConverter< ? > lazySourceAndConverter = ( LazySourceAndConverter< ? > ) sourceAndConverter;
+				final LazySourceAndConverter lazySourceAndConverter = ( LazySourceAndConverter ) sourceAndConverter;
 				lazySourceAndConverter.setName( transformedSourceName );
 				final AffineTransform3D transform3D = new AffineTransform3D();
 				lazySourceAndConverter.getSourceTransform( transform3D );
@@ -125,7 +125,7 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			{
 				final SourceAndConverter transformedSource = new SourceAffineTransformer( translationTransform, transformedSourceName ).apply( sourceAndConverter );
 
-				sourceNameToSourceAndConverter.put( transformedSource.getSpimSource().getName(), transformedSource );
+				sourceNameToSourceAndConverter.put( transformedSourceName, transformedSource );
 			}
 		}
 	}

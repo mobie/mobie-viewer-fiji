@@ -3,7 +3,10 @@ package org.embl.mobie.viewer.source;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.Volatile;
+import net.imglib2.converter.Converter;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.MoBIE;
 
 
@@ -23,12 +26,13 @@ import org.embl.mobie.viewer.MoBIE;
  *
  * @param <T>
  */
-public class LazySourceAndConverter< T > extends SourceAndConverter< T >
+public class LazySourceAndConverter extends SourceAndConverter
 {
 	private final MoBIE moBIE;
 	private String name;
 	private AffineTransform3D sourceTransform;
 	private VoxelDimensions voxelDimensions;
+	private SourceAndConverter< ? > sourceAndConverter;
 
 	public LazySourceAndConverter( MoBIE moBIE, String name, AffineTransform3D sourceTransform, VoxelDimensions voxelDimensions )
 	{
@@ -39,10 +43,35 @@ public class LazySourceAndConverter< T > extends SourceAndConverter< T >
 		this.voxelDimensions = voxelDimensions;
 	}
 
-	@Override
-	public Source< T > getSpimSource()
+	private void open()
 	{
-		return spimSource;
+		sourceAndConverter = moBIE.openSourceAndConverter( name, "Opening " + name + "..." );
+	}
+
+	@Override
+	public Source< ? > getSpimSource()
+	{
+		if ( spimSource == null )
+			open();
+
+		return sourceAndConverter.getSpimSource();
+	}
+
+	@Override
+	public Converter< ?, ARGBType > getConverter()
+	{
+		if ( spimSource == null )
+			open();
+
+		return sourceAndConverter.getConverter();
+	}
+
+	public SourceAndConverter< ? extends Volatile< ? > > asVolatile()
+	{
+		if ( spimSource == null )
+			open();
+
+		return sourceAndConverter.asVolatile();
 	}
 
 	public void getSourceTransform( AffineTransform3D transform3D )

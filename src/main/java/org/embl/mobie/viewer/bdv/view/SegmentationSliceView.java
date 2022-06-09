@@ -128,14 +128,14 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 		// get source transform
 		AffineTransform3D sourceTransform = new AffineTransform3D();
 		if ( sourceAndConverter instanceof LazySourceAndConverter )
-			( ( LazySourceAndConverter<?> ) sourceAndConverter ).setSourceTransform( sourceTransform );
+			( ( LazySourceAndConverter ) sourceAndConverter ).setSourceTransform( sourceTransform );
 		else
 			sourceAndConverter.getSpimSource().getSourceTransform( 0,0, sourceTransform );
 
 		// get voxel dimensions
 		final VoxelDimensions voxelDimensions;
 		if ( sourceAndConverter instanceof LazySourceAndConverter )
-			voxelDimensions = ( ( LazySourceAndConverter<?> ) sourceAndConverter ).getVoxelDimensions();
+			voxelDimensions = ( ( LazySourceAndConverter ) sourceAndConverter ).getVoxelDimensions();
 		else
 		    voxelDimensions = sourceAndConverter.getSpimSource().getVoxelDimensions();
 
