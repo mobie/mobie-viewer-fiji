@@ -96,6 +96,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private boolean controlDown;
 	private JFrame frame;
+	private TableRowsTableModel tableRowsTableModel;
 
 	private enum TableRowSelectionMode
 	{
@@ -174,12 +175,17 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				{
 					synchronized ( jTable )
 					{
-						if ( ! Tables.getColumnNames( jTable ).contains( columnName ) )
+						if ( ! tableRowsTableModel.getColumnNames().contains( columnName ) )
 						{
-							Tables.addColumnToJTable( columnName, value, jTable.getModel() );
+							// TODO: how to add a column?
+							//   have to check implementations of TableRow
+							tableRowsTableModel.setValueAt( value, finalRowIndex, tableRowsTableModel.getColumnNames().indexOf( columnName ) );
+							//Tables.addColumnToJTable( columnName, value, jTable.getModel() );
 						}
 
-						Tables.setJTableCell( finalRowIndex, columnName, value, jTable );
+						// TODO: 2021: Change this! 2022: Why?
+						tableRowsTableModel.setValueAt( value, finalRowIndex, tableRowsTableModel.getColumnNames().indexOf( columnName ) );
+//						Tables.setJTableCell( finalRowIndex, columnName, value, jTable );
 					}
 				}
 			});
@@ -328,6 +334,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	private void configureJTable()
 	{
 		// TODO: Create a custom TableModel
+		tableRowsTableModel = new TableRowsTableModel( tableRows );
+		jTable = new JTable( tableRowsTableModel );
 		jTable = new JTableFromTableRowsModelCreator( tableRows ).createJTable();
 		jTable.setPreferredScrollableViewportSize( new Dimension(500, 200) );
 		jTable.setFillsViewportHeight( true );
