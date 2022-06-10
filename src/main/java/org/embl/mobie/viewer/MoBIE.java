@@ -55,7 +55,6 @@ import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.ImageSource;
-import org.embl.mobie.viewer.source.LazySourceAndConverter;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableHelper;
@@ -72,7 +71,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -707,7 +705,7 @@ public class MoBIE
 		return numTables;
 	}
 
-	private void mergeSegmentsTable( List< ? extends TableRow > tableRows, Map< String, List< String > > additionalTable )
+	private void appendSegmentsTableColumns( List< ? extends TableRow > tableRows, Map< String, List< String > > additionalTable )
 	{
 		// prepare
 		final Map< String, List< String > > columnsForMerging = TableHelper.createColumnsForMerging( tableRows, additionalTable );
@@ -730,7 +728,7 @@ public class MoBIE
 			Map< String, List< String > > concatenatedTable = TableColumns.concatenate( additionalTables );
 
 			// merge
-			mergeSegmentsTable( tableRows, concatenatedTable );
+			appendSegmentsTableColumns( tableRows, concatenatedTable );
 		}
 	}
 
@@ -740,7 +738,7 @@ public class MoBIE
 		Map< String, List< String > > additionalTable = TableHelper.loadTableAndAddImageIdColumn( source, tablePath );
 
 		// merge
-		mergeSegmentsTable( tableRows, additionalTable );
+		appendSegmentsTableColumns( tableRows, additionalTable );
 	}
 
 	public void appendSegmentTableColumns( SegmentationDisplay segmentationDisplay, List< String > relativeTablePaths )
