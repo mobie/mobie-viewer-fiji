@@ -683,16 +683,16 @@ public class MoBIE
 			{
 				futures.add( MultiThreading.ioExecutorService.submit( () ->
 				{
-//					if ( source instanceof LazySpimSource )
-//					{
-//						( ( LazySpimSource ) source ).getTables().put( tableName, tableRows );
-//					}
-//					else
-//					{
+					if ( source instanceof LazySpimSource )
+					{
+						( ( LazySpimSource ) source ).getTables().put( tableName, tableRows );
+					}
+					else
+					{
 						final String log = getLog( tableIndex, numTables, tableLoggingModulo, lastLogMillis );
 						final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( source.getName(), tableName, log );
 						tableRows.addAll( primaryTable );
-//					}
+					}
 				} ) );
 			}
 		}

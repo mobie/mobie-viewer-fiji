@@ -37,8 +37,6 @@ public class LazySourceAndConverter< T extends NumericType< T > > extends Source
 	private final MoBIE moBIE;
 	private String name;
 	private final T type;
-	private final double[] min;
-	private final double[] max;
 	private SourceAndConverter< T > sourceAndConverter;
 	private LazySpimSource< T > lazySpimSource;
 	private boolean isOpen = false;
@@ -50,8 +48,6 @@ public class LazySourceAndConverter< T extends NumericType< T > > extends Source
 		this.moBIE = moBIE;
 		this.name = name;
 		this.type = type;
-		this.min = min;
-		this.max = max;
 		this.lazySpimSource = new LazySpimSource( this, name, sourceTransform, voxelDimensions, min, max );
 		this.tablesToTableRows = new HashMap< String, List< TableRow  > >();
 	}
@@ -80,7 +76,7 @@ public class LazySourceAndConverter< T extends NumericType< T > > extends Source
 		{
 			for ( String tableName : tablesToTableRows.keySet() )
 			{
-				final List< TableRowImageSegment > tableRows = moBIE.loadImageSegmentsTable( name, tableName, name );
+				final List< TableRowImageSegment > tableRows = moBIE.loadImageSegmentsTable( name, tableName, "LazySac: " );
 				tablesToTableRows.get( tableName ).addAll( tableRows );
 			}
 			sourceAndConverter = ( SourceAndConverter< T > ) moBIE.openSourceAndConverter( name, null );

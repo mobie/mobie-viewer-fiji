@@ -35,10 +35,13 @@ import de.embl.cba.tables.imagesegment.LabelFrameAndImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SegmentAdapter< T extends ImageSegment >
 {
-	private HashMap< LabelFrameAndImage, T > labelFrameAndImageToSegment;
+	private List< T > segments;
+	private Map< LabelFrameAndImage, T > labelFrameAndImageToSegment;
 	private boolean isLazy = false;
 
 	/**
@@ -46,14 +49,15 @@ public class SegmentAdapter< T extends ImageSegment >
 	 */
 	public SegmentAdapter()
 	{
-		labelFrameAndImageToSegment = new HashMap<>();
+		labelFrameAndImageToSegment = new ConcurrentHashMap();
 		isLazy = true;
 	}
 
 	public SegmentAdapter( List< T > segments )
 	{
-		labelFrameAndImageToSegment = new HashMap<>();
+		this.segments = segments;
 
+		labelFrameAndImageToSegment = new HashMap<>();
 		for ( T segment : segments )
 			labelFrameAndImageToSegment.put( new LabelFrameAndImage( segment ), segment );
 	}
@@ -93,6 +97,19 @@ public class SegmentAdapter< T extends ImageSegment >
 
 	public synchronized T getSegment( LabelFrameAndImage labelFrameAndImage )
 	{
+		if ( segments.size() > labelFrameAndImageToSegment.size() )
+		{
+			// segments have been added (lazy loaded)
+			// thus we need to update the map
+			final int currentSize = labelFrameAndImageToSegment.size();
+			final int newSize = segments.size();
+			for ( int i = currentSize; i < newSize; i++ )
+			{
+				final T imageSegment = segments.get( i );
+				labelFrameAndImageToSegment.put( new LabelFrameAndImage( imageSegment ), imageSegment );
+			}
+		}
+
 		return labelFrameAndImageToSegment.get( labelFrameAndImage  );
 	}
 

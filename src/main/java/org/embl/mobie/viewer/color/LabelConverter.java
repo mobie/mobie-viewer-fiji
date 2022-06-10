@@ -49,7 +49,7 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	private final String imageId;
 	private final SelectionColoringModel< S > coloringModel;
 
-	private int timePointIndex = 0;
+	private int timepoint = 0;
 	private double opacity = 1.0;
 
 	public LabelConverter(
@@ -94,7 +94,13 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 			}
 
 			final String imageId = SourceNameEncoder.getName( ( VolatileUnsignedIntType ) label );
-			S segment = segmentAdapter.getSegment( labelId, timePointIndex, imageId );
+			S segment = segmentAdapter.getSegment( labelId, timepoint, imageId );
+
+			if ( segment == null )
+			{
+				throw new RuntimeException( "Could not map (labelId=" + labelId + ", timepoint=" + timepoint + ", image=" + imageId + ") to an image segment" );
+			}
+
 			setColorBySegment( color, segment );
 		}
 		else
@@ -107,7 +113,7 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 				return;
 			}
 
-			final S segment = segmentAdapter.getSegment( labelId, timePointIndex, imageId );
+			final S segment = segmentAdapter.getSegment( labelId, timepoint, imageId );
 			setColorBySegment( color, segment );
 		}
 	}
@@ -125,7 +131,7 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	@Override
 	public void timePointChanged( int timePointIndex )
 	{
-		this.timePointIndex = timePointIndex;
+		this.timepoint = timePointIndex;
 	}
 
 	@Override
