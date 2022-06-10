@@ -531,6 +531,8 @@ public class ViewManager
 		moBIE.loadPrimarySegmentsTables( segmentationDisplay );
 
 		// secondary tables
+		// TODO: this is tricky since the others may not have finished loading.
+		//   probably this needs to be moved inside above loadPrimarySegmentsTables function
 		if ( tables.size() > 1 )
 		{
 			final List< String > additionalTables = tables.subList( 1, tables.size() );

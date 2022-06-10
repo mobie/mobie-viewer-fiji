@@ -333,10 +333,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private void configureJTable()
 	{
-		// TODO: Create a custom TableModel
 		tableRowsTableModel = new TableRowsTableModel( tableRows );
 		jTable = new JTable( tableRowsTableModel );
-		jTable = new JTableFromTableRowsModelCreator( tableRows ).createJTable();
 		jTable.setPreferredScrollableViewportSize( new Dimension(500, 200) );
 		jTable.setFillsViewportHeight( true );
 		jTable.setAutoCreateRowSorter( true );

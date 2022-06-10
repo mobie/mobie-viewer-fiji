@@ -55,6 +55,7 @@ import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.ImageSource;
+import org.embl.mobie.viewer.source.LazySpimSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableHelper;
@@ -73,16 +74,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 import static org.embl.mobie.viewer.MoBIEHelper.selectFilePath;
 import static org.embl.mobie.viewer.MoBIEHelper.selectTableFileNameFromProject;
@@ -616,7 +615,7 @@ public class MoBIE
 		return location;
 	}
 
-	private List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName, String log )
+	public List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName, String log )
 	{
 		final SegmentationSource tableSource = ( SegmentationSource ) getSource( sourceName );
 		final String defaultTablePath = getTablePath( tableSource, tableName );
@@ -657,45 +656,64 @@ public class MoBIE
 		return sourceNameToSourceAndConverter;
 	}
 
-	private Collection< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationDisplay segmentationDisplay, String tableName )
+	private List< TableRowImageSegment > loadPrimarySegmentsTables( SegmentationDisplay segmentationDisplay, String tableName )
 	{
 		final List< String > segmentationDisplaySources = segmentationDisplay.getSources();
-		final ConcurrentHashMap< String, Set< String > > sourceToRootSources = new ConcurrentHashMap();
+		final ConcurrentHashMap< String, Set< Source< ? > > > sourceToRootSources = new ConcurrentHashMap();
 
 		for ( String sourceName : segmentationDisplaySources )
 		{
 			final Source< ? > source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
 			Set< Source< ? > > rootSources = ConcurrentHashMap.newKeySet();
 			MoBIEHelper.fetchRootSources( source, rootSources );
-			sourceToRootSources.put( sourceName, rootSources.stream().map( s -> s.getName() ).collect( Collectors.toSet()) );
+			sourceToRootSources.put( sourceName, rootSources );
 		}
 
-		final Queue< List< TableRowImageSegment > > primaryTables = new ConcurrentLinkedQueue<>();
 		final int numTables = getNumTables( segmentationDisplaySources, sourceToRootSources );
 		final long startTimeMillis = System.currentTimeMillis();
 		final AtomicLong lastLogMillis = new AtomicLong(startTimeMillis);
 		final AtomicInteger tableLoggingModulo = new AtomicInteger(1);
 		final AtomicInteger tableIndex = new AtomicInteger();
 		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
+		final CopyOnWriteArrayList< TableRowImageSegment > tableRows = new CopyOnWriteArrayList<>();
 		for ( String displayedSourceName : segmentationDisplaySources )
 		{
-			final Set< String > rootSources = sourceToRootSources.get( displayedSourceName );
-			for ( String rootSource : rootSources )
+			final Set< Source< ? > > rootSources = sourceToRootSources.get( displayedSourceName );
+			for ( Source< ? > source : rootSources )
 			{
 				futures.add( MultiThreading.ioExecutorService.submit( () ->
 				{
-					final String log = getLog( tableIndex, numTables, tableLoggingModulo, lastLogMillis );
-					final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( rootSource, tableName, log );
-					primaryTables.add( primaryTable );
+//					if ( source instanceof LazySpimSource )
+//					{
+//						( ( LazySpimSource ) source ).getTables().put( tableName, tableRows );
+//					}
+//					else
+//					{
+						final String log = getLog( tableIndex, numTables, tableLoggingModulo, lastLogMillis );
+						final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( source.getName(), tableName, log );
+						tableRows.addAll( primaryTable );
+//					}
 				} ) );
 			}
 		}
+
+//		try
+//		{
+//			futures.get( 0 ).get(); // wait for first table to be loaded.
+//		} catch ( InterruptedException e )
+//		{
+//			e.printStackTrace();
+//		} catch ( ExecutionException e )
+//		{
+//			e.printStackTrace();
+//		}
+
 		MultiThreading.waitUntilFinished( futures );
 		IJ.log( "Read " + numTables + " table(s) in " + (System.currentTimeMillis() - startTimeMillis) + " ms, using up to " + MultiThreading.getNumIoThreads() + " thread(s).");
-		return primaryTables;
+		return tableRows;
 	}
 
-	private int getNumTables( List< String > segmentationDisplaySources, ConcurrentHashMap< String, Set< String > > sourceNameToRootSources )
+	private int getNumTables( List< String > segmentationDisplaySources, ConcurrentHashMap< String, Set< Source< ? > > > sourceNameToRootSources )
 	{
 		int numTables = 0;
 		for ( String displayedSourceName : segmentationDisplaySources )
@@ -751,13 +769,7 @@ public class MoBIE
 	 */
 	public void loadPrimarySegmentsTables( SegmentationDisplay segmentationDisplay )
 	{
-		segmentationDisplay.tableRows = new ArrayList<>();
-		final Collection< List< TableRowImageSegment > > primaryTables = loadPrimarySegmentsTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
-
-		for ( List< TableRowImageSegment > primaryTable : primaryTables )
-		{
-			segmentationDisplay.tableRows.addAll( primaryTable );
-		}
+		segmentationDisplay.tableRows = loadPrimarySegmentsTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
 	}
 
 	public List< RegionTableRow > createRegionTableRows( RegionDisplay regionDisplay )

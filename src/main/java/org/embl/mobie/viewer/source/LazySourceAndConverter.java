@@ -2,6 +2,8 @@ package org.embl.mobie.viewer.source;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import de.embl.cba.tables.tablerow.TableRow;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
@@ -9,6 +11,9 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import org.embl.mobie.viewer.MoBIE;
+
+import java.util.HashMap;
+import java.util.List;
 
 
 /**
@@ -37,6 +42,7 @@ public class LazySourceAndConverter< T extends NumericType< T > > extends Source
 	private SourceAndConverter< T > sourceAndConverter;
 	private LazySpimSource< T > lazySpimSource;
 	private boolean isOpen = false;
+	private HashMap< String, List< TableRow > > tablesToTableRows;
 
 	public LazySourceAndConverter( MoBIE moBIE, String name, AffineTransform3D sourceTransform, VoxelDimensions voxelDimensions, T type, double[] min, double[] max )
 	{
@@ -47,6 +53,7 @@ public class LazySourceAndConverter< T extends NumericType< T > > extends Source
 		this.min = min;
 		this.max = max;
 		this.lazySpimSource = new LazySpimSource( this, name, sourceTransform, voxelDimensions, min, max );
+		this.tablesToTableRows = new HashMap< String, List< TableRow  > >();
 	}
 
 	@Override
@@ -71,6 +78,11 @@ public class LazySourceAndConverter< T extends NumericType< T > > extends Source
 	{
 		if ( sourceAndConverter == null )
 		{
+			for ( String tableName : tablesToTableRows.keySet() )
+			{
+				final List< TableRowImageSegment > tableRows = moBIE.loadImageSegmentsTable( name, tableName, name );
+				tablesToTableRows.get( tableName ).addAll( tableRows );
+			}
 			sourceAndConverter = ( SourceAndConverter< T > ) moBIE.openSourceAndConverter( name, null );
 			isOpen = true;
 		}
@@ -92,5 +104,10 @@ public class LazySourceAndConverter< T extends NumericType< T > > extends Source
 	public void setSourceTransform( AffineTransform3D sourceTransform )
 	{
 		lazySpimSource.setSourceTransform( sourceTransform );
+	}
+
+	public HashMap< String, List< TableRow > > getTablesToTableRows()
+	{
+		return tablesToTableRows;
 	}
 }

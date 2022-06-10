@@ -2,7 +2,6 @@ package org.embl.mobie.viewer.table;
 
 import de.embl.cba.tables.Utils;
 import de.embl.cba.tables.tablerow.TableRow;
-import org.jetbrains.annotations.Nls;
 
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
@@ -12,9 +11,10 @@ import java.util.stream.Collectors;
 
 public class TableRowsTableModel < T extends TableRow >  implements TableModel
 {
-	private final List< T > tableRows;
+	private List< T > tableRows;
 	private List< String > columnNames;
 	private ArrayList< Class > columnClasses;
+	private ArrayList< TableModelListener > listeners = new ArrayList<>();
 
 	public TableRowsTableModel( List< T > tableRows )
 	{
@@ -26,6 +26,11 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel
 	public List< String > getColumnNames()
 	{
 		return columnNames;
+	}
+
+	public List< T > getTableRows()
+	{
+		return tableRows;
 	}
 
 	private void setColumns()
@@ -65,7 +70,6 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel
 		return columnNames.size();
 	}
 
-	@Nls
 	@Override
 	public String getColumnName( int columnIndex )
 	{
@@ -96,18 +100,23 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel
 		final T tableRow = tableRows.get( rowIndex );
 		tableRow.setCell( columnNames.get( columnIndex ), aValue.toString() );
 		if ( tableRow.getColumnNames().size() != columnNames.size() )
-			setColumns(); // TODO: and notify listener!
+			setColumns(); // TODO: and notify listener? maybe JTable anyway will be aware of this
 	}
 
 	@Override
 	public void addTableModelListener( TableModelListener l )
 	{
-		// TODO: fire numRows changed?
+		listeners.add( l );
 	}
 
 	@Override
 	public void removeTableModelListener( TableModelListener l )
 	{
 
+	}
+
+	public void addTableRows( List< TableRow > tableRows )
+	{
+		tableRows.addAll( tableRows );
 	}
 }

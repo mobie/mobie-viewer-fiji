@@ -3,11 +3,15 @@ package org.embl.mobie.viewer.source;
 
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
+import de.embl.cba.tables.tablerow.TableRow;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
+
+import java.util.HashMap;
+import java.util.List;
 
 public class LazySpimSource< T extends NumericType< T > > implements Source< T >
 {
@@ -98,6 +102,11 @@ public class LazySpimSource< T extends NumericType< T > > implements Source< T >
 	public double[] getMax()
 	{
 		return max;
+	}
+
+	public HashMap< String, List< TableRow > > getTables()
+	{
+		return lazySourceAndConverter.getTablesToTableRows();
 	}
 }
 
