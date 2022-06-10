@@ -28,16 +28,11 @@
  */
 package projects;
 
-import ij.process.ImageProcessor;
 import net.imagej.ImageJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
 
 import java.io.IOException;
-import java.util.Map;
-
-import org.embl.mobie.io.ImageDataFormat;
-import org.embl.mobie.viewer.view.View;
 
 public class OpenRemoteCovidIF
 {

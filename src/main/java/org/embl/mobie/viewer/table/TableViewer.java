@@ -29,39 +29,49 @@
 package org.embl.mobie.viewer.table;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.annotate.Annotator;
-import org.embl.mobie.viewer.color.SelectionColoringModel;
-import de.embl.cba.tables.*;
-import de.embl.cba.tables.color.*;
+import de.embl.cba.tables.Logger;
+import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.TableRows;
+import de.embl.cba.tables.TableUIs;
+import de.embl.cba.tables.Tables;
+import de.embl.cba.tables.Utils;
+import de.embl.cba.tables.color.CategoryTableRowColumnColoringModel;
+import de.embl.cba.tables.color.ColorUtils;
+import de.embl.cba.tables.color.ColoringListener;
+import de.embl.cba.tables.color.ColoringModel;
+import de.embl.cba.tables.color.ColumnColoringModel;
+import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
-
-import org.embl.mobie.viewer.display.AnnotationDisplay;
-import org.embl.mobie.viewer.select.SelectionListener;
-import org.embl.mobie.viewer.select.SelectionModel;
 import de.embl.cba.tables.tablerow.JTableFromTableRowsModelCreator;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowListener;
-import de.embl.cba.tables.TableRows;
 import ij.gui.GenericDialog;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.annotate.Annotator;
+import org.embl.mobie.viewer.color.SelectionColoringModel;
+import org.embl.mobie.viewer.display.AnnotationDisplay;
+import org.embl.mobie.viewer.select.SelectionListener;
+import org.embl.mobie.viewer.select.SelectionModel;
 
 import javax.activation.UnsupportedDataTypeException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.embl.mobie.viewer.MoBIEHelper.*;
 import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_GREY;
+import static org.embl.mobie.viewer.MoBIEHelper.FileLocation;
+import static org.embl.mobie.viewer.MoBIEHelper.loadFromProjectOrFileSystemDialog;
 
 public class TableViewer< T extends TableRow > implements SelectionListener< T >, ColoringListener, TableRowListener
 {
@@ -317,6 +327,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private void configureJTable()
 	{
+		// TODO: Create a custom TableModel
 		jTable = new JTableFromTableRowsModelCreator( tableRows ).createJTable();
 		jTable.setPreferredScrollableViewportSize( new Dimension(500, 200) );
 		jTable.setFillsViewportHeight( true );
