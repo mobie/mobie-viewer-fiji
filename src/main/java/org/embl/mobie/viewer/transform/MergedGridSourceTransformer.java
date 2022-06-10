@@ -38,6 +38,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MultiThreading;
+import org.embl.mobie.viewer.source.SourceHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +55,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	protected String mergedGridSourceName;
 	protected List< int[] > positions;
 	protected boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
-	protected boolean encodeSource = false;
+	protected boolean encodeSource = false; // true for label images
 
 	// Runtime
 	private transient MergedGridSource< ? > mergedGridSource;
@@ -78,7 +79,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		if ( positions == null )
 			positions = createPositions( gridSources.size() );
 
-		SourceAndConverter< ? > mergedSourceAndConverter = createMergedSourceAndConverter( gridSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ), gridSources.get( 0 ).asVolatile().getConverter(), gridSources.get( 0 ).getConverter() );
+		SourceAndConverter< ? > mergedSourceAndConverter = createMergedSourceAndConverter( gridSources, gridSources.get( 0 ).asVolatile().getConverter(), gridSources.get( 0 ).getConverter() );
 
 		sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
 
@@ -160,9 +161,11 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 	private ArrayList< String > fetchContainedSourceNames( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, ArrayList< String > sourceNames )
 	{
 		final ArrayList< String > containedSourceNames = new ArrayList<>();
+
 		for ( String sourceName : sourceNames )
 		{
 			Source< ? > source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
+
 			if ( source instanceof TransformedSource )
 			{
 				source = ( ( TransformedSource< ? > ) source ).getWrappedSource();
@@ -170,9 +173,10 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 			if ( source instanceof MergedGridSource )
 			{
-				containedSourceNames.addAll( ( ( MergedGridSource< ? > ) source ).getGridSources().stream().map( s -> s.getName() ).collect( Collectors.toList() ) ) ;
+				containedSourceNames.addAll( ( ( MergedGridSource< ? > ) source ).getGridSources().stream().map( sac -> sac.getSpimSource().getName() ).collect( Collectors.toList() ) ) ;
 			}
 		}
+
 		return containedSourceNames;
 	}
 
@@ -189,7 +193,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 		return sources;
 	}
 
-	private SourceAndConverter< ? > createMergedSourceAndConverter( List< Source< ? > > gridSources, Converter< ?, ARGBType > volatileConverter, Converter< ?, ARGBType > converter )
+	private SourceAndConverter< ? > createMergedSourceAndConverter( List< SourceAndConverter< ? > > gridSources, Converter< ?, ARGBType > volatileConverter, Converter< ?, ARGBType > converter )
 	{
 		mergedGridSource = new MergedGridSource( gridSources, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN, encodeSource );
 

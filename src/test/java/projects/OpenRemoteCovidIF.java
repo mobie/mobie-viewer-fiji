@@ -28,6 +28,7 @@
  */
 package projects;
 
+import ij.process.ImageProcessor;
 import net.imagej.ImageJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
@@ -45,7 +46,6 @@ public class OpenRemoteCovidIF
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/covid-if-project" );
-
+		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/covid-if-project", MoBIESettings.settings().view( "merge-grid-no-tables" ) );
 	}
 }

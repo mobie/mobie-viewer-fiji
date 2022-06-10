@@ -70,7 +70,8 @@ public class SourceAffineTransformer implements Runnable, Function<SourceAndConv
      * Constructor without any source argument in order to use the functional interface only
      * @param at3D affine transform 3d
      */
-    public SourceAffineTransformer( AffineTransform3D at3D ) {
+    public SourceAffineTransformer( AffineTransform3D at3D )
+    {
         this.at3D = at3D;
     }
 
@@ -79,7 +80,8 @@ public class SourceAffineTransformer implements Runnable, Function<SourceAndConv
      * @param at3D
      * @param name
      */
-    public SourceAffineTransformer( AffineTransform3D at3D, String name ) {
+    public SourceAffineTransformer( AffineTransform3D at3D, String name )
+    {
         this.at3D = at3D;
         this.name = name;
     }
@@ -93,23 +95,20 @@ public class SourceAffineTransformer implements Runnable, Function<SourceAndConv
         return apply(sourceIn);//sourceOut;
     }
 
-    public SourceAndConverter apply(SourceAndConverter in) {
-        SourceAndConverter sac;
+    public SourceAndConverter apply( SourceAndConverter in ) {
 
         TransformedSource src = getTransformedSource( in );
 
-        // TODO: can I use the SourceChanger for this??
-        if (in.asVolatile()!=null)
+        if ( in.asVolatile() !=null )
         {
-            TransformedSource vsrc = new TransformedSource(in.asVolatile().getSpimSource(), src);
-            SourceAndConverter vout = new SourceAndConverter<>(vsrc, SourceAndConverterHelper.cloneConverter(in.asVolatile().getConverter(), in.asVolatile()));
-            sac = new SourceAndConverter<>(src, SourceAndConverterHelper.cloneConverter(in.getConverter(), in), vout);
+            TransformedSource vsrc = new TransformedSource( in.asVolatile().getSpimSource(), src );
+            SourceAndConverter vout = new SourceAndConverter<>( vsrc, SourceAndConverterHelper.cloneConverter( in.asVolatile().getConverter(), in.asVolatile() ) );
+            return new SourceAndConverter<>( src, SourceAndConverterHelper.cloneConverter( in.getConverter(), in ), vout );
         }
         else
         {
-            sac = new SourceAndConverter<>(src, SourceAndConverterHelper.cloneConverter(in.getConverter(), in));
+            return new SourceAndConverter<>( src, SourceAndConverterHelper.cloneConverter( in.getConverter(), in ));
         }
-        return sac;
     }
 
     private TransformedSource getTransformedSource( SourceAndConverter in )

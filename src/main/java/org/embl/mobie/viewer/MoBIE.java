@@ -32,18 +32,25 @@ import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.Logger;
+import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.TableRows;
+import de.embl.cba.tables.github.GitHubUtils;
 import de.embl.cba.tables.tablerow.TableRow;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import ij.IJ;
+import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.sequence.ImgLoader;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
-import org.embl.mobie.viewer.display.AnnotationDisplay;
-import org.embl.mobie.viewer.display.SegmentationDisplay;
-import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.annotate.RegionCreator;
 import org.embl.mobie.viewer.annotate.RegionTableRow;
+import org.embl.mobie.viewer.display.AnnotationDisplay;
+import org.embl.mobie.viewer.display.RegionDisplay;
+import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
@@ -55,20 +62,19 @@ import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.ViewManager;
-import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.TableRows;
-import de.embl.cba.tables.github.GitHubUtils;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import ij.IJ;
-import mpicbg.spim.data.SpimData;
-import mpicbg.spim.data.sequence.ImgLoader;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -76,9 +82,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
-import static org.embl.mobie.viewer.MoBIEHelper.selectCommonTableFileNameFromProject;
 import static org.embl.mobie.viewer.MoBIEHelper.selectFilePath;
+import static org.embl.mobie.viewer.MoBIEHelper.selectTableFileNameFromProject;
 
 public class MoBIE
 {
@@ -159,7 +166,7 @@ public class MoBIE
 	public String appendColumnsFromProject( AnnotationDisplay< ? extends TableRow > display )
 	{
 		final Map< String, String > sourceNameToTableDirectory = getTableDirectories( display );
-		String tableFileName = selectCommonTableFileNameFromProject( sourceNameToTableDirectory.values(), "Table" );
+		String tableFileName = selectTableFileNameFromProject( sourceNameToTableDirectory.values(), "Table" );
 
 		if ( display instanceof RegionDisplay )
 		{
@@ -484,6 +491,8 @@ public class MoBIE
 
 	public SourceAndConverter< ? > openSourceAndConverter( String sourceName, String log )
 	{
+		// TODO: don't open if that exists already?
+
 		final ImageSource imageSource = getSource( sourceName );
 
 		ImageDataFormat imageDataFormat = getImageDataFormat( sourceName, imageSource.imageData.keySet() );
@@ -651,17 +660,18 @@ public class MoBIE
 	private Collection< List< TableRowImageSegment > > loadPrimarySegmentsTables( SegmentationDisplay segmentationDisplay, String tableName )
 	{
 		final List< String > segmentationDisplaySources = segmentationDisplay.getSources();
-		final ConcurrentHashMap< String, Set< Source< ? > > > sourceNameToRootSources = new ConcurrentHashMap();
+		final ConcurrentHashMap< String, Set< String > > sourceToRootSources = new ConcurrentHashMap();
 
 		for ( String sourceName : segmentationDisplaySources )
 		{
+			final Source< ? > source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
 			Set< Source< ? > > rootSources = ConcurrentHashMap.newKeySet();
-			MoBIEHelper.fetchRootSources( sourceNameToSourceAndConverter.get( sourceName ).getSpimSource(), rootSources );
-			sourceNameToRootSources.put( sourceName, rootSources );
+			MoBIEHelper.fetchRootSources( source, rootSources );
+			sourceToRootSources.put( sourceName, rootSources.stream().map( s -> s.getName() ).collect( Collectors.toSet()) );
 		}
 
 		final Queue< List< TableRowImageSegment > > primaryTables = new ConcurrentLinkedQueue<>();
-		final int numTables = getNumTables( segmentationDisplaySources, sourceNameToRootSources );
+		final int numTables = getNumTables( segmentationDisplaySources, sourceToRootSources );
 		final long startTimeMillis = System.currentTimeMillis();
 		final AtomicLong lastLogMillis = new AtomicLong(startTimeMillis);
 		final AtomicInteger tableLoggingModulo = new AtomicInteger(1);
@@ -669,13 +679,13 @@ public class MoBIE
 		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
 		for ( String displayedSourceName : segmentationDisplaySources )
 		{
-			final Set< Source< ? > > rootSources = sourceNameToRootSources.get( displayedSourceName );
-			for ( Source rootSource : rootSources )
+			final Set< String > rootSources = sourceToRootSources.get( displayedSourceName );
+			for ( String rootSource : rootSources )
 			{
 				futures.add( MultiThreading.ioExecutorService.submit( () ->
 				{
 					final String log = getLog( tableIndex, numTables, tableLoggingModulo, lastLogMillis );
-					final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( rootSource.getName(), tableName, log );
+					final List< TableRowImageSegment > primaryTable = loadImageSegmentsTable( rootSource, tableName, log );
 					primaryTables.add( primaryTable );
 				} ) );
 			}
@@ -685,18 +695,17 @@ public class MoBIE
 		return primaryTables;
 	}
 
-	private int getNumTables( List< String > segmentationDisplaySources, ConcurrentHashMap< String, Set< Source< ? > > > sourceNameToRootSources )
+	private int getNumTables( List< String > segmentationDisplaySources, ConcurrentHashMap< String, Set< String > > sourceNameToRootSources )
 	{
 		int numTables = 0;
 		for ( String displayedSourceName : segmentationDisplaySources )
 		{
-			final Set< Source< ? > > rootSources = sourceNameToRootSources.get( displayedSourceName );
-			numTables += rootSources.size();
+			numTables += sourceNameToRootSources.get( displayedSourceName ).size();
 		}
 		return numTables;
 	}
 
-	private void mergeSegmentsTable( List< ? extends TableRow > tableRows, Map< String, List< String > > additionalTable )
+	private void appendSegmentsTableColumns( List< ? extends TableRow > tableRows, Map< String, List< String > > additionalTable )
 	{
 		// prepare
 		final Map< String, List< String > > columnsForMerging = TableHelper.createColumnsForMerging( tableRows, additionalTable );
@@ -719,7 +728,7 @@ public class MoBIE
 			Map< String, List< String > > concatenatedTable = TableColumns.concatenate( additionalTables );
 
 			// merge
-			mergeSegmentsTable( tableRows, concatenatedTable );
+			appendSegmentsTableColumns( tableRows, concatenatedTable );
 		}
 	}
 
@@ -729,7 +738,7 @@ public class MoBIE
 		Map< String, List< String > > additionalTable = TableHelper.loadTableAndAddImageIdColumn( source, tablePath );
 
 		// merge
-		mergeSegmentsTable( tableRows, additionalTable );
+		appendSegmentsTableColumns( tableRows, additionalTable );
 	}
 
 	public void appendSegmentTableColumns( SegmentationDisplay segmentationDisplay, List< String > relativeTablePaths )

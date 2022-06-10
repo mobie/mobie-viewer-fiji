@@ -38,6 +38,7 @@ import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.NumericType;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.SourceNameEncoder;
@@ -54,8 +55,10 @@ import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.source.LabelSource;
+import org.embl.mobie.viewer.source.LazySourceAndConverter;
 import org.embl.mobie.viewer.table.TableViewer;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
+import org.embl.mobie.viewer.transform.MergedGridSourceTransformer;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SourceTransformer;
@@ -285,15 +288,28 @@ public class ViewManager
 
 	public void openAndTransformSources( View view )
 	{
-		// fetch the names of all sources that are either shown or to be transformed
-		final Set< String > sources = fetchSources( view );
-		if ( sources.size() == 0 ) return;
+		// fetch the names of all sources that are either
+		// shown or to be transformed
+		final Map< String, String > sourceToParent = fetchSources( view );
+		if ( sourceToParent.size() == 0 ) return;
 
-		SourceNameEncoder.addNames( sources );
-		final Set< String > rawSources = sources.stream().filter( s -> moBIE.getDataset().sources.containsKey( s ) ).collect( Collectors.toSet() );
+		SourceNameEncoder.addNames( sourceToParent.keySet() );
+		final List< String > sourcesForOpening = sourceToParent.keySet().stream().filter( s -> ( moBIE.getDataset().sources.containsKey( s ) && sourceToParent.get( s ) == null ) ).collect( Collectors.toList() );
 
-		// open all raw sources
-		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( rawSources );
+		// open sources
+		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = moBIE.openSourceAndConverters( sourcesForOpening );
+
+		// add lazy sources
+		for ( String source : sourceToParent.keySet() )
+		{
+			if ( ! moBIE.getDataset().sources.containsKey( source ) )
+				continue; // cannot be opened but is derived (e.g. transformed)
+
+			if ( sourceToParent.get( source ) == null )
+				continue; // has been opened already
+
+			sourceNameToSourceAndConverters.put( source, createLazySourceAndConverter( source, sourceNameToSourceAndConverters.get( sourceToParent.get( source ) ).getSpimSource() ) );
+		}
 
 		// create transformed sources
 		final List< SourceTransformer > sourceTransformers = view.getSourceTransforms();
@@ -308,8 +324,13 @@ public class ViewManager
 		// This is so any manual transformations can be
 		// retrieved separate from any from sourceTransformers.
 		for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
-			SourceAndConverter<?> sourceAndConverter = new SourceAffineTransformer( sourceNameToSourceAndConverters.get( sourceName ), new AffineTransform3D()).getSourceOut();
-			sourceNameToSourceAndConverters.put( sourceName, sourceAndConverter );
+
+			final SourceAndConverter< ? > sac = sourceNameToSourceAndConverters.get( sourceName );
+			if ( sac instanceof LazySourceAndConverter )
+				continue;
+
+			SourceAndConverter<?> transformedSac = new SourceAffineTransformer( sac, new AffineTransform3D()).getSourceOut();
+			sourceNameToSourceAndConverters.put( sourceName, transformedSac );
 		}
 
 		// register all available (transformed) sources in MoBIE
@@ -318,19 +339,54 @@ public class ViewManager
 		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
 	}
 
-	public Set< String > fetchSources( View view )
+	private LazySourceAndConverter createLazySourceAndConverter( String sourceName, Source< ? > parentSource )
 	{
-		final Set< String > sources = new HashSet<>();
+		final AffineTransform3D sourceTransform = new AffineTransform3D();
+		parentSource.getSourceTransform( 0, 0, sourceTransform );
+		final LazySourceAndConverter< ? > sourceAndConverter = new LazySourceAndConverter( moBIE, sourceName, sourceTransform, parentSource.getVoxelDimensions(), ( NumericType ) parentSource.getType(), parentSource.getSource( 0, 0 ).minAsDoubleArray(), parentSource.getSource( 0, 0 ).minAsDoubleArray() );
+		return sourceAndConverter;
+	}
+
+	public Map< String, String > fetchSources( View view )
+	{
+		final Map< String, String > sources = new HashMap<>();
 		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
 
 		for ( SourceDisplay sourceDisplay : sourceDisplays )
 		{
-			sources.addAll( sourceDisplay.getSources() );
+			for ( String source : sourceDisplay.getSources() )
+			{
+				sources.put( source, null );
+			}
 		}
 
 		for ( SourceTransformer sourceTransformer : view.getSourceTransforms() )
 		{
-			sources.addAll( sourceTransformer.getSources() );
+			final List< String > sourceTransformerSources = sourceTransformer.getSources();
+
+			if ( sourceTransformer instanceof MergedGridSourceTransformer )
+			{
+				for ( int i = 0; i < sourceTransformerSources.size(); i++ )
+				{
+					if ( i == 0 )
+					{
+						sources.put( sourceTransformerSources.get( 0 ), null );
+					}
+					else
+					{
+						// source should not be loaded but
+						// initialised as LazySourceAndConverter with first source
+						sources.put( sourceTransformerSources.get( i ), sourceTransformerSources.get( 0 ) );
+					}
+				}
+			}
+			else
+			{
+				for ( String source : sourceTransformerSources )
+				{
+					sources.put( source, null );
+				}
+			}
 		}
 
 		return sources;
@@ -451,8 +507,6 @@ public class ViewManager
 
 		if ( segmentationDisplay.tableRows != null )
 		{
-			// TODO: can one use the same code here for
-			//  annotation and segmentation?
 			initTableViewer( segmentationDisplay );
 			initScatterPlotViewer( segmentationDisplay );
 			initSegmentationVolumeViewer( segmentationDisplay );

@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.viewer.segment;
 
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -39,15 +38,13 @@ import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.bdv.GlobalMousePositionProvider;
-import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
+import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
-import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.function.Supplier;
 
 public class SliceViewRegionSelector implements Runnable
@@ -170,45 +167,14 @@ public class SliceViewRegionSelector implements Runnable
 		}
 		else
 		{
-			final String sourceName = source.getName();
-			return sourceName;
+			return source.getName();
 		}
 	}
 
-	@Deprecated
-	private Collection< SourceAndConverter< ? > > getContainedSourceAndConverters( SourceAndConverter< ? > sourceAndConverter )
-	{
-		final Collection< SourceAndConverter< ? > > containedSourceAndConverters = new HashSet<>();
-
-		Source< ? > source = sourceAndConverter.getSpimSource();
-
-		if ( source instanceof LabelSource )
-		{
-			source = ( ( LabelSource ) source ).getWrappedSource();
-		}
-
-		if ( source instanceof TransformedSource )
-		{
-			source = ( ( TransformedSource< ? > ) source ).getWrappedSource();
-		}
-
-		if ( source instanceof MergedGridSource )
-		{
-			containedSourceAndConverters.addAll( ( ( MergedGridSource ) source ).getContainedSourceAndConverters() );
-		}
-		else
-		{
-			// not a MergedGridSource, just return the initial source
-			containedSourceAndConverters.add( sourceAndConverter );
-		}
-
-		return containedSourceAndConverters;
-	}
-
-	private static double getPixelValue( int timePoint, RealPoint position, Source< ? > source )
+	private static double getPixelValue( int timePoint, RealPoint realPoint, Source< ? > source )
 	{
 		final RandomAccess< RealType > randomAccess = ( RandomAccess< RealType > ) source.getSource( timePoint, 0 ).randomAccess();
-		final long[] positionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, position, timePoint, 0 );
+		final long[] positionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, realPoint, timePoint, 0 );
 		randomAccess.setPosition( positionInSource );
 		return randomAccess.get().getRealDouble();
 	}

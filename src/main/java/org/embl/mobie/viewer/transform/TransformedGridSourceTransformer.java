@@ -34,6 +34,7 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.viewer.source.LazySourceAndConverter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,23 +106,27 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 
 			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( translationX, translationY, sourceAndConverter, centerAtOrigin );
 
-			final SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName, sourceNames, sourceNamesAfterTransform, translationTransform );
+			String transformedSourceName = sourceName;
+			if ( sourceNamesAfterTransform != null )
+				transformedSourceName = sourceNamesAfterTransform.get( sourceNames.indexOf( sourceName ) );
 
-			final SourceAndConverter transformedSource = transformer.apply( sourceNameToSourceAndConverter.get( sourceName ) );
+			if ( sourceAndConverter instanceof LazySourceAndConverter )
+			{
+				// TODO: instead of modifying this one in place
+				//   we should better create a copy
+				//   maybe it would now even work with actually transforming the lazySpimSource
+				final LazySourceAndConverter lazySourceAndConverter = ( LazySourceAndConverter ) sourceAndConverter;
+				lazySourceAndConverter.setName( transformedSourceName );
+				final AffineTransform3D transform3D = new AffineTransform3D();
+				transform3D.preConcatenate( translationTransform ); // set by reference
+				sourceNameToSourceAndConverter.put( transformedSourceName, lazySourceAndConverter );
+			}
+			else
+			{
+				final SourceAndConverter transformedSource = new SourceAffineTransformer( translationTransform, transformedSourceName ).apply( sourceAndConverter );
 
-			sourceNameToSourceAndConverter.put( transformedSource.getSpimSource().getName(), transformedSource );
-		}
-	}
-
-	public static SourceAffineTransformer createSourceAffineTransformer( String sourceName, List< String > sourceNames, List< String > sourceNamesAfterTransform, AffineTransform3D affineTransform3D )
-	{
-		if ( sourceNamesAfterTransform != null )
-		{
-			return new SourceAffineTransformer( affineTransform3D, sourceNamesAfterTransform.get( sourceNames.indexOf( sourceName ) ) );
-		}
-		else
-		{
-			return new SourceAffineTransformer( affineTransform3D );
+				sourceNameToSourceAndConverter.put( transformedSourceName, transformedSource );
+			}
 		}
 	}
 

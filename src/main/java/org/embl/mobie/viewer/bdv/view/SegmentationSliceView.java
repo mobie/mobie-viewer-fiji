@@ -39,6 +39,7 @@ import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.source.LabelSource;
+import org.embl.mobie.viewer.source.LazySourceAndConverter;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
@@ -106,11 +107,7 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 
 		final BdvHandle bdvHandle = getSliceViewer().getBdvHandle();
 		final SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
-
-		if ( selection.timePoint() != state.getCurrentTimepoint() )
-		{
-			state.setCurrentTimepoint( selection.timePoint() );
-		}
+		state.setCurrentTimepoint( selection.timePoint() );
 
 		final double[] position = new double[ 3 ];
 		selection.localize( position );
@@ -126,18 +123,22 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 
 	private void adaptPosition( double[] position, String sourceName )
 	{
-		// get source transform
 		final SourceAndConverter< ? > sourceAndConverter = moBIE.sourceNameToSourceAndConverter().get( sourceName );
+
+		// get source transform
 		AffineTransform3D sourceTransform = new AffineTransform3D();
 		sourceAndConverter.getSpimSource().getSourceTransform( 0,0, sourceTransform );
 
+		// get voxel dimensions
+		final VoxelDimensions voxelDimensions;
+		voxelDimensions = sourceAndConverter.getSpimSource().getVoxelDimensions();
+
 		// remove scaling, because the positions are in scaled units
-		final VoxelDimensions voxelDimensions = sourceAndConverter.getSpimSource().getVoxelDimensions();
 		final AffineTransform3D scalingTransform = new AffineTransform3D();
 		scalingTransform.scale( voxelDimensions.dimension( 0 ), voxelDimensions.dimension( 1 ), voxelDimensions.dimension( 2 )  );
-		sourceTransform = sourceTransform.concatenate( scalingTransform.inverse() );
+		sourceTransform.concatenate( scalingTransform.inverse() );
 
-		// adapt
+		// adapt position
 		sourceTransform.apply( position, position );
 	}
 }

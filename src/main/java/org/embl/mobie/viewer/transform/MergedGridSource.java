@@ -54,6 +54,8 @@ import net.imglib2.view.Views;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.source.LabelSource;
+import org.embl.mobie.viewer.source.LazySourceAndConverter;
+import org.embl.mobie.viewer.source.SourceHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,7 +72,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	private final String mergedGridSourceName;
 	private final List< RandomAccessibleInterval< T > > mergedRandomAccessibleIntervals;
 	private final DefaultInterpolators< T > interpolators;
-	private final List< Source< T > > gridSources;
+	private final List< SourceAndConverter< T > > gridSources;
 	private final List< int[] > positions;
 	private final double relativeCellMargin;
 	private final boolean encodeSource;
@@ -81,18 +83,19 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	private Set< SourceAndConverter > containedSourceAndConverters;
 	private RealMaskRealInterval mask;
 
-	public MergedGridSource( List< Source< T > > gridSources, List< int[] > positions, String mergedGridSourceName, double relativeCellMargin, boolean encodeSource )
+	public MergedGridSource( List< SourceAndConverter< T > > gridSources, List< int[] > positions, String mergedGridSourceName, double relativeCellMargin, boolean encodeSource )
 	{
 		this.gridSources = gridSources;
 		this.positions = positions;
 		this.relativeCellMargin = relativeCellMargin;
 		this.encodeSource = encodeSource;
 		this.interpolators = new DefaultInterpolators<>();
-		this.referenceSource = gridSources.get( 0 );
+		this.referenceSource = gridSources.get( 0 ).getSpimSource();
 		this.mergedGridSourceName = mergedGridSourceName;
 		this.type = referenceSource.getType();
 
-		mergedRandomAccessibleIntervals = createMergedRAIs();
+		initDimensions();
+		mergedRandomAccessibleIntervals = createMergedRAIs( referenceSource.getNumMipmapLevels() );
 	}
 
 	public static boolean instanceOf( SourceAndConverter< ? > sourceAndConverter )
@@ -118,18 +121,17 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		return false;
 	}
 
-	public List< Source< T > > getGridSources()
+	public List< SourceAndConverter< T > > getGridSources()
 	{
 		return gridSources;
 	}
 
-	private List< RandomAccessibleInterval< T > > createMergedRAIs()
+	private void initDimensions()
 	{
 		final int numMipmapLevels = referenceSource.getNumMipmapLevels();
 		setCellDimensions( numMipmapLevels );
 		setCellRealDimensions( cellDimensions[ 0 ] );
 		setMask( positions, cellDimensions[ 0 ] );
-		return createMergedRAIs( numMipmapLevels );
 	}
 
 	private List< RandomAccessibleInterval< T > > createMergedRAIs( int numMipmapLevels )
@@ -140,11 +142,11 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		{
 			long[] mergedDimensions = getDimensions( positions, cellDimensions[ level ] );
 
-			final Map< String, Source< T > > cellKeyToSource = createCellKeyToSource( cellDimensions[ level ] );
+			final Map< String, SourceAndConverter< T > > cellKeyToSource = createCellKeyToSource( cellDimensions[ level ] );
 
 			if ( level == 0 )
 			{
-				sourceNameToVoxelTranslation = createSourceNameToTranslation( cellDimensions[ level ], gridSources.get( 0 ).getSource( 0, 0 ).dimensionsAsLongArray() );
+				sourceNameToVoxelTranslation = createSourceNameToTranslation( cellDimensions[ level ], gridSources.get( 0 ).getSpimSource().getSource( 0, 0 ).dimensionsAsLongArray() );
 			}
 
 			final RandomAccessibleIntervalCellLoader< T > cellLoader = new RandomAccessibleIntervalCellLoader( cellKeyToSource, level );
@@ -239,9 +241,9 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 			}
 	}
 
-	private Map< String, Source< T > > createCellKeyToSource( int[] cellDimensions )
+	private Map< String, SourceAndConverter< T > > createCellKeyToSource( int[] cellDimensions )
 	{
-		final Map< String, Source< T > > cellKeyToSource = new HashMap<>();
+		final Map< String, SourceAndConverter< T > > cellKeyToSource = new HashMap<>();
 		for ( int positionIndex = 0; positionIndex < positions.size(); positionIndex++ )
 		{
 			final int[] position = positions.get( positionIndex );
@@ -268,7 +270,9 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 				cellMin[ d ] = position[ d ] * cellDimensions[ d ];
 
 			final long[] translation = computeTranslation( cellDimensions, cellMin, dataDimensions );
-			sourceNameToTranslation.put( gridSources.get( positionIndex ).getName(), translation );
+
+			final SourceAndConverter< T > sourceAndConverter = gridSources.get( positionIndex );
+			sourceNameToTranslation.put( sourceAndConverter.getSpimSource().getName(), translation );
 		}
 
 		return sourceNameToTranslation;
@@ -336,12 +340,6 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 			translation[ d ] = cellMin[ d ] + (long) ( ( cellDimensions[ d ] - dataDimensions[ d ] ) / 2.0 );
 		}
 		return translation;
-	}
-
-	// TODO: not used
-	public Map< String, long[] > getSourceNameToVoxelTranslation()
-	{
-		return sourceNameToVoxelTranslation;
 	}
 
 	public int[][] getCellDimensions()
@@ -412,18 +410,12 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		this.containedSourceAndConverters = containedSourceAndConverters;
 	}
 
-	@Deprecated
-	public Set< SourceAndConverter > getContainedSourceAndConverters()
-	{
-		return containedSourceAndConverters;
-	}
-
 	class RandomAccessibleIntervalCellLoader< T extends NativeType< T > > implements CellLoader< T >
 	{
-		private final Map< String, Source< T > > cellKeyToSource;
+		private final Map< String, SourceAndConverter< T > > cellKeyToSource;
 		private final int level;
 
-		public RandomAccessibleIntervalCellLoader( Map< String, Source< T > > cellKeyToSource, int level )
+		public RandomAccessibleIntervalCellLoader( Map< String, SourceAndConverter< T > > cellKeyToSource, int level )
 		{
 			this.cellKeyToSource = cellKeyToSource;
 			this.level = level;
@@ -441,7 +433,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 			else
 			{
 				// Get the RAI for this cell
-				final Source< T > source = cellKeyToSource.get( cellKey );
+				final Source< T > source = cellKeyToSource.get( cellKey ).getSpimSource();
 				RandomAccessibleInterval< T > data = source.getSource( currentTimepoint, level );
 
 				// Create a view that is shifted to the cell position

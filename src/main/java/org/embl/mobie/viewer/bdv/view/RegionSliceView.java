@@ -40,7 +40,6 @@ import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 
-
 public class RegionSliceView extends AnnotationSliceView< RegionTableRow >
 {
 	public RegionSliceView( MoBIE moBIE, RegionDisplay display )
@@ -58,18 +57,14 @@ public class RegionSliceView extends AnnotationSliceView< RegionTableRow >
 	}
 
 	@Override
-	public synchronized void focusEvent( RegionTableRow selection, Object initiator )
+	public void focusEvent( RegionTableRow selection, Object initiator )
 	{
 		if ( initiator instanceof SliceViewRegionSelector )
 			return;
 
 		final BdvHandle bdvHandle = getSliceViewer().getBdvHandle();
 		final SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
-
-		if ( selection.timePoint() != state.getCurrentTimepoint() )
-		{
-			state.setCurrentTimepoint( selection.timePoint() );
-		}
+		state.setCurrentTimepoint( selection.timePoint() );
 
 		final double[] center = getPosition( selection );
 
