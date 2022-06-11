@@ -699,31 +699,9 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	{
 		if ( tableRows.getColumnNames().contains( column ) )
 			throw new RuntimeException( column + " exists already, please choose another name." );
-		tableRows.addColumn( column, defaultValue );
+		tableRows.addColumn( column, defaultValue.toString() );
 	}
 
-	public void addColumn( String column, Object[] values )
-	{
-		if ( tableRows.getColumnNames().contains( column ) )
-			throw new RuntimeException( column + " exists already, please choose another name." );
-		tableRows.addColumn( column, values );
-	}
-
-	public void addColumns( Map< String, List< String > > columns )
-	{
-		for ( String columnName : columns.keySet() )
-		{
-			try
-			{
-				final Object[] values = TableColumns.asTypedArray( columns.get( columnName ) );
-				tableRows.addColumn( columnName, values );
-			} catch ( UnsupportedDataTypeException e )
-			{
-				Logger.error( "Could not add column " + columnName + ", because the" +
-						" data type could not be determined.");
-			}
-		}
-	}
 
 	public List< String > getNumericColumnNames()
 	{
