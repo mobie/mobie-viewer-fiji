@@ -38,6 +38,7 @@ import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.table.TableRowsTableModel;
 import org.embl.mobie.viewer.ui.MoBIELaf;
 
 import javax.swing.*;
@@ -55,7 +56,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 	public static final String LAST = "You are already at the last object in table.";
 	public static final String NO_MORE_SEGMENTS = "No more segments.";
 	private final String annotationColumnName;
-	private final List< T > tableRows;
+	private final TableRowsTableModel< T > tableRows;
 	private final SelectionModel< T > selectionModel;
 	private final CategoryTableRowColumnColoringModel< T > coloringModel;
 	private final RowSorter< ? extends TableModel > rowSorter;
@@ -70,7 +71,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 	private Set< String > annotationNames;
 	private String objectName = "entity";
 
-	public Annotator( String columnName, List< T > tableRows, SelectionModel< T > selectionModel, CategoryTableRowColumnColoringModel< T > coloringModel, RowSorter< ? extends TableModel > rowSorter )
+	public Annotator( String columnName, TableRowsTableModel< T > tableRows, SelectionModel< T > selectionModel, CategoryTableRowColumnColoringModel< T > coloringModel, RowSorter< ? extends TableModel > rowSorter )
 	{
 		super("");
 		this.annotationColumnName = columnName;
@@ -87,7 +88,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		this.panel = new JPanel();
 	}
 
-	private void setNames( List< T > tableRows )
+	private void setNames( TableRowsTableModel< T > tableRows )
 	{
 		if ( tableRows.get( 0 ) instanceof TableRowImageSegment )
 		{

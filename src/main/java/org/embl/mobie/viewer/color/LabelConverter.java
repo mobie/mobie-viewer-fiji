@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer.color;
 
 import bdv.viewer.TimePointListener;
+import de.embl.cba.tables.tablerow.TableRowsModel;
 import net.imglib2.type.volatiles.VolatileUnsignedIntType;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
@@ -37,6 +38,7 @@ import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.viewer.table.TableRowsTableModel;
 
 import static net.imglib2.type.numeric.ARGBType.alpha;
 import static net.imglib2.type.numeric.ARGBType.blue;
@@ -85,6 +87,8 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 
 		if ( imageId == null )
 		{
+			// TODO: maybe cache labelId to Segment to make this faster?
+			//   or could the segmentAdapter do this caching?
 			final long labelId = SourceNameEncoder.getValue( ( VolatileUnsignedIntType ) label );
 
 			if ( labelId == 0 )

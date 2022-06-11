@@ -59,6 +59,7 @@ import org.embl.mobie.viewer.source.LazySpimSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableHelper;
+import org.embl.mobie.viewer.table.TableRowsTableModel;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.View;
@@ -77,7 +78,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -772,7 +772,7 @@ public class MoBIE
 		segmentationDisplay.tableRows = loadPrimarySegmentsTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
 	}
 
-	public List< RegionTableRow > createRegionTableRows( RegionDisplay regionDisplay )
+	public TableRowsTableModel createRegionTableRows( RegionDisplay regionDisplay )
 	{
 		// read
 		final List< Map< String, List< String > > > tables = new ArrayList<>();
@@ -800,7 +800,7 @@ public class MoBIE
 			TableHelper.appendRegionTableColumns( regionTableRows, additionalTables.get( i ) );
 		}
 
-		return regionTableRows;
+		return new TableRowsTableModel( regionTableRows );
 	}
 
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, boolean closeImgLoader )

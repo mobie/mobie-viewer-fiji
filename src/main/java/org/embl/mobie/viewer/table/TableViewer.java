@@ -42,6 +42,7 @@ import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
+import de.embl.cba.tables.tablerow.DefaultTableRowsModel;
 import de.embl.cba.tables.tablerow.JTableFromTableRowsModelCreator;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowListener;
@@ -64,6 +65,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +80,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	private final MoBIE moBIE;
-	private final List< T > tableRows;
+	private final TableRowsTableModel< T > tableRows;
 	private final SelectionModel< T > selectionModel;
 	private final SelectionColoringModel< T > coloringModel;
 	private final String tableName;
@@ -96,7 +98,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private boolean controlDown;
 	private JFrame frame;
-	private TableRowsTableModel tableRowsTableModel;
 
 	private enum TableRowSelectionMode
 	{
@@ -115,7 +116,12 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		this.tableName = display.getName();
 		this.recentlySelectedRowInView = -1;
 
-		registerAsTableRowListener( tableRows );
+		// TODO: probably we can get rid of this entirely,
+		//  because changing tableRows now works through the
+		//  TableRowsTableModel which has a direct relation to the JTable
+		//  However I am not sure right now who else
+		//  (but the TableViewer) may change TableRows..
+		//registerAsTableRowListener( tableRows );
 
 		configureJTable();
 
@@ -161,43 +167,37 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		});
 	}
 
-	public void registerAsTableRowListener( List< T > tableRows )
-	{
-		final int numTableRows = tableRows.size();
-		for ( int rowIndex = 0; rowIndex < numTableRows; rowIndex++ )
-		{
-			int finalRowIndex = rowIndex;
-
-			tableRows.get( rowIndex ).listeners().add( new TableRowListener()
-			{
-				@Override
-				public void cellChanged( String columnName, String value )
-				{
-					synchronized ( jTable )
-					{
-						if ( ! tableRowsTableModel.getColumnNames().contains( columnName ) )
-						{
-							// TODO: how to add a column?
-							//   have to check implementations of TableRow
-							tableRowsTableModel.setValueAt( value, finalRowIndex, tableRowsTableModel.getColumnNames().indexOf( columnName ) );
-							//Tables.addColumnToJTable( columnName, value, jTable.getModel() );
-						}
-
-						// TODO: 2021: Change this! 2022: Why?
-						tableRowsTableModel.setValueAt( value, finalRowIndex, tableRowsTableModel.getColumnNames().indexOf( columnName ) );
-//						Tables.setJTableCell( finalRowIndex, columnName, value, jTable );
-					}
-				}
-			});
-		}
-	}
-
-	public List< T > getTableRows()
-	{
-		return tableRows;
-	}
-
-
+//	public void registerAsTableRowListener( List< T > tableRows )
+//	{
+//		final int numTableRows = tableRows.size();
+//		for ( int rowIndex = 0; rowIndex < numTableRows; rowIndex++ )
+//		{
+//			int finalRowIndex = rowIndex;
+//
+//			tableRows.get( rowIndex ).listeners().add( new TableRowListener()
+//			{
+//				@Override
+//				public void cellChanged( String columnName, String value )
+//				{
+//					synchronized ( jTable )
+//					{
+//						if ( ! tableRowsTableModel.getColumnNames().contains( columnName ) )
+//						{
+//							// TODO: how to add a column?
+//							//   have to check implementations of TableRow
+//							tableRowsTableModel.setValueAt( value, finalRowIndex, tableRowsTableModel.getColumnNames().indexOf( columnName ) );
+//							//Tables.addColumnToJTable( columnName, value, jTable.getModel() );
+//						}
+//
+//						// TODO: 2021: Change this! 2022: Why?
+//						tableRowsTableModel.setValueAt( value, finalRowIndex, tableRowsTableModel.getColumnNames().indexOf( columnName ) );
+////						Tables.setJTableCell( finalRowIndex, columnName, value, jTable );
+//					}
+//				}
+//			});
+//		}
+//	}
+//
 	private void configureTableRowColoring()
 	{
 		jTable.setDefaultRenderer( Double.class, new DefaultTableCellRenderer()
@@ -333,14 +333,14 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	private void configureJTable()
 	{
-		tableRowsTableModel = new TableRowsTableModel( tableRows );
-		jTable = new JTable( tableRowsTableModel );
+		jTable = new JTable( tableRows );
 		jTable.setPreferredScrollableViewportSize( new Dimension(500, 200) );
 		jTable.setFillsViewportHeight( true );
 		jTable.setAutoCreateRowSorter( true );
 		jTable.setRowSelectionAllowed( true );
 		jTable.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
 
+		// TODO: do this with TableRowsModel instead ?!
 		columnColoringModelCreator = new ColumnColoringModelCreator( jTable );
 	}
 
@@ -399,7 +399,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			{
 				SwingUtilities.invokeLater( () ->
 				{
-					String[] columnNames = getColumnNames().stream().toArray( String[]::new );
+					String[] columnNames = tableRows.getColumnNames().stream().toArray( String[]::new );
 					ScatterPlotDialog dialog = new ScatterPlotDialog( columnNames, new String[]{ columnNames[ 0 ], columnNames[ 1 ] }, new double[]{ 1.0, 1.0 }, 1.0 );
 
 					if ( dialog.show() )
@@ -488,7 +488,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
-						selectAll() ) );
+						selectionModel.setSelected( tableRows.getTableRows(), true ) ) );
 
 		return menuItem;
 	}
@@ -553,17 +553,6 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		});
 	}
 
-	private void selectAll()
-	{
-		selectionModel.setSelected( tableRows, true );
-//		for ( T tableRow : tableRows )
-//		{
-//			selectionModel.setSelected( tableRow, true );
-//			selectionModel.focus( tableRow );
-//		}
-
-	}
-
 	private void selectRows( List<T> selectedTableRows, List<T> notSelectedTableRows ) {
 		selectionModel.setSelected( selectedTableRows, true );
 		selectionModel.setSelected( notSelectedTableRows, false );
@@ -573,7 +562,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	{
 		// works for categorical and numeric columns
 		final GenericDialog gd = new GenericDialog( "" );
-		String[] columnNames = getColumnNames().stream().toArray( String[]::new );
+		String[] columnNames = tableRows.getColumnNames().stream().toArray( String[]::new );
 		gd.addChoice( "Column", columnNames, columnNames[0] );
 		gd.addStringField( "value", "" );
 		gd.showDialog();
@@ -668,7 +657,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		gd.showDialog();
 		if( gd.wasCanceled() ) return;
 		final String columnName = gd.getNextString();
-		if ( getColumnNames().contains( columnName ) )
+		if ( tableRows.getColumnNames().contains( columnName ) )
 		{
 			Logger.error( "\"" +columnName + "\" exists already as a column name, please choose another one." );
 			return;
@@ -708,15 +697,16 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	public void addColumn( String column, Object defaultValue )
 	{
-		if ( getColumnNames().contains( column ) )
+		if ( tableRows.getColumnNames().contains( column ) )
 			throw new RuntimeException( column + " exists already, please choose another name." );
-
-		TableRows.addColumn( tableRows, column, defaultValue );
+		tableRows.addColumn( column, defaultValue );
 	}
 
 	public void addColumn( String column, Object[] values )
 	{
-		TableRows.addColumn( tableRows, column, values );
+		if ( tableRows.getColumnNames().contains( column ) )
+			throw new RuntimeException( column + " exists already, please choose another name." );
+		tableRows.addColumn( column, values );
 	}
 
 	public void addColumns( Map< String, List< String > > columns )
@@ -726,7 +716,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			try
 			{
 				final Object[] values = TableColumns.asTypedArray( columns.get( columnName ) );
-				addColumn( columnName, values );
+				tableRows.addColumn( columnName, values );
 			} catch ( UnsupportedDataTypeException e )
 			{
 				Logger.error( "Could not add column " + columnName + ", because the" +
@@ -735,19 +725,14 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		}
 	}
 
-	public Set< String > getColumnNames()
+	public List< String > getNumericColumnNames()
 	{
-		return tableRows.get( 0 ).getColumnNames();
-	}
-
-	public List<String> getNumericColumnNames()
-	{
-		Set<String> columnNames = getColumnNames();
-		ArrayList<String> numericColumnNames = new ArrayList<>();
-		for( String columnName: columnNames ) {
-			if ( jTable.getValueAt(0, jTable.getColumn( columnName ).getModelIndex() ) instanceof Double ) {
+		final List< String > columnNames = tableRows.getColumnNames();
+		ArrayList< String > numericColumnNames = new ArrayList<>();
+		for ( String columnName : columnNames )
+		{
+			if ( tableRows.isNumeric( columnName ) )
 				numericColumnNames.add( columnName );
-			}
 		}
 
 		return numericColumnNames;

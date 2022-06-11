@@ -41,6 +41,7 @@ import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.source.SourceHelper;
+import org.embl.mobie.viewer.table.TableRowsTableModel;
 import org.embl.mobie.viewer.table.TableViewer;
 import de.embl.cba.tables.color.ColoringLuts;
 import org.embl.mobie.viewer.select.SelectionModel;
@@ -71,7 +72,7 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 	public transient SelectionColoringModel< T > selectionColoringModel;
 	public transient TableViewer< T > tableViewer;
 	public transient ScatterPlotViewer< T > scatterPlotViewer;
-	public transient List< T > tableRows;
+	public transient TableRowsTableModel< T > tableRows;
 
 	// Should be overwritten by child classes
 	public AnnotationSliceView< ? > getSliceView()

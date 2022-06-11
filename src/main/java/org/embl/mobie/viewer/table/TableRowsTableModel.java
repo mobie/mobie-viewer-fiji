@@ -1,33 +1,97 @@
 package org.embl.mobie.viewer.table;
 
+import com.google.common.collect.Streams;
 import de.embl.cba.tables.Utils;
+import de.embl.cba.tables.select.Listeners;
 import de.embl.cba.tables.tablerow.TableRow;
 
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class TableRowsTableModel < T extends TableRow >  implements TableModel
+public class TableRowsTableModel < T extends TableRow >  implements TableModel, Iterable< T >
 {
 	private List< T > tableRows;
+	private Map< String, Class > columnNameToClass;
+	protected final Listeners.SynchronizedList< TableModelListener > listeners = new Listeners.SynchronizedList<>( );
 	private List< String > columnNames;
-	private ArrayList< Class > columnClasses;
-	private ArrayList< TableModelListener > listeners = new ArrayList<>();
 
+	public void addColumn( String columnName, Object defaultValue )
+	{
+		final int rowCount = getRowCount();
+
+		for ( int i = 0; i < rowCount; i++ )
+		{
+			tableRows.get( i ).setCell( columnName, defaultValue.toString() );
+		}
+	}
+
+	public void addColumn( String columnName, Object[] values )
+	{
+		final int rowCount = getRowCount();
+
+		for ( int i = 0; i < rowCount; i++ )
+		{
+			tableRows.get( i ).setCell( columnName, values[ i ].toString() );
+		}
+	}
+
+
+	class TableRowsIterator implements Iterator< T >
+	{
+		int index = 0;
+
+		TableRowsIterator() {
+		}
+
+		public boolean hasNext() {
+			return index < getRowCount();
+		}
+
+		public T next() {
+			return get(index++);
+		}
+	}
+
+	// TODO:
+	//  - extends Iterable< T > ? needed?
+	//  - addColumn:
+	//       assert tableRows.size() == size;
+	//
+	//			for ( int i = 0; i < size; i++ )
+	//			{
+	//				tableRows.get( i ).setCell( columnName, values.get( i ) );
+	//			}
+	//   - we need to support: tableRows.get( rowSorter.convertRowIndexToModel( rowIndex ) );
+	//     - e.g. the Annotator needs this to notify the selection model
+	//     - the code in segmentation-annotator seems more up to date:
+	//         - e.g. check the Annotator class, which uses a TableModel
 	public TableRowsTableModel( List< T > tableRows )
 	{
 		this.tableRows = tableRows;
-		this.columnNames = tableRows.get( 0 ).getColumnNames().stream().collect( Collectors.toList() );
 		setColumns();
 	}
 
-	public List< String > getColumnNames()
+
+	public int indexOf( T tableRow )
 	{
-		return columnNames;
+		return tableRows.indexOf( tableRow );
 	}
 
+	public boolean isNumeric( String columnName )
+	{
+		return columnNameToClass.get( columnName ) == Double.class;
+	}
+
+	// it would be better to avoid this and instead use
+	// this whole class as a list
+	@Deprecated
 	public List< T > getTableRows()
 	{
 		return tableRows;
@@ -36,13 +100,26 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel
 	private void setColumns()
 	{
 		columnNames = tableRows.get( 0 ).getColumnNames().stream().collect( Collectors.toList() );
-		columnClasses = new ArrayList<>(  );
+		columnNameToClass = new LinkedHashMap<>();
+		final int columnCount = columnNames.size();
 
-		for ( int column = 0; column < getColumnCount(); column++ )
+		for ( int columnIndex = 0; columnIndex < columnCount; columnIndex++ )
 		{
-			final String cell = (String) this.getValueAt( 0, column );
-			columnClasses.add( getTableCellClass( cell ) );
+			final String cell = (String) this.getValueAt( 0, columnIndex );
+			columnNameToClass.put( columnNames.get( columnIndex ), getTableCellClass( cell ) );
 		}
+	}
+
+	public List< String > getColumnNames()
+	{
+		return columnNames;
+	}
+
+	public Stream< T > stream()
+	{
+		final Iterator< T > iterator = tableRows.iterator();
+		final Stream< T > stream = Streams.stream( iterator );
+		return stream;
 	}
 
 	public Class getTableCellClass( String string )
@@ -64,10 +141,15 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel
 		return tableRows.size();
 	}
 
+	public int size()
+	{
+		return getRowCount();
+	}
+
 	@Override
 	public int getColumnCount()
 	{
-		return columnNames.size();
+		return columnNameToClass.size();
 	}
 
 	@Override
@@ -79,7 +161,7 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel
 	@Override
 	public Class< ? > getColumnClass( int columnIndex )
 	{
-		return columnClasses.get( columnIndex );
+		return columnNameToClass.get( columnNames.get( columnIndex ) );
 	}
 
 	@Override
@@ -99,7 +181,7 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel
 	{
 		final T tableRow = tableRows.get( rowIndex );
 		tableRow.setCell( columnNames.get( columnIndex ), aValue.toString() );
-		if ( tableRow.getColumnNames().size() != columnNames.size() )
+		if ( tableRow.getColumnNames().size() != columnNameToClass.size() )
 			setColumns(); // TODO: and notify listener? maybe JTable anyway will be aware of this
 	}
 
@@ -115,8 +197,23 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel
 
 	}
 
+	@Override
+	public Iterator<T> iterator() {
+		return new TableRowsIterator();
+	}
+
 	public void addTableRows( List< TableRow > tableRows )
 	{
 		tableRows.addAll( tableRows );
+	}
+
+	public Listeners< TableModelListener > listeners()
+	{
+		return listeners;
+	}
+
+	public T get( int index )
+	{
+		return tableRows.get( index );
 	}
 }

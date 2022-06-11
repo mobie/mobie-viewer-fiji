@@ -51,6 +51,7 @@ import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.table.TableRowsTableModel;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -67,6 +68,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ScatterPlotViewer< T extends TableRow > implements SelectionListener< T >, ColoringListener, TimePointListener
 {
@@ -80,7 +82,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private PointSelectionModes pointSelectionMode = PointSelectionModes.Closest;
 	private double selectionRadius = 1.0;
 
-	private final List< T > tableRows;
+	private final TableRowsTableModel< T > tableRows;
 	private final ColoringModel< T > coloringModel;
 	private final SelectionModel< T > selectionModel;
 
@@ -99,7 +101,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private RadiusNeighborSearchOnKDTree< T > radiusNeighborSearchOnKDTree;
 
 	public ScatterPlotViewer(
-			List< T > tableRows,
+			TableRowsTableModel< T > tableRows,
 			SelectionModel< T > selectionModel,
 			ColoringModel< T > coloringModel,
 			String[] selectedColumns,
@@ -159,8 +161,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 	private void updateScatterPlotSource( )
 	{
-		List< T > tableRows = getTableRows( );
-
+		List< T > tableRows = getTableRowsForCurrentTimepoint( );
 		TableRowKDTreeSupplier< T > kdTreeSupplier = new TableRowKDTreeSupplier<>( tableRows, selectedColumns, scaleFactors );
 		KDTree< T > kdTree = kdTreeSupplier.get();
 		double[] min = kdTreeSupplier.getMin();
@@ -192,15 +193,15 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		showInBdv( randomAccessible, FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 ), selectedColumns );
 	}
 
-	private List< T > getTableRows( )
+	private List< T > getTableRowsForCurrentTimepoint( )
 	{
-		if ( tableRows.get( 0 ).getColumnNames().contains( TableColumnNames.TIMEPOINT  ) )
+		if ( tableRows.getColumnNames().contains( TableColumnNames.TIMEPOINT  ) )
 		{
 			return tableRows.stream().filter( t -> Double.parseDouble( t.getCell( TableColumnNames.TIMEPOINT ) ) == currentTimepoint ).collect( Collectors.toList() );
 		}
 		else
 		{
-			return tableRows;
+			return tableRows.getTableRows();
 		}
 	}
 

@@ -128,7 +128,8 @@ public class ViewManager
 	{
 		if ( display.getColorByColumn() != null )
 		{
-			final ColumnColoringModelCreator< TableRowImageSegment > modelCreator = new ColumnColoringModelCreator( display.tableRows );
+			// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/795
+			final ColumnColoringModelCreator< TableRowImageSegment > modelCreator = new ColumnColoringModelCreator( display.tableRows.getTableRows() );
 			final ColoringModel< TableRowImageSegment > coloringModel;
 			String coloringLut = display.getLut();
 
@@ -456,7 +457,7 @@ public class ViewManager
 	{
 		regionDisplay.sliceViewer = sliceViewer;
 		regionDisplay.tableRows = moBIE.createRegionTableRows( regionDisplay );
-		regionDisplay.annotatedMaskAdapter = new AnnotatedMaskAdapter( regionDisplay.tableRows );
+		regionDisplay.annotatedMaskAdapter = new AnnotatedMaskAdapter( regionDisplay.tableRows.getTableRows() );
 
 		regionDisplay.selectionModel = new MoBIESelectionModel<>();
 		configureColoringModel( regionDisplay );
@@ -489,7 +490,7 @@ public class ViewManager
 		loadTablesAndCreateImageSegments( segmentationDisplay );
 
 		if ( segmentationDisplay.tableRows != null )
-			segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.tableRows );
+			segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.tableRows.getTableRows() );
 		else
 			segmentationDisplay.segmentAdapter = new SegmentAdapter();
 
