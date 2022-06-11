@@ -104,6 +104,11 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 			int numSkippedRows = 0;
 			for ( int rowIndex = 0; rowIndex < numNewRows; ++rowIndex )
 			{
+				// TODO:
+				//  This is not efficient as this happens inside the column loop
+				//  Maybe at the beginning establish a Map< int, int >
+				//  old to new, setting new to -1 if it does not exist in the new
+				//  rows?!
 				final String key = getRowKey( mergeByColumnNames, referenceKey, rowIndex );
 				final Integer targetRowIndex = keyToRowIndex.get( key );
 
