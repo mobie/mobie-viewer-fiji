@@ -73,6 +73,8 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 	public transient TableViewer< T > tableViewer;
 	public transient ScatterPlotViewer< T > scatterPlotViewer;
 	public transient TableRowsTableModel< T > tableRows;
+	public transient String tableRoot;
+	public String datasetName;
 
 	// Should be overwritten by child classes
 	public AnnotationSliceView< ? > getSliceView()

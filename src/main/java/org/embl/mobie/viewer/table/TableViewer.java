@@ -30,10 +30,7 @@ package org.embl.mobie.viewer.table;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.tables.Logger;
-import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.TableUIs;
-import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.Utils;
 import de.embl.cba.tables.color.CategoryTableRowColumnColoringModel;
 import de.embl.cba.tables.color.ColorUtils;
@@ -42,8 +39,6 @@ import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
-import de.embl.cba.tables.tablerow.DefaultTableRowsModel;
-import de.embl.cba.tables.tablerow.JTableFromTableRowsModelCreator;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowListener;
 import ij.gui.GenericDialog;
@@ -52,10 +47,10 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotate.Annotator;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
+import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.select.SelectionModel;
 
-import javax.activation.UnsupportedDataTypeException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
@@ -65,11 +60,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_GREY;
 import static org.embl.mobie.viewer.MoBIEHelper.FileLocation;
@@ -442,7 +435,11 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			new Thread( () -> {
 				FileLocation fileLocation = loadFromProjectOrFileSystemDialog();
 				if ( fileLocation.equals( FileLocation.Project ) )
-					moBIE.appendColumnsFromProject( display );
+				{
+					if ( display instanceof RegionDisplay )
+
+					moBIE.mergeColumnsFromProject( display );
+				}
 				else if ( fileLocation.equals( FileLocation.FileSystem ))
 				{
 					moBIE.appendColumnsFromFileSystem( display );

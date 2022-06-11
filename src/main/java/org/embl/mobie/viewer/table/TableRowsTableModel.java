@@ -4,11 +4,9 @@ import com.google.common.collect.Streams;
 import de.embl.cba.tables.Utils;
 import de.embl.cba.tables.select.Listeners;
 import de.embl.cba.tables.tablerow.TableRow;
-import ij.IJ;
 
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,14 +23,12 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 	protected final Listeners.SynchronizedList< TableModelListener > listeners = new Listeners.SynchronizedList<>( );
 	private List< String > columnNames;
 
-	public void addColumn( String columnName, String defaultValue )
+	public void addColumn( String columnName, String value )
 	{
 		final int rowCount = getRowCount();
-
 		for ( int i = 0; i < rowCount; i++ )
-		{
-			tableRows.get( i ).setCell( columnName, defaultValue );
-		}
+			tableRows.get( i ).setCell( columnName, value );
+		configureColumns();
 	}
 
 	/**
@@ -46,16 +42,27 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 	public void addColumn( String columnName, List< String > values )
 	{
 		final int rowCount = getRowCount();
-
 		assert rowCount == values.size();
-
 		for ( int i = 0; i < rowCount; i++ )
-		{
-			tableRows.get( i ).setCell( columnName, values.get( i ).toString() );
-		}
+			tableRows.get( i ).setCell( columnName, values.get( i ) );
+		configureColumns();
 	}
 
-	public void mergeColumns( Map< String, List< String > > newColumns, List< String > mergeByColumnNames )
+
+	/**
+	 * TODO: Considerations:
+	 *   - for lazy loading from merged grid source
+	 *     - the sourceColumns can be much smaller => iterate over them
+	 *     - this merging can happen quite often => keep the keyToRow list somewhere
+	 *       and update when necessary
+	 *     - the sourceColumns will partially already exist => do not overwrite the values
+	 *     - when the sourceColumns are added for the first time (i.e. do not exist) => only then set default value.
+	 *
+	 *
+	 * @param sourceColumns
+	 * @param mergeByColumnNames
+	 */
+	public void mergeColumns( Map< String, List< String > > sourceColumns,String... mergeByColumnNames )
 	{
 		// TODO:
 		//   deal with the fact that the label ids are sometimes
@@ -64,18 +71,34 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 		//    MoBIEHelper.toDoubleStrings( segmentIdColumn );
 		//    MoBIEHelper.toDoubleStrings( newColumns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
 
-		// create a lookup map for finding the correct row,
+		// create a lookup maps for finding the correct rows
 		// given reference cell entries
-		final HashMap< String, Integer > keyToRowIndex = new HashMap<>();
 		final StringBuilder referenceKey = new StringBuilder();
-		final int rowCount = getRowCount();
-		for ( int rowIndex = 0; rowIndex < rowCount; ++rowIndex )
+
+		final HashMap< String, Integer > keyToTargetRowIndex = new HashMap<>();
+		final int targetRowCount = getRowCount();
+		for ( int targetRowIndex = 0; targetRowIndex < targetRowCount; ++targetRowIndex )
 		{
-			final String key = getRowKey( mergeByColumnNames, referenceKey, rowIndex );
-			keyToRowIndex.put( key, rowIndex );
+			for ( String columnName : mergeByColumnNames )
+				referenceKey.append( getValueAt( targetRowIndex, columnName ) + " " );
+			final String key = referenceKey.toString();
+			referenceKey.delete( 0, referenceKey.length() ); // clear for reuse
+			keyToTargetRowIndex.put( key, targetRowIndex );
 		}
 
-		for ( Map.Entry< String, List< String > > newColumn : newColumns.entrySet() )
+		final HashMap< Integer, Integer > targetRowIndexToSourceRowIndex = new HashMap<>();
+		final int sourceRowCount = sourceColumns.values().iterator().next().size();
+		for ( int sourceRowIndex = 0; sourceRowIndex < sourceRowCount; ++sourceRowIndex )
+		{
+			for ( String columnName : mergeByColumnNames )
+				referenceKey.append( sourceColumns.get( columnName ).get( sourceRowIndex ) + " " );
+			final String key = referenceKey.toString();
+			referenceKey.delete( 0, referenceKey.length() ); // clear for reuse
+
+			targetRowIndexToSourceRowIndex.put( keyToTargetRowIndex.get( key ), sourceRowIndex );
+		}
+
+		for ( Map.Entry< String, List< String > > newColumn : sourceColumns.entrySet() )
 		{
 			final String columnName = newColumn.getKey();
 			final List< String > values = newColumn.getValue();
@@ -83,70 +106,30 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 			if ( getColumnNames().contains( columnName ) )
 				continue; // those are the columns by which to merge
 
-			// initialise the new columns with a default value
-			// - the new cells may have a different order
-			// - some cells may keep those default values, because it is
-			//   not required that all rows exist in the new columns
-			// TODO: like this we may need to iterate twice
-			//  maybe better to iterate through the existing rows
-			//  and fetch the corresponding row in the new columns?
-
 			final String defaultValue = getDefaultValue( values.get( 0 ) );
-			addColumn( columnName, defaultValue  );
-
-			// go through the new columns and put their values
-			// into the correct row
-			// this could be slow...
-			// maybe room for improvements
-			// final long start = System.currentTimeMillis();
-
-			final int numNewRows = values.size();
-			int numSkippedRows = 0;
-			for ( int rowIndex = 0; rowIndex < numNewRows; ++rowIndex )
+			for ( int targetRowIndex = 0; targetRowIndex < targetRowCount; ++targetRowIndex )
 			{
-				// TODO:
-				//  This is not efficient as this happens inside the column loop
-				//  Maybe at the beginning establish a Map< int, int >
-				//  old to new, setting new to -1 if it does not exist in the new
-				//  rows?!
-				final String key = getRowKey( mergeByColumnNames, referenceKey, rowIndex );
-				final Integer targetRowIndex = keyToRowIndex.get( key );
-
-				if ( targetRowIndex == null )
+				final Integer sourceRowIndex = targetRowIndexToSourceRowIndex.get( targetRowIndex );
+				if ( sourceRowIndex == null )
 				{
-					// The key does not exist in the reference table.
-					numSkippedRows++;
-					continue;
+					// row does not exist in the new columns
+					setValueAt( defaultValue, targetRowIndex, columnName );
 				}
 				else
 				{
-					setValueAt( values.get( rowIndex ), targetRowIndex, columnName );
+					setValueAt( values.get( sourceRowIndex ), targetRowIndex, columnName );
 				}
 			}
-
-			//		System.out.println( ( System.currentTimeMillis() - start ) / 1000.0 ) ;
-
-			if ( numSkippedRows > 0 )
-				IJ.log("[WARNING] There were "+ numSkippedRows+" rows merging column " + columnName );
-
 		}
 	}
 
-	private String getRowKey( List< String > mergeByColumnNames, StringBuilder referenceKey, int rowIndex )
-	{
-		for ( String columnName : mergeByColumnNames )
-			referenceKey.append( getValueAt( rowIndex, columnName ) + " " );
-		final String key = referenceKey.toString();
-		referenceKey.delete( 0, referenceKey.length() ); // clear for reuse
-		return key;
-	}
 
 	private String getDefaultValue( String string )
 	{
 		if ( getCellClass( string ) == Double.class )
 			return "NaN"; // for numbers
 		else
-			return  "None"; // for text
+			return "None"; // for text
 	}
 
 	class TableRowsIterator implements Iterator< T >
@@ -168,7 +151,7 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 	public TableRowsTableModel( List< T > tableRows )
 	{
 		this.tableRows = tableRows;
-		setColumns();
+		configureColumns();
 	}
 
 	public int indexOf( T tableRow )
@@ -189,7 +172,7 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 		return tableRows;
 	}
 
-	private void setColumns()
+	private synchronized void configureColumns()
 	{
 		columnNames = tableRows.get( 0 ).getColumnNames().stream().collect( Collectors.toList() );
 		columnNameToClass = new LinkedHashMap<>();
@@ -201,11 +184,13 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 			final Class cellClass = getCellClass( cell );
 			columnNameToClass.put( columnNames.get( columnIndex ), cellClass );
 		}
+
+		// TODO: notify listeners?
 	}
 
 	public List< String > getColumnNames()
 	{
-		return columnNames;
+		return Collections.unmodifiableList( columnNames );
 	}
 
 	public Stream< T > stream()
@@ -277,16 +262,16 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 	@Override
 	public void setValueAt( Object value, int rowIndex, int columnIndex )
 	{
-		setValueAt( value, rowIndex, columnNames.indexOf( columnIndex ) );
+		setValueAt( value.toString(), rowIndex, columnNames.indexOf( columnIndex ) );
 	}
 
-	public void setValueAt( Object aValue, int rowIndex, String columnName )
+	public synchronized void setValueAt( String value, int rowIndex, String columnName )
 	{
-		final T tableRow = tableRows.get( rowIndex );
-		tableRow.setCell( columnName, aValue.toString() );
-		if ( tableRow.getColumnNames().size() != columnNameToClass.size() )
-			setColumns(); // TODO: and notify listener? maybe JTable anyway will be aware of this
+		if ( ! getColumnNames().contains( columnName) )
+			addColumn( columnName, getDefaultValue( value )  );
+		tableRows.get( rowIndex ).setCell( columnName, value.toString() );
 	}
+
 	@Override
 	public void addTableModelListener( TableModelListener l )
 	{

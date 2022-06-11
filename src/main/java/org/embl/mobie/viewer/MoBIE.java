@@ -31,7 +31,6 @@ package org.embl.mobie.viewer;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.github.GitHubUtils;
@@ -46,8 +45,6 @@ import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
-import org.embl.mobie.viewer.annotate.RegionCreator;
-import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
@@ -59,7 +56,6 @@ import org.embl.mobie.viewer.source.LazySpimSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableHelper;
-import org.embl.mobie.viewer.table.TableRowsTableModel;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.View;
@@ -84,7 +80,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.embl.mobie.viewer.MoBIEHelper.selectFilePath;
-import static org.embl.mobie.viewer.MoBIEHelper.selectTableFileNameFromProject;
+import static org.embl.mobie.viewer.MoBIEHelper.selectTableFileNameFromProjectDialog;
 
 public class MoBIE
 {
@@ -140,6 +136,8 @@ public class MoBIE
 		openDataset();
 	}
 
+	// "from file system" implies that only a single table is loaded
+	// maybe rephrase this thus?
 	public void appendColumnsFromFileSystem( AnnotationDisplay< ? extends TableRow > display )
 	{
 		String path = selectFilePath( null, "Table", true );
@@ -147,44 +145,64 @@ public class MoBIE
 		if ( path != null ) {
 			new Thread( () -> {
 				display.tableViewer.enableRowSorting( false );
+				Map< String, List< String > > columns = readTable( path );
 				if ( display instanceof SegmentationDisplay )
 				{
+					// TODO: why can there be only one source?!
+					//   maybe here because we load from FS?
 					final String sourceName = display.getSources().get( 0 );
-					moBIE.appendSegmentTableColumns( display.tableRows, sourceName, path  );
+
+					// TODO: maybe the two functions below could be static functions the region and segment display, because they know how to do this, respectively?
+					TableHelper.addColumn( columns, TableColumnNames.LABEL_IMAGE_ID, sourceName );
+					display.tableRows.mergeColumns( columns, TableColumnNames.LABEL_IMAGE_ID, TableColumnNames.SEGMENT_LABEL_ID );
 				}
 				else if ( display instanceof RegionDisplay )
 				{
-					Map< String, List< String > > table = readTable( path );
-					TableHelper.appendRegionTableColumns( display.tableRows, table );
+					display.tableRows.mergeColumns( columns, TableColumnNames.REGION_ID );
 				}
 				display.tableViewer.enableRowSorting( true );
 			}).start();
 		}
 	}
 
-	public String appendColumnsFromProject( AnnotationDisplay< ? extends TableRow > display )
+	public String mergeColumnsFromProject( AnnotationDisplay< ? extends TableRow > display )
 	{
 		final Map< String, String > sourceNameToTableDirectory = getTableDirectories( display );
-		String tableFileName = selectTableFileNameFromProject( sourceNameToTableDirectory.values(), "Table" );
+		String tableFileName = selectTableFileNameFromProjectDialog( sourceNameToTableDirectory.values(), "Table" );
 
 		if ( display instanceof RegionDisplay )
 		{
+
 			for ( String tableDir : sourceNameToTableDirectory.values() )
 			{
-				String resolvedPath = MoBIEHelper.resolveTablePath( IOHelper.combinePath( tableDir, tableFileName ) );
+				String resolvedPath = MoBIEHelper.resolveUrlOrFsPath( IOHelper.combinePath( tableDir, tableFileName ) );
 				final Map< String, List< String > > tableColumns = readTable( resolvedPath );
 				display.tableViewer.enableRowSorting( false );
-				TableHelper.appendRegionTableColumns( display.tableRows, tableColumns );
+				display.tableRows.mergeColumns( tableColumns, TableColumnNames.REGION_ID );
 				display.tableViewer.enableRowSorting( true );
 			}
 		}
 		else if ( display instanceof SegmentationDisplay )
 		{
-			ArrayList< String > tableNames = new ArrayList<>( );
-			tableNames.add( tableFileName );
+			for ( String tableDir : sourceNameToTableDirectory.values() )
+			{
+				System.out.println( tableDir );
+			}
+
 			display.tableViewer.enableRowSorting( false );
-			moBIE.appendSegmentTableColumns( display.tableRows, sourceNameToTableDirectory.keySet(), tableNames );
-			display.tableViewer.enableRowSorting( true );
+
+			// load
+			// why is this different here than for the regions??
+			// why not just the same code for loading??
+			// in above for-loop?
+			final List< Map< String, List< String > > > additionalTables = loadSegmentationTables( sourceNameToTableDirectory.keySet(), tableFileName );
+			// concatenate
+			Map< String, List< String > > concatenatedTable = TableColumns.concatenate( additionalTables );
+			// merge
+			// ...
+			throw new RuntimeException("appending columns from project not yet implemented...");
+
+			//display.tableViewer.enableRowSorting( true );
 		}
 
 		return tableFileName;
@@ -211,8 +229,8 @@ public class MoBIE
 	{
 		Map<String, String> sourceNameToTableDir = new HashMap<>();
 		final String relativePath = display.getTableDataFolder( TableDataFormat.TabDelimitedFile );
-		final String tablesDirectoryPath = getTablesDirectoryPath( relativePath );
-		// the source name is the same as the display name
+		final String tablesDirectoryPath = IOHelper.combinePath( tableRoot, datasetName, relativePath );
+		// for regions the source name is the same as the display name
 		sourceNameToTableDir.put( display.getName(), tablesDirectoryPath );
 		return sourceNameToTableDir;
 	}
@@ -588,7 +606,7 @@ public class MoBIE
 
     public String getTablesDirectoryPath( String relativeTableLocation )
     {
-        return IOHelper.combinePath( tableRoot, getDatasetName(), relativeTableLocation );
+        return IOHelper.combinePath( tableRoot, datasetName, relativeTableLocation );
     }
 
 	public String getTablePath( SegmentationSource source, String table )
@@ -625,7 +643,7 @@ public class MoBIE
 		return segments;
 	}
 
-	private List< Map< String, List< String > > > loadTables( Collection<String> sources, String tableName )
+	private List< Map< String, List< String > > > loadSegmentationTables( Collection< String > sources, String tableName )
 	{
 		final List< Map< String, List< String > > > tables = new CopyOnWriteArrayList<>();
 
@@ -740,7 +758,7 @@ public class MoBIE
 		for ( String table : relativeTablePaths )
 		{
 			// load
-			final List< Map< String, List< String > > > additionalTables = loadTables( imageSourceNames, table );
+			final List< Map< String, List< String > > > additionalTables = loadSegmentationTables( imageSourceNames, table );
 
 			// concatenate
 			Map< String, List< String > > concatenatedTable = TableColumns.concatenate( additionalTables );
@@ -748,20 +766,6 @@ public class MoBIE
 			// merge
 			appendSegmentsTableColumns( tableRows, concatenatedTable );
 		}
-	}
-
-	public void appendSegmentTableColumns( List< ? extends TableRow > tableRows, String source, String tablePath )
-	{
-		// load
-		Map< String, List< String > > additionalTable = TableHelper.loadTableAndAddImageIdColumn( source, tablePath );
-
-		// merge
-		appendSegmentsTableColumns( tableRows, additionalTable );
-	}
-
-	public void appendSegmentTableColumns( SegmentationDisplay segmentationDisplay, List< String > relativeTablePaths )
-	{
-		appendSegmentTableColumns( segmentationDisplay.tableRows, segmentationDisplay.getSources(), relativeTablePaths );
 	}
 
 	/**
@@ -772,36 +776,13 @@ public class MoBIE
 		segmentationDisplay.tableRows = loadPrimarySegmentsTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
 	}
 
-	public TableRowsTableModel createRegionTableRows( RegionDisplay regionDisplay )
+	public String getTableRoot()
 	{
-		// read
-		final List< Map< String, List< String > > > tables = new ArrayList<>();
-		for ( String table : regionDisplay.getTables() )
-		{
-			String tablePath = getTablePath( regionDisplay.getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
-			tablePath = MoBIEHelper.resolveTablePath( tablePath );
-			final long startTime = System.currentTimeMillis();
-			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
-			final long durationMillis = System.currentTimeMillis() - startTime;
-			if ( durationMillis > minLogTimeMillis )
-				Logger.log( "Read in "+ durationMillis +" ms: " + tablePath );
-		}
-
-		// create primary table
-		final Map< String, List< String > > referenceTable = tables.get( 0 );
-		// TODO: The AnnotatedMaskCreator does not need the sources, but just the source's real intervals
-		final RegionCreator regionCreator = new RegionCreator( referenceTable, regionDisplay.getAnnotationIdToSources(), ( String sourceName ) -> sourceNameToSourceAndConverter.get( sourceName )  );
-		final List< RegionTableRow > regionTableRows = regionCreator.getRegionTableRows();
-
-		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
-
-		for ( int i = 0; i < additionalTables.size(); i++ )
-		{
-			TableHelper.appendRegionTableColumns( regionTableRows, additionalTables.get( i ) );
-		}
-
-		return new TableRowsTableModel( regionTableRows );
+		return tableRoot;
 	}
+
+	// TODO: could this happen inside the regionDisplay?
+
 
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, boolean closeImgLoader )
 	{

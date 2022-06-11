@@ -62,7 +62,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 
 	public Double[] getResolution3dView(){ return resolution3dView; }
 
-	public List< String > getSelectedTableRows()
+	public List< String > getSelectedSegmentIds()
 	{
 		return selectedSegmentIds;
 	}

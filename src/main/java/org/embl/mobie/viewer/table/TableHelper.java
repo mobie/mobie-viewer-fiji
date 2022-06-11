@@ -68,7 +68,20 @@ public class TableHelper
 	{
 		Logger.log( "Opening additional table: " + tablePath );
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
-		TableColumns.addLabelImageIdColumn( columns, TableColumnNames.LABEL_IMAGE_ID, imageID );
+		TableHelper.addColumn( columns, TableColumnNames.LABEL_IMAGE_ID, imageID );
+		return columns;
+	}
+
+	public static Map< String, List< String > > addColumn(
+			Map< String, List< String > > columns,
+			String columnName,
+			String value )
+	{
+		final int numRows = columns.values().iterator().next().size();
+		final List< String > values = new ArrayList<>();
+		for ( int row = 0; row < numRows; row++ )
+			values.add( value );
+		columns.put( columnName, values );
 		return columns;
 	}
 

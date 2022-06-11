@@ -401,13 +401,31 @@ public class ViewManager
 		{
 			showImageDisplay( ( ImageDisplay ) sourceDisplay );
 		}
-		else if ( sourceDisplay instanceof SegmentationDisplay )
+		else if ( sourceDisplay instanceof AnnotationDisplay )
 		{
-			showSegmentationDisplay( ( SegmentationDisplay ) sourceDisplay );
-		}
-		else if ( sourceDisplay instanceof RegionDisplay )
-		{
-			showRegionDisplay( ( RegionDisplay ) sourceDisplay );
+			final AnnotationDisplay< ? > annotationDisplay = ( AnnotationDisplay< ? > ) sourceDisplay;
+
+			annotationDisplay.sliceViewer = sliceViewer;
+			annotationDisplay.selectionModel = new MoBIESelectionModel<>();
+			annotationDisplay.tableRoot = moBIE.getTableRoot();
+			annotationDisplay.datasetName = moBIE.getDatasetName();
+
+			if ( annotationDisplay instanceof SegmentationDisplay )
+			{
+				showSegmentationDisplay( ( SegmentationDisplay ) annotationDisplay );
+			}
+			else if ( annotationDisplay instanceof RegionDisplay )
+			{
+				showRegionDisplay( ( RegionDisplay ) annotationDisplay );
+			}
+
+			if ( annotationDisplay.tableRows != null )
+			{
+				initTableViewer( annotationDisplay );
+				initScatterPlotViewer( annotationDisplay );
+				if ( annotationDisplay instanceof SegmentationDisplay)
+					initSegmentationVolumeViewer( ( SegmentationDisplay ) annotationDisplay );
+			}
 		}
 
 		userInterface.addSourceDisplay( sourceDisplay );
@@ -455,11 +473,9 @@ public class ViewManager
 
 	private void showRegionDisplay( RegionDisplay regionDisplay )
 	{
-		regionDisplay.sliceViewer = sliceViewer;
-		regionDisplay.tableRows = moBIE.createRegionTableRows( regionDisplay );
+		regionDisplay.initTableRows(  );
 		regionDisplay.annotatedMaskAdapter = new AnnotatedMaskAdapter( regionDisplay.tableRows.getTableRows() );
 
-		regionDisplay.selectionModel = new MoBIESelectionModel<>();
 		configureColoringModel( regionDisplay );
 
 		// set selected segments
@@ -479,6 +495,7 @@ public class ViewManager
 	{
 		display.tableViewer = new TableViewer( moBIE, display );
 		display.tableViewer.show();
+		setTablePosition( display.sliceViewer.getWindow(), display.tableViewer.getWindow() );
 		display.selectionModel.listeners().add( display.tableViewer );
 		display.selectionColoringModel.listeners().add( display.tableViewer );
 		numCurrentTables++;
@@ -486,7 +503,6 @@ public class ViewManager
 
 	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
 	{
-		segmentationDisplay.sliceViewer = sliceViewer;
 		loadTablesAndCreateImageSegments( segmentationDisplay );
 
 		if ( segmentationDisplay.tableRows != null )
@@ -494,25 +510,16 @@ public class ViewManager
 		else
 			segmentationDisplay.segmentAdapter = new SegmentAdapter();
 
-		segmentationDisplay.selectionModel = new MoBIESelectionModel<>();
 		configureColoringModel( segmentationDisplay );
 
 		// set selected segments
-		if ( segmentationDisplay.getSelectedTableRows() != null )
+		if ( segmentationDisplay.getSelectedSegmentIds() != null )
 		{
-			final List< TableRowImageSegment > segments = segmentationDisplay.segmentAdapter.getSegments( segmentationDisplay.getSelectedTableRows() );
+			final List< TableRowImageSegment > segments = segmentationDisplay.segmentAdapter.getSegments( segmentationDisplay.getSelectedSegmentIds() );
 			segmentationDisplay.selectionModel.setSelected( segments, true );
 		}
 
 		segmentationDisplay.sliceView = new SegmentationSliceView( moBIE, segmentationDisplay );
-
-		if ( segmentationDisplay.tableRows != null )
-		{
-			initTableViewer( segmentationDisplay );
-			initScatterPlotViewer( segmentationDisplay );
-			initSegmentationVolumeViewer( segmentationDisplay );
-			setTablePosition( segmentationDisplay.sliceViewer.getWindow(), segmentationDisplay.tableViewer.getWindow() );
-		}
 	}
 
 	private void setTablePosition( Window reference, Window table )
@@ -550,20 +557,20 @@ public class ViewManager
 		}
 	}
 
-	private void initSegmentationVolumeViewer( SegmentationDisplay segmentationDisplay )
+	private void initSegmentationVolumeViewer( SegmentationDisplay display )
 	{
-		segmentationDisplay.segmentsVolumeViewer = new SegmentsVolumeViewer<>( segmentationDisplay.selectionModel, segmentationDisplay.selectionColoringModel, segmentationDisplay.sourceNameToSourceAndConverter.values(), universeManager );
-		Double[] resolution3dView = segmentationDisplay.getResolution3dView();
+		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.selectionColoringModel, display.sourceNameToSourceAndConverter.values(), universeManager );
+		Double[] resolution3dView = display.getResolution3dView();
 		if ( resolution3dView != null ) {
-			segmentationDisplay.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(segmentationDisplay.getResolution3dView()) );
+			display.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(display.getResolution3dView()) );
 		}
-		segmentationDisplay.segmentsVolumeViewer.showSegments( segmentationDisplay.showSelectedSegmentsIn3d(), true );
-		segmentationDisplay.selectionColoringModel.listeners().add( segmentationDisplay.segmentsVolumeViewer );
-		segmentationDisplay.selectionModel.listeners().add( segmentationDisplay.segmentsVolumeViewer );
+		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d(), true );
+		display.selectionColoringModel.listeners().add( display.segmentsVolumeViewer );
+		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
 
-		for ( SourceAndConverter< ? > sourceAndConverter : segmentationDisplay.sourceNameToSourceAndConverter.values() )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
 		{
-			sacService.setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), segmentationDisplay.segmentsVolumeViewer );
+			sacService.setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), display.segmentsVolumeViewer );
 		}
 	}
 

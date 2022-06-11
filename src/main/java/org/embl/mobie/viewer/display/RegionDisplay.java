@@ -28,12 +28,18 @@
  */
 package org.embl.mobie.viewer.display;
 
+import de.embl.cba.tables.TableColumns;
+import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
+import org.embl.mobie.viewer.annotate.RegionCreator;
 import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.bdv.view.RegionSliceView;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
+import org.embl.mobie.viewer.table.TableHelper;
+import org.embl.mobie.viewer.table.TableRowsTableModel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,7 +50,7 @@ import java.util.Set;
 public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 {
 	// Serialization
-	protected Map< String, List< String > > sources;
+	protected Map< String, List< String > > sources; // annotationId to sources
 	protected List< String > selectedRegionIds;
 	protected Map< TableDataFormat, StorageLocation > tableData;
 
@@ -60,11 +66,6 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 	public String getTableDataFolder( TableDataFormat tableDataFormat )
 	{
 		return tableData.get( tableDataFormat ).relativePath;
-	}
-
-	public Map< String, List< String > > getAnnotationIdToSources()
-	{
-		return sources;
 	}
 
 	@Override
@@ -128,6 +129,33 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 		if ( regionDisplay.sliceView != null ) {
 			this.visible = regionDisplay.sliceView.isVisible();
 		}
+	}
+
+	public void initTableRows( )
+	{
+		// read
+		final List< Map< String, List< String > > > tables = new ArrayList<>();
+		for ( String table : getTables() )
+		{
+			String tablePath = IOHelper.combinePath( tableRoot, datasetName, getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
+			tablePath = MoBIEHelper.resolveUrlOrFsPath( tablePath );
+			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
+		}
+
+		// create primary table
+		final Map< String, List< String > > referenceTable = tables.get( 0 );
+		// TODO: The AnnotatedMaskCreator does not need the sources, but just the source's real intervals
+		final RegionCreator regionCreator = new RegionCreator( referenceTable, sources, ( String sourceName ) -> sourceNameToSourceAndConverter.get( sourceName )  );
+		final List< RegionTableRow > regionTableRows = regionCreator.getRegionTableRows();
+
+		final List< Map< String, List< String > > > additionalTables = tables.subList( 1, tables.size() );
+
+		for ( int i = 0; i < additionalTables.size(); i++ )
+		{
+			TableHelper.appendRegionTableColumns( regionTableRows, additionalTables.get( i ) );
+		}
+
+		tableRows = new TableRowsTableModel( regionTableRows );
 	}
 
 }

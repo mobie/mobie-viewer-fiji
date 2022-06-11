@@ -34,5 +34,5 @@ import java.util.Map;
 
 public class SegmentationSource extends ImageSource
 {
-	public Map<TableDataFormat, StorageLocation > tableData;
+	public Map< TableDataFormat, StorageLocation > tableData;
 }

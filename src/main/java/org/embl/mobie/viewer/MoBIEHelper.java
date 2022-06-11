@@ -53,22 +53,18 @@ import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.source.LabelSource;
-import org.embl.mobie.viewer.source.LazySourceAndConverter;
 import org.embl.mobie.viewer.source.LazySpimSource;
-import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import org.embl.mobie.viewer.transform.TransformHelper;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
-import java.net.CookieHandler;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -254,16 +250,19 @@ public abstract class MoBIEHelper
 		return FileLocation.valueOf(gd.getNextChoice());
 	}
 
-	public static String selectTableFileNameFromProject( Collection<String> directories, String objectName ) {
+	public static String selectTableFileNameFromProjectDialog( Collection< String > directories, String objectName ) {
 		if ( directories == null )
 			return null;
 
-		if ( directories.size() > 1) {
+		if ( directories.size() > 1)
+		{
 			// when there are multiple directories,
 			// we only allow selection of table file names
 			// that are present in all directories
 			return chooseValidTableFileName( directories, objectName );
-		} else {
+		}
+		else
+		{
 			final String directory = directories.iterator().next();
 			String[] fileNames = IOHelper.getFileNames( directory );
 			if ( fileNames == null )
@@ -388,7 +387,7 @@ public abstract class MoBIEHelper
 			String tablePath,
 			String imageId )
 	{
-		tablePath = resolveTablePath( tablePath );
+		tablePath = resolveUrlOrFsPath( tablePath );
 
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
 
@@ -407,14 +406,15 @@ public abstract class MoBIEHelper
 		return segments;
 	}
 
-	public static String resolveTablePath( String tablePath )
+	// TODO: Move to IOHelper
+	public static String resolveUrlOrFsPath( String path )
 	{
-		if ( tablePath.startsWith( "http" ) ) {
-			tablePath = IOHelper.resolveURL( URI.create( tablePath ) );
+		if ( path.startsWith( "http" ) ) {
+			path = IOHelper.resolveURL( URI.create( path ) );
 		} else {
-			tablePath = IOHelper.resolvePath( tablePath );
+			path = IOHelper.resolvePath( path );
 		}
-		return tablePath;
+		return path;
 	}
 
 	public static Map< SegmentProperty, List< String > > createSegmentPropertyToColumn(
