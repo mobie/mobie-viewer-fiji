@@ -387,7 +387,7 @@ public abstract class MoBIEHelper
 			String tablePath,
 			String imageId )
 	{
-		tablePath = resolveUrlOrFsPath( tablePath );
+		tablePath = resolvePath( tablePath );
 
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
 
@@ -407,7 +407,7 @@ public abstract class MoBIEHelper
 	}
 
 	// TODO: Move to IOHelper
-	public static String resolveUrlOrFsPath( String path )
+	public static String resolvePath( String path )
 	{
 		if ( path.startsWith( "http" ) ) {
 			path = IOHelper.resolveURL( URI.create( path ) );

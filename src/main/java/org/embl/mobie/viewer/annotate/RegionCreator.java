@@ -48,6 +48,7 @@ public class RegionCreator
 	private final Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier;
 	private List< RegionTableRow > regionTableRows;
 
+	// TODO: The AnnotatedMaskCreator does not need the sources, but just the sources' real intervals
 	public RegionCreator( Map< String, List< String > > columns, Map< String, List< String > > annotationIdToSources, Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier)
 	{
 		this.columns = columns;

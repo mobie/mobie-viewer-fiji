@@ -225,7 +225,7 @@ public class UserInterfaceHelper
 	public JPanel createAnnotatedMaskDisplaySettingsPanel( RegionDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
-		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.sourceNameToSourceAndConverter.values() );
+		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.displayedSourceNameToSourceAndConverter.values() );
 
 		// Buttons
 		panel.add( space() );
@@ -304,13 +304,13 @@ public class UserInterfaceHelper
 		JPanel panel = createDisplayPanel( display.getName() );
 
 		// Set panel background color
-		final Converter< ?, ARGBType > converter = display.sourceNameToSourceAndConverter.values().iterator().next().getConverter();
+		final Converter< ?, ARGBType > converter = display.displayedSourceNameToSourceAndConverter.values().iterator().next().getConverter();
 		if ( converter instanceof ColorConverter )
 		{
 			setPanelColor( panel, ( ( ColorConverter ) converter ).getColor() );
 		}
 
-		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.sourceNameToSourceAndConverter.values() );
+		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.displayedSourceNameToSourceAndConverter.values() );
 
 		// Buttons
 		panel.add( space() );
@@ -328,7 +328,7 @@ public class UserInterfaceHelper
 
 
 		// make the panel color listen to color changes of the sources
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.displayedSourceNameToSourceAndConverter.values() )
 		{
 			SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
 				// color changed listener
@@ -357,7 +357,7 @@ public class UserInterfaceHelper
 		JPanel panel = createDisplayPanel( display.getName() );
 
 		List< SourceAndConverter< ? > > sourceAndConverters =
-				new ArrayList<>( display.sourceNameToSourceAndConverter.values() );
+				new ArrayList<>( display.displayedSourceNameToSourceAndConverter.values() );
 
 		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
@@ -794,7 +794,7 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
-			for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceNameToSourceAndConverter.values() )
+			for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.displayedSourceNameToSourceAndConverter.values() )
 			{
 				converterSetups.add( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ) );
 			}

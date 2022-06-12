@@ -85,7 +85,7 @@ public class SliceViewRegionSelector implements Runnable
 
 		for ( AnnotationDisplay regionDisplay : regionDisplays )
 		{
-			final Collection< SourceAndConverter< ? > > sourceAndConverters = regionDisplay.sourceNameToSourceAndConverter.values();
+			final Collection< SourceAndConverter< ? > > sourceAndConverters = regionDisplay.displayedSourceNameToSourceAndConverter.values();
 
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{

@@ -47,17 +47,17 @@ public abstract class AbstractSliceView implements SliceView
 		this.moBIE = moBIE;
 		this.display = display;
 		sliceViewer = display.sliceViewer;
-		display.sourceNameToSourceAndConverter = new HashMap<>();
+		display.displayedSourceNameToSourceAndConverter = new HashMap<>();
 	}
 
 	@Override
 	public void close( boolean closeImgLoader )
 	{
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.displayedSourceNameToSourceAndConverter.values() )
 		{
 			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
 		}
-		display.sourceNameToSourceAndConverter.clear();
+		display.displayedSourceNameToSourceAndConverter.clear();
 
 		sliceViewer.updateTimepointSlider();
 	}
@@ -70,7 +70,7 @@ public abstract class AbstractSliceView implements SliceView
 
 	@Override
 	public boolean isVisible() {
-		Collection<SourceAndConverter<?>> sourceAndConverters = display.sourceNameToSourceAndConverter.values();
+		Collection<SourceAndConverter<?>> sourceAndConverters = display.displayedSourceNameToSourceAndConverter.values();
 		// check if first source is visible
 		return SourceAndConverterServices.getBdvDisplayService().isVisible( sourceAndConverters.iterator().next(), display.sliceViewer.getBdvHandle() );
 	}

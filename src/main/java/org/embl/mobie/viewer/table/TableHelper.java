@@ -44,26 +44,6 @@ import java.util.Map;
 
 public class TableHelper
 {
-	public static void appendRegionTableColumns( List< ? extends TableRow > tableRows, Map< String, List< String > > columns )
-	{
-		final HashMap< String, List< String > > referenceColumns = new HashMap<>();
-		final ArrayList< String > regionIdColumn = TableColumns.getColumn( tableRows, TableColumnNames.REGION_ID );
-		referenceColumns.put( TableColumnNames.REGION_ID, regionIdColumn );
-
-		// deal with the fact that the region ids are sometimes
-		// stored as 1 and sometimes as 1.0
-		// after below operation they all will be 1.0, 2.0, ...
-		MoBIEHelper.toDoubleStrings( regionIdColumn );
-		MoBIEHelper.toDoubleStrings( columns.get( TableColumnNames.REGION_ID ) );
-
-		final Map< String, List< String > > columnsForMerging = TableColumns.createColumnsForMergingExcludingReferenceColumns( referenceColumns, columns );
-
-		for ( Map.Entry< String, List< String > > column : columnsForMerging.entrySet() )
-		{
-			TableRows.addColumn( tableRows, column.getKey(), column.getValue() );
-		}
-	}
-
 	public static Map< String, List< String > > loadTableAndAddImageIdColumn( String imageID, String tablePath )
 	{
 		Logger.log( "Opening additional table: " + tablePath );

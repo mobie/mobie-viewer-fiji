@@ -212,13 +212,13 @@ public class ViewManager
 			{
 				ImageDisplay imageDisplay = ( ImageDisplay ) sourceDisplay;
 				currentDisplay = new ImageDisplay( imageDisplay );
-				addManualTransforms( viewSourceTransforms, imageDisplay.sourceNameToSourceAndConverter );
+				addManualTransforms( viewSourceTransforms, imageDisplay.displayedSourceNameToSourceAndConverter );
 			}
 			else if ( sourceDisplay instanceof SegmentationDisplay )
 			{
 				SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) sourceDisplay;
 				currentDisplay = new SegmentationDisplay( segmentationDisplay );
-				addManualTransforms( viewSourceTransforms, segmentationDisplay.sourceNameToSourceAndConverter );
+				addManualTransforms( viewSourceTransforms, segmentationDisplay.displayedSourceNameToSourceAndConverter );
 			}
 			else if ( sourceDisplay instanceof RegionDisplay )
 			{
@@ -271,7 +271,7 @@ public class ViewManager
 		if ( view.getViewerTransform() == null && currentSourceDisplays.size() > 0 && ( view.isExclusive() || currentSourceDisplays.size() == 1 ) )
 		{
 			final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1);
-			new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), ((AbstractSourceDisplay) sourceDisplay).sourceNameToSourceAndConverter.values().iterator().next() ).run();
+			new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), ((AbstractSourceDisplay) sourceDisplay).displayedSourceNameToSourceAndConverter.values().iterator().next() ).run();
 		}
 
 		// trigger rendering of source name overlay
@@ -407,8 +407,6 @@ public class ViewManager
 
 			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.selectionModel = new MoBIESelectionModel<>();
-			annotationDisplay.tableRoot = moBIE.getTableRoot();
-			annotationDisplay.datasetName = moBIE.getDatasetName();
 
 			if ( annotationDisplay instanceof SegmentationDisplay )
 			{
@@ -458,14 +456,14 @@ public class ViewManager
 	// compare with initSegmentationVolumeViewer
 	private void initImageVolumeViewer( ImageDisplay imageDisplay )
 	{
-		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.sourceNameToSourceAndConverter, universeManager );
+		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.displayedSourceNameToSourceAndConverter, universeManager );
 		Double[] resolution3dView = imageDisplay.getResolution3dView();
 		if ( resolution3dView != null ) {
 			imageDisplay.imageVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(imageDisplay.getResolution3dView() ));
 		}
 		imageDisplay.imageVolumeViewer.showImages( imageDisplay.showImagesIn3d() );
 
-		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.sourceNameToSourceAndConverter.values() )
+		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.displayedSourceNameToSourceAndConverter.values() )
 		{
 			sacService.setMetadata( sourceAndConverter, ImageVolumeViewer.class.getName(), imageDisplay.imageVolumeViewer );
 		}
@@ -473,7 +471,7 @@ public class ViewManager
 
 	private void showRegionDisplay( RegionDisplay regionDisplay )
 	{
-		regionDisplay.initTableRows(  );
+		regionDisplay.initTableRows( moBIE );
 		regionDisplay.annotatedMaskAdapter = new AnnotatedMaskAdapter( regionDisplay.tableRows.getTableRows() );
 
 		configureColoringModel( regionDisplay );
@@ -559,7 +557,7 @@ public class ViewManager
 
 	private void initSegmentationVolumeViewer( SegmentationDisplay display )
 	{
-		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.selectionColoringModel, display.sourceNameToSourceAndConverter.values(), universeManager );
+		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.selectionColoringModel, display.displayedSourceNameToSourceAndConverter.values(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();
 		if ( resolution3dView != null ) {
 			display.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(display.getResolution3dView()) );
@@ -568,7 +566,7 @@ public class ViewManager
 		display.selectionColoringModel.listeners().add( display.segmentsVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
 
-		for ( SourceAndConverter< ? > sourceAndConverter : display.sourceNameToSourceAndConverter.values() )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.displayedSourceNameToSourceAndConverter.values() )
 		{
 			sacService.setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), display.segmentsVolumeViewer );
 		}

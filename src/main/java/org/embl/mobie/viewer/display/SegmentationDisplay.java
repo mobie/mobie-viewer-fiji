@@ -28,13 +28,25 @@
  */
 package org.embl.mobie.viewer.display;
 
+import bdv.viewer.Source;
+import ij.IJ;
+import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.MoBIEHelper;
+import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
+import org.embl.mobie.viewer.source.LazySpimSource;
+import org.embl.mobie.viewer.source.SegmentationSource;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment >
 {
@@ -101,7 +113,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 		setAnnotationSettings( segmentationDisplay );
 
 		this.sources = new ArrayList<>();
-		this.sources.addAll( segmentationDisplay.sourceNameToSourceAndConverter.keySet() );
+		this.sources.addAll( segmentationDisplay.displayedSourceNameToSourceAndConverter.keySet() );
 
 		if ( segmentationDisplay.segmentsVolumeViewer != null )
 		{
@@ -127,6 +139,39 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 
 		if ( segmentationDisplay.sliceView != null ) {
 			visible = segmentationDisplay.sliceView.isVisible();
+		}
+	}
+
+	// It is important that this is called after
+	// all the sourceAndConverter are registered
+	// in MoBIE
+	public void initTableRows( MoBIE moBIE )
+	{
+		// primary table
+		String tableName = getTables().get( 0 );
+
+		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
+		final CopyOnWriteArrayList< TableRowImageSegment > tableRows = new CopyOnWriteArrayList<>();
+		for ( String sourceName : sources )
+		{
+			Set< Source< ? > > rootSources = ConcurrentHashMap.newKeySet();
+			MoBIEHelper.fetchRootSources( moBIE.sourceNameToSourceAndConverter().get( sourceName ).getSpimSource(), rootSources );
+
+			for ( Source< ? > source : rootSources )
+			{
+				futures.add( MultiThreading.ioExecutorService.submit( () ->
+				{
+					if ( source instanceof LazySpimSource )
+					{
+						( ( LazySpimSource ) source ).getTables().put( tableName, tableRows );
+					}
+					else
+					{
+						final List< TableRowImageSegment > tableRowImageSegments = moBIE.loadImageSegmentsTable( source.getName(), tableName, "" );
+						tableRows.addAll( tableRowImageSegments );
+					}
+				} ) );
+			}
 		}
 	}
 }

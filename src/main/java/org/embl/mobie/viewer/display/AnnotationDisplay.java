@@ -73,8 +73,6 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 	public transient TableViewer< T > tableViewer;
 	public transient ScatterPlotViewer< T > scatterPlotViewer;
 	public transient TableRowsTableModel< T > tableRows;
-	public transient String tableRoot;
-	public String datasetName;
 
 	// Should be overwritten by child classes
 	public AnnotationSliceView< ? > getSliceView()
@@ -142,7 +140,7 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 		this.name = annotationDisplay.name;
 
 		// Region displays only have one sourceAndConverter
-		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.sourceNameToSourceAndConverter.values().iterator().next();
+		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.displayedSourceNameToSourceAndConverter.values().iterator().next();
 
 		if( sourceAndConverter.getConverter() instanceof OpacityAdjuster )
 		{

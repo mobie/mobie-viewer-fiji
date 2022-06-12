@@ -105,9 +105,9 @@ public class ImageDisplay extends AbstractSourceDisplay
 	{
 		this.name = imageDisplay.name;
 		this.sources = new ArrayList<>();
-		this.sources.addAll( imageDisplay.sourceNameToSourceAndConverter.keySet() );
+		this.sources.addAll( imageDisplay.displayedSourceNameToSourceAndConverter.keySet() );
 
-		final SourceAndConverter< ? > sourceAndConverter = imageDisplay.sourceNameToSourceAndConverter.values().iterator().next();
+		final SourceAndConverter< ? > sourceAndConverter = imageDisplay.displayedSourceNameToSourceAndConverter.values().iterator().next();
 
 		setDisplaySettings( sourceAndConverter );
 
