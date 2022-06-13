@@ -46,10 +46,10 @@ public class AnnotatedMaskAdapter
 			this.annotationId = annotationId;
 		}
 
-		public TimepointAndAnnotationId( AnnotatedMask annotatedMask )
+		public TimepointAndAnnotationId( Region region )
 		{
-			this.timepoint = annotatedMask.timePoint();
-			this.annotationId = annotatedMask.name();
+			this.timepoint = region.timePoint();
+			this.annotationId = region.name();
 		}
 
 		@Override

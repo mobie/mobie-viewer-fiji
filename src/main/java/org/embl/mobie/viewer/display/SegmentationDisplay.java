@@ -29,7 +29,6 @@
 package org.embl.mobie.viewer.display;
 
 import bdv.viewer.Source;
-import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.MultiThreading;
@@ -38,15 +37,14 @@ import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.source.LazySpimSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
+import org.embl.mobie.viewer.table.TableHelper;
+import org.embl.mobie.viewer.table.TableRowsTableModel;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment >
 {
@@ -147,11 +145,13 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 	// in MoBIE
 	public void initTableRows( MoBIE moBIE )
 	{
-		// primary table
-		String tableName = getTables().get( 0 );
+		if ( getTables().size() == 0 ) return;
 
-		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
-		final CopyOnWriteArrayList< TableRowImageSegment > tableRows = new CopyOnWriteArrayList<>();
+		tableRows = new TableRowsTableModel<>();
+
+		// primary table (must contain columns to define image segments)
+		final String primaryTable = tables.get( 0 );
+		ArrayList< Future< ? > > futures = MultiThreading.getFutures();
 		for ( String sourceName : sources )
 		{
 			Set< Source< ? > > rootSources = ConcurrentHashMap.newKeySet();
@@ -163,15 +163,60 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 				{
 					if ( source instanceof LazySpimSource )
 					{
-						( ( LazySpimSource ) source ).getTables().put( tableName, tableRows );
+						( ( LazySpimSource ) source ).setTableRootDirectory( moBIE.getTableRootDirectory( source.getName() ) );
+						( ( LazySpimSource ) source ).setTableRows( tableRows );
+						( ( LazySpimSource ) source ).setPrimaryTable( primaryTable );
 					}
 					else
 					{
-						final List< TableRowImageSegment > tableRowImageSegments = moBIE.loadImageSegmentsTable( source.getName(), tableName, "" );
+						final List< TableRowImageSegment > tableRowImageSegments = moBIE.loadImageSegmentsTable( source.getName(), primaryTable, "" );
 						tableRows.addAll( tableRowImageSegments );
 					}
 				} ) );
 			}
 		}
+		MultiThreading.waitUntilFinished( futures );
+
+		if ( tables.size() == 1 )
+			return; // only primary table
+
+		// secondary table(s)
+		for ( int i = 1; i < tables.size(); i++ )
+		{
+			final String tableName = tables.get( i );
+
+			futures = MultiThreading.getFutures();
+			for ( String sourceName : sources )
+			{
+				// code duplication (primary tables)
+				Set< Source< ? > > rootSources = ConcurrentHashMap.newKeySet();
+				MoBIEHelper.fetchRootSources( moBIE.sourceNameToSourceAndConverter().get( sourceName ).getSpimSource(), rootSources );
+
+				for ( Source< ? > source : rootSources )
+				{
+					futures.add( MultiThreading.ioExecutorService.submit( () ->
+					{
+						if ( source instanceof LazySpimSource )
+						{
+							( ( LazySpimSource ) source ).addTable( tableName );
+						}
+						else
+						{
+							Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, moBIE.getTablePath( ( SegmentationSource ) moBIE.getImageSource( sourceName ), tableName ) );
+							tableRows.mergeColumns( columns );
+						}
+					} ) );
+				}
+			}
+		}
+
+		// TODO move to primary table loading
+//		for ( TableRowImageSegment segment : segmentationDisplay.tableRows )
+//		{
+//			if ( segment.labelId() == 0 )
+//			{
+//				throw new UnsupportedOperationException( "The table contains rows (image segments) with label index 0, which is not supported and will lead to errors. Please change the table accordingly." );
+//			}
+//		}
 	}
 }

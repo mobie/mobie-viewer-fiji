@@ -2,7 +2,6 @@ package org.embl.mobie.viewer.source;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Volatile;
@@ -11,9 +10,9 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.table.TableRowsTableModel;
 
 import java.util.HashMap;
-import java.util.List;
 
 
 /**
@@ -30,65 +29,53 @@ import java.util.List;
  * Can one do this another way? E.g. could the MergedGridSource
  * provide the positions of those sources?
  *
- * @param <T>
+ * @param <N>
  */
-public class LazySourceAndConverter< T extends NumericType< T > > extends SourceAndConverter< T >
+public class LazySourceAndConverter< N extends NumericType< N > > extends SourceAndConverter< N >
 {
 	private final MoBIE moBIE;
 	private String name;
-	private final T type;
-	private SourceAndConverter< T > sourceAndConverter;
-	private LazySpimSource< T > lazySpimSource;
+	private final N type;
+	private SourceAndConverter< N > sourceAndConverter;
+	private LazySpimSource< N > lazySpimSource;
 	private boolean isOpen = false;
-	private HashMap< String, List< TableRow > > tablesToTableRows;
 
-	public LazySourceAndConverter( MoBIE moBIE, String name, AffineTransform3D sourceTransform, VoxelDimensions voxelDimensions, T type, double[] min, double[] max )
+	public LazySourceAndConverter( MoBIE moBIE, String name, AffineTransform3D sourceTransform, VoxelDimensions voxelDimensions, N type, double[] min, double[] max )
 	{
 		super( null, null );
 		this.moBIE = moBIE;
 		this.name = name;
 		this.type = type;
 		this.lazySpimSource = new LazySpimSource( this, name, sourceTransform, voxelDimensions, min, max );
-		this.tablesToTableRows = new HashMap< String, List< TableRow  > >();
 	}
 
 	@Override
-	public Source< T > getSpimSource()
+	public Source< N > getSpimSource()
 	{
 		return lazySpimSource;
 	}
 
 	@Override
-	public Converter< T, ARGBType > getConverter()
+	public Converter< N, ARGBType > getConverter()
 	{
 		return getSourceAndConverter().getConverter();
 	}
 
 	@Override
-	public SourceAndConverter< ? extends Volatile< T > > asVolatile()
+	public SourceAndConverter< ? extends Volatile< N > > asVolatile()
 	{
+		// TODO: how will this trigger the table loading??
 		return getSourceAndConverter().asVolatile();
 	}
 
-	public SourceAndConverter< T > getSourceAndConverter()
+	// TODO: Can I make this non-public? Only La
+	public SourceAndConverter< N > getSourceAndConverter()
 	{
 		if ( sourceAndConverter == null )
 		{
-			for ( String tableName : tablesToTableRows.keySet() )
-			{
-				final List< TableRowImageSegment > tableRows = moBIE.loadImageSegmentsTable( name, tableName, "LazySac: " );
-				tablesToTableRows.get( tableName ).addAll( tableRows );
-			}
-			sourceAndConverter = ( SourceAndConverter< T > ) moBIE.openSourceAndConverter( name, null );
-			isOpen = true;
+			sourceAndConverter = ( SourceAndConverter< N > ) moBIE.openSourceAndConverter( name, null );
 		}
-
 		return sourceAndConverter;
-	}
-
-	public boolean isOpen()
-	{
-		return isOpen;
 	}
 
 	public void setName( String name )
@@ -102,8 +89,9 @@ public class LazySourceAndConverter< T extends NumericType< T > > extends Source
 		lazySpimSource.setSourceTransform( sourceTransform );
 	}
 
-	public HashMap< String, List< TableRow > > getTablesToTableRows()
+	// TODO: Can we remove?
+	public MoBIE getMoBIE()
 	{
-		return tablesToTableRows;
+		return moBIE;
 	}
 }

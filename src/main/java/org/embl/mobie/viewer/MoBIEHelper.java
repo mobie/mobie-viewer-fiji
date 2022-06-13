@@ -383,7 +383,7 @@ public abstract class MoBIEHelper
 		IJ.log( text );
 	}
 
-	public static List< TableRowImageSegment > createAnnotatedImageSegmentsFromTableFile(
+	public static List< TableRowImageSegment > readImageSegmentsFromTableFile(
 			String tablePath,
 			String imageId )
 	{

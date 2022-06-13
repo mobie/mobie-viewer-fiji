@@ -501,7 +501,7 @@ public class ViewManager
 
 	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
 	{
-		loadTablesAndCreateImageSegments( segmentationDisplay );
+		segmentationDisplay.initTableRows( moBIE );
 
 		if ( segmentationDisplay.tableRows != null )
 			segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.tableRows.getTableRows() );
@@ -525,34 +525,6 @@ public class ViewManager
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		final int shift = screenSize.height / 20;
 		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numCurrentTables - 1 ) * shift ) );
-	}
-
-	private void loadTablesAndCreateImageSegments( SegmentationDisplay segmentationDisplay )
-	{
-		final List< String > tables = segmentationDisplay.getTables();
-
-		if ( tables == null ) return;
-
-		// primary table
-		moBIE.loadPrimarySegmentsTables( segmentationDisplay );
-
-		// secondary tables
-		// TODO: this is tricky since the others may not have finished loading.
-		//   probably this needs to be moved inside above loadPrimarySegmentsTables function and in fact inside the LazySAC
-		if ( tables.size() > 1 )
-		{
-			final List< String > additionalTables = tables.subList( 1, tables.size() );
-
-			moBIE.appendSegmentTableColumns( segmentationDisplay, additionalTables );
-		}
-
-		for ( TableRowImageSegment segment : segmentationDisplay.tableRows )
-		{
-			if ( segment.labelId() == 0 )
-			{
-				throw new UnsupportedOperationException( "The table contains rows (image segments) with label index 0, which is not supported and will lead to errors. Please change the table accordingly." );
-			}
-		}
 	}
 
 	private void initSegmentationVolumeViewer( SegmentationDisplay display )

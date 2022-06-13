@@ -2,11 +2,16 @@ package org.embl.mobie.viewer.table;
 
 import com.google.common.collect.Streams;
 import de.embl.cba.tables.Utils;
+import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.Listeners;
 import de.embl.cba.tables.tablerow.TableRow;
+import org.embl.mobie.viewer.TableColumnNames;
+import org.embl.mobie.viewer.annotate.Region;
+import org.embl.mobie.viewer.annotate.RegionTableRow;
 
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -22,6 +27,17 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 	private Map< String, Class > columnNameToClass;
 	protected final Listeners.SynchronizedList< TableModelListener > listeners = new Listeners.SynchronizedList<>( );
 	private List< String > columnNames;
+
+	public TableRowsTableModel()
+	{
+		tableRows = new ArrayList<>();
+	}
+
+	public TableRowsTableModel( List< T > tableRows )
+	{
+		this.tableRows = tableRows;
+		configureColumns();
+	}
 
 	public void addColumn( String columnName, String value )
 	{
@@ -62,7 +78,7 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 	 * @param sourceColumns
 	 * @param mergeByColumnNames
 	 */
-	public void mergeColumns( Map< String, List< String > > sourceColumns,String... mergeByColumnNames )
+	public void mergeColumns( Map< String, List< String > > sourceColumns )
 	{
 		// TODO:
 		//   deal with the fact that the label ids are sometimes
@@ -70,6 +86,8 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 		//   after below operation they all will be 1.0, 2.0, ...
 		//    MoBIEHelper.toDoubleStrings( segmentIdColumn );
 		//    MoBIEHelper.toDoubleStrings( newColumns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
+
+		final ArrayList< String > mergeByColumnNames = getMergeByColumnNames();
 
 		// create a lookup maps for finding the correct rows
 		// given reference cell entries
@@ -123,6 +141,21 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 		}
 	}
 
+	private ArrayList< String > getMergeByColumnNames()
+	{
+		final ArrayList< String > mergeByColumnNames = new ArrayList<>();
+		if ( tableRows.get( 0 ) instanceof ImageSegment )
+		{
+			mergeByColumnNames.add( TableColumnNames.SEGMENT_LABEL_ID );
+			mergeByColumnNames.add( TableColumnNames.LABEL_IMAGE_ID );
+		}
+		else if ( tableRows.get( 0 ) instanceof Region )
+		{
+			mergeByColumnNames.add( TableColumnNames.REGION_ID );
+		}
+		return mergeByColumnNames;
+	}
+
 
 	private String getDefaultValue( String string )
 	{
@@ -130,6 +163,11 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 			return "NaN"; // for numbers
 		else
 			return "None"; // for text
+	}
+
+	public synchronized void addAll( List< T > tableRows )
+	{
+
 	}
 
 	class TableRowsIterator implements Iterator< T >
@@ -146,12 +184,6 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 		public T next() {
 			return get(index++);
 		}
-	}
-
-	public TableRowsTableModel( List< T > tableRows )
-	{
-		this.tableRows = tableRows;
-		configureColumns();
 	}
 
 	public int indexOf( T tableRow )

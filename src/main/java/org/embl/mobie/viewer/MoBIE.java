@@ -29,7 +29,6 @@
 package org.embl.mobie.viewer;
 
 import bdv.img.n5.N5ImageLoader;
-import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
@@ -153,12 +152,8 @@ public class MoBIE
 
 					// TODO: maybe the two functions below could be static functions the region and segment display, because they know how to do this, respectively?
 					TableHelper.addColumn( columns, TableColumnNames.LABEL_IMAGE_ID, sourceName );
-					display.tableRows.mergeColumns( columns, TableColumnNames.LABEL_IMAGE_ID, TableColumnNames.SEGMENT_LABEL_ID );
 				}
-				else if ( display instanceof RegionDisplay )
-				{
-					display.tableRows.mergeColumns( columns, TableColumnNames.REGION_ID );
-				}
+				display.tableRows.mergeColumns( columns );
 				display.tableViewer.enableRowSorting( true );
 			}).start();
 		}
@@ -500,7 +495,7 @@ public class MoBIE
 
 	}
 
-	public synchronized ImageSource getSource( String sourceName )
+	public synchronized ImageSource getImageSource( String sourceName )
 	{
 		return dataset.sources.get( sourceName ).get();
 	}
@@ -509,7 +504,7 @@ public class MoBIE
 	{
 		// TODO: don't open if that exists already?
 
-		final ImageSource imageSource = getSource( sourceName );
+		final ImageSource imageSource = getImageSource( sourceName );
 
 		ImageDataFormat imageDataFormat = getImageDataFormat( sourceName, imageSource.imageData.keySet() );
 
@@ -618,6 +613,15 @@ public class MoBIE
 		return IOHelper.combinePath( tableRoot, getDatasetName(), relativeTableLocation, table );
 	}
 
+	public String getTableRootDirectory( String source )
+	{
+		final ImageSource imageSource = getImageSource( source );
+		if ( imageSource instanceof SegmentationSource )
+			return IOHelper.combinePath( tableRoot, getDatasetName(), getRelativeTableLocation( ( SegmentationSource ) imageSource ) );
+		else
+			throw new RuntimeException( "TODO: Implement getTableRootDirectory for " + imageSource.getClass() );
+	}
+
 	public String getDatasetPath( String... files )
 	{
 		final String datasetRoot = IOHelper.combinePath( projectRoot, getDatasetName() );
@@ -635,11 +639,11 @@ public class MoBIE
 	// TODO: probably we should move this functionality SegmentationDisplay!
 	public List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName, String log )
 	{
-		final SegmentationSource tableSource = ( SegmentationSource ) getSource( sourceName );
-		final String defaultTablePath = getTablePath( tableSource, tableName );
+		final SegmentationSource tableSource = ( SegmentationSource ) getImageSource( sourceName );
+		final String tablePath = getTablePath( tableSource, tableName );
 		if ( log != null )
-			IJ.log( log + defaultTablePath );
-		final List< TableRowImageSegment > segments = MoBIEHelper.createAnnotatedImageSegmentsFromTableFile( defaultTablePath, sourceName );
+			IJ.log( log + tablePath );
+		final List< TableRowImageSegment > segments = MoBIEHelper.readImageSegmentsFromTableFile( tablePath, sourceName );
 		return segments;
 	}
 
@@ -654,8 +658,8 @@ public class MoBIE
 		{
 			futures.add(
 				executorService.submit( () -> {
-					Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( SegmentationSource ) getSource( sourceName ), tableName ) );
-				tables.add( columns );
+					Map< String, List< String > > columns = loadColumns( tableName, sourceName );
+					tables.add( columns );
 				} )
 			);
 		}
@@ -669,36 +673,15 @@ public class MoBIE
 		return tables;
 	}
 
+	public Map< String, List< String > > loadColumns( String tableName, String sourceName )
+	{
+		Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( SegmentationSource ) getImageSource( sourceName ), tableName ) );
+		return columns;
+	}
+
 	public Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter()
 	{
 		return sourceNameToSourceAndConverter;
-	}
-
-
-//		try
-//		{
-//			futures.get( 0 ).get(); // wait for first table to be loaded.
-//		} catch ( InterruptedException e )
-//		{
-//			e.printStackTrace();
-//		} catch ( ExecutionException e )
-//		{
-//			e.printStackTrace();
-//		}
-
-		MultiThreading.waitUntilFinished( futures );
-		IJ.log( "Read " + numTables + " table(s) in " + (System.currentTimeMillis() - startTimeMillis) + " ms, using up to " + MultiThreading.getNumIoThreads() + " thread(s).");
-		return tableRows;
-	}
-
-	private int getNumTables( List< String > segmentationDisplaySources, ConcurrentHashMap< String, Set< Source< ? > > > sourceNameToRootSources )
-	{
-		int numTables = 0;
-		for ( String displayedSourceName : segmentationDisplaySources )
-		{
-			numTables += sourceNameToRootSources.get( displayedSourceName ).size();
-		}
-		return numTables;
 	}
 
 	private void appendSegmentsTableColumns( List< ? extends TableRow > tableRows, Map< String, List< String > > additionalTable )
@@ -728,22 +711,10 @@ public class MoBIE
 		}
 	}
 
-	/**
-	 * Primary segment tables must contain the image segment properties.
-	 */
-	// TODO: move to SegmentationDisplay
-	public void loadPrimarySegmentsTables( SegmentationDisplay segmentationDisplay )
-	{
-		segmentationDisplay.tableRows = loadPrimarySegmentsTables( segmentationDisplay, segmentationDisplay.getTables().get( 0 ) );
-	}
-
 	public String getTableRoot()
 	{
 		return tableRoot;
 	}
-
-	// TODO: could this happen inside the regionDisplay?
-
 
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, boolean closeImgLoader )
 	{
@@ -803,7 +774,7 @@ public class MoBIE
 		{
 			try
 			{
-				sourceNameToTableDir.put( source, getTablesDirectoryPath( ( SegmentationSource ) getSource( source ) )
+				sourceNameToTableDir.put( source, getTablesDirectoryPath( ( SegmentationSource ) getImageSource( source ) )
 				);
 			}
 			catch ( Exception e )

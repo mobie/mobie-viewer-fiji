@@ -3,15 +3,20 @@ package org.embl.mobie.viewer.source;
 
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import de.embl.cba.tables.tablerow.TableRow;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
+import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.viewer.MoBIEHelper;
+import org.embl.mobie.viewer.table.TableHelper;
+import org.embl.mobie.viewer.table.TableRowsTableModel;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class LazySpimSource< T extends NumericType< T > > implements Source< T >
 {
@@ -21,6 +26,11 @@ public class LazySpimSource< T extends NumericType< T > > implements Source< T >
 	private VoxelDimensions voxelDimensions;
 	private final double[] min;
 	private final double[] max;
+	private Source< T > spimSource;
+	private String primaryTable;
+	private ArrayList< String > secondaryTables = new ArrayList<>();;
+	private TableRowsTableModel< TableRowImageSegment > tableRows;
+	private String tableRootDirectory;
 
 	public LazySpimSource( LazySourceAndConverter< T > lazySourceAndConverter, String name, AffineTransform3D sourceTransform, VoxelDimensions voxelDimensions, double[] min, double[] max )
 	{
@@ -35,34 +45,34 @@ public class LazySpimSource< T extends NumericType< T > > implements Source< T >
 	@Override
 	public boolean isPresent( int t )
 	{
-		return lazySourceAndConverter.getSourceAndConverter().getSpimSource().isPresent( t );
+		return source().isPresent( t );
 	}
 
 	@Override
 	public RandomAccessibleInterval< T > getSource( int t, int level )
 	{
-		return lazySourceAndConverter.getSourceAndConverter().getSpimSource().getSource( t, level );
+		return source().getSource( t, level );
 	}
 
 	@Override
 	public RealRandomAccessible< T > getInterpolatedSource( int t, int level, Interpolation method )
 	{
-		return lazySourceAndConverter.getSourceAndConverter().getSpimSource().getInterpolatedSource( t, level, method );
+		return source().getInterpolatedSource( t, level, method );
 	}
 
 	@Override
 	public void getSourceTransform( int t, int level, AffineTransform3D transform )
 	{
-		if ( lazySourceAndConverter.isOpen() )
-			lazySourceAndConverter.getSourceAndConverter().getSpimSource().getSourceTransform( t, level, transform );
-		else
+		if ( spimSource == null )
 			transform.set( sourceTransform );
+		else
+			spimSource.getSourceTransform( t, level, transform );
 	}
 
 	@Override
 	public T getType()
 	{
-		return lazySourceAndConverter.getSourceAndConverter().getSpimSource().getType();
+		return source().getType();
 	}
 
 	@Override
@@ -104,9 +114,49 @@ public class LazySpimSource< T extends NumericType< T > > implements Source< T >
 		return max;
 	}
 
-	public HashMap< String, List< TableRow > > getTables()
+	public void setPrimaryTable( String primaryTable )
 	{
-		return lazySourceAndConverter.getTablesToTableRows();
+		this.primaryTable = primaryTable;
+	}
+
+	public void addTable( String tableName )
+	{
+		secondaryTables.add( tableName );
+	}
+
+	public void setTableRows( TableRowsTableModel< TableRowImageSegment > tableRows )
+	{
+		this.tableRows = tableRows;
+	}
+
+	private Source< T > source()
+	{
+		if ( spimSource == null )
+		{
+			// open tables
+
+			// primary
+			final String path = IOHelper.combinePath( tableRootDirectory, primaryTable );
+			final List< TableRowImageSegment > tableRowImageSegments = MoBIEHelper.readImageSegmentsFromTableFile( path, name );
+			tableRows.addAll( tableRowImageSegments );
+
+			// secondary
+			for ( String secondaryTable : secondaryTables )
+			{
+				Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( name, lazySourceAndConverter.getMoBIE().getTablePath( ( SegmentationSource ) lazySourceAndConverter.getMoBIE().getImageSource( name ), secondaryTable ) );
+				tableRows.mergeColumns( columns );
+			}
+
+			// open image
+			spimSource = lazySourceAndConverter.getSourceAndConverter().getSpimSource();
+		}
+
+		return spimSource;
+	}
+
+	public void setTableRootDirectory( String tableRootDirectory )
+	{
+		this.tableRootDirectory = tableRootDirectory;
 	}
 }
 
