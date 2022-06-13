@@ -4,10 +4,8 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
-import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import org.embl.mobie.io.util.IOHelper;
@@ -43,11 +41,7 @@ public class LazySourceAndConverterAndTables< N extends NumericType< N > > exten
 	private LazyConverter lazyConverter;
 	private final MoBIE moBIE;
 	private String name;
-	private final AffineTransform3D sourceTransform;
-	private final VoxelDimensions voxelDimensions;
-	private final N type;
-	private final double[] min;
-	private final double[] max;
+	private final SourceAndConverter< ? > initializationSourceAndConverter;
 	private SourceAndConverter< N > sourceAndConverter;
 	private LazySpimSource< N > lazySpimSource;
 	private String primaryTable;
@@ -55,16 +49,12 @@ public class LazySourceAndConverterAndTables< N extends NumericType< N > > exten
 	private TableRowsTableModel< TableRowImageSegment > tableRows;
 	private String tableRootDirectory;
 
-	public LazySourceAndConverterAndTables( MoBIE moBIE, String name, AffineTransform3D sourceTransform, VoxelDimensions voxelDimensions, N type, double[] min, double[] max )
+	public LazySourceAndConverterAndTables( MoBIE moBIE, String name, SourceAndConverter< ? > initializationSourceAndConverter )
 	{
 		super( null, null );
 		this.moBIE = moBIE;
 		this.name = name;
-		this.sourceTransform = sourceTransform;
-		this.voxelDimensions = voxelDimensions;
-		this.type = type;
-		this.min = min;
-		this.max = max;
+		this.initializationSourceAndConverter = initializationSourceAndConverter;
 		lazySpimSource = new LazySpimSource( this );
 		lazyConverter = new LazyConverter( this );
 	}
@@ -84,7 +74,7 @@ public class LazySourceAndConverterAndTables< N extends NumericType< N > > exten
 	@Override
 	public SourceAndConverter< ? extends Volatile< N > > asVolatile()
 	{
-		final VolatileLazySpimSource volatileLazySpimSource = new VolatileLazySpimSource( this, name, sourceTransform, voxelDimensions, min, max );
+		final VolatileLazySpimSource volatileLazySpimSource = new VolatileLazySpimSource( this );
 		final VolatileLazyConverter volatileLazyConverter = new VolatileLazyConverter( this );
 		return new SourceAndConverter( volatileLazySpimSource, volatileLazyConverter  );
 	}
@@ -111,13 +101,6 @@ public class LazySourceAndConverterAndTables< N extends NumericType< N > > exten
 	public void setName( String name )
 	{
 		this.name = name;
-		lazySpimSource.setName( name );
-	}
-
-	// TODO: Can we remove?
-	public MoBIE getMoBIE()
-	{
-		return moBIE;
 	}
 
 	private void openSegmentationTables()
@@ -156,28 +139,13 @@ public class LazySourceAndConverterAndTables< N extends NumericType< N > > exten
 		this.tableRows = tableRows;
 	}
 
-	public VoxelDimensions getVoxelDimensions()
-	{
-		return voxelDimensions;
-	}
-
-	public N getType()
-	{
-		return type;
-	}
-
-	public double[] getMin()
-	{
-		return min;
-	}
-
-	public double[] getMax()
-	{
-		return max;
-	}
-
 	public String getName()
 	{
 		return name;
+	}
+
+	public SourceAndConverter< ? > getInitializationSourceAndConverter()
+	{
+		return initializationSourceAndConverter;
 	}
 }

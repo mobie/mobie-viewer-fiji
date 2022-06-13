@@ -1,6 +1,7 @@
 package org.embl.mobie.viewer.table;
 
 import com.google.common.collect.Streams;
+import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.Utils;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.Listeners;
@@ -9,6 +10,7 @@ import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.annotate.Region;
 import org.embl.mobie.viewer.annotate.RegionTableRow;
 
+import javax.annotation.Nullable;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import java.util.ArrayList;
@@ -64,7 +66,6 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 		configureColumns();
 	}
 
-
 	/**
 	 * TODO: Considerations:
 	 *   - for lazy loading from merged grid source
@@ -73,19 +74,12 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 	 *       and update when necessary
 	 *     - the sourceColumns will partially already exist => do not overwrite the values
 	 *     - when the sourceColumns are added for the first time (i.e. do not exist) => only then set default value.
-	 *
-	 *
-	 * @param sourceColumns
-	 * @param mergeByColumnNames
 	 */
 	public void mergeColumns( Map< String, List< String > > sourceColumns )
 	{
-		// TODO:
-		//   deal with the fact that the label ids are sometimes
-		//   stored as 1 and sometimes as 1.0
-		//   after below operation they all will be 1.0, 2.0, ...
-		//    MoBIEHelper.toDoubleStrings( segmentIdColumn );
-		//    MoBIEHelper.toDoubleStrings( newColumns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
+		// FIXME: (maybe via a listening mechanism?)
+		//   - tableViewer.enableRowSorting( false );
+		//   - tableViewer.enableRowSorting( true );
 
 		final ArrayList< String > mergeByColumnNames = getMergeByColumnNames();
 
@@ -167,7 +161,16 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 
 	public synchronized void addAll( List< T > tableRows )
 	{
+		this.tableRows.addAll( tableRows );
 
+		// TODO
+//		for ( TableRowImageSegment segment : segmentationDisplay.tableRows )
+//		{
+//			if ( segment.labelId() == 0 )
+//			{
+//				throw new UnsupportedOperationException( "The table contains rows (image segments) with label index 0, which is not supported and will lead to errors. Please change the table accordingly." );
+//			}
+//		}
 	}
 
 	class TableRowsIterator implements Iterator< T >

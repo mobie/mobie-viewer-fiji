@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-public class AnnotatedMaskAdapter
+public class RegionsAdapter
 {
 	class TimepointAndAnnotationId
 	{
@@ -124,12 +124,12 @@ public class AnnotatedMaskAdapter
 	/**
 	 * For lazy initialization
 	 */
-	public AnnotatedMaskAdapter()
+	public RegionsAdapter()
 	{
 		timepointAndAnnotationToObject = new HashMap<>();
 	}
 
-	public AnnotatedMaskAdapter( List< RegionTableRow > tableRows )
+	public RegionsAdapter( List< RegionTableRow > tableRows )
 	{
 		timepointAndAnnotationToObject = new HashMap<>();
 		timePointAndLabelToObject = new HashMap<>();

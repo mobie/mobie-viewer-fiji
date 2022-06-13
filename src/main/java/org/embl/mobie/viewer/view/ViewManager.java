@@ -38,11 +38,9 @@ import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.numeric.NumericType;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.SourceNameEncoder;
-import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
 import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.bdv.view.RegionSliceView;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
@@ -52,7 +50,6 @@ import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.display.*;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
-import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.source.LazySourceAndConverterAndTables;
@@ -309,7 +306,7 @@ public class ViewManager
 			if ( sourceToParent.get( source ) == null )
 				continue; // has been opened already
 
-			sourceNameToSourceAndConverters.put( source, createLazySourceAndConverter( source, sourceNameToSourceAndConverters.get( sourceToParent.get( source ) ).getSpimSource() ) );
+			sourceNameToSourceAndConverters.put( source, createLazySourceAndConverter( source, sourceNameToSourceAndConverters.get( sourceToParent.get( source ) ) ) ) ;
 		}
 
 		// create transformed sources
@@ -340,11 +337,9 @@ public class ViewManager
 		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
 	}
 
-	private LazySourceAndConverterAndTables createLazySourceAndConverter( String sourceName, Source< ? > parentSource )
+	private LazySourceAndConverterAndTables createLazySourceAndConverter( String sourceName, SourceAndConverter< ? > parentSource )
 	{
-		final AffineTransform3D sourceTransform = new AffineTransform3D();
-		parentSource.getSourceTransform( 0, 0, sourceTransform );
-		final LazySourceAndConverterAndTables< ? > sourceAndConverter = new LazySourceAndConverterAndTables( moBIE, sourceName, sourceTransform, parentSource.getVoxelDimensions(), ( NumericType ) parentSource.getType(), parentSource.getSource( 0, 0 ).minAsDoubleArray(), parentSource.getSource( 0, 0 ).minAsDoubleArray() );
+		final LazySourceAndConverterAndTables< ? > sourceAndConverter = new LazySourceAndConverterAndTables( moBIE, sourceName, parentSource );
 		return sourceAndConverter;
 	}
 
@@ -405,8 +400,10 @@ public class ViewManager
 		{
 			final AnnotationDisplay< ? > annotationDisplay = ( AnnotationDisplay< ? > ) sourceDisplay;
 
+			annotationDisplay.moBIE = moBIE;
 			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.selectionModel = new MoBIESelectionModel<>();
+			annotationDisplay.initTableRows();
 
 			if ( annotationDisplay instanceof SegmentationDisplay )
 			{
@@ -471,15 +468,12 @@ public class ViewManager
 
 	private void showRegionDisplay( RegionDisplay regionDisplay )
 	{
-		regionDisplay.initTableRows( moBIE );
-		regionDisplay.annotatedMaskAdapter = new AnnotatedMaskAdapter( regionDisplay.tableRows.getTableRows() );
-
 		configureColoringModel( regionDisplay );
 
 		// set selected segments
 		if ( regionDisplay.getSelectedRegionIds() != null )
 		{
-			final List< RegionTableRow > annotatedMasks = regionDisplay.annotatedMaskAdapter.getAnnotatedMasks( regionDisplay.getSelectedRegionIds() );
+			final List< RegionTableRow > annotatedMasks = regionDisplay.tableRowsAdapter.getAnnotatedMasks( regionDisplay.getSelectedRegionIds() );
 			regionDisplay.selectionModel.setSelected( annotatedMasks, true );
 		}
 
@@ -501,19 +495,12 @@ public class ViewManager
 
 	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
 	{
-		segmentationDisplay.initTableRows( moBIE );
-
-		if ( segmentationDisplay.tableRows != null )
-			segmentationDisplay.segmentAdapter = new SegmentAdapter( segmentationDisplay.tableRows.getTableRows() );
-		else
-			segmentationDisplay.segmentAdapter = new SegmentAdapter();
-
 		configureColoringModel( segmentationDisplay );
 
 		// set selected segments
 		if ( segmentationDisplay.getSelectedSegmentIds() != null )
 		{
-			final List< TableRowImageSegment > segments = segmentationDisplay.segmentAdapter.getSegments( segmentationDisplay.getSelectedSegmentIds() );
+			final List< TableRowImageSegment > segments = segmentationDisplay.tableRowsAdapter.getSegments( segmentationDisplay.getSelectedSegmentIds() );
 			segmentationDisplay.selectionModel.setSelected( segments, true );
 		}
 

@@ -30,10 +30,9 @@ package org.embl.mobie.viewer.display;
 
 import de.embl.cba.tables.TableColumns;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.TableColumnNames;
-import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
+import org.embl.mobie.viewer.annotate.RegionsAdapter;
 import org.embl.mobie.viewer.annotate.RegionCreator;
 import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
@@ -56,7 +55,7 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 	protected Map< TableDataFormat, StorageLocation > tableData;
 
 	// Runtime
-	public transient AnnotatedMaskAdapter annotatedMaskAdapter;
+	public transient RegionsAdapter tableRowsAdapter;
 	public transient RegionSliceView sliceView;
 
 	public List< String > getSelectedRegionIds()
@@ -135,34 +134,55 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 	// It is important that this is called after
 	// all the sourceAndConverter are registered
 	// in MoBIE
-	public void initTableRows( MoBIE moBIE )
+	public void initTableRows( )
 	{
 		// read
-		final List< Map< String, List< String > > > tables = new ArrayList<>();
-		for ( String table : getTables() )
+		final List< Map< String, List< String > > > tableColumns = new ArrayList<>();
+		for ( String table : tables )
 		{
-			String tablePath = IOHelper.combinePath( moBIE.getTableRoot(), moBIE.getDatasetName(), getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
-			tablePath = MoBIEHelper.resolvePath( tablePath );
-			tables.add( TableColumns.stringColumnsFromTableFile( tablePath ) );
+			final Map< String, List< String > > columns = openTable( table );
+			tableColumns.add( columns );
 		}
 
-		// create primary table
-		final Map< String, List< String > > referenceTable = tables.get( 0 );
-		final RegionCreator regionCreator = new RegionCreator( referenceTable, sources, ( String sourceName ) -> moBIE.sourceNameToSourceAndConverter().get( sourceName ) );
+		// primary table
+		final RegionCreator regionCreator = new RegionCreator( tableColumns.get( 0 ), sources, ( String sourceName ) -> moBIE.sourceNameToSourceAndConverter().get( sourceName ) );
 		final List< RegionTableRow > regionTableRows = regionCreator.getRegionTableRows();
 		tableRows = new TableRowsTableModel( regionTableRows );
 
-		// merge other tables (i.e. columns)
-		for ( int i = 1; i < tables.size(); ++i )
+		// optional secondary table(s)
+		for ( int i = 1; i < tableColumns.size(); ++i )
 		{
-			// TODO:
-			// deal with the fact that the region ids are sometimes
-			// stored as 1 and sometimes as 1.0
-			// after below operation they all will be 1.0, 2.0, ...
-			//MoBIEHelper.toDoubleStrings( regionIdColumn );
-			//MoBIEHelper.toDoubleStrings( columns.get( TableColumnNames.REGION_ID ) );
-			tableRows.mergeColumns( tables.get( i ), TableColumnNames.REGION_ID );
+			tableRows.mergeColumns( tableColumns.get( i ) );
 		}
+
+		tableRowsAdapter = new RegionsAdapter( tableRows.getTableRows() );
 	}
 
+	private Map< String, List< String > > openTable( String table )
+	{
+		String tablePath = IOHelper.combinePath( moBIE.getTableRoot(), moBIE.getDatasetName(), getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
+		tablePath = MoBIEHelper.resolvePath( tablePath );
+
+		final Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
+
+		// deal with the fact that the region ids are sometimes
+		// stored as 1 and sometimes as 1.0
+		// after below operation they all will be 1.0, 2.0, ...
+		MoBIEHelper.toDoubleStrings( columns.get( TableColumnNames.REGION_ID ) );
+
+		return columns;
+	}
+
+	@Override
+	public void mergeColumns( String tableFileName )
+	{
+		final Map< String, List< String > > columns = openTable( tableFileName );
+		tableRows.mergeColumns( columns );
+	}
+
+	@Override
+	public void mergeColumns( Map< String, List< String > > columns )
+	{
+		tableRows.mergeColumns( columns );
+	}
 }

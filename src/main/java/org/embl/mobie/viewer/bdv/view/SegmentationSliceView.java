@@ -78,13 +78,13 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 			// Thus, the constructor where the source name
 			// is determined from encoding in the label is chosen.
 			return new LabelConverter(
-					display.segmentAdapter,
+					display.tableRowsAdapter,
 					display.selectionColoringModel );
 		}
 		else
 		{
 			return new LabelConverter(
-					display.segmentAdapter,
+					display.tableRowsAdapter,
 					sourceAndConverter.getSpimSource().getName(),
 					display.selectionColoringModel );
 		}

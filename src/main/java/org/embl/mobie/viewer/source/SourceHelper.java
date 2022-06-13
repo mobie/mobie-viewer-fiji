@@ -52,6 +52,23 @@ import java.lang.reflect.Method;
 
 public abstract class SourceHelper
 {
+    public static double[][] getMinMax( Source< ? > source )
+    {
+        final double[][] minMax = new double[2][];
+        if ( source instanceof LazySpimSource )
+        {
+            minMax[ 0 ] = ( ( LazySpimSource ) source ).getMin();
+            minMax[ 1 ] = ( ( LazySpimSource ) source ).getMax();
+        }
+        else
+        {
+            final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
+            minMax[ 0 ] = rai.minAsDoubleArray();
+            minMax[ 1 ] = rai.maxAsDoubleArray();
+        }
+
+        return minMax;
+    }
 
     public static <R extends NumericType<R> & RealType<R>> SourceAndConverter<R> replaceConverter(SourceAndConverter<?> source, Converter<RealType<?>, ARGBType> converter) {
         LabelSource<?> labelVolatileSource = new LabelSource(source.asVolatile().getSpimSource());

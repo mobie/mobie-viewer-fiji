@@ -46,7 +46,7 @@ public class TableHelper
 {
 	public static Map< String, List< String > > loadTableAndAddImageIdColumn( String imageID, String tablePath )
 	{
-		Logger.log( "Opening additional table: " + tablePath );
+		Logger.log( "Opening table: " + tablePath );
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
 		TableHelper.addColumn( columns, TableColumnNames.LABEL_IMAGE_ID, imageID );
 		return columns;

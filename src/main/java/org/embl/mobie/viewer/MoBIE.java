@@ -134,72 +134,21 @@ public class MoBIE
 		openDataset();
 	}
 
-	// "from file system" implies that only a single table is loaded
-	// maybe rephrase this thus?
-	public void appendColumnsFromFileSystem( AnnotationDisplay< ? extends TableRow > display )
+	public void mergeColumnsFromFileSystem( AnnotationDisplay< ? extends TableRow > display )
 	{
 		String path = selectFilePath( null, "Table", true );
-
 		if ( path != null ) {
-			new Thread( () -> {
-				display.tableViewer.enableRowSorting( false );
-				Map< String, List< String > > columns = readTable( path );
-				if ( display instanceof SegmentationDisplay )
-				{
-					// TODO: why can there be only one source?!
-					//   maybe here because we load from FS?
-					final String sourceName = display.getSources().get( 0 );
-
-					// TODO: maybe the two functions below could be static functions the region and segment display, because they know how to do this, respectively?
-					TableHelper.addColumn( columns, TableColumnNames.LABEL_IMAGE_ID, sourceName );
-				}
-				display.tableRows.mergeColumns( columns );
-				display.tableViewer.enableRowSorting( true );
-			}).start();
+			Map< String, List< String > > columns = readTable( path );
+			display.mergeColumns( columns );
 		}
 	}
 
-	public String mergeColumnsFromProject( AnnotationDisplay< ? extends TableRow > display )
+	public void mergeColumnsFromProject( AnnotationDisplay< ? extends TableRow > display )
 	{
 		final Map< String, String > sourceNameToTableDirectory = getTableDirectories( display );
 		String tableFileName = selectTableFileNameFromProjectDialog( sourceNameToTableDirectory.values(), "Table" );
-
-		if ( display instanceof RegionDisplay )
-		{
-
-			for ( String tableDir : sourceNameToTableDirectory.values() )
-			{
-				String resolvedPath = MoBIEHelper.resolvePath( IOHelper.combinePath( tableDir, tableFileName ) );
-				final Map< String, List< String > > tableColumns = readTable( resolvedPath );
-				display.tableViewer.enableRowSorting( false );
-				display.tableRows.mergeColumns( tableColumns, TableColumnNames.REGION_ID );
-				display.tableViewer.enableRowSorting( true );
-			}
-		}
-		else if ( display instanceof SegmentationDisplay )
-		{
-			for ( String tableDir : sourceNameToTableDirectory.values() )
-			{
-				System.out.println( tableDir );
-			}
-
-			display.tableViewer.enableRowSorting( false );
-
-			// load
-			// why is this different here than for the regions??
-			// why not just the same code for loading??
-			// in above for-loop?
-			final List< Map< String, List< String > > > additionalTables = loadSegmentationTables( sourceNameToTableDirectory.keySet(), tableFileName );
-			// concatenate
-			Map< String, List< String > > concatenatedTable = TableColumns.concatenate( additionalTables );
-			// merge
-			// ...
-			throw new RuntimeException("appending columns from project not yet implemented...");
-
-			//display.tableViewer.enableRowSorting( true );
-		}
-
-		return tableFileName;
+		if ( tableFileName != null )
+			display.mergeColumns( tableFileName );
 	}
 
 	private static Map< String, List< String > > readTable( String path )

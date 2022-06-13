@@ -21,31 +21,31 @@ public class LazySpimSource< N extends NumericType< N > > implements Source< N >
 	@Override
 	public boolean isPresent( int t )
 	{
-		return getSpimSource().isPresent( t );
+		return getSource().isPresent( t );
 	}
 
 	@Override
 	public RandomAccessibleInterval< N > getSource( int t, int level )
 	{
-		return getSpimSource().getSource( t, level );
+		return getSource().getSource( t, level );
 	}
 
 	@Override
 	public RealRandomAccessible< N > getInterpolatedSource( int t, int level, Interpolation method )
 	{
-		return getSpimSource().getInterpolatedSource( t, level, method );
+		return getSource().getInterpolatedSource( t, level, method );
 	}
 
 	@Override
 	public void getSourceTransform( int t, int level, AffineTransform3D transform )
 	{
-		getSpimSource().getSourceTransform( t, level, transform );
+		getSource().getSourceTransform( t, level, transform );
 	}
 
 	@Override
 	public N getType()
 	{
-		return getSpimSource().getType();
+		return getSource().getType();
 	}
 
 	@Override
@@ -57,28 +57,33 @@ public class LazySpimSource< N extends NumericType< N > > implements Source< N >
 	@Override
 	public VoxelDimensions getVoxelDimensions()
 	{
-		return lazySourceAndConverterAndTables.getVoxelDimensions();
+		return getInitializationSource().getVoxelDimensions();
 	}
 
 	@Override
 	public int getNumMipmapLevels()
 	{
-		return getSpimSource().getNumMipmapLevels();
+		return getInitializationSource().getNumMipmapLevels();
 	}
 
 	public double[] getMin()
 	{
-		return lazySourceAndConverterAndTables.getMin();
+		return getInitializationSource().getSource( 0 ,0  ).minAsDoubleArray();
 	}
 
 	public double[] getMax()
 	{
-		return lazySourceAndConverterAndTables.getMax();
+		return getInitializationSource().getSource( 0 ,0  ).maxAsDoubleArray();
 	}
 
-	private Source< N > getSpimSource()
+	private Source< N > getSource()
 	{
 		return lazySourceAndConverterAndTables.openSourceAndConverter().getSpimSource();
+	}
+
+	private Source< ? > getInitializationSource()
+	{
+		return lazySourceAndConverterAndTables.getInitializationSourceAndConverter().getSpimSource();
 	}
 
 	public LazySourceAndConverterAndTables< N > getLazySourceAndConverterAndTables()

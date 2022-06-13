@@ -36,7 +36,7 @@ import net.imglib2.RandomAccess;
 import net.imglib2.RealPoint;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.SourceNameEncoder;
-import org.embl.mobie.viewer.annotate.AnnotatedMaskAdapter;
+import org.embl.mobie.viewer.annotate.RegionsAdapter;
 import org.embl.mobie.viewer.bdv.GlobalMousePositionProvider;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
@@ -122,7 +122,7 @@ public class SliceViewRegionSelector implements Runnable
 	{
 		if ( regionDisplay instanceof SegmentationDisplay )
 		{
-			final boolean containsSegment = (( SegmentationDisplay ) regionDisplay ).segmentAdapter.containsSegment( labelIndex, timePoint, sourceName );
+			final boolean containsSegment = (( SegmentationDisplay ) regionDisplay ).tableRowsAdapter.containsSegment( labelIndex, timePoint, sourceName );
 
 			if ( ! containsSegment )
 			{
@@ -132,13 +132,13 @@ public class SliceViewRegionSelector implements Runnable
 			}
 			else
 			{
-				return ( ( SegmentationDisplay ) regionDisplay ).segmentAdapter.getSegment( labelIndex, timePoint, sourceName );
+				return ( ( SegmentationDisplay ) regionDisplay ).tableRowsAdapter.getSegment( labelIndex, timePoint, sourceName );
 			}
 		}
 		else if ( regionDisplay instanceof RegionDisplay )
 		{
 			final RegionDisplay annotatedSourceDisplay = ( RegionDisplay ) regionDisplay;
-			final AnnotatedMaskAdapter adapter = annotatedSourceDisplay.annotatedMaskAdapter;
+			final RegionsAdapter adapter = annotatedSourceDisplay.tableRowsAdapter;
 			return adapter.getAnnotatedMask( timePoint, labelIndex );
 		}
 		else

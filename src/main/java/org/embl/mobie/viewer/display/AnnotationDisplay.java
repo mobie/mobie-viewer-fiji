@@ -33,6 +33,7 @@ import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.NumericColoringModel;
+import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
@@ -49,6 +50,7 @@ import de.embl.cba.tables.tablerow.TableRow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSourceDisplay
 {
@@ -68,6 +70,7 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 	protected transient final BlendingMode blendingMode = BlendingMode.SumOccluding;
 
 	// Runtime
+	public transient MoBIE moBIE;
 	public transient SelectionModel< T > selectionModel;
 	public transient SelectionColoringModel< T > selectionColoringModel;
 	public transient TableViewer< T > tableViewer;
@@ -79,6 +82,10 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 	{
 		return null;
 	}
+
+	public abstract void initTableRows( );
+
+	public abstract void mergeColumns( String tableColumns );
 
 	public String getLut()
 	{
@@ -187,4 +194,6 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 		this.showAsBoundaries = labelSource.isShowAsBoundaries();
 		this.boundaryThickness = labelSource.getBoundaryWidth();
 	}
+
+	public abstract void mergeColumns( Map< String, List< String > > columns );
 }

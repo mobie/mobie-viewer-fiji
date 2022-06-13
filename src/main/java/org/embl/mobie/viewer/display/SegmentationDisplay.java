@@ -29,11 +29,13 @@
 package org.embl.mobie.viewer.display;
 
 import bdv.viewer.Source;
-import org.embl.mobie.viewer.MoBIE;
+import de.embl.cba.bdv.utils.Logger;
+import de.embl.cba.tables.TableColumns;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.MultiThreading;
+import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
-import org.embl.mobie.viewer.segment.SegmentAdapter;
+import org.embl.mobie.viewer.segment.SegmentsAdapter;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.source.LazySpimSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
@@ -55,7 +57,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 	protected Double[] resolution3dView;
 
 	// Runtime
-	public transient SegmentAdapter< TableRowImageSegment > segmentAdapter;
+	public transient SegmentsAdapter< TableRowImageSegment > tableRowsAdapter;
 	public transient SegmentsVolumeViewer< TableRowImageSegment > segmentsVolumeViewer;
 	public transient SegmentationSliceView sliceView;
 
@@ -143,7 +145,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 	// It is important that this is called after
 	// all the sourceAndConverter are registered
 	// in MoBIE
-	public void initTableRows( MoBIE moBIE )
+	public void initTableRows( )
 	{
 		if ( getTables().size() == 0 ) return;
 
@@ -158,29 +160,26 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 			MoBIEHelper.fetchRootSources( moBIE.sourceNameToSourceAndConverter().get( sourceName ).getSpimSource(), rootSources );
 
 			// Merged grid source consists of multiple sources
-			for ( Source< ? > source : rootSources )
+			for ( Source< ? > spimSource : rootSources )
 			{
 				futures.add( MultiThreading.ioExecutorService.submit( () ->
 				{
-					if ( source instanceof LazySpimSource )
+					if ( spimSource instanceof LazySpimSource )
 					{
-						( ( LazySpimSource ) source ).getLazySourceAndConverterAndTables().setTableRootDirectory( moBIE.getTableRootDirectory( source.getName() ) );
-						( ( LazySpimSource ) source ).getLazySourceAndConverterAndTables().setTableRows( tableRows );
-						( ( LazySpimSource ) source ).getLazySourceAndConverterAndTables().setPrimaryTable( primaryTable );
+						( ( LazySpimSource ) spimSource ).getLazySourceAndConverterAndTables().setTableRootDirectory( moBIE.getTableRootDirectory( spimSource.getName() ) );
+						( ( LazySpimSource ) spimSource ).getLazySourceAndConverterAndTables().setTableRows( tableRows );
+						( ( LazySpimSource ) spimSource ).getLazySourceAndConverterAndTables().setPrimaryTable( primaryTable );
 					}
 					else
 					{
 						// TODO: get rid of this?! always use LazySpimSource?
-						final List< TableRowImageSegment > tableRowImageSegments = moBIE.loadImageSegmentsTable( source.getName(), primaryTable, "" );
+						final List< TableRowImageSegment > tableRowImageSegments = moBIE.loadImageSegmentsTable( spimSource.getName(), primaryTable, "" );
 						tableRows.addAll( tableRowImageSegments );
 					}
 				} ) );
 			}
 		}
 		MultiThreading.waitUntilFinished( futures );
-
-		if ( tables.size() == 1 )
-			return; // only primary table
 
 		// secondary table(s)
 		for ( int i = 1; i < tables.size(); i++ )
@@ -205,7 +204,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 						else
 						{
 							// TODO: get rid of this?! always use LazySpimSource?
-							Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, moBIE.getTablePath( ( SegmentationSource ) moBIE.getImageSource( sourceName ), tableName ) );
+							Map< String, List< String > > columns = openTable( tableName, sourceName );
 							tableRows.mergeColumns( columns );
 						}
 					} ) );
@@ -213,13 +212,44 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 			}
 		}
 
-		// TODO move to primary table loading
-//		for ( TableRowImageSegment segment : segmentationDisplay.tableRows )
-//		{
-//			if ( segment.labelId() == 0 )
-//			{
-//				throw new UnsupportedOperationException( "The table contains rows (image segments) with label index 0, which is not supported and will lead to errors. Please change the table accordingly." );
-//			}
-//		}
+		if ( tableRows != null )
+			tableRowsAdapter = new SegmentsAdapter( tableRows.getTableRows() );
+		else
+			tableRowsAdapter = new SegmentsAdapter();
+	}
+
+	@Override
+	public void mergeColumns( String tableFileName )
+	{
+		// TODO: (maybe)
+		//   - maybe rather first load all and then merge
+		//   - multi-threading
+		for ( String source : sources )
+		{
+			Map< String, List< String > > columns = openTable( tableFileName, source );
+			tableRows.mergeColumns( columns );
+		}
+	}
+
+	@Override
+	public void mergeColumns( Map< String, List< String > > columns )
+	{
+		tableRows.mergeColumns( columns );
+	}
+
+	private Map< String, List< String > > openTable( String tableFileName, String source )
+	{
+		final String tablePath = moBIE.getTablePath( ( SegmentationSource ) moBIE.getImageSource( source ), tableFileName );
+		Logger.log( "Opening table: " + tablePath );
+		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
+		if ( ! columns.containsKey( TableColumnNames.LABEL_IMAGE_ID ) )
+			TableHelper.addColumn( columns, TableColumnNames.LABEL_IMAGE_ID, source );
+
+		// deal with the fact that the region ids are sometimes
+		// stored as 1 and sometimes as 1.0
+		// after below operation they all will be 1.0, 2.0, ...
+		MoBIEHelper.toDoubleStrings( columns.get( TableColumnNames.SEGMENT_LABEL_ID ) );
+
+		return  columns;
 	}
 }

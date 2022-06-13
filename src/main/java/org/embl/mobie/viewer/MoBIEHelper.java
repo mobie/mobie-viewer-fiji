@@ -54,6 +54,7 @@ import net.imglib2.util.Intervals;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.source.LazySpimSource;
+import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import org.embl.mobie.viewer.transform.TransformHelper;
 
@@ -250,7 +251,8 @@ public abstract class MoBIEHelper
 		return FileLocation.valueOf(gd.getNextChoice());
 	}
 
-	public static String selectTableFileNameFromProjectDialog( Collection< String > directories, String objectName ) {
+	public static String selectTableFileNameFromProjectDialog( Collection< String > directories, String objectName )
+	{
 		if ( directories == null )
 			return null;
 
@@ -487,29 +489,15 @@ public abstract class MoBIEHelper
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		source.getSourceTransform( 0, 0, affineTransform3D );
-		// TODO: refactor into getMinMax( min, max ) and add to SourceHelper
-		final double[] min;
-		final double[] max;
-		if ( source instanceof LazySpimSource )
-		{
-			min = ( ( LazySpimSource ) source ).getMin();
-			max = ( ( LazySpimSource ) source ).getMax();
-		}
-		else
-		{
-			final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
-			min = rai.minAsDoubleArray();
-			max = rai.maxAsDoubleArray();
-		}
+		final double[][] minMax = SourceHelper.getMinMax( source );
 		final double[] voxelSizes = new double[ 3 ];
 		source.getVoxelDimensions().dimensions( voxelSizes );
 		for ( int d = 0; d < 3; d++ )
 		{
-			min[ d ] -= voxelSizes[ d ];
-			max[ d ] += voxelSizes[ d ];
+			minMax[ 0 ][ d ] -= voxelSizes[ d ];
+			minMax[ 1 ][ d ] += voxelSizes[ d ];
 		}
-		final RealMaskRealInterval mask = GeomMasks.closedBox( min, max ).transform( affineTransform3D.inverse() );
-
+		final RealMaskRealInterval mask = GeomMasks.closedBox( minMax[ 0 ], minMax[ 1 ] ).transform( affineTransform3D.inverse() );
 		return mask;
 	}
 

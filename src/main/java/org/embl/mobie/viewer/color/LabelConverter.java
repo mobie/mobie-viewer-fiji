@@ -29,16 +29,14 @@
 package org.embl.mobie.viewer.color;
 
 import bdv.viewer.TimePointListener;
-import de.embl.cba.tables.tablerow.TableRowsModel;
 import net.imglib2.type.volatiles.VolatileUnsignedIntType;
 import org.embl.mobie.viewer.SourceNameEncoder;
-import org.embl.mobie.viewer.segment.SegmentAdapter;
+import org.embl.mobie.viewer.segment.SegmentsAdapter;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import org.embl.mobie.viewer.table.TableRowsTableModel;
 
 import static net.imglib2.type.numeric.ARGBType.alpha;
 import static net.imglib2.type.numeric.ARGBType.blue;
@@ -47,7 +45,7 @@ import static net.imglib2.type.numeric.ARGBType.red;
 
 public class LabelConverter< S extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, OpacityAdjuster, SelectionColoringModelWrapper
 {
-	private final SegmentAdapter< S > segmentAdapter;
+	private final SegmentsAdapter< S > segmentAdapter;
 	private final String imageId;
 	private final SelectionColoringModel< S > coloringModel;
 
@@ -55,7 +53,7 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	private double opacity = 1.0;
 
 	public LabelConverter(
-			SegmentAdapter< S > segmentAdapter,
+			SegmentsAdapter< S > segmentAdapter,
 			SelectionColoringModel< S > coloringModel )
 	{
 		this.segmentAdapter = segmentAdapter;
@@ -64,7 +62,7 @@ public class LabelConverter< S extends ImageSegment > implements Converter< Real
 	}
 
 	public LabelConverter(
-			SegmentAdapter< S > segmentAdapter,
+			SegmentsAdapter< S > segmentAdapter,
 			String imageId,
 			SelectionColoringModel< S > coloringModel )
 	{

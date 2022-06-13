@@ -47,7 +47,6 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotate.Annotator;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
-import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.select.SelectionModel;
 
@@ -436,13 +435,11 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 				FileLocation fileLocation = loadFromProjectOrFileSystemDialog();
 				if ( fileLocation.equals( FileLocation.Project ) )
 				{
-					if ( display instanceof RegionDisplay )
-
 					moBIE.mergeColumnsFromProject( display );
 				}
 				else if ( fileLocation.equals( FileLocation.FileSystem ))
 				{
-					moBIE.appendColumnsFromFileSystem( display );
+					moBIE.mergeColumnsFromFileSystem( display );
 				}
 			}).start()
 		);
