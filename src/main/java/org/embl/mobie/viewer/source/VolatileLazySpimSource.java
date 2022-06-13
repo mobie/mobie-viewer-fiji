@@ -6,14 +6,15 @@ import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
+import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 
-public class LazySpimSource< N extends NumericType< N > > implements Source< N >
+public class VolatileLazySpimSource< N extends NumericType< N >, V extends Volatile< N > > implements Source< V >
 {
 	private final LazySourceAndConverterAndTables< N > lazySourceAndConverterAndTables;
 
-	public LazySpimSource( LazySourceAndConverterAndTables< N > lazySourceAndConverterAndTables )
+	public VolatileLazySpimSource( LazySourceAndConverterAndTables< N > lazySourceAndConverterAndTables )
 	{
 		this.lazySourceAndConverterAndTables = lazySourceAndConverterAndTables;
 	}
@@ -25,13 +26,13 @@ public class LazySpimSource< N extends NumericType< N > > implements Source< N >
 	}
 
 	@Override
-	public RandomAccessibleInterval< N > getSource( int t, int level )
+	public RandomAccessibleInterval< V > getSource( int t, int level )
 	{
 		return getSpimSource().getSource( t, level );
 	}
 
 	@Override
-	public RealRandomAccessible< N > getInterpolatedSource( int t, int level, Interpolation method )
+	public RealRandomAccessible< V > getInterpolatedSource( int t, int level, Interpolation method )
 	{
 		return getSpimSource().getInterpolatedSource( t, level, method );
 	}
@@ -43,7 +44,7 @@ public class LazySpimSource< N extends NumericType< N > > implements Source< N >
 	}
 
 	@Override
-	public N getType()
+	public V getType()
 	{
 		return getSpimSource().getType();
 	}
@@ -76,9 +77,9 @@ public class LazySpimSource< N extends NumericType< N > > implements Source< N >
 		return lazySourceAndConverterAndTables.getMax();
 	}
 
-	private Source< N > getSpimSource()
+	private Source< V > getSpimSource()
 	{
-		return lazySourceAndConverterAndTables.openSourceAndConverter().getSpimSource();
+		return (Source< V >) lazySourceAndConverterAndTables.openSourceAndConverter().asVolatile().getSpimSource();
 	}
 
 	public LazySourceAndConverterAndTables< N > getLazySourceAndConverterAndTables()

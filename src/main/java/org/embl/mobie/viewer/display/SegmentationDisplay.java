@@ -157,18 +157,20 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 			Set< Source< ? > > rootSources = ConcurrentHashMap.newKeySet();
 			MoBIEHelper.fetchRootSources( moBIE.sourceNameToSourceAndConverter().get( sourceName ).getSpimSource(), rootSources );
 
+			// Merged grid source consists of multiple sources
 			for ( Source< ? > source : rootSources )
 			{
 				futures.add( MultiThreading.ioExecutorService.submit( () ->
 				{
 					if ( source instanceof LazySpimSource )
 					{
-						( ( LazySpimSource ) source ).setTableRootDirectory( moBIE.getTableRootDirectory( source.getName() ) );
-						( ( LazySpimSource ) source ).setTableRows( tableRows );
-						( ( LazySpimSource ) source ).setPrimaryTable( primaryTable );
+						( ( LazySpimSource ) source ).getLazySourceAndConverterAndTables().setTableRootDirectory( moBIE.getTableRootDirectory( source.getName() ) );
+						( ( LazySpimSource ) source ).getLazySourceAndConverterAndTables().setTableRows( tableRows );
+						( ( LazySpimSource ) source ).getLazySourceAndConverterAndTables().setPrimaryTable( primaryTable );
 					}
 					else
 					{
+						// TODO: get rid of this?! always use LazySpimSource?
 						final List< TableRowImageSegment > tableRowImageSegments = moBIE.loadImageSegmentsTable( source.getName(), primaryTable, "" );
 						tableRows.addAll( tableRowImageSegments );
 					}
@@ -198,10 +200,11 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 					{
 						if ( source instanceof LazySpimSource )
 						{
-							( ( LazySpimSource ) source ).addTable( tableName );
+							( ( LazySpimSource ) source ).getLazySourceAndConverterAndTables().addTable( tableName );
 						}
 						else
 						{
+							// TODO: get rid of this?! always use LazySpimSource?
 							Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, moBIE.getTablePath( ( SegmentationSource ) moBIE.getImageSource( sourceName ), tableName ) );
 							tableRows.mergeColumns( columns );
 						}

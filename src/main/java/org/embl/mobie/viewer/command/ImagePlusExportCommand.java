@@ -87,7 +87,7 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 
 		IJ.log(source.getName() + ": " + RAW + " data = " + rootSource.getName() );
 
-		int exportLevel = getExportLevel( source, rootSource, maxNumVoxels );
+		int exportLevel = getExportLevel( source, maxNumVoxels );
 
 		if ( exportLevel == -1 )
 		{
@@ -131,9 +131,9 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 		IJ.log(source.getName() + ": Export done!" );
 	}
 
-	private int getExportLevel( Source< T > source, Source< T > rootSource, long maxNumPixels )
+	private int getExportLevel( Source< T > source, long maxNumPixels )
 	{
-		final int numMipmapLevels = rootSource.getNumMipmapLevels();
+		final int numMipmapLevels = source.getNumMipmapLevels();
 
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
@@ -154,9 +154,7 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 		final Set< Source< ? > > rootSources = new HashSet<>();
 		MoBIEHelper.fetchRootSources( source, rootSources );
 		if ( rootSources.size() > 1 )
-		{
 			return null;
-		}
 		final Source< T > rootSource = ( Source< T > ) rootSources.iterator().next();
 		return rootSource;
 	}

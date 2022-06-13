@@ -55,7 +55,7 @@ import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.source.LabelSource;
-import org.embl.mobie.viewer.source.LazySourceAndConverter;
+import org.embl.mobie.viewer.source.LazySourceAndConverterAndTables;
 import org.embl.mobie.viewer.table.TableViewer;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.MergedGridSourceTransformer;
@@ -327,10 +327,10 @@ public class ViewManager
 		for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
 
 			final SourceAndConverter< ? > sac = sourceNameToSourceAndConverters.get( sourceName );
-			if ( sac instanceof LazySourceAndConverter )
+			if ( sac instanceof LazySourceAndConverterAndTables )
 				continue;
 
-			SourceAndConverter<?> transformedSac = new SourceAffineTransformer( sac, new AffineTransform3D()).getSourceOut();
+			SourceAndConverter<?> transformedSac = new SourceAffineTransformer( sac ).getSourceOut();
 			sourceNameToSourceAndConverters.put( sourceName, transformedSac );
 		}
 
@@ -340,11 +340,11 @@ public class ViewManager
 		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
 	}
 
-	private LazySourceAndConverter createLazySourceAndConverter( String sourceName, Source< ? > parentSource )
+	private LazySourceAndConverterAndTables createLazySourceAndConverter( String sourceName, Source< ? > parentSource )
 	{
 		final AffineTransform3D sourceTransform = new AffineTransform3D();
 		parentSource.getSourceTransform( 0, 0, sourceTransform );
-		final LazySourceAndConverter< ? > sourceAndConverter = new LazySourceAndConverter( moBIE, sourceName, sourceTransform, parentSource.getVoxelDimensions(), ( NumericType ) parentSource.getType(), parentSource.getSource( 0, 0 ).minAsDoubleArray(), parentSource.getSource( 0, 0 ).minAsDoubleArray() );
+		final LazySourceAndConverterAndTables< ? > sourceAndConverter = new LazySourceAndConverterAndTables( moBIE, sourceName, sourceTransform, parentSource.getVoxelDimensions(), ( NumericType ) parentSource.getType(), parentSource.getSource( 0, 0 ).minAsDoubleArray(), parentSource.getSource( 0, 0 ).minAsDoubleArray() );
 		return sourceAndConverter;
 	}
 

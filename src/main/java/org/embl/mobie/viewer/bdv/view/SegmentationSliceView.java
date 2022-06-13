@@ -39,7 +39,6 @@ import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.source.LabelSource;
-import org.embl.mobie.viewer.source.LazySourceAndConverter;
 import org.embl.mobie.viewer.transform.MergedGridSource;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;

@@ -50,10 +50,11 @@ import java.util.function.Function;
 
 public class SourceAffineTransformer implements Runnable, Function<SourceAndConverter, SourceAndConverter> {
 
-    SourceAndConverter sourceIn;
-    final AffineTransform3D at3D;
+    private SourceAndConverter sourceIn;
+    private boolean cloneConverter = true;
+    private final AffineTransform3D at3D;
     private String name;
-    SourceAndConverter sourceOut;
+    private SourceAndConverter sourceOut;
 
     public SourceAffineTransformer( SourceAndConverter src, AffineTransform3D at3D, String name ) {
         this.sourceIn = src;
@@ -86,6 +87,19 @@ public class SourceAffineTransformer implements Runnable, Function<SourceAndConv
         this.name = name;
     }
 
+    public SourceAffineTransformer( SourceAndConverter< ? > sac )
+    {
+        this.sourceIn = sac;
+        this.at3D = new AffineTransform3D();
+    }
+
+    public SourceAffineTransformer( SourceAndConverter< ? > sac, boolean cloneConverter )
+    {
+        this.sourceIn = sac;
+        this.cloneConverter = cloneConverter;
+        this.at3D = new AffineTransform3D();
+    }
+
     @Override
     public void run() {
        sourceOut = apply(sourceIn);
@@ -95,19 +109,35 @@ public class SourceAffineTransformer implements Runnable, Function<SourceAndConv
         return apply(sourceIn);//sourceOut;
     }
 
-    public SourceAndConverter apply( SourceAndConverter in ) {
+    public SourceAndConverter apply( SourceAndConverter sac ) {
 
-        TransformedSource src = getTransformedSource( in );
+        TransformedSource transformedSource = getTransformedSource( sac );
 
-        if ( in.asVolatile() !=null )
+        if ( sac.asVolatile() != null )
         {
-            TransformedSource vsrc = new TransformedSource( in.asVolatile().getSpimSource(), src );
-            SourceAndConverter vout = new SourceAndConverter<>( vsrc, SourceAndConverterHelper.cloneConverter( in.asVolatile().getConverter(), in.asVolatile() ) );
-            return new SourceAndConverter<>( src, SourceAndConverterHelper.cloneConverter( in.getConverter(), in ), vout );
+            TransformedSource vTransformedSource = new TransformedSource( sac.asVolatile().getSpimSource(), transformedSource );
+
+            if ( cloneConverter )
+            {
+                SourceAndConverter vTransformedSac = new SourceAndConverter<>( vTransformedSource, SourceAndConverterHelper.cloneConverter( sac.asVolatile().getConverter(), sac.asVolatile() ) );
+                return new SourceAndConverter<>( transformedSource, SourceAndConverterHelper.cloneConverter( sac.getConverter(), sac ), vTransformedSac );
+            }
+            else
+            {
+                SourceAndConverter vTransformedSac = new SourceAndConverter<>( vTransformedSource, sac.asVolatile().getConverter() );
+                return new SourceAndConverter<>( transformedSource, sac.getConverter(), vTransformedSac );
+            }
         }
         else
         {
-            return new SourceAndConverter<>( src, SourceAndConverterHelper.cloneConverter( in.getConverter(), in ));
+            if ( cloneConverter )
+            {
+                return new SourceAndConverter<>( transformedSource, SourceAndConverterHelper.cloneConverter( sac.getConverter(), sac ) );
+            }
+            else
+            {
+                return new SourceAndConverter<>( transformedSource, sac.getConverter() );
+            }
         }
     }
 

@@ -54,8 +54,6 @@ import net.imglib2.view.Views;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.SourceNameEncoder;
 import org.embl.mobie.viewer.source.LabelSource;
-import org.embl.mobie.viewer.source.LazySourceAndConverter;
-import org.embl.mobie.viewer.source.SourceHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;

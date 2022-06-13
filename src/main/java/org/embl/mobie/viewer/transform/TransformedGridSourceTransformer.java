@@ -34,7 +34,7 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.source.LazySourceAndConverter;
+import org.embl.mobie.viewer.source.LazySourceAndConverterAndTables;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,16 +110,16 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			if ( sourceNamesAfterTransform != null )
 				transformedSourceName = sourceNamesAfterTransform.get( sourceNames.indexOf( sourceName ) );
 
-			if ( sourceAndConverter instanceof LazySourceAndConverter )
+			if ( sourceAndConverter instanceof LazySourceAndConverterAndTables )
 			{
 				// TODO: instead of modifying this one in place
 				//   we should better create a copy
 				//   maybe it would now even work with actually transforming the lazySpimSource
-				final LazySourceAndConverter lazySourceAndConverter = ( LazySourceAndConverter ) sourceAndConverter;
-				lazySourceAndConverter.setName( transformedSourceName );
+				final LazySourceAndConverterAndTables lazySourceAndConverterAndTables = ( LazySourceAndConverterAndTables ) sourceAndConverter;
+				lazySourceAndConverterAndTables.setName( transformedSourceName );
 				final AffineTransform3D transform3D = new AffineTransform3D();
 				transform3D.preConcatenate( translationTransform ); // set by reference
-				sourceNameToSourceAndConverter.put( transformedSourceName, lazySourceAndConverter );
+				sourceNameToSourceAndConverter.put( transformedSourceName, lazySourceAndConverterAndTables );
 			}
 			else
 			{
