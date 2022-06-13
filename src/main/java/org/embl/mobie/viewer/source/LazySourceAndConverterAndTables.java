@@ -41,7 +41,7 @@ public class LazySourceAndConverterAndTables< N extends NumericType< N > > exten
 	private LazyConverter lazyConverter;
 	private final MoBIE moBIE;
 	private String name;
-	private final SourceAndConverter< ? > initializationSourceAndConverter;
+	private final SourceAndConverter< N > initializationSourceAndConverter;
 	private SourceAndConverter< N > sourceAndConverter;
 	private LazySpimSource< N > lazySpimSource;
 	private String primaryTable;
@@ -49,7 +49,7 @@ public class LazySourceAndConverterAndTables< N extends NumericType< N > > exten
 	private TableRowsTableModel< TableRowImageSegment > tableRows;
 	private String tableRootDirectory;
 
-	public LazySourceAndConverterAndTables( MoBIE moBIE, String name, SourceAndConverter< ? > initializationSourceAndConverter )
+	public LazySourceAndConverterAndTables( MoBIE moBIE, String name, SourceAndConverter< N > initializationSourceAndConverter )
 	{
 		super( null, null );
 		this.moBIE = moBIE;
@@ -95,6 +95,7 @@ public class LazySourceAndConverterAndTables< N extends NumericType< N > > exten
 			// open image
 			sourceAndConverter = ( SourceAndConverter< N > ) moBIE.openSourceAndConverter( name, null );
 		}
+
 		return sourceAndConverter;
 	}
 
@@ -144,7 +145,7 @@ public class LazySourceAndConverterAndTables< N extends NumericType< N > > exten
 		return name;
 	}
 
-	public SourceAndConverter< ? > getInitializationSourceAndConverter()
+	public SourceAndConverter< N > getInitializationSourceAndConverter()
 	{
 		return initializationSourceAndConverter;
 	}

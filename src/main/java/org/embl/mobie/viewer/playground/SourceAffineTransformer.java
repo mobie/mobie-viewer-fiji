@@ -87,6 +87,13 @@ public class SourceAffineTransformer implements Runnable, Function<SourceAndConv
         this.name = name;
     }
 
+    public SourceAffineTransformer( AffineTransform3D at3D, String name, boolean cloneConverter )
+    {
+        this.at3D = at3D;
+        this.name = name;
+        this.cloneConverter = cloneConverter;
+    }
+
     public SourceAffineTransformer( SourceAndConverter< ? > sac )
     {
         this.sourceIn = sac;
@@ -98,6 +105,12 @@ public class SourceAffineTransformer implements Runnable, Function<SourceAndConv
         this.sourceIn = sac;
         this.cloneConverter = cloneConverter;
         this.at3D = new AffineTransform3D();
+    }
+
+    public SourceAffineTransformer( AffineTransform3D at3D, boolean cloneConverter )
+    {
+        this.at3D = at3D;
+        this.cloneConverter = cloneConverter;
     }
 
     @Override

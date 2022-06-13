@@ -43,6 +43,7 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Cast;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
+import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.color.LazyLabelConverter;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -52,13 +53,16 @@ import java.lang.reflect.Method;
 
 public abstract class SourceHelper
 {
+    // TODO: one could get rid of this if Sources could
+    //   return their mask directly with some other method!
     public static double[][] getMinMax( Source< ? > source )
     {
         final double[][] minMax = new double[2][];
-        if ( source instanceof LazySpimSource )
+        final Source< ? > rootSource = MoBIEHelper.fetchRootSource( source );
+        if ( rootSource instanceof LazySpimSource )
         {
-            minMax[ 0 ] = ( ( LazySpimSource ) source ).getMin();
-            minMax[ 1 ] = ( ( LazySpimSource ) source ).getMax();
+            minMax[ 0 ] = ( ( LazySpimSource ) rootSource ).getMin();
+            minMax[ 1 ] = ( ( LazySpimSource ) rootSource ).getMax();
         }
         else
         {

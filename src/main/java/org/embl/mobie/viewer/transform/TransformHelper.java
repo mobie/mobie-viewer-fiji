@@ -74,7 +74,7 @@ public class TransformHelper
 		sourceAndConverter.getSpimSource().getSourceTransform( 0,0, sourceTransform );
 		final double[] center = getCenter( sourceAndConverter );
 		translate.translate( center );
-		final SourceAffineTransformer transformer = new SourceAffineTransformer( translate.inverse() );
+		final SourceAffineTransformer transformer = new SourceAffineTransformer( translate.inverse(), false );
 		sourceAndConverter = transformer.apply( sourceAndConverter );
 		return sourceAndConverter;
 	}

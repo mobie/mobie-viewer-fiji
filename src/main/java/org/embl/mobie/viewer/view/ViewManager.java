@@ -324,10 +324,11 @@ public class ViewManager
 		for ( String sourceName : sourceNameToSourceAndConverters.keySet() ) {
 
 			final SourceAndConverter< ? > sac = sourceNameToSourceAndConverters.get( sourceName );
-			if ( sac instanceof LazySourceAndConverterAndTables )
-				continue;
 
-			SourceAndConverter<?> transformedSac = new SourceAffineTransformer( sac ).getSourceOut();
+			//if ( sac instanceof LazySourceAndConverterAndTables )
+			//	continue;
+
+			SourceAndConverter<?> transformedSac = new SourceAffineTransformer( sac, false ).getSourceOut();
 			sourceNameToSourceAndConverters.put( sourceName, transformedSac );
 		}
 

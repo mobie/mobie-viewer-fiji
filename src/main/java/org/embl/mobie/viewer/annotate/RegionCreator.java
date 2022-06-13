@@ -36,6 +36,7 @@ import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.TableColumnNames;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,9 +71,9 @@ public class RegionCreator
 			final ArrayList< Source< ? > > sources = getSources( annotationId );
 
 			final RealMaskRealInterval mask = MoBIEHelper.unionRealMask( sources );
-			//System.out.println( annotationId );
+			System.out.println( annotationId );
+			System.out.println( Arrays.toString( mask.minAsDoubleArray() ));
 			//System.out.println( sources.size() );
-			//System.out.println( Arrays.toString( mask.minAsDoubleArray() ));
 
 			regionTableRows.add(
 					new DefaultRegionTableRow(

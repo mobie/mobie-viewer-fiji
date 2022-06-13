@@ -66,6 +66,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,6 +101,13 @@ public abstract class MoBIEHelper
 		}
 
 		return longs;
+	}
+
+	public static Source< ? > fetchRootSource( Source< ? > source )
+	{
+		final Set< Source< ? > > rootSources = new HashSet<>();
+		fetchRootSources( source, rootSources );
+		return rootSources.iterator().next();
 	}
 
 	/**
@@ -485,6 +493,11 @@ public abstract class MoBIEHelper
 		return view;
 	}
 
+	// TODO: instead of calling this function
+	//   implement a MaskAwareSource that can return its mask directly
+	//   all (root) sources in MoBIE should be able to do this.
+	//   This should be done in the very beginning when loading this source.
+	//   That is, wrap the source into a MaskAwareSource
 	public static RealMaskRealInterval getMask( Source< ? > source )
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();

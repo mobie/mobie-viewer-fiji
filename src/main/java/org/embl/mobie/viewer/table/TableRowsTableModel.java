@@ -161,7 +161,17 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 
 	public synchronized void addAll( List< T > tableRows )
 	{
-		this.tableRows.addAll( tableRows );
+		if ( this.tableRows.size() == 0 )
+		{
+			this.tableRows.addAll( tableRows );
+			configureColumns();
+		}
+		else
+		{
+			this.tableRows.addAll( tableRows );
+			// Configure columns again?
+			// Check consistency of column names?
+		}
 
 		// TODO
 //		for ( TableRowImageSegment segment : segmentationDisplay.tableRows )
@@ -262,7 +272,7 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 	@Override
 	public int getColumnCount()
 	{
-		return columnNameToClass.size();
+		return columnNames.size();
 	}
 
 	@Override

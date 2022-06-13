@@ -93,11 +93,11 @@ public class AffineSourceTransformer extends AbstractSourceTransformer
 	{
 		if ( sourceNamesAfterTransform != null )
 		{
-			return new SourceAffineTransformer( affineTransform3D, sourceNamesAfterTransform.get( sources.indexOf( sourceName ) ) );
+			return new SourceAffineTransformer( affineTransform3D, sourceNamesAfterTransform.get( sources.indexOf( sourceName ) ), false );
 		}
 		else
 		{
-			return new SourceAffineTransformer( affineTransform3D, sourceName );
+			return new SourceAffineTransformer( affineTransform3D, sourceName, false );
 		}
 	}
 

@@ -110,23 +110,23 @@ public class TransformedGridSourceTransformer extends AbstractSourceTransformer
 			if ( sourceNamesAfterTransform != null )
 				transformedSourceName = sourceNamesAfterTransform.get( sourceNames.indexOf( sourceName ) );
 
-			if ( sourceAndConverter instanceof LazySourceAndConverterAndTables )
-			{
-				// TODO: instead of modifying this one in place
-				//   we should better create a copy
-				//   maybe it would now even work with actually transforming the lazySpimSource
-				final LazySourceAndConverterAndTables lazySourceAndConverterAndTables = ( LazySourceAndConverterAndTables ) sourceAndConverter;
-				lazySourceAndConverterAndTables.setName( transformedSourceName );
-				final AffineTransform3D transform3D = new AffineTransform3D();
-				transform3D.preConcatenate( translationTransform ); // set by reference
-				sourceNameToSourceAndConverter.put( transformedSourceName, lazySourceAndConverterAndTables );
-			}
-			else
-			{
-				final SourceAndConverter transformedSource = new SourceAffineTransformer( translationTransform, transformedSourceName ).apply( sourceAndConverter );
+//			if ( sourceAndConverter instanceof LazySourceAndConverterAndTables )
+//			{
+//				// TODO: instead of modifying this one in place
+//				//   we should better create a copy
+//				//   maybe it would now even work with actually transforming the lazySpimSource
+//				final LazySourceAndConverterAndTables lazySourceAndConverterAndTables = ( LazySourceAndConverterAndTables ) sourceAndConverter;
+//				lazySourceAndConverterAndTables.setName( transformedSourceName );
+//				final AffineTransform3D transform3D = new AffineTransform3D();
+//				transform3D.preConcatenate( translationTransform ); // set by reference
+//				sourceNameToSourceAndConverter.put( transformedSourceName, lazySourceAndConverterAndTables );
+//			}
+//			else
+//			{
+				final SourceAndConverter transformedSource = new SourceAffineTransformer( translationTransform, transformedSourceName, false ).apply( sourceAndConverter );
 
 				sourceNameToSourceAndConverter.put( transformedSourceName, transformedSource );
-			}
+//			}
 		}
 	}
 
