@@ -41,6 +41,7 @@ import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.viewer.source.RealMaskSource;
 
 import java.util.Collection;
 import java.util.List;

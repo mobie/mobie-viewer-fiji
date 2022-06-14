@@ -45,7 +45,7 @@ import org.embl.mobie.viewer.display.ImageDisplay;
 import org.embl.mobie.viewer.display.SourceDisplay;
 import org.embl.mobie.viewer.source.LabelSource;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
-import org.embl.mobie.viewer.transform.MergedGridSource;
+import org.embl.mobie.viewer.source.MergedGridSource;
 import org.embl.mobie.viewer.transform.SourceTransformer;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
