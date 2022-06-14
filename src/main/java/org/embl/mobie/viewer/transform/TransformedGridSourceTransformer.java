@@ -34,7 +34,6 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.source.LazySourceAndConverterAndTables;
 
 import java.util.ArrayList;
 import java.util.List;

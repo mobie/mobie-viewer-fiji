@@ -7,17 +7,17 @@ import net.imglib2.type.numeric.NumericType;
 
 public class VolatileLazyConverter< T extends NumericType< T >, V extends Volatile< T > > implements Converter< V, ARGBType >
 {
-	private final LazySourceAndConverterAndTables< T > sourceAndConverter;
+	private final SourceAndConverterAndTables< T > sourceAndConverterAndTables;
 
-	public VolatileLazyConverter( LazySourceAndConverterAndTables< T > sourceAndConverter )
+	public VolatileLazyConverter( SourceAndConverterAndTables< T > sourceAndConverterAndTables )
 	{
-		this.sourceAndConverter = sourceAndConverter;
+		this.sourceAndConverterAndTables = sourceAndConverterAndTables;
 	}
 
 	@Override
 	public void convert( V input, ARGBType output )
 	{
-		final Converter< V, ARGBType > converter = ( Converter< V, ARGBType > ) sourceAndConverter.openSourceAndConverter().asVolatile().getConverter();
+		final Converter< V, ARGBType > converter = ( Converter< V, ARGBType > ) sourceAndConverterAndTables.getSourceAndConverter().asVolatile().getConverter();
 		converter.convert( input, output );
 	}
 }

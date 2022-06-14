@@ -32,8 +32,8 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.TableColumnNames;
+import org.embl.mobie.viewer.source.SourceHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,11 +69,8 @@ public class RegionCreator
 		for ( String annotationId : annotationIds )
 		{
 			final ArrayList< Source< ? > > sources = getSources( annotationId );
-
-			final RealMaskRealInterval mask = MoBIEHelper.unionRealMask( sources );
-			System.out.println( annotationId );
-			System.out.println( Arrays.toString( mask.minAsDoubleArray() ));
-			//System.out.println( sources.size() );
+			final RealMaskRealInterval mask = SourceHelper.getUnionMask( sources, 0 );
+			System.out.println( annotationId + " (" + sources.size() + ") " + Arrays.toString( mask.minAsDoubleArray() ) + "-" + Arrays.toString( mask.maxAsDoubleArray() ));
 
 			regionTableRows.add(
 					new DefaultRegionTableRow(

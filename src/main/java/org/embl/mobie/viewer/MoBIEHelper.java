@@ -28,10 +28,7 @@
  */
 package org.embl.mobie.viewer;
 
-import bdv.SpimSource;
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
-import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.TableColumns;
@@ -45,17 +42,13 @@ import ij.gui.GenericDialog;
 import loci.plugins.in.ImagePlusReader;
 import loci.plugins.in.ImportProcess;
 import loci.plugins.in.ImporterOptions;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.source.LabelSource;
-import org.embl.mobie.viewer.source.LazySpimSource;
 import org.embl.mobie.viewer.source.SourceHelper;
-import org.embl.mobie.viewer.transform.MergedGridSource;
 import org.embl.mobie.viewer.transform.TransformHelper;
 
 import javax.swing.*;
@@ -103,60 +96,6 @@ public abstract class MoBIEHelper
 		return longs;
 	}
 
-	public static Source< ? > fetchRootSource( Source< ? > source )
-	{
-		final Set< Source< ? > > rootSources = new HashSet<>();
-		fetchRootSources( source, rootSources );
-		return rootSources.iterator().next();
-	}
-
-	/**
-	 * Recursively fetch all root sources
-	 * @param source
-	 * @param rootSources
-	 */
-	public static void fetchRootSources( Source< ? > source, Set< Source< ? > > rootSources )
-	{
-		if ( source instanceof SpimSource )
-		{
-			rootSources.add( source );
-		}
-		else if ( source instanceof LazySpimSource )
-		{
-			rootSources.add( source );
-		}
-		else if ( source instanceof TransformedSource )
-		{
-			final Source< ? > wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
-
-			fetchRootSources( wrappedSource, rootSources );
-		}
-		else if (  source instanceof LabelSource )
-		{
-			final Source< ? > wrappedSource = (( LabelSource ) source).getWrappedSource();
-
-			fetchRootSources( wrappedSource, rootSources );
-		}
-		else if (  source instanceof MergedGridSource )
-		{
-			final MergedGridSource< ? > mergedGridSource = ( MergedGridSource ) source;
-			final List< ? extends SourceAndConverter< ? > > gridSources = mergedGridSource.getGridSources();
-			for ( SourceAndConverter< ? > gridSource : gridSources )
-			{
-				fetchRootSources( gridSource.getSpimSource(), rootSources );
-			}
-		}
-		else if (  source instanceof ResampledSource )
-		{
-			final ResampledSource resampledSource = ( ResampledSource ) source;
-			final Source< ? > wrappedSource = resampledSource.getOriginalSource();
-			fetchRootSources( wrappedSource, rootSources );
-		}
-		else
-		{
-			throw new IllegalArgumentException("For sources of type " + source.getClass().getName() + " the root source currently cannot be determined.");
-		}
-	}
 
 	public static ImagePlus openWithBioFormats( String path, int seriesIndex )
 	{
@@ -176,34 +115,6 @@ public abstract class MoBIEHelper
 			e.printStackTrace();
 			return null;
 		}
-	}
-
-	public static RealMaskRealInterval unionRealMask( List< ? extends Source< ? > > sources )
-	{
-		RealMaskRealInterval union = null;
-
-		for ( Source< ? > source : sources )
-		{
-			final RealMaskRealInterval mask = getMask( source );
-
-			if ( union == null )
-			{
-				union = mask;
-			}
-			else
-			{
-				if ( Intervals.equals( mask, union ) )
-				{
-					continue;
-				}
-				else
-				{
-					union = union.or( mask );
-				}
-			}
-		}
-
-		return union;
 	}
 
 	public enum FileLocation
@@ -366,28 +277,6 @@ public abstract class MoBIEHelper
 		return filePath;
 	}
 
-	public static SourceAndConverter< ? > getSourceAndConverter( List< SourceAndConverter< ? > > sourceAndConverters, String name )
-	{
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
-		{
-			if ( sourceAndConverter.getSpimSource().getName().equals( name ) )
-				return sourceAndConverter;
-		}
-
-		return null;
-	}
-
-	public static double[] delimitedStringToDoubleArray( String s, String delimiter) {
-
-		String[] sA = s.split(delimiter);
-		double[] nums = new double[sA.length];
-		for (int i = 0; i < nums.length; i++) {
-			nums[i] = Double.parseDouble(sA[i].trim());
-		}
-
-		return nums;
-	}
-
 	public static void log( String text )
 	{
 		IJ.log( text );
@@ -469,52 +358,8 @@ public abstract class MoBIEHelper
 		return segmentPropertyToColumn;
 	}
 
-	public static String createNormalisedViewerTransformString( BdvHandle bdv, double[] position )
-	{
-		final AffineTransform3D view = TransformHelper.createNormalisedViewerTransform( bdv.getViewerPanel(), position );
-		final String replace = view.toString().replace( "3d-affine: (", "" ).replace( ")", "" );
-		final String collect = Arrays.stream( replace.split( "," ) ).map( x -> "n" + x.trim() ).collect( Collectors.joining( "," ) );
-		return collect;
-	}
-
-	public static double[] getMousePosition( BdvHandle bdv )
-	{
-		final RealPoint realPoint = new RealPoint( 2 );
-		bdv.getViewerPanel().getMouseCoordinates( realPoint );
-		final double[] doubles = new double[ 3 ];
-		realPoint.localize( doubles );
-		return doubles;
-	}
-
-	public static AffineTransform3D asAffineTransform3D( double[] doubles )
-	{
-		final AffineTransform3D view = new AffineTransform3D( );
-		view.set( doubles );
-		return view;
-	}
-
-	// TODO: instead of calling this function
-	//   implement a MaskAwareSource that can return its mask directly
-	//   all (root) sources in MoBIE should be able to do this.
-	//   This should be done in the very beginning when loading this source.
-	//   That is, wrap the source into a MaskAwareSource
-	public static RealMaskRealInterval getMask( Source< ? > source )
-	{
-		final AffineTransform3D affineTransform3D = new AffineTransform3D();
-		source.getSourceTransform( 0, 0, affineTransform3D );
-		final double[][] minMax = SourceHelper.getMinMax( source );
-		final double[] voxelSizes = new double[ 3 ];
-		source.getVoxelDimensions().dimensions( voxelSizes );
-		for ( int d = 0; d < 3; d++ )
-		{
-			minMax[ 0 ][ d ] -= voxelSizes[ d ];
-			minMax[ 1 ][ d ] += voxelSizes[ d ];
-		}
-		final RealMaskRealInterval mask = GeomMasks.closedBox( minMax[ 0 ], minMax[ 1 ] ).transform( affineTransform3D.inverse() );
-		return mask;
-	}
-
-	public static String getName( String path )
+	// TODO: Make a proper implementation in IOHelper in mobie-io
+	public static String getFileName( String path )
 	{
 		if ( path.startsWith( "http" ) )
 		{

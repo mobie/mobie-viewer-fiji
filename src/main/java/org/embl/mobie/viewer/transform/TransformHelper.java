@@ -28,20 +28,19 @@
  */
 package org.embl.mobie.viewer.transform;
 
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
 import net.imglib2.realtransform.Scale3D;
-import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.viewer.source.SourceHelper;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -49,13 +48,13 @@ import java.util.stream.Collectors;
 
 public class TransformHelper
 {
-	public static RealInterval estimateBounds( List< ? extends Source< ? > > sources, int t )
+	public static RealInterval createMask( List< ? extends Source< ? > > sources, int t )
 	{
 		RealInterval union = null;
 
 		for ( Source< ? > source : sources )
 		{
-			final RealInterval bounds = estimateBounds( source, t );
+			final RealInterval bounds = SourceHelper.getMask( source, t );
 
 			if ( union == null )
 				union = bounds;
@@ -81,7 +80,7 @@ public class TransformHelper
 
 	public static double[] getCenter( SourceAndConverter< ? > sourceAndConverter )
 	{
-		final RealInterval bounds = estimateBounds( sourceAndConverter.getSpimSource(), 0 );
+		final RealInterval bounds = SourceHelper.getMask( sourceAndConverter.getSpimSource(), 0 );
 		final double[] center = bounds.minAsDoubleArray();
 		final double[] max = bounds.maxAsDoubleArray();
 		for ( int d = 0; d < max.length; d++ )
@@ -106,7 +105,7 @@ public class TransformHelper
 
 	public static double[] computeSourceUnionRealDimensions( List< SourceAndConverter< ? > > sources, double relativeMargin, int t )
 	{
-		RealInterval bounds = estimateBounds( sources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ), t );
+		RealInterval bounds = createMask( sources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ), t );
 		final double[] realDimensions = new double[ 2 ];
 		for ( int d = 0; d < 2; d++ )
 			realDimensions[ d ] = ( 1.0 + 2.0 * relativeMargin ) * ( bounds.realMax( d ) - bounds.realMin( d ) );
@@ -206,34 +205,18 @@ public class TransformHelper
 		return bdvWindowDimensions;
 	}
 
-	public static RealInterval estimateBounds( Source< ? > source, int t )
+	public static AffineTransform3D asAffineTransform3D( double[] doubles )
 	{
-		if ( source instanceof RealMaskSource )
-		{
-			final RealMaskRealInterval realMask = ( ( RealMaskSource ) source ).getRealMask();
-			return realMask;
-		}
+		final AffineTransform3D view = new AffineTransform3D( );
+		view.set( doubles );
+		return view;
+	}
 
-		if ( source instanceof TransformedSource )
-		{
-			final Source< ? > wrappedSource = ( ( TransformedSource< ? > ) source ).getWrappedSource();
-			if ( wrappedSource instanceof RealMaskSource )
-			{
-				final RealMaskRealInterval realMask = ( ( RealMaskSource ) wrappedSource ).getRealMask();
-				if ( realMask != null )
-				{
-					final AffineTransform3D fixedTransform = new AffineTransform3D();
-					( ( TransformedSource< ? > ) source ).getFixedTransform( fixedTransform );
-					final FinalRealInterval realInterval = fixedTransform.estimateBounds( realMask );
-					return realInterval;
-				}
-			}
-		}
-
-		// else:
-		final AffineTransform3D affineTransform3D = new AffineTransform3D();
-		source.getSourceTransform( t, 0, affineTransform3D );
-		final FinalRealInterval bounds = affineTransform3D.estimateBounds( source.getSource( t, 0 ) );
-		return bounds;
+	public static String createNormalisedViewerTransformString( BdvHandle bdv, double[] position )
+	{
+		final AffineTransform3D view = createNormalisedViewerTransform( bdv.getViewerPanel(), position );
+		final String replace = view.toString().replace( "3d-affine: (", "" ).replace( ")", "" );
+		final String collect = Arrays.stream( replace.split( "," ) ).map( x -> "n" + x.trim() ).collect( Collectors.joining( "," ) );
+		return collect;
 	}
 }

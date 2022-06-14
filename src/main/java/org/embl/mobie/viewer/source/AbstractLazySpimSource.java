@@ -3,16 +3,18 @@ package org.embl.mobie.viewer.source;
 
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
+import org.embl.mobie.viewer.transform.RealIntervalProvider;
 
-public class AbstractLazySpimSource< N extends NumericType< N > >
+public class AbstractLazySpimSource< N extends NumericType< N > > implements RealIntervalProvider
 {
-	protected final LazySourceAndConverterAndTables< N > lazySourceAndConverterAndTables;
+	protected final SourceAndConverterAndTables< N > sourceAndConverterAndTables;
 
-	public AbstractLazySpimSource( LazySourceAndConverterAndTables< N > lazySourceAndConverterAndTables )
+	public AbstractLazySpimSource( SourceAndConverterAndTables< N > sourceAndConverterAndTables )
 	{
-		this.lazySourceAndConverterAndTables = lazySourceAndConverterAndTables;
+		this.sourceAndConverterAndTables = sourceAndConverterAndTables;
 	}
 
 	public boolean isPresent( int t )
@@ -27,7 +29,7 @@ public class AbstractLazySpimSource< N extends NumericType< N > >
 
 	public String getName()
 	{
-		return lazySourceAndConverterAndTables.getName();
+		return sourceAndConverterAndTables.getName();
 	}
 
 	public VoxelDimensions getVoxelDimensions()
@@ -52,17 +54,25 @@ public class AbstractLazySpimSource< N extends NumericType< N > >
 
 	protected Source< N > getInitializationSource()
 	{
-		return lazySourceAndConverterAndTables.getInitializationSourceAndConverter().getSpimSource();
+		return sourceAndConverterAndTables.getInitializationSourceAndConverter().getSpimSource();
 	}
 
 	protected Source< N > openSpimSource()
 	{
-		return lazySourceAndConverterAndTables.openSourceAndConverter().getSpimSource();
+		return sourceAndConverterAndTables.getSourceAndConverter().getSpimSource();
 	}
 
-	public LazySourceAndConverterAndTables< ? > getLazySourceAndConverterAndTables()
+	public SourceAndConverterAndTables< ? > getLazySourceAndConverterAndTables()
 	{
-		return lazySourceAndConverterAndTables;
+		return sourceAndConverterAndTables;
+	}
+
+	@Override
+	public FinalRealInterval getRealInterval( int t )
+	{
+		final double[] min = getInitializationSource().getSource( t, 0 ).minAsDoubleArray();
+		final double[] max = getInitializationSource().getSource( t, 0 ).maxAsDoubleArray();
+		return new FinalRealInterval( min, max ) ;
 	}
 }
 

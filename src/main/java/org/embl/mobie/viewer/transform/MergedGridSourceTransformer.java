@@ -122,7 +122,7 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealDimensions )
 	{
-		final RealInterval dataRealBounds = TransformHelper.estimateBounds( gridSources.get( 0 ).getSpimSource(), 0 );
+		final RealInterval dataRealBounds = SourceHelper.getMask( gridSources.get( 0 ).getSpimSource(), 0 );
 
 		final double[] dataRealDimensions = new double[ 3 ];
 		for ( int d = 0; d < 3; d++ )

@@ -39,6 +39,7 @@ import org.embl.mobie.viewer.segment.SegmentsAdapter;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.source.LazySpimSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
+import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.table.TableHelper;
 import org.embl.mobie.viewer.table.TableRowsTableModel;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
@@ -157,7 +158,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 		for ( String sourceName : sources )
 		{
 			Set< Source< ? > > rootSources = ConcurrentHashMap.newKeySet();
-			MoBIEHelper.fetchRootSources( moBIE.sourceNameToSourceAndConverter().get( sourceName ).getSpimSource(), rootSources );
+			SourceHelper.fetchRootSources( moBIE.sourceNameToSourceAndConverter().get( sourceName ).getSpimSource(), rootSources );
 
 			// Merged grid source consists of multiple sources
 			for ( Source< ? > spimSource : rootSources )
@@ -191,7 +192,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 			{
 				// code duplication (primary tables)
 				Set< Source< ? > > rootSources = ConcurrentHashMap.newKeySet();
-				MoBIEHelper.fetchRootSources( moBIE.sourceNameToSourceAndConverter().get( sourceName ).getSpimSource(), rootSources );
+				SourceHelper.fetchRootSources( moBIE.sourceNameToSourceAndConverter().get( sourceName ).getSpimSource(), rootSources );
 
 				for ( Source< ? > source : rootSources )
 				{

@@ -36,6 +36,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
@@ -45,8 +46,6 @@ import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
@@ -63,7 +62,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-public class MergedGridSource< T extends NativeType< T > & NumericType< T > > implements Source< T >, RealMaskSource
+public class MergedGridSource< T extends NativeType< T > & NumericType< T > > implements Source< T >, RealIntervalProvider
 {
 	private final T type;
 	private final Source< T > referenceSource;
@@ -79,7 +78,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	private int[][] cellDimensions;
 	private double[] cellRealDimensions;
 	private Set< SourceAndConverter > containedSourceAndConverters;
-	private RealMaskRealInterval mask;
+	private FinalRealInterval realInterval;
 
 	public MergedGridSource( List< SourceAndConverter< T > > gridSources, List< int[] > positions, String mergedGridSourceName, double relativeCellMargin, boolean encodeSource )
 	{
@@ -93,6 +92,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		this.type = referenceSource.getType();
 
 		initDimensions();
+
 		mergedRandomAccessibleIntervals = createMergedRAIs( referenceSource.getNumMipmapLevels() );
 	}
 
@@ -134,7 +134,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 
 	private List< RandomAccessibleInterval< T > > createMergedRAIs( int numMipmapLevels )
 	{
-		final List< RandomAccessibleInterval< T >> mergedRandomAccessibleIntervals = new ArrayList<>();
+		final List< RandomAccessibleInterval< T > > mergedRandomAccessibleIntervals = new ArrayList<>();
 
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
@@ -156,7 +156,6 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 						cellLoader,
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions[ level ] ) );
 
-
 			mergedRandomAccessibleIntervals.add( cachedCellImg );
 		}
 
@@ -174,9 +173,11 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		}
 	}
 
-	public RealMaskRealInterval getRealMask()
+	@Override
+	public FinalRealInterval getRealInterval( int t )
 	{
-		return mask;
+		// TODO: timepoints
+		return realInterval;
 	}
 
 	public double[] getCellRealDimensions()
@@ -316,9 +317,8 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 			max[ d ] = ( maxPos[ d ] + 1 ) * cellDimensions[ d ] * scale;
 		}
 
-		mask = GeomMasks.closedBox( min, max );
+		realInterval = new FinalRealInterval( min, max );
 	}
-
 
 	private static String getCellKey( long[] cellMins )
 	{
@@ -425,41 +425,41 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 			final String cellKey = getCellKey( cell.minAsLongArray() );
 
 			if ( ! cellKeyToSource.containsKey( cellKey ) )
-			{
 				return;
+
+			// Get the RAI for this cell
+			final Source< T > source = cellKeyToSource.get( cellKey ).getSpimSource();
+			RandomAccessibleInterval< T > data = source.getSource( currentTimepoint, level );
+
+			// Create a view that is shifted to the cell position
+			final long[] offset = computeTranslation( MoBIEHelper.asInts( cell.dimensionsAsLongArray() ), cell.minAsLongArray(), data.dimensionsAsLongArray() );
+			data = Views.translate( Views.zeroMin( data ), offset );
+
+			// copy RAI into cell
+			Cursor< T > sourceCursor = Views.iterable( data ).cursor();
+			RandomAccess< T > targetAccess = cell.randomAccess();
+
+			if ( encodeSource )
+			{
+				final String name = source.getName();
+				while ( sourceCursor.hasNext() )
+				{
+					sourceCursor.fwd();
+					// copy the sourceCursor in order not to modify it by the source name encoding
+					targetAccess.setPositionAndGet( sourceCursor ).set( sourceCursor.get().copy() );
+					// TODO:
+					//  is this really necessary?
+					//  couldn't one ask the MergedGridSource which image
+					//  is at this position?
+					SourceNameEncoder.encodeName( ( UnsignedIntType ) targetAccess.get(), name );
+				}
 			}
 			else
 			{
-				// Get the RAI for this cell
-				final Source< T > source = cellKeyToSource.get( cellKey ).getSpimSource();
-				RandomAccessibleInterval< T > data = source.getSource( currentTimepoint, level );
-
-				// Create a view that is shifted to the cell position
-				final long[] offset = computeTranslation( MoBIEHelper.asInts( cell.dimensionsAsLongArray() ), cell.minAsLongArray(), data.dimensionsAsLongArray() );
-				data = Views.translate( Views.zeroMin( data ), offset );
-
-				// copy RAI into cell
-				Cursor< T > sourceCursor = Views.iterable( data ).cursor();
-				RandomAccess< T > targetAccess = cell.randomAccess();
-
-				if ( encodeSource )
+				while ( sourceCursor.hasNext() )
 				{
-					final String name = source.getName();
-					while ( sourceCursor.hasNext() )
-					{
-						sourceCursor.fwd();
-						// copy the sourceCursor in order not to modify it by the source name encoding
-						targetAccess.setPositionAndGet( sourceCursor ).set( sourceCursor.get().copy() );
-						SourceNameEncoder.encodeName( ( UnsignedIntType ) targetAccess.get(), name );
-					}
-				}
-				else
-				{
-					while ( sourceCursor.hasNext() )
-					{
-						sourceCursor.fwd();
-						targetAccess.setPositionAndGet( sourceCursor ).set( sourceCursor.get() );
-					}
+					sourceCursor.fwd();
+					targetAccess.setPositionAndGet( sourceCursor ).set( sourceCursor.get() );
 				}
 			}
 		}

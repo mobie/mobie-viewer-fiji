@@ -32,7 +32,6 @@ import bdv.util.*;
 import bdv.viewer.animate.SimilarityTransformAnimator;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.embl.mobie.viewer.bdv.CircleOverlay;
-import org.embl.mobie.viewer.MoBIEHelper;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.Arrays;
@@ -67,12 +66,12 @@ public abstract class SliceViewLocationChanger
 		}
 		else if ( viewerTransform instanceof AffineViewerTransform )
 		{
-			changeLocation( bdv, MoBIEHelper.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
+			changeLocation( bdv, TransformHelper.asAffineTransform3D( viewerTransform.getParameters() ), animationDurationMillis );
 			adaptTimepoint( bdv, viewerTransform );
 		}
 		else if ( viewerTransform instanceof NormalizedAffineViewerTransform )
 		{
-			final AffineTransform3D transform = TransformHelper.createUnnormalizedViewerTransform( MoBIEHelper.asAffineTransform3D( viewerTransform.getParameters() ), bdv.getBdvHandle().getViewerPanel() );
+			final AffineTransform3D transform = TransformHelper.createUnnormalizedViewerTransform( TransformHelper.asAffineTransform3D( viewerTransform.getParameters() ), bdv.getBdvHandle().getViewerPanel() );
 			changeLocation( bdv, transform, animationDurationMillis );
 			adaptTimepoint( bdv, viewerTransform );
 		}

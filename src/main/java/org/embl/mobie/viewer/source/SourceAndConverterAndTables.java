@@ -15,6 +15,7 @@ import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.table.TableHelper;
 import org.embl.mobie.viewer.table.TableRowsTableModel;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,7 @@ import java.util.Map;
  *
  * @param <N>
  */
-public class LazySourceAndConverterAndTables< N extends NumericType< N > > extends SourceAndConverter< N >
+public class SourceAndConverterAndTables< N extends NumericType< N > > extends SourceAndConverter< N >
 {
 	private LazyConverter lazyConverter;
 	private final MoBIE moBIE;
@@ -49,7 +50,7 @@ public class LazySourceAndConverterAndTables< N extends NumericType< N > > exten
 	private TableRowsTableModel< TableRowImageSegment > tableRows;
 	private String tableRootDirectory;
 
-	public LazySourceAndConverterAndTables( MoBIE moBIE, String name, SourceAndConverter< N > initializationSourceAndConverter )
+	public SourceAndConverterAndTables( MoBIE moBIE, String name, @Nullable SourceAndConverter< N > initializationSourceAndConverter )
 	{
 		super( null, null );
 		this.moBIE = moBIE;
@@ -79,7 +80,7 @@ public class LazySourceAndConverterAndTables< N extends NumericType< N > > exten
 		return new SourceAndConverter( volatileLazySpimSource, volatileLazyConverter  );
 	}
 
-	public SourceAndConverter< N > openSourceAndConverter()
+	public SourceAndConverter< N > getSourceAndConverter()
 	{
 		if ( sourceAndConverter == null )
 		{
@@ -147,6 +148,14 @@ public class LazySourceAndConverterAndTables< N extends NumericType< N > > exten
 
 	public SourceAndConverter< N > getInitializationSourceAndConverter()
 	{
-		return initializationSourceAndConverter;
+		if ( initializationSourceAndConverter == null )
+		{
+			getSourceAndConverter();
+			return sourceAndConverter;
+		}
+		else
+		{
+			return initializationSourceAndConverter;
+		}
 	}
 }

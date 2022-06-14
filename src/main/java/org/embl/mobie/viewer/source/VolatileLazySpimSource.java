@@ -9,9 +9,9 @@ import net.imglib2.type.numeric.NumericType;
 
 public class VolatileLazySpimSource< N extends NumericType< N >, V extends Volatile< N > > extends AbstractLazySpimSource< N > implements Source< V >
 {
-	public VolatileLazySpimSource( LazySourceAndConverterAndTables< N > lazySourceAndConverterAndTables )
+	public VolatileLazySpimSource( SourceAndConverterAndTables< N > sourceAndConverterAndTables )
 	{
-		super( lazySourceAndConverterAndTables );
+		super( sourceAndConverterAndTables );
 	}
 
 	@Override
@@ -34,7 +34,7 @@ public class VolatileLazySpimSource< N extends NumericType< N >, V extends Volat
 
 	private Source< V > openVolatileSpimSource()
 	{
-		return (Source< V >) lazySourceAndConverterAndTables.openSourceAndConverter().asVolatile().getSpimSource();
+		return (Source< V >) sourceAndConverterAndTables.getSourceAndConverter().asVolatile().getSpimSource();
 	}
 }
 

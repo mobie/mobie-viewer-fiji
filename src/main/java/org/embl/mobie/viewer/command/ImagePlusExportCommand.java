@@ -40,7 +40,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import org.embl.mobie.viewer.MoBIEHelper;
+import org.embl.mobie.viewer.source.SourceHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
@@ -152,7 +152,7 @@ public class ImagePlusExportCommand< T extends NumericType< T > > implements Bdv
 	private Source< T > getRootSource( Source< T > source )
 	{
 		final Set< Source< ? > > rootSources = new HashSet<>();
-		MoBIEHelper.fetchRootSources( source, rootSources );
+		SourceHelper.fetchRootSources( source, rootSources );
 		if ( rootSources.size() > 1 )
 			return null;
 		final Source< T > rootSource = ( Source< T > ) rootSources.iterator().next();

@@ -109,7 +109,7 @@ public class MoBIEViewerTransformAdjuster {
 
 	public AffineTransform3D getMultiSourceTransform() {
 		SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
-		final RealInterval bounds = TransformHelper.estimateBounds( sources, state.getCurrentTimepoint() );
+		final RealInterval bounds = TransformHelper.createMask( sources, state.getCurrentTimepoint() );
 		final AffineTransform3D transform = TransformHelper.getIntervalViewerTransform( bdvHandle, bounds );
 		return transform;
 	}

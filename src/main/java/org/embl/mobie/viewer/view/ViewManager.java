@@ -52,7 +52,7 @@ import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.source.LabelSource;
-import org.embl.mobie.viewer.source.LazySourceAndConverterAndTables;
+import org.embl.mobie.viewer.source.SourceAndConverterAndTables;
 import org.embl.mobie.viewer.table.TableViewer;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.MergedGridSourceTransformer;
@@ -338,9 +338,9 @@ public class ViewManager
 		moBIE.addSourceAndConverters( sourceNameToSourceAndConverters );
 	}
 
-	private LazySourceAndConverterAndTables createLazySourceAndConverter( String sourceName, SourceAndConverter< ? > parentSource )
+	private SourceAndConverterAndTables createLazySourceAndConverter( String sourceName, SourceAndConverter< ? > parentSource )
 	{
-		final LazySourceAndConverterAndTables< ? > sourceAndConverter = new LazySourceAndConverterAndTables( moBIE, sourceName, parentSource );
+		final SourceAndConverterAndTables< ? > sourceAndConverter = new SourceAndConverterAndTables( moBIE, sourceName, parentSource );
 		return sourceAndConverter;
 	}
 

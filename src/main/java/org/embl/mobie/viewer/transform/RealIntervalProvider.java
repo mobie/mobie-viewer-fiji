@@ -28,9 +28,9 @@
  */
 package org.embl.mobie.viewer.transform;
 
-import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.FinalRealInterval;
 
-public interface RealMaskSource
+public interface RealIntervalProvider
 {
-	RealMaskRealInterval getRealMask();
+	FinalRealInterval getRealInterval( int t );
 }

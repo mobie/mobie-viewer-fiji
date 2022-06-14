@@ -127,7 +127,7 @@ public class MoBIE
 		setS3Credentials( settings );
 		setProjectImageAndTableRootLocations( );
 		registerProjectPlugins( settings.values.getProjectLocation() );
-		projectName = MoBIEHelper.getName( projectLocation );
+		projectName = MoBIEHelper.getFileName( projectLocation );
 		PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
 		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
 		setImageDataFormats( projectLocation );
@@ -645,6 +645,7 @@ public class MoBIE
 		}
 	}
 
+	@Deprecated
 	public void appendSegmentTableColumns( List< ? extends TableRow > tableRows, Collection< String > imageSourceNames, List< String > relativeTablePaths )
 	{
 		for ( String table : relativeTablePaths )
