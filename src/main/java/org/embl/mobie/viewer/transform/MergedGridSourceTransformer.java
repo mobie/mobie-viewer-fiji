@@ -38,6 +38,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MultiThreading;
+import org.embl.mobie.viewer.source.MergedGridSource;
 import org.embl.mobie.viewer.source.SourceHelper;
 
 import java.util.ArrayList;

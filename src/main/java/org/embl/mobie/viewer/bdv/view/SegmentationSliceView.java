@@ -38,8 +38,9 @@ import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.viewer.source.GridSource;
 import org.embl.mobie.viewer.source.LabelSource;
-import org.embl.mobie.viewer.transform.MergedGridSource;
+import org.embl.mobie.viewer.source.MergedGridSource;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
@@ -71,7 +72,7 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 
 	private LabelConverter getLabelConverter( SegmentationDisplay display, SourceAndConverter< ? > sourceAndConverter )
 	{
-		if ( MergedGridSource.instanceOf( sourceAndConverter ) )
+		if ( GridSource.instanceOf( sourceAndConverter ) )
 		{
 			// The source name is not the one from which the
 			// image segments should be fetched.

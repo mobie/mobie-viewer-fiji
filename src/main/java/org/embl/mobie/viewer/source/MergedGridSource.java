@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.transform;
+package org.embl.mobie.viewer.source;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.Affine3DHelpers;
@@ -52,7 +52,7 @@ import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.SourceNameEncoder;
-import org.embl.mobie.viewer.source.LabelSource;
+import org.embl.mobie.viewer.transform.RealIntervalProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,7 +62,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-public class MergedGridSource< T extends NativeType< T > & NumericType< T > > implements Source< T >, RealIntervalProvider
+public class MergedGridSource< T extends NativeType< T > & NumericType< T > > implements GridSource, Source< T >, RealIntervalProvider
 {
 	private final T type;
 	private final Source< T > referenceSource;
@@ -94,29 +94,6 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		initDimensions();
 
 		mergedRandomAccessibleIntervals = createMergedRAIs( referenceSource.getNumMipmapLevels() );
-	}
-
-	public static boolean instanceOf( SourceAndConverter< ? > sourceAndConverter )
-	{
-		final Source< ? > source = sourceAndConverter.getSpimSource();
-		return instanceOf( source );
-	}
-
-	public static boolean instanceOf( Source< ? > source )
-	{
-		if ( source instanceof LabelSource )
-			source = ( ( LabelSource ) source ).getWrappedSource();
-
-		if ( source instanceof MergedGridSource )
-			return true;
-
-		if ( source instanceof TransformedSource )
-			source = ( ( TransformedSource ) source ).getWrappedSource();
-
-		if ( source instanceof MergedGridSource )
-			return true;
-
-		return false;
 	}
 
 	public List< SourceAndConverter< T > > getGridSources()

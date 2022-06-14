@@ -41,7 +41,8 @@ import org.embl.mobie.viewer.bdv.GlobalMousePositionProvider;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
-import org.embl.mobie.viewer.transform.MergedGridSource;
+import org.embl.mobie.viewer.source.GridSource;
+import org.embl.mobie.viewer.source.MergedGridSource;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.Collection;
@@ -149,7 +150,7 @@ public class SliceViewRegionSelector implements Runnable
 
 	private static double getLabelIndex( Source< ? > source, double pixelValue )
 	{
-		if ( MergedGridSource.instanceOf( source ) )
+		if ( GridSource.instanceOf( source ) )
 		{
 			return SourceNameEncoder.getValue( Double.valueOf( pixelValue ).longValue() );
 		}
@@ -161,7 +162,7 @@ public class SliceViewRegionSelector implements Runnable
 
 	private static String getSourceName( Source< ? > source, double labelIndex )
 	{
-		if ( MergedGridSource.instanceOf( source ) )
+		if ( GridSource.instanceOf( source ) )
 		{
 			return SourceNameEncoder.getName( Double.valueOf( labelIndex ).longValue() );
 		}

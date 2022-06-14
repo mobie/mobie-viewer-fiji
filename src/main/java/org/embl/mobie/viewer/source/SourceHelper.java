@@ -51,7 +51,6 @@ import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.color.LazyLabelConverter;
-import org.embl.mobie.viewer.transform.MergedGridSource;
 import org.embl.mobie.viewer.transform.RealIntervalProvider;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
