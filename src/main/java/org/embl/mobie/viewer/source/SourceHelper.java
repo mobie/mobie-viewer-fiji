@@ -256,6 +256,15 @@ public abstract class SourceHelper
 				fetchRootSources( gridSource.getSpimSource(), rootSources );
 			}
 		}
+		else if (  source instanceof FunctionGridSource )
+		{
+			final FunctionGridSource< ? > functionGridSource = ( FunctionGridSource ) source;
+			final List< ? extends Source< ? > > gridSources = functionGridSource.getGridSources();
+			for ( Source< ? > gridSource : gridSources )
+			{
+				fetchRootSources( gridSource, rootSources );
+			}
+		}
 		else if (  source instanceof ResampledSource )
 		{
 			final ResampledSource resampledSource = ( ResampledSource ) source;

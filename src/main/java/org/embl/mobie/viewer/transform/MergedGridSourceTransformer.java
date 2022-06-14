@@ -34,10 +34,13 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import net.imglib2.RealInterval;
+import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.NumericType;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MultiThreading;
+import org.embl.mobie.viewer.source.FunctionGridSource;
 import org.embl.mobie.viewer.source.MergedGridSource;
 import org.embl.mobie.viewer.source.SourceHelper;
 
@@ -49,7 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-public class MergedGridSourceTransformer extends AbstractSourceTransformer
+public class MergedGridSourceTransformer< T extends NumericType< T > >  extends AbstractSourceTransformer
 {
 	// Serialization
 	protected List< String > sources;
@@ -82,7 +85,9 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 		SourceAndConverter< ? > mergedSourceAndConverter = createMergedSourceAndConverter( gridSources, gridSources.get( 0 ).asVolatile().getConverter(), gridSources.get( 0 ).getConverter() );
 
-		sourceNameToSourceAndConverter.put( mergedSourceAndConverter.getSpimSource().getName(), mergedSourceAndConverter );
+		SourceAndConverter< ? > functionSourceAndConverter = createFunctionGridSourceAndConverter( (List) gridSources, (Converter) gridSources.get( 0 ).asVolatile().getConverter(), (Converter) gridSources.get( 0 ).getConverter() );
+
+		sourceNameToSourceAndConverter.put( functionSourceAndConverter.getSpimSource().getName(), functionSourceAndConverter );
 
 		// Transform (i.e. adapt the positions) all contained sources,
 		// because several parts of the code refer to them and their
@@ -206,6 +211,24 @@ public class MergedGridSourceTransformer extends AbstractSourceTransformer
 
 		return mergedSourceAndConverter;
 	}
+
+	private SourceAndConverter< T > createFunctionGridSourceAndConverter( List< SourceAndConverter< T > > gridSources, Converter< T, ARGBType > volatileConverter, Converter< T, ARGBType > converter )
+	{
+		final List< Source< T > > source = gridSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() );
+
+		final FunctionGridSource gridSource = new FunctionGridSource( source, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN, encodeSource );
+
+		final List< ? extends Source< ? extends Volatile< T > > > volatileSources = gridSources.stream().map( sac -> sac.asVolatile().getSpimSource() ).collect( Collectors.toList() );
+
+		final FunctionGridSource volatileGridSource = new FunctionGridSource( volatileSources, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN, encodeSource );
+
+		final SourceAndConverter volatileGridSac = new SourceAndConverter( volatileGridSource, volatileConverter );
+
+		final SourceAndConverter< T > gridSac = new SourceAndConverter( gridSource, converter, volatileGridSac );
+
+		return gridSac;
+	}
+
 
 	private List< SourceAndConverter< ? > > getGridSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{

@@ -40,6 +40,7 @@ import net.imglib2.FinalRealInterval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
+import net.imglib2.Volatile;
 import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
@@ -89,6 +90,11 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 		mergedRAIs = createMergedRAIs();
 	}
 
+	public List< Source< T > > getGridSources()
+	{
+		return gridSources;
+	}
+
 	private void initDimensions()
 	{
 		numMipmapLevels = referenceSource.getNumMipmapLevels();
@@ -108,12 +114,21 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 			int finalLevel = level;
 			BiConsumer< Localizable, T > biConsumer = ( location, value ) ->
 			{
-				final int xCellIndex = location.getIntPosition( 0 ) / cellDimension[ 0 ];
-				final int yCellIndex = location.getIntPosition( 1 ) / cellDimension[ 1 ];
+				int x = location.getIntPosition( 0 );
+				int y = location.getIntPosition( 1 );
+				final int xCellIndex = x / cellDimension[ 0 ];
+				final int yCellIndex = y / cellDimension[ 1 ];
 
 				final Source< T > source = sourceGrid[ xCellIndex ][ yCellIndex ];
-				final int x = location.getIntPosition( 0 ) % xCellIndex;
-				final int y = location.getIntPosition( 1 ) % xCellIndex;
+				if ( source == null )
+				{
+					if ( value instanceof Volatile )
+						( ( Volatile<?> ) value ).setValid( true );
+					return;
+				}
+
+				x = xCellIndex > 0 ? x % xCellIndex : x;
+				y = yCellIndex > 0 ? y % yCellIndex : y;
 
 				final T v = source.getSource( 0, finalLevel ).randomAccess().setPositionAndGet( x, y, location.getIntPosition( 2 ) );
 				value.set( v );
