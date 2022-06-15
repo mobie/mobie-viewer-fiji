@@ -12,6 +12,8 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.TableColumnNames;
+import org.embl.mobie.viewer.color.LazyConverter;
+import org.embl.mobie.viewer.color.VolatileLazyConverter;
 import org.embl.mobie.viewer.table.TableHelper;
 import org.embl.mobie.viewer.table.TableRowsTableModel;
 
@@ -94,7 +96,7 @@ public class SourceAndConverterAndTables< N extends NumericType< N > > extends S
 			}
 
 			// open image
-			sourceAndConverter = ( SourceAndConverter< N > ) moBIE.openSourceAndConverter( name, null );
+			sourceAndConverter = ( SourceAndConverter< N > ) moBIE.openSourceAndConverter( name, "Lazy open " );
 		}
 
 		return sourceAndConverter;

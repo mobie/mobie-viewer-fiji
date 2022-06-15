@@ -114,6 +114,14 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 			int finalLevel = level;
 			BiConsumer< Localizable, T > biConsumer = ( location, value ) ->
 			{
+				// TODO:
+				//   I don't yet understand what determines the location
+				//   that one gets here....probably relative to the extend of the
+				//   whole merged RAI at that level? Then maybe that whole RAI should be zeroMin (and the position in BDV is determined by the transform)?
+				//   - it seems ZerMin is correct as also the cachedCellImg in MGS is
+				//     zeroMin
+				//     BUT: the upper left corner (0,0) is defined by position = (0,0)
+				//     So, in fact the current code may be correct.
 				int x = location.getIntPosition( 0 );
 				int y = location.getIntPosition( 1 );
 				final int xCellIndex = x / cellDimension[ 0 ];
@@ -123,7 +131,13 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 				if ( source == null )
 				{
 					if ( value instanceof Volatile )
-						( ( Volatile<?> ) value ).setValid( true );
+					{
+						if ( ! ( ( Volatile<?> ) value ).isValid() )
+						{
+							// does this ever happen?
+							( ( Volatile< ? > ) value ).setValid( true );
+						}
+					}
 					return;
 				}
 
@@ -137,7 +151,6 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 			final FunctionRandomAccessible< T > randomAccessible = new FunctionRandomAccessible( 3, biConsumer, () -> type.createVariable() );
 
 			final long[] dimensions = getDimensions( positions, cellDimension );
-			new FinalInterval( dimensions );
 			final IntervalView< T > rai = Views.interval( randomAccessible, new FinalInterval( dimensions ) );
 			mergedRAIs.add( rai );
 		}

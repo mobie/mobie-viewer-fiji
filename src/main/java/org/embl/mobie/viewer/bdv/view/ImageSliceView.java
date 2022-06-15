@@ -74,7 +74,8 @@ public class ImageSliceView extends AbstractSliceView
 		for ( String name : sourceNameToSourceAndConverter.keySet() )
 		{
 			SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( name );
-			sourceAndConverter = replaceConverterWithAdjustableOpacityConverter( sourceAndConverter );
+			// TODO: Can't we do this already during loading?!
+			sourceAndConverter = wrapConverterAsAdjustableOpacityConverter( sourceAndConverter );
 			adaptImageColor( sourceAndConverter );
 
 			display.sliceViewer.show( sourceAndConverter, display );
@@ -85,7 +86,8 @@ public class ImageSliceView extends AbstractSliceView
 		}
 	}
 
-	private SourceAndConverter< ? > replaceConverterWithAdjustableOpacityConverter( SourceAndConverter< ? > sourceAndConverter )
+	// TODO: Can't we do this already during loading?!
+	private SourceAndConverter< ? > wrapConverterAsAdjustableOpacityConverter( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final Converter< RealType, ARGBType > converter = ( Converter< RealType, ARGBType > ) sourceAndConverter.getConverter();
 		final AdjustableOpacityColorConverter adjustableOpacityColorConverter = new AdjustableOpacityColorConverter( converter );

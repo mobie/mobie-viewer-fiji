@@ -312,10 +312,12 @@ public class ViewManager
 		// create transformed sources
 		final List< SourceTransformer > sourceTransformers = view.getSourceTransforms();
 		if ( sourceTransformers != null )
-		for ( SourceTransformer sourceTransformer : sourceTransformers )
 		{
-			currentSourceTransformers.add( sourceTransformer );
-			sourceTransformer.transform( sourceNameToSourceAndConverters );
+			for ( SourceTransformer sourceTransformer : sourceTransformers )
+			{
+				currentSourceTransformers.add( sourceTransformer );
+				sourceTransformer.transform( sourceNameToSourceAndConverters );
+			}
 		}
 
 		// Wrap all in a final transformed source.

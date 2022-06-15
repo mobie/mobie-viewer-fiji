@@ -98,7 +98,7 @@ public class MergedGridSourceTransformer< T extends NumericType< T > >  extends 
 
 		final long duration = System.currentTimeMillis() - startTime;
 		if ( duration > MoBIE.minLogTimeMillis )
-			IJ.log("Merged " + sources.size() + " sources into " + mergedGridSourceName + " in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
+			IJ.log("Merged " + sources.size() + " sources into " + mergedGridSourceName + " in " + duration + " ms (centerAtOrigin="+centerAtOrigin+").");
 	}
 
 	private void transformContainedSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > gridSources )
