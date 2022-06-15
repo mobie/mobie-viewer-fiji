@@ -28,12 +28,10 @@
  */
 package org.embl.mobie.viewer.source;
 
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.Affine3DHelpers;
 import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;
@@ -141,11 +139,28 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 					return;
 				}
 
-				x = xCellIndex > 0 ? x % xCellIndex : x;
-				y = yCellIndex > 0 ? y % yCellIndex : y;
+				x = x - xCellIndex * cellDimension[ 0 ];
+				y = y - yCellIndex * cellDimension[ 1 ];
 
-				final T v = source.getSource( 0, finalLevel ).randomAccess().setPositionAndGet( x, y, location.getIntPosition( 2 ) );
-				value.set( v );
+				// TODO: below call is blocking while it is loading...
+				if ( source instanceof VolatileLazySpimSource )
+				{
+					final VolatileLazySpimSource< ?, ? > lazySpimSource = ( VolatileLazySpimSource< ?, ? > ) source;
+					if ( lazySpimSource.isOpen() )
+					{
+						setValue( finalLevel, location, value, x, y, source );
+					}
+					else
+					{
+						new Thread( () -> lazySpimSource.open() ).start();
+						(( Volatile<?> ) value ).setValid( false );
+					}
+				}
+				else
+				{
+					setValue( finalLevel, location, value, x, y, source );
+				}
+
 			};
 
 			final FunctionRandomAccessible< T > randomAccessible = new FunctionRandomAccessible( 3, biConsumer, () -> type.createVariable() );
@@ -156,6 +171,16 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 		}
 
 		return mergedRAIs;
+	}
+
+	private void setValue( int finalLevel, Localizable location, T value, int x, int y, Source< T > source )
+	{
+		final T v = source.getSource( 0, finalLevel ).randomAccess().setPositionAndGet( x, y, location.getIntPosition( 2 ) );
+		if ( !( ( Volatile< ? > ) v ).isValid() )
+		{
+			int a = 1;
+		}
+		value.set( v );
 	}
 
 	private void setCellRealDimensions( int[] cellDimension )

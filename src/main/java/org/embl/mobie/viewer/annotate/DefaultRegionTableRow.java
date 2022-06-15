@@ -56,7 +56,6 @@ public class DefaultRegionTableRow extends AbstractTableRow implements RegionTab
 		this.cells = new LinkedHashMap<>();
 		for ( String column : columns.keySet() )
 			cells.put( column, columns.get( column ).get( rowIndex ) );
-
 	}
 
 	@Override

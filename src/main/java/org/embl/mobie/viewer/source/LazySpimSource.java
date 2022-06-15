@@ -6,12 +6,12 @@ import bdv.viewer.Source;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
+import net.imglib2.Volatile;
 import net.imglib2.type.numeric.NumericType;
 import org.embl.mobie.viewer.transform.RealIntervalProvider;
 
 public class LazySpimSource< N extends NumericType< N > > extends AbstractLazySpimSource< N > implements Source< N >
 {
-
 	public LazySpimSource( SourceAndConverterAndTables< N > sourceAndConverterAndTables )
 	{
 		super( sourceAndConverterAndTables );
@@ -29,10 +29,15 @@ public class LazySpimSource< N extends NumericType< N > > extends AbstractLazySp
 		return openSpimSource().getInterpolatedSource( t, level, method );
 	}
 
-	@Override
 	public N getType()
 	{
-		return openSpimSource().getType();
+		return getInitializationSource().getType();
 	}
+
+	private Source< N > openSpimSource()
+	{
+		return sourceAndConverterAndTables.getSourceAndConverter().getSpimSource();
+	}
+
 }
 

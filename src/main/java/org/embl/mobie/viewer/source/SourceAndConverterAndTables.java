@@ -82,7 +82,7 @@ public class SourceAndConverterAndTables< N extends NumericType< N > > extends S
 		return new SourceAndConverter( volatileLazySpimSource, volatileLazyConverter  );
 	}
 
-	public SourceAndConverter< N > getSourceAndConverter()
+	public synchronized SourceAndConverter< N > getSourceAndConverter()
 	{
 		if ( sourceAndConverter == null )
 		{

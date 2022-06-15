@@ -45,51 +45,52 @@ import java.util.function.Function;
 public class RegionCreator
 {
 	private final Map< String, List< String > > columns;
-	private final Map< String, List< String > > annotationIdToSources;
+	private final Map< String, List< String > > regionIdToSourceNames;
 	private final Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier;
 	private List< RegionTableRow > regionTableRows;
 
-	// TODO: The AnnotatedMaskCreator does not need the sources, but just the sources' real intervals
-	public RegionCreator( Map< String, List< String > > columns, Map< String, List< String > > annotationIdToSources, Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier)
+	public RegionCreator( Map< String, List< String > > columns, Map< String, List< String > > regionIdToSourceNames, Function< String, SourceAndConverter< ? > > sourceAndConverterSupplier)
 	{
 		this.columns = columns;
-		this.annotationIdToSources = annotationIdToSources;
+		this.regionIdToSourceNames = regionIdToSourceNames;
 		this.sourceAndConverterSupplier = sourceAndConverterSupplier;
-		createAnnotatedMasks();
+		createRegions();
 	}
 
-	private void createAnnotatedMasks()
+	private void createRegions()
 	{
 		final long currentTimeMillis = System.currentTimeMillis();
 
 		regionTableRows = new ArrayList<>();
-		final Set< String > annotationIds = annotationIdToSources.keySet();
-		final List< String > annotationIdColumn = columns.get( TableColumnNames.REGION_ID );
+		final Set< String > regionIds = regionIdToSourceNames.keySet();
+		final List< String > regionIdColumn = columns.get( TableColumnNames.REGION_ID );
 
-		for ( String annotationId : annotationIds )
+		System.out.println("numRegions = " + regionIds.size());
+		for ( String regionId : regionIds )
 		{
-			final ArrayList< Source< ? > > sources = getSources( annotationId );
+			System.out.println( "regionID = " + regionId );
+			final ArrayList< Source< ? > > sources = getSources( regionId );
 			final RealMaskRealInterval mask = SourceHelper.getUnionMask( sources, 0 );
-			System.out.println( annotationId + " (" + sources.size() + ") " + Arrays.toString( mask.minAsDoubleArray() ) + "-" + Arrays.toString( mask.maxAsDoubleArray() ));
+			System.out.println( "numImages = " + sources.size() + ", region = " + Arrays.toString( mask.minAsDoubleArray() ) + " - " + Arrays.toString( mask.maxAsDoubleArray() ));
 
 			regionTableRows.add(
 					new DefaultRegionTableRow(
-							annotationId,
+							regionId,
 							mask,
 							columns,
-							annotationIdColumn.indexOf( annotationId ) )
+							regionIdColumn.indexOf( regionId ) )
 			);
 		}
 
 		final long durationMillis = System.currentTimeMillis() - currentTimeMillis;
 		if ( durationMillis > 100 )
-			IJ.log("Created " + annotationIds.size() + " annotated intervals in " + durationMillis + " ms.");
+			IJ.log("Created " + regionIds.size() + " annotated intervals in " + durationMillis + " ms.");
 	}
 
 	private ArrayList< Source< ? > > getSources( String annotationId )
 	{
 		final ArrayList< Source< ? > > sources = new ArrayList<>();
-		final List< String > sourceNames = annotationIdToSources.get( annotationId );
+		final List< String > sourceNames = regionIdToSourceNames.get( annotationId );
 		for ( String sourceName : sourceNames )
 		{
 			try

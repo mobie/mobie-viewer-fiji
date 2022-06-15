@@ -331,8 +331,8 @@ public abstract class SourceHelper
 			rai.realMin( min );
 			rai.realMax( max );
 		}
-		final AffineTransform3D affineTransform3D = new AffineTransform3D();
-		source.getSourceTransform( 0, 0, affineTransform3D );
+		final AffineTransform3D sourceTransform = new AffineTransform3D();
+		source.getSourceTransform( 0, 0, sourceTransform );
 
 		// expand with voxel dimensions
 		final double[] voxelSizes = new double[ 3 ];
@@ -346,18 +346,7 @@ public abstract class SourceHelper
 		// create mask
 		// as compared with estimateBounds this has the
 		// advantage that it can represent a rotated box
-		final RealMaskRealInterval mask = GeomMasks.closedBox( min, max ).transform( affineTransform3D.inverse() );
+		final RealMaskRealInterval mask = GeomMasks.closedBox( min, max ).transform( sourceTransform.inverse() );
 		return mask;
-	}
-
-	public static SourceAndConverter< ? > getSourceAndConverter( List< SourceAndConverter< ? > > sourceAndConverters, String name )
-	{
-		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
-		{
-			if ( sourceAndConverter.getSpimSource().getName().equals( name ) )
-				return sourceAndConverter;
-		}
-
-		return null;
 	}
 }

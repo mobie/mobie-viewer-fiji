@@ -4,6 +4,7 @@ package org.embl.mobie.viewer.source;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
+import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import org.embl.mobie.viewer.transform.RealIntervalProvider;
@@ -57,9 +58,9 @@ public class AbstractLazySpimSource< N extends NumericType< N > > implements Rea
 		return sourceAndConverterAndTables.getInitializationSourceAndConverter().getSpimSource();
 	}
 
-	protected Source< N > openSpimSource()
+	protected Source< ? extends Volatile< N > > getVolatileInitializationSource()
 	{
-		return sourceAndConverterAndTables.getSourceAndConverter().getSpimSource();
+		return sourceAndConverterAndTables.getInitializationSourceAndConverter().asVolatile().getSpimSource();
 	}
 
 	public SourceAndConverterAndTables< ? > getLazySourceAndConverterAndTables()

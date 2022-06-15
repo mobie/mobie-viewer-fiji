@@ -145,6 +145,7 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 		}
 
 		// primary table
+		System.out.println("Creating regions for " + name + "..." );
 		final RegionCreator regionCreator = new RegionCreator( tableColumns.get( 0 ), sources, ( String sourceName ) -> moBIE.sourceNameToSourceAndConverter().get( sourceName ) );
 		final List< RegionTableRow > regionTableRows = regionCreator.getRegionTableRows();
 		tableRows = new TableRowsTableModel( regionTableRows );
@@ -168,7 +169,14 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 		// deal with the fact that the region ids are sometimes
 		// stored as 1 and sometimes as 1.0
 		// after below operation they all will be 1.0, 2.0, ...
-		MoBIEHelper.toDoubleStrings( columns.get( TableColumnNames.REGION_ID ) );
+		// MoBIEHelper.toDoubleStrings( columns.get( TableColumnNames.REGION_ID ) );
+		// 2022-June-15 Commented out the above,
+		// because the regionIds also occur in
+		// protected Map< String, List< String > > sources; // annotationId to sources
+		// where again there could be a different convention
+		// regionIds should not be numbers anyway but something more
+		// meaningful! (for labelIds that is a different story, see
+		// SegmentationDisplay).
 
 		return columns;
 	}
