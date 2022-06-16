@@ -128,6 +128,9 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 				int y = location.getIntPosition( 1 );
 				final int xCellIndex = x / cellDimension[ 0 ];
 				final int yCellIndex = y / cellDimension[ 1 ];
+				// TODO: move this into the function computeTranslation
+				x = x - xCellIndex * cellDimension [ 0 ];
+				y = y - yCellIndex * cellDimension [ 1 ];
 
 				final RandomAccessSupplier< T > randomAccessSupplier = randomAccessGrid[ xCellIndex ][ yCellIndex ];
 
@@ -142,13 +145,9 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 				}
 				else if ( randomAccessibleStatus.equals( RandomAccessibleStatus.Opening ) )
 				{
-					// TODO: this always is volatile...
-					if ( value instanceof Volatile )
-					{
-						( ( Volatile<?> ) value ).setValid( false );
-					}
+					( ( Volatile<?> ) value ).setValid( false );
 				}
-				else if ( randomAccessibleStatus.equals( RandomAccessibleStatus.Opening ) )
+				else if ( randomAccessibleStatus.equals( RandomAccessibleStatus.Closed ) )
 				{
 					new Thread( () -> randomAccessSupplier.open( level ) ).start();
 					(( Volatile<?> ) value ).setValid( false );
@@ -163,16 +162,6 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 		}
 
 		return mergedRAIs;
-	}
-
-	private void setValue( int level, Localizable location, T value, int x, int y, Source< T > source, int[] cellDimension )
-	{
-		RandomAccessibleInterval< T > rai = source.getSource( 0, level );
-		RandomAccessible< T > ra = Views.extendZero( source.getSource( 0, level ) );
-		final long[] offset = computeTranslation( cellDimension, rai.dimensionsAsLongArray() );
-		final MixedTransformView< T > translate = Views.translate( ra, offset );
-		final T v = translate.randomAccess().setPositionAndGet( x, y, location.getIntPosition( 2 ) );
-		value.set( v );
 	}
 
 	private void setCellRealDimensions( int[] cellDimension )
@@ -416,7 +405,7 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 	{
 		private final Source< T > source;
 		private Map< Integer, RandomAccess< T > > levelToRandomAccess;
-		private Map< Integer, RandomAccessibleInterval< T > > levelToRandomAccessible;
+		private Map< Integer, RandomAccessible< T > > levelToRandomAccessible;
 		private Map< Integer, FunctionGridSource.RandomAccessibleStatus > levelToStatus;
 
 		public RandomAccessSupplier( Source< T > source )
@@ -425,13 +414,16 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 			levelToRandomAccess = new ConcurrentHashMap<>();
 			levelToRandomAccessible = new ConcurrentHashMap<>();
 			levelToStatus = new ConcurrentHashMap<>();
+			for ( int level = 0; level < numMipmapLevels; level++ )
+				levelToStatus.put( level, RandomAccessibleStatus.Closed );
 		}
 
 		public T get( int level, int x, int y, int z )
 		{
 			final long l = System.currentTimeMillis();
-			final T value = levelToRandomAccess.get( level ).setPositionAndGet( x, y, z );
-			System.out.println( "Value: " + ( System.currentTimeMillis() - l )) ;
+			final T value = levelToRandomAccessible.get( level ).randomAccess().setPositionAndGet( x, y, z );
+			final long millis = System.currentTimeMillis() - l;
+			//System.out.println( "Value: " + millis ) ;
 			return value;
 		}
 
@@ -453,8 +445,9 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 			RandomAccessible< T > ra = Views.extendZero( rai );
 			final long[] offset = computeTranslation( cellDimensions[ level ], rai.dimensionsAsLongArray() );
 			final RandomAccessible< T > translate = Views.translate( ra, offset );
+			levelToRandomAccessible.put( level, translate );
 			levelToRandomAccess.put( level, translate.randomAccess() );
-			System.out.println( "Open: " + ( System.currentTimeMillis() - l )) ;
+			System.out.println( "Open " + source.getName() + ", level=" + level + ": " + ( System.currentTimeMillis() - l ) + " ms") ;
 			levelToStatus.put( level, FunctionGridSource.RandomAccessibleStatus.Open );
 		}
 	}
