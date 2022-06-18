@@ -62,9 +62,9 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 
 	private SourceAndConverter labelSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, SegmentationDisplay display )
 	{
-		final BoundarySource volatileBoundarySource = new BoundarySource( sourceAndConverter.asVolatile().getSpimSource(), display.tableRows.getTableRows() );
+		final BoundarySource volatileBoundarySource = new BoundarySource( sourceAndConverter.asVolatile().getSpimSource() );
 		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, new VolatileAnnotationConverter( display.selectionColoringModel ) );
-		final BoundarySource boundarySource = new BoundarySource( sourceAndConverter.getSpimSource(), display.tableRows.getTableRows() );
+		final BoundarySource boundarySource = new BoundarySource( sourceAndConverter.getSpimSource() );
 		return new SourceAndConverter( boundarySource, new LabelConverter(), volatileSourceAndConverter );
 	}
 

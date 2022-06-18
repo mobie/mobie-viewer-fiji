@@ -31,45 +31,34 @@ package org.embl.mobie.viewer.source;
 import bdv.util.Affine3DHelpers;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import de.embl.cba.tables.imagesegment.ImageSegment;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
-import net.imglib2.converter.Converters;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.type.Type;
-import net.imglib2.type.numeric.NumericType;
-import net.imglib2.type.numeric.RealType;
-import org.embl.mobie.viewer.segment.SegmentAdapter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.function.BiConsumer;
 
-public class BoundarySource< T extends AnnotationType< T > > extends AbstractBoundarySource< T >
+public class VolatileBoundarySource< V extends VolatileAnnotationType< V > > extends AbstractBoundarySource< V >
 {
-    private final Source< T > source;
     private boolean showAsBoundaries;
     private float boundaryWidth;
     private ArrayList< Integer > boundaryDimensions;
 
-    public BoundarySource( final Source< T > source )
+    public VolatileBoundarySource( final Source< V > source )
     {
-        this.source = source;
+        super( source );
     }
 
-
     @Override
-    public RealRandomAccessible< T > getInterpolatedSource( final int t, final int level, final Interpolation method )
+    public RealRandomAccessible< V > getInterpolatedSource( final int t, final int level, final Interpolation method )
     {
-        final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
+        final RealRandomAccessible< V > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
         if ( showAsBoundaries  )
         {
@@ -79,14 +68,7 @@ public class BoundarySource< T extends AnnotationType< T > > extends AbstractBou
             // make this less confusing...
             final float[] boundarySizePixelUnits = getBoundarySize( t, level );
 
-            if ( rra.realRandomAccess().get() instanceof Volatile )
-            {
-                return createVolatileBoundaryRRA( rra, boundaryDimensions, boundarySizePixelUnits );
-            }
-            else
-            {
-                return createBoundaryRRA( rra, boundaryDimensions, boundarySizePixelUnits );
-            }
+            return createVolatileBoundaryRRA( rra, boundaryDimensions, boundarySizePixelUnits );
         }
         else
         {
@@ -94,37 +76,86 @@ public class BoundarySource< T extends AnnotationType< T > > extends AbstractBou
         }
     }
 
-
-    private FunctionRealRandomAccessible< T > createBoundaryRRA( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
+    private FunctionRealRandomAccessible< V > createVolatileBoundaryRRA( RealRandomAccessible< V > rra, ArrayList< Integer > boundaryDimensions, float[] boundaryWidth )
     {
-        BiConsumer< RealLocalizable, T > biConsumer = ( l, o ) ->
+        BiConsumer< RealLocalizable, V > boundaries = ( l, output ) ->
         {
-            final RealRandomAccess< T > access = rra.realRandomAccess();
-            T centerValue = access.setPositionAndGet( l );
-            if ( centerValue.getAnnotation() == null )
+            final RealRandomAccess< V > access = rra.realRandomAccess();
+            V input = access.setPositionAndGet( l );
+            if ( ! input.isValid() )
             {
-                o.set( null );
+                output.setValid( false );
                 return;
             }
-            for ( Integer d : dimensions )
+            final V centerValue = input.get();
+            if ( centerValue.getAnnotation() == null  )
             {
-                for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
+                output.get().setReal( background );
+                output.setValid( true );
+                return;
+            }
+            for ( Integer d : boundaryDimensions )
+            {
+                for ( int signum = -1; signum <= +1; signum +=2  ) // back and forth
                 {
                     access.move( signum * boundaryWidth[ d ], d );
-                    if ( ! centerValue.valueEquals( access.get() ) )
+                    input = ( Volatile< V > ) access.get();
+                    if ( ! input.isValid() )
                     {
-                        o.set( centerValue ); // it is a boundary pixel!
+                        output.setValid( false );
+                        return;
+                    }
+                    else if ( centerFloat != centerValue.getRealFloat() )
+                    {
+                        output.get().setReal( centerFloat );
+                        output.setValid( true );
                         return;
                     }
                     access.move( - signum * boundaryWidth[ d ], d ); // move back to center
                 }
             }
-            o.set( null ); // no boundary pixel
+            output.get().setReal( background );
+            output.setValid( true );
             return;
         };
-        final T type = rra.realRandomAccess().get();
-        final FunctionRealRandomAccessible< T > labelBoundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.copy() );
-        return labelBoundaries;
+        final V type = rra.realRandomAccess().get();
+        final FunctionRealRandomAccessible< V > randomAccessible = new FunctionRealRandomAccessible( 3, boundaries, () -> type.copy() );
+        return randomAccessible;
     }
 
+
+    @Override
+    public VolatileSegmentType getType() {
+        return new VolatileSegmentType();
+    }
+
+    @Override
+    public String getName() {
+        return source.getName();
+    }
+
+    @Override
+    public VoxelDimensions getVoxelDimensions() {
+        return source.getVoxelDimensions();
+    }
+
+    @Override
+    public int getNumMipmapLevels() {
+        return source.getNumMipmapLevels();
+    }
+
+    @Override
+    public Source< V > getWrappedSource() {
+        return source;
+    }
+
+    public boolean isShowAsBoundaries()
+    {
+        return showAsBoundaries;
+    }
+
+    public float getBoundaryWidth()
+    {
+        return boundaryWidth;
+    }
 }
