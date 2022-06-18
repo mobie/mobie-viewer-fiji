@@ -33,7 +33,7 @@ import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.n5.loaders.N5FSImageLoader;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.ome.zarr.readers.N5OmeZarrReader;
-import org.embl.mobie.viewer.Dataset;
+import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.view.View;
 import org.embl.mobie.viewer.view.AdditionalViews;
 import org.embl.mobie.io.util.IOHelper;

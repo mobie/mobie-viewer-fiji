@@ -29,7 +29,7 @@
 package org.embl.mobie.viewer.view.save;
 
 import org.embl.mobie.viewer.MoBIESettings;
-import org.embl.mobie.viewer.Dataset;
+import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;

@@ -38,7 +38,7 @@ import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.source.LazySpimSource;
-import org.embl.mobie.viewer.source.SegmentationSource;
+import org.embl.mobie.viewer.serialize.SegmentationSource;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.table.TableHelper;
 import org.embl.mobie.viewer.table.TableRowsTableModel;

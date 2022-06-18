@@ -29,7 +29,7 @@
 package org.embl.mobie.viewer.projectcreator;
 
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.Dataset;
+import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;

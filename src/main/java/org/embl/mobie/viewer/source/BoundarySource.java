@@ -28,81 +28,34 @@
  */
 package org.embl.mobie.viewer.source;
 
-import bdv.util.Affine3DHelpers;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import de.embl.cba.tables.imagesegment.ImageSegment;
-import mpicbg.spim.data.sequence.VoxelDimensions;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
-import net.imglib2.Volatile;
-import net.imglib2.converter.Converters;
 import net.imglib2.position.FunctionRealRandomAccessible;
-import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.type.Type;
-import net.imglib2.type.numeric.NumericType;
-import net.imglib2.type.numeric.RealType;
-import org.embl.mobie.viewer.segment.SegmentAdapter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.function.BiConsumer;
 
 public class BoundarySource< T extends AnnotationType< T > > extends AbstractBoundarySource< T >
 {
-    private final Source< T > source;
-    private boolean showAsBoundaries;
-    private float boundaryWidth;
-    private ArrayList< Integer > boundaryDimensions;
-
     public BoundarySource( final Source< T > source )
     {
-        this.source = source;
+       super( source, null );
     }
 
     @Override
-    public RealRandomAccessible< T > getInterpolatedSource( final int t, final int level, final Interpolation method )
+    protected FunctionRealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
     {
-        final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
-
-        if ( showAsBoundaries  )
-        {
-            // Ultimately we need the boundaries in pixel units, because
-            // we have to check the voxel values in the rra, which is in voxel units.
-            // However, it feels like we could stay longer in physical units here to
-            // make this less confusing...
-            final float[] boundarySizePixelUnits = getBoundarySize( t, level );
-
-            if ( rra.realRandomAccess().get() instanceof Volatile )
-            {
-                return createVolatileBoundaryRRA( rra, boundaryDimensions, boundarySizePixelUnits );
-            }
-            else
-            {
-                return createBoundaryRRA( rra, boundaryDimensions, boundarySizePixelUnits );
-            }
-        }
-        else
-        {
-            return rra;
-        }
-    }
-
-
-    private FunctionRealRandomAccessible< T > createBoundaryRRA( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
-    {
-        BiConsumer< RealLocalizable, T > biConsumer = ( l, o ) ->
+        BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
         {
             final RealRandomAccess< T > access = rra.realRandomAccess();
-            T centerValue = access.setPositionAndGet( l );
-            if ( centerValue.getAnnotation() == null )
+            T input = access.setPositionAndGet( l );
+            if ( input.getAnnotation() == null )
             {
-                o.set( null );
+                // no annotation
+                output.set( input.createVariable() );
                 return;
             }
             for ( Integer d : dimensions )
@@ -110,20 +63,19 @@ public class BoundarySource< T extends AnnotationType< T > > extends AbstractBou
                 for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
                 {
                     access.move( signum * boundaryWidth[ d ], d );
-                    if ( ! centerValue.valueEquals( access.get() ) )
+                    if ( ! input.valueEquals( access.get() ) )
                     {
-                        o.set( centerValue ); // it is a boundary pixel!
+                        output.set( input.copy() ); // it is a boundary pixel!
                         return;
                     }
                     access.move( - signum * boundaryWidth[ d ], d ); // move back to center
                 }
             }
-            o.set( null ); // no boundary pixel
+            output.set( input.createVariable() ); // no boundary pixel
             return;
         };
         final T type = rra.realRandomAccess().get();
-        final FunctionRealRandomAccessible< T > labelBoundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.copy() );
-        return labelBoundaries;
+        final FunctionRealRandomAccessible< T > boundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.copy() );
+        return boundaries;
     }
-
 }

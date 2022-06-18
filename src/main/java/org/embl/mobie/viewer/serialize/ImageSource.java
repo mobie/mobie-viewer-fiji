@@ -26,13 +26,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.source;
+package org.embl.mobie.viewer.serialize;
 
-import org.embl.mobie.viewer.table.TableDataFormat;
+import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.viewer.source.StorageLocation;
 
 import java.util.Map;
 
-public class SegmentationSource extends ImageSource
+// TODO: consider renaming to avoid confusion with BDV Source
+public class ImageSource
 {
-	public Map< TableDataFormat, StorageLocation > tableData;
+	public Map< ImageDataFormat, StorageLocation > imageData;
 }

@@ -34,12 +34,12 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imagej.patcher.LegacyInjector;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
-import org.embl.mobie.viewer.Dataset;
+import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.source.ImageSource;
+import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.source.SourceSupplier;
 
 import java.io.File;

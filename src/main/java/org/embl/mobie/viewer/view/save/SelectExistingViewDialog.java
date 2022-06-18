@@ -28,7 +28,7 @@
  */
 package org.embl.mobie.viewer.view.save;
 
-import org.embl.mobie.viewer.Dataset;
+import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.ui.MoBIELaf;
 import org.embl.mobie.viewer.view.AdditionalViews;

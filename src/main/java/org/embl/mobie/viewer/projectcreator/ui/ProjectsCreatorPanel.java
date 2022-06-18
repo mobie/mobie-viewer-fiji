@@ -32,7 +32,7 @@ import mpicbg.spim.data.SpimData;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
-import org.embl.mobie.viewer.Dataset;
+import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.Project;
 import org.embl.mobie.viewer.MoBIEHelper;

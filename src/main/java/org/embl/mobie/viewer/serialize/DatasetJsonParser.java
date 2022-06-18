@@ -30,15 +30,9 @@ package org.embl.mobie.viewer.serialize;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonWriter;
-import ij.IJ;
-import org.embl.mobie.viewer.Dataset;
 import org.embl.mobie.io.util.IOHelper;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
 
 public class DatasetJsonParser

@@ -35,9 +35,9 @@ import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.n5.writers.WriteImagePlusToN5;
 import org.embl.mobie.io.ome.zarr.writers.imageplus.WriteImagePlusToN5OmeZarr;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.Dataset;
+import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
-import org.embl.mobie.viewer.source.SegmentationSource;
+import org.embl.mobie.viewer.serialize.SegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 
 import ij.ImagePlus;

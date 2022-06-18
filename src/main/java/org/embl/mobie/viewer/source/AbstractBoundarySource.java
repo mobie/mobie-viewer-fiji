@@ -29,10 +29,14 @@
 package org.embl.mobie.viewer.source;
 
 import bdv.util.Affine3DHelpers;
+import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealRandomAccessible;
+import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.roi.RealMaskRealInterval;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,10 +47,12 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     protected boolean showAsBoundaries;
     protected float boundaryWidth;
     protected ArrayList< Integer > boundaryDimensions;
+    protected final RealMaskRealInterval bounds;
 
-    public AbstractBoundarySource( final Source< T > source )
+    public AbstractBoundarySource( final Source< T > source, RealMaskRealInterval bounds )
     {
         this.source = source;
+        this.bounds = bounds;
     }
 
     public void showAsBoundary( boolean showAsBoundaries, float boundaryWidth ) {
@@ -76,6 +82,29 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     {
         return source.getSource( t, level );
     }
+
+    @Override
+    public RealRandomAccessible< T > getInterpolatedSource( final int t, final int level, final Interpolation method )
+    {
+        final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
+
+        if ( showAsBoundaries  )
+        {
+            // Ultimately we need the boundaries in pixel units, because
+            // we have to check the voxel values in the rra, which is in voxel units.
+            // However, it feels like we could stay longer in physical units here to
+            // make this less confusing...
+            final float[] boundarySizePixelUnits = getBoundarySize( t, level );
+            return createBoundaryImage( rra, boundaryDimensions, boundarySizePixelUnits );
+
+        }
+        else
+        {
+            return rra;
+        }
+    }
+
+    protected abstract FunctionRealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth );
 
     protected ArrayList< Integer > boundaryDimensions()
     {

@@ -31,7 +31,7 @@ package org.embl.mobie.viewer.projectcreator;
 import mpicbg.spim.data.SpimDataException;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.Dataset;
+import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.junit.jupiter.api.Test;

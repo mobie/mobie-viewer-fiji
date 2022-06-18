@@ -28,9 +28,13 @@
  */
 package org.embl.mobie.viewer.source;
 
+import org.embl.mobie.viewer.serialize.ImageSource;
+import org.embl.mobie.viewer.serialize.SegmentationSource;
+
 // TODO: get rid of the supplier and deal with this by means of a Gson adapter
 public class SourceSupplier
 {
+	// Serialisation
 	private ImageSource image;
 	private SegmentationSource segmentation;
 
