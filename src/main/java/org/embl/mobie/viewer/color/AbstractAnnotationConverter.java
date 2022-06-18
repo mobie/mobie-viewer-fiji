@@ -65,10 +65,16 @@ public abstract class AbstractAnnotationConverter< T, A > implements Converter< 
 		return coloringModel;
 	}
 
-	protected void set( T input, ARGBType output )
+	protected void setColor( T input, ARGBType color )
 	{
-		coloringModel.convert( input, output );
-		final int value = output.get();
-		output.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
+		if ( input == null )
+		{
+			// no annotation => background color (black)
+			color.set( 0 );
+			return;
+		}
+		coloringModel.convert( input, color );
+		final int value = color.get();
+		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
 	}
 }

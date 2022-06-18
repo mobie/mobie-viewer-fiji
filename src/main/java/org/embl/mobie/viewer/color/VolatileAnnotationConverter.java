@@ -28,14 +28,8 @@
  */
 package org.embl.mobie.viewer.color;
 
-import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.source.VolatileAnnotationType;
-
-import static net.imglib2.type.numeric.ARGBType.alpha;
-import static net.imglib2.type.numeric.ARGBType.blue;
-import static net.imglib2.type.numeric.ARGBType.green;
-import static net.imglib2.type.numeric.ARGBType.red;
 
 public class VolatileAnnotationConverter< T, A extends VolatileAnnotationType< T > > extends AbstractAnnotationConverter< T, A >
 {
@@ -53,13 +47,6 @@ public class VolatileAnnotationConverter< T, A extends VolatileAnnotationType< T
 			return;
 		}
 
-		if ( input.getAnnotation() == null )
-		{
-			// no annotation => background color (black)
-			output.set( 0 );
-			return;
-		}
-
-		set( input.getAnnotation(), output );
+		setColor( input.getAnnotation(), output );
 	}
 }
