@@ -463,14 +463,24 @@ public class MoBIE
 
 		try
 		{
+			final long l = System.currentTimeMillis();
 			SpimData spimData = tryOpenSpimData( imagePath, imageDataFormat );
+			System.out.println("init setups: " + ( System.currentTimeMillis() - l ));
 			sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 
 			final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 			SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-            // Touch the source once to initiate the cache,
-            // as this speeds up future accesses significantly
-            sourceAndConverter.getSpimSource().getSource( 0,0 );
+
+			// Initiate caches now such that the sources
+			// are more interactive initially within BDV
+			// TODO: it seems that with the optimisations in mobie-io
+			//   https://github.com/mobie/mobie-io/pull/100
+			//   this is not necessary anymore (takes only 1 ms) => remove?!
+            final long l2 = System.currentTimeMillis();
+			final int levels = sourceAndConverter.getSpimSource().getNumMipmapLevels();
+			for ( int level = 0; level < levels; level++ )
+				sourceAndConverter.getSpimSource().getSource( 0, level );
+			System.out.println("init cache loaders: " + ( System.currentTimeMillis() - l2 ));
 			return sourceAndConverter;
 		}
 		catch ( Exception e )

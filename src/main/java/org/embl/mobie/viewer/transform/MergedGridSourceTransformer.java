@@ -59,7 +59,7 @@ public class MergedGridSourceTransformer< T extends NumericType< T > >  extends 
 	protected String mergedGridSourceName;
 	protected List< int[] > positions;
 	protected boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
-	protected boolean encodeSource = false; // true for label images
+	protected boolean encodeSource = false; // true for the first time label images are encoded // TODO: (make issue: why does the user have to worry about this? We could always encode if the images are SACAndTable).
 
 	// Runtime
 	private transient MergedGridSource< ? > mergedGridSource;

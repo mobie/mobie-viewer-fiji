@@ -34,13 +34,12 @@ import bdv.viewer.SynchronizedViewerState;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.color.LabelConverter;
+import org.embl.mobie.viewer.color.VolatileAnnotationConverter;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.source.GridSource;
-import org.embl.mobie.viewer.source.LabelSource;
-import org.embl.mobie.viewer.source.MergedGridSource;
+import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
@@ -55,48 +54,18 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 		{
 			final SourceAndConverter< ? > sourceAndConverter = moBIE.sourceNameToSourceAndConverter().get( name );
 
-			SourceAndConverter< ? > labelSourceAndConverter = asLabelSourceAndConverter( display, sourceAndConverter );
+			SourceAndConverter< ? > labelSourceAndConverter = labelSourceAndConverter( sourceAndConverter, display );
 
 			show( labelSourceAndConverter );
 		}
 	}
 
-	private SourceAndConverter< ? > asLabelSourceAndConverter( SegmentationDisplay display, SourceAndConverter< ? > sourceAndConverter )
+	private SourceAndConverter labelSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, SegmentationDisplay display )
 	{
-		LabelConverter labelConverter = getLabelConverter( display, sourceAndConverter );
-
-		SourceAndConverter< ? > labelSourceAndConverter = asLabelSourceAndConverter( sourceAndConverter, labelConverter );
-
-		return labelSourceAndConverter;
-	}
-
-	private LabelConverter getLabelConverter( SegmentationDisplay display, SourceAndConverter< ? > sourceAndConverter )
-	{
-		if ( GridSource.instanceOf( sourceAndConverter ) )
-		{
-			// The source name is not the one from which the
-			// image segments should be fetched.
-			// Thus, the constructor where the source name
-			// is determined from encoding in the label is chosen.
-			return new LabelConverter(
-					display.tableRowsAdapter,
-					display.selectionColoringModel );
-		}
-		else
-		{
-			return new LabelConverter(
-					display.tableRowsAdapter,
-					sourceAndConverter.getSpimSource().getName(),
-					display.selectionColoringModel );
-		}
-	}
-
-	private SourceAndConverter asLabelSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, LabelConverter labelConverter )
-	{
-		LabelSource volatileLabelSource = new LabelSource( sourceAndConverter.asVolatile().getSpimSource() );
-		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileLabelSource, labelConverter );
-		LabelSource labelSource = new LabelSource( sourceAndConverter.getSpimSource() );
-		return new SourceAndConverter( labelSource, labelConverter, volatileSourceAndConverter );
+		final BoundarySource volatileBoundarySource = new BoundarySource( sourceAndConverter.asVolatile().getSpimSource(), display.tableRows.getTableRows() );
+		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, new VolatileAnnotationConverter( display.selectionColoringModel ) );
+		final BoundarySource boundarySource = new BoundarySource( sourceAndConverter.getSpimSource(), display.tableRows.getTableRows() );
+		return new SourceAndConverter( boundarySource, new LabelConverter(), volatileSourceAndConverter );
 	}
 
 	@Override

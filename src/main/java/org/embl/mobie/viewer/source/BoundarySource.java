@@ -31,55 +31,37 @@ package org.embl.mobie.viewer.source;
 import bdv.util.Affine3DHelpers;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
+import de.embl.cba.tables.imagesegment.ImageSegment;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
+import net.imglib2.converter.Converters;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.viewer.segment.SegmentAdapter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.BiConsumer;
 
-public class LabelSource<T extends NumericType<T> & RealType<T>> implements Source<T>, SourceWrapper<T>
+public class BoundarySource< T > implements Source< T >, SourceWrapper< T >
 {
-    private final Source<T> source;
-    private final float background;
-    private final RealMaskRealInterval bounds;
-    private final Collection< Integer > timePoints;
-
+    private final Source< T > source;
     private boolean showAsBoundaries;
     private float boundaryWidth;
     private ArrayList< Integer > boundaryDimensions;
 
-    public LabelSource( final Source<T> source )
-    {
-        this( source, 0 );
-    }
-
-    public LabelSource( final Source<T> source, float background )
-    {
-        this( source, background, null );
-    }
-
-    public LabelSource( final Source<T> source, float background, RealMaskRealInterval bounds )
-    {
-        this( source, background, bounds, null );
-    }
-
-    public LabelSource( final Source<T> source, float background, RealMaskRealInterval bounds, Collection< Integer > timePoints )
+    public BoundarySource( final Source< T > source )
     {
         this.source = source;
-        this.background = background;
-        this.bounds = bounds;
-        this.timePoints = timePoints;
     }
 
     public void showAsBoundary( boolean showAsBoundaries, float boundaryWidth ) {
@@ -99,46 +81,51 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
     }
 
     @Override
-    public boolean isPresent(final int t)
+    public boolean isPresent( final int t )
     {
-        if ( timePoints != null )
-            return timePoints.contains( t );
-        else
-            return source.isPresent(t);
+        return source.isPresent(t);
     }
 
     @Override
-    public RandomAccessibleInterval<T> getSource(final int t, final int level)
+    public RandomAccessibleInterval< T > getSource( final int t, final int level )
     {
-       return source.getSource( t, level );
+        return source.getSource( t, level );
     }
 
+
     @Override
-    public RealRandomAccessible<T> getInterpolatedSource(final int t, final int level, final Interpolation method)
+    public RealRandomAccessible< T > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
         final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
-        if ( showAsBoundaries  )
+        if ( showAsBoundaries && rra.realRandomAccess().get() instanceof Volatile )
         {
-            // Ultimately we need the boundaries in pixel units, because
-            // we have to check the voxel values in the rra, which is in voxel units.
-            // However, it feels like we could stay longer in physical units here to
+            // Ultimately we need the boundaries
+            // in pixel units, because
+            // we have to check the voxel values
+            // in the rra, which is in voxel units.
+            // However, it feels like we could stay
+            // longer in physical units here to
             // make this less confusing...
+
             final float[] boundarySizePixelUnits = getBoundarySize( t, level );
 
-            if ( rra.realRandomAccess().get() instanceof Volatile )
-            {
-                return createVolatileBoundaryRRA( rra, boundaryDimensions, boundarySizePixelUnits );
-            }
-            else
-            {
-                return createBoundaryRRA( rra, boundaryDimensions, boundarySizePixelUnits );
-            }
+            final FunctionRealRandomAccessible< V > volatileBoundaryRRA = createVolatileBoundaryRRA( ( RealRandomAccessible ) rra, boundaryDimensions, boundarySizePixelUnits );
+            return Converters.convert( volatileBoundaryRRA, ( input, output ) -> {
+                if ( ! input.isValid() )
+                    output.setValid( false );
+                else
+                    set( t, output, input.get() );
+            }, new VolatileSegmentType() );
         }
-        else
-        {
-            return rra;
-        }
+
+        return Converters.convert( rra, ( input, output ) -> set( t, output, input ), new VolatileSegmentType() );
+
+    }
+
+    private void set( int t, VolatileSegmentType output, T input )
+    {
+        output.set( new VolatileSegmentType( adapter.getSegment( input.getRealDouble(), t, source.getName() ) ) );
     }
 
     private ArrayList< Integer > boundaryDimensions()
@@ -221,23 +208,22 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
         return labelBoundaries;
     }
 
-    private FunctionRealRandomAccessible< T > createVolatileBoundaryRRA( RealRandomAccessible< T > rra, ArrayList< Integer > boundaryDimensions, float[] boundaryWidth )
+    private FunctionRealRandomAccessible< V > createVolatileBoundaryRRA( RealRandomAccessible< V > rra, ArrayList< Integer > boundaryDimensions, float[] boundaryWidth )
     {
-        BiConsumer< RealLocalizable, T > boundaries = ( l, o ) ->
+        BiConsumer< RealLocalizable, V > boundaries = ( l, output ) ->
         {
-            final RealRandomAccess< T > access = rra.realRandomAccess();
-            Volatile< T > value = ( Volatile< T > ) access.setPositionAndGet( l );
-            Volatile< T > vo = ( Volatile< T > ) o;
+            final RealRandomAccess< V > access = rra.realRandomAccess();
+            V value = ( V ) access.setPositionAndGet( l );
             if ( ! value.isValid() )
             {
-                vo.setValid( false );
+                output.setValid( false );
                 return;
             }
             final float centerFloat = value.get().getRealFloat();
             if ( centerFloat == background )
             {
-                vo.get().setReal( background );
-                vo.setValid( true );
+                output.get().setReal( background );
+                output.setValid( true );
                 return;
             }
             for ( Integer d : boundaryDimensions )
@@ -245,33 +231,33 @@ public class LabelSource<T extends NumericType<T> & RealType<T>> implements Sour
                 for ( int signum = -1; signum <= +1; signum +=2  ) // back and forth
                 {
                     access.move( signum * boundaryWidth[ d ], d );
-                    value = ( Volatile< T > ) access.get();
+                    value = access.get();
                     if ( ! value.isValid() )
                     {
-                        vo.setValid( false );
+                        output.setValid( false );
                         return;
                     }
                     else if ( centerFloat != value.get().getRealFloat() )
                     {
-                        vo.get().setReal( centerFloat );
-                        vo.setValid( true );
+                        output.get().setReal( centerFloat );
+                        output.setValid( true );
                         return;
                     }
                     access.move( - signum * boundaryWidth[ d ], d ); // move back to center
                 }
             }
-            vo.get().setReal( background );
-            vo.setValid( true );
+            output.get().setReal( background );
+            output.setValid( true );
             return;
         };
-        final T type = rra.realRandomAccess().get();
-        final FunctionRealRandomAccessible< T > randomAccessible = new FunctionRealRandomAccessible( 3, boundaries, () -> type.copy() );
+        final V type = rra.realRandomAccess().get();
+        final FunctionRealRandomAccessible< V > randomAccessible = new FunctionRealRandomAccessible( 3, boundaries, () -> type.get().createVariable() );
         return randomAccessible;
     }
 
     @Override
-    public T getType() {
-        return source.getType();
+    public VolatileSegmentType getType() {
+        return new VolatileSegmentType();
     }
 
     @Override

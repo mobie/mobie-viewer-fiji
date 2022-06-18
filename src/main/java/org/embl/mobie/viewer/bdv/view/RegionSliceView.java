@@ -34,7 +34,7 @@ import bdv.viewer.SynchronizedViewerState;
 import net.imglib2.type.numeric.integer.IntType;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotate.RegionTableRow;
-import org.embl.mobie.viewer.annotate.TableRowsIntervalImage;
+import org.embl.mobie.viewer.annotate.RegionImage;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
@@ -51,7 +51,7 @@ public class RegionSliceView extends AnnotationSliceView< RegionTableRow >
 
 	private SourceAndConverter< IntType > createRegionSourceAndConverter()
 	{
-		final TableRowsIntervalImage< RegionTableRow > intervalImage = new TableRowsIntervalImage( display.tableRows.getTableRows(), display.selectionColoringModel, display.getName() );
+		final RegionImage< RegionTableRow > intervalImage = new RegionImage( display.tableRows.getTableRows(), display.selectionColoringModel, display.getName() );
 
 		return intervalImage.getSourceAndConverter();
 	}

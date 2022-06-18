@@ -35,7 +35,7 @@ import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
-import org.embl.mobie.viewer.segment.SegmentsAdapter;
+import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.bdv.view.SegmentationSliceView;
 import org.embl.mobie.viewer.source.LazySpimSource;
 import org.embl.mobie.viewer.source.SegmentationSource;
@@ -58,7 +58,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 	protected Double[] resolution3dView;
 
 	// Runtime
-	public transient SegmentsAdapter< TableRowImageSegment > tableRowsAdapter;
+	public transient SegmentAdapter< TableRowImageSegment > tableRowsAdapter;
 	public transient SegmentsVolumeViewer< TableRowImageSegment > segmentsVolumeViewer;
 	public transient SegmentationSliceView sliceView;
 
@@ -214,9 +214,9 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 		}
 
 		if ( tableRows != null )
-			tableRowsAdapter = new SegmentsAdapter( tableRows.getTableRows() );
+			tableRowsAdapter = new SegmentAdapter( tableRows.getTableRows() );
 		else
-			tableRowsAdapter = new SegmentsAdapter();
+			tableRowsAdapter = new SegmentAdapter();
 	}
 
 	@Override

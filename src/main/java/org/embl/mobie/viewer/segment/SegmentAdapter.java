@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SegmentsAdapter< T extends ImageSegment >
+public class SegmentAdapter< T extends ImageSegment >
 {
 	private List< T > segments;
 	private Map< LabelFrameAndImage, T > labelFrameAndImageToSegment;
@@ -47,13 +47,13 @@ public class SegmentsAdapter< T extends ImageSegment >
 	/**
 	 * For lazy initialization
 	 */
-	public SegmentsAdapter()
+	public SegmentAdapter()
 	{
 		labelFrameAndImageToSegment = new ConcurrentHashMap();
 		isLazy = true;
 	}
 
-	public SegmentsAdapter( List< T > segments )
+	public SegmentAdapter( List< T > segments )
 	{
 		this.segments = segments;
 

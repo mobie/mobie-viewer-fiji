@@ -35,5 +35,5 @@ public interface Region
 {
 	RealMaskRealInterval mask();
 	Integer timePoint();
-	String name();
+	String labelId();
 }

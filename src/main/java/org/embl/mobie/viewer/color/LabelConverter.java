@@ -31,7 +31,7 @@ package org.embl.mobie.viewer.color;
 import bdv.viewer.TimePointListener;
 import net.imglib2.type.volatiles.VolatileUnsignedIntType;
 import org.embl.mobie.viewer.SourceNameEncoder;
-import org.embl.mobie.viewer.segment.SegmentsAdapter;
+import org.embl.mobie.viewer.segment.SegmentAdapter;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
@@ -43,114 +43,17 @@ import static net.imglib2.type.numeric.ARGBType.blue;
 import static net.imglib2.type.numeric.ARGBType.green;
 import static net.imglib2.type.numeric.ARGBType.red;
 
-public class LabelConverter< S extends ImageSegment > implements Converter< RealType, ARGBType >, TimePointListener, OpacityAdjuster, SelectionColoringModelWrapper
+public class LabelConverter implements Converter
 {
-	private final SegmentsAdapter< S > segmentAdapter;
-	private final String imageId;
-	private final SelectionColoringModel< S > coloringModel;
-
-	private int timepoint = 0;
-	private double opacity = 1.0;
-
-	public LabelConverter(
-			SegmentsAdapter< S > segmentAdapter,
-			SelectionColoringModel< S > coloringModel )
+	public LabelConverter( )
 	{
-		this.segmentAdapter = segmentAdapter;
-		this.imageId = null; // No imageId given => decode from pixel value
-		this.coloringModel = coloringModel;
-	}
-
-	public LabelConverter(
-			SegmentsAdapter< S > segmentAdapter,
-			String imageId,
-			SelectionColoringModel< S > coloringModel )
-	{
-		this.segmentAdapter = segmentAdapter;
-		this.imageId = imageId;
-		this.coloringModel = coloringModel;
+		// this should not be needed,
+		// we only need the volatile version of this
 	}
 
 	@Override
-	public void convert( RealType label, ARGBType color )
+	public void convert( Object input, Object output )
 	{
-		if ( label instanceof Volatile )
-		{
-			if ( !( ( Volatile ) label ).isValid() )
-			{
-				color.set( 0 );
-				return;
-			}
-		}
-
-		if ( imageId == null )
-		{
-			// TODO: maybe cache labelId to Segment to make this faster?
-			//   or could the segmentAdapter do this caching?
-			final long labelId = SourceNameEncoder.getValue( ( VolatileUnsignedIntType ) label );
-
-			if ( labelId == 0 )
-			{
-				color.set( 0 );
-				return;
-			}
-
-			final String imageId = SourceNameEncoder.getName( ( VolatileUnsignedIntType ) label );
-			S segment = segmentAdapter.getSegment( labelId, timepoint, imageId );
-
-			if ( segment == null )
-			{
-				throw new RuntimeException( "Could not map (labelId=" + labelId + ", timepoint=" + timepoint + ", image=" + imageId + ") to an image segment" );
-			}
-
-			setColorBySegment( color, segment );
-		}
-		else
-		{
-			final double labelId = label.getRealDouble();
-
-			if ( labelId == 0 )
-			{
-				color.set( 0 );
-				return;
-			}
-
-			final S segment = segmentAdapter.getSegment( labelId, timepoint, imageId );
-			setColorBySegment( color, segment );
-		}
-	}
-
-	private void setColorBySegment( ARGBType color, S imageSegment )
-	{
-		coloringModel.convert( imageSegment, color );
-		final int value = color.get();
-		//final int alpha = alpha( value );
-		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
-		//color.mul( alpha / 255.0 );
-		//color.mul( opacity );
-	}
-
-	@Override
-	public void timePointChanged( int timePointIndex )
-	{
-		this.timepoint = timePointIndex;
-	}
-
-	@Override
-	public void setOpacity( double opacity )
-	{
-		this.opacity = opacity;
-	}
-
-	@Override
-	public double getOpacity()
-	{
-		return opacity;
-	}
-
-	@Override
-	public SelectionColoringModel getSelectionColoringModel()
-	{
-		return coloringModel;
+		throw new RuntimeException("LabelConverter for non volatile inputs not implemented.");
 	}
 }

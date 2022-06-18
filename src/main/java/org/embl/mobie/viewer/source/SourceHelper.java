@@ -86,10 +86,10 @@ public abstract class SourceHelper
     }
 
     public static <R extends NumericType<R> & RealType<R>> SourceAndConverter<R> replaceConverter(SourceAndConverter<?> source, Converter<RealType<?>, ARGBType> converter) {
-        LabelSource<?> labelVolatileSource = new LabelSource(source.asVolatile().getSpimSource());
+        BoundarySource<?> labelVolatileSource = new BoundarySource(source.asVolatile().getSpimSource(), display.tableRows );
         SourceAndConverter<?> volatileSourceAndConverter = new SourceAndConverter(labelVolatileSource, converter);
-        LabelSource<?> labelSource = new LabelSource(source.getSpimSource());
-        return new SourceAndConverter(labelSource, converter, volatileSourceAndConverter);
+        BoundarySource<?> boundarySource = new BoundarySource(source.getSpimSource(), display.tableRows );
+        return new SourceAndConverter( boundarySource, converter, volatileSourceAndConverter);
     }
 
     public static <R extends NumericType<R> & RealType<R>> BdvStackSource<?> showAsLabelMask(BdvStackSource<?> bdvStackSource) {
@@ -129,17 +129,17 @@ public abstract class SourceHelper
     }
 
     // TODO: implement this recursively
-    public static LabelSource< ? > getLabelSource( SourceAndConverter sac )
+    public static BoundarySource getLabelSource( SourceAndConverter sac )
     {
-        if ( sac.getSpimSource() instanceof LabelSource )
+        if ( sac.getSpimSource() instanceof BoundarySource )
         {
-            return ( LabelSource< ? > ) sac.getSpimSource();
+            return ( BoundarySource ) sac.getSpimSource();
         }
         else if ( sac.getSpimSource() instanceof TransformedSource )
         {
-            if ( ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource() instanceof LabelSource )
+            if ( ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource() instanceof BoundarySource )
             {
-                return ( LabelSource< ? > ) ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource();
+                return ( BoundarySource ) ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource();
             }
             else
             {
@@ -153,17 +153,17 @@ public abstract class SourceHelper
     }
 
 
-    public static LabelSource< ? > isAnnotationSource( SourceAndConverter sac )
+    public static BoundarySource< ? > isAnnotationSource( SourceAndConverter sac )
     {
-        if ( sac.getSpimSource() instanceof LabelSource )
+        if ( sac.getSpimSource() instanceof BoundarySource )
         {
-            return ( LabelSource< ? > ) sac.getSpimSource();
+            return ( BoundarySource< ? > ) sac.getSpimSource();
         }
         else if ( sac.getSpimSource() instanceof TransformedSource )
         {
-            if ( ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource() instanceof LabelSource )
+            if ( ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource() instanceof BoundarySource )
             {
-                return ( LabelSource< ? > ) ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource();
+                return ( BoundarySource< ? > ) ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource();
             }
             else
             {
@@ -241,9 +241,9 @@ public abstract class SourceHelper
 
 			fetchRootSources( wrappedSource, rootSources );
 		}
-		else if (  source instanceof LabelSource )
+		else if (  source instanceof BoundarySource )
 		{
-			final Source< ? > wrappedSource = (( LabelSource ) source).getWrappedSource();
+			final Source< ? > wrappedSource = (( BoundarySource ) source).getWrappedSource();
 
 			fetchRootSources( wrappedSource, rootSources );
 		}

@@ -49,7 +49,7 @@ public class RegionsAdapter
 		public TimepointAndAnnotationId( Region region )
 		{
 			this.timepoint = region.timePoint();
-			this.annotationId = region.name();
+			this.annotationId = region.labelId();
 		}
 
 		@Override

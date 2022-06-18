@@ -38,6 +38,7 @@ import net.imglib2.RealInterval;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import de.embl.cba.tables.color.ColorUtils;
 import net.imglib2.RealLocalizable;
@@ -46,14 +47,15 @@ import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
-import org.embl.mobie.viewer.source.LabelSource;
+import org.embl.mobie.viewer.source.BoundarySource;
+import org.embl.mobie.viewer.source.RegionType;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class TableRowsIntervalImage< T extends RegionTableRow >
+public class RegionImage< T extends RegionTableRow >
 {
 	private final List< T > tableRows;
 	private final SelectionColoringModel< T > coloringModel;
@@ -64,7 +66,7 @@ public class TableRowsIntervalImage< T extends RegionTableRow >
 	private RealInterval unionInterval;
 	private int size;
 
-	public TableRowsIntervalImage(
+	public RegionImage(
 			List< T > tableRows,
 			SelectionColoringModel< T > coloringModel,
 			String name )
@@ -113,42 +115,42 @@ public class TableRowsIntervalImage< T extends RegionTableRow >
 			}
 		}
 
-		// TODO: this is a work around
+		// TODO: this is a work around because the above hangs
 		unionMask = GeomMasks.closedBox( unionInterval.minAsDoubleArray(), unionInterval.maxAsDoubleArray() );
 	}
 
 	private void createImage( )
 	{
-		BiConsumer< RealLocalizable, IntType > biConsumer = ( location, value ) ->
+		BiConsumer< RealLocalizable, RegionType< T > > biConsumer = ( location, value ) ->
 		{
-			value.setInteger( ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX );
-
 			for ( int i = 0; i < size; i++ )
 			{
 				final RealMaskRealInterval mask = tableRows.get( i ).mask();
 
 				if ( mask.test( location ) )
 				{
-					value.setInteger( i );
+					value.set( new RegionType<>( tableRows.get( i ) ) );
 					return;
 				}
 			}
+
+			value.set( new RegionType<>() );
 		};
 
 		final ArrayList< Integer > timePoints = configureTimePoints();
 
-
-		final FunctionRealRandomAccessible< IntType > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, IntType::new );
+		final FunctionRealRandomAccessible< RegionType< T > > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, RegionType::new );
 
 		final Interval interval = Intervals.smallestContainingInterval( unionMask );
 
 		final RealRandomAccessibleIntervalSource< IntType > source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new IntType(), name );
 
-		final ListItemsARGBConverter< T > argbConverter = new ListItemsARGBConverter<>( tableRows, coloringModel );
+		final ListItemsARGBConverter< T > argbConverter = new LabelConverter<>( tableRows, coloringModel );
 
-		final LabelSource< IntType > labelSource = new LabelSource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX, unionMask, timePoints );
+		// TODO: only wrap this into a BoundarySource
+		final BoundarySource< IntType > boundarySource = new BoundarySource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX, unionMask, timePoints );
 
-		final TransformedSource< IntType > transformedSource = new TransformedSource<>( labelSource );
+		final TransformedSource< IntType > transformedSource = new TransformedSource<>( boundarySource );
 
 		sourceAndConverter = new SourceAndConverter( transformedSource, argbConverter );
 

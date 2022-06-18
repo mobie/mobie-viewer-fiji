@@ -46,7 +46,6 @@ import javax.swing.table.TableModel;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class Annotator< T extends TableRow > extends JFrame implements SelectionListener< T >
@@ -406,7 +405,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 			final String annotationID = goToRowIndexTextField.getText();
 			for ( T tableRow : tableRows )
 			{
-				final String name = ( ( RegionTableRow ) tableRow ).name();
+				final String name = ( ( RegionTableRow ) tableRow ).labelId();
 				if ( name.equals( annotationID ) )
 				{
 					return tableRow;

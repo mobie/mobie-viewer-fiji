@@ -26,83 +26,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.annotate;
+package org.embl.mobie.viewer.color;
 
-import de.embl.cba.tables.tablerow.AbstractTableRow;
-import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.converter.Converter;
+import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.source.VolatileAnnotationType;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import static net.imglib2.type.numeric.ARGBType.alpha;
+import static net.imglib2.type.numeric.ARGBType.blue;
+import static net.imglib2.type.numeric.ARGBType.green;
+import static net.imglib2.type.numeric.ARGBType.red;
 
-public class DefaultRegionTableRow extends AbstractTableRow implements RegionTableRow
+public class VolatileAnnotationConverter< T, A extends VolatileAnnotationType< T > > implements Converter< A, ARGBType >, OpacityAdjuster, SelectionColoringModelWrapper
 {
-	protected final RealMaskRealInterval mask;
-	protected final Map< String, String > cells;
-	protected final String name;
+	private final SelectionColoringModel< T > coloringModel;
+	private double opacity = 1.0;
+	private Object background;
 
-	// TODO: rename to annotated region?
-	public DefaultRegionTableRow(
-			String name,
-			RealMaskRealInterval mask,
-			Map< String, List< String > > columns,
-			int rowIndex )
+	public VolatileAnnotationConverter( SelectionColoringModel< T > coloringModel )
 	{
-		this.name = name;
-		this.mask = mask;
-
-		// set cells
-		this.cells = new LinkedHashMap<>();
-		for ( String column : columns.keySet() )
-			cells.put( column, columns.get( column ).get( rowIndex ) );
+		this.coloringModel = coloringModel;
 	}
 
 	@Override
-	public RealMaskRealInterval mask()
+	public void setOpacity( double opacity )
 	{
-		return mask;
+		this.opacity = opacity;
 	}
 
 	@Override
-	public Integer timePoint()
+	public double getOpacity()
 	{
-		if ( cells.containsKey( "timepoint" ) )
-			return Integer.parseInt( cells.get( "timepoint" ) );
-		else
-			return 0;
+		return opacity;
 	}
 
 	@Override
-	public String labelId()
+	public SelectionColoringModel getSelectionColoringModel()
 	{
-		return name;
+		return coloringModel;
 	}
 
 	@Override
-	public String getCell( String columnName )
+	public void convert( A input, ARGBType output )
 	{
-		return cells.get( columnName );
-	}
+		if ( ! input.isValid()  )
+		{
+			output.set( 0 );
+			return;
+		}
 
-	@Override
-	public void setCell( String columnName, String value )
-	{
-		cells.put( columnName, value );
-		notifyCellChangedListeners( columnName, value );
-	}
+		if ( input.getAnnotation() == null )
+		{
+			// no annotation => background color (black)
+			output.set( 0 );
+			return;
+		}
 
-	@Override
-	public Set< String > getColumnNames()
-	{
-		return cells.keySet();
+		coloringModel.convert( input.get(), output );
+		final int value = output.get();
+		output.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
 	}
-
-	@Override
-	@Deprecated
-	public int rowIndex()
-	{
-		return -1;
-	}
-
 }

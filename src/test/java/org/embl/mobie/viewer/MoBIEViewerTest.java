@@ -29,16 +29,14 @@
 package org.embl.mobie.viewer;
 
 import bdv.viewer.SourceAndConverter;
-import ij.IJ;
 import net.imagej.ImageJ;
 import net.imagej.patcher.LegacyInjector;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.SourceDisplay;
-import org.embl.mobie.viewer.source.LabelSource;
+import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.view.View;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -71,8 +69,8 @@ public class MoBIEViewerTest
 		// Test
 		moBIE.sourceNameToSourceAndConverter().keySet().stream().forEach( s -> System.out.println( s ) );
 		final SourceAndConverter< ? > sourceAndConverter = moBIE.sourceNameToSourceAndConverter().get( "fluorescence-annotations" );
-		final LabelSource< ? > labelSource = SourceHelper.getLabelSource( sourceAndConverter );
-		final boolean showAsBoundaries = labelSource.isShowAsBoundaries();
+		final BoundarySource< ? > boundarySource = SourceHelper.getLabelSource( sourceAndConverter );
+		final boolean showAsBoundaries = boundarySource.isShowAsBoundaries();
 		assertTrue( showAsBoundaries );
 	}
 

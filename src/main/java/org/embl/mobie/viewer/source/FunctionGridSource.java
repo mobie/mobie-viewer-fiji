@@ -149,8 +149,8 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 				}
 				else if ( randomAccessibleStatus.equals( RandomAccessibleStatus.Closed ) )
 				{
-					new Thread( () -> randomAccessSupplier.open( level ) ).start();
 					(( Volatile<?> ) value ).setValid( false );
+					new Thread( () -> randomAccessSupplier.open( level ) ).start();
 				}
 			};
 
@@ -442,12 +442,13 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 			// TODO: t
 			final long l = System.currentTimeMillis();
 			final RandomAccessibleInterval< T > rai = source.getSource( 0, level );
+			System.out.println( "Grid: Open " + source.getName() + ", level=" + level + ": " + ( System.currentTimeMillis() - l ) + " ms") ;
 			RandomAccessible< T > ra = Views.extendZero( rai );
 			final long[] offset = computeTranslation( cellDimensions[ level ], rai.dimensionsAsLongArray() );
 			final RandomAccessible< T > translate = Views.translate( ra, offset );
 			levelToRandomAccessible.put( level, translate );
 			levelToRandomAccess.put( level, translate.randomAccess() );
-			System.out.println( "Open " + source.getName() + ", level=" + level + ": " + ( System.currentTimeMillis() - l ) + " ms") ;
+
 			levelToStatus.put( level, FunctionGridSource.RandomAccessibleStatus.Open );
 		}
 	}

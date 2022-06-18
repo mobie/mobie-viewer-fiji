@@ -32,7 +32,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.transform.CropSourceTransformer;
-import org.embl.mobie.viewer.transform.TimepointSourceTransformer;
+import org.embl.mobie.viewer.transform.TimepointsSourceTransformer;
 import org.embl.mobie.viewer.transform.TransformedGridSourceTransformer;
 import org.embl.mobie.viewer.transform.MergedGridSourceTransformer;
 import org.embl.mobie.viewer.transform.SourceTransformer;
@@ -52,8 +52,8 @@ public class SourceTransformerListAdapter implements JsonSerializer< List<Source
 		classToName.put( TransformedGridSourceTransformer.class.getName(), "transformedGrid");
 		nameToClass.put("affine", AffineSourceTransformer.class);
 		classToName.put(AffineSourceTransformer.class.getName(), "affine");
-		nameToClass.put("timepoints", TimepointSourceTransformer.class);
-		classToName.put(TimepointSourceTransformer.class.getName(), "timepoints");
+		nameToClass.put("timepoints", TimepointsSourceTransformer.class);
+		classToName.put( TimepointsSourceTransformer.class.getName(), "timepoints");
 		nameToClass.put("crop", CropSourceTransformer.class);
 		classToName.put(CropSourceTransformer.class.getName(), "crop");
 	}
@@ -87,8 +87,8 @@ public class SourceTransformerListAdapter implements JsonSerializer< List<Source
 				ja.add( context.serialize( nameToTransformer , new TypeToken< Map< String, CropSourceTransformer > >() {}.getType() ) );
 			} else if ( sourceTransformer instanceof MergedGridSourceTransformer ) {
 				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, MergedGridSourceTransformer > >() {}.getType() ) );
-			} else if ( sourceTransformer instanceof TimepointSourceTransformer ) {
-				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, TimepointSourceTransformer > >(){}.getType()) );
+			} else if ( sourceTransformer instanceof TimepointsSourceTransformer ) {
+				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, TimepointsSourceTransformer > >(){}.getType()) );
 			} else {
 				throw new UnsupportedOperationException( "Could not serialise SourceTransformer of type: " + sourceTransformer.getClass().toString() );
 			}

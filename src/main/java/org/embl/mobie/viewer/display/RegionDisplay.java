@@ -31,7 +31,6 @@ package org.embl.mobie.viewer.display;
 import de.embl.cba.tables.TableColumns;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.annotate.RegionsAdapter;
 import org.embl.mobie.viewer.annotate.RegionCreator;
 import org.embl.mobie.viewer.annotate.RegionTableRow;
@@ -118,7 +117,7 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 		if ( currentSelectedRows != null && currentSelectedRows.size() > 0 ) {
 			ArrayList<String> selectedIds = new ArrayList<>();
 			for ( RegionTableRow row : currentSelectedRows ) {
-				selectedIds.add( row.timePoint() + ";" + row.name() );
+				selectedIds.add( row.timePoint() + ";" + row.labelId() );
 			}
 			this.selectedRegionIds = selectedIds;
 		}
