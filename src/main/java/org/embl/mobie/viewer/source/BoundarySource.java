@@ -65,7 +65,6 @@ public class BoundarySource< T extends AnnotationType< T > > extends AbstractBou
         this.source = source;
     }
 
-
     @Override
     public RealRandomAccessible< T > getInterpolatedSource( final int t, final int level, final Interpolation method )
     {

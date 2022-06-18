@@ -30,36 +30,45 @@ package org.embl.mobie.viewer.color;
 
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.viewer.source.VolatileAnnotationType;
+import org.embl.mobie.viewer.source.AnnotationType;
 
 import static net.imglib2.type.numeric.ARGBType.alpha;
 import static net.imglib2.type.numeric.ARGBType.blue;
 import static net.imglib2.type.numeric.ARGBType.green;
 import static net.imglib2.type.numeric.ARGBType.red;
 
-public class VolatileAnnotationConverter< T, A extends VolatileAnnotationType< T > > extends AbstractAnnotationConverter< T, A >
+public abstract class AbstractAnnotationConverter< T, A > implements Converter< A, ARGBType >, OpacityAdjuster, SelectionColoringModelWrapper
 {
-	public VolatileAnnotationConverter( SelectionColoringModel< T > coloringModel )
+	private final SelectionColoringModel< T > coloringModel;
+	private double opacity = 1.0;
+
+	public AbstractAnnotationConverter( SelectionColoringModel< T > coloringModel )
 	{
-		super( coloringModel );
+		this.coloringModel = coloringModel;
 	}
 
 	@Override
-	public void convert( A input, ARGBType output )
+	public void setOpacity( double opacity )
 	{
-		if ( ! input.isValid()  )
-		{
-			output.set( 0 );
-			return;
-		}
+		this.opacity = opacity;
+	}
 
-		if ( input.getAnnotation() == null )
-		{
-			// no annotation => background color (black)
-			output.set( 0 );
-			return;
-		}
+	@Override
+	public double getOpacity()
+	{
+		return opacity;
+	}
 
-		set( input.getAnnotation(), output );
+	@Override
+	public SelectionColoringModel getSelectionColoringModel()
+	{
+		return coloringModel;
+	}
+
+	protected void set( T input, ARGBType output )
+	{
+		coloringModel.convert( input, output );
+		final int value = output.get();
+		output.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
 	}
 }

@@ -137,20 +137,18 @@ public class RegionImage< T extends RegionTableRow >
 			value.set( new RegionType<>() );
 		};
 
+		// ??? why do we need this
 		final ArrayList< Integer > timePoints = configureTimePoints();
 
 		final FunctionRealRandomAccessible< RegionType< T > > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, RegionType::new );
 
 		final Interval interval = Intervals.smallestContainingInterval( unionMask );
 
-		final RealRandomAccessibleIntervalSource< IntType > source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new IntType(), name );
+		final RealRandomAccessibleIntervalSource source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new RegionType(), name );
 
-		final ListItemsARGBConverter< T > argbConverter = new LabelConverter<>( tableRows, coloringModel );
+		final BoundarySource boundarySource = new BoundarySource( source );
 
-		// TODO: only wrap this into a BoundarySource
-		final BoundarySource< IntType > boundarySource = new BoundarySource<>( source, ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX, unionMask, timePoints );
-
-		final TransformedSource< IntType > transformedSource = new TransformedSource<>( boundarySource );
+		final TransformedSource transformedSource = new TransformedSource<>( boundarySource );
 
 		sourceAndConverter = new SourceAndConverter( transformedSource, argbConverter );
 
