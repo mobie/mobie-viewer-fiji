@@ -28,45 +28,33 @@
  */
 package org.embl.mobie.viewer.source;
 
-import bdv.util.Affine3DHelpers;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealLocalizable;
-import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converters;
-import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.BiConsumer;
 
 public class SegmentSource< T extends NumericType< T > & RealType< T >, V extends Volatile< T >, I extends ImageSegment > implements Source< VolatileSegmentType >, SourceWrapper< T >
 {
     private final Source< T > source;
-    private final Collection< Integer > timePoints;
-    private SegmentAdapter< I > adapter;
+    private final Collection< Integer > timepoints;
+    private final SegmentAdapter< I > adapter;
 
     public SegmentSource( final Source< T > source, final List< I > tableRows )
     {
-        this( source, 0 );
-        adapter = new SegmentAdapter<>( tableRows );
-    }
-
-    public SegmentSource( final Source< T > source, float background, RealMaskRealInterval bounds )
-    {
-        this( source, background, bounds, null );
+        this.source = source;
+        this.adapter = new SegmentAdapter<>( tableRows );
+        this.timepoints = null;
     }
 
     @Override
@@ -82,8 +70,8 @@ public class SegmentSource< T extends NumericType< T > & RealType< T >, V extend
     @Override
     public boolean isPresent( final int t )
     {
-        if ( timePoints != null )
-            return timePoints.contains( t );
+        if ( timepoints != null )
+            return timepoints.contains( t );
         else
             return source.isPresent(t);
     }

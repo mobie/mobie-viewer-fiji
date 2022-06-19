@@ -30,8 +30,6 @@ package org.embl.mobie.viewer.source;
 
 import bdv.SpimSource;
 import bdv.tools.transformation.TransformedSource;
-import bdv.util.BdvFunctions;
-import bdv.util.BdvHandle;
 import bdv.util.BdvStackSource;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
@@ -50,13 +48,8 @@ import net.imglib2.util.Cast;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import org.embl.mobie.viewer.color.LazyLabelConverter;
 import org.embl.mobie.viewer.transform.RealIntervalProvider;
-import org.scijava.ui.behaviour.ClickBehaviour;
-import org.scijava.ui.behaviour.io.InputTriggerConfig;
-import org.scijava.ui.behaviour.util.Behaviours;
 
-import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -85,61 +78,35 @@ public abstract class SourceHelper
         return minMax;
     }
 
-    public static <R extends NumericType<R> & RealType<R>> SourceAndConverter<R> replaceConverter(SourceAndConverter<?> source, Converter<RealType<?>, ARGBType> converter) {
-        BoundarySource<?> labelVolatileSource = new BoundarySource(source.asVolatile().getSpimSource(), display.tableRows );
-        SourceAndConverter<?> volatileSourceAndConverter = new SourceAndConverter(labelVolatileSource, converter);
-        BoundarySource<?> boundarySource = new BoundarySource(source.getSpimSource(), display.tableRows );
-        return new SourceAndConverter( boundarySource, converter, volatileSourceAndConverter);
+	// TODO: is this needed ?
+    public static <R extends NumericType<R> & RealType<R>> SourceAndConverter<R> notSure( SourceAndConverter<?> source, Converter<RealType<?>, ARGBType> converter) {
+        AnnotationSource<?> labelVolatileSource = new AnnotationSource( source.asVolatile().getSpimSource() );
+        SourceAndConverter<?> volatileSourceAndConverter = new SourceAndConverter( labelVolatileSource, converter );
+        AnnotationSource<?> annotationSource = new AnnotationSource(source.getSpimSource() );
+        return new SourceAndConverter( annotationSource, converter, volatileSourceAndConverter );
     }
 
-    public static <R extends NumericType<R> & RealType<R>> BdvStackSource<?> showAsLabelMask(BdvStackSource<?> bdvStackSource) {
-        LazyLabelConverter converter = new LazyLabelConverter();
-        SourceAndConverter<R> sac = replaceConverter(bdvStackSource.getSources().get(0), converter);
-        BdvHandle bdvHandle = bdvStackSource.getBdvHandle();
-        bdvStackSource.removeFromBdv();
 
-        // access by reflection, which feels quite OK as this will be public in future versions of bdv anyway:
-        // https://github.com/bigdataviewer/bigdataviewer-vistools/commit/8cad3edac6c563dc2d22abf71345655afa7f49cc
-        try {
-            Method method = BdvFunctions.class.getDeclaredMethod("addSpimDataSource", BdvHandle.class, SourceAndConverter.class, int.class);
-            method.setAccessible(true);
-            BdvStackSource<?> newBdvStackSource = (BdvStackSource<?>) method.invoke("addSpimDataSource", bdvHandle, sac, 1);
+	// TODO: the internals of this look wrong
 
-            Behaviours behaviours = new Behaviours(new InputTriggerConfig());
-            behaviours.install(bdvHandle.getTriggerbindings(), "label source " + sac.getSpimSource().getName());
-            behaviours.behaviour((ClickBehaviour) (x, y) ->
-                            new Thread(() -> {
-                                converter.getColoringModel().incRandomSeed();
-                                bdvHandle.getViewerPanel().requestRepaint();
-                            }).start(),
-                    "shuffle random colors " + sac.getSpimSource().getName(),
-                    "ctrl L");
-
-            return newBdvStackSource;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    public static void viewAsHyperstack(BdvStackSource<?> bdvStackSource, int level) {
+	public static void viewAsHyperstack(BdvStackSource<?> bdvStackSource, int level) {
         RandomAccessibleInterval<?> rai = bdvStackSource.getSources().get(0).getSpimSource().getSource(0, level);
         IntervalView<?> permute = Views.permute(Views.addDimension(rai, 0, 0), 2, 3);
         ImageJFunctions.wrap(Cast.unchecked(permute), "em").show();
     }
 
     // TODO: implement this recursively
-    public static BoundarySource getLabelSource( SourceAndConverter sac )
+    public static AnnotationSource getLabelSource( SourceAndConverter sac )
     {
-        if ( sac.getSpimSource() instanceof BoundarySource )
+        if ( sac.getSpimSource() instanceof AnnotationSource )
         {
-            return ( BoundarySource ) sac.getSpimSource();
+            return ( AnnotationSource ) sac.getSpimSource();
         }
         else if ( sac.getSpimSource() instanceof TransformedSource )
         {
-            if ( ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource() instanceof BoundarySource )
+            if ( ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource() instanceof AnnotationSource )
             {
-                return ( BoundarySource ) ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource();
+                return ( AnnotationSource ) ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource();
             }
             else
             {
@@ -153,17 +120,17 @@ public abstract class SourceHelper
     }
 
 
-    public static BoundarySource< ? > isAnnotationSource( SourceAndConverter sac )
+    public static AnnotationSource< ? > isAnnotationSource( SourceAndConverter sac )
     {
-        if ( sac.getSpimSource() instanceof BoundarySource )
+        if ( sac.getSpimSource() instanceof AnnotationSource )
         {
-            return ( BoundarySource< ? > ) sac.getSpimSource();
+            return ( AnnotationSource< ? > ) sac.getSpimSource();
         }
         else if ( sac.getSpimSource() instanceof TransformedSource )
         {
-            if ( ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource() instanceof BoundarySource )
+            if ( ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource() instanceof AnnotationSource )
             {
-                return ( BoundarySource< ? > ) ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource();
+                return ( AnnotationSource< ? > ) ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource();
             }
             else
             {
@@ -241,9 +208,9 @@ public abstract class SourceHelper
 
 			fetchRootSources( wrappedSource, rootSources );
 		}
-		else if (  source instanceof BoundarySource )
+		else if (  source instanceof AnnotationSource )
 		{
-			final Source< ? > wrappedSource = (( BoundarySource ) source).getWrappedSource();
+			final Source< ? > wrappedSource = (( AnnotationSource ) source).getWrappedSource();
 
 			fetchRootSources( wrappedSource, rootSources );
 		}

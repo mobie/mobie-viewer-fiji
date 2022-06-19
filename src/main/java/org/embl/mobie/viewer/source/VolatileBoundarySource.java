@@ -60,8 +60,7 @@ public class VolatileBoundarySource< V extends VolatileAnnotationType< V > > ext
             final V centerValue = input.get();
             if ( centerValue.getAnnotation() == null  )
             {
-                output.get().set( input.createVariable() );
-                output.setValid( true );
+                // no annotation
                 return;
             }
             for ( Integer d : boundaryDimensions )
@@ -78,16 +77,15 @@ public class VolatileBoundarySource< V extends VolatileAnnotationType< V > > ext
                     else if ( centerValue.valueEquals( input ) )
                     {
                         output.get().set( centerValue ); // boundary
-                        output.setValid( true );
                         return;
                     }
                     access.move( - signum * boundaryWidth[ d ], d ); // move back to center
                 }
             }
-            output.get().set( input.createVariable() ); // no boundary
-            output.setValid( true );
+            // no boundary
             return;
         };
+
         final V type = rra.realRandomAccess().get();
         final FunctionRealRandomAccessible< V > randomAccessible = new FunctionRealRandomAccessible( 3, boundaries, () -> type.createVariable() );
         return randomAccessible;

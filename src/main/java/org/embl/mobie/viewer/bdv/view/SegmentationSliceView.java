@@ -39,7 +39,7 @@ import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.source.BoundarySource;
+import org.embl.mobie.viewer.source.AnnotationSource;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
@@ -62,10 +62,10 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 
 	private SourceAndConverter labelSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, SegmentationDisplay display )
 	{
-		final BoundarySource volatileBoundarySource = new BoundarySource( sourceAndConverter.asVolatile().getSpimSource() );
-		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, new VolatileAnnotationConverter( display.selectionColoringModel ) );
-		final BoundarySource boundarySource = new BoundarySource( sourceAndConverter.getSpimSource() );
-		return new SourceAndConverter( boundarySource, new LabelConverter(), volatileSourceAndConverter );
+		final AnnotationSource volatileAnnotationSource = new AnnotationSource( sourceAndConverter.asVolatile().getSpimSource() );
+		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileAnnotationSource, new VolatileAnnotationConverter( display.selectionColoringModel ) );
+		final AnnotationSource annotationSource = new AnnotationSource( sourceAndConverter.getSpimSource() );
+		return new SourceAndConverter( annotationSource, new LabelConverter(), volatileSourceAndConverter );
 	}
 
 	@Override

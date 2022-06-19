@@ -209,9 +209,8 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 		return columnNameToClass.get( columnName ) == Double.class;
 	}
 
-	// it would be better to avoid this and instead use
+	// it may be better to avoid this and instead use
 	// this whole class as a list
-	@Deprecated
 	public List< T > getTableRows()
 	{
 		return tableRows;

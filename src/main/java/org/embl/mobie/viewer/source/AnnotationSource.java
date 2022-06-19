@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.viewer.source;
 
-import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealRandomAccess;
@@ -38,9 +37,9 @@ import net.imglib2.position.FunctionRealRandomAccessible;
 import java.util.ArrayList;
 import java.util.function.BiConsumer;
 
-public class BoundarySource< T extends AnnotationType< T > > extends AbstractBoundarySource< T >
+public class AnnotationSource< T extends AnnotationType< T > > extends AbstractBoundarySource< T >
 {
-    public BoundarySource( final Source< T > source )
+    public AnnotationSource( final Source< T > source )
     {
        super( source, null );
     }
@@ -54,8 +53,7 @@ public class BoundarySource< T extends AnnotationType< T > > extends AbstractBou
             T input = access.setPositionAndGet( l );
             if ( input.getAnnotation() == null )
             {
-                // no annotation
-                output.set( input.createVariable() );
+                // no annotation => keep it like that
                 return;
             }
             for ( Integer d : dimensions )
@@ -71,11 +69,12 @@ public class BoundarySource< T extends AnnotationType< T > > extends AbstractBou
                     access.move( - signum * boundaryWidth[ d ], d ); // move back to center
                 }
             }
-            output.set( input.createVariable() ); // no boundary pixel
+            // no boundary pixel
             return;
         };
+
         final T type = rra.realRandomAccess().get();
-        final FunctionRealRandomAccessible< T > boundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.copy() );
+        final FunctionRealRandomAccessible< T > boundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.createVariable() );
         return boundaries;
     }
 }

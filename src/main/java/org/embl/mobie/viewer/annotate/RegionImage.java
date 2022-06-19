@@ -38,16 +38,16 @@ import net.imglib2.RealInterval;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.color.LabelConverter;
-import org.embl.mobie.viewer.color.ListItemsARGBConverter;
 import de.embl.cba.tables.color.ColorUtils;
 import net.imglib2.RealLocalizable;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.viewer.color.AnnotationConverter;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
-import org.embl.mobie.viewer.source.BoundarySource;
+import org.embl.mobie.viewer.source.AnnotationSource;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.RegionType;
 
 import java.awt.*;
@@ -141,16 +141,12 @@ public class RegionImage< T extends RegionTableRow >
 		final ArrayList< Integer > timePoints = configureTimePoints();
 
 		final FunctionRealRandomAccessible< RegionType< T > > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, RegionType::new );
-
 		final Interval interval = Intervals.smallestContainingInterval( unionMask );
-
 		final RealRandomAccessibleIntervalSource source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new RegionType(), name );
-
-		final BoundarySource boundarySource = new BoundarySource( source );
-
-		final TransformedSource transformedSource = new TransformedSource<>( boundarySource );
-
-		sourceAndConverter = new SourceAndConverter( transformedSource, argbConverter );
+		final AnnotationSource annotationSource = new AnnotationSource( source );
+		final TransformedSource transformedAnnotationSource = new TransformedSource<>( annotationSource );
+		final AnnotationConverter< T, AnnotationType< T > > annotationConverter = new AnnotationConverter<>( coloringModel );
+		sourceAndConverter = new SourceAndConverter( transformedAnnotationSource, annotationConverter );
 
 		contrastLimits = new double[]{ 0, 255 };
 	}
