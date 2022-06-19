@@ -28,53 +28,68 @@
  */
 package org.embl.mobie.viewer.source;
 
+import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import net.imglib2.RealLocalizable;
-import net.imglib2.RealRandomAccess;
+import de.embl.cba.tables.imagesegment.ImageSegment;
+import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
-import net.imglib2.position.FunctionRealRandomAccessible;
+import net.imglib2.converter.Converters;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.NumericType;
+import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.viewer.segment.SegmentAdapter;
 
-import java.util.ArrayList;
-import java.util.function.BiConsumer;
+import java.util.Collection;
 
-public class AnnotationSource< T extends AnnotationType< T > > extends AbstractBoundarySource< T >
+public class AnnotationSource< T extends NumericType< T > & RealType< T >, I extends ImageSegment > extends AbstractSourceWrapper< T, AnnotationType< I > >
 {
-    public AnnotationSource( final Source< T > source )
+    private final Collection< Integer > timepoints;
+    private final SegmentAdapter< I > adapter;
+
+    public AnnotationSource( final Source< T > source, SegmentAdapter< I > adapter )
     {
-       super( source, null );
+        super( source );
+        this.adapter = adapter;
+        this.timepoints = null;
     }
 
     @Override
-    protected FunctionRealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
+    public boolean isPresent( final int t )
     {
-        BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
-        {
-            final RealRandomAccess< T > access = rra.realRandomAccess();
-            T input = access.setPositionAndGet( l );
-            if ( input.getAnnotation() == null )
-            {
-                // no annotation => keep it like that
-                return;
-            }
-            for ( Integer d : dimensions )
-            {
-                for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
-                {
-                    access.move( signum * boundaryWidth[ d ], d );
-                    if ( ! input.valueEquals( access.get() ) )
-                    {
-                        output.set( input.copy() ); // it is a boundary pixel!
-                        return;
-                    }
-                    access.move( - signum * boundaryWidth[ d ], d ); // move back to center
-                }
-            }
-            // no boundary pixel
-            return;
-        };
+        if ( timepoints != null )
+            return timepoints.contains( t );
+        else
+            return source.isPresent(t);
+    }
 
-        final T type = rra.realRandomAccess().get();
-        final FunctionRealRandomAccessible< T > boundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.createVariable() );
-        return boundaries;
+    @Override
+    public RandomAccessibleInterval< AnnotationType< I >  > getSource( final int t, final int level )
+    {
+        return Converters.convert( source.getSource( t, level ), ( input, output ) -> {
+            set( input, t, output );
+        }, new SegmentType() );
+    }
+
+    @Override
+    public RealRandomAccessible< AnnotationType< I >  > getInterpolatedSource( final int t, final int level, final Interpolation method)
+    {
+        final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
+
+        return Converters.convert( rra, ( T input, AnnotationType< I > output ) ->
+                set( input, t, output ),
+                new SegmentType() );
+    }
+
+    private void set( T input, int t, AnnotationType< I > output  )
+    {
+        final I segment = adapter.getSegment( input.getRealDouble(), t, source.getName() );
+        final SegmentType< I > segmentType = new SegmentType( segment );
+        output.set( segmentType );
+    }
+
+    @Override
+    public SegmentType getType() {
+        return new SegmentType();
     }
 }

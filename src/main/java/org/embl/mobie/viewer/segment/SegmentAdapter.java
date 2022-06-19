@@ -82,6 +82,11 @@ public class SegmentAdapter< T extends ImageSegment >
 		return labelFrameAndImageToSegment.get( labelFrameAndImage );
 	}
 
+	public T createVariable()
+	{
+		return segments.get( 0 );
+	}
+
 	public synchronized T getSegment( double label, int t, String imageId )
 	{
 		if ( isLazy )

@@ -40,7 +40,7 @@ import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
-import org.embl.mobie.viewer.source.AnnotationSource;
+import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.table.TableRowsTableModel;
 import org.embl.mobie.viewer.table.TableViewer;
@@ -190,9 +190,9 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 
 		this.showTable = annotationDisplay.tableViewer.getWindow().isVisible();
 
-		final AnnotationSource annotationSource = SourceHelper.getLabelSource( sourceAndConverter );
-		this.showAsBoundaries = annotationSource.isShowAsBoundaries();
-		this.boundaryThickness = annotationSource.getBoundaryWidth();
+		final BoundarySource boundarySource = SourceHelper.getLabelSource( sourceAndConverter );
+		this.showAsBoundaries = boundarySource.isShowAsBoundaries();
+		this.boundaryThickness = boundarySource.getBoundaryWidth();
 	}
 
 	public abstract void mergeColumns( Map< String, List< String > > columns );

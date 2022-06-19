@@ -37,7 +37,7 @@ import de.embl.cba.tables.tablerow.TableRow;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
-import org.embl.mobie.viewer.source.AnnotationSource;
+import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.SourceHelper;
 
 import javax.swing.*;
@@ -66,12 +66,12 @@ public abstract class AnnotationSliceView< T extends TableRow > extends Abstract
 	{
 		final boolean showAsBoundaries = display.isShowAsBoundaries();
 		final float boundaryThickness = display.getBoundaryThickness();
-		final AnnotationSource< ? > annotationSource = SourceHelper.getLabelSource( sourceAndConverter );
-		annotationSource.showAsBoundary( showAsBoundaries, boundaryThickness );
+		final BoundarySource< ? > boundarySource = SourceHelper.getLabelSource( sourceAndConverter );
+		boundarySource.showAsBoundary( showAsBoundaries, boundaryThickness );
 		if ( sourceAndConverter.asVolatile() != null )
 		{
-			final AnnotationSource< ? > vAnnotationSource = SourceHelper.getLabelSource( sourceAndConverter.asVolatile() );
-			vAnnotationSource.showAsBoundary( showAsBoundaries, boundaryThickness );
+			final BoundarySource< ? > vBoundarySource = SourceHelper.getLabelSource( sourceAndConverter.asVolatile() );
+			vBoundarySource.showAsBoundary( showAsBoundaries, boundaryThickness );
 		}
 
 		final ColoringModel<T> coloringModel = display.selectionColoringModel.getWrappedColoringModel();

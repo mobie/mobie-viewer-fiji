@@ -43,7 +43,7 @@ import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.display.ImageDisplay;
 import org.embl.mobie.viewer.display.SourceDisplay;
-import org.embl.mobie.viewer.source.AnnotationSource;
+import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
 import org.embl.mobie.viewer.source.MergedGridSource;
 import org.embl.mobie.viewer.transform.SourceTransformer;
@@ -133,9 +133,9 @@ public class ViewFromSourceAndConverterCreator
 
 			addSourceTransformers( wrappedSource, sourceTransformers );
 		}
-		else if (  source instanceof AnnotationSource )
+		else if (  source instanceof BoundarySource )
 		{
-			final Source< ? > wrappedSource = (( AnnotationSource ) source).getWrappedSource();
+			final Source< ? > wrappedSource = (( BoundarySource ) source).getWrappedSource();
 
 			addSourceTransformers( wrappedSource, sourceTransformers );
 		}

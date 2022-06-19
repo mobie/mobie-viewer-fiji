@@ -29,17 +29,21 @@
 package org.embl.mobie.viewer.bdv.view;
 
 import bdv.util.BdvHandle;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.SynchronizedViewerState;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import net.imglib2.Volatile;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.color.VolatileAnnotationConverter;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
+import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.source.AnnotationSource;
+import org.embl.mobie.viewer.source.BoundarySource;
+import org.embl.mobie.viewer.source.VolatileAnnotationSource;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
@@ -54,18 +58,25 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 		{
 			final SourceAndConverter< ? > sourceAndConverter = moBIE.sourceNameToSourceAndConverter().get( name );
 
-			SourceAndConverter< ? > labelSourceAndConverter = labelSourceAndConverter( sourceAndConverter, display );
+			SourceAndConverter< ? > labelSourceAndConverter = createAnnotationSourceAndConverter( sourceAndConverter, display );
 
 			show( labelSourceAndConverter );
 		}
 	}
 
-	private SourceAndConverter labelSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, SegmentationDisplay display )
+	private SourceAndConverter createAnnotationSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, SegmentationDisplay display )
 	{
-		final AnnotationSource volatileAnnotationSource = new AnnotationSource( sourceAndConverter.asVolatile().getSpimSource() );
-		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileAnnotationSource, new VolatileAnnotationConverter( display.selectionColoringModel ) );
-		final AnnotationSource annotationSource = new AnnotationSource( sourceAndConverter.getSpimSource() );
-		return new SourceAndConverter( annotationSource, new LabelConverter(), volatileSourceAndConverter );
+		// volatile
+		final Source< ? extends Volatile< ? > > volatileSpimSource = sourceAndConverter.asVolatile().getSpimSource();
+		final VolatileAnnotationSource volatileSegmentSource = new VolatileAnnotationSource( volatileSpimSource, new SegmentAdapter<>( display.tableRows.getTableRows() ) );
+		final BoundarySource volatileBoundarySource = new BoundarySource( volatileSegmentSource );
+		final VolatileAnnotationConverter volatileAnnotationConverter = new VolatileAnnotationConverter( display.selectionColoringModel );
+		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
+
+		// non-volatile
+
+		final BoundarySource boundarySource = new BoundarySource( sourceAndConverter.getSpimSource() );
+		return new SourceAndConverter( boundarySource, new LabelConverter(), volatileSourceAndConverter );
 	}
 
 	@Override

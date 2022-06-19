@@ -31,41 +31,29 @@ package org.embl.mobie.viewer.source;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import de.embl.cba.tables.imagesegment.ImageSegment;
-import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
+import net.imglib2.converter.Converter;
 import net.imglib2.converter.Converters;
-import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 
 import java.util.Collection;
-import java.util.List;
 
-public class SegmentSource< T extends NumericType< T > & RealType< T >, V extends Volatile< T >, I extends ImageSegment > implements Source< VolatileSegmentType >, SourceWrapper< T >
+public class VolatileAnnotationSource< T extends NumericType< T > & RealType< T >, V extends Volatile< T >, I extends ImageSegment > extends AbstractSourceWrapper< V, VolatileAnnotationType< I > >
 {
-    private final Source< T > source;
-    private final Collection< Integer > timepoints;
+    private final Collection< Integer > timepoints; // TODO: why do we have this?
     private final SegmentAdapter< I > adapter;
 
-    public SegmentSource( final Source< T > source, final List< I > tableRows )
+    public VolatileAnnotationSource( final Source< V > source, SegmentAdapter< I > adapter )
     {
-        this.source = source;
-        this.adapter = new SegmentAdapter<>( tableRows );
+        super( source );
+        this.adapter = adapter;
         this.timepoints = null;
     }
 
-    @Override
-    public boolean doBoundingBoxCulling() {
-        return source.doBoundingBoxCulling();
-    }
-
-    @Override
-    public synchronized void getSourceTransform(final int t, final int level, final AffineTransform3D transform) {
-        source.getSourceTransform(t, level, transform);
-    }
 
     @Override
     public boolean isPresent( final int t )
@@ -77,49 +65,35 @@ public class SegmentSource< T extends NumericType< T > & RealType< T >, V extend
     }
 
     @Override
-    public RandomAccessibleInterval< VolatileSegmentType > getSource( final int t, final int level )
+    public RandomAccessibleInterval< VolatileAnnotationType< I > > getSource( final int t, final int level )
     {
-        return Converters.convert( source.getSource( t, level ), ( input, output ) -> {
-            set( t, output, input );
+        final RandomAccessibleInterval< V > rai = this.source.getSource( t, level );
+        final RandomAccessibleInterval< VolatileAnnotationType< I > > convert = Converters.convert( rai, ( Converter< V, VolatileAnnotationType< I > > ) ( input, output ) -> {
+            set( input, t, output );
         }, new VolatileSegmentType() );
+
+        return convert;
     }
 
 
     @Override
-    public RealRandomAccessible< VolatileSegmentType > getInterpolatedSource( final int t, final int level, final Interpolation method)
+    public RealRandomAccessible< VolatileAnnotationType< I > > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
-        final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
+        final RealRandomAccessible< V > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
-        return Converters.convert( rra, ( input, output ) -> set( t, output, input ), new VolatileSegmentType() );
+        return Converters.convert( rra, ( input, output ) -> set( input, t, output ), new VolatileSegmentType() );
     }
 
-    private void set( int t, VolatileSegmentType output, T input )
+    private void set( V input, int t, VolatileAnnotationType< I > output )
     {
-        output.set( new VolatileSegmentType( adapter.getSegment( input.getRealDouble(), t, source.getName() ) ) );
+        final I segment = adapter.getSegment( input.get().getRealDouble(), t, source.getName() );
+        final VolatileSegmentType< I > volatileSegmentType = new VolatileSegmentType( segment, input.isValid() );
+        output.set( volatileSegmentType );
     }
 
     @Override
-    public VolatileSegmentType getType() {
+    public VolatileAnnotationType< I > getType()
+    {
         return new VolatileSegmentType();
-    }
-
-    @Override
-    public String getName() {
-        return source.getName();
-    }
-
-    @Override
-    public VoxelDimensions getVoxelDimensions() {
-        return source.getVoxelDimensions();
-    }
-
-    @Override
-    public int getNumMipmapLevels() {
-        return source.getNumMipmapLevels();
-    }
-
-    @Override
-    public Source<T> getWrappedSource() {
-        return source;
     }
 }

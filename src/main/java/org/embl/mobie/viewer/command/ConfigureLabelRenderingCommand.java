@@ -36,7 +36,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.color.SelectionColoringModelWrapper;
-import org.embl.mobie.viewer.source.AnnotationSource;
+import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -135,8 +135,8 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	{
 		Arrays.stream( sourceAndConverters ).filter( sac -> SourceHelper.getLabelSource( sac.asVolatile() ) != null ).forEach( sac ->
 		{
-			final AnnotationSource volatileAnnotationSource = SourceHelper.getLabelSource( sac.asVolatile() );
-			volatileAnnotationSource.showAsBoundary( showAsBoundary, boundaryThickness );
+			final BoundarySource volatileBoundarySource = SourceHelper.getLabelSource( sac.asVolatile() );
+			volatileBoundarySource.showAsBoundary( showAsBoundary, boundaryThickness );
 		});
 	}
 
