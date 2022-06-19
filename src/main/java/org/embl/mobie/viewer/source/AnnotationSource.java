@@ -42,6 +42,8 @@ import org.embl.mobie.viewer.segment.SegmentAdapter;
 
 import java.util.Collection;
 
+
+// TODO: Does I really need to extend ImageSegment here?
 public class AnnotationSource< T extends NumericType< T > & RealType< T >, I extends ImageSegment > extends AbstractSourceWrapper< T, AnnotationType< I > >
 {
     private final Collection< Integer > timepoints;

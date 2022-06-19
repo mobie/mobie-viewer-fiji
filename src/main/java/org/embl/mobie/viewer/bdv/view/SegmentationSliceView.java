@@ -34,7 +34,10 @@ import bdv.viewer.SourceAndConverter;
 import bdv.viewer.SynchronizedViewerState;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import net.imglib2.Volatile;
+import net.imglib2.type.numeric.NumericType;
+import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.color.AnnotationConverter;
 import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.color.VolatileAnnotationConverter;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
@@ -42,13 +45,15 @@ import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.viewer.source.AnnotationSource;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.VolatileAnnotationSource;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 
-public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSegment >
+public class SegmentationSliceView< N extends NumericType< N > & RealType< N > > extends AnnotationSliceView< TableRowImageSegment >
 {
 	public SegmentationSliceView( MoBIE moBIE, SegmentationDisplay display )
 	{
@@ -56,7 +61,7 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 
 		for ( String name : display.getSources() )
 		{
-			final SourceAndConverter< ? > sourceAndConverter = moBIE.sourceNameToSourceAndConverter().get( name );
+			final SourceAndConverter< N > sourceAndConverter = ( SourceAndConverter< N > ) moBIE.sourceNameToSourceAndConverter().get( name );
 
 			SourceAndConverter< ? > labelSourceAndConverter = createAnnotationSourceAndConverter( sourceAndConverter, display );
 
@@ -64,19 +69,25 @@ public class SegmentationSliceView extends AnnotationSliceView< TableRowImageSeg
 		}
 	}
 
-	private SourceAndConverter createAnnotationSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, SegmentationDisplay display )
+	private SourceAndConverter createAnnotationSourceAndConverter( SourceAndConverter< N > sourceAndConverter, SegmentationDisplay display )
 	{
+		final SegmentAdapter< TableRowImageSegment > adapter = new SegmentAdapter<>( display.tableRows.getTableRows() );
+
 		// volatile
-		final Source< ? extends Volatile< ? > > volatileSpimSource = sourceAndConverter.asVolatile().getSpimSource();
-		final VolatileAnnotationSource volatileSegmentSource = new VolatileAnnotationSource( volatileSpimSource, new SegmentAdapter<>( display.tableRows.getTableRows() ) );
-		final BoundarySource volatileBoundarySource = new BoundarySource( volatileSegmentSource );
+		final Source< ? extends Volatile< N > > volatileSpimSource = sourceAndConverter.asVolatile().getSpimSource();
+		final VolatileAnnotationSource volatileAnnotationSource = new VolatileAnnotationSource( volatileSpimSource, adapter );
+		final BoundarySource volatileBoundarySource = new BoundarySource( volatileAnnotationSource );
 		final VolatileAnnotationConverter volatileAnnotationConverter = new VolatileAnnotationConverter( display.selectionColoringModel );
 		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
 
 		// non-volatile
+		final Source< N > spimSource = sourceAndConverter.getSpimSource();
+		final AnnotationSource< N, TableRowImageSegment > annotationSource = new AnnotationSource<>( spimSource, adapter );
+		final BoundarySource boundarySource = new BoundarySource( annotationSource );
+		final AnnotationConverter< TableRowImageSegment, AnnotationType< TableRowImageSegment > > annotationConverter = new AnnotationConverter<>( display.selectionColoringModel );
 
-		final BoundarySource boundarySource = new BoundarySource( sourceAndConverter.getSpimSource() );
-		return new SourceAndConverter( boundarySource, new LabelConverter(), volatileSourceAndConverter );
+		// combined
+		return new SourceAndConverter( boundarySource, annotationConverter, volatileSourceAndConverter );
 	}
 
 	@Override
