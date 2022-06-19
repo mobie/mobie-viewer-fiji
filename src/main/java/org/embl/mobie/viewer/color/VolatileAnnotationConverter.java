@@ -46,6 +46,8 @@ public class VolatileAnnotationConverter< T, A extends VolatileAnnotationType< T
 			output.set( 0 );
 			return;
 		}
+		final T type = input.get();
+		final T annotation = input.getAnnotation();
 
 		setColor( input.getAnnotation(), output );
 	}

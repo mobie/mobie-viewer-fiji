@@ -115,7 +115,7 @@ public class SourceNameRenderer extends BdvOverlay implements TransformListener<
 
 		for ( final SourceAndConverter< ? > source : sources )
 		{
-			if( SourceHelper.getLabelSource( source ) != null )
+			if( SourceHelper.unwrapSource( source ) != null )
 			{
 				// do not show names of "overlays"
 				continue;

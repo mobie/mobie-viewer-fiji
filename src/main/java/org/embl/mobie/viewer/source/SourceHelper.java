@@ -96,7 +96,8 @@ public abstract class SourceHelper
     }
 
     // TODO: implement this recursively
-    public static BoundarySource getLabelSource( SourceAndConverter sac )
+	// TODO: unwrapSource( Sou
+    public static BoundarySource unwrapSource( SourceAndConverter sac )
     {
         if ( sac.getSpimSource() instanceof BoundarySource )
         {
@@ -119,29 +120,27 @@ public abstract class SourceHelper
         }
     }
 
-
-    public static BoundarySource< ? > isAnnotationSource( SourceAndConverter sac )
-    {
-        if ( sac.getSpimSource() instanceof BoundarySource )
-        {
-            return ( BoundarySource< ? > ) sac.getSpimSource();
-        }
-        else if ( sac.getSpimSource() instanceof TransformedSource )
-        {
-            if ( ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource() instanceof BoundarySource )
-            {
-                return ( BoundarySource< ? > ) ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource();
-            }
-            else
-            {
-                return null;
-            }
-        }
-        else
-        {
-            return null;
-        }
-    }
+	public static < T > T unwrapSource( Source source, Class< T > clazz )
+	{
+		if ( clazz.isInstance( source ) )
+		{
+			return ( T ) source;
+		}
+		else if ( source instanceof TransformedSource )
+		{
+			final Source< ? > wrappedSource = ( ( TransformedSource< ? > ) source ).getWrappedSource();
+			return unwrapSource( wrappedSource, clazz );
+		}
+		else if ( source instanceof SourceWrapper )
+		{
+			final Source< ? > wrappedSource = ( ( SourceWrapper< ? > ) source ).getWrappedSource();
+			return unwrapSource( wrappedSource, clazz );
+		}
+		else
+		{
+			return null;
+		}
+	}
 
 	public static int getNumTimepoints( SourceAndConverter< ? > source )
 	{

@@ -104,6 +104,8 @@ public class UserInterface
 		frame.pack();
 		frame.setVisible( true );
 
+		frame.setLocation( UserInterfaceHelper.SPACING, frame.getY() );
+
 		return frame;
 	}
 

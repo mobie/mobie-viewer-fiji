@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.viewer.source;
 
-import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealRandomAccess;

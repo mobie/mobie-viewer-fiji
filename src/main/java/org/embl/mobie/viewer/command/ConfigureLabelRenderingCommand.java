@@ -133,9 +133,9 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 
 	private void configureBoundaryRendering()
 	{
-		Arrays.stream( sourceAndConverters ).filter( sac -> SourceHelper.getLabelSource( sac.asVolatile() ) != null ).forEach( sac ->
+		Arrays.stream( sourceAndConverters ).filter( sac -> SourceHelper.unwrapSource( sac.asVolatile() ) != null ).forEach( sac ->
 		{
-			final BoundarySource volatileBoundarySource = SourceHelper.getLabelSource( sac.asVolatile() );
+			final BoundarySource volatileBoundarySource = SourceHelper.unwrapSource( sac.asVolatile() );
 			volatileBoundarySource.showAsBoundary( showAsBoundary, boundaryThickness );
 		});
 	}

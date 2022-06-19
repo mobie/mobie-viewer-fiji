@@ -190,7 +190,7 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 
 		this.showTable = annotationDisplay.tableViewer.getWindow().isVisible();
 
-		final BoundarySource boundarySource = SourceHelper.getLabelSource( sourceAndConverter );
+		final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter );
 		this.showAsBoundaries = boundarySource.isShowAsBoundaries();
 		this.boundaryThickness = boundarySource.getBoundaryWidth();
 	}

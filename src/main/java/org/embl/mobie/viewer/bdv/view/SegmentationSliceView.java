@@ -49,6 +49,7 @@ import org.embl.mobie.viewer.source.AnnotationSource;
 import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.VolatileAnnotationSource;
+import org.embl.mobie.viewer.source.VolatileBoundarySource;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
@@ -76,7 +77,7 @@ public class SegmentationSliceView< N extends NumericType< N > & RealType< N > >
 		// volatile
 		final Source< ? extends Volatile< N > > volatileSpimSource = sourceAndConverter.asVolatile().getSpimSource();
 		final VolatileAnnotationSource volatileAnnotationSource = new VolatileAnnotationSource( volatileSpimSource, adapter );
-		final BoundarySource volatileBoundarySource = new BoundarySource( volatileAnnotationSource );
+		final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileAnnotationSource );
 		final VolatileAnnotationConverter volatileAnnotationConverter = new VolatileAnnotationConverter( display.selectionColoringModel );
 		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
 

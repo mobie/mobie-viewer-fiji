@@ -29,7 +29,6 @@
 package org.embl.mobie.viewer.bdv.view;
 
 import bdv.viewer.SourceAndConverter;
-import bdv.viewer.TimePointListener;
 import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;
@@ -39,6 +38,7 @@ import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.SourceHelper;
+import org.embl.mobie.viewer.source.VolatileBoundarySource;
 
 import javax.swing.*;
 import java.awt.*;
@@ -59,21 +59,19 @@ public abstract class AnnotationSliceView< T extends TableRow > extends Abstract
 	{
 		configureLabelRendering( sourceAndConverter );
 		display.sliceViewer.show( sourceAndConverter, display );
-		getSliceViewer().getBdvHandle().getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
 	}
 
 	private void configureLabelRendering( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final boolean showAsBoundaries = display.isShowAsBoundaries();
 		final float boundaryThickness = display.getBoundaryThickness();
-		final BoundarySource< ? > boundarySource = SourceHelper.getLabelSource( sourceAndConverter );
+		final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
 		boundarySource.showAsBoundary( showAsBoundaries, boundaryThickness );
 		if ( sourceAndConverter.asVolatile() != null )
 		{
-			final BoundarySource< ? > vBoundarySource = SourceHelper.getLabelSource( sourceAndConverter.asVolatile() );
-			vBoundarySource.showAsBoundary( showAsBoundaries, boundaryThickness );
+			final VolatileBoundarySource volatileBoundarySource = SourceHelper.unwrapSource( sourceAndConverter.asVolatile().getSpimSource(), VolatileBoundarySource.class );
+			volatileBoundarySource.showAsBoundary( showAsBoundaries, boundaryThickness );
 		}
-
 		final ColoringModel<T> coloringModel = display.selectionColoringModel.getWrappedColoringModel();
 		if ( coloringModel instanceof CategoryColoringModel )
 			( ( CategoryColoringModel<?> ) coloringModel ).setRandomSeed( display.getRandomColorSeed() );

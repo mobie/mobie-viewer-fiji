@@ -5,7 +5,6 @@ import de.embl.cba.tables.imagesegment.ImageSegment;
 public class VolatileSegmentType< I extends ImageSegment > extends VolatileAnnotationType< I >
 {
 	private I segment;
-	private int backgroundLabel = 0;
 
 	public VolatileSegmentType()
 	{

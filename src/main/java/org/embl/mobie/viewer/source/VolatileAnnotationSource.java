@@ -67,7 +67,7 @@ public class VolatileAnnotationSource< T extends NumericType< T > & RealType< T 
     @Override
     public RandomAccessibleInterval< VolatileAnnotationType< I > > getSource( final int t, final int level )
     {
-        final RandomAccessibleInterval< V > rai = this.source.getSource( t, level );
+        final RandomAccessibleInterval< V > rai = source.getSource( t, level );
         final RandomAccessibleInterval< VolatileAnnotationType< I > > convert = Converters.convert( rai, ( Converter< V, VolatileAnnotationType< I > > ) ( input, output ) -> {
             set( input, t, output );
         }, new VolatileSegmentType() );
@@ -86,8 +86,13 @@ public class VolatileAnnotationSource< T extends NumericType< T > & RealType< T 
 
     private void set( V input, int t, VolatileAnnotationType< I > output )
     {
-        final I segment = adapter.getSegment( input.get().getRealDouble(), t, source.getName() );
+        final double label = input.get().getRealDouble();
+        final I segment = adapter.getSegment( label, t, source.getName() );
         final VolatileSegmentType< I > volatileSegmentType = new VolatileSegmentType( segment, input.isValid() );
+        if ( label > 0 )
+        {
+            int a = 1;
+        }
         output.set( volatileSegmentType );
     }
 
