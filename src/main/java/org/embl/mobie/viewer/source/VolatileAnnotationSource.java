@@ -86,13 +86,15 @@ public class VolatileAnnotationSource< T extends NumericType< T > & RealType< T 
 
     private void set( V input, int t, VolatileAnnotationType< I > output )
     {
+        if ( ! input.isValid() )
+        {
+            output.setValid( false );
+            return;
+        }
+
         final double label = input.get().getRealDouble();
         final I segment = adapter.getSegment( label, t, source.getName() );
-        final VolatileSegmentType< I > volatileSegmentType = new VolatileSegmentType( segment, input.isValid() );
-        if ( label > 0 )
-        {
-            int a = 1;
-        }
+        final VolatileSegmentType< I > volatileSegmentType = new VolatileSegmentType( segment, true );
         output.set( volatileSegmentType );
     }
 
