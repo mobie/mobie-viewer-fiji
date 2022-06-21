@@ -173,9 +173,10 @@ public class ViewManager
 	}
 
 	private void addManualTransforms( List< SourceTransformer > viewSourceTransforms,
-                                      Map<String, SourceAndConverter<?> > sourceNameToSourceAndConverter ) {
+                                      Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
+	{
         for ( String sourceName: sourceNameToSourceAndConverter.keySet() ) {
-            Source<?> source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
+            Source< ? > source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
 
             if ( source instanceof BoundarySource ) {
                 source = (( BoundarySource ) source).getWrappedSource();
@@ -209,13 +210,13 @@ public class ViewManager
 			{
 				ImageDisplay imageDisplay = ( ImageDisplay ) sourceDisplay;
 				currentDisplay = new ImageDisplay( imageDisplay );
-				addManualTransforms( viewSourceTransforms, imageDisplay.displayedSourceNameToSourceAndConverter );
+				addManualTransforms( viewSourceTransforms, imageDisplay.nameToSourceAndConverter );
 			}
 			else if ( sourceDisplay instanceof SegmentationDisplay )
 			{
 				SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) sourceDisplay;
 				currentDisplay = new SegmentationDisplay( segmentationDisplay );
-				addManualTransforms( viewSourceTransforms, segmentationDisplay.displayedSourceNameToSourceAndConverter );
+				addManualTransforms( viewSourceTransforms, ( Map ) segmentationDisplay.nameToSourceAndConverter );
 			}
 			else if ( sourceDisplay instanceof RegionDisplay )
 			{
@@ -268,7 +269,7 @@ public class ViewManager
 		if ( view.getViewerTransform() == null && currentSourceDisplays.size() > 0 && ( view.isExclusive() || currentSourceDisplays.size() == 1 ) )
 		{
 			final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1);
-			new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), ((AbstractSourceDisplay) sourceDisplay).displayedSourceNameToSourceAndConverter.values().iterator().next() ).run();
+			new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), ((AbstractSourceDisplay< ? >) sourceDisplay).nameToSourceAndConverter.values().iterator().next() ).run();
 		}
 
 		// trigger rendering of source name overlay
@@ -421,7 +422,7 @@ public class ViewManager
 			{
 				initTableViewer( annotationDisplay );
 				initScatterPlotViewer( annotationDisplay );
-				if ( annotationDisplay instanceof SegmentationDisplay)
+				if ( annotationDisplay instanceof SegmentationDisplay )
 					initSegmentationVolumeViewer( ( SegmentationDisplay ) annotationDisplay );
 			}
 		}
@@ -454,16 +455,16 @@ public class ViewManager
 	}
 
 	// compare with initSegmentationVolumeViewer
-	private void initImageVolumeViewer( ImageDisplay imageDisplay )
+	private void initImageVolumeViewer( ImageDisplay< ? > imageDisplay )
 	{
-		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.displayedSourceNameToSourceAndConverter, universeManager );
+		imageDisplay.imageVolumeViewer = new ImageVolumeViewer( imageDisplay.nameToSourceAndConverter, universeManager );
 		Double[] resolution3dView = imageDisplay.getResolution3dView();
 		if ( resolution3dView != null ) {
 			imageDisplay.imageVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(imageDisplay.getResolution3dView() ));
 		}
 		imageDisplay.imageVolumeViewer.showImages( imageDisplay.showImagesIn3d() );
 
-		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.displayedSourceNameToSourceAndConverter.values() )
+		for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.nameToSourceAndConverter.values() )
 		{
 			sacService.setMetadata( sourceAndConverter, ImageVolumeViewer.class.getName(), imageDisplay.imageVolumeViewer );
 		}
@@ -519,7 +520,7 @@ public class ViewManager
 
 	private void initSegmentationVolumeViewer( SegmentationDisplay display )
 	{
-		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.selectionColoringModel, display.displayedSourceNameToSourceAndConverter.values(), universeManager );
+		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.selectionColoringModel, display.nameToSourceAndConverter.values(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();
 		if ( resolution3dView != null ) {
 			display.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(display.getResolution3dView()) );
@@ -528,7 +529,7 @@ public class ViewManager
 		display.selectionColoringModel.listeners().add( display.segmentsVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
 
-		for ( SourceAndConverter< ? > sourceAndConverter : display.displayedSourceNameToSourceAndConverter.values() )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.nameToSourceAndConverter.values() )
 		{
 			sacService.setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), display.segmentsVolumeViewer );
 		}
@@ -581,11 +582,12 @@ public class ViewManager
 		}
 	}
 
-	public Collection< AnnotationDisplay > getAnnotatedRegionDisplays()
+	// TODO: typing ( or remove )
+	public Collection< AnnotationDisplay< ? > > getAnnotationDisplays()
 	{
-		final List< AnnotationDisplay > displays = getCurrentSourceDisplays().stream().filter( s -> s instanceof AnnotationDisplay ).map( s -> ( AnnotationDisplay ) s ).collect( Collectors.toList() );
+		final List< AnnotationDisplay< ? > > collect = getCurrentSourceDisplays().stream().filter( s -> s instanceof AnnotationDisplay ).map( s -> ( AnnotationDisplay< ? > ) s ).collect( Collectors.toList() );
 
-		return displays;
+		return collect;
 	}
 
 	public void close()

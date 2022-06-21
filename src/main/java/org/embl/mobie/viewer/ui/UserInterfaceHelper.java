@@ -225,7 +225,7 @@ public class UserInterfaceHelper
 	public JPanel createAnnotatedMaskDisplaySettingsPanel( RegionDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
-		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.displayedSourceNameToSourceAndConverter.values() );
+		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.nameToSourceAndConverter.values() );
 
 		// Buttons
 		panel.add( space() );
@@ -299,18 +299,18 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public JPanel createImageDisplaySettingsPanel( ImageDisplay display )
+	public JPanel createImageDisplaySettingsPanel( ImageDisplay< ? > display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
 		// Set panel background color
-		final Converter< ?, ARGBType > converter = display.displayedSourceNameToSourceAndConverter.values().iterator().next().getConverter();
+		final Converter< ?, ARGBType > converter = display.nameToSourceAndConverter.values(). iterator().next().getConverter();
 		if ( converter instanceof ColorConverter )
 		{
 			setPanelColor( panel, ( ( ColorConverter ) converter ).getColor() );
 		}
 
-		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.displayedSourceNameToSourceAndConverter.values() );
+		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.nameToSourceAndConverter.values() );
 
 		// Buttons
 		panel.add( space() );
@@ -328,7 +328,7 @@ public class UserInterfaceHelper
 
 
 		// make the panel color listen to color changes of the sources
-		for ( SourceAndConverter< ? > sourceAndConverter : display.displayedSourceNameToSourceAndConverter.values() )
+		for ( SourceAndConverter< ? > sourceAndConverter : display.nameToSourceAndConverter.values() )
 		{
 			SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ).setupChangeListeners().add( setup -> {
 				// color changed listener
@@ -357,7 +357,7 @@ public class UserInterfaceHelper
 		JPanel panel = createDisplayPanel( display.getName() );
 
 		List< SourceAndConverter< ? > > sourceAndConverters =
-				new ArrayList<>( display.displayedSourceNameToSourceAndConverter.values() );
+				new ArrayList<>( display.nameToSourceAndConverter.values() );
 
 		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
@@ -786,7 +786,7 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	public static JButton createImageDisplayBrightnessButton( ImageDisplay imageDisplay )
+	public static JButton createImageDisplayBrightnessButton( ImageDisplay< ? > imageDisplay )
 	{
 		JButton button = new JButton( "B" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -794,7 +794,7 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
-			for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.displayedSourceNameToSourceAndConverter.values() )
+			for ( SourceAndConverter< ? > sourceAndConverter : imageDisplay.nameToSourceAndConverter.values() )
 			{
 				converterSetups.add( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ) );
 			}
@@ -802,18 +802,6 @@ public class UserInterfaceHelper
 			UserInterfaceHelper.showBrightnessDialog(
 					imageDisplay.getName(),
 					converterSetups);
-		} );
-
-		return button;
-	}
-
-	public static JButton createDummyButton(  )
-	{
-		JButton button = new JButton( " " );
-		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
-
-		button.addActionListener( e ->
-		{
 		} );
 
 		return button;

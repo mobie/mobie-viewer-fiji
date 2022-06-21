@@ -40,6 +40,7 @@ import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.table.TableRowsTableModel;
@@ -49,10 +50,11 @@ import org.embl.mobie.viewer.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSourceDisplay
+public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSourceDisplay< AnnotationType< T > >
 {
 	// Serialization
 	protected String lut = ColoringLuts.GLASBEY;
@@ -142,12 +144,12 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 		return randomColorSeed;
 	}
 
-	protected void setAnnotationSettings( AnnotationDisplay<T> annotationDisplay )
+	protected void set( AnnotationDisplay<T> annotationDisplay )
 	{
 		this.name = annotationDisplay.name;
 
 		// Region displays only have one sourceAndConverter
-		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.displayedSourceNameToSourceAndConverter.values().iterator().next();
+		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.nameToSourceAndConverter.values().iterator().next();
 
 		if( sourceAndConverter.getConverter() instanceof OpacityAdjuster )
 		{
@@ -190,7 +192,7 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 
 		this.showTable = annotationDisplay.tableViewer.getWindow().isVisible();
 
-		final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter );
+		final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
 		this.showAsBoundaries = boundarySource.isShowAsBoundaries();
 		this.boundaryThickness = boundarySource.getBoundaryWidth();
 	}

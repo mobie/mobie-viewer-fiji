@@ -33,6 +33,11 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import org.embl.mobie.viewer.select.SelectionModel;
 import net.imglib2.type.numeric.ARGBType;
 
+import static net.imglib2.type.numeric.ARGBType.alpha;
+import static net.imglib2.type.numeric.ARGBType.blue;
+import static net.imglib2.type.numeric.ARGBType.green;
+import static net.imglib2.type.numeric.ARGBType.red;
+
 public class SelectionColoringModel< T > extends AbstractColoringModel< T >
 {
 	private ColoringModel< T > coloringModel;
@@ -60,39 +65,28 @@ public class SelectionColoringModel< T > extends AbstractColoringModel< T >
 	}
 
 	@Override
-	public void convert( T input, ARGBType output )
+	public void convert( T value, ARGBType color )
 	{
-		coloringModel.convert( input, output );
+		coloringModel.convert( value, color );
 
 		if ( selectionModel == null ) return;
 
-		// TODO: this is very inefficient as it recomputes the colors all the time
-		//   implement a selectionChanged Listener!
 		if ( selectionModel.isEmpty() ) return;
 
-		final boolean isSelected = selectionModel.isSelected( input );
-
-		if ( ! isSelected )
+		if ( ! selectionModel.isSelected( value ) )
 		{
-			dim( output, opacityNotSelected );
+			dim( color, opacityNotSelected );
 		}
 		else
 		{
-			if ( selectionColor != null ) output.set( selectionColor );
+			if ( selectionColor != null ) color.set( selectionColor );
 		}
 	}
 
-	private void dim( ARGBType output, double opacity )
+	private void dim( ARGBType color, double opacity )
 	{
-		final int colorIndex = output.get();
-
-		output.set(
-				ARGBType.rgba(
-						ARGBType.red( colorIndex ),
-						ARGBType.green( colorIndex ),
-						ARGBType.blue( colorIndex ),
-						opacity * 255 )
-		);
+		final int value = color.get();
+		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
 	}
 
 	public void setSelectionColor( ARGBType selectionColor )

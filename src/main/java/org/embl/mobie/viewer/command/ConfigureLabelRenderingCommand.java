@@ -38,6 +38,7 @@ import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.color.SelectionColoringModelWrapper;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.SourceHelper;
+import org.embl.mobie.viewer.source.VolatileBoundarySource;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.util.ColorRGB;
@@ -58,19 +59,19 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	@Parameter
 	public SourceAndConverter[] sourceAndConverters;
 
-	@Parameter ( label = "Show labels as boundaries")
+	@Parameter( label = "Show labels as boundaries" )
 	public boolean showAsBoundary;
 
-	@Parameter ( label = "Boundary thickness", style="format:#.00" )
+	@Parameter( label = "Boundary thickness", style = "format:#.00" )
 	public float boundaryThickness = 1.0F;
 
-	@Parameter ( label = "Selected labels coloring", choices = { SEGMENT_COLOR, SELECTION_COLOR } )
+	@Parameter( label = "Selected labels coloring", choices = { SEGMENT_COLOR, SELECTION_COLOR } )
 	public String coloringMode = SEGMENT_COLOR;
 
-	@Parameter ( label = "Selection color")
-	public ColorRGB selectionColor = new ColorRGB(255,255,0);
+	@Parameter( label = "Selection color" )
+	public ColorRGB selectionColor = new ColorRGB( 255, 255, 0 );
 
-	@Parameter ( label = "Opacity of non-selected labels" )
+	@Parameter( label = "Opacity of non-selected labels" )
 	public double opacity = 0.15;
 
 	@Parameter( label = "Increment random color seed [ Ctrl L ]", callback = "incrementRandomColorSeed" )
@@ -113,13 +114,14 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			// get the converter from the volatile sac, because
-			// the non-volatile converter may not be implemented,
-			// because it is never used (for rendering).
-			final SourceAndConverter volatileSac = sourceAndConverter.asVolatile();
-			if ( volatileSac.getConverter() instanceof SelectionColoringModelWrapper )
+			final Converter converter = sourceAndConverter.getConverter();
+
+			// Here it is sufficient to do this for the non-volatile
+			// converter, because the volatile converter shares the
+			// same instance of the selectionColoringModel.
+			if ( converter instanceof SelectionColoringModelWrapper )
 			{
-				final SelectionColoringModel selectionColoringModel = ( ( SelectionColoringModelWrapper ) volatileSac.getConverter() ).getSelectionColoringModel();
+				final SelectionColoringModel selectionColoringModel = ( ( SelectionColoringModelWrapper ) converter ).getSelectionColoringModel();
 
 				if ( coloringMode.equals( SEGMENT_COLOR ) )
 					selectionColoringModel.setSelectionColor( null );
@@ -133,11 +135,15 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 
 	private void configureBoundaryRendering()
 	{
-		Arrays.stream( sourceAndConverters ).filter( sac -> SourceHelper.unwrapSource( sac.asVolatile() ) != null ).forEach( sac ->
+		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			final BoundarySource volatileBoundarySource = SourceHelper.unwrapSource( sac.asVolatile() );
-			volatileBoundarySource.showAsBoundary( showAsBoundary, boundaryThickness );
-		});
-	}
+			final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
+			if ( boundarySource != null )
+				boundarySource.showAsBoundary( showAsBoundary, boundaryThickness );
 
+			final VolatileBoundarySource volatileBoundarySource = SourceHelper.unwrapSource( sourceAndConverter.asVolatile().getSpimSource(), VolatileBoundarySource.class );
+			if ( volatileBoundarySource != null )
+				volatileBoundarySource.showAsBoundary( showAsBoundary, boundaryThickness );
+		}
+	}
 }

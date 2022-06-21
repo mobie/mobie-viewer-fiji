@@ -30,6 +30,7 @@ package org.embl.mobie.viewer.display;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.type.numeric.NumericType;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
@@ -40,8 +41,9 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-public class ImageDisplay extends AbstractSourceDisplay
+public class ImageDisplay< T extends NumericType< T > > extends AbstractSourceDisplay< T >
 {
 	// Serialization
 	private List< String > sources;
@@ -105,11 +107,9 @@ public class ImageDisplay extends AbstractSourceDisplay
 	{
 		this.name = imageDisplay.name;
 		this.sources = new ArrayList<>();
-		this.sources.addAll( imageDisplay.displayedSourceNameToSourceAndConverter.keySet() );
+		this.sources.addAll( imageDisplay.nameToSourceAndConverter.keySet() );
 
-		final SourceAndConverter< ? > sourceAndConverter = imageDisplay.displayedSourceNameToSourceAndConverter.values().iterator().next();
-
-		setDisplaySettings( sourceAndConverter );
+		setDisplaySettings( nameToSourceAndConverter.values().iterator().next() );
 
 		if ( imageDisplay.imageVolumeViewer != null )
 		{

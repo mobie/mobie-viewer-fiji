@@ -41,6 +41,6 @@ public class OpenRemotePlatynereis
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
-		new MoBIE("https://github.com/platybrowser/platybrowser" );
+		new MoBIE("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
 	}
 }

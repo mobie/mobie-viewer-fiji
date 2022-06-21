@@ -42,14 +42,7 @@ public class VolatileAnnotationConverter< T, A extends VolatileAnnotationType< T
 	public void convert( A input, ARGBType output )
 	{
 		if ( ! input.isValid()  )
-		{
-			if ( input.getAnnotation() != null )
-			{
-				int b = 1;
-			}
-			output.set( 0 );
 			return;
-		}
 
 		setColor( input.getAnnotation(), output );
 	}

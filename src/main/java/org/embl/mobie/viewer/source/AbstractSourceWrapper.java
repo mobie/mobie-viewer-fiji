@@ -32,7 +32,7 @@ import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 
-// During the wrapping the type may change from A to B
+// During the wrapping the type changes from A to B
 public abstract class AbstractSourceWrapper< A, B > implements Source< B >, SourceWrapper< A >
 {
     protected final Source< A > source;

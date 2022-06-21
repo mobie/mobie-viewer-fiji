@@ -36,7 +36,7 @@ import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.annotate.RegionImage;
 import org.embl.mobie.viewer.display.RegionDisplay;
-import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
+import org.embl.mobie.viewer.segment.SliceViewAnnotationSelector;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 
@@ -59,7 +59,7 @@ public class RegionSliceView extends AnnotationSliceView< RegionTableRow >
 	@Override
 	public void focusEvent( RegionTableRow selection, Object initiator )
 	{
-		if ( initiator instanceof SliceViewRegionSelector )
+		if ( initiator instanceof SliceViewAnnotationSelector )
 			return;
 
 		final BdvHandle bdvHandle = getSliceViewer().getBdvHandle();

@@ -33,6 +33,7 @@ import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.BdvOverlay;
 import bdv.util.BdvOverlaySource;
+import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TransformListener;
@@ -41,6 +42,8 @@ import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.viewer.source.AnnotationType;
+import org.embl.mobie.viewer.source.RegionType;
 import org.embl.mobie.viewer.source.SourceHelper;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
@@ -105,7 +108,7 @@ public class SourceNameRenderer extends BdvOverlay implements TransformListener<
 
 		viewerInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( bdvHandle );
 
-		final Set< SourceAndConverter< ? > > sources = viewerState.getVisibleAndPresentSources();
+		final Set< SourceAndConverter< ? > > sourceAndConverters = viewerState.getVisibleAndPresentSources();
 
 		final int t = viewerState.getCurrentTimepoint();
 
@@ -113,15 +116,19 @@ public class SourceNameRenderer extends BdvOverlay implements TransformListener<
 		final double[] sourceMin = new double[ 3 ];
 		final double[] sourceMax = new double[ 3 ];
 
-		for ( final SourceAndConverter< ? > source : sources )
+		for ( final SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
-			if( SourceHelper.unwrapSource( source ) != null )
+			final Source< ? > spimSource = sourceAndConverter.getSpimSource();
+			final Object type = spimSource.getType();
+			if ( type instanceof RegionType )
 			{
-				// do not show names of "overlays"
+				// don't render names of regions
 				continue;
 			}
-
-			final Source< ? > spimSource = source.getSpimSource();
+			else
+			{
+				System.out.println( "SourceNameRenderer: " + spimSource.getName());
+			}
 
 			final int level = 0; // spimSource.getNumMipmapLevels() - 1;
 			spimSource.getSourceTransform( t, level, sourceToGlobal );

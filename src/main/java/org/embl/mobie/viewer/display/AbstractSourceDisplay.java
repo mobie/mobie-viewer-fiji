@@ -33,10 +33,11 @@ import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.transform.SourceTransformer;
 import org.embl.mobie.viewer.bdv.view.SliceViewer;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractSourceDisplay implements SourceDisplay
+public abstract class AbstractSourceDisplay< T > implements SourceDisplay
 {
 	// Serialization
 	protected String name;
@@ -45,7 +46,7 @@ public abstract class AbstractSourceDisplay implements SourceDisplay
 	protected BlendingMode blendingMode;
 
 	// Runtime
-	public transient Map< String, SourceAndConverter< ? > > displayedSourceNameToSourceAndConverter; // sources of this display
+	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter; // sources of this display
 	public transient SliceViewer sliceViewer;
 
 	@Override

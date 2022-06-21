@@ -108,7 +108,7 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 	 */
 	public RegionDisplay( RegionDisplay regionDisplay )
 	{
-		setAnnotationSettings( regionDisplay );
+		set( regionDisplay );
 
 		this.sources = new HashMap<>();
 		this.sources.putAll( regionDisplay.sources );

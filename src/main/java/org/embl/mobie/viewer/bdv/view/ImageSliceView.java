@@ -54,9 +54,9 @@ public class ImageSliceView extends AbstractSliceView
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	private final ImageDisplay display;
+	private final ImageDisplay< ? > display;
 
-	public ImageSliceView( MoBIE moBIE, ImageDisplay display )
+	public ImageSliceView( MoBIE moBIE, ImageDisplay< ? > display )
 	{
 		super( moBIE, display );
 		this.display = display;

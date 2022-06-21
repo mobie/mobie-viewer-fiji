@@ -69,7 +69,7 @@ public class MoBIEViewerTest
 		// Test
 		moBIE.sourceNameToSourceAndConverter().keySet().stream().forEach( s -> System.out.println( s ) );
 		final SourceAndConverter< ? > sourceAndConverter = moBIE.sourceNameToSourceAndConverter().get( "fluorescence-annotations" );
-		final BoundarySource< ? > boundarySource = SourceHelper.unwrapSource( sourceAndConverter );
+		final BoundarySource< ? > boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
 		final boolean showAsBoundaries = boundarySource.isShowAsBoundaries();
 		assertTrue( showAsBoundaries );
 	}
@@ -116,7 +116,7 @@ public class MoBIEViewerTest
 		moBIE = new MoBIE( "https://github.com/mobie/zebrafish-lm-datasets", MoBIESettings.settings().gitProjectBranch( "main" ).view( "small-grid-view" ) );
 
 		// Select some image segments
-		final AnnotationDisplay display = moBIE.getViewManager().getAnnotatedRegionDisplays().iterator().next();
+		final AnnotationDisplay display = moBIE.getViewManager().getAnnotationDisplays().iterator().next();
 		display.selectionModel.setSelected( display.tableRows.get( 0 ), true );
 		display.selectionModel.focus( display.tableRows.get( 0 ), this );
 		display.selectionModel.setSelected( display.tableRows.get( 1 ), true );

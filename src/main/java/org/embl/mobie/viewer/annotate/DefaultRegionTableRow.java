@@ -42,7 +42,6 @@ public class DefaultRegionTableRow extends AbstractTableRow implements RegionTab
 	protected final Map< String, String > cells;
 	protected final String name;
 
-	// TODO: rename to annotated region?
 	public DefaultRegionTableRow(
 			String name,
 			RealMaskRealInterval mask,

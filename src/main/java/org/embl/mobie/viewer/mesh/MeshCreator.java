@@ -67,10 +67,10 @@ public class MeshCreator < S extends ImageSegment >
 		Integer level = getLevel( segment, labelsSource, voxelSpacing );
 		double[] voxelSpacings = Utils.getVoxelSpacings( labelsSource ).get( level );
 
-		final RandomAccessibleInterval< ? extends RealType< ? > > labelsRAI = ( RandomAccessibleInterval< ? extends RealType< ? > > ) labelsSource.getSource( segment.timePoint(), level  );
+		final RandomAccessibleInterval< ? extends RealType< ? > > rai = ( RandomAccessibleInterval< ? extends RealType< ? > > ) labelsSource.getSource( segment.timePoint(), level  );
 
 		if ( segment.boundingBox() == null )
-			setSegmentBoundingBox( segment, labelsRAI, voxelSpacings );
+			setSegmentBoundingBox( segment, rai, voxelSpacings );
 
 		FinalInterval boundingBox = getIntervalInVoxelUnits( segment.boundingBox(), voxelSpacings );
 		final long numElements = Intervals.numElements( boundingBox );
@@ -86,13 +86,14 @@ public class MeshCreator < S extends ImageSegment >
 			}
 		}
 
-		if ( ! Intervals.contains( labelsRAI, boundingBox ) )
+		if ( ! Intervals.contains( rai, boundingBox ) )
 		{
-			System.err.println( "The segment bounding box " + boundingBox + " is not fully contained in the image interval: " + Arrays.toString( Intervals.minAsLongArray( labelsRAI ) ) + "-" +  Arrays.toString( Intervals.maxAsDoubleArray( labelsRAI ) ));
+			System.err.println( "The segment bounding box " + boundingBox + " is not fully contained in the image interval: " + Arrays.toString( Intervals.minAsLongArray( rai ) ) + "-" +  Arrays.toString( Intervals.maxAsDoubleArray( rai ) ));
 		}
 
+		// TODO: Copy the Meshextractor here and make work with AnnotationType.
 		final MeshExtractor meshExtractor = new MeshExtractor(
-				Views.extendZero( ( RandomAccessibleInterval ) labelsRAI ),
+				Views.extendZero( ( RandomAccessibleInterval ) rai ),
 				boundingBox,
 				new AffineTransform3D(),
 				new int[]{ 1, 1, 1 },

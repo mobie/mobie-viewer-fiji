@@ -38,11 +38,10 @@ import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.color.AnnotationConverter;
-import org.embl.mobie.viewer.color.LabelConverter;
 import org.embl.mobie.viewer.color.VolatileAnnotationConverter;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
-import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
+import org.embl.mobie.viewer.segment.SliceViewAnnotationSelector;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.source.AnnotationSource;
@@ -94,17 +93,14 @@ public class SegmentationSliceView< N extends NumericType< N > & RealType< N > >
 	@Override
 	public synchronized void focusEvent( TableRowImageSegment selection, Object initiator )
 	{
-		if ( initiator instanceof SliceViewRegionSelector )
+		if ( initiator instanceof SliceViewAnnotationSelector )
 			return;
 
 		final BdvHandle bdvHandle = getSliceViewer().getBdvHandle();
 		final SynchronizedViewerState state = bdvHandle.getViewerPanel().state();
 		state.setCurrentTimepoint( selection.timePoint() );
 
-		final double[] position = new double[ 3 ];
-		selection.localize( position );
-
-		adaptPosition( position, selection.imageId() );
+		final double[] position = getPosition( selection );
 
 		new ViewerTransformChanger(
 				bdvHandle,
@@ -113,9 +109,11 @@ public class SegmentationSliceView< N extends NumericType< N > & RealType< N > >
 				SliceViewLocationChanger.animationDurationMillis ).run();
 	}
 
-	private void adaptPosition( double[] position, String sourceName )
+	private double[] getPosition( TableRowImageSegment segment )
 	{
-		final SourceAndConverter< ? > sourceAndConverter = moBIE.sourceNameToSourceAndConverter().get( sourceName );
+		final double[] position = new double[ 3 ];
+		segment.localize( position );
+		final SourceAndConverter< ? > sourceAndConverter = moBIE.sourceNameToSourceAndConverter().get( segment.imageId()  );
 
 		// get source transform
 		AffineTransform3D sourceTransform = new AffineTransform3D();
@@ -125,12 +123,15 @@ public class SegmentationSliceView< N extends NumericType< N > & RealType< N > >
 		final VoxelDimensions voxelDimensions;
 		voxelDimensions = sourceAndConverter.getSpimSource().getVoxelDimensions();
 
-		// remove scaling, because the positions are in scaled units
+		// remove scaling from source transform,
+		// because position is already in scaled units
 		final AffineTransform3D scalingTransform = new AffineTransform3D();
 		scalingTransform.scale( voxelDimensions.dimension( 0 ), voxelDimensions.dimension( 1 ), voxelDimensions.dimension( 2 )  );
 		sourceTransform.concatenate( scalingTransform.inverse() );
 
-		// adapt position
+		// move position according current source location
 		sourceTransform.apply( position, position );
+
+		return position;
 	}
 }

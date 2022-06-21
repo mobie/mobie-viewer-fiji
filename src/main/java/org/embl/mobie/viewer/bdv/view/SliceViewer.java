@@ -47,7 +47,7 @@ import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
 import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
-import org.embl.mobie.viewer.segment.SliceViewRegionSelector;
+import org.embl.mobie.viewer.segment.SliceViewAnnotationSelector;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -117,11 +117,11 @@ public class SliceViewer
 
 	private void installContextMenuAndKeyboardShortCuts( )
 	{
-		final SliceViewRegionSelector sliceViewRegionSelector = new SliceViewRegionSelector( bdvHandle, is2D, () -> moBIE.getViewManager().getAnnotatedRegionDisplays() );
+		final SliceViewAnnotationSelector sliceViewAnnotationSelector = new SliceViewAnnotationSelector( bdvHandle, is2D, () -> moBIE.getViewManager().getAnnotationDisplays() );
 
 		sacService.registerAction( UNDO_SEGMENT_SELECTIONS, sourceAndConverters -> {
 			// TODO: Maybe only do this for the sacs at the mouse position
-			sliceViewRegionSelector.clearSelection();
+			sliceViewAnnotationSelector.clearSelection();
 		} );
 
 		sacService.registerAction( LOAD_ADDITIONAL_VIEWS, sourceAndConverters -> {
@@ -160,18 +160,20 @@ public class SliceViewer
 
 		contextMenu = new SourceAndConverterContextMenuClickBehaviour( bdvHandle, new SourcesAtMousePositionSupplier( bdvHandle, is2D ), actions.toArray( new String[0] ) );
 
+		// Install keyboard shortcuts
+
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.behaviour( contextMenu, "Context menu", "button3", "shift P");
 		behaviours.install( bdvHandle.getTriggerbindings(), "MoBIE" );
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
-						new Thread( () -> sliceViewRegionSelector.run() ).start(),
+						new Thread( () -> sliceViewAnnotationSelector.run() ).start(),
 				"Toggle selection", "ctrl button1" ) ;
 
 		behaviours.behaviour(
 				( ClickBehaviour ) ( x, y ) ->
-						new Thread( () -> sliceViewRegionSelector.clearSelection() ).start(),
+						new Thread( () -> sliceViewAnnotationSelector.clearSelection() ).start(),
 				"Clear selection", "ctrl shift N" ) ;
 
 		behaviours.behaviour(
@@ -206,7 +208,7 @@ public class SliceViewer
 	{
 		// register
 		SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
-		display.displayedSourceNameToSourceAndConverter.put( sourceAndConverter.getSpimSource().getName(), sourceAndConverter );
+		display.nameToSourceAndConverter.put( sourceAndConverter.getSpimSource().getName(), sourceAndConverter );
 		moBIE.sourceNameToSourceAndConverter().put( sourceAndConverter.getSpimSource().getName(), sourceAndConverter );
 
 		// blending mode

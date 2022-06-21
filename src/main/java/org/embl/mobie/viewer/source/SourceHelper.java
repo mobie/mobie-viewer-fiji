@@ -58,6 +58,7 @@ public abstract class SourceHelper
 {
     // TODO: one could get rid of this if Sources could
     //   return their mask directly with some other method!
+	//   Is this still used?
 	@Deprecated
     public static double[][] getMinMax( Source< ? > source )
     {
@@ -76,48 +77,6 @@ public abstract class SourceHelper
         }
 
         return minMax;
-    }
-
-	// TODO: is this needed ?
-    public static <R extends NumericType<R> & RealType<R>> SourceAndConverter<R> notSure( SourceAndConverter<?> source, Converter<RealType<?>, ARGBType> converter) {
-        BoundarySource<?> labelVolatileSource = new BoundarySource( source.asVolatile().getSpimSource() );
-        SourceAndConverter<?> volatileSourceAndConverter = new SourceAndConverter( labelVolatileSource, converter );
-        BoundarySource<?> boundarySource = new BoundarySource(source.getSpimSource() );
-        return new SourceAndConverter( boundarySource, converter, volatileSourceAndConverter );
-    }
-
-
-	// TODO: the internals of this look wrong
-
-	public static void viewAsHyperstack(BdvStackSource<?> bdvStackSource, int level) {
-        RandomAccessibleInterval<?> rai = bdvStackSource.getSources().get(0).getSpimSource().getSource(0, level);
-        IntervalView<?> permute = Views.permute(Views.addDimension(rai, 0, 0), 2, 3);
-        ImageJFunctions.wrap(Cast.unchecked(permute), "em").show();
-    }
-
-    // TODO: implement this recursively
-	// TODO: unwrapSource( Sou
-    public static BoundarySource unwrapSource( SourceAndConverter sac )
-    {
-        if ( sac.getSpimSource() instanceof BoundarySource )
-        {
-            return ( BoundarySource ) sac.getSpimSource();
-        }
-        else if ( sac.getSpimSource() instanceof TransformedSource )
-        {
-            if ( ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource() instanceof BoundarySource )
-            {
-                return ( BoundarySource ) ( ( TransformedSource<?> ) sac.getSpimSource() ).getWrappedSource();
-            }
-            else
-            {
-                return null;
-            }
-        }
-        else
-        {
-            return null;
-        }
     }
 
 	public static < T > T unwrapSource( Source source, Class< T > clazz )
@@ -162,28 +121,6 @@ public abstract class SourceHelper
             System.err.println( source.getSpimSource().getName() + " has more than " + maxNumTimePoints + " time-points. Is this an error?!" );
 
 		return numSourceTimepoints;
-	}
-
-	public static RealIntervalProvider getRealIntervalProvider( Source< ? > source )
-	{
-		if ( source instanceof RealIntervalProvider )
-		{
-			return ( RealIntervalProvider ) source;
-		}
-		else if ( source instanceof TransformedSource )
-		{
-			final Source< ? > wrappedSource = ( ( TransformedSource ) source ).getWrappedSource();
-			return getRealIntervalProvider( wrappedSource );
-		}
-		else if (  source instanceof SourceWrapper )
-		{
-			final Source< ? > wrappedSource = (( SourceWrapper ) source).getWrappedSource();
-			return getRealIntervalProvider( wrappedSource );
-		}
-		else
-		{
-			return null;
-		}
 	}
 
 	/**
@@ -284,7 +221,7 @@ public abstract class SourceHelper
 		final double[] min = new double[ 3 ];
 		final double[] max = new double[ 3 ];
 
-		final RealIntervalProvider realIntervalProvider = getRealIntervalProvider( source );
+		final RealIntervalProvider realIntervalProvider = SourceHelper.unwrapSource( source, RealIntervalProvider.class );
 		if ( realIntervalProvider != null )
 		{
 			final FinalRealInterval realInterval = realIntervalProvider.getRealInterval( t );

@@ -52,10 +52,8 @@ public class BoundarySource< T extends AnnotationType< T > > extends AbstractBou
             final RealRandomAccess< T > access = rra.realRandomAccess();
             T input = access.setPositionAndGet( l );
             if ( input.getAnnotation() == null )
-            {
-                // no annotation => keep it like that
                 return;
-            }
+
             for ( Integer d : dimensions )
             {
                 for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
@@ -63,7 +61,8 @@ public class BoundarySource< T extends AnnotationType< T > > extends AbstractBou
                     access.move( signum * boundaryWidth[ d ], d );
                     if ( ! input.valueEquals( access.get() ) )
                     {
-                        output.set( input.copy() ); // it is a boundary pixel!
+                        // boundary pixel
+                        output.set( input.copy() );
                         return;
                     }
                     access.move( - signum * boundaryWidth[ d ], d ); // move back to center

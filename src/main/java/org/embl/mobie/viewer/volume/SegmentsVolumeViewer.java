@@ -31,6 +31,7 @@ package org.embl.mobie.viewer.volume;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import customnode.CustomTriangleMesh;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import org.embl.mobie.viewer.VisibilityListener;
 import org.embl.mobie.viewer.mesh.MeshCreator;
 import de.embl.cba.tables.color.ColorUtils;
@@ -45,6 +46,7 @@ import ij3d.Image3DUniverse;
 import ij3d.UniverseListener;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
 
@@ -64,7 +66,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 
 	private final SelectionModel< S > selectionModel;
 	private final ColoringModel< S > coloringModel;
-	private final Collection< SourceAndConverter< ? > > sourceAndConverters;
+	private final Collection< SourceAndConverter< AnnotationType< TableRowImageSegment > > > sourceAndConverters;
 	private final UniverseManager universeManager;
 
 	private ConcurrentHashMap< S, Content > segmentToContent;
@@ -88,7 +90,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	public SegmentsVolumeViewer(
 			final SelectionModel< S > selectionModel,
 			final ColoringModel< S > coloringModel,
-			final Collection< SourceAndConverter< ? > > sourceAndConverters,
+			final Collection< SourceAndConverter< AnnotationType< TableRowImageSegment > > > sourceAndConverters,
 			UniverseManager universeManager )
 	{
 		this.selectionModel = selectionModel;

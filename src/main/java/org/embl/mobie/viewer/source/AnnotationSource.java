@@ -31,11 +31,9 @@ package org.embl.mobie.viewer.source;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import de.embl.cba.tables.imagesegment.ImageSegment;
-import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.converter.Converters;
-import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
@@ -46,21 +44,21 @@ import java.util.Collection;
 // TODO: Does I really need to extend ImageSegment here?
 public class AnnotationSource< T extends NumericType< T > & RealType< T >, I extends ImageSegment > extends AbstractSourceWrapper< T, AnnotationType< I > >
 {
-    private final Collection< Integer > timepoints;
+    private final Collection< Integer > timePoints;
     private final SegmentAdapter< I > adapter;
 
     public AnnotationSource( final Source< T > source, SegmentAdapter< I > adapter )
     {
         super( source );
         this.adapter = adapter;
-        this.timepoints = null;
+        this.timePoints = null;
     }
 
     @Override
     public boolean isPresent( final int t )
     {
-        if ( timepoints != null )
-            return timepoints.contains( t );
+        if ( timePoints != null )
+            return timePoints.contains( t );
         else
             return source.isPresent(t);
     }
@@ -78,7 +76,8 @@ public class AnnotationSource< T extends NumericType< T > & RealType< T >, I ext
     {
         final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
-        return Converters.convert( rra, ( T input, AnnotationType< I > output ) ->
+        return Converters.convert( rra,
+                ( T input, AnnotationType< I > output ) ->
                 set( input, t, output ),
                 new SegmentType() );
     }

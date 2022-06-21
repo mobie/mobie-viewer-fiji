@@ -111,10 +111,10 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 	 */
 	public SegmentationDisplay( SegmentationDisplay segmentationDisplay )
 	{
-		setAnnotationSettings( segmentationDisplay );
+		set( segmentationDisplay );
 
 		this.sources = new ArrayList<>();
-		this.sources.addAll( segmentationDisplay.displayedSourceNameToSourceAndConverter.keySet() );
+		this.sources.addAll( segmentationDisplay.nameToSourceAndConverter.keySet() );
 
 		if ( segmentationDisplay.segmentsVolumeViewer != null )
 		{

@@ -73,7 +73,11 @@ public abstract class AbstractAnnotationConverter< T, A > implements Converter< 
 			color.set( 0 );
 			return;
 		}
+
+		// set color
 		coloringModel.convert( input, color );
+
+		// adjust opacity
 		final int value = color.get();
 		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
 	}

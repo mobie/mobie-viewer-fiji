@@ -41,77 +41,74 @@ import org.embl.mobie.viewer.bdv.GlobalMousePositionProvider;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.GridSource;
-import org.embl.mobie.viewer.source.MergedGridSource;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.Collection;
 import java.util.function.Supplier;
 
-public class SliceViewRegionSelector implements Runnable
+public class SliceViewAnnotationSelector< T extends TableRow > implements Runnable
 {
 	private BdvHandle bdvHandle;
 	private boolean is2D;
-	private Supplier< Collection< AnnotationDisplay > > annotatedRegionDisplaySupplier;
+	private Supplier< Collection< AnnotationDisplay< T > > > annotationDisplaySupplier;
 
-	public SliceViewRegionSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< AnnotationDisplay > > annotatedRegionDisplaySupplier )
+	public SliceViewAnnotationSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< AnnotationDisplay< T > > > annotationDisplaySupplier )
 	{
 		this.bdvHandle = bdvHandle;
 		this.is2D = is2D;
-		this.annotatedRegionDisplaySupplier = annotatedRegionDisplaySupplier;
+		this.annotationDisplaySupplier = annotationDisplaySupplier;
 	}
 
 	public synchronized void clearSelection()
 	{
-		final Collection< AnnotationDisplay > regionDisplays = getCurrent();
+		final Collection< AnnotationDisplay< T > > annotationDisplays = annotationDisplaySupplier.get();
 
-		for ( AnnotationDisplay regionDisplay : regionDisplays )
+		for ( AnnotationDisplay< T > annotationDisplay : annotationDisplays )
 		{
-			regionDisplay.selectionModel.clearSelection();
+			annotationDisplay.selectionModel.clearSelection();
 		}
-	}
-
-	private Collection< AnnotationDisplay > getCurrent()
-	{
-		return annotatedRegionDisplaySupplier.get();
 	}
 
 	private synchronized void toggleSelectionAtMousePosition()
 	{
 		final GlobalMousePositionProvider positionProvider = new GlobalMousePositionProvider( bdvHandle );
 		final int timePoint = positionProvider.getTimePoint();
-		final RealPoint position = positionProvider.getPositionAsRealPoint();
+		final RealPoint realPosition = positionProvider.getPositionAsRealPoint();
 
-		final Collection< AnnotationDisplay > regionDisplays = annotatedRegionDisplaySupplier.get();
+		final Collection< AnnotationDisplay< T > > annotationDisplays = annotationDisplaySupplier.get();
 
-		for ( AnnotationDisplay regionDisplay : regionDisplays )
+		for ( AnnotationDisplay< T > annotationDisplay : annotationDisplays )
 		{
-			final Collection< SourceAndConverter< ? > > sourceAndConverters = regionDisplay.displayedSourceNameToSourceAndConverter.values();
+			final Collection< SourceAndConverter< AnnotationType< T > > > sourceAndConverters = annotationDisplay.nameToSourceAndConverter.values();
 
-			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
+			for ( SourceAndConverter< AnnotationType< T > > sourceAndConverter : sourceAndConverters )
 			{
 				if ( ! bdvHandle.getViewerPanel().state().isSourceVisible( sourceAndConverter ) )
-				{
 					continue;
-				}
 
-				if ( SourceAndConverterHelper.isPositionWithinSourceInterval( sourceAndConverter, position, timePoint, is2D ) )
+				if ( SourceAndConverterHelper.isPositionWithinSourceInterval( sourceAndConverter, realPosition, timePoint, is2D ) )
 				{
-					final Source< ? > source = sourceAndConverter.getSpimSource();
+					final Source< AnnotationType< T > > source = sourceAndConverter.getSpimSource();
+					final long[] voxelPosition = SourceAndConverterHelper.getVoxelPositionInSource( source, realPosition, timePoint, 0 );
+					final AnnotationType< T > annotationType = source.getSource( timePoint, 0 ).randomAccess().setPositionAndGet( voxelPosition );
+					final T annotation = annotationType.getAnnotation();
 
-					final double pixelValue = getPixelValue( timePoint, position, source );
-					final String sourceName = getSourceName( source, pixelValue );
-					double labelIndex = getLabelIndex( source, pixelValue );
+//
+//					final double pixelValue = getPixelValue( timePoint, realPosition, source );
+//					final String sourceName = getSourceName( source, pixelValue );
+//					double labelIndex = getLabelIndex( source, pixelValue );
 
-					TableRow tableRow = getTableRow( timePoint, regionDisplay, sourceName, labelIndex );
+					//TableRow tableRow = getTableRow( timePoint, annotationDisplay, sourceName, labelIndex );
 
-					if ( tableRow != null )
+					if ( annotation != null )
 					{
-						regionDisplay.selectionModel.toggle( tableRow );
+						annotationDisplay.selectionModel.toggle( annotation );
 
-						if ( regionDisplay.selectionModel.isSelected( tableRow ) )
+						if ( annotationDisplay.selectionModel.isSelected( annotation ) )
 						{
-							regionDisplay.selectionModel.focus( tableRow, this );
+							annotationDisplay.selectionModel.focus( annotation, this );
 						}
 					}
 				}
