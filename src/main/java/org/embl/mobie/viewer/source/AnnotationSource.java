@@ -28,69 +28,58 @@
  */
 package org.embl.mobie.viewer.source;
 
-import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import de.embl.cba.tables.imagesegment.ImageSegment;
-import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealLocalizable;
+import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
-import net.imglib2.converter.Converters;
-import net.imglib2.type.numeric.NumericType;
-import net.imglib2.type.numeric.RealType;
-import org.embl.mobie.viewer.segment.SegmentAdapter;
+import net.imglib2.position.FunctionRealRandomAccessible;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.function.BiConsumer;
 
-
-// TODO: Does I really need to extend ImageSegment here?
-public class AnnotationSource< T extends NumericType< T > & RealType< T >, I extends ImageSegment > extends AbstractSourceWrapper< T, AnnotationType< I > >
+public class AnnotationSource< T extends AnnotationType< T > > extends AbstractAnnotationSource< T >
 {
-    private final Collection< Integer > timePoints;
-    private final SegmentAdapter< I > adapter;
-
-    public AnnotationSource( final Source< T > source, SegmentAdapter< I > adapter )
+    public AnnotationSource( final Source< T > source )
     {
-        super( source );
-        this.adapter = adapter;
-        this.timePoints = null;
+       super( source, null, null );
+    }
+
+    public AnnotationSource( final Source< T > source, Collection< Integer > timePoints )
+    {
+        super( source, null, timePoints );
     }
 
     @Override
-    public boolean isPresent( final int t )
+    protected FunctionRealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
     {
-        if ( timePoints != null )
-            return timePoints.contains( t );
-        else
-            return source.isPresent(t);
-    }
+        BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
+        {
+            final RealRandomAccess< T > access = rra.realRandomAccess();
+            T input = access.setPositionAndGet( l );
+            if ( input.getAnnotation() == null )
+                return;
 
-    @Override
-    public RandomAccessibleInterval< AnnotationType< I >  > getSource( final int t, final int level )
-    {
-        return Converters.convert( source.getSource( t, level ), ( input, output ) -> {
-            set( input, t, output );
-        }, new SegmentType() );
-    }
+            for ( Integer d : dimensions )
+            {
+                for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
+                {
+                    access.move( signum * boundaryWidth[ d ], d );
+                    if ( ! input.valueEquals( access.get() ) )
+                    {
+                        // boundary pixel
+                        output.set( input.copy() );
+                        return;
+                    }
+                    access.move( - signum * boundaryWidth[ d ], d ); // move back to center
+                }
+            }
+            // no boundary pixel
+            return;
+        };
 
-    @Override
-    public RealRandomAccessible< AnnotationType< I >  > getInterpolatedSource( final int t, final int level, final Interpolation method)
-    {
-        final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
-
-        return Converters.convert( rra,
-                ( T input, AnnotationType< I > output ) ->
-                set( input, t, output ),
-                new SegmentType() );
-    }
-
-    private void set( T input, int t, AnnotationType< I > output  )
-    {
-        final I segment = adapter.getSegment( input.getRealDouble(), t, source.getName() );
-        final SegmentType< I > segmentType = new SegmentType( segment );
-        output.set( segmentType );
-    }
-
-    @Override
-    public SegmentType getType() {
-        return new SegmentType();
+        final T type = rra.realRandomAccess().get();
+        final FunctionRealRandomAccessible< T > boundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.createVariable() );
+        return boundaries;
     }
 }

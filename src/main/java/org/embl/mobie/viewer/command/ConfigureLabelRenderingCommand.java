@@ -36,16 +36,14 @@ import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.color.SelectionColoringModelWrapper;
-import org.embl.mobie.viewer.source.BoundarySource;
+import org.embl.mobie.viewer.source.AnnotationSource;
 import org.embl.mobie.viewer.source.SourceHelper;
-import org.embl.mobie.viewer.source.VolatileBoundarySource;
+import org.embl.mobie.viewer.source.VolatileAnnotationSource;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.util.ColorRGB;
 import org.scijava.widget.Button;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
-
-import java.util.Arrays;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Label Rendering")
 public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionCommand
@@ -137,11 +135,11 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	{
 		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
 		{
-			final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
+			final AnnotationSource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), AnnotationSource.class );
 			if ( boundarySource != null )
 				boundarySource.showAsBoundary( showAsBoundary, boundaryThickness );
 
-			final VolatileBoundarySource volatileBoundarySource = SourceHelper.unwrapSource( sourceAndConverter.asVolatile().getSpimSource(), VolatileBoundarySource.class );
+			final VolatileAnnotationSource volatileBoundarySource = SourceHelper.unwrapSource( sourceAndConverter.asVolatile().getSpimSource(), VolatileAnnotationSource.class );
 			if ( volatileBoundarySource != null )
 				volatileBoundarySource.showAsBoundary( showAsBoundary, boundaryThickness );
 		}

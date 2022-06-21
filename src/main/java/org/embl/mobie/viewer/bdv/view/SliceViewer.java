@@ -47,6 +47,7 @@ import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
 import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
+import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.segment.SliceViewAnnotationSelector;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -218,6 +219,10 @@ public class SliceViewer
 		OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
 		// show in Bdv
+		if ( display instanceof RegionDisplay )
+		{
+			int a = 1;
+		}
 		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
 		updateTimepointSlider();
 	}

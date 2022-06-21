@@ -28,79 +28,65 @@
  */
 package org.embl.mobie.viewer.source;
 
-import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import de.embl.cba.tables.imagesegment.ImageSegment;
-import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealLocalizable;
+import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
-import net.imglib2.Volatile;
-import net.imglib2.converter.Converter;
-import net.imglib2.converter.Converters;
-import net.imglib2.type.numeric.NumericType;
-import net.imglib2.type.numeric.RealType;
-import org.embl.mobie.viewer.segment.SegmentAdapter;
+import net.imglib2.position.FunctionRealRandomAccessible;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.function.BiConsumer;
 
-public class VolatileAnnotationSource< T extends NumericType< T > & RealType< T >, V extends Volatile< T >, I extends ImageSegment > extends AbstractSourceWrapper< V, VolatileAnnotationType< I > >
+public class VolatileAnnotationSource< V extends VolatileAnnotationType< V > > extends AbstractAnnotationSource< V >
 {
-    private final Collection< Integer > timepoints; // TODO: why do we have this?
-    private final SegmentAdapter< I > adapter;
-
-    public VolatileAnnotationSource( final Source< V > source, SegmentAdapter< I > adapter )
+    public VolatileAnnotationSource( final Source< V > source )
     {
-        super( source );
-        this.adapter = adapter;
-        this.timepoints = null;
-    }
-
-
-    @Override
-    public boolean isPresent( final int t )
-    {
-        if ( timepoints != null )
-            return timepoints.contains( t );
-        else
-            return source.isPresent(t);
+        super( source, null, null );
     }
 
     @Override
-    public RandomAccessibleInterval< VolatileAnnotationType< I > > getSource( final int t, final int level )
+    protected FunctionRealRandomAccessible< V > createBoundaryImage( RealRandomAccessible< V > rra, ArrayList< Integer > boundaryDimensions, float[] boundaryWidth )
     {
-        final RandomAccessibleInterval< V > rai = source.getSource( t, level );
-        final RandomAccessibleInterval< VolatileAnnotationType< I > > convert = Converters.convert( rai, ( Converter< V, VolatileAnnotationType< I > > ) ( input, output ) -> {
-            set( input, t, output );
-        }, new VolatileSegmentType() );
-
-        return convert;
-    }
-
-
-    @Override
-    public RealRandomAccessible< VolatileAnnotationType< I > > getInterpolatedSource( final int t, final int level, final Interpolation method)
-    {
-        final RealRandomAccessible< V > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
-
-        return Converters.convert( rra, ( input, output ) -> set( input, t, output ), new VolatileSegmentType() );
-    }
-
-    private void set( V input, int t, VolatileAnnotationType< I > output )
-    {
-        if ( ! input.isValid() )
+        BiConsumer< RealLocalizable, V > boundaries = ( l, output ) ->
         {
-            output.setValid( false );
+            final RealRandomAccess< V > access = rra.realRandomAccess();
+            V input = access.setPositionAndGet( l );
+            if ( ! input.isValid() )
+            {
+                output.setValid( false );
+                return;
+            }
+            final V centerValue = input.get();
+            if ( centerValue.getAnnotation() == null  )
+            {
+                // no annotation
+                return;
+            }
+            for ( Integer d : boundaryDimensions )
+            {
+                for ( int signum = -1; signum <= +1; signum +=2  ) // back and forth
+                {
+                    access.move( signum * boundaryWidth[ d ], d );
+                    input = access.get();
+                    if ( ! input.isValid() )
+                    {
+                        output.setValid( false );
+                        return;
+                    }
+                    else if ( centerValue.valueEquals( input ) )
+                    {
+                        output.get().set( centerValue ); // boundary
+                        return;
+                    }
+                    access.move( - signum * boundaryWidth[ d ], d ); // move back to center
+                }
+            }
+            // no boundary
             return;
-        }
+        };
 
-        final double label = input.get().getRealDouble();
-        final I segment = adapter.getSegment( label, t, source.getName() );
-        final VolatileSegmentType< I > volatileSegmentType = new VolatileSegmentType( segment, true );
-        output.set( volatileSegmentType );
-    }
-
-    @Override
-    public VolatileAnnotationType< I > getType()
-    {
-        return new VolatileSegmentType();
+        final V type = rra.realRandomAccess().get();
+        final FunctionRealRandomAccessible< V > randomAccessible = new FunctionRealRandomAccessible( 3, boundaries, () -> type.createVariable() );
+        return randomAccessible;
     }
 }

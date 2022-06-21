@@ -40,19 +40,22 @@ import net.imglib2.roi.RealMaskRealInterval;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
-public abstract class AbstractBoundarySource< T > implements Source< T >, SourceWrapper< T >
+public abstract class AbstractAnnotationSource< T > implements Source< T >, SourceWrapper< T >
 {
     protected final Source< T > source;
     protected boolean showAsBoundaries;
     protected float boundaryWidth;
     protected ArrayList< Integer > boundaryDimensions;
     protected final RealMaskRealInterval bounds;
+    private final Collection< Integer > timePoints;
 
-    public AbstractBoundarySource( final Source< T > source, RealMaskRealInterval bounds )
+    public AbstractAnnotationSource( final Source< T > source, RealMaskRealInterval bounds, Collection< Integer > timePoints )
     {
         this.source = source;
         this.bounds = bounds;
+        this.timePoints = timePoints;
     }
 
     public void showAsBoundary( boolean showAsBoundaries, float boundaryWidth ) {
@@ -74,7 +77,10 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     @Override
     public boolean isPresent( final int t )
     {
-        return source.isPresent(t);
+        if ( timePoints != null )
+            return timePoints.contains( t );
+        else
+            return source.isPresent(t);
     }
 
     @Override

@@ -41,7 +41,7 @@ import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.source.AnnotationType;
-import org.embl.mobie.viewer.source.BoundarySource;
+import org.embl.mobie.viewer.source.AnnotationSource;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.table.TableRowsTableModel;
 import org.embl.mobie.viewer.table.TableViewer;
@@ -50,7 +50,6 @@ import org.embl.mobie.viewer.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -192,7 +191,7 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSo
 
 		this.showTable = annotationDisplay.tableViewer.getWindow().isVisible();
 
-		final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
+		final AnnotationSource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), AnnotationSource.class );
 		this.showAsBoundaries = boundarySource.isShowAsBoundaries();
 		this.boundaryThickness = boundarySource.getBoundaryWidth();
 	}

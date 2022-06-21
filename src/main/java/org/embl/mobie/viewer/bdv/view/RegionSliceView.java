@@ -31,12 +31,12 @@ package org.embl.mobie.viewer.bdv.view;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.SynchronizedViewerState;
-import net.imglib2.type.numeric.integer.IntType;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.annotate.RegionImage;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.segment.SliceViewAnnotationSelector;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 
@@ -45,15 +45,15 @@ public class RegionSliceView extends AnnotationSliceView< RegionTableRow >
 	public RegionSliceView( MoBIE moBIE, RegionDisplay display )
 	{
 		super( moBIE, display );
-		SourceAndConverter< IntType > regionSourceAndConverter = createRegionSourceAndConverter();
+		SourceAndConverter< AnnotationType< RegionTableRow > > regionSourceAndConverter = createSourceAndConverter();
 		show( regionSourceAndConverter );
 	}
 
-	private SourceAndConverter< IntType > createRegionSourceAndConverter()
+	private SourceAndConverter< AnnotationType< RegionTableRow > > createSourceAndConverter()
 	{
-		final RegionImage< RegionTableRow > intervalImage = new RegionImage( display.tableRows.getTableRows(), display.selectionColoringModel, display.getName() );
+		final RegionImage< RegionTableRow > regionImage = new RegionImage( display.tableRows.getTableRows(), display.selectionColoringModel, display.getName() );
 
-		return intervalImage.getSourceAndConverter();
+		return regionImage.getSourceAndConverter();
 	}
 
 	@Override

@@ -125,10 +125,6 @@ public class SourceNameRenderer extends BdvOverlay implements TransformListener<
 				// don't render names of regions
 				continue;
 			}
-			else
-			{
-				System.out.println( "SourceNameRenderer: " + spimSource.getName());
-			}
 
 			final int level = 0; // spimSource.getNumMipmapLevels() - 1;
 			spimSource.getSourceTransform( t, level, sourceToGlobal );

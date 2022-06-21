@@ -34,14 +34,18 @@ import net.imagej.ImageJ;
 
 import java.io.IOException;
 import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.viewer.command.OpenOMEZARRFromS3Command;
 
-public class OpenRemoteOmeZarr
+public class OpenRemoteOMEZarr
 {
     public static void main(String[] args) throws IOException
     {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        new MoBIE("https://s3.embl.de/i2k-2020/project-ome-zarr", MoBIESettings.settings().gitProjectBranch( "master" ).addImageDataFormat( ImageDataFormat.OmeZarrS3));
+        final OpenOMEZARRFromS3Command command = new OpenOMEZARRFromS3Command();
+        command.s3URL = "https://s3.embl.de/i2k-2020/ngff-example-data/v0.4/czyx.ome.zarr";
+        command.s3URL = "https://s3.embl.de/i2k-2020/ngff-example-data/v0.4/zyx.ome.zarr";
+        command.run();
     }
 }
 

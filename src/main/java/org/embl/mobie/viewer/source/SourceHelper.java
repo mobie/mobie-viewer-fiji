@@ -30,24 +30,15 @@ package org.embl.mobie.viewer.source;
 
 import bdv.SpimSource;
 import bdv.tools.transformation.TransformedSource;
-import bdv.util.BdvStackSource;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.converter.Converter;
-import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
-import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.NumericType;
-import net.imglib2.type.numeric.RealType;
-import net.imglib2.util.Cast;
 import net.imglib2.util.Intervals;
-import net.imglib2.view.IntervalView;
-import net.imglib2.view.Views;
 import org.embl.mobie.viewer.transform.RealIntervalProvider;
 
 import java.util.HashSet;
@@ -144,9 +135,9 @@ public abstract class SourceHelper
 
 			fetchRootSources( wrappedSource, rootSources );
 		}
-		else if (  source instanceof BoundarySource )
+		else if (  source instanceof AnnotationSource )
 		{
-			final Source< ? > wrappedSource = (( BoundarySource ) source).getWrappedSource();
+			final Source< ? > wrappedSource = (( AnnotationSource ) source).getWrappedSource();
 
 			fetchRootSources( wrappedSource, rootSources );
 		}

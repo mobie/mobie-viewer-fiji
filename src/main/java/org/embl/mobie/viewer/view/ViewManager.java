@@ -51,7 +51,7 @@ import org.embl.mobie.viewer.display.*;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
-import org.embl.mobie.viewer.source.BoundarySource;
+import org.embl.mobie.viewer.source.AnnotationSource;
 import org.embl.mobie.viewer.source.SourceAndConverterAndTables;
 import org.embl.mobie.viewer.table.TableViewer;
 import org.embl.mobie.viewer.transform.AffineSourceTransformer;
@@ -178,8 +178,8 @@ public class ViewManager
         for ( String sourceName: sourceNameToSourceAndConverter.keySet() ) {
             Source< ? > source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
 
-            if ( source instanceof BoundarySource ) {
-                source = (( BoundarySource ) source).getWrappedSource();
+            if ( source instanceof AnnotationSource ) {
+                source = (( AnnotationSource ) source).getWrappedSource();
             }
             TransformedSource transformedSource = (TransformedSource) source;
 

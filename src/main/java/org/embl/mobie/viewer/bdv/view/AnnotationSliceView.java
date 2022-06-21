@@ -36,9 +36,9 @@ import de.embl.cba.tables.tablerow.TableRow;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
-import org.embl.mobie.viewer.source.BoundarySource;
+import org.embl.mobie.viewer.source.AnnotationSource;
 import org.embl.mobie.viewer.source.SourceHelper;
-import org.embl.mobie.viewer.source.VolatileBoundarySource;
+import org.embl.mobie.viewer.source.VolatileAnnotationSource;
 
 import javax.swing.*;
 import java.awt.*;
@@ -65,11 +65,11 @@ public abstract class AnnotationSliceView< T extends TableRow > extends Abstract
 	{
 		final boolean showAsBoundaries = display.isShowAsBoundaries();
 		final float boundaryThickness = display.getBoundaryThickness();
-		final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
+		final AnnotationSource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), AnnotationSource.class );
 		boundarySource.showAsBoundary( showAsBoundaries, boundaryThickness );
 		if ( sourceAndConverter.asVolatile() != null )
 		{
-			final VolatileBoundarySource volatileBoundarySource = SourceHelper.unwrapSource( sourceAndConverter.asVolatile().getSpimSource(), VolatileBoundarySource.class );
+			final VolatileAnnotationSource volatileBoundarySource = SourceHelper.unwrapSource( sourceAndConverter.asVolatile().getSpimSource(), VolatileAnnotationSource.class );
 			volatileBoundarySource.showAsBoundary( showAsBoundaries, boundaryThickness );
 		}
 		final ColoringModel<T> coloringModel = display.selectionColoringModel.getWrappedColoringModel();
