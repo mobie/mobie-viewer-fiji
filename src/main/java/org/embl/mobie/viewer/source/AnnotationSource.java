@@ -33,21 +33,22 @@ import net.imglib2.RealLocalizable;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.position.FunctionRealRandomAccessible;
+import net.imglib2.roi.RealMaskRealInterval;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 
-public class AnnotationSource< T extends AnnotationType< T > > extends AbstractAnnotationSource< T >
+public class AnnotationSource< A, T extends AnnotationType< A > > extends AbstractAnnotationSource< T >
 {
     public AnnotationSource( final Source< T > source )
     {
        super( source, null, null );
     }
 
-    public AnnotationSource( final Source< T > source, Collection< Integer > timePoints )
+    public AnnotationSource( final Source< T > source, RealMaskRealInterval bounds, Collection< Integer > timePoints )
     {
-        super( source, null, timePoints );
+        super( source, bounds, timePoints );
     }
 
     @Override
@@ -56,25 +57,28 @@ public class AnnotationSource< T extends AnnotationType< T > > extends AbstractA
         BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
         {
             final RealRandomAccess< T > access = rra.realRandomAccess();
-            T input = access.setPositionAndGet( l );
-            if ( input.getAnnotation() == null )
-                return;
+            final AnnotationType< A > center = access.setPositionAndGet( l ).copy();
+            final A centerAnnotation = center.get();
+            if ( centerAnnotation == null )
+                return; // background
 
             for ( Integer d : dimensions )
             {
                 for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
                 {
                     access.move( signum * boundaryWidth[ d ], d );
-                    if ( ! input.valueEquals( access.get() ) )
+                    final A annotation = access.get().get();
+                    if ( ! ( centerAnnotation == annotation ) )
                     {
                         // boundary pixel
-                        output.set( input.copy() );
+                        output.set( center.copy() );
                         return;
                     }
                     access.move( - signum * boundaryWidth[ d ], d ); // move back to center
                 }
             }
             // no boundary pixel
+            output.set( center.createVariable() );
             return;
         };
 

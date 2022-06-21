@@ -38,8 +38,6 @@ import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 
-import java.util.Collection;
-
 
 // TODO: Does I really need to extend ImageSegment here?
 public class SegmentationSource< T extends NumericType< T > & RealType< T >, I extends ImageSegment > extends AbstractSourceWrapper< T, AnnotationType< I > >
@@ -59,33 +57,33 @@ public class SegmentationSource< T extends NumericType< T > & RealType< T >, I e
     }
 
     @Override
-    public RandomAccessibleInterval< AnnotationType< I >  > getSource( final int t, final int level )
+    public RandomAccessibleInterval< AnnotationType< I > > getSource( final int t, final int level )
     {
         return Converters.convert( source.getSource( t, level ), ( input, output ) -> {
             set( input, t, output );
-        }, new SegmentType() );
+        }, new SegmentAnnotationType() );
     }
 
     @Override
-    public RealRandomAccessible< AnnotationType< I >  > getInterpolatedSource( final int t, final int level, final Interpolation method)
+    public RealRandomAccessible< AnnotationType< I > > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
         final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
         return Converters.convert( rra,
                 ( T input, AnnotationType< I > output ) ->
                 set( input, t, output ),
-                new SegmentType() );
+                new SegmentAnnotationType() );
     }
 
     private void set( T input, int t, AnnotationType< I > output  )
     {
         final I segment = adapter.getSegment( input.getRealDouble(), t, source.getName() );
-        final SegmentType< I > segmentType = new SegmentType( segment );
+        final SegmentAnnotationType< I > segmentType = new SegmentAnnotationType( segment );
         output.set( segmentType );
     }
 
     @Override
-    public SegmentType getType() {
-        return new SegmentType();
+    public SegmentAnnotationType getType() {
+        return new SegmentAnnotationType();
     }
 }

@@ -142,8 +142,8 @@ public class RegionImage< T extends RegionTableRow >
 		final FunctionRealRandomAccessible< RegionType< T > > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, RegionType::new );
 		final Interval interval = Intervals.smallestContainingInterval( unionMask );
 		final RealRandomAccessibleIntervalSource source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new RegionType(), name );
-		final AnnotationSource boundarySource = new AnnotationSource( source, timePoints );
-		final TransformedSource transformedAnnotationSource = new TransformedSource<>( boundarySource );
+		final AnnotationSource annotationSource = new AnnotationSource( source, unionMask, timePoints );
+		final TransformedSource transformedAnnotationSource = new TransformedSource<>( annotationSource );
 		final AnnotationConverter< T, AnnotationType< T > > annotationConverter = new AnnotationConverter<>( coloringModel );
 		sourceAndConverter = new SourceAndConverter( transformedAnnotationSource, annotationConverter );
 

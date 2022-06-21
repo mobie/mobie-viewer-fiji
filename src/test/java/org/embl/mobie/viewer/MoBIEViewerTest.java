@@ -69,8 +69,8 @@ public class MoBIEViewerTest
 		// Test
 		moBIE.sourceNameToSourceAndConverter().keySet().stream().forEach( s -> System.out.println( s ) );
 		final SourceAndConverter< ? > sourceAndConverter = moBIE.sourceNameToSourceAndConverter().get( "fluorescence-annotations" );
-		final AnnotationSource< ? > boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), AnnotationSource.class );
-		final boolean showAsBoundaries = boundarySource.isShowAsBoundaries();
+		final AnnotationSource annotationSource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), AnnotationSource.class );
+		final boolean showAsBoundaries = annotationSource.isShowAsBoundaries();
 		assertTrue( showAsBoundaries );
 	}
 

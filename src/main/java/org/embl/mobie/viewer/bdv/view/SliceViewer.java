@@ -219,10 +219,6 @@ public class SliceViewer
 		OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
 		// show in Bdv
-		if ( display instanceof RegionDisplay )
-		{
-			int a = 1;
-		}
 		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
 		updateTimepointSlider();
 	}

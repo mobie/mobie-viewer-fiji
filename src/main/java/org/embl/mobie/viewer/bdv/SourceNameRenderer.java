@@ -33,7 +33,6 @@ import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.BdvOverlay;
 import bdv.util.BdvOverlaySource;
-import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TransformListener;
@@ -42,9 +41,7 @@ import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
-import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.RegionType;
-import org.embl.mobie.viewer.source.SourceHelper;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
 import java.awt.*;
