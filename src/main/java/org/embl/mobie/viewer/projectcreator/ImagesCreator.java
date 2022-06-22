@@ -255,16 +255,14 @@ public class ImagesCreator {
             if (imageType == ProjectCreator.ImageType.image) {
                 double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
                 LUT lut = imp.getLuts()[0];
-                String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" +
-                        lut.getBlue(255) + ",a=" + lut.getAlpha(255);
-                updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup,
-                        imp.getNFrames(), imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
-            } else {
-                updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup,
-                        imp.getNFrames(), imageDataFormat, exclusive, sourceTransform );
+                String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" + lut.getBlue(255) + ",a=" + lut.getAlpha(255);
+                updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup, imp.getNFrames(), imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
+            }
+            else if ( imageType == ProjectCreator.ImageType.segmentation )
+            {
+                updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup, imp.getNFrames(), imageDataFormat, exclusive, sourceTransform );
             }
         }
-
     }
 
     private DownsampleBlock.DownsamplingMethod getDownsamplingMethod( ProjectCreator.ImageType imageType ) {
@@ -540,54 +538,59 @@ public class ImagesCreator {
     }
 
     // TODO - is this efficient for big images?
-    private void addDefaultTableForImage ( String imageName, String datasetName, ImageDataFormat imageDataFormat ) {
+    private void addDefaultTableForImage( String imageName, String datasetName, ImageDataFormat imageDataFormat ) {
         File tableFolder = new File( getDefaultTableDirPath( datasetName, imageName ) );
-        File defaultTable = new File( getDefaultTablePath( datasetName, imageName ) );
+        File defaultTableFile = new File( getDefaultTablePath( datasetName, imageName ) );
         if ( !tableFolder.exists() ){
             tableFolder.mkdirs();
         }
 
-        if ( !defaultTable.exists() ) {
+        if ( !defaultTableFile.exists() ) {
 
-            IJ.log( " Creating default table... 0 label is counted as background" );
-
-            // xml file or zarr file, depending on imageDataFormat
-            String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
-            SpimData spimData = tryOpenSpimData( imageDataFormat, filePath );
-            final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
-            final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-            final Source labelsSource = sourceAndConverter.getSpimSource();
-
-            boolean hasTimeColumn = spimData.getSequenceDescription().getTimePoints().size() > 1;
-            ArrayList<String> columnNames = new ArrayList<>();
-            columnNames.add( "label_id" );
-            columnNames.add( "anchor_x" );
-            columnNames.add( "anchor_y" );
-            columnNames.add( "anchor_z" );
-            columnNames.add( "bb_min_x" );
-            columnNames.add( "bb_min_y" );
-            columnNames.add( "bb_min_z" );
-            columnNames.add( "bb_max_x" );
-            columnNames.add( "bb_max_y" );
-            columnNames.add( "bb_max_z" );
-            if ( hasTimeColumn ) {
-                columnNames.add("timepoint");
-            }
-
-            ArrayList<Object[]> rows = new ArrayList<>();
-
-            for ( Integer timepoint: spimData.getSequenceDescription().getTimePoints().getTimePoints().keySet() ) {
-                rows.addAll( makeDefaultTableRowsForTimepoint( labelsSource, timepoint, hasTimeColumn ) );
-            }
-
-            Object[][] rowArray = new Object[rows.size()][columnNames.size()];
-            rowArray = rows.toArray(rowArray);
-
-            JTable table = new JTable(rowArray, columnNames.toArray() );
-            Tables.saveTable( table, defaultTable );
+            createAndSaveDefaultTable( imageName, datasetName, imageDataFormat, defaultTableFile );
 
             IJ.log( "Default table complete" );
         }
+    }
+
+    private void createAndSaveDefaultTable( String imageName, String datasetName, ImageDataFormat imageDataFormat, File defaultTableFile )
+    {
+        IJ.log( " Creating default table... 0 label is counted as background" );
+
+        // xml file or zarr file, depending on imageDataFormat
+        String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
+        SpimData spimData = tryOpenSpimData( imageDataFormat, filePath );
+        final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
+        final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+        final Source labelsSource = sourceAndConverter.getSpimSource();
+
+        boolean hasTimeColumn = spimData.getSequenceDescription().getTimePoints().size() > 1;
+        ArrayList<String> columnNames = new ArrayList<>();
+        columnNames.add( "label_id" );
+        columnNames.add( "anchor_x" );
+        columnNames.add( "anchor_y" );
+        columnNames.add( "anchor_z" );
+        columnNames.add( "bb_min_x" );
+        columnNames.add( "bb_min_y" );
+        columnNames.add( "bb_min_z" );
+        columnNames.add( "bb_max_x" );
+        columnNames.add( "bb_max_y" );
+        columnNames.add( "bb_max_z" );
+        if ( hasTimeColumn ) {
+            columnNames.add("timepoint");
+        }
+
+        ArrayList<Object[]> rows = new ArrayList<>();
+
+        for ( Integer timepoint: spimData.getSequenceDescription().getTimePoints().getTimePoints().keySet() ) {
+            rows.addAll( makeDefaultTableRowsForTimepoint( labelsSource, timepoint, hasTimeColumn ) );
+        }
+
+        Object[][] rowArray = new Object[rows.size()][columnNames.size()];
+        rowArray = rows.toArray(rowArray);
+
+        JTable table = new JTable(rowArray, columnNames.toArray() );
+        Tables.saveTable( table, defaultTableFile );
     }
 
     private SpimData tryOpenSpimData( ImageDataFormat imageDataFormat, String filePath )
@@ -610,13 +613,10 @@ public class ImagesCreator {
                 imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
     }
 
-    private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup,
-                                                        int nTimepoints, ImageDataFormat imageDataFormat,
-                                                        boolean exclusive, AffineTransform3D sourceTransform ) {
+    private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup, int nTimepoints, ImageDataFormat imageDataFormat, boolean exclusive, AffineTransform3D sourceTransform ) {
         addDefaultTableForImage( imageName, datasetName, imageDataFormat );
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
-        datasetJsonCreator.addSegmentation( imageName, datasetName, uiSelectionGroup, nTimepoints,
-                imageDataFormat, exclusive, sourceTransform );
+        datasetJsonCreator.addSegmentation( imageName, datasetName, uiSelectionGroup, nTimepoints, imageDataFormat, exclusive, sourceTransform );
     }
 
     private void copyImage ( ImageDataFormat imageFormat, SpimData spimData,
