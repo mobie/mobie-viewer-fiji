@@ -26,12 +26,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package run;
+package projects;
 
 import net.imagej.ImageJ;
 import org.scijava.command.CommandService;
 
-public class RunImageJ
+public class AAAOpenImageJ
 {
 	public static void main( String[] args )
 	{

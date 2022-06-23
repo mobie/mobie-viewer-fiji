@@ -74,6 +74,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
     private static ProjectCreator.ImageType imageType = ProjectCreator.ImageType.image;
     private static ImageDataFormat imageDataFormat = ImageDataFormat.BdvN5;
+    private static File segmentsTableFile = null;
     private static ProjectCreator.AddMethod addMethod = ProjectCreator.AddMethod.link;
     private static boolean useDefaultExportSettings = true;
     private static boolean exclusive = false;
@@ -81,10 +82,8 @@ public class ProjectsCreatorPanel extends JFrame {
     private static String uiSelectionGroup = "Make New Ui Selection Group";
     private static boolean is2D = false;
 
-    private final String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(),
-            ImageDataFormat.OmeZarr.toString() };
+    private final String[] imageFormats = new String[]{ ImageDataFormat.BdvN5.toString(), ImageDataFormat.OmeZarr.toString() };
     private final String[] imageTypes = new String[]{ ProjectCreator.ImageType.image.toString(), ProjectCreator.ImageType.segmentation.toString() };
-
 
     public ProjectsCreatorPanel ( File projectLocation ) throws IOException {
 
@@ -266,7 +265,7 @@ public class ProjectsCreatorPanel extends JFrame {
         // } );
 
         horizontalLayoutPanel.add( SwingHelper.getJLabel("source", 60, 10));
-        horizontalLayoutPanel.add(sourcesComboBox);
+        horizontalLayoutPanel.add( sourcesComboBox );
         horizontalLayoutPanel.add( addButton );
         horizontalLayoutPanel.add( Box.createHorizontalStrut( SwingHelper.BUTTON_DIMENSION.width ) );
         // horizontalLayoutPanel.add( editButton );
@@ -527,6 +526,8 @@ public class ProjectsCreatorPanel extends JFrame {
             gd.addStringField( "Image Name", FilenameUtils.removeExtension(currentImage.getTitle()), 35 );
             gd.addChoice( "Image Type", imageTypes, imageType.toString() );
             gd.addChoice( "Image format", imageFormats, imageDataFormat.toString() );
+            gd.addFileField( "Segments table (optional)", null, 35 );
+
             gd.addCheckbox("Use default export settings", useDefaultExportSettings );
             gd.addCheckbox("Make view exclusive", exclusive );
 
@@ -543,6 +544,7 @@ public class ProjectsCreatorPanel extends JFrame {
                 String imageName = gd.getNextString();
                 imageType = ProjectCreator.ImageType.valueOf( gd.getNextChoice() );
                 imageDataFormat = ImageDataFormat.fromString( gd.getNextChoice() );
+                segmentsTableFile = new File( gd.getNextString() );
                 useDefaultExportSettings = gd.getNextBoolean();
                 exclusive = gd.getNextBoolean();
 
@@ -575,8 +577,7 @@ public class ProjectsCreatorPanel extends JFrame {
 
                     try {
                         if ( useDefaultExportSettings ) {
-                            imagesCreator.addImage(currentImage, imageName, datasetName, imageDataFormat,
-                                    imageType, sourceTransform, uiSelectionGroup, exclusive);
+                            imagesCreator.addImage(currentImage, imageName, datasetName, imageDataFormat, segmentsTableFile, imageType, sourceTransform, uiSelectionGroup, exclusive, null, null, null );
                             updateComboBoxesForNewImage(imageName, uiSelectionGroup);
                         } else {
                             ManualExportPanel manualExportPanel = new ManualExportPanel( imageDataFormat );
@@ -585,9 +586,7 @@ public class ProjectsCreatorPanel extends JFrame {
                             Compression compression = manualExportPanel.getCompression();
 
                             if ( resolutions != null && subdivisions != null && compression != null ) {
-                                imagesCreator.addImage( currentImage, imageName, datasetName, imageDataFormat, imageType,
-                                        sourceTransform, uiSelectionGroup, exclusive, resolutions, subdivisions,
-                                        compression );
+                                imagesCreator.addImage( currentImage, imageName, datasetName, imageDataFormat, segmentsTableFile, imageType, sourceTransform, uiSelectionGroup, exclusive, resolutions, subdivisions, compression );
                                 updateComboBoxesForNewImage( imageName, uiSelectionGroup );
                             }
                         }

@@ -64,6 +64,7 @@ import org.janelia.saalfeldlab.n5.GzipCompression;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 import mpicbg.spim.data.sequence.SequenceDescription;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -134,60 +135,6 @@ public class ImagesCreator {
         return new File (filePath).exists();
     }
 
-    // with exclusive=false
-    public void addImage ( ImagePlus imp, String imageName, String datasetName, ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType, AffineTransform3D sourceTransform, String uiSelectionGroup ) throws SpimDataException, IOException
-    {
-        addImage( imp, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup, false, null, null, null );
-    }
-
-    /**
-     *  Same as
-     *  {@link #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D,
-     *  String, boolean, int[][], int[][], Compression) }, but calculates reasonable defaults for resolutions,
-     *  subdivisions and compression settings.
-     *
-     * @see #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D, String, boolean, int[][], int[][], Compression)
-     */
-    public void addImage ( ImagePlus imp, String imageName, String datasetName,
-                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
-                           AffineTransform3D sourceTransform, String uiSelectionGroup,
-                           boolean exclusive ) throws SpimDataException, IOException {
-        addImage( imp, imageName, datasetName, imageDataFormat, imageType, sourceTransform, uiSelectionGroup,
-                exclusive, null, null, null );
-
-    }
-
-    /**
-     *  Same as
-     *  {@link #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D,
-     *  String, boolean, int[][], int[][], Compression) }, but assumes identity sourceTransform, and calculates
-     *  reasonable defaults for resolutions, subdivisions and compression settings.
-     *
-     * @see #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D, String, boolean, int[][], int[][], Compression)
-     */
-    public void addImage ( ImagePlus imp, String imageName, String datasetName,
-                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
-                           String uiSelectionGroup, boolean exclusive ) throws SpimDataException, IOException {
-        addImage( imp, imageName, datasetName, imageDataFormat, imageType, new AffineTransform3D(), uiSelectionGroup,
-                exclusive, null, null, null );
-
-    }
-
-    /**
-     *  Same as
-     *  {@link #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D,
-     *  String, boolean, int[][], int[][], Compression) }, but assumes identity sourceTransform
-     *
-     * @see #addImage(ImagePlus, String, String, ImageDataFormat, ProjectCreator.ImageType, AffineTransform3D, String, boolean, int[][], int[][], Compression)
-     */
-    public void addImage ( ImagePlus imp, String imageName, String datasetName,
-                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
-                           String uiSelectionGroup, boolean exclusive,
-                           int[][] resolutions, int[][] subdivisions, Compression compression ) throws SpimDataException, IOException {
-        addImage( imp, imageName, datasetName, imageDataFormat, imageType, new AffineTransform3D(), uiSelectionGroup,
-                exclusive, resolutions, subdivisions, compression );
-    }
-
     /**
      * Add an image to a MoBIE project. Make sure the ImagePlus scale and unit is set properly, so that imp.getCalibration()
      * returns the correct values. Note that multi-channel images are not supported - you will need to
@@ -210,10 +157,18 @@ public class ImagesCreator {
      * @throws SpimDataException
      * @throws IOException
      */
-    public void addImage ( ImagePlus imp, String imageName, String datasetName,
-                           ImageDataFormat imageDataFormat, ProjectCreator.ImageType imageType,
-                           AffineTransform3D sourceTransform, String uiSelectionGroup, boolean exclusive,
-                           int[][] resolutions, int[][] subdivisions, Compression compression ) throws IOException, SpimDataException {
+    public void addImage ( ImagePlus imp,
+                           String imageName,
+                           String datasetName,
+                           ImageDataFormat imageDataFormat,
+                           @Nullable File segmentsTable,
+                           ProjectCreator.ImageType imageType,
+                           @Nullable AffineTransform3D sourceTransform,
+                           String uiSelectionGroup,
+                           boolean exclusive,
+                           @Nullable int[][] resolutions,
+                           @Nullable int[][] subdivisions,
+                           @Nullable Compression compression ) throws IOException, SpimDataException {
         // either xml file path or zarr file path depending on imageDataFormat
         String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
         File imageFile = new File(filePath);
@@ -255,16 +210,14 @@ public class ImagesCreator {
             if (imageType == ProjectCreator.ImageType.image) {
                 double[] contrastLimits = new double[]{imp.getDisplayRangeMin(), imp.getDisplayRangeMax()};
                 LUT lut = imp.getLuts()[0];
-                String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" +
-                        lut.getBlue(255) + ",a=" + lut.getAlpha(255);
-                updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup,
-                        imp.getNFrames(), imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
-            } else {
-                updateTableAndJsonsForNewSegmentation(imageName, datasetName, uiSelectionGroup,
-                        imp.getNFrames(), imageDataFormat, exclusive, sourceTransform );
+                String colour = "r=" + lut.getRed(255) + ",g=" + lut.getGreen(255) + ",b=" + lut.getBlue(255) + ",a=" + lut.getAlpha(255);
+                updateTableAndJsonsForNewImage( imageName, datasetName, uiSelectionGroup, imp.getNFrames(), imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
+            }
+            else if ( imageType == ProjectCreator.ImageType.segmentation )
+            {
+                updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup, imp.getNFrames(), imageDataFormat, exclusive, sourceTransform, segmentsTable );
             }
         }
-
     }
 
     private DownsampleBlock.DownsamplingMethod getDownsamplingMethod( ProjectCreator.ImageType imageType ) {
@@ -384,14 +337,11 @@ public class ImagesCreator {
      * @throws SpimDataException
      * @throws IOException
      */
-    public void addBdvFormatImage ( File fileLocation, String imageName, String datasetName,
-                                    ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod,
-                                    String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
+    public void addBdvFormatImage ( File fileLocation, String imageName, String datasetName, ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod, String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
 
         if ( fileLocation.exists() ) {
             SpimData spimData = ( SpimData ) new SpimDataOpener().openSpimData( fileLocation.getAbsolutePath(), imageDataFormat );
-            addBdvFormatImage( spimData, imageName, datasetName, imageType, addMethod, uiSelectionGroup,
-                    imageDataFormat, exclusive );
+            addBdvFormatImage( spimData, imageName, datasetName, imageType, addMethod, uiSelectionGroup, imageDataFormat, exclusive );
         } else {
             throw new FileNotFoundException(
                     "Adding image to project failed - " + fileLocation.getAbsolutePath() + " does not exist" );
@@ -415,9 +365,14 @@ public class ImagesCreator {
      * @throws SpimDataException
      * @throws IOException
      */
-    public void addBdvFormatImage ( SpimData spimData, String imageName, String datasetName,
-                                    ProjectCreator.ImageType imageType, ProjectCreator.AddMethod addMethod,
-                                    String uiSelectionGroup, ImageDataFormat imageDataFormat, boolean exclusive ) throws SpimDataException, IOException {
+    public void addBdvFormatImage ( SpimData spimData,
+                                    String imageName,
+                                    String datasetName,
+                                    ProjectCreator.ImageType imageType,
+                                    ProjectCreator.AddMethod addMethod,
+                                    String uiSelectionGroup,
+                                    ImageDataFormat imageDataFormat,
+                                    boolean exclusive ) throws SpimDataException, IOException {
 
         File imageDirectory = new File( getDefaultLocalImageDirPath( datasetName, imageDataFormat ));
 
@@ -479,8 +434,7 @@ public class ImagesCreator {
                     getNTimepointsFromSpimData(spimData), imageDataFormat, new double[]{0.0, 255.0},
                     "white", exclusive, new AffineTransform3D() );
         } else {
-            updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup,
-                    getNTimepointsFromSpimData(spimData), imageDataFormat, exclusive, new AffineTransform3D() );
+            updateTableAndJsonsForNewSegmentation( imageName, datasetName, uiSelectionGroup, getNTimepointsFromSpimData(spimData), imageDataFormat, exclusive, new AffineTransform3D(), null );
         }
 
         IJ.log( "Bdv format image " + imageName + " added to project" );
@@ -540,54 +494,70 @@ public class ImagesCreator {
     }
 
     // TODO - is this efficient for big images?
-    private void addDefaultTableForImage ( String imageName, String datasetName, ImageDataFormat imageDataFormat ) {
+    private void addDefaultTableForImage( String imageName, String datasetName, ImageDataFormat imageDataFormat, File segmentsTableFile ) {
         File tableFolder = new File( getDefaultTableDirPath( datasetName, imageName ) );
-        File defaultTable = new File( getDefaultTablePath( datasetName, imageName ) );
+        File defaultTableFile = new File( getDefaultTablePath( datasetName, imageName ) );
         if ( !tableFolder.exists() ){
             tableFolder.mkdirs();
         }
 
-        if ( !defaultTable.exists() ) {
+        if ( segmentsTableFile != null )
+        {
+            if ( defaultTableFile.exists() )
+                IJ.log( "Overwriting existing table: " + defaultTableFile );
 
-            IJ.log( " Creating default table... 0 label is counted as background" );
-
-            // xml file or zarr file, depending on imageDataFormat
-            String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
-            SpimData spimData = tryOpenSpimData( imageDataFormat, filePath );
-            final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
-            final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-            final Source labelsSource = sourceAndConverter.getSpimSource();
-
-            boolean hasTimeColumn = spimData.getSequenceDescription().getTimePoints().size() > 1;
-            ArrayList<String> columnNames = new ArrayList<>();
-            columnNames.add( "label_id" );
-            columnNames.add( "anchor_x" );
-            columnNames.add( "anchor_y" );
-            columnNames.add( "anchor_z" );
-            columnNames.add( "bb_min_x" );
-            columnNames.add( "bb_min_y" );
-            columnNames.add( "bb_min_z" );
-            columnNames.add( "bb_max_x" );
-            columnNames.add( "bb_max_y" );
-            columnNames.add( "bb_max_z" );
-            if ( hasTimeColumn ) {
-                columnNames.add("timepoint");
+            try
+            {
+                FileUtils.copyFile(segmentsTableFile, defaultTableFile);
+            } catch ( IOException e )
+            {
+                e.printStackTrace();
             }
-
-            ArrayList<Object[]> rows = new ArrayList<>();
-
-            for ( Integer timepoint: spimData.getSequenceDescription().getTimePoints().getTimePoints().keySet() ) {
-                rows.addAll( makeDefaultTableRowsForTimepoint( labelsSource, timepoint, hasTimeColumn ) );
-            }
-
-            Object[][] rowArray = new Object[rows.size()][columnNames.size()];
-            rowArray = rows.toArray(rowArray);
-
-            JTable table = new JTable(rowArray, columnNames.toArray() );
-            Tables.saveTable( table, defaultTable );
-
-            IJ.log( "Default table complete" );
         }
+        else if ( ! defaultTableFile.exists()  ) {
+            createAndSaveDefaultTable( imageName, datasetName, imageDataFormat, defaultTableFile );
+            IJ.log( "Default table created and saved." );
+        }
+    }
+
+    private void createAndSaveDefaultTable( String imageName, String datasetName, ImageDataFormat imageDataFormat, File defaultTableFile )
+    {
+        IJ.log( " Creating default table... 0 label is counted as background" );
+
+        // xml file or zarr file, depending on imageDataFormat
+        String filePath = getDefaultLocalImagePath( datasetName, imageName, imageDataFormat );
+        SpimData spimData = tryOpenSpimData( imageDataFormat, filePath );
+        final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
+        final SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+        final Source labelsSource = sourceAndConverter.getSpimSource();
+
+        boolean hasTimeColumn = spimData.getSequenceDescription().getTimePoints().size() > 1;
+        ArrayList<String> columnNames = new ArrayList<>();
+        columnNames.add( "label_id" );
+        columnNames.add( "anchor_x" );
+        columnNames.add( "anchor_y" );
+        columnNames.add( "anchor_z" );
+        columnNames.add( "bb_min_x" );
+        columnNames.add( "bb_min_y" );
+        columnNames.add( "bb_min_z" );
+        columnNames.add( "bb_max_x" );
+        columnNames.add( "bb_max_y" );
+        columnNames.add( "bb_max_z" );
+        if ( hasTimeColumn ) {
+            columnNames.add("timepoint");
+        }
+
+        ArrayList<Object[]> rows = new ArrayList<>();
+
+        for ( Integer timepoint: spimData.getSequenceDescription().getTimePoints().getTimePoints().keySet() ) {
+            rows.addAll( makeDefaultTableRowsForTimepoint( labelsSource, timepoint, hasTimeColumn ) );
+        }
+
+        Object[][] rowArray = new Object[rows.size()][columnNames.size()];
+        rowArray = rows.toArray(rowArray);
+
+        JTable table = new JTable(rowArray, columnNames.toArray() );
+        Tables.saveTable( table, defaultTableFile );
     }
 
     private SpimData tryOpenSpimData( ImageDataFormat imageDataFormat, String filePath )
@@ -610,13 +580,10 @@ public class ImagesCreator {
                 imageDataFormat, contrastLimits, colour, exclusive, sourceTransform );
     }
 
-    private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup,
-                                                        int nTimepoints, ImageDataFormat imageDataFormat,
-                                                        boolean exclusive, AffineTransform3D sourceTransform ) {
-        addDefaultTableForImage( imageName, datasetName, imageDataFormat );
+    private void updateTableAndJsonsForNewSegmentation( String imageName, String datasetName, String uiSelectionGroup, int nTimepoints, ImageDataFormat imageDataFormat, boolean exclusive, AffineTransform3D sourceTransform, @Nullable File segmentsTableFile ) {
+        addDefaultTableForImage( imageName, datasetName, imageDataFormat, segmentsTableFile );
         DatasetJsonCreator datasetJsonCreator = projectCreator.getDatasetJsonCreator();
-        datasetJsonCreator.addSegmentation( imageName, datasetName, uiSelectionGroup, nTimepoints,
-                imageDataFormat, exclusive, sourceTransform );
+        datasetJsonCreator.addSegmentation( imageName, datasetName, uiSelectionGroup, nTimepoints, imageDataFormat, exclusive, sourceTransform );
     }
 
     private void copyImage ( ImageDataFormat imageFormat, SpimData spimData,

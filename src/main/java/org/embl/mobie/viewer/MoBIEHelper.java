@@ -448,6 +448,7 @@ public abstract class MoBIEHelper
 				SegmentProperty.T,
 				columns.get( TableColumnNames.TIMEPOINT ) );
 
+		// TODO: only do this if the columns contain the BB_MIN_X key
 		SegmentUtils.putDefaultBoundingBoxMapping( segmentPropertyToColumn, columns );
 
 		if ( ! columns.containsKey( BB_MIN_Z )  )
