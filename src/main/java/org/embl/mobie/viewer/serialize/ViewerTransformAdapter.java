@@ -33,7 +33,7 @@ import org.embl.mobie.viewer.transform.AffineViewerTransform;
 import org.embl.mobie.viewer.transform.NormalVectorViewerTransform;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
-import org.embl.mobie.viewer.transform.TimepointViewerTransform;
+import org.embl.mobie.viewer.transform.TimePointViewerTransform;
 import org.embl.mobie.viewer.transform.ViewerTransform;
 
 import java.lang.reflect.Type;
@@ -53,8 +53,8 @@ public class ViewerTransformAdapter implements JsonSerializer<ViewerTransform>, 
 		classToName.put(NormalizedAffineViewerTransform.class.getName(), "normalizedAffine");
 		nameToClass.put("position", PositionViewerTransform.class);
 		classToName.put(PositionViewerTransform.class.getName(), "position");
-		nameToClass.put("timepoint", TimepointViewerTransform.class);
-		classToName.put(TimepointViewerTransform.class.getName(), "timepoint");
+		nameToClass.put("timepoint", TimePointViewerTransform.class);
+		classToName.put( TimePointViewerTransform.class.getName(), "timepoint");
 		nameToClass.put("normalVector", NormalVectorViewerTransform.class);
 		classToName.put(NormalVectorViewerTransform.class.getName(), "normalVector");
 	}

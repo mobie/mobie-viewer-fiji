@@ -28,12 +28,12 @@
  */
 package org.embl.mobie.viewer.transform;
 
-public class TimepointViewerTransform implements ViewerTransform
+public class TimePointViewerTransform implements ViewerTransform
 {
 	// Serialization
 	private Integer timepoint;
 
-	public TimepointViewerTransform( int timepoint )
+	public TimePointViewerTransform( int timepoint )
 	{
 		this.timepoint = timepoint;
 	}

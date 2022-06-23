@@ -30,6 +30,7 @@ package projects;
 
 import net.imagej.ImageJ;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.MoBIESettings;
 
 import java.io.IOException;
 
@@ -38,6 +39,6 @@ public class OpenLocalMarianne
     public static void main(String[] args) throws IOException {
         final ImageJ imageJ = new ImageJ();
         imageJ.ui().showUI();
-        new MoBIE( "/Volumes/cba/exchange/marianne-beckwidth/220509_MSB26_sample2_MoBIE" );
+        new MoBIE( "/Volumes/cba/exchange/marianne-beckwidth/220509_MSB26_sample2_MoBIE", MoBIESettings.settings().view( "clem-registered" ) );
     }
 }

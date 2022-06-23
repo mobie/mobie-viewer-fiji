@@ -40,18 +40,18 @@ import net.imglib2.type.numeric.RealType;
 import javax.annotation.Nullable;
 import java.util.Map;
 
-public class TransformedTimepointSource<T extends NumericType<T> & RealType<T>> implements Source<T>, SourceWrapper<T>
+public class TransformedTimePointSource<T extends NumericType<T> & RealType<T>> implements Source<T>, SourceWrapper<T>
 {
     private final String name;
     private final Source<T> source;
-    private Map< Integer, Integer > timepoints; // new to old
+    private Map< Integer, Integer > timePoints; // new to old
     private boolean keep;
 
-    public TransformedTimepointSource( @Nullable String name, final Source< T > source, Map< Integer, Integer > timepoints, boolean keep )
+    public TransformedTimePointSource( @Nullable String name, final Source< T > source, Map< Integer, Integer > timePoints, boolean keep )
     {
         this.name = name;
         this.source = source;
-        this.timepoints = timepoints;
+        this.timePoints = timePoints;
         this.keep = keep;
     }
 
@@ -63,13 +63,23 @@ public class TransformedTimepointSource<T extends NumericType<T> & RealType<T>> 
     @Override
     public synchronized void getSourceTransform( final int t, final int level, final AffineTransform3D transform )
     {
-        source.getSourceTransform( getTimepointInWrappedSource( t ), level, transform);
+        final int timePointInWrappedSource = getTimePointInWrappedSource( t );
+        if ( timePointInWrappedSource == -1 )
+        {
+            final Integer existingTimePointInWrappedSource = timePoints.entrySet().iterator().next().getValue();
+            source.getSourceTransform( existingTimePointInWrappedSource, level, transform);
+        }
+        else
+        {
+            source.getSourceTransform( timePointInWrappedSource, level, transform );
+        }
+
     }
 
     @Override
     public boolean isPresent( final int t )
     {
-        if ( timepoints.keySet().contains( t ) )
+        if ( timePoints.keySet().contains( t ) )
             return true;
         else if ( keep )
             return source.isPresent( t );
@@ -80,13 +90,13 @@ public class TransformedTimepointSource<T extends NumericType<T> & RealType<T>> 
     @Override
     public RandomAccessibleInterval<T> getSource(final int t, final int level)
     {
-        return source.getSource( getTimepointInWrappedSource( t ), level );
+        return source.getSource( getTimePointInWrappedSource( t ), level );
     }
 
     @Override
     public RealRandomAccessible<T> getInterpolatedSource(final int t, final int level, final Interpolation method)
     {
-       return source.getInterpolatedSource( getTimepointInWrappedSource( t ), level, method );
+       return source.getInterpolatedSource( getTimePointInWrappedSource( t ), level, method );
     }
 
     @Override
@@ -116,11 +126,11 @@ public class TransformedTimepointSource<T extends NumericType<T> & RealType<T>> 
         return source;
     }
 
-    private int getTimepointInWrappedSource( int t )
+    private int getTimePointInWrappedSource( int t )
     {
-        if ( timepoints.containsKey( t ) )
+        if ( timePoints.containsKey( t ) )
         {
-            return timepoints.get( t );
+            return timePoints.get( t );
         }
         else if ( keep )
         {
@@ -131,9 +141,9 @@ public class TransformedTimepointSource<T extends NumericType<T> & RealType<T>> 
         else
         {
             // missing t crashes: https://github.com/bigdataviewer/bigdataviewer-core/issues/140
-            System.err.println( "Access at non-existing timepoint: " + t + "; returning t = 0 instead.");
-            Thread.dumpStack();
-            return 0;
+            //System.err.println( "Access at non-existing timepoint: " + t + "; returning t = 0 instead.");
+            //Thread.dumpStack();
+            return -1;
         }
     }
 

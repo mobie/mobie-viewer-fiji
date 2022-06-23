@@ -55,7 +55,7 @@ public abstract class SliceViewLocationChanger
 			if ( isPointOverlayEnabled )
 				addPointOverlay( bdv, viewerTransform.getParameters() );
 		}
-		else if ( viewerTransform instanceof TimepointViewerTransform )
+		else if ( viewerTransform instanceof TimePointViewerTransform )
 		{
 			adaptTimepoint( bdv, viewerTransform );
 		}

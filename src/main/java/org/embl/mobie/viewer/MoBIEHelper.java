@@ -76,6 +76,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MAX_Z;
+import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_X;
 import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
 import static org.embl.mobie.viewer.ui.SwingHelper.selectionDialog;
 
@@ -448,14 +449,16 @@ public abstract class MoBIEHelper
 				SegmentProperty.T,
 				columns.get( TableColumnNames.TIMEPOINT ) );
 
-		// TODO: only do this if the columns contain the BB_MIN_X key
-		SegmentUtils.putDefaultBoundingBoxMapping( segmentPropertyToColumn, columns );
+		if ( columns.containsKey( BB_MIN_X ) )
+		{
+			SegmentUtils.putDefaultBoundingBoxMapping( segmentPropertyToColumn, columns );
 
-		if ( ! columns.containsKey( BB_MIN_Z )  )
-			segmentPropertyToColumn.remove( SegmentProperty.BoundingBoxZMin );
+			if ( !columns.containsKey( BB_MIN_Z ) )
+				segmentPropertyToColumn.remove( SegmentProperty.BoundingBoxZMin );
 
-		if ( ! columns.containsKey( BB_MAX_Z ) )
-			segmentPropertyToColumn.remove( SegmentProperty.BoundingBoxZMax );
+			if ( !columns.containsKey( BB_MAX_Z ) )
+				segmentPropertyToColumn.remove( SegmentProperty.BoundingBoxZMax );
+		}
 
 		return segmentPropertyToColumn;
 	}
