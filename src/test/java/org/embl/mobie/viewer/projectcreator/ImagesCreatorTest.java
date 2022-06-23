@@ -190,8 +190,8 @@ class ImagesCreatorTest {
         ImagePlus imp = makeImage( imageName, is2D );
 
         imagesCreator.addImage( imp, imageName, datasetName,
-                imageDataFormat, ProjectCreator.ImageType.image,
-                sourceTransform, uiSelectionGroup, false );
+                imageDataFormat, null, ProjectCreator.ImageType.image,
+                sourceTransform, uiSelectionGroup, false, null, null, null );
     }
 
     void testAddingImageInCertainFormat( ImageDataFormat imageDataFormat, boolean is2D ) throws IOException, SpimDataException {
@@ -203,8 +203,8 @@ class ImagesCreatorTest {
         ImagePlus seg = makeSegmentation( imageName );
 
         imagesCreator.addImage( seg, imageName, datasetName,
-                imageDataFormat, ProjectCreator.ImageType.segmentation,
-                sourceTransform, uiSelectionGroup, false );
+                imageDataFormat, null, ProjectCreator.ImageType.segmentation,
+                sourceTransform, uiSelectionGroup, false, null, null, null );
 
         assertionsForImageAdded( imageDataFormat, false );
         assertionsForTableAdded();

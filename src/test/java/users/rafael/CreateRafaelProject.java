@@ -104,7 +104,7 @@ public class CreateRafaelProject
 			for ( int c = 0; c < channels.length; c++ )
 			{
 				final String imageName = "Sections_B_z" + sectionIndex + "_c" + c;
-				images.addImage( channels[ c ], imageName, datasetName, ImageDataFormat.OmeZarr, ProjectCreator.ImageType.image, affineTransform3D, uiSelectionGroup );
+				images.addImage( channels[ c ], imageName, datasetName, ImageDataFormat.OmeZarr, null, ProjectCreator.ImageType.image, affineTransform3D, uiSelectionGroup, false, null, null, null );
 			}
 		}
 
