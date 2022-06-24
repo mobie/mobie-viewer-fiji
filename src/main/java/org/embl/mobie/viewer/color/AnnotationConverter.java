@@ -41,6 +41,6 @@ public class AnnotationConverter< T, A extends AnnotationType< T > > extends Abs
 	@Override
 	public void convert( A input, ARGBType color )
 	{
-		setColor( input.getAnnotation(), color );
+		setColor( input.get(), color );
 	}
 }

@@ -38,18 +38,12 @@ public class VolatileSegmentType< I extends ImageSegment > extends VolatileAnnot
 	@Override
 	public void set( VolatileAnnotationType< I > c )
 	{
-		segment = c.getAnnotation();
+		segment = c.get();
 	}
 
 	@Override
 	public boolean valueEquals( VolatileAnnotationType< I > annotationType )
 	{
-		return segment.equals( annotationType.getAnnotation() );
-	}
-
-	@Override
-	public I getAnnotation()
-	{
-		return segment;
+		return segment.equals( annotationType.get() );
 	}
 }

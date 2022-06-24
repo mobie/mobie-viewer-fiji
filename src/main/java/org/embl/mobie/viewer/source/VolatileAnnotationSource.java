@@ -45,21 +45,22 @@ public class VolatileAnnotationSource< V extends VolatileAnnotationType< V > > e
     }
 
     @Override
-    protected FunctionRealRandomAccessible< V > createBoundaryImage( RealRandomAccessible< V > rra, ArrayList< Integer > boundaryDimensions, float[] boundaryWidth )
+    protected RealRandomAccessible< V > createBoundaryImage( RealRandomAccessible< V > rra, ArrayList< Integer > boundaryDimensions, float[] boundaryWidth )
     {
         BiConsumer< RealLocalizable, V > boundaries = ( l, output ) ->
         {
             final RealRandomAccess< V > access = rra.realRandomAccess();
-            V input = access.setPositionAndGet( l );
-            if ( ! input.isValid() )
+            V center = access.setPositionAndGet( l );
+            if ( ! center.isValid() )
             {
                 output.setValid( false );
                 return;
             }
-            final V centerValue = input.get();
-            if ( centerValue.getAnnotation() == null  )
+            final V centerValue = center.get();
+            if ( centerValue.get() == null  )
             {
                 // no annotation
+                output.set( center.createVariable() );
                 return;
             }
             for ( Integer d : boundaryDimensions )
@@ -67,13 +68,13 @@ public class VolatileAnnotationSource< V extends VolatileAnnotationType< V > > e
                 for ( int signum = -1; signum <= +1; signum +=2  ) // back and forth
                 {
                     access.move( signum * boundaryWidth[ d ], d );
-                    input = access.get();
-                    if ( ! input.isValid() )
+                    center = access.get();
+                    if ( ! center.isValid() )
                     {
                         output.setValid( false );
                         return;
                     }
-                    else if ( centerValue.valueEquals( input ) )
+                    else if ( centerValue.valueEquals( center ) )
                     {
                         output.get().set( centerValue ); // boundary
                         return;
@@ -81,7 +82,7 @@ public class VolatileAnnotationSource< V extends VolatileAnnotationType< V > > e
                     access.move( - signum * boundaryWidth[ d ], d ); // move back to center
                 }
             }
-            // no boundary
+            output.set( center.createVariable() );
             return;
         };
 

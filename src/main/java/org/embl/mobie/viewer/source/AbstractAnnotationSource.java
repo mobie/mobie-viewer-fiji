@@ -110,7 +110,7 @@ public abstract class AbstractAnnotationSource< T > implements Source< T >, Sour
         }
     }
 
-    protected abstract FunctionRealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth );
+    protected abstract RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth );
 
     protected ArrayList< Integer > boundaryDimensions()
     {

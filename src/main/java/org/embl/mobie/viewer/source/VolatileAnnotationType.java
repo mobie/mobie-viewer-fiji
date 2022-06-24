@@ -4,7 +4,7 @@ import net.imglib2.Volatile;
 import net.imglib2.type.Type;
 import net.imglib2.type.volatiles.VolatileIntType;
 
-public abstract class VolatileAnnotationType< T > extends Volatile< T > implements Type< VolatileAnnotationType< T > >, Annotation< T >
+public abstract class VolatileAnnotationType< T > extends Volatile< T > implements Type< VolatileAnnotationType< T > >
 {
 	public VolatileAnnotationType( T t, boolean valid )
 	{
@@ -15,4 +15,5 @@ public abstract class VolatileAnnotationType< T > extends Volatile< T > implemen
 	{
 		super( t );
 	}
+
 }

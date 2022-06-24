@@ -93,7 +93,7 @@ public class SliceViewAnnotationSelector< T extends TableRow > implements Runnab
 					final Source< AnnotationType< T > > source = sourceAndConverter.getSpimSource();
 					final long[] voxelPosition = SourceAndConverterHelper.getVoxelPositionInSource( source, realPosition, timePoint, 0 );
 					final AnnotationType< T > annotationType = source.getSource( timePoint, 0 ).randomAccess().setPositionAndGet( voxelPosition );
-					final T annotation = annotationType.getAnnotation();
+					final T annotation = annotationType.get();
 
 //
 //					final double pixelValue = getPixelValue( timePoint, realPosition, source );

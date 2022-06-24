@@ -52,7 +52,7 @@ public class AnnotationSource< A, T extends AnnotationType< A > > extends Abstra
     }
 
     @Override
-    protected FunctionRealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
+    protected RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
     {
         BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
         {
@@ -60,7 +60,10 @@ public class AnnotationSource< A, T extends AnnotationType< A > > extends Abstra
             final AnnotationType< A > center = access.setPositionAndGet( l ).copy();
             final A centerAnnotation = center.get();
             if ( centerAnnotation == null )
+            {
+                output.set( center.createVariable() );
                 return; // background
+            }
 
             for ( Integer d : dimensions )
             {
