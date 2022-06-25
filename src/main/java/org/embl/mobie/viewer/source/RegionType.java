@@ -34,6 +34,13 @@ public class RegionType< R extends Region > extends AnnotationType< R >
 	@Override
 	public boolean valueEquals( AnnotationType< R > annotationType )
 	{
-		return annotation.equals( annotationType.get() );
+		if ( annotation == null && annotationType.get() == null )
+		{
+			return true;
+		}
+		else
+		{
+			return annotation.equals( annotationType.get() );
+		}
 	}
 }

@@ -51,16 +51,86 @@ public class AnnotationSource< A, T extends AnnotationType< A > > extends Abstra
         super( source, bounds, timePoints );
     }
 
-    @Override
+    //@Override
+    protected RealRandomAccessible< T > createBoundaryImageNew( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
+    {
+        //final AnnotationType< A > background = rra.realRandomAccess().get().createVariable();
+
+        BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
+        {
+            final RealRandomAccess< T > access = rra.realRandomAccess();
+            final AnnotationType< A > center = access.setPositionAndGet( l ).copy();
+
+            final A a1 = center.get();
+            if ( a1 != null )
+            {
+                int b = 1;
+            }
+
+            if ( center.valueEquals( center.createVariable() ) )
+            {
+                if ( center.get() != null )
+                {
+                    int a = 1;
+                }
+                output.set( center.createVariable() );
+                return; // background
+            }
+
+            final A centerAnnotation = center.get();
+
+            for ( Integer d : dimensions )
+            {
+                for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
+                {
+                    access.move( signum * boundaryWidth[ d ], d );
+                    final A annotation = access.get().get();
+                    if ( ! ( centerAnnotation == annotation ) )
+                    {
+                        // boundary pixel
+                        output.set( center.copy() );
+                        return;
+                    }
+                    access.move( - signum * boundaryWidth[ d ], d ); // move back to center
+                }
+            }
+            // no boundary pixel
+            output.set( center.createVariable() );
+            return;
+        };
+
+        final T type = rra.realRandomAccess().get();
+        final FunctionRealRandomAccessible< T > boundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.createVariable() );
+        return boundaries;
+    }
+
+
     protected RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
     {
+
         BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
         {
             final RealRandomAccess< T > access = rra.realRandomAccess();
             final AnnotationType< A > center = access.setPositionAndGet( l ).copy();
             final A centerAnnotation = center.get();
+            final AnnotationType< A > background = getType().createVariable();
+            if ( centerAnnotation != null )
+            {
+                int a = 1;
+            }
+
             if ( centerAnnotation == null )
             {
+                try
+                {
+                    if ( center.valueEquals( background ) )
+                    {
+                        int b = 1;
+                    }
+                } catch ( Exception e )
+                {
+                    int c = 1;
+                }
                 output.set( center.createVariable() );
                 return; // background
             }
