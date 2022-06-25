@@ -63,6 +63,7 @@ public class BoundarySource< T extends Type< T > > extends AbstractBoundarySourc
             final RealRandomAccess< T > access = rra.realRandomAccess();
             final T center = access.setPositionAndGet( l ).copy();
 
+
             // by default set to background...
             output.set( background );
 
