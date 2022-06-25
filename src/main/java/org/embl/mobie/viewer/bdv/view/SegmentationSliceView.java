@@ -45,10 +45,10 @@ import org.embl.mobie.viewer.segment.SliceViewAnnotationSelector;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.source.SegmentationSource;
-import org.embl.mobie.viewer.source.AnnotationType;
-import org.embl.mobie.viewer.source.AnnotationSource;
+import org.embl.mobie.viewer.source.GenericType;
+import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.VolatileSegmentationSource;
-import org.embl.mobie.viewer.source.VolatileAnnotationSource;
+import org.embl.mobie.viewer.source.VolatileBoundarySource;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
@@ -76,15 +76,15 @@ public class SegmentationSliceView< N extends NumericType< N > & RealType< N > >
 		// volatile
 		final Source< ? extends Volatile< N > > volatileSpimSource = sourceAndConverter.asVolatile().getSpimSource();
 		final VolatileSegmentationSource volatileAnnotationSource = new VolatileSegmentationSource( volatileSpimSource, adapter );
-		final VolatileAnnotationSource volatileBoundarySource = new VolatileAnnotationSource( volatileAnnotationSource );
+		final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileAnnotationSource );
 		final VolatileAnnotationConverter volatileAnnotationConverter = new VolatileAnnotationConverter( display.selectionColoringModel );
 		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
 
 		// non-volatile
 		final Source< N > spimSource = sourceAndConverter.getSpimSource();
 		final SegmentationSource< N, TableRowImageSegment > segmentationSource = new SegmentationSource<>( spimSource, adapter );
-		final AnnotationSource boundarySource = new AnnotationSource( segmentationSource );
-		final AnnotationConverter< TableRowImageSegment, AnnotationType< TableRowImageSegment > > annotationConverter = new AnnotationConverter<>( display.selectionColoringModel );
+		final BoundarySource boundarySource = new BoundarySource( segmentationSource );
+		final AnnotationConverter< TableRowImageSegment, GenericType< TableRowImageSegment > > annotationConverter = new AnnotationConverter<>( display.selectionColoringModel );
 
 		// combined
 		return new SourceAndConverter( boundarySource, annotationConverter, volatileSourceAndConverter );

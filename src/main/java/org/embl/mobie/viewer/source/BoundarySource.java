@@ -34,19 +34,20 @@ import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.type.Type;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 
-public class AnnotationSource< A, T extends AnnotationType< A > > extends AbstractAnnotationSource< T >
+public class BoundarySource< T extends Type< T > > extends AbstractBoundarySource< T >
 {
-    public AnnotationSource( final Source< T > source )
+    public BoundarySource( final Source< T > source )
     {
        super( source, null, null );
     }
 
-    public AnnotationSource( final Source< T > source, RealMaskRealInterval bounds, Collection< Integer > timePoints )
+    public BoundarySource( final Source< T > source, RealMaskRealInterval bounds, Collection< Integer > timePoints )
     {
         super( source, bounds, timePoints );
     }
@@ -54,39 +55,39 @@ public class AnnotationSource< A, T extends AnnotationType< A > > extends Abstra
     @Override
     protected RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
     {
+        // assumes that the default variable is the background value
+        final T background = getType().createVariable();
+
         BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
         {
             final RealRandomAccess< T > access = rra.realRandomAccess();
-            final AnnotationType< A > center = access.setPositionAndGet( l ).copy();
-            final A centerAnnotation = center.get();
-            if ( centerAnnotation == null )
-            {
-                output.set( center.createVariable() );
-                return; // background
-            }
+            final T center = access.setPositionAndGet( l ).copy();
 
+            // by default set to background...
+            output.set( background );
+
+            if ( center.valueEquals( background ) )
+                return;
+
+            // ...unless it is a boundary pixel
             for ( Integer d : dimensions )
             {
                 for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
                 {
                     access.move( signum * boundaryWidth[ d ], d );
-                    final A annotation = access.get().get();
-                    if ( ! ( centerAnnotation == annotation ) )
+                    if ( ! access.get().valueEquals( center )  )
                     {
                         // boundary pixel
-                        output.set( center.copy() );
+                        output.set( center );
                         return;
                     }
-                    access.move( - signum * boundaryWidth[ d ], d ); // move back to center
+                    // move back to center
+                    access.move( - signum * boundaryWidth[ d ], d );
                 }
             }
-            // no boundary pixel
-            output.set( center.createVariable() );
-            return;
         };
 
-        final T type = rra.realRandomAccess().get();
-        final FunctionRealRandomAccessible< T > boundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> type.createVariable() );
+        final FunctionRealRandomAccessible< T > boundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> background );
         return boundaries;
     }
 }

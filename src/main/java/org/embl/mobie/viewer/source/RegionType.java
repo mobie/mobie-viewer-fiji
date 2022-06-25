@@ -2,7 +2,7 @@ package org.embl.mobie.viewer.source;
 
 import org.embl.mobie.viewer.annotate.Region;
 
-public class RegionType< R extends Region > extends AnnotationType< R >
+public class RegionType< R extends Region > extends GenericType< R >
 {
 	public RegionType()
 	{
@@ -14,26 +14,26 @@ public class RegionType< R extends Region > extends AnnotationType< R >
 	}
 
 	@Override
-	public AnnotationType< R > createVariable()
+	public GenericType< R > createVariable()
 	{
 		return new RegionType<>();
 	}
 
 	@Override
-	public AnnotationType< R > copy()
+	public GenericType< R > copy()
 	{
-		return new RegionType<>( annotation );
+		return new RegionType<>( object );
 	}
 
 	@Override
-	public void set( AnnotationType< R > annotationType )
+	public void set( GenericType< R > genericType )
 	{
-		this.annotation = annotationType.get();
+		this.object = genericType.get();
 	}
 
 	@Override
-	public boolean valueEquals( AnnotationType< R > annotationType )
+	public boolean valueEquals( GenericType< R > genericType )
 	{
-		return annotation.equals( annotationType.get() );
+		return object.equals( genericType.get() );
 	}
 }
