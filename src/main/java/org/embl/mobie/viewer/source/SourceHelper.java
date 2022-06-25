@@ -135,9 +135,9 @@ public abstract class SourceHelper
 
 			fetchRootSources( wrappedSource, rootSources );
 		}
-		else if (  source instanceof AnnotationSource )
+		else if (  source instanceof BoundarySource )
 		{
-			final Source< ? > wrappedSource = (( AnnotationSource ) source).getWrappedSource();
+			final Source< ? > wrappedSource = (( BoundarySource ) source).getWrappedSource();
 
 			fetchRootSources( wrappedSource, rootSources );
 		}

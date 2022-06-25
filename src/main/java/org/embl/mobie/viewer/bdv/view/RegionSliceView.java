@@ -36,7 +36,7 @@ import org.embl.mobie.viewer.annotate.RegionTableRow;
 import org.embl.mobie.viewer.annotate.RegionImage;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.segment.SliceViewAnnotationSelector;
-import org.embl.mobie.viewer.source.AnnotationType;
+import org.embl.mobie.viewer.source.GenericType;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 
@@ -45,11 +45,11 @@ public class RegionSliceView extends AnnotationSliceView< RegionTableRow >
 	public RegionSliceView( MoBIE moBIE, RegionDisplay display )
 	{
 		super( moBIE, display );
-		SourceAndConverter< AnnotationType< RegionTableRow > > regionSourceAndConverter = createSourceAndConverter();
+		SourceAndConverter< GenericType< RegionTableRow > > regionSourceAndConverter = createSourceAndConverter();
 		show( regionSourceAndConverter );
 	}
 
-	private SourceAndConverter< AnnotationType< RegionTableRow > > createSourceAndConverter()
+	private SourceAndConverter< GenericType< RegionTableRow > > createSourceAndConverter()
 	{
 		final RegionImage< RegionTableRow > regionImage = new RegionImage( display.tableRows.getTableRows(), display.selectionColoringModel, display.getName() );
 

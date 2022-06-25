@@ -42,7 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-public abstract class AbstractAnnotationSource< T > implements Source< T >, SourceWrapper< T >
+public abstract class AbstractBoundarySource< T > implements Source< T >, SourceWrapper< T >
 {
     protected final Source< T > source;
     protected boolean showAsBoundaries;
@@ -51,7 +51,7 @@ public abstract class AbstractAnnotationSource< T > implements Source< T >, Sour
     protected final RealMaskRealInterval bounds;
     private final Collection< Integer > timePoints;
 
-    public AbstractAnnotationSource( final Source< T > source, RealMaskRealInterval bounds, Collection< Integer > timePoints )
+    public AbstractBoundarySource( final Source< T > source, RealMaskRealInterval bounds, Collection< Integer > timePoints )
     {
         this.source = source;
         this.bounds = bounds;

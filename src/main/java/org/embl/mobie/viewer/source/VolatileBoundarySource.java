@@ -37,9 +37,9 @@ import net.imglib2.position.FunctionRealRandomAccessible;
 import java.util.ArrayList;
 import java.util.function.BiConsumer;
 
-public class VolatileAnnotationSource< V extends VolatileAnnotationType< V > > extends AbstractAnnotationSource< V >
+public class VolatileBoundarySource< V extends VolatileAnnotationType< V > > extends AbstractBoundarySource< V >
 {
-    public VolatileAnnotationSource( final Source< V > source )
+    public VolatileBoundarySource( final Source< V > source )
     {
         super( source, null, null );
     }

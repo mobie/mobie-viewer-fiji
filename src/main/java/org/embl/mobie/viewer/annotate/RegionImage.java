@@ -45,8 +45,8 @@ import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.color.AnnotationConverter;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
-import org.embl.mobie.viewer.source.AnnotationSource;
-import org.embl.mobie.viewer.source.AnnotationType;
+import org.embl.mobie.viewer.source.BoundarySource;
+import org.embl.mobie.viewer.source.GenericType;
 import org.embl.mobie.viewer.source.RegionType;
 
 import java.awt.*;
@@ -60,7 +60,7 @@ public class RegionImage< T extends RegionTableRow >
 	private final SelectionColoringModel< T > coloringModel;
 	private double[] contrastLimits;
 	private String name;
-	private SourceAndConverter< AnnotationType< T > > sourceAndConverter;
+	private SourceAndConverter< GenericType< T > > sourceAndConverter;
 	private RealMaskRealInterval unionMask;
 	private RealInterval unionInterval;
 	private int size;
@@ -142,9 +142,9 @@ public class RegionImage< T extends RegionTableRow >
 		final FunctionRealRandomAccessible< RegionType< T > > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, RegionType::new );
 		final Interval interval = Intervals.smallestContainingInterval( unionMask );
 		final RealRandomAccessibleIntervalSource source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new RegionType(), name );
-		final AnnotationSource annotationSource = new AnnotationSource( source, unionMask, timePoints );
-		final TransformedSource transformedAnnotationSource = new TransformedSource<>( annotationSource );
-		final AnnotationConverter< T, AnnotationType< T > > annotationConverter = new AnnotationConverter<>( coloringModel );
+		final BoundarySource boundarySource = new BoundarySource( source, unionMask, timePoints );
+		final TransformedSource transformedAnnotationSource = new TransformedSource<>( boundarySource );
+		final AnnotationConverter< T, GenericType< T > > annotationConverter = new AnnotationConverter<>( coloringModel );
 		sourceAndConverter = new SourceAndConverter( transformedAnnotationSource, annotationConverter );
 
 		contrastLimits = new double[]{ 0, 255 };
@@ -173,7 +173,7 @@ public class RegionImage< T extends RegionTableRow >
 		return contrastLimits;
 	}
 
-	public SourceAndConverter< AnnotationType< T > > getSourceAndConverter()
+	public SourceAndConverter< GenericType< T > > getSourceAndConverter()
 	{
 		return sourceAndConverter;
 	}
