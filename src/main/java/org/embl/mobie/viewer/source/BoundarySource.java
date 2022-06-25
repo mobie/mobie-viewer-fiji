@@ -56,18 +56,19 @@ public class BoundarySource< T extends Type< T > > extends AbstractBoundarySourc
     protected RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
     {
         // assumes that the default variable is the background value
-        final T background = getType().createVariable();
+        //final T background = getType().createVariable();
 
         BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
         {
             final RealRandomAccess< T > access = rra.realRandomAccess();
-            final T center = access.setPositionAndGet( l ).copy();
-
+            final T input = access.setPositionAndGet( l ).copy();
+            // assumes that the default variable is the background value
+            final T background = input.createVariable();
 
             // by default set to background...
             output.set( background );
 
-            if ( center.valueEquals( background ) )
+            if ( input.valueEquals( background ) )
                 return;
 
             // ...unless it is a boundary pixel
@@ -76,10 +77,11 @@ public class BoundarySource< T extends Type< T > > extends AbstractBoundarySourc
                 for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
                 {
                     access.move( signum * boundaryWidth[ d ], d );
-                    if ( ! access.get().valueEquals( center )  )
+                    if ( ! access.get().valueEquals( input )  )
                     {
-                        // boundary pixel
-                        output.set( center );
+                        // input is a boundary pixel
+                        // thus it keeps its value
+                        output.set( input );
                         return;
                     }
                     // move back to center
@@ -88,7 +90,7 @@ public class BoundarySource< T extends Type< T > > extends AbstractBoundarySourc
             }
         };
 
-        final FunctionRealRandomAccessible< T > boundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> background );
+        final FunctionRealRandomAccessible< T > boundaries = new FunctionRealRandomAccessible( 3, biConsumer, () -> getType().createVariable() );
         return boundaries;
     }
 }

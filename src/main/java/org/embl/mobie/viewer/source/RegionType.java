@@ -34,6 +34,15 @@ public class RegionType< R extends Region > extends GenericType< R >
 	@Override
 	public boolean valueEquals( GenericType< R > genericType )
 	{
-		return object.equals( genericType.get() );
+		final R thatObject = genericType.get();
+		if ( object == null )
+		{
+			if ( thatObject == null )
+				return true;
+			else
+				return false;
+		}
+		else
+			return object.equals( thatObject );
 	}
 }
