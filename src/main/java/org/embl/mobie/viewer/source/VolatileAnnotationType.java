@@ -13,7 +13,7 @@ import net.imglib2.type.Type;
  *  * 		implements NumericType< T >
  */
 
-
+// Note: This must be a type (as in right now implementing Type< VolatileAnnotationType< T > > ) otherwise it cannot be a pixel in a Source
 public class VolatileAnnotationType< T > extends Volatile< AnnotationType< T > > implements Type< VolatileAnnotationType< T > >
 {
 
