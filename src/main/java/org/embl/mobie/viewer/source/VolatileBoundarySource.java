@@ -32,12 +32,14 @@ import bdv.viewer.Source;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
+import net.imglib2.Volatile;
 import net.imglib2.position.FunctionRealRandomAccessible;
+import net.imglib2.type.Type;
 
 import java.util.ArrayList;
 import java.util.function.BiConsumer;
 
-public class VolatileBoundarySource< V extends VolatileAnnotationType< V > > extends AbstractBoundarySource< V >
+public class VolatileBoundarySource< T extends Type< T >, V extends Volatile< T > & Type< V > > extends AbstractBoundarySource< V >
 {
     public VolatileBoundarySource( final Source< V > source )
     {
@@ -50,40 +52,50 @@ public class VolatileBoundarySource< V extends VolatileAnnotationType< V > > ext
         BiConsumer< RealLocalizable, V > boundaries = ( l, output ) ->
         {
             final RealRandomAccess< V > access = rra.realRandomAccess();
-            V center = access.setPositionAndGet( l );
-            if ( ! center.isValid() )
+            final V input = access.setPositionAndGet( l ).copy();
+            if ( ! input.isValid() )
             {
                 output.setValid( false );
                 return;
             }
-            final V centerValue = center.get();
-            if ( centerValue.get() == null  )
-            {
-                // no annotation
-                output.set( center.createVariable() );
+
+            // assumes that the default variable is the background value
+            final V background = input.createVariable();
+
+            // set to valid background...
+            output.set( background );
+            output.setValid( true );
+
+            if ( input.valueEquals( background )  )
                 return;
-            }
+
+            // ...unless it is a boundary pixel
             for ( Integer d : boundaryDimensions )
             {
                 for ( int signum = -1; signum <= +1; signum +=2  ) // back and forth
                 {
                     access.move( signum * boundaryWidth[ d ], d );
-                    center = access.get();
-                    if ( ! center.isValid() )
+
+                    if ( ! access.get().isValid() )
                     {
+                        // a pixel around the input is not valid
+                        // thus we cannot yet determine whether
+                        // it is a boundary pixel
                         output.setValid( false );
                         return;
                     }
-                    else if ( centerValue.valueEquals( center ) )
+
+                    if ( ! access.get().valueEquals( input )  )
                     {
-                        output.get().set( centerValue ); // boundary
+                        // input is a boundary pixel
+                        // thus it keeps its value
+                        output.set( input );
                         return;
                     }
+
                     access.move( - signum * boundaryWidth[ d ], d ); // move back to center
                 }
             }
-            output.set( center.createVariable() );
-            return;
         };
 
         final V type = rra.realRandomAccess().get();
