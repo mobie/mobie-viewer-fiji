@@ -63,13 +63,13 @@ public class SegmentationSliceView< N extends NumericType< N > & RealType< N > >
 		{
 			final SourceAndConverter< N > sourceAndConverter = ( SourceAndConverter< N > ) moBIE.sourceNameToSourceAndConverter().get( name );
 
-			SourceAndConverter< ? > labelSourceAndConverter = createAnnotationSourceAndConverter( sourceAndConverter, display );
+			SourceAndConverter< ? > labelSourceAndConverter = createSourceAndConverter( sourceAndConverter, display );
 
 			show( labelSourceAndConverter );
 		}
 	}
 
-	private SourceAndConverter createAnnotationSourceAndConverter( SourceAndConverter< N > sourceAndConverter, SegmentationDisplay display )
+	private SourceAndConverter createSourceAndConverter( SourceAndConverter< N > sourceAndConverter, SegmentationDisplay display )
 	{
 		final SegmentAdapter< TableRowImageSegment > adapter = new SegmentAdapter<>( display.tableRows.getTableRows() );
 

@@ -39,7 +39,6 @@ import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 
 
-// TODO: Does I really need to extend ImageSegment here?
 public class SegmentationSource< T extends NumericType< T > & RealType< T >, I extends ImageSegment > extends AbstractSourceWrapper< T, AnnotationType< I > >
 {
     private final SegmentAdapter< I > adapter;
@@ -61,7 +60,7 @@ public class SegmentationSource< T extends NumericType< T > & RealType< T >, I e
     {
         return Converters.convert( source.getSource( t, level ), ( input, output ) -> {
             set( input, t, output );
-        }, new SegmentAnnotationType() );
+        }, new AnnotationType( adapter.createVariable() ) );
     }
 
     @Override
@@ -72,18 +71,19 @@ public class SegmentationSource< T extends NumericType< T > & RealType< T >, I e
         return Converters.convert( rra,
                 ( T input, AnnotationType< I > output ) ->
                 set( input, t, output ),
-                new SegmentAnnotationType() );
+                new AnnotationType<>() );
     }
 
     private void set( T input, int t, AnnotationType< I > output  )
     {
         final I segment = adapter.getSegment( input.getRealDouble(), t, source.getName() );
-        final SegmentAnnotationType< I > segmentType = new SegmentAnnotationType( segment );
+        final AnnotationType< I > segmentType = new AnnotationType( segment );
         output.set( segmentType );
     }
 
     @Override
-    public SegmentAnnotationType getType() {
-        return new SegmentAnnotationType();
+    public AnnotationType< I > getType()
+    {
+        return new AnnotationType( adapter.createVariable() );
     }
 }

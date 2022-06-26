@@ -1,8 +1,8 @@
 package org.embl.mobie.viewer.source;
 
+import de.embl.cba.tables.imagesegment.ImageSegment;
 import net.imglib2.Volatile;
 import net.imglib2.type.Type;
-import net.imglib2.type.volatiles.VolatileARGBType;
 
 
 /**
@@ -16,30 +16,44 @@ import net.imglib2.type.volatiles.VolatileARGBType;
  */
 // Do we need an interface for AnnotationType?
 
-public class VolatileAnnotationType< A extends AnnotationType< A >, VA extends VolatileAnnotationType< A, VA > > extends Volatile< A > implements Type< VA >
+public class VolatileAnnotationType< T > extends Volatile< AnnotationType< T > > implements Type< VolatileAnnotationType< T > >
 {
+	public VolatileAnnotationType()
+	{
+		super( new AnnotationType<>(), true );
+	}
+
+	public VolatileAnnotationType( T annotation, boolean valid )
+	{
+		super( new AnnotationType<>( annotation ), valid );
+	}
 
 	@Override
-	public VA createVariable()
+	public VolatileAnnotationType< T > createVariable()
 	{
 		return null;
 	}
 
 	@Override
-	public VA copy()
+	public VolatileAnnotationType< T > copy()
 	{
 		return null;
 	}
 
 	@Override
-	public void set( VA c )
+	public void set( VolatileAnnotationType< T > c )
 	{
 
 	}
 
 	@Override
-	public boolean valueEquals( VA va )
+	public boolean valueEquals( VolatileAnnotationType< T > va )
 	{
 		return false;
+	}
+
+	public T getAnnotation()
+	{
+		return get().getAnnotation();
 	}
 }

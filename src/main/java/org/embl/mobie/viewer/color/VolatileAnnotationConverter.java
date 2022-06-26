@@ -29,9 +29,10 @@
 package org.embl.mobie.viewer.color;
 
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.VolatileAnnotationType;
 
-public class VolatileAnnotationConverter< T, A extends VolatileAnnotationType< T > > extends AbstractAnnotationConverter< T, A >
+public class VolatileAnnotationConverter< T > extends AbstractAnnotationConverter< T, VolatileAnnotationType< T > >
 {
 	public VolatileAnnotationConverter( SelectionColoringModel< T > coloringModel )
 	{
@@ -39,11 +40,11 @@ public class VolatileAnnotationConverter< T, A extends VolatileAnnotationType< T
 	}
 
 	@Override
-	public void convert( A input, ARGBType output )
+	public void convert( VolatileAnnotationType< T > input, ARGBType output )
 	{
 		if ( ! input.isValid()  )
 			return;
 
-		setColor( input.get(), output );
+		setColor( input.getAnnotation(), output );
 	}
 }

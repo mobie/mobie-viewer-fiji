@@ -44,44 +44,31 @@ import java.util.Collection;
 
 public class VolatileSegmentationSource< T extends NumericType< T > & RealType< T >, V extends Volatile< T >, I extends ImageSegment > extends AbstractSourceWrapper< V, VolatileAnnotationType< I > >
 {
-    private final Collection< Integer > timepoints; // TODO: why do we have this?
     private final SegmentAdapter< I > adapter;
 
     public VolatileSegmentationSource( final Source< V > source, SegmentAdapter< I > adapter )
     {
         super( source );
         this.adapter = adapter;
-        this.timepoints = null;
-    }
-
-
-    @Override
-    public boolean isPresent( final int t )
-    {
-        if ( timepoints != null )
-            return timepoints.contains( t );
-        else
-            return source.isPresent(t);
     }
 
     @Override
     public RandomAccessibleInterval< VolatileAnnotationType< I > > getSource( final int t, final int level )
     {
         final RandomAccessibleInterval< V > rai = source.getSource( t, level );
-        final RandomAccessibleInterval< VolatileAnnotationType< I > > convert = Converters.convert( rai, ( Converter< V, VolatileAnnotationType< I > > ) ( input, output ) -> {
+        final RandomAccessibleInterval< VolatileAnnotationType< I > > convert = Converters.convert( rai, ( input, output ) -> {
             set( input, t, output );
-        }, new VolatileSegmentType() );
+        }, createVariable() );
 
         return convert;
     }
-
 
     @Override
     public RealRandomAccessible< VolatileAnnotationType< I > > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
         final RealRandomAccessible< V > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
-        return Converters.convert( rra, ( input, output ) -> set( input, t, output ), new VolatileSegmentType() );
+        return Converters.convert( rra, ( input, output ) -> set( input, t, output ), createVariable() );
     }
 
     private void set( V input, int t, VolatileAnnotationType< I > output )
@@ -94,13 +81,18 @@ public class VolatileSegmentationSource< T extends NumericType< T > & RealType< 
 
         final double label = input.get().getRealDouble();
         final I segment = adapter.getSegment( label, t, source.getName() );
-        final VolatileSegmentType< I > volatileSegmentType = new VolatileSegmentType( segment, true );
-        output.set( volatileSegmentType );
+        final VolatileAnnotationType< I > volatileAnnotationType = new VolatileAnnotationType( segment, true );
+        output.set( volatileAnnotationType );
     }
 
     @Override
     public VolatileAnnotationType< I > getType()
     {
-        return new VolatileSegmentType();
+        return createVariable();
+    }
+
+    private VolatileAnnotationType< I > createVariable()
+    {
+        return new VolatileAnnotationType( adapter.createVariable(), true );
     }
 }
