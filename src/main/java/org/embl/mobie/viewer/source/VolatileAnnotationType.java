@@ -11,17 +11,11 @@ import net.imglib2.type.Type;
  *  * abstract public class AbstractVolatileNumericType< N extends NumericType< N >, T extends AbstractVolatileNumericType< N, T > >
  *  * 		extends Volatile< N >
  *  * 		implements NumericType< T >
- *
- * @param <A>
  */
-// Do we need an interface for AnnotationType?
+
 
 public class VolatileAnnotationType< T > extends Volatile< AnnotationType< T > > implements Type< VolatileAnnotationType< T > >
 {
-	public VolatileAnnotationType()
-	{
-		super( new AnnotationType<>(), true );
-	}
 
 	public VolatileAnnotationType( T annotation, boolean valid )
 	{
@@ -31,25 +25,28 @@ public class VolatileAnnotationType< T > extends Volatile< AnnotationType< T > >
 	@Override
 	public VolatileAnnotationType< T > createVariable()
 	{
-		return null;
+		return new VolatileAnnotationType<>( null, true );
 	}
 
 	@Override
 	public VolatileAnnotationType< T > copy()
 	{
-		return null;
+		final VolatileAnnotationType< T > volatileAnnotationType = createVariable();
+		volatileAnnotationType.set( this );
+		return volatileAnnotationType;
 	}
 
 	@Override
 	public void set( VolatileAnnotationType< T > c )
 	{
-
+		valid = c.isValid();
+		t.set( c.get() );
 	}
 
 	@Override
 	public boolean valueEquals( VolatileAnnotationType< T > va )
 	{
-		return false;
+		return t.valueEquals( va.t );
 	}
 
 	public T getAnnotation()

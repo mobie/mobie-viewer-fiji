@@ -144,7 +144,7 @@ public class RegionImage< T extends RegionTableRow >
 		final RealRandomAccessibleIntervalSource source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new AnnotationType(), name );
 		final BoundarySource boundarySource = new BoundarySource( source, unionMask, timePoints );
 		final TransformedSource transformedAnnotationSource = new TransformedSource<>( boundarySource );
-		final AnnotationConverter< T, AnnotationType< T > > annotationConverter = new AnnotationConverter<>( coloringModel );
+		final AnnotationConverter< T > annotationConverter = new AnnotationConverter<>( coloringModel );
 		sourceAndConverter = new SourceAndConverter( transformedAnnotationSource, annotationConverter );
 
 		contrastLimits = new double[]{ 0, 255 };

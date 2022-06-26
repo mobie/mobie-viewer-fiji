@@ -2,46 +2,46 @@ package org.embl.mobie.viewer.source;
 
 import net.imglib2.type.Type;
 
-public class AnnotationType< A > implements Type< AnnotationType< A > >
+public class AnnotationType< T > implements Type< AnnotationType< T > >
 {
-	protected A annotation;
+	protected T annotation;
 
 	public AnnotationType()
 	{
 	}
 
-	public AnnotationType( A annotation )
+	public AnnotationType( T annotation )
 	{
 		this.annotation = annotation;
 	}
 
-	public A getAnnotation()
+	public T getAnnotation()
 	{
 		return annotation;
 	};
 
 	@Override
-	public AnnotationType< A > createVariable()
+	public AnnotationType< T > createVariable()
 	{
 		return new AnnotationType<>();
 	}
 
 	@Override
-	public AnnotationType< A > copy()
+	public AnnotationType< T > copy()
 	{
-		final AnnotationType< A > annotationType = createVariable();
+		final AnnotationType< T > annotationType = createVariable();
 		annotationType.set( this );
 		return annotationType;
 	}
 
 	@Override
-	public void set( AnnotationType< A > c )
+	public void set( AnnotationType< T > c )
 	{
 		annotation = c.annotation;
 	}
 
 	@Override
-	public boolean valueEquals( AnnotationType< A > annotationType )
+	public boolean valueEquals( AnnotationType< T > annotationType )
 	{
 		if ( annotation == null )
 		{
