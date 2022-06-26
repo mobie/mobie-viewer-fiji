@@ -31,21 +31,19 @@ package org.embl.mobie.viewer.volume;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import customnode.CustomTriangleMesh;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import org.embl.mobie.viewer.VisibilityListener;
-import org.embl.mobie.viewer.mesh.MeshCreator;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.ij3d.AnimatedViewAdjuster;
 import de.embl.cba.tables.imagesegment.ImageSegment;
-import org.embl.mobie.viewer.select.SelectionListener;
-import org.embl.mobie.viewer.select.SelectionModel;
+import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij3d.Content;
 import ij3d.Image3DUniverse;
 import ij3d.UniverseListener;
 import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.viewer.VisibilityListener;
+import org.embl.mobie.viewer.select.SelectionListener;
+import org.embl.mobie.viewer.select.SelectionModel;
 import org.embl.mobie.viewer.source.AnnotationType;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
@@ -82,7 +80,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	private boolean showSegments = false;
 	private double[] voxelSpacing; // desired voxel spacings; null = auto
 	private int currentTimePoint = 0;
-	private final MeshCreator< ImageSegment > meshCreator;
+	private final MeshCreator< S > meshCreator;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	private Window window;
 	private Image3DUniverse universe;
@@ -201,7 +199,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 
 				if ( ! segmentToContent.containsKey( segment ) )
 				{
-					final Source< ? extends RealType< ? > > source = getSource( segment );
+					final Source< AnnotationType< S > > source = getSource( segment );
 					final CustomTriangleMesh mesh = meshCreator.createSmoothCustomTriangleMesh( segment, voxelSpacing, recomputeMeshes, source );
 					mesh.setColor( getColor3f( segment ) );
 					addSegmentMeshToUniverse( segment, mesh );
@@ -214,13 +212,13 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 		}
 	}
 
-	private Source< ? extends RealType< ? > > getSource( S segment )
+	private Source< AnnotationType< S > > getSource( S segment )
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			if ( sourceAndConverter.getSpimSource().getName().equals( segment.imageId() ))
 			{
-				return ( Source< ? extends RealType< ? > > ) sourceAndConverter.getSpimSource();
+				return ( Source< AnnotationType< S > > ) sourceAndConverter.getSpimSource();
 			}
 		}
 

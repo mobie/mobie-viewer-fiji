@@ -38,9 +38,11 @@ import ij.IJ;
 import isosurface.MeshEditor;
 import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;
+import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.neighborhood.DiamondShape;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.Type;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.Views;
@@ -51,7 +53,7 @@ import org.scijava.vecmath.Point3f;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class MeshCreator < S, A extends AnnotationType< S > >
+public class MeshCreator< I extends ImageSegment >
 {
 	private int meshSmoothingIterations;
 	private double maxNumSegmentVoxels;
@@ -62,12 +64,12 @@ public class MeshCreator < S, A extends AnnotationType< S > >
 		this.maxNumSegmentVoxels = maxNumSegmentVoxels;
 	}
 
-	private float[] createMesh( ImageSegment segment, double[] voxelSpacing, Source< A > source )
+	private float[] createMesh( ImageSegment segment, double[] voxelSpacing, Source< AnnotationType< I > >  source )
 	{
 		Integer level = getLevel( segment, source, voxelSpacing );
 		double[] voxelSpacings = Utils.getVoxelSpacings( source ).get( level );
 
-		final RandomAccessibleInterval< A > rai = source.getSource( segment.timePoint(), level );
+		final RandomAccessibleInterval< AnnotationType< I > >  rai = source.getSource( segment.timePoint(), level );
 
 		if ( segment.boundingBox() == null )
 			setSegmentBoundingBox( segment, rai, voxelSpacings );
@@ -90,9 +92,9 @@ public class MeshCreator < S, A extends AnnotationType< S > >
 		{
 			System.err.println( "The segment bounding box " + boundingBox + " is not fully contained in the image interval: " + Arrays.toString( Intervals.minAsLongArray( rai ) ) + "-" +  Arrays.toString( Intervals.maxAsDoubleArray( rai ) ));
 		}
-		final A type = source.getType();
-		final AnnotationType< S > variable = type.createVariable();
-		final ExtendedRandomAccessibleInterval< A, RandomAccessibleInterval< A > > extendValue = Views.extendValue( rai, ( A ) variable );
+		final AnnotationType< I > type = source.getType();
+		final AnnotationType< I > variable = type.createVariable();
+		final RandomAccessible< AnnotationType< I > > extendValue = Views.extendValue( rai, variable );
 
 		final MeshExtractor meshExtractor = new MeshExtractor(
 				extendValue,
@@ -101,7 +103,7 @@ public class MeshCreator < S, A extends AnnotationType< S > >
 				new int[]{ 1, 1, 1 },
 				() -> false );
 
-		final float[] meshCoordinates = meshExtractor.generateMesh( segment );
+		final float[] meshCoordinates = meshExtractor.generateMesh( new AnnotationType( segment ) );
 
 		for ( int i = 0; i < meshCoordinates.length; )
 		{
@@ -118,14 +120,14 @@ public class MeshCreator < S, A extends AnnotationType< S > >
 		return meshCoordinates;
 	}
 
-	public CustomTriangleMesh createSmoothCustomTriangleMesh( ImageSegment segment, double[] voxelSpacing, boolean recomputeMesh, Source< A > source )
+	public CustomTriangleMesh createSmoothCustomTriangleMesh( ImageSegment segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< I > >  source )
 	{
 		CustomTriangleMesh triangleMesh = createCustomTriangleMesh( segment, voxelSpacing, recomputeMesh, source );
 		MeshEditor.smooth2( triangleMesh, meshSmoothingIterations );
 		return triangleMesh;
 	}
 
-	private CustomTriangleMesh createCustomTriangleMesh( ImageSegment segment, double[] voxelSpacing, boolean recomputeMesh, Source< A > source )
+	private CustomTriangleMesh createCustomTriangleMesh( ImageSegment segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< I > >  source )
 	{
 		if ( segment.getMesh() == null || recomputeMesh )
 		{
@@ -209,7 +211,7 @@ public class MeshCreator < S, A extends AnnotationType< S > >
 
 	private void setSegmentBoundingBox(
 			ImageSegment segment,
-			RandomAccessibleInterval< A > rai,
+			RandomAccessibleInterval< AnnotationType< I > >  rai,
 			double[] voxelSpacing )
 	{
 		final long[] voxelCoordinate = getSegmentLocationInVoxelsUnits( segment, voxelSpacing );

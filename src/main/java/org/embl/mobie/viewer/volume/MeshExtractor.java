@@ -36,6 +36,7 @@ import net.imglib2.Interval;
 import net.imglib2.RandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Translation;
+import net.imglib2.type.Type;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.SubsampleIntervalView;
 import net.imglib2.view.Views;
@@ -51,13 +52,13 @@ import java.util.function.BooleanSupplier;
  * This class implements the marching cubes algorithm.
  * Based on http://paulbourke.net/geometry/polygonise/
  *
- * @param <I>
+ * @param < T >
  *
  * @author Vanessa Leite
  * @author Philipp Hanslovsky
  * @author Christian Tischer (only very minor modifications)
  */
-public class MeshExtractor< I, A extends AnnotationType< I > >
+public class MeshExtractor< T extends Type< T > >
 {
 	private static final int INVALID = -1;
 
@@ -436,7 +437,7 @@ public class MeshExtractor< I, A extends AnnotationType< I > >
 					INVALID, INVALID, INVALID, INVALID, INVALID}
 	};
 
-	private final RandomAccessible< A > input;
+	private final RandomAccessible< T > input;
 
 	private final Interval interval;
 
@@ -453,7 +454,7 @@ public class MeshExtractor< I, A extends AnnotationType< I > >
 	 * Initialize the class parameters with default values
 	 */
 	public MeshExtractor(
-			final RandomAccessible< A > input,
+			final RandomAccessible< T > input,
 			final Interval interval, 
 			final AffineTransform3D transform,
 			final int[] cubeSize,
@@ -472,18 +473,18 @@ public class MeshExtractor< I, A extends AnnotationType< I > >
 	 * @return
 	 * @param segment
 	 */
-	public float[] generateMesh( ImageSegment segment )
+	public float[] generateMesh( T segment )
 	{
 		final long[]                   stride           = Arrays.stream(cubeSize).mapToLong(i -> i).toArray();
 		final FinalInterval            expandedInterval = Intervals.expand(
 				interval,
 				Arrays.stream(stride).map(s -> s + 1).toArray()
 		);
-		final SubsampleIntervalView< A > subsampled       = Views.subsample(
+		final SubsampleIntervalView< T > subsampled       = Views.subsample(
 				Views.interval(input, expandedInterval),
 				stride
 		);
-		final Cursor< A >                cursor0          = Views.flatIterable(Views.interval(
+		final Cursor< T >                cursor0          = Views.flatIterable(Views.interval(
 				Views.translateInverse(
 						subsampled,
 						0,
@@ -492,7 +493,7 @@ public class MeshExtractor< I, A extends AnnotationType< I > >
 				),
 				subsampled
 		)).localizingCursor();
-		final Cursor< A >                cursor1          = Views.flatIterable(Views.interval(
+		final Cursor< T >                cursor1          = Views.flatIterable(Views.interval(
 				Views.translateInverse(
 						subsampled,
 						1,
@@ -501,7 +502,7 @@ public class MeshExtractor< I, A extends AnnotationType< I > >
 				),
 				subsampled
 		)).cursor();
-		final Cursor< A >                cursor2          = Views.flatIterable(Views.interval(
+		final Cursor< T >                cursor2          = Views.flatIterable(Views.interval(
 				Views.translateInverse(
 						subsampled,
 						0,
@@ -510,7 +511,7 @@ public class MeshExtractor< I, A extends AnnotationType< I > >
 				),
 				subsampled
 		)).cursor();
-		final Cursor< A >                cursor3          = Views.flatIterable(Views.interval(
+		final Cursor< T >                cursor3          = Views.flatIterable(Views.interval(
 				Views.translateInverse(
 						subsampled,
 						1,
@@ -519,7 +520,7 @@ public class MeshExtractor< I, A extends AnnotationType< I > >
 				),
 				subsampled
 		)).cursor();
-		final Cursor< A >                cursor4          = Views.flatIterable(Views.interval(
+		final Cursor< T >                cursor4          = Views.flatIterable(Views.interval(
 				Views.translateInverse(
 						subsampled,
 						0,
@@ -528,7 +529,7 @@ public class MeshExtractor< I, A extends AnnotationType< I > >
 				),
 				subsampled
 		)).cursor();
-		final Cursor< A >                cursor5          = Views.flatIterable(Views.interval(
+		final Cursor< T >                cursor5          = Views.flatIterable(Views.interval(
 				Views.translateInverse(
 						subsampled,
 						1,
@@ -537,7 +538,7 @@ public class MeshExtractor< I, A extends AnnotationType< I > >
 				),
 				subsampled
 		)).cursor();
-		final Cursor< A >                cursor6          = Views.flatIterable(Views.interval(
+		final Cursor< T >                cursor6          = Views.flatIterable(Views.interval(
 				Views.translateInverse(
 						subsampled,
 						0,
@@ -546,7 +547,7 @@ public class MeshExtractor< I, A extends AnnotationType< I > >
 				),
 				subsampled
 		)).cursor();
-		final Cursor< A >                cursor7          = Views.flatIterable(Views.interval(
+		final Cursor< T >                cursor7          = Views.flatIterable(Views.interval(
 				Views.translateInverse(
 						subsampled,
 						1,
@@ -594,14 +595,14 @@ public class MeshExtractor< I, A extends AnnotationType< I > >
 			// This way, we need to remap the cube vertices:
 			// @formatter:on
 			final int vertexValues =
-					(cursor5.next().getAnnotation() == segment  ? 0b00000001 : 0) |
-					(cursor7.next().getAnnotation() == segment ? 0b00000010 : 0) |
-					(cursor3.next().getAnnotation() == segment ? 0b00000100 : 0) |
-					(cursor1.next().getAnnotation() == segment ? 0b00001000 : 0) |
-					(cursor4.next().getAnnotation() == segment ? 0b00010000 : 0) |
-					(cursor6.next().getAnnotation() == segment ? 0b00100000 : 0) |
-					(cursor2.next().getAnnotation() == segment ? 0b01000000 : 0) |
-					(cursor0.next().getAnnotation() == segment ? 0b10000000 : 0);
+					(cursor5.next().valueEquals( segment )  ? 0b00000001 : 0) |
+					(cursor7.next().valueEquals( segment ) ? 0b00000010 : 0) |
+					(cursor3.next().valueEquals( segment ) ? 0b00000100 : 0) |
+					(cursor1.next().valueEquals( segment ) ? 0b00001000 : 0) |
+					(cursor4.next().valueEquals( segment ) ? 0b00010000 : 0) |
+					(cursor6.next().valueEquals( segment ) ? 0b00100000 : 0) |
+					(cursor2.next().valueEquals( segment ) ? 0b01000000 : 0) |
+					(cursor0.next().valueEquals( segment ) ? 0b10000000 : 0);
 
 			triangulation(
 					vertexValues,

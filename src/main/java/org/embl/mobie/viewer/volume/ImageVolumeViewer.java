@@ -53,7 +53,6 @@ import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.VisibilityListener;
-import org.embl.mobie.viewer.mesh.MeshCreator;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
@@ -89,7 +88,6 @@ public class ImageVolumeViewer
 
 	private float transparency = 0.0F;
 	private int currentTimePoint = 0;
-	private final MeshCreator< ImageSegment > meshCreator;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	private Window window;
 	private Image3DUniverse universe;
@@ -105,7 +103,6 @@ public class ImageVolumeViewer
 		this.maxNumVoxels = 100 * 100 * 100;
 		this.sacToContent = new ConcurrentHashMap<>();
 		this.contentToSac = new ConcurrentHashMap<>();
-		this.meshCreator = new MeshCreator<>( meshSmoothingIterations, maxNumVoxels );
 	}
 
 	public void setMaxNumVoxels( long maxNumVoxels )
@@ -388,6 +385,4 @@ public class ImageVolumeViewer
 	{
 		return listeners;
 	}
-
-
 }
