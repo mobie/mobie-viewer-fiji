@@ -45,7 +45,7 @@ import org.embl.mobie.viewer.segment.SliceViewAnnotationSelector;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.source.SegmentationSource;
-import org.embl.mobie.viewer.source.GenericType;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.VolatileSegmentationSource;
 import org.embl.mobie.viewer.source.VolatileBoundarySource;
@@ -84,7 +84,7 @@ public class SegmentationSliceView< N extends NumericType< N > & RealType< N > >
 		final Source< N > spimSource = sourceAndConverter.getSpimSource();
 		final SegmentationSource< N, TableRowImageSegment > segmentationSource = new SegmentationSource<>( spimSource, adapter );
 		final BoundarySource boundarySource = new BoundarySource( segmentationSource );
-		final AnnotationConverter< TableRowImageSegment, GenericType< TableRowImageSegment > > annotationConverter = new AnnotationConverter<>( display.selectionColoringModel );
+		final AnnotationConverter< TableRowImageSegment, AnnotationType< TableRowImageSegment > > annotationConverter = new AnnotationConverter<>( display.selectionColoringModel );
 
 		// combined
 		return new SourceAndConverter( boundarySource, annotationConverter, volatileSourceAndConverter );

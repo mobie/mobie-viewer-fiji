@@ -39,7 +39,7 @@ import net.imglib2.realtransform.Translation;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.SubsampleIntervalView;
 import net.imglib2.view.Views;
-import org.embl.mobie.viewer.source.GenericType;
+import org.embl.mobie.viewer.source.AnnotationType;
 
 import java.util.Arrays;
 import java.util.function.BooleanSupplier;
@@ -57,7 +57,7 @@ import java.util.function.BooleanSupplier;
  * @author Philipp Hanslovsky
  * @author Christian Tischer (only very minor modifications)
  */
-public class MeshExtractor< I, A extends GenericType< I > >
+public class MeshExtractor< I, A extends AnnotationType< I > >
 {
 	private static final int INVALID = -1;
 
@@ -594,14 +594,14 @@ public class MeshExtractor< I, A extends GenericType< I > >
 			// This way, we need to remap the cube vertices:
 			// @formatter:on
 			final int vertexValues =
-					(cursor5.next().get() == segment  ? 0b00000001 : 0) |
-					(cursor7.next().get() == segment ? 0b00000010 : 0) |
-					(cursor3.next().get() == segment ? 0b00000100 : 0) |
-					(cursor1.next().get() == segment ? 0b00001000 : 0) |
-					(cursor4.next().get() == segment ? 0b00010000 : 0) |
-					(cursor6.next().get() == segment ? 0b00100000 : 0) |
-					(cursor2.next().get() == segment ? 0b01000000 : 0) |
-					(cursor0.next().get() == segment ? 0b10000000 : 0);
+					(cursor5.next().getAnnotation() == segment  ? 0b00000001 : 0) |
+					(cursor7.next().getAnnotation() == segment ? 0b00000010 : 0) |
+					(cursor3.next().getAnnotation() == segment ? 0b00000100 : 0) |
+					(cursor1.next().getAnnotation() == segment ? 0b00001000 : 0) |
+					(cursor4.next().getAnnotation() == segment ? 0b00010000 : 0) |
+					(cursor6.next().getAnnotation() == segment ? 0b00100000 : 0) |
+					(cursor2.next().getAnnotation() == segment ? 0b01000000 : 0) |
+					(cursor0.next().getAnnotation() == segment ? 0b10000000 : 0);
 
 			triangulation(
 					vertexValues,

@@ -45,13 +45,13 @@ import net.imglib2.util.Intervals;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
-import org.embl.mobie.viewer.source.GenericType;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.scijava.vecmath.Point3f;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class MeshCreator < S, A extends GenericType< S > >
+public class MeshCreator < S, A extends AnnotationType< S > >
 {
 	private int meshSmoothingIterations;
 	private double maxNumSegmentVoxels;
@@ -91,7 +91,7 @@ public class MeshCreator < S, A extends GenericType< S > >
 			System.err.println( "The segment bounding box " + boundingBox + " is not fully contained in the image interval: " + Arrays.toString( Intervals.minAsLongArray( rai ) ) + "-" +  Arrays.toString( Intervals.maxAsDoubleArray( rai ) ));
 		}
 		final A type = source.getType();
-		final GenericType< S > variable = type.createVariable();
+		final AnnotationType< S > variable = type.createVariable();
 		final ExtendedRandomAccessibleInterval< A, RandomAccessibleInterval< A > > extendValue = Views.extendValue( rai, ( A ) variable );
 
 		final MeshExtractor meshExtractor = new MeshExtractor(

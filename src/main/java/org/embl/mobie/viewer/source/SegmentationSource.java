@@ -40,7 +40,7 @@ import org.embl.mobie.viewer.segment.SegmentAdapter;
 
 
 // TODO: Does I really need to extend ImageSegment here?
-public class SegmentationSource< T extends NumericType< T > & RealType< T >, I extends ImageSegment > extends AbstractSourceWrapper< T, GenericType< I > >
+public class SegmentationSource< T extends NumericType< T > & RealType< T >, I extends ImageSegment > extends AbstractSourceWrapper< T, AnnotationType< I > >
 {
     private final SegmentAdapter< I > adapter;
 
@@ -57,33 +57,33 @@ public class SegmentationSource< T extends NumericType< T > & RealType< T >, I e
     }
 
     @Override
-    public RandomAccessibleInterval< GenericType< I > > getSource( final int t, final int level )
+    public RandomAccessibleInterval< AnnotationType< I > > getSource( final int t, final int level )
     {
         return Converters.convert( source.getSource( t, level ), ( input, output ) -> {
             set( input, t, output );
-        }, new SegmentGenericType() );
+        }, new SegmentAnnotationType() );
     }
 
     @Override
-    public RealRandomAccessible< GenericType< I > > getInterpolatedSource( final int t, final int level, final Interpolation method)
+    public RealRandomAccessible< AnnotationType< I > > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
         final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
         return Converters.convert( rra,
-                ( T input, GenericType< I > output ) ->
+                ( T input, AnnotationType< I > output ) ->
                 set( input, t, output ),
-                new SegmentGenericType() );
+                new SegmentAnnotationType() );
     }
 
-    private void set( T input, int t, GenericType< I > output  )
+    private void set( T input, int t, AnnotationType< I > output  )
     {
         final I segment = adapter.getSegment( input.getRealDouble(), t, source.getName() );
-        final SegmentGenericType< I > segmentType = new SegmentGenericType( segment );
+        final SegmentAnnotationType< I > segmentType = new SegmentAnnotationType( segment );
         output.set( segmentType );
     }
 
     @Override
-    public SegmentGenericType getType() {
-        return new SegmentGenericType();
+    public SegmentAnnotationType getType() {
+        return new SegmentAnnotationType();
     }
 }

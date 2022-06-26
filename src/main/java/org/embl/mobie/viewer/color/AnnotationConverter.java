@@ -29,9 +29,9 @@
 package org.embl.mobie.viewer.color;
 
 import net.imglib2.type.numeric.ARGBType;
-import org.embl.mobie.viewer.source.GenericType;
+import org.embl.mobie.viewer.source.AnnotationType;
 
-public class AnnotationConverter< T, A extends GenericType< T > > extends AbstractAnnotationConverter< T , A >
+public class AnnotationConverter< T, A extends AnnotationType< T > > extends AbstractAnnotationConverter< T , A >
 {
 	public AnnotationConverter( SelectionColoringModel< T > coloringModel )
 	{
@@ -41,6 +41,6 @@ public class AnnotationConverter< T, A extends GenericType< T > > extends Abstra
 	@Override
 	public void convert( A input, ARGBType color )
 	{
-		setColor( input.get(), color );
+		setColor( input.getAnnotation(), color );
 	}
 }

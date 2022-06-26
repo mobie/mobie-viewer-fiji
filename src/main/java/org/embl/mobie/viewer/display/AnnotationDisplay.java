@@ -40,7 +40,7 @@ import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import org.embl.mobie.viewer.plot.ScatterPlotViewer;
-import org.embl.mobie.viewer.source.GenericType;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.table.TableRowsTableModel;
@@ -53,7 +53,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSourceDisplay< GenericType< T > >
+public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSourceDisplay< AnnotationType< T > >
 {
 	// Serialization
 	protected String lut = ColoringLuts.GLASBEY;

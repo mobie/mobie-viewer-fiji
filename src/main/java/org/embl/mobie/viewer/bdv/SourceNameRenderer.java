@@ -41,7 +41,7 @@ import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
-import org.embl.mobie.viewer.source.RegionType;
+import org.embl.mobie.viewer.source.AnnotationType;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
 import java.awt.*;
@@ -117,9 +117,12 @@ public class SourceNameRenderer extends BdvOverlay implements TransformListener<
 		{
 			final Source< ? > spimSource = sourceAndConverter.getSpimSource();
 			final Object type = spimSource.getType();
-			if ( type instanceof RegionType )
+			if ( type instanceof AnnotationType )
 			{
-				// don't render names of regions
+				// don't render names of annotations
+				// TODO: this right now also includes segmentations
+				//   we could differentiate more by
+				//   type.get() instance of Region...
 				continue;
 			}
 

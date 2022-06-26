@@ -41,7 +41,7 @@ import org.embl.mobie.viewer.bdv.GlobalMousePositionProvider;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
-import org.embl.mobie.viewer.source.GenericType;
+import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.GridSource;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
@@ -81,19 +81,19 @@ public class SliceViewAnnotationSelector< T extends TableRow > implements Runnab
 
 		for ( AnnotationDisplay< T > annotationDisplay : annotationDisplays )
 		{
-			final Collection< SourceAndConverter< GenericType< T > > > sourceAndConverters = annotationDisplay.nameToSourceAndConverter.values();
+			final Collection< SourceAndConverter< AnnotationType< T > > > sourceAndConverters = annotationDisplay.nameToSourceAndConverter.values();
 
-			for ( SourceAndConverter< GenericType< T > > sourceAndConverter : sourceAndConverters )
+			for ( SourceAndConverter< AnnotationType< T > > sourceAndConverter : sourceAndConverters )
 			{
 				if ( ! bdvHandle.getViewerPanel().state().isSourceVisible( sourceAndConverter ) )
 					continue;
 
 				if ( SourceAndConverterHelper.isPositionWithinSourceInterval( sourceAndConverter, realPosition, timePoint, is2D ) )
 				{
-					final Source< GenericType< T > > source = sourceAndConverter.getSpimSource();
+					final Source< AnnotationType< T > > source = sourceAndConverter.getSpimSource();
 					final long[] voxelPosition = SourceAndConverterHelper.getVoxelPositionInSource( source, realPosition, timePoint, 0 );
-					final GenericType< T > genericType = source.getSource( timePoint, 0 ).randomAccess().setPositionAndGet( voxelPosition );
-					final T annotation = genericType.get();
+					final AnnotationType< T > annotationType = source.getSource( timePoint, 0 ).randomAccess().setPositionAndGet( voxelPosition );
+					final T annotation = annotationType.getAnnotation();
 
 //
 //					final double pixelValue = getPixelValue( timePoint, realPosition, source );

@@ -46,8 +46,8 @@ import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.color.AnnotationConverter;
 import org.embl.mobie.viewer.color.SelectionColoringModel;
 import org.embl.mobie.viewer.source.BoundarySource;
-import org.embl.mobie.viewer.source.GenericType;
-import org.embl.mobie.viewer.source.RegionType;
+import org.embl.mobie.viewer.source.AnnotationType;
+import org.embl.mobie.viewer.source.AnnotationType;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -60,7 +60,7 @@ public class RegionImage< T extends RegionTableRow >
 	private final SelectionColoringModel< T > coloringModel;
 	private double[] contrastLimits;
 	private String name;
-	private SourceAndConverter< GenericType< T > > sourceAndConverter;
+	private SourceAndConverter< AnnotationType< T > > sourceAndConverter;
 	private RealMaskRealInterval unionMask;
 	private RealInterval unionInterval;
 	private int size;
@@ -120,7 +120,7 @@ public class RegionImage< T extends RegionTableRow >
 
 	private void createImage( )
 	{
-		BiConsumer< RealLocalizable, RegionType< T > > biConsumer = ( location, value ) ->
+		BiConsumer< RealLocalizable, AnnotationType< T > > biConsumer = ( location, value ) ->
 		{
 			for ( int i = 0; i < size; i++ )
 			{
@@ -128,23 +128,23 @@ public class RegionImage< T extends RegionTableRow >
 
 				if ( mask.test( location ) )
 				{
-					value.set( new RegionType<>( tableRows.get( i ) ) );
+					value.set( new AnnotationType<>( tableRows.get( i ) ) );
 					return;
 				}
 			}
 
-			value.set( new RegionType<>() );
+			value.set( new AnnotationType<>() );
 		};
 
 
 		final ArrayList< Integer > timePoints = configureTimePoints();
 
-		final FunctionRealRandomAccessible< RegionType< T > > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, RegionType::new );
+		final FunctionRealRandomAccessible< AnnotationType< T > > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, AnnotationType::new );
 		final Interval interval = Intervals.smallestContainingInterval( unionMask );
-		final RealRandomAccessibleIntervalSource source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new RegionType(), name );
+		final RealRandomAccessibleIntervalSource source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new AnnotationType(), name );
 		final BoundarySource boundarySource = new BoundarySource( source, unionMask, timePoints );
 		final TransformedSource transformedAnnotationSource = new TransformedSource<>( boundarySource );
-		final AnnotationConverter< T, GenericType< T > > annotationConverter = new AnnotationConverter<>( coloringModel );
+		final AnnotationConverter< T, AnnotationType< T > > annotationConverter = new AnnotationConverter<>( coloringModel );
 		sourceAndConverter = new SourceAndConverter( transformedAnnotationSource, annotationConverter );
 
 		contrastLimits = new double[]{ 0, 255 };
@@ -173,7 +173,7 @@ public class RegionImage< T extends RegionTableRow >
 		return contrastLimits;
 	}
 
-	public SourceAndConverter< GenericType< T > > getSourceAndConverter()
+	public SourceAndConverter< AnnotationType< T > > getSourceAndConverter()
 	{
 		return sourceAndConverter;
 	}

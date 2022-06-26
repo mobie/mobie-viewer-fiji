@@ -2,18 +2,44 @@ package org.embl.mobie.viewer.source;
 
 import net.imglib2.Volatile;
 import net.imglib2.type.Type;
+import net.imglib2.type.volatiles.VolatileARGBType;
 
 
-// TODO: this does not seem right as this is not coupled to AnnotationType at all!
-public abstract class VolatileAnnotationType< T > extends Volatile< T > implements Type< VolatileAnnotationType< T > >
+/**
+ *  * This could be an example to work from (very similar to my use case):
+ *  *
+ *  * abstract public class AbstractVolatileNumericType< N extends NumericType< N >, T extends AbstractVolatileNumericType< N, T > >
+ *  * 		extends Volatile< N >
+ *  * 		implements NumericType< T >
+ *
+ * @param <A>
+ */
+// Do we need an interface for AnnotationType?
+
+public class VolatileAnnotationType< A extends AnnotationType< A >, VA extends VolatileAnnotationType< A, VA > > extends Volatile< A > implements Type< VA >
 {
-	public VolatileAnnotationType( T t, boolean valid )
+
+	@Override
+	public VA createVariable()
 	{
-		super( t, valid );
+		return null;
 	}
 
-	public VolatileAnnotationType( T t )
+	@Override
+	public VA copy()
 	{
-		super( t );
+		return null;
+	}
+
+	@Override
+	public void set( VA c )
+	{
+
+	}
+
+	@Override
+	public boolean valueEquals( VA va )
+	{
+		return false;
 	}
 }
