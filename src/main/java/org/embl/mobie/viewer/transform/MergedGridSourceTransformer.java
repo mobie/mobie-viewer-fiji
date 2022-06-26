@@ -214,19 +214,23 @@ public class MergedGridSourceTransformer< T extends NumericType< T > >  extends 
 
 	private SourceAndConverter< T > createFunctionGridSourceAndConverter( List< SourceAndConverter< T > > gridSources, Converter< T, ARGBType > volatileConverter, Converter< T, ARGBType > converter )
 	{
+		// non volatile
 		final List< Source< T > > source = gridSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() );
 
-		final FunctionGridSource gridSource = new FunctionGridSource( source, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN, encodeSource );
+		final Source< T > gridSource = new FunctionGridSource( source, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
 
+		// volatile
 		final List< ? extends Source< ? extends Volatile< T > > > volatileSources = gridSources.stream().map( sac -> sac.asVolatile().getSpimSource() ).collect( Collectors.toList() );
 
-		final FunctionGridSource volatileGridSource = new FunctionGridSource( volatileSources, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN, encodeSource );
+		// TODO: make volatile version of FunctionGridSource?!
+		final FunctionGridSource volatileGridSource = new FunctionGridSource( volatileSources, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
 
-		final SourceAndConverter volatileGridSac = new SourceAndConverter( volatileGridSource, volatileConverter );
+		// combine non-volatile and volatile
+		final SourceAndConverter volatileGridSourceAndConverter = new SourceAndConverter( volatileGridSource, volatileConverter );
 
-		final SourceAndConverter< T > gridSac = new SourceAndConverter( gridSource, converter, volatileGridSac );
+		final SourceAndConverter< T > gridSourceAndConverter = new SourceAndConverter( gridSource, converter, volatileGridSourceAndConverter );
 
-		return gridSac;
+		return gridSourceAndConverter;
 	}
 
 

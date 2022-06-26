@@ -32,16 +32,16 @@ import de.embl.cba.tables.imagesegment.DefaultImageSegment;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.imagesegment.LabelFrameAndImage;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SegmentAdapter< T extends ImageSegment >
+public class SegmentAdapter< S extends ImageSegment >
 {
-	private List< T > segments;
-	private Map< LabelFrameAndImage, T > labelFrameAndImageToSegment;
+	private List< S > segments;
+	private Map< LabelFrameAndImage, S > labelFrameAndImageToSegment;
 	private boolean isLazy = false;
 
 	/**
@@ -49,17 +49,24 @@ public class SegmentAdapter< T extends ImageSegment >
 	 */
 	public SegmentAdapter()
 	{
-		labelFrameAndImageToSegment = new ConcurrentHashMap();
-		isLazy = true;
+		this( null );
 	}
 
-	public SegmentAdapter( List< T > segments )
+	public SegmentAdapter( @Nullable List< S > segments )
 	{
-		this.segments = segments;
+		labelFrameAndImageToSegment = new ConcurrentHashMap<>();
 
-		labelFrameAndImageToSegment = new HashMap<>();
-		for ( T segment : segments )
-			labelFrameAndImageToSegment.put( new LabelFrameAndImage( segment ), segment );
+		if ( segments == null )
+		{
+			isLazy = true;
+		}
+		else
+		{
+			this.segments = segments;
+			for ( S segment : segments )
+				labelFrameAndImageToSegment.put(
+						new LabelFrameAndImage( segment ), segment );
+		}
 	}
 
 	public synchronized boolean containsSegment( double label, int t, String imageId )
@@ -69,25 +76,25 @@ public class SegmentAdapter< T extends ImageSegment >
 		return labelFrameAndImageToSegment.containsKey( labelFrameAndImage );
 	}
 
-	public synchronized T getSegmentCreateIfNotExist( double label, int t, String imageId )
+	public synchronized S getSegmentCreateIfNotExist( double label, int t, String imageId )
 	{
 		final LabelFrameAndImage labelFrameAndImage = new LabelFrameAndImage( label, t, imageId  );
 
 		if ( ! labelFrameAndImageToSegment.containsKey( labelFrameAndImage ) )
 		{
 			final DefaultImageSegment defaultImageSegment = new DefaultImageSegment( labelFrameAndImage.getImage(), labelFrameAndImage.getLabel(), labelFrameAndImage.getFrame(), 0, 0, 0, null );
-			labelFrameAndImageToSegment.put( labelFrameAndImage, ( T ) defaultImageSegment );
+			labelFrameAndImageToSegment.put( labelFrameAndImage, ( S ) defaultImageSegment );
 		}
 
 		return labelFrameAndImageToSegment.get( labelFrameAndImage );
 	}
 
-	public T createVariable()
+	public S createVariable()
 	{
 		return segments.get( 0 );
 	}
 
-	public synchronized T getSegment( double label, int t, String imageId )
+	public synchronized S getSegment( double label, int t, String imageId )
 	{
 		if ( isLazy )
 		{
@@ -100,7 +107,7 @@ public class SegmentAdapter< T extends ImageSegment >
 		}
 	}
 
-	public synchronized T getSegment( LabelFrameAndImage labelFrameAndImage )
+	public synchronized S getSegment( LabelFrameAndImage labelFrameAndImage )
 	{
 		if ( segments.size() > labelFrameAndImageToSegment.size() )
 		{
@@ -110,7 +117,7 @@ public class SegmentAdapter< T extends ImageSegment >
 			final int newSize = segments.size();
 			for ( int i = currentSize; i < newSize; i++ )
 			{
-				final T imageSegment = segments.get( i );
+				final S imageSegment = segments.get( i );
 				labelFrameAndImageToSegment.put( new LabelFrameAndImage( imageSegment ), imageSegment );
 			}
 		}
@@ -119,9 +126,9 @@ public class SegmentAdapter< T extends ImageSegment >
 	}
 
 	// deserialize
-	public List< T > getSegments( List< String > serialisedSegments )
+	public List< S > getSegments( List< String > serialisedSegments )
 	{
-		final ArrayList< T > segments = new ArrayList<>();
+		final ArrayList< S > segments = new ArrayList<>();
 		for ( String serialisedSegment : serialisedSegments )
 		{
 			final String[] split = serialisedSegment.split( ";" );

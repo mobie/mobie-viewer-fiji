@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.viewer.serialize;
 
-import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
 

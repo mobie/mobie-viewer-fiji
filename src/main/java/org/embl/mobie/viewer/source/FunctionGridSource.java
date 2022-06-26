@@ -45,7 +45,6 @@ import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.view.IntervalView;
-import net.imglib2.view.MixedTransformView;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.transform.RealIntervalProvider;
@@ -58,30 +57,26 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
-public class FunctionGridSource< T extends NumericType< T > > implements Source< T >, RealIntervalProvider
+public class FunctionGridSource< N extends NumericType< N > > implements Source< N >, RealIntervalProvider
 {
-	private final T type;
-	private final Source< T > referenceSource;
+	private final N type;
+	private final Source< N > referenceSource;
 	private final String mergedGridSourceName;
-	private final List< RandomAccessibleInterval< T > > stitchedRAIs;
-	private final DefaultInterpolators< T > interpolators;
-	private final List< Source< T > > gridSources;
+	private final List< RandomAccessibleInterval< N > > stitchedRAIs;
+	private final DefaultInterpolators< N > interpolators;
+	private final List< Source< N > > gridSources;
 	private final List< int[] > positions;
 	private final double relativeCellMargin;
-	private final boolean encodeSource;
-	private int currentTimepoint = 0;
-	private Map< String, long[] > sourceNameToVoxelTranslation;
 	private int[][] cellDimensions;
 	private double[] cellRealDimensions;
 	private FinalRealInterval realInterval;
 	private int numMipmapLevels;
 
-	public FunctionGridSource( List< Source< T > > gridSources, List< int[] > positions, String mergedGridSourceName, double relativeCellMargin, boolean encodeSource )
+	public FunctionGridSource( List< Source< N > > gridSources, List< int[] > positions, String mergedGridSourceName, double relativeCellMargin )
 	{
 		this.gridSources = gridSources;
 		this.positions = positions;
 		this.relativeCellMargin = relativeCellMargin;
-		this.encodeSource = encodeSource;
 		this.interpolators = new DefaultInterpolators();
 		this.referenceSource = gridSources.get( 0 );
 		this.mergedGridSourceName = mergedGridSourceName;
@@ -91,7 +86,7 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 		stitchedRAIs = stitchRAIs();
 	}
 
-	public List< Source< T > > getGridSources()
+	public List< Source< N > > getGridSources()
 	{
 		return gridSources;
 	}
@@ -104,16 +99,16 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 		setMask( positions, cellDimensions[ 0 ] );
 	}
 
-	private List< RandomAccessibleInterval< T > > stitchRAIs()
+	private List< RandomAccessibleInterval< N > > stitchRAIs()
 	{
-		final List< RandomAccessibleInterval< T >> mergedRAIs = new ArrayList<>();
-		final RandomAccessSupplier< T >[][] randomAccessGrid = randomAccessGrid();
+		final List< RandomAccessibleInterval< N >> mergedRAIs = new ArrayList<>();
+		final RandomAccessSupplier< N >[][] randomAccessGrid = randomAccessGrid();
 
 		for ( int l = 0; l < numMipmapLevels; l++ )
 		{
 			final int[] cellDimension = cellDimensions[ l ];
 			final int level = l;
-			BiConsumer< Localizable, T > biConsumer = ( location, value ) ->
+			BiConsumer< Localizable, N > biConsumer = ( location, value ) ->
 			{
 				// TODO:
 				//  Remove as many as possible if statements,
@@ -121,6 +116,7 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 				//  VolatileLazySpimSource
 				//  Although for clicking on the labels we probably also need LazySpimSource. One could create a specific biconsumer of Volatile and non-Volatile
 				//  or have a final variable determine the if statements such that the
+				//  Or create a dedicated VolatileFunctionGridSource (probably the cleanest solution) and put all common functionality into AbstractFunctionGridSource.
 				//  compiler can remove the if statements.
 				//  1. create class that can return the already translated
 				//  sources (or load them if they don't exist yet).
@@ -132,7 +128,7 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 				x = x - xCellIndex * cellDimension [ 0 ];
 				y = y - yCellIndex * cellDimension [ 1 ];
 
-				final RandomAccessSupplier< T > randomAccessSupplier = randomAccessGrid[ xCellIndex ][ yCellIndex ];
+				final RandomAccessSupplier< N > randomAccessSupplier = randomAccessGrid[ xCellIndex ][ yCellIndex ];
 
 				if ( randomAccessSupplier == null )
 					return; // grid position is empty
@@ -140,11 +136,12 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 				final RandomAccessibleStatus randomAccessibleStatus = randomAccessSupplier.status( level );
 				if ( randomAccessibleStatus.equals( RandomAccessibleStatus.Open ) )
 				{
-					final T t = randomAccessSupplier.get( level, x, y, location.getIntPosition( 2 ) );
-					value.set( t );
+					final N numericType = randomAccessSupplier.get( level, x, y, location.getIntPosition( 2 ) );
+					value.set( numericType ); // which may be volatile!
 				}
 				else if ( randomAccessibleStatus.equals( RandomAccessibleStatus.Opening ) )
 				{
+					// TODO: this will crash for non-volatile access.
 					( ( Volatile<?> ) value ).setValid( false );
 				}
 				else if ( randomAccessibleStatus.equals( RandomAccessibleStatus.Closed ) )
@@ -154,10 +151,9 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 				}
 			};
 
-			final FunctionRandomAccessible< T > randomAccessible = new FunctionRandomAccessible( 3, biConsumer, () -> type.createVariable() );
-
+			final FunctionRandomAccessible< N > randomAccessible = new FunctionRandomAccessible( 3, biConsumer, () -> type.createVariable() );
 			final long[] dimensions = getDimensions( positions, cellDimension );
-			final IntervalView< T > rai = Views.interval( randomAccessible, new FinalInterval( dimensions ) );
+			final IntervalView< N > rai = Views.interval( randomAccessible, new FinalInterval( dimensions ) );
 			mergedRAIs.add( rai );
 		}
 
@@ -224,7 +220,7 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 		// If we don't do this there are jumps of the images when zooming in and out;
 		// i.e. the different resolution levels are rendered at slightly offset
 		// positions.
-		final RandomAccessibleInterval< T > source = referenceSource.getSource( 0, 0 );
+		final RandomAccessibleInterval< N > source = referenceSource.getSource( 0, 0 );
 		final long[] referenceSourceDimensions = source.dimensionsAsLongArray();
 		cellDimensions[ 0 ] = MoBIEHelper.asInts( referenceSourceDimensions );
 		for ( int d = 0; d < 2; d++ )
@@ -240,7 +236,7 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 			}
 	}
 
-	private RandomAccessSupplier< T >[][] randomAccessGrid( )
+	private RandomAccessSupplier< N >[][] randomAccessGrid( )
 	{
 		int[] maxPos = getMaxPositions();
 
@@ -250,7 +246,7 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 			final int[] position = positions.get( positionIndex );
 			for ( int level = 0; level < numMipmapLevels; level++ )
 			{
-				final RandomAccessSupplier< T > randomAccessSupplier = new RandomAccessSupplier( gridSources.get( positionIndex ) );
+				final RandomAccessSupplier< N > randomAccessSupplier = new RandomAccessSupplier( gridSources.get( positionIndex ) );
 				randomAccesses[ position[ 0 ] ][ position[ 1 ] ] = randomAccessSupplier;
 			}
 		}
@@ -337,7 +333,7 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 	}
 
 	@Override
-	public RandomAccessibleInterval< T > getSource( int t, int level )
+	public RandomAccessibleInterval< N > getSource( int t, int level )
 	{
 		if ( t != 0 )
 		{
@@ -353,9 +349,17 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 	}
 
 	@Override
-	public RealRandomAccessible< T > getInterpolatedSource( int t, int level, Interpolation method )
+	public RealRandomAccessible< N > getInterpolatedSource( int t, int level, Interpolation method )
 	{
-		return Views.interpolate( Views.extendZero( getSource( t, level ) ), interpolators.get( method ) );
+		if ( type instanceof NumericType )
+		{
+			return Views.interpolate( Views.extendZero( getSource( t, level ) ), interpolators.get( method ) );
+		}
+		else
+		{
+			// TODO: don't extend with zero but with the default variable.
+			return Views.interpolate( Views.extendZero( getSource( t, level ) ), interpolators.get( Interpolation.NEARESTNEIGHBOR ) );
+		}
 	}
 
 	@Override
@@ -365,7 +369,7 @@ public class FunctionGridSource< T extends NumericType< T > > implements Source<
 	}
 
 	@Override
-	public T getType()
+	public N getType()
 	{
 		return type;
 	}

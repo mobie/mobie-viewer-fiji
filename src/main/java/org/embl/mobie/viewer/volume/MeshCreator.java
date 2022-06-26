@@ -42,14 +42,13 @@ import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.neighborhood.DiamondShape;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.Type;
 import net.imglib2.util.Intervals;
-import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.embl.mobie.viewer.source.AnnotationType;
 import org.scijava.vecmath.Point3f;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -64,20 +63,20 @@ public class MeshCreator< I extends ImageSegment >
 		this.maxNumSegmentVoxels = maxNumSegmentVoxels;
 	}
 
-	private float[] createMesh( ImageSegment segment, double[] voxelSpacing, Source< AnnotationType< I > >  source )
+	private float[] createMesh( I segment, @Nullable double[] targetVoxelSpacing, Source< AnnotationType< I > > source )
 	{
-		Integer level = getLevel( segment, source, voxelSpacing );
-		double[] voxelSpacings = Utils.getVoxelSpacings( source ).get( level );
+		Integer level = getLevel( segment, source, targetVoxelSpacing );
 
 		final RandomAccessibleInterval< AnnotationType< I > >  rai = source.getSource( segment.timePoint(), level );
+		double[] sourceVoxelSpacing = Utils.getVoxelSpacings( source ).get( level );
 
 		if ( segment.boundingBox() == null )
-			setSegmentBoundingBox( segment, rai, voxelSpacings );
+			computeSegmentBoundingBox( segment, rai, sourceVoxelSpacing );
 
-		FinalInterval boundingBox = getIntervalInVoxelUnits( segment.boundingBox(), voxelSpacings );
+		FinalInterval boundingBox = getIntervalInVoxelUnits( segment.boundingBox(), sourceVoxelSpacing );
 		final long numElements = Intervals.numElements( boundingBox );
 
-		if ( voxelSpacing == null ) // auto-resolution
+		if ( targetVoxelSpacing == null ) // auto-resolution
 		{
 			if ( numElements > maxNumSegmentVoxels )
 			{
@@ -107,9 +106,9 @@ public class MeshCreator< I extends ImageSegment >
 
 		for ( int i = 0; i < meshCoordinates.length; )
 		{
-			meshCoordinates[ i++ ] *= voxelSpacings[ 0 ];
-			meshCoordinates[ i++ ] *= voxelSpacings[ 1 ];
-			meshCoordinates[ i++ ] *= voxelSpacings[ 2 ];
+			meshCoordinates[ i++ ] *= sourceVoxelSpacing[ 0 ];
+			meshCoordinates[ i++ ] *= sourceVoxelSpacing[ 1 ];
+			meshCoordinates[ i++ ] *= sourceVoxelSpacing[ 2 ];
 		}
 
 		if ( meshCoordinates.length == 0 )
@@ -120,27 +119,27 @@ public class MeshCreator< I extends ImageSegment >
 		return meshCoordinates;
 	}
 
-	public CustomTriangleMesh createSmoothCustomTriangleMesh( ImageSegment segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< I > >  source )
+	public CustomTriangleMesh createSmoothCustomTriangleMesh( I segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< I > >  source )
 	{
 		CustomTriangleMesh triangleMesh = createCustomTriangleMesh( segment, voxelSpacing, recomputeMesh, source );
 		MeshEditor.smooth2( triangleMesh, meshSmoothingIterations );
 		return triangleMesh;
 	}
 
-	private CustomTriangleMesh createCustomTriangleMesh( ImageSegment segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< I > >  source )
+	private CustomTriangleMesh createCustomTriangleMesh( I segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< I > >  source )
 	{
 		if ( segment.getMesh() == null || recomputeMesh )
 		{
 			try
 			{
-				final float[] mesh = createMesh( segment, voxelSpacing, source );
-				segment.setMesh( mesh );
+				segment.setMesh( createMesh( segment, voxelSpacing, source ) );
 			}
 			catch ( Exception e )
 			{
-				IJ.showMessage("Could not create mesh for segment " + segment.labelId() + " at time point " + segment.timePoint() + "\nIt could be that the segment could not be found at the given resolution; please try again with an increased resolution." );
+				final String msg = "Could not create mesh for segment " + segment.labelId() + " at time point " + segment.timePoint();
+				//IJ.showMessage( msg );
 				e.printStackTrace();
-				throw new RuntimeException( "Could not create mesh for segment " + segment.labelId() + " at time point " + segment.timePoint() );
+				throw new RuntimeException( msg );
 			}
 		}
 
@@ -166,7 +165,7 @@ public class MeshCreator< I extends ImageSegment >
 		return mesh;
 	}
 
-	private Integer getLevel( ImageSegment segment, Source< ? > labelSource, double[] voxelSpacing )
+	private Integer getLevel( ImageSegment segment, Source< ? > labelSource, @Nullable double[] voxelSpacing )
 	{
 		if ( voxelSpacing != null ) // user determined resolution
 		{
@@ -209,7 +208,7 @@ public class MeshCreator< I extends ImageSegment >
 		return level;
 	}
 
-	private void setSegmentBoundingBox(
+	private void computeSegmentBoundingBox(
 			ImageSegment segment,
 			RandomAccessibleInterval< AnnotationType< I > >  rai,
 			double[] voxelSpacing )

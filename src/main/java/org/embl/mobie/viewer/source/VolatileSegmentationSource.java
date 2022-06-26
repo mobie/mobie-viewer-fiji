@@ -34,15 +34,12 @@ import de.embl.cba.tables.imagesegment.ImageSegment;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
-import net.imglib2.converter.Converter;
 import net.imglib2.converter.Converters;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 
-import java.util.Collection;
-
-public class VolatileSegmentationSource< T extends NumericType< T > & RealType< T >, V extends Volatile< T >, I extends ImageSegment > extends AbstractSourceWrapper< V, VolatileAnnotationType< I > >
+public class VolatileSegmentationSource< R extends NumericType< R > & RealType< R >, V extends Volatile< R >, I extends ImageSegment > extends AbstractSourceWrapper< V, VolatileAnnotationType< I > >
 {
     private final SegmentAdapter< I > adapter;
 

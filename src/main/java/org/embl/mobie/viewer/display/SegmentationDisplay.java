@@ -58,6 +58,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 	protected Double[] resolution3dView;
 
 	// Runtime
+	// TODO: below is almost not needed
 	public transient SegmentAdapter< TableRowImageSegment > tableRowsAdapter;
 	public transient SegmentsVolumeViewer< TableRowImageSegment > segmentsVolumeViewer;
 	public transient SegmentationSliceView sliceView;
@@ -240,7 +241,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 
 	private Map< String, List< String > > openTable( String tableFileName, String source )
 	{
-		final String tablePath = moBIE.getTablePath( ( SegmentationSource ) moBIE.getImageSource( source ), tableFileName );
+		final String tablePath = moBIE.getTablePath( ( SegmentationSource ) moBIE.getDataSource( source ), tableFileName );
 		Logger.log( "Opening table: " + tablePath );
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
 		if ( ! columns.containsKey( TableColumnNames.LABEL_IMAGE_ID ) )

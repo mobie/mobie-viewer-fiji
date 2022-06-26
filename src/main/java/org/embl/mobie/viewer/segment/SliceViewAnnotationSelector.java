@@ -116,66 +116,66 @@ public class SliceViewAnnotationSelector< T extends TableRow > implements Runnab
 		}
 	}
 
-	private TableRow getTableRow( int timePoint, AnnotationDisplay regionDisplay, String sourceName, double labelIndex )
-	{
-		if ( regionDisplay instanceof SegmentationDisplay )
-		{
-			final boolean containsSegment = (( SegmentationDisplay ) regionDisplay ).tableRowsAdapter.containsSegment( labelIndex, timePoint, sourceName );
+//	private TableRow getTableRow( int timePoint, AnnotationDisplay regionDisplay, String sourceName, double labelIndex )
+//	{
+//		if ( regionDisplay instanceof SegmentationDisplay )
+//		{
+//			final boolean containsSegment = (( SegmentationDisplay ) regionDisplay ).tableRowsAdapter.containsSegment( labelIndex, timePoint, sourceName );
+//
+//			if ( ! containsSegment )
+//			{
+//				// This happens when there is a segmentation without
+//				// a segment table, or when the background label has been selected
+//				return null;
+//			}
+//			else
+//			{
+//				return ( ( SegmentationDisplay ) regionDisplay ).tableRowsAdapter.getSegment( labelIndex, timePoint, sourceName );
+//			}
+//		}
+//		else if ( regionDisplay instanceof RegionDisplay )
+//		{
+//			final RegionDisplay annotatedSourceDisplay = ( RegionDisplay ) regionDisplay;
+//			final RegionsAdapter adapter = annotatedSourceDisplay.tableRowsAdapter;
+//			return adapter.getAnnotatedMask( timePoint, labelIndex );
+//		}
+//		else
+//		{
+//			throw new UnsupportedOperationException( "Region display of type " + regionDisplay.getClass().getName() + " is not supported for selection.");
+//		}
+//	}
 
-			if ( ! containsSegment )
-			{
-				// This happens when there is a segmentation without
-				// a segment table, or when the background label has been selected
-				return null;
-			}
-			else
-			{
-				return ( ( SegmentationDisplay ) regionDisplay ).tableRowsAdapter.getSegment( labelIndex, timePoint, sourceName );
-			}
-		}
-		else if ( regionDisplay instanceof RegionDisplay )
-		{
-			final RegionDisplay annotatedSourceDisplay = ( RegionDisplay ) regionDisplay;
-			final RegionsAdapter adapter = annotatedSourceDisplay.tableRowsAdapter;
-			return adapter.getAnnotatedMask( timePoint, labelIndex );
-		}
-		else
-		{
-			throw new UnsupportedOperationException( "Region display of type " + regionDisplay.getClass().getName() + " is not supported for selection.");
-		}
-	}
-
-	private static double getLabelIndex( Source< ? > source, double pixelValue )
-	{
-		if ( GridSource.instanceOf( source ) )
-		{
-			return SourceNameEncoder.getValue( Double.valueOf( pixelValue ).longValue() );
-		}
-		else
-		{
-			return pixelValue;
-		}
-	}
-
-	private static String getSourceName( Source< ? > source, double labelIndex )
-	{
-		if ( GridSource.instanceOf( source ) )
-		{
-			return SourceNameEncoder.getName( Double.valueOf( labelIndex ).longValue() );
-		}
-		else
-		{
-			return source.getName();
-		}
-	}
-
-	private static double getPixelValue( int timePoint, RealPoint realPoint, Source< ? > source )
-	{
-		final RandomAccess< RealType > randomAccess = ( RandomAccess< RealType > ) source.getSource( timePoint, 0 ).randomAccess();
-		final long[] positionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, realPoint, timePoint, 0 );
-		randomAccess.setPosition( positionInSource );
-		return randomAccess.get().getRealDouble();
-	}
+//	private static double getLabelIndex( Source< ? > source, double pixelValue )
+//	{
+//		if ( GridSource.instanceOf( source ) )
+//		{
+//			return SourceNameEncoder.getValue( Double.valueOf( pixelValue ).longValue() );
+//		}
+//		else
+//		{
+//			return pixelValue;
+//		}
+//	}
+//
+//	private static String getSourceName( Source< ? > source, double labelIndex )
+//	{
+//		if ( GridSource.instanceOf( source ) )
+//		{
+//			return SourceNameEncoder.getName( Double.valueOf( labelIndex ).longValue() );
+//		}
+//		else
+//		{
+//			return source.getName();
+//		}
+//	}
+//
+//	private static double getPixelValue( int timePoint, RealPoint realPoint, Source< ? > source )
+//	{
+//		final RandomAccess< RealType > randomAccess = ( RandomAccess< RealType > ) source.getSource( timePoint, 0 ).randomAccess();
+//		final long[] positionInSource = SourceAndConverterHelper.getVoxelPositionInSource( source, realPoint, timePoint, 0 );
+//		randomAccess.setPosition( positionInSource );
+//		return randomAccess.get().getRealDouble();
+//	}
 
 	@Override
 	public void run()

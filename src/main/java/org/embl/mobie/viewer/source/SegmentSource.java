@@ -39,11 +39,11 @@ import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 
 
-public class SegmentationSource< T extends NumericType< T > & RealType< T >, I extends ImageSegment > extends AbstractSourceWrapper< T, AnnotationType< I > >
+public class SegmentSource< T extends NumericType< T > & RealType< T >, I extends ImageSegment > extends AbstractSourceWrapper< T, AnnotationType< I > >
 {
     private final SegmentAdapter< I > adapter;
 
-    public SegmentationSource( final Source< T > source, SegmentAdapter< I > adapter )
+    public SegmentSource( final Source< T > source, SegmentAdapter< I > adapter )
     {
         super( source );
         this.adapter = adapter;

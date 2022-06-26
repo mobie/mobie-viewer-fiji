@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer;
 
 import bdv.img.n5.N5ImageLoader;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
@@ -39,20 +40,34 @@ import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.sequence.ImgLoader;
+import net.imglib2.Volatile;
+import net.imglib2.converter.Converter;
+import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.NumericType;
+import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
+import org.embl.mobie.viewer.color.AnnotationConverter;
+import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
+import org.embl.mobie.viewer.color.opacity.VolatileAdjustableOpacityColorConverter;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
+import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.serialize.SegmentationSource;
+import org.embl.mobie.viewer.source.BoundarySource;
+import org.embl.mobie.viewer.source.SegmentSource;
+import org.embl.mobie.viewer.source.VolatileAnnotationType;
+import org.embl.mobie.viewer.source.VolatileBoundarySource;
+import org.embl.mobie.viewer.source.VolatileSegmentationSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableHelper;
 import org.embl.mobie.viewer.ui.UserInterface;
@@ -62,6 +77,7 @@ import org.embl.mobie.viewer.view.ViewManager;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 
 import java.io.IOException;
@@ -133,6 +149,16 @@ public class MoBIE
 		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
 		setImageDataFormats( projectLocation );
 		openDataset();
+	}
+
+	// TODO: Typing: probably the SAC extends RealType?!
+	public static SourceAndConverter< RealType > replaceConverterByAdjustableOpacityConverter( SourceAndConverter< RealType > sourceAndConverter )
+	{
+		final Converter< RealType, ARGBType > converter = sourceAndConverter.getConverter();
+		final AdjustableOpacityColorConverter adjustableOpacityColorConverter = new AdjustableOpacityColorConverter( converter );
+		final Converter< ? extends Volatile< RealType >, ARGBType > volatileConverter = sourceAndConverter.asVolatile().getConverter();
+		final VolatileAdjustableOpacityColorConverter volatileAdjustableOpacityColorConverter = new VolatileAdjustableOpacityColorConverter( volatileConverter );
+		return new ConverterChanger( sourceAndConverter, adjustableOpacityColorConverter, volatileAdjustableOpacityColorConverter ).get();
 	}
 
 	public void mergeColumnsFromFileSystem( AnnotationDisplay< ? extends TableRow > display )
@@ -445,22 +471,79 @@ public class MoBIE
 
 	}
 
-	public synchronized ImageSource getImageSource( String sourceName )
+	public synchronized ImageSource getDataSource( String sourceName )
 	{
 		return dataset.sources.get( sourceName ).get();
 	}
 
-	public SourceAndConverter< ? > openSourceAndConverter( String sourceName, String log )
+	public < R extends RealType< R > & NumericType< R > > SourceAndConverter< ? > openSourceAndConverter( String sourceName, String log )
 	{
 		// TODO: don't open if that exists already?
+		// TODO: we could already now know whether this is a segmentation source (and load the corresponding tables a.s.o.)
 
-		final ImageSource imageSource = getImageSource( sourceName );
+		final ImageSource dataSource = getDataSource( sourceName );
 
+		SourceAndConverter< R > sourceAndConverter = readSourceAndConverter( sourceName, log, dataSource );
+
+		if ( dataSource.getClass() == ImageSource.class )
+		{
+			sourceAndConverter = replaceConverterByAdjustableOpacityConverter( (SourceAndConverter) sourceAndConverter );
+		}
+		else if ( dataSource.getClass() == SegmentationSource.class )
+		{
+			// try load primary table (returns null if it does not exist)
+			List< TableRowImageSegment > tableRowImageSegments = tryOpenDefaultSegmentsTable( sourceName );
+
+			// adapter will work lazy if tableRowImageSegments == null
+			final SegmentAdapter< TableRowImageSegment > adapter = new SegmentAdapter<>( tableRowImageSegments );
+
+			// non-volatile
+			final Source< R > spimSource = sourceAndConverter.getSpimSource();
+			final SegmentSource< R, TableRowImageSegment > segmentSource = new SegmentSource<>( spimSource, adapter );
+			final BoundarySource boundarySource = new BoundarySource( segmentSource );
+
+
+			// volatile
+			final Source< ? extends Volatile< R > > volatileSpimSource = sourceAndConverter.asVolatile().getSpimSource();
+			final Source< VolatileAnnotationType< TableRowImageSegment > > volatileSegmentationSource = new VolatileSegmentationSource( volatileSpimSource, adapter );
+			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSegmentationSource );
+
+			// TODO: placeholder converter
+			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
+
+
+			// TODO: placeholder converter
+			final AnnotationConverter< TableRowImageSegment > annotationConverter = new AnnotationConverter<>( display.selectionColoringModel );
+
+			// combined
+			return new SourceAndConverter( boundarySource, annotationConverter, volatileSourceAndConverter );
+		}
+
+		return sourceAndConverter;
+    }
+
+	private List< TableRowImageSegment > tryOpenDefaultSegmentsTable( String sourceName )
+	{
+		try
+		{
+			return moBIE.loadImageSegmentsTable( sourceName, "default.tsv", "Open table:" );
+
+		} catch ( Exception e )
+		{
+			// default table does not exist
+			return null;
+		}
+	}
+
+	private SourceAndConverter readSourceAndConverter( String sourceName, String log, ImageSource imageSource )
+	{
+		SourceAndConverter sourceAndConverter;
 		ImageDataFormat imageDataFormat = getImageDataFormat( sourceName, imageSource.imageData.keySet() );
 
 		final String imagePath = getImagePath( imageSource, imageDataFormat );
-        if( log != null )
-            IJ.log( log + imagePath );
+		if( log != null )
+			IJ.log( log + imagePath );
+
 
 		try
 		{
@@ -470,7 +553,7 @@ public class MoBIE
 			sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
 
 			final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
-			SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+			sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
 
 			// Initiate caches now such that the sources
 			// are more interactive initially within BDV
@@ -482,14 +565,14 @@ public class MoBIE
 			for ( int level = 0; level < levels; level++ )
 				sourceAndConverter.getSpimSource().getSource( 0, level );
 			System.out.println("init cache loaders: " + ( System.currentTimeMillis() - l2 ));
-			return sourceAndConverter;
 		}
 		catch ( Exception e )
 		{
 			System.err.println( "Error or interruption opening: " + imagePath );
 			throw e;
 		}
-    }
+		return sourceAndConverter;
+	}
 
 	private ImageDataFormat getImageDataFormat( String sourceName, Set< ImageDataFormat > sourceDataFormats )
 	{
@@ -575,7 +658,7 @@ public class MoBIE
 
 	public String getTableRootDirectory( String source )
 	{
-		final ImageSource imageSource = getImageSource( source );
+		final ImageSource imageSource = getDataSource( source );
 		if ( imageSource instanceof SegmentationSource )
 			return IOHelper.combinePath( tableRoot, getDatasetName(), getRelativeTableLocation( ( SegmentationSource ) imageSource ) );
 		else
@@ -599,7 +682,7 @@ public class MoBIE
 	// TODO: probably we should move this functionality SegmentationDisplay!
 	public List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName, String log )
 	{
-		final SegmentationSource tableSource = ( SegmentationSource ) getImageSource( sourceName );
+		final SegmentationSource tableSource = ( SegmentationSource ) getDataSource( sourceName );
 		final String tablePath = getTablePath( tableSource, tableName );
 		if ( log != null )
 			IJ.log( log + tablePath );
@@ -635,7 +718,7 @@ public class MoBIE
 
 	public Map< String, List< String > > loadColumns( String tableName, String sourceName )
 	{
-		Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( SegmentationSource ) getImageSource( sourceName ), tableName ) );
+		Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( SegmentationSource ) getDataSource( sourceName ), tableName ) );
 		return columns;
 	}
 
@@ -735,7 +818,7 @@ public class MoBIE
 		{
 			try
 			{
-				sourceNameToTableDir.put( source, getTablesDirectoryPath( ( SegmentationSource ) getImageSource( source ) )
+				sourceNameToTableDir.put( source, getTablesDirectoryPath( ( SegmentationSource ) getDataSource( source ) )
 				);
 			}
 			catch ( Exception e )

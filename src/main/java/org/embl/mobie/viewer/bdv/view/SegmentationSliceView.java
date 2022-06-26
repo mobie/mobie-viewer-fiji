@@ -45,7 +45,7 @@ import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.segment.SegmentAdapter;
 import org.embl.mobie.viewer.segment.SliceViewAnnotationSelector;
 import org.embl.mobie.viewer.source.BoundarySource;
-import org.embl.mobie.viewer.source.SegmentationSource;
+import org.embl.mobie.viewer.source.SegmentSource;
 import org.embl.mobie.viewer.source.VolatileAnnotationType;
 import org.embl.mobie.viewer.source.VolatileBoundarySource;
 import org.embl.mobie.viewer.source.VolatileSegmentationSource;
@@ -63,14 +63,17 @@ public class SegmentationSliceView< N extends NumericType< N > & RealType< N > >
 		{
 			final SourceAndConverter< N > sourceAndConverter = ( SourceAndConverter< N > ) moBIE.sourceNameToSourceAndConverter().get( name );
 
-			SourceAndConverter< ? > labelSourceAndConverter = createSourceAndConverter( sourceAndConverter, display );
+			SourceAndConverter< ? > labelSourceAndConverter = createSegmentationSourceAndConverter( sourceAndConverter, display );
 
 			show( labelSourceAndConverter );
 		}
 	}
 
-	private SourceAndConverter createSourceAndConverter( SourceAndConverter< N > sourceAndConverter, SegmentationDisplay display )
+	private SourceAndConverter createSegmentationSourceAndConverter( SourceAndConverter< N > sourceAndConverter, SegmentationDisplay display )
 	{
+		// TODO: only do the converter stuff here, the rest will be done during opening!
+
+		// TODO: in fact this could contain more table rows than needed...
 		final SegmentAdapter< TableRowImageSegment > adapter = new SegmentAdapter<>( display.tableRows.getTableRows() );
 
 		// volatile
@@ -82,8 +85,8 @@ public class SegmentationSliceView< N extends NumericType< N > & RealType< N > >
 
 		// non-volatile
 		final Source< N > spimSource = sourceAndConverter.getSpimSource();
-		final SegmentationSource< N, TableRowImageSegment > segmentationSource = new SegmentationSource<>( spimSource, adapter );;
-		final BoundarySource boundarySource = new BoundarySource( segmentationSource );
+		final SegmentSource< N, TableRowImageSegment > segmentSource = new SegmentSource<>( spimSource, adapter );
+		final BoundarySource boundarySource = new BoundarySource( segmentSource );
 		final AnnotationConverter< TableRowImageSegment > annotationConverter = new AnnotationConverter<>( display.selectionColoringModel );
 
 		// combined
