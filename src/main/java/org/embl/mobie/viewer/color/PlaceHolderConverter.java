@@ -26,30 +26,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.source;
+package org.embl.mobie.viewer.color;
 
-import org.embl.mobie.viewer.serialize.ImageSource;
-import org.embl.mobie.viewer.serialize.SegmentationSource;
+import net.imglib2.converter.Converter;
+import net.imglib2.type.Type;
+import net.imglib2.type.numeric.ARGBType;
 
-// TODO: get rid of supplier and deal with this by means of a Gson adapter
-public class SourceSupplier
+public class PlaceHolderConverter implements Converter
 {
-	// Serialisation
-	private ImageSource image;
-	private SegmentationSource segmentation;
-
-	public SourceSupplier( ImageSource imageSource ) {
-		this.image = imageSource;
-	}
-
-	public SourceSupplier( SegmentationSource segmentationSource ) {
-		this.segmentation = segmentationSource;
-	}
-
-	public ImageSource get()
+	public PlaceHolderConverter( )
 	{
-		if ( image != null ) return image;
-		else if ( segmentation != null ) return segmentation;
-		else throw new RuntimeException( "Unsupported Source." );
+	}
+
+	@Override
+	public void convert( Object input, Object output )
+	{
+
 	}
 }

@@ -51,6 +51,7 @@ import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
 import org.embl.mobie.viewer.color.AnnotationConverter;
+import org.embl.mobie.viewer.color.PlaceHolderConverter;
 import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
 import org.embl.mobie.viewer.color.opacity.VolatileAdjustableOpacityColorConverter;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
@@ -479,7 +480,6 @@ public class MoBIE
 	public < R extends RealType< R > & NumericType< R > > SourceAndConverter< ? > openSourceAndConverter( String sourceName, String log )
 	{
 		// TODO: don't open if that exists already?
-		// TODO: we could already now know whether this is a segmentation source (and load the corresponding tables a.s.o.)
 
 		final ImageSource dataSource = getDataSource( sourceName );
 
@@ -502,21 +502,15 @@ public class MoBIE
 			final SegmentSource< R, TableRowImageSegment > segmentSource = new SegmentSource<>( spimSource, adapter );
 			final BoundarySource boundarySource = new BoundarySource( segmentSource );
 
-
 			// volatile
 			final Source< ? extends Volatile< R > > volatileSpimSource = sourceAndConverter.asVolatile().getSpimSource();
 			final Source< VolatileAnnotationType< TableRowImageSegment > > volatileSegmentationSource = new VolatileSegmentationSource( volatileSpimSource, adapter );
 			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSegmentationSource );
 
-			// TODO: placeholder converter
-			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
+			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, new PlaceHolderConverter() );
 
-
-			// TODO: placeholder converter
-			final AnnotationConverter< TableRowImageSegment > annotationConverter = new AnnotationConverter<>( display.selectionColoringModel );
-
-			// combined
-			return new SourceAndConverter( boundarySource, annotationConverter, volatileSourceAndConverter );
+			// combine v and non-v
+			sourceAndConverter = new SourceAndConverter( boundarySource, new PlaceHolderConverter(), volatileSourceAndConverter );
 		}
 
 		return sourceAndConverter;

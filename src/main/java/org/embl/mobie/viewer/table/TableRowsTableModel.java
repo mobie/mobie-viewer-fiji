@@ -70,10 +70,12 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 	 * TODO: Considerations:
 	 *   - for lazy loading from merged grid source
 	 *     - the sourceColumns can be much smaller => iterate over them
-	 *     - this merging can happen quite often => keep the keyToRow list somewhere
-	 *       and update when necessary
-	 *     - the sourceColumns will partially already exist => do not overwrite the values
-	 *     - when the sourceColumns are added for the first time (i.e. do not exist) => only then set default value.
+	 *     - this merging can happen quite often => keep the keyToRow
+	 *       list somewhere and update when necessary
+	 *     - the sourceColumns will partially already exist
+	 *       => do not overwrite the values
+	 *     - when the sourceColumns are added for the first time
+	 *       (i.e. do not exist) => only then set default value.
 	 */
 	public void mergeColumns( Map< String, List< String > > sourceColumns )
 	{

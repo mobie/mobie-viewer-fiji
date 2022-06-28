@@ -52,6 +52,52 @@ public class SourceAndConverterAndTables< N extends NumericType< N > > extends S
 	private TableRowsTableModel< TableRowImageSegment > tableRows;
 	private String tableRootDirectory;
 
+	// TODO: maybe we do not need this class
+	//   but only the lazy ingredients.
+	//   the lazy ingredient could be initialised with a
+	//   SpatialData object that can (on demand) provide
+	//   the raw material for building the Source and VolatileSource.
+	//   or ImageData and SegmentationData??
+	//   Which methods do these classes need?
+	//   SegmentationData:
+	//      // to construct a SourceAndConverter
+	//      // can I avoid having them Lazy internally (see below comment on FunctionGridSource )?
+	//      // how to deal with the parts of the code where transformations are added?
+	//      // maybe add the transformations to SegmentationData and then apply them only when the SAC is constructed?
+	//      - public SegmentationSource getSource() // already converted with <S> pixel values??
+	//      - public VolatileSegmentationSource getVolatileSource() // already converted with <VS> pixel values??
+	//        // for tableView:
+	//      - public List< TableRowImageSegment > getTableRowImageSegments();
+	//        - internally calls: getTableColumns( "default.tsv" )
+	//      - public getTableColumns( tableName ); // needed?
+	//      - or: public mergeTable( tableName );
+	//        How does the TableView access this method?
+	//        Maybe a field List< SegmentationData > in SegmentationDisplay?
+	//      - private < Segment > get( label_id, timepoint )
+	//         -  this needs to getTableRows( "default.tsv" )
+	//         The Segments will be the pixel values of the SegmentationSource
+	//   Who is responsible for merging table columns?
+	//      in fact the SegmentationSource does not really care about
+	//      additional columns, but it is the only place that holds a
+	//      reference to SegmentationData...?
+	//   Then we need two version of Source (which probably is good):
+	//   ImageSource and SegmentationSource
+	//   Do we need explict Volatile counterparts?
+	//   Both are lazy, nothing loaded initially (unless triggered)
+	//   Which methods? What do they implement?
+	//   SegmentationSource:
+	//   - getTableRows();
+	//   Can we rename the corresponding classes from the serialisation?
+	//   Yes, seems like just Image and Segmentation would work.
+	//   How does the pointSource look like (spatialOmics)?
+	//   --
+	//   The converters could be PlaceHolderConverter anyway
+	//   for now as we do not use them (Maybe we can forget about the LazyConverter)?
+	//   In fact it does not make any sense to keep this class, because
+	//   it will be quickly ripped apart once the sources are wrapped and
+	//   a new SAC will be constructed.
+	//   Maybe the FunctionGridSource would actually take a List< SegmentationData >
+	//   rather than a List< Source > ?
 	public SourceAndConverterAndTables( MoBIE moBIE, String name, @Nullable SourceAndConverter< N > initializationSourceAndConverter )
 	{
 		super( null, null );

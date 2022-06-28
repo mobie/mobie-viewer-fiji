@@ -153,6 +153,9 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 
 		tableRows = new TableRowsTableModel<>();
 
+		// TODO: Don't load primary table but get it from the sac!
+		// SourceHelper.unwrapSource( ... , SegmentsSource.class )
+
 		// primary table (must contain columns to define image segments)
 		final String primaryTable = tables.get( 0 );
 		ArrayList< Future< ? > > futures = MultiThreading.getFutures();
