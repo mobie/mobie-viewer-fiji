@@ -26,12 +26,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.source;
+package develop;
 
-public class StorageLocation
+import net.imagej.ImageJ;
+import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.MoBIESettings;
+
+import java.io.IOException;
+
+public class DevelopMultiChannelOMEZarr
 {
-	public String relativePath;
-	public String s3Address;
-	public String signingRegion;
-	public int channel;
+	public static void main( String[] args ) throws IOException
+	{
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
+
+		new MoBIE("https://github.com/mobie/spatial-transcriptomics-example-project", MoBIESettings.settings().addImageDataFormat( ImageDataFormat.OmeZarrS3));
+	}
 }

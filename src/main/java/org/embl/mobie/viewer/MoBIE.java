@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.viewer;
 
+import bdv.SpimSource;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
@@ -40,7 +41,9 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.generic.base.Entity;
 import mpicbg.spim.data.sequence.ImgLoader;
+import mpicbg.spim.data.sequence.SetupImgLoader;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
@@ -352,6 +355,10 @@ public class MoBIE
 		}
 		MultiThreading.waitUntilFinished( futures );
 
+		for ( final String key : sourceNameToSourceAndConverters.keySet() ) {
+			sourceNameToSourceAndConverters.put(sourceNameToSourceAndConverters.get(key).getSpimSource().getName(), sourceNameToSourceAndConverters.get(key));
+		}
+
 		IJ.log( "Opened " + sourceNameToSourceAndConverters.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + MultiThreading.getNumIoThreads() + " thread(s).");
 
 		return sourceNameToSourceAndConverters;
@@ -503,11 +510,11 @@ public class MoBIE
 
 		try
 		{
+			final int channel = imageSource.imageData.get(imageDataFormat).channel;
 			SpimData spimData = tryOpenSpimData( imagePath, imageDataFormat );
-			sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
-
+			sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader());
 			final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
-			SourceAndConverter< ? > sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
+			SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().get(channel);
             // Touch the source once to initiate the cache,
             // as this speeds up future accesses significantly
             sourceAndConverter.getSpimSource().getSource( 0,0 );

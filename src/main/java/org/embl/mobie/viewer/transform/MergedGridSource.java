@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MergedGridSource< T extends NativeType< T > & NumericType< T > > implements Source< T >, RealMaskSource
 {
@@ -226,7 +227,8 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 		// i.e. the different resolution levels are rendered at slightly offset
 		// positions.
 		final RandomAccessibleInterval< T > source = referenceSource.getSource( 0, 0 );
-		final long[] referenceSourceDimensions = source.dimensionsAsLongArray();
+		final long[] referenceSourceDimensions = source.dimensionsAsLongArray(); 
+		referenceSourceDimensions[numDimensions - 1] = 1;
 		cellDimensions[ 0 ] = MoBIEHelper.asInts( referenceSourceDimensions );
 		for ( int d = 0; d < 2; d++ )
 		{
