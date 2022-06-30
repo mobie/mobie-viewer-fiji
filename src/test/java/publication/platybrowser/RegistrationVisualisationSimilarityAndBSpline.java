@@ -62,7 +62,7 @@ public class RegistrationVisualisationSimilarityAndBSpline< R extends RealType< 
 		final String outputFolder = "/Users/tischer/Documents/publications/2020-multi-modal-platy-browser/figures";
 
 		Prefs.showScaleBar( true );
-		Prefs.showMultibox( false );
+		Prefs.showMultibox( true );
 		Prefs.scaleBarColor( ARGBType.rgba( 255, 255, 255, 255 ) );
 
 		/**
