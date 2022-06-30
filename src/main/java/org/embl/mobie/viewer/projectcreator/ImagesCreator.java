@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer.projectcreator;
 
 import bdv.img.n5.N5ImageLoader;
+import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.process.LUT;

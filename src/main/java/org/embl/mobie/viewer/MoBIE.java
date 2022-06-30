@@ -265,7 +265,9 @@ public class MoBIE
 					 settings.addImageDataFormat( ImageDataFormat.BdvN5S3 );
 				if ( imageDataFormats.contains( ImageDataFormat.OpenOrganelleS3 ) )
 					 settings.addImageDataFormat( ImageDataFormat.OpenOrganelleS3 );
-				if ( settings.getImageDataFormats().isEmpty() )
+
+				// check whether suitable imageDataFormats have been found and added:
+				if ( settings.values.getImageDataFormats().isEmpty() )
 					throw new UnsupportedOperationException( "Could not find any s3 storage of the image data." );
 			}
 			else
@@ -276,8 +278,11 @@ public class MoBIE
 					settings.addImageDataFormat( ImageDataFormat.BdvOmeZarr );
 				if ( imageDataFormats.contains( ImageDataFormat.BdvN5 ) )
 					settings.addImageDataFormat( ImageDataFormat.BdvN5 );
-				if ( settings.getImageDataFormats().isEmpty() )
+
+				// check whether suitable imageDataFormats have been found and added:
+				if ( settings.values.getImageDataFormats().isEmpty() )
 					throw new UnsupportedOperationException( "Could not find any file system storage of the images." );
+
 			}
 		}
 	}
