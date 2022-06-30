@@ -60,7 +60,7 @@ public class MobieBdvSupplier implements IBdvSupplier {
     {
         Prefs.showTextOverlay();
         Prefs.showScaleBar( true );
-        Prefs.showMultibox( false );
+        Prefs.showMultibox( true );
         Prefs.sourceNameOverlayPosition( Prefs.OverlayPosition.TOP_RIGHT );
 
         BdvOptions options = sOptions.getBdvOptions();
