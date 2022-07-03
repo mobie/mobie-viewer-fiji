@@ -31,6 +31,7 @@ package org.embl.mobie.viewer.display;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.tables.TableColumns;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.TableColumnNames;
@@ -44,6 +45,7 @@ import org.embl.mobie.viewer.table.TableHelper;
 import org.embl.mobie.viewer.table.TableRowsTableModel;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
+import tech.tablesaw.api.Table;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -246,6 +248,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 	{
 		final String tablePath = moBIE.getTablePath( ( SegmentationSource ) moBIE.getDataSource( source ), tableFileName );
 		Logger.log( "Opening table: " + tablePath );
+		final Table table = Table.read().csv( IOHelper.getReader( tablePath ) );
 		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
 		if ( ! columns.containsKey( TableColumnNames.LABEL_IMAGE_ID ) )
 			TableHelper.addColumn( columns, TableColumnNames.LABEL_IMAGE_ID, source );

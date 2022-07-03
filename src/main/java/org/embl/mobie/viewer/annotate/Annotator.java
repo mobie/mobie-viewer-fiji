@@ -267,7 +267,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 
 		next.addActionListener( e ->
 		{
-			// rowIndex in sorted "units"
+			// rowIndex in currently visible table
 			int rowIndex = rowSorter.convertRowIndexToView( tableRows.indexOf( currentlySelectedRow ) );
 			if ( rowIndex < tableRows.size() - 1 )
 			{
@@ -281,7 +281,8 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 						{
 							row = null;
 							continue;
-						} else
+						}
+						else
 						{
 							break;
 						}
@@ -293,12 +294,11 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 						return; // All following rows are None or NaN
 					}
 
-					selectRow( row );
 				} else
 				{
 					row = tableRows.get( rowSorter.convertRowIndexToModel( ++rowIndex ) );
-					selectRow( row );
 				}
+				selectRow( row );
 			} else
 			{
 				IJ.showMessage( NO_MORE_SEGMENTS );
@@ -422,8 +422,8 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 
 	private boolean isNoneOrNan( T row )
 	{
-		return row.getCell( annotationColumnName ).toLowerCase().equals( "none" )
-				|| row.getCell( annotationColumnName ).toLowerCase().equals( "nan" );
+		return row.getCell( annotationColumnName ).equalsIgnoreCase( "none" )
+				|| row.getCell( annotationColumnName ).equalsIgnoreCase( "nan" );
 	}
 
 	private void selectRow( T row )

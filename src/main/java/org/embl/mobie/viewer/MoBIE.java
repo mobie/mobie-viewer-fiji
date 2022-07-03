@@ -80,6 +80,8 @@ import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ConverterChanger;
 import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
+import tech.tablesaw.api.Table;
+import tech.tablesaw.io.csv.CsvReadOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -520,7 +522,7 @@ public class MoBIE
 	{
 		try
 		{
-			return moBIE.loadImageSegmentsTable( sourceName, "default.tsv", "Open table:" );
+			return moBIE.loadImageSegmentsTable( sourceName, "default.tsv", "Open table: " );
 
 		} catch ( Exception e )
 		{
@@ -680,6 +682,8 @@ public class MoBIE
 		final String tablePath = getTablePath( tableSource, tableName );
 		if ( log != null )
 			IJ.log( log + tablePath );
+		final CsvReadOptions csvReadOptions = CsvReadOptions.builder( IOHelper.getReader( tablePath ) ).separator( '\t' ).build();
+		final Table table = Table.read().usingOptions( csvReadOptions );
 		final List< TableRowImageSegment > segments = MoBIEHelper.readImageSegmentsFromTableFile( tablePath, sourceName );
 		return segments;
 	}

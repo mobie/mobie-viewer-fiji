@@ -604,6 +604,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		}
 	}
 
+	// this could be delegated to TableSaw ?
 	private void selectGreaterOrLessThan( boolean greaterThan ) {
 		// only works for numeric columns
 		final GenericDialog gd = new GenericDialog( "" );

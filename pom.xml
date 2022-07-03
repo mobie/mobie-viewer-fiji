@@ -112,6 +112,11 @@
 	</repositories>
 	<dependencies>
 		<dependency>
+			<groupId>tech.tablesaw</groupId>
+			<artifactId>tablesaw-core</artifactId>
+			<version>0.43.1</version>
+		</dependency>
+		<dependency>
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej-legacy</artifactId>
 		</dependency>

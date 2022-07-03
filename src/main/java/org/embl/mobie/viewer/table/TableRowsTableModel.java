@@ -6,6 +6,8 @@ import de.embl.cba.tables.Utils;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.Listeners;
 import de.embl.cba.tables.tablerow.TableRow;
+import net.imglib2.util.Pair;
+import net.imglib2.util.ValuePair;
 import org.embl.mobie.viewer.TableColumnNames;
 import org.embl.mobie.viewer.annotate.Region;
 import org.embl.mobie.viewer.annotate.RegionTableRow;
@@ -20,10 +22,11 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class TableRowsTableModel < T extends TableRow >  implements TableModel, Iterable< T >
+public class TableRowsTableModel < T extends TableRow > implements TableModel, Iterable< T >
 {
 	private List< T > tableRows;
 	private Map< String, Class > columnNameToClass;
@@ -137,6 +140,7 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 		}
 	}
 
+	// TODOL this is specific for the different types => Maybe this should not live here?
 	private ArrayList< String > getMergeByColumnNames()
 	{
 		final ArrayList< String > mergeByColumnNames = new ArrayList<>();
@@ -201,6 +205,7 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 		}
 	}
 
+	// useless we have getTableRows
 	public int indexOf( T tableRow )
 	{
 		return tableRows.indexOf( tableRow );
@@ -285,6 +290,7 @@ public class TableRowsTableModel < T extends TableRow >  implements TableModel, 
 	@Override
 	public Class< ? > getColumnClass( int columnIndex )
 	{
+
 		return columnNameToClass.get( columnNames.get( columnIndex ) );
 	}
 
