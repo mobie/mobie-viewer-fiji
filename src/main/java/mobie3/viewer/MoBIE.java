@@ -53,6 +53,7 @@ import mobie3.viewer.serialize.SegmentationSource;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.Image;
 import mobie3.viewer.source.SegmentSource;
+import mobie3.viewer.source.SegmentationImage;
 import mobie3.viewer.source.SpimDataImage;
 import mobie3.viewer.source.VolatileAnnotationType;
 import mobie3.viewer.source.VolatileBoundarySource;
@@ -71,6 +72,7 @@ import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.IntType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
@@ -642,6 +644,7 @@ public class MoBIE
         return IOHelper.combinePath( tableRoot, datasetName, relativeTableLocation );
     }
 
+
 	public String getTablePath( SegmentationSource source, String table )
 	{
 		return getTablePath( getRelativeTableLocation( source ), table );
@@ -840,6 +843,10 @@ public class MoBIE
 
 			if ( imageSource.getClass() == SegmentationSource.class )
 			{
+				final SegmentationSource segmentationSource = ( SegmentationSource ) imageSource;
+				final String tablePath = getTablePath( segmentationSource, "default.tsv" );
+				final SegmentationImage segmentationImage = new SegmentationImage( ( Image< IntType > ) image, tablePath );
+
 				// TODO
 				// try load primary table (returns null if it does not exist)
 				List< TableRowImageSegment > tableRowImageSegments = tryOpenDefaultSegmentsTable( sourceName );

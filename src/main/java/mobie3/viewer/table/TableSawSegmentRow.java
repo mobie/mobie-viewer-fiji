@@ -7,18 +7,17 @@ import tech.tablesaw.api.Table;
 
 import java.util.List;
 
-public class TableSawSegmentRow implements Row, Segment
+public class TableSawSegmentRow implements SegmentRow
 {
 	private final tech.tablesaw.api.Row row;
 	private final int numSegmentDimensions;
 	private RealInterval boundingBox;
 	private float[] mesh;
 
-	public TableSawSegmentRow( tech.tablesaw.api.Row row, int numSegmentDimensions )
+	public TableSawSegmentRow( tech.tablesaw.api.Row row )
 	{
 		this.row = row;
-		this.numSegmentDimensions = numSegmentDimensions;
-
+		this.numSegmentDimensions = row.columnNames().contains( ColumnNames.ANCHOR_Z ) ? 3 : 2;
 		initBoundingBox( row, numSegmentDimensions );
 	}
 
