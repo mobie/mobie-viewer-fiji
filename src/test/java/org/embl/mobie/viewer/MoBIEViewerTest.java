@@ -53,14 +53,14 @@ public class MoBIEViewerTest
 
 	private MoBIE moBIE;
 
-	@BeforeAll
+	//@BeforeAll
 	public static void initIJ()
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 	}
 
-	@Test
+	//@Test
 	public void testCLEMFigure2a() throws IOException
 	{
 		// Open
@@ -74,7 +74,7 @@ public class MoBIEViewerTest
 		assertTrue( showAsBoundaries );
 	}
 
-	@Test
+	//@Test
 	public void testCovidIFDefault() throws IOException
 	{
 		moBIE = new MoBIE( "https://github.com/mobie/covid-if-project" );
@@ -88,13 +88,13 @@ public class MoBIEViewerTest
 		moBIE = new MoBIE( "https://github.com/mobie/covid-if-project", MoBIESettings.settings().view( "full grid" ) );
 	}
 
-	@Test
+	//@Test
 	public void testCellPublicationFigure2C() throws IOException
 	{
 		moBIE = new MoBIE( "https://github.com/mobie/platybrowser-datasets", MoBIESettings.settings().view( "Figure 2C: Muscle segmentation" ) );
 	}
 
-	@Test
+	//@Test
 	public void testAllOnS3() throws IOException
 	{
 		// This is special as it does not go via github but
@@ -109,7 +109,7 @@ public class MoBIEViewerTest
 		}
 	}
 
-	@Test
+	//@Test
 	public void testZebraFishSmallGridView() throws IOException
 	{
 		// Open
