@@ -37,7 +37,7 @@ import mobie3.viewer.MultiThreading;
 import mobie3.viewer.table.ColumnNames;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
 import mobie3.viewer.bdv.view.SegmentationSliceView;
-import mobie3.viewer.segment.SegmentAdapter;
+import mobie3.viewer.segment.LabelToSegmentMapper;
 import mobie3.viewer.serialize.SegmentationSource;
 import mobie3.viewer.source.LazySpimSource;
 import mobie3.viewer.source.SourceHelper;
@@ -65,7 +65,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 
 	// Runtime
 	// TODO: below is almost not needed
-	public transient SegmentAdapter< TableRowImageSegment > tableRowsAdapter;
+	public transient LabelToSegmentMapper< TableRowImageSegment > tableRowsAdapter;
 	public transient SegmentsVolumeViewer< TableRowImageSegment > segmentsVolumeViewer;
 	public transient SegmentationSliceView sliceView;
 
@@ -224,9 +224,9 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 		}
 
 		if ( tableRows != null )
-			tableRowsAdapter = new SegmentAdapter( tableRows.getTableRows() );
+			tableRowsAdapter = new LabelToSegmentMapper( tableRows.getTableRows() );
 		else
-			tableRowsAdapter = new SegmentAdapter();
+			tableRowsAdapter = new LabelToSegmentMapper();
 	}
 
 	@Override

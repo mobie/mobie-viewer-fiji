@@ -37,13 +37,13 @@ import mobie3.viewer.MoBIE;
 import mobie3.viewer.color.AnnotationConverter;
 import mobie3.viewer.color.VolatileAnnotationConverter;
 import mobie3.viewer.display.SegmentationDisplay;
-import mobie3.viewer.segment.SegmentAdapter;
+import mobie3.viewer.segment.LabelToSegmentMapper;
 import mobie3.viewer.segment.SliceViewAnnotationSelector;
 import mobie3.viewer.source.BoundarySource;
-import mobie3.viewer.source.SegmentSource;
+import mobie3.viewer.source.AnnotatedLabelMaskSource;
 import mobie3.viewer.source.VolatileAnnotationType;
 import mobie3.viewer.source.VolatileBoundarySource;
-import mobie3.viewer.source.VolatileSegmentationSource;
+import mobie3.viewer.source.VolatileAnnotatedLabelMaskSource;
 import mobie3.viewer.transform.SliceViewLocationChanger;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Volatile;
@@ -74,19 +74,19 @@ public class SegmentationSliceView< N extends NumericType< N > & RealType< N > >
 		// TODO: only do the converter stuff here, the rest will be done during opening!
 
 		// TODO: in fact this could contain more table rows than needed...
-		final SegmentAdapter< TableRowImageSegment > adapter = new SegmentAdapter<>( display.tableRows.getTableRows() );
+		final LabelToSegmentMapper< TableRowImageSegment > adapter = new LabelToSegmentMapper<>( display.tableRows.getTableRows() );
 
 		// volatile
 		final Source< ? extends Volatile< N > > volatileSpimSource = sourceAndConverter.asVolatile().getSpimSource();
-		final Source< VolatileAnnotationType< TableRowImageSegment > > volatileSegmentationSource = new VolatileSegmentationSource( volatileSpimSource, adapter );
+		final Source< VolatileAnnotationType< TableRowImageSegment > > volatileSegmentationSource = new VolatileAnnotatedLabelMaskSource( volatileSpimSource, adapter );
 		final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSegmentationSource );
 		final VolatileAnnotationConverter volatileAnnotationConverter = new VolatileAnnotationConverter( display.selectionColoringModel );
 		SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
 
 		// non-volatile
 		final Source< N > spimSource = sourceAndConverter.getSpimSource();
-		final SegmentSource< N, TableRowImageSegment > segmentSource = new SegmentSource<>( spimSource, adapter );
-		final BoundarySource boundarySource = new BoundarySource( segmentSource );
+		final AnnotatedLabelMaskSource< N, TableRowImageSegment > annotatedLabelMaskSource = new AnnotatedLabelMaskSource<>( spimSource, adapter );
+		final BoundarySource boundarySource = new BoundarySource( annotatedLabelMaskSource );
 		final AnnotationConverter< TableRowImageSegment > annotationConverter = new AnnotationConverter<>( display.selectionColoringModel );
 
 		// combined

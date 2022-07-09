@@ -44,7 +44,7 @@ import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.plugins.platybrowser.GeneSearchCommand;
-import mobie3.viewer.segment.SegmentAdapter;
+import mobie3.viewer.segment.LabelToSegmentMapper;
 import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.serialize.DatasetJsonParser;
 import mobie3.viewer.serialize.ImageSource;
@@ -52,12 +52,13 @@ import mobie3.viewer.serialize.ProjectJsonParser;
 import mobie3.viewer.serialize.SegmentationSource;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.Image;
-import mobie3.viewer.source.SegmentSource;
-import mobie3.viewer.source.SegmentationImage;
+import mobie3.viewer.source.AnnotatedLabelMaskSource;
+import mobie3.viewer.source.AnnotatedLabelMaskImage;
 import mobie3.viewer.source.SpimDataImage;
 import mobie3.viewer.source.VolatileAnnotationType;
 import mobie3.viewer.source.VolatileBoundarySource;
-import mobie3.viewer.source.VolatileSegmentationSource;
+import mobie3.viewer.source.VolatileAnnotatedLabelMaskSource;
+import mobie3.viewer.table.TableSawSegmentationTableModel;
 import mobie3.viewer.table.TableDataFormat;
 import mobie3.viewer.table.TableHelper;
 import mobie3.viewer.ui.UserInterface;
@@ -72,7 +73,6 @@ import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.IntType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
@@ -500,16 +500,16 @@ public class MoBIE
 			List< TableRowImageSegment > tableRowImageSegments = tryOpenDefaultSegmentsTable( sourceName );
 
 			// adapter will work lazy if tableRowImageSegments == null
-			final SegmentAdapter< TableRowImageSegment > adapter = new SegmentAdapter<>( tableRowImageSegments );
+			final LabelToSegmentMapper< TableRowImageSegment > adapter = new LabelToSegmentMapper<>( tableRowImageSegments );
 
 			// non-volatile
 			final Source< R > spimSource = sourceAndConverter.getSpimSource();
-			final SegmentSource< R, TableRowImageSegment > segmentSource = new SegmentSource<>( spimSource, adapter );
-			final BoundarySource boundarySource = new BoundarySource( segmentSource );
+			final AnnotatedLabelMaskSource< R, TableRowImageSegment > annotatedLabelMaskSource = new AnnotatedLabelMaskSource<>( spimSource, adapter );
+			final BoundarySource boundarySource = new BoundarySource( annotatedLabelMaskSource );
 
 			// volatile
 			final Source< ? extends Volatile< R > > volatileSpimSource = sourceAndConverter.asVolatile().getSpimSource();
-			final Source< VolatileAnnotationType< TableRowImageSegment > > volatileSegmentationSource = new VolatileSegmentationSource( volatileSpimSource, adapter );
+			final Source< VolatileAnnotationType< TableRowImageSegment > > volatileSegmentationSource = new VolatileAnnotatedLabelMaskSource( volatileSpimSource, adapter );
 			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSegmentationSource );
 
 			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, new PlaceHolderConverter() );
@@ -634,12 +634,12 @@ public class MoBIE
         return source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
     }
 
-    public String getTablesDirectoryPath( SegmentationSource source )
+    public String getTableDirectory( SegmentationSource source )
     {
-        return getTablesDirectoryPath( getRelativeTableLocation( source ) );
+        return getTableDirectory( getRelativeTableLocation( source ) );
     }
 
-    public String getTablesDirectoryPath( String relativeTableLocation )
+    public String getTableDirectory( String relativeTableLocation )
     {
         return IOHelper.combinePath( tableRoot, datasetName, relativeTableLocation );
     }
@@ -819,7 +819,7 @@ public class MoBIE
 		{
 			try
 			{
-				sourceNameToTableDir.put( source, getTablesDirectoryPath( ( SegmentationSource ) getDataSource( source ) )
+				sourceNameToTableDir.put( source, getTableDirectory( ( SegmentationSource ) getDataSource( source ) )
 				);
 			}
 			catch ( Exception e )
@@ -844,31 +844,48 @@ public class MoBIE
 			if ( imageSource.getClass() == SegmentationSource.class )
 			{
 				final SegmentationSource segmentationSource = ( SegmentationSource ) imageSource;
-				final String tablePath = getTablePath( segmentationSource, "default.tsv" );
-				final SegmentationImage segmentationImage = new SegmentationImage( ( Image< IntType > ) image, tablePath );
 
-				// TODO
-				// try load primary table (returns null if it does not exist)
-				List< TableRowImageSegment > tableRowImageSegments = tryOpenDefaultSegmentsTable( sourceName );
-
-				// adapter will work lazy if tableRowImageSegments == null
-				final SegmentAdapter< TableRowImageSegment > adapter = new SegmentAdapter<>( tableRowImageSegments );
-
-				// non-volatile
-				final Source< R > spimSource = sourceAndConverter.getSpimSource();
-				final SegmentSource< R, TableRowImageSegment > segmentSource = new SegmentSource<>( spimSource, adapter );
-				final BoundarySource boundarySource = new BoundarySource( segmentSource );
-
-				// volatile
-				final Source< ? extends Volatile< R > > volatileSpimSource = sourceAndConverter.asVolatile().getSpimSource();
-				final Source< VolatileAnnotationType< TableRowImageSegment > > volatileSegmentationSource = new VolatileSegmentationSource( volatileSpimSource, adapter );
-				final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSegmentationSource );
-
-				SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, new PlaceHolderConverter() );
-
-				// combine v and non-v
-				sourceAndConverter = new SourceAndConverter( boundarySource, new PlaceHolderConverter(), volatileSourceAndConverter );
+				if ( segmentationSource.tableData != null
+						&& segmentationSource.tableData.size() > 0 )
+				{
+					// Label mask with annotations.
+					// Create image where the pixel values
+					// are the annotations and create
+					// a table model for the annotations.
+					final ArrayList< String > columnPaths = getColumnPaths( segmentationSource );
+					final String tablePath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
+					final TableSawSegmentationTableModel tableModel = new TableSawSegmentationTableModel( tablePath );
+					tableModel.setColumnPaths( columnPaths );
+					final AnnotatedLabelMaskImage annotatedLabelMaskImage = new AnnotatedLabelMaskImage( image, tableModel );
+					images.put( name, annotatedLabelMaskImage );
+				}
+				else
+				{
+					// Label mask without annotation.
+					// Nothing to be done here.
+					// Create appropriate selection
+					// and coloring model for the label
+					// mask during display.
+					images.put( name, image );
+				}
+			}
+			else
+			{
+				// Intensity image.
+				images.put( name, image );
 			}
 		}
+	}
+
+	private ArrayList< String > getColumnPaths( SegmentationSource segmentationSource )
+	{
+		final String tableDirectory = getTableDirectory( segmentationSource );
+		String[] fileNames = IOHelper.getFileNames( tableDirectory );
+		final ArrayList< String > columnPaths = new ArrayList<>();
+		for ( String fileName : fileNames )
+		{
+			columnPaths.add( IOHelper.combinePath( tableDirectory, fileName ) );
+		}
+		return columnPaths;
 	}
 }

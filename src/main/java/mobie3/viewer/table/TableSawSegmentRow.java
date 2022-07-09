@@ -1,9 +1,7 @@
 package mobie3.viewer.table;
 
-import mobie3.viewer.segment.Segment;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
-import tech.tablesaw.api.Table;
 
 import java.util.List;
 
