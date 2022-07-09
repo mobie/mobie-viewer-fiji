@@ -47,7 +47,7 @@ public class AnnotatedLabelMaskImage< S extends SegmentRow > implements Annotate
 	}
 
 	@Override
-	public AnnotationTableModel< SegmentRow > getTable()
+	public AnnotationTableModel< S > getTable()
 	{
 		return null;
 	}

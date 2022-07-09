@@ -32,7 +32,6 @@ import de.embl.cba.tables.imagesegment.LabelFrameAndImage;
 import mobie3.viewer.table.AnnotationTableModel;
 import mobie3.viewer.table.SegmentRow;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,23 +39,23 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LabelToSegmentMapper< S extends SegmentRow > implements SegmentProvider< S >
 {
 	private final AnnotationTableModel< S > tableModel;
-	private Map< LabelFrameAndImage, S > labelFrameAndImageToSegment;
+	private Map< Label, S > labelToSegment;
 
 	public LabelToSegmentMapper( AnnotationTableModel< S > tableModel )
 	{
 		this.tableModel = tableModel;
 	}
 
-	public S getSegment( int label, int t, String imageId )
+	public S getSegment( int labelId, int t, String imageId )
 	{
-		if ( labelFrameAndImageToSegment == null )
+		if ( labelToSegment == null )
 		{
 			initMapping();
 		}
 
-		final LabelFrameAndImage labelFrameAndImage = new LabelFrameAndImage( label, t, imageId );
+		final Label label = new Label( labelId, t, imageId );
 
-		return labelFrameAndImageToSegment.get( labelFrameAndImage  );
+		return labelToSegment.get( label  );
 	}
 
 	@Override
@@ -69,13 +68,13 @@ public class LabelToSegmentMapper< S extends SegmentRow > implements SegmentProv
 
 	private synchronized void initMapping()
 	{
-		labelFrameAndImageToSegment = new ConcurrentHashMap<>();
+		labelToSegment = new ConcurrentHashMap<>();
 		final int numRows = tableModel.getNumRows();
 		for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
 		{
 			final S segment = tableModel.getRow( rowIndex );
-			final LabelFrameAndImage labelFrameAndImage = new LabelFrameAndImage( segment.labelId(), segment.timePoint(), segment.imageId() );
-			labelFrameAndImageToSegment.put( labelFrameAndImage, segment );
+			final Label label = new Label( segment.labelId(), segment.timePoint(), segment.imageId() );
+			labelToSegment.put( label, segment );
 		}
 	}
 }
