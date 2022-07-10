@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-public class TableSawSegmentsTableModel implements AnnotationTableModel< TableSawSegmentRow >
+public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawSegmentRow >
 {
 	protected final String columnsPath;
 	protected Collection< String > columnPaths;
