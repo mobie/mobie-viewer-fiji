@@ -29,13 +29,13 @@
 package mobie3.viewer.segment;
 
 import mobie3.viewer.table.AnnData;
-import mobie3.viewer.table.SegmentRow;
+import mobie3.viewer.table.SegmentAnnotation;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public class LabelToSegmentMapper< S extends SegmentRow > implements SegmentProvider< S >
+public class LabelToSegmentMapper< S extends SegmentAnnotation > implements SegmentProvider< S >
 {
 	private final AnnData< S > annData;
 	private Map< Label, S > labelToSegment;

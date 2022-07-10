@@ -1,6 +1,6 @@
 package mobie3.viewer.table;
 
-import mobie3.viewer.segment.TransformedSegmentRow;
+import mobie3.viewer.segment.TransformedSegmentAnnotation;
 import mobie3.viewer.transform.Transformation;
 import net.imglib2.util.Pair;
 
@@ -8,20 +8,32 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-public class TransformedSegmentsTableModel implements SegmentsTableModel< TransformedSegmentRow >
+public class TransformedSegmentsTableModel implements SegmentsTableModel< TransformedSegmentAnnotation >
 {
-	private final SegmentsTableModel< ? extends SegmentRow > model;
+	private final SegmentsTableModel< ? extends SegmentAnnotation > model;
 	private final Transformation transformation;
 
-	private HashMap< TransformedSegmentRow, Integer > rowToIndex;
-	private HashMap< Integer, TransformedSegmentRow > indexToRow;
+	private HashMap< TransformedSegmentAnnotation, Integer > rowToIndex;
+	private HashMap< Integer, TransformedSegmentAnnotation > indexToRow;
 
-	public TransformedSegmentsTableModel( SegmentsTableModel< ? extends SegmentRow > model, Transformation transformation )
+	public TransformedSegmentsTableModel( SegmentsTableModel< ? extends SegmentAnnotation > model, Transformation transformation )
 	{
 		this.model = model;
 		this.transformation = transformation;
 		this.rowToIndex = new HashMap<>();
 		this.indexToRow = new HashMap<>();
+	}
+
+	@Override
+	public List< String > getColumnNames()
+	{
+		return model.getColumnNames();
+	}
+
+	@Override
+	public Class< ? > getColumnClass( String columnName )
+	{
+		return model.getColumnClass( columnName );
 	}
 
 	@Override
@@ -31,17 +43,17 @@ public class TransformedSegmentsTableModel implements SegmentsTableModel< Transf
 	}
 
 	@Override
-	public int getRowIndex( TransformedSegmentRow row )
+	public int getRowIndex( TransformedSegmentAnnotation annotation )
 	{
-		return rowToIndex.get( row );
+		return rowToIndex.get( annotation );
 	}
 
 	@Override
-	public TransformedSegmentRow getRow( int rowIndex )
+	public TransformedSegmentAnnotation getRow( int rowIndex )
 	{
 		if ( ! indexToRow.containsKey( rowIndex ) )
 		{
-			final TransformedSegmentRow row = new TransformedSegmentRow( model.getRow( rowIndex ), transformation );
+			final TransformedSegmentAnnotation row = new TransformedSegmentAnnotation( model.getRow( rowIndex ), transformation );
 			rowToIndex.put( row, rowIndex );
 			indexToRow.put( rowIndex, row );
 		}

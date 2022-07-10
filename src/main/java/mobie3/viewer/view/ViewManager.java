@@ -51,7 +51,7 @@ import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.display.SourceDisplay;
 import mobie3.viewer.plot.ScatterPlotViewer;
-import mobie3.viewer.segment.TransformedSegmentRow;
+import mobie3.viewer.segment.TransformedSegmentAnnotation;
 import mobie3.viewer.select.MoBIESelectionModel;
 import mobie3.viewer.source.AnnotatedImage;
 import mobie3.viewer.source.AnnotatedLabelMask;
@@ -59,7 +59,7 @@ import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.Image;
 import mobie3.viewer.source.SourceAndConverterAndTables;
 import mobie3.viewer.source.TransformedImage;
-import mobie3.viewer.table.SegmentRow;
+import mobie3.viewer.table.SegmentAnnotation;
 import mobie3.viewer.table.SegmentsAnnData;
 import mobie3.viewer.table.TableViewer;
 import mobie3.viewer.transform.AffineImageTransformation;
@@ -327,19 +327,15 @@ public class ViewManager
 				{
 					if ( transformation.getTargetImages().contains( name ) )
 					{
-						final Image< ? > image = images.get( name );
+						final Image image = images.get( name );
 						if ( AnnotatedImage.class.isAssignableFrom( image.getClass() ) )
 						{
-							final AnnotatedImage< ? extends IntegerType< ? >, ? extends SegmentRow > annotatedImage = ( AnnotatedImage) image;
-							final TransformedImage< ? extends IntegerType< ? > > transformedLabelMask = new TransformedImage<>( annotatedImage.getLabelMask(), transformation );
-							final SegmentsAnnData< TransformedSegmentRow > annData = annotatedImage.getAnnData().transform( transformation );
-
-							final AnnotatedLabelMask< ? extends IntegerType< ? >, ? extends SegmentRow > transformedAnnotatedLabelMask = new AnnotatedLabelMask( transformedLabelMask, annData );
-							images.put( transformedLabelMask.getName(), transformedAnnotatedLabelMask );
+							final AnnotatedImage transformedImage = transform( transformation, ( AnnotatedImage ) image );
+							images.put( transformedImage.getName(), transformedImage );
 						}
 						else
 						{
-							final TransformedImage< ? > transformedImage = new TransformedImage<>( image, transformation );
+							final TransformedImage transformedImage = new TransformedImage( image, transformation );
 							images.put( transformedImage.getName(), transformedImage );
 						}
 					}
@@ -353,6 +349,16 @@ public class ViewManager
 		// this is where the source and segmentation displays will
 		// get the images from
 		moBIE.addImages( images );
+	}
+
+	private AnnotatedImage< ? extends IntegerType< ? >, ? extends SegmentAnnotation > transform( Transformation transformation, AnnotatedImage image )
+	{
+		final AnnotatedImage< ? extends IntegerType< ? >, ? extends SegmentAnnotation > annotatedImage = image;
+		final TransformedImage< ? extends IntegerType< ? > > transformedLabelMask = new TransformedImage<>( annotatedImage.getLabelMask(), transformation );
+		final SegmentsAnnData< TransformedSegmentAnnotation > annData = annotatedImage.getAnnData().transform( transformation );
+
+		final AnnotatedLabelMask< ? extends IntegerType< ? >, ? extends SegmentAnnotation > transformedAnnotatedLabelMask = new AnnotatedLabelMask( transformedLabelMask, annData );
+		return transformedAnnotatedLabelMask;
 	}
 
 	private SourceAndConverterAndTables createLazySourceAndConverter( String sourceName, SourceAndConverter< ? > parentSource )

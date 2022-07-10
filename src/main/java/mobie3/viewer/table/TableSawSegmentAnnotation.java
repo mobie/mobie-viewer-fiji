@@ -2,17 +2,16 @@ package mobie3.viewer.table;
 
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
+import tech.tablesaw.api.Row;
 
-import java.util.List;
-
-public class TableSawSegmentRow implements SegmentRow
+public class TableSawSegmentAnnotation implements SegmentAnnotation
 {
-	private final tech.tablesaw.api.Row row;
+	private final Row row;
 	private final int numSegmentDimensions;
 	private RealInterval boundingBox;
 	private float[] mesh;
 
-	public TableSawSegmentRow( tech.tablesaw.api.Row row )
+	public TableSawSegmentAnnotation( Row row )
 	{
 		this.row = row;
 		this.numSegmentDimensions = row.columnNames().contains( ColumnNames.ANCHOR_Z ) ? 3 : 2;
@@ -103,19 +102,6 @@ public class TableSawSegmentRow implements SegmentRow
 	public void setMesh( float[] mesh )
 	{
 		this.mesh = mesh;
-	}
-
-	@Override
-	public List< String > getColumnNames()
-	{
-		return row.columnNames();
-	}
-
-	@Override
-	public Class< ? > getColumnClass( String columnName )
-	{
-		// https://github.com/jtablesaw/tablesaw/issues/new
-		return row.getColumnType( columnName );
 	}
 
 	@Override

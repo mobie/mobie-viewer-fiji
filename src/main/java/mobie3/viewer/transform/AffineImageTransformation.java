@@ -105,4 +105,9 @@ public class AffineTransformation extends AbstractTransformation
 	{
 		return sources;
 	}
+
+	public AffineTransform3D getAffineTransform3D()
+	{
+		return affineTransform3D;
+	}
 }
