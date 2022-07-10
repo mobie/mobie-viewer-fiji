@@ -56,6 +56,7 @@ import mobie3.viewer.source.AnnotatedImage;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.Image;
 import mobie3.viewer.source.SourceAndConverterAndTables;
+import mobie3.viewer.source.TransformedAnnotatedLabelMask;
 import mobie3.viewer.source.TransformedImage;
 import mobie3.viewer.table.TableViewer;
 import mobie3.viewer.transform.AffineImageTransformer;
@@ -325,7 +326,10 @@ public class ViewManager
 						final Image< ? > image = images.get( name );
 						if ( AnnotatedImage.class.isAssignableFrom( image.getClass() ) )
 						{
-							// TODO: implement TransformedAnnotatedImage
+							final AnnotatedImage< ?, ? > annotatedImage = ( AnnotatedImage< ?, ? > ) image;
+							new TransformedAnnotatedLabelMask<>( annotatedImage, transformer );
+
+
 						}
 						else
 						{

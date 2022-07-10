@@ -28,8 +28,7 @@
  */
 package mobie3.viewer.segment;
 
-import de.embl.cba.tables.imagesegment.LabelFrameAndImage;
-import mobie3.viewer.table.AnnotationTableModel;
+import mobie3.viewer.table.AnnData;
 import mobie3.viewer.table.SegmentRow;
 
 import java.util.Map;
@@ -38,12 +37,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class LabelToSegmentMapper< S extends SegmentRow > implements SegmentProvider< S >
 {
-	private final AnnotationTableModel< S > tableModel;
+	private final AnnData< S > annData;
 	private Map< Label, S > labelToSegment;
 
-	public LabelToSegmentMapper( AnnotationTableModel< S > tableModel )
+	public LabelToSegmentMapper( AnnData< S > annData )
 	{
-		this.tableModel = tableModel;
+		this.annData = annData;
 	}
 
 	public S getSegment( int labelId, int t, String imageId )
@@ -63,16 +62,16 @@ public class LabelToSegmentMapper< S extends SegmentRow > implements SegmentProv
 	{
 		// TODO: is this OK?
 		//  or do we need to create a copy of that?
-		return tableModel.getRow( 0 );
+		return annData.getTable().getRow( 0 );
 	}
 
 	private synchronized void initMapping()
 	{
 		labelToSegment = new ConcurrentHashMap<>();
-		final int numRows = tableModel.getNumRows();
+		final int numRows = annData.getTable().getNumRows();
 		for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
 		{
-			final S segment = tableModel.getRow( rowIndex );
+			S segment = annData.getTable().getRow( rowIndex );
 			final Label label = new Label( segment.labelId(), segment.timePoint(), segment.imageId() );
 			labelToSegment.put( label, segment );
 		}

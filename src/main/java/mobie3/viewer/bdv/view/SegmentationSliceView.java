@@ -116,6 +116,10 @@ public class SegmentationSliceView< N extends NumericType< N > & RealType< N > >
 	{
 		final double[] position = new double[ 3 ];
 		segment.localize( position );
+
+		// TODO: all of this could be removed if the position
+		//  of the segment would already take
+		//  potential source-transforms into account
 		final SourceAndConverter< ? > sourceAndConverter = moBIE.sourceNameToSourceAndConverter().get( segment.imageId()  );
 
 		// get source transform

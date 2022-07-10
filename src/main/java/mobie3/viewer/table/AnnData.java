@@ -1,6 +1,7 @@
 package mobie3.viewer.table;
 
-public interface AnnData< A extends Row >
+public interface AnnData< R extends Row >
 {
-	AnnotationTableModel< A > getTable();
+	AnnotationTableModel< R > getTable();
+	AnnData< R > transform();
 }

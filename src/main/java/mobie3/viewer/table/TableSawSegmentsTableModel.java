@@ -1,5 +1,6 @@
 package mobie3.viewer.table;
 
+import mobie3.viewer.segment.TransformedSegmentRow;
 import net.imglib2.util.Pair;
 import tech.tablesaw.api.Table;
 
@@ -7,7 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-public class TableSawSegmentationTableModel implements AnnotationTableModel< TableSawSegmentRow >
+public class TableSawSegmentsTableModel implements AnnotationTableModel< TableSawSegmentRow >
 {
 	protected final String columnsPath;
 	protected Collection< String > columnPaths;
@@ -17,7 +18,7 @@ public class TableSawSegmentationTableModel implements AnnotationTableModel< Tab
 	private HashMap< Integer, TableSawSegmentRow > indexToRow;
 	private Table table;
 
-	public TableSawSegmentationTableModel( String columnsPath )
+	public TableSawSegmentsTableModel( String columnsPath )
 	{
 		this.columnsPath = columnsPath;
 		rowToIndex = new HashMap<>();

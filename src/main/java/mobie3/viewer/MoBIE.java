@@ -53,12 +53,13 @@ import mobie3.viewer.serialize.SegmentationSource;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.Image;
 import mobie3.viewer.source.AnnotatedLabelMaskSource;
-import mobie3.viewer.source.AnnotatedLabelMaskImage;
+import mobie3.viewer.source.AnnotatedLabelMask;
 import mobie3.viewer.source.SpimDataImage;
 import mobie3.viewer.source.VolatileAnnotationType;
 import mobie3.viewer.source.VolatileBoundarySource;
 import mobie3.viewer.source.VolatileAnnotatedLabelMaskSource;
-import mobie3.viewer.table.TableSawSegmentationTableModel;
+import mobie3.viewer.table.TableSawAnnData;
+import mobie3.viewer.table.TableSawSegmentsTableModel;
 import mobie3.viewer.table.TableDataFormat;
 import mobie3.viewer.table.TableHelper;
 import mobie3.viewer.ui.UserInterface;
@@ -504,7 +505,7 @@ public class MoBIE
 
 			// non-volatile
 			final Source< R > spimSource = sourceAndConverter.getSpimSource();
-			final AnnotatedLabelMaskSource< R, TableRowImageSegment > annotatedLabelMaskSource = new AnnotatedLabelMaskSource<>( spimSource, adapter );
+			final AnnotatedLabelMaskSource< TableRowImageSegment > annotatedLabelMaskSource = new AnnotatedLabelMaskSource( spimSource, adapter );
 			final BoundarySource boundarySource = new BoundarySource( annotatedLabelMaskSource );
 
 			// volatile
@@ -854,10 +855,12 @@ public class MoBIE
 					// a table model for the annotations.
 					final ArrayList< String > columnPaths = getColumnPaths( segmentationSource );
 					final String tablePath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
-					final TableSawSegmentationTableModel tableModel = new TableSawSegmentationTableModel( tablePath );
+
+					final TableSawSegmentsTableModel tableModel = new TableSawSegmentsTableModel( tablePath );
+					final TableSawAnnData annData = new TableSawAnnData( tableModel );
 					tableModel.setColumnPaths( columnPaths );
-					final AnnotatedLabelMaskImage annotatedLabelMaskImage = new AnnotatedLabelMaskImage( image, tableModel );
-					images.put( name, annotatedLabelMaskImage );
+					final AnnotatedLabelMask annotatedLabelMask = new AnnotatedLabelMask( image, annData );
+					images.put( name, annotatedLabelMask );
 				}
 				else
 				{
