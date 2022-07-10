@@ -44,12 +44,12 @@ import mobie3.viewer.bdv.view.RegionSliceView;
 import mobie3.viewer.bdv.view.SegmentationSliceView;
 import mobie3.viewer.bdv.view.SliceViewer;
 import mobie3.viewer.color.SelectionColoringModel;
-import mobie3.viewer.display.AbstractSourceDisplay;
+import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
-import mobie3.viewer.display.SourceDisplay;
+import mobie3.viewer.display.Display;
 import mobie3.viewer.plot.ScatterPlotViewer;
 import mobie3.viewer.segment.TransformedSegmentAnnotation;
 import mobie3.viewer.select.MoBIESelectionModel;
@@ -99,7 +99,7 @@ public class ViewManager
 	private final UserInterface userInterface;
 	private final SliceViewer sliceViewer;
 	private final SourceAndConverterService sacService;
-	private List< SourceDisplay > currentSourceDisplays;
+	private List< Display > currentDisplays;
 	private List< Transformation > currentTransformers;
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
@@ -110,7 +110,7 @@ public class ViewManager
 	{
 		this.moBIE = moBIE;
 		this.userInterface = userInterface;
-		currentSourceDisplays = new ArrayList<>();
+		currentDisplays = new ArrayList<>();
 		currentTransformers = new ArrayList<>();
 		sliceViewer = new SliceViewer( moBIE, is2D );
 		universeManager = new UniverseManager();
@@ -162,9 +162,9 @@ public class ViewManager
 		}
 	}
 
-	public List< SourceDisplay > getCurrentSourceDisplays()
+	public List< Display > getCurrentSourceDisplays()
 	{
-		return currentSourceDisplays;
+		return currentDisplays;
 	}
 
 	public SliceViewer getSliceViewer()
@@ -210,37 +210,37 @@ public class ViewManager
 
 	public View createCurrentView( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform )
 	{
-		List< SourceDisplay > viewSourceDisplays = new ArrayList<>();
+		List< Display > viewDisplays = new ArrayList<>();
 		List< Transformation > viewSourceTransforms = new ArrayList<>();
 
 		for ( Transformation imageTransformation : currentTransformers )
 			if ( ! viewSourceTransforms.contains( imageTransformation ) )
 				viewSourceTransforms.add( imageTransformation );
 
-		for ( SourceDisplay sourceDisplay : currentSourceDisplays )
+		for ( Display display : currentDisplays )
 		{
-			SourceDisplay currentDisplay = null;
+			Display currentDisplay = null;
 
-			if ( sourceDisplay instanceof ImageDisplay )
+			if ( display instanceof ImageDisplay )
 			{
-				ImageDisplay imageDisplay = ( ImageDisplay ) sourceDisplay;
+				ImageDisplay imageDisplay = ( ImageDisplay ) display;
 				currentDisplay = new ImageDisplay( imageDisplay );
 				addManualTransforms( viewSourceTransforms, imageDisplay.nameToSourceAndConverter );
 			}
-			else if ( sourceDisplay instanceof SegmentationDisplay )
+			else if ( display instanceof SegmentationDisplay )
 			{
-				SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) sourceDisplay;
+				SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
 				currentDisplay = new SegmentationDisplay( segmentationDisplay );
 				addManualTransforms( viewSourceTransforms, ( Map ) segmentationDisplay.nameToSourceAndConverter );
 			}
-			else if ( sourceDisplay instanceof RegionDisplay )
+			else if ( display instanceof RegionDisplay )
 			{
-				currentDisplay = new RegionDisplay( ( RegionDisplay ) sourceDisplay );
+				currentDisplay = new RegionDisplay( ( RegionDisplay ) display );
 			}
 
 			if ( currentDisplay != null )
 			{
-				viewSourceDisplays.add( currentDisplay );
+				viewDisplays.add( currentDisplay );
 			}
 		}
 
@@ -249,11 +249,11 @@ public class ViewManager
 			final BdvHandle bdvHandle = sliceViewer.getBdvHandle();
 			AffineTransform3D normalisedViewTransform = TransformHelper.createNormalisedViewerTransform( bdvHandle.getViewerPanel() );
 			final NormalizedAffineViewerTransform transform = new NormalizedAffineViewerTransform( normalisedViewTransform.getRowPackedCopy(), bdvHandle.getViewerPanel().state().getCurrentTimepoint() );
-			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, transform, isExclusive);
+			return new View(uiSelectionGroup, viewDisplays, viewSourceTransforms, transform, isExclusive);
 		}
 		else
 		{
-			return new View(uiSelectionGroup, viewSourceDisplays, viewSourceTransforms, isExclusive);
+			return new View(uiSelectionGroup, viewDisplays, viewSourceTransforms, isExclusive);
 		}
 	}
 
@@ -274,17 +274,19 @@ public class ViewManager
 			SliceViewLocationChanger.changeLocation( sliceViewer.getBdvHandle(), view.getViewerTransform() );
 		}
 
-		openAndTransformImages( view );
+		// init and transform
+		initImages( view );
 
-		// show the displays
-		final List< SourceDisplay > sourceDisplays = view.getSourceDisplays();
-		for ( SourceDisplay sourceDisplay : sourceDisplays )
-			showSourceDisplay( sourceDisplay );
+		// display the data
+		final List< Display > displays = view.getDisplays();
+		for ( Display display : displays )
+			showDisplay( display );
 
-		if ( view.getViewerTransform() == null && currentSourceDisplays.size() > 0 && ( view.isExclusive() || currentSourceDisplays.size() == 1 ) )
+		// adjust viewer transform
+		if ( view.getViewerTransform() == null && currentDisplays.size() > 0 && ( view.isExclusive() || currentDisplays.size() == 1 ) )
 		{
-			final SourceDisplay sourceDisplay = currentSourceDisplays.get( currentSourceDisplays.size() - 1);
-			new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), (( AbstractSourceDisplay< ? > ) sourceDisplay).nameToSourceAndConverter.values().iterator().next() ).run();
+			final Display display = currentDisplays.get( currentDisplays.size() - 1);
+			new ViewerTransformAdjuster( sliceViewer.getBdvHandle(), (( AbstractDisplay< ? > ) display ).nameToSourceAndConverter.values().iterator().next() ).run();
 		}
 
 		// trigger rendering of source name overlay
@@ -300,7 +302,8 @@ public class ViewManager
 		}
 	}
 
-	public void openAndTransformImages( View view )
+	// initialize and transform
+	public void initImages( View view )
 	{
 		// fetch names of all sources that are
 		// either to be shown or to be transformed
@@ -371,9 +374,9 @@ public class ViewManager
 	{
 		final Set< String > sources = new HashSet<>();
 
-		for ( SourceDisplay sourceDisplay : view.getSourceDisplays() )
+		for ( Display display : view.getDisplays() )
 		{
-			for ( String source : sourceDisplay.getSources() )
+			for ( String source : display.getSources() )
 			{
 				sources.add( source );
 			}
@@ -391,17 +394,17 @@ public class ViewManager
 		return sources;
 	}
 
-	public synchronized void showSourceDisplay( SourceDisplay sourceDisplay )
+	public synchronized void showDisplay( Display display )
 	{
-		if ( currentSourceDisplays.contains( sourceDisplay ) ) return;
+		if ( currentDisplays.contains( display ) ) return;
 
-		if ( sourceDisplay instanceof ImageDisplay )
+		if ( display instanceof ImageDisplay )
 		{
-			showImageDisplay( ( ImageDisplay ) sourceDisplay );
+			showImageDisplay( ( ImageDisplay ) display );
 		}
-		else if ( sourceDisplay instanceof AnnotationDisplay )
+		else if ( display instanceof AnnotationDisplay )
 		{
-			final AnnotationDisplay< ? > annotationDisplay = ( AnnotationDisplay< ? > ) sourceDisplay;
+			final AnnotationDisplay< ? > annotationDisplay = ( AnnotationDisplay< ? > ) display;
 
 			annotationDisplay.moBIE = moBIE;
 			annotationDisplay.sliceViewer = sliceViewer;
@@ -426,23 +429,23 @@ public class ViewManager
 			}
 		}
 
-		userInterface.addSourceDisplay( sourceDisplay );
-		currentSourceDisplays.add( sourceDisplay );
+		userInterface.addSourceDisplay( display );
+		currentDisplays.add( display );
 	}
 
 	public synchronized void removeAllSourceDisplays( boolean closeImgLoader )
 	{
 		// create a copy of the currently shown displays...
-		final ArrayList< SourceDisplay > currentSourceDisplays = new ArrayList<>( this.currentSourceDisplays ) ;
+		final ArrayList< Display > currentDisplays = new ArrayList<>( this.currentDisplays ) ;
 
 		// ...such that we can remove the displays without
 		// modifying the list that we iterate over
-		for ( SourceDisplay sourceDisplay : currentSourceDisplays )
+		for ( Display display : currentDisplays )
 		{
 			// removes display from all viewers and
 			// also from the list of currently shown sourceDisplays
 			// also close all ImgLoaders to free the cache
-			removeSourceDisplay( sourceDisplay, closeImgLoader );
+			removeSourceDisplay( display, closeImgLoader );
 		}
 	}
 
@@ -534,11 +537,11 @@ public class ViewManager
 		}
 	}
 
-	public synchronized void removeSourceDisplay( SourceDisplay sourceDisplay, boolean closeImgLoader )
+	public synchronized void removeSourceDisplay( Display display, boolean closeImgLoader )
 	{
-		if ( sourceDisplay instanceof AnnotationDisplay )
+		if ( display instanceof AnnotationDisplay )
 		{
-			final AnnotationDisplay< ? > regionDisplay = ( AnnotationDisplay< ? > ) sourceDisplay;
+			final AnnotationDisplay< ? > regionDisplay = ( AnnotationDisplay< ? > ) display;
 			regionDisplay.getSliceView().close( closeImgLoader );
 
 			if ( regionDisplay.tableRows != null )
@@ -551,14 +554,14 @@ public class ViewManager
 			}
 
 		}
-		else if ( sourceDisplay instanceof ImageDisplay )
+		else if ( display instanceof ImageDisplay )
 		{
-			final ImageDisplay imageDisplay = ( ImageDisplay ) sourceDisplay;
+			final ImageDisplay imageDisplay = ( ImageDisplay ) display;
 			imageDisplay.imageSliceView.close( false );
 		}
 
-		userInterface.removeDisplaySettingsPanel( sourceDisplay );
-		currentSourceDisplays.remove( sourceDisplay );
+		userInterface.removeDisplaySettingsPanel( display );
+		currentDisplays.remove( display );
 
 		updateCurrentSourceTransformers();
 	}
@@ -571,7 +574,7 @@ public class ViewManager
 		final ArrayList< Transformation > imageTransformersCopy = new ArrayList<>( this.currentTransformers ) ;
 
 		Set<String> currentlyDisplayedSources = new HashSet<>();
-		for ( SourceDisplay display: currentSourceDisplays )
+		for ( Display display: currentDisplays )
 			currentlyDisplayedSources.addAll( display.getSources() );
 
 		for ( Transformation imageTransformation : imageTransformersCopy )

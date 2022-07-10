@@ -65,6 +65,7 @@ import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
+import net.imglib2.ops.parse.token.Real;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
@@ -811,5 +812,10 @@ public class MoBIE
 			columnPaths.add( IOHelper.combinePath( tableDirectory, fileName ) );
 		}
 		return columnPaths;
+	}
+
+	public Image< ? > getImage( String name )
+	{
+		return images.get( name );
 	}
 }

@@ -34,7 +34,7 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import mobie3.viewer.display.SourceDisplay;
+import mobie3.viewer.display.Display;
 import mobie3.viewer.transform.Transformation;
 import mobie3.viewer.transform.ViewerTransform;
 
@@ -77,7 +77,7 @@ public class JsonHelper
 	{
 		GsonBuilder gb = new GsonBuilder();
 		gb.registerTypeAdapter( new TypeToken<List< Transformation >>(){}.getType(), new SourceTransformerListAdapter());
-		gb.registerTypeAdapter( new TypeToken<List< SourceDisplay >>(){}.getType(), new SourceDisplayListAdapter());
+		gb.registerTypeAdapter( new TypeToken<List< Display >>(){}.getType(), new SourceDisplayListAdapter());
 		gb.registerTypeAdapter( new TypeToken< ViewerTransform >(){}.getType(), new ViewerTransformAdapter());
 		//gb.registerTypeAdapter( new TypeToken< MobieBdvSupplier >(){}.getType(), new MobieBdvSupplierAdapter());
 		gb.disableHtmlEscaping();

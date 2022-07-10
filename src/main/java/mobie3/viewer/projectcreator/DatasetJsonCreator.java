@@ -32,7 +32,7 @@ import de.embl.cba.tables.color.ColoringLuts;
 import mobie3.viewer.table.ColumnNames;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
-import mobie3.viewer.display.SourceDisplay;
+import mobie3.viewer.display.Display;
 import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.serialize.DatasetJsonParser;
 import mobie3.viewer.serialize.ImageSource;
@@ -41,6 +41,7 @@ import mobie3.viewer.source.SourceSupplier;
 import mobie3.viewer.source.StorageLocation;
 import mobie3.viewer.table.TableDataFormat;
 import mobie3.viewer.transform.AffineImageTransformation;
+import mobie3.viewer.transform.AffineTransformation;
 import mobie3.viewer.transform.Transformation;
 import mobie3.viewer.view.View;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -198,47 +199,47 @@ public class DatasetJsonCreator {
 
     private List< Transformation > createSourceTransformerList( AffineTransform3D sourceTransform, List<String> sources ) {
         List< Transformation > imageTransformationList = new ArrayList<>();
-        Transformation imageTransformation = new AffineImageTransformation(
+        Transformation imageTransformation = new AffineTransformation(
                 "affine", sourceTransform.getRowPackedCopy(), sources );
         imageTransformationList.add( imageTransformation );
         return imageTransformationList;
     }
     private View createImageView( String imageName, String uiSelectionGroup, boolean isExclusive,
 								  double[] contrastLimits, String colour, AffineTransform3D sourceTransform ) {
-        ArrayList< SourceDisplay > sourceDisplays = new ArrayList<>();
+        ArrayList< Display > displays = new ArrayList<>();
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
 
         ImageDisplay imageDisplay = new ImageDisplay( imageName, 1.0, sources,
                 colour, contrastLimits, null, false );
-        sourceDisplays.add( imageDisplay );
+        displays.add( imageDisplay );
 
         View view;
         if ( sourceTransform.isIdentity() ) {
-            view = new View(uiSelectionGroup, sourceDisplays, null, null, isExclusive);
+            view = new View(uiSelectionGroup, displays, null, null, isExclusive);
         } else {
             List< Transformation > imageTransformationList = createSourceTransformerList( sourceTransform, sources );
-            view = new View( uiSelectionGroup, sourceDisplays, imageTransformationList, null, isExclusive );
+            view = new View( uiSelectionGroup, displays, imageTransformationList, null, isExclusive );
         }
 
         return view;
     }
 
     private View createSegmentationView( String imageName, String uiSelectionGroup, boolean isExclusive, AffineTransform3D sourceTransform ) {
-        ArrayList< SourceDisplay > sourceDisplays = new ArrayList<>();
+        ArrayList< Display > displays = new ArrayList<>();
         ArrayList<String> sources = new ArrayList<>();
         sources.add( imageName );
 
         ArrayList<String> tables = new ArrayList<>();
         tables.add( "default.tsv" );
         SegmentationDisplay segmentationDisplay = new SegmentationDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y }, tables, null );
-        sourceDisplays.add( segmentationDisplay );
+        displays.add( segmentationDisplay );
 
         if ( sourceTransform.isIdentity() ) {
-            return new View( uiSelectionGroup, sourceDisplays, null, null, isExclusive );
+            return new View( uiSelectionGroup, displays, null, null, isExclusive );
         } else {
             List< Transformation > imageTransformationList = createSourceTransformerList( sourceTransform, sources );
-            return new View( uiSelectionGroup, sourceDisplays, imageTransformationList, null, isExclusive );
+            return new View( uiSelectionGroup, displays, imageTransformationList, null, isExclusive );
         }
     }
 

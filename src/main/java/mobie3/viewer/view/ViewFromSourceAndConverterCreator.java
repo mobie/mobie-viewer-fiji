@@ -38,10 +38,11 @@ import mobie3.viewer.bdv.render.BlendingMode;
 import mobie3.viewer.color.LabelConverter;
 import mobie3.viewer.color.OpacityAdjuster;
 import mobie3.viewer.display.ImageDisplay;
-import mobie3.viewer.display.SourceDisplay;
+import mobie3.viewer.display.Display;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.MergedGridSource;
 import mobie3.viewer.transform.AffineImageTransformation;
+import mobie3.viewer.transform.AffineTransformation;
 import mobie3.viewer.transform.Transformation;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
@@ -70,9 +71,9 @@ public class ViewFromSourceAndConverterCreator
 
 	public View getView()
 	{
-		final ArrayList< SourceDisplay > sourceDisplays = new ArrayList<>();
+		final ArrayList< Display > displays = new ArrayList<>();
 		final ArrayList< Transformation > imageTransformations = new ArrayList<>();
-		final View view = new View( "uiSelectionGroup", sourceDisplays, imageTransformations, false );
+		final View view = new View( "uiSelectionGroup", displays, imageTransformations, false );
 
 		// recursively add all transformations
 		// FIXME: in fact this will be the wrong order.
@@ -84,7 +85,7 @@ public class ViewFromSourceAndConverterCreator
 		}
 		else
 		{
-			sourceDisplays.add( new ImageDisplay( sourceAndConverter ) );
+			displays.add( new ImageDisplay( sourceAndConverter ) );
 		}
 
 		return view;
@@ -126,7 +127,7 @@ public class ViewFromSourceAndConverterCreator
 			transformedSource.getFixedTransform( fixedTransform );
 			if ( ! fixedTransform.isIdentity() )
 			{
-				imageTransformations.add( new AffineImageTransformation( transformedSource ) );
+				imageTransformations.add( new AffineTransformation( transformedSource ) );
 			}
 
 			final Source< ? > wrappedSource = transformedSource.getWrappedSource();

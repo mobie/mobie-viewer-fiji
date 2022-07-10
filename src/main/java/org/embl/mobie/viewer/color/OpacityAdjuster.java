@@ -39,7 +39,6 @@ import static net.imglib2.type.numeric.ARGBType.red;
 
 public interface OpacityAdjuster
 {
-
 	void setOpacity( double opacity );
 	double getOpacity();
 

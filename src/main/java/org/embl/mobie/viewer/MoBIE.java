@@ -154,15 +154,6 @@ public class MoBIE
 		openDataset();
 	}
 
-	// TODO: Typing: probably the SAC extends RealType?!
-	public static SourceAndConverter< RealType > replaceConverterByAdjustableOpacityConverter( SourceAndConverter< RealType > sourceAndConverter )
-	{
-		final Converter< RealType, ARGBType > converter = sourceAndConverter.getConverter();
-		final AdjustableOpacityColorConverter adjustableOpacityColorConverter = new AdjustableOpacityColorConverter( converter );
-		final Converter< ? extends Volatile< RealType >, ARGBType > volatileConverter = sourceAndConverter.asVolatile().getConverter();
-		final VolatileAdjustableOpacityColorConverter volatileAdjustableOpacityColorConverter = new VolatileAdjustableOpacityColorConverter( volatileConverter );
-		return new ConverterChanger( sourceAndConverter, adjustableOpacityColorConverter, volatileAdjustableOpacityColorConverter ).get();
-	}
 
 	public void mergeColumnsFromFileSystem( AnnotationDisplay< ? extends TableRow > display )
 	{

@@ -46,7 +46,7 @@ import mobie3.viewer.command.ManualRegistrationCommand;
 import mobie3.viewer.command.ScreenShotMakerCommand;
 import mobie3.viewer.command.ShowRasterImagesCommand;
 import mobie3.viewer.command.SourceAndConverterBlendingModeChangerCommand;
-import mobie3.viewer.display.AbstractSourceDisplay;
+import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.segment.SliceViewAnnotationSelector;
 import mobie3.viewer.source.SourceHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -204,7 +204,7 @@ public class SliceViewer
 		return SwingUtilities.getWindowAncestor( bdvHandle.getViewerPanel() );
 	}
 
-	public void show( SourceAndConverter< ? > sourceAndConverter, AbstractSourceDisplay display )
+	public void show( SourceAndConverter< ? > sourceAndConverter, AbstractDisplay display )
 	{
 		// register
 		SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );

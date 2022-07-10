@@ -42,7 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ImageDisplay< T extends NumericType< T > > extends AbstractSourceDisplay< T >
+public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay< T >
 {
 	// Serialization
 	private List< String > sources;

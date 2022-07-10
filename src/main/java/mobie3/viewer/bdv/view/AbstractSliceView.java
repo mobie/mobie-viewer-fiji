@@ -30,7 +30,7 @@ package mobie3.viewer.bdv.view;
 
 import bdv.viewer.SourceAndConverter;
 import mobie3.viewer.MoBIE;
-import mobie3.viewer.display.AbstractSourceDisplay;
+import mobie3.viewer.display.AbstractDisplay;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.HashMap;
@@ -38,10 +38,10 @@ import java.util.HashMap;
 public abstract class AbstractSliceView implements SliceView
 {
 	protected final MoBIE moBIE;
-	protected final AbstractSourceDisplay< ? > display;
+	protected final AbstractDisplay< ? > display;
 	protected final SliceViewer sliceViewer;
 
-	public AbstractSliceView( MoBIE moBIE, AbstractSourceDisplay< ? > display )
+	public AbstractSliceView( MoBIE moBIE, AbstractDisplay< ? > display )
 	{
 		this.moBIE = moBIE;
 		this.display = display;

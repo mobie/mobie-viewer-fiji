@@ -29,13 +29,13 @@
 package mobie3.viewer.bdv;
 
 import bdv.util.BdvHandle;
-import mobie3.viewer.display.SourceDisplay;
+import mobie3.viewer.display.Display;
 import net.imglib2.FinalRealInterval;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
 import java.util.function.Function;
 
-public class DisplayVisibilityChecker implements Function< SourceDisplay, Boolean >
+public class DisplayVisibilityChecker implements Function< Display, Boolean >
 {
 	private final BdvHandle bdvHandle;
 
@@ -45,7 +45,7 @@ public class DisplayVisibilityChecker implements Function< SourceDisplay, Boolea
 	}
 
 	@Override
-	public Boolean apply( SourceDisplay display )
+	public Boolean apply( Display display )
 	{
 		final FinalRealInterval viewerInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( bdvHandle );
 

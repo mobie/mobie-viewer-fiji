@@ -32,7 +32,7 @@ import mobie3.viewer.MoBIE;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
-import mobie3.viewer.display.SourceDisplay;
+import mobie3.viewer.display.Display;
 import mobie3.viewer.view.View;
 
 import javax.swing.*;
@@ -139,27 +139,27 @@ public class UserInterface
 		return userInterfaceHelper.getGroupingsToViews();
 	}
 
-	public void addSourceDisplay( SourceDisplay sourceDisplay )
+	public void addSourceDisplay( Display display )
 	{
 		MoBIELaf.MoBIELafOn();
-		final JPanel panel = createDisplaySettingPanel( sourceDisplay );
-		showDisplaySettingsPanel( sourceDisplay, panel );
+		final JPanel panel = createDisplaySettingPanel( display );
+		showDisplaySettingsPanel( display, panel );
 		MoBIELaf.MoBIELafOff();
 	}
 
-	private JPanel createDisplaySettingPanel( SourceDisplay sourceDisplay )
+	private JPanel createDisplaySettingPanel( Display display )
 	{
-		if ( sourceDisplay instanceof ImageDisplay )
+		if ( display instanceof ImageDisplay )
 		{
-			return userInterfaceHelper.createImageDisplaySettingsPanel( ( ImageDisplay ) sourceDisplay );
+			return userInterfaceHelper.createImageDisplaySettingsPanel( ( ImageDisplay ) display );
 		}
-		else if ( sourceDisplay instanceof SegmentationDisplay )
+		else if ( display instanceof SegmentationDisplay )
 		{
-			return userInterfaceHelper.createSegmentationDisplaySettingsPanel( ( SegmentationDisplay ) sourceDisplay );
+			return userInterfaceHelper.createSegmentationDisplaySettingsPanel( ( SegmentationDisplay ) display );
 		}
-		else if ( sourceDisplay instanceof RegionDisplay )
+		else if ( display instanceof RegionDisplay )
 		{
-			return userInterfaceHelper.createAnnotatedMaskDisplaySettingsPanel( ( RegionDisplay ) sourceDisplay );
+			return userInterfaceHelper.createRegionDisplaySettingsPanel( ( RegionDisplay ) display );
 		}
 		else
 		{

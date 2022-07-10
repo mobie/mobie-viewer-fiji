@@ -34,7 +34,7 @@ import mobie3.viewer.bdv.view.SliceViewer;
 
 import java.util.Map;
 
-public abstract class AbstractSourceDisplay< T > implements SourceDisplay
+public abstract class AbstractDisplay< T > implements Display
 {
 	// Serialization
 	protected String name;
@@ -43,7 +43,7 @@ public abstract class AbstractSourceDisplay< T > implements SourceDisplay
 	protected BlendingMode blendingMode;
 
 	// Runtime
-	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter; // sources of this display
+	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter; // Sacs of this display
 	public transient SliceViewer sliceViewer;
 
 	@Override

@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.viewer.color.opacity;
 
+import net.imglib2.display.RealARGBColorConverter;
 import org.embl.mobie.viewer.color.OpacityAdjuster;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
@@ -35,85 +36,19 @@ import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 
-public class VolatileAdjustableOpacityColorConverter< V extends Volatile< RealType > > implements ColorConverter, Converter< V, ARGBType >, OpacityAdjuster
+public class VolatileAdjustableOpacityColorConverter< R extends RealType< R >, V extends Volatile< R > > extends AbstractAdjustableOpacityColorConverter< V >
 {
-	private final Converter< V, ARGBType > converter;
-	private final ColorConverter colorConverter;
-	private double opacity = 1.0;
-
-	// TODO: Can't we do this already during loading?!
-	public VolatileAdjustableOpacityColorConverter( Converter< V, ARGBType > converter )
+	public VolatileAdjustableOpacityColorConverter( V volatileType )
 	{
-		this.converter = converter;
-		this.colorConverter = ( ColorConverter ) converter;
+		setConverter( volatileType.get() );
 	}
 
 	@Override
-	public void convert( V realTypeVolatile, ARGBType color )
+	public void convert( V volatileType, ARGBType color )
 	{
-		if ( realTypeVolatile.isValid() && realTypeVolatile.get().getRealDouble() == 0 )
-		{
-			// For the Accumulate projector to know where the source ends
-			color.set( new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) ) );
-		}
-		else
-		{
-			converter.convert( realTypeVolatile, color );
-			OpacityAdjuster.adjustAlpha( color, opacity );
-		}
-	}
+		if ( ! volatileType.isValid() ) return;
 
-	@Override
-	public void setOpacity( double opacity )
-	{
-		this.opacity = opacity;
-	}
-
-	@Override
-	public double getOpacity()
-	{
-		return opacity;
-	}
-
-	@Override
-	public ARGBType getColor()
-	{
-		return colorConverter.getColor();
-	}
-
-	@Override
-	public void setColor( ARGBType c )
-	{
-		colorConverter.setColor( c );
-	}
-
-	@Override
-	public boolean supportsColor()
-	{
-		return colorConverter.supportsColor();
-	}
-
-	@Override
-	public double getMin()
-	{
-		return colorConverter.getMin();
-	}
-
-	@Override
-	public double getMax()
-	{
-		return colorConverter.getMax();
-	}
-
-	@Override
-	public void setMin( double min )
-	{
-		colorConverter.setMin( min );
-	}
-
-	@Override
-	public void setMax( double max )
-	{
-		colorConverter.setMax( max );
+		converter.convert( volatileType.get(), color );
+		OpacityAdjuster.adjustAlpha( color, opacity );
 	}
 }

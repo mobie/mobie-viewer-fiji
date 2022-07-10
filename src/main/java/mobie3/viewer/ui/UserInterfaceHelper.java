@@ -42,11 +42,11 @@ import mobie3.viewer.MoBIEHelper;
 import mobie3.viewer.MoBIEInfo;
 import mobie3.viewer.VisibilityListener;
 import mobie3.viewer.color.OpacityAdjuster;
-import mobie3.viewer.display.AbstractSourceDisplay;
+import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
-import mobie3.viewer.display.SourceDisplay;
+import mobie3.viewer.display.Display;
 import mobie3.viewer.plot.ScatterPlotViewer;
 import mobie3.viewer.transform.MoBIEViewerTransformAdjuster;
 import mobie3.viewer.transform.SliceViewLocationChanger;
@@ -230,7 +230,7 @@ public class UserInterfaceHelper
 		frame.setVisible( true );
 	}
 
-	public JPanel createAnnotatedMaskDisplaySettingsPanel( RegionDisplay display )
+	public JPanel createRegionDisplaySettingsPanel( RegionDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.nameToSourceAndConverter.values() );
@@ -778,7 +778,7 @@ public class UserInterfaceHelper
 		return checkBox;
 	}
 
-	public static JButton createFocusButton( AbstractSourceDisplay sourceDisplay, BdvHandle bdvHandle, List< Source< ? > > sources )
+	public static JButton createFocusButton( AbstractDisplay sourceDisplay, BdvHandle bdvHandle, List< Source< ? > > sources )
 	{
 		JButton button = new JButton( "F" );
 		button.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -875,7 +875,7 @@ public class UserInterfaceHelper
 		}
 	}
 
-	private JButton createRemoveButton( SourceDisplay sourceDisplay )
+	private JButton createRemoveButton( Display display )
 	{
 		JButton removeButton = new JButton( "X" );
 		removeButton.setPreferredSize( PREFERRED_BUTTON_SIZE );
@@ -884,7 +884,7 @@ public class UserInterfaceHelper
 		{
 			// remove the display but do not close the ImgLoader
 			// because some derived sources may currently be shown
-			moBIE.getViewManager().removeSourceDisplay( sourceDisplay, false );
+			moBIE.getViewManager().removeSourceDisplay( display, false );
 		} );
 
 		return removeButton;

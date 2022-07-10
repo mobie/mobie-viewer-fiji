@@ -28,7 +28,7 @@
  */
 package mobie3.viewer.view;
 
-import mobie3.viewer.display.SourceDisplay;
+import mobie3.viewer.display.Display;
 import mobie3.viewer.transform.Transformation;
 import mobie3.viewer.transform.ViewerTransform;
 
@@ -38,25 +38,25 @@ import java.util.List;
 public class View
 {
 	private String uiSelectionGroup;
-	private List< SourceDisplay > sourceDisplays;
+	private List< Display > displays;
 	private List< Transformation > sourceTransforms;
 	private ViewerTransform viewerTransform;
 	private boolean isExclusive = false;
 	private String name;
 
-	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays,
+	public View( String uiSelectionGroup, List< Display > displays,
 				 List< Transformation > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
-		this.sourceDisplays = sourceDisplays;
+		this.displays = displays;
 		this.sourceTransforms = sourceTransforms;
 		this.viewerTransform = viewerTransform;
 		this.isExclusive = isExclusive;
 	}
 
-	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays,
+	public View( String uiSelectionGroup, List< Display > displays,
 				 List< Transformation > sourceTransforms, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
-		this.sourceDisplays = sourceDisplays;
+		this.displays = displays;
 		this.sourceTransforms = sourceTransforms;
 		this.isExclusive = isExclusive;
 	}
@@ -74,12 +74,12 @@ public class View
 			return sourceTransforms;
 	}
 
-	public List< SourceDisplay > getSourceDisplays()
+	public List< Display > getDisplays()
 	{
-		if ( sourceDisplays == null )
+		if ( displays == null )
 			return new ArrayList<>();
 		else
-			return sourceDisplays;
+			return displays;
 	}
 
 	public String getUiSelectionGroup()

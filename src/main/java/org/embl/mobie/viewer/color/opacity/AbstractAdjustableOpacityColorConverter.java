@@ -28,26 +28,77 @@
  */
 package org.embl.mobie.viewer.color.opacity;
 
-import net.imglib2.display.RealARGBColorConverter;
-import net.imglib2.display.ScaledARGBConverter;
-import org.embl.mobie.viewer.color.OpacityAdjuster;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
+import net.imglib2.display.RealARGBColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
+import org.embl.mobie.viewer.color.OpacityAdjuster;
 
-public class AdjustableOpacityColorConverter< R extends RealType< R > > extends AbstractAdjustableOpacityColorConverter< R >
+public abstract class AbstractAdjustableOpacityColorConverter< T > implements OpacityAdjuster, ColorConverter, Converter< T, ARGBType >
 {
-	public AdjustableOpacityColorConverter( R type )
+	protected Converter< RealType, ARGBType > converter;
+	protected ColorConverter colorConverter;
+	protected double opacity = 1.0;
+
+	protected void setConverter( RealType type )
 	{
-		setConverter( type );
+		final double typeMin = Math.max( 0, Math.min( type.getMinValue(), 65535 ) );
+		final double typeMax = Math.max( 0, Math.min( type.getMaxValue(), 65535 ) );
+		this.converter = RealARGBColorConverter.create( type, typeMin, typeMax );
 	}
 
 	@Override
-	public void convert( R realType, ARGBType color )
+	public void setOpacity( double opacity )
 	{
-		converter.convert( realType, color );
-		OpacityAdjuster.adjustAlpha( color, opacity );
+		this.opacity = opacity;
+	}
+
+	@Override
+	public double getOpacity()
+	{
+		return opacity;
+	}
+
+	@Override
+	public ARGBType getColor()
+	{
+		return (( ColorConverter ) converter).getColor();
+	}
+
+	@Override
+	public void setColor( ARGBType c )
+	{
+		(( ColorConverter ) converter).setColor( c );
+	}
+
+	@Override
+	public boolean supportsColor()
+	{
+		return (( ColorConverter ) converter).supportsColor();
+	}
+
+	@Override
+	public double getMin()
+	{
+		return (( ColorConverter ) converter).getMin();
+	}
+
+	@Override
+	public double getMax()
+	{
+		return (( ColorConverter ) converter).getMax();
+	}
+
+	@Override
+	public void setMin( double min )
+	{
+		(( ColorConverter ) converter).setMin( min );
+	}
+
+	@Override
+	public void setMax( double max )
+	{
+		(( ColorConverter ) converter).setMax( max );
 	}
 }

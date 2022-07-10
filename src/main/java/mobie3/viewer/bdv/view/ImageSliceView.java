@@ -35,7 +35,11 @@ import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.display.ImageDisplay;
+import mobie3.viewer.source.Image;
 import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
+import org.embl.mobie.viewer.color.opacity.VolatileAdjustableOpacityColorConverter;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
@@ -62,7 +66,8 @@ public class ImageSliceView extends AbstractSliceView
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter = new HashMap<>();
 		for ( String name : display.getSources() )
 		{
-			sourceNameToSourceAndConverter.put( name, moBIE.sourceNameToSourceAndConverter().get( name ) );
+			final SourceAndConverter sac = createSac( ( Image< ? extends RealType< ? > > ) moBIE.getImage( name ) );
+			sourceNameToSourceAndConverter.put( name, sac );
 		}
 
 		for ( String name : sourceNameToSourceAndConverter.keySet() )
@@ -77,6 +82,15 @@ public class ImageSliceView extends AbstractSliceView
 
 			adaptContrastLimits( sourceAndConverter );
 		}
+	}
+
+	private SourceAndConverter createSac( Image< ? extends RealType< ? > > image )
+	{
+		final AdjustableOpacityColorConverter converter = new AdjustableOpacityColorConverter( image.getSourcePair().getSource().getType() );
+		final VolatileAdjustableOpacityColorConverter volatileConverter = new VolatileAdjustableOpacityColorConverter( image.getSourcePair().getVolatileSource().getType() );
+		final SourceAndConverter vsac = new SourceAndConverter<>( image.getSourcePair().getVolatileSource(), volatileConverter );
+		final SourceAndConverter sac = new SourceAndConverter<>( image.getSourcePair().getSource(), converter, vsac );
+		return sac;
 	}
 
 	private void adaptContrastLimits( SourceAndConverter< ? > sourceAndConverter )

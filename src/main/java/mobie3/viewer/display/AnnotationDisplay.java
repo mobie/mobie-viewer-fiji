@@ -53,7 +53,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AnnotationDisplay< T extends TableRow > extends AbstractSourceDisplay< AnnotationType< T > >
+public abstract class AnnotationDisplay< T extends TableRow > extends AbstractDisplay< AnnotationType< T > >
 {
 	// Serialization
 	protected String lut = ColoringLuts.GLASBEY;

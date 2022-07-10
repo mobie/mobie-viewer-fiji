@@ -39,7 +39,7 @@ import com.google.gson.reflect.TypeToken;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
-import mobie3.viewer.display.SourceDisplay;
+import mobie3.viewer.display.Display;
 import mobie3.viewer.transform.Transformation;
 
 import java.lang.reflect.Type;
@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class SourceDisplayListAdapter implements JsonSerializer< List< SourceDisplay > >, JsonDeserializer< List< SourceDisplay > >
+public class SourceDisplayListAdapter implements JsonSerializer< List< Display > >, JsonDeserializer< List< Display > >
 {
 	private static Map<String, Class> nameToClass = new TreeMap<>();
 	private static Map<String, String> classToName = new TreeMap<>();
@@ -64,7 +64,7 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< SourceDis
 	}
 
 	@Override
-	public List< SourceDisplay > deserialize( JsonElement json, Type typeOfT, JsonDeserializationContext context ) throws JsonParseException
+	public List< Display > deserialize( JsonElement json, Type typeOfT, JsonDeserializationContext context ) throws JsonParseException
 	{
 		List list = new ArrayList< Transformation >();
 		JsonArray ja = json.getAsJsonArray();
@@ -78,21 +78,21 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< SourceDis
 	}
 
 	@Override
-	public JsonElement serialize( List< SourceDisplay > sourceDisplays, Type type, JsonSerializationContext context ) {
+	public JsonElement serialize( List< Display > displays, Type type, JsonSerializationContext context ) {
 		JsonArray ja = new JsonArray();
-		for ( SourceDisplay sourceDisplay: sourceDisplays ) {
-			Map< String, SourceDisplay > nameToSourceDisplay = new HashMap<>();
-			nameToSourceDisplay.put( classToName.get( sourceDisplay.getClass().getName() ), sourceDisplay );
+		for ( Display display : displays ) {
+			Map< String, Display > nameToSourceDisplay = new HashMap<>();
+			nameToSourceDisplay.put( classToName.get( display.getClass().getName() ), display );
 
-			if ( sourceDisplay instanceof ImageDisplay ) {
+			if ( display instanceof ImageDisplay ) {
 				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, ImageDisplay > >() {}.getType() ) );
-			} else if ( sourceDisplay instanceof SegmentationDisplay ) {
+			} else if ( display instanceof SegmentationDisplay ) {
 				ja.add( context.serialize( nameToSourceDisplay , new TypeToken< Map< String, SegmentationDisplay > >() {}.getType() ) );
-			} else if ( sourceDisplay instanceof RegionDisplay ) {
+			} else if ( display instanceof RegionDisplay ) {
 				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, RegionDisplay > >() {}.getType() ) );
 			} else
 			{
-				throw new UnsupportedOperationException( "Could not serialise SourceDisplay of type: " + sourceDisplay.getClass().toString() );
+				throw new UnsupportedOperationException( "Could not serialise SourceDisplay of type: " + display.getClass().toString() );
 			}
 		}
 
