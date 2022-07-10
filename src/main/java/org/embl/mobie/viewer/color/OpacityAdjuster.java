@@ -44,6 +44,10 @@ public interface OpacityAdjuster
 
 	static void adjustOpacity( SourceAndConverter< ? > sourceAndConverter, double opacity )
 	{
+		// TODO:
+		// This can be done with a colorConverter!
+		// alpha can be set via setColor!
+
 		final Converter< ?, ARGBType > converter = sourceAndConverter.getConverter();
 		if ( converter instanceof OpacityAdjuster )
 		{

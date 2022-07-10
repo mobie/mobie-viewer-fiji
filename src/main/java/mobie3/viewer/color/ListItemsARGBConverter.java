@@ -83,7 +83,7 @@ public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBTyp
 		{
 			coloringModel.convert( item, color );
 		}
-		OpacityAdjuster.adjustAlpha( color, opacity );
+		OpacityAdjuster.adjustOpacity( color, opacity );
 	}
 
 	@Override

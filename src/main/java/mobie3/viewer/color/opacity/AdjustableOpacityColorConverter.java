@@ -55,7 +55,7 @@ public class AdjustableOpacityColorConverter implements OpacityAdjuster, ColorCo
 		else
 		{
 			converter.convert( realType, color );
-			OpacityAdjuster.adjustAlpha( color, opacity );
+			OpacityAdjuster.adjustOpacity( color, opacity );
 		}
 	}
 
