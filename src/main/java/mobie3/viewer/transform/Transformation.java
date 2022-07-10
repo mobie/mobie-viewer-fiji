@@ -42,5 +42,4 @@ public interface Transformation
 	 * that should be transformed using this transformer.
 	 */
 	List< String > getTargetImages();
-
 }

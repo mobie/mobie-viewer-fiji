@@ -13,16 +13,19 @@ public class TransformedImage< T > implements Image< T >
 	{
 		this.image = image;
 		this.transformation = transformation;
+
+		// If below call turns out to access
+		// data on disk, one can make this lazy and
+		// only call this once getSourcePair() is called.
+		// For getName() one has to think...maybe it would
+		// be necessary to add a getName( image ) method
+		// to the Transformation.
+		transformedImage = transformation.apply( image );
 	}
 
 	@Override
 	public SourcePair< T > getSourcePair()
 	{
-		if ( transformedImage == null )
-		{
-			transformedImage = transformation.apply( image );
-		}
-
 		return transformedImage.getSourcePair();
 	}
 
