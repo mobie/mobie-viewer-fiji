@@ -28,9 +28,19 @@
  */
 package mobie3.viewer.transform;
 
+import mobie3.viewer.source.Image;
+import mobie3.viewer.source.SourcePair;
 
-public abstract class AbstractImageTransformer implements ImageTransformer
+import java.util.List;
+
+public interface Transformation
 {
-	// Serialisation
-	protected String name;
+	< T > Image< T > apply( Image< T > image );
+
+	/**
+	 * @return a list of the names of all images
+	 * that should be transformed using this transformer.
+	 */
+	List< String > getTargetImages();
+
 }

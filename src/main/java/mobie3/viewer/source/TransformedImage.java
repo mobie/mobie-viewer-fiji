@@ -1,18 +1,18 @@
 package mobie3.viewer.source;
 
-import mobie3.viewer.transform.ImageTransformer;
+import mobie3.viewer.transform.Transformation;
 
 public class TransformedImage< T > implements Image< T >
 {
-	private final Image image;
-	private final ImageTransformer transformer;
+	private final Image< T > image;
+	private final Transformation transformation;
 
 	private Image< T > transformedImage;
 
-	public TransformedImage( Image< T > image, ImageTransformer transformer )
+	public TransformedImage( Image< T > image, Transformation transformation )
 	{
 		this.image = image;
-		this.transformer = transformer;
+		this.transformation = transformation;
 	}
 
 	@Override
@@ -20,7 +20,7 @@ public class TransformedImage< T > implements Image< T >
 	{
 		if ( transformedImage == null )
 		{
-			transformedImage = transformer.transform( image );
+			transformedImage = transformation.apply( image );
 		}
 
 		return transformedImage.getSourcePair();
@@ -30,5 +30,15 @@ public class TransformedImage< T > implements Image< T >
 	public String getName()
 	{
 		return transformedImage.getName();
+	}
+
+	public Transformation getTransformation()
+	{
+		return transformation;
+	}
+
+	public Image< T > getWrappedImage()
+	{
+		return image;
 	}
 }

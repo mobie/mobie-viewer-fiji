@@ -1,11 +1,11 @@
 package mobie3.viewer.source;
 
-import mobie3.viewer.table.AnnData;
-import mobie3.viewer.table.Row;
+import mobie3.viewer.table.SegmentRow;
+import mobie3.viewer.table.SegmentsAnnData;
 import net.imglib2.type.numeric.IntegerType;
 
-public interface AnnotatedImage< T extends IntegerType< T >, A extends Row > extends Image< AnnotationType< A > >
+public interface AnnotatedImage< T extends IntegerType< T >, SR extends SegmentRow > extends Image< AnnotationType< SR > >
 {
 	Image< T > getLabelMask();
-	AnnData< A > getAnnData();
+	SegmentsAnnData< SR > getAnnData();
 }

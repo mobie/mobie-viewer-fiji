@@ -51,18 +51,21 @@ import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.display.SourceDisplay;
 import mobie3.viewer.plot.ScatterPlotViewer;
+import mobie3.viewer.segment.TransformedSegmentRow;
 import mobie3.viewer.select.MoBIESelectionModel;
 import mobie3.viewer.source.AnnotatedImage;
+import mobie3.viewer.source.AnnotatedLabelMask;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.Image;
 import mobie3.viewer.source.SourceAndConverterAndTables;
-import mobie3.viewer.source.TransformedAnnotatedLabelMask;
 import mobie3.viewer.source.TransformedImage;
+import mobie3.viewer.table.SegmentRow;
+import mobie3.viewer.table.SegmentsAnnData;
 import mobie3.viewer.table.TableViewer;
-import mobie3.viewer.transform.AffineImageTransformer;
+import mobie3.viewer.transform.AffineImageTransformation;
 import mobie3.viewer.transform.NormalizedAffineViewerTransform;
 import mobie3.viewer.transform.SliceViewLocationChanger;
-import mobie3.viewer.transform.ImageTransformer;
+import mobie3.viewer.transform.Transformation;
 import mobie3.viewer.transform.TransformHelper;
 import mobie3.viewer.ui.UserInterface;
 import mobie3.viewer.ui.WindowArrangementHelper;
@@ -71,6 +74,7 @@ import mobie3.viewer.volume.ImageVolumeViewer;
 import mobie3.viewer.volume.SegmentsVolumeViewer;
 import mobie3.viewer.volume.UniverseManager;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.IntegerType;
 import org.apache.commons.lang.ArrayUtils;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
@@ -96,7 +100,7 @@ public class ViewManager
 	private final SliceViewer sliceViewer;
 	private final SourceAndConverterService sacService;
 	private List< SourceDisplay > currentSourceDisplays;
-	private List< ImageTransformer > currentTransformers;
+	private List< Transformation > currentTransformers;
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewSaver viewSaver;
@@ -183,7 +187,7 @@ public class ViewManager
 		}
 	}
 
-	private void addManualTransforms( List< ImageTransformer > viewSourceTransforms,
+	private void addManualTransforms( List< Transformation > viewSourceTransforms,
                                       Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
         for ( String sourceName: sourceNameToSourceAndConverter.keySet() ) {
@@ -199,7 +203,7 @@ public class ViewManager
             if ( !fixedTransform.isIdentity() ) {
                 List<String> sources = new ArrayList<>();
                 sources.add( sourceName );
-                viewSourceTransforms.add( new AffineImageTransformer( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
+                viewSourceTransforms.add( new AffineImageTransformation( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
             }
         }
     }
@@ -207,11 +211,11 @@ public class ViewManager
 	public View createCurrentView( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform )
 	{
 		List< SourceDisplay > viewSourceDisplays = new ArrayList<>();
-		List< ImageTransformer > viewSourceTransforms = new ArrayList<>();
+		List< Transformation > viewSourceTransforms = new ArrayList<>();
 
-		for ( ImageTransformer imageTransformer : currentTransformers )
-			if ( ! viewSourceTransforms.contains( imageTransformer ) )
-				viewSourceTransforms.add( imageTransformer );
+		for ( Transformation imageTransformation : currentTransformers )
+			if ( ! viewSourceTransforms.contains( imageTransformation ) )
+				viewSourceTransforms.add( imageTransformation );
 
 		for ( SourceDisplay sourceDisplay : currentSourceDisplays )
 		{
@@ -312,28 +316,30 @@ public class ViewManager
 
 		// transform images
 		// this may create new images with new names
-		final List< ImageTransformer > transformers = view.getImageTransformers();
+		final List< Transformation > transformers = view.getImageTransformers();
 		if ( transformers != null )
 		{
-			for ( ImageTransformer transformer : transformers )
+			for ( Transformation transformation : transformers )
 			{
-				currentTransformers.add( transformer );
+				currentTransformers.add( transformation );
 
 				for ( String name : images.keySet() )
 				{
-					if ( transformer.getTargetImages().contains( name ) )
+					if ( transformation.getTargetImages().contains( name ) )
 					{
 						final Image< ? > image = images.get( name );
 						if ( AnnotatedImage.class.isAssignableFrom( image.getClass() ) )
 						{
-							final AnnotatedImage< ?, ? > annotatedImage = ( AnnotatedImage< ?, ? > ) image;
-							new TransformedAnnotatedLabelMask<>( annotatedImage, transformer );
+							final AnnotatedImage< ? extends IntegerType< ? >, ? extends SegmentRow > annotatedImage = ( AnnotatedImage) image;
+							final TransformedImage< ? extends IntegerType< ? > > transformedLabelMask = new TransformedImage<>( annotatedImage.getLabelMask(), transformation );
+							final SegmentsAnnData< TransformedSegmentRow > annData = annotatedImage.getAnnData().transform( transformation );
 
-
+							final AnnotatedLabelMask< ? extends IntegerType< ? >, ? extends SegmentRow > transformedAnnotatedLabelMask = new AnnotatedLabelMask( transformedLabelMask, annData );
+							images.put( transformedLabelMask.getName(), transformedAnnotatedLabelMask );
 						}
 						else
 						{
-							final TransformedImage< ? > transformedImage = new TransformedImage<>( image, transformer );
+							final TransformedImage< ? > transformedImage = new TransformedImage<>( image, transformation );
 							images.put( transformedImage.getName(), transformedImage );
 						}
 					}
@@ -367,9 +373,9 @@ public class ViewManager
 			}
 		}
 
-		for ( ImageTransformer imageTransformer : view.getImageTransformers() )
+		for ( Transformation imageTransformation : view.getImageTransformers() )
 		{
-			final List< String > sourceTransformerSources = imageTransformer.getTargetImages();
+			final List< String > sourceTransformerSources = imageTransformation.getTargetImages();
 			for ( String source : sourceTransformerSources )
 			{
 				sources.add( source );
@@ -556,16 +562,16 @@ public class ViewManager
 		// remove any sourceTransformers, where none of its relevant sources are displayed
 
 		// create a copy of the currently shown source transformers, so we don't iterate over a list that we modify
-		final ArrayList< ImageTransformer > imageTransformersCopy = new ArrayList<>( this.currentTransformers ) ;
+		final ArrayList< Transformation > imageTransformersCopy = new ArrayList<>( this.currentTransformers ) ;
 
 		Set<String> currentlyDisplayedSources = new HashSet<>();
 		for ( SourceDisplay display: currentSourceDisplays )
 			currentlyDisplayedSources.addAll( display.getSources() );
 
-		for ( ImageTransformer imageTransformer : imageTransformersCopy )
+		for ( Transformation imageTransformation : imageTransformersCopy )
 		{
-			if ( ! currentlyDisplayedSources.stream().anyMatch( s -> imageTransformer.getTargetImages().contains( s ) ) )
-				currentTransformers.remove( imageTransformer );
+			if ( ! currentlyDisplayedSources.stream().anyMatch( s -> imageTransformation.getTargetImages().contains( s ) ) )
+				currentTransformers.remove( imageTransformation );
 		}
 	}
 

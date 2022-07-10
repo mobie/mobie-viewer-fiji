@@ -1,7 +1,7 @@
 package mobie3.viewer.table;
 
 import mobie3.viewer.segment.TransformedSegmentRow;
-import net.imglib2.realtransform.AffineTransform3D;
+import mobie3.viewer.transform.Transformation;
 import net.imglib2.util.Pair;
 
 import java.util.Collection;
@@ -11,15 +11,17 @@ import java.util.List;
 public class TransformedSegmentsTableModel implements SegmentsTableModel< TransformedSegmentRow >
 {
 	private final SegmentsTableModel< ? extends SegmentRow > model;
-	private final AffineTransform3D transform3D;
+	private final Transformation transformation;
 
 	private HashMap< TransformedSegmentRow, Integer > rowToIndex;
 	private HashMap< Integer, TransformedSegmentRow > indexToRow;
 
-	public TransformedSegmentsTableModel( SegmentsTableModel< ? extends SegmentRow > model, AffineTransform3D transform3D )
+	public TransformedSegmentsTableModel( SegmentsTableModel< ? extends SegmentRow > model, Transformation transformation )
 	{
 		this.model = model;
-		this.transform3D = transform3D;
+		this.transformation = transformation;
+		this.rowToIndex = new HashMap<>();
+		this.indexToRow = new HashMap<>();
 	}
 
 	@Override
@@ -39,7 +41,7 @@ public class TransformedSegmentsTableModel implements SegmentsTableModel< Transf
 	{
 		if ( ! indexToRow.containsKey( rowIndex ) )
 		{
-			final TransformedSegmentRow row = new TransformedSegmentRow( model.getRow( rowIndex ), transform3D );
+			final TransformedSegmentRow row = new TransformedSegmentRow( model.getRow( rowIndex ), transformation );
 			rowToIndex.put( row, rowIndex );
 			indexToRow.put( rowIndex, row );
 		}

@@ -4,20 +4,21 @@ import mobie3.viewer.segment.LabelToSegmentMapper;
 import mobie3.viewer.segment.SegmentProvider;
 import mobie3.viewer.table.AnnData;
 import mobie3.viewer.table.SegmentRow;
+import mobie3.viewer.table.SegmentsAnnData;
 import net.imglib2.Volatile;
 import net.imglib2.type.numeric.IntegerType;
 
 public class AnnotatedLabelMask< T extends IntegerType< T >, SR extends SegmentRow > implements AnnotatedImage< T, SR >
 {
 	protected Image< T > labelMask;
-	protected AnnData< SR > annData;
+	protected SegmentsAnnData< SR > annData;
 	protected SourcePair< AnnotationType< SR > > sourcePair;
 
 	public AnnotatedLabelMask()
 	{
 	}
 
-	public AnnotatedLabelMask( Image< T > labelMask, AnnData< SR > annData )
+	public AnnotatedLabelMask( Image< T > labelMask, SegmentsAnnData< SR > annData )
 	{
 		this.labelMask = labelMask;
 		this.annData = annData;
@@ -50,7 +51,7 @@ public class AnnotatedLabelMask< T extends IntegerType< T >, SR extends SegmentR
 	}
 
 	@Override
-	public AnnData< SR > getAnnData()
+	public SegmentsAnnData< SR > getAnnData()
 	{
 		return null;
 	}

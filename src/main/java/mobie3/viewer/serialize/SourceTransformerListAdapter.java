@@ -36,12 +36,12 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
-import mobie3.viewer.transform.AffineImageTransformer;
-import mobie3.viewer.transform.CropImageTransformer;
-import mobie3.viewer.transform.MergedGridImageTransformer;
-import mobie3.viewer.transform.ImageTransformer;
-import mobie3.viewer.transform.TimepointsImageTransformer;
-import mobie3.viewer.transform.TransformedGridImageTransformer;
+import mobie3.viewer.transform.AffineImageTransformation;
+import mobie3.viewer.transform.CropImageTransformation;
+import mobie3.viewer.transform.MergedGridImageTransformation;
+import mobie3.viewer.transform.Transformation;
+import mobie3.viewer.transform.TimepointsImageTransformation;
+import mobie3.viewer.transform.TransformedGridImageTransformation;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -50,28 +50,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class SourceTransformerListAdapter implements JsonSerializer< List< ImageTransformer > >, JsonDeserializer< List< ImageTransformer > >
+public class SourceTransformerListAdapter implements JsonSerializer< List< Transformation > >, JsonDeserializer< List< Transformation > >
 {
 	private static Map<String, Class> nameToClass = new TreeMap<>();
 	private static Map<String, String> classToName = new TreeMap<>();
 
 	static {
-		nameToClass.put("mergedGrid", MergedGridImageTransformer.class);
-		classToName.put( MergedGridImageTransformer.class.getName(), "mergedGrid");
-		nameToClass.put("transformedGrid", TransformedGridImageTransformer.class);
-		classToName.put( TransformedGridImageTransformer.class.getName(), "transformedGrid");
-		nameToClass.put("affine", AffineImageTransformer.class);
-		classToName.put( AffineImageTransformer.class.getName(), "affine");
-		nameToClass.put("timepoints", TimepointsImageTransformer.class);
-		classToName.put( TimepointsImageTransformer.class.getName(), "timepoints");
-		nameToClass.put("crop", CropImageTransformer.class);
-		classToName.put( CropImageTransformer.class.getName(), "crop");
+		nameToClass.put("mergedGrid", MergedGridImageTransformation.class);
+		classToName.put( MergedGridImageTransformation.class.getName(), "mergedGrid");
+		nameToClass.put("transformedGrid", TransformedGridImageTransformation.class);
+		classToName.put( TransformedGridImageTransformation.class.getName(), "transformedGrid");
+		nameToClass.put("affine", AffineImageTransformation.class);
+		classToName.put( AffineImageTransformation.class.getName(), "affine");
+		nameToClass.put("timepoints", TimepointsImageTransformation.class);
+		classToName.put( TimepointsImageTransformation.class.getName(), "timepoints");
+		nameToClass.put("crop", CropImageTransformation.class);
+		classToName.put( CropImageTransformation.class.getName(), "crop");
 	}
 
 	@Override
-	public List< ImageTransformer > deserialize( JsonElement json, Type typeOfT, JsonDeserializationContext context ) throws JsonParseException
+	public List< Transformation > deserialize( JsonElement json, Type typeOfT, JsonDeserializationContext context ) throws JsonParseException
 	{
-		List list = new ArrayList< ImageTransformer >();
+		List list = new ArrayList< Transformation >();
 		JsonArray ja = json.getAsJsonArray();
 
 		for ( JsonElement je : ja )
@@ -83,24 +83,24 @@ public class SourceTransformerListAdapter implements JsonSerializer< List< Image
 	}
 
 	@Override
-	public JsonElement serialize( List< ImageTransformer > imageTransformers, Type type, JsonSerializationContext context ) {
+	public JsonElement serialize( List< Transformation > imageTransformations, Type type, JsonSerializationContext context ) {
 		JsonArray ja = new JsonArray();
-		for ( ImageTransformer imageTransformer : imageTransformers ) {
-			Map< String, ImageTransformer > nameToTransformer = new HashMap<>();
-			nameToTransformer.put( classToName.get( imageTransformer.getClass().getName() ), imageTransformer );
+		for ( Transformation imageTransformation : imageTransformations ) {
+			Map< String, Transformation > nameToTransformer = new HashMap<>();
+			nameToTransformer.put( classToName.get( imageTransformation.getClass().getName() ), imageTransformation );
 
-			if ( imageTransformer instanceof TransformedGridImageTransformer ) {
-				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, TransformedGridImageTransformer > >() {}.getType() ) );
-			} else if ( imageTransformer instanceof AffineImageTransformer ) {
-				ja.add( context.serialize( nameToTransformer , new TypeToken< Map< String, AffineImageTransformer > >() {}.getType() ) );
-			} else if ( imageTransformer instanceof CropImageTransformer ) {
-				ja.add( context.serialize( nameToTransformer , new TypeToken< Map< String, CropImageTransformer > >() {}.getType() ) );
-			} else if ( imageTransformer instanceof MergedGridImageTransformer ) {
-				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, MergedGridImageTransformer > >() {}.getType() ) );
-			} else if ( imageTransformer instanceof TimepointsImageTransformer ) {
-				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, TimepointsImageTransformer > >(){}.getType()) );
+			if ( imageTransformation instanceof TransformedGridImageTransformation ) {
+				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, TransformedGridImageTransformation > >() {}.getType() ) );
+			} else if ( imageTransformation instanceof AffineImageTransformation ) {
+				ja.add( context.serialize( nameToTransformer , new TypeToken< Map< String, AffineImageTransformation > >() {}.getType() ) );
+			} else if ( imageTransformation instanceof CropImageTransformation ) {
+				ja.add( context.serialize( nameToTransformer , new TypeToken< Map< String, CropImageTransformation > >() {}.getType() ) );
+			} else if ( imageTransformation instanceof MergedGridImageTransformation ) {
+				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, MergedGridImageTransformation > >() {}.getType() ) );
+			} else if ( imageTransformation instanceof TimepointsImageTransformation ) {
+				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, TimepointsImageTransformation > >(){}.getType()) );
 			} else {
-				throw new UnsupportedOperationException( "Could not serialise SourceTransformer of type: " + imageTransformer.getClass().toString() );
+				throw new UnsupportedOperationException( "Could not serialise SourceTransformer of type: " + imageTransformation.getClass().toString() );
 			}
 		}
 

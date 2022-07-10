@@ -40,7 +40,7 @@ import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.display.SourceDisplay;
-import mobie3.viewer.transform.ImageTransformer;
+import mobie3.viewer.transform.Transformation;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -66,7 +66,7 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< SourceDis
 	@Override
 	public List< SourceDisplay > deserialize( JsonElement json, Type typeOfT, JsonDeserializationContext context ) throws JsonParseException
 	{
-		List list = new ArrayList< ImageTransformer >();
+		List list = new ArrayList< Transformation >();
 		JsonArray ja = json.getAsJsonArray();
 
 		for (JsonElement je : ja)

@@ -58,7 +58,9 @@ import mobie3.viewer.source.SpimDataImage;
 import mobie3.viewer.source.VolatileAnnotationType;
 import mobie3.viewer.source.VolatileBoundarySource;
 import mobie3.viewer.source.VolatileAnnotatedLabelMaskSource;
+import mobie3.viewer.table.DefaultSegmentsAnnData;
 import mobie3.viewer.table.TableSawAnnData;
+import mobie3.viewer.table.TableSawSegmentRow;
 import mobie3.viewer.table.TableSawSegmentsTableModel;
 import mobie3.viewer.table.TableDataFormat;
 import mobie3.viewer.table.TableHelper;
@@ -316,41 +318,6 @@ public class MoBIE
 		}
 	}
 
-	/*
-	 * Opens "raw" SourceAndConverters.
-	 * Note that they do not yet contain all source transforms that may be applied by a view.
-	 * However, sourceAndConverters obtained via the getSourceAndConverter method
-	 * are containing all the sourceTransforms.
-	 * This can be confusing...
-	 */
-	public Map< String, SourceAndConverter< ? > > openSourceAndConverters( Collection< String > sources )
-	{
-		final long startTime = System.currentTimeMillis();
-
-		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters = new ConcurrentHashMap< >();
-
-		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
-		AtomicInteger sourceIndex = new AtomicInteger(0);
-		final int numImages = sources.size();
-		AtomicInteger sourceLoggingModulo = new AtomicInteger(1);
-		AtomicLong lastLogMillis = new AtomicLong( System.currentTimeMillis() );
-
-		for ( String sourceName : sources )
-		{
-			futures.add(
-					MultiThreading.ioExecutorService.submit( () -> {
-						String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
-						sourceNameToSourceAndConverters.put( sourceName, openSourceAndConverter( sourceName, log ) );
-					}
-				) );
-		}
-		MultiThreading.waitUntilFinished( futures );
-
-		IJ.log( "Opened " + sourceNameToSourceAndConverters.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + MultiThreading.getNumIoThreads() + " thread(s).");
-
-		return sourceNameToSourceAndConverters;
-	}
-
 	private String getLog( AtomicInteger index, int numTotal, AtomicInteger modulo, AtomicLong lastLogMillis )
 	{
 		if ( ( index.incrementAndGet() - 1 ) % modulo.get() == 0  )
@@ -483,44 +450,6 @@ public class MoBIE
 		return dataset.sources.get( sourceName ).get();
 	}
 
-	public < R extends RealType< R > & NumericType< R > > SourceAndConverter< ? > openSourceAndConverter( String sourceName, String log )
-	{
-		// TODO: don't open if that exists already?
-
-		final ImageSource dataSource = getDataSource( sourceName );
-
-		SourceAndConverter< R > sourceAndConverter = readSourceAndConverter( sourceName, log, dataSource );
-
-		if ( dataSource.getClass() == ImageSource.class )
-		{
-			sourceAndConverter = replaceConverterByAdjustableOpacityConverter( (SourceAndConverter) sourceAndConverter );
-		}
-		else if ( dataSource.getClass() == SegmentationSource.class )
-		{
-			// try load primary table (returns null if it does not exist)
-			List< TableRowImageSegment > tableRowImageSegments = tryOpenDefaultSegmentsTable( sourceName );
-
-			// adapter will work lazy if tableRowImageSegments == null
-			final LabelToSegmentMapper< TableRowImageSegment > adapter = new LabelToSegmentMapper<>( tableRowImageSegments );
-
-			// non-volatile
-			final Source< R > spimSource = sourceAndConverter.getSpimSource();
-			final AnnotatedLabelMaskSource< TableRowImageSegment > annotatedLabelMaskSource = new AnnotatedLabelMaskSource( spimSource, adapter );
-			final BoundarySource boundarySource = new BoundarySource( annotatedLabelMaskSource );
-
-			// volatile
-			final Source< ? extends Volatile< R > > volatileSpimSource = sourceAndConverter.asVolatile().getSpimSource();
-			final Source< VolatileAnnotationType< TableRowImageSegment > > volatileSegmentationSource = new VolatileAnnotatedLabelMaskSource( volatileSpimSource, adapter );
-			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSegmentationSource );
-
-			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, new PlaceHolderConverter() );
-
-			// combine v and non-v
-			sourceAndConverter = new SourceAndConverter( boundarySource, new PlaceHolderConverter(), volatileSourceAndConverter );
-		}
-
-		return sourceAndConverter;
-    }
 
 	private List< TableRowImageSegment > tryOpenDefaultSegmentsTable( String sourceName )
 	{
@@ -857,9 +786,9 @@ public class MoBIE
 					final String tablePath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
 
 					final TableSawSegmentsTableModel tableModel = new TableSawSegmentsTableModel( tablePath );
-					final TableSawAnnData annData = new TableSawAnnData( tableModel );
+					final DefaultSegmentsAnnData< TableSawSegmentRow > segmentsAnnData = new DefaultSegmentsAnnData<>( tableModel );
 					tableModel.setColumnPaths( columnPaths );
-					final AnnotatedLabelMask annotatedLabelMask = new AnnotatedLabelMask( image, annData );
+					final AnnotatedLabelMask annotatedLabelMask = new AnnotatedLabelMask( image, segmentsAnnData );
 					images.put( name, annotatedLabelMask );
 				}
 				else

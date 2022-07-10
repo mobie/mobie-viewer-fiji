@@ -29,7 +29,7 @@
 package mobie3.viewer.view;
 
 import mobie3.viewer.display.SourceDisplay;
-import mobie3.viewer.transform.ImageTransformer;
+import mobie3.viewer.transform.Transformation;
 import mobie3.viewer.transform.ViewerTransform;
 
 import java.util.ArrayList;
@@ -39,13 +39,13 @@ public class View
 {
 	private String uiSelectionGroup;
 	private List< SourceDisplay > sourceDisplays;
-	private List< ImageTransformer > sourceTransforms;
+	private List< Transformation > sourceTransforms;
 	private ViewerTransform viewerTransform;
 	private boolean isExclusive = false;
 	private String name;
 
 	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays,
-				 List< ImageTransformer > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
+				 List< Transformation > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;
 		this.sourceTransforms = sourceTransforms;
@@ -54,7 +54,7 @@ public class View
 	}
 
 	public View( String uiSelectionGroup, List< SourceDisplay > sourceDisplays,
-				 List< ImageTransformer > sourceTransforms, boolean isExclusive ) {
+				 List< Transformation > sourceTransforms, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
 		this.sourceDisplays = sourceDisplays;
 		this.sourceTransforms = sourceTransforms;
@@ -66,7 +66,7 @@ public class View
 		return isExclusive;
 	}
 
-	public List< ImageTransformer > getImageTransformers()
+	public List< Transformation > getImageTransformers()
 	{
 		if ( sourceTransforms == null )
 			return new ArrayList<>();
