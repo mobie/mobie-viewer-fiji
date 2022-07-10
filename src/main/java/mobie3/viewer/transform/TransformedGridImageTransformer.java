@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
-public class TransformedGridSourceTransformer extends AbstractSourceTransformer
+public class TransformedGridImageTransformer extends AbstractImageTransformer
 {
 	// Serialization
 	protected List< List< String > > nestedSources;

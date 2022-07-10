@@ -29,7 +29,7 @@
 package mobie3.viewer.transform;
 
 
-public abstract class AbstractSourceTransformer implements SourceTransformer
+public abstract class AbstractImageTransformer implements ImageTransformer
 {
 	// Serialisation
 	protected String name;

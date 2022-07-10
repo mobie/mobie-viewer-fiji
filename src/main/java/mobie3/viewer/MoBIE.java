@@ -831,7 +831,7 @@ public class MoBIE
 		return sourceNameToTableDir;
 	}
 
-	public void initSources( List< String > sources )
+	public HashMap< String, Image< ? > > initImages( List< String > sources )
 	{
 		final HashMap< String, Image< ? > > images = new HashMap<>();
 		for ( String name : sources )
@@ -862,7 +862,6 @@ public class MoBIE
 				else
 				{
 					// Label mask without annotation.
-					// Nothing to be done here.
 					// Create appropriate selection
 					// and coloring model for the label
 					// mask during display.
@@ -875,6 +874,8 @@ public class MoBIE
 				images.put( name, image );
 			}
 		}
+
+		return images;
 	}
 
 	private ArrayList< String > getColumnPaths( SegmentationSource segmentationSource )

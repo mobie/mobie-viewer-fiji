@@ -37,7 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TimepointsSourceTransformer extends AbstractSourceTransformer
+public class TimepointsImageTransformer extends AbstractImageTransformer
 {
 	// Serialisation
 	protected List< List< Integer > > parameters;
@@ -45,11 +45,11 @@ public class TimepointsSourceTransformer extends AbstractSourceTransformer
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
 
-	public TimepointsSourceTransformer( String name, List< List< Integer > > timepoints, boolean keep, List< String > sources ) {
+	public TimepointsImageTransformer( String name, List< List< Integer > > timepoints, boolean keep, List< String > sources ) {
 		this( name, timepoints, keep, sources, null );
 	}
 
-	public TimepointsSourceTransformer( String name, List< List< Integer > > timepoints, boolean keep, List< String > sources, List< String > sourceNamesAfterTransform )
+	public TimepointsImageTransformer( String name, List< List< Integer > > timepoints, boolean keep, List< String > sources, List< String > sourceNamesAfterTransform )
 	{
 		this.name = name;
 		this.parameters = timepoints;

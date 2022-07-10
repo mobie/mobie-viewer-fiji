@@ -35,7 +35,7 @@ import mobie3.viewer.table.SegmentRow;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-// TODO: it would be nice if this would only extend Segment and not Row
+
 public class LabelToSegmentMapper< S extends SegmentRow > implements SegmentProvider< S >
 {
 	private final AnnotationTableModel< S > tableModel;

@@ -52,7 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-public class MergedGridSourceTransformer< T extends NumericType< T > >  extends AbstractSourceTransformer
+public class MergedGridImageTransformer< T extends NumericType< T > >  extends AbstractImageTransformer
 {
 	// Serialization
 	protected List< String > sources;
@@ -147,7 +147,7 @@ public class MergedGridSourceTransformer< T extends NumericType< T > >  extends 
 		final double translationX = gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ];
 		final double translationY = gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ];
 
-		TransformedGridSourceTransformer.translate( sourceNameToSourceAndConverter, transformedSourceNames, null, centerAtOrigin, translationX, translationY );
+		TransformedGridImageTransformer.translate( sourceNameToSourceAndConverter, transformedSourceNames, null, centerAtOrigin, translationX, translationY );
 		addTransformedSources( sourceNameToSourceAndConverter, transformedSourceNames );
 
 		// if there are any, also transform contained sources
@@ -201,7 +201,7 @@ public class MergedGridSourceTransformer< T extends NumericType< T > >  extends 
 
 	private SourceAndConverter< ? > createMergedSourceAndConverter( List< SourceAndConverter< ? > > gridSources, Converter< ?, ARGBType > volatileConverter, Converter< ?, ARGBType > converter )
 	{
-		mergedGridSource = new MergedGridSource( gridSources, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN, encodeSource );
+		mergedGridSource = new MergedGridSource( gridSources, positions, mergedGridSourceName, TransformedGridImageTransformer.RELATIVE_CELL_MARGIN, encodeSource );
 
 		final VolatileSource< ?, ? > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MultiThreading.sharedQueue );
 
@@ -217,13 +217,13 @@ public class MergedGridSourceTransformer< T extends NumericType< T > >  extends 
 		// non volatile
 		final List< Source< T > > source = gridSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() );
 
-		final Source< T > gridSource = new FunctionGridSource( source, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+		final Source< T > gridSource = new FunctionGridSource( source, positions, mergedGridSourceName, TransformedGridImageTransformer.RELATIVE_CELL_MARGIN );
 
 		// volatile
 		final List< ? extends Source< ? extends Volatile< T > > > volatileSources = gridSources.stream().map( sac -> sac.asVolatile().getSpimSource() ).collect( Collectors.toList() );
 
 		// TODO: make volatile version of FunctionGridSource?!
-		final FunctionGridSource volatileGridSource = new FunctionGridSource( volatileSources, positions, mergedGridSourceName, TransformedGridSourceTransformer.RELATIVE_CELL_MARGIN );
+		final FunctionGridSource volatileGridSource = new FunctionGridSource( volatileSources, positions, mergedGridSourceName, TransformedGridImageTransformer.RELATIVE_CELL_MARGIN );
 
 		// combine non-volatile and volatile
 		final SourceAndConverter volatileGridSourceAndConverter = new SourceAndConverter( volatileGridSource, volatileConverter );

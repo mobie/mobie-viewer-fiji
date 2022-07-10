@@ -37,7 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class AffineSourceTransformer extends AbstractSourceTransformer
+public class AffineImageTransformer extends AbstractImageTransformer
 {
 	// Serialisation
 	protected double[] parameters;
@@ -47,11 +47,11 @@ public class AffineSourceTransformer extends AbstractSourceTransformer
 	// Runtime
 	private transient AffineTransform3D affineTransform3D;
 
-	public AffineSourceTransformer( String name, double[] parameters, List< String > sources ) {
+	public AffineImageTransformer( String name, double[] parameters, List< String > sources ) {
 		this( name, parameters, sources, null );
 	}
 
-	public AffineSourceTransformer( String name, double[] parameters, List< String > sources, List< String > sourceNamesAfterTransform )
+	public AffineImageTransformer( String name, double[] parameters, List< String > sources, List< String > sourceNamesAfterTransform )
 	{
 		this.name = name;
 		this.parameters = parameters;
@@ -59,7 +59,7 @@ public class AffineSourceTransformer extends AbstractSourceTransformer
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
 	}
 
-	public AffineSourceTransformer( TransformedSource< ? > transformedSource )
+	public AffineImageTransformer( TransformedSource< ? > transformedSource )
 	{
 		AffineTransform3D fixedTransform = new AffineTransform3D();
 		transformedSource.getFixedTransform( fixedTransform );

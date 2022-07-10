@@ -38,7 +38,7 @@ import sc.fiji.bdvpg.sourceandconverter.transform.SourceResampler;
 import java.util.List;
 import java.util.Map;
 
-public class CropSourceTransformer extends AbstractSourceTransformer
+public class CropImageTransformer extends AbstractImageTransformer
 {
 	protected double[] min;
 	protected double[] max;

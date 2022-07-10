@@ -41,8 +41,8 @@ import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.SourceDisplay;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.MergedGridSource;
-import mobie3.viewer.transform.AffineSourceTransformer;
-import mobie3.viewer.transform.SourceTransformer;
+import mobie3.viewer.transform.AffineImageTransformer;
+import mobie3.viewer.transform.ImageTransformer;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -71,12 +71,12 @@ public class ViewFromSourceAndConverterCreator
 	public View getView()
 	{
 		final ArrayList< SourceDisplay > sourceDisplays = new ArrayList<>();
-		final ArrayList< SourceTransformer > sourceTransformers = new ArrayList<>();
-		final View view = new View( "uiSelectionGroup", sourceDisplays, sourceTransformers, false );
+		final ArrayList< ImageTransformer > imageTransformers = new ArrayList<>();
+		final View view = new View( "uiSelectionGroup", sourceDisplays, imageTransformers, false );
 
 		// recursively add all transformations
 		// FIXME: in fact this will be the wrong order.
-		addSourceTransformers( sourceAndConverter.getSpimSource(), sourceTransformers );
+		addSourceTransformers( sourceAndConverter.getSpimSource(), imageTransformers );
 
 		if ( sourceAndConverter.getConverter() instanceof LabelConverter )
 		{
@@ -112,7 +112,7 @@ public class ViewFromSourceAndConverterCreator
 		blendingMode = ( BlendingMode ) SourceAndConverterServices.getSourceAndConverterService().getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
 	}
 
-	private void addSourceTransformers( Source< ? > source, List< SourceTransformer > sourceTransformers )
+	private void addSourceTransformers( Source< ? > source, List< ImageTransformer > imageTransformers )
 	{
 		if ( source instanceof SpimSource )
 		{
@@ -126,18 +126,18 @@ public class ViewFromSourceAndConverterCreator
 			transformedSource.getFixedTransform( fixedTransform );
 			if ( ! fixedTransform.isIdentity() )
 			{
-				sourceTransformers.add( new AffineSourceTransformer( transformedSource ) );
+				imageTransformers.add( new AffineImageTransformer( transformedSource ) );
 			}
 
 			final Source< ? > wrappedSource = transformedSource.getWrappedSource();
 
-			addSourceTransformers( wrappedSource, sourceTransformers );
+			addSourceTransformers( wrappedSource, imageTransformers );
 		}
 		else if (  source instanceof BoundarySource )
 		{
 			final Source< ? > wrappedSource = (( BoundarySource ) source).getWrappedSource();
 
-			addSourceTransformers( wrappedSource, sourceTransformers );
+			addSourceTransformers( wrappedSource, imageTransformers );
 		}
 		else if (  source instanceof MergedGridSource )
 		{

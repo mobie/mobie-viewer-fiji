@@ -4,7 +4,6 @@ import mobie3.viewer.segment.LabelToSegmentMapper;
 import mobie3.viewer.segment.SegmentProvider;
 import mobie3.viewer.table.AnnotationTableModel;
 import mobie3.viewer.table.SegmentRow;
-import mobie3.viewer.table.TableSawSegmentationTableModel;
 import net.imglib2.type.numeric.integer.IntType;
 
 
@@ -15,10 +14,6 @@ public class AnnotatedLabelMaskImage< S extends SegmentRow > implements Annotate
 	private SourcePair< AnnotationType< S > > sourcePair;
 
 	// TODO:
-	//   - probably give the tableModel in the constructor!
-	//   this may make this class much more flexible
-	//   Check how this works with actually creating the
-	//   image.
 	//   - probably also give a Map< SegmentProperty, ColumnName (String) >
 	public AnnotatedLabelMaskImage( Image< IntType > labelMask, AnnotationTableModel< S > tableModel )
 	{
@@ -43,12 +38,12 @@ public class AnnotatedLabelMaskImage< S extends SegmentRow > implements Annotate
 	@Override
 	public String getName()
 	{
-		return null;
+		return labelMask.getName();
 	}
 
 	@Override
 	public AnnotationTableModel< S > getTable()
 	{
-		return null;
+		return tableModel;
 	}
 }

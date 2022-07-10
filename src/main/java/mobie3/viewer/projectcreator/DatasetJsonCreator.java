@@ -40,8 +40,8 @@ import mobie3.viewer.serialize.SegmentationSource;
 import mobie3.viewer.source.SourceSupplier;
 import mobie3.viewer.source.StorageLocation;
 import mobie3.viewer.table.TableDataFormat;
-import mobie3.viewer.transform.AffineSourceTransformer;
-import mobie3.viewer.transform.SourceTransformer;
+import mobie3.viewer.transform.AffineImageTransformer;
+import mobie3.viewer.transform.ImageTransformer;
 import mobie3.viewer.view.View;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
@@ -196,12 +196,12 @@ public class DatasetJsonCreator {
         dataset.views.put( "default", view );
     }
 
-    private List< SourceTransformer > createSourceTransformerList( AffineTransform3D sourceTransform, List<String> sources ) {
-        List< SourceTransformer > sourceTransformerList = new ArrayList<>();
-        SourceTransformer sourceTransformer = new AffineSourceTransformer(
+    private List< ImageTransformer > createSourceTransformerList( AffineTransform3D sourceTransform, List<String> sources ) {
+        List< ImageTransformer > imageTransformerList = new ArrayList<>();
+        ImageTransformer imageTransformer = new AffineImageTransformer(
                 "affine", sourceTransform.getRowPackedCopy(), sources );
-        sourceTransformerList.add( sourceTransformer );
-        return  sourceTransformerList;
+        imageTransformerList.add( imageTransformer );
+        return imageTransformerList;
     }
     private View createImageView( String imageName, String uiSelectionGroup, boolean isExclusive,
 								  double[] contrastLimits, String colour, AffineTransform3D sourceTransform ) {
@@ -217,8 +217,8 @@ public class DatasetJsonCreator {
         if ( sourceTransform.isIdentity() ) {
             view = new View(uiSelectionGroup, sourceDisplays, null, null, isExclusive);
         } else {
-            List< SourceTransformer > sourceTransformerList = createSourceTransformerList( sourceTransform, sources );
-            view = new View( uiSelectionGroup, sourceDisplays, sourceTransformerList, null, isExclusive );
+            List< ImageTransformer > imageTransformerList = createSourceTransformerList( sourceTransform, sources );
+            view = new View( uiSelectionGroup, sourceDisplays, imageTransformerList, null, isExclusive );
         }
 
         return view;
@@ -237,8 +237,8 @@ public class DatasetJsonCreator {
         if ( sourceTransform.isIdentity() ) {
             return new View( uiSelectionGroup, sourceDisplays, null, null, isExclusive );
         } else {
-            List< SourceTransformer > sourceTransformerList = createSourceTransformerList( sourceTransform, sources );
-            return new View( uiSelectionGroup, sourceDisplays, sourceTransformerList, null, isExclusive );
+            List< ImageTransformer > imageTransformerList = createSourceTransformerList( sourceTransform, sources );
+            return new View( uiSelectionGroup, sourceDisplays, imageTransformerList, null, isExclusive );
         }
     }
 

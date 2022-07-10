@@ -28,18 +28,19 @@
  */
 package mobie3.viewer.transform;
 
-import bdv.viewer.SourceAndConverter;
+import mobie3.viewer.source.Image;
+import mobie3.viewer.source.SourcePair;
 
 import java.util.List;
-import java.util.Map;
 
-public interface SourceTransformer
+public interface ImageTransformer
 {
-	void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter );
+	< T > Image< T > transform( Image< T > image );
 
 	/**
-	 *
-	 * @return a list of the names of all sources that should be transformed using this transformer.
+	 * @return a list of the names of all images
+	 * that should be transformed using this transformer.
 	 */
 	List< String > getSources();
+
 }
