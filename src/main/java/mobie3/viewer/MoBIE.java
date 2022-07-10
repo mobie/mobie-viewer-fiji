@@ -121,7 +121,7 @@ public class MoBIE
 	private String imageRoot;
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
-	private Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
+	private Map< String, Image< ? > > images;
 	private ArrayList< String > projectCommands = new ArrayList<>();;
 	public static int minLogTimeMillis = 100;
 	public static boolean initiallyShowSourceNames = false;
@@ -376,7 +376,7 @@ public class MoBIE
 	{
 		IJ.log("Opening dataset: " + datasetName );
 		sourceNameToImgLoader = new HashMap<>();
-		sourceNameToSourceAndConverter = new ConcurrentHashMap<>();
+		images = new ConcurrentHashMap< String, Image< ? > >();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
 		userInterface = new UserInterface( this );
@@ -723,9 +723,9 @@ public class MoBIE
 		return columns;
 	}
 
-	public Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter()
+	public Map< String, Image< ? > > sourceNameToSourceAndConverter()
 	{
-		return sourceNameToSourceAndConverter;
+		return images;
 	}
 
 	private void appendSegmentsTableColumns( List< ? extends TableRow > tableRows, Map< String, List< String > > additionalTable )
@@ -780,7 +780,7 @@ public class MoBIE
 		}
 
 		sourceNameToImgLoader.remove( sourceName );
-		sourceNameToSourceAndConverter.remove( sourceName );
+		images.remove( sourceName );
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 	}
 
@@ -802,9 +802,9 @@ public class MoBIE
         }
     }
 
-	public void addSourceAndConverters( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverters )
+	public void addImages( HashMap< String, Image< ? > > images )
 	{
-		sourceNameToSourceAndConverter.putAll( sourceNameToSourceAndConverters );
+		this.images.putAll( images );
 	}
 
 	public ArrayList< String > getProjectCommands()

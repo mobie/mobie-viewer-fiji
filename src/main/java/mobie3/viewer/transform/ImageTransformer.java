@@ -41,6 +41,6 @@ public interface ImageTransformer
 	 * @return a list of the names of all images
 	 * that should be transformed using this transformer.
 	 */
-	List< String > getSources();
+	List< String > getTargetImages();
 
 }

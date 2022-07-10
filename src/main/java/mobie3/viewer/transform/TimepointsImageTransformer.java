@@ -104,7 +104,7 @@ public class TimepointsImageTransformer extends AbstractImageTransformer
 	}
 
 	@Override
-	public List< String > getSources()
+	public List< String > getTargetImages()
 	{
 		return sources;
 	}

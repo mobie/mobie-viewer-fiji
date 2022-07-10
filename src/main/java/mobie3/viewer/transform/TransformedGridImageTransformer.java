@@ -68,7 +68,7 @@ public class TransformedGridImageTransformer extends AbstractImageTransformer
 	}
 
 	@Override
-	public List< String > getSources()
+	public List< String > getTargetImages()
 	{
 		final ArrayList< String > allSources = new ArrayList<>();
 		for ( List< String > sourcesAtGridPosition : nestedSources )

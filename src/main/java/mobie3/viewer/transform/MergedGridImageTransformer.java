@@ -194,7 +194,7 @@ public class MergedGridImageTransformer< T extends NumericType< T > >  extends A
 	}
 
 	@Override
-	public List< String > getSources()
+	public List< String > getTargetImages()
 	{
 		return sources;
 	}
