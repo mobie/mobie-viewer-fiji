@@ -77,6 +77,9 @@ public class SliceViewAnnotationSelector< T extends TableRow > implements Runnab
 		final int timePoint = positionProvider.getTimePoint();
 		final RealPoint realPosition = positionProvider.getPositionAsRealPoint();
 
+		// can we get rid of this and just get all Sac from BDV??
+		// ah. no we need the corresponding selection model...!!!
+		// could we get this from the annotationType?
 		final Collection< AnnotationDisplay< T > > annotationDisplays = annotationDisplaySupplier.get();
 
 		for ( AnnotationDisplay< T > annotationDisplay : annotationDisplays )

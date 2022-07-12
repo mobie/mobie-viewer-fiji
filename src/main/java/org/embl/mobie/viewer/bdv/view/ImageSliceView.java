@@ -46,6 +46,9 @@ import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
 public class ImageSliceView extends AbstractSliceView
 {
+	// serialisation
+	public static final String RANDOM_FROM_GLASBEY = "randomFromGlasbey";
+
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	private final ImageDisplay< ? > display;
@@ -85,14 +88,13 @@ public class ImageSliceView extends AbstractSliceView
 		converterSetup.setDisplayRange( display.getContrastLimits()[ 0 ], display.getContrastLimits()[ 1 ] );
 	}
 
-
 	private void adaptColor( SourceAndConverter< ? > sourceAndConverter )
 	{
 		if ( display.getColor() != null )
 		{
 			final String color = display.getColor();
 
-			if ( color.equals( "randomFromGlasbey" ) )
+			if ( color.equals( RANDOM_FROM_GLASBEY ) )
 			{
 				final GlasbeyARGBLut glasbeyARGBLut = new GlasbeyARGBLut();
 				double random = sourceAndConverter.getSpimSource().getName().hashCode() * goldenRatio;

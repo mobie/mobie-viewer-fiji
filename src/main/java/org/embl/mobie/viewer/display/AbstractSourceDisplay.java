@@ -46,7 +46,12 @@ public abstract class AbstractSourceDisplay< T > implements SourceDisplay
 	protected BlendingMode blendingMode;
 
 	// Runtime
-	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter; // sources of this display
+
+	// sources of this display
+	// this list is important to
+	// - adjust the display settings of all sources of this display
+	//   (note that they share the same display settings!)
+	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter;
 	public transient SliceViewer sliceViewer;
 
 	@Override
