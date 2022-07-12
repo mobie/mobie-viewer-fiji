@@ -32,6 +32,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.color.ColorUtils;
+import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.util.CopyUtils;
 import ij.IJ;
@@ -72,7 +73,7 @@ import java.util.stream.Collectors;
 import static de.embl.cba.bdv.utils.BdvUtils.getLevel;
 import static de.embl.cba.tables.Utils.getVoxelSpacings;
 
-public class ImageVolumeViewer
+public class ImageVolumeViewer implements ColoringListener
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -212,27 +213,6 @@ public class ImageVolumeViewer
 	public static void logVoxelSpacing( Source< ? > source, double[] voxelSpacings )
 	{
 		IJ.log( "3D View: Fetching source " + source.getName() + " at " + Arrays.stream( voxelSpacings ).mapToObj( x -> "" + x ).collect( Collectors.joining( ", " ) ) + " micrometer..." );
-	}
-
-	public static < R extends RealType< R > > Content addSourceToUniverse(
-			Image3DUniverse universe,
-			Source< ? > source,
-			double voxelSpacing,
-			int displayType,
-			ARGBType argbType,
-			float transparency,
-			int min,
-			int max )
-	{
-		final Integer level = getLevel( source, voxelSpacing );
-		System.out.println( "3D View: Fetching source " + source.getName() + " at resolution " + voxelSpacing + " micrometer..." );
-		final ImagePlus wrap = createUnsignedByteImagePlus( source, min, max, level );
-		final Content content = universe.addContent( wrap, displayType );
-		content.setTransparency( transparency );
-		content.setLocked( true );
-		content.setColor( new Color3f( ColorUtils.getColor( argbType ) ) );
-		universe.setAutoAdjustView( false );
-		return content;
 	}
 
 	private static < R extends RealType< R > & NativeType< R > > ImagePlus createUnsignedByteImagePlus( Source< ? > source, int min, int max, Integer level )
@@ -390,4 +370,13 @@ public class ImageVolumeViewer
 	}
 
 
+	@Override
+	public void coloringChanged()
+	{
+		for ( Map.Entry< SourceAndConverter, Content > entry : sacToContent.entrySet() )
+		{
+			final ARGBType color = ( ( ColorConverter ) entry.getKey().getConverter() ).getColor();
+			entry.getValue().setColor( new Color3f( ColorUtils.getColor( color ) ) );
+		}
+	}
 }

@@ -35,6 +35,7 @@ import bdv.util.BoundedValueDouble;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
+import de.embl.cba.tables.color.ColoringListener;
 import org.embl.mobie.viewer.*;
 import org.embl.mobie.viewer.display.AbstractSourceDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
@@ -316,7 +317,7 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
 		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
-		panel.add( createColorButton( panel, sourceAndConverters, display.sliceViewer.getBdvHandle() ) );
+		panel.add( createColorButton( panel, sourceAndConverters, display.sliceViewer.getBdvHandle(), display.imageVolumeViewer ) );
 		panel.add( createImageDisplayBrightnessButton( display ) );
 		panel.add( createRemoveButton( display ) );
 		// Checkboxes
@@ -835,7 +836,7 @@ public class UserInterfaceHelper
 		return button;
 	}
 
-	private static JButton createColorButton( JPanel parentPanel, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle )
+	private static JButton createColorButton( JPanel parentPanel, List< SourceAndConverter< ? > > sourceAndConverters, BdvHandle bdvHandle, ColoringListener coloringListener )
 	{
 		JButton colorButton = new JButton( "C" );
 
@@ -853,6 +854,7 @@ public class UserInterfaceHelper
 				new ColorChanger( sourceAndConverter, ColorUtils.getARGBType( color ) ).run();
 			}
 
+			coloringListener.coloringChanged();
 			bdvHandle.getViewerPanel().requestRepaint();
 		} );
 
