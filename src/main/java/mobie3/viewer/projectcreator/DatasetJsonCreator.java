@@ -199,8 +199,7 @@ public class DatasetJsonCreator {
 
     private List< Transformation > createSourceTransformerList( AffineTransform3D sourceTransform, List<String> sources ) {
         List< Transformation > imageTransformationList = new ArrayList<>();
-        Transformation imageTransformation = new AffineTransformation(
-                "affine", sourceTransform.getRowPackedCopy(), sources );
+        Transformation imageTransformation = new AffineTransformation( "affine", sourceTransform.getRowPackedCopy(), sources );
         imageTransformationList.add( imageTransformation );
         return imageTransformationList;
     }

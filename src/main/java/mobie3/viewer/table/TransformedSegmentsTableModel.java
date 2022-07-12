@@ -1,6 +1,6 @@
 package mobie3.viewer.table;
 
-import mobie3.viewer.segment.TransformedSegmentAnnotation;
+import mobie3.viewer.segment.TransformedAnnotatedSegment;
 import mobie3.viewer.transform.Transformation;
 import net.imglib2.util.Pair;
 
@@ -8,15 +8,15 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-public class TransformedSegmentsTableModel implements SegmentsTableModel< TransformedSegmentAnnotation >
+public class TransformedSegmentsTableModel implements SegmentsTableModel< TransformedAnnotatedSegment >
 {
-	private final SegmentsTableModel< ? extends SegmentAnnotation > model;
+	private final SegmentsTableModel< ? extends AnnotatedSegment > model;
 	private final Transformation transformation;
 
-	private HashMap< TransformedSegmentAnnotation, Integer > rowToIndex;
-	private HashMap< Integer, TransformedSegmentAnnotation > indexToRow;
+	private HashMap< TransformedAnnotatedSegment, Integer > rowToIndex;
+	private HashMap< Integer, TransformedAnnotatedSegment > indexToRow;
 
-	public TransformedSegmentsTableModel( SegmentsTableModel< ? extends SegmentAnnotation > model, Transformation transformation )
+	public TransformedSegmentsTableModel( SegmentsTableModel< ? extends AnnotatedSegment > model, Transformation transformation )
 	{
 		this.model = model;
 		this.transformation = transformation;
@@ -25,35 +25,35 @@ public class TransformedSegmentsTableModel implements SegmentsTableModel< Transf
 	}
 
 	@Override
-	public List< String > getColumnNames()
+	public List< String > columnNames()
 	{
-		return model.getColumnNames();
+		return model.columnNames();
 	}
 
 	@Override
-	public Class< ? > getColumnClass( String columnName )
+	public Class< ? > columnClass( String columnName )
 	{
-		return model.getColumnClass( columnName );
+		return model.columnClass( columnName );
 	}
 
 	@Override
-	public int getNumRows()
+	public int numRows()
 	{
-		return model.getNumRows();
+		return model.numRows();
 	}
 
 	@Override
-	public int getRowIndex( TransformedSegmentAnnotation annotation )
+	public int getRowIndex( TransformedAnnotatedSegment annotation )
 	{
 		return rowToIndex.get( annotation );
 	}
 
 	@Override
-	public TransformedSegmentAnnotation getRow( int rowIndex )
+	public TransformedAnnotatedSegment getRow( int rowIndex )
 	{
 		if ( ! indexToRow.containsKey( rowIndex ) )
 		{
-			final TransformedSegmentAnnotation row = new TransformedSegmentAnnotation( model.getRow( rowIndex ), transformation );
+			final TransformedAnnotatedSegment row = new TransformedAnnotatedSegment( model.getRow( rowIndex ), transformation );
 			rowToIndex.put( row, rowIndex );
 			indexToRow.put( rowIndex, row );
 		}
@@ -74,19 +74,19 @@ public class TransformedSegmentsTableModel implements SegmentsTableModel< Transf
 	}
 
 	@Override
-	public Collection< String > getColumnPaths()
+	public Collection< String > columnPaths()
 	{
-		return model.getColumnPaths();
+		return model.columnPaths();
 	}
 
 	@Override
-	public List< String > getLoadedColumnPaths()
+	public List< String > loadedColumnPaths()
 	{
-		return model.getLoadedColumnPaths();
+		return model.loadedColumnPaths();
 	}
 
 	@Override
-	public Pair< Double, Double > getMinMax( String columnName )
+	public Pair< Double, Double > computeMinMax( String columnName )
 	{
 		return null;
 	}

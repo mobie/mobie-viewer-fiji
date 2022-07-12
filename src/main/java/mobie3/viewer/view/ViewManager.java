@@ -51,7 +51,7 @@ import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.display.Display;
 import mobie3.viewer.plot.ScatterPlotViewer;
-import mobie3.viewer.segment.TransformedSegmentAnnotation;
+import mobie3.viewer.segment.TransformedAnnotatedSegment;
 import mobie3.viewer.select.MoBIESelectionModel;
 import mobie3.viewer.source.AnnotatedImage;
 import mobie3.viewer.source.AnnotatedLabelMask;
@@ -59,10 +59,10 @@ import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.Image;
 import mobie3.viewer.source.SourceAndConverterAndTables;
 import mobie3.viewer.source.TransformedImage;
-import mobie3.viewer.table.SegmentAnnotation;
+import mobie3.viewer.table.AnnotatedSegment;
 import mobie3.viewer.table.SegmentsAnnData;
 import mobie3.viewer.table.TableViewer;
-import mobie3.viewer.transform.AffineImageTransformation;
+import mobie3.viewer.transform.AffineTransformation;
 import mobie3.viewer.transform.NormalizedAffineViewerTransform;
 import mobie3.viewer.transform.SliceViewLocationChanger;
 import mobie3.viewer.transform.Transformation;
@@ -121,10 +121,10 @@ public class ViewManager
 
 	private void initScatterPlotViewer( AnnotationDisplay< ? > display )
 	{
-		if ( display.tableRows.size() == 0 ) return;
+		if ( display.tableModel.size() == 0 ) return;
 
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
-		display.scatterPlotViewer = new ScatterPlotViewer( display.tableRows, display.selectionModel, display.selectionColoringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
+		display.scatterPlotViewer = new ScatterPlotViewer( display.tableModel, display.selectionModel, display.selectionColoringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
 		display.selectionColoringModel.listeners().add( display.scatterPlotViewer );
 		display.sliceViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
@@ -141,7 +141,7 @@ public class ViewManager
 		if ( display.getColorByColumn() != null )
 		{
 			// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/795
-			final ColumnColoringModelCreator< TableRowImageSegment > modelCreator = new ColumnColoringModelCreator( display.tableRows.getTableRows() );
+			final ColumnColoringModelCreator< TableRowImageSegment > modelCreator = new ColumnColoringModelCreator( display.tableModel.getTableRows() );
 			final ColoringModel< TableRowImageSegment > coloringModel;
 			String coloringLut = display.getLut();
 
@@ -187,8 +187,7 @@ public class ViewManager
 		}
 	}
 
-	private void addManualTransforms( List< Transformation > viewSourceTransforms,
-                                      Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
+	private void addManualTransforms( List< Transformation > viewSourceTransforms, Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
         for ( String sourceName: sourceNameToSourceAndConverter.keySet() ) {
             Source< ? > source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
@@ -203,7 +202,7 @@ public class ViewManager
             if ( !fixedTransform.isIdentity() ) {
                 List<String> sources = new ArrayList<>();
                 sources.add( sourceName );
-                viewSourceTransforms.add( new AffineImageTransformation( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
+                viewSourceTransforms.add( new AffineTransformation( "manualTransform", fixedTransform.getRowPackedCopy(), sources ) );
             }
         }
     }
@@ -280,7 +279,7 @@ public class ViewManager
 		// display the data
 		final List< Display > displays = view.getDisplays();
 		for ( Display display : displays )
-			showDisplay( display );
+			show( display );
 
 		// adjust viewer transform
 		if ( view.getViewerTransform() == null && currentDisplays.size() > 0 && ( view.isExclusive() || currentDisplays.size() == 1 ) )
@@ -343,7 +342,6 @@ public class ViewManager
 						}
 					}
 				}
-
 			}
 		}
 
@@ -354,13 +352,13 @@ public class ViewManager
 		moBIE.addImages( images );
 	}
 
-	private AnnotatedImage< ? extends IntegerType< ? >, ? extends SegmentAnnotation > transform( Transformation transformation, AnnotatedImage image )
+	private AnnotatedImage< ? extends IntegerType< ? >, ? extends AnnotatedSegment > transform( Transformation transformation, AnnotatedImage image )
 	{
-		final AnnotatedImage< ? extends IntegerType< ? >, ? extends SegmentAnnotation > annotatedImage = image;
+		final AnnotatedImage< ? extends IntegerType< ? >, ? extends AnnotatedSegment > annotatedImage = image;
 		final TransformedImage< ? extends IntegerType< ? > > transformedLabelMask = new TransformedImage<>( annotatedImage.getLabelMask(), transformation );
-		final SegmentsAnnData< TransformedSegmentAnnotation > annData = annotatedImage.getAnnData().transform( transformation );
+		final SegmentsAnnData< TransformedAnnotatedSegment > annData = annotatedImage.getAnnData().transform( transformation );
 
-		final AnnotatedLabelMask< ? extends IntegerType< ? >, ? extends SegmentAnnotation > transformedAnnotatedLabelMask = new AnnotatedLabelMask( transformedLabelMask, annData );
+		final AnnotatedLabelMask< ? extends IntegerType< ? >, ? extends AnnotatedSegment > transformedAnnotatedLabelMask = new AnnotatedLabelMask( transformedLabelMask, annData );
 		return transformedAnnotatedLabelMask;
 	}
 
@@ -394,7 +392,7 @@ public class ViewManager
 		return sources;
 	}
 
-	public synchronized void showDisplay( Display display )
+	public synchronized void show( Display display )
 	{
 		if ( currentDisplays.contains( display ) ) return;
 
@@ -420,7 +418,7 @@ public class ViewManager
 				showRegionDisplay( ( RegionDisplay ) annotationDisplay );
 			}
 
-			if ( annotationDisplay.tableRows != null )
+			if ( annotationDisplay.tableModel != null )
 			{
 				initTableViewer( annotationDisplay );
 				initScatterPlotViewer( annotationDisplay );
@@ -506,7 +504,7 @@ public class ViewManager
 		// set selected segments
 		if ( segmentationDisplay.getSelectedSegmentIds() != null )
 		{
-			final List< TableRowImageSegment > segments = segmentationDisplay.tableRowsAdapter.getSegments( segmentationDisplay.getSelectedSegmentIds() );
+			final List< TableRowImageSegment > segments = segmentationDisplay.segmentMapper.getSegments( segmentationDisplay.getSelectedSegmentIds() );
 			segmentationDisplay.selectionModel.setSelected( segments, true );
 		}
 
@@ -544,7 +542,7 @@ public class ViewManager
 			final AnnotationDisplay< ? > regionDisplay = ( AnnotationDisplay< ? > ) display;
 			regionDisplay.getSliceView().close( closeImgLoader );
 
-			if ( regionDisplay.tableRows != null )
+			if ( regionDisplay.tableModel != null )
 			{
 				regionDisplay.tableViewer.close();
 				numCurrentTables--;

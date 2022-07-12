@@ -31,6 +31,7 @@ package mobie3.viewer.display;
 import bdv.viewer.SourceAndConverter;
 import mobie3.viewer.bdv.render.BlendingMode;
 import mobie3.viewer.bdv.view.SliceViewer;
+import mobie3.viewer.source.AnnotationType;
 
 import java.util.Map;
 
@@ -43,7 +44,7 @@ public abstract class AbstractDisplay< T > implements Display
 	protected BlendingMode blendingMode;
 
 	// Runtime
-	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter; // Sacs of this display
+	public transient Map< String, SourceAndConverter< AnnotationType< T > > > nameToSourceAndConverter; // Sacs of this display
 	public transient SliceViewer sliceViewer;
 
 	@Override

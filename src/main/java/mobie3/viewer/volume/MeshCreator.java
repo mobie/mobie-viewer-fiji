@@ -36,11 +36,13 @@ import de.embl.cba.tables.Utils;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import isosurface.MeshEditor;
 import mobie3.viewer.playground.BdvPlaygroundHelper;
+import mobie3.viewer.segment.Segment;
 import mobie3.viewer.source.AnnotationType;
 import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealInterval;
 import net.imglib2.algorithm.neighborhood.DiamondShape;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
@@ -51,7 +53,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class MeshCreator< I extends ImageSegment >
+public class MeshCreator< S extends Segment >
 {
 	private int meshSmoothingIterations;
 	private double maxNumSegmentVoxels;
@@ -62,11 +64,11 @@ public class MeshCreator< I extends ImageSegment >
 		this.maxNumSegmentVoxels = maxNumSegmentVoxels;
 	}
 
-	private float[] createMesh( I segment, @Nullable double[] targetVoxelSpacing, Source< AnnotationType< I > > source )
+	private float[] createMesh( S segment, @Nullable double[] targetVoxelSpacing, Source< AnnotationType< S > > source )
 	{
 		Integer level = getLevel( segment, source, targetVoxelSpacing );
 
-		final RandomAccessibleInterval< AnnotationType< I > >  rai = source.getSource( segment.timePoint(), level );
+		final RandomAccessibleInterval< AnnotationType< S > >  rai = source.getSource( segment.timePoint(), level );
 		double[] sourceVoxelSpacing = Utils.getVoxelSpacings( source ).get( level );
 
 		if ( segment.boundingBox() == null )
@@ -90,9 +92,9 @@ public class MeshCreator< I extends ImageSegment >
 		{
 			System.err.println( "The segment bounding box " + boundingBox + " is not fully contained in the image interval: " + Arrays.toString( Intervals.minAsLongArray( rai ) ) + "-" +  Arrays.toString( Intervals.maxAsDoubleArray( rai ) ));
 		}
-		final AnnotationType< I > type = source.getType();
-		final AnnotationType< I > variable = type.createVariable();
-		final RandomAccessible< AnnotationType< I > > extendValue = Views.extendValue( rai, variable );
+		final AnnotationType< S > type = source.getType();
+		final AnnotationType< S > variable = type.createVariable();
+		final RandomAccessible< AnnotationType< S > > extendValue = Views.extendValue( rai, variable );
 
 		final MeshExtractor meshExtractor = new MeshExtractor(
 				extendValue,
@@ -118,16 +120,16 @@ public class MeshCreator< I extends ImageSegment >
 		return meshCoordinates;
 	}
 
-	public CustomTriangleMesh createSmoothCustomTriangleMesh( I segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< I > >  source )
+	public CustomTriangleMesh createSmoothCustomTriangleMesh( S segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > >  source )
 	{
 		CustomTriangleMesh triangleMesh = createCustomTriangleMesh( segment, voxelSpacing, recomputeMesh, source );
 		MeshEditor.smooth2( triangleMesh, meshSmoothingIterations );
 		return triangleMesh;
 	}
 
-	private CustomTriangleMesh createCustomTriangleMesh( I segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< I > >  source )
+	private CustomTriangleMesh createCustomTriangleMesh( S segment, double[] voxelSpacing, boolean recomputeMesh, Source< AnnotationType< S > >  source )
 	{
-		if ( segment.getMesh() == null || recomputeMesh )
+		if ( segment.mesh() == null || recomputeMesh )
 		{
 			try
 			{
@@ -142,7 +144,7 @@ public class MeshCreator< I extends ImageSegment >
 			}
 		}
 
-		CustomTriangleMesh triangleMesh = asCustomTriangleMesh( segment.getMesh() );
+		CustomTriangleMesh triangleMesh = asCustomTriangleMesh( segment.mesh() );
 
 		return triangleMesh;
 	}
@@ -164,7 +166,7 @@ public class MeshCreator< I extends ImageSegment >
 		return mesh;
 	}
 
-	private Integer getLevel( ImageSegment segment, Source< ? > labelSource, @Nullable double[] voxelSpacing )
+	private Integer getLevel( S segment, Source< ? > labelSource, @Nullable double[] voxelSpacing )
 	{
 		if ( voxelSpacing != null ) // user determined resolution
 		{
@@ -186,7 +188,7 @@ public class MeshCreator< I extends ImageSegment >
 		}
 	}
 
-	private int getLevel( ImageSegment segment, Source< ? > labelSource )
+	private int getLevel( S segment, Source< ? > labelSource )
 	{
 		final ArrayList< double[] > voxelSpacings = Utils.getVoxelSpacings( labelSource );
 
@@ -208,8 +210,8 @@ public class MeshCreator< I extends ImageSegment >
 	}
 
 	private void computeSegmentBoundingBox(
-			ImageSegment segment,
-			RandomAccessibleInterval< AnnotationType< I > >  rai,
+			S segment,
+			RandomAccessibleInterval< AnnotationType< S > >  rai,
 			double[] voxelSpacing )
 	{
 		final long[] voxelCoordinate = getSegmentLocationInVoxelsUnits( segment, voxelSpacing );
@@ -222,7 +224,7 @@ public class MeshCreator< I extends ImageSegment >
 		floodFill.run( voxelCoordinate );
 		final RandomAccessibleInterval mask = floodFill.getCroppedRegionMask();
 
-		final int numDimensions = segment.numDimensions();
+		final int numDimensions = segment.getAnchor().length;
 		final double[] min = new double[ numDimensions ];
 		final double[] max = new double[ numDimensions ];
 		for ( int d = 0; d < numDimensions; d++ )
@@ -234,18 +236,19 @@ public class MeshCreator< I extends ImageSegment >
 		segment.setBoundingBox( new FinalRealInterval( min, max ) );
 	}
 
-	private static long[] getSegmentLocationInVoxelsUnits(
-			ImageSegment segment,
+	private long[] getSegmentLocationInVoxelsUnits(
+			S segment,
 			double[] calibration )
 	{
-		final long[] voxelCoordinate = new long[ segment.numDimensions() ];
-		for ( int d = 0; d < segment.numDimensions(); d++ )
-			voxelCoordinate[ d ] = ( long ) ( segment.getDoublePosition( d ) / calibration[ d ] );
+		final double[] anchor = segment.getAnchor();
+		final long[] voxelCoordinate = new long[ anchor.length ];
+		for ( int d = 0; d < anchor.length; d++ )
+			voxelCoordinate[ d ] = ( long ) ( anchor[ d ] / calibration[ d ] );
 		return voxelCoordinate;
 	}
 
 	private FinalInterval getIntervalInVoxelUnits(
-			FinalRealInterval realInterval,
+			RealInterval realInterval,
 			double[] calibration )
 	{
 		final long[] min = new long[ 3 ];

@@ -41,6 +41,7 @@ import mobie3.viewer.segment.LabelToSegmentMapper;
 import mobie3.viewer.serialize.SegmentationSource;
 import mobie3.viewer.source.LazySpimSource;
 import mobie3.viewer.source.SourceHelper;
+import mobie3.viewer.table.AnnotatedSegment;
 import mobie3.viewer.table.TableHelper;
 import mobie3.viewer.table.TableRowsTableModel;
 import mobie3.viewer.volume.SegmentsVolumeViewer;
@@ -55,7 +56,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
-public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment >
+public class SegmentationDisplay< AS extends AnnotatedSegment > extends AnnotationDisplay< AS >
 {
 	// Serialization
 	protected List< String > sources;
@@ -65,8 +66,8 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 
 	// Runtime
 	// TODO: below is almost not needed
-	public transient LabelToSegmentMapper< TableRowImageSegment > tableRowsAdapter;
-	public transient SegmentsVolumeViewer< TableRowImageSegment > segmentsVolumeViewer;
+	public transient LabelToSegmentMapper< AS > segmentMapper;
+	public transient SegmentsVolumeViewer< AS > segmentsVolumeViewer;
 	public transient SegmentationSliceView sliceView;
 
 	@Override
@@ -157,7 +158,7 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 	{
 		if ( getTables().size() == 0 ) return;
 
-		tableRows = new TableRowsTableModel<>();
+		tableModel = new TableRowsTableModel<>();
 
 		// TODO: Don't load primary table but get it from the sac!
 		// SourceHelper.unwrapSource( ... , SegmentsSource.class )
@@ -178,14 +179,14 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 					if ( spimSource instanceof LazySpimSource )
 					{
 						( ( LazySpimSource ) spimSource ).getLazySourceAndConverterAndTables().setTableRootDirectory( moBIE.getTableRootDirectory( spimSource.getName() ) );
-						( ( LazySpimSource ) spimSource ).getLazySourceAndConverterAndTables().setTableRows( tableRows );
+						( ( LazySpimSource ) spimSource ).getLazySourceAndConverterAndTables().setTableRows( tableModel );
 						( ( LazySpimSource ) spimSource ).getLazySourceAndConverterAndTables().setPrimaryTable( primaryTable );
 					}
 					else
 					{
 						// TODO: get rid of this?! always use LazySpimSource?
 						final List< TableRowImageSegment > tableRowImageSegments = moBIE.loadImageSegmentsTable( spimSource.getName(), primaryTable, "" );
-						tableRows.addAll( tableRowImageSegments );
+						tableModel.addAll( tableRowImageSegments );
 					}
 				} ) );
 			}
@@ -216,17 +217,17 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 						{
 							// TODO: get rid of this?! always use LazySpimSource?
 							Map< String, List< String > > columns = openTable( tableName, sourceName );
-							tableRows.mergeColumns( columns );
+							tableModel.mergeColumns( columns );
 						}
 					} ) );
 				}
 			}
 		}
 
-		if ( tableRows != null )
-			tableRowsAdapter = new LabelToSegmentMapper( tableRows.getTableRows() );
+		if ( tableModel != null )
+			segmentMapper = new LabelToSegmentMapper( tableModel.getTableRows() );
 		else
-			tableRowsAdapter = new LabelToSegmentMapper();
+			segmentMapper = new LabelToSegmentMapper();
 	}
 
 	@Override
@@ -238,14 +239,14 @@ public class SegmentationDisplay extends AnnotationDisplay< TableRowImageSegment
 		for ( String source : sources )
 		{
 			Map< String, List< String > > columns = openTable( tableFileName, source );
-			tableRows.mergeColumns( columns );
+			tableModel.mergeColumns( columns );
 		}
 	}
 
 	@Override
 	public void mergeColumns( Map< String, List< String > > columns )
 	{
-		tableRows.mergeColumns( columns );
+		tableModel.mergeColumns( columns );
 	}
 
 	private Map< String, List< String > > openTable( String tableFileName, String source )

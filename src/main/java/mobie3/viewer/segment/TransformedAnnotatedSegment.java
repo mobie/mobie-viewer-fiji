@@ -1,44 +1,44 @@
 package mobie3.viewer.segment;
 
-import mobie3.viewer.table.SegmentAnnotation;
+import mobie3.viewer.table.AnnotatedSegment;
 import mobie3.viewer.transform.AffineTransformation;
 import mobie3.viewer.transform.Transformation;
 import net.imglib2.RealInterval;
 
-public class TransformedSegmentAnnotation implements SegmentAnnotation
+public class TransformedAnnotatedSegment implements AnnotatedSegment
 {
-	private final SegmentAnnotation segmentAnnotation;
+	private final AnnotatedSegment annotatedSegment;
 	private final Transformation transformation;
 
-	public TransformedSegmentAnnotation( SegmentAnnotation segmentAnnotation, Transformation transformation )
+	public TransformedAnnotatedSegment( AnnotatedSegment annotatedSegment, Transformation transformation )
 	{
-		this.segmentAnnotation = segmentAnnotation;
+		this.annotatedSegment = annotatedSegment;
 		this.transformation = transformation;
 	}
 
 	@Override
 	public String imageId()
 	{
-		return segmentAnnotation.imageId();
+		return annotatedSegment.imageId();
 	}
 
 	@Override
 	public int labelId()
 	{
-		return segmentAnnotation.labelId();
+		return annotatedSegment.labelId();
 	}
 
 	@Override
 	public int timePoint()
 	{
 		// could be transformed
-		return segmentAnnotation.timePoint();
+		return annotatedSegment.timePoint();
 	}
 
 	@Override
 	public double[] getAnchor()
 	{
-		final double[] anchor = segmentAnnotation.getAnchor();
+		final double[] anchor = annotatedSegment.getAnchor();
 
 		if ( transformation instanceof AffineTransformation )
 		{
@@ -57,11 +57,11 @@ public class TransformedSegmentAnnotation implements SegmentAnnotation
 	{
 		if ( transformation instanceof AffineTransformation )
 		{
-			return ( ( AffineTransformation ) transformation ).getAffineTransform3D().estimateBounds( segmentAnnotation.boundingBox() );
+			return ( ( AffineTransformation ) transformation ).getAffineTransform3D().estimateBounds( annotatedSegment.boundingBox() );
 		}
 		else
 		{
-			return segmentAnnotation.boundingBox();
+			return annotatedSegment.boundingBox();
 		}
 	}
 
@@ -87,6 +87,6 @@ public class TransformedSegmentAnnotation implements SegmentAnnotation
 	@Override
 	public Object getValue( String columnName )
 	{
-		return segmentAnnotation.getValue( columnName );
+		return annotatedSegment.getValue( columnName );
 	}
 }

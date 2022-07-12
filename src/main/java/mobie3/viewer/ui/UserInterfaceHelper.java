@@ -375,7 +375,7 @@ public class UserInterfaceHelper
 		panel.add( createRemoveButton( display ) );
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
-		if ( display.tableRows != null )
+		if ( display.tableModel != null )
 		{
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );

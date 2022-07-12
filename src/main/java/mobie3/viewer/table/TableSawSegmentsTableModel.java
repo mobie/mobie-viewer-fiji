@@ -7,14 +7,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawSegmentAnnotation >
+public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawAnnotatedSegment >
 {
 	protected final String columnsPath;
 	protected Collection< String > columnPaths;
 	protected List< String > loadedColumnPaths;
 
-	private HashMap< TableSawSegmentAnnotation, Integer > annotationToRowIndex;
-	private HashMap< Integer, TableSawSegmentAnnotation > rowIndexToAnnotation;
+	private HashMap< TableSawAnnotatedSegment, Integer > annotationToRowIndex;
+	private HashMap< Integer, TableSawAnnotatedSegment > rowIndexToAnnotation;
 	private Table table;
 
 	public TableSawSegmentsTableModel( String columnsPath )
@@ -25,35 +25,35 @@ public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawS
 	}
 
 	@Override
-	public List< String > getColumnNames()
+	public List< String > columnNames()
 	{
 		return table.columnNames();
 	}
 
 	@Override
-	public Class< ? > getColumnClass( String columnName )
+	public Class< ? > columnClass( String columnName )
 	{
 		return TableSawColumnTypes.typeToClass.get( table.column( columnName ).type() );
 	}
 
 	@Override
-	public int getNumRows()
+	public int numRows()
 	{
 		return table.rowCount();
 	}
 
 	@Override
-	public int getRowIndex( TableSawSegmentAnnotation annotation )
+	public int getRowIndex( TableSawAnnotatedSegment annotation )
 	{
 		return annotationToRowIndex.get( annotation );
 	}
 
 	@Override
-	public TableSawSegmentAnnotation getRow( int rowIndex )
+	public TableSawAnnotatedSegment getRow( int rowIndex )
 	{
 		if ( ! rowIndexToAnnotation.containsKey( rowIndex ) )
 		{
-			final TableSawSegmentAnnotation annotation = new TableSawSegmentAnnotation( table.row( rowIndex ) );
+			final TableSawAnnotatedSegment annotation = new TableSawAnnotatedSegment( table.row( rowIndex ) );
 			annotationToRowIndex.put( annotation, rowIndex );
 			rowIndexToAnnotation.put( rowIndex, annotation );
 		}
@@ -74,19 +74,19 @@ public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawS
 	}
 
 	@Override
-	public Collection< String > getColumnPaths()
+	public Collection< String > columnPaths()
 	{
 		return columnPaths;
 	}
 
 	@Override
-	public List< String > getLoadedColumnPaths()
+	public List< String > loadedColumnPaths()
 	{
 		return loadedColumnPaths;
 	}
 
 	@Override
-	public Pair< Double, Double > getMinMax( String columnName )
+	public Pair< Double, Double > computeMinMax( String columnName )
 	{
 		return null;
 	}

@@ -61,4 +61,11 @@ public abstract class OpacityAdjuster
 		final int value = color.get();
 		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
 	}
+
+	public static double getOpacity( SourceAndConverter< ? > sourceAndConverter )
+	{
+		final ColorConverter colorConverter = ( ColorConverter ) sourceAndConverter.getConverter();
+		final int alpha = alpha( colorConverter.getColor().get() );
+		return alpha / 255.0D;
+	}
 }

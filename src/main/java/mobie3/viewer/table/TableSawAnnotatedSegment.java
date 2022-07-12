@@ -4,14 +4,14 @@ import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import tech.tablesaw.api.Row;
 
-public class TableSawSegmentAnnotation implements SegmentAnnotation
+public class TableSawAnnotatedSegment implements AnnotatedSegment
 {
 	private final Row row;
 	private final int numSegmentDimensions;
 	private RealInterval boundingBox;
 	private float[] mesh;
 
-	public TableSawSegmentAnnotation( Row row )
+	public TableSawAnnotatedSegment( Row row )
 	{
 		this.row = row;
 		this.numSegmentDimensions = row.columnNames().contains( ColumnNames.ANCHOR_Z ) ? 3 : 2;

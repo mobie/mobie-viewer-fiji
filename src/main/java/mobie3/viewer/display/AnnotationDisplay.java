@@ -34,26 +34,25 @@ import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.NumericColoringModel;
-import de.embl.cba.tables.tablerow.TableRow;
 import mobie3.viewer.MoBIE;
-import mobie3.viewer.table.ColumnNames;
 import mobie3.viewer.bdv.render.BlendingMode;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
 import mobie3.viewer.color.OpacityAdjuster;
 import mobie3.viewer.color.SelectionColoringModel;
 import mobie3.viewer.plot.ScatterPlotViewer;
 import mobie3.viewer.select.SelectionModel;
-import mobie3.viewer.source.AnnotationType;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.SourceHelper;
-import mobie3.viewer.table.TableRowsTableModel;
+import mobie3.viewer.table.Annotation;
+import mobie3.viewer.table.AnnotationTableModel;
+import mobie3.viewer.table.ColumnNames;
 import mobie3.viewer.table.TableViewer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AnnotationDisplay< T extends TableRow > extends AbstractDisplay< AnnotationType< T > >
+public abstract class AnnotationDisplay< A extends Annotation > extends AbstractDisplay< A >
 {
 	// Serialization
 	protected String lut = ColoringLuts.GLASBEY;
@@ -72,11 +71,11 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractDi
 
 	// Runtime
 	public transient MoBIE moBIE;
-	public transient SelectionModel< T > selectionModel;
-	public transient SelectionColoringModel< T > selectionColoringModel;
-	public transient TableViewer< T > tableViewer;
-	public transient ScatterPlotViewer< T > scatterPlotViewer;
-	public transient TableRowsTableModel< T > tableRows;
+	public transient SelectionModel< A > selectionModel;
+	public transient SelectionColoringModel< A > selectionColoringModel;
+	public transient TableViewer< A > tableViewer;
+	public transient ScatterPlotViewer< A > scatterPlotViewer;
+	public transient AnnotationTableModel< A > tableModel;
 
 	// Should be overwritten by child classes
 	public AnnotationSliceView< ? > getSliceView()
@@ -143,22 +142,21 @@ public abstract class AnnotationDisplay< T extends TableRow > extends AbstractDi
 		return randomColorSeed;
 	}
 
-	protected void set( AnnotationDisplay<T> annotationDisplay )
+	protected void set( AnnotationDisplay< A > annotationDisplay )
 	{
 		this.name = annotationDisplay.name;
 
-		// Region displays only have one sourceAndConverter
+		// Note that even if there are multiple images shown,
+		// they must have all the same display settings
+		// (this is the definition of them being displayed together)
+		// Thus we can fetch the display settings from any of the
+		// SourceAndConverter
 		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.nameToSourceAndConverter.values().iterator().next();
-
-		if( sourceAndConverter.getConverter() instanceof OpacityAdjuster )
-		{
-			final OpacityAdjuster opacityAdjuster = ( OpacityAdjuster ) sourceAndConverter.getConverter();
-			this.opacity = opacityAdjuster.getOpacity();
-		}
+		this.opacity = OpacityAdjuster.getOpacity( sourceAndConverter );
 
 		this.lut = annotationDisplay.selectionColoringModel.getARGBLutName();
 
-		final ColoringModel<T> wrappedColoringModel = annotationDisplay.selectionColoringModel.getWrappedColoringModel();
+		final ColoringModel< A > wrappedColoringModel = annotationDisplay.selectionColoringModel.getWrappedColoringModel();
 
 		if ( wrappedColoringModel instanceof ColumnColoringModel)
 		{

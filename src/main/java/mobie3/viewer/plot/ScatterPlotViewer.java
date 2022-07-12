@@ -40,15 +40,14 @@ import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.plot.RealPointARGBTypeBiConsumerSupplier;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
-import de.embl.cba.tables.plot.TableRowKDTreeSupplier;
-import de.embl.cba.tables.tablerow.TableRow;
 import ij.IJ;
 import ij.gui.GenericDialog;
+import mobie3.viewer.table.Annotation;
+import mobie3.viewer.table.AnnotationTableModel;
 import mobie3.viewer.table.ColumnNames;
 import mobie3.viewer.VisibilityListener;
 import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.select.SelectionModel;
-import mobie3.viewer.table.TableRowsTableModel;
 import mobie3.viewer.transform.SliceViewLocationChanger;
 import net.imglib2.FinalInterval;
 import net.imglib2.KDTree;
@@ -73,7 +72,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class ScatterPlotViewer< T extends TableRow > implements SelectionListener< T >, ColoringListener, TimePointListener
+public class ScatterPlotViewer< A extends Annotation > implements SelectionListener< A >, ColoringListener, TimePointListener
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -85,33 +84,33 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	private PointSelectionModes pointSelectionMode = PointSelectionModes.Closest;
 	private double selectionRadius = 1.0;
 
-	private final TableRowsTableModel< T > tableRows;
-	private final ColoringModel< T > coloringModel;
-	private final SelectionModel< T > selectionModel;
+	private final AnnotationTableModel< A > tableModel;
+	private final ColoringModel< A > coloringModel;
+	private final SelectionModel< A > selectionModel;
 
 	private String[] selectedColumns;
 	private double[] scaleFactors;
 	private double dotSizeScaleFactor;
 	private BdvHandle bdvHandle;
-	private Map< T, RealPoint > tableRowToRealPoint;
-	private T recentFocus;
+	private Map< A, RealPoint > tableRowToRealPoint;
+	private A recentFocus;
 	private Window window;
-	private NearestNeighborSearchOnKDTree< T > nearestNeighborSearchOnKDTree;
+	private NearestNeighborSearchOnKDTree< A > nearestNeighborSearchOnKDTree;
 	private BdvStackSource< ARGBType > scatterPlotSource;
 	private int currentTimepoint;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	private boolean showColumnSelectionUI = true;
-	private RadiusNeighborSearchOnKDTree< T > radiusNeighborSearchOnKDTree;
+	private RadiusNeighborSearchOnKDTree< A > radiusNeighborSearchOnKDTree;
 
 	public ScatterPlotViewer(
-			TableRowsTableModel< T > tableRows,
-			SelectionModel< T > selectionModel,
-			ColoringModel< T > coloringModel,
+			AnnotationTableModel< A > tableModel,
+			SelectionModel< A > selectionModel,
+			ColoringModel< A > coloringModel,
 			String[] selectedColumns,
 			double[] scaleFactors,
 			double dotSizeScaleFactor )
 	{
-		this.tableRows = tableRows;
+		this.tableModel = tableModel;
 		this.coloringModel = coloringModel;
 		this.selectionModel = selectionModel;
 		this.selectedColumns = selectedColumns;
@@ -126,7 +125,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		{
 			if ( showColumnSelectionUI )
 			{
-				ScatterPlotDialog dialog = new ScatterPlotDialog( getColumnNames(), getSelectedColumns(), scaleFactors, dotSizeScaleFactor );
+				ScatterPlotDialog dialog = new ScatterPlotDialog( tableModel.columnNames().toArray( new String[0] ), getSelectedColumns(), scaleFactors, dotSizeScaleFactor );
 
 				if ( dialog.show() )
 				{
@@ -148,11 +147,6 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		}
 	}
 
-	private String[] getColumnNames()
-	{
-		return tableRows.get( 0 ).getColumnNames().stream().toArray( String[]::new );
-	}
-
 	public void setShowColumnSelectionUI( boolean showColumnSelectionUI ) {
 		this.showColumnSelectionUI = showColumnSelectionUI;
 	}
@@ -164,9 +158,9 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 	private void updateScatterPlotSource( )
 	{
-		List< T > tableRows = getTableRowsForCurrentTimepoint( );
-		TableRowKDTreeSupplier< T > kdTreeSupplier = new TableRowKDTreeSupplier<>( tableRows, selectedColumns, scaleFactors );
-		KDTree< T > kdTree = kdTreeSupplier.get();
+		List< A > annotations = getAnnotationsForCurrentTimePoint( );
+		AnnotationKDTreeSupplier< A > kdTreeSupplier = new AnnotationKDTreeSupplier<>( annotations, selectedColumns, scaleFactors );
+		KDTree< A > kdTree = kdTreeSupplier.get();
 		double[] min = kdTreeSupplier.getMin();
 		double[] max = kdTreeSupplier.getMax();
 		tableRowToRealPoint = kdTreeSupplier.getTableRowToRealPoint();
@@ -196,15 +190,15 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		showInBdv( randomAccessible, FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 ), selectedColumns );
 	}
 
-	private List< T > getTableRowsForCurrentTimepoint( )
+	private List< A > getAnnotationsForCurrentTimePoint( )
 	{
-		if ( tableRows.getColumnNames().contains( ColumnNames.TIMEPOINT  ) )
+		if ( tableModel.columnNames().contains( ColumnNames.TIMEPOINT ) )
 		{
-			return tableRows.stream().filter( t -> Double.parseDouble( t.getCell( ColumnNames.TIMEPOINT ) ) == currentTimepoint ).collect( Collectors.toList() );
+			return tableModel.rows().stream().filter( a -> (int) a.getValue( ColumnNames.TIMEPOINT ) == currentTimepoint ).collect( Collectors.toList() );
 		}
 		else
 		{
-			return tableRows.getTableRows();
+			return tableModel.rows();
 		}
 	}
 
@@ -241,7 +235,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 			( x, y ) -> {
 				SwingUtilities.invokeLater( () ->  {
 
-					ScatterPlotDialog dialog = new ScatterPlotDialog( getColumnNames(), getSelectedColumns(), scaleFactors, dotSizeScaleFactor );
+					ScatterPlotDialog dialog = new ScatterPlotDialog( tableModel.columnNames().toArray( new String[ 0 ] ), getSelectedColumns(), scaleFactors, dotSizeScaleFactor );
 
 					if ( dialog.show() )
 					{
@@ -296,7 +290,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	{
 		if ( pointSelectionMode.equals( PointSelectionModes.Closest ) )
 		{
-			final T selection = searchClosestPoint();
+			final A selection = searchClosestPoint();
 
 			if ( selection != null )
 			{
@@ -310,7 +304,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		}
 		else if ( pointSelectionMode.equals( PointSelectionModes.WithinRadius ) )
 		{
-			final ArrayList< T > selection = searchWithinRadius();
+			final ArrayList< A > selection = searchWithinRadius();
 
 			if ( selection != null )
 			{
@@ -321,7 +315,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 
 	private synchronized void focusClosestPoint()
 	{
-		final T selection = searchClosestPoint();
+		final A selection = searchClosestPoint();
 
 		if ( selection != null )
 		{
@@ -334,7 +328,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		}
 	}
 
-	private T searchClosestPoint(  )
+	private A searchClosestPoint(  )
 	{
 		final RealPoint realPoint = new RealPoint( 3 );
 		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( realPoint );
@@ -343,14 +337,14 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 		return nearestNeighborSearchOnKDTree.getSampler().get();
 	}
 
-	private ArrayList< T > searchWithinRadius(  )
+	private ArrayList< A > searchWithinRadius(  )
 	{
 		final RealPoint realPoint = new RealPoint( 3 );
 		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( realPoint );
 		RealPoint realPoint2d = new RealPoint( realPoint.getDoublePosition( 0 ), realPoint.getDoublePosition( 1 ) );
 		radiusNeighborSearchOnKDTree.search( realPoint2d, selectionRadius, true );
 		final int numNeighbors = radiusNeighborSearchOnKDTree.numNeighbors();
-		final ArrayList< T > neighbors = new ArrayList<>();
+		final ArrayList< A > neighbors = new ArrayList<>();
 		for ( int i = 0; i < numNeighbors; i++ )
 		{
 			neighbors.add( radiusNeighborSearchOnKDTree.getSampler( i ).get() );
@@ -383,8 +377,7 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	{
 		if ( selectedColumns == null )
 		{
-			final String[] columnNames = getColumnNames();
-			selectedColumns = new String[]{ columnNames[ 0 ], columnNames[ 1 ] };
+			selectedColumns = new String[]{ tableModel.columnNames().get( 0 ), tableModel.columnNames().get( 1 ) };
 		}
 		return selectedColumns;
 	}
@@ -419,16 +412,16 @@ public class ScatterPlotViewer< T extends TableRow > implements SelectionListene
 	}
 
 	@Override
-	public void focusEvent( T selection, Object initiator )
+	public void focusEvent( A selection, Object initiator )
 	{
 		if ( bdvHandle == null ) return;
 
-		if ( selection.getColumnNames().contains( ColumnNames.TIMEPOINT  ) )
+		if ( tableModel.columnNames().contains( ColumnNames.TIMEPOINT  ) )
 		{
-			int selectedTimepoint = (int) Double.parseDouble( selection.getCell( ColumnNames.TIMEPOINT ) );
-			if ( selectedTimepoint != currentTimepoint )
+			int selectedTimePoint = (int) selection.getValue( ColumnNames.TIMEPOINT );
+			if ( selectedTimePoint != currentTimepoint )
 			{
-				currentTimepoint = selectedTimepoint;
+				currentTimepoint = selectedTimePoint;
 				updateScatterPlotSource();
 			}
 		}

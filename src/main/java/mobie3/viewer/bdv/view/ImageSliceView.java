@@ -70,7 +70,7 @@ public class ImageSliceView extends AbstractSliceView
 		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter = new HashMap<>();
 		for ( String name : display.getSources() )
 		{
-			final SourceAndConverter sac = createSac( ( Image< ? extends RealType< ? > > ) moBIE.getImage( name ) );
+			final SourceAndConverter sac = createSac( moBIE.getImage( name ) );
 			sourceNameToSourceAndConverter.put( name, sac );
 		}
 

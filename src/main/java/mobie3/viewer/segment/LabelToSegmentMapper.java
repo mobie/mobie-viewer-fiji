@@ -29,36 +29,38 @@
 package mobie3.viewer.segment;
 
 import mobie3.viewer.table.AnnData;
-import mobie3.viewer.table.SegmentAnnotation;
+import mobie3.viewer.table.AnnotatedSegment;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public class LabelToSegmentMapper< S extends SegmentAnnotation > implements SegmentProvider< S >
+public class LabelToSegmentMapper< AS extends AnnotatedSegment > implements SegmentProvider< AS >
 {
-	private final AnnData< S > annData;
-	private Map< Label, S > labelToSegment;
+	private final AnnData< AS > annData;
+	private Map< Label, AS > labelToSegment;
 
-	public LabelToSegmentMapper( AnnData< S > annData )
+	public LabelToSegmentMapper( AnnData< AS > annData )
 	{
 		this.annData = annData;
 	}
 
-	public S getSegment( int labelId, int t, String imageId )
+	public AS getSegment( int labelId, int t, String imageId )
 	{
+		final Label label = new Label( labelId, t, imageId );
+
 		if ( labelToSegment == null )
 		{
 			initMapping();
 		}
 
-		final Label label = new Label( labelId, t, imageId );
-
 		return labelToSegment.get( label  );
 	}
 
 	@Override
-	public S createVariable()
+	public AS createVariable()
 	{
 		// TODO: is this OK?
 		//  or do we need to create a copy of that?
@@ -68,12 +70,26 @@ public class LabelToSegmentMapper< S extends SegmentAnnotation > implements Segm
 	private synchronized void initMapping()
 	{
 		labelToSegment = new ConcurrentHashMap<>();
-		final int numRows = annData.getTable().getNumRows();
+		final int numRows = annData.getTable().numRows();
 		for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
 		{
-			S segment = annData.getTable().getRow( rowIndex );
+			AS segment = annData.getTable().getRow( rowIndex );
 			final Label label = new Label( segment.labelId(), segment.timePoint(), segment.imageId() );
 			labelToSegment.put( label, segment );
 		}
+	}
+
+	public List< AS > getSegments( List< String > serialisedSegments )
+	{
+		final ArrayList< AS > segments = new ArrayList<>();
+		for ( String serialisedSegment : serialisedSegments )
+		{
+			final String[] split = serialisedSegment.split( ";" );
+			final int labelId = Integer.parseInt( split[ 2 ] );
+			final int timePoint = Integer.parseInt( split[ 1 ] );
+			final String imageId = split[ 0 ];
+			segments.add( getSegment( labelId, timePoint, imageId ) );
+		}
+		return segments;
 	}
 }

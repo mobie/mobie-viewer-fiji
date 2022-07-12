@@ -2,12 +2,12 @@ package mobie3.viewer.source;
 
 import mobie3.viewer.segment.LabelToSegmentMapper;
 import mobie3.viewer.segment.SegmentProvider;
-import mobie3.viewer.table.SegmentAnnotation;
+import mobie3.viewer.table.AnnotatedSegment;
 import mobie3.viewer.table.SegmentsAnnData;
 import net.imglib2.Volatile;
 import net.imglib2.type.numeric.IntegerType;
 
-public class AnnotatedLabelMask< T extends IntegerType< T >, SR extends SegmentAnnotation > implements AnnotatedImage< T, SR >
+public class AnnotatedLabelMask< T extends IntegerType< T >, SR extends AnnotatedSegment > implements AnnotatedImage< T, SR >
 {
 	protected Image< T > labelMask;
 	protected SegmentsAnnData< SR > annData;

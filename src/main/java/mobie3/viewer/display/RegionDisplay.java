@@ -147,15 +147,15 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 		System.out.println("Creating regions for " + name + "..." );
 		final RegionCreator regionCreator = new RegionCreator( tableColumns.get( 0 ), sources, ( String sourceName ) -> moBIE.sourceNameToSourceAndConverter().get( sourceName ) );
 		final List< RegionTableRow > regionTableRows = regionCreator.getRegionTableRows();
-		tableRows = new TableRowsTableModel( regionTableRows );
+		tableModel = new TableRowsTableModel( regionTableRows );
 
 		// optional secondary table(s)
 		for ( int i = 1; i < tableColumns.size(); ++i )
 		{
-			tableRows.mergeColumns( tableColumns.get( i ) );
+			tableModel.mergeColumns( tableColumns.get( i ) );
 		}
 
-		tableRowsAdapter = new RegionsAdapter( tableRows.getTableRows() );
+		tableRowsAdapter = new RegionsAdapter( tableModel.getTableRows() );
 	}
 
 	private Map< String, List< String > > openTable( String table )
@@ -184,12 +184,12 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 	public void mergeColumns( String tableFileName )
 	{
 		final Map< String, List< String > > columns = openTable( tableFileName );
-		tableRows.mergeColumns( columns );
+		tableModel.mergeColumns( columns );
 	}
 
 	@Override
 	public void mergeColumns( Map< String, List< String > > columns )
 	{
-		tableRows.mergeColumns( columns );
+		tableModel.mergeColumns( columns );
 	}
 }

@@ -19,9 +19,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class TableRowsTableModel < T extends TableRow > implements TableModel, Iterable< T >
+public class TableRowsTableModel < A extends Annotation > implements TableModel, Iterable< A >
 {
-	private List< T > tableRows;
+	private List< A > tableRows;
 	private Map< String, Class > columnNameToClass;
 	protected final Listeners.SynchronizedList< TableModelListener > listeners = new Listeners.SynchronizedList<>( );
 	private List< String > columnNames;
@@ -31,7 +31,7 @@ public class TableRowsTableModel < T extends TableRow > implements TableModel, I
 		tableRows = new ArrayList<>();
 	}
 
-	public TableRowsTableModel( List< T > tableRows )
+	public TableRowsTableModel( List< A > tableRows )
 	{
 		this.tableRows = tableRows;
 		configureColumns();
@@ -158,7 +158,7 @@ public class TableRowsTableModel < T extends TableRow > implements TableModel, I
 			return "None"; // for text
 	}
 
-	public synchronized void addAll( List< T > tableRows )
+	public synchronized void addAll( List< A > tableRows )
 	{
 		if ( this.tableRows.size() == 0 )
 		{
@@ -182,7 +182,7 @@ public class TableRowsTableModel < T extends TableRow > implements TableModel, I
 //		}
 	}
 
-	class TableRowsIterator implements Iterator< T >
+	class TableRowsIterator implements Iterator< A >
 	{
 		int index = 0;
 
@@ -193,13 +193,13 @@ public class TableRowsTableModel < T extends TableRow > implements TableModel, I
 			return index < getRowCount();
 		}
 
-		public T next() {
+		public A next() {
 			return get(index++);
 		}
 	}
 
 	// useless we have getTableRows
-	public int indexOf( T tableRow )
+	public int indexOf( A tableRow )
 	{
 		return tableRows.indexOf( tableRow );
 	}
@@ -211,7 +211,7 @@ public class TableRowsTableModel < T extends TableRow > implements TableModel, I
 
 	// it may be better to avoid this and instead use
 	// this whole class as a list
-	public List< T > getTableRows()
+	public List< A > getTableRows()
 	{
 		return tableRows;
 	}
@@ -237,10 +237,10 @@ public class TableRowsTableModel < T extends TableRow > implements TableModel, I
 		return Collections.unmodifiableList( columnNames );
 	}
 
-	public Stream< T > stream()
+	public Stream< A > stream()
 	{
-		final Iterator< T > iterator = tableRows.iterator();
-		final Stream< T > stream = Streams.stream( iterator );
+		final Iterator< A > iterator = tableRows.iterator();
+		final Stream< A > stream = Streams.stream( iterator );
 		return stream;
 	}
 
@@ -330,7 +330,7 @@ public class TableRowsTableModel < T extends TableRow > implements TableModel, I
 	}
 
 	@Override
-	public Iterator<T> iterator() {
+	public Iterator< A > iterator() {
 		return new TableRowsIterator();
 	}
 
@@ -344,7 +344,7 @@ public class TableRowsTableModel < T extends TableRow > implements TableModel, I
 		return listeners;
 	}
 
-	public T get( int index )
+	public A get( int index )
 	{
 		return tableRows.get( index );
 	}

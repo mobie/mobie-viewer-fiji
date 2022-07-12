@@ -74,7 +74,7 @@ public class SegmentationSliceView< N extends NumericType< N > & RealType< N > >
 		// TODO: only do the converter stuff here, the rest will be done during opening!
 
 		// TODO: in fact this could contain more table rows than needed...
-		final LabelToSegmentMapper< TableRowImageSegment > adapter = new LabelToSegmentMapper<>( display.tableRows.getTableRows() );
+		final LabelToSegmentMapper< TableRowImageSegment > adapter = new LabelToSegmentMapper<>( display.tableModel.getTableRows() );
 
 		// volatile
 		final Source< ? extends Volatile< N > > volatileSpimSource = sourceAndConverter.asVolatile().getSpimSource();

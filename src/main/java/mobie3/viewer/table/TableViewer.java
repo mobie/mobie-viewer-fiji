@@ -39,7 +39,6 @@ import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
-import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowListener;
 import ij.gui.GenericDialog;
 import mobie3.viewer.MoBIE;
@@ -67,26 +66,26 @@ import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_
 import static org.embl.mobie.viewer.MoBIEHelper.FileLocation;
 import static org.embl.mobie.viewer.MoBIEHelper.loadFromProjectOrFileSystemDialog;
 
-public class TableViewer< T extends TableRow > implements SelectionListener< T >, ColoringListener, TableRowListener
+public class TableViewer< A extends Annotation > implements SelectionListener< A >, ColoringListener, TableRowListener
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	private final MoBIE moBIE;
-	private final TableRowsTableModel< T > tableRows;
-	private final SelectionModel< T > selectionModel;
-	private final SelectionColoringModel< T > coloringModel;
+	private final TableRowsTableModel< A > tableRows;
+	private final SelectionModel< A > selectionModel;
+	private final SelectionColoringModel< A > coloringModel;
 	private final String tableName;
-	private final AnnotationDisplay< T > display;
+	private final AnnotationDisplay< A > display;
 	private JTable jTable;
 
 	private int recentlySelectedRowInView;
-	private ColumnColoringModelCreator< T > columnColoringModelCreator;
+	private ColumnColoringModelCreator< A > columnColoringModelCreator;
 	private ArrayList< String > additionalTables = new ArrayList<>();; // tables from which additional columns are loaded
 	private boolean hasColumnsFromTablesOutsideProject; // whether additional columns have been loaded from tables outside the project
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
 
 	// TODO: this is only for the annotator (maybe move it there)
-	private Map< String, CategoryTableRowColumnColoringModel< T > > columnNameToColoringModel = new HashMap<>(  );
+	private Map< String, CategoryTableRowColumnColoringModel< A > > columnNameToColoringModel = new HashMap<>(  );
 
 	private boolean controlDown;
 	private JFrame frame;
@@ -98,11 +97,11 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		ToggleSelectionAndFocusIfSelected
 	}
 
-	public TableViewer( MoBIE moBIE, AnnotationDisplay< T > display )
+	public TableViewer( MoBIE moBIE, AnnotationDisplay< A > display )
 	{
 		this.moBIE = moBIE;
 		this.display = display;
-		this.tableRows = display.tableRows;
+		this.tableRows = display.tableModel;
 		this.coloringModel = display.selectionColoringModel;
 		this.selectionModel = display.selectionModel;
 		this.tableName = display.getName();
@@ -309,7 +308,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 //		}
 
 		final ARGBType argbType = new ARGBType();
-		final T tableRow = tableRows.get( row );
+		final A tableRow = tableRows.get( row );
 		coloringModel.convert( tableRow, argbType );
 
 		if ( ARGBType.alpha( argbType.get() ) == 0 )
@@ -547,7 +546,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		});
 	}
 
-	private void selectRows( List<T> selectedTableRows, List<T> notSelectedTableRows ) {
+	private void selectRows( List< A > selectedTableRows, List< A > notSelectedTableRows ) {
 		selectionModel.setSelected( selectedTableRows, true );
 		selectionModel.setSelected( notSelectedTableRows, false );
 	}
@@ -577,9 +576,9 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			}
 		}
 
-		ArrayList<T> selectedTableRows = new ArrayList<>();
-		ArrayList<T> notSelectedTableRows = new ArrayList<>();
-		for( T tableRow: tableRows ) {
+		ArrayList< A > selectedTableRows = new ArrayList<>();
+		ArrayList< A > notSelectedTableRows = new ArrayList<>();
+		for( A tableRow: tableRows ) {
 			String tableValue = tableRow.getCell( columnName );
 			boolean valuesMatch;
 
@@ -616,9 +615,9 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		final String columnName = gd.getNextChoice();
 		final double value = gd.getNextNumber();
 
-		ArrayList<T> selectedTableRows = new ArrayList<>();
-		ArrayList<T> notSelectedTableRows = new ArrayList<>();
-		for( T tableRow: tableRows ) {
+		ArrayList< A > selectedTableRows = new ArrayList<>();
+		ArrayList< A > notSelectedTableRows = new ArrayList<>();
+		for( A tableRow: tableRows ) {
 
 			boolean criteriaMet;
 			if ( greaterThan ) {
@@ -667,7 +666,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	{
 		if ( ! columnNameToColoringModel.containsKey( columnName ) )
 		{
-			final CategoryTableRowColumnColoringModel< T > categoricalColoringModel = columnColoringModelCreator.createCategoricalColoringModel( columnName, false, new GlasbeyARGBLut(), DARK_GREY );
+			final CategoryTableRowColumnColoringModel< A > categoricalColoringModel = columnColoringModelCreator.createCategoricalColoringModel( columnName, false, new GlasbeyARGBLut(), DARK_GREY );
 			columnNameToColoringModel.put( columnName, categoricalColoringModel );
 		}
 
@@ -755,7 +754,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 				final int row = jTable.convertRowIndexToModel( recentlySelectedRowInView );
 
-				final T object = tableRows.get( row );
+				final A object = tableRows.get( row );
 
 				tableRowSelectionMode = controlDown ? TableRowSelectionMode.ToggleSelectionAndFocusIfSelected : TableRowSelectionMode.FocusOnly;
 
@@ -778,7 +777,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		recentlySelectedRowInView = r;
 	}
 
-	private synchronized void moveToSelectedTableRow( T selection )
+	private synchronized void moveToSelectedTableRow( A selection )
 	{
 		final int rowInView = jTable.convertRowIndexToView( tableRows.indexOf( selection ) );
 
@@ -826,7 +825,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 		Logger.info( " "  );
 		Logger.info( "Value, R, G, B"  );
 
-		for ( T tableRow : tableRows )
+		for ( A tableRow : tableRows )
 		{
 			final String value = tableRow.getCell( coloringColumnName );
 
@@ -839,7 +838,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	public String getColoringColumnName()
 	{
-		final ColoringModel< T > coloringModel = this.coloringModel.getWrappedColoringModel();
+		final ColoringModel< A > coloringModel = this.coloringModel.getWrappedColoringModel();
 
 		if ( coloringModel instanceof ColumnColoringModel )
 		{
@@ -864,7 +863,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 
 	public void showColorByColumnDialog()
 	{
-		final ColoringModel< T > coloringModel = columnColoringModelCreator.showDialog();
+		final ColoringModel< A > coloringModel = columnColoringModelCreator.showDialog();
 
 		if ( coloringModel != null )
 			this.coloringModel.setColoringModel( coloringModel );
@@ -887,7 +886,7 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 	}
 
 	@Override
-	public synchronized void focusEvent( T selection, Object initiator )
+	public synchronized void focusEvent( A selection, Object initiator )
 	{
 		SwingUtilities.invokeLater( () -> moveToSelectedTableRow( selection ) );
 	}

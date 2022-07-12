@@ -47,11 +47,11 @@ public class AffineTransformation extends AbstractTransformation
 	// Runtime
 	private transient AffineTransform3D affineTransform3D;
 
-	public AffineImageTransformation( String name, double[] parameters, List< String > sources ) {
+	public AffineTransformation( String name, double[] parameters, List< String > sources ) {
 		this( name, parameters, sources, null );
 	}
 
-	public AffineImageTransformation( String name, double[] parameters, List< String > sources, List< String > sourceNamesAfterTransform )
+	public AffineTransformation( String name, double[] parameters, List< String > sources, List< String > sourceNamesAfterTransform )
 	{
 		this.name = name;
 		this.parameters = parameters;
@@ -59,7 +59,7 @@ public class AffineTransformation extends AbstractTransformation
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
 	}
 
-	public AffineImageTransformation( TransformedSource< ? > transformedSource )
+	public AffineTransformation( TransformedSource< ? > transformedSource )
 	{
 		AffineTransform3D fixedTransform = new AffineTransform3D();
 		transformedSource.getFixedTransform( fixedTransform );

@@ -52,7 +52,7 @@ import mobie3.viewer.source.AnnotatedLabelMask;
 import mobie3.viewer.source.SpimDataImage;
 import mobie3.viewer.table.DefaultSegmentsAnnData;
 import mobie3.viewer.table.TableSawAnnData;
-import mobie3.viewer.table.TableSawSegmentAnnotation;
+import mobie3.viewer.table.TableSawAnnotatedSegment;
 import mobie3.viewer.table.TableSawSegmentsTableModel;
 import mobie3.viewer.table.TableDataFormat;
 import mobie3.viewer.table.TableHelper;
@@ -65,7 +65,6 @@ import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.sequence.ImgLoader;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
-import net.imglib2.ops.parse.token.Real;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
@@ -778,7 +777,7 @@ public class MoBIE
 					final String tablePath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
 
 					final TableSawSegmentsTableModel tableModel = new TableSawSegmentsTableModel( tablePath );
-					final DefaultSegmentsAnnData< TableSawSegmentAnnotation > segmentsAnnData = new DefaultSegmentsAnnData<>( tableModel );
+					final DefaultSegmentsAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultSegmentsAnnData<>( tableModel );
 					tableModel.setColumnPaths( columnPaths );
 					final AnnotatedLabelMask annotatedLabelMask = new AnnotatedLabelMask( image, segmentsAnnData );
 					images.put( name, annotatedLabelMask );

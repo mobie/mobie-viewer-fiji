@@ -35,15 +35,16 @@ import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.ij3d.AnimatedViewAdjuster;
-import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij3d.Content;
 import ij3d.Image3DUniverse;
 import ij3d.UniverseListener;
 import mobie3.viewer.VisibilityListener;
+import mobie3.viewer.segment.Segment;
 import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.select.SelectionModel;
 import mobie3.viewer.source.AnnotationType;
+import mobie3.viewer.table.AnnotatedSegment;
 import net.imglib2.type.numeric.ARGBType;
 import org.scijava.java3d.View;
 import org.scijava.vecmath.Color3f;
@@ -58,17 +59,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringListener, SelectionListener< S >
+public class SegmentsVolumeViewer< AS extends Segment > implements ColoringListener, SelectionListener< AS >
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	private final SelectionModel< S > selectionModel;
-	private final ColoringModel< S > coloringModel;
+	private final SelectionModel< AS > selectionModel;
+	private final ColoringModel< AS > coloringModel;
 	private final Collection< SourceAndConverter< AnnotationType< TableRowImageSegment > > > sourceAndConverters;
 	private final UniverseManager universeManager;
 
-	private ConcurrentHashMap< S, Content > segmentToContent;
-	private ConcurrentHashMap< Content, S > contentToSegment;
+	private ConcurrentHashMap< AS, Content > segmentToContent;
+	private ConcurrentHashMap< Content, AS > contentToSegment;
 	private double transparency;
 	private int meshSmoothingIterations;
 	private int segmentFocusAnimationDurationMillis;
@@ -80,14 +81,14 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	private boolean showSegments = false;
 	private double[] voxelSpacing; // desired voxel spacings; null = auto
 	private int currentTimePoint = 0;
-	private final MeshCreator< S > meshCreator;
+	private final MeshCreator< AS > meshCreator;
 	private List< VisibilityListener > listeners = new ArrayList<>(  );
 	private Window window;
 	private Image3DUniverse universe;
 
 	public SegmentsVolumeViewer(
-			final SelectionModel< S > selectionModel,
-			final ColoringModel< S > coloringModel,
+			final SelectionModel< AS > selectionModel,
+			final ColoringModel< AS > coloringModel,
 			final Collection< SourceAndConverter< AnnotationType< TableRowImageSegment > > > sourceAndConverters,
 			UniverseManager universeManager )
 	{
@@ -155,7 +156,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 
 	private void updateSegmentColors()
 	{
-		for ( S segment : segmentToContent.keySet() )
+		for ( AS segment : segmentToContent.keySet() )
 		{
 			final Color3f color3f = getColor3f( segment );
 			final Content content = segmentToContent.get( segment );
@@ -175,23 +176,23 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 
 	private void removeUnselectedSegments( )
 	{
-		final Set< S > selectedSegments = selectionModel.getSelected();
-		final Set< S > currentSegments = segmentToContent.keySet();
-		final Set< S > remove = new HashSet<>();
+		final Set< AS > selectedSegments = selectionModel.getSelected();
+		final Set< AS > currentSegments = segmentToContent.keySet();
+		final Set< AS > remove = new HashSet<>();
 
-		for ( S segment : currentSegments )
+		for ( AS segment : currentSegments )
 			if ( ! selectedSegments.contains( segment ) )
 				remove.add( segment );
 
-		for( S segment : remove )
+		for( AS segment : remove )
 			removeSegment( segment );
 	}
 
 	private synchronized void updateSelectedSegments( boolean recomputeMeshes )
 	{
-		final Set< S > selected = selectionModel.getSelected();
+		final Set< AS > selected = selectionModel.getSelected();
 
-		for ( S segment : selected )
+		for ( AS segment : selected )
 		{
 			if ( segment.timePoint() == currentTimePoint )
 			{
@@ -199,7 +200,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 
 				if ( ! segmentToContent.containsKey( segment ) )
 				{
-					final Source< AnnotationType< S > > source = getSource( segment );
+					final Source< AnnotationType< AS > > source = getSource( segment );
 					final CustomTriangleMesh mesh = meshCreator.createSmoothCustomTriangleMesh( segment, voxelSpacing, recomputeMeshes, source );
 					mesh.setColor( getColor3f( segment ) );
 					addSegmentMeshToUniverse( segment, mesh );
@@ -212,20 +213,20 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 		}
 	}
 
-	private Source< AnnotationType< S > > getSource( S segment )
+	private Source< AnnotationType< AS > > getSource( AS segment )
 	{
 		for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 		{
 			if ( sourceAndConverter.getSpimSource().getName().equals( segment.imageId() ))
 			{
-				return ( Source< AnnotationType< S > > ) sourceAndConverter.getSpimSource();
+				return ( Source< AnnotationType< AS > > ) sourceAndConverter.getSpimSource();
 			}
 		}
 
 		throw new UnsupportedOperationException( "An image segment from " + segment.imageId() + " did not have a corresponding image source."  );
 	}
 
-	private synchronized void removeSegment( S segment )
+	private synchronized void removeSegment( AS segment )
 	{
 		final Content content = segmentToContent.get( segment );
 		universe.removeContent( content.getName() );
@@ -233,7 +234,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 		contentToSegment.remove( content );
 	}
 
-	private String getSegmentIdentifier( S segment )
+	private String getSegmentIdentifier( AS segment )
 	{
 		return segment.labelId() + "-" + segment.timePoint();
 	}
@@ -290,15 +291,15 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 
 	private void removeSegments()
 	{
-		final Set< S > segments = selectionModel.getSelected();
+		final Set< AS > segments = selectionModel.getSelected();
 
-		for ( S segment : segments )
+		for ( AS segment : segments )
 		{
 			removeSegment( segment );
 		}
 	}
 
-	private synchronized void addSegmentMeshToUniverse( S segment, CustomTriangleMesh mesh )
+	private synchronized void addSegmentMeshToUniverse( AS segment, CustomTriangleMesh mesh )
 	{
 		if ( mesh == null )
 			throw new RuntimeException( "Mesh of segment " + objectsName + "_" + segment.labelId() + " is null." );
@@ -407,7 +408,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 		return true;
 	}
 
-	private Color3f getColor3f( S imageSegment )
+	private Color3f getColor3f( AS imageSegment )
 	{
 		final ARGBType argbType = new ARGBType();
 		coloringModel.convert( imageSegment, argbType );
@@ -443,7 +444,7 @@ public class SegmentsVolumeViewer< S extends ImageSegment > implements ColoringL
 	}
 
 	@Override
-	public synchronized void focusEvent( S selection, Object initiator )
+	public synchronized void focusEvent( AS selection, Object initiator )
 	{
 		if ( ! showSegments ) return;
 		if ( initiator == this ) return;

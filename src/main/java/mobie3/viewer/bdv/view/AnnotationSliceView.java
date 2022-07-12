@@ -43,7 +43,7 @@ import mobie3.viewer.source.VolatileBoundarySource;
 import javax.swing.*;
 import java.awt.*;
 
-public abstract class AnnotationSliceView< T extends TableRow > extends AbstractSliceView implements ColoringListener, SelectionListener< T >
+public abstract class AnnotationSliceView< T > extends AbstractSliceView implements ColoringListener, SelectionListener< T >
 {
 	protected final AnnotationDisplay< T > display;
 
