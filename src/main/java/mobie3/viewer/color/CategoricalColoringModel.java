@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Fiji viewer for MoBIE projects
+ * Various Java code for ImageJ
  * %%
  * Copyright (C) 2018 - 2022 EMBL
  * %%
@@ -26,15 +26,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.serialize;
+package mobie3.viewer.color;
 
-import mobie3.viewer.source.StorageLocation;
-import org.embl.mobie.io.ImageDataFormat;
+import de.embl.cba.tables.color.ColoringListener;
+import de.embl.cba.tables.select.Listeners;
+import net.imglib2.converter.Converter;
+import net.imglib2.type.numeric.ARGBType;
 
-import java.util.Map;
-
-// TODO: consider renaming to avoid confusion with BDV Source
-public class ImageSource
+public interface CategoricalColoringModel< T > extends Converter< T, ARGBType >
 {
-	public Map< ImageDataFormat, StorageLocation > imageData;
+	/**
+	 * Get the list of color listeners. Add a {@link ColoringListener} to
+	 * this list, for being notified when the object/edge select changes.
+	 *
+	 * @return the list of listeners
+	 */
+	Listeners< ColoringListener > listeners();
+
+	@Deprecated
+	void incRandomSeed();
+
+	void setRandomSeed( int seed );
+
+	int getRandomSeed();
+
 }

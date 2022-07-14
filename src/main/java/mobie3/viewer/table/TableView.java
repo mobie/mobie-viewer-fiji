@@ -32,17 +32,16 @@ import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
 import de.embl.cba.tables.Utils;
-import de.embl.cba.tables.color.CategoryTableRowColumnColoringModel;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;
-import de.embl.cba.tables.color.ColumnColoringModel;
-import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
 import de.embl.cba.tables.tablerow.TableRowListener;
 import ij.gui.GenericDialog;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.annotate.Annotator;
+import mobie3.viewer.color.CategoricalColoringModel;
+import mobie3.viewer.color.ColumnColoringModelCreator;
 import mobie3.viewer.color.SelectionColoringModel;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.select.SelectionListener;
@@ -61,17 +60,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_GREY;
 import static org.embl.mobie.viewer.MoBIEHelper.FileLocation;
 import static org.embl.mobie.viewer.MoBIEHelper.loadFromProjectOrFileSystemDialog;
 
-public class TableViewer< A extends Annotation > implements SelectionListener< A >, ColoringListener, TableRowListener
+public class TableView< A extends Annotation > implements SelectionListener< A >, ColoringListener, TableRowListener
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	private final MoBIE moBIE;
-	private final TableRowsTableModel< A > tableRows;
+	private final AnnotationTableModel< A > tableModel;
 	private final SelectionModel< A > selectionModel;
 	private final SelectionColoringModel< A > coloringModel;
 	private final String tableName;
@@ -85,7 +85,7 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
 
 	// TODO: this is only for the annotator (maybe move it there)
-	private Map< String, CategoryTableRowColumnColoringModel< A > > columnNameToColoringModel = new HashMap<>(  );
+	private Map< String, CategoricalColoringModel< A > > columnNameToColoringModel = new HashMap<>();
 
 	private boolean controlDown;
 	private JFrame frame;
@@ -97,11 +97,11 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 		ToggleSelectionAndFocusIfSelected
 	}
 
-	public TableViewer( MoBIE moBIE, AnnotationDisplay< A > display )
+	public TableView( MoBIE moBIE, AnnotationDisplay< A > display )
 	{
 		this.moBIE = moBIE;
 		this.display = display;
-		this.tableRows = display.tableModel;
+		this.tableModel = display.tableModel;
 		this.coloringModel = display.coloringModel;
 		this.selectionModel = display.selectionModel;
 		this.tableName = display.getName();
@@ -308,7 +308,7 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 //		}
 
 		final ARGBType argbType = new ARGBType();
-		final A tableRow = tableRows.get( row );
+		final A tableRow = tableModel.row( row );
 		coloringModel.convert( tableRow, argbType );
 
 		if ( ARGBType.alpha( argbType.get() ) == 0 )
@@ -324,7 +324,8 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 
 	private void configureJTable()
 	{
-		jTable = new JTable( tableRows );
+		final SwingTableModel swingTableModel = new SwingTableModel( tableModel );
+		jTable = new JTable( swingTableModel );
 		jTable.setPreferredScrollableViewportSize( new Dimension(500, 200) );
 		jTable.setFillsViewportHeight( true );
 		jTable.setAutoCreateRowSorter( true );
@@ -390,7 +391,7 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 			{
 				SwingUtilities.invokeLater( () ->
 				{
-					String[] columnNames = tableRows.getColumnNames().stream().toArray( String[]::new );
+					String[] columnNames = tableModel.columnNames().stream().toArray( String[]::new );
 					ScatterPlotDialog dialog = new ScatterPlotDialog( columnNames, new String[]{ columnNames[ 0 ], columnNames[ 1 ] }, new double[]{ 1.0, 1.0 }, 1.0 );
 
 					if ( dialog.show() )
@@ -432,14 +433,18 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 		menuItem.addActionListener( e ->
 			new Thread( () -> {
 				FileLocation fileLocation = loadFromProjectOrFileSystemDialog();
-				if ( fileLocation.equals( FileLocation.Project ) )
-				{
-					moBIE.mergeColumnsFromProject( display );
-				}
-				else if ( fileLocation.equals( FileLocation.FileSystem ))
-				{
-					moBIE.mergeColumnsFromFileSystem( display );
-				}
+				// TODO
+				throw new UnsupportedOperationException("Column loading not yet implemented");
+//				if ( fileLocation.equals( FileLocation.Project ) )
+//				{
+//					tableModel.columnPaths();
+//					tableModel.loadColumns(  );
+//					moBIE.mergeColumnsFromProject( display );
+//				}
+//				else if ( fileLocation.equals( FileLocation.FileSystem ))
+//				{
+//					moBIE.mergeColumnsFromFileSystem( display );
+//				}
 			}).start()
 		);
 
@@ -481,7 +486,7 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
-						selectionModel.setSelected( tableRows.getTableRows(), true ) ) );
+						selectionModel.setSelected( tableModel.rows(), true ) ) );
 
 		return menuItem;
 	}
@@ -555,7 +560,7 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 	{
 		// works for categorical and numeric columns
 		final GenericDialog gd = new GenericDialog( "" );
-		String[] columnNames = tableRows.getColumnNames().stream().toArray( String[]::new );
+		String[] columnNames = tableModel.columnNames().stream().toArray( String[]::new );
 		gd.addChoice( "Column", columnNames, columnNames[0] );
 		gd.addStringField( "value", "" );
 		gd.showDialog();
@@ -565,6 +570,7 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 
 
 		// Have to parse to doubles for double column (as e.g. integers like 9 are displayed as 9.0)
+		// TODO! we know now the classes of the columns!
 		double doubleValue = 0;
 		boolean isDoubleColumn = jTable.getValueAt(0, jTable.getColumn( columnName ).getModelIndex() ) instanceof Double;
 		if ( isDoubleColumn ) {
@@ -578,21 +584,21 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 
 		ArrayList< A > selectedTableRows = new ArrayList<>();
 		ArrayList< A > notSelectedTableRows = new ArrayList<>();
-		for( A tableRow: tableRows ) {
-			String tableValue = tableRow.getCell( columnName );
+		final Set< A > rows = tableModel.rows();
+		for( A row: rows ) {
 			boolean valuesMatch;
 
-			if ( isDoubleColumn ) {
-				double tableDouble = Utils.parseDouble( tableValue );
+			if ( tableModel.columnClass( columnName ) == Double.class ) {
+				double tableDouble = ( Double ) row.getValue( columnName );
 				valuesMatch = doubleValue == tableDouble;
 			} else {
-				valuesMatch = tableValue.equals( value );
+				valuesMatch = row.getValue( columnName ).equals( value );
 			}
 
 			if ( valuesMatch ) {
-				selectedTableRows.add( tableRow );
+				selectedTableRows.add( row );
 			} else {
-				notSelectedTableRows.add( tableRow );
+				notSelectedTableRows.add( row );
 			}
 		}
 
@@ -617,19 +623,20 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 
 		ArrayList< A > selectedTableRows = new ArrayList<>();
 		ArrayList< A > notSelectedTableRows = new ArrayList<>();
-		for( A tableRow: tableRows ) {
+		final Set< A > rows = tableModel.rows();
+		for( A row: rows ) {
 
 			boolean criteriaMet;
 			if ( greaterThan ) {
-				criteriaMet = Utils.parseDouble(tableRow.getCell(columnName)) > value;
+				criteriaMet = (Double) row.getValue(columnName) > value;
 			} else {
-				criteriaMet = Utils.parseDouble(tableRow.getCell(columnName)) < value;
+				criteriaMet = (Double) row.getValue(columnName) < value;
 			}
 
 			if ( criteriaMet ) {
-				selectedTableRows.add(tableRow);
+				selectedTableRows.add(row);
 			} else {
-				notSelectedTableRows.add(tableRow);
+				notSelectedTableRows.add(row);
 			}
 		}
 
@@ -651,7 +658,7 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 		gd.showDialog();
 		if( gd.wasCanceled() ) return;
 		final String columnName = gd.getNextString();
-		if ( tableRows.getColumnNames().contains( columnName ) )
+		if ( tableModel.columnNames().contains( columnName ) )
 		{
 			Logger.error( "\"" +columnName + "\" exists already as a column name, please choose another one." );
 			return;
@@ -666,7 +673,7 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 	{
 		if ( ! columnNameToColoringModel.containsKey( columnName ) )
 		{
-			final CategoryTableRowColumnColoringModel< A > categoricalColoringModel = columnColoringModelCreator.createCategoricalColoringModel( columnName, false, new GlasbeyARGBLut(), DARK_GREY );
+			final CategoricalColoringModel< A > categoricalColoringModel = columnColoringModelCreator.createCategoricalColoringModel( columnName, false, new GlasbeyARGBLut(), DARK_GREY );
 			columnNameToColoringModel.put( columnName, categoricalColoringModel );
 		}
 
@@ -675,7 +682,7 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 
 		final Annotator annotator = new Annotator(
 				columnName,
-				tableRows,
+				tableModel,
 				selectionModel,
 				columnNameToColoringModel.get( columnName ),
 				rowSorter
@@ -691,19 +698,19 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 
 	public void addColumn( String column, Object defaultValue )
 	{
-		if ( tableRows.getColumnNames().contains( column ) )
+		if ( tableModel.getColumnNames().contains( column ) )
 			throw new RuntimeException( column + " exists already, please choose another name." );
-		tableRows.addColumn( column, defaultValue.toString() );
+		tableModel.addColumn( column, defaultValue.toString() );
 	}
 
 
 	public List< String > getNumericColumnNames()
 	{
-		final List< String > columnNames = tableRows.getColumnNames();
+		final List< String > columnNames = tableModel.getColumnNames();
 		ArrayList< String > numericColumnNames = new ArrayList<>();
 		for ( String columnName : columnNames )
 		{
-			if ( tableRows.isNumeric( columnName ) )
+			if ( tableModel.isNumeric( columnName ) )
 				numericColumnNames.add( columnName );
 		}
 
@@ -754,7 +761,7 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 
 				final int row = jTable.convertRowIndexToModel( recentlySelectedRowInView );
 
-				final A object = tableRows.get( row );
+				final A object = tableModel.get( row );
 
 				tableRowSelectionMode = controlDown ? TableRowSelectionMode.ToggleSelectionAndFocusIfSelected : TableRowSelectionMode.FocusOnly;
 
@@ -779,7 +786,7 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 
 	private synchronized void moveToSelectedTableRow( A selection )
 	{
-		final int rowInView = jTable.convertRowIndexToView( tableRows.indexOf( selection ) );
+		final int rowInView = jTable.convertRowIndexToView( tableModel.indexOf( selection ) );
 
 		if ( rowInView == recentlySelectedRowInView ) return;
 
@@ -825,7 +832,7 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 		Logger.info( " "  );
 		Logger.info( "Value, R, G, B"  );
 
-		for ( A tableRow : tableRows )
+		for ( A tableRow : tableModel )
 		{
 			final String value = tableRow.getCell( coloringColumnName );
 

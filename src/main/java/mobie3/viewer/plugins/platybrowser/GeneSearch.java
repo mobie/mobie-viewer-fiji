@@ -35,7 +35,7 @@ import ij.IJ;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.MultiThreading;
 import mobie3.viewer.serialize.Dataset;
-import mobie3.viewer.serialize.ImageSource;
+import mobie3.viewer.serialize.ImageData;
 import mobie3.viewer.view.View;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
@@ -350,8 +350,8 @@ public class GeneSearch
 			GeneSearchUtils.prosprSourceNames = new ArrayList<>();
 			for ( String sourceName : dataset.sources.keySet() )
 			{
-				final ImageSource imageSource = dataset.sources.get( sourceName ).get();
-				final String relativePath = imageSource.imageData.get( imageDataFormat ).relativePath;
+				final ImageData imageData = dataset.sources.get( sourceName ).get();
+				final String relativePath = imageData.imageData.get( imageDataFormat ).relativePath;
 
 				if ( relativePath.contains( PROSPR_UI_SELECTION_GROUP ) )
 				{

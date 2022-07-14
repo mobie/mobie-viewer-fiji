@@ -45,9 +45,9 @@ import mobie3.viewer.color.OpacityAdjuster;
 import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.RegionDisplay;
-import mobie3.viewer.display.SegmentationDisplay;
+import mobie3.viewer.display.AnnotatedLabelMaskDisplay;
 import mobie3.viewer.display.Display;
-import mobie3.viewer.plot.ScatterPlotViewer;
+import mobie3.viewer.plot.ScatterPlotView;
 import mobie3.viewer.transform.MoBIEViewerTransformAdjuster;
 import mobie3.viewer.transform.SliceViewLocationChanger;
 import mobie3.viewer.transform.ViewerTransform;
@@ -246,8 +246,8 @@ public class UserInterfaceHelper
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
 		panel.add( createCheckboxPlaceholder() );
-		panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableViewer.getWindow() ) );
-		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotViewer, display.showScatterPlot() ) );
+		panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableView.getWindow() ) );
+		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotView, display.showScatterPlot() ) );
 		return panel;
 	}
 
@@ -360,7 +360,7 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public JPanel createSegmentationDisplaySettingsPanel( SegmentationDisplay display )
+	public JPanel createSegmentationDisplaySettingsPanel( AnnotatedLabelMaskDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
@@ -380,9 +380,9 @@ public class UserInterfaceHelper
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );
 			// table view
-			panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableViewer.getWindow() ) );
+			panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableView.getWindow() ) );
 			// scatter plot view
-			panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotViewer, display.showScatterPlot() ) );
+			panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotView, display.showScatterPlot() ) );
 		}
 		else
 		{
@@ -643,7 +643,7 @@ public class UserInterfaceHelper
 		return Box.createRigidArea( PREFERRED_CHECKBOX_SIZE );
 	}
 
-	public static JCheckBox createSegmentsVolumeViewerVisibilityCheckbox( SegmentationDisplay display )
+	public static JCheckBox createSegmentsVolumeViewerVisibilityCheckbox( AnnotatedLabelMaskDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "V" );
 		checkBox.setSelected( display.showSelectedSegmentsIn3d() );
@@ -715,7 +715,7 @@ public class UserInterfaceHelper
 	}
 
 	private static JCheckBox createScatterPlotViewerVisibilityCheckbox(
-			ScatterPlotViewer< ? > scatterPlotViewer,
+			ScatterPlotView< ? > scatterPlotView,
 			boolean isVisible )
 	{
 		JCheckBox checkBox = new JCheckBox( "P" );
@@ -725,12 +725,12 @@ public class UserInterfaceHelper
 			SwingUtilities.invokeLater( () ->
 				{
 					if ( checkBox.isSelected() )
-						scatterPlotViewer.show();
+						scatterPlotView.show();
 					else
-						scatterPlotViewer.hide();
+						scatterPlotView.hide();
 				} ) );
 
-		scatterPlotViewer.getListeners().add( new VisibilityListener()
+		scatterPlotView.getListeners().add( new VisibilityListener()
 		{
 			@Override
 			public void visibility( boolean isVisible )

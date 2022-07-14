@@ -38,15 +38,16 @@ import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.SourceHelper;
 import mobie3.viewer.source.VolatileBoundarySource;
+import mobie3.viewer.table.Annotation;
 
 import javax.swing.*;
 import java.awt.*;
 
-public abstract class AnnotationSliceView< T > extends AbstractSliceView implements ColoringListener, SelectionListener< T >
+public abstract class AnnotationSliceView< A extends Annotation > extends AbstractSliceView implements ColoringListener, SelectionListener< A >
 {
-	protected final AnnotationDisplay< T > display;
+	protected final AnnotationDisplay< A > display;
 
-	public AnnotationSliceView( MoBIE moBIE, AnnotationDisplay< T > display )
+	public AnnotationSliceView( MoBIE moBIE, AnnotationDisplay< A > display )
 	{
 		super( moBIE, display );
 		this.display = display;
@@ -56,11 +57,11 @@ public abstract class AnnotationSliceView< T > extends AbstractSliceView impleme
 
 	protected void show( SourceAndConverter< ? > sourceAndConverter )
 	{
-		configureLabelRendering( sourceAndConverter );
+		configureRendering( sourceAndConverter );
 		display.sliceViewer.show( sourceAndConverter, display );
 	}
 
-	private void configureLabelRendering( SourceAndConverter< ? > sourceAndConverter )
+	private void configureRendering( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final boolean showAsBoundaries = display.isShowAsBoundaries();
 		final float boundaryThickness = display.getBoundaryThickness();
@@ -71,7 +72,7 @@ public abstract class AnnotationSliceView< T > extends AbstractSliceView impleme
 			final VolatileBoundarySource volatileBoundarySource = SourceHelper.unwrapSource( sourceAndConverter.asVolatile().getSpimSource(), VolatileBoundarySource.class );
 			volatileBoundarySource.showAsBoundary( showAsBoundaries, boundaryThickness );
 		}
-		final ColoringModel<T> coloringModel = display.coloringModel.getWrappedColoringModel();
+		final ColoringModel< A > coloringModel = display.coloringModel.getWrappedColoringModel();
 		if ( coloringModel instanceof CategoryColoringModel )
 			( ( CategoryColoringModel<?> ) coloringModel ).setRandomSeed( display.getRandomColorSeed() );
 	}

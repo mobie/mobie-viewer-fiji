@@ -40,13 +40,13 @@ import mobie3.viewer.color.opacity.AdjustableOpacityColorConverter;
 import mobie3.viewer.color.opacity.VolatileAdjustableOpacityColorConverter;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.display.RegionDisplay;
-import mobie3.viewer.display.SegmentationDisplay;
+import mobie3.viewer.display.AnnotatedLabelMaskDisplay;
 import mobie3.viewer.plugins.platybrowser.GeneSearchCommand;
 import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.serialize.DatasetJsonParser;
-import mobie3.viewer.serialize.ImageSource;
+import mobie3.viewer.serialize.ImageData;
 import mobie3.viewer.serialize.ProjectJsonParser;
-import mobie3.viewer.serialize.SegmentationSource;
+import mobie3.viewer.serialize.AnnotatedLabelMaskData;
 import mobie3.viewer.source.Image;
 import mobie3.viewer.source.AnnotatedLabelMask;
 import mobie3.viewer.source.SpimDataImage;
@@ -189,8 +189,8 @@ public class MoBIE
 	{
 		if ( display instanceof RegionDisplay )
 			return getRegionTableDirectories( ( RegionDisplay ) display );
-		else if ( display instanceof SegmentationDisplay )
-			return getSegmentationTableDirectories( ( SegmentationDisplay ) display );
+		else if ( display instanceof AnnotatedLabelMaskDisplay )
+			return getSegmentationTableDirectories( ( AnnotatedLabelMaskDisplay ) display );
 		else
 			throw new RuntimeException();
 	}
@@ -436,7 +436,7 @@ public class MoBIE
 
 	}
 
-	public synchronized ImageSource getDataSource( String sourceName )
+	public synchronized ImageData getDataSource( String sourceName )
 	{
 		return dataset.sources.get( sourceName ).get();
 	}
@@ -455,12 +455,12 @@ public class MoBIE
 		}
 	}
 
-	private SourceAndConverter readSourceAndConverter( String sourceName, String log, ImageSource imageSource )
+	private SourceAndConverter readSourceAndConverter( String sourceName, String log, ImageData imageData )
 	{
 		SourceAndConverter sourceAndConverter;
-		ImageDataFormat imageDataFormat = getImageDataFormat( sourceName, imageSource.imageData.keySet() );
+		ImageDataFormat imageDataFormat = getImageDataFormat( sourceName, imageData.imageData.keySet() );
 
-		final String imagePath = getImagePath( imageSource, imageDataFormat );
+		final String imagePath = getImagePath( imageData, imageDataFormat );
 		if( log != null )
 			IJ.log( log + imagePath );
 
@@ -550,12 +550,12 @@ public class MoBIE
         return dataset.views;
     }
 
-    private String getRelativeTableLocation( SegmentationSource source )
+    private String getRelativeTableLocation( AnnotatedLabelMaskData source )
     {
         return source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
     }
 
-    public String getTableDirectory( SegmentationSource source )
+    public String getTableDirectory( AnnotatedLabelMaskData source )
     {
         return getTableDirectory( getRelativeTableLocation( source ) );
     }
@@ -566,7 +566,7 @@ public class MoBIE
     }
 
 
-	public String getTablePath( SegmentationSource source, String table )
+	public String getTablePath( AnnotatedLabelMaskData source, String table )
 	{
 		return getTablePath( getRelativeTableLocation( source ), table );
 	}
@@ -578,11 +578,11 @@ public class MoBIE
 
 	public String getTableRootDirectory( String source )
 	{
-		final ImageSource imageSource = getDataSource( source );
-		if ( imageSource instanceof SegmentationSource )
-			return IOHelper.combinePath( tableRoot, getDatasetName(), getRelativeTableLocation( ( SegmentationSource ) imageSource ) );
+		final ImageData imageData = getDataSource( source );
+		if ( imageData instanceof AnnotatedLabelMaskData )
+			return IOHelper.combinePath( tableRoot, getDatasetName(), getRelativeTableLocation( ( AnnotatedLabelMaskData ) imageData ) );
 		else
-			throw new RuntimeException( "TODO: Implement getTableRootDirectory for " + imageSource.getClass() );
+			throw new RuntimeException( "TODO: Implement getTableRootDirectory for " + imageData.getClass() );
 	}
 
 	public String getDatasetPath( String... files )
@@ -602,7 +602,7 @@ public class MoBIE
 	// TODO: probably we should move this functionality SegmentationDisplay!
 	public List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName, String log )
 	{
-		final SegmentationSource tableSource = ( SegmentationSource ) getDataSource( sourceName );
+		final AnnotatedLabelMaskData tableSource = ( AnnotatedLabelMaskData ) getDataSource( sourceName );
 		final String tablePath = getTablePath( tableSource, tableName );
 		if ( log != null )
 			IJ.log( log + tablePath );
@@ -640,7 +640,7 @@ public class MoBIE
 
 	public Map< String, List< String > > loadColumns( String tableName, String sourceName )
 	{
-		Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( SegmentationSource ) getDataSource( sourceName ), tableName ) );
+		Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( AnnotatedLabelMaskData ) getDataSource( sourceName ), tableName ) );
 		return columns;
 	}
 
@@ -705,7 +705,7 @@ public class MoBIE
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 	}
 
-    public synchronized String getImagePath( ImageSource source, ImageDataFormat imageDataFormat) {
+    public synchronized String getImagePath( ImageData source, ImageDataFormat imageDataFormat) {
 
         switch (imageDataFormat) {
             case BdvN5:
@@ -733,14 +733,14 @@ public class MoBIE
 		return projectCommands;
 	}
 
-	private Map< String, String > getSegmentationTableDirectories( SegmentationDisplay display )
+	private Map< String, String > getSegmentationTableDirectories( AnnotatedLabelMaskDisplay display )
 	{
 		Map<String, String> sourceNameToTableDir = new HashMap<>();
 		for ( String source: display.getSources() )
 		{
 			try
 			{
-				sourceNameToTableDir.put( source, getTableDirectory( ( SegmentationSource ) getDataSource( source ) )
+				sourceNameToTableDir.put( source, getTableDirectory( ( AnnotatedLabelMaskData ) getDataSource( source ) )
 				);
 			}
 			catch ( Exception e )
@@ -757,26 +757,25 @@ public class MoBIE
 		final HashMap< String, Image< ? > > images = new HashMap<>();
 		for ( String name : sources )
 		{
-			final ImageSource imageSource = getDataSource( name );
-			ImageDataFormat imageDataFormat = getImageDataFormat( name, imageSource.imageData.keySet() );
-			final String imagePath = getImagePath( imageSource, imageDataFormat );
+			final ImageData imageData = getDataSource( name );
+			ImageDataFormat imageDataFormat = getImageDataFormat( name, imageData.imageData.keySet() );
+			final String imagePath = getImagePath( imageData, imageDataFormat );
 			final SpimDataImage< ? > image = new SpimDataImage<>( imageDataFormat, imagePath, 0, name );
 
-			if ( imageSource.getClass() == SegmentationSource.class )
+			if ( imageData.getClass() == AnnotatedLabelMaskData.class )
 			{
-				final SegmentationSource segmentationSource = ( SegmentationSource ) imageSource;
+				final AnnotatedLabelMaskData annotatedLabelMaskData = ( AnnotatedLabelMaskData ) imageData;
 
-				if ( segmentationSource.tableData != null
-						&& segmentationSource.tableData.size() > 0 )
+				if ( annotatedLabelMaskData.tableData != null
+						&& annotatedLabelMaskData.tableData.size() > 0 )
 				{
-					// Label mask with annotations.
-					// Create image where the pixel values
+					// Create image where pixel values
 					// are the annotations and create
 					// a table model for the annotations.
-					final ArrayList< String > columnPaths = getColumnPaths( segmentationSource );
-					final String tablePath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
+					final ArrayList< String > columnPaths = getColumnPaths( annotatedLabelMaskData );
+					final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
 
-					final TableSawSegmentsTableModel tableModel = new TableSawSegmentsTableModel( tablePath );
+					final TableSawSegmentsTableModel tableModel = new TableSawSegmentsTableModel( defaultColumnsPath );
 					final DefaultSegmentsAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultSegmentsAnnData<>( tableModel );
 					tableModel.setColumnPaths( columnPaths );
 					final AnnotatedLabelMask annotatedLabelMask = new AnnotatedLabelMask( image, segmentsAnnData );
@@ -801,9 +800,9 @@ public class MoBIE
 		return images;
 	}
 
-	private ArrayList< String > getColumnPaths( SegmentationSource segmentationSource )
+	private ArrayList< String > getColumnPaths( AnnotatedLabelMaskData annotatedLabelMaskSource )
 	{
-		final String tableDirectory = getTableDirectory( segmentationSource );
+		final String tableDirectory = getTableDirectory( annotatedLabelMaskSource );
 		String[] fileNames = IOHelper.getFileNames( tableDirectory );
 		final ArrayList< String > columnPaths = new ArrayList<>();
 		for ( String fileName : fileNames )

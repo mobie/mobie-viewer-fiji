@@ -64,7 +64,7 @@ public class LabelToSegmentMapper< AS extends AnnotatedSegment > implements Segm
 	{
 		// TODO: is this OK?
 		//  or do we need to create a copy of that?
-		return annData.getTable().getRow( 0 );
+		return annData.getTable().row( 0 );
 	}
 
 	private synchronized void initMapping()
@@ -73,7 +73,7 @@ public class LabelToSegmentMapper< AS extends AnnotatedSegment > implements Segm
 		final int numRows = annData.getTable().numRows();
 		for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
 		{
-			AS segment = annData.getTable().getRow( rowIndex );
+			AS segment = annData.getTable().row( rowIndex );
 			final Label label = new Label( segment.labelId(), segment.timePoint(), segment.imageId() );
 			labelToSegment.put( label, segment );
 		}

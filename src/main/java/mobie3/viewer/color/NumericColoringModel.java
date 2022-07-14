@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Fiji viewer for MoBIE projects
+ * Various Java code for ImageJ
  * %%
  * Copyright (C) 2018 - 2022 EMBL
  * %%
@@ -26,14 +26,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.serialize;
+package mobie3.viewer.color;
 
-import mobie3.viewer.source.StorageLocation;
-import mobie3.viewer.table.TableDataFormat;
+import de.embl.cba.tables.color.ColoringModel;
+import net.imglib2.type.numeric.ARGBType;
 
-import java.util.Map;
-
-public class SegmentationSource extends ImageSource
+public interface NumericColoringModel< T > extends ColoringModel< T >
 {
-	public Map< TableDataFormat, StorageLocation > tableData;
+	@Override
+	void convert( T input, ARGBType output );
+
+	double getMin();
+
+	double getMax();
+
+	void setMin( double min );
+
+	void setMax( double max );
 }

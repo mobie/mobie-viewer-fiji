@@ -35,7 +35,7 @@ import bdv.viewer.SynchronizedViewerState;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.color.AnnotationConverter;
 import mobie3.viewer.color.VolatileAnnotationConverter;
-import mobie3.viewer.display.SegmentationDisplay;
+import mobie3.viewer.display.AnnotatedLabelMaskDisplay;
 import mobie3.viewer.segment.SliceViewAnnotationSelector;
 import mobie3.viewer.source.AnnotatedLabelMask;
 import mobie3.viewer.source.AnnotationType;
@@ -50,7 +50,7 @@ import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 
 public class AnnotatedLabelMaskSliceView< T extends IntegerType< T >, AS extends AnnotatedSegment > extends AnnotationSliceView< AS >
 {
-	public AnnotatedLabelMaskSliceView( MoBIE moBIE, SegmentationDisplay< AS > display )
+	public AnnotatedLabelMaskSliceView( MoBIE moBIE, AnnotatedLabelMaskDisplay< AS > display )
 	{
 		super( moBIE, display );
 

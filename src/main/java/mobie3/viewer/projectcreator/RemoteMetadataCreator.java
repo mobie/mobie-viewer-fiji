@@ -30,7 +30,7 @@ package mobie3.viewer.projectcreator;
 
 import ij.IJ;
 import mobie3.viewer.serialize.Dataset;
-import mobie3.viewer.serialize.ImageSource;
+import mobie3.viewer.serialize.ImageData;
 import mobie3.viewer.source.StorageLocation;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
@@ -88,13 +88,13 @@ public class RemoteMetadataCreator {
     }
 
     private void deleteRemoteMetadataForImage( String datasetName, String imageName ) throws IOException {
-        ImageSource imageSource = projectCreator.getDataset( datasetName ).sources.get( imageName ).get();
-        if ( imageSource.imageData.containsKey( remoteImageDataFormat ) ) {
+        ImageData imageData = projectCreator.getDataset( datasetName ).sources.get( imageName ).get();
+        if ( imageData.imageData.containsKey( remoteImageDataFormat ) ) {
 
             if ( remoteImageDataFormat.hasXml() ) {
                 // delete any existing remote metadata .xml files
                 File currentRemoteXmlLocation = new File(IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
-                        datasetName, imageSource.imageData.get(remoteImageDataFormat).relativePath));
+                        datasetName, imageData.imageData.get(remoteImageDataFormat).relativePath));
                 if (currentRemoteXmlLocation.exists()) {
                     if (!currentRemoteXmlLocation.delete()) {
                         String errorMessage = "Remote metadata for: " + imageName + " in dataset: " + datasetName + " could not be deleted.";
@@ -103,7 +103,7 @@ public class RemoteMetadataCreator {
                     }
                 }
             }
-            imageSource.imageData.remove( remoteImageDataFormat );
+            imageData.imageData.remove( remoteImageDataFormat );
         }
     }
 
@@ -163,8 +163,8 @@ public class RemoteMetadataCreator {
     }
 
     private void addRemoteMetadataForImage( String datasetName, String imageName ) throws SpimDataException, IOException {
-        ImageSource imageSource = projectCreator.getDataset( datasetName ).sources.get( imageName ).get();
-        if ( !imageSource.imageData.containsKey( localImageDataFormat ) ) {
+        ImageData imageData = projectCreator.getDataset( datasetName ).sources.get( imageName ).get();
+        if ( !imageData.imageData.containsKey( localImageDataFormat ) ) {
             IJ.log( "No images of format " + localImageDataFormat + " for " + imageName +
                     " in dataset:" + datasetName + ". Skipping this image." );
             return;
@@ -174,7 +174,7 @@ public class RemoteMetadataCreator {
 
             // make new xml containing bucket name etc, and give relative path
             String localXmlLocation = IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
-                    datasetName, imageSource.imageData.get(localImageDataFormat).relativePath);
+                    datasetName, imageData.imageData.get(localImageDataFormat).relativePath);
 
             String remoteXmlLocation = IOHelper.combinePath(projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName( remoteImageDataFormat ));
@@ -193,14 +193,14 @@ public class RemoteMetadataCreator {
 
             StorageLocation storageLocation = new StorageLocation();
             storageLocation.relativePath = "images/" + ProjectCreatorHelper.imageFormatToFolderName( remoteImageDataFormat ) + "/" + imageName + ".xml";
-            imageSource.imageData.put( remoteImageDataFormat, storageLocation );
+            imageData.imageData.put( remoteImageDataFormat, storageLocation );
         } else {
             // give absolute s3 path to ome.zarr file
             StorageLocation storageLocation = new StorageLocation();
-            String relativePath = imageSource.imageData.get(localImageDataFormat).relativePath;
+            String relativePath = imageData.imageData.get(localImageDataFormat).relativePath;
             storageLocation.s3Address = serviceEndpoint + bucketName + "/" + datasetName + "/" + relativePath;
             storageLocation.signingRegion = signingRegion;
-            imageSource.imageData.put( remoteImageDataFormat, storageLocation );
+            imageData.imageData.put( remoteImageDataFormat, storageLocation );
         }
 
     }

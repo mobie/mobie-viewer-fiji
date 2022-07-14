@@ -72,7 +72,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class ScatterPlotViewer< A extends Annotation > implements SelectionListener< A >, ColoringListener, TimePointListener
+public class ScatterPlotView< A extends Annotation > implements SelectionListener< A >, ColoringListener, TimePointListener
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -102,7 +102,7 @@ public class ScatterPlotViewer< A extends Annotation > implements SelectionListe
 	private boolean showColumnSelectionUI = true;
 	private RadiusNeighborSearchOnKDTree< A > radiusNeighborSearchOnKDTree;
 
-	public ScatterPlotViewer(
+	public ScatterPlotView(
 			AnnotationTableModel< A > tableModel,
 			SelectionModel< A > selectionModel,
 			ColoringModel< A > coloringModel,

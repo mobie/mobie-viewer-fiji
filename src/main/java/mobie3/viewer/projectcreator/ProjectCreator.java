@@ -31,7 +31,7 @@ package mobie3.viewer.projectcreator;
 import mobie3.viewer.Project;
 import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.serialize.DatasetJsonParser;
-import mobie3.viewer.serialize.ImageSource;
+import mobie3.viewer.serialize.ImageData;
 import mobie3.viewer.serialize.ProjectJsonParser;
 import mobie3.viewer.source.SourceSupplier;
 import mpicbg.spim.data.SpimData;
@@ -231,12 +231,12 @@ public class ProjectCreator {
             Dataset dataset = getDataset( datasetName );
             if ( dataset != null && dataset.sources.size() > 0 ) {
                 for ( SourceSupplier sourceSupplier: dataset.sources.values() ) {
-                    ImageSource imageSource = sourceSupplier.get();
+                    ImageData imageData = sourceSupplier.get();
                     // open one of the local images
-                    for (ImageDataFormat format : imageSource.imageData.keySet()) {
+                    for (ImageDataFormat format : imageData.imageData.keySet()) {
                         if (!format.isRemote()) {
                             String imagePath = IOHelper.combinePath( projectLocation.getAbsolutePath(), datasetName,
-                                    imageSource.imageData.get(format).relativePath);
+                                    imageData.imageData.get(format).relativePath);
                             SpimData spimData = (SpimData) new SpimDataOpener().openSpimData( imagePath, format );
                             VoxelDimensions voxelDimensions = spimData.getSequenceDescription().
                                     getViewSetupsOrdered().get(0).getVoxelSize();

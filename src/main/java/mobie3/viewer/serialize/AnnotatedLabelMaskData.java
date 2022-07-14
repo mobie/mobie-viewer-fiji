@@ -26,30 +26,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.source;
+package mobie3.viewer.serialize;
 
-import mobie3.viewer.serialize.ImageData;
-import mobie3.viewer.serialize.AnnotatedLabelMaskData;
+import mobie3.viewer.source.StorageLocation;
+import mobie3.viewer.table.TableDataFormat;
 
-// TODO: get rid of supplier and deal with this by means of a Gson adapter
-public class SourceSupplier
+import java.util.Map;
+
+public class AnnotatedLabelMaskData extends ImageData
 {
-	// Serialisation
-	private ImageData image;
-	private AnnotatedLabelMaskData segmentation;
-
-	public SourceSupplier( ImageData imageData ) {
-		this.image = imageData;
-	}
-
-	public SourceSupplier( AnnotatedLabelMaskData annotatedLabelMaskSource ) {
-		this.segmentation = annotatedLabelMaskSource;
-	}
-
-	public ImageData get()
-	{
-		if ( image != null ) return image;
-		else if ( segmentation != null ) return segmentation;
-		else throw new RuntimeException( "Unsupported Source." );
-	}
+	public Map< TableDataFormat, StorageLocation > tableData;
 }

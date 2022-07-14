@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Fiji viewer for MoBIE projects
+ * Various Java code for ImageJ
  * %%
  * Copyright (C) 2018 - 2022 EMBL
  * %%
@@ -26,30 +26,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.source;
+package mobie3.viewer.color;
 
-import mobie3.viewer.serialize.ImageData;
-import mobie3.viewer.serialize.AnnotatedLabelMaskData;
+import de.embl.cba.tables.color.ColoringListener;
+import de.embl.cba.tables.color.ColoringModel;
+import de.embl.cba.tables.select.Listeners;
+import net.imglib2.type.numeric.ARGBType;
 
-// TODO: get rid of supplier and deal with this by means of a Gson adapter
-public class SourceSupplier
+import javax.swing.*;
+
+public abstract class AbstractColoringModel< T > implements ColoringModel< T >
 {
-	// Serialisation
-	private ImageData image;
-	private AnnotatedLabelMaskData segmentation;
+	protected final Listeners.SynchronizedList< ColoringListener > listeners
+			= new Listeners.SynchronizedList< ColoringListener >(  );
 
-	public SourceSupplier( ImageData imageData ) {
-		this.image = imageData;
-	}
-
-	public SourceSupplier( AnnotatedLabelMaskData annotatedLabelMaskSource ) {
-		this.segmentation = annotatedLabelMaskSource;
-	}
-
-	public ImageData get()
+	@Override
+	public Listeners< ColoringListener > listeners()
 	{
-		if ( image != null ) return image;
-		else if ( segmentation != null ) return segmentation;
-		else throw new RuntimeException( "Unsupported Source." );
+		return listeners;
+	}
+
+	@Override
+	public void convert( T input, ARGBType output )
+	{
+		output.set( 0 );
+	}
+
+	protected void notifyColoringListeners()
+	{
+		for ( ColoringListener listener : listeners.list )
+		{
+			SwingUtilities.invokeLater( () -> listener.coloringChanged() );
+		}
 	}
 }

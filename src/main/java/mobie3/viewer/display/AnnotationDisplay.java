@@ -39,14 +39,14 @@ import mobie3.viewer.bdv.render.BlendingMode;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
 import mobie3.viewer.color.OpacityAdjuster;
 import mobie3.viewer.color.SelectionColoringModel;
-import mobie3.viewer.plot.ScatterPlotViewer;
+import mobie3.viewer.plot.ScatterPlotView;
 import mobie3.viewer.select.SelectionModel;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.SourceHelper;
 import mobie3.viewer.table.Annotation;
 import mobie3.viewer.table.AnnotationTableModel;
 import mobie3.viewer.table.ColumnNames;
-import mobie3.viewer.table.TableViewer;
+import mobie3.viewer.table.TableView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,8 +73,8 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	public transient MoBIE moBIE;
 	public transient SelectionModel< A > selectionModel;
 	public transient SelectionColoringModel< A > coloringModel;
-	public transient TableViewer< A > tableViewer;
-	public transient ScatterPlotViewer< A > scatterPlotViewer;
+	public transient TableView< A > tableView;
+	public transient ScatterPlotView< A > scatterPlotView;
 	public transient AnnotationTableModel< A > tableModel;
 
 	// Should be overwritten by child classes
@@ -83,7 +83,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		return null;
 	}
 
-	public abstract void initTableRows( );
+	public abstract void initTableModel( );
 
 	public abstract void mergeColumns( String tableColumns );
 
@@ -176,10 +176,10 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 			this.randomColorSeed = ( ( CategoryColoringModel<?> ) wrappedColoringModel ).getRandomSeed();
 		}
 
-		this.showScatterPlot = annotationDisplay.scatterPlotViewer.isVisible();
-		this.scatterPlotAxes = annotationDisplay.scatterPlotViewer.getSelectedColumns();
+		this.showScatterPlot = annotationDisplay.scatterPlotView.isVisible();
+		this.scatterPlotAxes = annotationDisplay.scatterPlotView.getSelectedColumns();
 		this.tables = annotationDisplay.tables;
-		List<String> additionalTables = annotationDisplay.tableViewer.getAdditionalTables();
+		List<String> additionalTables = annotationDisplay.tableView.getAdditionalTables();
 		if ( additionalTables.size() > 0 ){
 			if ( this.tables == null ) {
 				this.tables = new ArrayList<>();
@@ -187,7 +187,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 			this.tables.addAll( additionalTables );
 		}
 
-		this.showTable = annotationDisplay.tableViewer.getWindow().isVisible();
+		this.showTable = annotationDisplay.tableView.getWindow().isVisible();
 
 		final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
 		this.showAsBoundaries = boundarySource.isShowAsBoundaries();

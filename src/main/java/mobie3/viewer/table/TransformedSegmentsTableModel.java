@@ -6,7 +6,9 @@ import net.imglib2.util.Pair;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class TransformedSegmentsTableModel implements SegmentsTableModel< TransformedAnnotatedSegment >
 {
@@ -43,17 +45,17 @@ public class TransformedSegmentsTableModel implements SegmentsTableModel< Transf
 	}
 
 	@Override
-	public int getRowIndex( TransformedAnnotatedSegment annotation )
+	public int rowIndex( TransformedAnnotatedSegment annotation )
 	{
 		return rowToIndex.get( annotation );
 	}
 
 	@Override
-	public TransformedAnnotatedSegment getRow( int rowIndex )
+	public TransformedAnnotatedSegment row( int rowIndex )
 	{
 		if ( ! indexToRow.containsKey( rowIndex ) )
 		{
-			final TransformedAnnotatedSegment row = new TransformedAnnotatedSegment( model.getRow( rowIndex ), transformation );
+			final TransformedAnnotatedSegment row = new TransformedAnnotatedSegment( model.row( rowIndex ), transformation );
 			rowToIndex.put( row, rowIndex );
 			indexToRow.put( rowIndex, row );
 		}
@@ -80,7 +82,7 @@ public class TransformedSegmentsTableModel implements SegmentsTableModel< Transf
 	}
 
 	@Override
-	public List< String > loadedColumnPaths()
+	public LinkedHashSet< String > loadedColumnPaths()
 	{
 		return model.loadedColumnPaths();
 	}
@@ -89,5 +91,11 @@ public class TransformedSegmentsTableModel implements SegmentsTableModel< Transf
 	public Pair< Double, Double > computeMinMax( String columnName )
 	{
 		return null;
+	}
+
+	@Override
+	public Set< TransformedAnnotatedSegment > rows()
+	{
+		return rowToIndex.keySet();
 	}
 }

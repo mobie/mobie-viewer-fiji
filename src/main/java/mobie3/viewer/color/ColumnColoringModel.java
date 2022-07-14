@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Fiji viewer for MoBIE projects
+ * Various Java code for ImageJ
  * %%
  * Copyright (C) 2018 - 2022 EMBL
  * %%
@@ -26,30 +26,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.source;
+package mobie3.viewer.color;
 
-import mobie3.viewer.serialize.ImageData;
-import mobie3.viewer.serialize.AnnotatedLabelMaskData;
+import de.embl.cba.bdv.utils.lut.ARGBLut;
 
-// TODO: get rid of supplier and deal with this by means of a Gson adapter
-public class SourceSupplier
+public interface ColumnColoringModel
 {
-	// Serialisation
-	private ImageData image;
-	private AnnotatedLabelMaskData segmentation;
-
-	public SourceSupplier( ImageData imageData ) {
-		this.image = imageData;
-	}
-
-	public SourceSupplier( AnnotatedLabelMaskData annotatedLabelMaskSource ) {
-		this.segmentation = annotatedLabelMaskSource;
-	}
-
-	public ImageData get()
-	{
-		if ( image != null ) return image;
-		else if ( segmentation != null ) return segmentation;
-		else throw new RuntimeException( "Unsupported Source." );
-	}
+	String getColumnName();
+	ARGBLut getARGBLut();
 }

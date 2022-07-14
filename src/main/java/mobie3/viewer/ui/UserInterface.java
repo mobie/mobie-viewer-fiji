@@ -31,7 +31,7 @@ package mobie3.viewer.ui;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.RegionDisplay;
-import mobie3.viewer.display.SegmentationDisplay;
+import mobie3.viewer.display.AnnotatedLabelMaskDisplay;
 import mobie3.viewer.display.Display;
 import mobie3.viewer.view.View;
 
@@ -153,9 +153,9 @@ public class UserInterface
 		{
 			return userInterfaceHelper.createImageDisplaySettingsPanel( ( ImageDisplay ) display );
 		}
-		else if ( display instanceof SegmentationDisplay )
+		else if ( display instanceof AnnotatedLabelMaskDisplay )
 		{
-			return userInterfaceHelper.createSegmentationDisplaySettingsPanel( ( SegmentationDisplay ) display );
+			return userInterfaceHelper.createSegmentationDisplaySettingsPanel( ( AnnotatedLabelMaskDisplay ) display );
 		}
 		else if ( display instanceof RegionDisplay )
 		{

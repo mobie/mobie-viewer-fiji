@@ -48,9 +48,9 @@ import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.RegionDisplay;
-import mobie3.viewer.display.SegmentationDisplay;
+import mobie3.viewer.display.AnnotatedLabelMaskDisplay;
 import mobie3.viewer.display.Display;
-import mobie3.viewer.plot.ScatterPlotViewer;
+import mobie3.viewer.plot.ScatterPlotView;
 import mobie3.viewer.segment.TransformedAnnotatedSegment;
 import mobie3.viewer.select.MoBIESelectionModel;
 import mobie3.viewer.source.AnnotatedImage;
@@ -60,8 +60,9 @@ import mobie3.viewer.source.Image;
 import mobie3.viewer.source.SourceAndConverterAndTables;
 import mobie3.viewer.source.TransformedImage;
 import mobie3.viewer.table.AnnotatedSegment;
+import mobie3.viewer.table.Annotation;
 import mobie3.viewer.table.SegmentsAnnData;
-import mobie3.viewer.table.TableViewer;
+import mobie3.viewer.table.TableView;
 import mobie3.viewer.transform.AffineTransformation;
 import mobie3.viewer.transform.NormalizedAffineViewerTransform;
 import mobie3.viewer.transform.SliceViewLocationChanger;
@@ -119,20 +120,20 @@ public class ViewManager
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 	}
 
-	private void initScatterPlotViewer( AnnotationDisplay< ? > display )
+	private void initScatterPlotView( AnnotationDisplay< ? > display )
 	{
 		if ( display.tableModel.size() == 0 ) return;
 
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
-		display.scatterPlotViewer = new ScatterPlotViewer( display.tableModel, display.selectionModel, display.coloringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
-		display.selectionModel.listeners().add( display.scatterPlotViewer );
-		display.coloringModel.listeners().add( display.scatterPlotViewer );
-		display.sliceViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
+		display.scatterPlotView = new ScatterPlotView( display.tableModel, display.selectionModel, display.coloringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
+		display.selectionModel.listeners().add( display.scatterPlotView );
+		display.coloringModel.listeners().add( display.scatterPlotView );
+		display.sliceViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotView );
 
 		if ( display.showScatterPlot() )
 		{
-			display.scatterPlotViewer.setShowColumnSelectionUI( false );
-			display.scatterPlotViewer.show();
+			display.scatterPlotView.setShowColumnSelectionUI( false );
+			display.scatterPlotView.show();
 		}
 	}
 
@@ -178,7 +179,7 @@ public class ViewManager
 
 	private boolean hasColumnsOutsideProject( AnnotationDisplay annotationDisplay )
 	{
-		if ( annotationDisplay.tableViewer.hasColumnsFromTablesOutsideProject() )
+		if ( annotationDisplay.tableView.hasColumnsFromTablesOutsideProject() )
 		{
 			IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project)." );
 			return true;
@@ -226,11 +227,11 @@ public class ViewManager
 				currentDisplay = new ImageDisplay( imageDisplay );
 				addManualTransforms( viewSourceTransforms, imageDisplay.nameToSourceAndConverter );
 			}
-			else if ( display instanceof SegmentationDisplay )
+			else if ( display instanceof AnnotatedLabelMaskDisplay )
 			{
-				SegmentationDisplay segmentationDisplay = ( SegmentationDisplay ) display;
-				currentDisplay = new SegmentationDisplay( segmentationDisplay );
-				addManualTransforms( viewSourceTransforms, ( Map ) segmentationDisplay.nameToSourceAndConverter );
+				AnnotatedLabelMaskDisplay annotatedLabelMaskDisplay = ( AnnotatedLabelMaskDisplay ) display;
+				currentDisplay = new AnnotatedLabelMaskDisplay( annotatedLabelMaskDisplay );
+				addManualTransforms( viewSourceTransforms, ( Map ) annotatedLabelMaskDisplay.nameToSourceAndConverter );
 			}
 			else if ( display instanceof RegionDisplay )
 			{
@@ -407,11 +408,11 @@ public class ViewManager
 			annotationDisplay.moBIE = moBIE;
 			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.selectionModel = new MoBIESelectionModel<>();
-			annotationDisplay.initTableRows();
+			annotationDisplay.initTableModel();
 
-			if ( annotationDisplay instanceof SegmentationDisplay )
+			if ( annotationDisplay instanceof AnnotatedLabelMaskDisplay )
 			{
-				showSegmentationDisplay( ( SegmentationDisplay ) annotationDisplay );
+				showSegmentationDisplay( ( AnnotatedLabelMaskDisplay ) annotationDisplay );
 			}
 			else if ( annotationDisplay instanceof RegionDisplay )
 			{
@@ -420,10 +421,10 @@ public class ViewManager
 
 			if ( annotationDisplay.tableModel != null )
 			{
-				initTableViewer( annotationDisplay );
-				initScatterPlotViewer( annotationDisplay );
-				if ( annotationDisplay instanceof SegmentationDisplay )
-					initSegmentationVolumeViewer( ( SegmentationDisplay ) annotationDisplay );
+				initTableView( annotationDisplay );
+				initScatterPlotView( annotationDisplay );
+				if ( annotationDisplay instanceof AnnotatedLabelMaskDisplay )
+					initSegmentationVolumeViewer( ( AnnotatedLabelMaskDisplay ) annotationDisplay );
 			}
 		}
 
@@ -482,33 +483,33 @@ public class ViewManager
 		}
 
 		regionDisplay.sliceView = new RegionSliceView( moBIE, regionDisplay );
-		initTableViewer( regionDisplay );
-		initScatterPlotViewer( regionDisplay );
-		setTablePosition( regionDisplay.sliceViewer.getWindow(), regionDisplay.tableViewer.getWindow() );
+		initTableView( regionDisplay );
+		initScatterPlotView( regionDisplay );
+		setTablePosition( regionDisplay.sliceViewer.getWindow(), regionDisplay.tableView.getWindow() );
 	}
 
-	private void initTableViewer( AnnotationDisplay< ? extends TableRow > display )
+	private void initTableView( AnnotationDisplay< ? extends Annotation > display )
 	{
-		display.tableViewer = new TableViewer( moBIE, display );
-		display.tableViewer.show();
-		setTablePosition( display.sliceViewer.getWindow(), display.tableViewer.getWindow() );
-		display.selectionModel.listeners().add( display.tableViewer );
-		display.coloringModel.listeners().add( display.tableViewer );
+		display.tableView = new TableView( moBIE, display );
+		display.tableView.show();
+		setTablePosition( display.sliceViewer.getWindow(), display.tableView.getWindow() );
+		display.selectionModel.listeners().add( display.tableView );
+		display.coloringModel.listeners().add( display.tableView );
 		numCurrentTables++;
 	}
 
-	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
+	private void showSegmentationDisplay( AnnotatedLabelMaskDisplay annotatedLabelMaskDisplay )
 	{
-		configureColoringModel( segmentationDisplay );
+		configureColoringModel( annotatedLabelMaskDisplay );
 
 		// set selected segments
-		if ( segmentationDisplay.getSelectedSegmentIds() != null )
+		if ( annotatedLabelMaskDisplay.getSelectedSegmentIds() != null )
 		{
-			final List< TableRowImageSegment > segments = segmentationDisplay.segmentMapper.getSegments( segmentationDisplay.getSelectedSegmentIds() );
-			segmentationDisplay.selectionModel.setSelected( segments, true );
+			final List< TableRowImageSegment > segments = annotatedLabelMaskDisplay.segmentMapper.getSegments( annotatedLabelMaskDisplay.getSelectedSegmentIds() );
+			annotatedLabelMaskDisplay.selectionModel.setSelected( segments, true );
 		}
 
-		segmentationDisplay.sliceView = new AnnotatedLabelMaskSliceView( moBIE, segmentationDisplay );
+		annotatedLabelMaskDisplay.sliceView = new AnnotatedLabelMaskSliceView( moBIE, annotatedLabelMaskDisplay );
 	}
 
 	private void setTablePosition( Window reference, Window table )
@@ -518,7 +519,7 @@ public class ViewManager
 		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numCurrentTables - 1 ) * shift ) );
 	}
 
-	private void initSegmentationVolumeViewer( SegmentationDisplay display )
+	private void initSegmentationVolumeViewer( AnnotatedLabelMaskDisplay display )
 	{
 		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.coloringModel, display.nameToSourceAndConverter.values(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();
@@ -544,11 +545,11 @@ public class ViewManager
 
 			if ( regionDisplay.tableModel != null )
 			{
-				regionDisplay.tableViewer.close();
+				regionDisplay.tableView.close();
 				numCurrentTables--;
-				regionDisplay.scatterPlotViewer.close();
-				if ( regionDisplay instanceof SegmentationDisplay )
-					( ( SegmentationDisplay ) regionDisplay ).segmentsVolumeViewer.close();
+				regionDisplay.scatterPlotView.close();
+				if ( regionDisplay instanceof AnnotatedLabelMaskDisplay )
+					( ( AnnotatedLabelMaskDisplay ) regionDisplay ).segmentsVolumeViewer.close();
 			}
 
 		}

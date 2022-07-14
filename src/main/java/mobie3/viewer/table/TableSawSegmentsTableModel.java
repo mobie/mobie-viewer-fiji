@@ -5,23 +5,26 @@ import tech.tablesaw.api.Table;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawAnnotatedSegment >
 {
-	protected final String columnsPath;
 	protected Collection< String > columnPaths;
-	protected List< String > loadedColumnPaths;
+	protected LinkedHashSet< String > loadedColumnPaths;
 
 	private HashMap< TableSawAnnotatedSegment, Integer > annotationToRowIndex;
 	private HashMap< Integer, TableSawAnnotatedSegment > rowIndexToAnnotation;
 	private Table table;
 
-	public TableSawSegmentsTableModel( String columnsPath )
+	public TableSawSegmentsTableModel( String defaultColumnsPath )
 	{
-		this.columnsPath = columnsPath;
+		loadedColumnPaths = new LinkedHashSet<>();
 		annotationToRowIndex = new HashMap<>();
 		rowIndexToAnnotation = new HashMap<>();
+
+		loadedColumnPaths.add( defaultColumnsPath );
 	}
 
 	@Override
@@ -43,13 +46,13 @@ public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawA
 	}
 
 	@Override
-	public int getRowIndex( TableSawAnnotatedSegment annotation )
+	public int rowIndex( TableSawAnnotatedSegment annotation )
 	{
 		return annotationToRowIndex.get( annotation );
 	}
 
 	@Override
-	public TableSawAnnotatedSegment getRow( int rowIndex )
+	public TableSawAnnotatedSegment row( int rowIndex )
 	{
 		if ( ! rowIndexToAnnotation.containsKey( rowIndex ) )
 		{
@@ -64,7 +67,7 @@ public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawA
 	@Override
 	public void loadColumns( String columnsPath )
 	{
-
+		loadedColumnPaths.add( columnsPath );
 	}
 
 	@Override
@@ -80,7 +83,7 @@ public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawA
 	}
 
 	@Override
-	public List< String > loadedColumnPaths()
+	public LinkedHashSet< String > loadedColumnPaths()
 	{
 		return loadedColumnPaths;
 	}
@@ -89,5 +92,11 @@ public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawA
 	public Pair< Double, Double > computeMinMax( String columnName )
 	{
 		return null;
+	}
+
+	@Override
+	public Set< TableSawAnnotatedSegment > rows()
+	{
+		return annotationToRowIndex.keySet();
 	}
 }

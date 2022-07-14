@@ -133,7 +133,7 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 	// It is important that this is called after
 	// all the sourceAndConverter are registered
 	// in MoBIE
-	public void initTableRows( )
+	public void initTableModel( )
 	{
 		// read
 		final List< Map< String, List< String > > > tableColumns = new ArrayList<>();

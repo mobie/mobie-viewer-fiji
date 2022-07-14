@@ -31,12 +31,12 @@ package mobie3.viewer.projectcreator;
 import de.embl.cba.tables.color.ColoringLuts;
 import mobie3.viewer.table.ColumnNames;
 import mobie3.viewer.display.ImageDisplay;
-import mobie3.viewer.display.SegmentationDisplay;
+import mobie3.viewer.display.AnnotatedLabelMaskDisplay;
 import mobie3.viewer.display.Display;
 import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.serialize.DatasetJsonParser;
-import mobie3.viewer.serialize.ImageSource;
-import mobie3.viewer.serialize.SegmentationSource;
+import mobie3.viewer.serialize.ImageData;
+import mobie3.viewer.serialize.AnnotatedLabelMaskData;
 import mobie3.viewer.source.SourceSupplier;
 import mobie3.viewer.source.StorageLocation;
 import mobie3.viewer.table.TableDataFormat;
@@ -131,27 +131,27 @@ public class DatasetJsonCreator {
 
     private void addNewImageSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat ) {
         Map< ImageDataFormat, StorageLocation > imageDataLocations;
-        ImageSource imageSource = new ImageSource();
+        ImageData imageData = new ImageData();
         imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
-        imageSource.imageData = imageDataLocations;
+        imageData.imageData = imageDataLocations;
 
-        SourceSupplier sourceSupplier = new SourceSupplier( imageSource );
+        SourceSupplier sourceSupplier = new SourceSupplier( imageData );
         dataset.sources.put( imageName, sourceSupplier );
     }
 
     private void addNewSegmentationSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat ) {
         Map< ImageDataFormat, StorageLocation > imageDataLocations;
 
-        SegmentationSource segmentationSource = new SegmentationSource();
-        segmentationSource.tableData = new HashMap<>();
+        AnnotatedLabelMaskData annotatedLabelMaskSource = new AnnotatedLabelMaskData();
+        annotatedLabelMaskSource.tableData = new HashMap<>();
         StorageLocation tableStorageLocation = new StorageLocation();
         tableStorageLocation.relativePath = "tables/" + imageName;
-        segmentationSource.tableData.put( TableDataFormat.TabDelimitedFile, tableStorageLocation );
+        annotatedLabelMaskSource.tableData.put( TableDataFormat.TabDelimitedFile, tableStorageLocation );
 
         imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
-        segmentationSource.imageData = imageDataLocations;
+        annotatedLabelMaskSource.imageData = imageDataLocations;
 
-        SourceSupplier sourceSupplier = new SourceSupplier( segmentationSource );
+        SourceSupplier sourceSupplier = new SourceSupplier( annotatedLabelMaskSource );
 
         dataset.sources.put( imageName, sourceSupplier );
     }
@@ -231,8 +231,8 @@ public class DatasetJsonCreator {
 
         ArrayList<String> tables = new ArrayList<>();
         tables.add( "default.tsv" );
-        SegmentationDisplay segmentationDisplay = new SegmentationDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y }, tables, null );
-        displays.add( segmentationDisplay );
+        AnnotatedLabelMaskDisplay annotatedLabelMaskDisplay = new AnnotatedLabelMaskDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y }, tables, null );
+        displays.add( annotatedLabelMaskDisplay );
 
         if ( sourceTransform.isIdentity() ) {
             return new View( uiSelectionGroup, displays, null, null, isExclusive );
