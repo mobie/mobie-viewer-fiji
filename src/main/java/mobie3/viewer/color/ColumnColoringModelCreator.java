@@ -102,7 +102,7 @@ public class ColumnColoringModelCreator< A extends Annotation >
 		return createColoringModel( selectedColumnName, selectedColoringMode, null, null );
 	}
 
-	public ColoringModel< A > createColoringModel(
+	private ColoringModel< A > createColoringModel(
 			String selectedColumnName,
 			String coloringLut,
 			Double min,

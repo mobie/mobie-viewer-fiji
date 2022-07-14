@@ -47,8 +47,8 @@ import mobie3.viewer.color.SelectionColoringModel;
 import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.display.ImageDisplay;
-import mobie3.viewer.display.RegionDisplay;
-import mobie3.viewer.display.AnnotatedLabelMaskDisplay;
+import mobie3.viewer.display.AnnotatedImagesDisplay;
+import mobie3.viewer.display.AnnotatedImageSegmentsDisplay;
 import mobie3.viewer.display.Display;
 import mobie3.viewer.plot.ScatterPlotView;
 import mobie3.viewer.segment.TransformedAnnotatedSegment;
@@ -227,15 +227,15 @@ public class ViewManager
 				currentDisplay = new ImageDisplay( imageDisplay );
 				addManualTransforms( viewSourceTransforms, imageDisplay.nameToSourceAndConverter );
 			}
-			else if ( display instanceof AnnotatedLabelMaskDisplay )
+			else if ( display instanceof AnnotatedImageSegmentsDisplay )
 			{
-				AnnotatedLabelMaskDisplay annotatedLabelMaskDisplay = ( AnnotatedLabelMaskDisplay ) display;
-				currentDisplay = new AnnotatedLabelMaskDisplay( annotatedLabelMaskDisplay );
-				addManualTransforms( viewSourceTransforms, ( Map ) annotatedLabelMaskDisplay.nameToSourceAndConverter );
+				AnnotatedImageSegmentsDisplay annotatedImageSegmentsDisplay = ( AnnotatedImageSegmentsDisplay ) display;
+				currentDisplay = new AnnotatedImageSegmentsDisplay( annotatedImageSegmentsDisplay );
+				addManualTransforms( viewSourceTransforms, ( Map ) annotatedImageSegmentsDisplay.nameToSourceAndConverter );
 			}
-			else if ( display instanceof RegionDisplay )
+			else if ( display instanceof AnnotatedImagesDisplay )
 			{
-				currentDisplay = new RegionDisplay( ( RegionDisplay ) display );
+				currentDisplay = new AnnotatedImagesDisplay( ( AnnotatedImagesDisplay ) display );
 			}
 
 			if ( currentDisplay != null )
@@ -410,21 +410,21 @@ public class ViewManager
 			annotationDisplay.selectionModel = new MoBIESelectionModel<>();
 			annotationDisplay.initTableModel();
 
-			if ( annotationDisplay instanceof AnnotatedLabelMaskDisplay )
+			if ( annotationDisplay instanceof AnnotatedImageSegmentsDisplay )
 			{
-				showSegmentationDisplay( ( AnnotatedLabelMaskDisplay ) annotationDisplay );
+				showSegmentationDisplay( ( AnnotatedImageSegmentsDisplay ) annotationDisplay );
 			}
-			else if ( annotationDisplay instanceof RegionDisplay )
+			else if ( annotationDisplay instanceof AnnotatedImagesDisplay )
 			{
-				showRegionDisplay( ( RegionDisplay ) annotationDisplay );
+				showRegionDisplay( ( AnnotatedImagesDisplay ) annotationDisplay );
 			}
 
 			if ( annotationDisplay.tableModel != null )
 			{
 				initTableView( annotationDisplay );
 				initScatterPlotView( annotationDisplay );
-				if ( annotationDisplay instanceof AnnotatedLabelMaskDisplay )
-					initSegmentationVolumeViewer( ( AnnotatedLabelMaskDisplay ) annotationDisplay );
+				if ( annotationDisplay instanceof AnnotatedImageSegmentsDisplay )
+					initSegmentationVolumeViewer( ( AnnotatedImageSegmentsDisplay ) annotationDisplay );
 			}
 		}
 
@@ -471,21 +471,21 @@ public class ViewManager
 		}
 	}
 
-	private void showRegionDisplay( RegionDisplay regionDisplay )
+	private void showRegionDisplay( AnnotatedImagesDisplay annotatedImagesDisplay )
 	{
-		configureColoringModel( regionDisplay );
+		configureColoringModel( annotatedImagesDisplay );
 
 		// set selected segments
-		if ( regionDisplay.getSelectedRegionIds() != null )
+		if ( annotatedImagesDisplay.getSelectedRegionIds() != null )
 		{
-			final List< RegionTableRow > annotatedMasks = regionDisplay.tableRowsAdapter.getAnnotatedMasks( regionDisplay.getSelectedRegionIds() );
-			regionDisplay.selectionModel.setSelected( annotatedMasks, true );
+			final List< RegionTableRow > annotatedMasks = annotatedImagesDisplay.tableRowsAdapter.getAnnotatedMasks( annotatedImagesDisplay.getSelectedRegionIds() );
+			annotatedImagesDisplay.selectionModel.setSelected( annotatedMasks, true );
 		}
 
-		regionDisplay.sliceView = new RegionSliceView( moBIE, regionDisplay );
-		initTableView( regionDisplay );
-		initScatterPlotView( regionDisplay );
-		setTablePosition( regionDisplay.sliceViewer.getWindow(), regionDisplay.tableView.getWindow() );
+		annotatedImagesDisplay.sliceView = new RegionSliceView( moBIE, annotatedImagesDisplay );
+		initTableView( annotatedImagesDisplay );
+		initScatterPlotView( annotatedImagesDisplay );
+		setTablePosition( annotatedImagesDisplay.sliceViewer.getWindow(), annotatedImagesDisplay.tableView.getWindow() );
 	}
 
 	private void initTableView( AnnotationDisplay< ? extends Annotation > display )
@@ -498,18 +498,18 @@ public class ViewManager
 		numCurrentTables++;
 	}
 
-	private void showSegmentationDisplay( AnnotatedLabelMaskDisplay annotatedLabelMaskDisplay )
+	private void showSegmentationDisplay( AnnotatedImageSegmentsDisplay annotatedImageSegmentsDisplay )
 	{
-		configureColoringModel( annotatedLabelMaskDisplay );
+		configureColoringModel( annotatedImageSegmentsDisplay );
 
 		// set selected segments
-		if ( annotatedLabelMaskDisplay.getSelectedSegmentIds() != null )
+		if ( annotatedImageSegmentsDisplay.getSelectedSegmentIds() != null )
 		{
-			final List< TableRowImageSegment > segments = annotatedLabelMaskDisplay.segmentMapper.getSegments( annotatedLabelMaskDisplay.getSelectedSegmentIds() );
-			annotatedLabelMaskDisplay.selectionModel.setSelected( segments, true );
+			final List< TableRowImageSegment > segments = annotatedImageSegmentsDisplay.segmentMapper.getSegments( annotatedImageSegmentsDisplay.getSelectedSegmentIds() );
+			annotatedImageSegmentsDisplay.selectionModel.setSelected( segments, true );
 		}
 
-		annotatedLabelMaskDisplay.sliceView = new AnnotatedLabelMaskSliceView( moBIE, annotatedLabelMaskDisplay );
+		annotatedImageSegmentsDisplay.sliceView = new AnnotatedLabelMaskSliceView( moBIE, annotatedImageSegmentsDisplay );
 	}
 
 	private void setTablePosition( Window reference, Window table )
@@ -519,7 +519,7 @@ public class ViewManager
 		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numCurrentTables - 1 ) * shift ) );
 	}
 
-	private void initSegmentationVolumeViewer( AnnotatedLabelMaskDisplay display )
+	private void initSegmentationVolumeViewer( AnnotatedImageSegmentsDisplay display )
 	{
 		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.coloringModel, display.nameToSourceAndConverter.values(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();
@@ -548,8 +548,8 @@ public class ViewManager
 				regionDisplay.tableView.close();
 				numCurrentTables--;
 				regionDisplay.scatterPlotView.close();
-				if ( regionDisplay instanceof AnnotatedLabelMaskDisplay )
-					( ( AnnotatedLabelMaskDisplay ) regionDisplay ).segmentsVolumeViewer.close();
+				if ( regionDisplay instanceof AnnotatedImageSegmentsDisplay )
+					( ( AnnotatedImageSegmentsDisplay ) regionDisplay ).segmentsVolumeViewer.close();
 			}
 
 		}

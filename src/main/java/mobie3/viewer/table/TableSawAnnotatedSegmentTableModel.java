@@ -54,6 +54,8 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotatedSegmentTable
 	@Override
 	public TableSawAnnotatedSegment row( int rowIndex )
 	{
+		open();
+
 		if ( ! rowIndexToAnnotation.containsKey( rowIndex ) )
 		{
 			final TableSawAnnotatedSegment annotation = new TableSawAnnotatedSegment( table, rowIndex );
@@ -62,6 +64,16 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotatedSegmentTable
 		}
 
 		return rowIndexToAnnotation.get( rowIndex );
+	}
+
+	private void open()
+	{
+		if ( table != null ) return;
+
+		throw new UnsupportedOperationException("Table loading is not yet implemented.");
+		// load table
+		// think about the representation of missing values
+		// e.g. should we use None or "" for a missing String?
 	}
 
 	@Override

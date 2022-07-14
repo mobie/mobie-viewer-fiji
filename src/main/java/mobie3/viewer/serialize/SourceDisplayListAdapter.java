@@ -37,8 +37,8 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import mobie3.viewer.display.ImageDisplay;
-import mobie3.viewer.display.RegionDisplay;
-import mobie3.viewer.display.AnnotatedLabelMaskDisplay;
+import mobie3.viewer.display.AnnotatedImagesDisplay;
+import mobie3.viewer.display.AnnotatedImageSegmentsDisplay;
 import mobie3.viewer.display.Display;
 import mobie3.viewer.transform.Transformation;
 
@@ -57,10 +57,10 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< Display >
 	static {
 		nameToClass.put("imageDisplay", ImageDisplay.class);
 		classToName.put( ImageDisplay.class.getName(), "imageDisplay");
-		nameToClass.put("segmentationDisplay", AnnotatedLabelMaskDisplay.class);
-		classToName.put( AnnotatedLabelMaskDisplay.class.getName(), "segmentationDisplay");
-		nameToClass.put("regionDisplay", RegionDisplay.class);
-		classToName.put( RegionDisplay.class.getName(), "regionDisplay");
+		nameToClass.put("segmentationDisplay", AnnotatedImageSegmentsDisplay.class);
+		classToName.put( AnnotatedImageSegmentsDisplay.class.getName(), "segmentationDisplay");
+		nameToClass.put("regionDisplay", AnnotatedImagesDisplay.class);
+		classToName.put( AnnotatedImagesDisplay.class.getName(), "regionDisplay");
 	}
 
 	@Override
@@ -86,10 +86,10 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< Display >
 
 			if ( display instanceof ImageDisplay ) {
 				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, ImageDisplay > >() {}.getType() ) );
-			} else if ( display instanceof AnnotatedLabelMaskDisplay ) {
-				ja.add( context.serialize( nameToSourceDisplay , new TypeToken< Map< String, AnnotatedLabelMaskDisplay > >() {}.getType() ) );
-			} else if ( display instanceof RegionDisplay ) {
-				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, RegionDisplay > >() {}.getType() ) );
+			} else if ( display instanceof AnnotatedImageSegmentsDisplay ) {
+				ja.add( context.serialize( nameToSourceDisplay , new TypeToken< Map< String, AnnotatedImageSegmentsDisplay > >() {}.getType() ) );
+			} else if ( display instanceof AnnotatedImagesDisplay ) {
+				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, AnnotatedImagesDisplay > >() {}.getType() ) );
 			} else
 			{
 				throw new UnsupportedOperationException( "Could not serialise SourceDisplay of type: " + display.getClass().toString() );

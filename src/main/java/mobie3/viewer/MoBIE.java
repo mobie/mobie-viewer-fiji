@@ -38,9 +38,9 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mobie3.viewer.color.opacity.AdjustableOpacityColorConverter;
 import mobie3.viewer.color.opacity.VolatileAdjustableOpacityColorConverter;
-import mobie3.viewer.display.AnnotatedLabelMaskDisplay;
+import mobie3.viewer.display.AnnotatedImageSegmentsDisplay;
 import mobie3.viewer.display.AnnotationDisplay;
-import mobie3.viewer.display.RegionDisplay;
+import mobie3.viewer.display.AnnotatedImagesDisplay;
 import mobie3.viewer.plugins.platybrowser.GeneSearchCommand;
 import mobie3.viewer.serialize.AnnotatedLabelMaskData;
 import mobie3.viewer.serialize.Dataset;
@@ -186,15 +186,15 @@ public class MoBIE
 
 	private Map< String, String > getTableDirectories( AnnotationDisplay display )
 	{
-		if ( display instanceof RegionDisplay )
-			return getRegionTableDirectories( ( RegionDisplay ) display );
-		else if ( display instanceof AnnotatedLabelMaskDisplay )
-			return getSegmentationTableDirectories( ( AnnotatedLabelMaskDisplay ) display );
+		if ( display instanceof AnnotatedImagesDisplay )
+			return getRegionTableDirectories( ( AnnotatedImagesDisplay ) display );
+		else if ( display instanceof AnnotatedImageSegmentsDisplay )
+			return getSegmentationTableDirectories( ( AnnotatedImageSegmentsDisplay ) display );
 		else
 			throw new RuntimeException();
 	}
 
-	private Map< String, String > getRegionTableDirectories( RegionDisplay display )
+	private Map< String, String > getRegionTableDirectories( AnnotatedImagesDisplay display )
 	{
 		Map<String, String> sourceNameToTableDir = new HashMap<>();
 		final String relativePath = display.getTableDataFolder( TableDataFormat.TabDelimitedFile );
@@ -732,7 +732,7 @@ public class MoBIE
 		return projectCommands;
 	}
 
-	private Map< String, String > getSegmentationTableDirectories( AnnotatedLabelMaskDisplay display )
+	private Map< String, String > getSegmentationTableDirectories( AnnotatedImageSegmentsDisplay display )
 	{
 		Map<String, String> sourceNameToTableDir = new HashMap<>();
 		for ( String source: display.getSources() )

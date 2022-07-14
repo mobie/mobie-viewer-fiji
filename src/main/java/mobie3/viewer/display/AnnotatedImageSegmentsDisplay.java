@@ -42,10 +42,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class AnnotatedLabelMaskDisplay< T extends IntegerType< T >, AS extends AnnotatedSegment > extends AnnotationDisplay< AS >
+public class AnnotatedImageSegmentsDisplay< T extends IntegerType< T >, AS extends AnnotatedSegment > extends AnnotationDisplay< AS >
 {
 	// Serialization
-	protected List< String > sources;
+	protected List< String > sources; // label masks
 	protected List< String > selectedSegmentIds;
 	protected boolean showSelectedSegmentsIn3d = false;
 	protected Double[] resolution3dView;
@@ -80,9 +80,9 @@ public class AnnotatedLabelMaskDisplay< T extends IntegerType< T >, AS extends A
 	}
 
 	// Needed for Gson
-	public AnnotatedLabelMaskDisplay(){}
+	public AnnotatedImageSegmentsDisplay(){}
 
-	public AnnotatedLabelMaskDisplay( String name, double opacity, List< String > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, Double[] resolution3dView )
+	public AnnotatedImageSegmentsDisplay( String name, double opacity, List< String > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, Double[] resolution3dView )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -101,20 +101,20 @@ public class AnnotatedLabelMaskDisplay< T extends IntegerType< T >, AS extends A
 	/**
 	 * Create a serializable copy
 	 *
-	 * @param annotatedLabelMaskDisplay
+	 * @param annotatedImageSegmentsDisplay
 	 */
-	public AnnotatedLabelMaskDisplay( AnnotatedLabelMaskDisplay annotatedLabelMaskDisplay )
+	public AnnotatedImageSegmentsDisplay( AnnotatedImageSegmentsDisplay annotatedImageSegmentsDisplay )
 	{
-		set( annotatedLabelMaskDisplay );
+		set( annotatedImageSegmentsDisplay );
 
 		this.sources = new ArrayList<>();
-		this.sources.addAll( annotatedLabelMaskDisplay.nameToSourceAndConverter.keySet() );
+		this.sources.addAll( annotatedImageSegmentsDisplay.nameToSourceAndConverter.keySet() );
 
-		if ( annotatedLabelMaskDisplay.segmentsVolumeViewer != null )
+		if ( annotatedImageSegmentsDisplay.segmentsVolumeViewer != null )
 		{
-			this.showSelectedSegmentsIn3d = annotatedLabelMaskDisplay.segmentsVolumeViewer.isShowSegments();
+			this.showSelectedSegmentsIn3d = annotatedImageSegmentsDisplay.segmentsVolumeViewer.isShowSegments();
 
-			double[] voxelSpacing = annotatedLabelMaskDisplay.segmentsVolumeViewer.getVoxelSpacing();
+			double[] voxelSpacing = annotatedImageSegmentsDisplay.segmentsVolumeViewer.getVoxelSpacing();
 			if ( voxelSpacing != null ) {
 				resolution3dView = new Double[voxelSpacing.length];
 				for (int i = 0; i < voxelSpacing.length; i++) {
@@ -123,7 +123,7 @@ public class AnnotatedLabelMaskDisplay< T extends IntegerType< T >, AS extends A
 			}
 		}
 
-		Set<TableRowImageSegment> currentSelectedSegments = annotatedLabelMaskDisplay.selectionModel.getSelected();
+		Set<TableRowImageSegment> currentSelectedSegments = annotatedImageSegmentsDisplay.selectionModel.getSelected();
 		if (currentSelectedSegments != null) {
 			ArrayList<String> selectedSegmentIds = new ArrayList<>();
 			for (TableRowImageSegment segment : currentSelectedSegments) {
@@ -132,8 +132,8 @@ public class AnnotatedLabelMaskDisplay< T extends IntegerType< T >, AS extends A
 			this.selectedSegmentIds = selectedSegmentIds;
 		}
 
-		if ( annotatedLabelMaskDisplay.sliceView != null ) {
-			visible = annotatedLabelMaskDisplay.sliceView.isVisible();
+		if ( annotatedImageSegmentsDisplay.sliceView != null ) {
+			visible = annotatedImageSegmentsDisplay.sliceView.isVisible();
 		}
 	}
 

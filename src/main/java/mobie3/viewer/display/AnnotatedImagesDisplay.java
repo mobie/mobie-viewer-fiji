@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
+public class AnnotatedImagesDisplay extends AnnotationDisplay< RegionTableRow >
 {
 	// Serialization
 	protected Map< String, List< String > > sources; // annotationId to sources
@@ -82,10 +82,10 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 	}
 
 	// Needed for Gson
-	public RegionDisplay() {}
+	public AnnotatedImagesDisplay() {}
 
 	// Needed for Gson
-	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
+	public AnnotatedImagesDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -104,16 +104,16 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 	/**
 	 * Create a serializable copy
 	 *
-	 * @param regionDisplay
+	 * @param annotatedImagesDisplay
 	 */
-	public RegionDisplay( RegionDisplay regionDisplay )
+	public AnnotatedImagesDisplay( AnnotatedImagesDisplay annotatedImagesDisplay )
 	{
-		set( regionDisplay );
+		set( annotatedImagesDisplay );
 
 		this.sources = new HashMap<>();
-		this.sources.putAll( regionDisplay.sources );
+		this.sources.putAll( annotatedImagesDisplay.sources );
 
-		Set< RegionTableRow > currentSelectedRows = regionDisplay.selectionModel.getSelected();
+		Set< RegionTableRow > currentSelectedRows = annotatedImagesDisplay.selectionModel.getSelected();
 		if ( currentSelectedRows != null && currentSelectedRows.size() > 0 ) {
 			ArrayList<String> selectedIds = new ArrayList<>();
 			for ( RegionTableRow row : currentSelectedRows ) {
@@ -123,10 +123,10 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 		}
 
 		this.tableData = new HashMap<>();
-		this.tableData.putAll( regionDisplay.tableData );
+		this.tableData.putAll( annotatedImagesDisplay.tableData );
 
-		if ( regionDisplay.sliceView != null ) {
-			this.visible = regionDisplay.sliceView.isVisible();
+		if ( annotatedImagesDisplay.sliceView != null ) {
+			this.visible = annotatedImagesDisplay.sliceView.isVisible();
 		}
 	}
 

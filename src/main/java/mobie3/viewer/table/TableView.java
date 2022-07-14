@@ -28,7 +28,6 @@
  */
 package mobie3.viewer.table;
 
-import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
 import de.embl.cba.tables.Utils;
@@ -40,7 +39,6 @@ import de.embl.cba.tables.tablerow.TableRowListener;
 import ij.gui.GenericDialog;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.annotate.Annotator;
-import mobie3.viewer.color.CategoricalAnnotationColoringModel;
 import mobie3.viewer.color.CategoricalColoringModel;
 import mobie3.viewer.color.ColumnColoringModelCreator;
 import mobie3.viewer.color.SelectionColoringModel;
@@ -51,7 +49,6 @@ import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -63,7 +60,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_GREY;
 import static org.embl.mobie.viewer.MoBIEHelper.FileLocation;
 import static org.embl.mobie.viewer.MoBIEHelper.loadFromProjectOrFileSystemDialog;
 
@@ -76,11 +72,10 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private final SelectionModel< A > selectionModel;
 	private final SelectionColoringModel< A > coloringModel;
 	private final String tableName;
-	private final AnnotationDisplay< A > display;
 	private JTable jTable;
 
 	private int recentlySelectedRowInView;
-	private ColumnColoringModelCreator< A > columnColoringModelCreator;
+	private ColumnColoringModelCreator< A > coloringModelCreator;
 	private ArrayList< String > additionalTables = new ArrayList<>();; // tables from which additional columns are loaded
 	private boolean hasColumnsFromTablesOutsideProject; // whether additional columns have been loaded from tables outside the project
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
@@ -101,7 +96,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	public TableView( MoBIE moBIE, AnnotationDisplay< A > display )
 	{
 		this.moBIE = moBIE;
-		this.display = display;
 		this.tableModel = display.tableModel;
 		this.coloringModel = display.coloringModel;
 		this.selectionModel = display.selectionModel;
@@ -117,7 +111,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		configureJTable();
 		installSelectionModelNotification();
-		columnColoringModelCreator = new ColumnColoringModelCreator( tableModel );
+		coloringModelCreator = new ColumnColoringModelCreator( tableModel );
 		configureTableRowColoring();
 	}
 
@@ -664,24 +658,18 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		continueAnnotation( columnName );
 	}
 
-	public void continueAnnotation( String columnName )
+	public void continueAnnotation( String annotationColumnName )
 	{
-		if ( ! columnNameToColoringModel.containsKey( columnName ) )
-		{
-			final CategoricalAnnotationColoringModel< A > categoricalColoringModel = columnColoringModelCreator.createCategoricalColoringModel( columnName, false, new GlasbeyARGBLut(), DARK_GREY );
-			columnNameToColoringModel.put( columnName, categoricalColoringModel );
-		}
-
-		coloringModel.setColoringModel( columnNameToColoringModel.get( columnName ) );
-		final RowSorter< ? extends TableModel > rowSorter = jTable.getRowSorter();
-
 		final Annotator annotator = new Annotator(
-				columnName,
+				annotationColumnName,
 				tableModel,
 				selectionModel,
-				columnNameToColoringModel.get( columnName ),
-				rowSorter
+				jTable.getRowSorter()
 		);
+
+		// base the current coloring model
+		// on the values in the annotation column
+		this.coloringModel.setColoringModel( annotator.getColoringModel() );
 
 		annotator.showDialog();
 	}
@@ -691,9 +679,10 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		SwingUtilities.invokeLater( () -> frame.setVisible( visible ) );
 	}
 
+	// TODO: addColumn in TableModel
 	public void addColumn( String column, Object defaultValue )
 	{
-		if ( tableModel.getColumnNames().contains( column ) )
+		if ( tableModel.columnNames().contains( column ) )
 			throw new RuntimeException( column + " exists already, please choose another name." );
 		tableModel.addColumn( column, defaultValue.toString() );
 	}
@@ -865,7 +854,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public void showColorByColumnDialog()
 	{
-		final ColoringModel< A > coloringModel = columnColoringModelCreator.showDialog();
+		final ColoringModel< A > coloringModel = coloringModelCreator.showDialog();
 
 		if ( coloringModel != null )
 			this.coloringModel.setColoringModel( coloringModel );

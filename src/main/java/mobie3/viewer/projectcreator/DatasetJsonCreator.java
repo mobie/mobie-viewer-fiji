@@ -31,7 +31,7 @@ package mobie3.viewer.projectcreator;
 import de.embl.cba.tables.color.ColoringLuts;
 import mobie3.viewer.table.ColumnNames;
 import mobie3.viewer.display.ImageDisplay;
-import mobie3.viewer.display.AnnotatedLabelMaskDisplay;
+import mobie3.viewer.display.AnnotatedImageSegmentsDisplay;
 import mobie3.viewer.display.Display;
 import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.serialize.DatasetJsonParser;
@@ -231,8 +231,8 @@ public class DatasetJsonCreator {
 
         ArrayList<String> tables = new ArrayList<>();
         tables.add( "default.tsv" );
-        AnnotatedLabelMaskDisplay annotatedLabelMaskDisplay = new AnnotatedLabelMaskDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y }, tables, null );
-        displays.add( annotatedLabelMaskDisplay );
+        AnnotatedImageSegmentsDisplay annotatedImageSegmentsDisplay = new AnnotatedImageSegmentsDisplay( imageName, 0.5, sources, ColoringLuts.GLASBEY, null,null, null, false, false, new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y }, tables, null );
+        displays.add( annotatedImageSegmentsDisplay );
 
         if ( sourceTransform.isIdentity() ) {
             return new View( uiSelectionGroup, displays, null, null, isExclusive );

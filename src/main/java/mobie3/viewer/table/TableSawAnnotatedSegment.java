@@ -6,6 +6,8 @@ import tech.tablesaw.api.Row;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
+import java.util.Arrays;
+
 public class TableSawAnnotatedSegment implements AnnotatedSegment
 {
 	private Row row;
@@ -112,6 +114,12 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
+	public String getId()
+	{
+		return null;
+	}
+
+	@Override
 	public Object getValue( String columnName )
 	{
 		return row.getObject( columnName );
@@ -120,12 +128,16 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public void setString( String columnName, String value )
 	{
+		// TODO: adding the new column should be the job of the
+		// tableModel! move this there
 		if ( ! table.containsColumn( columnName ) )
 		{
-			final StringColumn strings = StringColumn.create( columnName, table.rowCount() );
-			table.addColumns( strings );
+			final String[] strings = new String[ table.rowCount() ];
+			Arrays.fill( strings, DefaultValues.NONE );
+			final StringColumn stringColumn = StringColumn.create( columnName, strings );
+			table.addColumns( stringColumn );
+			this.row = table.row( rowIndex ); // update row
 		}
-		this.row = table.row( rowIndex ); // update with new column
 		row.setText( columnName, value );
 	}
 
