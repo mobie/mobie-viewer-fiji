@@ -70,7 +70,7 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public double[] getAnchor()
+	public double[] anchor()
 	{
 		return new double[]{
 				row.getDouble( ColumnNames.ANCHOR_X ),

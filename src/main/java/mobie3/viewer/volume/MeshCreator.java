@@ -33,7 +33,6 @@ import customnode.CustomTriangleMesh;
 import de.embl.cba.bdv.utils.objects3d.FloodFill;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.Utils;
-import de.embl.cba.tables.imagesegment.ImageSegment;
 import isosurface.MeshEditor;
 import mobie3.viewer.playground.BdvPlaygroundHelper;
 import mobie3.viewer.segment.Segment;
@@ -224,7 +223,7 @@ public class MeshCreator< S extends Segment >
 		floodFill.run( voxelCoordinate );
 		final RandomAccessibleInterval mask = floodFill.getCroppedRegionMask();
 
-		final int numDimensions = segment.getAnchor().length;
+		final int numDimensions = segment.anchor().length;
 		final double[] min = new double[ numDimensions ];
 		final double[] max = new double[ numDimensions ];
 		for ( int d = 0; d < numDimensions; d++ )
@@ -240,7 +239,7 @@ public class MeshCreator< S extends Segment >
 			S segment,
 			double[] calibration )
 	{
-		final double[] anchor = segment.getAnchor();
+		final double[] anchor = segment.anchor();
 		final long[] voxelCoordinate = new long[ anchor.length ];
 		for ( int d = 0; d < anchor.length; d++ )
 			voxelCoordinate[ d ] = ( long ) ( anchor[ d ] / calibration[ d ] );

@@ -72,7 +72,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// Runtime
 	public transient MoBIE moBIE;
 	public transient SelectionModel< A > selectionModel;
-	public transient SelectionColoringModel< A > selectionColoringModel;
+	public transient SelectionColoringModel< A > coloringModel;
 	public transient TableViewer< A > tableViewer;
 	public transient ScatterPlotViewer< A > scatterPlotViewer;
 	public transient AnnotationTableModel< A > tableModel;
@@ -154,9 +154,9 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.nameToSourceAndConverter.values().iterator().next();
 		this.opacity = OpacityAdjuster.getOpacity( sourceAndConverter );
 
-		this.lut = annotationDisplay.selectionColoringModel.getARGBLutName();
+		this.lut = annotationDisplay.coloringModel.getARGBLutName();
 
-		final ColoringModel< A > wrappedColoringModel = annotationDisplay.selectionColoringModel.getWrappedColoringModel();
+		final ColoringModel< A > wrappedColoringModel = annotationDisplay.coloringModel.getWrappedColoringModel();
 
 		if ( wrappedColoringModel instanceof ColumnColoringModel)
 		{

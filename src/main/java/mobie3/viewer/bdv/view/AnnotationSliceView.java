@@ -32,7 +32,6 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.ColoringModel;
-import de.embl.cba.tables.tablerow.TableRow;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.select.SelectionListener;
@@ -52,7 +51,7 @@ public abstract class AnnotationSliceView< T > extends AbstractSliceView impleme
 		super( moBIE, display );
 		this.display = display;
 		display.selectionModel.listeners().add( this );
-		display.selectionColoringModel.listeners().add( this );
+		display.coloringModel.listeners().add( this );
 	}
 
 	protected void show( SourceAndConverter< ? > sourceAndConverter )
@@ -72,7 +71,7 @@ public abstract class AnnotationSliceView< T > extends AbstractSliceView impleme
 			final VolatileBoundarySource volatileBoundarySource = SourceHelper.unwrapSource( sourceAndConverter.asVolatile().getSpimSource(), VolatileBoundarySource.class );
 			volatileBoundarySource.showAsBoundary( showAsBoundaries, boundaryThickness );
 		}
-		final ColoringModel<T> coloringModel = display.selectionColoringModel.getWrappedColoringModel();
+		final ColoringModel<T> coloringModel = display.coloringModel.getWrappedColoringModel();
 		if ( coloringModel instanceof CategoryColoringModel )
 			( ( CategoryColoringModel<?> ) coloringModel ).setRandomSeed( display.getRandomColorSeed() );
 	}

@@ -102,7 +102,7 @@ public class TableViewer< A extends Annotation > implements SelectionListener< A
 		this.moBIE = moBIE;
 		this.display = display;
 		this.tableRows = display.tableModel;
-		this.coloringModel = display.selectionColoringModel;
+		this.coloringModel = display.coloringModel;
 		this.selectionModel = display.selectionModel;
 		this.tableName = display.getName();
 		this.recentlySelectedRowInView = -1;

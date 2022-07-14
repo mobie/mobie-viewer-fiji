@@ -41,7 +41,7 @@ import mobie3.viewer.MoBIE;
 import mobie3.viewer.annotate.RegionTableRow;
 import mobie3.viewer.bdv.view.ImageSliceView;
 import mobie3.viewer.bdv.view.RegionSliceView;
-import mobie3.viewer.bdv.view.SegmentationSliceView;
+import mobie3.viewer.bdv.view.AnnotatedLabelMaskSliceView;
 import mobie3.viewer.bdv.view.SliceViewer;
 import mobie3.viewer.color.SelectionColoringModel;
 import mobie3.viewer.display.AbstractDisplay;
@@ -124,9 +124,9 @@ public class ViewManager
 		if ( display.tableModel.size() == 0 ) return;
 
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
-		display.scatterPlotViewer = new ScatterPlotViewer( display.tableModel, display.selectionModel, display.selectionColoringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
+		display.scatterPlotViewer = new ScatterPlotViewer( display.tableModel, display.selectionModel, display.coloringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
-		display.selectionColoringModel.listeners().add( display.scatterPlotViewer );
+		display.coloringModel.listeners().add( display.scatterPlotViewer );
 		display.sliceViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
 
 		if ( display.showScatterPlot() )
@@ -154,11 +154,11 @@ public class ViewManager
 				coloringModel = modelCreator.createColoringModel(display.getColorByColumn(), coloringLut, null, null );
 			}
 
-			display.selectionColoringModel = new SelectionColoringModel( coloringModel, display.selectionModel );
+			display.coloringModel = new SelectionColoringModel( coloringModel, display.selectionModel );
 		}
 		else
 		{
-			display.selectionColoringModel = new SelectionColoringModel( display.getLut(), display.selectionModel );
+			display.coloringModel = new SelectionColoringModel( display.getLut(), display.selectionModel );
 		}
 	}
 
@@ -493,7 +493,7 @@ public class ViewManager
 		display.tableViewer.show();
 		setTablePosition( display.sliceViewer.getWindow(), display.tableViewer.getWindow() );
 		display.selectionModel.listeners().add( display.tableViewer );
-		display.selectionColoringModel.listeners().add( display.tableViewer );
+		display.coloringModel.listeners().add( display.tableViewer );
 		numCurrentTables++;
 	}
 
@@ -508,7 +508,7 @@ public class ViewManager
 			segmentationDisplay.selectionModel.setSelected( segments, true );
 		}
 
-		segmentationDisplay.sliceView = new SegmentationSliceView( moBIE, segmentationDisplay );
+		segmentationDisplay.sliceView = new AnnotatedLabelMaskSliceView( moBIE, segmentationDisplay );
 	}
 
 	private void setTablePosition( Window reference, Window table )
@@ -520,13 +520,13 @@ public class ViewManager
 
 	private void initSegmentationVolumeViewer( SegmentationDisplay display )
 	{
-		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.selectionColoringModel, display.nameToSourceAndConverter.values(), universeManager );
+		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.coloringModel, display.nameToSourceAndConverter.values(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();
 		if ( resolution3dView != null ) {
 			display.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(display.getResolution3dView()) );
 		}
 		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d(), true );
-		display.selectionColoringModel.listeners().add( display.segmentsVolumeViewer );
+		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
 
 		for ( SourceAndConverter< ? > sourceAndConverter : display.nameToSourceAndConverter.values() )

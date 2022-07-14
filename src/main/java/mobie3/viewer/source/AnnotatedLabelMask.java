@@ -7,30 +7,30 @@ import mobie3.viewer.table.SegmentsAnnData;
 import net.imglib2.Volatile;
 import net.imglib2.type.numeric.IntegerType;
 
-public class AnnotatedLabelMask< T extends IntegerType< T >, SR extends AnnotatedSegment > implements AnnotatedImage< T, SR >
+public class AnnotatedLabelMask< T extends IntegerType< T >, AS extends AnnotatedSegment > implements AnnotatedImage< T, AS >
 {
 	protected Image< T > labelMask;
-	protected SegmentsAnnData< SR > annData;
-	protected SourcePair< AnnotationType< SR > > sourcePair;
+	protected SegmentsAnnData< AS > annData;
+	protected SourcePair< AnnotationType< AS > > sourcePair;
 
 	public AnnotatedLabelMask()
 	{
 	}
 
-	public AnnotatedLabelMask( Image< T > labelMask, SegmentsAnnData< SR > annData )
+	public AnnotatedLabelMask( Image< T > labelMask, SegmentsAnnData< AS > annData )
 	{
 		this.labelMask = labelMask;
 		this.annData = annData;
 	}
 
 	@Override
-	public SourcePair< AnnotationType< SR > > getSourcePair()
+	public SourcePair< AnnotationType< AS > > getSourcePair()
 	{
 		if ( sourcePair == null )
 		{
-			SegmentProvider< SR > segmentProvider = new LabelToSegmentMapper( annData );
-			final AnnotatedLabelMaskSource< T, SR > source = new AnnotatedLabelMaskSource<>( getLabelMask().getSourcePair().getSource(), segmentProvider );
-			final VolatileAnnotatedLabelMaskSource< T, ? extends Volatile< T >, SR > volatileSource = new VolatileAnnotatedLabelMaskSource<>( getLabelMask().getSourcePair().getVolatileSource(), segmentProvider );
+			SegmentProvider< AS > segmentProvider = new LabelToSegmentMapper( annData );
+			final AnnotatedLabelMaskSource< T, AS > source = new AnnotatedLabelMaskSource<>( getLabelMask().getSourcePair().getSource(), segmentProvider );
+			final VolatileAnnotatedLabelMaskSource< T, ? extends Volatile< T >, AS > volatileSource = new VolatileAnnotatedLabelMaskSource<>( getLabelMask().getSourcePair().getVolatileSource(), segmentProvider );
 			sourcePair = new DefaultSourcePair<>( source, volatileSource );
 		}
 
@@ -50,7 +50,7 @@ public class AnnotatedLabelMask< T extends IntegerType< T >, SR extends Annotate
 	}
 
 	@Override
-	public SegmentsAnnData< SR > getAnnData()
+	public SegmentsAnnData< AS > getAnnData()
 	{
 		return null;
 	}

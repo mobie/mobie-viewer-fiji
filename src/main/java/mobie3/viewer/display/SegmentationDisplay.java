@@ -36,7 +36,7 @@ import mobie3.viewer.MoBIEHelper;
 import mobie3.viewer.MultiThreading;
 import mobie3.viewer.table.ColumnNames;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
-import mobie3.viewer.bdv.view.SegmentationSliceView;
+import mobie3.viewer.bdv.view.AnnotatedLabelMaskSliceView;
 import mobie3.viewer.segment.LabelToSegmentMapper;
 import mobie3.viewer.serialize.SegmentationSource;
 import mobie3.viewer.source.LazySpimSource;
@@ -68,7 +68,7 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 	// TODO: below is almost not needed
 	public transient LabelToSegmentMapper< AS > segmentMapper;
 	public transient SegmentsVolumeViewer< AS > segmentsVolumeViewer;
-	public transient SegmentationSliceView sliceView;
+	public transient AnnotatedLabelMaskSliceView sliceView;
 
 	@Override
 	public AnnotationSliceView< ? > getSliceView()

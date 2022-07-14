@@ -51,7 +51,7 @@ public class RegionSliceView extends AnnotationSliceView< RegionTableRow >
 
 	private SourceAndConverter< AnnotationType< RegionTableRow > > createSourceAndConverter()
 	{
-		final RegionImage< RegionTableRow > regionImage = new RegionImage( display.tableModel.getTableRows(), display.selectionColoringModel, display.getName() );
+		final RegionImage< RegionTableRow > regionImage = new RegionImage( display.tableModel.getTableRows(), display.coloringModel, display.getName() );
 
 		return regionImage.getSourceAndConverter();
 	}

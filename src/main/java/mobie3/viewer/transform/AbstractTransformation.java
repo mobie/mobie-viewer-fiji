@@ -29,8 +29,26 @@
 package mobie3.viewer.transform;
 
 
+import mobie3.viewer.source.Image;
+
+import java.util.List;
+
 public abstract class AbstractTransformation implements Transformation
 {
 	// Serialisation
 	protected String name;
+	protected List< String > sources;
+	protected List< String > sourceNamesAfterTransform;
+
+	protected < T > String getTransformedName( Image< T > image )
+	{
+		if ( sourceNamesAfterTransform != null )
+		{
+			return sourceNamesAfterTransform.get( sources.indexOf( image.getName() ) );
+		}
+		else
+		{
+			return image.getName();
+		}
+	}
 }

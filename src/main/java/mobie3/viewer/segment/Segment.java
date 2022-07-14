@@ -9,7 +9,7 @@ public interface Segment
 	String imageId();
 	int labelId();
 	int timePoint();
-	double[] getAnchor();
+	double[] anchor();
 
 	// Properties that MAY be contained
 	// in a corresponding table row.

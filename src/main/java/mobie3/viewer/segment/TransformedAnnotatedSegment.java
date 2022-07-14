@@ -36,9 +36,9 @@ public class TransformedAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public double[] getAnchor()
+	public double[] anchor()
 	{
-		final double[] anchor = annotatedSegment.getAnchor();
+		final double[] anchor = annotatedSegment.anchor();
 
 		if ( transformation instanceof AffineTransformation )
 		{

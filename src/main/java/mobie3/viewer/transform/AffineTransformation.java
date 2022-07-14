@@ -29,9 +29,16 @@
 package mobie3.viewer.transform;
 
 import bdv.tools.transformation.TransformedSource;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import mobie3.viewer.playground.SourceAffineTransformer;
+import mobie3.viewer.source.DefaultImage;
+import mobie3.viewer.source.Image;
+import mobie3.viewer.source.SourcePair;
+import mobie3.viewer.source.TransformedImage;
+import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
+import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,11 +48,9 @@ public class AffineTransformation extends AbstractTransformation
 {
 	// Serialisation
 	protected double[] parameters;
-	protected List< String > sources;
-	protected List< String > sourceNamesAfterTransform;
 
 	// Runtime
-	private transient AffineTransform3D affineTransform3D;
+	private transient AffineTransform3D affineTransform3D = new AffineTransform3D();
 
 	public AffineTransformation( String name, double[] parameters, List< String > sources ) {
 		this( name, parameters, sources, null );
@@ -57,6 +62,7 @@ public class AffineTransformation extends AbstractTransformation
 		this.parameters = parameters;
 		this.sources = sources;
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
+
 	}
 
 	public AffineTransformation( TransformedSource< ? > transformedSource )
@@ -70,34 +76,20 @@ public class AffineTransformation extends AbstractTransformation
 	}
 
 	@Override
-	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
+	public < T > Image< T > apply( Image< T > image )
 	{
-		affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parameters );
 
-		for ( String sourceName : sourceNameToSourceAndConverter.keySet() )
-		{
-			if ( sources.contains( sourceName ) )
-			{
-				SourceAffineTransformer transformer = createSourceAffineTransformer( sourceName );
+		final SourcePair< T > sourcePair = image.getSourcePair();
+		final Source< T > source = sourcePair.getSource();
+		final Source< ? extends Volatile< T > > volatileSource = sourcePair.getVolatileSource();
+		final String transformedImageName = getTransformedName( image );
 
-				final SourceAndConverter transformedSource = transformer.apply( sourceNameToSourceAndConverter.get( sourceName ) );
+		final TransformedSource transformedSource = new TransformedSource( source, transformedImageName );
+		transformedSource.setFixedTransform( affineTransform3D );
+		final TransformedSource volatileTransformedSource = new TransformedSource( volatileSource, transformedSource );
 
-				sourceNameToSourceAndConverter.put( transformedSource.getSpimSource().getName(), transformedSource );
-			}
-		}
-	}
-
-	private SourceAffineTransformer createSourceAffineTransformer( String sourceName )
-	{
-		if ( sourceNamesAfterTransform != null )
-		{
-			return new SourceAffineTransformer( affineTransform3D, sourceNamesAfterTransform.get( sources.indexOf( sourceName ) ), false );
-		}
-		else
-		{
-			return new SourceAffineTransformer( affineTransform3D, sourceName, false );
-		}
+		return new DefaultImage<>( transformedSource, volatileTransformedSource, name );
 	}
 
 	@Override
