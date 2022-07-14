@@ -33,37 +33,28 @@ import de.embl.cba.bdv.utils.lut.BlueWhiteRedARGBLut;
 import de.embl.cba.bdv.utils.lut.ColumnARGBLut;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.bdv.utils.lut.ViridisARGBLut;
-import de.embl.cba.tables.TableRows;
-import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.ColoringModel;
-import de.embl.cba.tables.tablerow.TableRow;
 import ij.gui.GenericDialog;
 import mobie3.viewer.table.Annotation;
 import mobie3.viewer.table.AnnotationTableModel;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Pair;
-import net.imglib2.util.ValuePair;
 
 import javax.swing.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.TRANSPARENT;
 
 public class ColumnColoringModelCreator< A extends Annotation >
 {
-	@Deprecated
-	private JTable table;
 	private AnnotationTableModel< A > tableModel;
 
 	private String selectedColumnName;
 	private String selectedColoringMode;
 	private boolean isZeroTransparent = false;
 
-	private Map< String, Pair< Double, Double > > columnNameToMinMax;
-	private HashMap< String, Pair< Double, Double > > columnNameToRangeSettings;
+	//private Map< String, Pair< Double, Double > > columnNameToMinMax;
+	//private HashMap< String, Pair< Double, Double > > columnNameToRangeSettings;
 
 	public static final String[] COLORING_MODES = new String[]
 	{
@@ -73,29 +64,20 @@ public class ColumnColoringModelCreator< A extends Annotation >
 			ColoringLuts.ARGB_COLUMN
 	};
 
-	@Deprecated
-	public ColumnColoringModelCreator( JTable table )
-	{
-		this.table = table;
-
-		init();
-	}
-
 	public ColumnColoringModelCreator( AnnotationTableModel< A > tableModel )
 	{
 		this.tableModel = tableModel;
-		init();
 	}
 
-	private void init()
-	{
-		this.columnNameToMinMax = new HashMap<>();
-		this.columnNameToRangeSettings = new HashMap<>();
-	}
+//	private void init()
+//	{
+//		this.columnNameToMinMax = new HashMap<>();
+//		this.columnNameToRangeSettings = new HashMap<>();
+//	}
 
 	public ColoringModel< A > showDialog()
 	{
-		final String[] columnNames = Tables.getColumnNamesAsArray( table );
+		final String[] columnNames = tableModel.columnNames().toArray( new String[ 0 ] );
 
 		final GenericDialog gd = new GenericDialog( "Color by Column" );
 
@@ -188,24 +170,11 @@ public class ColumnColoringModelCreator< A extends Annotation >
 	private void populateColoringModelFromArgbColumn (String selectedColumnName, CategoricalAnnotationColoringModel< A > coloringModel) {
 
 		int selectedColumnIndex = -1;
-		int rowCount;
-		if ( table != null )
-		{
-			selectedColumnIndex = table.getColumnModel().getColumnIndex( selectedColumnName );
-			rowCount = table.getRowCount();
-		}
-		else
-		{
-			rowCount = tableModel.numRows();
-		}
+		int rowCount = tableModel.numRows();
 
 		for ( int i = 0; i < rowCount; i++)
 		{
-			String argbString;
-			if ( table != null )
-				argbString = (String) table.getValueAt( i, selectedColumnIndex );
-			else
-				argbString = (String) tableModel.row( i ).getValue( selectedColumnName );
+			String argbString = (String) tableModel.row( i ).getValue( selectedColumnName );
 
 			if ( ! argbString.equals("NaN") & !argbString.equals("None") ) {
 				String[] splitArgbString = argbString.split("-");
@@ -215,7 +184,7 @@ public class ColumnColoringModelCreator< A extends Annotation >
 					argbValues[j] = Integer.parseInt(splitArgbString[j]);
 				}
 
-				coloringModel.putInputToFixedColor(argbString, new ARGBType(ARGBType.rgba(argbValues[1], argbValues[2], argbValues[3], argbValues[0])));
+				coloringModel.assignColor(argbString, new ARGBType(ARGBType.rgba(argbValues[1], argbValues[2], argbValues[3], argbValues[0])));
 			}
 		}
 	}
@@ -231,14 +200,14 @@ public class ColumnColoringModelCreator< A extends Annotation >
 						selectedColumnName,
 						argbLut );
 
-		coloringModel.putInputToFixedColor( "Infinity", colorForNoneOrNaN );
-		coloringModel.putInputToFixedColor( "NaN", colorForNoneOrNaN );
-		coloringModel.putInputToFixedColor( "None", colorForNoneOrNaN );
+		coloringModel.assignColor( "Infinity", colorForNoneOrNaN );
+		coloringModel.assignColor( "NaN", colorForNoneOrNaN );
+		coloringModel.assignColor( "None", colorForNoneOrNaN );
 
 		if ( isZeroTransparent )
 		{
-			coloringModel.putInputToFixedColor( "0", TRANSPARENT );
-			coloringModel.putInputToFixedColor( "0.0", TRANSPARENT );
+			coloringModel.assignColor( "0", TRANSPARENT );
+			coloringModel.assignColor( "0.0", TRANSPARENT );
 
 			if (argbLut != null) {
 				argbLut.setName(argbLut.getName() + ColoringLuts.ZERO_TRANSPARENT);
@@ -261,13 +230,11 @@ public class ColumnColoringModelCreator< A extends Annotation >
 			ARGBLut argbLut )
 	{
 		final Pair< Double, Double > range = tableModel.computeMinMax( columnName );
-		Pair< Double, Double > contrastLimits = getValueSettings( columnName, range );
 
 		final NumericalAnnotationColoringModel< A > coloringModel
 				= new NumericalAnnotationColoringModel<>(
 						columnName,
 						argbLut,
-						contrastLimits,
 						range,
 						isZeroTransparent );
 
@@ -286,33 +253,33 @@ public class ColumnColoringModelCreator< A extends Annotation >
 		return coloringModel;
 	}
 
-	private Pair< Double, Double > getValueSettings( String columnName, Pair< Double, Double > range )
-	{
-		if ( ! columnNameToRangeSettings.containsKey( columnName ) )
-			columnNameToRangeSettings.put( columnName, new ValuePair<>( range.getA(), range.getB() ) );
+//	private Pair< Double, Double > getValueSettings( String columnName, Pair< Double, Double > range )
+//	{
+//		if ( ! columnNameToRangeSettings.containsKey( columnName ) )
+//			columnNameToRangeSettings.put( columnName, new ValuePair<>( range.getA(), range.getB() ) );
+//
+//		return columnNameToRangeSettings.get( columnName );
+//	}
 
-		return columnNameToRangeSettings.get( columnName );
-	}
+//	private double[] getValueRange( JTable table, String column )
+//	{
+//		if ( ! columnNameToMinMax.containsKey( column ) )
+//		{
+//			final double[] minMaxValues = Tables.minMax( column, table );
+//			columnNameToMinMax.put( column, minMaxValues );
+//		}
+//
+//		return columnNameToMinMax.get( column );
+//	}
 
-	private double[] getValueRange( JTable table, String column )
-	{
-		if ( ! columnNameToMinMax.containsKey( column ) )
-		{
-			final double[] minMaxValues = Tables.minMax( column, table );
-			columnNameToMinMax.put( column, minMaxValues );
-		}
-
-		return columnNameToMinMax.get( column );
-	}
-
-	private double[] getValueRange( List< ? extends TableRow > tableRows, String column )
-	{
-		if ( ! columnNameToMinMax.containsKey( column ) )
-		{
-			final double[] minMaxValues = TableRows.minMax( tableRows, column );
-			columnNameToMinMax.put( column, minMaxValues );
-		}
-
-		return columnNameToMinMax.get( column );
-	}
+//	private double[] getValueRange( List< ? extends TableRow > tableRows, String column )
+//	{
+//		if ( ! columnNameToMinMax.containsKey( column ) )
+//		{
+//			final double[] minMaxValues = TableRows.minMax( tableRows, column );
+//			columnNameToMinMax.put( column, minMaxValues );
+//		}
+//
+//		return columnNameToMinMax.get( column );
+//	}
 }

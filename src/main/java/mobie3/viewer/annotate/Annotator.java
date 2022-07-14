@@ -30,14 +30,16 @@ package mobie3.viewer.annotate;
 
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.SwingUtils;
-import de.embl.cba.tables.color.CategoryTableRowColumnColoringModel;
 import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
+import mobie3.viewer.color.CategoricalAnnotationColoringModel;
 import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.select.SelectionModel;
-import mobie3.viewer.table.TableRowsTableModel;
+import mobie3.viewer.table.AnnotatedSegment;
+import mobie3.viewer.table.Annotation;
+import mobie3.viewer.table.AnnotationTableModel;
+import mobie3.viewer.table.AnnotatedSegmentTableModel;
 import mobie3.viewer.ui.MoBIELaf;
 import net.imglib2.type.numeric.ARGBType;
 
@@ -48,52 +50,51 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Annotator< T extends TableRow > extends JFrame implements SelectionListener< T >
+public class Annotator< A extends Annotation > extends JFrame implements SelectionListener< A >
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
 	public static final String LAST = "You are already at the last object in table.";
 	public static final String NO_MORE_SEGMENTS = "No more segments.";
 	private final String annotationColumnName;
-	private final TableRowsTableModel< T > tableRows;
-	private final SelectionModel< T > selectionModel;
-	private final CategoryTableRowColumnColoringModel< T > coloringModel;
+	private final AnnotationTableModel< A > tableModel;
+	private final SelectionModel< A > selectionModel;
+	private final CategoricalAnnotationColoringModel< A > coloringModel;
 	private final RowSorter< ? extends TableModel > rowSorter;
 	private final JPanel panel;
 	private boolean skipNone;
 	private boolean isKeepSelectedMode = false;
 	private JTextField goToRowIndexTextField;
-	private HashMap< String, T > annotationToTableRow;
+	private HashMap< String, A > annotationToTableRow;
 	private JPanel annotationButtonsContainer;
 	private JScrollPane annotationButtonsScrollPane;
-	private T currentlySelectedRow;
+	private A currentlySelectedRow;
 	private Set< String > annotationNames;
 	private String objectName = "entity";
 
-	public Annotator( String columnName, TableRowsTableModel< T > tableRows, SelectionModel< T > selectionModel, CategoryTableRowColumnColoringModel< T > coloringModel, RowSorter< ? extends TableModel > rowSorter )
+	public Annotator( String columnName, AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, CategoricalAnnotationColoringModel< A > coloringModel, RowSorter< ? extends TableModel > rowSorter )
 	{
 		super("");
 		this.annotationColumnName = columnName;
 		this.annotationNames = new HashSet<>();
-		this.tableRows = tableRows;
+		this.tableModel = tableModel;
 		this.selectionModel = selectionModel;
 		this.coloringModel = coloringModel;
 		this.rowSorter = rowSorter;
-		this.currentlySelectedRow = tableRows.get( rowSorter.convertRowIndexToModel( 0 ) );
-		this.coloringModel.fixedColorMode( true );
-		setNames( tableRows );
+		this.currentlySelectedRow = tableModel.row( rowSorter.convertRowIndexToModel( 0 ) );
+		setNames( tableModel );
 		selectionModel.listeners().add( this );
 
 		this.panel = new JPanel();
 	}
 
-	private void setNames( TableRowsTableModel< T > tableRows )
+	private void setNames( AnnotationTableModel< A > tableModel )
 	{
-		if ( tableRows.get( 0 ) instanceof TableRowImageSegment )
+		if ( tableModel instanceof AnnotatedSegmentTableModel )
 		{
 			objectName = "segment";
 		}
-		else if ( tableRows.get( 0 ) instanceof RegionTableRow )
+		else // TODO: RegionsTableModel
 		{
 			objectName = "region";
 		}
@@ -176,12 +177,12 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 	}
 
 	private void addAnnotationButtonPanels() {
-		final HashMap< String, T > annotations = getAnnotations();
+		final HashMap< String, A > annotations = getAnnotations();
 		for ( String annotation : annotations.keySet() )
 			addAnnotationButtonPanel( annotation, annotations.get( annotation ) );
 	}
 
-	private void addAnnotationButtonPanel( String annotationName, T tableRow )
+	private void addAnnotationButtonPanel( String annotationName, A tableRow )
 	{
 		MoBIELaf.MoBIELafOn();
 
@@ -195,18 +196,18 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		annotateButton.setAlignmentX( Component.CENTER_ALIGNMENT );
 
 		final ARGBType argbType = new ARGBType();
-		coloringModel.convert( annotationName, argbType );
+		coloringModel.convertStringToARGB( annotationName, argbType );
 		annotateButton.setBackground( ColorUtils.getColor( argbType ) );
 
 		annotateButton.addActionListener( e ->
 		{
 			if ( selectionModel.isEmpty() ) return; // nothing selected to be annotated
 
-			final Set< T > selected = selectionModel.getSelected();
+			final Set< A > selected = selectionModel.getSelected();
 
-			for ( T row : selected )
+			for ( A row : selected )
 			{
-				row.setCell( annotationColumnName, annotationName );
+				row.setString( annotationColumnName, annotationName );
 			}
 
 			if( isKeepSelectedMode )
@@ -226,7 +227,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 			Color color = JColorChooser.showDialog( this.panel, "", null );
 			if ( color == null ) return;
 			annotateButton.setBackground( color );
-			coloringModel.putInputToFixedColor( annotationName, ColorUtils.getARGBType( color ) );
+			coloringModel.assignColor( annotationName, ColorUtils.getARGBType( color ) );
 		} );
 
 		panel.add( annotateButton );
@@ -268,15 +269,16 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		next.addActionListener( e ->
 		{
 			// rowIndex in currently visible table
-			int rowIndex = rowSorter.convertRowIndexToView( tableRows.indexOf( currentlySelectedRow ) );
-			if ( rowIndex < tableRows.size() - 1 )
+			int rowIndex = rowSorter.convertRowIndexToView( tableModel.indexOf( currentlySelectedRow ) );
+			final int numRows = tableModel.numRows();
+			if ( rowIndex < numRows - 1 )
 			{
-				T row = null;
+				A row = null;
 				if ( skipNone )
 				{
-					while ( rowIndex < tableRows.size() - 1 )
+					while ( rowIndex < numRows - 1 )
 					{
-						row = tableRows.get( rowSorter.convertRowIndexToModel( ++rowIndex ) );
+						row = tableModel.row( rowSorter.convertRowIndexToModel( ++rowIndex ) );
 						if ( isNoneOrNan( row ) )
 						{
 							row = null;
@@ -296,7 +298,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 
 				} else
 				{
-					row = tableRows.get( rowSorter.convertRowIndexToModel( ++rowIndex ) );
+					row = tableModel.row( rowSorter.convertRowIndexToModel( ++rowIndex ) );
 				}
 				selectRow( row );
 			} else
@@ -331,15 +333,15 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		previous.addActionListener( e ->
 		{
 			// row index in sorted "units"
-			int rowIndex = rowSorter.convertRowIndexToView( tableRows.indexOf( currentlySelectedRow ) );
+			int rowIndex = rowSorter.convertRowIndexToView( tableModel.indexOf( currentlySelectedRow ) );
 			if ( rowIndex > 0 )
 			{
-				T row = null;
+				A row = null;
 				if ( skipNone )
 				{
 					while ( rowIndex > 0 )
 					{
-						row = tableRows.get( rowSorter.convertRowIndexToModel( --rowIndex ) );
+						row = tableModel.row( rowSorter.convertRowIndexToModel( --rowIndex ) );
 						if ( isNoneOrNan( row ) )
 						{
 							row = null;
@@ -359,7 +361,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 				}
 				else
 				{
-					row = tableRows.get( rowSorter.convertRowIndexToModel( --rowIndex ) );
+					row = tableModel.row( rowSorter.convertRowIndexToModel( --rowIndex ) );
 					selectRow( row );
 				}
 			}
@@ -379,31 +381,30 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 
 		button.addActionListener( e ->
 		{
-			T selectedRow = getSelectedRow();
+			A selectedRow = getSelectedRow();
 			if ( selectedRow != null ) selectRow( selectedRow );
 		} );
 		return button;
 	}
 
-	private T getSelectedRow()
+	private A getSelectedRow()
 	{
-		if ( tableRows.get( 0 ) instanceof TableRowImageSegment )
+		if ( tableModel instanceof AnnotatedSegmentTableModel )
 		{
-			final double selectedLabelId = Double.parseDouble( goToRowIndexTextField.getText() );
-			for ( T tableRow : tableRows )
+			final double selectedLabelId = Integer.parseInt( goToRowIndexTextField.getText() );
+			for ( A annotation : tableModel.rows() )
 			{
-				final double labelId = ( ( TableRowImageSegment ) tableRow ).labelId();
-				if ( labelId == selectedLabelId )
+				if ( ( ( AnnotatedSegment ) annotation ).labelId() == selectedLabelId )
 				{
-					return tableRow;
+					return annotation;
 				}
 			}
 			throw new UnsupportedOperationException( "Could not find " + objectName + " with ID " + selectedLabelId );
 		}
-		else if ( tableRows.get( 0 ) instanceof RegionTableRow )
+		else if (  tableModel instanceof AnnotatedRegionTableModel )
 		{
 			final String annotationID = goToRowIndexTextField.getText();
-			for ( T tableRow : tableRows )
+			for ( A tableRow : tableModel.rows() )
 			{
 				final String name = ( ( RegionTableRow ) tableRow ).labelId();
 				if ( name.equals( annotationID ) )
@@ -416,17 +417,17 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		else
 		{
 			final int rowIndex = Integer.parseInt( goToRowIndexTextField.getText() );
-			return tableRows.get( rowSorter.convertRowIndexToModel( rowIndex ) );
+			return tableModel.get( rowSorter.convertRowIndexToModel( rowIndex ) );
 		}
 	}
 
-	private boolean isNoneOrNan( T row )
+	private boolean isNoneOrNan( A row )
 	{
 		return row.getCell( annotationColumnName ).equalsIgnoreCase( "none" )
 				|| row.getCell( annotationColumnName ).equalsIgnoreCase( "nan" );
 	}
 
-	private void selectRow( T row )
+	private void selectRow( A row )
 	{
 		currentlySelectedRow = row;
 		selectionModel.clearSelection();
@@ -466,7 +467,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		this.panel.add( panel );
 	}
 
-	private void setButtonColor( JButton button, T tableRow )
+	private void setButtonColor( JButton button, A tableRow )
 	{
 		if ( tableRow != null )
 		{
@@ -476,15 +477,15 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 		}
 	}
 
-	private HashMap< String, T > getAnnotations()
+	private HashMap< String, A > getAnnotations()
 	{
 		if ( annotationToTableRow == null )
 		{
 			annotationToTableRow = new HashMap<>();
 
-			for ( int row = 0; row < tableRows.size(); row++ )
+			for ( int row = 0; row < tableModel.size(); row++ )
 			{
-				final T tableRow = tableRows.get( row );
+				final A tableRow = tableModel.get( row );
 				annotationToTableRow.put( tableRow.getCell( annotationColumnName ), tableRow );
 			}
 		}
@@ -515,7 +516,7 @@ public class Annotator< T extends TableRow > extends JFrame implements Selection
 	}
 
 	@Override
-	public void focusEvent( T selection, Object initiator )
+	public void focusEvent( A selection, Object initiator )
 	{
 		currentlySelectedRow = selection;
 	}

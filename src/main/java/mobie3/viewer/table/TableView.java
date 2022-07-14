@@ -40,6 +40,7 @@ import de.embl.cba.tables.tablerow.TableRowListener;
 import ij.gui.GenericDialog;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.annotate.Annotator;
+import mobie3.viewer.color.CategoricalAnnotationColoringModel;
 import mobie3.viewer.color.CategoricalColoringModel;
 import mobie3.viewer.color.ColumnColoringModelCreator;
 import mobie3.viewer.color.SelectionColoringModel;
@@ -85,7 +86,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
 
 	// TODO: this is only for the annotator (maybe move it there)
-	private Map< String, CategoricalColoringModel< A > > columnNameToColoringModel = new HashMap<>();
+	private Map< String, ColoringModel< A > > columnNameToColoringModel = new HashMap<>();
 
 	private boolean controlDown;
 	private JFrame frame;
@@ -115,12 +116,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		//registerAsTableRowListener( tableRows );
 
 		configureJTable();
-
-		if ( selectionModel != null )
-			installSelectionModelNotification();
-
-		if ( coloringModel != null)
-			configureTableRowColoring();
+		installSelectionModelNotification();
+		columnColoringModelCreator = new ColumnColoringModelCreator( tableModel );
+		configureTableRowColoring();
 	}
 
 	public void close()
@@ -331,9 +329,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		jTable.setAutoCreateRowSorter( true );
 		jTable.setRowSelectionAllowed( true );
 		jTable.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
-
-		// TODO: do this with TableRowsModel instead ?!
-		columnColoringModelCreator = new ColumnColoringModelCreator( jTable );
 	}
 
 	private JMenuBar createMenuBar()
@@ -673,7 +668,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		if ( ! columnNameToColoringModel.containsKey( columnName ) )
 		{
-			final CategoricalColoringModel< A > categoricalColoringModel = columnColoringModelCreator.createCategoricalColoringModel( columnName, false, new GlasbeyARGBLut(), DARK_GREY );
+			final CategoricalAnnotationColoringModel< A > categoricalColoringModel = columnColoringModelCreator.createCategoricalColoringModel( columnName, false, new GlasbeyARGBLut(), DARK_GREY );
 			columnNameToColoringModel.put( columnName, categoricalColoringModel );
 		}
 

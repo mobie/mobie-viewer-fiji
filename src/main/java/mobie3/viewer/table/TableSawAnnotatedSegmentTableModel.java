@@ -9,7 +9,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawAnnotatedSegment >
+public class TableSawAnnotatedSegmentTableModel implements AnnotatedSegmentTableModel< TableSawAnnotatedSegment >
 {
 	protected Collection< String > columnPaths;
 	protected LinkedHashSet< String > loadedColumnPaths;
@@ -18,7 +18,7 @@ public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawA
 	private HashMap< Integer, TableSawAnnotatedSegment > rowIndexToAnnotation;
 	private Table table;
 
-	public TableSawSegmentsTableModel( String defaultColumnsPath )
+	public TableSawAnnotatedSegmentTableModel( String defaultColumnsPath )
 	{
 		loadedColumnPaths = new LinkedHashSet<>();
 		annotationToRowIndex = new HashMap<>();
@@ -46,7 +46,7 @@ public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawA
 	}
 
 	@Override
-	public int rowIndex( TableSawAnnotatedSegment annotation )
+	public int indexOf( TableSawAnnotatedSegment annotation )
 	{
 		return annotationToRowIndex.get( annotation );
 	}
@@ -56,7 +56,7 @@ public class TableSawSegmentsTableModel implements SegmentsTableModel< TableSawA
 	{
 		if ( ! rowIndexToAnnotation.containsKey( rowIndex ) )
 		{
-			final TableSawAnnotatedSegment annotation = new TableSawAnnotatedSegment( table.row( rowIndex ) );
+			final TableSawAnnotatedSegment annotation = new TableSawAnnotatedSegment( table, rowIndex );
 			annotationToRowIndex.put( annotation, rowIndex );
 			rowIndexToAnnotation.put( rowIndex, annotation );
 		}

@@ -38,19 +38,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
-public class CategoricalAnnotationColoringModel< A extends Annotation >
-		extends AbstractColoringModel< A > implements CategoricalColoringModel< A >, ColumnColoringModel, ARBGLutSupplier
+public class CategoricalAnnotationColoringModel< A extends Annotation > extends AbstractColoringModel< A > implements ARBGLutSupplier
 {
-	public static final ARGBType TRANSPARENT = new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) );
-	public static final ARGBType DARK_GREY = new ARGBType( ARGBType.rgba( 100, 100, 100, 255 ) );
-
 	// TODO: The maps could go to int instead of ARGBType
-	private Map< Object, ARGBType > inputToFixedColor;
-	private Map< Object, ARGBType > inputToRandomColor;
+	private Map< String, ARGBType > inputToFixedColor;
+	private Map< String, ARGBType > inputToRandomColor;
 	private final String columnName;
 	private ARGBLut argbLut;
 	private int randomSeed;
-	private boolean fixedColorMode = false;
 
 	/**
 	 *
@@ -68,8 +63,11 @@ public class CategoricalAnnotationColoringModel< A extends Annotation >
 	@Override
 	public void convert( A input, ARGBType output )
 	{
-		final Object value = input.getValue( columnName );
+		convertStringToARGB( input.getValue( columnName ).toString(), output );
+	}
 
+	public void convertStringToARGB( String value, ARGBType output )
+	{
 		if ( inputToFixedColor.keySet().contains( value ) )
 		{
 			final int color = inputToFixedColor.get( value ).get();
@@ -82,7 +80,6 @@ public class CategoricalAnnotationColoringModel< A extends Annotation >
 		}
 		else
 		{
-			// final double random = createRandom( inputToRandomColor.size() + 1 );
 			final double random = createRandom( value.hashCode() );
 			final int color = argbLut.getARGB( random );
 			inputToRandomColor.put( value, new ARGBType( color ) );
@@ -98,44 +95,9 @@ public class CategoricalAnnotationColoringModel< A extends Annotation >
 		return random;
 	}
 
-	@Override
-	public void incRandomSeed( )
+	public void assignColor( String category, ARGBType color )
 	{
-		if ( fixedColorMode ) return;
-		inputToRandomColor.clear();
-		this.randomSeed++;
-		notifyColoringListeners();
-	}
-
-	@Override
-	public void setRandomSeed( int seed )
-	{
-		if ( fixedColorMode ) return;
-		inputToRandomColor.clear();
-		randomSeed = seed;
-		notifyColoringListeners();
-	}
-
-	@Override
-	public int getRandomSeed()
-	{
-		return randomSeed;
-	}
-
-	public void fixedColorMode( boolean fixedColorMode )
-	{
-		this.fixedColorMode = fixedColorMode;
-	}
-
-	public void putInputToFixedColor( Object input, ARGBType color )
-	{
-		inputToFixedColor.put( input, color );
-		notifyColoringListeners();
-	}
-
-	public void removeInputToFixedColor( Object input )
-	{
-		inputToFixedColor.remove( input );
+		inputToFixedColor.put( category, color );
 		notifyColoringListeners();
 	}
 

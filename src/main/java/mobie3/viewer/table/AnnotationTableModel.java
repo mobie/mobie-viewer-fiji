@@ -12,7 +12,7 @@ public interface AnnotationTableModel< A extends Annotation >
 	List< String > columnNames();
 	Class< ? > columnClass( String columnName );
 	int numRows();
-	int rowIndex( A annotation );
+	int indexOf( A annotation );
 	A row( int rowIndex );
 	void loadColumns( String columnsPath ); // load more chucks of columns
 	void setColumnPaths( Collection< String> columnPaths );

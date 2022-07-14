@@ -10,15 +10,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class TransformedSegmentsTableModel implements SegmentsTableModel< TransformedAnnotatedSegment >
+public class TransformedAnnotatedSegmentTableModel implements AnnotatedSegmentTableModel< TransformedAnnotatedSegment >
 {
-	private final SegmentsTableModel< ? extends AnnotatedSegment > model;
+	private final AnnotatedSegmentTableModel< ? extends AnnotatedSegment > model;
 	private final Transformation transformation;
 
 	private HashMap< TransformedAnnotatedSegment, Integer > rowToIndex;
 	private HashMap< Integer, TransformedAnnotatedSegment > indexToRow;
 
-	public TransformedSegmentsTableModel( SegmentsTableModel< ? extends AnnotatedSegment > model, Transformation transformation )
+	public TransformedAnnotatedSegmentTableModel( AnnotatedSegmentTableModel< ? extends AnnotatedSegment > model, Transformation transformation )
 	{
 		this.model = model;
 		this.transformation = transformation;
@@ -45,7 +45,7 @@ public class TransformedSegmentsTableModel implements SegmentsTableModel< Transf
 	}
 
 	@Override
-	public int rowIndex( TransformedAnnotatedSegment annotation )
+	public int indexOf( TransformedAnnotatedSegment annotation )
 	{
 		return rowToIndex.get( annotation );
 	}

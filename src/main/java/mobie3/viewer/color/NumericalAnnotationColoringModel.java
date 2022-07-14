@@ -52,13 +52,12 @@ public class NumericalAnnotationColoringModel< A extends Annotation >
 	public NumericalAnnotationColoringModel(
 			String columnName,
 			ARGBLut lut,
-			Pair< Double, Double > contrastLimits,
 			Pair< Double, Double > range,
 			boolean isZeroTransparent )
 	{
 		this.columnName = columnName;
 		this.lut = lut;
-		this.contrastLimits = contrastLimits;
+		this.contrastLimits = new ValuePair<>( range.getA(), range.getB() );
 		this.range = range;
 		this.isZeroTransparent = isZeroTransparent;
 	}

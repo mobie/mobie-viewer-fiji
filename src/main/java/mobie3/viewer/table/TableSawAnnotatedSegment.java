@@ -3,17 +3,24 @@ package mobie3.viewer.table;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import tech.tablesaw.api.Row;
+import tech.tablesaw.api.StringColumn;
+import tech.tablesaw.api.Table;
 
 public class TableSawAnnotatedSegment implements AnnotatedSegment
 {
-	private final Row row;
+	private Row row;
 	private final int numSegmentDimensions;
+	private final Table table;
+	private final int rowIndex;
 	private RealInterval boundingBox;
 	private float[] mesh;
 
-	public TableSawAnnotatedSegment( Row row )
+	public TableSawAnnotatedSegment( Table table, int rowIndex )
 	{
-		this.row = row;
+		this.table = table;
+		this.rowIndex = rowIndex;
+
+		this.row = table.row( rowIndex );
 		this.numSegmentDimensions = row.columnNames().contains( ColumnNames.ANCHOR_Z ) ? 3 : 2;
 		initBoundingBox( row, numSegmentDimensions );
 	}
@@ -107,6 +114,19 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public Object getValue( String columnName )
 	{
-		return null;
+		return row.getObject( columnName );
 	}
+
+	@Override
+	public void setString( String columnName, String value )
+	{
+		if ( ! table.containsColumn( columnName ) )
+		{
+			final StringColumn strings = StringColumn.create( columnName, table.rowCount() );
+			table.addColumns( strings );
+		}
+		this.row = table.row( rowIndex ); // update with new column
+		row.setText( columnName, value );
+	}
+
 }
