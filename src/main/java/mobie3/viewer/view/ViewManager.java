@@ -51,16 +51,18 @@ import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.display.Display;
 import mobie3.viewer.plot.ScatterPlotView;
-import mobie3.viewer.annotation.TransformedAnnotatedSegment;
+import mobie3.viewer.transform.AnnotatedSegmentTransformer;
+import mobie3.viewer.transform.TransformedAnnotatedSegment;
 import mobie3.viewer.select.MoBIESelectionModel;
 import mobie3.viewer.source.AnnotatedImage;
-import mobie3.viewer.source.AnnotatedLabelMask;
+import mobie3.viewer.source.SegmentationImage;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.Image;
 import mobie3.viewer.source.SourceAndConverterAndTables;
 import mobie3.viewer.source.TransformedImage;
 import mobie3.viewer.annotation.AnnotatedSegment;
 import mobie3.viewer.annotation.Annotation;
+import mobie3.viewer.table.AnnData;
 import mobie3.viewer.table.SegmentsAnnData;
 import mobie3.viewer.table.TableView;
 import mobie3.viewer.transform.AffineTransformation;
@@ -353,14 +355,15 @@ public class ViewManager
 		moBIE.addImages( images );
 	}
 
-	private AnnotatedImage< ? extends IntegerType< ? >, ? extends AnnotatedSegment > transform( Transformation transformation, AnnotatedImage image )
+	private SegmentationImage< ? > transform( Transformation transformation, SegmentationImage< ? extends AnnotatedSegment > segmentationImage )
 	{
-		final AnnotatedImage< ? extends IntegerType< ? >, ? extends AnnotatedSegment > annotatedImage = image;
-		final TransformedImage< ? extends IntegerType< ? > > transformedLabelMask = new TransformedImage<>( annotatedImage.getLabelMask(), transformation );
-		final SegmentsAnnData< TransformedAnnotatedSegment > annData = annotatedImage.getAnnData().transform( transformation );
+		final TransformedImage< ? extends IntegerType< ? > > transformedLabelMask = new TransformedImage( segmentationImage.getLabelMask(), transformation );
 
-		final AnnotatedLabelMask< ? extends IntegerType< ? >, ? extends AnnotatedSegment > transformedAnnotatedLabelMask = new AnnotatedLabelMask( transformedLabelMask, annData );
-		return transformedAnnotatedLabelMask;
+		final AnnData< ? extends AnnotatedSegment > annData1 = segmentationImage.getAnnData();
+		final AnnData< TransformedAnnotatedSegment > annData = segmentationImage.getAnnData().transform( new AnnotatedSegmentTransformer( transformation ) );
+
+		final SegmentationImage< ? extends AnnotatedSegment > transformedSegmentationImage = new SegmentationImage( transformedLabelMask, annData );
+		return transformedSegmentationImage;
 	}
 
 	private SourceAndConverterAndTables createLazySourceAndConverter( String sourceName, SourceAndConverter< ? > parentSource )

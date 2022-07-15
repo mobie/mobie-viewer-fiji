@@ -38,19 +38,16 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mobie3.viewer.color.opacity.AdjustableOpacityColorConverter;
 import mobie3.viewer.color.opacity.VolatileAdjustableOpacityColorConverter;
-import mobie3.viewer.display.SegmentationDisplay;
-import mobie3.viewer.display.AnnotationDisplay;
-import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.plugins.platybrowser.GeneSearchCommand;
 import mobie3.viewer.serialize.AnnotatedLabelMaskData;
 import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.serialize.DatasetJsonParser;
 import mobie3.viewer.serialize.ImageData;
 import mobie3.viewer.serialize.ProjectJsonParser;
-import mobie3.viewer.source.AnnotatedLabelMask;
+import mobie3.viewer.source.SegmentationImage;
 import mobie3.viewer.source.Image;
 import mobie3.viewer.source.SpimDataImage;
-import mobie3.viewer.table.DefaultSegmentsAnnData;
+import mobie3.viewer.table.DefaultAnnData;
 import mobie3.viewer.table.TableDataFormat;
 import mobie3.viewer.table.TableHelper;
 import mobie3.viewer.table.TableSawAnnotatedSegment;
@@ -92,9 +89,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static org.embl.mobie.viewer.MoBIEHelper.selectFilePath;
-import static org.embl.mobie.viewer.MoBIEHelper.selectTableFileNameFromProjectDialog;
 
 public class MoBIE
 {
@@ -160,45 +154,10 @@ public class MoBIE
 		return new ConverterChanger( sourceAndConverter, adjustableOpacityColorConverter, volatileAdjustableOpacityColorConverter ).get();
 	}
 
-	public void mergeColumnsFromFileSystem( AnnotationDisplay< ? extends TableRow > display )
-	{
-		String path = selectFilePath( null, "Table", true );
-		if ( path != null ) {
-			Map< String, List< String > > columns = readTable( path );
-			display.mergeColumns( columns );
-		}
-	}
-
-	private static Map< String, List< String > > readTable( String path )
-	{
-		IJ.log( "Opening table:\n" + path );
-		final Map< String, List< String > > tableColumns = TableColumns.stringColumnsFromTableFile( path );
-		return tableColumns;
-	}
-
-	private Map< String, String > getTableDirectories( AnnotationDisplay display )
-	{
-		if ( display instanceof RegionDisplay )
-			return getRegionTableDirectories( ( RegionDisplay ) display );
-		else if ( display instanceof SegmentationDisplay )
-			return getSegmentationTableDirectories( ( SegmentationDisplay ) display );
-		else
-			throw new RuntimeException();
-	}
-
-	private Map< String, String > getRegionTableDirectories( RegionDisplay display )
-	{
-		Map<String, String> sourceNameToTableDir = new HashMap<>();
-		final String relativePath = display.getTableDataFolder( TableDataFormat.TabDelimitedFile );
-		final String tablesDirectoryPath = IOHelper.combinePath( tableRoot, datasetName, relativePath );
-		// for regions the source name is the same as the display name
-		sourceNameToTableDir.put( display.getName(), tablesDirectoryPath );
-		return sourceNameToTableDir;
-	}
-
-	// TODO: probably such "plugins" should rather come with the MoBIESettings
-	//  such that additional commands could be registered without
-	//  changing the core code
+	// TODO: Probably such Plugins should rather
+	//  be provided by the MoBIESettings (or some annotation
+	//  mechanism) such that additional commands
+	//  could be registered without changing the core code.
 	private void registerProjectPlugins( String projectLocation )
 	{
 		if( projectLocation.contains( "platybrowser" ) )
@@ -724,25 +683,6 @@ public class MoBIE
 		return projectCommands;
 	}
 
-	private Map< String, String > getSegmentationTableDirectories( SegmentationDisplay display )
-	{
-		Map<String, String> sourceNameToTableDir = new HashMap<>();
-		for ( String source: display.getSources() )
-		{
-			try
-			{
-				sourceNameToTableDir.put( source, getTableDirectory( ( AnnotatedLabelMaskData ) getDataSource( source ) )
-				);
-			}
-			catch ( Exception e )
-			{
-				System.out.println("[WARNING] Could not store table directory for " + source );
-				sourceNameToTableDir.put( source, null );
-			}
-		}
-		return sourceNameToTableDir;
-	}
-
 	public HashMap< String, Image< ? > > initImages( List< String > sources )
 	{
 		final HashMap< String, Image< ? > > images = new HashMap<>();
@@ -767,10 +707,10 @@ public class MoBIE
 					final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
 
 					final TableSawAnnotatedSegmentTableModel tableModel = new TableSawAnnotatedSegmentTableModel( defaultColumnsPath );
-					final DefaultSegmentsAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultSegmentsAnnData<>( tableModel );
+					final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
 					tableModel.setColumnPaths( columnPaths );
-					final AnnotatedLabelMask annotatedLabelMask = new AnnotatedLabelMask( image, segmentsAnnData );
-					images.put( name, annotatedLabelMask );
+					final SegmentationImage segmentationImage = new SegmentationImage( image, segmentsAnnData );
+					images.put( name, segmentationImage );
 				}
 				else
 				{

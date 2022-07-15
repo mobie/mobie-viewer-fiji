@@ -1,8 +1,7 @@
 package mobie3.viewer.table;
 
-import mobie3.viewer.annotation.AnnotatedSegment;
-import mobie3.viewer.annotation.TransformedAnnotatedSegment;
-import mobie3.viewer.transform.Transformation;
+import mobie3.viewer.annotation.Annotation;
+import mobie3.viewer.transform.AnnotationTransformer;
 import net.imglib2.util.Pair;
 
 import java.util.Collection;
@@ -11,18 +10,19 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class TransformedAnnotatedSegmentTableModel implements AnnotatedSegmentTableModel< TransformedAnnotatedSegment >
+
+public class TransformedAnnotationTableModel< A extends Annotation, TA extends A > implements AnnotationTableModel< TA >
 {
-	private final AnnotatedSegmentTableModel< ? extends AnnotatedSegment > model;
-	private final Transformation transformation;
+	private final AnnotationTableModel< A > model;
+	private final AnnotationTransformer< A, TA > transformer;
 
-	private HashMap< TransformedAnnotatedSegment, Integer > rowToIndex;
-	private HashMap< Integer, TransformedAnnotatedSegment > indexToRow;
+	private HashMap< TA, Integer > rowToIndex;
+	private HashMap< Integer, TA > indexToRow;
 
-	public TransformedAnnotatedSegmentTableModel( AnnotatedSegmentTableModel< ? extends AnnotatedSegment > model, Transformation transformation )
+	public TransformedAnnotationTableModel( AnnotationTableModel< A > model, AnnotationTransformer< A, TA > transformer )
 	{
 		this.model = model;
-		this.transformation = transformation;
+		this.transformer = transformer;
 		this.rowToIndex = new HashMap<>();
 		this.indexToRow = new HashMap<>();
 	}
@@ -31,6 +31,12 @@ public class TransformedAnnotatedSegmentTableModel implements AnnotatedSegmentTa
 	public List< String > columnNames()
 	{
 		return model.columnNames();
+	}
+
+	@Override
+	public List< String > numericColumnNames()
+	{
+		return model.numericColumnNames();
 	}
 
 	@Override
@@ -46,17 +52,17 @@ public class TransformedAnnotatedSegmentTableModel implements AnnotatedSegmentTa
 	}
 
 	@Override
-	public int indexOf( TransformedAnnotatedSegment annotation )
+	public int indexOf( TA annotation )
 	{
-		return rowToIndex.get( annotation );
+		return 0;
 	}
 
 	@Override
-	public TransformedAnnotatedSegment row( int rowIndex )
+	public TA row( int rowIndex )
 	{
 		if ( ! indexToRow.containsKey( rowIndex ) )
 		{
-			final TransformedAnnotatedSegment row = new TransformedAnnotatedSegment( model.row( rowIndex ), transformation );
+			final TA row = transformer.transform( model.row( rowIndex ) );
 			rowToIndex.put( row, rowIndex );
 			indexToRow.put( rowIndex, row );
 		}
@@ -95,8 +101,14 @@ public class TransformedAnnotatedSegmentTableModel implements AnnotatedSegmentTa
 	}
 
 	@Override
-	public Set< TransformedAnnotatedSegment > rows()
+	public Set< TA > rows()
 	{
 		return rowToIndex.keySet();
+	}
+
+	@Override
+	public void addStringColumn( String columnName )
+	{
+
 	}
 }

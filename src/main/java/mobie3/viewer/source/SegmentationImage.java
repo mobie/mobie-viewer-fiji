@@ -4,21 +4,20 @@ import mobie3.viewer.annotation.LabelToSegmentMapper;
 import mobie3.viewer.annotation.SegmentProvider;
 import mobie3.viewer.table.AnnData;
 import mobie3.viewer.annotation.AnnotatedSegment;
-import mobie3.viewer.table.SegmentsAnnData;
 import net.imglib2.Volatile;
 import net.imglib2.type.numeric.IntegerType;
 
-public class AnnotatedLabelMask< T extends IntegerType< T >, AS extends AnnotatedSegment > implements AnnotatedImage< AS >
+public class SegmentationImage< AS extends AnnotatedSegment > implements AnnotatedImage< AS >
 {
-	protected Image< T > labelMask;
-	protected SegmentsAnnData< AS > annData;
+	protected Image< ? extends IntegerType< ? > > labelMask;
+	protected AnnData< AS > annData;
 	protected SourcePair< AnnotationType< AS > > sourcePair;
 
-	public AnnotatedLabelMask()
+	public SegmentationImage()
 	{
 	}
 
-	public AnnotatedLabelMask( Image< T > labelMask, SegmentsAnnData< AS > annData )
+	public SegmentationImage( Image< ? extends IntegerType< ? > > labelMask, AnnData< AS > annData )
 	{
 		this.labelMask = labelMask;
 		this.annData = annData;
@@ -30,8 +29,8 @@ public class AnnotatedLabelMask< T extends IntegerType< T >, AS extends Annotate
 		if ( sourcePair == null )
 		{
 			SegmentProvider< AS > segmentProvider = new LabelToSegmentMapper( annData );
-			final AnnotatedLabelMaskSource< T, AS > source = new AnnotatedLabelMaskSource<>( getLabelMask().getSourcePair().getSource(), segmentProvider );
-			final VolatileAnnotatedLabelMaskSource< T, ? extends Volatile< T >, AS > volatileSource = new VolatileAnnotatedLabelMaskSource<>( getLabelMask().getSourcePair().getVolatileSource(), segmentProvider );
+			final AnnotatedLabelMaskSource< ?, AS > source = new AnnotatedLabelMaskSource( getLabelMask().getSourcePair().getSource(), segmentProvider );
+			final VolatileAnnotatedLabelMaskSource< ?, ? extends Volatile< ? >, AS > volatileSource = new VolatileAnnotatedLabelMaskSource( getLabelMask().getSourcePair().getVolatileSource(), segmentProvider );
 			sourcePair = new DefaultSourcePair<>( source, volatileSource );
 		}
 
@@ -45,7 +44,7 @@ public class AnnotatedLabelMask< T extends IntegerType< T >, AS extends Annotate
 	}
 
 	@Override
-	public Image< T > getLabelMask()
+	public Image< ? extends IntegerType< ? > > getLabelMask()
 	{
 		return labelMask;
 	}
@@ -53,6 +52,6 @@ public class AnnotatedLabelMask< T extends IntegerType< T >, AS extends Annotate
 	@Override
 	public AnnData< AS > getAnnData()
 	{
-		return null;
+		return annData;
 	}
 }

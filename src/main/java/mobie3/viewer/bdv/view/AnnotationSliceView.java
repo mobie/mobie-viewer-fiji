@@ -42,7 +42,6 @@ import mobie3.viewer.color.VolatileAnnotationConverter;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.source.AnnotatedImage;
-import mobie3.viewer.source.AnnotatedLabelMask;
 import mobie3.viewer.source.AnnotationType;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.SourceHelper;
