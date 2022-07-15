@@ -1,13 +1,16 @@
 package mobie3.viewer.table;
 
 import net.imglib2.util.Pair;
+import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TableSawAnnotatedSegmentTableModel implements AnnotatedSegmentTableModel< TableSawAnnotatedSegment >
 {
@@ -31,6 +34,12 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotatedSegmentTable
 	public List< String > columnNames()
 	{
 		return table.columnNames();
+	}
+
+	@Override
+	public List< String > numericColumnNames()
+	{
+		return table.numericColumns().stream().map( c -> c.name() ).collect( Collectors.toList() );
 	}
 
 	@Override
@@ -110,5 +119,21 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotatedSegmentTable
 	public Set< TableSawAnnotatedSegment > rows()
 	{
 		return annotationToRowIndex.keySet();
+	}
+
+	@Override
+	public void addStringColumn( String columnName )
+	{
+		if ( ! table.containsColumn( columnName ) )
+		{
+			final String[] strings = new String[ table.rowCount() ];
+			Arrays.fill( strings, DefaultValues.NONE );
+			final StringColumn stringColumn = StringColumn.create( columnName, strings );
+			table.addColumns( stringColumn );
+		}
+		else
+		{
+			throw new UnsupportedOperationException("Column " + columnName + " exists already.");
+		}
 	}
 }

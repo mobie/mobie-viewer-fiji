@@ -36,7 +36,9 @@ import net.imglib2.RealPoint;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -62,7 +64,7 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 	double[] max = new double[ n ];
 	private HashMap< String, Double > string2num;
 
-	public AnnotationKDTreeSupplier( List< A > tableRows, String[] columns, double[] scaleFactors )
+	public AnnotationKDTreeSupplier( Collection< A > tableRows, String[] columns, double[] scaleFactors )
 	{
 		Arrays.fill( min, Double.MAX_VALUE );
 		Arrays.fill( max, - Double.MAX_VALUE );
@@ -92,33 +94,32 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 	 * Some tableRows contain entries that cannot be plotted (e.g., NaN or Inf).
 	 * Also, some tableRows can be marked as outliers.
 	 * Here we subset for all valid tableRows and determine the corresponding coordinates.
-	 *  @param tableRows
+	 *  @param annotations
 	 * @param columns
 	 * @param scaleFactors
 	 */
-	private void initialiseDataPoints( List< A > tableRows, String[] columns, double[] scaleFactors )
+	private void initialiseDataPoints( Collection< A > annotations, String[] columns, double[] scaleFactors )
 	{
 		string2num = new HashMap<>(); // in case we need to plot categorical columns
 		dataPoints = new ArrayList<>();
 		dataPointTableRows = new ArrayList<>( );
 
-		int size = tableRows.size();
-
 		Double[] xy = new Double[ 2 ];
 		boolean isValidDataPoint;
 
-		for ( int i = 0; i < size; i++ )
+		final Iterator< A > iterator = annotations.iterator();
+		while( iterator.hasNext() )
 		{
-			final A tableRow = tableRows.get( i );
+			final A annotation = iterator.next();
 
-			if ( tableRow instanceof Outlier )
-				if ( ( ( Outlier ) tableRow ).isOutlier() )  // From plateViewer for Corona screening project
+			if ( annotation instanceof Outlier )
+				if ( ( ( Outlier ) annotation ).isOutlier() )  // From plateViewer for Corona screening project
 					continue;
 
 			isValidDataPoint = true;
 			for ( int d = 0; d < n; d++ )
 			{
-				final String cell = tableRow.getValue( columns[ d ] ).toString();
+				final String cell = annotation.getValue( columns[ d ] ).toString();
 
 				try
 				{
@@ -149,7 +150,7 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 			if ( isValidDataPoint )
 			{
 				dataPoints.add( new RealPoint( xy[ 0 ], xy[ 1 ] ) );
-				dataPointTableRows.add( tableRow );
+				dataPointTableRows.add( annotation );
 			}
 		}
 

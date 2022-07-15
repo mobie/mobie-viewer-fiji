@@ -128,16 +128,6 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public void setString( String columnName, String value )
 	{
-		// TODO: adding the new column should be the job of the
-		// tableModel! move this there
-		if ( ! table.containsColumn( columnName ) )
-		{
-			final String[] strings = new String[ table.rowCount() ];
-			Arrays.fill( strings, DefaultValues.NONE );
-			final StringColumn stringColumn = StringColumn.create( columnName, strings );
-			table.addColumns( stringColumn );
-			this.row = table.row( rowIndex ); // update row
-		}
 		row.setText( columnName, value );
 	}
 

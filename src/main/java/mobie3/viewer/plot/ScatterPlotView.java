@@ -66,6 +66,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -158,7 +159,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 	private void updateScatterPlotSource( )
 	{
-		List< A > annotations = getAnnotationsForCurrentTimePoint( );
+		Collection< A > annotations = getAnnotationsForCurrentTimePoint( );
 		AnnotationKDTreeSupplier< A > kdTreeSupplier = new AnnotationKDTreeSupplier<>( annotations, selectedColumns, scaleFactors );
 		KDTree< A > kdTree = kdTreeSupplier.get();
 		double[] min = kdTreeSupplier.getMin();
@@ -190,7 +191,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		showInBdv( randomAccessible, FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 ), selectedColumns );
 	}
 
-	private List< A > getAnnotationsForCurrentTimePoint( )
+	private Collection< A > getAnnotationsForCurrentTimePoint( )
 	{
 		if ( tableModel.columnNames().contains( ColumnNames.TIMEPOINT ) )
 		{

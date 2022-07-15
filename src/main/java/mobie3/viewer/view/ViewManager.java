@@ -490,7 +490,7 @@ public class ViewManager
 
 	private void initTableView( AnnotationDisplay< ? extends Annotation > display )
 	{
-		display.tableView = new TableView( moBIE, display );
+		display.tableView = new TableView( display );
 		display.tableView.show();
 		setTablePosition( display.sliceViewer.getWindow(), display.tableView.getWindow() );
 		display.selectionModel.listeners().add( display.tableView );

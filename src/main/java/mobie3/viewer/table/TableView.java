@@ -39,7 +39,7 @@ import de.embl.cba.tables.tablerow.TableRowListener;
 import ij.gui.GenericDialog;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.annotate.Annotator;
-import mobie3.viewer.color.CategoricalColoringModel;
+import mobie3.viewer.color.CategoricalAnnotationColoringModel;
 import mobie3.viewer.color.ColumnColoringModelCreator;
 import mobie3.viewer.color.SelectionColoringModel;
 import mobie3.viewer.display.AnnotationDisplay;
@@ -67,7 +67,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	private final MoBIE moBIE;
 	private final AnnotationTableModel< A > tableModel;
 	private final SelectionModel< A > selectionModel;
 	private final SelectionColoringModel< A > coloringModel;
@@ -93,9 +92,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		ToggleSelectionAndFocusIfSelected
 	}
 
-	public TableView( MoBIE moBIE, AnnotationDisplay< A > display )
+	public TableView( AnnotationDisplay< A > display )
 	{
-		this.moBIE = moBIE;
 		this.tableModel = display.tableModel;
 		this.coloringModel = display.coloringModel;
 		this.selectionModel = display.selectionModel;
@@ -359,9 +357,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		JMenu menu = new JMenu( "Annotate" );
 
-		menu.add( createStartNewAnnotationMenuItem() );
+		menu.add( startNewAnnotationMenuItem() );
 
-		menu.add( createContinueAnnotationMenuItem() );
+		menu.add( continueAnnotationMenuItem() );
 
 		return menu;
 	}
@@ -513,7 +511,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		return menuItem;
 	}
 
-	private JMenuItem createStartNewAnnotationMenuItem()
+	private JMenuItem startNewAnnotationMenuItem()
 	{
 		final JMenuItem menuItem = new JMenuItem( "Start New Annotation..." );
 
@@ -522,7 +520,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		return menuItem;
 	}
 
-	private JMenuItem createContinueAnnotationMenuItem()
+	private JMenuItem continueAnnotationMenuItem()
 	{
 		final JMenuItem menuItem = new JMenuItem( "Continue Annotation..." );
 
@@ -602,7 +600,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private void selectGreaterOrLessThan( boolean greaterThan ) {
 		// only works for numeric columns
 		final GenericDialog gd = new GenericDialog( "" );
-		String[] columnNames = getNumericColumnNames().toArray(new String[0]);
+		String[] columnNames = tableModel.numericColumnNames().toArray(new String[0]);
 		gd.addChoice( "Column", columnNames, columnNames[0] );
 		gd.addNumericField( "value", 0 );
 		gd.showDialog();
@@ -652,9 +650,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			Logger.error( "\"" +columnName + "\" exists already as a column name, please choose another one." );
 			return;
 		}
-
-		this.addColumn( columnName, "None" );
-
+		addStringColumn( columnName );
 		continueAnnotation( columnName );
 	}
 
@@ -679,31 +675,10 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		SwingUtilities.invokeLater( () -> frame.setVisible( visible ) );
 	}
 
-	// TODO: addColumn in TableModel
-	public void addColumn( String column, Object defaultValue )
+	public void addStringColumn( String column )
 	{
-		if ( tableModel.columnNames().contains( column ) )
-			throw new RuntimeException( column + " exists already, please choose another name." );
-		tableModel.addColumn( column, defaultValue.toString() );
-	}
-
-
-	public List< String > getNumericColumnNames()
-	{
-		final List< String > columnNames = tableModel.getColumnNames();
-		ArrayList< String > numericColumnNames = new ArrayList<>();
-		for ( String columnName : columnNames )
-		{
-			if ( tableModel.isNumeric( columnName ) )
-				numericColumnNames.add( columnName );
-		}
-
-		return numericColumnNames;
-	}
-
-	public JTable getTable()
-	{
-		return jTable;
+		// TODO: update JTable?!
+		tableModel.addStringColumn( column );
 	}
 
 	private synchronized void moveToRowInView( int rowInView )
@@ -743,9 +718,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 				setRecentlySelectedRowInView( selectedRowInView );
 
-				final int row = jTable.convertRowIndexToModel( recentlySelectedRowInView );
+				final int rowIndex = jTable.convertRowIndexToModel( recentlySelectedRowInView );
 
-				final A object = tableModel.get( row );
+				final A object = tableModel.row( rowIndex );
 
 				tableRowSelectionMode = controlDown ? TableRowSelectionMode.ToggleSelectionAndFocusIfSelected : TableRowSelectionMode.FocusOnly;
 
@@ -805,23 +780,17 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		String coloringColumnName = getColoringColumnName();
 
-		if ( coloringColumnName == null )
-		{
-			Logger.error( "Please first use the [ Color > Color by Column ] menu item to configure the coloring." );
-			return;
-		}
-
 		Logger.info( " "  );
 		Logger.info( "Column used for coloring: " + coloringColumnName );
 		Logger.info( " "  );
 		Logger.info( "Value, R, G, B"  );
 
-		for ( A tableRow : tableModel )
+		for ( int rowIndex = 0; rowIndex < tableModel.numRows(); rowIndex++ )
 		{
-			final String value = tableRow.getCell( coloringColumnName );
-
+			final A annotation = tableModel.row( rowIndex );
+			final String value = annotation.getValue( coloringColumnName ).toString();
 			final ARGBType argbType = new ARGBType();
-			coloringModel.convert( tableRow, argbType );
+			coloringModel.convert( annotation, argbType );
 			final int colorIndex = argbType.get();
 			Logger.info( value + ": " + ARGBType.red( colorIndex ) + ", " + ARGBType.green( colorIndex ) + ", " + ARGBType.blue( colorIndex ) );
 		}
@@ -831,14 +800,14 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	{
 		final ColoringModel< A > coloringModel = this.coloringModel.getWrappedColoringModel();
 
-		if ( coloringModel instanceof ColumnColoringModel )
-		{
-			return (( ColumnColoringModel ) coloringModel).getColumnName();
-		}
+		if ( coloringModel instanceof CategoricalAnnotationColoringModel )
+			return ((CategoricalAnnotationColoringModel)coloringModel).getColumnName();
 		else
 		{
-			return null;
+			Logger.error( "Please first use the [ Color > Color by Column ] menu item to configure the coloring." );
+			throw new UnsupportedOperationException("The current coloring is not based on a table column.\nPlease first use the [ Color > Color by Column ] menu item to configure the coloring.");
 		}
+
 	}
 
 	private void addColorByColumnMenuItem( JMenu coloringMenu )

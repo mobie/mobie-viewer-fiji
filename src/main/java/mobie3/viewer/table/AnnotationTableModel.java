@@ -10,6 +10,7 @@ import java.util.Set;
 public interface AnnotationTableModel< A extends Annotation >
 {
 	List< String > columnNames();
+	List< String > numericColumnNames();
 	Class< ? > columnClass( String columnName );
 	int numRows();
 	int indexOf( A annotation );
@@ -20,4 +21,5 @@ public interface AnnotationTableModel< A extends Annotation >
 	LinkedHashSet< String > loadedColumnPaths(); // which column chunks have been loaded, in the order in which they have been loaded
 	Pair< Double, Double > computeMinMax( String columnName ); // for contrast limits during rendering
 	Set< A > rows();
+	void addStringColumn( String columnName );
 }
