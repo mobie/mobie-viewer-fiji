@@ -36,7 +36,7 @@ import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.color.AnnotationConverter;
-import mobie3.viewer.color.SelectionColoringModel;
+import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.source.AnnotationType;
 import mobie3.viewer.source.BoundarySource;
 import net.imglib2.Interval;
@@ -56,7 +56,7 @@ import java.util.function.BiConsumer;
 public class RegionImage< T extends RegionTableRow >
 {
 	private final List< T > tableRows;
-	private final SelectionColoringModel< T > coloringModel;
+	private final MoBIEColoringModel< T > coloringModel;
 	private double[] contrastLimits;
 	private String name;
 	private SourceAndConverter< AnnotationType< T > > sourceAndConverter;
@@ -66,7 +66,7 @@ public class RegionImage< T extends RegionTableRow >
 
 	public RegionImage(
 			List< T > tableRows,
-			SelectionColoringModel< T > coloringModel,
+			MoBIEColoringModel< T > coloringModel,
 			String name )
 	{
 		final long currentTimeMillis = System.currentTimeMillis();

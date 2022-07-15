@@ -33,7 +33,7 @@ import net.imglib2.type.numeric.ARGBType;
 
 public class AnnotationConverter< T > extends AbstractAnnotationConverter< T, AnnotationType< T > >
 {
-	public AnnotationConverter( SelectionColoringModel< T > coloringModel )
+	public AnnotationConverter( MoBIEColoringModel< T > coloringModel )
 	{
 		super( coloringModel );
 	}

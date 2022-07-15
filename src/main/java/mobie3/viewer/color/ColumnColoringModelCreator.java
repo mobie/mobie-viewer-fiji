@@ -53,27 +53,18 @@ public class ColumnColoringModelCreator< A extends Annotation >
 	private String selectedColoringMode;
 	private boolean isZeroTransparent = false;
 
-	//private Map< String, Pair< Double, Double > > columnNameToMinMax;
-	//private HashMap< String, Pair< Double, Double > > columnNameToRangeSettings;
-
 	public static final String[] COLORING_MODES = new String[]
 	{
-			ColoringLuts.BLUE_WHITE_RED,
-			ColoringLuts.VIRIDIS,
-			ColoringLuts.GLASBEY,
-			ColoringLuts.ARGB_COLUMN
+		ColoringLuts.BLUE_WHITE_RED,
+		ColoringLuts.VIRIDIS,
+		ColoringLuts.GLASBEY,
+		ColoringLuts.ARGB_COLUMN
 	};
 
 	public ColumnColoringModelCreator( AnnotationTableModel< A > tableModel )
 	{
 		this.tableModel = tableModel;
 	}
-
-//	private void init()
-//	{
-//		this.columnNameToMinMax = new HashMap<>();
-//		this.columnNameToRangeSettings = new HashMap<>();
-//	}
 
 	public ColoringModel< A > showDialog()
 	{
@@ -167,16 +158,15 @@ public class ColumnColoringModelCreator< A extends Annotation >
 			this.isZeroTransparent = false;
 	}
 
-	private void populateColoringModelFromArgbColumn (String selectedColumnName, CategoricalAnnotationColoringModel< A > coloringModel) {
-
-		int selectedColumnIndex = -1;
+	private void configureColoringModelFromARGBColumn( String selectedColumnName, CategoricalAnnotationColoringModel< A > coloringModel )
+	{
 		int rowCount = tableModel.numRows();
 
 		for ( int i = 0; i < rowCount; i++)
 		{
 			String argbString = (String) tableModel.row( i ).getValue( selectedColumnName );
 
-			if ( ! argbString.equals("NaN") & !argbString.equals("None") ) {
+			if ( !argbString.equals("NaN") & !argbString.equals("None") ) {
 				String[] splitArgbString = argbString.split("-");
 
 				int[] argbValues = new int[4];
@@ -216,7 +206,7 @@ public class ColumnColoringModelCreator< A extends Annotation >
 
 		if ( argbLut instanceof ColumnARGBLut )
 		{
-			populateColoringModelFromArgbColumn( selectedColumnName, coloringModel );
+			configureColoringModelFromARGBColumn( selectedColumnName, coloringModel );
 		}
 
 		return coloringModel;

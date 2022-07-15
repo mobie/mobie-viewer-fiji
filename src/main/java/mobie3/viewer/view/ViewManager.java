@@ -32,18 +32,14 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.tables.color.ColoringModel;
-import de.embl.cba.tables.color.ColumnColoringModelCreator;
-import de.embl.cba.tables.tablerow.TableRow;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.annotate.RegionTableRow;
 import mobie3.viewer.bdv.view.ImageSliceView;
-import mobie3.viewer.bdv.view.RegionSliceView;
-import mobie3.viewer.bdv.view.SegmentationSliceView;
 import mobie3.viewer.bdv.view.SliceViewer;
-import mobie3.viewer.color.SelectionColoringModel;
+import mobie3.viewer.color.ColoringModel;
+import mobie3.viewer.color.ColumnColoringModelCreator;
+import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.display.ImageDisplay;
@@ -52,7 +48,7 @@ import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.display.Display;
 import mobie3.viewer.plot.ScatterPlotView;
 import mobie3.viewer.transform.AnnotatedSegmentTransformer;
-import mobie3.viewer.transform.TransformedAnnotatedSegment;
+import mobie3.viewer.transform.TransformedAnnData;
 import mobie3.viewer.select.MoBIESelectionModel;
 import mobie3.viewer.source.AnnotatedImage;
 import mobie3.viewer.source.SegmentationImage;
@@ -63,7 +59,6 @@ import mobie3.viewer.source.TransformedImage;
 import mobie3.viewer.annotation.AnnotatedSegment;
 import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.table.AnnData;
-import mobie3.viewer.table.SegmentsAnnData;
 import mobie3.viewer.table.TableView;
 import mobie3.viewer.transform.AffineTransformation;
 import mobie3.viewer.transform.NormalizedAffineViewerTransform;
@@ -136,32 +131,6 @@ public class ViewManager
 		{
 			display.scatterPlotView.setShowColumnSelectionUI( false );
 			display.scatterPlotView.show();
-		}
-	}
-
-	private static void configureColoringModel( AnnotationDisplay< ? extends TableRow > display )
-	{
-		if ( display.getColorByColumn() != null )
-		{
-			// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/795
-			final ColumnColoringModelCreator< TableRowImageSegment > modelCreator = new ColumnColoringModelCreator( display.tableModel.getTableRows() );
-			final ColoringModel< TableRowImageSegment > coloringModel;
-			String coloringLut = display.getLut();
-
-			if ( display.getValueLimits() != null )
-			{
-				coloringModel = modelCreator.createColoringModel(display.getColorByColumn(), coloringLut, display.getValueLimits()[0], display.getValueLimits()[1]);
-			}
-			else
-			{
-				coloringModel = modelCreator.createColoringModel(display.getColorByColumn(), coloringLut, null, null );
-			}
-
-			display.coloringModel = new SelectionColoringModel( coloringModel, display.selectionModel );
-		}
-		else
-		{
-			display.coloringModel = new SelectionColoringModel( display.getLut(), display.selectionModel );
 		}
 	}
 
@@ -355,14 +324,15 @@ public class ViewManager
 		moBIE.addImages( images );
 	}
 
-	private SegmentationImage< ? > transform( Transformation transformation, SegmentationImage< ? extends AnnotatedSegment > segmentationImage )
+	private SegmentationImage< ? extends AnnotatedSegment > transform( Transformation transformation, SegmentationImage< ? extends AnnotatedSegment > segmentationImage )
 	{
 		final TransformedImage< ? extends IntegerType< ? > > transformedLabelMask = new TransformedImage( segmentationImage.getLabelMask(), transformation );
+		final AnnData< ? extends AnnotatedSegment > annData = segmentationImage.getAnnData();
+		final AnnotatedSegmentTransformer segmentTransformer = new AnnotatedSegmentTransformer( transformation );
+		final TransformedAnnData transformedAnnData = new TransformedAnnData( annData, segmentTransformer );
 
-		final AnnData< ? extends AnnotatedSegment > annData1 = segmentationImage.getAnnData();
-		final AnnData< TransformedAnnotatedSegment > annData = segmentationImage.getAnnData().transform( new AnnotatedSegmentTransformer( transformation ) );
+		final SegmentationImage< ? extends AnnotatedSegment > transformedSegmentationImage = new SegmentationImage( transformedLabelMask, transformedAnnData );
 
-		final SegmentationImage< ? extends AnnotatedSegment > transformedSegmentationImage = new SegmentationImage( transformedLabelMask, annData );
 		return transformedSegmentationImage;
 	}
 
@@ -396,7 +366,7 @@ public class ViewManager
 		return sources;
 	}
 
-	public synchronized void show( Display display )
+	public synchronized void show( Display< ? > display )
 	{
 		if ( currentDisplays.contains( display ) ) return;
 
@@ -407,29 +377,74 @@ public class ViewManager
 		if ( display instanceof ImageDisplay )
 		{
 			for ( String name : display.getSources() )
-				display.images.add( (Image) moBIE.getImage( name ) );
+				display.addImage( (Image) moBIE.getImage( name ) );
 			showImageDisplay( ( ImageDisplay ) display );
 		}
 		else if ( display instanceof AnnotationDisplay )
 		{
 			final AnnotationDisplay< ? > annotationDisplay = ( AnnotationDisplay< ? > ) display;
 
-			annotationDisplay.moBIE = moBIE;
-			annotationDisplay.sliceViewer = sliceViewer;
-			annotationDisplay.selectionModel = new MoBIESelectionModel<>();
+			// add all images that are shown by this display
 			for ( String name : display.getSources() )
-				annotationDisplay.images.add( (AnnotatedImage) moBIE.getImage( name ) );
+				annotationDisplay.addImage( (AnnotatedImage) moBIE.getImage( name ) );
 
-			//annotationDisplay.initTableModel();
+			annotationDisplay.sliceViewer = sliceViewer;
 
-			if ( annotationDisplay instanceof SegmentationDisplay )
+			// configure selection model
+			annotationDisplay.selectionModel = new MoBIESelectionModel<>();
+			// set selected segments
+			if ( annotationDisplay.selectedAnnotationIds() != null )
 			{
-				showSegmentationDisplay( ( SegmentationDisplay ) annotationDisplay );
+				// TODO: create annotation mapper interface
+				//   and implement for Segmentation and Region
+				segmentationDisplay.segmentMapper.getSegments( annotationDisplay.selectedAnnotationIds() );
+				segmentationDisplay.selectionModel.setSelected( segments, true );
+				// TODO: where is the mapper
+				annotationDisplay.selectedAnnotationIds();
+				segmentationDisplay.selectionModel.setSelected( segments, true );
 			}
-			else if ( annotationDisplay instanceof RegionDisplay )
+
+			// configure the coloring model
+			if ( annotationDisplay.getColorByColumn() == null )
 			{
-				showRegionDisplay( ( RegionDisplay ) annotationDisplay );
+				annotationDisplay.coloringModel = new MoBIEColoringModel( annotationDisplay.getLut(), annotationDisplay.selectionModel );
 			}
+			else
+			{
+				// below is tricky, because for some
+				// cases it needs to know the whole table.
+				// which we may not want to load here.
+				// maybe one should consider such cases separately?
+				configureColoringModel( annotationDisplay );
+				new ColumnColoringModelCreator( )
+
+				final ColoringModel< A > coloringModel;
+				String coloringLut = display.getLut();
+
+				if ( display.getValueLimits() != null )
+				{
+					coloringModel = modelCreator.createColoringModel(display.getColorByColumn(), coloringLut, display.getValueLimits()[0], display.getValueLimits()[1]);
+				}
+				else
+				{
+					coloringModel = modelCreator.createColoringModel(display.getColorByColumn(), coloringLut, null, null );
+				}
+
+				display.coloringModel = new MoBIEColoringModel( coloringModel, display.selectionModel );
+			}
+
+
+
+//			segmentationDisplay.sliceView = new SegmentationSliceView( moBIE, segmentationDisplay );
+//
+//			if ( annotationDisplay instanceof SegmentationDisplay )
+//			{
+//				showSegmentationDisplay( ( SegmentationDisplay ) annotationDisplay );
+//			}
+//			else if ( annotationDisplay instanceof RegionDisplay )
+//			{
+//				showRegionDisplay( ( RegionDisplay ) annotationDisplay );
+//			}
 
 			if ( annotationDisplay.tableModel != null )
 			{
@@ -508,20 +523,6 @@ public class ViewManager
 		display.selectionModel.listeners().add( display.tableView );
 		display.coloringModel.listeners().add( display.tableView );
 		numCurrentTables++;
-	}
-
-	private void showSegmentationDisplay( SegmentationDisplay segmentationDisplay )
-	{
-		configureColoringModel( segmentationDisplay );
-
-		// set selected segments
-		if ( segmentationDisplay.getSelectedSegmentIds() != null )
-		{
-			final List< TableRowImageSegment > segments = segmentationDisplay.segmentMapper.getSegments( segmentationDisplay.getSelectedSegmentIds() );
-			segmentationDisplay.selectionModel.setSelected( segments, true );
-		}
-
-		segmentationDisplay.sliceView = new SegmentationSliceView( moBIE, segmentationDisplay );
 	}
 
 	private void setTablePosition( Window reference, Window table )

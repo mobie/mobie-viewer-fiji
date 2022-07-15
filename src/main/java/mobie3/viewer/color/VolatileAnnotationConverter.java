@@ -33,7 +33,7 @@ import net.imglib2.type.numeric.ARGBType;
 
 public class VolatileAnnotationConverter< T > extends AbstractAnnotationConverter< T, VolatileAnnotationType< T > >
 {
-	public VolatileAnnotationConverter( SelectionColoringModel< T > coloringModel )
+	public VolatileAnnotationConverter( MoBIEColoringModel< T > coloringModel )
 	{
 		super( coloringModel );
 	}

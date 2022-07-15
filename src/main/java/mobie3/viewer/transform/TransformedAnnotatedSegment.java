@@ -68,25 +68,46 @@ public class TransformedAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public void setBoundingBox( RealInterval boundingBox )
 	{
+		if ( transformation instanceof AffineTransformation )
+		{
+			annotatedSegment.setBoundingBox( ( ( AffineTransformation ) transformation ).getAffineTransform3D().inverse().estimateBounds( annotatedSegment.boundingBox() ) );
+		}
+		else
+		{
+			annotatedSegment.setBoundingBox( boundingBox );
+		}
 
 	}
 
 	@Override
 	public float[] mesh()
 	{
-		// transform
-		return new float[ 0 ];
+		// TODO transform
+		return annotatedSegment.mesh();
 	}
 
 	@Override
 	public void setMesh( float[] mesh )
 	{
+		// TODO inverse transform
+		annotatedSegment.setMesh( mesh );
+	}
 
+	@Override
+	public String getId()
+	{
+		return annotatedSegment.getId();
 	}
 
 	@Override
 	public Object getValue( String columnName )
 	{
 		return annotatedSegment.getValue( columnName );
+	}
+
+	@Override
+	public void setString( String columnName, String value )
+	{
+		annotatedSegment.setString( columnName, value );
 	}
 }

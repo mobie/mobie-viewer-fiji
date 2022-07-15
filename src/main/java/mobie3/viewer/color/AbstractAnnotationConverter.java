@@ -38,10 +38,10 @@ import static net.imglib2.type.numeric.ARGBType.red;
 
 public abstract class AbstractAnnotationConverter< T, A > implements Converter< A, ARGBType >, OpacityAdjuster, SelectionColoringModelWrapper
 {
-	private final SelectionColoringModel< T > coloringModel;
+	private final MoBIEColoringModel< T > coloringModel;
 	private double opacity = 1.0;
 
-	public AbstractAnnotationConverter( SelectionColoringModel< T > coloringModel )
+	public AbstractAnnotationConverter( MoBIEColoringModel< T > coloringModel )
 	{
 		this.coloringModel = coloringModel;
 	}
@@ -59,7 +59,7 @@ public abstract class AbstractAnnotationConverter< T, A > implements Converter< 
 	}
 
 	@Override
-	public SelectionColoringModel getSelectionColoringModel()
+	public MoBIEColoringModel getSelectionColoringModel()
 	{
 		return coloringModel;
 	}

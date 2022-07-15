@@ -58,7 +58,6 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	// Runtime
 	public transient ImageSliceView imageSliceView;
 	public transient ImageVolumeViewer imageVolumeViewer;
-	public transient Set< Image< T > > images = new HashSet<>();
 
 	// Getters for serialised fields
 	public String getColor()

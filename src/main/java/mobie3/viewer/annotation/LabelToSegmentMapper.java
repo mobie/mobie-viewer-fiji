@@ -33,6 +33,7 @@ import mobie3.viewer.table.AnnData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -46,13 +47,16 @@ public class LabelToSegmentMapper< AS extends AnnotatedSegment > implements Segm
 		this.annData = annData;
 	}
 
+	// TODO: Maybe this could instead be the AnnotationId?!
+	//   Then one could extract a nice interface
+	//   And one would not need th Label class at all.
 	public AS getSegment( int labelId, int t, String imageId )
 	{
 		final Label label = new Label( labelId, t, imageId );
 
 		if ( labelToSegment == null )
 		{
-			initMapping();
+			initLabelToSegmentMap();
 		}
 
 		return labelToSegment.get( label  );
@@ -66,7 +70,7 @@ public class LabelToSegmentMapper< AS extends AnnotatedSegment > implements Segm
 		return annData.getTable().row( 0 );
 	}
 
-	private synchronized void initMapping()
+	private synchronized void initLabelToSegmentMap()
 	{
 		labelToSegment = new ConcurrentHashMap<>();
 		final int numRows = annData.getTable().numRows();
@@ -78,7 +82,7 @@ public class LabelToSegmentMapper< AS extends AnnotatedSegment > implements Segm
 		}
 	}
 
-	public List< AS > getSegments( List< String > serialisedSegments )
+	public List< AS > getSegments( Set< String > serialisedSegments )
 	{
 		final ArrayList< AS > segments = new ArrayList<>();
 		for ( String serialisedSegment : serialisedSegments )

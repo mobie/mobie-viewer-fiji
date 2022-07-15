@@ -32,7 +32,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColoringModel;
-import mobie3.viewer.color.SelectionColoringModel;
+import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.color.SelectionColoringModelWrapper;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.SourceHelper;
@@ -119,14 +119,14 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 			// same instance of the selectionColoringModel.
 			if ( converter instanceof SelectionColoringModelWrapper )
 			{
-				final SelectionColoringModel selectionColoringModel = ( ( SelectionColoringModelWrapper ) converter ).getSelectionColoringModel();
+				final MoBIEColoringModel moBIEColoringModel = ( ( SelectionColoringModelWrapper ) converter ).getSelectionColoringModel();
 
 				if ( coloringMode.equals( SEGMENT_COLOR ) )
-					selectionColoringModel.setSelectionColor( null );
+					moBIEColoringModel.setSelectionColor( null );
 				else
-					selectionColoringModel.setSelectionColor( selectionARGB );
+					moBIEColoringModel.setSelectionColor( selectionARGB );
 
-				selectionColoringModel.setOpacityNotSelected( opacity );
+				moBIEColoringModel.setOpacityNotSelected( opacity );
 			}
 		}
 	}

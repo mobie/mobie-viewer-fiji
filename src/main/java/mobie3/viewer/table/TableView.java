@@ -41,7 +41,7 @@ import mobie3.viewer.annotate.Annotator;
 import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.color.CategoricalAnnotationColoringModel;
 import mobie3.viewer.color.ColumnColoringModelCreator;
-import mobie3.viewer.color.SelectionColoringModel;
+import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.select.SelectionModel;
@@ -69,7 +69,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private final AnnotationTableModel< A > tableModel;
 	private final SelectionModel< A > selectionModel;
-	private final SelectionColoringModel< A > coloringModel;
+	private final MoBIEColoringModel< A > coloringModel;
 	private final String tableName;
 	private JTable jTable;
 

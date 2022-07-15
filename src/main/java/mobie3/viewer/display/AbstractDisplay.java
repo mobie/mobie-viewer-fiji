@@ -31,11 +31,16 @@ package mobie3.viewer.display;
 import bdv.viewer.SourceAndConverter;
 import mobie3.viewer.bdv.render.BlendingMode;
 import mobie3.viewer.bdv.view.SliceViewer;
+import mobie3.viewer.source.AnnotatedImage;
 import mobie3.viewer.source.AnnotationType;
+import mobie3.viewer.source.Image;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
-public abstract class AbstractDisplay< T > implements Display
+public abstract class AbstractDisplay< T > implements Display< T >
 {
 	// Serialization
 	protected String name;
@@ -44,7 +49,8 @@ public abstract class AbstractDisplay< T > implements Display
 	protected BlendingMode blendingMode;
 
 	// Runtime
-	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter;
+	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter = new HashMap<>();
+	private transient Set< Image< T > > images = new HashSet<>();
 	public transient SliceViewer sliceViewer;
 
 	@Override
@@ -67,4 +73,17 @@ public abstract class AbstractDisplay< T > implements Display
 	{
 		return BlendingMode.Sum;
 	}
+
+	@Override
+	public Set< Image< T > > getImages()
+	{
+		return images;
+	}
+
+	@Override
+	public void addImage( Image< T > image )
+	{
+		images.add( image );
+	}
+
 }

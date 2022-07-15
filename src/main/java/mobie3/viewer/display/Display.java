@@ -29,14 +29,19 @@
 package mobie3.viewer.display;
 
 import mobie3.viewer.bdv.render.BlendingMode;
+import mobie3.viewer.source.Image;
 
 import java.util.List;
+import java.util.Set;
 
-public interface Display
+public interface Display< T >
 {
 	List< String > getSources();
 	BlendingMode getBlendingMode();
 	String getName();
 	double getOpacity();
 	boolean isVisible();
+
+	Set< Image< T > > getImages();
+	void addImage( Image< T > image );
 }

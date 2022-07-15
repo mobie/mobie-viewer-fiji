@@ -38,19 +38,17 @@ import mobie3.viewer.MoBIE;
 import mobie3.viewer.bdv.render.BlendingMode;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
 import mobie3.viewer.color.OpacityAdjuster;
-import mobie3.viewer.color.SelectionColoringModel;
+import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.plot.ScatterPlotView;
 import mobie3.viewer.select.SelectionModel;
-import mobie3.viewer.source.AnnotatedImage;
+import mobie3.viewer.source.AnnotationType;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.SourceHelper;
 import mobie3.viewer.annotation.Annotation;
-import mobie3.viewer.table.AnnotationTableModel;
 import mobie3.viewer.table.ColumnNames;
 import mobie3.viewer.table.TableView;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,7 +61,7 @@ import java.util.stream.Collectors;
  *
  * @param <A>
  */
-public abstract class AnnotationDisplay< A extends Annotation > extends AbstractDisplay< A >
+public abstract class AnnotationDisplay< A extends Annotation > extends AbstractDisplay< AnnotationType< A > >
 {
 	// Serialization
 	protected String lut = ColoringLuts.GLASBEY;
@@ -81,12 +79,10 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	protected transient final BlendingMode blendingMode = BlendingMode.SumOccluding;
 
 	// Runtime fields
-	public transient MoBIE moBIE;
 	public transient SelectionModel< A > selectionModel;
-	public transient SelectionColoringModel< A > coloringModel;
+	public transient MoBIEColoringModel< A > coloringModel;
 	public transient TableView< A > tableView;
 	public transient ScatterPlotView< A > scatterPlotView;
-	public transient Set< AnnotatedImage< A > > images = new HashSet<>();
 	public transient AnnotationSliceView< A > sliceView;
 
 	// Methods

@@ -2,7 +2,7 @@ package mobie3.viewer.transform;
 
 import mobie3.viewer.annotation.AnnotatedSegment;
 
-public class AnnotatedSegmentTransformer< A extends AnnotatedSegment, TransformedAnnotatedSegment > implements AnnotationTransformer< AnnotatedSegment, TransformedAnnotatedSegment >
+public class AnnotatedSegmentTransformer implements AnnotationTransformer< AnnotatedSegment, TransformedAnnotatedSegment >
 {
 	private Transformation transformation;
 
@@ -12,8 +12,8 @@ public class AnnotatedSegmentTransformer< A extends AnnotatedSegment, Transforme
 	}
 
 	@Override
-	public TransformedAnnotatedSegment transform( AnnotatedSegment annotation )
+	public TransformedAnnotatedSegment transform( AnnotatedSegment annotatedSegment )
 	{
-		return new TransformedAnnotatedSegment( annotation, transformation );
+		return new TransformedAnnotatedSegment( annotatedSegment, transformation );
 	}
 }

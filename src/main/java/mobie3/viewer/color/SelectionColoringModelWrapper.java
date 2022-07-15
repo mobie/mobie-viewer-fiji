@@ -30,5 +30,5 @@ package mobie3.viewer.color;
 
 public interface SelectionColoringModelWrapper
 {
-	SelectionColoringModel getSelectionColoringModel();
+	MoBIEColoringModel getSelectionColoringModel();
 }

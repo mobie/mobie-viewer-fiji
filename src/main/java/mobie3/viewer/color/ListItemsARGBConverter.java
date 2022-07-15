@@ -39,14 +39,14 @@ import java.util.List;
 public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBType >, OpacityAdjuster, TimePointListener, SelectionColoringModelWrapper
 {
 	public static final int OUT_OF_BOUNDS_ROW_INDEX = -1;
-	private final SelectionColoringModel< T > coloringModel;
+	private final MoBIEColoringModel< T > coloringModel;
 	private final List< T > list;
 	private int backgroundARGBIndex; // default, background color
 	private double opacity = 0.5;
 
 	public ListItemsARGBConverter(
 			List< T > list,
-			SelectionColoringModel< T > coloringModel )
+			MoBIEColoringModel< T > coloringModel )
 	{
 		this.list = list;
 		this.coloringModel = coloringModel;
@@ -105,7 +105,7 @@ public class ListItemsARGBConverter< T > implements Converter< RealType, ARGBTyp
 	}
 
 	@Override
-	public SelectionColoringModel getSelectionColoringModel()
+	public MoBIEColoringModel getSelectionColoringModel()
 	{
 		return coloringModel;
 	}

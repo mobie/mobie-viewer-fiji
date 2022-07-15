@@ -13,7 +13,7 @@ public interface AnnotationTableModel< A extends Annotation >
 	List< String > columnNames();
 	List< String > numericColumnNames();
 	Class< ? > columnClass( String columnName );
-	int numRows();
+	int numRows(); // TODO: avoid this as it could hamper lazy loading..?! rather use rows() below? Or maybe add back the iterator?
 	int indexOf( A annotation );
 	A row( int rowIndex );
 	void loadColumns( String columnsPath ); // load more chucks of columns
