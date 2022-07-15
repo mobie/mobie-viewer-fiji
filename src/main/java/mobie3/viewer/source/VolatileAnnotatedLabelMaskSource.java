@@ -30,17 +30,13 @@ package mobie3.viewer.source;
 
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import de.embl.cba.tables.imagesegment.ImageSegment;
-import mobie3.viewer.segment.LabelToSegmentMapper;
-import mobie3.viewer.segment.Segment;
-import mobie3.viewer.segment.SegmentProvider;
+import mobie3.viewer.annotation.Segment;
+import mobie3.viewer.annotation.SegmentProvider;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converters;
 import net.imglib2.type.numeric.IntegerType;
-import net.imglib2.type.numeric.NumericType;
-import net.imglib2.type.numeric.RealType;
 
 public class VolatileAnnotatedLabelMaskSource< T extends IntegerType< T >, V extends Volatile< T >, S extends Segment > extends AbstractSourceWrapper< V, VolatileAnnotationType< S > >
 {

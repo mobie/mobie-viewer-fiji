@@ -1,4 +1,4 @@
-package mobie3.viewer.segment;
+package mobie3.viewer.annotation;
 
 import mobie3.viewer.table.AnnotatedSegment;
 import mobie3.viewer.transform.AffineTransformation;

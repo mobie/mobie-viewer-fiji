@@ -38,7 +38,7 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import mobie3.viewer.color.opacity.AdjustableOpacityColorConverter;
 import mobie3.viewer.color.opacity.VolatileAdjustableOpacityColorConverter;
-import mobie3.viewer.display.AnnotatedImageSegmentsDisplay;
+import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.display.AnnotatedImagesDisplay;
 import mobie3.viewer.plugins.platybrowser.GeneSearchCommand;
@@ -188,8 +188,8 @@ public class MoBIE
 	{
 		if ( display instanceof AnnotatedImagesDisplay )
 			return getRegionTableDirectories( ( AnnotatedImagesDisplay ) display );
-		else if ( display instanceof AnnotatedImageSegmentsDisplay )
-			return getSegmentationTableDirectories( ( AnnotatedImageSegmentsDisplay ) display );
+		else if ( display instanceof SegmentationDisplay )
+			return getSegmentationTableDirectories( ( SegmentationDisplay ) display );
 		else
 			throw new RuntimeException();
 	}
@@ -732,7 +732,7 @@ public class MoBIE
 		return projectCommands;
 	}
 
-	private Map< String, String > getSegmentationTableDirectories( AnnotatedImageSegmentsDisplay display )
+	private Map< String, String > getSegmentationTableDirectories( SegmentationDisplay display )
 	{
 		Map<String, String> sourceNameToTableDir = new HashMap<>();
 		for ( String source: display.getSources() )

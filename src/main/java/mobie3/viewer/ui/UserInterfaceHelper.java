@@ -45,7 +45,7 @@ import mobie3.viewer.color.OpacityAdjuster;
 import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.AnnotatedImagesDisplay;
-import mobie3.viewer.display.AnnotatedImageSegmentsDisplay;
+import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.display.Display;
 import mobie3.viewer.plot.ScatterPlotView;
 import mobie3.viewer.transform.MoBIEViewerTransformAdjuster;
@@ -360,7 +360,7 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public JPanel createSegmentationDisplaySettingsPanel( AnnotatedImageSegmentsDisplay display )
+	public JPanel createSegmentationDisplaySettingsPanel( SegmentationDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 
@@ -643,7 +643,7 @@ public class UserInterfaceHelper
 		return Box.createRigidArea( PREFERRED_CHECKBOX_SIZE );
 	}
 
-	public static JCheckBox createSegmentsVolumeViewerVisibilityCheckbox( AnnotatedImageSegmentsDisplay display )
+	public static JCheckBox createSegmentsVolumeViewerVisibilityCheckbox( SegmentationDisplay display )
 	{
 		JCheckBox checkBox = new JCheckBox( "V" );
 		checkBox.setSelected( display.showSelectedSegmentsIn3d() );

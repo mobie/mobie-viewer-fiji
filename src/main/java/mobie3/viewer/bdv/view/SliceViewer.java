@@ -47,7 +47,7 @@ import mobie3.viewer.command.ScreenShotMakerCommand;
 import mobie3.viewer.command.ShowRasterImagesCommand;
 import mobie3.viewer.command.SourceAndConverterBlendingModeChangerCommand;
 import mobie3.viewer.display.AbstractDisplay;
-import mobie3.viewer.segment.SliceViewAnnotationSelector;
+import mobie3.viewer.annotation.SliceViewAnnotationSelector;
 import mobie3.viewer.source.SourceHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;

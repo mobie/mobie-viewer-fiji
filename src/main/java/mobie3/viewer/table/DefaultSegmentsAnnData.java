@@ -1,6 +1,6 @@
 package mobie3.viewer.table;
 
-import mobie3.viewer.segment.TransformedAnnotatedSegment;
+import mobie3.viewer.annotation.TransformedAnnotatedSegment;
 import mobie3.viewer.transform.Transformation;
 
 public class DefaultSegmentsAnnData< SR extends AnnotatedSegment > implements SegmentsAnnData< SR >

@@ -43,6 +43,7 @@ import mobie3.viewer.table.Annotation;
 import javax.swing.*;
 import java.awt.*;
 
+// TODO: maybe get rid of RegionSliceView and SegmentationSliceView?
 public abstract class AnnotationSliceView< A extends Annotation > extends AbstractSliceView implements ColoringListener, SelectionListener< A >
 {
 	protected final AnnotationDisplay< A > display;
@@ -57,11 +58,11 @@ public abstract class AnnotationSliceView< A extends Annotation > extends Abstra
 
 	protected void show( SourceAndConverter< ? > sourceAndConverter )
 	{
-		configureRendering( sourceAndConverter );
+		configureAnnotationRendering( sourceAndConverter );
 		display.sliceViewer.show( sourceAndConverter, display );
 	}
 
-	private void configureRendering( SourceAndConverter< ? > sourceAndConverter )
+	private void configureAnnotationRendering( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final boolean showAsBoundaries = display.isShowAsBoundaries();
 		final float boundaryThickness = display.getBoundaryThickness();

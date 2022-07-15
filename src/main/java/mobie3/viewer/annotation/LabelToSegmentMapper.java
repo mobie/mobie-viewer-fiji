@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.segment;
+package mobie3.viewer.annotation;
 
 import mobie3.viewer.table.AnnData;
 import mobie3.viewer.table.AnnotatedSegment;

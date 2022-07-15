@@ -1,4 +1,4 @@
-package mobie3.viewer.segment;
+package mobie3.viewer.annotation;
 
 public interface SegmentProvider< S extends Segment >
 {

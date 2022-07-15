@@ -35,7 +35,7 @@ import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.Utils;
 import isosurface.MeshEditor;
 import mobie3.viewer.playground.BdvPlaygroundHelper;
-import mobie3.viewer.segment.Segment;
+import mobie3.viewer.annotation.Segment;
 import mobie3.viewer.source.AnnotationType;
 import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;

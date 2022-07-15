@@ -35,8 +35,8 @@ import bdv.viewer.SynchronizedViewerState;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.color.AnnotationConverter;
 import mobie3.viewer.color.VolatileAnnotationConverter;
-import mobie3.viewer.display.AnnotatedImageSegmentsDisplay;
-import mobie3.viewer.segment.SliceViewAnnotationSelector;
+import mobie3.viewer.display.SegmentationDisplay;
+import mobie3.viewer.annotation.SliceViewAnnotationSelector;
 import mobie3.viewer.source.AnnotatedLabelMask;
 import mobie3.viewer.source.AnnotationType;
 import mobie3.viewer.source.BoundarySource;
@@ -48,28 +48,28 @@ import net.imglib2.type.numeric.IntegerType;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 
-public class AnnotatedLabelMaskSliceView< T extends IntegerType< T >, AS extends AnnotatedSegment > extends AnnotationSliceView< AS >
+public class SegmentationSliceView< T extends IntegerType< T >, AS extends AnnotatedSegment > extends AnnotationSliceView< AS >
 {
-	public AnnotatedLabelMaskSliceView( MoBIE moBIE, AnnotatedImageSegmentsDisplay< AS > display )
+	public SegmentationSliceView( MoBIE moBIE, SegmentationDisplay< T, AS > display )
 	{
 		super( moBIE, display );
 
 		for ( String name : display.getSources() )
 		{
-			final AnnotatedLabelMask< T, AS > image = ( AnnotatedLabelMask ) moBIE.getImage( name );
+			final AnnotatedLabelMask< ?, ? > image = ( AnnotatedLabelMask ) moBIE.getImage( name );
 
 			// volatile
 			//
-			final Source< ? extends Volatile< AnnotationType< AS > > > volatileSource = image.getSourcePair().getVolatileSource();
+			final Source< ? extends Volatile< ? extends AnnotationType< ? > > > volatileSource = image.getSourcePair().getVolatileSource();
 			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSource );
 			final VolatileAnnotationConverter volatileAnnotationConverter = new VolatileAnnotationConverter( display.coloringModel );
 			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
 
 			// non-volatile
 			//
-			final Source< AnnotationType< AS > > source = image.getSourcePair().getSource();
+			final Source< ? extends  AnnotationType< ? > > source = image.getSourcePair().getSource();
 			final BoundarySource boundarySource = new BoundarySource( source );
-			final AnnotationConverter< AS > annotationConverter = new AnnotationConverter<>( display.coloringModel );
+			final AnnotationConverter< ? > annotationConverter = new AnnotationConverter<>( display.coloringModel );
 
 			// combine volatile and non-volatile
 			final SourceAndConverter sourceAndConverter = new SourceAndConverter( boundarySource, annotationConverter, volatileSourceAndConverter );

@@ -1,6 +1,4 @@
-package mobie3.viewer.segment;
-
-import de.embl.cba.tables.imagesegment.ImageSegment;
+package mobie3.viewer.annotation;
 
 import java.util.Objects;
 

@@ -1,7 +1,7 @@
 package mobie3.viewer.source;
 
-import mobie3.viewer.segment.LabelToSegmentMapper;
-import mobie3.viewer.segment.SegmentProvider;
+import mobie3.viewer.annotation.LabelToSegmentMapper;
+import mobie3.viewer.annotation.SegmentProvider;
 import mobie3.viewer.table.AnnotatedSegment;
 import mobie3.viewer.table.SegmentsAnnData;
 import net.imglib2.Volatile;

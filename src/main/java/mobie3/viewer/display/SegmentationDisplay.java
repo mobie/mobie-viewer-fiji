@@ -31,8 +31,8 @@ package mobie3.viewer.display;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import mobie3.viewer.source.AnnotatedLabelMask;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
-import mobie3.viewer.bdv.view.AnnotatedLabelMaskSliceView;
-import mobie3.viewer.segment.LabelToSegmentMapper;
+import mobie3.viewer.bdv.view.SegmentationSliceView;
+import mobie3.viewer.annotation.LabelToSegmentMapper;
 import mobie3.viewer.table.AnnotatedSegment;
 import mobie3.viewer.volume.SegmentsVolumeViewer;
 import net.imglib2.type.numeric.IntegerType;
@@ -42,7 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class AnnotatedImageSegmentsDisplay< T extends IntegerType< T >, AS extends AnnotatedSegment > extends AnnotationDisplay< AS >
+public class SegmentationDisplay< T extends IntegerType< T >, AS extends AnnotatedSegment > extends AnnotationDisplay< AS >
 {
 	// Serialization
 	protected List< String > sources; // label masks
@@ -54,7 +54,7 @@ public class AnnotatedImageSegmentsDisplay< T extends IntegerType< T >, AS exten
 	// TODO: below is almost not needed
 	public transient LabelToSegmentMapper< AS > segmentMapper;
 	public transient SegmentsVolumeViewer< AS > segmentsVolumeViewer;
-	public transient AnnotatedLabelMaskSliceView sliceView;
+	public transient SegmentationSliceView sliceView;
 
 	@Override
 	public AnnotationSliceView< ? > getSliceView()
@@ -80,9 +80,9 @@ public class AnnotatedImageSegmentsDisplay< T extends IntegerType< T >, AS exten
 	}
 
 	// Needed for Gson
-	public AnnotatedImageSegmentsDisplay(){}
+	public SegmentationDisplay(){}
 
-	public AnnotatedImageSegmentsDisplay( String name, double opacity, List< String > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, Double[] resolution3dView )
+	public SegmentationDisplay( String name, double opacity, List< String > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, Double[] resolution3dView )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -101,20 +101,20 @@ public class AnnotatedImageSegmentsDisplay< T extends IntegerType< T >, AS exten
 	/**
 	 * Create a serializable copy
 	 *
-	 * @param annotatedImageSegmentsDisplay
+	 * @param segmentationDisplay
 	 */
-	public AnnotatedImageSegmentsDisplay( AnnotatedImageSegmentsDisplay annotatedImageSegmentsDisplay )
+	public SegmentationDisplay( SegmentationDisplay segmentationDisplay )
 	{
-		set( annotatedImageSegmentsDisplay );
+		set( segmentationDisplay );
 
 		this.sources = new ArrayList<>();
-		this.sources.addAll( annotatedImageSegmentsDisplay.nameToSourceAndConverter.keySet() );
+		this.sources.addAll( segmentationDisplay.nameToSourceAndConverter.keySet() );
 
-		if ( annotatedImageSegmentsDisplay.segmentsVolumeViewer != null )
+		if ( segmentationDisplay.segmentsVolumeViewer != null )
 		{
-			this.showSelectedSegmentsIn3d = annotatedImageSegmentsDisplay.segmentsVolumeViewer.isShowSegments();
+			this.showSelectedSegmentsIn3d = segmentationDisplay.segmentsVolumeViewer.isShowSegments();
 
-			double[] voxelSpacing = annotatedImageSegmentsDisplay.segmentsVolumeViewer.getVoxelSpacing();
+			double[] voxelSpacing = segmentationDisplay.segmentsVolumeViewer.getVoxelSpacing();
 			if ( voxelSpacing != null ) {
 				resolution3dView = new Double[voxelSpacing.length];
 				for (int i = 0; i < voxelSpacing.length; i++) {
@@ -123,7 +123,7 @@ public class AnnotatedImageSegmentsDisplay< T extends IntegerType< T >, AS exten
 			}
 		}
 
-		Set<TableRowImageSegment> currentSelectedSegments = annotatedImageSegmentsDisplay.selectionModel.getSelected();
+		Set<TableRowImageSegment> currentSelectedSegments = segmentationDisplay.selectionModel.getSelected();
 		if (currentSelectedSegments != null) {
 			ArrayList<String> selectedSegmentIds = new ArrayList<>();
 			for (TableRowImageSegment segment : currentSelectedSegments) {
@@ -132,8 +132,8 @@ public class AnnotatedImageSegmentsDisplay< T extends IntegerType< T >, AS exten
 			this.selectedSegmentIds = selectedSegmentIds;
 		}
 
-		if ( annotatedImageSegmentsDisplay.sliceView != null ) {
-			visible = annotatedImageSegmentsDisplay.sliceView.isVisible();
+		if ( segmentationDisplay.sliceView != null ) {
+			visible = segmentationDisplay.sliceView.isVisible();
 		}
 	}
 

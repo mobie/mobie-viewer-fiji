@@ -1,6 +1,6 @@
 package mobie3.viewer.table;
 
-import mobie3.viewer.segment.TransformedAnnotatedSegment;
+import mobie3.viewer.annotation.TransformedAnnotatedSegment;
 import mobie3.viewer.transform.Transformation;
 import net.imglib2.util.Pair;
 

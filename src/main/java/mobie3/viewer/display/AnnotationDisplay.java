@@ -77,11 +77,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	public transient ScatterPlotView< A > scatterPlotView;
 	public transient AnnotationTableModel< A > tableModel;
 
-	// Should be overwritten by child classes
-	public AnnotationSliceView< ? > getSliceView()
-	{
-		return null;
-	}
+	public abstract AnnotationSliceView< ? > getSliceView();
 
 	public abstract void initTableModel( );
 

@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.segment;
+package mobie3.viewer.annotation;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
@@ -36,7 +36,6 @@ import mobie3.viewer.bdv.GlobalMousePositionProvider;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.source.AnnotationType;
 import net.imglib2.RealPoint;
-import net.imglib2.roi.RealMaskRealInterval;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Row;
