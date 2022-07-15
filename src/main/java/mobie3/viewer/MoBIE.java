@@ -40,7 +40,7 @@ import mobie3.viewer.color.opacity.AdjustableOpacityColorConverter;
 import mobie3.viewer.color.opacity.VolatileAdjustableOpacityColorConverter;
 import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.display.AnnotationDisplay;
-import mobie3.viewer.display.AnnotatedImagesDisplay;
+import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.plugins.platybrowser.GeneSearchCommand;
 import mobie3.viewer.serialize.AnnotatedLabelMaskData;
 import mobie3.viewer.serialize.Dataset;
@@ -169,14 +169,6 @@ public class MoBIE
 		}
 	}
 
-	public void mergeColumnsFromProject( AnnotationDisplay< ? extends TableRow > display )
-	{
-		final Map< String, String > sourceNameToTableDirectory = getTableDirectories( display );
-		String tableFileName = selectTableFileNameFromProjectDialog( sourceNameToTableDirectory.values(), "Table" );
-		if ( tableFileName != null )
-			display.mergeColumns( tableFileName );
-	}
-
 	private static Map< String, List< String > > readTable( String path )
 	{
 		IJ.log( "Opening table:\n" + path );
@@ -186,15 +178,15 @@ public class MoBIE
 
 	private Map< String, String > getTableDirectories( AnnotationDisplay display )
 	{
-		if ( display instanceof AnnotatedImagesDisplay )
-			return getRegionTableDirectories( ( AnnotatedImagesDisplay ) display );
+		if ( display instanceof RegionDisplay )
+			return getRegionTableDirectories( ( RegionDisplay ) display );
 		else if ( display instanceof SegmentationDisplay )
 			return getSegmentationTableDirectories( ( SegmentationDisplay ) display );
 		else
 			throw new RuntimeException();
 	}
 
-	private Map< String, String > getRegionTableDirectories( AnnotatedImagesDisplay display )
+	private Map< String, String > getRegionTableDirectories( RegionDisplay display )
 	{
 		Map<String, String> sourceNameToTableDir = new HashMap<>();
 		final String relativePath = display.getTableDataFolder( TableDataFormat.TabDelimitedFile );

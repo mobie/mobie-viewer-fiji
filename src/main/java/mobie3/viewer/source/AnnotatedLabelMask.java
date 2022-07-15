@@ -2,12 +2,13 @@ package mobie3.viewer.source;
 
 import mobie3.viewer.annotation.LabelToSegmentMapper;
 import mobie3.viewer.annotation.SegmentProvider;
+import mobie3.viewer.table.AnnData;
 import mobie3.viewer.table.AnnotatedSegment;
 import mobie3.viewer.table.SegmentsAnnData;
 import net.imglib2.Volatile;
 import net.imglib2.type.numeric.IntegerType;
 
-public class AnnotatedLabelMask< T extends IntegerType< T >, AS extends AnnotatedSegment > implements AnnotatedImage< T, AS >
+public class AnnotatedLabelMask< T extends IntegerType< T >, AS extends AnnotatedSegment > implements AnnotatedImage< AS >
 {
 	protected Image< T > labelMask;
 	protected SegmentsAnnData< AS > annData;
@@ -50,7 +51,7 @@ public class AnnotatedLabelMask< T extends IntegerType< T >, AS extends Annotate
 	}
 
 	@Override
-	public SegmentsAnnData< AS > getAnnData()
+	public AnnData< AS > getAnnData()
 	{
 		return null;
 	}

@@ -34,7 +34,7 @@ import bdv.viewer.SynchronizedViewerState;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.annotate.RegionImage;
 import mobie3.viewer.annotate.RegionTableRow;
-import mobie3.viewer.display.AnnotatedImagesDisplay;
+import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.annotation.SliceViewAnnotationSelector;
 import mobie3.viewer.source.AnnotationType;
 import mobie3.viewer.transform.PositionViewerTransform;
@@ -42,7 +42,7 @@ import mobie3.viewer.transform.SliceViewLocationChanger;
 
 public class RegionSliceView extends AnnotationSliceView< RegionTableRow >
 {
-	public RegionSliceView( MoBIE moBIE, AnnotatedImagesDisplay display )
+	public RegionSliceView( MoBIE moBIE, RegionDisplay display )
 	{
 		super( moBIE, display );
 		SourceAndConverter< AnnotationType< RegionTableRow > > regionSourceAndConverter = createSourceAndConverter();

@@ -94,6 +94,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public TableView( AnnotationDisplay< A > display )
 	{
+		// Maybe it should rather get a <List> AnnData
+		// and then decide what to itself.
 		this.tableModel = display.tableModel;
 		this.coloringModel = display.coloringModel;
 		this.selectionModel = display.selectionModel;

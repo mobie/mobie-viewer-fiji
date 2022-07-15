@@ -41,6 +41,7 @@ import mobie3.viewer.color.OpacityAdjuster;
 import mobie3.viewer.color.SelectionColoringModel;
 import mobie3.viewer.plot.ScatterPlotView;
 import mobie3.viewer.select.SelectionModel;
+import mobie3.viewer.source.AnnotatedImage;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.SourceHelper;
 import mobie3.viewer.table.Annotation;
@@ -51,7 +52,16 @@ import mobie3.viewer.table.TableView;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+/**
+ * This class holds all the information that is
+ * needed to both view it and serialise it.
+ *
+ * Note: This could still be compatible with Spots visualisation
+ *
+ * @param <A>
+ */
 public abstract class AnnotationDisplay< A extends Annotation > extends AbstractDisplay< A >
 {
 	// Serialization
@@ -75,13 +85,13 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	public transient SelectionColoringModel< A > coloringModel;
 	public transient TableView< A > tableView;
 	public transient ScatterPlotView< A > scatterPlotView;
+	@Deprecated // fetch this from the List of images
 	public transient AnnotationTableModel< A > tableModel;
+	public transient List< AnnotatedImage< A > > images = new ArrayList<>();
 
 	public abstract AnnotationSliceView< ? > getSliceView();
 
-	public abstract void initTableModel( );
-
-	public abstract void mergeColumns( String tableColumns );
+	public abstract Set< String > getSelectedAnnotationIds();
 
 	public String getLut()
 	{

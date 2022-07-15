@@ -44,7 +44,7 @@ import mobie3.viewer.VisibilityListener;
 import mobie3.viewer.color.OpacityAdjuster;
 import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.ImageDisplay;
-import mobie3.viewer.display.AnnotatedImagesDisplay;
+import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.display.Display;
 import mobie3.viewer.plot.ScatterPlotView;
@@ -230,7 +230,7 @@ public class UserInterfaceHelper
 		frame.setVisible( true );
 	}
 
-	public JPanel createRegionDisplaySettingsPanel( AnnotatedImagesDisplay display )
+	public JPanel createRegionDisplaySettingsPanel( RegionDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.nameToSourceAndConverter.values() );

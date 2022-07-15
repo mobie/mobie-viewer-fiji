@@ -46,7 +46,7 @@ public class SegmentationDisplay< T extends IntegerType< T >, AS extends Annotat
 {
 	// Serialization
 	protected List< String > sources; // label masks
-	protected List< String > selectedSegmentIds;
+	protected Set< String > selectedSegmentIds;
 	protected boolean showSelectedSegmentsIn3d = false;
 	protected Double[] resolution3dView;
 
@@ -69,7 +69,8 @@ public class SegmentationDisplay< T extends IntegerType< T >, AS extends Annotat
 
 	public Double[] getResolution3dView(){ return resolution3dView; }
 
-	public List< String > getSelectedSegmentIds()
+	@Override
+	public Set< String > getSelectedAnnotationIds()
 	{
 		return selectedSegmentIds;
 	}

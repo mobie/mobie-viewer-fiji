@@ -47,7 +47,7 @@ import mobie3.viewer.color.SelectionColoringModel;
 import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.display.ImageDisplay;
-import mobie3.viewer.display.AnnotatedImagesDisplay;
+import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.display.Display;
 import mobie3.viewer.plot.ScatterPlotView;
@@ -233,9 +233,9 @@ public class ViewManager
 				currentDisplay = new SegmentationDisplay( segmentationDisplay );
 				addManualTransforms( viewSourceTransforms, ( Map ) segmentationDisplay.nameToSourceAndConverter );
 			}
-			else if ( display instanceof AnnotatedImagesDisplay )
+			else if ( display instanceof RegionDisplay )
 			{
-				currentDisplay = new AnnotatedImagesDisplay( ( AnnotatedImagesDisplay ) display );
+				currentDisplay = new RegionDisplay( ( RegionDisplay ) display );
 			}
 
 			if ( currentDisplay != null )
@@ -397,6 +397,10 @@ public class ViewManager
 	{
 		if ( currentDisplays.contains( display ) ) return;
 
+		// TODO:
+		// What about label mask images that are NOT annotated,
+		// i.e. don't have a table?
+		// Should we create a table on the fly?
 		if ( display instanceof ImageDisplay )
 		{
 			showImageDisplay( ( ImageDisplay ) display );
@@ -408,15 +412,18 @@ public class ViewManager
 			annotationDisplay.moBIE = moBIE;
 			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.selectionModel = new MoBIESelectionModel<>();
-			annotationDisplay.initTableModel();
+			for ( String name : display.getSources() )
+				annotationDisplay.images.add( (AnnotatedImage) moBIE.getImage( name ) );
+
+			//annotationDisplay.initTableModel();
 
 			if ( annotationDisplay instanceof SegmentationDisplay )
 			{
 				showSegmentationDisplay( ( SegmentationDisplay ) annotationDisplay );
 			}
-			else if ( annotationDisplay instanceof AnnotatedImagesDisplay )
+			else if ( annotationDisplay instanceof RegionDisplay )
 			{
-				showRegionDisplay( ( AnnotatedImagesDisplay ) annotationDisplay );
+				showRegionDisplay( ( RegionDisplay ) annotationDisplay );
 			}
 
 			if ( annotationDisplay.tableModel != null )
@@ -471,21 +478,21 @@ public class ViewManager
 		}
 	}
 
-	private void showRegionDisplay( AnnotatedImagesDisplay annotatedImagesDisplay )
+	private void showRegionDisplay( RegionDisplay regionDisplay )
 	{
-		configureColoringModel( annotatedImagesDisplay );
+		configureColoringModel( regionDisplay );
 
 		// set selected segments
-		if ( annotatedImagesDisplay.getSelectedRegionIds() != null )
+		if ( regionDisplay.getSelectedRegionIds() != null )
 		{
-			final List< RegionTableRow > annotatedMasks = annotatedImagesDisplay.tableRowsAdapter.getAnnotatedMasks( annotatedImagesDisplay.getSelectedRegionIds() );
-			annotatedImagesDisplay.selectionModel.setSelected( annotatedMasks, true );
+			final List< RegionTableRow > annotatedMasks = regionDisplay.tableRowsAdapter.getAnnotatedMasks( regionDisplay.getSelectedRegionIds() );
+			regionDisplay.selectionModel.setSelected( annotatedMasks, true );
 		}
 
-		annotatedImagesDisplay.sliceView = new RegionSliceView( moBIE, annotatedImagesDisplay );
-		initTableView( annotatedImagesDisplay );
-		initScatterPlotView( annotatedImagesDisplay );
-		setTablePosition( annotatedImagesDisplay.sliceViewer.getWindow(), annotatedImagesDisplay.tableView.getWindow() );
+		regionDisplay.sliceView = new RegionSliceView( moBIE, regionDisplay );
+		initTableView( regionDisplay );
+		initScatterPlotView( regionDisplay );
+		setTablePosition( regionDisplay.sliceViewer.getWindow(), regionDisplay.tableView.getWindow() );
 	}
 
 	private void initTableView( AnnotationDisplay< ? extends Annotation > display )
