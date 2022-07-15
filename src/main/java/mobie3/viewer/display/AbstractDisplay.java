@@ -44,7 +44,7 @@ public abstract class AbstractDisplay< T > implements Display
 	protected BlendingMode blendingMode;
 
 	// Runtime
-	public transient Map< String, SourceAndConverter< AnnotationType< T > > > nameToSourceAndConverter; // Sacs of this display
+	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter;
 	public transient SliceViewer sliceViewer;
 
 	@Override

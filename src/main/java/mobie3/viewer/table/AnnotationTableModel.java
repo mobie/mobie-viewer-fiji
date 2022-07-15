@@ -1,5 +1,6 @@
 package mobie3.viewer.table;
 
+import mobie3.viewer.annotation.Annotation;
 import net.imglib2.util.Pair;
 
 import java.util.Collection;

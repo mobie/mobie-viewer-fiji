@@ -1,6 +1,5 @@
 package mobie3.viewer.annotation;
 
-import mobie3.viewer.table.AnnotatedSegment;
 import mobie3.viewer.transform.AffineTransformation;
 import mobie3.viewer.transform.Transformation;
 import net.imglib2.RealInterval;

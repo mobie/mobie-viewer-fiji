@@ -28,21 +28,16 @@
  */
 package mobie3.viewer.display;
 
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import mobie3.viewer.source.AnnotatedLabelMask;
-import mobie3.viewer.bdv.view.AnnotationSliceView;
-import mobie3.viewer.bdv.view.SegmentationSliceView;
+import mobie3.viewer.annotation.AnnotatedSegment;
 import mobie3.viewer.annotation.LabelToSegmentMapper;
-import mobie3.viewer.table.AnnotatedSegment;
 import mobie3.viewer.volume.SegmentsVolumeViewer;
-import net.imglib2.type.numeric.IntegerType;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class SegmentationDisplay< T extends IntegerType< T >, AS extends AnnotatedSegment > extends AnnotationDisplay< AS >
+public class SegmentationDisplay< AS extends AnnotatedSegment > extends AnnotationDisplay< AS >
 {
 	// Serialization
 	protected List< String > sources; // label masks
@@ -54,13 +49,6 @@ public class SegmentationDisplay< T extends IntegerType< T >, AS extends Annotat
 	// TODO: below is almost not needed
 	public transient LabelToSegmentMapper< AS > segmentMapper;
 	public transient SegmentsVolumeViewer< AS > segmentsVolumeViewer;
-	public transient SegmentationSliceView sliceView;
-
-	@Override
-	public AnnotationSliceView< ? > getSliceView()
-	{
-		return sliceView;
-	}
 
 	public List< String > getSources()
 	{
@@ -70,9 +58,15 @@ public class SegmentationDisplay< T extends IntegerType< T >, AS extends Annotat
 	public Double[] getResolution3dView(){ return resolution3dView; }
 
 	@Override
-	public Set< String > getSelectedAnnotationIds()
+	public Set< String > selectedAnnotationIds()
 	{
 		return selectedSegmentIds;
+	}
+
+	@Override
+	public void setSelectedAnnotationIds( Set< String > selectedAnnotationIds )
+	{
+		this.selectedSegmentIds = selectedAnnotationIds;
 	}
 
 	public boolean showSelectedSegmentsIn3d()
@@ -83,7 +77,7 @@ public class SegmentationDisplay< T extends IntegerType< T >, AS extends Annotat
 	// Needed for Gson
 	public SegmentationDisplay(){}
 
-	public SegmentationDisplay( String name, double opacity, List< String > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, Double[] resolution3dView )
+	public SegmentationDisplay( String name, double opacity, List< String > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedSegmentIds, boolean showSelectedSegmentsIn3d, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, Double[] resolution3dView )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -99,17 +93,17 @@ public class SegmentationDisplay< T extends IntegerType< T >, AS extends Annotat
 		this.resolution3dView = resolution3dView;
 	}
 
-	/**
-	 * Create a serializable copy
-	 *
-	 * @param segmentationDisplay
-	 */
-	public SegmentationDisplay( SegmentationDisplay segmentationDisplay )
+	// Create a serializable copy
+	public SegmentationDisplay( SegmentationDisplay< ? extends AnnotatedSegment > segmentationDisplay )
 	{
-		set( segmentationDisplay );
+		// set properties common to all AnnotationDisplays
+		//
+		setAnnotationDisplayProperties( segmentationDisplay );
 
+		// set properties specific to SegmentationDisplay
+		//
 		this.sources = new ArrayList<>();
-		this.sources.addAll( segmentationDisplay.nameToSourceAndConverter.keySet() );
+		this.sources.addAll( segmentationDisplay.sources );
 
 		if ( segmentationDisplay.segmentsVolumeViewer != null )
 		{
@@ -123,45 +117,5 @@ public class SegmentationDisplay< T extends IntegerType< T >, AS extends Annotat
 				}
 			}
 		}
-
-		Set<TableRowImageSegment> currentSelectedSegments = segmentationDisplay.selectionModel.getSelected();
-		if (currentSelectedSegments != null) {
-			ArrayList<String> selectedSegmentIds = new ArrayList<>();
-			for (TableRowImageSegment segment : currentSelectedSegments) {
-				selectedSegmentIds.add( segment.imageId() + ";" + segment.timePoint() + ";" + (int) segment.labelId() );
-			}
-			this.selectedSegmentIds = selectedSegmentIds;
-		}
-
-		if ( segmentationDisplay.sliceView != null ) {
-			visible = segmentationDisplay.sliceView.isVisible();
-		}
 	}
-
-	// It is important that this is called
-	// after all the images are registered
-	// in MoBIE
-	public void initTableModel( )
-	{
-		final List< String > columnChunks = getTables();
-		if ( columnChunks.size() == 0 ) return;
-
-		// TODO
-		if ( sources.size() > 1 )
-		{
-			throw new UnsupportedOperationException("Table display for multiple sources not yet implemented!");
-		}
-
-		for ( String imageName : sources )
-		{
-			final AnnotatedLabelMask< T, AS > annotatedLabelMask = ( AnnotatedLabelMask ) moBIE.getImage( imageName );
-			tableModel = annotatedLabelMask.getAnnData().getTable();
-
-			for ( String columnChunk : columnChunks )
-			{
-				tableModel.loadColumns( columnChunk );
-			}
-		}
-	}
-
 }

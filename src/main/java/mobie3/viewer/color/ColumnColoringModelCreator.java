@@ -36,7 +36,7 @@ import de.embl.cba.bdv.utils.lut.ViridisARGBLut;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.ColoringModel;
 import ij.gui.GenericDialog;
-import mobie3.viewer.table.Annotation;
+import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.table.AnnotationTableModel;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Pair;

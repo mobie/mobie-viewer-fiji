@@ -29,6 +29,7 @@
 package mobie3.viewer.annotate;
 
 import de.embl.cba.tables.tablerow.TableRow;
+import mobie3.viewer.annotation.Region;
 
 public interface RegionTableRow extends Region, TableRow
 {

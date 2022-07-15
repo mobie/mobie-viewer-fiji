@@ -52,13 +52,13 @@ import java.util.Map;
 
 import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
-public class ImageSliceView extends AbstractSliceView
+public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceView
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	private final ImageDisplay< ? > display;
+	private final ImageDisplay< T > display;
 
-	public ImageSliceView( MoBIE moBIE, ImageDisplay< ? > display )
+	public ImageSliceView( MoBIE moBIE, ImageDisplay< T > display )
 	{
 		super( moBIE, display );
 		this.display = display;
@@ -67,11 +67,10 @@ public class ImageSliceView extends AbstractSliceView
 
 	private void show( )
 	{
-		Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter = new HashMap<>();
-		for ( String name : display.getSources() )
+		Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter = new HashMap<>();
+		for ( Image< T > image : display.images   )
 		{
-			final SourceAndConverter sac = createSac( moBIE.getImage( name ) );
-			sourceNameToSourceAndConverter.put( name, sac );
+			sourceNameToSourceAndConverter.put( image.getName(), createSac( image ) );
 		}
 
 		for ( String name : sourceNameToSourceAndConverter.keySet() )

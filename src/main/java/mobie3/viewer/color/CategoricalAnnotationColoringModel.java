@@ -30,7 +30,7 @@ package mobie3.viewer.color;
 
 import de.embl.cba.bdv.utils.lut.ARGBLut;
 import de.embl.cba.tables.color.ARBGLutSupplier;
-import mobie3.viewer.table.Annotation;
+import mobie3.viewer.annotation.Annotation;
 import net.imglib2.type.numeric.ARGBType;
 
 import java.util.Map;

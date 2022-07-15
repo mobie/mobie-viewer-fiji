@@ -59,8 +59,8 @@ import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.Image;
 import mobie3.viewer.source.SourceAndConverterAndTables;
 import mobie3.viewer.source.TransformedImage;
-import mobie3.viewer.table.AnnotatedSegment;
-import mobie3.viewer.table.Annotation;
+import mobie3.viewer.annotation.AnnotatedSegment;
+import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.table.SegmentsAnnData;
 import mobie3.viewer.table.TableView;
 import mobie3.viewer.transform.AffineTransformation;
@@ -403,6 +403,8 @@ public class ViewManager
 		// Should we create a table on the fly?
 		if ( display instanceof ImageDisplay )
 		{
+			for ( String name : display.getSources() )
+				display.images.add( (Image) moBIE.getImage( name ) );
 			showImageDisplay( ( ImageDisplay ) display );
 		}
 		else if ( display instanceof AnnotationDisplay )
@@ -489,7 +491,7 @@ public class ViewManager
 			regionDisplay.selectionModel.setSelected( annotatedMasks, true );
 		}
 
-		regionDisplay.sliceView = new RegionSliceView( moBIE, regionDisplay );
+		regionDisplay.sliceView = new Ann( moBIE, regionDisplay );
 		initTableView( regionDisplay );
 		initScatterPlotView( regionDisplay );
 		setTablePosition( regionDisplay.sliceViewer.getWindow(), regionDisplay.tableView.getWindow() );

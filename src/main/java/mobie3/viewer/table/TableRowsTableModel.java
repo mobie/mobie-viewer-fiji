@@ -5,7 +5,8 @@ import de.embl.cba.tables.Utils;
 import de.embl.cba.tables.imagesegment.ImageSegment;
 import de.embl.cba.tables.select.Listeners;
 import de.embl.cba.tables.tablerow.TableRow;
-import mobie3.viewer.annotate.Region;
+import mobie3.viewer.annotation.Region;
+import mobie3.viewer.annotation.Annotation;
 
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;

@@ -28,6 +28,8 @@
  */
 package mobie3.viewer.annotate;
 
+import mobie3.viewer.annotation.Region;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +51,7 @@ public class RegionsAdapter
 		public TimepointAndAnnotationId( Region region )
 		{
 			this.timepoint = region.timePoint();
-			this.annotationId = region.labelId();
+			this.annotationId = region.regionId();
 		}
 
 		@Override

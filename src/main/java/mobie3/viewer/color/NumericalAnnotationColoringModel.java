@@ -33,7 +33,7 @@ import de.embl.cba.tables.color.ARBGLutSupplier;
 import de.embl.cba.tables.color.AbstractColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.NumericColoringModel;
-import mobie3.viewer.table.Annotation;
+import mobie3.viewer.annotation.Annotation;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;

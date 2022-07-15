@@ -44,15 +44,16 @@ import mobie3.viewer.select.SelectionModel;
 import mobie3.viewer.source.AnnotatedImage;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.SourceHelper;
-import mobie3.viewer.table.Annotation;
+import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.table.AnnotationTableModel;
 import mobie3.viewer.table.ColumnNames;
 import mobie3.viewer.table.TableView;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This class holds all the information that is
@@ -79,19 +80,19 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// Fixed
 	protected transient final BlendingMode blendingMode = BlendingMode.SumOccluding;
 
-	// Runtime
+	// Runtime fields
 	public transient MoBIE moBIE;
 	public transient SelectionModel< A > selectionModel;
 	public transient SelectionColoringModel< A > coloringModel;
 	public transient TableView< A > tableView;
 	public transient ScatterPlotView< A > scatterPlotView;
-	@Deprecated // fetch this from the List of images
-	public transient AnnotationTableModel< A > tableModel;
-	public transient List< AnnotatedImage< A > > images = new ArrayList<>();
+	public transient Set< AnnotatedImage< A > > images = new HashSet<>();
+	public transient AnnotationSliceView< A > sliceView;
 
-	public abstract AnnotationSliceView< ? > getSliceView();
+	// Methods
+	public abstract Set< String > selectedAnnotationIds();
 
-	public abstract Set< String > getSelectedAnnotationIds();
+	public abstract void setSelectedAnnotationIds( Set< String > selectedAnnotationIds );
 
 	public String getLut()
 	{
@@ -148,9 +149,13 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		return randomColorSeed;
 	}
 
-	protected void set( AnnotationDisplay< A > annotationDisplay )
+	protected void setAnnotationDisplayProperties( AnnotationDisplay< ? extends Annotation > annotationDisplay )
 	{
 		this.name = annotationDisplay.name;
+
+		if ( annotationDisplay.sliceView != null ) {
+			this.visible = annotationDisplay.sliceView.isVisible();
+		}
 
 		// Note that even if there are multiple images shown,
 		// they must have all the same display settings
@@ -162,24 +167,24 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 
 		this.lut = annotationDisplay.coloringModel.getARGBLutName();
 
-		final ColoringModel< A > wrappedColoringModel = annotationDisplay.coloringModel.getWrappedColoringModel();
+		final ColoringModel< ? extends Annotation > coloringModel = annotationDisplay.coloringModel.getWrappedColoringModel();
 
-		if ( wrappedColoringModel instanceof ColumnColoringModel)
+		if ( coloringModel instanceof ColumnColoringModel)
 		{
-			this.colorByColumn = (( ColumnColoringModel ) wrappedColoringModel).getColumnName();
+			this.colorByColumn = (( ColumnColoringModel ) coloringModel).getColumnName();
 		}
 
-		if ( wrappedColoringModel instanceof NumericColoringModel)
+		if ( coloringModel instanceof NumericColoringModel)
 		{
 			this.valueLimits = new Double[2];
-			NumericColoringModel numericColoringModel = ( NumericColoringModel ) ( wrappedColoringModel );
+			NumericColoringModel numericColoringModel = ( NumericColoringModel ) ( coloringModel );
 			this.valueLimits[0] = numericColoringModel.getMin();
 			this.valueLimits[1] = numericColoringModel.getMax();
 		}
 
-		if ( wrappedColoringModel instanceof CategoryColoringModel )
+		if ( coloringModel instanceof CategoryColoringModel )
 		{
-			this.randomColorSeed = ( ( CategoryColoringModel<?> ) wrappedColoringModel ).getRandomSeed();
+			this.randomColorSeed = ( ( CategoryColoringModel<?> ) coloringModel ).getRandomSeed();
 		}
 
 		this.showScatterPlot = annotationDisplay.scatterPlotView.isVisible();
@@ -198,7 +203,10 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
 		this.showAsBoundaries = boundarySource.isShowAsBoundaries();
 		this.boundaryThickness = boundarySource.getBoundaryWidth();
-	}
 
-	public abstract void mergeColumns( Map< String, List< String > > columns );
+		final Set< ? extends Annotation > selectedAnnotations = annotationDisplay.selectionModel.getSelected();
+		if (selectedAnnotations != null) {
+			setSelectedAnnotationIds( selectedAnnotations.stream().map( a -> a.getId() ).collect( Collectors.toSet() ) );
+		}
+	}
 }

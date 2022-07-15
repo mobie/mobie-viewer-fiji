@@ -73,7 +73,7 @@ public class DefaultRegionTableRow extends AbstractTableRow implements RegionTab
 	}
 
 	@Override
-	public String labelId()
+	public String regionId()
 	{
 		return name;
 	}

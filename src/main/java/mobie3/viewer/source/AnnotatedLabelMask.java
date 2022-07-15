@@ -3,7 +3,7 @@ package mobie3.viewer.source;
 import mobie3.viewer.annotation.LabelToSegmentMapper;
 import mobie3.viewer.annotation.SegmentProvider;
 import mobie3.viewer.table.AnnData;
-import mobie3.viewer.table.AnnotatedSegment;
+import mobie3.viewer.annotation.AnnotatedSegment;
 import mobie3.viewer.table.SegmentsAnnData;
 import net.imglib2.Volatile;
 import net.imglib2.type.numeric.IntegerType;

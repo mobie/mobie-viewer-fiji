@@ -30,7 +30,7 @@ package mobie3.viewer.plot;
 
 import de.embl.cba.tables.Outlier;
 import de.embl.cba.tables.Utils;
-import mobie3.viewer.table.Annotation;
+import mobie3.viewer.annotation.Annotation;
 import net.imglib2.KDTree;
 import net.imglib2.RealPoint;
 
@@ -39,7 +39,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;

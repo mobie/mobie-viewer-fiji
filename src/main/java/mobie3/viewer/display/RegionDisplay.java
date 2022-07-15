@@ -28,17 +28,11 @@
  */
 package mobie3.viewer.display;
 
-import de.embl.cba.tables.TableColumns;
-import mobie3.viewer.MoBIEHelper;
-import mobie3.viewer.annotate.RegionCreator;
-import mobie3.viewer.annotate.RegionTableRow;
 import mobie3.viewer.annotate.RegionsAdapter;
-import mobie3.viewer.bdv.view.AnnotationSliceView;
-import mobie3.viewer.bdv.view.RegionSliceView;
+import mobie3.viewer.annotation.AnnotatedRegion;
+import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.source.StorageLocation;
 import mobie3.viewer.table.TableDataFormat;
-import mobie3.viewer.table.TableRowsTableModel;
-import org.embl.mobie.io.util.IOHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
+public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay< AR >
 {
 	// Serialization
 	protected Map< String, List< String > > sources; // annotationId to sources
@@ -55,12 +49,17 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 
 	// Runtime
 	public transient RegionsAdapter tableRowsAdapter;
-	public transient RegionSliceView sliceView;
 
 	@Override
-	public Set< String > getSelectedAnnotationIds()
+	public Set< String > selectedAnnotationIds()
 	{
 		return selectedRegionIds;
+	}
+
+	@Override
+	public void setSelectedAnnotationIds( Set< String > selectedAnnotationIds )
+	{
+		this.selectedRegionIds = selectedAnnotationIds;
 	}
 
 	public String getTableDataFolder( TableDataFormat tableDataFormat )
@@ -76,17 +75,11 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 		return sources;
 	}
 
-	@Override
-	public AnnotationSliceView< ? > getSliceView()
-	{
-		return sliceView;
-	}
-
 	// Needed for Gson
 	public RegionDisplay() {}
 
 	// Needed for Gson
-	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, List< String > selectedSegmentIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
+	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedRegionIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -94,7 +87,7 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 		this.lut = lut;
 		this.colorByColumn = colorByColumn;
 		this.valueLimits = valueLimits;
-		this.selectedRegionIds = selectedSegmentIds;
+		this.selectedRegionIds = selectedRegionIds;
 		this.showScatterPlot = showScatterPlot;
 		this.scatterPlotAxes = scatterPlotAxes;
 		this.tables = tables;
@@ -102,95 +95,19 @@ public class RegionDisplay extends AnnotationDisplay< RegionTableRow >
 		this.boundaryThickness = boundaryThickness;
 	}
 
-	/**
-	 * Create a serializable copy
-	 *
-	 * @param regionDisplay
-	 */
-	public RegionDisplay( RegionDisplay regionDisplay )
+	// Create a serializable copy
+	public RegionDisplay( RegionDisplay< ? extends Annotation > regionDisplay )
 	{
-		set( regionDisplay );
+		// set properties common to all AnnotationDisplays
+		//
+		setAnnotationDisplayProperties( regionDisplay );
 
+		// set properties specific to RegionDisplay
+		//
 		this.sources = new HashMap<>();
 		this.sources.putAll( regionDisplay.sources );
 
-		Set< RegionTableRow > currentSelectedRows = regionDisplay.selectionModel.getSelected();
-		if ( currentSelectedRows != null && currentSelectedRows.size() > 0 ) {
-			ArrayList<String> selectedIds = new ArrayList<>();
-			for ( RegionTableRow row : currentSelectedRows ) {
-				selectedIds.add( row.timePoint() + ";" + row.labelId() );
-			}
-			this.selectedRegionIds = selectedIds;
-		}
-
 		this.tableData = new HashMap<>();
 		this.tableData.putAll( regionDisplay.tableData );
-
-		if ( regionDisplay.sliceView != null ) {
-			this.visible = regionDisplay.sliceView.isVisible();
-		}
-	}
-
-	// It is important that this is called after
-	// all the sourceAndConverter are registered
-	// in MoBIE
-	public void initTableModel( )
-	{
-		// read
-		final List< Map< String, List< String > > > tableColumns = new ArrayList<>();
-		for ( String table : tables )
-		{
-			final Map< String, List< String > > columns = openTable( table );
-			tableColumns.add( columns );
-		}
-
-		// primary table
-		System.out.println("Creating regions for " + name + "..." );
-		final RegionCreator regionCreator = new RegionCreator( tableColumns.get( 0 ), sources, ( String sourceName ) -> moBIE.sourceNameToSourceAndConverter().get( sourceName ) );
-		final List< RegionTableRow > regionTableRows = regionCreator.getRegionTableRows();
-		tableModel = new TableRowsTableModel( regionTableRows );
-
-		// optional secondary table(s)
-		for ( int i = 1; i < tableColumns.size(); ++i )
-		{
-			tableModel.mergeColumns( tableColumns.get( i ) );
-		}
-
-		tableRowsAdapter = new RegionsAdapter( tableModel.getTableRows() );
-	}
-
-	private Map< String, List< String > > openTable( String table )
-	{
-		String tablePath = IOHelper.combinePath( moBIE.getTableRoot(), moBIE.getDatasetName(), getTableDataFolder( TableDataFormat.TabDelimitedFile ), table );
-		tablePath = MoBIEHelper.resolvePath( tablePath );
-
-		final Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
-
-		// deal with the fact that the region ids are sometimes
-		// stored as 1 and sometimes as 1.0
-		// after below operation they all will be 1.0, 2.0, ...
-		// MoBIEHelper.toDoubleStrings( columns.get( TableColumnNames.REGION_ID ) );
-		// 2022-June-15 Commented out the above,
-		// because the regionIds also occur in
-		// protected Map< String, List< String > > sources; // annotationId to sources
-		// where again there could be a different convention
-		// regionIds should not be numbers anyway but something more
-		// meaningful! (for labelIds that is a different story, see
-		// SegmentationDisplay).
-
-		return columns;
-	}
-
-	@Override
-	public void mergeColumns( String tableFileName )
-	{
-		final Map< String, List< String > > columns = openTable( tableFileName );
-		tableModel.mergeColumns( columns );
-	}
-
-	@Override
-	public void mergeColumns( Map< String, List< String > > columns )
-	{
-		tableModel.mergeColumns( columns );
 	}
 }

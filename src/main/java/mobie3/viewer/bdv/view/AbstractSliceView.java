@@ -41,6 +41,7 @@ public abstract class AbstractSliceView implements SliceView
 	protected final AbstractDisplay< ? > display;
 	protected final SliceViewer sliceViewer;
 
+	// TODO get rid of MoBIE here, which is only needed to close the sacs...
 	public AbstractSliceView( MoBIE moBIE, AbstractDisplay< ? > display )
 	{
 		this.moBIE = moBIE;

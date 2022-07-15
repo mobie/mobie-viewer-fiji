@@ -1,12 +1,10 @@
 package mobie3.viewer.table;
 
+import mobie3.viewer.annotation.AnnotatedSegment;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import tech.tablesaw.api.Row;
-import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
-
-import java.util.Arrays;
 
 public class TableSawAnnotatedSegment implements AnnotatedSegment
 {

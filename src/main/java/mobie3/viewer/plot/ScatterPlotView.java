@@ -42,7 +42,7 @@ import de.embl.cba.tables.plot.RealPointARGBTypeBiConsumerSupplier;
 import de.embl.cba.tables.plot.ScatterPlotDialog;
 import ij.IJ;
 import ij.gui.GenericDialog;
-import mobie3.viewer.table.Annotation;
+import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.table.AnnotationTableModel;
 import mobie3.viewer.table.ColumnNames;
 import mobie3.viewer.VisibilityListener;

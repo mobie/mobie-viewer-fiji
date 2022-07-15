@@ -26,13 +26,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.annotate;
+package mobie3.viewer.annotation;
 
 import net.imglib2.roi.RealMaskRealInterval;
 
-public interface Region
+public interface Region extends Location
 {
 	RealMaskRealInterval mask();
-	Integer timePoint();
-	String labelId();
+	String regionId();
 }

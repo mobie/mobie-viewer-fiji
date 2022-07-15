@@ -37,7 +37,7 @@ import mobie3.viewer.color.CategoricalAnnotationColoringModel;
 import mobie3.viewer.color.ColumnColoringModelCreator;
 import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.select.SelectionModel;
-import mobie3.viewer.table.Annotation;
+import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.table.AnnotationTableModel;
 import mobie3.viewer.table.AnnotatedSegmentTableModel;
 import mobie3.viewer.table.DefaultValues;

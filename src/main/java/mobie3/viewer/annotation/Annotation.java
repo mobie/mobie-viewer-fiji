@@ -1,6 +1,6 @@
-package mobie3.viewer.table;
+package mobie3.viewer.annotation;
 
-public interface Annotation
+public interface Annotation extends Location
 {
 	String getId();
 	Object getValue( String columnName );

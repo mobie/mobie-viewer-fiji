@@ -33,6 +33,8 @@ import bdv.viewer.SourceAndConverter;
 import mobie3.viewer.bdv.render.BlendingMode;
 import mobie3.viewer.bdv.view.ImageSliceView;
 import mobie3.viewer.color.opacity.AdjustableOpacityColorConverter;
+import mobie3.viewer.source.AnnotatedImage;
+import mobie3.viewer.source.Image;
 import mobie3.viewer.volume.ImageVolumeViewer;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.NumericType;
@@ -40,7 +42,9 @@ import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay< T >
 {
@@ -54,6 +58,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	// Runtime
 	public transient ImageSliceView imageSliceView;
 	public transient ImageVolumeViewer imageVolumeViewer;
+	public transient Set< Image< T > > images = new HashSet<>();
 
 	// Getters for serialised fields
 	public String getColor()

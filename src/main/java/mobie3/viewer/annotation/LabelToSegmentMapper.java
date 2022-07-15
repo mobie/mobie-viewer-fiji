@@ -29,7 +29,6 @@
 package mobie3.viewer.annotation;
 
 import mobie3.viewer.table.AnnData;
-import mobie3.viewer.table.AnnotatedSegment;
 
 import java.util.ArrayList;
 import java.util.List;
