@@ -29,7 +29,7 @@
 package mobie3.viewer.display;
 
 import mobie3.viewer.annotation.AnnotatedSegment;
-import mobie3.viewer.annotation.LabelToSegmentMapper;
+import mobie3.viewer.annotation.SegmentProvider;
 import mobie3.viewer.volume.SegmentsVolumeViewer;
 
 import java.util.ArrayList;
@@ -47,7 +47,6 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 
 	// Runtime
 	// TODO: below is almost not needed
-	public transient LabelToSegmentMapper< AS > segmentMapper;
 	public transient SegmentsVolumeViewer< AS > segmentsVolumeViewer;
 
 	public List< String > getSources()

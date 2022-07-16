@@ -1,7 +1,7 @@
 package mobie3.viewer.source;
 
-import mobie3.viewer.annotation.LabelToSegmentMapper;
 import mobie3.viewer.annotation.SegmentProvider;
+import mobie3.viewer.annotation.AnnotationProvider;
 import mobie3.viewer.table.AnnData;
 import mobie3.viewer.annotation.AnnotatedSegment;
 import net.imglib2.Volatile;
@@ -28,9 +28,9 @@ public class SegmentationImage< AS extends AnnotatedSegment > implements Annotat
 	{
 		if ( sourcePair == null )
 		{
-			SegmentProvider< AS > segmentProvider = new LabelToSegmentMapper( annData );
-			final AnnotatedLabelMaskSource< ?, AS > source = new AnnotatedLabelMaskSource( getLabelMask().getSourcePair().getSource(), segmentProvider );
-			final VolatileAnnotatedLabelMaskSource< ?, ? extends Volatile< ? >, AS > volatileSource = new VolatileAnnotatedLabelMaskSource( getLabelMask().getSourcePair().getVolatileSource(), segmentProvider );
+			AnnotationProvider< AS > annotationProvider = new SegmentProvider( annData );
+			final AnnotatedLabelMaskSource< ?, AS > source = new AnnotatedLabelMaskSource( getLabelMask().getSourcePair().getSource(), annotationProvider );
+			final VolatileAnnotatedLabelMaskSource< ?, ? extends Volatile< ? >, AS > volatileSource = new VolatileAnnotatedLabelMaskSource( getLabelMask().getSourcePair().getVolatileSource(), annotationProvider );
 			sourcePair = new DefaultSourcePair<>( source, volatileSource );
 		}
 

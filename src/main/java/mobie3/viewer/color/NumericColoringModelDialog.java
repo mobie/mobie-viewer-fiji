@@ -31,7 +31,6 @@ package mobie3.viewer.color;
 import bdv.tools.brightness.SliderPanelDouble;
 import bdv.util.BoundedValueDouble;
 import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.color.NumericColoringModel;
 import net.imglib2.util.Pair;
 
 import javax.swing.*;
@@ -43,28 +42,30 @@ public class NumericColoringModelDialog extends JFrame implements ColoringListen
 
 	public NumericColoringModelDialog(
 			final String coloringFeature,
-			final NumericColoringModel< ? > coloringModel,
-			Pair< Double, Double > valueRange )
+			final NumericColoringModel< ? > coloringModel )
 	{
-
-		final JFrame frame = new JFrame( coloringFeature );
-
-		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+		// configure UI range relative to current
+		// contrast limits; the same logic is
+		// used for setting the contrast limits of the
+		// images, see UserInterfaceHelper.showBrightnessDialog()
+		final double absCurrentRange = Math.abs( coloringModel.getMax() - coloringModel.getMin() );
+		final double rangeFactor = 1.0; // could be adapted
+		final double rangeMin = coloringModel.getMin() - rangeFactor * absCurrentRange;
+		final double rangeMax = coloringModel.getMax() + rangeFactor * absCurrentRange;
 
 		final BoundedValueDouble min = new BoundedValueDouble(
-				valueRange.getA(),
-				valueRange.getB(),
+				rangeMin,
+				rangeMax,
 				coloringModel.getMin() );
-
 		final BoundedValueDouble max = new BoundedValueDouble(
-				valueRange.getA(),
-				valueRange.getB(),
+				rangeMin,
+				rangeMax,
 				coloringModel.getMax() );
 
 		JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
 
-		double spinnerStepSize = ( valueRange.getB() - valueRange.getA() ) / 100.0;
+		double spinnerStepSize = ( rangeMax - rangeMin ) / 100.0;
 
 		final SliderPanelDouble minSlider = new SliderPanelDouble(
 				"Min", min, spinnerStepSize );
@@ -96,6 +97,8 @@ public class NumericColoringModelDialog extends JFrame implements ColoringListen
 		panel.add( minSlider );
 		panel.add( maxSlider );
 
+		final JFrame frame = new JFrame( coloringFeature );
+		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 		frame.setContentPane( panel );
 		frame.setBounds( MouseInfo.getPointerInfo().getLocation().x,
 				MouseInfo.getPointerInfo().getLocation().y,
@@ -105,7 +108,6 @@ public class NumericColoringModelDialog extends JFrame implements ColoringListen
 		frame.setResizable( false );
 		if ( dialogLocation != null )
 			frame.setLocation( dialogLocation );
-
 	}
 
 	public void close()

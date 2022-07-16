@@ -29,37 +29,32 @@
 package mobie3.viewer.color;
 
 import de.embl.cba.bdv.utils.lut.ARGBLut;
-import de.embl.cba.tables.color.ARBGLutSupplier;
-import de.embl.cba.tables.color.AbstractColoringModel;
-import de.embl.cba.tables.color.ColumnColoringModel;
-import de.embl.cba.tables.color.NumericColoringModel;
+import de.embl.cba.tables.color.ColoringLuts;
 import mobie3.viewer.annotation.Annotation;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 
-// TODO: extract abstract class NumericFeatureColoringModel
-public class NumericalAnnotationColoringModel< A extends Annotation >
-		extends AbstractColoringModel< A > implements NumericColoringModel< A >, ColumnColoringModel, ARBGLutSupplier
+public class NumericAnnotationColoringModel< A extends Annotation > extends AbstractAnnotationColoringModel< A > implements NumericColoringModel< A >
 {
-	private final String columnName;
-	private final ARGBLut lut;
 	private Pair< Double, Double > contrastLimits;
-	private Pair< Double, Double > range;
-	// TODO: also capture this with inputToFixedColor logic
+	//private Pair< Double, Double > range;
 	private final boolean isZeroTransparent;
 
-	public NumericalAnnotationColoringModel(
+	public NumericAnnotationColoringModel(
 			String columnName,
 			ARGBLut lut,
-			Pair< Double, Double > range,
+			Pair< Double, Double > contrastLimits,
 			boolean isZeroTransparent )
 	{
 		this.columnName = columnName;
 		this.lut = lut;
-		this.contrastLimits = new ValuePair<>( range.getA(), range.getB() );
-		this.range = range;
+		this.contrastLimits = contrastLimits;
+		//this.range = contrastLimits;
 		this.isZeroTransparent = isZeroTransparent;
+
+		if ( isZeroTransparent ) // for serialisation
+			lut.setName( lut.getName() + ColoringLuts.ZERO_TRANSPARENT );
 	}
 
 	@Override
@@ -121,14 +116,17 @@ public class NumericalAnnotationColoringModel< A extends Annotation >
 
 	private double normalise( double value )
 	{
+		// A = min
+		// B = max
 		if ( contrastLimits.getA() == contrastLimits.getB() )
 		{
-			if ( contrastLimits.getB() == range.getA() )
-				return 1.0;
-			else if ( contrastLimits.getB() == range.getB() )
-				return 0.0;
-			else
-				return 0.0;
+			return 0.5; // TODO: be more sophisticated here?
+//			if ( contrastLimits.getB() == range.getA() )
+//				return 1.0;
+//			else if ( contrastLimits.getB() == range.getB() )
+//				return 0.0;
+//			else
+//				return 0.0;
 		}
 		else
 		{
@@ -137,16 +135,5 @@ public class NumericalAnnotationColoringModel< A extends Annotation >
 							( value - contrastLimits.getA() )
 							/ ( contrastLimits.getB() - contrastLimits.getA() ), 1.0 ), 0.0 );
 		}
-	}
-
-	@Override
-	public String getColumnName()
-	{
-		return columnName;
-	}
-
-	@Override
-	public ARGBLut getARGBLut() {
-		return this.lut;
 	}
 }

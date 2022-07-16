@@ -29,7 +29,6 @@
 package mobie3.viewer.color;
 
 import de.embl.cba.bdv.utils.lut.ARGBLut;
-import de.embl.cba.tables.color.ARBGLutSupplier;
 import mobie3.viewer.annotation.Annotation;
 import net.imglib2.type.numeric.ARGBType;
 
@@ -38,25 +37,19 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
-public class CategoricalAnnotationColoringModel< A extends Annotation > extends AbstractColoringModel< A > implements ARBGLutSupplier
+public class CategoricalAnnotationColoringModel< A extends Annotation > extends AbstractAnnotationColoringModel< A >
 {
 	// TODO: The maps could go to int instead of ARGBType
-	private Map< String, ARGBType > inputToFixedColor;
-	private Map< String, ARGBType > inputToRandomColor;
-	private final String columnName;
-	private ARGBLut argbLut;
+	private Map< String, Integer > inputToFixedColor;
+	private Map< String, Integer > inputToRandomColor;
 	private int randomSeed;
 
-	/**
-	 *
-	 * @param argbLut
-	 */
-	public CategoricalAnnotationColoringModel( String columnName, ARGBLut argbLut )
+	public CategoricalAnnotationColoringModel( String columnName, ARGBLut lut )
 	{
 		this.columnName = columnName;
-		this.argbLut = argbLut;
-		this.inputToRandomColor = new ConcurrentHashMap<>(  );
-		this.inputToFixedColor = new ConcurrentHashMap<>(  );
+		this.lut = lut;
+		this.inputToRandomColor = new ConcurrentHashMap< String, Integer >(  );
+		this.inputToFixedColor = new ConcurrentHashMap< String, Integer >(  );
 		this.randomSeed = 50;
 	}
 
@@ -70,21 +63,18 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 	{
 		if ( inputToFixedColor.keySet().contains( value ) )
 		{
-			final int color = inputToFixedColor.get( value ).get();
-			output.set( color );
+			output.set( inputToFixedColor.get( value ) );
 		}
  		else if ( inputToRandomColor.keySet().contains( value ) )
 		{
-			final int color = inputToRandomColor.get( value ).get();
-			output.set( color );
+			output.set( inputToRandomColor.get( value ) );
 		}
-		else
+		else // create and remember random color for this value
 		{
 			final double random = createRandom( value.hashCode() );
-			final int color = argbLut.getARGB( random );
-			inputToRandomColor.put( value, new ARGBType( color ) );
-			output.set( color );
-			return;
+			final int argb = lut.getARGB( random );
+			inputToRandomColor.put( value, argb );
+			output.set( argb );
 		}
 	}
 
@@ -95,18 +85,9 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 		return random;
 	}
 
-	public void assignColor( String category, ARGBType color )
+	public void assignColor( String category, int color )
 	{
 		inputToFixedColor.put( category, color );
 		notifyColoringListeners();
-	}
-
-	public String getColumnName()
-	{
-		return columnName;
-	}
-
-	public ARGBLut getARGBLut() {
-		return this.argbLut;
 	}
 }

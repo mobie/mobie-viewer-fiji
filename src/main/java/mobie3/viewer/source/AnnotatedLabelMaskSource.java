@@ -31,7 +31,7 @@ package mobie3.viewer.source;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mobie3.viewer.annotation.Segment;
-import mobie3.viewer.annotation.SegmentProvider;
+import mobie3.viewer.annotation.AnnotationProvider;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.converter.Converters;
@@ -39,12 +39,12 @@ import net.imglib2.type.numeric.IntegerType;
 
 public class AnnotatedLabelMaskSource< T extends IntegerType< T >, S extends Segment > extends AbstractSourceWrapper< T, AnnotationType< S > >
 {
-    private final SegmentProvider< S > segmentProvider;
+    private final AnnotationProvider< S > annotationProvider;
 
-    public AnnotatedLabelMaskSource( final Source< T > source, SegmentProvider< S > segmentProvider )
+    public AnnotatedLabelMaskSource( final Source< T > source, AnnotationProvider< S > annotationProvider )
     {
         super( source );
-        this.segmentProvider = segmentProvider;
+        this.annotationProvider = annotationProvider;
     }
 
     @Override
@@ -58,7 +58,7 @@ public class AnnotatedLabelMaskSource< T extends IntegerType< T >, S extends Seg
     {
         return Converters.convert( source.getSource( t, level ), ( input, output ) -> {
             set( input, t, output );
-        }, new AnnotationType( segmentProvider.createVariable() ) );
+        }, new AnnotationType( annotationProvider.createVariable() ) );
     }
 
     @Override
@@ -74,8 +74,8 @@ public class AnnotatedLabelMaskSource< T extends IntegerType< T >, S extends Seg
 
     private void set( T input, int t, AnnotationType< S > output  )
     {
-        // TODO: Create SegmentId! Could be a static method in Segment
-        final S segment = segmentProvider.getSegment( input.getInteger(), t, source.getName() );
+        final String segmentId = Segment.toAnnotationId( source.getName(), t, input.getInteger() );
+        final S segment = annotationProvider.getAnnotation( segmentId );
         final AnnotationType< S > segmentType = new AnnotationType( segment );
         output.set( segmentType );
     }
@@ -83,6 +83,6 @@ public class AnnotatedLabelMaskSource< T extends IntegerType< T >, S extends Seg
     @Override
     public AnnotationType< S > getType()
     {
-        return new AnnotationType( segmentProvider.createVariable() );
+        return new AnnotationType( annotationProvider.createVariable() );
     }
 }

@@ -31,12 +31,14 @@ package mobie3.viewer.display;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColoringLuts;
-import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.NumericColoringModel;
 import mobie3.viewer.MoBIE;
+import mobie3.viewer.annotation.AnnotationProvider;
+import mobie3.viewer.annotation.SegmentProvider;
 import mobie3.viewer.bdv.render.BlendingMode;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
+import mobie3.viewer.color.ColoringModel;
 import mobie3.viewer.color.OpacityAdjuster;
 import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.plot.ScatterPlotView;
@@ -81,6 +83,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// Runtime fields
 	public transient SelectionModel< A > selectionModel;
 	public transient MoBIEColoringModel< A > coloringModel;
+	public transient AnnotationProvider< A > annotationProvider;
 	public transient TableView< A > tableView;
 	public transient ScatterPlotView< A > scatterPlotView;
 	public transient AnnotationSliceView< A > sliceView;
@@ -155,9 +158,9 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 
 		// Note that even if there are multiple images shown,
 		// they must have all the same display settings
-		// (this is the definition of them being displayed together)
-		// Thus we can fetch the display settings from any of the
-		// SourceAndConverter
+		// (this is the definition of them being displayed together).
+		// One can therefore fetch the display settings from any of the
+		// SourceAndConverter.
 		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.nameToSourceAndConverter.values().iterator().next();
 		this.opacity = OpacityAdjuster.getOpacity( sourceAndConverter );
 

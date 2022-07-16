@@ -803,7 +803,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		final ColoringModel< A > coloringModel = this.coloringModel.getWrappedColoringModel();
 
 		if ( coloringModel instanceof CategoricalAnnotationColoringModel )
-			return ((CategoricalAnnotationColoringModel)coloringModel).getColumnName();
+			return (( CategoricalAnnotationColoringModel )coloringModel).getColumnName();
 		else
 		{
 			Logger.error( "Please first use the [ Color > Color by Column ] menu item to configure the coloring." );

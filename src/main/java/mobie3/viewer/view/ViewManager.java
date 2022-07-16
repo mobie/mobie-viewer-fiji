@@ -366,7 +366,7 @@ public class ViewManager
 		return sources;
 	}
 
-	public synchronized void show( Display< ? > display )
+	public synchronized < A extends Annotation >  void show( Display< ? > display )
 	{
 		if ( currentDisplays.contains( display ) ) return;
 
@@ -382,7 +382,7 @@ public class ViewManager
 		}
 		else if ( display instanceof AnnotationDisplay )
 		{
-			final AnnotationDisplay< ? > annotationDisplay = ( AnnotationDisplay< ? > ) display;
+			final AnnotationDisplay< A > annotationDisplay = ( AnnotationDisplay ) display;
 
 			// add all images that are shown by this display
 			for ( String name : display.getSources() )
@@ -395,13 +395,8 @@ public class ViewManager
 			// set selected segments
 			if ( annotationDisplay.selectedAnnotationIds() != null )
 			{
-				// TODO: create annotation mapper interface
-				//   and implement for Segmentation and Region
-				segmentationDisplay.segmentMapper.getSegments( annotationDisplay.selectedAnnotationIds() );
-				segmentationDisplay.selectionModel.setSelected( segments, true );
-				// TODO: where is the mapper
-				annotationDisplay.selectedAnnotationIds();
-				segmentationDisplay.selectionModel.setSelected( segments, true );
+				final Set< A > annotations = annotationDisplay.annotationProvider.getAnnotations( annotationDisplay.selectedAnnotationIds() );
+				annotationDisplay.selectionModel.setSelected( annotations, true );
 			}
 
 			// configure the coloring model
@@ -409,19 +404,20 @@ public class ViewManager
 			{
 				annotationDisplay.coloringModel = new MoBIEColoringModel( annotationDisplay.getLut(), annotationDisplay.selectionModel );
 			}
-			else
+			else // color by a column in the table
 			{
-				// below is tricky, because for some
-				// cases it needs to know the whole table.
+				// below is tricky, because in order to
+				// create some coloring models
+				// it needs to know the whole table.
 				// which we may not want to load here.
 				// maybe one should consider such cases separately?
-				configureColoringModel( annotationDisplay );
-				new ColumnColoringModelCreator( )
+				//configureColoringModel( annotationDisplay );
+				//new ColumnColoringModelCreator( )
 
 				final ColoringModel< A > coloringModel;
-				String coloringLut = display.getLut();
+				String coloringLut = annotationDisplay.getLut();
 
-				if ( display.getValueLimits() != null )
+				if ( annotationDisplay.getValueLimits() != null )
 				{
 					coloringModel = modelCreator.createColoringModel(display.getColorByColumn(), coloringLut, display.getValueLimits()[0], display.getValueLimits()[1]);
 				}

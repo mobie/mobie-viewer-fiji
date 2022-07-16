@@ -47,6 +47,8 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	private ARGBType selectionColor;
 	private double opacityNotSelected;
 
+	// Wraps a base coloring model and combines it with a selection model,
+	// such that selected elements can have different colors.
 	public MoBIEColoringModel( ColoringModel< T > coloringModel, SelectionModel< T > selectionModel )
 	{
 		setColoringModel( coloringModel );
@@ -99,7 +101,6 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	public void setColoringModel( ColoringModel< T > coloringModel )
 	{
 		this.coloringModel = coloringModel;
-
 		notifyListeners();
 	}
 

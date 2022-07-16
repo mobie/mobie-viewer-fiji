@@ -31,7 +31,7 @@ package mobie3.viewer.source;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mobie3.viewer.annotation.Segment;
-import mobie3.viewer.annotation.SegmentProvider;
+import mobie3.viewer.annotation.AnnotationProvider;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
@@ -40,12 +40,12 @@ import net.imglib2.type.numeric.IntegerType;
 
 public class VolatileAnnotatedLabelMaskSource< T extends IntegerType< T >, V extends Volatile< T >, S extends Segment > extends AbstractSourceWrapper< V, VolatileAnnotationType< S > >
 {
-    private final SegmentProvider< S > segmentProvider;
+    private final AnnotationProvider< S > annotationProvider;
 
-    public VolatileAnnotatedLabelMaskSource( final Source< V > source, SegmentProvider< S > segmentProvider )
+    public VolatileAnnotatedLabelMaskSource( final Source< V > source, AnnotationProvider< S > annotationProvider )
     {
         super( source );
-        this.segmentProvider = segmentProvider;
+        this.annotationProvider = annotationProvider;
     }
 
     @Override
@@ -74,7 +74,7 @@ public class VolatileAnnotatedLabelMaskSource< T extends IntegerType< T >, V ext
             output.setValid( false );
             return;
         }
-        final S segment = segmentProvider.getSegment( input.get().getInteger(), t, source.getName() );
+        final S segment = annotationProvider.getAnnotation( input.get().getInteger(), t, source.getName() );
         final VolatileAnnotationType< S > volatileAnnotationType = new VolatileAnnotationType( segment, true );
         output.set( volatileAnnotationType );
     }
@@ -87,6 +87,6 @@ public class VolatileAnnotatedLabelMaskSource< T extends IntegerType< T >, V ext
 
     private VolatileAnnotationType< S > createVariable()
     {
-        return new VolatileAnnotationType( segmentProvider.createVariable(), true );
+        return new VolatileAnnotationType( annotationProvider.createVariable(), true );
     }
 }

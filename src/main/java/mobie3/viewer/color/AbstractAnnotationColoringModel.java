@@ -29,9 +29,48 @@
 package mobie3.viewer.color;
 
 import de.embl.cba.bdv.utils.lut.ARGBLut;
+import de.embl.cba.tables.color.ColoringListener;
+import de.embl.cba.tables.select.Listeners;
+import net.imglib2.type.numeric.ARGBType;
 
-public interface ColumnColoringModel
+import javax.swing.*;
+
+public abstract class AbstractAnnotationColoringModel< T > implements AnnotationColoringModel< T >
 {
-	String getColumnName();
-	ARGBLut getARGBLut();
+	protected final Listeners.SynchronizedList< ColoringListener > listeners
+			= new Listeners.SynchronizedList< ColoringListener >(  );
+
+	protected String columnName;
+	protected ARGBLut lut;
+
+	@Override
+	public Listeners< ColoringListener > listeners()
+	{
+		return listeners;
+	}
+
+	@Override
+	public void convert( T input, ARGBType output )
+	{
+		output.set( 0 );
+	}
+
+	protected void notifyColoringListeners()
+	{
+		for ( ColoringListener listener : listeners.list )
+		{
+			SwingUtilities.invokeLater( () -> listener.coloringChanged() );
+		}
+	}
+
+	@Override
+	public String getColumnName()
+	{
+		return columnName;
+	}
+
+	@Override
+	public ARGBLut getLut() {
+		return this.lut;
+	}
 }

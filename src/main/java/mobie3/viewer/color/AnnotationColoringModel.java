@@ -28,35 +28,23 @@
  */
 package mobie3.viewer.color;
 
+import de.embl.cba.bdv.utils.lut.ARGBLut;
 import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.select.Listeners;
+import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 
-import javax.swing.*;
-
-public abstract class AbstractColoringModel< T > implements ColoringModel< T >
+public interface AnnotationColoringModel< T > extends Converter< T, ARGBType >
 {
-	protected final Listeners.SynchronizedList< ColoringListener > listeners
-			= new Listeners.SynchronizedList< ColoringListener >(  );
+	/**
+	 * Get the list of color listeners. Add a {@link ColoringListener} to
+	 * this list, for being notified when the object/edge select changes.
+	 *
+	 * @return the list of listeners
+	 */
+	Listeners< ColoringListener > listeners();
 
-	@Override
-	public Listeners< ColoringListener > listeners()
-	{
-		return listeners;
-	}
+	String getColumnName();
 
-	@Override
-	public void convert( T input, ARGBType output )
-	{
-		output.set( 0 );
-	}
-
-	protected void notifyColoringListeners()
-	{
-		for ( ColoringListener listener : listeners.list )
-		{
-			SwingUtilities.invokeLater( () -> listener.coloringChanged() );
-		}
-	}
+	ARGBLut getLut();
 }

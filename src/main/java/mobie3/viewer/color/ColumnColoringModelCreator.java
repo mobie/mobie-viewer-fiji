@@ -34,13 +34,13 @@ import de.embl.cba.bdv.utils.lut.ColumnARGBLut;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.bdv.utils.lut.ViridisARGBLut;
 import de.embl.cba.tables.color.ColoringLuts;
-import de.embl.cba.tables.color.ColoringModel;
 import ij.gui.GenericDialog;
 import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.table.AnnotationTableModel;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Pair;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 
 import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.TRANSPARENT;
@@ -61,11 +61,13 @@ public class ColumnColoringModelCreator< A extends Annotation >
 		ColoringLuts.ARGB_COLUMN
 	};
 
+	// TODO: refactor into smaller classes
 	public ColumnColoringModelCreator( AnnotationTableModel< A > tableModel )
 	{
 		this.tableModel = tableModel;
 	}
 
+	// TODO: refactor into own class
 	public ColoringModel< A > showDialog()
 	{
 		final String[] columnNames = tableModel.columnNames().toArray( new String[ 0 ] );
@@ -90,58 +92,42 @@ public class ColumnColoringModelCreator< A extends Annotation >
 		if ( isZeroTransparent )
 			selectedColoringMode += ColoringLuts.ZERO_TRANSPARENT;
 
-		return createColoringModel( selectedColumnName, selectedColoringMode, null, null );
+		return createColumnColoringModel( selectedColumnName, selectedColoringMode, null, null );
 	}
 
-	private ColoringModel< A > createColoringModel(
+	public ColoringModel< A > createColumnColoringModel(
 			String selectedColumnName,
-			String coloringLut,
-			Double min,
-			Double max)
+			String lut,
+			@Nullable Pair< Double, Double > contrastLimits )
 	{
-		rememberChoices( selectedColumnName, coloringLut );
+		rememberChoices( selectedColumnName, lut );
 
-		switch ( coloringLut )
+		switch ( lut )
 		{
 			case ColoringLuts.BLUE_WHITE_RED:
 				return createLinearColoringModel(
 						selectedColumnName,
-						false,
-						min, max,
-						new BlueWhiteRedARGBLut( 1000 ) );
-			case ColoringLuts.BLUE_WHITE_RED + ColoringLuts.ZERO_TRANSPARENT:
-				return createLinearColoringModel(
-						selectedColumnName,
-						true,
-						min, max,
+						lut.contains( ColoringLuts.ZERO_TRANSPARENT ),
+						contrastLimits,
 						new BlueWhiteRedARGBLut( 1000 ) );
 			case ColoringLuts.VIRIDIS:
 				return createLinearColoringModel(
 						selectedColumnName,
-						false,
-						min, max,
-						new ViridisARGBLut() );
-			case ColoringLuts.VIRIDIS + ColoringLuts.ZERO_TRANSPARENT:
-				return createLinearColoringModel(
-						selectedColumnName,
-						true,
-						min, max,
+						lut.contains( ColoringLuts.ZERO_TRANSPARENT ),
+						contrastLimits,
 						new ViridisARGBLut() );
 			case ColoringLuts.GLASBEY:
 				return createCategoricalColoringModel(
 						selectedColumnName,
-						false,
-						new GlasbeyARGBLut(), TRANSPARENT );
-			case ColoringLuts.GLASBEY + ColoringLuts.ZERO_TRANSPARENT:
-				return createCategoricalColoringModel(
-						selectedColumnName,
-						true,
-						new GlasbeyARGBLut(), TRANSPARENT );
+						lut.contains( ColoringLuts.ZERO_TRANSPARENT ),
+						new GlasbeyARGBLut(),
+						TRANSPARENT );
 			case ColoringLuts.ARGB_COLUMN:
 				return createCategoricalColoringModel(
 						selectedColumnName,
 						false,
-						new ColumnARGBLut(), TRANSPARENT );
+						new ColumnARGBLut(),
+						TRANSPARENT );
 		}
 
 		return null;
@@ -190,14 +176,14 @@ public class ColumnColoringModelCreator< A extends Annotation >
 						selectedColumnName,
 						argbLut );
 
-		coloringModel.assignColor( "Infinity", colorForNoneOrNaN );
-		coloringModel.assignColor( "NaN", colorForNoneOrNaN );
-		coloringModel.assignColor( "None", colorForNoneOrNaN );
+		coloringModel.assignColor( "Infinity", colorForNoneOrNaN.get() );
+		coloringModel.assignColor( "NaN", colorForNoneOrNaN.get() );
+		coloringModel.assignColor( "None", colorForNoneOrNaN.get() );
 
 		if ( isZeroTransparent )
 		{
-			coloringModel.assignColor( "0", TRANSPARENT );
-			coloringModel.assignColor( "0.0", TRANSPARENT );
+			coloringModel.assignColor( "0", TRANSPARENT.get() );
+			coloringModel.assignColor( "0.0", TRANSPARENT.get() );
 
 			if (argbLut != null) {
 				argbLut.setName(argbLut.getName() + ColoringLuts.ZERO_TRANSPARENT);
@@ -212,33 +198,22 @@ public class ColumnColoringModelCreator< A extends Annotation >
 		return coloringModel;
 	}
 
-	private NumericalAnnotationColoringModel< A > createLinearColoringModel(
+	private NumericAnnotationColoringModel< A > createLinearColoringModel(
 			String columnName,
 			boolean isZeroTransparent,
-			Double min,
-			Double max,
+			Pair< Double, Double > contrastLimits,
 			ARGBLut argbLut )
 	{
-		final Pair< Double, Double > range = tableModel.computeMinMax( columnName );
-
-		final NumericalAnnotationColoringModel< A > coloringModel
-				= new NumericalAnnotationColoringModel<>(
+		final NumericAnnotationColoringModel< A > coloringModel
+				= new NumericAnnotationColoringModel<>(
 						columnName,
 						argbLut,
-						range,
+						contrastLimits,
 						isZeroTransparent );
 
-		if ( isZeroTransparent )
-			argbLut.setName( argbLut.getName() + ColoringLuts.ZERO_TRANSPARENT );
-
-		if ( min != null )
-			coloringModel.setMin( min );
-
-		if ( max != null )
-			coloringModel.setMax( max );
-
+		// immediately show an UI for adjustment
 		SwingUtilities.invokeLater( () ->
-				new NumericColoringModelDialog( columnName, coloringModel, range ) );
+				new NumericColoringModelDialog( columnName, coloringModel ) );
 
 		return coloringModel;
 	}
