@@ -28,23 +28,48 @@
  */
 package mobie3.viewer.color;
 
-import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.select.Listeners;
 import mobie3.viewer.color.lut.ARGBLut;
-import net.imglib2.converter.Converter;
-import net.imglib2.type.numeric.ARGBType;
+import mobie3.viewer.color.lut.BlueWhiteRedARGBLut;
+import mobie3.viewer.color.lut.ViridisARGBLut;
 
-public interface AnnotationColoringModel< T > extends Converter< T, ARGBType >
+public class ColoringLuts
 {
-	/**
-	 * Get the list of color listeners. Add a {@link ColoringListener} to
-	 * this list, for being notified when the object/edge select changes.
-	 *
-	 * @return the list of listeners
-	 */
-	Listeners< ColoringListener > listeners();
+	public static final String BLUE_WHITE_RED = "blueWhiteRed";
+	public static final String VIRIDIS = "viridis";
+	public static final String GLASBEY = "glasbey";
+	public static final String ARGB_COLUMN = "argbColumn";
 
-	String getColumnName();
+	public static final String ZERO_TRANSPARENT = "ZeroTransparent";
 
-	ARGBLut getLut();
+	public static final String[] COLORING_LUTS = new String[]
+	{
+		BLUE_WHITE_RED,
+		VIRIDIS,
+		GLASBEY,
+		ARGB_COLUMN
+	};
+
+	public static boolean isNumeric( String lut )
+	{
+		return lut.contains( BLUE_WHITE_RED )
+				|| lut.contains( VIRIDIS );
+	}
+
+	public static boolean isCategorical( String lut )
+	{
+		return lut.contains( GLASBEY );
+	}
+
+
+	public static ARGBLut getLut( String lutName )
+	{
+		switch ( lutName )
+		{
+			case BLUE_WHITE_RED:
+				return new BlueWhiteRedARGBLut();
+			case VIRIDIS:
+				return new ViridisARGBLut();
+		}
+	}
+
 }

@@ -26,25 +26,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.color;
+package mobie3.viewer.color.lut;
 
-import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.select.Listeners;
-import mobie3.viewer.color.lut.ARGBLut;
-import net.imglib2.converter.Converter;
-import net.imglib2.type.numeric.ARGBType;
+import de.embl.cba.bdv.utils.lut.AdjustableARGBLut;
+import de.embl.cba.bdv.utils.lut.Luts;
 
-public interface AnnotationColoringModel< T > extends Converter< T, ARGBType >
+public class LinearARGBLut implements AdjustableARGBLut
 {
-	/**
-	 * Get the list of color listeners. Add a {@link ColoringListener} to
-	 * this list, for being notified when the object/edge select changes.
-	 *
-	 * @return the list of listeners
-	 */
-	Listeners< ColoringListener > listeners();
+	double min, max;
 
-	String getColumnName();
+	byte[][] lut;
 
-	ARGBLut getLut();
+	public LinearARGBLut( double min, double max )
+	{
+		this.min = min;
+		this.max = max;
+
+		this.lut = Luts.GRAYSCALE;
+	}
+
+	public LinearARGBLut( byte[][] lut, double min, double max )
+	{
+		this.lut = lut;
+		this.min = min;
+		this.max = max;
+	}
+
+	@Override
+	public int getARGBIndex( double x, double brightness )
+	{
+		final byte lutIndex = (byte) ( 255.0 * ( x - min ) / ( max - min ) );
+
+		final int argbIndex = Luts.getARGBIndex( lutIndex, lut, brightness );
+
+		return argbIndex;
+	}
+
 }

@@ -112,6 +112,7 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotatedSegmentTable
 	@Override
 	public Pair< Double, Double > computeMinMax( String columnName )
 	{
+		// TODO: cache results (unless TableSaw caches it?)
 		return null;
 	}
 

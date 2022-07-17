@@ -28,9 +28,8 @@
  */
 package mobie3.viewer.color;
 
-import de.embl.cba.bdv.utils.lut.ARGBLut;
-import de.embl.cba.tables.color.ColoringLuts;
 import mobie3.viewer.annotation.Annotation;
+import mobie3.viewer.color.lut.ARGBLut;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
@@ -58,9 +57,9 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 	}
 
 	@Override
-	public void convert( A tableRow, ARGBType output )
+	public void convert( A annotation, ARGBType output )
 	{
-		final Double value = ( Double ) tableRow.getValue( columnName );
+		final Double value = ( Double ) annotation.getValue( columnName );
 		setColorLinearly( value, output );
 	}
 

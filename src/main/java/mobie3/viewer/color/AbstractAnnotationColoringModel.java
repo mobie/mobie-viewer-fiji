@@ -28,9 +28,9 @@
  */
 package mobie3.viewer.color;
 
-import de.embl.cba.bdv.utils.lut.ARGBLut;
 import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.select.Listeners;
+import mobie3.viewer.color.lut.ARGBLut;
 import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;

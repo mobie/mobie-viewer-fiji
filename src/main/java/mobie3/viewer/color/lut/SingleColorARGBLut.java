@@ -26,25 +26,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.color;
+package mobie3.viewer.color.lut;
 
-import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.select.Listeners;
-import mobie3.viewer.color.lut.ARGBLut;
-import net.imglib2.converter.Converter;
-import net.imglib2.type.numeric.ARGBType;
+import de.embl.cba.bdv.utils.lut.ARGBLut;
+import de.embl.cba.bdv.utils.lut.Luts;
 
-public interface AnnotationColoringModel< T > extends Converter< T, ARGBType >
+public class SingleColorARGBLut implements ARGBLut
 {
-	/**
-	 * Get the list of color listeners. Add a {@link ColoringListener} to
-	 * this list, for being notified when the object/edge select changes.
-	 *
-	 * @return the list of listeners
-	 */
-	Listeners< ColoringListener > listeners();
+	private final int r;
+	private final int g;
+	private final int b;
+	private String name = "SingleColor";
 
-	String getColumnName();
+	public SingleColorARGBLut( int r, int g, int b )
+	{
+		this.r = r;
+		this.g = g;
+		this.b = b;
+	}
 
-	ARGBLut getLut();
+	@Override
+	public int getARGB( double x )
+	{
+		return Luts.getARGBIndex( r, g, b, x );
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public void setName(String name) {
+		this.name = name;
+	}
 }

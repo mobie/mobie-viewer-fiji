@@ -28,7 +28,6 @@
  */
 package mobie3.viewer.color;
 
-import de.embl.cba.tables.color.ColoringModel;
 import net.imglib2.type.numeric.ARGBType;
 
 public interface NumericColoringModel< T > extends ColoringModel< T >

@@ -26,25 +26,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.color;
+package mobie3.viewer.color.lut;
 
-import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.select.Listeners;
-import mobie3.viewer.color.lut.ARGBLut;
-import net.imglib2.converter.Converter;
-import net.imglib2.type.numeric.ARGBType;
+import de.embl.cba.bdv.utils.lut.ARGBLut;
+import de.embl.cba.tables.color.ColoringLuts;
 
-public interface AnnotationColoringModel< T > extends Converter< T, ARGBType >
+public class ColumnARGBLut implements ARGBLut
 {
-	/**
-	 * Get the list of color listeners. Add a {@link ColoringListener} to
-	 * this list, for being notified when the object/edge select changes.
-	 *
-	 * @return the list of listeners
-	 */
-	Listeners< ColoringListener > listeners();
+	@Override
+	public int getARGB( double x )
+	{
+		return 0;
+	}
 
-	String getColumnName();
+	@Override
+	public String getName()
+	{
+		return ColoringLuts.ARGB_COLUMN;
+	}
 
-	ARGBLut getLut();
+	@Override
+	public void setName( String name )
+	{
+
+	}
 }

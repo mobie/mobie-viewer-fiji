@@ -28,15 +28,10 @@
  */
 package mobie3.viewer.color;
 
-import de.embl.cba.bdv.utils.lut.ARGBLut;
-import de.embl.cba.bdv.utils.lut.BlueWhiteRedARGBLut;
-import de.embl.cba.bdv.utils.lut.ColumnARGBLut;
-import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
-import de.embl.cba.bdv.utils.lut.ViridisARGBLut;
-import de.embl.cba.tables.color.ColoringLuts;
-import ij.gui.GenericDialog;
 import mobie3.viewer.annotation.Annotation;
-import mobie3.viewer.table.AnnotationTableModel;
+import mobie3.viewer.color.lut.ARGBLut;
+import mobie3.viewer.color.lut.BlueWhiteRedARGBLut;
+import mobie3.viewer.color.lut.ViridisARGBLut;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Pair;
 
@@ -47,71 +42,23 @@ import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.TRANS
 
 public class ColumnColoringModelCreator< A extends Annotation >
 {
-	private AnnotationTableModel< A > tableModel;
-
-	private String selectedColumnName;
-	private String selectedColoringMode;
-	private boolean isZeroTransparent = false;
-
-	public static final String[] COLORING_MODES = new String[]
-	{
-		ColoringLuts.BLUE_WHITE_RED,
-		ColoringLuts.VIRIDIS,
-		ColoringLuts.GLASBEY,
-		ColoringLuts.ARGB_COLUMN
-	};
-
-	// TODO: refactor into smaller classes
-	public ColumnColoringModelCreator( AnnotationTableModel< A > tableModel )
-	{
-		this.tableModel = tableModel;
-	}
-
-	// TODO: refactor into own class
-	public ColoringModel< A > showDialog()
-	{
-		final String[] columnNames = tableModel.columnNames().toArray( new String[ 0 ] );
-
-		final GenericDialog gd = new GenericDialog( "Color by Column" );
-
-		if ( selectedColumnName == null ) selectedColumnName = columnNames[ 0 ];
-		gd.addChoice( "Column", columnNames, selectedColumnName );
-
-		if ( selectedColoringMode == null ) selectedColoringMode = COLORING_MODES[ 0 ];
-		gd.addChoice( "Coloring Mode", COLORING_MODES, selectedColoringMode );
-
-		gd.addCheckbox( "Paint Zero Transparent", isZeroTransparent );
-
-		gd.showDialog();
-		if ( gd.wasCanceled() ) return null;
-
-		selectedColumnName = gd.getNextChoice();
-		selectedColoringMode = gd.getNextChoice();
-		isZeroTransparent = gd.getNextBoolean();
-
-		if ( isZeroTransparent )
-			selectedColoringMode += ColoringLuts.ZERO_TRANSPARENT;
-
-		return createColumnColoringModel( selectedColumnName, selectedColoringMode, null, null );
-	}
 
 	public ColoringModel< A > createColumnColoringModel(
 			String selectedColumnName,
 			String lut,
 			@Nullable Pair< Double, Double > contrastLimits )
 	{
-		rememberChoices( selectedColumnName, lut );
 
 		switch ( lut )
 		{
 			case ColoringLuts.BLUE_WHITE_RED:
-				return createLinearColoringModel(
+				return createNumericColumnColoringModel(
 						selectedColumnName,
 						lut.contains( ColoringLuts.ZERO_TRANSPARENT ),
 						contrastLimits,
 						new BlueWhiteRedARGBLut( 1000 ) );
 			case ColoringLuts.VIRIDIS:
-				return createLinearColoringModel(
+				return createNumericColumnColoringModel(
 						selectedColumnName,
 						lut.contains( ColoringLuts.ZERO_TRANSPARENT ),
 						contrastLimits,
@@ -131,17 +78,6 @@ public class ColumnColoringModelCreator< A extends Annotation >
 		}
 
 		return null;
-	}
-
-	public void rememberChoices( String selectedColumnName, String selectedColoringMode )
-	{
-		this.selectedColumnName = selectedColumnName;
-		this.selectedColoringMode = selectedColoringMode;
-
-		if ( selectedColoringMode.contains( ColoringLuts.ZERO_TRANSPARENT ) )
-			this.isZeroTransparent = true;
-		else
-			this.isZeroTransparent = false;
 	}
 
 	private void configureColoringModelFromARGBColumn( String selectedColumnName, CategoricalAnnotationColoringModel< A > coloringModel )
@@ -198,7 +134,7 @@ public class ColumnColoringModelCreator< A extends Annotation >
 		return coloringModel;
 	}
 
-	private NumericAnnotationColoringModel< A > createLinearColoringModel(
+	public static < A extends Annotation > NumericAnnotationColoringModel< A > createNumericColumnColoringModel(
 			String columnName,
 			boolean isZeroTransparent,
 			Pair< Double, Double > contrastLimits,
@@ -211,7 +147,7 @@ public class ColumnColoringModelCreator< A extends Annotation >
 						contrastLimits,
 						isZeroTransparent );
 
-		// immediately show an UI for adjustment
+		// immediately show UI for adjustment
 		SwingUtilities.invokeLater( () ->
 				new NumericColoringModelDialog( columnName, coloringModel ) );
 
