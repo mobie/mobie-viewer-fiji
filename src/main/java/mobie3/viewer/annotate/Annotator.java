@@ -28,18 +28,18 @@
  */
 package mobie3.viewer.annotate;
 
-import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
+import mobie3.viewer.annotation.AnnotatedSegment;
 import mobie3.viewer.color.CategoricalAnnotationColoringModel;
-import mobie3.viewer.color.ColumnColoringModelCreator;
+import mobie3.viewer.color.AnnotationColoringModelCreator;
+import mobie3.viewer.color.lut.GlasbeyARGBLut;
 import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.select.SelectionModel;
 import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.table.AnnotationTableModel;
-import mobie3.viewer.table.AnnotatedSegmentTableModel;
 import mobie3.viewer.table.DefaultValues;
 import mobie3.viewer.ui.MoBIELaf;
 import net.imglib2.type.numeric.ARGBType;
@@ -91,7 +91,7 @@ public class Annotator< A extends Annotation > extends JFrame implements Selecti
 
 		if ( ! columnNameToColoringModel.containsKey( annotationColumnName ) )
 		{
-			final CategoricalAnnotationColoringModel< A > categoricalColoringModel = new ColumnColoringModelCreator<>( tableModel ).createCategoricalColoringModel( annotationColumnName, false, new GlasbeyARGBLut(), DARK_GREY );
+			final CategoricalAnnotationColoringModel< A > categoricalColoringModel =  AnnotationColoringModelCreator.createCategoricalAnnotationColoringModel( annotationColumnName, new GlasbeyARGBLut(), false, DARK_GREY );
 			columnNameToColoringModel.put( annotationColumnName, categoricalColoringModel );
 		}
 
@@ -108,7 +108,8 @@ public class Annotator< A extends Annotation > extends JFrame implements Selecti
 
 	private void setUIFieldNames( AnnotationTableModel< A > tableModel )
 	{
-		if ( tableModel instanceof AnnotatedSegmentTableModel )
+		// TODO: rather implement getType() for tableModel?
+		if ( tableModel.row( 0 ) instanceof AnnotatedSegment )
 		{
 			objectName = "segment";
 		}

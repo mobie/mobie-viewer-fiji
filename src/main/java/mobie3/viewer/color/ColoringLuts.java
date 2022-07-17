@@ -57,7 +57,7 @@ public class ColoringLuts
 
 	public static boolean isCategorical( String lut )
 	{
-		return lut.contains( GLASBEY );
+		return lut.contains( GLASBEY ) || lut.contains( ARGB_COLUMN );
 	}
 
 
@@ -69,6 +69,8 @@ public class ColoringLuts
 				return new BlueWhiteRedARGBLut();
 			case VIRIDIS:
 				return new ViridisARGBLut();
+			default:
+				throw new UnsupportedOperationException( "LUT " + lutName + " is not supported." );
 		}
 	}
 

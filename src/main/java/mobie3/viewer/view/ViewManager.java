@@ -38,7 +38,6 @@ import mobie3.viewer.annotate.RegionTableRow;
 import mobie3.viewer.bdv.view.ImageSliceView;
 import mobie3.viewer.bdv.view.SliceViewer;
 import mobie3.viewer.color.ColoringModel;
-import mobie3.viewer.color.ColumnColoringModelCreator;
 import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.AnnotationDisplay;

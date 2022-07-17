@@ -38,10 +38,12 @@ import net.imglib2.util.Pair;
 import javax.annotation.Nullable;
 import javax.swing.*;
 
-import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.TRANSPARENT;
-
-public class ColumnColoringModelCreator< A extends Annotation >
+public class AnnotationColoringModelCreator< A extends Annotation >
 {
+
+	public static final ARGBType TRANSPARENT = new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) );
+	public static final ARGBType DARK_GREY = new ARGBType( ARGBType.rgba( 100, 100, 100, 255 ) );
+
 
 	public ColoringModel< A > createColumnColoringModel(
 			String selectedColumnName,
@@ -52,25 +54,25 @@ public class ColumnColoringModelCreator< A extends Annotation >
 		switch ( lut )
 		{
 			case ColoringLuts.BLUE_WHITE_RED:
-				return createNumericColumnColoringModel(
+				return createNumericAnnotationColoringModel(
 						selectedColumnName,
 						lut.contains( ColoringLuts.ZERO_TRANSPARENT ),
 						contrastLimits,
 						new BlueWhiteRedARGBLut( 1000 ) );
 			case ColoringLuts.VIRIDIS:
-				return createNumericColumnColoringModel(
+				return createNumericAnnotationColoringModel(
 						selectedColumnName,
 						lut.contains( ColoringLuts.ZERO_TRANSPARENT ),
 						contrastLimits,
 						new ViridisARGBLut() );
 			case ColoringLuts.GLASBEY:
-				return createCategoricalColoringModel(
+				return createCategoricalAnnotationColoringModel(
 						selectedColumnName,
 						lut.contains( ColoringLuts.ZERO_TRANSPARENT ),
 						new GlasbeyARGBLut(),
 						TRANSPARENT );
 			case ColoringLuts.ARGB_COLUMN:
-				return createCategoricalColoringModel(
+				return createCategoricalAnnotationColoringModel(
 						selectedColumnName,
 						false,
 						new ColumnARGBLut(),
@@ -101,22 +103,24 @@ public class ColumnColoringModelCreator< A extends Annotation >
 		}
 	}
 
-	public CategoricalAnnotationColoringModel< A > createCategoricalColoringModel(
-			String selectedColumnName,
-			boolean isZeroTransparent,
+	public static < A extends Annotation > CategoricalAnnotationColoringModel< A > createCategoricalAnnotationColoringModel(
+			String columnName,
 			ARGBLut argbLut,
+			boolean paintZeroTransparent,
 			ARGBType colorForNoneOrNaN )
 	{
 		final CategoricalAnnotationColoringModel< A > coloringModel
 				= new CategoricalAnnotationColoringModel<>(
-						selectedColumnName,
+						columnName,
 						argbLut );
 
 		coloringModel.assignColor( "Infinity", colorForNoneOrNaN.get() );
 		coloringModel.assignColor( "NaN", colorForNoneOrNaN.get() );
 		coloringModel.assignColor( "None", colorForNoneOrNaN.get() );
 
-		if ( isZeroTransparent )
+		// This is needed, e.g., for coloring of label mask images
+		// where the label ids are treated as categories rather than as numbers.
+		if ( paintZeroTransparent )
 		{
 			coloringModel.assignColor( "0", TRANSPARENT.get() );
 			coloringModel.assignColor( "0.0", TRANSPARENT.get() );
@@ -128,13 +132,13 @@ public class ColumnColoringModelCreator< A extends Annotation >
 
 		if ( argbLut instanceof ColumnARGBLut )
 		{
-			configureColoringModelFromARGBColumn( selectedColumnName, coloringModel );
+			configureColoringModelFromARGBColumn( columnName, coloringModel );
 		}
 
 		return coloringModel;
 	}
 
-	public static < A extends Annotation > NumericAnnotationColoringModel< A > createNumericColumnColoringModel(
+	public static < A extends Annotation > NumericAnnotationColoringModel< A > createNumericAnnotationColoringModel(
 			String columnName,
 			boolean isZeroTransparent,
 			Pair< Double, Double > contrastLimits,

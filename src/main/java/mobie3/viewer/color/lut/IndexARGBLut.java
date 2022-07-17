@@ -28,8 +28,6 @@
  */
 package mobie3.viewer.color.lut;
 
-import de.embl.cba.bdv.utils.lut.ARGBLut;
-
 public interface IndexARGBLut extends ARGBLut
 {
 	/**

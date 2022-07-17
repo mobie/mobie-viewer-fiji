@@ -28,8 +28,7 @@
  */
 package mobie3.viewer.color.lut;
 
-import de.embl.cba.bdv.utils.lut.IndexARGBLut;
-import de.embl.cba.tables.color.ColoringLuts;
+import mobie3.viewer.color.ColoringLuts;
 import net.imglib2.type.numeric.ARGBType;
 
 import java.util.ArrayList;

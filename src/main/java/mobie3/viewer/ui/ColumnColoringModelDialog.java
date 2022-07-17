@@ -4,12 +4,13 @@ import ij.gui.GenericDialog;
 import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.color.ColoringLuts;
 import mobie3.viewer.color.ColoringModel;
-import mobie3.viewer.color.ColumnColoringModelCreator;
+import mobie3.viewer.color.AnnotationColoringModelCreator;
 import mobie3.viewer.table.AnnData;
 import net.imglib2.util.Pair;
 
 import java.util.List;
 
+import static mobie3.viewer.color.AnnotationColoringModelCreator.TRANSPARENT;
 import static mobie3.viewer.color.ColoringLuts.COLORING_LUTS;
 
 public class ColumnColoringModelDialog< A extends Annotation>
@@ -50,11 +51,16 @@ public class ColumnColoringModelDialog< A extends Annotation>
 		if ( ColoringLuts.isNumeric( lut ) )
 		{
 			final Pair< Double, Double > minMax = annData.getTable().computeMinMax( columnName );
-			return ColumnColoringModelCreator.createNumericColumnColoringModel( columnName, paintZeroTransparent, minMax, ColoringLuts.getLut( lut ) );
+			return AnnotationColoringModelCreator.createNumericAnnotationColoringModel( columnName, paintZeroTransparent, minMax, ColoringLuts.getLut( lut ) );
 		}
 		else if ( ColoringLuts.isCategorical( lut ) )
 		{
-
+			return AnnotationColoringModelCreator
+					.createCategoricalAnnotationColoringModel( columnName, ColoringLuts.getLut( lut ), paintZeroTransparent, TRANSPARENT );
+		}
+		else
+		{
+			throw new UnsupportedOperationException( "LUT " + lut + " is not supported." );
 		}
 	}
 }

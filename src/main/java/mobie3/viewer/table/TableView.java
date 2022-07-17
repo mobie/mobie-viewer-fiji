@@ -40,7 +40,7 @@ import ij.gui.GenericDialog;
 import mobie3.viewer.annotate.Annotator;
 import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.color.CategoricalAnnotationColoringModel;
-import mobie3.viewer.color.ColumnColoringModelCreator;
+import mobie3.viewer.color.AnnotationColoringModelCreator;
 import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.select.SelectionListener;
@@ -74,7 +74,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private JTable jTable;
 
 	private int recentlySelectedRowInView;
-	private ColumnColoringModelCreator< A > coloringModelCreator;
+	private AnnotationColoringModelCreator< A > coloringModelCreator;
 	private ArrayList< String > additionalTables = new ArrayList<>();; // tables from which additional columns are loaded
 	private boolean hasColumnsFromTablesOutsideProject; // whether additional columns have been loaded from tables outside the project
 	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
@@ -111,7 +111,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		configureJTable();
 		installSelectionModelNotification();
-		coloringModelCreator = new ColumnColoringModelCreator( tableModel );
+		coloringModelCreator = new AnnotationColoringModelCreator( tableModel );
 		configureTableRowColoring();
 	}
 

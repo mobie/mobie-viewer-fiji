@@ -28,8 +28,8 @@
  */
 package mobie3.viewer.color;
 
-import de.embl.cba.bdv.utils.lut.ARGBLut;
 import mobie3.viewer.annotation.Annotation;
+import mobie3.viewer.color.lut.ARGBLut;
 import net.imglib2.type.numeric.ARGBType;
 
 import java.util.Map;
@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
-public class CategoricalAnnotationColoringModel< A extends Annotation > extends AbstractAnnotationColoringModel< A >
+public class CategoricalAnnotationColoringModel< A extends Annotation > extends AbstractAnnotationColoringModel< A > implements ColoringModel< A >
 {
 	// TODO: The maps could go to int instead of ARGBType
 	private Map< String, Integer > inputToFixedColor;
