@@ -30,6 +30,7 @@ package mobie3.viewer.source;
 
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
+import mobie3.viewer.annotation.AnnotatedSegment;
 import mobie3.viewer.annotation.Segment;
 import mobie3.viewer.annotation.AnnotationProvider;
 import net.imglib2.RandomAccessibleInterval;
@@ -74,7 +75,7 @@ public class AnnotatedLabelMaskSource< T extends IntegerType< T >, S extends Seg
 
     private void set( T input, int t, AnnotationType< S > output  )
     {
-        final String segmentId = Segment.toAnnotationId( source.getName(), t, input.getInteger() );
+        final String segmentId = AnnotatedSegment.toAnnotationId( source.getName(), t, input.getInteger() );
         final S segment = annotationProvider.getAnnotation( segmentId );
         final AnnotationType< S > segmentType = new AnnotationType( segment );
         output.set( segmentType );

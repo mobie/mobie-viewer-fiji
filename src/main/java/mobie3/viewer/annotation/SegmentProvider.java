@@ -70,7 +70,7 @@ public class SegmentProvider< AS extends AnnotatedSegment > implements Annotatio
 		while( iterator.hasNext() )
 		{
 			AS segment = iterator.next();
-			segmentMap.put( Segment.toAnnotationId( segment ), segment );
+			segmentMap.put( AnnotatedSegment.toAnnotationId( segment ), segment );
 		}
 	}
 

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class TableSawAnnotatedSegmentTableModel implements AnnotatedSegmentTableModel< TableSawAnnotatedSegment >
+public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel< TableSawAnnotatedSegment >
 {
 	protected Collection< String > columnPaths;
 	protected LinkedHashSet< String > loadedColumnPaths;

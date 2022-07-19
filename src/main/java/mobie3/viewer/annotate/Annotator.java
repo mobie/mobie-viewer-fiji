@@ -249,7 +249,7 @@ public class Annotator< A extends Annotation > extends JFrame implements Selecti
 			Color color = JColorChooser.showDialog( this.panel, "", null );
 			if ( color == null ) return;
 			annotateButton.setBackground( color );
-			coloringModel.assignColor( annotationName, ColorUtils.getARGBType( color ) );
+			coloringModel.assignColor( annotationName, ColorUtils.getARGBType( color ).get() );
 		} );
 
 		panel.add( annotateButton );
