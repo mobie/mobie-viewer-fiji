@@ -40,16 +40,13 @@ public class PublishedFigures
 
 	public PublishedFigures()
 	{
-		addMobieFigure( "Figure 1c (Platy-Atlas)", "https://github.com/mobie/platybrowser-project", "Figure1c" );
-		addMobieFigure( "Figure 2a (CLEM)", "https://github.com/mobie/clem-example-project", "Figure2a" );
-		addMobieFigure( "Figure 2b (CLEM)", "https://github.com/mobie/clem-example-project", "Figure2b" );
-		addMobieFigure( "Figure 2c (CLEM)", "https://github.com/mobie/clem-example-project", "Figure2c" );
-		addMobieFigure( "Figure 2d (CLEM)", "https://github.com/mobie/clem-example-project", "Figure2d" );
-		addMobieFigure( "Figure 2e (CLEM)", "https://github.com/mobie/clem-example-project", "Figure2e" );
-		addMobieFigure( "Figure 3a (HTM, long loading time)", "https://github.com/mobie/covid-if-project", "Figure3a" );
-		addMobieFigure( "Figure 3b (HTM, long loading time)", "https://github.com/mobie/covid-if-project", "Figure3b" );
-		addMobieFigure( "Figure 3c (HTM, long loading time)", "https://github.com/mobie/covid-if-project", "Figure3c" );
-		addMobieFigure( "Figure 3d (HTM, long loading time)", "https://github.com/mobie/covid-if-project", "Figure3d" );
+		addMobieFigure( "Figure 1a (Platy-Atlas)", "https://github.com/mobie/platybrowser-project", "Figure1a" );
+		addMobieFigure( "Figure 1b_i (HTM, long loading time)", "https://github.com/mobie/covid-if-project", "Figure1b_i" );
+		addMobieFigure( "Figure 1b_ii (HTM, long loading time)", "https://github.com/mobie/covid-if-project", "Figure1b_ii" );
+		addMobieFigure( "Figure 1d_i (CLEM)", "https://github.com/mobie/clem-example-project", "Figure1d_i" );
+		addMobieFigure( "Figure 1d_ii (CLEM)", "https://github.com/mobie/clem-example-project", "Figure1d_ii" );
+		addMobieFigure( "Figure 1d_iii (CLEM)", "https://github.com/mobie/clem-example-project", "Figure1d_iii" );
+		addMobieFigure( "Figure 1d_iii (inset) (CLEM)", "https://github.com/mobie/clem-example-project", "Figure1d_iii_inset" );
 	}
 
 	private void addMobieFigure( final String name, String project, String view )
