@@ -31,8 +31,9 @@ package mobie3.viewer.color;
 import mobie3.viewer.color.lut.ARGBLut;
 import mobie3.viewer.color.lut.BlueWhiteRedARGBLut;
 import mobie3.viewer.color.lut.ViridisARGBLut;
+import net.imglib2.type.numeric.ARGBType;
 
-public class ColoringLuts
+public class LUTs
 {
 	public static final String BLUE_WHITE_RED = "blueWhiteRed";
 	public static final String VIRIDIS = "viridis";
@@ -48,6 +49,8 @@ public class ColoringLuts
 		GLASBEY,
 		ARGB_COLUMN
 	};
+	public static final ARGBType TRANSPARENT = new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) );
+	public static final ARGBType DARK_GREY = new ARGBType( ARGBType.rgba( 100, 100, 100, 255 ) );
 
 	public static boolean isNumeric( String lut )
 	{
@@ -63,15 +66,25 @@ public class ColoringLuts
 
 	public static ARGBLut getLut( String lutName )
 	{
-		switch ( lutName )
+		// we also encode zeroTransparent in the lutName
+		// thus we need contains instead of equals
+		if ( lutName.contains( BLUE_WHITE_RED ) )
 		{
-			case BLUE_WHITE_RED:
-				return new BlueWhiteRedARGBLut();
-			case VIRIDIS:
-				return new ViridisARGBLut();
-			default:
-				throw new UnsupportedOperationException( "LUT " + lutName + " is not supported." );
+			return new BlueWhiteRedARGBLut();
 		}
+		else if ( lutName.contains( VIRIDIS ) )
+		{
+			return new ViridisARGBLut();
+		}
+		else
+		{
+			throw new UnsupportedOperationException( "LUT " + lutName + " is not supported." );
+		}
+	}
+
+	public static boolean isZeroTransparent( String lutName )
+	{
+		return lutName.contains( ZERO_TRANSPARENT );
 	}
 
 }

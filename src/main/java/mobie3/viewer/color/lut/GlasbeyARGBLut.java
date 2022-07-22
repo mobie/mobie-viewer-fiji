@@ -28,7 +28,7 @@
  */
 package mobie3.viewer.color.lut;
 
-import mobie3.viewer.color.ColoringLuts;
+import mobie3.viewer.color.LUTs;
 import net.imglib2.type.numeric.ARGBType;
 
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ public class GlasbeyARGBLut implements IndexARGBLut
 	private static int alpha;
 	private static ArrayList< Integer > indices;
 	private final int numColors;
-	private String name = ColoringLuts.GLASBEY;
+	private String name = LUTs.GLASBEY;
 
 	public GlasbeyARGBLut()
 	{

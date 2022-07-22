@@ -37,7 +37,9 @@ import mobie3.viewer.MoBIE;
 import mobie3.viewer.annotate.RegionTableRow;
 import mobie3.viewer.bdv.view.ImageSliceView;
 import mobie3.viewer.bdv.view.SliceViewer;
+import mobie3.viewer.color.AnnotationColoringModelCreator;
 import mobie3.viewer.color.ColoringModel;
+import mobie3.viewer.color.LUTs;
 import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.AnnotationDisplay;
@@ -46,6 +48,7 @@ import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.display.Display;
 import mobie3.viewer.plot.ScatterPlotView;
+import mobie3.viewer.table.AnnotationTableModel;
 import mobie3.viewer.transform.AnnotatedSegmentTransformer;
 import mobie3.viewer.transform.TransformedAnnData;
 import mobie3.viewer.select.MoBIESelectionModel;
@@ -72,6 +75,7 @@ import mobie3.viewer.volume.SegmentsVolumeViewer;
 import mobie3.viewer.volume.UniverseManager;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.util.ValuePair;
 import org.apache.commons.lang.ArrayUtils;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
@@ -118,10 +122,16 @@ public class ViewManager
 
 	private void initScatterPlotView( AnnotationDisplay< ? > display )
 	{
-		if ( display.tableModel.size() == 0 ) return;
+		// TODO: implement for multiple images
+		//   probably needs an AnnotationTableModel constructed
+		//   from multiple tables
+		//   Note that the same code is needed for the TableView,
+		//   thus maybe this needs to happen within annotationDisplay?
+		final AnnotatedImage annotatedImage = ( AnnotatedImage ) display.getImages().iterator().next();
+		final AnnotationTableModel annotationTableModel = annotatedImage.getAnnData().getTable();
 
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
-		display.scatterPlotView = new ScatterPlotView( display.tableModel, display.selectionModel, display.coloringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
+		display.scatterPlotView = new ScatterPlotView( annotationTableModel, display.selectionModel, display.coloringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotView );
 		display.coloringModel.listeners().add( display.scatterPlotView );
 		display.sliceViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotView );
@@ -365,7 +375,7 @@ public class ViewManager
 		return sources;
 	}
 
-	public synchronized < A extends Annotation >  void show( Display< ? > display )
+	public synchronized < A extends Annotation > void show( Display< ? > display )
 	{
 		if ( currentDisplays.contains( display ) ) return;
 
@@ -399,55 +409,36 @@ public class ViewManager
 			}
 
 			// configure the coloring model
-			if ( annotationDisplay.getColorByColumn() == null )
+			if ( annotationDisplay.getColoringColumnName() == null )
 			{
 				annotationDisplay.coloringModel = new MoBIEColoringModel( annotationDisplay.getLut(), annotationDisplay.selectionModel );
 			}
-			else // color by a column in the table
+			else // color by a column in the table of the annotationDisplay
 			{
-				// below is tricky, because in order to
-				// create some coloring models
-				// it needs to know the whole table.
-				// which we may not want to load here.
-				// maybe one should consider such cases separately?
-				//configureColoringModel( annotationDisplay );
-				//new ColumnColoringModelCreator( )
+				final String columnName = annotationDisplay.getColoringColumnName();
+				String lut = annotationDisplay.getLut();
 
-				final ColoringModel< A > coloringModel;
-				String coloringLut = annotationDisplay.getLut();
-
-				if ( annotationDisplay.getValueLimits() != null )
+				ColoringModel< A > coloringModel;
+				if ( LUTs.isCategorical( lut ) )
 				{
-					coloringModel = modelCreator.createColoringModel(display.getColorByColumn(), coloringLut, display.getValueLimits()[0], display.getValueLimits()[1]);
+					coloringModel = AnnotationColoringModelCreator.createCategoricalModel( columnName, LUTs.getLut( lut ), LUTs.isZeroTransparent( lut ), LUTs.TRANSPARENT );
+				}
+				else if ( LUTs.isNumeric( lut ) )
+				{
+					final ValuePair< Double, Double > valueLimits = annotationDisplay.getValueLimits();
+					coloringModel = AnnotationColoringModelCreator.createNumericModel( columnName,  LUTs.getLut( lut ), valueLimits, LUTs.isZeroTransparent( lut ) );
 				}
 				else
 				{
-					coloringModel = modelCreator.createColoringModel(display.getColorByColumn(), coloringLut, null, null );
+					throw new UnsupportedOperationException("Coloring LUT " + lut + " is not supported.");
 				}
-
-				display.coloringModel = new MoBIEColoringModel( coloringModel, display.selectionModel );
+				annotationDisplay.coloringModel = new MoBIEColoringModel( coloringModel, annotationDisplay.selectionModel );
 			}
 
-
-
-//			segmentationDisplay.sliceView = new SegmentationSliceView( moBIE, segmentationDisplay );
-//
-//			if ( annotationDisplay instanceof SegmentationDisplay )
-//			{
-//				showSegmentationDisplay( ( SegmentationDisplay ) annotationDisplay );
-//			}
-//			else if ( annotationDisplay instanceof RegionDisplay )
-//			{
-//				showRegionDisplay( ( RegionDisplay ) annotationDisplay );
-//			}
-
-			if ( annotationDisplay.tableModel != null )
-			{
-				initTableView( annotationDisplay );
-				initScatterPlotView( annotationDisplay );
-				if ( annotationDisplay instanceof SegmentationDisplay )
-					initSegmentationVolumeViewer( ( SegmentationDisplay ) annotationDisplay );
-			}
+			initTableView( annotationDisplay );
+			initScatterPlotView( annotationDisplay );
+			if ( annotationDisplay instanceof SegmentationDisplay )
+				initSegmentationVolumeViewer( ( SegmentationDisplay ) annotationDisplay );
 		}
 
 		userInterface.addSourceDisplay( display );

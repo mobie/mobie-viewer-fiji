@@ -53,7 +53,7 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 		this.isZeroTransparent = isZeroTransparent;
 
 		if ( isZeroTransparent ) // for serialisation
-			lut.setName( lut.getName() + ColoringLuts.ZERO_TRANSPARENT );
+			lut.setName( lut.getName() + LUTs.ZERO_TRANSPARENT );
 	}
 
 	@Override

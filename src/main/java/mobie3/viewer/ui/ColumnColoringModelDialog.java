@@ -2,7 +2,7 @@ package mobie3.viewer.ui;
 
 import ij.gui.GenericDialog;
 import mobie3.viewer.annotation.Annotation;
-import mobie3.viewer.color.ColoringLuts;
+import mobie3.viewer.color.LUTs;
 import mobie3.viewer.color.ColoringModel;
 import mobie3.viewer.color.AnnotationColoringModelCreator;
 import mobie3.viewer.table.AnnData;
@@ -10,8 +10,8 @@ import net.imglib2.util.Pair;
 
 import java.util.List;
 
-import static mobie3.viewer.color.AnnotationColoringModelCreator.TRANSPARENT;
-import static mobie3.viewer.color.ColoringLuts.COLORING_LUTS;
+import static mobie3.viewer.color.LUTs.TRANSPARENT;
+import static mobie3.viewer.color.LUTs.COLORING_LUTS;
 
 public class ColumnColoringModelDialog< A extends Annotation>
 {
@@ -46,17 +46,17 @@ public class ColumnColoringModelDialog< A extends Annotation>
 		paintZeroTransparent = gd.getNextBoolean();
 
 		if ( paintZeroTransparent )
-			lut += ColoringLuts.ZERO_TRANSPARENT;
+			lut += LUTs.ZERO_TRANSPARENT;
 
-		if ( ColoringLuts.isNumeric( lut ) )
+		if ( LUTs.isNumeric( lut ) )
 		{
 			final Pair< Double, Double > minMax = annData.getTable().computeMinMax( columnName );
-			return AnnotationColoringModelCreator.createNumericAnnotationColoringModel( columnName, paintZeroTransparent, minMax, ColoringLuts.getLut( lut ) );
+			return AnnotationColoringModelCreator.createNumericModel( columnName, paintZeroTransparent, minMax, LUTs.getLut( lut ) );
 		}
-		else if ( ColoringLuts.isCategorical( lut ) )
+		else if ( LUTs.isCategorical( lut ) )
 		{
 			return AnnotationColoringModelCreator
-					.createCategoricalAnnotationColoringModel( columnName, ColoringLuts.getLut( lut ), paintZeroTransparent, TRANSPARENT );
+					.createCategoricalModel( columnName, LUTs.getLut( lut ), paintZeroTransparent, TRANSPARENT );
 		}
 		else
 		{

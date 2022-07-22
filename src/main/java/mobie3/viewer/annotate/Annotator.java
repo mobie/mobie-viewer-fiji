@@ -91,7 +91,7 @@ public class Annotator< A extends Annotation > extends JFrame implements Selecti
 
 		if ( ! columnNameToColoringModel.containsKey( annotationColumnName ) )
 		{
-			final CategoricalAnnotationColoringModel< A > categoricalColoringModel =  AnnotationColoringModelCreator.createCategoricalAnnotationColoringModel( annotationColumnName, new GlasbeyARGBLut(), false, DARK_GREY );
+			final CategoricalAnnotationColoringModel< A > categoricalColoringModel =  AnnotationColoringModelCreator.createCategoricalModel( annotationColumnName, new GlasbeyARGBLut(), false, DARK_GREY );
 			columnNameToColoringModel.put( annotationColumnName, categoricalColoringModel );
 		}
 

@@ -41,9 +41,6 @@ import javax.swing.*;
 public class AnnotationColoringModelCreator< A extends Annotation >
 {
 
-	public static final ARGBType TRANSPARENT = new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) );
-	public static final ARGBType DARK_GREY = new ARGBType( ARGBType.rgba( 100, 100, 100, 255 ) );
-
 
 	public ColoringModel< A > createColumnColoringModel(
 			String selectedColumnName,
@@ -53,30 +50,30 @@ public class AnnotationColoringModelCreator< A extends Annotation >
 
 		switch ( lut )
 		{
-			case ColoringLuts.BLUE_WHITE_RED:
-				return createNumericAnnotationColoringModel(
+			case LUTs.BLUE_WHITE_RED:
+				return createNumericModel(
 						selectedColumnName,
-						lut.contains( ColoringLuts.ZERO_TRANSPARENT ),
+						lut.contains( LUTs.ZERO_TRANSPARENT ),
 						contrastLimits,
 						new BlueWhiteRedARGBLut( 1000 ) );
-			case ColoringLuts.VIRIDIS:
-				return createNumericAnnotationColoringModel(
+			case LUTs.VIRIDIS:
+				return createNumericModel(
 						selectedColumnName,
-						lut.contains( ColoringLuts.ZERO_TRANSPARENT ),
+						lut.contains( LUTs.ZERO_TRANSPARENT ),
 						contrastLimits,
 						new ViridisARGBLut() );
-			case ColoringLuts.GLASBEY:
-				return createCategoricalAnnotationColoringModel(
+			case LUTs.GLASBEY:
+				return createCategoricalModel(
 						selectedColumnName,
-						lut.contains( ColoringLuts.ZERO_TRANSPARENT ),
+						lut.contains( LUTs.ZERO_TRANSPARENT ),
 						new GlasbeyARGBLut(),
-						TRANSPARENT );
-			case ColoringLuts.ARGB_COLUMN:
-				return createCategoricalAnnotationColoringModel(
+						LUTs.TRANSPARENT );
+			case LUTs.ARGB_COLUMN:
+				return createCategoricalModel(
 						selectedColumnName,
 						false,
 						new ColumnARGBLut(),
-						TRANSPARENT );
+						LUTs.TRANSPARENT );
 		}
 
 		return null;
@@ -103,7 +100,7 @@ public class AnnotationColoringModelCreator< A extends Annotation >
 		}
 	}
 
-	public static < A extends Annotation > CategoricalAnnotationColoringModel< A > createCategoricalAnnotationColoringModel(
+	public static < A extends Annotation > CategoricalAnnotationColoringModel< A > createCategoricalModel(
 			String columnName,
 			ARGBLut argbLut,
 			boolean paintZeroTransparent,
@@ -122,11 +119,11 @@ public class AnnotationColoringModelCreator< A extends Annotation >
 		// where the label ids are treated as categories rather than as numbers.
 		if ( paintZeroTransparent )
 		{
-			coloringModel.assignColor( "0", TRANSPARENT.get() );
-			coloringModel.assignColor( "0.0", TRANSPARENT.get() );
+			coloringModel.assignColor( "0", LUTs.TRANSPARENT.get() );
+			coloringModel.assignColor( "0.0", LUTs.TRANSPARENT.get() );
 
 			if (argbLut != null) {
-				argbLut.setName(argbLut.getName() + ColoringLuts.ZERO_TRANSPARENT);
+				argbLut.setName(argbLut.getName() + LUTs.ZERO_TRANSPARENT);
 			}
 		}
 
@@ -138,11 +135,12 @@ public class AnnotationColoringModelCreator< A extends Annotation >
 		return coloringModel;
 	}
 
-	public static < A extends Annotation > NumericAnnotationColoringModel< A > createNumericAnnotationColoringModel(
+	public static < A extends Annotation > NumericAnnotationColoringModel< A > createNumericModel(
 			String columnName,
-			boolean isZeroTransparent,
+			ARGBLut argbLut,
 			Pair< Double, Double > contrastLimits,
-			ARGBLut argbLut )
+			boolean isZeroTransparent
+			)
 	{
 		final NumericAnnotationColoringModel< A > coloringModel
 				= new NumericAnnotationColoringModel<>(

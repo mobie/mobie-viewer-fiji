@@ -45,6 +45,9 @@ import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.select.SelectionModel;
+import mobie3.viewer.source.AnnotatedImage;
+import mobie3.viewer.source.AnnotationType;
+import mobie3.viewer.source.Image;
 import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
@@ -94,9 +97,11 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public TableView( AnnotationDisplay< A > display )
 	{
-		// Maybe it should rather get a <List> AnnData
-		// and then decide what to itself.
-		this.tableModel = display.tableModel;
+		// TODO: implement for multiple images
+		//   probably needs an AnnotationTableModel constructed
+		//   from multiple tables
+		final AnnotatedImage annotatedImage = ( AnnotatedImage ) display.getImages().iterator().next();
+		this.tableModel = annotatedImage.getAnnData().getTable();
 		this.coloringModel = display.coloringModel;
 		this.selectionModel = display.selectionModel;
 		this.tableName = display.getName();

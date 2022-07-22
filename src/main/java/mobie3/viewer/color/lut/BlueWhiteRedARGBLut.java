@@ -28,7 +28,7 @@
  */
 package mobie3.viewer.color.lut;
 
-import mobie3.viewer.color.ColoringLuts;
+import mobie3.viewer.color.LUTs;
 import net.imglib2.type.numeric.ARGBType;
 
 public class BlueWhiteRedARGBLut implements ARGBLut
@@ -36,7 +36,7 @@ public class BlueWhiteRedARGBLut implements ARGBLut
 	public static final int NUM_COLORS = 255;
 	private static int alpha;
 	private final int[] indices;
-	private String name = ColoringLuts.BLUE_WHITE_RED;
+	private String name = LUTs.BLUE_WHITE_RED;
 
 	public BlueWhiteRedARGBLut( )
 	{

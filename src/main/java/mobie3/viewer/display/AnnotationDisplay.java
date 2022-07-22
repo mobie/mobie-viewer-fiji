@@ -33,9 +33,7 @@ import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.ColumnColoringModel;
 import de.embl.cba.tables.color.NumericColoringModel;
-import mobie3.viewer.MoBIE;
 import mobie3.viewer.annotation.AnnotationProvider;
-import mobie3.viewer.annotation.SegmentProvider;
 import mobie3.viewer.bdv.render.BlendingMode;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
 import mobie3.viewer.color.ColoringModel;
@@ -49,6 +47,7 @@ import mobie3.viewer.source.SourceHelper;
 import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.table.ColumnNames;
 import mobie3.viewer.table.TableView;
+import net.imglib2.util.ValuePair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,14 +97,14 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		return lut;
 	}
 
-	public String getColorByColumn()
+	public String getColoringColumnName()
 	{
 		return colorByColumn;
 	}
 
-	public Double[] getValueLimits()
+	public ValuePair< Double, Double > getValueLimits()
 	{
-		return valueLimits;
+		return new ValuePair< Double, Double >( valueLimits[ 0 ], valueLimits[ 1 ] );
 	}
 
 	public boolean showScatterPlot()
@@ -118,7 +117,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		return scatterPlotAxes;
 	}
 
-	public List< String > getTables()
+	public List< String > getDisplayedColumnChunks()
 	{
 		return tables;
 	}

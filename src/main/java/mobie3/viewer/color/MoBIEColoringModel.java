@@ -48,7 +48,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	private double opacityNotSelected;
 
 	// Wraps a base coloring model and combines it with a selection model,
-	// such that selected elements can have different colors.
+	// such that selected elements can have special colors.
 	public MoBIEColoringModel( ColoringModel< T > coloringModel, SelectionModel< T > selectionModel )
 	{
 		setColoringModel( coloringModel );
