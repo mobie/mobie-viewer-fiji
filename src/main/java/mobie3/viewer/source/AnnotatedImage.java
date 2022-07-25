@@ -6,6 +6,5 @@ import net.imglib2.type.numeric.IntegerType;
 
 public interface AnnotatedImage< A extends Annotation > extends Image< AnnotationType< A > >
 {
-	Image< ? extends IntegerType< ? > > getLabelMask();
 	AnnData< A > getAnnData();
 }

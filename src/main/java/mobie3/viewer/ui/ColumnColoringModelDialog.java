@@ -4,8 +4,9 @@ import ij.gui.GenericDialog;
 import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.color.LUTs;
 import mobie3.viewer.color.ColoringModel;
-import mobie3.viewer.color.AnnotationColoringModelCreator;
+import mobie3.viewer.color.ColoringModels;
 import mobie3.viewer.table.AnnData;
+import mobie3.viewer.table.AnnotationTableModel;
 import net.imglib2.util.Pair;
 
 import java.util.List;
@@ -18,16 +19,16 @@ public class ColumnColoringModelDialog< A extends Annotation>
 	private static String lut;
 	private static String columnName;
 	private static boolean paintZeroTransparent;
-	private final AnnData< A > annData;
+	private AnnotationTableModel< A > table;
 
-	public ColumnColoringModelDialog( AnnData< A > annData )
+	public ColumnColoringModelDialog( AnnotationTableModel< A > table )
 	{
-		this.annData = annData;
+		this.table = table;
 	}
 
 	public ColoringModel< A > showDialog( )
 	{
-		final List< String > columnNames = annData.getTable().columnNames();
+		final List< String > columnNames = table.columnNames();
 		final String[] columnNameArray = columnNames.toArray( new String[ 0 ] );
 		final GenericDialog gd = new GenericDialog( "Color by Column" );
 		if ( columnName == null || ! columnNames.contains( columnName ) ) columnName = columnNameArray[ 0 ];
@@ -50,13 +51,12 @@ public class ColumnColoringModelDialog< A extends Annotation>
 
 		if ( LUTs.isNumeric( lut ) )
 		{
-			final Pair< Double, Double > minMax = annData.getTable().computeMinMax( columnName );
-			return AnnotationColoringModelCreator.createNumericModel( columnName, paintZeroTransparent, minMax, LUTs.getLut( lut ) );
+			final Pair< Double, Double > minMax = table.computeMinMax( columnName );
+			return ColoringModels.createNumericModel( columnName, lut, minMax, true );
 		}
 		else if ( LUTs.isCategorical( lut ) )
 		{
-			return AnnotationColoringModelCreator
-					.createCategoricalModel( columnName, LUTs.getLut( lut ), paintZeroTransparent, TRANSPARENT );
+			return ColoringModels.createCategoricalModel( columnName, lut, TRANSPARENT );
 		}
 		else
 		{

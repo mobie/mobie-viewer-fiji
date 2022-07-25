@@ -42,18 +42,14 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 
 	public NumericAnnotationColoringModel(
 			String columnName,
-			ARGBLut lut,
-			Pair< Double, Double > contrastLimits,
-			boolean isZeroTransparent )
+			String lutName,
+			Pair< Double, Double > contrastLimits )
 	{
 		this.columnName = columnName;
-		this.lut = lut;
+		this.lut = LUTs.getLut( lutName );
 		this.contrastLimits = contrastLimits;
 		//this.range = contrastLimits;
-		this.isZeroTransparent = isZeroTransparent;
-
-		if ( isZeroTransparent ) // for serialisation
-			lut.setName( lut.getName() + LUTs.ZERO_TRANSPARENT );
+		this.isZeroTransparent = LUTs.isZeroTransparent( lutName );
 	}
 
 	@Override

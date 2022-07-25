@@ -43,7 +43,6 @@ public class SegmentationImage< AS extends AnnotatedSegment > implements Annotat
 		return labelMask.getName();
 	}
 
-	@Override
 	public Image< ? extends IntegerType< ? > > getLabelMask()
 	{
 		return labelMask;

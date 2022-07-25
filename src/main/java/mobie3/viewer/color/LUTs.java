@@ -69,22 +69,28 @@ public class LUTs
 	{
 		// we also encode zeroTransparent in the lutName
 		// thus we need contains instead of equals
+		ARGBLut lut;
+
 		if ( lutName.contains( BLUE_WHITE_RED ) )
 		{
-			return new BlueWhiteRedARGBLut();
+			lut = new BlueWhiteRedARGBLut();
 		}
 		else if ( lutName.contains( VIRIDIS ) )
 		{
-			return new ViridisARGBLut();
+			lut = new ViridisARGBLut();
 		}
 		else if ( lutName.contains( GLASBEY ) )
 		{
-			return new GlasbeyARGBLut();
+			lut = new GlasbeyARGBLut();
 		}
 		else
 		{
 			throw new UnsupportedOperationException( "LUT " + lutName + " is not supported." );
 		}
+
+		lut.setName( lutName ); // (encode zeroTransparent)
+
+		return lut;
 	}
 
 	public static boolean isZeroTransparent( String lutName )

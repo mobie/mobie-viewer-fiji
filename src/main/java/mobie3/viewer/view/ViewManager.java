@@ -34,16 +34,15 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import mobie3.viewer.MoBIE;
-import mobie3.viewer.annotate.RegionTableRow;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
 import mobie3.viewer.bdv.view.ImageSliceView;
 import mobie3.viewer.bdv.view.SliceViewer;
-import mobie3.viewer.color.AnnotationColoringModelCreator;
+import mobie3.viewer.color.ColoringModels;
 import mobie3.viewer.color.CategoricalAnnotationColoringModel;
-import mobie3.viewer.color.ColoringModel;
 import mobie3.viewer.color.LUTs;
 import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.color.NumericAnnotationColoringModel;
+import mobie3.viewer.color.lut.ColumnARGBLut;
 import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.display.ImageDisplay;
@@ -78,13 +77,11 @@ import mobie3.viewer.volume.SegmentsVolumeViewer;
 import mobie3.viewer.volume.UniverseManager;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.IntegerType;
-import net.imglib2.util.ValuePair;
 import org.apache.commons.lang.ArrayUtils;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -109,7 +106,7 @@ public class ViewManager
 	private final UniverseManager universeManager;
 	private final AdditionalViewsLoader additionalViewsLoader;
 	private final ViewSaver viewSaver;
-	private int numCurrentTables = 0;
+	private int numViewedTables = 0;
 
 	public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D )
 	{
@@ -142,7 +139,7 @@ public class ViewManager
 
 		if ( display.showScatterPlot() )
 		{
-			display.scatterPlotView.setShowColumnSelectionUI( false );
+			display.scatterPlotView.setShowConfigurationUI( false );
 			display.scatterPlotView.show();
 		}
 	}
@@ -160,17 +157,6 @@ public class ViewManager
 	public AdditionalViewsLoader getAdditionalViewsLoader() { return additionalViewsLoader; }
 
 	public ViewSaver getViewsSaver() { return viewSaver; }
-
-	private boolean hasColumnsOutsideProject( AnnotationDisplay annotationDisplay )
-	{
-		if ( annotationDisplay.tableView.hasColumnsFromTablesOutsideProject() )
-		{
-			IJ.log( "Cannot make a view with tables that have columns loaded from the filesystem (not within the project)." );
-			return true;
-		} else {
-			return false;
-		}
-	}
 
 	private void addManualTransforms( List< Transformation > viewSourceTransforms, Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
@@ -291,7 +277,7 @@ public class ViewManager
 	{
 		// fetch names of all sources that are
 		// either to be shown or to be transformed
-		final Set< String > imageNames = fetchImageNames( view );
+		final Set< String > imageNames = view.getImageNames();
 		if ( imageNames.size() == 0 ) return;
 
 		// determine "raw" images that can be directly opened
@@ -303,10 +289,10 @@ public class ViewManager
 
 		// transform images
 		// this may create new images with new names
-		final List< Transformation > transformers = view.getImageTransformers();
-		if ( transformers != null )
+		final List< Transformation > transformations = view.getTransformations();
+		if ( transformations != null )
 		{
-			for ( Transformation transformation : transformers )
+			for ( Transformation transformation : transformations )
 			{
 				currentTransformers.add( transformation );
 
@@ -315,9 +301,9 @@ public class ViewManager
 					if ( transformation.getTargetImages().contains( name ) )
 					{
 						final Image image = images.get( name );
-						if ( AnnotatedImage.class.isAssignableFrom( image.getClass() ) )
+						if ( SegmentationImage.class.isAssignableFrom( image.getClass() ) )
 						{
-							final AnnotatedImage transformedImage = transform( transformation, ( AnnotatedImage ) image );
+							final SegmentationImage transformedImage = transform( transformation, ( SegmentationImage ) image );
 							images.put( transformedImage.getName(), transformedImage );
 						}
 						else
@@ -355,42 +341,10 @@ public class ViewManager
 		return sourceAndConverter;
 	}
 
-	public Set< String > fetchImageNames( View view )
-	{
-		final Set< String > sources = new HashSet<>();
-
-		for ( Display display : view.getDisplays() )
-		{
-			for ( String source : display.getSources() )
-			{
-				sources.add( source );
-			}
-		}
-
-		for ( Transformation imageTransformation : view.getImageTransformers() )
-		{
-			final List< String > sourceTransformerSources = imageTransformation.getTargetImages();
-			for ( String source : sourceTransformerSources )
-			{
-				sources.add( source );
-			}
-		}
-
-		return sources;
-	}
-
 	public synchronized < A extends Annotation > void show( Display< ? > display )
 	{
 		if ( currentDisplays.contains( display ) ) return;
 
-		// TODO:
-		//   What about label mask images that are NOT annotated,
-		//   i.e. don't have a table?
-		//   Maybe implement an AnnData that lazily builds up
-		//   upon browsing around?
-		//   This may be tricky, because if we want to support semantic
-		//   segmentations there is no anchor(), maybe still fine, but
-		//   then the table would not move the slice view anywhere.
 		if ( display instanceof ImageDisplay )
 		{
 			for ( String name : display.getSources() )
@@ -399,6 +353,15 @@ public class ViewManager
 		}
 		else if ( display instanceof AnnotationDisplay )
 		{
+			// TODO:
+			//   What about label mask images that are NOT annotated,
+			//   i.e. don't have a table?
+			//   Maybe implement an AnnData that lazily builds up
+			//   upon browsing around?
+			//   This may be tricky, because if we want to support semantic
+			//   segmentations there is no anchor(), maybe still fine, but
+			//   then the table would not move the slice view anywhere.
+
 			final AnnotationDisplay< A > annotationDisplay = ( AnnotationDisplay ) display;
 
 			// add all images that are shown by this display
@@ -418,20 +381,36 @@ public class ViewManager
 			// configure coloring model
 			//
 			String lut = annotationDisplay.getLut();
+
 			if ( LUTs.isCategorical( lut ) )
 			{
-				@Nullable final String columnName = annotationDisplay.getColoringColumnName();
-				CategoricalAnnotationColoringModel< Annotation > coloringModel = AnnotationColoringModelCreator.createCategoricalModel( columnName, LUTs.getLut( lut ), LUTs.isZeroTransparent( lut ), LUTs.TRANSPARENT );
+				CategoricalAnnotationColoringModel< Annotation > coloringModel =
+						ColoringModels.createCategoricalModel(
+								annotationDisplay.getColoringColumnName(),
+								lut,
+								LUTs.TRANSPARENT );
+
+				if ( LUTs.getLut( lut ) instanceof ColumnARGBLut )
+				{
+					// TODO:
+					//  where to get the table column from?
+					throw new UnsupportedOperationException("LUTs encoded in Table columns is not yet supported.");
+					// ColoringModels.setColorsFromColumn( columnName, coloringModel );
+				}
+
 				coloringModel.setRandomSeed( annotationDisplay.getRandomColorSeed() );
 				annotationDisplay.coloringModel = new MoBIEColoringModel( coloringModel, annotationDisplay.selectionModel );
 			}
 			else if ( LUTs.isNumeric( lut ) )
 			{
-				String columnName = annotationDisplay.getColoringColumnName();
-				if ( columnName == null )
-					throw new UnsupportedOperationException("A numeric coloring model must be associated to a column in the table.");
-				final ValuePair< Double, Double > valueLimits = annotationDisplay.getValueLimits();
-				NumericAnnotationColoringModel< Annotation > coloringModel; = AnnotationColoringModelCreator.createNumericModel( columnName,  LUTs.getLut( lut ), valueLimits, LUTs.isZeroTransparent( lut ) );
+				NumericAnnotationColoringModel< Annotation > coloringModel
+						= ColoringModels.createNumericModel(
+								annotationDisplay.getColoringColumnName(),
+								lut,
+								annotationDisplay.getValueLimits(),
+						 true
+							);
+
 				annotationDisplay.coloringModel = new MoBIEColoringModel( coloringModel, annotationDisplay.selectionModel );
 			}
 			else
@@ -442,7 +421,6 @@ public class ViewManager
 			// show in slice viewer
 			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.sliceView = new AnnotationSliceView<>( moBIE, annotationDisplay );
-
 			initTableView( annotationDisplay );
 			initScatterPlotView( annotationDisplay );
 			if ( annotationDisplay instanceof SegmentationDisplay )
@@ -465,7 +443,7 @@ public class ViewManager
 			// removes display from all viewers and
 			// also from the list of currently shown sourceDisplays
 			// also close all ImgLoaders to free the cache
-			removeSourceDisplay( display, closeImgLoader );
+			removeDisplay( display, closeImgLoader );
 		}
 	}
 
@@ -499,19 +477,19 @@ public class ViewManager
 		setTablePosition( display.sliceViewer.getWindow(), display.tableView.getWindow() );
 		display.selectionModel.listeners().add( display.tableView );
 		display.coloringModel.listeners().add( display.tableView );
-		numCurrentTables++;
+		numViewedTables++;
 	}
 
 	private void setTablePosition( Window reference, Window table )
 	{
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		final int shift = screenSize.height / 20;
-		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numCurrentTables - 1 ) * shift ) );
+		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numViewedTables - 1 ) * shift ) );
 	}
 
 	private void initSegmentationVolumeViewer( SegmentationDisplay display )
 	{
-		display.segmentsVolumeViewer = new SegmentsVolumeViewer<>( display.selectionModel, display.coloringModel, display.nameToSourceAndConverter.values(), universeManager );
+		display.segmentsVolumeViewer = new SegmentsVolumeViewer( display.selectionModel, display.coloringModel, display.nameToSourceAndConverter.values(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();
 		if ( resolution3dView != null ) {
 			display.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(display.getResolution3dView()) );
@@ -521,20 +499,20 @@ public class ViewManager
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
 	}
 
-	public synchronized void removeSourceDisplay( Display display, boolean closeImgLoader )
+	public synchronized void removeDisplay( Display display, boolean closeImgLoader )
 	{
 		if ( display instanceof AnnotationDisplay )
 		{
-			final AnnotationDisplay< ? > regionDisplay = ( AnnotationDisplay< ? > ) display;
-			regionDisplay.getSliceView().close( closeImgLoader );
+			final AnnotationDisplay< ? > annotationDisplay = ( AnnotationDisplay< ? > ) display;
+			annotationDisplay.sliceView.close( closeImgLoader );
 
-			if ( regionDisplay.tableModel != null )
+			if ( annotationDisplay.tableView != null )
 			{
-				regionDisplay.tableView.close();
-				numCurrentTables--;
-				regionDisplay.scatterPlotView.close();
-				if ( regionDisplay instanceof SegmentationDisplay )
-					( ( SegmentationDisplay ) regionDisplay ).segmentsVolumeViewer.close();
+				numViewedTables--;
+				annotationDisplay.tableView.close();
+				annotationDisplay.scatterPlotView.close();
+				if ( annotationDisplay instanceof SegmentationDisplay )
+					( ( SegmentationDisplay ) annotationDisplay ).segmentsVolumeViewer.close();
 			}
 
 		}

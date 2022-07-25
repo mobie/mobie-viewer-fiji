@@ -26,35 +26,65 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.color;
+package mobie3.viewer.plot;
 
-import mobie3.viewer.select.Listeners;
-import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.RealInterval;
+import net.imglib2.RealPoint;
+import net.imglib2.type.numeric.NumericType;
 
-import javax.swing.*;
+import java.util.ArrayList;
+import java.util.Random;
 
-public abstract class AbstractColoringModel< T > implements ColoringModel< T >
+public class RandomPointsCreator < T extends NumericType< T > >
 {
-	protected final Listeners.SynchronizedList< ColoringListener > listeners
-			= new Listeners.SynchronizedList< ColoringListener >(  );
+	private final T fixedValue;
+	private int n;
+	private RealInterval interval;
+	private ArrayList< RealPoint > randomPointList;
+	private ArrayList< T > fixedValueList;
 
-	@Override
-	public Listeners< ColoringListener > listeners()
+	public RandomPointsCreator( T fixedValue, int n, RealInterval interval )
 	{
-		return listeners;
+		this.fixedValue = fixedValue;
+		this.n = n;
+		this.interval = interval;
+		createRandomPoints();
 	}
 
-	@Override
-	public void convert( T input, ARGBType output )
+	private void createRandomPoints()
 	{
-		output.set( 0 );
-	}
+		Random rand = new Random( 60 );
 
-	protected void notifyColoringListeners()
-	{
-		for ( ColoringListener listener : listeners.list )
+		int nd = interval.numDimensions();
+		double[] widths = new double[ nd ];
+		double[] offset = new double[ nd ];
+		for ( int d = 0; d < nd; d++ )
 		{
-			SwingUtilities.invokeLater( () -> listener.coloringChanged() );
+			offset[ d ] = interval.realMin( d );
+			widths[ d ] = interval.realMax( d ) - interval.realMin( d );
 		}
+
+		randomPointList = new ArrayList<>();
+		fixedValueList = new ArrayList<>();
+
+		for ( int i = 0; i < n; i++ )
+		{
+			RealPoint p = new RealPoint( nd );
+			for ( int d = 0; d < nd; d++ )
+				p.setPosition( offset[ d ] + rand.nextDouble() * widths[ d ], d );
+
+			randomPointList.add( p );
+			fixedValueList.add( fixedValue.copy() );
+		}
+	}
+
+	public ArrayList< RealPoint > getPointList()
+	{
+		return randomPointList;
+	}
+
+	public ArrayList< T > getFixedValueList()
+	{
+		return fixedValueList;
 	}
 }

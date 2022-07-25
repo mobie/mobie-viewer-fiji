@@ -44,7 +44,7 @@ public class BlueWhiteRedARGBLut implements ARGBLut
 		indices = this.blueWhiteRedARGBIndices( NUM_COLORS );
 	}
 
-	public BlueWhiteRedARGBLut(  int alpha )
+	public BlueWhiteRedARGBLut( int alpha )
 	{
 		this.alpha = alpha;
 		indices = this.blueWhiteRedARGBIndices( NUM_COLORS );

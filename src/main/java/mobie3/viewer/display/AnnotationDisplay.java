@@ -188,6 +188,8 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		this.showScatterPlot = annotationDisplay.scatterPlotView.isVisible();
 		this.scatterPlotAxes = annotationDisplay.scatterPlotView.getSelectedColumns();
 		this.tables = annotationDisplay.tables;
+
+		// TODO: I need a table model to check which columns have been loaded!
 		List<String> additionalTables = annotationDisplay.tableView.getAdditionalTables();
 		if ( additionalTables.size() > 0 ){
 			if ( this.tables == null ) {

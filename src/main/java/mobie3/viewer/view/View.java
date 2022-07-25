@@ -33,7 +33,9 @@ import mobie3.viewer.transform.Transformation;
 import mobie3.viewer.transform.ViewerTransform;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class View
 {
@@ -61,12 +63,36 @@ public class View
 		this.isExclusive = isExclusive;
 	}
 
+	public Set< String > getImageNames( )
+	{
+		final Set< String > sources = new HashSet<>();
+
+		for ( Display< ? > display : getDisplays() )
+		{
+			for ( String source : display.getSources() )
+			{
+				sources.add( source );
+			}
+		}
+
+		for ( Transformation imageTransformation : getTransformations() )
+		{
+			final List< String > sourceTransformerSources = imageTransformation.getTargetImages();
+			for ( String source : sourceTransformerSources )
+			{
+				sources.add( source );
+			}
+		}
+
+		return sources;
+	}
+
 	public boolean isExclusive()
 	{
 		return isExclusive;
 	}
 
-	public List< Transformation > getImageTransformers()
+	public List< Transformation > getTransformations()
 	{
 		if ( sourceTransforms == null )
 			return new ArrayList<>();

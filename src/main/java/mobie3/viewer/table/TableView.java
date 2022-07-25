@@ -31,23 +31,21 @@ package mobie3.viewer.table;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.TableUIs;
 import de.embl.cba.tables.Utils;
-import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.color.ColoringModel;
-import de.embl.cba.tables.plot.ScatterPlotDialog;
-import de.embl.cba.tables.tablerow.TableRowListener;
 import ij.gui.GenericDialog;
 import mobie3.viewer.annotate.Annotator;
 import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.color.CategoricalAnnotationColoringModel;
-import mobie3.viewer.color.AnnotationColoringModelCreator;
+import mobie3.viewer.color.ColorHelper;
+import mobie3.viewer.color.ColoringListener;
+import mobie3.viewer.color.ColoringModel;
 import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.display.AnnotationDisplay;
+import mobie3.viewer.plot.ScatterPlotDialog;
+import mobie3.viewer.plot.ScatterPlotView;
 import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.select.SelectionModel;
 import mobie3.viewer.source.AnnotatedImage;
-import mobie3.viewer.source.AnnotationType;
-import mobie3.viewer.source.Image;
+import mobie3.viewer.ui.ColumnColoringModelDialog;
 import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
@@ -58,15 +56,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.embl.mobie.viewer.MoBIEHelper.FileLocation;
 import static org.embl.mobie.viewer.MoBIEHelper.loadFromProjectOrFileSystemDialog;
 
-public class TableView< A extends Annotation > implements SelectionListener< A >, ColoringListener, TableRowListener
+public class TableView< A extends Annotation > implements SelectionListener< A >, ColoringListener
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -75,18 +71,12 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private final MoBIEColoringModel< A > coloringModel;
 	private final String tableName;
 	private JTable jTable;
-
 	private int recentlySelectedRowInView;
-	private AnnotationColoringModelCreator< A > coloringModelCreator;
-	private ArrayList< String > additionalTables = new ArrayList<>();; // tables from which additional columns are loaded
-	private boolean hasColumnsFromTablesOutsideProject; // whether additional columns have been loaded from tables outside the project
-	private TableRowSelectionMode tableRowSelectionMode = TableRowSelectionMode.FocusOnly;
-
-	// TODO: this is only for the annotator (maybe move it there)
-	private Map< String, ColoringModel< A > > columnNameToColoringModel = new HashMap<>();
-
-	private boolean controlDown;
+	private TableRowSelectionMode selectionMode = TableRowSelectionMode.FocusOnly;
 	private JFrame frame;
+
+	// Keyboard
+	private boolean controlKeyPressed;
 
 	private enum TableRowSelectionMode
 	{
@@ -100,23 +90,17 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		// TODO: implement for multiple images
 		//   probably needs an AnnotationTableModel constructed
 		//   from multiple tables
-		final AnnotatedImage annotatedImage = ( AnnotatedImage ) display.getImages().iterator().next();
-		this.tableModel = annotatedImage.getAnnData().getTable();
+		//   Note that I need that already outside the Table for a potential coloring model
+		//   which reads its argb values from a table column.
+		final AnnotatedImage< A > annotatedImage = ( AnnotatedImage< A > ) display.getImages().iterator().next();
+		this.tableModel =  annotatedImage.getAnnData().getTable();
 		this.coloringModel = display.coloringModel;
 		this.selectionModel = display.selectionModel;
 		this.tableName = display.getName();
 		this.recentlySelectedRowInView = -1;
 
-		// TODO: probably we can get rid of this entirely,
-		//  because changing tableRows now works through the
-		//  TableRowsTableModel which has a direct relation to the JTable
-		//  However I am not sure right now who else
-		//  (but the TableViewer) may change TableRows..
-		//registerAsTableRowListener( tableRows );
-
 		configureJTable();
 		installSelectionModelNotification();
-		coloringModelCreator = new AnnotationColoringModelCreator( tableModel );
 		configureTableRowColoring();
 	}
 
@@ -135,7 +119,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		panel.add( scrollPane );
 
 		jTable.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
-		panel.updateUI(); // TODO do we need this?
+		panel.updateUI();
 		panel.setOpaque( true );
 
 		frame = new JFrame( tableName );
@@ -153,170 +137,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 				frame.setVisible( false );
 			}
 		});
-	}
-
-//	public void registerAsTableRowListener( List< T > tableRows )
-//	{
-//		final int numTableRows = tableRows.size();
-//		for ( int rowIndex = 0; rowIndex < numTableRows; rowIndex++ )
-//		{
-//			int finalRowIndex = rowIndex;
-//
-//			tableRows.get( rowIndex ).listeners().add( new TableRowListener()
-//			{
-//				@Override
-//				public void cellChanged( String columnName, String value )
-//				{
-//					synchronized ( jTable )
-//					{
-//						if ( ! tableRowsTableModel.getColumnNames().contains( columnName ) )
-//						{
-//							// TODO: how to add a column?
-//							//   have to check implementations of TableRow
-//							tableRowsTableModel.setValueAt( value, finalRowIndex, tableRowsTableModel.getColumnNames().indexOf( columnName ) );
-//							//Tables.addColumnToJTable( columnName, value, jTable.getModel() );
-//						}
-//
-//						// TODO: 2021: Change this! 2022: Why?
-//						tableRowsTableModel.setValueAt( value, finalRowIndex, tableRowsTableModel.getColumnNames().indexOf( columnName ) );
-////						Tables.setJTableCell( finalRowIndex, columnName, value, jTable );
-//					}
-//				}
-//			});
-//		}
-//	}
-//
-	private void configureTableRowColoring()
-	{
-		jTable.setDefaultRenderer( Double.class, new DefaultTableCellRenderer()
-		{
-			@Override
-			public Component getTableCellRendererComponent(
-					JTable table, Object value, boolean isSelected,
-					boolean hasFocus, int row, int column) {
-
-				Component c = super.getTableCellRendererComponent(
-						table,
-						value,
-						isSelected,
-						hasFocus,
-						row,
-						column);
-
-				c.setBackground( getColor(row, column) );
-
-				return c;
-			}
-		} );
-
-		jTable.setDefaultRenderer( String.class, new DefaultTableCellRenderer()
-		{
-			@Override
-			public Component getTableCellRendererComponent(
-					JTable table, Object value, boolean isSelected,
-					boolean hasFocus, int row, int column) {
-
-				Component c = super.getTableCellRendererComponent(
-						table,
-						value,
-						isSelected,
-						hasFocus,
-						row,
-						column);
-
-				c.setBackground( getColor(row, column) );
-
-				return c;
-			}
-
-		} );
-
-		jTable.setDefaultRenderer( Long.class, new DefaultTableCellRenderer()
-		{
-			@Override
-			public Component getTableCellRendererComponent(
-					JTable table, Object value, boolean isSelected,
-					boolean hasFocus, int row, int column )
-			{
-				Component c = super.getTableCellRendererComponent(
-						table,
-						value,
-						isSelected,
-						hasFocus,
-						row,
-						column );
-
-				c.setBackground( getColor( row, column ) );
-
-				return c;
-			}
-		});
-
-		jTable.setDefaultRenderer( Integer.class, new DefaultTableCellRenderer()
-		{
-			@Override
-			public Component getTableCellRendererComponent(
-					JTable table, Object value, boolean isSelected,
-					boolean hasFocus, int row, int column)
-			{
-				Component c = super.getTableCellRendererComponent(
-						table,
-						value,
-						isSelected,
-						hasFocus,
-						row,
-						column);
-
-				c.setBackground( getColor(row, column) );
-
-				return c;
-			}
-		} );
-
-		jTable.setDefaultRenderer( Object.class, new DefaultTableCellRenderer()
-		{
-			@Override
-			public Component getTableCellRendererComponent(
-					JTable table, Object value, boolean isSelected,
-					boolean hasFocus, int row, int column )
-			{
-				Component c = super.getTableCellRendererComponent(
-						table,
-						value,
-						isSelected,
-						hasFocus,
-						row,
-						column );
-
-				c.setBackground( getColor( row, column ) );
-
-				return c;
-			}
-		});
-	}
-
-	private Color getColor( int rowInView, int columnInView )
-	{
-		final int row = jTable.convertRowIndexToModel( rowInView );
-
-//		if ( selectionModel.isFocused( tableRows.getTableRows().get( row ) ) )
-//		{
-//			return Color.BLUE;
-//		}
-
-		final ARGBType argbType = new ARGBType();
-		final A tableRow = tableModel.row( row );
-		coloringModel.convert( tableRow, argbType );
-
-		if ( ARGBType.alpha( argbType.get() ) == 0 )
-			return Color.WHITE;
-		else
-			return ColorUtils.getColor( argbType );
-	}
-
-	private synchronized void repaintTable()
-	{
-		jTable.repaint();
 	}
 
 	private void configureJTable()
@@ -351,23 +171,18 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private JMenu createSelectionMenu()
 	{
 		JMenu menu = new JMenu( "Select" );
-
 		menu.add( createSelectAllMenuItem() );
 		menu.add( createSelectEqualToMenuItem() );
 		menu.add( createSelectLessThanMenuItem() );
 		menu.add( createSelectGreaterThanMenuItem() );
-
 		return menu;
 	}
 
 	private JMenu createAnnotateMenu()
 	{
 		JMenu menu = new JMenu( "Annotate" );
-
 		menu.add( startNewAnnotationMenuItem() );
-
 		menu.add( continueAnnotationMenuItem() );
-
 		return menu;
 	}
 
@@ -380,7 +195,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private JMenuItem createScatterPlotMenuItem()
 	{
-		final JMenuItem menuItem = new JMenuItem( "2D Scatter Plot..." );
+		final JMenuItem menuItem = new JMenuItem( "Scatter Plot..." );
 		menuItem.addActionListener( e ->
 			{
 				SwingUtilities.invokeLater( () ->
@@ -390,8 +205,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 					if ( dialog.show() )
 					{
-//						TableRowsScatterPlot< T > scatterPlot = new TableRowsScatterPlot<>( tableRows, coloringModel, dialog.getSelectedColumns(), dialog.getScaleFactors(), dialog.getDotSizeScaleFactor() );
-//						scatterPlot.show( null );
+						ScatterPlotView< A > scatterPlot = new ScatterPlotView<>( tableModel, selectionModel, coloringModel,  dialog.getSelectedColumns(), dialog.getAxesScaleFactors(), dialog.getDotSizeScaleFactor() );
+						scatterPlot.show();
 					}
 				});
 			}
@@ -402,13 +217,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private JMenu createTableMenu()
     {
         JMenu menu = new JMenu( "Table" );
-
         menu.add( createSaveTableAsMenuItem() );
-
 		menu.add( createSaveColumnsAsMenuItem() );
-
 		menu.add( createLoadColumnsMenuItem() );
-
 		return menu;
     }
 
@@ -443,16 +254,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		);
 
 		return menuItem;
-	}
-
-	public ArrayList<String> getAdditionalTables()
-	{
-		return additionalTables;
-	}
-
-	public boolean hasColumnsFromTablesOutsideProject()
-	{
-		return hasColumnsFromTablesOutsideProject;
 	}
 
 	private JMenuItem createSaveTableAsMenuItem()
@@ -706,14 +507,14 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			@Override
 			public void mouseClicked( MouseEvent e )
 			{
-				controlDown = e.isControlDown();
+				controlKeyPressed = e.isControlDown();
 			}
 		} );
 
 		jTable.getSelectionModel().addListSelectionListener( e ->
 			SwingUtilities.invokeLater( () ->
 			{
-				if ( tableRowSelectionMode.equals( TableRowSelectionMode.None ) ) return;
+				if ( selectionMode.equals( TableRowSelectionMode.None ) ) return;
 
 				if ( e.getValueIsAdjusting() ) return;
 
@@ -729,13 +530,13 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 				final A object = tableModel.row( rowIndex );
 
-				tableRowSelectionMode = controlDown ? TableRowSelectionMode.ToggleSelectionAndFocusIfSelected : TableRowSelectionMode.FocusOnly;
+				selectionMode = controlKeyPressed ? TableRowSelectionMode.ToggleSelectionAndFocusIfSelected : TableRowSelectionMode.FocusOnly;
 
-				if ( tableRowSelectionMode.equals( TableRowSelectionMode.FocusOnly ) )
+				if ( selectionMode.equals( TableRowSelectionMode.FocusOnly ) )
 				{
 					selectionModel.focus( object, this );
 				}
-				else if ( tableRowSelectionMode.equals( TableRowSelectionMode.ToggleSelectionAndFocusIfSelected ) )
+				else if ( selectionMode.equals( TableRowSelectionMode.ToggleSelectionAndFocusIfSelected ) )
 				{
 					selectionModel.toggle( object );
 					if ( selectionModel.isSelected( object ) )
@@ -762,24 +563,18 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private JMenu createColoringMenu()
 	{
 		JMenu coloringMenu = new JMenu( "Color" );
-
 		addColorByColumnMenuItem( coloringMenu );
-
 		// TODO: add menu item to configure values that should be transparent
-
 		addColorLoggingMenuItem( coloringMenu );
-
 		return coloringMenu;
 	}
 
 	private void addColorLoggingMenuItem( JMenu coloringMenu )
 	{
 		final JMenuItem menuItem = new JMenuItem( "Log Current Color Map" );
-
 		menuItem.addActionListener( e ->
 				new Thread( () ->
 						logCurrentValueToColorMap() ).start() );
-
 		coloringMenu.add( menuItem );
 	}
 
@@ -808,13 +603,15 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		final ColoringModel< A > coloringModel = this.coloringModel.getWrappedColoringModel();
 
 		if ( coloringModel instanceof CategoricalAnnotationColoringModel )
-			return (( CategoricalAnnotationColoringModel )coloringModel).getColumnName();
+		{
+			return ( ( CategoricalAnnotationColoringModel ) coloringModel ).getColumnName();
+		}
 		else
 		{
-			Logger.error( "Please first use the [ Color > Color by Column ] menu item to configure the coloring." );
-			throw new UnsupportedOperationException("The current coloring is not based on a table column.\nPlease first use the [ Color > Color by Column ] menu item to configure the coloring.");
+			final String msg = "Please first use the [ Color > Color by Column ] menu item to configure the coloring.";
+			Logger.error( msg );
+			throw new UnsupportedOperationException( msg );
 		}
-
 	}
 
 	private void addColorByColumnMenuItem( JMenu coloringMenu )
@@ -830,7 +627,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public void showColorByColumnDialog()
 	{
-		final ColoringModel< A > coloringModel = coloringModelCreator.showDialog();
+		final ColoringModel< A > coloringModel = new ColumnColoringModelDialog<>( tableModel  ).showDialog();
 
 		if ( coloringModel != null )
 			this.coloringModel.setColoringModel( coloringModel );
@@ -864,10 +661,132 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		SwingUtilities.invokeLater( () -> repaintTable() );
 	}
 
-	@Override
-	public void cellChanged( String columnName, String value )
+	private void configureTableRowColoring()
 	{
-		// TODO:
+		jTable.setDefaultRenderer( Double.class, new DefaultTableCellRenderer()
+		{
+			@Override
+			public Component getTableCellRendererComponent(
+					JTable table, Object value, boolean isSelected,
+					boolean hasFocus, int row, int column) {
+
+				Component c = super.getTableCellRendererComponent(
+						table,
+						value,
+						isSelected,
+						hasFocus,
+						row,
+						column);
+
+				c.setBackground( getColor( row ) );
+
+				return c;
+			}
+		} );
+
+		jTable.setDefaultRenderer( String.class, new DefaultTableCellRenderer()
+		{
+			@Override
+			public Component getTableCellRendererComponent(
+					JTable table, Object value, boolean isSelected,
+					boolean hasFocus, int row, int column) {
+
+				Component c = super.getTableCellRendererComponent(
+						table,
+						value,
+						isSelected,
+						hasFocus,
+						row,
+						column);
+
+				c.setBackground( getColor( row ) );
+
+				return c;
+			}
+
+		} );
+
+		jTable.setDefaultRenderer( Long.class, new DefaultTableCellRenderer()
+		{
+			@Override
+			public Component getTableCellRendererComponent(
+					JTable table, Object value, boolean isSelected,
+					boolean hasFocus, int row, int column )
+			{
+				Component c = super.getTableCellRendererComponent(
+						table,
+						value,
+						isSelected,
+						hasFocus,
+						row,
+						column );
+
+				c.setBackground( getColor( row ) );
+
+				return c;
+			}
+		});
+
+		jTable.setDefaultRenderer( Integer.class, new DefaultTableCellRenderer()
+		{
+			@Override
+			public Component getTableCellRendererComponent(
+					JTable table, Object value, boolean isSelected,
+					boolean hasFocus, int row, int column)
+			{
+				Component c = super.getTableCellRendererComponent(
+						table,
+						value,
+						isSelected,
+						hasFocus,
+						row,
+						column);
+
+				c.setBackground( getColor( row ) );
+
+				return c;
+			}
+		} );
+
+		jTable.setDefaultRenderer( Object.class, new DefaultTableCellRenderer()
+		{
+			@Override
+			public Component getTableCellRendererComponent(
+					JTable table, Object value, boolean isSelected,
+					boolean hasFocus, int row, int column )
+			{
+				Component c = super.getTableCellRendererComponent(
+						table,
+						value,
+						isSelected,
+						hasFocus,
+						row,
+						column );
+
+				c.setBackground( getColor( row ) );
+
+				return c;
+			}
+		});
+	}
+
+	private Color getColor( int rowIndexInView )
+	{
+		final int row = jTable.convertRowIndexToModel( rowIndexInView );
+
+		final ARGBType argbType = new ARGBType();
+		final A tableRow = tableModel.row( row );
+		coloringModel.convert( tableRow, argbType );
+
+		if ( ARGBType.alpha( argbType.get() ) == 0 )
+			return Color.WHITE;
+		else
+			return ColorHelper.getColor( argbType );
+	}
+
+	private synchronized void repaintTable()
+	{
+		jTable.repaint();
 	}
 
 }

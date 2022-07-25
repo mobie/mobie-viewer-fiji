@@ -884,7 +884,7 @@ public class UserInterfaceHelper
 		{
 			// remove the display but do not close the ImgLoader
 			// because some derived sources may currently be shown
-			moBIE.getViewManager().removeSourceDisplay( display, false );
+			moBIE.getViewManager().removeDisplay( display, false );
 		} );
 
 		return removeButton;

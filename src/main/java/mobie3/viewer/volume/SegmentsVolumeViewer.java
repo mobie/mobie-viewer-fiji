@@ -31,9 +31,6 @@ package mobie3.viewer.volume;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import customnode.CustomTriangleMesh;
-import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.color.ColoringModel;
 import de.embl.cba.tables.ij3d.AnimatedViewAdjuster;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij3d.Content;
@@ -41,6 +38,9 @@ import ij3d.Image3DUniverse;
 import ij3d.UniverseListener;
 import mobie3.viewer.VisibilityListener;
 import mobie3.viewer.annotation.Segment;
+import mobie3.viewer.color.ColorHelper;
+import mobie3.viewer.color.ColoringListener;
+import mobie3.viewer.color.ColoringModel;
 import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.select.SelectionModel;
 import mobie3.viewer.source.AnnotationType;
@@ -411,7 +411,7 @@ public class SegmentsVolumeViewer< AS extends Segment > implements ColoringListe
 	{
 		final ARGBType argbType = new ARGBType();
 		coloringModel.convert( imageSegment, argbType );
-		return new Color3f( ColorUtils.getColor( argbType ) );
+		return new Color3f( ColorHelper.getColor( argbType ) );
 	}
 
 	public void setVoxelSpacing( double[] voxelSpacing )

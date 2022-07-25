@@ -45,13 +45,19 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 	private Map< String, Integer > inputToRandomColor;
 	private int randomSeed;
 
-	public CategoricalAnnotationColoringModel( @Nullable String columnName, ARGBLut lut )
+	public CategoricalAnnotationColoringModel( @Nullable String columnName, String lutName )
 	{
 		this.columnName = columnName;
-		this.lut = lut;
+		this.lut = LUTs.getLut( lutName );
 		this.inputToRandomColor = new ConcurrentHashMap< String, Integer >(  );
 		this.inputToFixedColor = new ConcurrentHashMap< String, Integer >(  );
 		this.randomSeed = 50;
+
+		if ( LUTs.isZeroTransparent( lutName ) )
+		{
+			this.assignColor( "0", LUTs.TRANSPARENT.get() );
+			this.assignColor( "0.0", LUTs.TRANSPARENT.get() );
+		}
 	}
 
 	@Override
@@ -94,7 +100,6 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 		inputToFixedColor.put( category, color );
 		notifyColoringListeners();
 	}
-
 
 	public void setRandomSeed( int randomSeed )
 	{

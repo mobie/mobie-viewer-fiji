@@ -28,18 +28,17 @@
  */
 package mobie3.viewer.color;
 
-import mobie3.viewer.select.Listeners;
-import net.imglib2.converter.Converter;
-import net.imglib2.type.numeric.ARGBType;
+import de.embl.cba.tables.select.SelectionModel;
 
-public interface ColoringModel< T > extends Converter< T, ARGBType >
+/**
+ * Interface for listeners of a {@link SelectionModel}.
+ *
+ */
+public interface ColoringListener
 {
 	/**
-	 * Get the list of color listeners. Add a {@link ColoringListener} to
-	 * this list, for being notified when the object/edge select changes.
-	 *
-	 * @return the list of listeners
+	 * Notifies when the color has changed.
 	 */
-	Listeners< ColoringListener > listeners();
+	public void coloringChanged();
 
 }
