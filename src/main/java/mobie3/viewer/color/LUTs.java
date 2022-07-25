@@ -30,6 +30,7 @@ package mobie3.viewer.color;
 
 import mobie3.viewer.color.lut.ARGBLut;
 import mobie3.viewer.color.lut.BlueWhiteRedARGBLut;
+import mobie3.viewer.color.lut.GlasbeyARGBLut;
 import mobie3.viewer.color.lut.ViridisARGBLut;
 import net.imglib2.type.numeric.ARGBType;
 
@@ -75,6 +76,10 @@ public class LUTs
 		else if ( lutName.contains( VIRIDIS ) )
 		{
 			return new ViridisARGBLut();
+		}
+		else if ( lutName.contains( GLASBEY ) )
+		{
+			return new GlasbeyARGBLut();
 		}
 		else
 		{

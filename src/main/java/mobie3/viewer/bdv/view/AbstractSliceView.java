@@ -41,7 +41,9 @@ public abstract class AbstractSliceView implements SliceView
 	protected final AbstractDisplay< ? > display;
 	protected final SliceViewer sliceViewer;
 
-	// TODO get rid of MoBIE here, which is only needed to close the sacs...
+	// TODO: get rid of MoBIE here, which is only needed to close the sacs...
+	//  in fact, using Nico's addition to the SACService will resolve this!
+	//  see the corresponding issue:
 	public AbstractSliceView( MoBIE moBIE, AbstractDisplay< ? > display )
 	{
 		this.moBIE = moBIE;

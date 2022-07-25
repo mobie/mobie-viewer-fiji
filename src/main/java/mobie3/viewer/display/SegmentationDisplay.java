@@ -37,6 +37,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+// Note that currently the only addition to an AnnotationDisplay is the
+// configuration of the segment volume rendering.
 public class SegmentationDisplay< AS extends AnnotatedSegment > extends AnnotationDisplay< AS >
 {
 	// Serialization

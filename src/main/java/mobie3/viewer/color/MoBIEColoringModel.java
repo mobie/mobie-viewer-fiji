@@ -28,9 +28,6 @@
  */
 package mobie3.viewer.color;
 
-import de.embl.cba.tables.color.ARBGLutSupplier;
-import de.embl.cba.tables.color.AbstractColoringModel;
-import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import mobie3.viewer.select.SelectionModel;
 import net.imglib2.type.numeric.ARGBType;
 
@@ -54,11 +51,6 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		setColoringModel( coloringModel );
 		this.selectionModel = selectionModel;
 		init();
-	}
-
-	public MoBIEColoringModel( String lut, SelectionModel< T > selectionModel )
-	{
-		this( new LazyCategoryColoringModel<>( new LutFactory().get( lut ) ), selectionModel );
 	}
 
 	private void init()

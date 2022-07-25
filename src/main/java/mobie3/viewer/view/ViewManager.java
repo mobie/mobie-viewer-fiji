@@ -35,12 +35,15 @@ import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.annotate.RegionTableRow;
+import mobie3.viewer.bdv.view.AnnotationSliceView;
 import mobie3.viewer.bdv.view.ImageSliceView;
 import mobie3.viewer.bdv.view.SliceViewer;
 import mobie3.viewer.color.AnnotationColoringModelCreator;
+import mobie3.viewer.color.CategoricalAnnotationColoringModel;
 import mobie3.viewer.color.ColoringModel;
 import mobie3.viewer.color.LUTs;
 import mobie3.viewer.color.MoBIEColoringModel;
+import mobie3.viewer.color.NumericAnnotationColoringModel;
 import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.display.ImageDisplay;
@@ -81,6 +84,7 @@ import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -380,9 +384,13 @@ public class ViewManager
 		if ( currentDisplays.contains( display ) ) return;
 
 		// TODO:
-		// What about label mask images that are NOT annotated,
-		// i.e. don't have a table?
-		// Should we create a table on the fly?
+		//   What about label mask images that are NOT annotated,
+		//   i.e. don't have a table?
+		//   Maybe implement an AnnData that lazily builds up
+		//   upon browsing around?
+		//   This may be tricky, because if we want to support semantic
+		//   segmentations there is no anchor(), maybe still fine, but
+		//   then the table would not move the slice view anywhere.
 		if ( display instanceof ImageDisplay )
 		{
 			for ( String name : display.getSources() )
@@ -397,9 +405,8 @@ public class ViewManager
 			for ( String name : display.getSources() )
 				annotationDisplay.addImage( (AnnotatedImage) moBIE.getImage( name ) );
 
-			annotationDisplay.sliceViewer = sliceViewer;
-
 			// configure selection model
+			//
 			annotationDisplay.selectionModel = new MoBIESelectionModel<>();
 			// set selected segments
 			if ( annotationDisplay.selectedAnnotationIds() != null )
@@ -408,32 +415,33 @@ public class ViewManager
 				annotationDisplay.selectionModel.setSelected( annotations, true );
 			}
 
-			// configure the coloring model
-			if ( annotationDisplay.getColoringColumnName() == null )
+			// configure coloring model
+			//
+			String lut = annotationDisplay.getLut();
+			if ( LUTs.isCategorical( lut ) )
 			{
-				annotationDisplay.coloringModel = new MoBIEColoringModel( annotationDisplay.getLut(), annotationDisplay.selectionModel );
-			}
-			else // color by a column in the table of the annotationDisplay
-			{
-				final String columnName = annotationDisplay.getColoringColumnName();
-				String lut = annotationDisplay.getLut();
-
-				ColoringModel< A > coloringModel;
-				if ( LUTs.isCategorical( lut ) )
-				{
-					coloringModel = AnnotationColoringModelCreator.createCategoricalModel( columnName, LUTs.getLut( lut ), LUTs.isZeroTransparent( lut ), LUTs.TRANSPARENT );
-				}
-				else if ( LUTs.isNumeric( lut ) )
-				{
-					final ValuePair< Double, Double > valueLimits = annotationDisplay.getValueLimits();
-					coloringModel = AnnotationColoringModelCreator.createNumericModel( columnName,  LUTs.getLut( lut ), valueLimits, LUTs.isZeroTransparent( lut ) );
-				}
-				else
-				{
-					throw new UnsupportedOperationException("Coloring LUT " + lut + " is not supported.");
-				}
+				@Nullable final String columnName = annotationDisplay.getColoringColumnName();
+				CategoricalAnnotationColoringModel< Annotation > coloringModel = AnnotationColoringModelCreator.createCategoricalModel( columnName, LUTs.getLut( lut ), LUTs.isZeroTransparent( lut ), LUTs.TRANSPARENT );
+				coloringModel.setRandomSeed( annotationDisplay.getRandomColorSeed() );
 				annotationDisplay.coloringModel = new MoBIEColoringModel( coloringModel, annotationDisplay.selectionModel );
 			}
+			else if ( LUTs.isNumeric( lut ) )
+			{
+				String columnName = annotationDisplay.getColoringColumnName();
+				if ( columnName == null )
+					throw new UnsupportedOperationException("A numeric coloring model must be associated to a column in the table.");
+				final ValuePair< Double, Double > valueLimits = annotationDisplay.getValueLimits();
+				NumericAnnotationColoringModel< Annotation > coloringModel; = AnnotationColoringModelCreator.createNumericModel( columnName,  LUTs.getLut( lut ), valueLimits, LUTs.isZeroTransparent( lut ) );
+				annotationDisplay.coloringModel = new MoBIEColoringModel( coloringModel, annotationDisplay.selectionModel );
+			}
+			else
+			{
+				throw new UnsupportedOperationException("Coloring LUT " + lut + " is not supported.");
+			}
+
+			// show in slice viewer
+			annotationDisplay.sliceViewer = sliceViewer;
+			annotationDisplay.sliceView = new AnnotationSliceView<>( moBIE, annotationDisplay );
 
 			initTableView( annotationDisplay );
 			initScatterPlotView( annotationDisplay );
@@ -484,23 +492,6 @@ public class ViewManager
 		}
 	}
 
-	private void showRegionDisplay( RegionDisplay regionDisplay )
-	{
-		configureColoringModel( regionDisplay );
-
-		// set selected segments
-		if ( regionDisplay.getSelectedRegionIds() != null )
-		{
-			final List< RegionTableRow > annotatedMasks = regionDisplay.tableRowsAdapter.getAnnotatedMasks( regionDisplay.getSelectedRegionIds() );
-			regionDisplay.selectionModel.setSelected( annotatedMasks, true );
-		}
-
-		regionDisplay.sliceView = new Ann( moBIE, regionDisplay );
-		initTableView( regionDisplay );
-		initScatterPlotView( regionDisplay );
-		setTablePosition( regionDisplay.sliceViewer.getWindow(), regionDisplay.tableView.getWindow() );
-	}
-
 	private void initTableView( AnnotationDisplay< ? extends Annotation > display )
 	{
 		display.tableView = new TableView( display );
@@ -528,11 +519,6 @@ public class ViewManager
 		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d(), true );
 		display.coloringModel.listeners().add( display.segmentsVolumeViewer );
 		display.selectionModel.listeners().add( display.segmentsVolumeViewer );
-
-		for ( SourceAndConverter< ? > sourceAndConverter : display.nameToSourceAndConverter.values() )
-		{
-			sacService.setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), display.segmentsVolumeViewer );
-		}
 	}
 
 	public synchronized void removeSourceDisplay( Display display, boolean closeImgLoader )

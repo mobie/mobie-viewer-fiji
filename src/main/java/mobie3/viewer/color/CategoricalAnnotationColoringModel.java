@@ -32,6 +32,7 @@ import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.color.lut.ARGBLut;
 import net.imglib2.type.numeric.ARGBType;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -44,7 +45,7 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 	private Map< String, Integer > inputToRandomColor;
 	private int randomSeed;
 
-	public CategoricalAnnotationColoringModel( String columnName, ARGBLut lut )
+	public CategoricalAnnotationColoringModel( @Nullable String columnName, ARGBLut lut )
 	{
 		this.columnName = columnName;
 		this.lut = lut;
@@ -56,7 +57,10 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 	@Override
 	public void convert( A input, ARGBType output )
 	{
-		convertStringToARGB( input.getValue( columnName ).toString(), output );
+		if ( columnName != null )
+			convertStringToARGB( input.getValue( columnName ).toString(), output );
+		else
+			convertStringToARGB( input.toString(), output );
 	}
 
 	public void convertStringToARGB( String value, ARGBType output )
@@ -89,5 +93,11 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 	{
 		inputToFixedColor.put( category, color );
 		notifyColoringListeners();
+	}
+
+
+	public void setRandomSeed( int randomSeed )
+	{
+		this.randomSeed = randomSeed;
 	}
 }

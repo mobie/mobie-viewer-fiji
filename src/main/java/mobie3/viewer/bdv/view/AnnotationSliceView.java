@@ -32,14 +32,14 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.SynchronizedViewerState;
-import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.color.ColoringModel;
 import mobie3.viewer.MoBIE;
 import mobie3.viewer.annotation.SliceViewAnnotationSelector;
 import mobie3.viewer.color.AnnotationConverter;
+import mobie3.viewer.color.ColoringModel;
 import mobie3.viewer.color.VolatileAnnotationConverter;
 import mobie3.viewer.display.AnnotationDisplay;
+import mobie3.viewer.display.SegmentationDisplay;
 import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.source.AnnotatedImage;
 import mobie3.viewer.source.AnnotationType;
@@ -48,9 +48,13 @@ import mobie3.viewer.source.SourceHelper;
 import mobie3.viewer.source.VolatileBoundarySource;
 import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.transform.SliceViewLocationChanger;
+import mobie3.viewer.volume.SegmentsVolumeViewer;
 import net.imglib2.Volatile;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
+import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
 import java.awt.*;
@@ -85,6 +89,13 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 			final SourceAndConverter sourceAndConverter = new SourceAndConverter( boundarySource, annotationConverter, volatileSourceAndConverter );
 
 			show( sourceAndConverter );
+
+			if ( display instanceof SegmentationDisplay )
+			{
+				// below is needed for the bdv context menu
+				// that configures the volume rendering
+				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), ((SegmentationDisplay) display ).segmentsVolumeViewer );
+			}
 		}
 	}
 
@@ -105,9 +116,6 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 			final VolatileBoundarySource volatileBoundarySource = SourceHelper.unwrapSource( sourceAndConverter.asVolatile().getSpimSource(), VolatileBoundarySource.class );
 			volatileBoundarySource.showAsBoundary( showAsBoundaries, boundaryThickness );
 		}
-		final ColoringModel< A > coloringModel = display.coloringModel.getWrappedColoringModel();
-		if ( coloringModel instanceof CategoryColoringModel )
-			( ( CategoryColoringModel<?> ) coloringModel ).setRandomSeed( display.getRandomColorSeed() );
 	}
 
 	@Override
