@@ -252,7 +252,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 //				}
 			}).start()
 		);
-
 		return menuItem;
 	}
 
@@ -262,7 +261,6 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
 						TableUIs.saveTableUI( jTable ) ) );
-
 		return menuItem;
 	}
 
@@ -271,40 +269,33 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		final JMenuItem menuItem = new JMenuItem( "Save Columns As..." );
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () -> TableUIs.saveColumns( jTable ) ) );
-
 		return menuItem;
 	}
 
 	private JMenuItem createSelectAllMenuItem()
 	{
 		final JMenuItem menuItem = new JMenuItem( "Select All" );
-
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
 						selectionModel.setSelected( tableModel.rows(), true ) ) );
-
 		return menuItem;
 	}
 
 	private JMenuItem createSelectEqualToMenuItem()
 	{
 		final JMenuItem menuItem = new JMenuItem( "Select Equal To..." );
-
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
 						selectEqualTo() ) );
-
 		return menuItem;
 	}
 
 	private JMenuItem createSelectLessThanMenuItem()
 	{
 		final JMenuItem menuItem = new JMenuItem( "Select Less Than..." );
-
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
 						selectGreaterOrLessThan( false ) ) );
-
 		return menuItem;
 	}
 
