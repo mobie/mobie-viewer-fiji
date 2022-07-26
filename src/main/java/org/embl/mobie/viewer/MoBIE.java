@@ -108,6 +108,7 @@ public class MoBIE
 	private String imageRoot;
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
+	private HashMap< String, SpimData > sourceNameToSpimData;
 	private Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter;
 	private ArrayList< String > projectCommands = new ArrayList<>();;
 	public static int minLogTimeMillis = 100;
@@ -394,6 +395,7 @@ public class MoBIE
 	{
 		IJ.log("Opening dataset: " + datasetName );
 		sourceNameToImgLoader = new HashMap<>();
+		sourceNameToSpimData = new HashMap<>();
 		sourceNameToSourceAndConverter = new ConcurrentHashMap<>();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
@@ -515,8 +517,14 @@ public class MoBIE
 		try
 		{
 			final int channel = imageSource.imageData.get(imageDataFormat).channel;
-			SpimData spimData = tryOpenSpimData( imagePath, imageDataFormat );
-			sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader());
+			SpimData spimData;
+			if ( sourceNameToSpimData.containsKey(sourceName)) {
+				spimData = sourceNameToSpimData.get(sourceName);
+			} else {
+				spimData = tryOpenSpimData( imagePath, imageDataFormat );
+				sourceNameToSpimData.put( sourceName, spimData );
+			}
+			sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader()); // TODO: What happens on closing? If multiple channels from the same source are open?
 			final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 			SourceAndConverter<?> sourceAndConverter = creator.getSetupIdToSourceAndConverter().get(channel);
             // Touch the source once to initiate the cache,
