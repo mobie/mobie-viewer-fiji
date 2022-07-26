@@ -76,8 +76,7 @@ public class LazySpimSource< T extends NumericType< T > > implements Source< T >
 	@Override
 	public int getNumMipmapLevels()
 	{
-		Thread.dumpStack();
-		throw new RuntimeException("PlaceHolderSpimSource...");
+		return lazySourceAndConverter.getSourceAndConverter().getSpimSource().getNumMipmapLevels();
 	}
 
 	public void setName( String name )
