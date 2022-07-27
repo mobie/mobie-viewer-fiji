@@ -209,7 +209,6 @@ public class SliceViewer
 		// register
 		SourceAndConverterServices.getSourceAndConverterService().register( sourceAndConverter );
 		display.nameToSourceAndConverter.put( sourceAndConverter.getSpimSource().getName(), sourceAndConverter );
-		moBIE.sourceNameToSourceAndConverter().put( sourceAndConverter.getSpimSource().getName(), sourceAndConverter );
 
 		// blending mode
 		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );

@@ -1,8 +1,7 @@
 package mobie3.viewer.transform;
 
 import mobie3.viewer.annotation.AnnotatedSegment;
-import mobie3.viewer.transform.AffineTransformation;
-import mobie3.viewer.transform.Transformation;
+import mobie3.viewer.transform.image.AffineTransformation;
 import net.imglib2.RealInterval;
 
 public class TransformedAnnotatedSegment implements AnnotatedSegment

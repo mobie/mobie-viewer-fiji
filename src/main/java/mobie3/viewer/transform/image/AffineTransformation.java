@@ -26,23 +26,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.transform;
+package mobie3.viewer.transform.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
-import mobie3.viewer.playground.SourceAffineTransformer;
 import mobie3.viewer.source.DefaultImage;
 import mobie3.viewer.source.Image;
 import mobie3.viewer.source.SourcePair;
-import mobie3.viewer.source.TransformedImage;
+import mobie3.viewer.transform.AbstractTransformation;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 public class AffineTransformation extends AbstractTransformation
 {

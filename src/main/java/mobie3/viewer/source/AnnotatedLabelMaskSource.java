@@ -75,7 +75,7 @@ public class AnnotatedLabelMaskSource< T extends IntegerType< T >, S extends Seg
 
     private void set( T input, int t, AnnotationType< S > output  )
     {
-        final String segmentId = AnnotatedSegment.toAnnotationId( source.getName(), t, input.getInteger() );
+        final String segmentId = AnnotatedSegment.createId( source.getName(), t, input.getInteger() );
         final S segment = annotationProvider.getAnnotation( segmentId );
         final AnnotationType< S > segmentType = new AnnotationType( segment );
         output.set( segmentType );

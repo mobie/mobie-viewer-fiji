@@ -26,10 +26,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.transform;
+package mobie3.viewer.transform.image;
 
 import bdv.viewer.SourceAndConverter;
 import mobie3.viewer.source.TransformedTimepointSource;
+import mobie3.viewer.transform.AbstractTransformation;
 import net.imglib2.Volatile;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
@@ -37,7 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TimepointsImageTransformation extends AbstractTransformation
+public class TimepointsTransformation extends AbstractTransformation
 {
 	// Serialisation
 	protected List< List< Integer > > parameters;
@@ -45,11 +46,11 @@ public class TimepointsImageTransformation extends AbstractTransformation
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
 
-	public TimepointsImageTransformation( String name, List< List< Integer > > timepoints, boolean keep, List< String > sources ) {
+	public TimepointsTransformation( String name, List< List< Integer > > timepoints, boolean keep, List< String > sources ) {
 		this( name, timepoints, keep, sources, null );
 	}
 
-	public TimepointsImageTransformation( String name, List< List< Integer > > timepoints, boolean keep, List< String > sources, List< String > sourceNamesAfterTransform )
+	public TimepointsTransformation( String name, List< List< Integer > > timepoints, boolean keep, List< String > sources, List< String > sourceNamesAfterTransform )
 	{
 		this.name = name;
 		this.parameters = timepoints;

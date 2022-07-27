@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.transform;
+package mobie3.viewer.transform.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.VolatileSource;
@@ -38,6 +38,8 @@ import mobie3.viewer.MultiThreading;
 import mobie3.viewer.source.FunctionGridSource;
 import mobie3.viewer.source.MergedGridSource;
 import mobie3.viewer.source.SourceHelper;
+import mobie3.viewer.transform.AbstractTransformation;
+import mobie3.viewer.transform.TransformedGridImageTransformation;
 import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
@@ -52,7 +54,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-public class MergedGridImageTransformation< T extends NumericType< T > >  extends AbstractTransformation
+public class MergedGridTransformation< T extends NumericType< T > >  extends AbstractTransformation
 {
 	// Serialization
 	protected List< String > sources;

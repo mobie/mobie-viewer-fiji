@@ -57,7 +57,7 @@ public class VolatileAdjustableOpacityColorConverter< V extends Volatile< RealTy
 		else
 		{
 			converter.convert( realTypeVolatile, color );
-			OpacityAdjuster.adjustOpacity( color, opacity );
+			adjustOpacity( color, opacity );
 		}
 	}
 

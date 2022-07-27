@@ -32,9 +32,12 @@ import bdv.viewer.SourceAndConverter;
 import mobie3.viewer.annotation.AnnotationProvider;
 import mobie3.viewer.bdv.render.BlendingMode;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
+import mobie3.viewer.color.AbstractAnnotationColoringModel;
+import mobie3.viewer.color.CategoricalAnnotationColoringModel;
 import mobie3.viewer.color.LutColumn;
 import mobie3.viewer.color.ColoringModel;
 import mobie3.viewer.color.MoBIEColoringModel;
+import mobie3.viewer.color.NumericAnnotationColoringModel;
 import mobie3.viewer.color.lut.LUTs;
 import mobie3.viewer.plot.ScatterPlotView;
 import mobie3.viewer.select.SelectionModel;
@@ -164,23 +167,21 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		//this.opacity = OpacityAdjuster.getOpacity( sourceAndConverter );
 		final ColoringModel< ? extends Annotation > coloringModel = annotationDisplay.coloringModel.getWrappedColoringModel();
 
-		if ( coloringModel instanceof LutColumn )
+		if ( coloringModel instanceof AbstractAnnotationColoringModel )
 		{
-			this.lut = ( ( LutColumn<?> ) coloringModel ).getLut().getName();
-			this.colorByColumn = ( ( LutColumn<?> ) coloringModel ).getColumnName();
+			this.lut = ( ( AbstractAnnotationColoringModel ) coloringModel ).getLut().getName();
+			this.colorByColumn = ( ( AbstractAnnotationColoringModel ) coloringModel ).getColumnName();
 		}
 
-		if ( coloringModel instanceof NumericColoringModel )
+		if ( coloringModel instanceof NumericAnnotationColoringModel )
 		{
 			this.valueLimits = new Double[2];
-			NumericColoringModel numericColoringModel = ( NumericColoringModel ) ( coloringModel );
-			this.valueLimits[0] = numericColoringModel.getMin();
-			this.valueLimits[1] = numericColoringModel.getMax();
+			this.valueLimits[0] = ( ( NumericAnnotationColoringModel ) coloringModel ).getMin();
+			this.valueLimits[1] = ( ( NumericAnnotationColoringModel ) coloringModel ).getMax();
 		}
-
-		if ( coloringModel instanceof CategoryColoringModel )
+		if ( coloringModel instanceof CategoricalAnnotationColoringModel )
 		{
-			this.randomColorSeed = ( ( CategoryColoringModel<?> ) coloringModel ).getRandomSeed();
+			this.randomColorSeed = ( ( CategoricalAnnotationColoringModel ) coloringModel ).getRandomSeed();
 		}
 
 		this.showScatterPlot = annotationDisplay.scatterPlotView.isVisible();

@@ -2,13 +2,13 @@ package mobie3.viewer.annotation;
 
 public interface AnnotatedSegment extends Segment, Annotation
 {
-	static String toAnnotationId( String imageId, int timePoint, int labelId )
+	static String createId( String imageId, int timePoint, int labelId )
 	{
 		return ""+imageId+";"+timePoint+";"+labelId;
 	}
 
-	static String toAnnotationId( Segment segment )
+	static String createId( Segment segment )
 	{
-		return toAnnotationId( segment.imageId(), segment.timePoint(), segment.labelId() );
+		return createId( segment.imageId(), segment.timePoint(), segment.labelId() );
 	}
 }

@@ -36,6 +36,7 @@ import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MultiThreading;
 import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.serialize.ImageData;
+import mobie3.viewer.source.Image;
 import mobie3.viewer.view.View;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
@@ -56,6 +57,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -73,7 +75,7 @@ public class GeneSearch
 	private final MoBIE3 moBIE;
 	private Map< String, Double > localExpression;
 	private Collection< String > prosprSourceNames;
-	private static Map< String, SourceAndConverter< ? > > prosprSources;
+	private static HashMap< String, Image< ? > > prosprSources;
 
 	public GeneSearch( double micrometerRadius,
 					   double[] micrometerPosition,
@@ -95,7 +97,7 @@ public class GeneSearch
 		//  Since the Prospr sources are not transformed, this does not matter (yet)...
 		if ( prosprSources == null )
 		{
-			prosprSources = moBIE.openSourceAndConverters( prosprSourceNames );
+			prosprSources = moBIE.initImages( prosprSourceNames );
 		}
 
 		final Map< String, Double > geneExpressionLevels = runSearchAndGetLocalExpression( prosprSources );
@@ -118,17 +120,17 @@ public class GeneSearch
 		return localSortedExpression;
 	}
 
-	private Map< String, Double > runSearchAndGetLocalExpression( Map< String, SourceAndConverter< ? > > sources )
+	private Map< String, Double > runSearchAndGetLocalExpression( HashMap< String, Image< ? > > images )
 	{
 		localExpression = new ConcurrentHashMap<>();
 
 		IJ.log( "# Gene search" );
 		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
-		for ( String gene : sources.keySet() )
+		for ( String gene : images.keySet() )
 		{
 			futures.add(
 				MultiThreading.executorService.submit( () -> {
-					searchGene( sources.get( gene ) );
+					searchGene( images.get( gene ) );
 			}));
 		}
 		MultiThreading.waitUntilFinished( futures );
@@ -136,9 +138,9 @@ public class GeneSearch
 		return localExpression;
 	}
 
-	private void searchGene( SourceAndConverter< ? > sourceAndConverter )
+	private void searchGene( Image< ? > image )
 	{
-		final Source< ? > source = sourceAndConverter.getSpimSource();
+		final Source< ? > source = image.getSourcePair().getSource();
 
 		final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
 

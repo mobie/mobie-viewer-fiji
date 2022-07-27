@@ -64,7 +64,7 @@ import mobie3.viewer.annotation.AnnotatedSegment;
 import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.table.AnnData;
 import mobie3.viewer.table.TableView;
-import mobie3.viewer.transform.AffineTransformation;
+import mobie3.viewer.transform.image.AffineTransformation;
 import mobie3.viewer.transform.NormalizedAffineViewerTransform;
 import mobie3.viewer.transform.SliceViewLocationChanger;
 import mobie3.viewer.transform.Transformation;

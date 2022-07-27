@@ -26,9 +26,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.transform;
+package mobie3.viewer.transform.image;
 
 import bdv.viewer.SourceAndConverter;
+import mobie3.viewer.transform.AbstractTransformation;
+import mobie3.viewer.transform.TransformHelper;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
@@ -38,7 +40,7 @@ import sc.fiji.bdvpg.sourceandconverter.transform.SourceResampler;
 import java.util.List;
 import java.util.Map;
 
-public class CropImageTransformation extends AbstractTransformation
+public class CropTransformation extends AbstractTransformation
 {
 	protected double[] min;
 	protected double[] max;

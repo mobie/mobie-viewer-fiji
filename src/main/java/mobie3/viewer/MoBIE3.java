@@ -584,11 +584,6 @@ public class MoBIE3
 		return columns;
 	}
 
-	public Map< String, Image< ? > > sourceNameToSourceAndConverter()
-	{
-		return images;
-	}
-
 	private void appendSegmentsTableColumns( List< ? extends TableRow > tableRows, Map< String, List< String > > additionalTable )
 	{
 		// prepare
@@ -673,7 +668,7 @@ public class MoBIE3
 		return projectCommands;
 	}
 
-	public HashMap< String, Image< ? > > initImages( List< String > sources )
+	public HashMap< String, Image< ? > > initImages( Collection< String > sources )
 	{
 		final HashMap< String, Image< ? > > images = new HashMap<>();
 		for ( String name : sources )

@@ -28,6 +28,7 @@
  */
 package mobie3.viewer.color;
 
+import de.embl.cba.tables.color.NumericColoringModel;
 import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.color.lut.LUTs;
 import net.imglib2.type.numeric.ARGBType;
@@ -47,7 +48,6 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 		this.columnName = columnName;
 		this.lut = LUTs.getLut( lutName );
 		this.contrastLimits = contrastLimits;
-		//this.range = contrastLimits;
 		this.isZeroTransparent = LUTs.isZeroTransparent( lutName );
 	}
 
@@ -57,29 +57,23 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 		final Double value = ( Double ) annotation.getValue( columnName );
 		setColorLinearly( value, output );
 	}
-
-	@Override
+	
 	public double getMin()
 	{
 		return contrastLimits.getA();
 	}
 
-
-	@Override
 	public double getMax()
 	{
 		return contrastLimits.getB();
 	}
 
-
-	@Override
 	public void setMin( double min )
 	{
 		contrastLimits = new ValuePair<>( min, contrastLimits.getB() );
 		notifyColoringListeners();
 	}
 
-	@Override
 	public void setMax( double max )
 	{
 		contrastLimits = new ValuePair<>( contrastLimits.getA(), max );

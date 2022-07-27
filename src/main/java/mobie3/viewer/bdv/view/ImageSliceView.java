@@ -64,7 +64,7 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 	private void show( )
 	{
 		Map< String, SourceAndConverter< T > > sourceNameToSourceAndConverter = new HashMap<>();
-		for ( Image< T > image : display.images   )
+		for ( Image< T > image : display.getImages() )
 		{
 			sourceNameToSourceAndConverter.put( image.getName(), createSac( image ) );
 		}

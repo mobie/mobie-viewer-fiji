@@ -18,12 +18,4 @@ public class DefaultAnnData< A extends Annotation > implements AnnData< A >
 	{
 		return tableModel;
 	}
-
-	@Override
-	public AnnData< ? extends A > transform( AnnotatedSegmentTransformer annotatedSegmentTransformer )
-	{
-		final TransformedAnnotationTableModel transformedAnnotationTableModel = new TransformedAnnotationTableModel( tableModel, annotatedSegmentTransformer );
-		final DefaultAnnData< TransformedAnnotatedSegment > transformedAnnData = new DefaultAnnData<>( transformedAnnotationTableModel );
-		return transformedAnnData;
-	}
 }

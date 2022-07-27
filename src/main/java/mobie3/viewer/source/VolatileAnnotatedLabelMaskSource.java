@@ -30,7 +30,7 @@ package mobie3.viewer.source;
 
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import mobie3.viewer.annotation.Segment;
+import mobie3.viewer.annotation.AnnotatedSegment;
 import mobie3.viewer.annotation.AnnotationProvider;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
@@ -38,21 +38,21 @@ import net.imglib2.Volatile;
 import net.imglib2.converter.Converters;
 import net.imglib2.type.numeric.IntegerType;
 
-public class VolatileAnnotatedLabelMaskSource< T extends IntegerType< T >, V extends Volatile< T >, S extends Segment > extends AbstractSourceWrapper< V, VolatileAnnotationType< S > >
+public class VolatileAnnotatedLabelMaskSource< T extends IntegerType< T >, V extends Volatile< T >, AS extends AnnotatedSegment > extends AbstractSourceWrapper< V, VolatileAnnotationType< AS > >
 {
-    private final AnnotationProvider< S > annotationProvider;
+    private final AnnotationProvider< AS > annotationProvider;
 
-    public VolatileAnnotatedLabelMaskSource( final Source< V > source, AnnotationProvider< S > annotationProvider )
+    public VolatileAnnotatedLabelMaskSource( final Source< V > source, AnnotationProvider< AS > annotationProvider )
     {
         super( source );
         this.annotationProvider = annotationProvider;
     }
 
     @Override
-    public RandomAccessibleInterval< VolatileAnnotationType< S > > getSource( final int t, final int level )
+    public RandomAccessibleInterval< VolatileAnnotationType< AS > > getSource( final int t, final int level )
     {
         final RandomAccessibleInterval< V > rai = source.getSource( t, level );
-        final RandomAccessibleInterval< VolatileAnnotationType< S > > convert = Converters.convert( rai, ( input, output ) -> {
+        final RandomAccessibleInterval< VolatileAnnotationType< AS > > convert = Converters.convert( rai, ( input, output ) -> {
             set( input, t, output );
         }, createVariable() );
 
@@ -60,32 +60,34 @@ public class VolatileAnnotatedLabelMaskSource< T extends IntegerType< T >, V ext
     }
 
     @Override
-    public RealRandomAccessible< VolatileAnnotationType< S > > getInterpolatedSource( final int t, final int level, final Interpolation method)
+    public RealRandomAccessible< VolatileAnnotationType< AS > > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
         final RealRandomAccessible< V > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
         return Converters.convert( rra, ( input, output ) -> set( input, t, output ), createVariable() );
     }
 
-    private void set( V input, int t, VolatileAnnotationType< S > output )
+    private void set( V input, int t, VolatileAnnotationType< AS > output )
     {
         if ( ! input.isValid() )
         {
             output.setValid( false );
             return;
         }
-        final S segment = annotationProvider.getAnnotation( input.get().getInteger(), t, source.getName() );
-        final VolatileAnnotationType< S > volatileAnnotationType = new VolatileAnnotationType( segment, true );
+
+        final String annotationId = AnnotatedSegment.createId( source.getName(), t, input.get().getInteger() );
+        final AS segment = annotationProvider.getAnnotation( annotationId );
+        final VolatileAnnotationType< AS > volatileAnnotationType = new VolatileAnnotationType( segment, true );
         output.set( volatileAnnotationType );
     }
 
     @Override
-    public VolatileAnnotationType< S > getType()
+    public VolatileAnnotationType< AS > getType()
     {
         return createVariable();
     }
 
-    private VolatileAnnotationType< S > createVariable()
+    private VolatileAnnotationType< AS > createVariable()
     {
         return new VolatileAnnotationType( annotationProvider.createVariable(), true );
     }

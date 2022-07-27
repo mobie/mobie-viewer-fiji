@@ -106,4 +106,9 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 	{
 		this.randomSeed = randomSeed;
 	}
+
+	public int getRandomSeed()
+	{
+		return randomSeed;
+	}
 }
