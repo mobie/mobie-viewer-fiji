@@ -96,7 +96,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
 import static org.embl.mobie.viewer.MoBIEHelper.selectFilePath;
 import static org.embl.mobie.viewer.MoBIEHelper.selectTableFileNameFromProjectDialog;
 
@@ -480,7 +479,7 @@ public class MoBIE
 
 		if ( dataSource.getClass() == ImageSource.class )
 		{
-			sourceAndConverter = replaceConverterByAdjustableOpacityConverter( (SourceAndConverter) sourceAndConverter );
+			sourceAndConverter = null; // replaceConverterByAdjustableOpacityConverter( (SourceAndConverter) sourceAndConverter );
 		}
 		else if ( dataSource.getClass() == SegmentationSource.class )
 		{

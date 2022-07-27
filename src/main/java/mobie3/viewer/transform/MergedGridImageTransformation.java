@@ -33,7 +33,7 @@ import bdv.util.VolatileSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MultiThreading;
 import mobie3.viewer.source.FunctionGridSource;
 import mobie3.viewer.source.MergedGridSource;
@@ -97,7 +97,7 @@ public class MergedGridImageTransformation< T extends NumericType< T > >  extend
 		mergedGridSource.setContainedSourceAndConverters( transformedSourceAndConverters );
 
 		final long duration = System.currentTimeMillis() - startTime;
-		if ( duration > MoBIE.minLogTimeMillis )
+		if ( duration > MoBIE3.minLogTimeMillis )
 			IJ.log("Merged " + sources.size() + " sources into " + mergedGridSourceName + " in " + duration + " ms (centerAtOrigin="+centerAtOrigin+").");
 	}
 

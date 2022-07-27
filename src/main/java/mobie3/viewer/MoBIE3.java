@@ -90,11 +90,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class MoBIE
+public class MoBIE3
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	private static MoBIE moBIE;
+	private static MoBIE3 moBIE;
 
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
 	private final String projectName;
@@ -113,12 +113,12 @@ public class MoBIE
 	public static int minLogTimeMillis = 100;
 	public static boolean initiallyShowSourceNames = false;
 
-	public MoBIE( String projectRoot ) throws IOException
+	public MoBIE3( String projectRoot ) throws IOException
 	{
 		this( projectRoot, MoBIESettings.settings() );
 	}
 
-	public MoBIE( String projectLocation, MoBIESettings settings ) throws IOException
+	public MoBIE3( String projectLocation, MoBIESettings settings ) throws IOException
 	{
 		// Only allow one instance to avoid confusion
 		if ( moBIE != null )
@@ -142,16 +142,6 @@ public class MoBIE
 		project = new ProjectJsonParser().parseProject( IOHelper.combinePath( projectRoot,  "project.json" ) );
 		setImageDataFormats( projectLocation );
 		openDataset();
-	}
-
-	// TODO: Typing: probably the SAC extends RealType?!
-	public static SourceAndConverter< RealType > replaceConverterByAdjustableOpacityConverter( SourceAndConverter< RealType > sourceAndConverter )
-	{
-		final Converter< RealType, ARGBType > converter = sourceAndConverter.getConverter();
-		final AdjustableOpacityColorConverter adjustableOpacityColorConverter = new AdjustableOpacityColorConverter( converter );
-		final Converter< ? extends Volatile< RealType >, ARGBType > volatileConverter = sourceAndConverter.asVolatile().getConverter();
-		final VolatileAdjustableOpacityColorConverter volatileAdjustableOpacityColorConverter = new VolatileAdjustableOpacityColorConverter( volatileConverter );
-		return new ConverterChanger( sourceAndConverter, adjustableOpacityColorConverter, volatileAdjustableOpacityColorConverter ).get();
 	}
 
 	// TODO: Probably such Plugins should rather

@@ -29,16 +29,13 @@
 package mobie3.viewer.display;
 
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.tables.color.CategoryColoringModel;
-import de.embl.cba.tables.color.ColoringLuts;
-import de.embl.cba.tables.color.ColumnColoringModel;
-import de.embl.cba.tables.color.NumericColoringModel;
 import mobie3.viewer.annotation.AnnotationProvider;
 import mobie3.viewer.bdv.render.BlendingMode;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
+import mobie3.viewer.color.LutColumn;
 import mobie3.viewer.color.ColoringModel;
-import mobie3.viewer.color.OpacityAdjuster;
 import mobie3.viewer.color.MoBIEColoringModel;
+import mobie3.viewer.color.lut.LUTs;
 import mobie3.viewer.plot.ScatterPlotView;
 import mobie3.viewer.select.SelectionModel;
 import mobie3.viewer.source.AnnotationType;
@@ -65,7 +62,7 @@ import java.util.stream.Collectors;
 public abstract class AnnotationDisplay< A extends Annotation > extends AbstractDisplay< AnnotationType< A > >
 {
 	// Serialization
-	protected String lut = ColoringLuts.GLASBEY;
+	protected String lut = LUTs.GLASBEY;
 	protected String colorByColumn;
 	protected Double[] valueLimits;
 	protected boolean showScatterPlot = false;
@@ -161,18 +158,19 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		// One can therefore fetch the display settings from any of the
 		// SourceAndConverter.
 		final SourceAndConverter< ? > sourceAndConverter = annotationDisplay.nameToSourceAndConverter.values().iterator().next();
-		this.opacity = OpacityAdjuster.getOpacity( sourceAndConverter );
 
-		this.lut = annotationDisplay.coloringModel.getARGBLutName();
-
+		// TODO: get opacity from coloring model instead of sac!
+		//   But from which one? Maybe just from MoBIEColoringModel?!
+		//this.opacity = OpacityAdjuster.getOpacity( sourceAndConverter );
 		final ColoringModel< ? extends Annotation > coloringModel = annotationDisplay.coloringModel.getWrappedColoringModel();
 
-		if ( coloringModel instanceof ColumnColoringModel)
+		if ( coloringModel instanceof LutColumn )
 		{
-			this.colorByColumn = (( ColumnColoringModel ) coloringModel).getColumnName();
+			this.lut = ( ( LutColumn<?> ) coloringModel ).getLut().getName();
+			this.colorByColumn = ( ( LutColumn<?> ) coloringModel ).getColumnName();
 		}
 
-		if ( coloringModel instanceof NumericColoringModel)
+		if ( coloringModel instanceof NumericColoringModel )
 		{
 			this.valueLimits = new Double[2];
 			NumericColoringModel numericColoringModel = ( NumericColoringModel ) ( coloringModel );

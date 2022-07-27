@@ -32,7 +32,7 @@ import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIEHelper;
 import mobie3.viewer.Project;
 import mobie3.viewer.command.OpenMoBIEProjectCommand;
@@ -164,7 +164,7 @@ public class ProjectsCreatorPanel extends JFrame {
         datasetComboBox = new JComboBox<>( datasetNames );
         datasetComboBox.setSelectedItem( datasetNames[0] );
         setComboBoxDimensions(datasetComboBox);
-        datasetComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
+        datasetComboBox.setPrototypeDisplayValue( MoBIE3.PROTOTYPE_DISPLAY_VALUE);
         datasetComboBox.addItemListener( new SyncAllWithDatasetComboBox() );
     }
 
@@ -180,7 +180,7 @@ public class ProjectsCreatorPanel extends JFrame {
             sourcesComboBox.setSelectedItem( "" );
         }
         setComboBoxDimensions(sourcesComboBox);
-        sourcesComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
+        sourcesComboBox.setPrototypeDisplayValue( MoBIE3.PROTOTYPE_DISPLAY_VALUE);
     }
 
     private void createGroupsCombobox() {
@@ -198,7 +198,7 @@ public class ProjectsCreatorPanel extends JFrame {
             groupsComboBox.setSelectedItem( "" );
         }
         setComboBoxDimensions(groupsComboBox);
-        groupsComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
+        groupsComboBox.setPrototypeDisplayValue( MoBIE3.PROTOTYPE_DISPLAY_VALUE);
         groupsComboBox.addItemListener( new SyncGroupAndViewComboBox() );
     }
 
@@ -219,12 +219,12 @@ public class ProjectsCreatorPanel extends JFrame {
         }
 
         setComboBoxDimensions(viewsComboBox);
-        viewsComboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE);
+        viewsComboBox.setPrototypeDisplayValue( MoBIE3.PROTOTYPE_DISPLAY_VALUE);
     }
 
     public static void setComboBoxDimensions( JComboBox< String > comboBox )
     {
-        comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE );
+        comboBox.setPrototypeDisplayValue( MoBIE3.PROTOTYPE_DISPLAY_VALUE );
         comboBox.setPreferredSize( new Dimension( 350, 20 ) );
         comboBox.setMaximumSize( new Dimension( 350, 20 ) );
     }

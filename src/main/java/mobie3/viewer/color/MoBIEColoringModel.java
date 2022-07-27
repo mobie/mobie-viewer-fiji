@@ -28,6 +28,7 @@
  */
 package mobie3.viewer.color;
 
+import mobie3.viewer.color.opacity.OpacityAdjuster;
 import mobie3.viewer.select.SelectionModel;
 import net.imglib2.type.numeric.ARGBType;
 
@@ -45,7 +46,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 	private double opacityNotSelected;
 
 	// Wraps a base coloring model and combines it with a selection model,
-	// such that selected elements can have special colors.
+	// such that selected elements can have special colors and opacities.
 	public MoBIEColoringModel( ColoringModel< T > coloringModel, SelectionModel< T > selectionModel )
 	{
 		setColoringModel( coloringModel );
@@ -70,7 +71,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 
 		if ( ! selectionModel.isSelected( value ) )
 		{
-			dim( color, opacityNotSelected );
+			applyOpacity( color, opacityNotSelected );
 		}
 		else
 		{
@@ -78,7 +79,7 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		}
 	}
 
-	private void dim( ARGBType color, double opacity )
+	private void applyOpacity( ARGBType color, double opacity )
 	{
 		final int value = color.get();
 		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
@@ -107,22 +108,10 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 		return coloringModel;
 	}
 
-	public SelectionModel< T > getSelectionModel()
-	{
-		return selectionModel;
-	}
-
-	public String getARGBLutName()
-	{
-		if ( coloringModel instanceof ARBGLutSupplier )
-		{
-			return ( ( ARBGLutSupplier ) coloringModel ).getARGBLut().getName();
-		}
-		else
-		{
-			return null;
-		}
-	}
+	//public SelectionModel< T > getSelectionModel()
+	//{
+	//	return selectionModel;
+	//}
 
 	public double getOpacityNotSelected()
 	{
@@ -135,4 +124,5 @@ public class MoBIEColoringModel< T > extends AbstractColoringModel< T >
 
 		notifyListeners();
 	}
+
 }

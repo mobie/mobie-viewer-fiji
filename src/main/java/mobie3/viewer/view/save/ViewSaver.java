@@ -31,7 +31,7 @@ package mobie3.viewer.view.save;
 import de.embl.cba.tables.github.GitHubUtils;
 import ij.IJ;
 import ij.gui.GenericDialog;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIEHelper;
 import mobie3.viewer.MoBIESettings;
 import mobie3.viewer.projectcreator.ProjectCreatorHelper;
@@ -62,7 +62,7 @@ public class ViewSaver
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    private MoBIE moBIE;
+    private MoBIE3 moBIE;
     private MoBIESettings settings;
 
     enum ProjectSaveLocation {
@@ -75,7 +75,7 @@ public class ViewSaver
         overwriteExistingView
     }
 
-    public ViewSaver( MoBIE moBIE) {
+    public ViewSaver( MoBIE3 moBIE) {
         this.moBIE = moBIE;
         this.settings = moBIE.getSettings();
     }

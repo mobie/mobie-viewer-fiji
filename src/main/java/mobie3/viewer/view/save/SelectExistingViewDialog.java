@@ -29,7 +29,7 @@
 package mobie3.viewer.view.save;
 
 import de.embl.cba.tables.SwingUtils;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.projectcreator.ProjectCreatorHelper;
 import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.ui.MoBIELaf;
@@ -139,7 +139,7 @@ public class SelectExistingViewDialog {
 
     private void setComboBoxDimensions( JComboBox< String > comboBox )
     {
-        comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE );
+        comboBox.setPrototypeDisplayValue( MoBIE3.PROTOTYPE_DISPLAY_VALUE );
         comboBox.setPreferredSize( new Dimension( 200, 20 ) );
         comboBox.setMaximumSize( new Dimension( 200, 20 ) );
     }

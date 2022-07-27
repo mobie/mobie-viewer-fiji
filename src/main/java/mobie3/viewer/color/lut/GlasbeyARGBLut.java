@@ -33,7 +33,6 @@ import net.imglib2.type.numeric.ARGBType;
 
 import java.util.ArrayList;
 
-
 /**
  * Modified version of Glasbey LUT,
  * excluding grayish and dark colors

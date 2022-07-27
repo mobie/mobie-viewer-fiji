@@ -28,19 +28,16 @@
  */
 package org.embl.mobie.viewer.color.opacity;
 
-import net.imglib2.display.RealARGBColorConverter;
-import org.embl.mobie.viewer.color.OpacityAdjuster;
 import net.imglib2.Volatile;
-import net.imglib2.converter.Converter;
-import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import org.embl.mobie.viewer.color.OpacityAdjuster;
 
-public class VolatileAdjustableOpacityColorConverter< R extends RealType< R >, V extends Volatile< R > > extends AbstractAdjustableOpacityColorConverter< V >
+public class VolatileAdjustableOpacityColorConverter< R extends RealType< R >, V extends Volatile< R > & RealType< V> > extends AbstractAdjustableOpacityColorConverter< V >
 {
 	public VolatileAdjustableOpacityColorConverter( V volatileType )
 	{
-		setConverter( volatileType.get() );
+		setConverter( ( V ) volatileType.get() );
 	}
 
 	@Override
@@ -48,7 +45,7 @@ public class VolatileAdjustableOpacityColorConverter< R extends RealType< R >, V
 	{
 		if ( ! volatileType.isValid() ) return;
 
-		converter.convert( volatileType.get(), color );
+		colorConverter.convert( ( V ) volatileType.get(), color );
 		OpacityAdjuster.adjustAlpha( color, opacity );
 	}
 }

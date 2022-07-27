@@ -28,7 +28,8 @@
  */
 package mobie3.viewer.color;
 
-public interface SelectionColoringModelWrapper
+// TODO: do we need this interface?
+public interface MoBIEColoringModelWrapper
 {
-	MoBIEColoringModel getSelectionColoringModel();
+	MoBIEColoringModel getMoBIEColoringModel();
 }

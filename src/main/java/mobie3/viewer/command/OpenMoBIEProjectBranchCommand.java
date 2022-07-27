@@ -28,7 +28,7 @@
  */
 package mobie3.viewer.command;
 
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIESettings;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -50,7 +50,7 @@ public class OpenMoBIEProjectBranchCommand implements Command
 	{
 		try
 		{
-			new MoBIE( projectLocation, MoBIESettings.settings().gitProjectBranch( projectBranch ) );
+			new MoBIE3( projectLocation, MoBIESettings.settings().gitProjectBranch( projectBranch ) );
 		}
 		catch ( IOException e )
 		{

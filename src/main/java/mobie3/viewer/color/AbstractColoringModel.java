@@ -33,10 +33,17 @@ import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
 
+import static net.imglib2.type.numeric.ARGBType.alpha;
+import static net.imglib2.type.numeric.ARGBType.blue;
+import static net.imglib2.type.numeric.ARGBType.green;
+import static net.imglib2.type.numeric.ARGBType.red;
+
 public abstract class AbstractColoringModel< T > implements ColoringModel< T >
 {
 	protected final Listeners.SynchronizedList< ColoringListener > listeners
 			= new Listeners.SynchronizedList< ColoringListener >(  );
+
+	protected double opacity;
 
 	@Override
 	public Listeners< ColoringListener > listeners()
@@ -57,4 +64,15 @@ public abstract class AbstractColoringModel< T > implements ColoringModel< T >
 			SwingUtilities.invokeLater( () -> listener.coloringChanged() );
 		}
 	}
+
+	public void setOpacity( double opacity )
+	{
+		this.opacity = opacity;
+	}
+
+	public double getOpacity()
+	{
+		return opacity;
+	}
+
 }

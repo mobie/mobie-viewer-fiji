@@ -36,7 +36,7 @@ import static net.imglib2.type.numeric.ARGBType.blue;
 import static net.imglib2.type.numeric.ARGBType.green;
 import static net.imglib2.type.numeric.ARGBType.red;
 
-public abstract class AbstractAnnotationConverter< T, A > implements Converter< A, ARGBType >, OpacityAdjuster, SelectionColoringModelWrapper
+public abstract class AbstractAnnotationConverter< T, A > implements Converter< A, ARGBType >, MoBIEColoringModelWrapper
 {
 	private final MoBIEColoringModel< T > coloringModel;
 	private double opacity = 1.0;
@@ -47,19 +47,7 @@ public abstract class AbstractAnnotationConverter< T, A > implements Converter< 
 	}
 
 	@Override
-	public void setOpacity( double opacity )
-	{
-		this.opacity = opacity;
-	}
-
-	@Override
-	public double getOpacity()
-	{
-		return opacity;
-	}
-
-	@Override
-	public MoBIEColoringModel getSelectionColoringModel()
+	public MoBIEColoringModel getMoBIEColoringModel()
 	{
 		return coloringModel;
 	}
@@ -77,7 +65,8 @@ public abstract class AbstractAnnotationConverter< T, A > implements Converter< 
 		coloringModel.convert( input, color );
 
 		// adjust opacity
-		final int value = color.get();
-		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
+		// opacity happens in the coloringModel
+//		final int value = color.get();
+//		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
 	}
 }

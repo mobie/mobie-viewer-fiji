@@ -28,7 +28,7 @@
  */
 package mobie3.viewer.command;
 
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIESettings;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -53,7 +53,7 @@ public class OpenMoBIEProjectWithS3CredentialsCommand implements Command
 	{
 		try
 		{
-			new MoBIE(
+			new MoBIE3(
 					projectLocation,
 					MoBIESettings.settings()
 							.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } )

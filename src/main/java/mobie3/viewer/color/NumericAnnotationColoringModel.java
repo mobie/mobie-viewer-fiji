@@ -29,15 +29,14 @@
 package mobie3.viewer.color;
 
 import mobie3.viewer.annotation.Annotation;
-import mobie3.viewer.color.lut.ARGBLut;
+import mobie3.viewer.color.lut.LUTs;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 
-public class NumericAnnotationColoringModel< A extends Annotation > extends AbstractAnnotationColoringModel< A > implements NumericColoringModel< A >
+public class NumericAnnotationColoringModel< A extends Annotation > extends AbstractAnnotationColoringModel< A >
 {
 	private Pair< Double, Double > contrastLimits;
-	//private Pair< Double, Double > range;
 	private final boolean isZeroTransparent;
 
 	public NumericAnnotationColoringModel(

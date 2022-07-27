@@ -28,23 +28,10 @@
  */
 package mobie3.viewer.color;
 
-import de.embl.cba.tables.color.ColoringListener;
-import de.embl.cba.tables.select.Listeners;
 import mobie3.viewer.color.lut.ARGBLut;
-import net.imglib2.converter.Converter;
-import net.imglib2.type.numeric.ARGBType;
 
-public interface AnnotationColoringModel< T > extends Converter< T, ARGBType >
+public interface LutColumn< T > extends ColoringModel< T >
 {
-	/**
-	 * Get the list of color listeners. Add a {@link ColoringListener} to
-	 * this list, for being notified when the object/edge select changes.
-	 *
-	 * @return the list of listeners
-	 */
-	Listeners< ColoringListener > listeners();
-
 	String getColumnName();
-
 	ARGBLut getLut();
 }

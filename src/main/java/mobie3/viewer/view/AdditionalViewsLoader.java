@@ -29,7 +29,7 @@
 package mobie3.viewer.view;
 
 import ij.IJ;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIEHelper;
 import mobie3.viewer.serialize.AdditionalViewsJsonParser;
 
@@ -40,9 +40,9 @@ public class AdditionalViewsLoader {
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-    private MoBIE moBIE;
+    private MoBIE3 moBIE;
 
-    public AdditionalViewsLoader ( MoBIE moBIE ) {
+    public AdditionalViewsLoader ( MoBIE3 moBIE ) {
         this.moBIE = moBIE;
     }
 

@@ -37,7 +37,7 @@ import static net.imglib2.type.numeric.ARGBType.blue;
 import static net.imglib2.type.numeric.ARGBType.green;
 import static net.imglib2.type.numeric.ARGBType.red;
 
-public abstract class OpacityAdjuster
+public abstract class OpacityHelper
 {
 	public static void adjustOpacity( SourceAndConverter< ? > sourceAndConverter, double opacity )
 	{
@@ -54,12 +54,6 @@ public abstract class OpacityAdjuster
 		colorConverter.getColor().get();
 		final int value = colorConverter.getColor().get();
 		colorConverter.setColor( new ARGBType( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) ) );
-	}
-
-	public static void adjustOpacity( ARGBType color, double opacity )
-	{
-		final int value = color.get();
-		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
 	}
 
 	public static double getOpacity( SourceAndConverter< ? > sourceAndConverter )

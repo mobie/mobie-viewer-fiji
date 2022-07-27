@@ -29,7 +29,7 @@
 package mobie3.viewer.ui;
 
 import ij.gui.GenericDialog;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 
 import javax.swing.*;
 import java.awt.*;
@@ -71,7 +71,7 @@ public class SwingHelper
 
 	public static void setComboBoxDimensions( JComboBox< String > comboBox )
 	{
-		comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE );
+		comboBox.setPrototypeDisplayValue( MoBIE3.PROTOTYPE_DISPLAY_VALUE );
 		comboBox.setPreferredSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
 		comboBox.setMaximumSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
 	}

@@ -30,14 +30,14 @@ package mobie3.viewer.bdv.view;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.bdv.MobieBdvSupplier;
 import mobie3.viewer.bdv.MobieSerializableBdvOptions;
 import mobie3.viewer.bdv.SourceNameRenderer;
 import mobie3.viewer.bdv.SourcesAtMousePositionSupplier;
 import mobie3.viewer.bdv.ViewerTransformLogger;
 import mobie3.viewer.bdv.render.BlendingMode;
-import mobie3.viewer.color.OpacityAdjuster;
+import mobie3.viewer.color.OpacityHelper;
 import mobie3.viewer.command.BigWarpRegistrationCommand;
 import mobie3.viewer.command.ConfigureImageVolumeRenderingCommand;
 import mobie3.viewer.command.ConfigureLabelRenderingCommand;
@@ -74,7 +74,7 @@ public class SliceViewer
 	protected static final String FRAME_TITLE = "MoBIE - BigDataViewer";
 	private final SourceAndConverterBdvDisplayService sacDisplayService;
 	private BdvHandle bdvHandle;
-	private final MoBIE moBIE;
+	private final MoBIE3 moBIE;
 	private final boolean is2D;
 	private final ArrayList< String > projectCommands;
 
@@ -82,7 +82,7 @@ public class SliceViewer
 	private final SourceAndConverterService sacService;
 	private SourceNameRenderer sourceNameRenderer;
 
-	public SliceViewer( MoBIE moBIE, boolean is2D )
+	public SliceViewer( MoBIE3 moBIE, boolean is2D )
 	{
 		this.moBIE = moBIE;
 		this.is2D = is2D;
@@ -215,7 +215,7 @@ public class SliceViewer
 		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
 
 		// opacity
-		OpacityAdjuster.adjustOpacity( sourceAndConverter, display.getOpacity() );
+		OpacityHelper.adjustOpacity( sourceAndConverter, display.getOpacity() );
 
 		// show in Bdv
 		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );

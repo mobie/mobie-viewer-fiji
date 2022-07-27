@@ -33,7 +33,7 @@ import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.bdv.CircleOverlay;
 import mobie3.viewer.bdv.GlobalMousePositionProvider;
 import mobie3.viewer.command.CommandConstants;
@@ -55,9 +55,9 @@ public class GeneSearchCommand implements BdvPlaygroundActionCommand
 	@Parameter ( label = "Search radius [micrometer]")
 	private double radius = 3.0;
 
-	private static MoBIE moBIE;
+	private static MoBIE3 moBIE;
 
-	public static void setMoBIE( MoBIE moBIE )
+	public static void setMoBIE( MoBIE3 moBIE )
 	{
 		GeneSearchCommand.moBIE = moBIE;
 	}

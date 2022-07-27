@@ -36,7 +36,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import mobie3.viewer.bdv.render.BlendingMode;
 import mobie3.viewer.color.LabelConverter;
-import mobie3.viewer.color.OpacityAdjuster;
+import mobie3.viewer.color.OpacityHelper;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.Display;
 import mobie3.viewer.source.BoundarySource;
@@ -96,8 +96,8 @@ public class ViewFromSourceAndConverterCreator
 		final Converter< ?, ARGBType > converter = sourceAndConverter.getConverter();
 		final ConverterSetup converterSetup = SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter );
 
-		if( converter instanceof OpacityAdjuster )
-			opacity = ( ( OpacityAdjuster ) converter ).getOpacity();
+		if( converter instanceof OpacityHelper )
+			opacity = ( ( OpacityHelper ) converter ).getOpacity();
 
 		if ( converter instanceof ColorConverter )
 		{

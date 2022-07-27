@@ -97,7 +97,7 @@ public class MoBIEInfo
 
 	public void showBdvHelp()
 	{
-		HelpDialog helpDialog = new HelpDialog( null, MoBIE.class.getResource( "/BdvHelp.html" ) );
+		HelpDialog helpDialog = new HelpDialog( null, MoBIE3.class.getResource( "/BdvHelp.html" ) );
 		helpDialog.setVisible( true );
 	}
 }

@@ -42,7 +42,7 @@ public class NumericColoringModelDialog extends JFrame implements ColoringListen
 
 	public NumericColoringModelDialog(
 			final String coloringFeature,
-			final NumericColoringModel< ? > coloringModel )
+			final NumericAnnotationColoringModel< ? > coloringModel )
 	{
 		// configure UI range relative to current
 		// contrast limits; the same logic is

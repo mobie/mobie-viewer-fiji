@@ -28,11 +28,12 @@
  */
 package mobie3.viewer.color;
 
+import mobie3.viewer.color.opacity.OpacityAdjuster;
 import mobie3.viewer.select.Listeners;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 
-public interface ColoringModel< T > extends Converter< T, ARGBType >
+public interface ColoringModel< T > extends Converter< T, ARGBType >, OpacityAdjuster
 {
 	/**
 	 * Get the list of color listeners. Add a {@link ColoringListener} to
@@ -41,5 +42,4 @@ public interface ColoringModel< T > extends Converter< T, ARGBType >
 	 * @return the list of listeners
 	 */
 	Listeners< ColoringListener > listeners();
-
 }

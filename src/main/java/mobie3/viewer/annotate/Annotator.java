@@ -36,6 +36,7 @@ import mobie3.viewer.annotation.AnnotatedSegment;
 import mobie3.viewer.color.CategoricalAnnotationColoringModel;
 import mobie3.viewer.color.ColoringModels;
 import mobie3.viewer.color.lut.GlasbeyARGBLut;
+import mobie3.viewer.color.lut.Luts;
 import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.select.SelectionModel;
 import mobie3.viewer.annotation.Annotation;
@@ -53,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_GREY;
+import static mobie3.viewer.color.LUTs.GLASBEY;
 
 public class Annotator< A extends Annotation > extends JFrame implements SelectionListener< A >
 {
@@ -91,7 +93,7 @@ public class Annotator< A extends Annotation > extends JFrame implements Selecti
 
 		if ( ! columnNameToColoringModel.containsKey( annotationColumnName ) )
 		{
-			final CategoricalAnnotationColoringModel< A > categoricalColoringModel =  ColoringModels.createCategoricalModel( annotationColumnName, new GlasbeyARGBLut(), false, DARK_GREY );
+			final CategoricalAnnotationColoringModel< A > categoricalColoringModel =  ColoringModels.createCategoricalModel( annotationColumnName, GLASBEY, DARK_GREY );
 			columnNameToColoringModel.put( annotationColumnName, categoricalColoringModel );
 		}
 

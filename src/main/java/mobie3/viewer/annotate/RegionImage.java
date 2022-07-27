@@ -34,7 +34,7 @@ import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.color.AnnotationConverter;
 import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.source.AnnotationType;
@@ -80,7 +80,7 @@ public class RegionImage< T extends RegionTableRow >
 		createImage();
 
 		final long duration = System.currentTimeMillis() - currentTimeMillis;
-		if ( duration > MoBIE.minLogTimeMillis )
+		if ( duration > MoBIE3.minLogTimeMillis )
 			IJ.log("Created annotation image "+name+" in " + duration + " ms." );
 	}
 

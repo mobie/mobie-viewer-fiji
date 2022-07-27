@@ -28,14 +28,9 @@
  */
 package org.embl.mobie.viewer.color.opacity;
 
-import net.imglib2.display.RealARGBColorConverter;
-import net.imglib2.display.ScaledARGBConverter;
-import org.embl.mobie.viewer.color.OpacityAdjuster;
-import net.imglib2.converter.Converter;
-import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
+import org.embl.mobie.viewer.color.OpacityAdjuster;
 
 public class AdjustableOpacityColorConverter< R extends RealType< R > > extends AbstractAdjustableOpacityColorConverter< R >
 {
@@ -47,7 +42,7 @@ public class AdjustableOpacityColorConverter< R extends RealType< R > > extends 
 	@Override
 	public void convert( R realType, ARGBType color )
 	{
-		converter.convert( realType, color );
+		colorConverter.convert( realType, color );
 		OpacityAdjuster.adjustAlpha( color, opacity );
 	}
 }

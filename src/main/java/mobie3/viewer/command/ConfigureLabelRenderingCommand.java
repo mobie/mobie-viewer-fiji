@@ -33,7 +33,7 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.CategoryColoringModel;
 import de.embl.cba.tables.color.ColoringModel;
 import mobie3.viewer.color.MoBIEColoringModel;
-import mobie3.viewer.color.SelectionColoringModelWrapper;
+import mobie3.viewer.color.MoBIEColoringModelWrapper;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.SourceHelper;
 import mobie3.viewer.source.VolatileBoundarySource;
@@ -82,9 +82,9 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 		{
 			final Converter converter = sourceAndConverter.getConverter();
 
-			if ( converter instanceof SelectionColoringModelWrapper )
+			if ( converter instanceof MoBIEColoringModelWrapper )
 			{
-				final ColoringModel coloringModel = ( ( SelectionColoringModelWrapper ) converter ).getSelectionColoringModel().getWrappedColoringModel();
+				final ColoringModel coloringModel = ( ( MoBIEColoringModelWrapper ) converter ).getMoBIEColoringModel().getWrappedColoringModel();
 
 				if ( coloringModel instanceof CategoryColoringModel )
 				{
@@ -117,9 +117,9 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 			// Here it is sufficient to do this for the non-volatile
 			// converter, because the volatile converter shares the
 			// same instance of the selectionColoringModel.
-			if ( converter instanceof SelectionColoringModelWrapper )
+			if ( converter instanceof MoBIEColoringModelWrapper )
 			{
-				final MoBIEColoringModel moBIEColoringModel = ( ( SelectionColoringModelWrapper ) converter ).getSelectionColoringModel();
+				final MoBIEColoringModel moBIEColoringModel = ( ( MoBIEColoringModelWrapper ) converter ).getMoBIEColoringModel();
 
 				if ( coloringMode.equals( SEGMENT_COLOR ) )
 					moBIEColoringModel.setSelectionColor( null );

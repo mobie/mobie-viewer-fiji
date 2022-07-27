@@ -28,7 +28,7 @@
  */
 package mobie3.viewer.command;
 
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIESettings;
 import org.embl.mobie.io.ImageDataFormat;
 import org.scijava.command.Command;
@@ -47,7 +47,7 @@ public class OpenPlatyBrowserCommand implements Command
 
 		try
 		{
-			new MoBIE( "https://github.com/mobie/platybrowser-datasets", options );
+			new MoBIE3( "https://github.com/mobie/platybrowser-datasets", options );
 		}
 		catch ( IOException e )
 		{

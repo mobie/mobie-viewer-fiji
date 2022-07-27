@@ -32,7 +32,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.TableUIs;
 import ij.IJ;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MultiThreading;
 import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.serialize.ImageData;
@@ -70,14 +70,14 @@ public class GeneSearch
 
 	private final double micrometerRadius;
 	private final double[] micrometerPosition;
-	private final MoBIE moBIE;
+	private final MoBIE3 moBIE;
 	private Map< String, Double > localExpression;
 	private Collection< String > prosprSourceNames;
 	private static Map< String, SourceAndConverter< ? > > prosprSources;
 
 	public GeneSearch( double micrometerRadius,
 					   double[] micrometerPosition,
-					   MoBIE moBIE )
+					   MoBIE3 moBIE )
 	{
 		this.micrometerRadius = micrometerRadius;
 		this.micrometerPosition = micrometerPosition;
@@ -180,7 +180,7 @@ public class GeneSearch
 		private static JTable table;
 		private static DefaultTableModel model;
 		private static ArrayList< String > prosprSourceNames;
-		private static MoBIE moBIE;
+		private static MoBIE3 moBIE;
 
 		public static void logGeneExpression(
 				double[] micrometerPosition,
@@ -360,7 +360,7 @@ public class GeneSearch
 			}
 		}
 
-		public static void setMoBIE( MoBIE moBIE )
+		public static void setMoBIE( MoBIE3 moBIE )
 		{
 			GeneSearchUtils.moBIE = moBIE;
 		}

@@ -29,7 +29,7 @@
 package mobie3.viewer.bdv.view;
 
 import bdv.viewer.SourceAndConverter;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.display.AbstractDisplay;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
@@ -37,14 +37,14 @@ import java.util.HashMap;
 
 public abstract class AbstractSliceView implements SliceView
 {
-	protected final MoBIE moBIE;
+	protected final MoBIE3 moBIE;
 	protected final AbstractDisplay< ? > display;
 	protected final SliceViewer sliceViewer;
 
 	// TODO: get rid of MoBIE here, which is only needed to close the sacs...
 	//  in fact, using Nico's addition to the SACService will resolve this!
 	//  see the corresponding issue:
-	public AbstractSliceView( MoBIE moBIE, AbstractDisplay< ? > display )
+	public AbstractSliceView( MoBIE3 moBIE, AbstractDisplay< ? > display )
 	{
 		this.moBIE = moBIE;
 		this.display = display;

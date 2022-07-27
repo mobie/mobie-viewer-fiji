@@ -32,11 +32,10 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.SynchronizedViewerState;
-import de.embl.cba.tables.color.ColoringListener;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.annotation.SliceViewAnnotationSelector;
 import mobie3.viewer.color.AnnotationConverter;
-import mobie3.viewer.color.ColoringModel;
+import mobie3.viewer.color.ColoringListener;
 import mobie3.viewer.color.VolatileAnnotationConverter;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
@@ -44,6 +43,7 @@ import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.source.AnnotatedImage;
 import mobie3.viewer.source.AnnotationType;
 import mobie3.viewer.source.BoundarySource;
+import mobie3.viewer.source.Image;
 import mobie3.viewer.source.SourceHelper;
 import mobie3.viewer.source.VolatileBoundarySource;
 import mobie3.viewer.annotation.Annotation;
@@ -52,8 +52,6 @@ import mobie3.viewer.volume.SegmentsVolumeViewer;
 import net.imglib2.Volatile;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterBdvDisplayService;
-import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import javax.swing.*;
@@ -63,14 +61,14 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 {
 	protected final AnnotationDisplay< A > display;
 
-	public AnnotationSliceView( MoBIE moBIE, AnnotationDisplay< A > display )
+	public AnnotationSliceView( MoBIE3 moBIE, AnnotationDisplay< A > display )
 	{
 		super( moBIE, display );
 		this.display = display;
 		display.selectionModel.listeners().add( this );
 		display.coloringModel.listeners().add( this );
 
-		for ( AnnotatedImage< A > image : display.images )
+		for ( Image< AnnotationType< A > > image : display.getImages() )
 		{
 			// create volatile sac
 			//

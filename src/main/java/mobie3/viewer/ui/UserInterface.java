@@ -28,7 +28,7 @@
  */
 package mobie3.viewer.ui;
 
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
@@ -54,7 +54,7 @@ public class UserInterface
 	private JSplitPane splitPane;
 	private boolean closedByUser = true;
 
-	public UserInterface( MoBIE moBIE )
+	public UserInterface( MoBIE3 moBIE )
 	{
 		MoBIELaf.MoBIELafOn();
 		userInterfaceHelper = new UserInterfaceHelper( moBIE );
@@ -68,7 +68,7 @@ public class UserInterface
 		configureWindowClosing( moBIE );
 	}
 
-	private void configureWindowClosing( MoBIE moBIE )
+	private void configureWindowClosing( MoBIE3 moBIE )
 	{
 		frame.addWindowListener(
 			new WindowAdapter() {

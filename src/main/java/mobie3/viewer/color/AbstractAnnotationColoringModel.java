@@ -35,41 +35,15 @@ import net.imglib2.type.numeric.ARGBType;
 
 import javax.swing.*;
 
-public abstract class AbstractAnnotationColoringModel< T > implements AnnotationColoringModel< T >
+public abstract class AbstractAnnotationColoringModel< T > extends AbstractColoringModel< T >
 {
-	protected final Listeners.SynchronizedList< ColoringListener > listeners
-			= new Listeners.SynchronizedList< ColoringListener >(  );
-
 	protected String columnName;
 	protected ARGBLut lut;
 
-	@Override
-	public Listeners< ColoringListener > listeners()
-	{
-		return listeners;
-	}
-
-	@Override
-	public void convert( T input, ARGBType output )
-	{
-		output.set( 0 );
-	}
-
-	protected void notifyColoringListeners()
-	{
-		for ( ColoringListener listener : listeners.list )
-		{
-			SwingUtilities.invokeLater( () -> listener.coloringChanged() );
-		}
-	}
-
-	@Override
 	public String getColumnName()
 	{
 		return columnName;
 	}
-
-	@Override
 	public ARGBLut getLut() {
 		return this.lut;
 	}

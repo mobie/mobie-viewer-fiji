@@ -28,7 +28,7 @@
  */
 package mobie3.viewer.command;
 
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIESettings;
 import org.embl.mobie.io.ImageDataFormat;
 import org.scijava.command.Command;
@@ -63,7 +63,7 @@ public class OpenMoBIEProjectAdvancedCommand implements Command
 	{
 		try
 		{
-			new MoBIE(
+			new MoBIE3(
 					projectLocation,
 					MoBIESettings.settings()
 							.gitProjectBranch( projectBranch )

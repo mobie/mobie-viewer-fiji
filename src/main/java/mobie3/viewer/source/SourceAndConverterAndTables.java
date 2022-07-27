@@ -4,7 +4,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIEHelper;
 import mobie3.viewer.table.ColumnNames;
 import mobie3.viewer.color.LazyConverter;
@@ -42,7 +42,7 @@ import java.util.Map;
 public class SourceAndConverterAndTables< N extends NumericType< N > > extends SourceAndConverter< N >
 {
 	private LazyConverter lazyConverter;
-	private final MoBIE moBIE;
+	private final MoBIE3 moBIE;
 	private String name;
 	private final SourceAndConverter< N > initializationSourceAndConverter;
 	private SourceAndConverter< N > sourceAndConverter;
@@ -98,7 +98,7 @@ public class SourceAndConverterAndTables< N extends NumericType< N > > extends S
 	//   a new SAC will be constructed.
 	//   Maybe the FunctionGridSource would actually take a List< SegmentationData >
 	//   rather than a List< Source > ?
-	public SourceAndConverterAndTables( MoBIE moBIE, String name, @Nullable SourceAndConverter< N > initializationSourceAndConverter )
+	public SourceAndConverterAndTables( MoBIE3 moBIE, String name, @Nullable SourceAndConverter< N > initializationSourceAndConverter )
 	{
 		super( null, null );
 		this.moBIE = moBIE;

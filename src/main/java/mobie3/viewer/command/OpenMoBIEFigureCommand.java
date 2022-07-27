@@ -29,7 +29,7 @@
 package mobie3.viewer.command;
 
 import ij.gui.GenericDialog;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIESettings;
 import mobie3.viewer.project.PublishedFigure;
 import mobie3.viewer.project.PublishedFigures;
@@ -74,7 +74,7 @@ public class OpenMoBIEFigureCommand implements Command
 
 		try
 		{
-			new MoBIE( figure.location, MoBIESettings.settings().publicationURL( figure.publicationURL ).view( figure.view ) );
+			new MoBIE3( figure.location, MoBIESettings.settings().publicationURL( figure.publicationURL ).view( figure.view ) );
 		}
 		catch ( IOException e )
 		{

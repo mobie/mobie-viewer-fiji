@@ -33,7 +33,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
 import mobie3.viewer.bdv.view.ImageSliceView;
 import mobie3.viewer.bdv.view.SliceViewer;
@@ -97,7 +97,7 @@ public class ViewManager
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-	private final MoBIE moBIE;
+	private final MoBIE3 moBIE;
 	private final UserInterface userInterface;
 	private final SliceViewer sliceViewer;
 	private final SourceAndConverterService sacService;
@@ -108,7 +108,7 @@ public class ViewManager
 	private final ViewSaver viewSaver;
 	private int numViewedTables = 0;
 
-	public ViewManager( MoBIE moBIE, UserInterface userInterface, boolean is2D )
+	public ViewManager( MoBIE3 moBIE, UserInterface userInterface, boolean is2D )
 	{
 		this.moBIE = moBIE;
 		this.userInterface = userInterface;

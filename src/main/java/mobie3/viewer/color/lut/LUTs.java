@@ -26,12 +26,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.color;
+package mobie3.viewer.color.lut;
 
-import mobie3.viewer.color.lut.ARGBLut;
-import mobie3.viewer.color.lut.BlueWhiteRedARGBLut;
-import mobie3.viewer.color.lut.GlasbeyARGBLut;
-import mobie3.viewer.color.lut.ViridisARGBLut;
 import net.imglib2.type.numeric.ARGBType;
 
 public class LUTs
@@ -50,6 +46,7 @@ public class LUTs
 		GLASBEY,
 		ARGB_COLUMN
 	};
+
 	public static final ARGBType TRANSPARENT = new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) );
 	public static final ARGBType DARK_GREY = new ARGBType( ARGBType.rgba( 100, 100, 100, 255 ) );
 
@@ -97,5 +94,4 @@ public class LUTs
 	{
 		return lutName.contains( ZERO_TRANSPARENT );
 	}
-
 }

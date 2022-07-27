@@ -37,11 +37,11 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIEHelper;
 import mobie3.viewer.MoBIEInfo;
 import mobie3.viewer.VisibilityListener;
-import mobie3.viewer.color.OpacityAdjuster;
+import mobie3.viewer.color.OpacityHelper;
 import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.RegionDisplay;
@@ -90,13 +90,13 @@ public class UserInterfaceHelper
 	private static final String ADD = "view";
 	public static final int SPACING = 20;
 
-	private final MoBIE moBIE;
+	private final MoBIE3 moBIE;
 	private int viewsSelectionPanelHeight;
 	private JPanel viewSelectionPanel;
 	private Map< String, Map< String, View > > groupingsToViews;
 	private Map< String, JComboBox > groupingsToComboBox;
 
-	public UserInterfaceHelper( MoBIE moBIE )
+	public UserInterfaceHelper( MoBIE3 moBIE )
 	{
 		this.moBIE = moBIE;
 	}
@@ -197,7 +197,7 @@ public class UserInterfaceHelper
 
 		// TODO: This cast requires that the sourceAndConverter implements
 		//   an OpacityAdjuster; how to do this more cleanly?
-		final double current = ( ( OpacityAdjuster ) sourceAndConverters.get( 0 ).getConverter()).getOpacity();
+		final double current = ( ( OpacityHelper ) sourceAndConverters.get( 0 ).getConverter()).getOpacity();
 
 		final BoundedValueDouble selection =
 				new BoundedValueDouble(
@@ -277,7 +277,7 @@ public class UserInterfaceHelper
 			{
 				final double opacity = value.getCurrentValue();
 
-				OpacityAdjuster.adjustOpacity( sourceAndConverter, opacity );
+				OpacityHelper.adjustOpacity( sourceAndConverter, opacity );
 			}
 
 			bdvHandle.getViewerPanel().requestRepaint();
@@ -485,7 +485,7 @@ public class UserInterfaceHelper
 		return groupingsToViews.keySet();
 	}
 
-	private JPanel createClearAndSourceNamesOverlayPanel( MoBIE moBIE )
+	private JPanel createClearAndSourceNamesOverlayPanel( MoBIE3 moBIE )
 	{
 		final JPanel panel = SwingUtils.horizontalLayoutPanel();
 
@@ -514,7 +514,7 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	private JPanel createViewSelectionPanel( MoBIE moBIE, String panelName, Map< String, View > views )
+	private JPanel createViewSelectionPanel( MoBIE3 moBIE, String panelName, Map< String, View > views )
 	{
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
@@ -580,7 +580,7 @@ public class UserInterfaceHelper
 		button.addActionListener( e -> {
 			moBIEInfo.showInfo( ( String ) comboBox.getSelectedItem() );
 		} );
-		comboBox.setPrototypeDisplayValue( MoBIE.PROTOTYPE_DISPLAY_VALUE  );
+		comboBox.setPrototypeDisplayValue( MoBIE3.PROTOTYPE_DISPLAY_VALUE  );
 
 		horizontalLayoutPanel.setSize( 0, 80 );
 		final ImageIcon icon = createMobieIcon( 80 );
@@ -809,7 +809,7 @@ public class UserInterfaceHelper
 
 			UserInterfaceHelper.showBrightnessDialog(
 					imageDisplay.getName(),
-					converterSetups);
+					converterSetups );
 		} );
 
 		return button;

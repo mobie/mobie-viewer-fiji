@@ -28,22 +28,18 @@
  */
 package mobie3.viewer.bdv.view;
 
-import bdv.BigDataViewer;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.source.Image;
-import net.imglib2.converter.Converter;
 import net.imglib2.display.RealARGBColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
-import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
-import org.embl.mobie.viewer.color.opacity.VolatileAdjustableOpacityColorConverter;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 import sc.fiji.bdvpg.sourceandconverter.display.ColorChanger;
 
@@ -58,7 +54,7 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 
 	private final ImageDisplay< T > display;
 
-	public ImageSliceView( MoBIE moBIE, ImageDisplay< T > display )
+	public ImageSliceView( MoBIE3 moBIE, ImageDisplay< T > display )
 	{
 		super( moBIE, display );
 		this.display = display;

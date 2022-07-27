@@ -28,7 +28,6 @@
  */
 package mobie3.viewer.color.opacity;
 
-import mobie3.viewer.color.OpacityAdjuster;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
@@ -41,7 +40,6 @@ public class VolatileAdjustableOpacityColorConverter< V extends Volatile< RealTy
 	private final ColorConverter colorConverter;
 	private double opacity = 1.0;
 
-	// TODO: Can't we do this already during loading?!
 	public VolatileAdjustableOpacityColorConverter( Converter< V, ARGBType > converter )
 	{
 		this.converter = converter;

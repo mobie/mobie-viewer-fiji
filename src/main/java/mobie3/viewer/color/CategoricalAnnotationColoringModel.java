@@ -29,18 +29,17 @@
 package mobie3.viewer.color;
 
 import mobie3.viewer.annotation.Annotation;
-import mobie3.viewer.color.lut.ARGBLut;
-import net.imglib2.type.numeric.ARGBType;
 
+import mobie3.viewer.color.lut.LUTs;
+import net.imglib2.type.numeric.ARGBType;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
-public class CategoricalAnnotationColoringModel< A extends Annotation > extends AbstractAnnotationColoringModel< A > implements ColoringModel< A >
+public class CategoricalAnnotationColoringModel< A extends Annotation > extends AbstractAnnotationColoringModel< A >
 {
-	// TODO: The maps could go to int instead of ARGBType
 	private Map< String, Integer > inputToFixedColor;
 	private Map< String, Integer > inputToRandomColor;
 	private int randomSeed;
@@ -67,6 +66,8 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 			convertStringToARGB( input.getValue( columnName ).toString(), output );
 		else
 			convertStringToARGB( input.toString(), output );
+
+		adjustOpacity( output, opacity );
 	}
 
 	public void convertStringToARGB( String value, ARGBType output )

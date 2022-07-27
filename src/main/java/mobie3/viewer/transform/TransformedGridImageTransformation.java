@@ -30,7 +30,7 @@ package mobie3.viewer.transform;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
-import mobie3.viewer.MoBIE;
+import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MultiThreading;
 import mobie3.viewer.playground.SourceAffineTransformer;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -63,7 +63,7 @@ public class TransformedGridImageTransformation extends AbstractTransformation
 
 		transform( sourceNameToSourceAndConverter, cellRealDimensions );
 		final long duration = System.currentTimeMillis() - startTime;
-		if ( duration > MoBIE.minLogTimeMillis )
+		if ( duration > MoBIE3.minLogTimeMillis )
 			Logger.info("Transformed " + nestedSources.size() + " group(s) with "+ nestedSources.get( 0 ).size() +" source(s) each into a grid in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
 	}
 

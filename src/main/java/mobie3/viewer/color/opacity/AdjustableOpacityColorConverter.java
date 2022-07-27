@@ -28,7 +28,6 @@
  */
 package mobie3.viewer.color.opacity;
 
-import mobie3.viewer.color.OpacityAdjuster;
 import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
