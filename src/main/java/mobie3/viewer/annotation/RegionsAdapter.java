@@ -26,9 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.annotate;
-
-import mobie3.viewer.annotation.Region;
+package mobie3.viewer.annotation;
 
 import java.util.ArrayList;
 import java.util.HashMap;

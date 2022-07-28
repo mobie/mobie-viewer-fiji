@@ -421,6 +421,7 @@ public class ViewManager
 			// show in slice viewer
 			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.sliceView = new AnnotationSliceView<>( moBIE, annotationDisplay );
+			annotationDisplay.initAnnData();
 			initTableView( annotationDisplay );
 			initScatterPlotView( annotationDisplay );
 			if ( annotationDisplay instanceof SegmentationDisplay )

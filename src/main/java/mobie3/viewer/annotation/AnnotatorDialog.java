@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.annotate;
+package mobie3.viewer.annotation;
 
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.SwingUtils;
@@ -56,7 +56,7 @@ import java.util.Set;
 import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_GREY;
 import static mobie3.viewer.color.LUTs.GLASBEY;
 
-public class Annotator< A extends Annotation > extends JFrame implements SelectionListener< A >
+public class AnnotatorDialog< A extends Annotation > extends JFrame implements SelectionListener< A >
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -79,7 +79,7 @@ public class Annotator< A extends Annotation > extends JFrame implements Selecti
 	private String objectName = "entity";
 	private Set< A > annotations;
 
-	public Annotator( String columnName, AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, RowSorter< ? extends TableModel > rowSorter )
+	public AnnotatorDialog( String columnName, AnnotationTableModel< A > tableModel, SelectionModel< A > selectionModel, RowSorter< ? extends TableModel > rowSorter )
 	{
 		super("");
 		this.annotationColumnName = columnName;

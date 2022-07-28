@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.annotate;
+package mobie3.viewer.annotation;
 
 import de.embl.cba.tables.tablerow.AbstractTableRow;
 import net.imglib2.roi.RealMaskRealInterval;

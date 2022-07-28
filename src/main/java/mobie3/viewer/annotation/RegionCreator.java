@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.annotate;
+package mobie3.viewer.annotation;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;

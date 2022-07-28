@@ -28,7 +28,7 @@
  */
 package mobie3.viewer.display;
 
-import mobie3.viewer.annotate.RegionsAdapter;
+import mobie3.viewer.annotation.RegionsAdapter;
 import mobie3.viewer.annotation.AnnotatedRegion;
 import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.source.StorageLocation;

@@ -34,18 +34,20 @@ import mobie3.viewer.bdv.render.BlendingMode;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
 import mobie3.viewer.color.AbstractAnnotationColoringModel;
 import mobie3.viewer.color.CategoricalAnnotationColoringModel;
-import mobie3.viewer.color.LutColumn;
 import mobie3.viewer.color.ColoringModel;
 import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.color.NumericAnnotationColoringModel;
 import mobie3.viewer.color.lut.LUTs;
 import mobie3.viewer.plot.ScatterPlotView;
 import mobie3.viewer.select.SelectionModel;
+import mobie3.viewer.source.AnnotatedImage;
 import mobie3.viewer.source.AnnotationType;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.SourceHelper;
 import mobie3.viewer.annotation.Annotation;
+import mobie3.viewer.table.AnnData;
 import mobie3.viewer.table.ColumnNames;
+import mobie3.viewer.table.ConcatenatedAnnData;
 import mobie3.viewer.table.TableView;
 import net.imglib2.util.ValuePair;
 
@@ -76,10 +78,10 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	protected float boundaryThickness = 1.0F;
 	protected int randomColorSeed = 42;
 
-	// Fixed
+	// Final
 	protected transient final BlendingMode blendingMode = BlendingMode.SumOccluding;
 
-	// Runtime fields
+	// Runtime
 	public transient SelectionModel< A > selectionModel;
 	public transient MoBIEColoringModel< A > coloringModel;
 	public transient AnnotationProvider< A > annotationProvider;
@@ -207,5 +209,17 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		if (selectedAnnotations != null) {
 			setSelectedAnnotationIds( selectedAnnotations.stream().map( a -> a.getId() ).collect( Collectors.toSet() ) );
 		}
+	}
+
+	public Set< AnnotatedImage< A > > getAnnotatedImages()
+	{
+		final Set< AnnotatedImage< A > > annotatedImages = getImages().stream().map( image -> ( AnnotatedImage< A > ) image ).collect( Collectors.toSet() );
+		return annotatedImages;
+	}
+
+	public void initAnnData()
+	{
+		final Set< AnnData< A > > annDataSet = getAnnotatedImages().stream().map( image -> image.getAnnData() ).collect( Collectors.toSet() );
+		new ConcatenatedAnnData( annDataSet );
 	}
 }

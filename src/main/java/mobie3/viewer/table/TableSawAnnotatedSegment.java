@@ -25,7 +25,7 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 		initBoundingBox( row, numSegmentDimensions );
 	}
 
-	private void initBoundingBox( tech.tablesaw.api.Row row, int numSegmentDimensions )
+	private void initBoundingBox( Row row, int numSegmentDimensions )
 	{
 		if ( row.columnNames().contains( ColumnNames.BB_MIN_X ) )
 		{

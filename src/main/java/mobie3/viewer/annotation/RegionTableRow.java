@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.annotate;
+package mobie3.viewer.annotation;
 
 import de.embl.cba.tables.tablerow.TableRow;
 import mobie3.viewer.annotation.Region;
