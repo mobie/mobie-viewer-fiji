@@ -1,12 +1,19 @@
 package org.embl.mobie.viewer.table;
 
+import lombok.SneakyThrows;
 import net.imglib2.util.Pair;
+import org.embl.mobie.io.util.IOHelper;
+import tech.tablesaw.api.Row;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.io.csv.CsvReadOptions;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,7 +21,7 @@ import java.util.stream.Collectors;
 
 public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel< TableSawAnnotatedSegment >
 {
-	protected Collection< String > columnPaths;
+	protected Collection< String > availableColumnPaths;
 	protected LinkedHashSet< String > loadedColumnPaths;
 
 	private HashMap< TableSawAnnotatedSegment, Integer > annotationToRowIndex;
@@ -31,22 +38,53 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel<
 		loadedColumnPaths.add( defaultColumnsPath );
 	}
 
+	// https://jtablesaw.github.io/tablesaw/userguide/tables.html
 	private Table getTable()
 	{
-		if ( table != null ) return table;
+		if ( table == null )
+		{
+			for ( String columnPath : loadedColumnPaths() )
+			{
+				try
+				{
+					final InputStream inputStream = IOHelper.getInputStream( columnPath );
+					// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
+					CsvReadOptions.Builder builder = CsvReadOptions.builder( inputStream ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" );
+					final Table table = Table.read().usingOptions( builder );
+					if ( this.table == null )
+					{
+						this.table = table;
+						final int rowCount = table.rowCount();
+						for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
+						{
+							final TableSawAnnotatedSegment annotation = new TableSawAnnotatedSegment( table, rowIndex );
+							annotationToRowIndex.put( annotation, rowIndex );
+							rowIndexToAnnotation.put( rowIndex, annotation );
+						}
+					}
+					else
+					{
+						throw new UnsupportedOperationException("Merging additional columns is not yet supported.");
+						// TODO: merging of columns
+						// https://www.javadoc.io/doc/tech.tablesaw/tablesaw-core/0.34.1/tech/tablesaw/joining/DataFrameJoiner.html
+					}
+				} catch ( IOException e )
+				{
+					throw new RuntimeException( e );
+				}
+			}
+		}
+
+		isDataLoaded = true;
+		return table;
 
 		// load table
-		isDataLoaded = true;
-
 //		annotationToRowIndex.put( annotation, rowIndex );
 //		rowIndexToAnnotation.put( rowIndex, annotation );
 //
 		// think about the representation of missing values
 		// e.g. should we use None or "" for a missing String?
 		// return table;
-
-		throw new UnsupportedOperationException("Table loading is not yet implemented.");
-
 
 	}
 
@@ -84,14 +122,6 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel<
 	public TableSawAnnotatedSegment row( int rowIndex )
 	{
 		getTable(); // ensures that the data is loaded
-
-		if ( ! rowIndexToAnnotation.containsKey( rowIndex ) )
-		{
-			final TableSawAnnotatedSegment annotation = new TableSawAnnotatedSegment( getTable(), rowIndex );
-			annotationToRowIndex.put( annotation, rowIndex );
-			rowIndexToAnnotation.put( rowIndex, annotation );
-		}
-
 		return rowIndexToAnnotation.get( rowIndex );
 	}
 
@@ -104,13 +134,13 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel<
 	@Override
 	public void setColumnPaths( Collection< String > columnPaths )
 	{
-		this.columnPaths = columnPaths;
+		this.availableColumnPaths = columnPaths;
 	}
 
 	@Override
 	public Collection< String > columnPaths()
 	{
-		return columnPaths;
+		return availableColumnPaths;
 	}
 
 	@Override

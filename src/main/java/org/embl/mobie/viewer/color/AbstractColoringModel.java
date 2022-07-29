@@ -46,12 +46,6 @@ public abstract class AbstractColoringModel< T > implements ColoringModel< T >
 		return listeners;
 	}
 
-	@Override
-	public void convert( T input, ARGBType output )
-	{
-		output.set( 0 );
-	}
-
 	protected void notifyColoringListeners()
 	{
 		for ( ColoringListener listener : listeners.list )

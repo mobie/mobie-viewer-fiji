@@ -101,11 +101,11 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	}
 
 	@Override
-	public void setColumnPaths( Collection< String > columnPaths )
+	public void setColumnPaths( Collection< String > availableColumnPaths )
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
 		{
-			tableModel.setColumnPaths( columnPaths );
+			tableModel.setColumnPaths( availableColumnPaths );
 		}
 	}
 

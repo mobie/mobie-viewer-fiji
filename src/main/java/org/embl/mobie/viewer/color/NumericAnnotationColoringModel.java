@@ -53,8 +53,9 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 	@Override
 	public void convert( A annotation, ARGBType output )
 	{
-		final Double value = ( Double ) annotation.getValue( columnName );
+		final Float value = ( (Number) annotation.getValue( columnName ) ).floatValue();
 		setColorLinearly( value, output );
+		adjustOpacity( output, opacity );
 	}
 	
 	public double getMin()
@@ -79,7 +80,7 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 		notifyColoringListeners();
 	}
 
-	private void setColorLinearly( Double value, ARGBType output )
+	private void setColorLinearly( Float value, ARGBType output )
 	{
 		if ( isZeroTransparent )
 		{

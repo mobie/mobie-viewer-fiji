@@ -77,9 +77,9 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	}
 
 	@Override
-	public void setColumnPaths( Collection< String > columnPaths )
+	public void setColumnPaths( Collection< String > availableColumnPaths )
 	{
-		annotationTableModel.setColumnPaths( columnPaths );
+		annotationTableModel.setColumnPaths( availableColumnPaths );
 	}
 
 	@Override

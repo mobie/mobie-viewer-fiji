@@ -710,9 +710,9 @@ public class MoBIE
 		return images;
 	}
 
-	private ArrayList< String > getColumnPaths( SegmentationData annotatedLabelMaskSource )
+	private ArrayList< String > getColumnPaths( SegmentationData segmentationData )
 	{
-		final String tableDirectory = getTableDirectory( annotatedLabelMaskSource );
+		final String tableDirectory = getTableDirectory( segmentationData );
 		String[] fileNames = IOHelper.getFileNames( tableDirectory );
 		final ArrayList< String > columnPaths = new ArrayList<>();
 		for ( String fileName : fileNames )

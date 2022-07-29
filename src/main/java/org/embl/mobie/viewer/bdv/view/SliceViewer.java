@@ -215,7 +215,7 @@ public class SliceViewer
 		SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE, display.getBlendingMode() );
 
 		// opacity
-		OpacityHelper.adjustOpacity( sourceAndConverter, display.getOpacity() );
+		OpacityHelper.setOpacity( sourceAndConverter, display.getOpacity() );
 
 		// show in Bdv
 		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );

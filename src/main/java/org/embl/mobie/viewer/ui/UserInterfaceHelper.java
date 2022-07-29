@@ -279,8 +279,7 @@ public class UserInterfaceHelper
 			for ( SourceAndConverter< ? > sourceAndConverter : sourceAndConverters )
 			{
 				final double opacity = value.getCurrentValue();
-
-				OpacityHelper.adjustOpacity( sourceAndConverter, opacity );
+				OpacityHelper.setOpacity( sourceAndConverter, opacity );
 			}
 
 			bdvHandle.getViewerPanel().requestRepaint();

@@ -31,6 +31,7 @@ package org.embl.mobie.viewer.color;
 import bdv.viewer.SourceAndConverter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.display.AbstractDisplay;
 
 import static net.imglib2.type.numeric.ARGBType.alpha;
 import static net.imglib2.type.numeric.ARGBType.blue;
@@ -39,7 +40,7 @@ import static net.imglib2.type.numeric.ARGBType.red;
 
 public abstract class OpacityHelper
 {
-	public static void adjustOpacity( SourceAndConverter< ? > sourceAndConverter, double opacity )
+	private static void adjustOpacity( SourceAndConverter< ? > sourceAndConverter, double opacity )
 	{
 		adjustOpacity( ( ColorConverter ) sourceAndConverter.getConverter(), opacity );
 
@@ -49,7 +50,7 @@ public abstract class OpacityHelper
 		}
 	}
 
-	public static void adjustOpacity( ColorConverter colorConverter, double opacity  )
+	private static void adjustOpacity( ColorConverter colorConverter, double opacity  )
 	{
 		colorConverter.getColor().get();
 		final int value = colorConverter.getColor().get();
@@ -61,5 +62,22 @@ public abstract class OpacityHelper
 		final ColorConverter colorConverter = ( ColorConverter ) sourceAndConverter.getConverter();
 		final int alpha = alpha( colorConverter.getColor().get() );
 		return alpha / 255.0D;
+	}
+
+	public static void setOpacity( SourceAndConverter< ? > sourceAndConverter, double opacity )
+	{
+		if ( sourceAndConverter.getConverter() instanceof MoBIEColoringModelWrapper )
+		{
+			final MoBIEColoringModel coloringModel = ( ( MoBIEColoringModelWrapper ) sourceAndConverter.getConverter() ).getMoBIEColoringModel();
+			coloringModel.setOpacity( opacity );
+		}
+		else if ( sourceAndConverter.getConverter() instanceof ColorConverter )
+		{
+			adjustOpacity( sourceAndConverter, opacity );
+		}
+		else
+		{
+			throw new UnsupportedOperationException("Cannot adjust opacity of converter: " + sourceAndConverter.getConverter().getClass().getName() );
+		}
 	}
 }

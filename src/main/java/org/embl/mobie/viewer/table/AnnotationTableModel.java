@@ -17,7 +17,7 @@ public interface AnnotationTableModel< A extends Annotation >
 	int indexOf( A annotation );
 	A row( int rowIndex );
 	void loadColumns( String columnsPath ); // load more chucks of columns
-	void setColumnPaths( Collection< String> columnPaths );
+	void setColumnPaths( Collection< String> availableColumnPaths );
 	Collection< String > columnPaths(); // where to load more chucks of columns
 	LinkedHashSet< String > loadedColumnPaths(); // which column chunks have been loaded, in the order in which they have been loaded
 	Pair< Double, Double > computeMinMax( String columnName ); // for contrast limits during rendering
