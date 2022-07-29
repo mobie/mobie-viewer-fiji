@@ -29,8 +29,10 @@
 package org.embl.mobie.viewer.projectcreator;
 
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.viewer.create.DatasetsCreator;
+import org.embl.mobie.viewer.create.ProjectCreator;
 import org.embl.mobie.viewer.serialize.Dataset;
-import org.embl.mobie.viewer.Project;
+import org.embl.mobie.viewer.serialize.Project;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.junit.jupiter.api.BeforeEach;

@@ -41,9 +41,9 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.projectcreator.DatasetsCreator;
-import org.embl.mobie.viewer.projectcreator.ImagesCreator;
-import org.embl.mobie.viewer.projectcreator.ProjectCreator;
+import org.embl.mobie.viewer.create.DatasetsCreator;
+import org.embl.mobie.viewer.create.ImagesCreator;
+import org.embl.mobie.viewer.create.ProjectCreator;
 
 import java.io.File;
 import java.io.IOException;

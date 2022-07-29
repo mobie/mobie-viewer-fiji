@@ -28,21 +28,23 @@
  */
 package org.embl.mobie.viewer.projectcreator;
 
+import ij.ImagePlus;
 import mpicbg.spim.data.SpimData;
+import mpicbg.spim.data.SpimDataException;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
 import org.embl.mobie.io.n5.util.DownsampleBlock;
 import org.embl.mobie.io.n5.writers.WriteImagePlusToN5;
 import org.embl.mobie.io.ome.zarr.writers.imageplus.WriteImagePlusToN5OmeZarr;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.viewer.create.ImagesCreator;
+import org.embl.mobie.viewer.create.ProjectCreator;
+import org.embl.mobie.viewer.create.ProjectCreatorHelper;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
-import org.embl.mobie.viewer.serialize.SegmentationSource;
+import org.embl.mobie.viewer.serialize.SegmentationData;
 import org.embl.mobie.viewer.table.TableDataFormat;
-
-import ij.ImagePlus;
-import mpicbg.spim.data.SpimDataException;
-import net.imglib2.realtransform.AffineTransform3D;
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.GzipCompression;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +57,9 @@ import java.nio.file.Path;
 
 import static org.embl.mobie.viewer.projectcreator.ProjectCreatorTestHelper.makeImage;
 import static org.embl.mobie.viewer.projectcreator.ProjectCreatorTestHelper.makeSegmentation;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ImagesCreatorTest {
 
@@ -152,8 +156,8 @@ class ImagesCreatorTest {
         assertTrue( new File(tablePath).exists() );
 
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
-        SegmentationSource segmentationSource = ((SegmentationSource) dataset.sources.get(imageName).get());
-        assertTrue( segmentationSource.tableData.containsKey(TableDataFormat.TabDelimitedFile) );
+        SegmentationData segmentationData = ((SegmentationData) dataset.sources.get(imageName).get());
+        assertTrue( segmentationData.tableData.containsKey(TableDataFormat.TabDelimitedFile) );
     }
 
     String writeImageAndGetPath( ImageDataFormat imageDataFormat, boolean is2D ) {

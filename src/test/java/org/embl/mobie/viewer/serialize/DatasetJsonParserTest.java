@@ -36,9 +36,6 @@ import org.embl.mobie.viewer.MoBIESettings;
 import org.embl.mobie.viewer.source.SourceSupplier;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.view.View;
-import org.embl.mobie3.viewer.serialize.Dataset;
-import org.embl.mobie3.viewer.serialize.DatasetJsonParser;
-import org.embl.mobie3.viewer.view.View;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
@@ -83,7 +80,7 @@ class DatasetJsonParserTest {
         dataset = new Dataset();
         dataset.sources = new HashMap<>();
 
-        ImageSource imageSource = new ImageSource();
+        ImageData imageSource = new ImageData();
         StorageLocation storageLocation = new StorageLocation();
         storageLocation.relativePath = "an/example/path";
         imageSource.imageData = new HashMap<>();
