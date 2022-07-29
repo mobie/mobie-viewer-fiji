@@ -31,8 +31,8 @@ package mobie3.viewer.command;
 import ij.gui.GenericDialog;
 import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIESettings;
-import mobie3.viewer.project.PublishedFigure;
-import mobie3.viewer.project.PublishedFigures;
+import mobie3.viewer.published.PublishedFigure;
+import mobie3.viewer.published.PublishedFigures;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 

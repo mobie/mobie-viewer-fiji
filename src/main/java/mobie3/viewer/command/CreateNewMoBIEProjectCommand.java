@@ -29,7 +29,7 @@
 package mobie3.viewer.command;
 
 import ij.IJ;
-import mobie3.viewer.projectcreator.ui.ProjectsCreatorPanel;
+import mobie3.viewer.create.ui.ProjectsCreatorPanel;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;

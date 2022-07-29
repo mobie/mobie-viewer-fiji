@@ -2,17 +2,16 @@ package mobie3.viewer.ui;
 
 import ij.gui.GenericDialog;
 import mobie3.viewer.annotation.Annotation;
-import mobie3.viewer.color.LUTs;
 import mobie3.viewer.color.ColoringModel;
 import mobie3.viewer.color.ColoringModels;
-import mobie3.viewer.table.AnnData;
+import mobie3.viewer.color.lut.LUTs;
 import mobie3.viewer.table.AnnotationTableModel;
 import net.imglib2.util.Pair;
 
 import java.util.List;
 
-import static mobie3.viewer.color.LUTs.TRANSPARENT;
-import static mobie3.viewer.color.LUTs.COLORING_LUTS;
+import static mobie3.viewer.color.lut.LUTs.COLORING_LUTS;
+import static mobie3.viewer.color.lut.LUTs.TRANSPARENT;
 
 public class ColumnColoringModelDialog< A extends Annotation>
 {

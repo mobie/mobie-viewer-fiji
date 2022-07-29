@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.projectcreator;
+package mobie3.viewer.create;
 
 import mobie3.viewer.Project;
 import mobie3.viewer.serialize.ProjectJsonParser;

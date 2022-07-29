@@ -54,19 +54,9 @@ public abstract class SourceHelper
     public static double[][] getMinMax( Source< ? > source )
     {
         final double[][] minMax = new double[2][];
-        final Source< ? > rootSource = fetchRootSource( source );
-        if ( rootSource instanceof LazySpimSource )
-        {
-            minMax[ 0 ] = ( ( LazySpimSource ) rootSource ).getMin();
-            minMax[ 1 ] = ( ( LazySpimSource ) rootSource ).getMax();
-        }
-        else
-        {
-            final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
-            minMax[ 0 ] = rai.minAsDoubleArray();
-            minMax[ 1 ] = rai.maxAsDoubleArray();
-        }
-
+		final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
+		minMax[ 0 ] = rai.minAsDoubleArray();
+		minMax[ 1 ] = rai.maxAsDoubleArray();
         return minMax;
     }
 
@@ -122,10 +112,6 @@ public abstract class SourceHelper
 	public static void fetchRootSources( Source< ? > source, Set< Source< ? > > rootSources )
 	{
 		if ( source instanceof SpimSource )
-		{
-			rootSources.add( source );
-		}
-		else if ( source instanceof LazySpimSource )
 		{
 			rootSources.add( source );
 		}

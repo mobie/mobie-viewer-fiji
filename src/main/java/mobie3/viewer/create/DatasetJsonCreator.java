@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.projectcreator;
+package mobie3.viewer.create;
 
 import de.embl.cba.tables.color.ColoringLuts;
 import mobie3.viewer.table.ColumnNames;

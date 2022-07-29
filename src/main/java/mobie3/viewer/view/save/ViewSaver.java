@@ -33,7 +33,7 @@ import ij.gui.GenericDialog;
 import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIEHelper;
 import mobie3.viewer.MoBIESettings;
-import mobie3.viewer.projectcreator.ProjectCreatorHelper;
+import mobie3.viewer.create.ProjectCreatorHelper;
 import mobie3.viewer.serialize.AdditionalViewsJsonParser;
 import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.serialize.DatasetJsonParser;

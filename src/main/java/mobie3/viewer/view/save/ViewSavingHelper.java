@@ -28,12 +28,12 @@
  */
 package mobie3.viewer.view.save;
 
-import de.embl.cba.tables.github.GitHubUtils;
 import mobie3.viewer.serialize.AdditionalViewsJsonParser;
 import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.serialize.DatasetJsonParser;
 import mobie3.viewer.view.AdditionalViews;
 import mobie3.viewer.view.View;
+import org.embl.mobie.io.github.GitHubUtils;
 
 import java.io.IOException;
 
@@ -46,7 +46,7 @@ public class ViewSavingHelper
             dataset.views.put(viewName, view);
 
             if ( isGithub(datasetJsonPath)) {
-                new ViewsGithubWriter(GitHubUtils.rawUrlToGitLocation(datasetJsonPath)).writeViewToDatasetJson(viewName, view);
+                new ViewsGithubWriter( GitHubUtils.rawUrlToGitLocation(datasetJsonPath)).writeViewToDatasetJson(viewName, view);
             } else {
                 new DatasetJsonParser().saveDataset(dataset, datasetJsonPath);
             }

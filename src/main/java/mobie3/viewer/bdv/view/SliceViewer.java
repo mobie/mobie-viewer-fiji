@@ -91,7 +91,7 @@ public class SliceViewer
 		sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
 		sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
 
-		bdvHandle = createBdv( is2D, FRAME_TITLE );
+		bdvHandle = getBdvHandle();
 		setBdvWindowPositionAndSize( bdvHandle );
 		sacDisplayService.registerBdvHandle( bdvHandle );
 
@@ -105,13 +105,14 @@ public class SliceViewer
 		return sourceNameRenderer;
 	}
 
-	public BdvHandle getBdvHandle()
+	public synchronized BdvHandle getBdvHandle()
 	{
 		if ( bdvHandle == null )
 		{
 			bdvHandle = createBdv( is2D, FRAME_TITLE );
 			sacDisplayService.registerBdvHandle( bdvHandle );
 		}
+
 		return bdvHandle;
 	}
 
@@ -193,7 +194,7 @@ public class SliceViewer
 		sOptions.frameTitle = frameTitle;
 
 		IBdvSupplier bdvSupplier = new MobieBdvSupplier( sOptions );
-		SourceAndConverterServices.getBdvDisplayService().setDefaultBdvSupplier(bdvSupplier);
+		SourceAndConverterServices.getBdvDisplayService().setDefaultBdvSupplier( bdvSupplier );
 		BdvHandle bdvHandle = SourceAndConverterServices.getBdvDisplayService().getNewBdv();
 
 		return bdvHandle;

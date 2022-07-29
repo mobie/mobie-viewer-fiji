@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.projectcreator.ui;
+package mobie3.viewer.create.ui;
 
 import de.embl.cba.tables.SwingUtils;
 import ij.IJ;
@@ -36,9 +36,9 @@ import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIEHelper;
 import mobie3.viewer.Project;
 import mobie3.viewer.command.OpenMoBIEProjectCommand;
-import mobie3.viewer.projectcreator.ImagesCreator;
-import mobie3.viewer.projectcreator.ProjectCreator;
-import mobie3.viewer.projectcreator.ProjectCreatorHelper;
+import mobie3.viewer.create.ImagesCreator;
+import mobie3.viewer.create.ProjectCreator;
+import mobie3.viewer.create.ProjectCreatorHelper;
 import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.ui.SwingHelper;
 import mobie3.viewer.ui.UserInterfaceHelper;

@@ -13,15 +13,15 @@ import java.util.Set;
 
 public class TransformedAnnotationTableModel< A extends Annotation, TA extends A > implements AnnotationTableModel< TA >
 {
-	private final AnnotationTableModel< A > model;
+	private final AnnotationTableModel< A > annotationTableModel;
 	private final AnnotationTransformer< A, TA > transformer;
 
 	private HashMap< TA, Integer > rowToIndex;
 	private HashMap< Integer, TA > indexToRow;
 
-	public TransformedAnnotationTableModel( AnnotationTableModel< A > model, AnnotationTransformer< A, TA > transformer )
+	public TransformedAnnotationTableModel( AnnotationTableModel< A > annotationTableModel, AnnotationTransformer< A, TA > transformer )
 	{
-		this.model = model;
+		this.annotationTableModel = annotationTableModel;
 		this.transformer = transformer;
 		this.rowToIndex = new HashMap<>();
 		this.indexToRow = new HashMap<>();
@@ -30,25 +30,25 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public List< String > columnNames()
 	{
-		return model.columnNames();
+		return annotationTableModel.columnNames();
 	}
 
 	@Override
 	public List< String > numericColumnNames()
 	{
-		return model.numericColumnNames();
+		return annotationTableModel.numericColumnNames();
 	}
 
 	@Override
 	public Class< ? > columnClass( String columnName )
 	{
-		return model.columnClass( columnName );
+		return annotationTableModel.columnClass( columnName );
 	}
 
 	@Override
 	public int numRows()
 	{
-		return model.numRows();
+		return annotationTableModel.numRows();
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	{
 		if ( ! indexToRow.containsKey( rowIndex ) )
 		{
-			final TA row = transformer.transform( model.row( rowIndex ) );
+			final TA row = transformer.transform( annotationTableModel.row( rowIndex ) );
 			rowToIndex.put( row, rowIndex );
 			indexToRow.put( rowIndex, row );
 		}
@@ -73,25 +73,25 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public void loadColumns( String columnsPath )
 	{
-		model.loadColumns( columnsPath );
+		annotationTableModel.loadColumns( columnsPath );
 	}
 
 	@Override
 	public void setColumnPaths( Collection< String > columnPaths )
 	{
-		model.setColumnPaths( columnPaths );
+		annotationTableModel.setColumnPaths( columnPaths );
 	}
 
 	@Override
 	public Collection< String > columnPaths()
 	{
-		return model.columnPaths();
+		return annotationTableModel.columnPaths();
 	}
 
 	@Override
 	public LinkedHashSet< String > loadedColumnPaths()
 	{
-		return model.loadedColumnPaths();
+		return annotationTableModel.loadedColumnPaths();
 	}
 
 	@Override
@@ -110,5 +110,11 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	public void addStringColumn( String columnName )
 	{
 
+	}
+
+	@Override
+	public boolean isDataLoaded()
+	{
+		return annotationTableModel.isDataLoaded();
 	}
 }

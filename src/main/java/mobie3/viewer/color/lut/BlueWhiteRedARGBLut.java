@@ -28,7 +28,6 @@
  */
 package mobie3.viewer.color.lut;
 
-import mobie3.viewer.color.LUTs;
 import net.imglib2.type.numeric.ARGBType;
 
 public class BlueWhiteRedARGBLut implements ARGBLut

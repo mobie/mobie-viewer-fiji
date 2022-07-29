@@ -29,7 +29,7 @@
 package mobie3.viewer.command;
 
 import ij.ImagePlus;
-import mobie3.viewer.projectcreator.ui.ManualExportPanel;
+import mobie3.viewer.create.ui.ManualExportPanel;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.n5.util.DownsampleBlock;

@@ -31,8 +31,8 @@ package mobie3.viewer.command;
 import ij.gui.GenericDialog;
 import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MoBIESettings;
-import mobie3.viewer.project.PublishedProject;
-import mobie3.viewer.project.PublishedProjects;
+import mobie3.viewer.published.PublishedProject;
+import mobie3.viewer.published.PublishedProjects;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
 

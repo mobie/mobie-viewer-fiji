@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.project;
+package mobie3.viewer.published;
 
 public class PublishedProject
 {

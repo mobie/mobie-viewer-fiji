@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.projectcreator;
+package mobie3.viewer.create;
 
 import mobie3.viewer.Project;
 import mobie3.viewer.serialize.Dataset;
@@ -47,7 +47,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
-import static mobie3.viewer.projectcreator.ProjectCreatorHelper.getGroupToViewsMap;
+import static mobie3.viewer.create.ProjectCreatorHelper.getGroupToViewsMap;
 
 public class ProjectCreator {
 

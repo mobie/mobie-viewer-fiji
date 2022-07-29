@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.projectcreator.ui;
+package mobie3.viewer.create.ui;
 
 import bdv.ij.util.PluginHelper;
 import fiji.util.gui.GenericDialogPlus;

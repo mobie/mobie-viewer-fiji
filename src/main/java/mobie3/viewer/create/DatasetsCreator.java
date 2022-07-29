@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.projectcreator;
+package mobie3.viewer.create;
 
 import ij.IJ;
 import org.embl.mobie.io.util.IOHelper;

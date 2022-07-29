@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package mobie3.viewer.projectcreator;
+package mobie3.viewer.create;
 
 import bdv.img.n5.N5ImageLoader;
 import ij.IJ;
