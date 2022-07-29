@@ -20,6 +20,7 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel<
 	private HashMap< TableSawAnnotatedSegment, Integer > annotationToRowIndex;
 	private HashMap< Integer, TableSawAnnotatedSegment > rowIndexToAnnotation;
 	private Table table;
+	private boolean isDataLoaded = false;
 
 	public TableSawAnnotatedSegmentTableModel( String defaultColumnsPath )
 	{
@@ -30,28 +31,47 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel<
 		loadedColumnPaths.add( defaultColumnsPath );
 	}
 
+	private Table getTable()
+	{
+		if ( table != null ) return table;
+
+		// load table
+		isDataLoaded = true;
+
+//		annotationToRowIndex.put( annotation, rowIndex );
+//		rowIndexToAnnotation.put( rowIndex, annotation );
+//
+		// think about the representation of missing values
+		// e.g. should we use None or "" for a missing String?
+		// return table;
+
+		throw new UnsupportedOperationException("Table loading is not yet implemented.");
+
+
+	}
+
 	@Override
 	public List< String > columnNames()
 	{
-		return table.columnNames();
+		return getTable().columnNames();
 	}
 
 	@Override
 	public List< String > numericColumnNames()
 	{
-		return table.numericColumns().stream().map( c -> c.name() ).collect( Collectors.toList() );
+		return getTable().numericColumns().stream().map( c -> c.name() ).collect( Collectors.toList() );
 	}
 
 	@Override
 	public Class< ? > columnClass( String columnName )
 	{
-		return TableSawColumnTypes.typeToClass.get( table.column( columnName ).type() );
+		return TableSawColumnTypes.typeToClass.get( getTable().column( columnName ).type() );
 	}
 
 	@Override
 	public int numRows()
 	{
-		return table.rowCount();
+		return getTable().rowCount();
 	}
 
 	@Override
@@ -63,26 +83,16 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel<
 	@Override
 	public TableSawAnnotatedSegment row( int rowIndex )
 	{
-		open();
+		getTable(); // ensures that the data is loaded
 
 		if ( ! rowIndexToAnnotation.containsKey( rowIndex ) )
 		{
-			final TableSawAnnotatedSegment annotation = new TableSawAnnotatedSegment( table, rowIndex );
+			final TableSawAnnotatedSegment annotation = new TableSawAnnotatedSegment( getTable(), rowIndex );
 			annotationToRowIndex.put( annotation, rowIndex );
 			rowIndexToAnnotation.put( rowIndex, annotation );
 		}
 
 		return rowIndexToAnnotation.get( rowIndex );
-	}
-
-	private void open()
-	{
-		if ( table != null ) return;
-
-		throw new UnsupportedOperationException("Table loading is not yet implemented.");
-		// load table
-		// think about the representation of missing values
-		// e.g. should we use None or "" for a missing String?
 	}
 
 	@Override
@@ -125,16 +135,22 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel<
 	@Override
 	public void addStringColumn( String columnName )
 	{
-		if ( ! table.containsColumn( columnName ) )
+		if ( ! getTable().containsColumn( columnName ) )
 		{
-			final String[] strings = new String[ table.rowCount() ];
+			final String[] strings = new String[ getTable().rowCount() ];
 			Arrays.fill( strings, DefaultValues.NONE );
 			final StringColumn stringColumn = StringColumn.create( columnName, strings );
-			table.addColumns( stringColumn );
+			getTable().addColumns( stringColumn );
 		}
 		else
 		{
 			throw new UnsupportedOperationException("Column " + columnName + " exists already.");
 		}
+	}
+
+	@Override
+	public boolean isDataLoaded()
+	{
+		return isDataLoaded;
 	}
 }

@@ -32,14 +32,10 @@ import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
-import mobie3.viewer.annotation.AnnotatedSegment;
 import mobie3.viewer.color.CategoricalAnnotationColoringModel;
 import mobie3.viewer.color.ColoringModels;
-import mobie3.viewer.color.lut.GlasbeyARGBLut;
-import mobie3.viewer.color.lut.Luts;
 import mobie3.viewer.select.SelectionListener;
 import mobie3.viewer.select.SelectionModel;
-import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.table.AnnotationTableModel;
 import mobie3.viewer.table.DefaultValues;
 import mobie3.viewer.ui.MoBIELaf;
@@ -53,8 +49,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static de.embl.cba.tables.color.CategoryTableRowColumnColoringModel.DARK_GREY;
-import static mobie3.viewer.color.LUTs.GLASBEY;
+import static mobie3.viewer.color.lut.LUTs.DARK_GREY;
+import static mobie3.viewer.color.lut.LUTs.GLASBEY;
 
 public class AnnotatorDialog< A extends Annotation > extends JFrame implements SelectionListener< A >
 {

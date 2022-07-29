@@ -64,12 +64,18 @@ public class DefaultRegionTableRow extends AbstractTableRow implements RegionTab
 	}
 
 	@Override
-	public Integer timePoint()
+	public int timePoint()
 	{
 		if ( cells.containsKey( "timepoint" ) )
 			return Integer.parseInt( cells.get( "timepoint" ) );
 		else
 			return 0;
+	}
+
+	@Override
+	public double[] anchor()
+	{
+		return new double[ 0 ];
 	}
 
 	@Override

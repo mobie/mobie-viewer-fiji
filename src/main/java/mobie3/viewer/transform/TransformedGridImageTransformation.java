@@ -33,6 +33,7 @@ import de.embl.cba.tables.Logger;
 import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MultiThreading;
 import mobie3.viewer.playground.SourceAffineTransformer;
+import mobie3.viewer.source.Image;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.ArrayList;
@@ -51,7 +52,6 @@ public class TransformedGridImageTransformation extends AbstractTransformation
 	// Static
 	public static final double RELATIVE_CELL_MARGIN = 0.1;
 
-	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
 		final long startTime = System.currentTimeMillis();
@@ -65,6 +65,13 @@ public class TransformedGridImageTransformation extends AbstractTransformation
 		final long duration = System.currentTimeMillis() - startTime;
 		if ( duration > MoBIE3.minLogTimeMillis )
 			Logger.info("Transformed " + nestedSources.size() + " group(s) with "+ nestedSources.get( 0 ).size() +" source(s) each into a grid in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
+	}
+
+	@Override
+	public < T > Image< T > apply( Image< T > image )
+	{
+		// TODO (test with new BDV version!);
+		return null;
 	}
 
 	@Override

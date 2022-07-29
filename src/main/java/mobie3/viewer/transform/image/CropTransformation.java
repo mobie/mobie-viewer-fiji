@@ -29,6 +29,7 @@
 package mobie3.viewer.transform.image;
 
 import bdv.viewer.SourceAndConverter;
+import mobie3.viewer.source.Image;
 import mobie3.viewer.transform.AbstractTransformation;
 import mobie3.viewer.transform.TransformHelper;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
@@ -48,7 +49,6 @@ public class CropTransformation extends AbstractTransformation
 	protected List< String > sourceNamesAfterTransform;
 	protected boolean centerAtOrigin = false;
 
-	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
 		for ( String sourceName : sourceNameToSourceAndConverter.keySet() )
@@ -86,6 +86,13 @@ public class CropTransformation extends AbstractTransformation
 				sourceNameToSourceAndConverter.put( croppedSourceAndConverter.getSpimSource().getName(), croppedSourceAndConverter );
 			}
 		}
+	}
+
+	@Override
+	public < T > Image< T > apply( Image< T > image )
+	{
+		// TODO
+		return null;
 	}
 
 	@Override

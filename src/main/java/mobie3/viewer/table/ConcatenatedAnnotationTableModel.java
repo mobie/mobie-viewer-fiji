@@ -4,20 +4,51 @@ import mobie3.viewer.annotation.Annotation;
 import net.imglib2.util.Pair;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 public class ConcatenatedAnnotationTableModel< A extends Annotation > implements AnnotationTableModel< A >
 {
 	private final Set< AnnotationTableModel< A > > tableModels;
 	private AnnotationTableModel< A > referenceTable;
+	private HashMap< A, Integer > annotationToRowIndex = new HashMap<>();
+	private HashMap< Integer, A > rowIndexToAnnotation = new HashMap<>();
+	private Set< AnnotationTableModel > loadedTables = new HashSet<>();
+	private int numRows = 0;
 
 	public ConcatenatedAnnotationTableModel( Set< AnnotationTableModel< A > > tableModels )
 	{
 		this.tableModels = tableModels;
-		referenceTable = tableModels.iterator().next();
+		this.referenceTable = tableModels.iterator().next();
+	}
+
+	private HashMap< A, Integer > getAnnotationToRowIndex()
+	{
+		updateTables();
+		return annotationToRowIndex;
+	}
+
+	private synchronized void updateTables()
+	{
+		for ( AnnotationTableModel< A > tableModel : tableModels )
+		{
+			if ( loadedTables.contains( tableModel ) ) continue;
+
+			if ( tableModel.isDataLoaded() )
+			{
+				final Set< A > rows = tableModel.rows();
+				for ( A row : rows )
+				{
+					annotationToRowIndex.put( row, numRows );
+					rowIndexToAnnotation.put( numRows, row );
+					numRows++;
+				}
+				loadedTables.add( tableModel );
+			}
+		}
 	}
 
 	@Override
@@ -41,31 +72,41 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	@Override
 	public int numRows()
 	{
-		return 0;
+		return numRows;
 	}
 
 	@Override
 	public int indexOf( A annotation )
 	{
-		return 0;
+		return getAnnotationToRowIndex().get( annotation );
 	}
 
 	@Override
 	public A row( int rowIndex )
 	{
-		return null;
+		// We do not update the tables here,
+		// because one should only ask for
+		// rows with an index lower than the
+		// current numRows.
+		return rowIndexToAnnotation.get( rowIndex );
 	}
 
 	@Override
 	public void loadColumns( String columnsPath )
 	{
-
+		for ( AnnotationTableModel< A > tableModel : tableModels )
+		{
+			tableModel.loadColumns( columnsPath );
+		}
 	}
 
 	@Override
 	public void setColumnPaths( Collection< String > columnPaths )
 	{
-
+		for ( AnnotationTableModel< A > tableModel : tableModels )
+		{
+			tableModel.setColumnPaths( columnPaths );
+		}
 	}
 
 	@Override
@@ -89,12 +130,20 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	@Override
 	public Set< A > rows()
 	{
-		return null;
+		return getAnnotationToRowIndex().keySet();
 	}
 
 	@Override
 	public void addStringColumn( String columnName )
 	{
+		// here we probably need to load all tables
+	}
 
+	@Override
+	public boolean isDataLoaded()
+	{
+		// note that here this does not mean that
+		// all data is loaded...
+		return referenceTable.isDataLoaded();
 	}
 }

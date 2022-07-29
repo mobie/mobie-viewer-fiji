@@ -23,4 +23,5 @@ public interface AnnotationTableModel< A extends Annotation >
 	Pair< Double, Double > computeMinMax( String columnName ); // for contrast limits during rendering
 	Set< A > rows();
 	void addStringColumn( String columnName );
+	boolean isDataLoaded();
 }

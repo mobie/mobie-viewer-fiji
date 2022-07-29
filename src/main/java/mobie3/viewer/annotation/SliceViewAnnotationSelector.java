@@ -31,7 +31,6 @@ package mobie3.viewer.annotation;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.tables.tablerow.TableRow;
 import mobie3.viewer.bdv.GlobalMousePositionProvider;
 import mobie3.viewer.display.AnnotationDisplay;
 import mobie3.viewer.source.AnnotationType;
@@ -43,15 +42,14 @@ import tech.tablesaw.api.Row;
 import java.util.Collection;
 import java.util.function.Supplier;
 
-public class SliceViewAnnotationSelector< T extends TableRow > implements Runnable
+public class SliceViewAnnotationSelector< A extends Annotation > implements Runnable
 {
 	private BdvHandle bdvHandle;
 	private boolean is2D;
-	private Supplier< Collection< AnnotationDisplay< T > > > annotationDisplaySupplier;
+	private Supplier< Collection< AnnotationDisplay< A > > > annotationDisplaySupplier;
 
-	public SliceViewAnnotationSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< AnnotationDisplay< T > > > annotationDisplaySupplier )
+	public SliceViewAnnotationSelector( BdvHandle bdvHandle, boolean is2D, Supplier< Collection< AnnotationDisplay< A > > > annotationDisplaySupplier )
 	{
-		final ColumnType columnType = new Row().getColumnType( 0 );
 		this.bdvHandle = bdvHandle;
 		this.is2D = is2D;
 		this.annotationDisplaySupplier = annotationDisplaySupplier;
@@ -59,9 +57,9 @@ public class SliceViewAnnotationSelector< T extends TableRow > implements Runnab
 
 	public synchronized void clearSelection()
 	{
-		final Collection< AnnotationDisplay< T > > annotationDisplays = annotationDisplaySupplier.get();
+		final Collection< AnnotationDisplay< A > > annotationDisplays = annotationDisplaySupplier.get();
 
-		for ( AnnotationDisplay< T > annotationDisplay : annotationDisplays )
+		for ( AnnotationDisplay< A > annotationDisplay : annotationDisplays )
 		{
 			annotationDisplay.selectionModel.clearSelection();
 		}
@@ -73,23 +71,23 @@ public class SliceViewAnnotationSelector< T extends TableRow > implements Runnab
 		final int timePoint = positionProvider.getTimePoint();
 		final RealPoint realPosition = positionProvider.getPositionAsRealPoint();
 
-		final Collection< AnnotationDisplay< T > > annotationDisplays = annotationDisplaySupplier.get();
+		final Collection< AnnotationDisplay< A > > annotationDisplays = annotationDisplaySupplier.get();
 
-		for ( AnnotationDisplay< T > annotationDisplay : annotationDisplays )
+		for ( AnnotationDisplay< A > annotationDisplay : annotationDisplays )
 		{
-			final Collection< SourceAndConverter< AnnotationType< T > > > sourceAndConverters = annotationDisplay.nameToSourceAndConverter.values();
+			final Collection< SourceAndConverter< AnnotationType< A > > > sourceAndConverters = annotationDisplay.nameToSourceAndConverter.values();
 
-			for ( SourceAndConverter< AnnotationType< T > > sourceAndConverter : sourceAndConverters )
+			for ( SourceAndConverter< AnnotationType< A > > sourceAndConverter : sourceAndConverters )
 			{
 				if ( ! bdvHandle.getViewerPanel().state().isSourceVisible( sourceAndConverter ) )
 					continue;
 
 				if ( SourceAndConverterHelper.isPositionWithinSourceInterval( sourceAndConverter, realPosition, timePoint, is2D ) )
 				{
-					final Source< AnnotationType< T > > source = sourceAndConverter.getSpimSource();
+					final Source< AnnotationType< A > > source = sourceAndConverter.getSpimSource();
 					final long[] voxelPosition = SourceAndConverterHelper.getVoxelPositionInSource( source, realPosition, timePoint, 0 );
-					final AnnotationType< T > annotationType = source.getSource( timePoint, 0 ).randomAccess().setPositionAndGet( voxelPosition );
-					final T annotation = annotationType.getAnnotation();
+					final AnnotationType< A > annotationType = source.getSource( timePoint, 0 ).randomAccess().setPositionAndGet( voxelPosition );
+					final A annotation = annotationType.getAnnotation();
 
 //
 //					final double pixelValue = getPixelValue( timePoint, realPosition, source );

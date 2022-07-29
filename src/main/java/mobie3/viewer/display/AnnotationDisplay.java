@@ -52,6 +52,7 @@ import mobie3.viewer.table.TableView;
 import net.imglib2.util.ValuePair;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -88,6 +89,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	public transient TableView< A > tableView;
 	public transient ScatterPlotView< A > scatterPlotView;
 	public transient AnnotationSliceView< A > sliceView;
+	private transient AnnData< A > annData;
 
 	// Methods
 	public abstract Set< String > selectedAnnotationIds();
@@ -190,13 +192,12 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		this.scatterPlotAxes = annotationDisplay.scatterPlotView.getSelectedColumns();
 		this.tables = annotationDisplay.tables;
 
-		// TODO: I need a table model to check which columns have been loaded!
-		List<String> additionalTables = annotationDisplay.tableView.getAdditionalTables();
-		if ( additionalTables.size() > 0 ){
+		final LinkedHashSet< String > loadedColumnPaths = annotationDisplay.annData.getTable().loadedColumnPaths();
+		if ( loadedColumnPaths.size() > 0 ){
 			if ( this.tables == null ) {
 				this.tables = new ArrayList<>();
 			}
-			this.tables.addAll( additionalTables );
+			this.tables.addAll( loadedColumnPaths );
 		}
 
 		this.showTable = annotationDisplay.tableView.getWindow().isVisible();
@@ -220,6 +221,11 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	public void initAnnData()
 	{
 		final Set< AnnData< A > > annDataSet = getAnnotatedImages().stream().map( image -> image.getAnnData() ).collect( Collectors.toSet() );
-		new ConcatenatedAnnData( annDataSet );
+		annData = new ConcatenatedAnnData( annDataSet );
+	}
+
+	public AnnData< A > getAnnData()
+	{
+		return annData;
 	}
 }

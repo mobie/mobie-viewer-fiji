@@ -34,41 +34,40 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import mobie3.viewer.MoBIE3;
+import mobie3.viewer.annotation.AnnotatedSegment;
+import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.bdv.view.AnnotationSliceView;
 import mobie3.viewer.bdv.view.ImageSliceView;
 import mobie3.viewer.bdv.view.SliceViewer;
-import mobie3.viewer.color.ColoringModels;
 import mobie3.viewer.color.CategoricalAnnotationColoringModel;
-import mobie3.viewer.color.LUTs;
+import mobie3.viewer.color.ColoringModels;
 import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.color.NumericAnnotationColoringModel;
 import mobie3.viewer.color.lut.ColumnARGBLut;
+import mobie3.viewer.color.lut.LUTs;
 import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.AnnotationDisplay;
+import mobie3.viewer.display.Display;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.RegionDisplay;
 import mobie3.viewer.display.SegmentationDisplay;
-import mobie3.viewer.display.Display;
 import mobie3.viewer.plot.ScatterPlotView;
-import mobie3.viewer.table.AnnotationTableModel;
-import mobie3.viewer.transform.AnnotatedSegmentTransformer;
-import mobie3.viewer.transform.TransformedAnnData;
 import mobie3.viewer.select.MoBIESelectionModel;
 import mobie3.viewer.source.AnnotatedImage;
-import mobie3.viewer.source.SegmentationImage;
 import mobie3.viewer.source.BoundarySource;
 import mobie3.viewer.source.Image;
-import mobie3.viewer.source.SourceAndConverterAndTables;
+import mobie3.viewer.source.SegmentationImage;
 import mobie3.viewer.source.TransformedImage;
-import mobie3.viewer.annotation.AnnotatedSegment;
-import mobie3.viewer.annotation.Annotation;
 import mobie3.viewer.table.AnnData;
+import mobie3.viewer.table.AnnotationTableModel;
 import mobie3.viewer.table.TableView;
-import mobie3.viewer.transform.image.AffineTransformation;
+import mobie3.viewer.transform.AnnotatedSegmentTransformer;
 import mobie3.viewer.transform.NormalizedAffineViewerTransform;
 import mobie3.viewer.transform.SliceViewLocationChanger;
-import mobie3.viewer.transform.Transformation;
 import mobie3.viewer.transform.TransformHelper;
+import mobie3.viewer.transform.Transformation;
+import mobie3.viewer.transform.TransformedAnnData;
+import mobie3.viewer.transform.image.AffineTransformation;
 import mobie3.viewer.ui.UserInterface;
 import mobie3.viewer.ui.WindowArrangementHelper;
 import mobie3.viewer.view.save.ViewSaver;
@@ -333,12 +332,6 @@ public class ViewManager
 		final SegmentationImage< ? extends AnnotatedSegment > transformedSegmentationImage = new SegmentationImage( transformedLabelMask, transformedAnnData );
 
 		return transformedSegmentationImage;
-	}
-
-	private SourceAndConverterAndTables createLazySourceAndConverter( String sourceName, SourceAndConverter< ? > parentSource )
-	{
-		final SourceAndConverterAndTables< ? > sourceAndConverter = new SourceAndConverterAndTables( moBIE, sourceName, parentSource );
-		return sourceAndConverter;
 	}
 
 	public synchronized < A extends Annotation > void show( Display< ? > display )

@@ -28,7 +28,6 @@
  */
 package mobie3.viewer.view.save;
 
-import de.embl.cba.tables.github.GitHubUtils;
 import ij.IJ;
 import ij.gui.GenericDialog;
 import mobie3.viewer.MoBIE3;
@@ -42,6 +41,7 @@ import mobie3.viewer.ui.UserInterfaceHelper;
 import mobie3.viewer.view.AdditionalViews;
 import mobie3.viewer.view.View;
 import org.apache.commons.io.FilenameUtils;
+import org.embl.mobie.io.github.GitHubUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,15 +49,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static mobie3.viewer.view.save.ViewSavingHelper.writeAdditionalViewsJson;
+import static mobie3.viewer.view.save.ViewSavingHelper.writeDatasetJson;
 import static org.embl.mobie.io.github.GitHubUtils.isGithub;
 import static org.embl.mobie.io.util.IOHelper.getFileNames;
 import static org.embl.mobie.io.util.S3Utils.isS3;
-import static org.embl.mobie.viewer.view.save.ViewSavingHelper.writeAdditionalViewsJson;
-import static org.embl.mobie.viewer.view.save.ViewSavingHelper.writeDatasetJson;
 
 public class ViewSaver
 {
-
     public static final String NEW_VIEWS_JSON_FILE = "Make new views json file";
 
     static { net.imagej.patcher.LegacyInjector.preinit(); }
@@ -263,7 +262,7 @@ public class ViewSaver
             if ( dataset.views.containsKey( viewName ) )
                 throw new IOException( "View saving aborted - this view name already exists!" );
 
-        ViewSavingHelper.writeDatasetJson( dataset, view, viewName, datasetJsonPath );
+        writeDatasetJson( dataset, view, viewName, datasetJsonPath );
         IJ.log( "View \"" + viewName + "\" written to dataset.json" );
     }
 
@@ -322,7 +321,7 @@ public class ViewSaver
             additionalViews.views = new HashMap<>();
         }
 
-        ViewSavingHelper.writeAdditionalViewsJson( additionalViews, view, viewName, jsonPath );
+        writeAdditionalViewsJson( additionalViews, view, viewName, jsonPath );
         IJ.log( "New view, " + viewName + ", written to " + new File( jsonPath ).getName() );
     }
 

@@ -30,9 +30,6 @@ package mobie3.viewer.view.save;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
-import de.embl.cba.tables.github.GitHubContentGetter;
-import de.embl.cba.tables.github.GitHubFileCommitter;
-import de.embl.cba.tables.github.GitLocation;
 import ij.IJ;
 import ij.Prefs;
 import ij.gui.GenericDialog;
@@ -41,6 +38,9 @@ import mobie3.viewer.serialize.Dataset;
 import mobie3.viewer.serialize.DatasetJsonParser;
 import mobie3.viewer.view.AdditionalViews;
 import mobie3.viewer.view.View;
+import org.embl.mobie.io.github.GitHubContentGetter;
+import org.embl.mobie.io.github.GitHubFileCommitter;
+import org.embl.mobie.io.github.GitLocation;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

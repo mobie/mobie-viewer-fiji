@@ -35,11 +35,14 @@ import java.util.List;
 
 public interface Transformation
 {
+	// TODO: maybe rather Set< > <=> Set< >
+	//   or Map< Name, Image > as we had it before.
+	//   or have both?
 	< T > Image< T > apply( Image< T > image );
 
 	/**
 	 * @return a list of the names of all images
 	 * that should be transformed using this transformer.
 	 */
-	List< String > getTargetImages();
+	List< String > getTargetImages(); // TODO it feels a bit weird that this is here...
 }

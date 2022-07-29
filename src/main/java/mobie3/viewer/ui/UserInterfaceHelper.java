@@ -42,6 +42,7 @@ import mobie3.viewer.MoBIEHelper;
 import mobie3.viewer.MoBIEInfo;
 import mobie3.viewer.VisibilityListener;
 import mobie3.viewer.color.OpacityHelper;
+import mobie3.viewer.color.opacity.OpacityAdjuster;
 import mobie3.viewer.display.AbstractDisplay;
 import mobie3.viewer.display.ImageDisplay;
 import mobie3.viewer.display.RegionDisplay;
@@ -197,7 +198,9 @@ public class UserInterfaceHelper
 
 		// TODO: This cast requires that the sourceAndConverter implements
 		//   an OpacityAdjuster; how to do this more cleanly?
-		final double current = ( ( OpacityHelper ) sourceAndConverters.get( 0 ).getConverter()).getOpacity();
+		//   Maybe we should rather operate on the coloring model that is
+		//   wrapped in the converter?
+		final double current = ( ( OpacityAdjuster ) sourceAndConverters.get( 0 ).getConverter()).getOpacity();
 
 		final BoundedValueDouble selection =
 				new BoundedValueDouble(
@@ -375,7 +378,7 @@ public class UserInterfaceHelper
 		panel.add( createRemoveButton( display ) );
 		panel.add( space() );
 		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
-		if ( display.tableModel != null )
+		if ( display.getAnnData() != null )
 		{
 			// segments 3D view
 			panel.add( createSegmentsVolumeViewerVisibilityCheckbox( display ) );

@@ -47,6 +47,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
+import static mobie3.viewer.projectcreator.ProjectCreatorHelper.getGroupToViewsMap;
+
 public class ProjectCreator {
 
     static { LegacyInjector.preinit(); }

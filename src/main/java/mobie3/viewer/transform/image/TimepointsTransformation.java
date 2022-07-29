@@ -29,6 +29,7 @@
 package mobie3.viewer.transform.image;
 
 import bdv.viewer.SourceAndConverter;
+import mobie3.viewer.source.Image;
 import mobie3.viewer.source.TransformedTimepointSource;
 import mobie3.viewer.transform.AbstractTransformation;
 import net.imglib2.Volatile;
@@ -59,7 +60,6 @@ public class TimepointsTransformation extends AbstractTransformation
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
 	}
 
-	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
 		// Convert to Map (it comes as List< List< Integer > >,
@@ -102,6 +102,13 @@ public class TimepointsTransformation extends AbstractTransformation
 		{
 			return new SourceAndConverter<>( transformedSource, SourceAndConverterHelper.cloneConverter( sac.getConverter(), sac ) );
 		}
+	}
+
+	@Override
+	public < T > Image< T > apply( Image< T > image )
+	{
+		// TODO
+		return null;
 	}
 
 	@Override

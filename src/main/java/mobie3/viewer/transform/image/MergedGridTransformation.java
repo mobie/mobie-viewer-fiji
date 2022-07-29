@@ -36,6 +36,7 @@ import ij.IJ;
 import mobie3.viewer.MoBIE3;
 import mobie3.viewer.MultiThreading;
 import mobie3.viewer.source.FunctionGridSource;
+import mobie3.viewer.source.Image;
 import mobie3.viewer.source.MergedGridSource;
 import mobie3.viewer.source.SourceHelper;
 import mobie3.viewer.transform.AbstractTransformation;
@@ -54,6 +55,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+// TODO: Maybe this actually is not a transformation, but a Stitcher?
 public class MergedGridTransformation< T extends NumericType< T > >  extends AbstractTransformation
 {
 	// Serialization
@@ -68,7 +70,6 @@ public class MergedGridTransformation< T extends NumericType< T > >  extends Abs
 	private transient double[] translationRealOffset;
 	private transient Set< SourceAndConverter > transformedSourceAndConverters;
 
-	@Override
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
 		if ( centerAtOrigin == true )
@@ -196,6 +197,13 @@ public class MergedGridTransformation< T extends NumericType< T > >  extends Abs
 	}
 
 	@Override
+	public < T > Image< T > apply( Image< T > image )
+	{
+		// TODO: wrong interface for multiple images as an input?
+		return null;
+	}
+
+	@Override
 	public List< String > getTargetImages()
 	{
 		return sources;
@@ -234,7 +242,6 @@ public class MergedGridTransformation< T extends NumericType< T > >  extends Abs
 
 		return gridSourceAndConverter;
 	}
-
 
 	private List< SourceAndConverter< ? > > getGridSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{

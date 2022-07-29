@@ -31,7 +31,8 @@ package mobie3.viewer.command;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.CategoryColoringModel;
-import de.embl.cba.tables.color.ColoringModel;
+import mobie3.viewer.color.CategoricalAnnotationColoringModel;
+import mobie3.viewer.color.ColoringModel;
 import mobie3.viewer.color.MoBIEColoringModel;
 import mobie3.viewer.color.MoBIEColoringModelWrapper;
 import mobie3.viewer.source.BoundarySource;
@@ -86,11 +87,11 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 			{
 				final ColoringModel coloringModel = ( ( MoBIEColoringModelWrapper ) converter ).getMoBIEColoringModel().getWrappedColoringModel();
 
-				if ( coloringModel instanceof CategoryColoringModel )
+				if ( coloringModel instanceof CategoricalAnnotationColoringModel )
 				{
-					final CategoryColoringModel< ? > categoryColoringModel = ( CategoryColoringModel< ? > ) coloringModel;
-					int randomSeed = categoryColoringModel.getRandomSeed();
-					categoryColoringModel.setRandomSeed( ++randomSeed );
+					final CategoricalAnnotationColoringModel< ? > categoricalAnnotationColoringModel = ( CategoricalAnnotationColoringModel< ? > ) coloringModel;
+					int randomSeed = categoricalAnnotationColoringModel.getRandomSeed();
+					categoricalAnnotationColoringModel.setRandomSeed( ++randomSeed );
 				}
 			}
 		}
