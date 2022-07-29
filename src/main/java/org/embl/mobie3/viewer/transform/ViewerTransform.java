@@ -26,21 +26,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.transform;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import com.google.gson.Gson;
+import org.embl.mobie3.viewer.serialize.JsonHelper;
 
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+public interface ViewerTransform
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	double[] getParameters();
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	Integer getTimepoint();
+
+	static String toString( ViewerTransform viewerTransform )
+	{
+		if ( viewerTransform != null )
+		{
+			final Gson gson = JsonHelper.buildGson( false );
+			return gson.toJson( viewerTransform );
+		}
+		else
+			return  "";
 	}
+
+	static ViewerTransform toViewerTransform( String s )
+	{
+		try
+		{
+			final Gson gson = JsonHelper.buildGson( false );
+			return gson.fromJson( s, ViewerTransform.class );
+
+		}
+		catch ( Exception gsonException )
+		{
+			// TODO: implement additional parsing: https://github.com/mobie/mobie-viewer-fiji/issues/731
+			throw gsonException;
+		}
+	}
+
 }

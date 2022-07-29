@@ -26,21 +26,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.command;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import bdv.viewer.SourceAndConverter;
+import org.embl.mobie3.viewer.bdv.render.BlendingMode;
+import org.embl.mobie3.viewer.bdv.render.BlendingModeChanger;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
+import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
-import java.io.IOException;
+@Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Set Blending Mode")
+public class SourceAndConverterBlendingModeChangerCommand implements BdvPlaygroundActionCommand {
 
-public class OpenRemotePlatynereis
-{
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+    @Parameter(label = "Blending Mode", choices = { BlendingMode.SUM, BlendingMode.SUM_OCCLUDING })
+    String blendingMode = BlendingMode.SUM;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+    @Parameter(label = "Select Source(s)")
+    SourceAndConverter[] sacs;
+
+    @Override
+    public void run() {
+        new BlendingModeChanger( sacs, BlendingMode.valueOf( blendingMode ) ).run();
+    }
+
 }

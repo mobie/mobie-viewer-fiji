@@ -26,21 +26,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.command;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
-
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+public abstract class CommandConstants
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
-
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+	public static final String MOBIE_PLUGIN_ROOT = "Plugins>MoBIE>";
+	public static final String CONTEXT_MENU_ITEMS_ROOT = "Plugins>Context Menu Items>Do not use>MoBIE>";
 }

@@ -26,21 +26,42 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.bdv;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import bdv.util.BdvHandle;
+import bdv.util.PlaceHolderSource;
+import bdv.viewer.SourceAndConverter;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
-import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-public class OpenRemotePlatynereis
+public class SourcesAtMousePositionSupplier implements Supplier< Collection< SourceAndConverter< ? > > >
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	BdvHandle bdvHandle;
+	boolean is2D;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	public SourcesAtMousePositionSupplier( BdvHandle bdvHandle, boolean is2D )
+	{
+		this.bdvHandle = bdvHandle;
+		this.is2D = is2D;
+	}
+
+	@Override
+	public Collection< SourceAndConverter< ? > > get()
+	{
+		final GlobalMousePositionProvider positionProvider = new GlobalMousePositionProvider( bdvHandle );
+
+		final List< SourceAndConverter< ? > > sourceAndConverters = SourceAndConverterServices.getBdvDisplayService().getSourceAndConverterOf( bdvHandle )
+				.stream()
+				.filter( sac -> ! ( sac.getSpimSource() instanceof PlaceHolderSource ) )
+				.filter( sac -> SourceAndConverterHelper.isPositionWithinSourceInterval( sac, positionProvider.getPositionAsRealPoint(), positionProvider.getTimePoint(), is2D ) )
+				.filter( sac -> SourceAndConverterServices.getBdvDisplayService().isVisible( sac, bdvHandle ) )
+				.collect( Collectors.toList() );
+
+		return sourceAndConverters;
 	}
 }

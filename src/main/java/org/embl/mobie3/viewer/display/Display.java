@@ -26,21 +26,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.display;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie3.viewer.bdv.render.BlendingMode;
+import org.embl.mobie3.viewer.source.Image;
 
-import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
-public class OpenRemotePlatynereis
+public interface Display< T >
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	List< String > getSources();
+	BlendingMode getBlendingMode();
+	String getName();
+	double getOpacity();
+	boolean isVisible();
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+	Set< Image< T > > getImages();
+	void addImage( Image< T > image );
 }

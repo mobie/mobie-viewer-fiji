@@ -26,21 +26,55 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.source;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import bdv.viewer.Source;
+import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.realtransform.AffineTransform3D;
 
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+// During the wrapping the type changes from A to B
+public abstract class AbstractSourceWrapper< A, B > implements Source< B >, SourceWrapper< A >
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+    protected final Source< A > source;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+    public AbstractSourceWrapper( final Source< A > source )
+    {
+        this.source = source;
+    }
+
+    @Override
+    public boolean doBoundingBoxCulling() {
+        return source.doBoundingBoxCulling();
+    }
+
+    @Override
+    public synchronized void getSourceTransform(final int t, final int level, final AffineTransform3D transform) {
+        source.getSourceTransform(t, level, transform);
+    }
+
+    @Override
+    public boolean isPresent( final int t )
+    {
+        return source.isPresent(t);
+    }
+
+    @Override
+    public String getName() {
+        return source.getName();
+    }
+
+    @Override
+    public VoxelDimensions getVoxelDimensions() {
+        return source.getVoxelDimensions();
+    }
+
+    @Override
+    public int getNumMipmapLevels() {
+        return source.getNumMipmapLevels();
+    }
+
+    @Override
+    public Source< A > getWrappedSource() {
+        return source;
+    }
 }

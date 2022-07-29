@@ -26,21 +26,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.ui;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import com.formdev.flatlaf.FlatLightLaf;
 
-import java.io.IOException;
+import javax.swing.*;
 
-public class OpenRemotePlatynereis
+public class MoBIELaf
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+    private static LookAndFeel systemLaf;
+    private static boolean isMoBIELaf = false;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+    private static void storeSystemLaf() {
+        systemLaf = UIManager.getLookAndFeel();
+    }
+
+    public static void MoBIELafOn() {
+        if ( isMoBIELaf ) return;
+        storeSystemLaf();
+        FlatLightLaf.install();
+        System.setProperty("apple.laf.useScreenMenuBar", "false");
+        isMoBIELaf = true;
+        try {
+            UIManager.setLookAndFeel( new FlatLightLaf() );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void MoBIELafOff() {
+        try {
+            UIManager.setLookAndFeel( systemLaf );
+            isMoBIELaf = false;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

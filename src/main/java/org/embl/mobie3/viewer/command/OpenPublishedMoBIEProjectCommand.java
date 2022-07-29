@@ -26,21 +26,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.command;
 
+import ij.gui.GenericDialog;
 import org.embl.mobie3.viewer.MoBIE3;
 import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie3.viewer.published.PublishedProject;
+import org.embl.mobie3.viewer.published.PublishedProjects;
+import org.scijava.command.Command;
+import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
+import java.util.HashMap;
 
-public class OpenRemotePlatynereis
+
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Open Published MoBIE Project..." )
+public class OpenPublishedMoBIEProjectCommand implements Command
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	@Override
+	public void run()
+	{
+		selectProject();
+	}
+
+	private void selectProject()
+	{
+		final HashMap< String, PublishedProject > projects = new PublishedProjects().getPublishedProjects();
+
+		final GenericDialog gd = new GenericDialog( "Please select a project" );
+
+		final String[] items = ( String[] ) projects.keySet().toArray( new String[ projects.size() ]);
+		gd.addChoice( "Project", items, items[ 0 ] );
+		gd.showDialog();
+		if ( gd.wasCanceled() ) return;
+		final String choice = gd.getNextChoice();
+
+		final PublishedProject project = projects.get( choice );
+
+		try
+		{
+			new MoBIE3( project.location, MoBIESettings.settings().publicationURL( project.publicationURL ) );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
 	}
 }

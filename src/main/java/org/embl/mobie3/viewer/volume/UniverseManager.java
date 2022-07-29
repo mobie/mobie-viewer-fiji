@@ -26,21 +26,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.volume;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import ij3d.Image3DUniverse;
 
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+public class UniverseManager
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	private Image3DUniverse universe;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	public Image3DUniverse get()
+	{
+		if ( universe == null )
+		{
+			universe = new Image3DUniverse();
+			universe.show();
+		}
+		return universe;
 	}
+
+	public void setUniverse( Image3DUniverse universe )
+	{
+		this.universe = universe;
+	}
+
+	public void close()
+	{
+		if ( universe != null )
+		{
+			universe.close();
+		}
+	}
+
 }

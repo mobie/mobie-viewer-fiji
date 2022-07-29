@@ -26,21 +26,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.command;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie3.OMEZarrViewer;
+import mpicbg.spim.data.SpimData;
+import org.embl.mobie.io.ome.zarr.openers.OMEZarrOpener;
+import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
 
+import java.io.File;
 import java.io.IOException;
 
-public class OpenRemotePlatynereis
-{
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+@Plugin(type = Command.class, menuPath = "Plugins>BigDataViewer>OME-Zarr>Open OME-Zarr From File System...")
+public class OpenOMEZARRCommand implements Command {
+    @Parameter(label = "File path", style = "directory")
+    public File directory;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+    protected static void openAndShow(String filePath) throws IOException {
+        SpimData spimData = OMEZarrOpener.openFile(filePath);
+        final OMEZarrViewer viewer = new OMEZarrViewer(spimData);
+        viewer.show();
+    }
+
+    @Override
+    public void run() {
+        try {
+            openAndShow( directory.toString() );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
+

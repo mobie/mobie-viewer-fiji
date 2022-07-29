@@ -26,21 +26,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.command;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import ij.IJ;
+import org.embl.mobie3.viewer.create.ui.ProjectsCreatorPanel;
+import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
 
+import java.io.File;
 import java.io.IOException;
 
-public class OpenRemotePlatynereis
-{
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+import static org.scijava.ItemVisibility.MESSAGE;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Create>Edit MoBIE Project..." )
+public class EditMoBIEProjectCommand implements Command
+{
+	  static { net.imagej.patcher.LegacyInjector.preinit(); }
+
+    @Parameter( visibility=MESSAGE, required=false )
+    String message = "Choose a MoBIE project folder...";
+
+    @Parameter ( label="MoBIE folder:", style="directory" )
+    public File projectLocation;
+
+    @Override
+    public void run()
+    {
+
+        if ( !projectLocation.exists() ) {
+            IJ.log( "Edit project failed - MoBIE project does not exist!" );
+        } else {
+            try {
+                ProjectsCreatorPanel panel = new ProjectsCreatorPanel( projectLocation );
+                panel.showProjectsCreatorPanel();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

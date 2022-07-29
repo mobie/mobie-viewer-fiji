@@ -26,21 +26,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.bdv.render;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import bdv.viewer.render.AccumulateProjectorFactory;
+import org.scijava.plugin.Plugin;
+import sc.fiji.persist.IClassRuntimeAdapter;
 
-import java.io.IOException;
+/*
+ * For serialization of {@link AccumulateOccludingProjectorARGBFactoryAdapter} objects
+ *
+ * Used in {@link sc.fiji.bdvpg.bdv.supplier.mobie.MobieSerializableBdvOptions}
+ */
+@Plugin(type = IClassRuntimeAdapter.class)
+public class AccumulateOccludingProjectorARGBFactoryAdapter implements IClassRuntimeAdapter<AccumulateProjectorFactory, AccumulateOccludingProjectorARGBFactory > {
+    @Override
+    public Class<? extends AccumulateProjectorFactory> getBaseClass() {
+        return AccumulateProjectorFactory.class;
+    }
 
-public class OpenRemotePlatynereis
-{
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+    @Override
+    public Class<? extends AccumulateOccludingProjectorARGBFactory > getRunTimeClass() {
+        return AccumulateOccludingProjectorARGBFactory.class;
+    }
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+    public boolean useCustomAdapter() {return false;}
 }

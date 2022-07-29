@@ -26,21 +26,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.serialize;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie3.viewer.source.StorageLocation;
+import org.embl.mobie3.viewer.table.TableDataFormat;
 
-import java.io.IOException;
+import java.util.Map;
 
-public class OpenRemotePlatynereis
+public class AnnotatedLabelMaskData extends ImageData
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
-
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+	public Map< TableDataFormat, StorageLocation > tableData;
 }

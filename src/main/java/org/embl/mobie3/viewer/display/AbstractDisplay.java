@@ -26,21 +26,62 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.display;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import bdv.viewer.SourceAndConverter;
+import org.embl.mobie3.viewer.bdv.render.BlendingMode;
+import org.embl.mobie3.viewer.bdv.view.SliceViewer;
+import org.embl.mobie3.viewer.source.Image;
 
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-public class OpenRemotePlatynereis
+public abstract class AbstractDisplay< T > implements Display< T >
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	// Serialization
+	protected String name;
+	protected double opacity = 1.0;
+	protected boolean visible = true;
+	protected BlendingMode blendingMode;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	// Runtime
+	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter = new HashMap<>();
+	private transient Set< Image< T > > images = new HashSet<>();
+	public transient SliceViewer sliceViewer;
+
+	@Override
+	public String getName()
+	{
+		return name;
 	}
+
+	@Override
+	public double getOpacity()
+	{
+		return opacity;
+	}
+
+	@Override
+	public boolean isVisible() { return visible; }
+
+	@Override
+	public BlendingMode getBlendingMode()
+	{
+		return BlendingMode.Sum;
+	}
+
+	@Override
+	public Set< Image< T > > getImages()
+	{
+		return images;
+	}
+
+	@Override
+	public void addImage( Image< T > image )
+	{
+		images.add( image );
+	}
+
 }

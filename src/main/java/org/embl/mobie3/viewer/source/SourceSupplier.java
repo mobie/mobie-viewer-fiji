@@ -26,21 +26,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.source;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie3.viewer.serialize.ImageData;
+import org.embl.mobie3.viewer.serialize.AnnotatedLabelMaskData;
 
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+// TODO: get rid of supplier and deal with this by means of a Gson adapter
+public class SourceSupplier
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	// Serialisation
+	private ImageData image;
+	private AnnotatedLabelMaskData segmentation;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	public SourceSupplier( ImageData imageData ) {
+		this.image = imageData;
+	}
+
+	public SourceSupplier( AnnotatedLabelMaskData annotatedLabelMaskSource ) {
+		this.segmentation = annotatedLabelMaskSource;
+	}
+
+	public ImageData get()
+	{
+		if ( image != null ) return image;
+		else if ( segmentation != null ) return segmentation;
+		else throw new RuntimeException( "Unsupported Source." );
 	}
 }

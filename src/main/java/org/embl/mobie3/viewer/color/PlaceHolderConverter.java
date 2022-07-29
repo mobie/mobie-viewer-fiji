@@ -26,21 +26,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.color;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import net.imglib2.converter.Converter;
 
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+public class PlaceHolderConverter implements Converter
 {
-	public static void main( String[] args ) throws IOException
+	public PlaceHolderConverter( )
 	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	}
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	@Override
+	public void convert( Object input, Object output )
+	{
+
 	}
 }

@@ -26,21 +26,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.serialize;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonWriter;
+import org.embl.mobie3.viewer.Project;
+import org.embl.mobie.io.util.IOHelper;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.lang.reflect.Type;
 
-public class OpenRemotePlatynereis
+public class ProjectJsonParser
 {
-	public static void main( String[] args ) throws IOException
+	public Project parseProject( String path ) throws IOException
 	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+		final String s = IOHelper.read( path );
+		Gson gson = new Gson();
+		Type type = new TypeToken< Project >() {}.getType();
+		Project project = gson.fromJson( s, type );
+		return project;
+	}
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	public void saveProject( Project project, String path ) throws IOException {
+		Gson gson = new Gson();
+		Type type = new TypeToken< Project >() {}.getType();
+
+		try (OutputStream outputStream = new FileOutputStream( path );
+			 final JsonWriter writer = new JsonWriter( new OutputStreamWriter(outputStream, "UTF-8")) ) {
+			writer.setIndent("	");
+			gson.toJson( project, type, writer );
+		}
 	}
 }

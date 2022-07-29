@@ -26,21 +26,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.color;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie3.viewer.source.AnnotationType;
+import net.imglib2.type.numeric.ARGBType;
 
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+public class AnnotationConverter< T > extends AbstractAnnotationConverter< T, AnnotationType< T > >
 {
-	public static void main( String[] args ) throws IOException
+	public AnnotationConverter( MoBIEColoringModel< T > coloringModel )
 	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+		super( coloringModel );
+	}
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	@Override
+	public void convert( AnnotationType< T > input, ARGBType color )
+	{
+		setColor( input.getAnnotation(), color );
 	}
 }

@@ -26,21 +26,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.table;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
-
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+public class ColumnNames
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
-
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+	public static final String LABEL_IMAGE_ID = "label_image_id";
+	public static final String LABEL_ID = "label_id";
+	public static final String ANCHOR_X = "anchor_x";
+	public static final String ANCHOR_Y = "anchor_y";
+	public static final String ANCHOR_Z = "anchor_z";
+	public static final String TIMEPOINT = "timepoint";
+	public static final String BB_MIN_X = "bb_min_x";
+	public static final String BB_MIN_Y = "bb_min_y";
+	public static final String BB_MIN_Z = "bb_min_z";
+	public static final String BB_MAX_X = "bb_max_x";
+	public static final String BB_MAX_Y = "bb_max_y";
+	public static final String BB_MAX_Z = "bb_max_z";
+	public static final String REGION_ID = "region_id";
 }

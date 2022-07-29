@@ -26,21 +26,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.bdv;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.scijava.plugin.Plugin;
+import sc.fiji.bdvpg.bdv.supplier.DefaultBdvSupplier;
+import sc.fiji.bdvpg.bdv.supplier.IBdvSupplier;
+import sc.fiji.persist.IClassRuntimeAdapter;
 
-import java.io.IOException;
+/**
+ * For serialization of {@link DefaultBdvSupplier} objects
+ */
 
-public class OpenRemotePlatynereis
-{
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+@Plugin(type = IClassRuntimeAdapter.class)
+public class MobieBdvSupplierAdapter implements IClassRuntimeAdapter< IBdvSupplier, MobieBdvSupplier > {
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+    @Override
+    public Class<? extends IBdvSupplier> getBaseClass() {
+        return IBdvSupplier.class;
+    }
+
+    @Override
+    public Class<? extends MobieBdvSupplier > getRunTimeClass() {
+        return MobieBdvSupplier.class;
+    }
+
+    public boolean useCustomAdapter() {return false;}
 }

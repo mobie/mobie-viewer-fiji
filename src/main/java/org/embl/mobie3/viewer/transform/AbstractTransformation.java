@@ -26,21 +26,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.transform;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
 
-import java.io.IOException;
+import org.embl.mobie3.viewer.source.Image;
 
-public class OpenRemotePlatynereis
+import java.util.List;
+
+public abstract class AbstractTransformation implements Transformation
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	// Serialisation
+	protected String name;
+	protected List< String > sources;
+	protected List< String > sourceNamesAfterTransform;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	protected < T > String getTransformedName( Image< T > image )
+	{
+		if ( sourceNamesAfterTransform != null )
+		{
+			return sourceNamesAfterTransform.get( sources.indexOf( image.getName() ) );
+		}
+		else
+		{
+			return image.getName();
+		}
 	}
 }

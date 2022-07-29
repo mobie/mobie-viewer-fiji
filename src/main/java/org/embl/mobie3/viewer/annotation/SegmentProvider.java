@@ -26,21 +26,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.annotation;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie3.viewer.table.AnnData;
 
-import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class OpenRemotePlatynereis
+
+public class SegmentProvider< AS extends AnnotatedSegment > implements AnnotationProvider< AS >
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	private final AnnData< AS > annData;
+	private Map< String, AS > segmentMap;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	public SegmentProvider( AnnData< AS > annData )
+	{
+		this.annData = annData;
 	}
+
+	@Override
+	public AS getAnnotation( String annotationId )
+	{
+		if ( segmentMap == null )
+			initSegmentMap();
+
+		return segmentMap.get( annotationId  );
+	}
+
+	@Override
+	public AS createVariable()
+	{
+		// TODO: is this OK?
+		//  or do we need to create a copy of that?
+		return annData.getTable().row( 0 );
+	}
+
+	private synchronized void initSegmentMap()
+	{
+		segmentMap = new ConcurrentHashMap<>();
+
+		final Iterator< AS > iterator = annData.getTable().rows().iterator();
+		while( iterator.hasNext() )
+		{
+			AS segment = iterator.next();
+			segmentMap.put( AnnotatedSegment.createId( segment ), segment );
+		}
+	}
+
 }

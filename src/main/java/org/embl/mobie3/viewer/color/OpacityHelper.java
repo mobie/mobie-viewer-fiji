@@ -26,21 +26,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.color;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import bdv.viewer.SourceAndConverter;
+import net.imglib2.display.ColorConverter;
+import net.imglib2.type.numeric.ARGBType;
 
-import java.io.IOException;
+import static net.imglib2.type.numeric.ARGBType.alpha;
+import static net.imglib2.type.numeric.ARGBType.blue;
+import static net.imglib2.type.numeric.ARGBType.green;
+import static net.imglib2.type.numeric.ARGBType.red;
 
-public class OpenRemotePlatynereis
+public abstract class OpacityHelper
 {
-	public static void main( String[] args ) throws IOException
+	public static void adjustOpacity( SourceAndConverter< ? > sourceAndConverter, double opacity )
 	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+		adjustOpacity( ( ColorConverter ) sourceAndConverter.getConverter(), opacity );
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+		if ( sourceAndConverter.asVolatile() != null )
+		{
+			adjustOpacity( ( ColorConverter ) sourceAndConverter.asVolatile().getConverter(), opacity );
+		}
+	}
+
+	public static void adjustOpacity( ColorConverter colorConverter, double opacity  )
+	{
+		colorConverter.getColor().get();
+		final int value = colorConverter.getColor().get();
+		colorConverter.setColor( new ARGBType( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) ) );
+	}
+
+	public static double getOpacity( SourceAndConverter< ? > sourceAndConverter )
+	{
+		final ColorConverter colorConverter = ( ColorConverter ) sourceAndConverter.getConverter();
+		final int alpha = alpha( colorConverter.getColor().get() );
+		return alpha / 255.0D;
 	}
 }

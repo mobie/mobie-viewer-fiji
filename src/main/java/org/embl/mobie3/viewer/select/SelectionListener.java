@@ -26,21 +26,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.select;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
-
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+/**
+ * Interface for listeners of a {@link SelectionModel}.
+ *
+ */
+public interface SelectionListener< T >
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	/**
+	 * Notifies when the select has changed.
+	 */
+	void selectionChanged();
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+	/**
+	 * Notifies when a focus event happened.
+	 */
+	void focusEvent( T selection, Object initiator );
 }

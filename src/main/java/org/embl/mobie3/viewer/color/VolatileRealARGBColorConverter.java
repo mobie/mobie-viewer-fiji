@@ -26,21 +26,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.color;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import net.imglib2.Volatile;
+import net.imglib2.converter.Converter;
+import net.imglib2.display.ColorConverter;
+import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.RealType;
 
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+public interface VolatileRealARGBColorConverter extends ColorConverter, Converter< Volatile< RealType >, ARGBType >
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
-
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
 }

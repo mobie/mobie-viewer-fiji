@@ -26,21 +26,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.bdv.render;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import bdv.viewer.SourceAndConverter;
+import bdv.viewer.render.AccumulateProjectorFactory;
+import bdv.viewer.render.VolatileProjector;
+import net.imglib2.RandomAccessible;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.type.numeric.ARGBType;
 
-import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
 
-public class OpenRemotePlatynereis
+/*
+ * For information about this projector, see {@link AccumulateMixedProjectorARGB}
+ */
+
+public class AccumulateOccludingProjectorARGBFactory implements AccumulateProjectorFactory< ARGBType >
 {
-	public static void main( String[] args ) throws IOException
+	public VolatileProjector createProjector(
+			List< VolatileProjector > sourceProjectors,
+			List<SourceAndConverter< ? >> sources,
+			List< ? extends RandomAccessible< ? extends ARGBType > > sourceScreenImages,
+			RandomAccessibleInterval< ARGBType > targetScreenImage,
+			int numThreads,
+			ExecutorService executorService )
 	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
-
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+		return new AccumulateOccludingProjectorARGB(
+						sourceProjectors,
+						sources,
+						sourceScreenImages,
+						targetScreenImage,
+						numThreads,
+						executorService );
 	}
+
+
 }

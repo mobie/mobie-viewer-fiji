@@ -26,21 +26,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.bdv;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import bdv.util.BdvHandle;
+import org.embl.mobie3.viewer.display.Display;
+import net.imglib2.FinalRealInterval;
+import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 
-import java.io.IOException;
+import java.util.function.Function;
 
-public class OpenRemotePlatynereis
+public class DisplayVisibilityChecker implements Function< Display, Boolean >
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	private final BdvHandle bdvHandle;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	public DisplayVisibilityChecker( BdvHandle bdvHandle )
+	{
+		this.bdvHandle = bdvHandle;
+	}
+
+	@Override
+	public Boolean apply( Display display )
+	{
+		final FinalRealInterval viewerInterval = BdvHandleHelper.getViewerGlobalBoundingInterval( bdvHandle );
+
+		return null;
 	}
 }

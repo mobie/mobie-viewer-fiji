@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Fiji viewer for MoBIE projects
+ * Various Java code for ImageJ
  * %%
  * Copyright (C) 2018 - 2022 EMBL
  * %%
@@ -26,21 +26,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.color;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie3.viewer.select.Listeners;
+import net.imglib2.type.numeric.ARGBType;
 
-import java.io.IOException;
+import javax.swing.*;
 
-public class OpenRemotePlatynereis
+public abstract class AbstractColoringModel< T > implements ColoringModel< T >
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	protected final Listeners.SynchronizedList< ColoringListener > listeners
+			= new Listeners.SynchronizedList< ColoringListener >(  );
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	protected double opacity;
+
+	@Override
+	public Listeners< ColoringListener > listeners()
+	{
+		return listeners;
 	}
+
+	@Override
+	public void convert( T input, ARGBType output )
+	{
+		output.set( 0 );
+	}
+
+	protected void notifyColoringListeners()
+	{
+		for ( ColoringListener listener : listeners.list )
+		{
+			SwingUtilities.invokeLater( () -> listener.coloringChanged() );
+		}
+	}
+
+	public void setOpacity( double opacity )
+	{
+		this.opacity = opacity;
+	}
+
+	public double getOpacity()
+	{
+		return opacity;
+	}
+
 }

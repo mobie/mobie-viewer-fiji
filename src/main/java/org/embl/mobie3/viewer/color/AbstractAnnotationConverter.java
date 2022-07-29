@@ -26,21 +26,42 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.color;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import net.imglib2.converter.Converter;
+import net.imglib2.type.numeric.ARGBType;
 
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+public abstract class AbstractAnnotationConverter< T, A > implements Converter< A, ARGBType >, MoBIEColoringModelWrapper
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	private final MoBIEColoringModel< T > coloringModel;
+	private double opacity = 1.0;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	public AbstractAnnotationConverter( MoBIEColoringModel< T > coloringModel )
+	{
+		this.coloringModel = coloringModel;
+	}
+
+	@Override
+	public MoBIEColoringModel getMoBIEColoringModel()
+	{
+		return coloringModel;
+	}
+
+	protected void setColor( T input, ARGBType color )
+	{
+		if ( input == null )
+		{
+			// no annotation => background color (black)
+			color.set( 0 );
+			return;
+		}
+
+		// set color
+		coloringModel.convert( input, color );
+
+		// adjust opacity
+		// opacity happens in the coloringModel
+//		final int value = color.get();
+//		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
 	}
 }

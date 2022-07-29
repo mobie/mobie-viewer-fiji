@@ -26,21 +26,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.transform;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie3.viewer.source.Image;
 
-import java.io.IOException;
+import java.util.List;
 
-public class OpenRemotePlatynereis
+public interface Transformation
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	// TODO: maybe rather Set< > <=> Set< >
+	//   or Map< Name, Image > as we had it before.
+	//   or have both?
+	< T > Image< T > apply( Image< T > image );
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+	/**
+	 * @return a list of the names of all images
+	 * that should be transformed using this transformer.
+	 */
+	List< String > getTargetImages(); // TODO it feels a bit weird that this is here...
 }

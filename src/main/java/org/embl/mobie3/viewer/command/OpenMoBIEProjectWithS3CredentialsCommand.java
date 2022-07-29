@@ -26,21 +26,42 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.command;
 
 import org.embl.mobie3.viewer.MoBIE3;
 import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-public class OpenRemotePlatynereis
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Advanced>Open MoBIE Project With S3 Credentials..." )
+public class OpenMoBIEProjectWithS3CredentialsCommand implements Command
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	@Parameter ( label = "S3 Project Location" )
+	public String projectLocation = "https://s3.embl.de/comulis";
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	@Parameter ( label = "S3 Access Key" )
+	public String s3AccessKey = "";
+
+	@Parameter ( label = "S3 Secret Key", persist = false )
+	public String s3SecretKey = "";
+
+	@Override
+	public void run()
+	{
+		try
+		{
+			new MoBIE3(
+					projectLocation,
+					MoBIESettings.settings()
+							.s3AccessAndSecretKey( new String[]{ s3AccessKey, s3SecretKey } )
+			);
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
 	}
 }

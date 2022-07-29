@@ -26,21 +26,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.bdv.render;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import bdv.viewer.SourceAndConverter;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import java.io.IOException;
+import java.util.function.Consumer;
 
-public class OpenRemotePlatynereis
-{
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+public class BlendingModeChanger implements Runnable, Consumer< SourceAndConverter[] > {
+
+    private BlendingMode blendingMode;
+    private final SourceAndConverter[] sacs;
+
+    public BlendingModeChanger( SourceAndConverter[] sacs, BlendingMode blendingMode ) {
+        this.sacs = sacs;
+        this.blendingMode = blendingMode;
+    }
+
+    @Override
+    public void run() {
+        accept( sacs );
+    }
+
+    @Override
+    public void accept(SourceAndConverter[] sourceAndConverter) {
+
+        changeProjectionMode();
+        updateDisplays();
+    }
+
+    private void updateDisplays()
+    {
+        if ( SourceAndConverterServices.getBdvDisplayService()!=null)
+            SourceAndConverterServices.getBdvDisplayService().updateDisplays( sacs );
+
+    }
+
+    private void changeProjectionMode()
+    {
+        for ( SourceAndConverter sac : sacs )
+        {
+            SourceAndConverterServices.getSourceAndConverterService().setMetadata( sac, BlendingMode.BLENDING_MODE, blendingMode );
+        }
+    }
 }

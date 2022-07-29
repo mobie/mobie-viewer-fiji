@@ -26,21 +26,59 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.command;
 
+import ij.gui.GenericDialog;
 import org.embl.mobie3.viewer.MoBIE3;
 import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie3.viewer.published.PublishedFigure;
+import org.embl.mobie3.viewer.published.PublishedFigures;
+import org.scijava.command.Command;
+import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class OpenRemotePlatynereis
+
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Open Published MoBIE View..." )
+public class OpenMoBIEFigureCommand implements Command
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	@Override
+	public void run()
+	{
+		select();
+	}
+
+	private void select()
+	{
+		final List< PublishedFigure > figures = new PublishedFigures().getPublishedFigures();
+
+		final ArrayList< String > figureNames = new ArrayList<>();
+		for ( PublishedFigure figure : figures )
+		{
+			figureNames.add( figure.publicationAbbreviation + ": " + figure.name );
+		}
+
+		final GenericDialog gd = new GenericDialog( "Please select a view" );
+
+		final String[] items = figureNames.toArray( new String[ figureNames.size() ]);
+		gd.addChoice( "Figure", items, items[ 0 ] );
+		gd.showDialog();
+		if ( gd.wasCanceled() ) return;
+		final int choice = gd.getNextChoiceIndex();
+
+		final PublishedFigure figure = figures.get( choice );
+
+		try
+		{
+			new MoBIE3( figure.location, MoBIESettings.settings().publicationURL( figure.publicationURL ).view( figure.view ) );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
 	}
 }

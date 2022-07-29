@@ -26,21 +26,53 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.bdv.view;
 
+import bdv.viewer.SourceAndConverter;
 import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie3.viewer.display.AbstractDisplay;
+import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
-import java.io.IOException;
+import java.util.HashMap;
 
-public class OpenRemotePlatynereis
+public abstract class AbstractSliceView implements SliceView
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	protected final MoBIE3 moBIE;
+	protected final AbstractDisplay< ? > display;
+	protected final SliceViewer sliceViewer;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	// TODO: get rid of MoBIE here, which is only needed to close the sacs...
+	//  in fact, using Nico's addition to the SACService will resolve this!
+	//  see the corresponding issue:
+	public AbstractSliceView( MoBIE3 moBIE, AbstractDisplay< ? > display )
+	{
+		this.moBIE = moBIE;
+		this.display = display;
+		sliceViewer = display.sliceViewer;
+		display.nameToSourceAndConverter = new HashMap<>();
+	}
+
+	@Override
+	public void close( boolean closeImgLoader )
+	{
+		for ( SourceAndConverter< ? > sourceAndConverter : display.nameToSourceAndConverter.values() )
+		{
+			moBIE.closeSourceAndConverter( sourceAndConverter, closeImgLoader );
+		}
+		display.nameToSourceAndConverter.clear();
+
+		sliceViewer.updateTimepointSlider();
+	}
+
+	@Override
+	public SliceViewer getSliceViewer()
+	{
+		return sliceViewer;
+	}
+
+	@Override
+	public boolean isVisible() {
+		// check if first source is visible
+		return SourceAndConverterServices.getBdvDisplayService().isVisible( display.nameToSourceAndConverter.values().iterator().next(), display.sliceViewer.getBdvHandle() );
 	}
 }

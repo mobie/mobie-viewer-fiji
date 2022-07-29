@@ -26,21 +26,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.command;
 
 import org.embl.mobie3.viewer.MoBIE3;
 import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
 
 import java.io.IOException;
 
-public class OpenRemotePlatynereis
+@Plugin(type = Command.class, menuPath = CommandConstants.MOBIE_PLUGIN_ROOT + "Open>Advanced>Open MoBIE Project Branch..." )
+public class OpenMoBIEProjectBranchCommand implements Command
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	@Parameter ( label = "Project Location" )
+	public String projectLocation = "https://github.com/platybrowser/platybrowser";
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	@Parameter ( label = "Project Branch" )
+	public String projectBranch = "master";
+
+	@Override
+	public void run()
+	{
+		try
+		{
+			new MoBIE3( projectLocation, MoBIESettings.settings().gitProjectBranch( projectBranch ) );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
 	}
 }

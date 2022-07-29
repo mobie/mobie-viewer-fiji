@@ -26,21 +26,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.table;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import com.google.gson.annotations.SerializedName;
 
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+public enum TableDataFormat
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	@SerializedName( "tsv" )
+	TabDelimitedFile;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	@Override
+	public String toString()
+	{
+		switch ( this )
+		{
+			case TabDelimitedFile:
+				return "tsv";
+			default:
+				throw new UnsupportedOperationException( "Unknown table file format: " + this );
+		}
 	}
 }

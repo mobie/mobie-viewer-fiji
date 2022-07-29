@@ -26,21 +26,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.transform;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
-
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+public class NormalizedAffineViewerTransform implements ViewerTransform
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	// Serialization
+	private double[] normalizedAffine;
+	private Integer timepoint;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	public NormalizedAffineViewerTransform( double[] parameters, int timepoint )
+	{
+		this.normalizedAffine = parameters;
+		this.timepoint = timepoint;
+	}
+
+	public double[] getParameters()
+	{
+		return normalizedAffine;
+	}
+
+	@Override
+	public Integer getTimepoint()
+	{
+		return timepoint;
 	}
 }

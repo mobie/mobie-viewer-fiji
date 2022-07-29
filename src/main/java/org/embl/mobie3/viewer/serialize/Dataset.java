@@ -26,21 +26,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.serialize;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie3.viewer.source.SourceSupplier;
+import org.embl.mobie3.viewer.transform.PositionViewerTransform;
+import org.embl.mobie3.viewer.transform.ViewerTransform;
+import org.embl.mobie3.viewer.view.View;
 
-import java.io.IOException;
+import java.util.Map;
 
-public class OpenRemotePlatynereis
+public class Dataset
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
-
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+	// Serialisation
+	public boolean is2D = false;
+	public ViewerTransform defaultLocation = new PositionViewerTransform( new double[]{0,0,0}, 0 );
+	public int timepoints = 1;
+	public Map< String, SourceSupplier > sources;
+	public Map< String, View > views;
 }

@@ -1,6 +1,6 @@
 /*-
  * #%L
- * Fiji viewer for MoBIE projects
+ * Various Java code for ImageJ
  * %%
  * Copyright (C) 2018 - 2022 EMBL
  * %%
@@ -26,21 +26,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.color;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
+import org.embl.mobie3.viewer.color.lut.ARGBLut;
 
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+public interface LutColumn< T > extends ColoringModel< T >
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
-
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
-	}
+	String getColumnName();
+	ARGBLut getLut();
 }

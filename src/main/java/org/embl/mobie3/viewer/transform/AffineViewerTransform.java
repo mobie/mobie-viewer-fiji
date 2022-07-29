@@ -26,21 +26,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package projects;
+package org.embl.mobie3.viewer.transform;
 
-import org.embl.mobie3.viewer.MoBIE3;
-import org.embl.mobie3.viewer.MoBIESettings;
-import net.imagej.ImageJ;
-
-import java.io.IOException;
-
-public class OpenRemotePlatynereis
+public class AffineViewerTransform implements ViewerTransform
 {
-	public static void main( String[] args ) throws IOException
-	{
-		final ImageJ imageJ = new ImageJ();
-		imageJ.ui().showUI();
+	private double[] affineTransform;
+	private final Integer timepoint;
 
-		new MoBIE3("https://github.com/platybrowser/platybrowser", new MoBIESettings() ).getViewManager().show( "cells" );
+	public AffineViewerTransform( double[] parameters, int timepoint )
+	{
+		this.affineTransform = parameters;
+		this.timepoint = timepoint;
+	}
+
+	@Override
+	public double[] getParameters()
+	{
+		return affineTransform;
+	}
+
+	@Override
+	public Integer getTimepoint()
+	{
+		return timepoint;
 	}
 }
