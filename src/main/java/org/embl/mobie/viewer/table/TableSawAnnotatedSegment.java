@@ -12,16 +12,23 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	private final int numSegmentDimensions;
 	private final Table table;
 	private final int rowIndex;
+	private final int timePoint;
+	private final int labelId;
 	private RealInterval boundingBox;
 	private float[] mesh;
+	private String imageId;
 
 	public TableSawAnnotatedSegment( Table table, int rowIndex )
 	{
 		this.table = table;
 		this.rowIndex = rowIndex;
-
 		this.row = table.row( rowIndex );
+
+		// segment properties
 		this.numSegmentDimensions = row.columnNames().contains( ColumnNames.ANCHOR_Z ) ? 3 : 2;
+		this.imageId = row.getString( ColumnNames.LABEL_IMAGE_ID );
+		this.labelId = row.getInt( ColumnNames.LABEL_ID );
+		this.timePoint = table.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
 		initBoundingBox( row, numSegmentDimensions );
 	}
 
@@ -61,19 +68,19 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public String imageId()
 	{
-		return row.getString( ColumnNames.LABEL_IMAGE_ID );
+		return imageId;
 	}
 
 	@Override
 	public int labelId()
 	{
-		return row.getInt( ColumnNames.LABEL_ID );
+		return labelId;
 	}
 
 	@Override
 	public int timePoint()
 	{
-		return row.getInt( ColumnNames.TIMEPOINT );
+		return timePoint;
 	}
 
 	@Override
@@ -89,7 +96,6 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public RealInterval boundingBox()
 	{
-
 		return null;
 	}
 
