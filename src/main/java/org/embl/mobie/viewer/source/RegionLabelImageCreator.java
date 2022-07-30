@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.annotation;
+package org.embl.mobie.viewer.source;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvOverlay;
@@ -35,6 +35,8 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.annotation.AnnotatedRegion;
+import org.embl.mobie.viewer.annotation.RegionTableRow;
 import org.embl.mobie.viewer.color.AnnotationConverter;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import org.embl.mobie.viewer.source.AnnotationType;
@@ -53,18 +55,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class RegionImage< T extends RegionTableRow >
+public class RegionLabelImageCreator< AR extends AnnotatedRegion >
 {
-	private final List< T > tableRows;
-	private final MoBIEColoringModel< T > coloringModel;
+	private final MoBIEColoringModel< AR > coloringModel;
 	private double[] contrastLimits;
 	private String name;
-	private SourceAndConverter< AnnotationType< T > > sourceAndConverter;
+	private SourceAndConverter< AnnotationType< AR > > sourceAndConverter;
 	private RealMaskRealInterval unionMask;
 	private RealInterval unionInterval;
 	private int size;
 
-	public RegionImage(
+	public RegionLabelImageCreator(
 			List< T > tableRows,
 			MoBIEColoringModel< T > coloringModel,
 			String name )

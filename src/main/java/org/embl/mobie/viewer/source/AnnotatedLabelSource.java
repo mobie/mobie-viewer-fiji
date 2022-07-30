@@ -30,21 +30,20 @@ package org.embl.mobie.viewer.source;
 
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import org.embl.mobie.viewer.annotation.AnnotatedSegment;
-import org.embl.mobie.viewer.annotation.Segment;
-import org.embl.mobie.viewer.annotation.AnnotationProviderInterface;
+import org.embl.mobie.viewer.annotation.Annotation;
+import org.embl.mobie.viewer.annotation.AnnotationProvider;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.converter.Converters;
 import net.imglib2.type.numeric.IntegerType;
 
-public class AnnotatedLabelMaskSource< T extends IntegerType< T >, S extends Segment > extends AbstractSourceWrapper< T, AnnotationType< S > >
+public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotation > extends AbstractSourceWrapper< T, AnnotationType< A > >
 {
-    private final AnnotationProviderInterface< S > annotationProvider;
+    private final AnnotationProvider< A > annotationProvider;
 
-    public AnnotatedLabelMaskSource( final Source< T > source, AnnotationProviderInterface< S > annotationProvider )
+    public AnnotatedLabelSource( final Source< T > labelSource, AnnotationProvider< A > annotationProvider )
     {
-        super( source );
+        super( labelSource );
         this.annotationProvider = annotationProvider;
     }
 
@@ -55,7 +54,7 @@ public class AnnotatedLabelMaskSource< T extends IntegerType< T >, S extends Seg
     }
 
     @Override
-    public RandomAccessibleInterval< AnnotationType< S > > getSource( final int t, final int level )
+    public RandomAccessibleInterval< AnnotationType< A > > getSource( final int t, final int level )
     {
         return Converters.convert( source.getSource( t, level ), ( input, output ) -> {
             set( input, t, output );
@@ -63,26 +62,25 @@ public class AnnotatedLabelMaskSource< T extends IntegerType< T >, S extends Seg
     }
 
     @Override
-    public RealRandomAccessible< AnnotationType< S > > getInterpolatedSource( final int t, final int level, final Interpolation method)
+    public RealRandomAccessible< AnnotationType< A > > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
         final RealRandomAccessible< T > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
         return Converters.convert( rra,
-                ( T input, AnnotationType< S > output ) ->
+                ( T input, AnnotationType< A > output ) ->
                 set( input, t, output ),
                 new AnnotationType<>() );
     }
 
-    private void set( T input, int t, AnnotationType< S > output  )
+    private void set( T input, int t, AnnotationType< A > output  )
     {
-        final String segmentId = AnnotatedSegment.createId( source.getName(), t, input.getInteger() );
-        final S segment = annotationProvider.getAnnotation( segmentId );
-        final AnnotationType< S > annotationType = new AnnotationType( segment );
+        final A annotation = annotationProvider.getAnnotation( t, input.getInteger() );
+        final AnnotationType< A > annotationType = new AnnotationType( annotation );
         output.set( annotationType );
     }
 
     @Override
-    public AnnotationType< S > getType()
+    public AnnotationType< A > getType()
     {
         return new AnnotationType( annotationProvider.createVariable() );
     }

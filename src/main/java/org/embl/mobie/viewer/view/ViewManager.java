@@ -56,7 +56,7 @@ import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.source.AnnotatedImage;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.Image;
-import org.embl.mobie.viewer.source.SegmentationImage;
+import org.embl.mobie.viewer.source.AnnotatedLabelImage;
 import org.embl.mobie.viewer.source.TransformedImage;
 import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
@@ -300,9 +300,9 @@ public class ViewManager
 					if ( transformation.getTargetImages().contains( name ) )
 					{
 						final Image image = images.get( name );
-						if ( SegmentationImage.class.isAssignableFrom( image.getClass() ) )
+						if ( AnnotatedLabelImage.class.isAssignableFrom( image.getClass() ) )
 						{
-							final SegmentationImage transformedImage = transform( transformation, ( SegmentationImage ) image );
+							final AnnotatedLabelImage transformedImage = transform( transformation, ( AnnotatedLabelImage ) image );
 							images.put( transformedImage.getName(), transformedImage );
 						}
 						else
@@ -322,16 +322,16 @@ public class ViewManager
 		moBIE.addImages( images );
 	}
 
-	private SegmentationImage< ? extends AnnotatedSegment > transform( Transformation transformation, SegmentationImage< ? extends AnnotatedSegment > segmentationImage )
+	private AnnotatedLabelImage< ? extends AnnotatedSegment > transform( Transformation transformation, AnnotatedLabelImage< ? extends AnnotatedSegment > annotatedLabelImage )
 	{
-		final TransformedImage< ? extends IntegerType< ? > > transformedLabelMask = new TransformedImage( segmentationImage.getLabelMask(), transformation );
-		final AnnData< ? extends AnnotatedSegment > annData = segmentationImage.getAnnData();
+		final TransformedImage< ? extends IntegerType< ? > > transformedLabelMask = new TransformedImage( annotatedLabelImage.getLabelImage(), transformation );
+		final AnnData< ? extends AnnotatedSegment > annData = annotatedLabelImage.getAnnData();
 		final AnnotatedSegmentTransformer segmentTransformer = new AnnotatedSegmentTransformer( transformation );
 		final TransformedAnnData transformedAnnData = new TransformedAnnData( annData, segmentTransformer );
 
-		final SegmentationImage< ? extends AnnotatedSegment > transformedSegmentationImage = new SegmentationImage( transformedLabelMask, transformedAnnData );
+		final AnnotatedLabelImage< ? extends AnnotatedSegment > transformedAnnotatedLabelImage = new AnnotatedLabelImage( transformedLabelMask, transformedAnnData );
 
-		return transformedSegmentationImage;
+		return transformedAnnotatedLabelImage;
 	}
 
 	public synchronized < A extends Annotation > void show( Display< ? > display )
@@ -364,7 +364,9 @@ public class ViewManager
 			// configure selection model
 			//
 			annotationDisplay.selectionModel = new MoBIESelectionModel<>();
+
 			// set selected segments
+			//
 			if ( annotationDisplay.selectedAnnotationIds() != null )
 			{
 				final Set< A > annotations = annotationDisplay.annotationProvider.getAnnotations( annotationDisplay.selectedAnnotationIds() );

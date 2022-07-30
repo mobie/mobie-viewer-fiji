@@ -43,7 +43,7 @@ import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ImageData;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
-import org.embl.mobie.viewer.source.SegmentationImage;
+import org.embl.mobie.viewer.source.AnnotatedLabelImage;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.SpimDataImage;
 import org.embl.mobie.viewer.table.DefaultAnnData;
@@ -689,8 +689,8 @@ public class MoBIE
 					final TableSawAnnotatedSegmentTableModel tableModel = new TableSawAnnotatedSegmentTableModel( defaultColumnsPath, image.getName() );
 					tableModel.setColumnPaths( columnPaths );
 					final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
-					final SegmentationImage segmentationImage = new SegmentationImage( image, segmentsAnnData );
-					images.put( name, segmentationImage );
+					final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
+					images.put( name, annotatedLabelImage );
 				}
 				else
 				{

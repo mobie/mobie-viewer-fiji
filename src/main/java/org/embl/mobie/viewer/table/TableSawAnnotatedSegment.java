@@ -124,9 +124,9 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public String getId()
+	public String id()
 	{
-		return null;
+		return null; // MUST
 	}
 
 	@Override

@@ -29,7 +29,7 @@
 package org.embl.mobie.viewer.display;
 
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.annotation.AnnotationProviderInterface;
+import org.embl.mobie.viewer.annotation.AnnotationProvider;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.color.AbstractAnnotationColoringModel;
@@ -85,7 +85,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// Runtime
 	public transient SelectionModel< A > selectionModel;
 	public transient MoBIEColoringModel< A > coloringModel;
-	public transient AnnotationProviderInterface< A > annotationProvider;
+	public transient AnnotationProvider< A > annotationProvider;
 	public transient TableView< A > tableView;
 	public transient ScatterPlotView< A > scatterPlotView;
 	public transient AnnotationSliceView< A > sliceView;
@@ -208,7 +208,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 
 		final Set< ? extends Annotation > selectedAnnotations = annotationDisplay.selectionModel.getSelected();
 		if (selectedAnnotations != null) {
-			setSelectedAnnotationIds( selectedAnnotations.stream().map( a -> a.getId() ).collect( Collectors.toSet() ) );
+			setSelectedAnnotationIds( selectedAnnotations.stream().map( a -> a.id() ).collect( Collectors.toSet() ) );
 		}
 	}
 

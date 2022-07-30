@@ -30,9 +30,8 @@ package org.embl.mobie.viewer.source;
 
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
-import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.annotation.AnnotationProviderInterface;
+import org.embl.mobie.viewer.annotation.AnnotationProvider;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
@@ -40,14 +39,14 @@ import net.imglib2.converter.Converters;
 import net.imglib2.type.numeric.IntegerType;
 
 // MAYBE: This does not need to know that this is a Segment?!
-public class VolatileAnnotatedIntegerTypeSource< T extends IntegerType< T >, V extends Volatile< T >, A extends Annotation > extends AbstractSourceWrapper< V, VolatileAnnotationType< A > >
+public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends Volatile< T >, A extends Annotation > extends AbstractSourceWrapper< V, VolatileAnnotationType< A > >
 {
-    private final AnnotationProviderInterface< A > annotationProvider;
+    private final AnnotationProvider< A > annotationMapper;
 
-    public VolatileAnnotatedIntegerTypeSource( final Source< V > source, AnnotationProviderInterface< A > annotationProvider )
+    public VolatileAnnotatedLabelSource( final Source< V > source, AnnotationProvider< A > annotationMapper )
     {
         super( source );
-        this.annotationProvider = annotationProvider;
+        this.annotationMapper = annotationMapper;
     }
 
     @Override
@@ -77,13 +76,7 @@ public class VolatileAnnotatedIntegerTypeSource< T extends IntegerType< T >, V e
             return;
         }
 
-        // TODO: Can I do the same for the AnnotatedRegion?
-        //   Maybe, since this is for an IntegerType Source,
-        //   the integer and the timepoint should be enough information?
-        //   Thus, a method getAnnotation( int id, int timePoint )
-        //   in the annotationProvider?
-        final String annotationId = AnnotatedSegment.createId( source.getName(), t, input.get().getInteger() );
-        final A annotation = annotationProvider.getAnnotation( annotationId );
+        final A annotation = annotationMapper.getAnnotation( t, input.get().getInteger() );
         final VolatileAnnotationType< A > volatileAnnotationType = new VolatileAnnotationType( annotation, true );
         output.set( volatileAnnotationType );
     }
@@ -96,6 +89,6 @@ public class VolatileAnnotatedIntegerTypeSource< T extends IntegerType< T >, V e
 
     private VolatileAnnotationType< A > createVariable()
     {
-        return new VolatileAnnotationType( annotationProvider.createVariable(), true );
+        return new VolatileAnnotationType( annotationMapper.createVariable(), true );
     }
 }

@@ -93,9 +93,9 @@ public class TransformedAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public String getId()
+	public String id()
 	{
-		return annotatedSegment.getId();
+		return annotatedSegment.id();
 	}
 
 	@Override

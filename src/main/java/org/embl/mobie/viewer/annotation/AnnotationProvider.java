@@ -34,28 +34,17 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-// MAYBE AnnData or AnnotationTableModel could do that itself?!
-
-public class AnnotationProvider< A extends Annotation > implements AnnotationProviderInterface< A >
+public class AnnotationProvider< A extends Annotation >
 {
 	private final AnnData< A > annData;
-	private Map< String, A > idToAnnotation;
+	private Map< String, A > timePointAndLabelToAnnotation;
+	private Map< String, A > annotationIdToAnnotation;
 
 	public AnnotationProvider( AnnData< A > annData )
 	{
 		this.annData = annData;
 	}
 
-	@Override
-	public A getAnnotation( String annotationId )
-	{
-		if ( idToAnnotation == null )
-			initSegmentMap();
-
-		return idToAnnotation.get( annotationId  );
-	}
-
-	@Override
 	public A createVariable()
 	{
 		// MAY
@@ -64,15 +53,32 @@ public class AnnotationProvider< A extends Annotation > implements AnnotationPro
 		return annData.getTable().row( 0 );
 	}
 
-	private synchronized void initSegmentMap()
+	public A getAnnotation( int timePoint, int label )
 	{
-		idToAnnotation = new ConcurrentHashMap<>();
+		return getTimePointAndLabelToAnnotation().get( getKey( timePoint, label ));
+	}
+
+	private Map< String, A > getTimePointAndLabelToAnnotation()
+	{
+		if ( timePointAndLabelToAnnotation == null )
+			initAnnotationMap();
+
+		return timePointAndLabelToAnnotation;
+	}
+
+	private synchronized void initAnnotationMap()
+	{
+		timePointAndLabelToAnnotation = new ConcurrentHashMap<>();
 		final Iterator< A > iterator = annData.getTable().rows().iterator();
 		while( iterator.hasNext() )
 		{
 			A annotation = iterator.next();
-			idToAnnotation.put( annotation.getId(), annotation );
+			timePointAndLabelToAnnotation.put( getKey( annotation.timePoint(), annotation.labelId() ), annotation );
 		}
 	}
 
+	private String getKey( int timePoint, int label )
+	{
+		return timePoint + "--" + label;
+	}
 }
