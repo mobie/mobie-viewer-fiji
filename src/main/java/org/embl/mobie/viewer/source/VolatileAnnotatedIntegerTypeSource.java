@@ -31,28 +31,30 @@ package org.embl.mobie.viewer.source;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
-import org.embl.mobie.viewer.annotation.AnnotationProvider;
+import org.embl.mobie.viewer.annotation.Annotation;
+import org.embl.mobie.viewer.annotation.AnnotationProviderInterface;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
 import net.imglib2.converter.Converters;
 import net.imglib2.type.numeric.IntegerType;
 
-public class VolatileAnnotatedLabelMaskSource< T extends IntegerType< T >, V extends Volatile< T >, AS extends AnnotatedSegment > extends AbstractSourceWrapper< V, VolatileAnnotationType< AS > >
+// MAYBE: This does not need to know that this is a Segment?!
+public class VolatileAnnotatedIntegerTypeSource< T extends IntegerType< T >, V extends Volatile< T >, A extends Annotation > extends AbstractSourceWrapper< V, VolatileAnnotationType< A > >
 {
-    private final AnnotationProvider< AS > annotationProvider;
+    private final AnnotationProviderInterface< A > annotationProvider;
 
-    public VolatileAnnotatedLabelMaskSource( final Source< V > source, AnnotationProvider< AS > annotationProvider )
+    public VolatileAnnotatedIntegerTypeSource( final Source< V > source, AnnotationProviderInterface< A > annotationProvider )
     {
         super( source );
         this.annotationProvider = annotationProvider;
     }
 
     @Override
-    public RandomAccessibleInterval< VolatileAnnotationType< AS > > getSource( final int t, final int level )
+    public RandomAccessibleInterval< VolatileAnnotationType< A > > getSource( final int t, final int level )
     {
         final RandomAccessibleInterval< V > rai = source.getSource( t, level );
-        final RandomAccessibleInterval< VolatileAnnotationType< AS > > convert = Converters.convert( rai, ( input, output ) -> {
+        final RandomAccessibleInterval< VolatileAnnotationType< A > > convert = Converters.convert( rai, ( input, output ) -> {
             set( input, t, output );
         }, createVariable() );
 
@@ -60,14 +62,14 @@ public class VolatileAnnotatedLabelMaskSource< T extends IntegerType< T >, V ext
     }
 
     @Override
-    public RealRandomAccessible< VolatileAnnotationType< AS > > getInterpolatedSource( final int t, final int level, final Interpolation method)
+    public RealRandomAccessible< VolatileAnnotationType< A > > getInterpolatedSource( final int t, final int level, final Interpolation method)
     {
         final RealRandomAccessible< V > rra = source.getInterpolatedSource( t, level, Interpolation.NEARESTNEIGHBOR );
 
         return Converters.convert( rra, ( input, output ) -> set( input, t, output ), createVariable() );
     }
 
-    private void set( V input, int t, VolatileAnnotationType< AS > output )
+    private void set( V input, int t, VolatileAnnotationType< A > output )
     {
         if ( ! input.isValid() )
         {
@@ -75,19 +77,24 @@ public class VolatileAnnotatedLabelMaskSource< T extends IntegerType< T >, V ext
             return;
         }
 
+        // TODO: Can I do the same for the AnnotatedRegion?
+        //   Maybe, since this is for an IntegerType Source,
+        //   the integer and the timepoint should be enough information?
+        //   Thus, a method getAnnotation( int id, int timePoint )
+        //   in the annotationProvider?
         final String annotationId = AnnotatedSegment.createId( source.getName(), t, input.get().getInteger() );
-        final AS segment = annotationProvider.getAnnotation( annotationId );
-        final VolatileAnnotationType< AS > volatileAnnotationType = new VolatileAnnotationType( segment, true );
+        final A annotation = annotationProvider.getAnnotation( annotationId );
+        final VolatileAnnotationType< A > volatileAnnotationType = new VolatileAnnotationType( annotation, true );
         output.set( volatileAnnotationType );
     }
 
     @Override
-    public VolatileAnnotationType< AS > getType()
+    public VolatileAnnotationType< A > getType()
     {
         return createVariable();
     }
 
-    private VolatileAnnotationType< AS > createVariable()
+    private VolatileAnnotationType< A > createVariable()
     {
         return new VolatileAnnotationType( annotationProvider.createVariable(), true );
     }

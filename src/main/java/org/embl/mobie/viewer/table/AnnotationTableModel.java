@@ -8,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+// MAYBE AbstractAnnotationTableModel?
 public interface AnnotationTableModel< A extends Annotation >
 {
 	List< String > columnNames();

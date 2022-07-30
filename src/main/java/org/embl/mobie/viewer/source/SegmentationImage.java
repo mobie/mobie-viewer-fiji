@@ -1,12 +1,13 @@
 package org.embl.mobie.viewer.source;
 
-import org.embl.mobie.viewer.annotation.SegmentProvider;
 import org.embl.mobie.viewer.annotation.AnnotationProvider;
+import org.embl.mobie.viewer.annotation.AnnotationProviderInterface;
 import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import net.imglib2.Volatile;
 import net.imglib2.type.numeric.IntegerType;
 
+// TODO: Maybe I can use the same for the region image?!
 public class SegmentationImage< AS extends AnnotatedSegment > implements AnnotatedImage< AS >
 {
 	protected Image< ? extends IntegerType< ? > > labelMask;
@@ -28,9 +29,9 @@ public class SegmentationImage< AS extends AnnotatedSegment > implements Annotat
 	{
 		if ( sourcePair == null )
 		{
-			AnnotationProvider< AS > annotationProvider = new SegmentProvider( annData );
+			AnnotationProviderInterface< AS > annotationProvider = new AnnotationProvider( annData );
 			final AnnotatedLabelMaskSource< ?, AS > source = new AnnotatedLabelMaskSource( getLabelMask().getSourcePair().getSource(), annotationProvider );
-			final VolatileAnnotatedLabelMaskSource< ?, ? extends Volatile< ? >, AS > volatileSource = new VolatileAnnotatedLabelMaskSource( getLabelMask().getSourcePair().getVolatileSource(), annotationProvider );
+			final VolatileAnnotatedIntegerTypeSource< ?, ? extends Volatile< ? >, AS > volatileSource = new VolatileAnnotatedIntegerTypeSource( getLabelMask().getSourcePair().getVolatileSource(), annotationProvider );
 			sourcePair = new DefaultSourcePair<>( source, volatileSource );
 		}
 

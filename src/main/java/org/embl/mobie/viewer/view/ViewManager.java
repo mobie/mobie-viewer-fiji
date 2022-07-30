@@ -387,8 +387,8 @@ public class ViewManager
 
 				if ( LUTs.getLut( lut ) instanceof ColumnARGBLut )
 				{
-					// TODO:
-					//  where to get the table column from?
+					// MUST
+					//  Where to get the table column from?
 					throw new UnsupportedOperationException("LUTs encoded in Table columns is not yet supported.");
 					// ColoringModels.setColorsFromColumn( columnName, coloringModel );
 				}

@@ -32,7 +32,7 @@ import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.Segment;
-import org.embl.mobie.viewer.annotation.AnnotationProvider;
+import org.embl.mobie.viewer.annotation.AnnotationProviderInterface;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.converter.Converters;
@@ -40,9 +40,9 @@ import net.imglib2.type.numeric.IntegerType;
 
 public class AnnotatedLabelMaskSource< T extends IntegerType< T >, S extends Segment > extends AbstractSourceWrapper< T, AnnotationType< S > >
 {
-    private final AnnotationProvider< S > annotationProvider;
+    private final AnnotationProviderInterface< S > annotationProvider;
 
-    public AnnotatedLabelMaskSource( final Source< T > source, AnnotationProvider< S > annotationProvider )
+    public AnnotatedLabelMaskSource( final Source< T > source, AnnotationProviderInterface< S > annotationProvider )
     {
         super( source );
         this.annotationProvider = annotationProvider;
@@ -77,8 +77,8 @@ public class AnnotatedLabelMaskSource< T extends IntegerType< T >, S extends Seg
     {
         final String segmentId = AnnotatedSegment.createId( source.getName(), t, input.getInteger() );
         final S segment = annotationProvider.getAnnotation( segmentId );
-        final AnnotationType< S > segmentType = new AnnotationType( segment );
-        output.set( segmentType );
+        final AnnotationType< S > annotationType = new AnnotationType( segment );
+        output.set( annotationType );
     }
 
     @Override
