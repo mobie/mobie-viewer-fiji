@@ -1,7 +1,12 @@
 package org.embl.mobie.viewer.table;
 
 import net.imglib2.util.Pair;
+import net.imglib2.util.ValuePair;
 import org.embl.mobie.io.util.IOHelper;
+import tech.tablesaw.aggregate.AggregateFunction;
+import tech.tablesaw.aggregate.AggregateFunctions;
+import tech.tablesaw.aggregate.Summarizer;
+import tech.tablesaw.api.NumericColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
@@ -153,8 +158,12 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel<
 	@Override
 	public Pair< Double, Double > computeMinMax( String columnName )
 	{
-		// TODO: cache results (unless TableSaw caches it?)
-		return null;
+		// TODO: cache results?!
+		final NumericColumn< ? > numericColumn = table.nCol( columnName );
+		final Summarizer summarize = table.summarize( numericColumn, AggregateFunctions.min, AggregateFunctions.max );
+		final Table summary = summarize.apply();
+		final ValuePair< Double, Double > minMax = new ValuePair( summary.get( 0, 0 ), summary.get( 0, 1  ) );
+		return minMax;
 	}
 
 	@Override
