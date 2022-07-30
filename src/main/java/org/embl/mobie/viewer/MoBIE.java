@@ -74,6 +74,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -682,12 +683,12 @@ public class MoBIE
 					// Create image where pixel values
 					// are the annotations and create
 					// a table model for the annotations.
-					final ArrayList< String > columnPaths = getColumnPaths( segmentationData );
+					final Set< String > columnPaths = getColumnPaths( segmentationData );
 					final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
 
-					final TableSawAnnotatedSegmentTableModel tableModel = new TableSawAnnotatedSegmentTableModel( defaultColumnsPath );
-					final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
+					final TableSawAnnotatedSegmentTableModel tableModel = new TableSawAnnotatedSegmentTableModel( defaultColumnsPath, image.getName() );
 					tableModel.setColumnPaths( columnPaths );
+					final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
 					final SegmentationImage segmentationImage = new SegmentationImage( image, segmentsAnnData );
 					images.put( name, segmentationImage );
 				}
@@ -710,11 +711,11 @@ public class MoBIE
 		return images;
 	}
 
-	private ArrayList< String > getColumnPaths( SegmentationData segmentationData )
+	private Set< String > getColumnPaths( SegmentationData segmentationData )
 	{
 		final String tableDirectory = getTableDirectory( segmentationData );
 		String[] fileNames = IOHelper.getFileNames( tableDirectory );
-		final ArrayList< String > columnPaths = new ArrayList<>();
+		final Set< String > columnPaths = new HashSet<>();
 		for ( String fileName : fileNames )
 		{
 			columnPaths.add( IOHelper.combinePath( tableDirectory, fileName ) );

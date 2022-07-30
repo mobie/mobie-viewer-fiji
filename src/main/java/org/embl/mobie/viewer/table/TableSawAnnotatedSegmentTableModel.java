@@ -1,19 +1,18 @@
 package org.embl.mobie.viewer.table;
 
-import lombok.SneakyThrows;
 import net.imglib2.util.Pair;
 import org.embl.mobie.io.util.IOHelper;
-import tech.tablesaw.api.Row;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,21 +20,23 @@ import java.util.stream.Collectors;
 
 public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel< TableSawAnnotatedSegment >
 {
-	protected Collection< String > availableColumnPaths;
-	protected LinkedHashSet< String > loadedColumnPaths;
+	protected Set< String > availableColumnPaths = new HashSet<>();
+	protected LinkedHashSet< String > loadedColumnPaths = new LinkedHashSet<>();
 
-	private HashMap< TableSawAnnotatedSegment, Integer > annotationToRowIndex;
-	private HashMap< Integer, TableSawAnnotatedSegment > rowIndexToAnnotation;
+	private HashMap< TableSawAnnotatedSegment, Integer > annotationToRowIndex = new HashMap<>();;
+	private HashMap< Integer, TableSawAnnotatedSegment > rowIndexToAnnotation = new HashMap<>();;
 	private Table table;
+	private String imageId;
 	private boolean isDataLoaded = false;
 
-	public TableSawAnnotatedSegmentTableModel( String defaultColumnsPath )
+	public TableSawAnnotatedSegmentTableModel(
+			String defaultColumnsPath,
+			@Nullable String imageId // may be present as a column in the table
+	)
 	{
-		loadedColumnPaths = new LinkedHashSet<>();
-		annotationToRowIndex = new HashMap<>();
-		rowIndexToAnnotation = new HashMap<>();
-
+		availableColumnPaths.add( defaultColumnsPath );
 		loadedColumnPaths.add( defaultColumnsPath );
+		this.imageId = imageId;
 	}
 
 	// https://jtablesaw.github.io/tablesaw/userguide/tables.html
@@ -57,7 +58,7 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel<
 						final int rowCount = table.rowCount();
 						for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 						{
-							final TableSawAnnotatedSegment annotation = new TableSawAnnotatedSegment( table, rowIndex );
+							final TableSawAnnotatedSegment annotation = new TableSawAnnotatedSegment( table, rowIndex, imageId );
 							annotationToRowIndex.put( annotation, rowIndex );
 							rowIndexToAnnotation.put( rowIndex, annotation );
 						}
@@ -132,7 +133,7 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel<
 	}
 
 	@Override
-	public void setColumnPaths( Collection< String > columnPaths )
+	public void setColumnPaths( Set< String > columnPaths )
 	{
 		this.availableColumnPaths = columnPaths;
 	}

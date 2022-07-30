@@ -219,6 +219,8 @@ public class SliceViewer
 
 		// show in Bdv
 		SourceAndConverterServices.getBdvDisplayService().show( bdvHandle, display.isVisible(), sourceAndConverter );
+
+		// TODO: is that needed?
 		updateTimepointSlider();
 	}
 

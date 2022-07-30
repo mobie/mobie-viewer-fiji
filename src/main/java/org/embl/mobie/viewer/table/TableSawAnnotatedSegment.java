@@ -6,6 +6,8 @@ import net.imglib2.RealInterval;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
+import javax.annotation.Nullable;
+
 public class TableSawAnnotatedSegment implements AnnotatedSegment
 {
 	private Row row;
@@ -18,7 +20,11 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	private float[] mesh;
 	private String imageId;
 
-	public TableSawAnnotatedSegment( Table table, int rowIndex )
+	public TableSawAnnotatedSegment(
+			Table table,
+			int rowIndex,
+			@Nullable String imageId // may be present in table
+	)
 	{
 		this.table = table;
 		this.rowIndex = rowIndex;
@@ -26,9 +32,9 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 
 		// segment properties
 		this.numSegmentDimensions = row.columnNames().contains( ColumnNames.ANCHOR_Z ) ? 3 : 2;
-		this.imageId = row.getString( ColumnNames.LABEL_IMAGE_ID );
-		this.labelId = row.getInt( ColumnNames.LABEL_ID );
+		this.imageId = table.columnNames().contains( ColumnNames.LABEL_IMAGE_ID ) ? row.getString( ColumnNames.LABEL_IMAGE_ID ) : imageId;
 		this.timePoint = table.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
+		this.labelId = row.getInt( ColumnNames.LABEL_ID );
 		initBoundingBox( row, numSegmentDimensions );
 	}
 

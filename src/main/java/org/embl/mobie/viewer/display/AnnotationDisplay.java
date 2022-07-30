@@ -108,7 +108,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 
 	public ValuePair< Double, Double > getValueLimits()
 	{
-		return new ValuePair< Double, Double >( valueLimits[ 0 ], valueLimits[ 1 ] );
+		return new ValuePair<>( valueLimits[ 0 ], valueLimits[ 1 ] );
 	}
 
 	public boolean showScatterPlot()

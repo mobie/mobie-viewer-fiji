@@ -89,8 +89,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 
 			if ( display instanceof SegmentationDisplay )
 			{
-				// below is needed for the bdv context menu
-				// that configures the volume rendering
+				// configure volume rendering bdv context menu
 				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), ((SegmentationDisplay) display ).segmentsVolumeViewer );
 			}
 		}
