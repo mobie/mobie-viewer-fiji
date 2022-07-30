@@ -22,9 +22,9 @@ public class TransformedAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public int labelId()
+	public int label()
 	{
-		return annotatedSegment.labelId();
+		return annotatedSegment.label();
 	}
 
 	@Override
@@ -99,9 +99,9 @@ public class TransformedAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public Object getValue( String columnName )
+	public Object getValue( String feature )
 	{
-		return annotatedSegment.getValue( columnName );
+		return annotatedSegment.getValue( feature );
 	}
 
 	@Override

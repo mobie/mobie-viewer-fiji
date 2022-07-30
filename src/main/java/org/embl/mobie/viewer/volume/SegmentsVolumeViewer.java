@@ -235,7 +235,7 @@ public class SegmentsVolumeViewer< AS extends Segment > implements ColoringListe
 
 	private String getSegmentIdentifier( AS segment )
 	{
-		return segment.labelId() + "-" + segment.timePoint();
+		return segment.label() + "-" + segment.timePoint();
 	}
 
 	public synchronized void showSegments( boolean showSegments, boolean autoAdjustView )
@@ -301,12 +301,12 @@ public class SegmentsVolumeViewer< AS extends Segment > implements ColoringListe
 	private synchronized void addSegmentMeshToUniverse( AS segment, CustomTriangleMesh mesh )
 	{
 		if ( mesh == null )
-			throw new RuntimeException( "Mesh of segment " + objectsName + "_" + segment.labelId() + " is null." );
+			throw new RuntimeException( "Mesh of segment " + objectsName + "_" + segment.label() + " is null." );
 
 		if ( universe == null )
 			throw new RuntimeException( "Universe is null." );
 
-		final Content content = universe.addCustomMesh( mesh, objectsName + "_" + segment.labelId() );
+		final Content content = universe.addCustomMesh( mesh, objectsName + "_" + segment.label() );
 
 		content.setTransparency( ( float ) transparency );
 		content.setLocked( true );

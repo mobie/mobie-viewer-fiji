@@ -78,7 +78,7 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public int labelId()
+	public int label()
 	{
 		return labelId;
 	}
@@ -130,9 +130,9 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public Object getValue( String columnName )
+	public Object getValue( String feature )
 	{
-		return row.getObject( columnName );
+		return row.getObject( feature );
 	}
 
 	@Override

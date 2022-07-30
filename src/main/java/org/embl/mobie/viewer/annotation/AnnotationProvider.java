@@ -32,7 +32,9 @@ import org.embl.mobie.viewer.table.AnnData;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class AnnotationProvider< A extends Annotation >
 {
@@ -53,32 +55,42 @@ public class AnnotationProvider< A extends Annotation >
 		return annData.getTable().row( 0 );
 	}
 
+	public A getAnnotation( String id )
+	{
+		if ( annotationIdToAnnotation == null )
+			initMaps();
+
+		return annotationIdToAnnotation.get( id );
+	}
+
 	public A getAnnotation( int timePoint, int label )
 	{
-		return getTimePointAndLabelToAnnotation().get( getKey( timePoint, label ));
-	}
-
-	private Map< String, A > getTimePointAndLabelToAnnotation()
-	{
 		if ( timePointAndLabelToAnnotation == null )
-			initAnnotationMap();
+			initMaps();
 
-		return timePointAndLabelToAnnotation;
+		return timePointAndLabelToAnnotation.get( getKey( timePoint, label ));
 	}
 
-	private synchronized void initAnnotationMap()
+	private synchronized void initMaps()
 	{
 		timePointAndLabelToAnnotation = new ConcurrentHashMap<>();
+		annotationIdToAnnotation = new ConcurrentHashMap<>();
 		final Iterator< A > iterator = annData.getTable().rows().iterator();
 		while( iterator.hasNext() )
 		{
 			A annotation = iterator.next();
-			timePointAndLabelToAnnotation.put( getKey( annotation.timePoint(), annotation.labelId() ), annotation );
+			timePointAndLabelToAnnotation.put( getKey( annotation.timePoint(), annotation.label() ), annotation );
+			annotationIdToAnnotation.put( annotation.id(), annotation );
 		}
 	}
 
 	private String getKey( int timePoint, int label )
 	{
 		return timePoint + "--" + label;
+	}
+
+	public Set< A > getAnnotations( Set< String > annotationIds )
+	{
+		return annotationIds.stream().map( id -> getAnnotation( id ) ).collect( Collectors.toSet() );
 	}
 }

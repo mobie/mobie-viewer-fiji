@@ -19,7 +19,7 @@ public class Label
 	public Label( Segment segment )
 	{
 		this.image = segment.imageId();
-		this.label = segment.labelId();
+		this.label = segment.label();
 		this.frame = segment.timePoint();
 	}
 

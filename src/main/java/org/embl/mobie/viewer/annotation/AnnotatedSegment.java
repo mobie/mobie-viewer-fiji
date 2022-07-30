@@ -9,6 +9,6 @@ public interface AnnotatedSegment extends Segment, Annotation
 
 	static String createId( Segment segment )
 	{
-		return createId( segment.imageId(), segment.timePoint(), segment.labelId() );
+		return createId( segment.imageId(), segment.timePoint(), segment.label() );
 	}
 }

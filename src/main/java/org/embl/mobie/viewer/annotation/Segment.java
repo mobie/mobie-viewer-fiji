@@ -5,7 +5,7 @@ import net.imglib2.RealInterval;
 public interface Segment extends Location
 {
 	String imageId();
-	int labelId();
+	int label();
 
 	RealInterval boundingBox();
 	void setBoundingBox( RealInterval boundingBox );
