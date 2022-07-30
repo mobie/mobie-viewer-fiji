@@ -38,7 +38,7 @@ public abstract class AbstractColoringModel< T > implements ColoringModel< T >
 	protected final Listeners.SynchronizedList< ColoringListener > listeners
 			= new Listeners.SynchronizedList< ColoringListener >(  );
 
-	protected double opacity;
+	protected double opacity = 1.0;
 
 	@Override
 	public Listeners< ColoringListener > listeners()

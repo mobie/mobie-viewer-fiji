@@ -44,7 +44,9 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 	private Map< String, Integer > inputToRandomColor;
 	private int randomSeed;
 
-	public CategoricalAnnotationColoringModel( @Nullable String columnName, String lutName )
+	public CategoricalAnnotationColoringModel(
+			@Nullable String columnName,
+			String lutName )
 	{
 		this.columnName = columnName;
 		this.lut = LUTs.getLut( lutName );

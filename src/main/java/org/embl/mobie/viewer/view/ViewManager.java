@@ -383,6 +383,8 @@ public class ViewManager
 								lut,
 								LUTs.TRANSPARENT );
 
+				coloringModel.setOpacity( annotationDisplay.getOpacity() );
+
 				if ( LUTs.getLut( lut ) instanceof ColumnARGBLut )
 				{
 					// TODO:
@@ -403,6 +405,8 @@ public class ViewManager
 								annotationDisplay.getValueLimits(),
 						 true
 							);
+
+				coloringModel.setOpacity( annotationDisplay.getOpacity() );
 
 				annotationDisplay.coloringModel = new MoBIEColoringModel( coloringModel, annotationDisplay.selectionModel );
 			}
