@@ -49,12 +49,15 @@ import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.AnnotatedLabelImage;
 import org.embl.mobie.viewer.source.Image;
+import org.embl.mobie.viewer.source.RegionLabelImage;
 import org.embl.mobie.viewer.source.SpimDataImage;
+import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
+import org.embl.mobie.viewer.table.SegmentTableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableHelper;
 import org.embl.mobie.viewer.table.TableSawAnnotatedSegment;
-import org.embl.mobie.viewer.table.TableSawAnnotatedSegmentTableModel;
+import org.embl.mobie.viewer.table.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.View;
@@ -509,14 +512,14 @@ public class MoBIE
         return dataset.views;
     }
 
-    private String getRelativeTableLocation( SegmentationSource source )
+    private String getRelativeTableLocation( Map< TableDataFormat, StorageLocation > tableData )
     {
-        return source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
+        return tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
     }
 
-    public String getTableDirectory( SegmentationSource source )
+    public String getTableDirectory( Map< TableDataFormat, StorageLocation > tableData )
     {
-        return getTableDirectory( getRelativeTableLocation( source ) );
+        return getTableDirectory( getRelativeTableLocation( tableData ) );
     }
 
     public String getTableDirectory( String relativeTableLocation )
@@ -527,7 +530,7 @@ public class MoBIE
 
 	public String getTablePath( SegmentationSource source, String table )
 	{
-		return getTablePath( getRelativeTableLocation( source ), table );
+		return getTablePath( getRelativeTableLocation( source.tableData ), table );
 	}
 
 	public String getTablePath( String relativeTableLocation, String table )
@@ -700,10 +703,11 @@ public class MoBIE
 						// Create image where pixel values
 						// are the annotations and create
 						// a table model for the annotations.
-						final Set< String > columnPaths = getColumnPaths( segmentationData );
+						final Set< String > columnPaths = getTablePaths( segmentationData.tableData );
 						final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
 
-						final TableSawAnnotatedSegmentTableModel tableModel = new TableSawAnnotatedSegmentTableModel( defaultColumnsPath, image.getName() );
+						final SegmentTableSawAnnotationCreator annotationCreator = new SegmentTableSawAnnotationCreator( image.getName() );
+						final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
 						tableModel.setColumnPaths( columnPaths );
 						final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
 						final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
@@ -722,20 +726,23 @@ public class MoBIE
 					images.put( name, image );
 				}
 			}
+			else if ( data instanceof ImageAnnotationSource )
+			{
+				final Map< TableDataFormat, StorageLocation > tableData = ( ( ImageAnnotationSource ) data ).tableData;
+				new RegionLabelImage<>(  )
+			}
 		}
 
 		return images;
 	}
 
-	private Set< String > getColumnPaths( SegmentationSource segmentationData )
+	private Set< String > getTablePaths( Map< TableDataFormat, StorageLocation > tableData )
 	{
-		final String tableDirectory = getTableDirectory( segmentationData );
+		final String tableDirectory = getTableDirectory( tableData );
 		String[] fileNames = IOHelper.getFileNames( tableDirectory );
 		final Set< String > columnPaths = new HashSet<>();
 		for ( String fileName : fileNames )
-		{
 			columnPaths.add( IOHelper.combinePath( tableDirectory, fileName ) );
-		}
 		return columnPaths;
 	}
 

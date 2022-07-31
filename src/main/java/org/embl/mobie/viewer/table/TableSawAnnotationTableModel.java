@@ -3,6 +3,7 @@ package org.embl.mobie.viewer.table;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.viewer.annotation.Annotation;
 import tech.tablesaw.aggregate.AggregateFunction;
 import tech.tablesaw.aggregate.AggregateFunctions;
 import tech.tablesaw.aggregate.Summarizer;
@@ -23,25 +24,25 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel< TableSawAnnotatedSegment >
+public class TableSawAnnotationTableModel< A extends Annotation > implements AnnotationTableModel< A >
 {
+	private final TableSawAnnotationCreator< A > annotationCreator;
 	protected Set< String > availableColumnPaths = new HashSet<>();
 	protected LinkedHashSet< String > loadedColumnPaths = new LinkedHashSet<>();
 
-	private HashMap< TableSawAnnotatedSegment, Integer > annotationToRowIndex = new HashMap<>();;
-	private HashMap< Integer, TableSawAnnotatedSegment > rowIndexToAnnotation = new HashMap<>();;
+	private HashMap< A, Integer > annotationToRowIndex = new HashMap<>();;
+	private HashMap< Integer, A > rowIndexToAnnotation = new HashMap<>();;
 	private Table table;
-	private String imageId;
 	private boolean isDataLoaded = false;
 
-	public TableSawAnnotatedSegmentTableModel(
-			String defaultColumnsPath,
-			@Nullable String imageId // may be present as a column in the table
+	public TableSawAnnotationTableModel(
+			TableSawAnnotationCreator< A > annotationCreator,
+			String defaultColumnsPath
 	)
 	{
+		this.annotationCreator = annotationCreator;
 		availableColumnPaths.add( defaultColumnsPath );
 		loadedColumnPaths.add( defaultColumnsPath );
-		this.imageId = imageId;
 	}
 
 	// https://jtablesaw.github.io/tablesaw/userguide/tables.html
@@ -63,7 +64,7 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel<
 						final int rowCount = table.rowCount();
 						for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 						{
-							final TableSawAnnotatedSegment annotation = new TableSawAnnotatedSegment( table, rowIndex, imageId );
+							final A annotation = annotationCreator.create( table, rowIndex );
 							annotationToRowIndex.put( annotation, rowIndex );
 							rowIndexToAnnotation.put( rowIndex, annotation );
 						}
@@ -119,13 +120,13 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel<
 	}
 
 	@Override
-	public int indexOf( TableSawAnnotatedSegment annotation )
+	public int indexOf( A annotation )
 	{
 		return annotationToRowIndex.get( annotation );
 	}
 
 	@Override
-	public TableSawAnnotatedSegment row( int rowIndex )
+	public A row( int rowIndex )
 	{
 		getTable(); // ensures that the data is loaded
 		return rowIndexToAnnotation.get( rowIndex );
@@ -167,7 +168,7 @@ public class TableSawAnnotatedSegmentTableModel implements AnnotationTableModel<
 	}
 
 	@Override
-	public Set< TableSawAnnotatedSegment > rows()
+	public Set< A > rows()
 	{
 		return annotationToRowIndex.keySet();
 	}

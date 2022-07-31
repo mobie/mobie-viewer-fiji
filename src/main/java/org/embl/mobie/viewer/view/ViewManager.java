@@ -280,12 +280,14 @@ public class ViewManager
 		final Set< String > imageNames = view.getImageNames();
 		if ( imageNames.size() == 0 ) return;
 
-		// determine "raw" images that can be directly opened
+		// determine sources that can be directly opened
 		// (some others may only be available via a transformation)
-		final List< String > rawImageNames = imageNames.stream().filter( s -> ( moBIE.getDataset().sources.containsKey( s ) ) ).collect( Collectors.toList() );
+		final List< String > sourceNames = imageNames.stream().filter( s -> ( moBIE.getDataset().sources.containsKey( s ) ) ).collect( Collectors.toList() );
 
-		// init raw images
-		final HashMap< String, Image< ? > > images = moBIE.initImages( rawImageNames );
+		// init images
+		// note that currently all sources will
+		// result in an image.
+		final HashMap< String, Image< ? > > images = moBIE.initImages( sourceNames );
 
 		// transform images
 		// this may create new images with new names
