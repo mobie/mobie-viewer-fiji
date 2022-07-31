@@ -26,29 +26,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.transform;
-
+package org.embl.mobie.viewer.transform.image;
 
 import org.embl.mobie.viewer.source.Image;
 
 import java.util.List;
 
-public abstract class AbstractTransformation implements Transformation
+public interface Transformation
 {
-	// Serialisation
-	protected String name;
-	protected List< String > sources;
-	protected List< String > sourceNamesAfterTransform;
 
-	protected < T > String getTransformedName( Image< T > image )
-	{
-		if ( sourceNamesAfterTransform != null )
-		{
-			return sourceNamesAfterTransform.get( sources.indexOf( image.getName() ) );
-		}
-		else
-		{
-			return image.getName();
-		}
-	}
+
+	/**
+	 * @return a list of the names of all images
+	 * that should be transformed using this transformer.
+	 */
+	List< String > getTargetImages(); // TODO it feels a bit weird that this is here...
 }

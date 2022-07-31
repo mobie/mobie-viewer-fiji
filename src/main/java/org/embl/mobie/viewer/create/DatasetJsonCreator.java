@@ -41,7 +41,7 @@ import org.embl.mobie.viewer.source.SourceSupplier;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.transform.image.AffineTransformation;
-import org.embl.mobie.viewer.transform.Transformation;
+import org.embl.mobie.viewer.transform.image.Transformation;
 import org.embl.mobie.viewer.view.View;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.io.ImageDataFormat;
@@ -133,9 +133,7 @@ public class DatasetJsonCreator {
         ImageData imageData = new ImageData();
         imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
         imageData.imageData = imageDataLocations;
-
-        SourceSupplier sourceSupplier = new SourceSupplier( imageData );
-        dataset.sources.put( imageName, sourceSupplier );
+        dataset.sources.put( imageName, imageData );
     }
 
     private void addNewSegmentationSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat ) {
@@ -150,9 +148,7 @@ public class DatasetJsonCreator {
         imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
         annotatedLabelMaskSource.imageData = imageDataLocations;
 
-        SourceSupplier sourceSupplier = new SourceSupplier( annotatedLabelMaskSource );
-
-        dataset.sources.put( imageName, sourceSupplier );
+        dataset.sources.put( imageName, annotatedLabelMaskSource );
     }
 
     private Map< ImageDataFormat, StorageLocation > makeImageDataLocations( ImageDataFormat imageDataFormat,

@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
-public class TransformedGridImageTransformation extends AbstractTransformation
+public class TransformedGridImageTransformation< T > extends AbstractImageTransformation< T, T >
 {
 	// Serialization
 	protected List< List< String > > nestedSources;
@@ -68,7 +68,7 @@ public class TransformedGridImageTransformation extends AbstractTransformation
 	}
 
 	@Override
-	public < T > Image< T > apply( Image< T > image )
+	public Image< T > apply( Image< T > image )
 	{
 		// TODO (test with new BDV version!);
 		return null;

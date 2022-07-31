@@ -65,7 +65,7 @@ import org.embl.mobie.viewer.transform.AnnotatedSegmentTransformer;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.TransformHelper;
-import org.embl.mobie.viewer.transform.Transformation;
+import org.embl.mobie.viewer.transform.image.Transformation;
 import org.embl.mobie.viewer.transform.TransformedAnnData;
 import org.embl.mobie.viewer.transform.image.AffineTransformation;
 import org.embl.mobie.viewer.ui.UserInterface;

@@ -1,6 +1,7 @@
 package org.embl.mobie.viewer.transform;
 
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
+import org.embl.mobie.viewer.transform.image.Transformation;
 
 public class AnnotatedSegmentTransformer implements AnnotationTransformer< AnnotatedSegment, TransformedAnnotatedSegment >
 {

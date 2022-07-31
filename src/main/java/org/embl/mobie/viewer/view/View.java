@@ -29,7 +29,7 @@
 package org.embl.mobie.viewer.view;
 
 import org.embl.mobie.viewer.display.Display;
-import org.embl.mobie.viewer.transform.Transformation;
+import org.embl.mobie.viewer.transform.image.Transformation;
 import org.embl.mobie.viewer.transform.ViewerTransform;
 
 import java.util.ArrayList;

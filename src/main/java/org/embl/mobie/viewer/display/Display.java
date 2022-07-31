@@ -42,6 +42,8 @@ public interface Display< T >
 	double getOpacity();
 	boolean isVisible();
 
+	// MUST: Does that make sense? Then all images would
+	// need to have the same data type
 	Set< Image< T > > getImages();
 	void addImage( Image< T > image );
 }

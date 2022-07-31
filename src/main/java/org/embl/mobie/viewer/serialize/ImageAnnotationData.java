@@ -26,30 +26,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.source;
+package org.embl.mobie.viewer.serialize;
 
-import org.embl.mobie.viewer.serialize.ImageData;
-import org.embl.mobie.viewer.serialize.SegmentationData;
+import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.table.TableDataFormat;
 
-// TODO: get rid of supplier and deal with this by means of a Gson adapter
-public class SourceSupplier
+import java.util.List;
+import java.util.Map;
+
+
+// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/818
+public class ImageAnnotationData implements Data
 {
-	// Serialisation
-	private ImageData image;
-	private SegmentationData segmentation;
+	// annotationId to image sources
+	// one annotationId can annotate several images
+	public Map< String, List< String > > sources;
 
-	public SourceSupplier( ImageData imageData ) {
-		this.image = imageData;
-	}
+	// table with each row corresponding to one
+	// annotationId
+	public Map< TableDataFormat, StorageLocation > tableData;
 
-	public SourceSupplier( SegmentationData annotatedLabelMaskSource ) {
-		this.segmentation = annotatedLabelMaskSource;
-	}
 
-	public ImageData get()
-	{
-		if ( image != null ) return image;
-		else if ( segmentation != null ) return segmentation;
-		else throw new RuntimeException( "Unsupported Source." );
-	}
 }

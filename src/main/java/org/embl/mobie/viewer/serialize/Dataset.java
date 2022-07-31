@@ -41,6 +41,6 @@ public class Dataset
 	public boolean is2D = false;
 	public ViewerTransform defaultLocation = new PositionViewerTransform( new double[]{0,0,0}, 0 );
 	public int timepoints = 1;
-	public Map< String, SourceSupplier > sources;
+	public Map< String, Data > sources;
 	public Map< String, View > views;
 }

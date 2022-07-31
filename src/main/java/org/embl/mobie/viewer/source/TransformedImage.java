@@ -1,6 +1,6 @@
 package org.embl.mobie.viewer.source;
 
-import org.embl.mobie.viewer.transform.Transformation;
+import org.embl.mobie.viewer.transform.image.Transformation;
 
 public class TransformedImage< T > implements Image< T >
 {

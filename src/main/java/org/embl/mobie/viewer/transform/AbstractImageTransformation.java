@@ -28,20 +28,30 @@
  */
 package org.embl.mobie.viewer.transform;
 
+
 import org.embl.mobie.viewer.source.Image;
+import org.embl.mobie.viewer.transform.image.ImageTransformation;
+import org.embl.mobie.viewer.transform.image.Transformation;
 
 import java.util.List;
 
-public interface Transformation
+public abstract class AbstractImageTransformation< A, B > implements ImageTransformation< A, B >
 {
-	// TODO: maybe rather Set< > <=> Set< >
-	//   or Map< Name, Image > as we had it before.
-	//   or have both?
-	< T > Image< T > apply( Image< T > image );
+	// Serialisation
+	protected String name;
+	protected List< String > sources;
+	protected List< String > sourceNamesAfterTransform;
 
-	/**
-	 * @return a list of the names of all images
-	 * that should be transformed using this transformer.
-	 */
-	List< String > getTargetImages(); // TODO it feels a bit weird that this is here...
+	// TODO: for stitching this does not apply
+	protected String getTransformedName( Image< A > image )
+	{
+		if ( sourceNamesAfterTransform != null )
+		{
+			return sourceNamesAfterTransform.get( sources.indexOf( image.getName() ) );
+		}
+		else
+		{
+			return image.getName();
+		}
+	}
 }

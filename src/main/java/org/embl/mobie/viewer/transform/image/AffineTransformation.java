@@ -33,14 +33,14 @@ import bdv.viewer.Source;
 import org.embl.mobie.viewer.source.DefaultImage;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.SourcePair;
-import org.embl.mobie.viewer.transform.AbstractTransformation;
+import org.embl.mobie.viewer.transform.AbstractImageTransformation;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class AffineTransformation extends AbstractTransformation
+public class AffineTransformation< T > extends AbstractImageTransformation< T, T >
 {
 	// Serialisation
 	protected double[] parameters;
@@ -72,7 +72,7 @@ public class AffineTransformation extends AbstractTransformation
 	}
 
 	@Override
-	public < T > Image< T > apply( Image< T > image )
+	public Image< T > apply( Image< T > image )
 	{
 		affineTransform3D.set( parameters );
 

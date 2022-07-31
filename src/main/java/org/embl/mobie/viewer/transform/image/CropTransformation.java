@@ -30,7 +30,7 @@ package org.embl.mobie.viewer.transform.image;
 
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.source.Image;
-import org.embl.mobie.viewer.transform.AbstractTransformation;
+import org.embl.mobie.viewer.transform.AbstractImageTransformation;
 import org.embl.mobie.viewer.transform.TransformHelper;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
@@ -41,7 +41,7 @@ import sc.fiji.bdvpg.sourceandconverter.transform.SourceResampler;
 import java.util.List;
 import java.util.Map;
 
-public class CropTransformation extends AbstractTransformation
+public class CropTransformation< T > extends AbstractImageTransformation< T, T >
 {
 	protected double[] min;
 	protected double[] max;
@@ -89,7 +89,7 @@ public class CropTransformation extends AbstractTransformation
 	}
 
 	@Override
-	public < T > Image< T > apply( Image< T > image )
+	public Image< T > apply( Image< T > image )
 	{
 		// TODO
 		return null;

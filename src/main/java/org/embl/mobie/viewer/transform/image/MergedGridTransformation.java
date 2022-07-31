@@ -39,7 +39,6 @@ import org.embl.mobie.viewer.source.FunctionGridSource;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.MergedGridSource;
 import org.embl.mobie.viewer.source.SourceHelper;
-import org.embl.mobie.viewer.transform.AbstractTransformation;
 import org.embl.mobie.viewer.transform.TransformedGridImageTransformation;
 import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
@@ -48,6 +47,7 @@ import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,8 +55,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-// TODO: Maybe this actually is not a transformation, but a Stitcher?
-public class MergedGridTransformation< T extends NumericType< T > >  extends AbstractTransformation
+public class MergedGridTransformation< T extends NumericType< T > > implements StitchingTransformation< T >
 {
 	// Serialization
 	protected List< String > sources;
@@ -197,7 +196,7 @@ public class MergedGridTransformation< T extends NumericType< T > >  extends Abs
 	}
 
 	@Override
-	public < T > Image< T > apply( Image< T > image )
+	public Image< T > apply( Collection< Image< T > > images )
 	{
 		// TODO: wrong interface for multiple images as an input?
 		return null;

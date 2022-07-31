@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.viewer.display;
 
-import org.embl.mobie.viewer.annotation.RegionsAdapter;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.source.StorageLocation;
@@ -46,13 +45,13 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDispl
 
 	// annotationId to image sources
 	// one annotationId can annotate several images
-	protected Map< String, List< String > > sources;
+	public Map< String, List< String > > sources;
 
 	// table with each row corresponding to one
 	// annotationId
-	protected Map< TableDataFormat, StorageLocation > tableData;
+	public Map< TableDataFormat, StorageLocation > tableData;
 
-	protected Set< String > selectedRegionIds;
+	public Set< String > selectedRegionIds;
 
 	// Runtime
 

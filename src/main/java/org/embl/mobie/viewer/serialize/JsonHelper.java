@@ -35,7 +35,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import org.embl.mobie.viewer.display.Display;
-import org.embl.mobie.viewer.transform.Transformation;
+import org.embl.mobie.viewer.transform.image.Transformation;
 import org.embl.mobie.viewer.transform.ViewerTransform;
 
 import java.util.List;

@@ -36,7 +36,10 @@ import de.embl.cba.tables.github.GitHubUtils;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
+import org.embl.mobie.viewer.display.Display;
+import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
+import org.embl.mobie.viewer.serialize.ImageAnnotationData;
 import org.embl.mobie.viewer.serialize.Project;
 import org.embl.mobie.viewer.serialize.SegmentationData;
 import org.embl.mobie.viewer.serialize.Dataset;
@@ -273,6 +276,20 @@ public class MoBIE
 		images = new ConcurrentHashMap< String, Image< ? > >();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
+		for ( View view : dataset.views.values() )
+		{
+			for ( Display< ? > sourceDisplay : view.getSourceDisplays() )
+			{
+				if ( sourceDisplay instanceof RegionDisplay )
+				{
+					final ImageAnnotationData imageAnnotationData = new ImageAnnotationData();
+					imageAnnotationData.tableData = ( ( RegionDisplay<?> ) sourceDisplay ).tableData;
+					imageAnnotationData.sources = ( ( RegionDisplay<?> ) sourceDisplay ).sources;
+					dataset.sources.put( sourceDisplay.getName(), imageAnnotationData );
+				}
+			}
+		}
+
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D );
 		final View view = getView();
@@ -375,7 +392,6 @@ public class MoBIE
 	{
 		return dataset.sources.get( sourceName ).get();
 	}
-
 
 	private List< TableRowImageSegment > tryOpenDefaultSegmentsTable( String sourceName )
 	{

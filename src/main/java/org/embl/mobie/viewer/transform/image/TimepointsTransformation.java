@@ -31,7 +31,7 @@ package org.embl.mobie.viewer.transform.image;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.TransformedTimepointSource;
-import org.embl.mobie.viewer.transform.AbstractTransformation;
+import org.embl.mobie.viewer.transform.AbstractImageTransformation;
 import net.imglib2.Volatile;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 
@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TimepointsTransformation extends AbstractTransformation
+public class TimepointsTransformation< T > extends AbstractImageTransformation< T, T >
 {
 	// Serialisation
 	protected List< List< Integer > > parameters;
@@ -105,7 +105,7 @@ public class TimepointsTransformation extends AbstractTransformation
 	}
 
 	@Override
-	public < T > Image< T > apply( Image< T > image )
+	public Image< T > apply( Image< T > image )
 	{
 		// TODO
 		return null;
