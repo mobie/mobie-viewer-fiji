@@ -45,6 +45,4 @@ public class ImageAnnotationData implements Data
 	// table with each row corresponding to one
 	// annotationId
 	public Map< TableDataFormat, StorageLocation > tableData;
-
-
 }

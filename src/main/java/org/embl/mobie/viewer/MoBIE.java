@@ -39,6 +39,7 @@ import ij.IJ;
 import org.embl.mobie.viewer.display.Display;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
+import org.embl.mobie.viewer.serialize.Data;
 import org.embl.mobie.viewer.serialize.ImageAnnotationData;
 import org.embl.mobie.viewer.serialize.Project;
 import org.embl.mobie.viewer.serialize.SegmentationData;
@@ -276,10 +277,26 @@ public class MoBIE
 		images = new ConcurrentHashMap< String, Image< ? > >();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
+		fixDataset();
+		userInterface = new UserInterface( this );
+		viewManager = new ViewManager( this, userInterface, dataset.is2D );
+		final View view = getView();
+		view.setName( settings.values.getView() );
+		IJ.log( "Opening view: " + view.getName() );
+		final long startTime = System.currentTimeMillis();
+		viewManager.show( view );
+		IJ.log("Opened view: " + view.getName() + ", in " + (System.currentTimeMillis() - startTime) + " ms." );
+	}
+
+	// fix the internal representation
+	// considering current short-comings of the JSON spec
+	private void fixDataset()
+	{
 		for ( View view : dataset.views.values() )
 		{
 			for ( Display< ? > sourceDisplay : view.getSourceDisplays() )
 			{
+				// https://github.com/mobie/mobie-viewer-fiji/issues/818
 				if ( sourceDisplay instanceof RegionDisplay )
 				{
 					final ImageAnnotationData imageAnnotationData = new ImageAnnotationData();
@@ -289,15 +306,6 @@ public class MoBIE
 				}
 			}
 		}
-
-		userInterface = new UserInterface( this );
-		viewManager = new ViewManager( this, userInterface, dataset.is2D );
-		final View view = getView();
-		view.setName( settings.values.getView() );
-		IJ.log( "Opening view: " + view.getName() );
-		final long startTime = System.currentTimeMillis();
-		viewManager.show( view );
-		IJ.log("Opened view: " + view.getName() + ", in " + (System.currentTimeMillis() - startTime) + " ms." );
 	}
 
 	private View getView() throws IOException
@@ -388,9 +396,9 @@ public class MoBIE
 
 	}
 
-	public synchronized ImageData getDataSource( String sourceName )
+	public synchronized Data getData( String sourceName )
 	{
-		return dataset.sources.get( sourceName ).get();
+		return dataset.sources.get( sourceName );
 	}
 
 	private List< TableRowImageSegment > tryOpenDefaultSegmentsTable( String sourceName )
@@ -527,15 +535,6 @@ public class MoBIE
 		return IOHelper.combinePath( tableRoot, getDatasetName(), relativeTableLocation, table );
 	}
 
-	public String getTableRootDirectory( String source )
-	{
-		final ImageData imageData = getDataSource( source );
-		if ( imageData instanceof SegmentationData )
-			return IOHelper.combinePath( tableRoot, getDatasetName(), getRelativeTableLocation( ( SegmentationData ) imageData ) );
-		else
-			throw new RuntimeException( "TODO: Implement getTableRootDirectory for " + imageData.getClass() );
-	}
-
 	public String getDatasetPath( String... files )
 	{
 		final String datasetRoot = IOHelper.combinePath( projectRoot, getDatasetName() );
@@ -553,7 +552,7 @@ public class MoBIE
 	// TODO: probably we should move this functionality SegmentationDisplay!
 	public List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName, String log )
 	{
-		final SegmentationData tableSource = ( SegmentationData ) getDataSource( sourceName );
+		final SegmentationData tableSource = ( SegmentationData ) getData( sourceName );
 		final String tablePath = getTablePath( tableSource, tableName );
 		if ( log != null )
 			IJ.log( log + tablePath );
@@ -591,7 +590,7 @@ public class MoBIE
 
 	public Map< String, List< String > > loadColumns( String tableName, String sourceName )
 	{
-		Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( SegmentationData ) getDataSource( sourceName ), tableName ) );
+		Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( SegmentationData ) getData( sourceName ), tableName ) );
 		return columns;
 	}
 
@@ -684,43 +683,44 @@ public class MoBIE
 		final HashMap< String, Image< ? > > images = new HashMap<>();
 		for ( String name : sources )
 		{
-			final ImageData imageData = getDataSource( name );
-			ImageDataFormat imageDataFormat = getImageDataFormat( name, imageData.imageData.keySet() );
-			final String imagePath = getImagePath( imageData, imageDataFormat );
-			final SpimDataImage< ? > image = new SpimDataImage<>( imageDataFormat, imagePath, 0, name );
+			final Data data = getData( name );
 
-			if ( imageData.getClass() == SegmentationData.class )
+			if ( data instanceof ImageData )
 			{
-				final SegmentationData segmentationData = ( SegmentationData ) imageData;
+				ImageData imageData = (ImageData) data;
+				ImageDataFormat imageDataFormat = getImageDataFormat( name, imageData.imageData.keySet() );
+				final String imagePath = getImagePath( imageData, imageDataFormat );
+				final SpimDataImage< ? > image = new SpimDataImage<>( imageDataFormat, imagePath, 0, name );
 
-				if ( segmentationData.tableData != null
-						&& segmentationData.tableData.size() > 0 )
+				if ( data.getClass() == SegmentationData.class )
 				{
-					// Create image where pixel values
-					// are the annotations and create
-					// a table model for the annotations.
-					final Set< String > columnPaths = getColumnPaths( segmentationData );
-					final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
+					final SegmentationData segmentationData = ( SegmentationData ) data;
+					if ( segmentationData.tableData != null )
+					{
+						// Create image where pixel values
+						// are the annotations and create
+						// a table model for the annotations.
+						final Set< String > columnPaths = getColumnPaths( segmentationData );
+						final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
 
-					final TableSawAnnotatedSegmentTableModel tableModel = new TableSawAnnotatedSegmentTableModel( defaultColumnsPath, image.getName() );
-					tableModel.setColumnPaths( columnPaths );
-					final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
-					final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
-					images.put( name, annotatedLabelImage );
-				}
-				else
+						final TableSawAnnotatedSegmentTableModel tableModel = new TableSawAnnotatedSegmentTableModel( defaultColumnsPath, image.getName() );
+						tableModel.setColumnPaths( columnPaths );
+						final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
+						final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
+						images.put( name, annotatedLabelImage );
+					} else
+					{
+						// Label mask without annotation.
+						// Create appropriate selection
+						// and coloring model for the label
+						// mask during display.
+						images.put( name, image );
+					}
+				} else
 				{
-					// Label mask without annotation.
-					// Create appropriate selection
-					// and coloring model for the label
-					// mask during display.
+					// Intensity image.
 					images.put( name, image );
 				}
-			}
-			else
-			{
-				// Intensity image.
-				images.put( name, image );
 			}
 		}
 
