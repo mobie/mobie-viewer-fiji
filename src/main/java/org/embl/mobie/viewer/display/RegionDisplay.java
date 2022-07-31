@@ -28,7 +28,7 @@
  */
 package org.embl.mobie.viewer.display;
 
-import org.embl.mobie.viewer.annotation.AnnotatedRegion;
+import org.embl.mobie.viewer.annotation.ImageAnnotation;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay< AR >
+public class RegionDisplay< AR extends ImageAnnotation > extends AnnotationDisplay< AR >
 {
 	// Serialization
 

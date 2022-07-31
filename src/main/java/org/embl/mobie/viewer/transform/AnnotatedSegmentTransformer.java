@@ -1,9 +1,9 @@
 package org.embl.mobie.viewer.transform;
 
-import org.embl.mobie.viewer.annotation.AnnotatedSegment;
+import org.embl.mobie.viewer.annotation.SegmentAnnotation;
 import org.embl.mobie.viewer.transform.image.Transformation;
 
-public class AnnotatedSegmentTransformer implements AnnotationTransformer< AnnotatedSegment, TransformedAnnotatedSegment >
+public class AnnotatedSegmentTransformer implements AnnotationTransformer< SegmentAnnotation, TransformedSegmentAnnotation >
 {
 	private Transformation transformation;
 
@@ -13,8 +13,8 @@ public class AnnotatedSegmentTransformer implements AnnotationTransformer< Annot
 	}
 
 	@Override
-	public TransformedAnnotatedSegment transform( AnnotatedSegment annotatedSegment )
+	public TransformedSegmentAnnotation transform( SegmentAnnotation segmentAnnotation )
 	{
-		return new TransformedAnnotatedSegment( annotatedSegment, transformation );
+		return new TransformedSegmentAnnotation( segmentAnnotation, transformation );
 	}
 }

@@ -1,41 +1,36 @@
-package org.embl.mobie.viewer.table;
+package org.embl.mobie.viewer.table.saw;
 
-import org.embl.mobie.viewer.annotation.AnnotatedSegment;
+import org.embl.mobie.viewer.annotation.SegmentAnnotation;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
+import org.embl.mobie.viewer.table.ColumnNames;
 import tech.tablesaw.api.Row;
-import tech.tablesaw.api.Table;
 
 import javax.annotation.Nullable;
 
-public class TableSawAnnotatedSegment implements AnnotatedSegment
+public class TableSawSegmentAnnotation implements SegmentAnnotation
 {
 	private Row row;
 	private final int numSegmentDimensions;
-	private final Table table;
-	private final int rowIndex;
 	private final int timePoint;
 	private final int labelId;
 	private RealInterval boundingBox;
 	private float[] mesh;
 	private String imageId;
 
-	public TableSawAnnotatedSegment(
-			Table table,
-			int rowIndex,
-			@Nullable String imageId // may be present in table
+	public TableSawSegmentAnnotation(
+			Row row,
+			@Nullable String imageId  // may be present in table
 	)
 	{
-		this.table = table;
-		this.rowIndex = rowIndex;
-		this.row = table.row( rowIndex );
+		this.row = row;
 
 		// segment properties
-		this.numSegmentDimensions = row.columnNames().contains( ColumnNames.ANCHOR_Z ) ? 3 : 2;
-		this.imageId = table.columnNames().contains( ColumnNames.LABEL_IMAGE_ID ) ? row.getString( ColumnNames.LABEL_IMAGE_ID ) : imageId;
-		this.timePoint = table.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
-		this.labelId = row.getInt( ColumnNames.LABEL_ID );
-		initBoundingBox( row, numSegmentDimensions );
+		this.numSegmentDimensions = this.row.columnNames().contains( ColumnNames.ANCHOR_Z ) ? 3 : 2;
+		this.imageId = row.columnNames().contains( ColumnNames.LABEL_IMAGE_ID ) ? this.row.getString( ColumnNames.LABEL_IMAGE_ID ) : imageId;
+		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? this.row.getInt( ColumnNames.TIMEPOINT ) : 0;
+		this.labelId = this.row.getInt( ColumnNames.LABEL_ID );
+		initBoundingBox( this.row, numSegmentDimensions );
 	}
 
 	private void initBoundingBox( Row row, int numSegmentDimensions )

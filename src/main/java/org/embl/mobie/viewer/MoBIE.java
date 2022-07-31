@@ -53,11 +53,12 @@ import org.embl.mobie.viewer.source.RegionLabelImage;
 import org.embl.mobie.viewer.source.SpimDataImage;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
-import org.embl.mobie.viewer.table.SegmentTableSawAnnotationCreator;
+import org.embl.mobie.viewer.table.saw.TableSawImageAnnotationCreator;
+import org.embl.mobie.viewer.table.saw.TableSawSegmentAnnotationCreator;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableHelper;
-import org.embl.mobie.viewer.table.TableSawAnnotatedSegment;
-import org.embl.mobie.viewer.table.TableSawAnnotationTableModel;
+import org.embl.mobie.viewer.table.saw.TableSawSegmentAnnotation;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.View;
@@ -681,9 +682,9 @@ public class MoBIE
 		return projectCommands;
 	}
 
-	public HashMap< String, Image< ? > > initImages( Collection< String > sources )
+	public void initImages( Collection< String > sources )
 	{
-		final HashMap< String, Image< ? > > images = new HashMap<>();
+		final Map< String, Image< ? > > images = ImageStore.images;
 		for ( String name : sources )
 		{
 			final Data data = getData( name );
@@ -701,15 +702,15 @@ public class MoBIE
 					if ( segmentationData.tableData != null )
 					{
 						// Create image where pixel values
-						// are the annotations and create
-						// a table model for the annotations.
+						// are the segment annotations and create
+						// annData for the annotations.
 						final Set< String > columnPaths = getTablePaths( segmentationData.tableData );
 						final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
 
-						final SegmentTableSawAnnotationCreator annotationCreator = new SegmentTableSawAnnotationCreator( image.getName() );
+						final TableSawSegmentAnnotationCreator annotationCreator = new TableSawSegmentAnnotationCreator( image.getName() );
 						final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
 						tableModel.setColumnPaths( columnPaths );
-						final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
+						final DefaultAnnData< TableSawSegmentAnnotation > segmentsAnnData = new DefaultAnnData<>( tableModel );
 						final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
 						images.put( name, annotatedLabelImage );
 					} else
@@ -729,11 +730,16 @@ public class MoBIE
 			else if ( data instanceof ImageAnnotationSource )
 			{
 				final Map< TableDataFormat, StorageLocation > tableData = ( ( ImageAnnotationSource ) data ).tableData;
-				new RegionLabelImage<>(  )
+				final Map< String, List< String > > regionIdToImageNames = ( ( ImageAnnotationSource ) data ).sources;
+
+				final Set< String > columnPaths = getTablePaths( tableData );
+				final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
+				final TableSawImageAnnotationCreator annotationCreator = new TableSawImageAnnotationCreator( regionIdToImageNames );
+				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
+				final Set rows = tableModel.rows();
+				new RegionLabelImage( rows )
 			}
 		}
-
-		return images;
 	}
 
 	private Set< String > getTablePaths( Map< TableDataFormat, StorageLocation > tableData )
@@ -744,10 +750,5 @@ public class MoBIE
 		for ( String fileName : fileNames )
 			columnPaths.add( IOHelper.combinePath( tableDirectory, fileName ) );
 		return columnPaths;
-	}
-
-	public Image< ? > getImage( String name )
-	{
-		return images.get( name );
 	}
 }

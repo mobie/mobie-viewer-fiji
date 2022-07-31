@@ -1,4 +1,4 @@
-package org.embl.mobie.viewer.table;
+package org.embl.mobie.viewer.table.saw;
 
 import tech.tablesaw.api.ColumnType;
 

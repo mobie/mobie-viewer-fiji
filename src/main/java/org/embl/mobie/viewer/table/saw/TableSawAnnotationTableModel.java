@@ -1,10 +1,11 @@
-package org.embl.mobie.viewer.table;
+package org.embl.mobie.viewer.table.saw;
 
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.annotation.Annotation;
-import tech.tablesaw.aggregate.AggregateFunction;
+import org.embl.mobie.viewer.table.AnnotationTableModel;
+import org.embl.mobie.viewer.table.DefaultValues;
 import tech.tablesaw.aggregate.AggregateFunctions;
 import tech.tablesaw.aggregate.Summarizer;
 import tech.tablesaw.api.NumericColumn;
@@ -12,7 +13,6 @@ import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -64,7 +64,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 						final int rowCount = table.rowCount();
 						for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 						{
-							final A annotation = annotationCreator.create( table, rowIndex );
+							final A annotation = annotationCreator.create( table.row( rowIndex ) );
 							annotationToRowIndex.put( annotation, rowIndex );
 							rowIndexToAnnotation.put( rowIndex, annotation );
 						}

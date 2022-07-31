@@ -32,6 +32,7 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.TableUIs;
 import ij.IJ;
+import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.serialize.Data;
@@ -98,7 +99,11 @@ public class GeneSearch
 		//  Since the Prospr sources are not transformed, this does not matter (yet)...
 		if ( prosprSources == null )
 		{
-			prosprSources = moBIE.initImages( prosprSourceNames );
+			moBIE.initImages( prosprSourceNames );
+			for ( String prosprSourceName : prosprSourceNames )
+			{
+				prosprSources.put( prosprSourceName, ImageStore.images.get( prosprSourceName ) );
+			}
 		}
 
 		final Map< String, Double > geneExpressionLevels = runSearchAndGetLocalExpression( prosprSources );

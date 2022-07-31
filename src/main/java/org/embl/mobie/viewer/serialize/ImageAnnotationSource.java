@@ -38,6 +38,8 @@ import java.util.Map;
 // TODO: https://github.com/mobie/mobie-viewer-fiji/issues/818
 public class ImageAnnotationSource implements Data
 {
+	// Serialization
+
 	// annotationId to image sources
 	// one annotationId can annotate several images
 	public Map< String, List< String > > sources;

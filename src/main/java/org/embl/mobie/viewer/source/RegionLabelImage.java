@@ -29,112 +29,79 @@
 package org.embl.mobie.viewer.source;
 
 import bdv.tools.transformation.TransformedSource;
-import bdv.util.BdvOverlay;
 import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.tables.color.ColorUtils;
-import ij.IJ;
 import net.imglib2.type.numeric.IntegerType;
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.annotation.AnnotatedRegion;
-import org.embl.mobie.viewer.annotation.RegionTableRow;
+import net.imglib2.type.numeric.integer.UnsignedIntType;
+import org.embl.mobie.viewer.annotation.ImageAnnotation;
 import org.embl.mobie.viewer.color.AnnotationConverter;
-import org.embl.mobie.viewer.color.MoBIEColoringModel;
-import org.embl.mobie.viewer.source.AnnotationType;
-import org.embl.mobie.viewer.source.BoundarySource;
 import net.imglib2.Interval;
-import net.imglib2.RealInterval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.position.FunctionRealRandomAccessible;
-import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.roi.geom.GeomMasks;
-import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.util.Intervals;
 
-import java.awt.*;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
-public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< IntegerType >
+public class RegionLabelImage< IA extends ImageAnnotation > implements Image< IntegerType >
 {
-	private final MoBIEColoringModel< AR > coloringModel;
-	private double[] contrastLimits;
-	private String name;
-	private SourceAndConverter< AnnotationType< AR > > sourceAndConverter;
-	private RealMaskRealInterval unionMask;
-	private RealInterval unionInterval;
-	private int size;
+	private final Set< IA > imageAnnotations;
 
-	public RegionLabelImage(
-			List< T > tableRows,
-			MoBIEColoringModel< T > coloringModel,
-			String name )
+	public RegionLabelImage( Set< IA > imageAnnotations )
 	{
-		final long currentTimeMillis = System.currentTimeMillis();
-
-		this.tableRows = tableRows;
-		this.coloringModel = coloringModel;
-		this.name = name;
-		this.size = tableRows.size();
-
-		setUnionMask( tableRows );
+		this.imageAnnotations = imageAnnotations;
+		//setUnionMask( regions );
 		createImage();
-
-		final long duration = System.currentTimeMillis() - currentTimeMillis;
-		if ( duration > MoBIE.minLogTimeMillis )
-			IJ.log("Created annotation image "+name+" in " + duration + " ms." );
 	}
 
-	public void setUnionMask( List< T > tableRows )
+//	public void setUnionMask( List< T > tableRows )
+//	{
+//		size = tableRows.size();
+//
+//		for ( T tableRow : tableRows )
+//		{
+//			final RealMaskRealInterval mask = tableRow.mask();
+//
+//			if ( unionInterval == null )
+//			{
+//				//unionMask = mask;
+//				unionInterval = mask;
+//			}
+//			else
+//			{
+//
+//				if ( Intervals.equals(  mask, unionInterval ) )
+//				{
+//					continue;
+//				}
+//				else
+//				{
+//					// TODO: Below hangs
+//					//unionMask = unionMask.or( mask );
+//					unionInterval = Intervals.union( unionInterval, mask );
+//				}
+//			}
+//		}
+//
+//		// TODO: this is a work around because the above hangs
+//		unionMask = GeomMasks.closedBox( unionInterval.minAsDoubleArray(), unionInterval.maxAsDoubleArray() );
+//	}
+
+	private void createImage()
 	{
-		size = tableRows.size();
-
-		for ( T tableRow : tableRows )
+		BiConsumer< RealLocalizable, IntegerType > biConsumer = ( location, value ) ->
 		{
-			final RealMaskRealInterval mask = tableRow.mask();
-
-			if ( unionInterval == null )
+			for ( IA imageAnnotation : imageAnnotations )
 			{
-				//unionMask = mask;
-				unionInterval = mask;
-			}
-			else
-			{
-
-				if ( Intervals.equals(  mask, unionInterval ) )
+				if ( imageAnnotation.mask().test( location ) )
 				{
-					continue;
-				}
-				else
-				{
-					// TODO: Below hangs
-					//unionMask = unionMask.or( mask );
-					unionInterval = Intervals.union( unionInterval, mask );
-				}
-			}
-		}
-
-		// TODO: this is a work around because the above hangs
-		unionMask = GeomMasks.closedBox( unionInterval.minAsDoubleArray(), unionInterval.maxAsDoubleArray() );
-	}
-
-	private void createImage( )
-	{
-		BiConsumer< RealLocalizable, AnnotationType< T > > biConsumer = ( location, value ) ->
-		{
-			for ( int i = 0; i < size; i++ )
-			{
-				final RealMaskRealInterval mask = tableRows.get( i ).mask();
-
-				if ( mask.test( location ) )
-				{
-					value.set( new AnnotationType<>( tableRows.get( i ) ) );
+					value.setInteger( imageAnnotation.label() );
 					return;
 				}
 			}
 
-			value.set( new AnnotationType<>() );
+			value.set( new UnsignedIntType() );
 		};
 
 
@@ -143,12 +110,6 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< In
 		final FunctionRealRandomAccessible< AnnotationType< T > > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, AnnotationType::new );
 		final Interval interval = Intervals.smallestContainingInterval( unionMask );
 		final RealRandomAccessibleIntervalSource source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new AnnotationType(), name );
-		final BoundarySource boundarySource = new BoundarySource( source, unionMask, timePoints );
-		final TransformedSource transformedAnnotationSource = new TransformedSource<>( boundarySource );
-		final AnnotationConverter< T > annotationConverter = new AnnotationConverter<>( coloringModel );
-		sourceAndConverter = new SourceAndConverter( transformedAnnotationSource, annotationConverter );
-
-		contrastLimits = new double[]{ 0, 255 };
 	}
 
 	private ArrayList< Integer > configureTimePoints()
@@ -168,30 +129,5 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< In
 	public String getName()
 	{
 		return name;
-	}
-
-	public ARGBType getColor()
-	{
-		return ColorUtils.getARGBType( Color.GRAY );
-	}
-
-	public double[] getContrastLimits()
-	{
-		return contrastLimits;
-	}
-
-	public SourceAndConverter< AnnotationType< T > > getSourceAndConverter()
-	{
-		return sourceAndConverter;
-	}
-
-	public BdvOverlay getOverlay()
-	{
-		return null;
-	}
-
-	public boolean isInitiallyVisible()
-	{
-		return true;
 	}
 }

@@ -28,7 +28,7 @@
  */
 package org.embl.mobie.viewer.display;
 
-import org.embl.mobie.viewer.annotation.AnnotatedSegment;
+import org.embl.mobie.viewer.annotation.SegmentAnnotation;
 import org.embl.mobie.viewer.source.AnnotatedImage;
 import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.table.ConcatenatedAnnData;
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 
 // Note that currently the only addition to an AnnotationDisplay is the
 // configuration of the segment volume rendering.
-public class SegmentationDisplay< AS extends AnnotatedSegment > extends AnnotationDisplay< AS >
+public class SegmentationDisplay< AS extends SegmentAnnotation > extends AnnotationDisplay< AS >
 {
 	// Serialization
 	protected List< String > sources; // label mask images
@@ -105,7 +105,7 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 	}
 
 	// Create a serializable copy
-	public SegmentationDisplay( SegmentationDisplay< ? extends AnnotatedSegment > segmentationDisplay )
+	public SegmentationDisplay( SegmentationDisplay< ? extends SegmentAnnotation > segmentationDisplay )
 	{
 		// set properties common to all AnnotationDisplays
 		setAnnotationDisplayProperties( segmentationDisplay );

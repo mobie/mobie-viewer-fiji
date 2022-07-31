@@ -33,8 +33,9 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.annotation.AnnotatedSegment;
+import org.embl.mobie.viewer.annotation.SegmentAnnotation;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
@@ -76,7 +77,6 @@ import org.embl.mobie.viewer.volume.ImageVolumeViewer;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 import org.embl.mobie.viewer.volume.UniverseManager;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.numeric.IntegerType;
 import org.apache.commons.lang.ArrayUtils;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
@@ -86,7 +86,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -287,7 +286,8 @@ public class ViewManager
 		// init images
 		// note that currently all sources will
 		// result in an image.
-		final HashMap< String, Image< ? > > images = moBIE.initImages( sourceNames );
+		moBIE.initImages( sourceNames );
+		final Map< String, Image< ? > > images = ImageStore.images;
 
 		// transform images
 		// this may create new images with new names
@@ -320,21 +320,16 @@ public class ViewManager
 				}
 			}
 		}
-
-		// register all available (transformed) sources in MoBIE
-		// this is where the displays will
-		// fetch the images from
-		moBIE.addImages( images );
 	}
 
-	private AnnotatedLabelImage< ? extends AnnotatedSegment > transform( ImageTransformation transformation, AnnotatedLabelImage< ? extends AnnotatedSegment > annotatedLabelImage )
+	private AnnotatedLabelImage< ? extends SegmentAnnotation > transform( ImageTransformation transformation, AnnotatedLabelImage< ? extends SegmentAnnotation > annotatedLabelImage )
 	{
 		final TransformedImage transformedLabelImage = new TransformedImage( annotatedLabelImage.getLabelImage(), transformation );
-		final AnnData< ? extends AnnotatedSegment > annData = annotatedLabelImage.getAnnData();
+		final AnnData< ? extends SegmentAnnotation > annData = annotatedLabelImage.getAnnData();
 		final AnnotatedSegmentTransformer segmentTransformer = new AnnotatedSegmentTransformer( transformation );
 		final TransformedAnnData transformedAnnData = new TransformedAnnData( annData, segmentTransformer );
 
-		final AnnotatedLabelImage< ? extends AnnotatedSegment > transformedAnnotatedLabelImage = new AnnotatedLabelImage( transformedLabelImage, transformedAnnData );
+		final AnnotatedLabelImage< ? extends SegmentAnnotation > transformedAnnotatedLabelImage = new AnnotatedLabelImage( transformedLabelImage, transformedAnnData );
 
 		return transformedAnnotatedLabelImage;
 	}

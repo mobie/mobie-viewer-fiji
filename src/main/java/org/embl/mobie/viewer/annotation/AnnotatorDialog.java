@@ -107,7 +107,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 	private void setUIFieldNames( AnnotationTableModel< A > tableModel )
 	{
 		// TODO: rather implement getType() for tableModel?
-		if ( tableModel.row( 0 ) instanceof AnnotatedSegment )
+		if ( tableModel.row( 0 ) instanceof SegmentAnnotation )
 		{
 			objectName = "segment";
 		}

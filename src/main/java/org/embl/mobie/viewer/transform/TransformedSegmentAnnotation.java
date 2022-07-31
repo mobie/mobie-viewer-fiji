@@ -1,44 +1,44 @@
 package org.embl.mobie.viewer.transform;
 
-import org.embl.mobie.viewer.annotation.AnnotatedSegment;
+import org.embl.mobie.viewer.annotation.SegmentAnnotation;
 import org.embl.mobie.viewer.transform.image.AffineTransformation;
 import net.imglib2.RealInterval;
 import org.embl.mobie.viewer.transform.image.Transformation;
 
-public class TransformedAnnotatedSegment implements AnnotatedSegment
+public class TransformedSegmentAnnotation implements SegmentAnnotation
 {
-	private final AnnotatedSegment annotatedSegment;
+	private final SegmentAnnotation segmentAnnotation;
 	private final Transformation transformation;
 
-	public TransformedAnnotatedSegment( AnnotatedSegment annotatedSegment, Transformation transformation )
+	public TransformedSegmentAnnotation( SegmentAnnotation segmentAnnotation, Transformation transformation )
 	{
-		this.annotatedSegment = annotatedSegment;
+		this.segmentAnnotation = segmentAnnotation;
 		this.transformation = transformation;
 	}
 
 	@Override
 	public String imageId()
 	{
-		return annotatedSegment.imageId();
+		return segmentAnnotation.imageId();
 	}
 
 	@Override
 	public int label()
 	{
-		return annotatedSegment.label();
+		return segmentAnnotation.label();
 	}
 
 	@Override
 	public int timePoint()
 	{
 		// could be transformed
-		return annotatedSegment.timePoint();
+		return segmentAnnotation.timePoint();
 	}
 
 	@Override
 	public double[] anchor()
 	{
-		final double[] anchor = annotatedSegment.anchor();
+		final double[] anchor = segmentAnnotation.anchor();
 
 		if ( transformation instanceof AffineTransformation )
 		{
@@ -57,11 +57,11 @@ public class TransformedAnnotatedSegment implements AnnotatedSegment
 	{
 		if ( transformation instanceof AffineTransformation )
 		{
-			return ( ( AffineTransformation ) transformation ).getAffineTransform3D().estimateBounds( annotatedSegment.boundingBox() );
+			return ( ( AffineTransformation ) transformation ).getAffineTransform3D().estimateBounds( segmentAnnotation.boundingBox() );
 		}
 		else
 		{
-			return annotatedSegment.boundingBox();
+			return segmentAnnotation.boundingBox();
 		}
 	}
 
@@ -70,11 +70,11 @@ public class TransformedAnnotatedSegment implements AnnotatedSegment
 	{
 		if ( transformation instanceof AffineTransformation )
 		{
-			annotatedSegment.setBoundingBox( ( ( AffineTransformation ) transformation ).getAffineTransform3D().inverse().estimateBounds( annotatedSegment.boundingBox() ) );
+			segmentAnnotation.setBoundingBox( ( ( AffineTransformation ) transformation ).getAffineTransform3D().inverse().estimateBounds( segmentAnnotation.boundingBox() ) );
 		}
 		else
 		{
-			annotatedSegment.setBoundingBox( boundingBox );
+			segmentAnnotation.setBoundingBox( boundingBox );
 		}
 
 	}
@@ -83,31 +83,31 @@ public class TransformedAnnotatedSegment implements AnnotatedSegment
 	public float[] mesh()
 	{
 		// TODO transform
-		return annotatedSegment.mesh();
+		return segmentAnnotation.mesh();
 	}
 
 	@Override
 	public void setMesh( float[] mesh )
 	{
 		// TODO inverse transform
-		annotatedSegment.setMesh( mesh );
+		segmentAnnotation.setMesh( mesh );
 	}
 
 	@Override
 	public String id()
 	{
-		return annotatedSegment.id();
+		return segmentAnnotation.id();
 	}
 
 	@Override
 	public Object getValue( String feature )
 	{
-		return annotatedSegment.getValue( feature );
+		return segmentAnnotation.getValue( feature );
 	}
 
 	@Override
 	public void setString( String columnName, String value )
 	{
-		annotatedSegment.setString( columnName, value );
+		segmentAnnotation.setString( columnName, value );
 	}
 }
