@@ -35,13 +35,15 @@ import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.source.Image;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.viewer.transform.image.Transformation;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
-public class TransformedGridImageTransformation< T > extends AbstractImageTransformation< T, T >
+// TODO: should this implement ImageTransformation?
+public class TransformedGridImageTransformation< T > implements Transformation
 {
 	// Serialization
 	protected List< List< String > > nestedSources;
@@ -65,13 +67,6 @@ public class TransformedGridImageTransformation< T > extends AbstractImageTransf
 		final long duration = System.currentTimeMillis() - startTime;
 		if ( duration > MoBIE.minLogTimeMillis )
 			Logger.info("Transformed " + nestedSources.size() + " group(s) with "+ nestedSources.get( 0 ).size() +" source(s) each into a grid in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
-	}
-
-	@Override
-	public Image< T > apply( Image< T > image )
-	{
-		// TODO (test with new BDV version!);
-		return null;
 	}
 
 	@Override

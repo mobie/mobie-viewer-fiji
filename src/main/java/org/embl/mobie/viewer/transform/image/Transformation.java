@@ -28,14 +28,10 @@
  */
 package org.embl.mobie.viewer.transform.image;
 
-import org.embl.mobie.viewer.source.Image;
-
 import java.util.List;
 
 public interface Transformation
 {
-
-
 	/**
 	 * @return a list of the names of all images
 	 * that should be transformed using this transformer.

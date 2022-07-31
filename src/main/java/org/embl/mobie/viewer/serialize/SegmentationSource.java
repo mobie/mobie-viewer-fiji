@@ -33,7 +33,7 @@ import org.embl.mobie.viewer.table.TableDataFormat;
 
 import java.util.Map;
 
-public class SegmentationData extends ImageData
+public class SegmentationSource extends ImageSource
 {
 	public Map< TableDataFormat, StorageLocation > tableData;
 }

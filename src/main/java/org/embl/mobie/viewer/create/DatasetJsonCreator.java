@@ -35,9 +35,8 @@ import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.Display;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
-import org.embl.mobie.viewer.serialize.ImageData;
-import org.embl.mobie.viewer.serialize.SegmentationData;
-import org.embl.mobie.viewer.source.SourceSupplier;
+import org.embl.mobie.viewer.serialize.ImageSource;
+import org.embl.mobie.viewer.serialize.SegmentationSource;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.transform.image.AffineTransformation;
@@ -130,16 +129,16 @@ public class DatasetJsonCreator {
 
     private void addNewImageSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat ) {
         Map< ImageDataFormat, StorageLocation > imageDataLocations;
-        ImageData imageData = new ImageData();
+        ImageSource imageSource = new ImageSource();
         imageDataLocations = makeImageDataLocations( imageDataFormat, imageName );
-        imageData.imageData = imageDataLocations;
-        dataset.sources.put( imageName, imageData );
+        imageSource.imageData = imageDataLocations;
+        dataset.sources.put( imageName, imageSource );
     }
 
     private void addNewSegmentationSource( Dataset dataset, String imageName, ImageDataFormat imageDataFormat ) {
         Map< ImageDataFormat, StorageLocation > imageDataLocations;
 
-        SegmentationData annotatedLabelMaskSource = new SegmentationData();
+        SegmentationSource annotatedLabelMaskSource = new SegmentationSource();
         annotatedLabelMaskSource.tableData = new HashMap<>();
         StorageLocation tableStorageLocation = new StorageLocation();
         tableStorageLocation.relativePath = "tables/" + imageName;

@@ -40,12 +40,12 @@ import org.embl.mobie.viewer.display.Display;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.Data;
-import org.embl.mobie.viewer.serialize.ImageAnnotationData;
+import org.embl.mobie.viewer.serialize.ImageAnnotationSource;
 import org.embl.mobie.viewer.serialize.Project;
-import org.embl.mobie.viewer.serialize.SegmentationData;
+import org.embl.mobie.viewer.serialize.SegmentationSource;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
-import org.embl.mobie.viewer.serialize.ImageData;
+import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.AnnotatedLabelImage;
 import org.embl.mobie.viewer.source.Image;
@@ -299,10 +299,10 @@ public class MoBIE
 				// https://github.com/mobie/mobie-viewer-fiji/issues/818
 				if ( sourceDisplay instanceof RegionDisplay )
 				{
-					final ImageAnnotationData imageAnnotationData = new ImageAnnotationData();
-					imageAnnotationData.tableData = ( ( RegionDisplay<?> ) sourceDisplay ).tableData;
-					imageAnnotationData.sources = ( ( RegionDisplay<?> ) sourceDisplay ).sources;
-					dataset.sources.put( sourceDisplay.getName(), imageAnnotationData );
+					final ImageAnnotationSource imageAnnotationSource = new ImageAnnotationSource();
+					imageAnnotationSource.tableData = ( ( RegionDisplay<?> ) sourceDisplay ).tableData;
+					imageAnnotationSource.sources = ( ( RegionDisplay<?> ) sourceDisplay ).sources;
+					dataset.sources.put( sourceDisplay.getName(), imageAnnotationSource );
 				}
 			}
 		}
@@ -414,12 +414,12 @@ public class MoBIE
 		}
 	}
 
-	private SourceAndConverter readSourceAndConverter( String sourceName, String log, ImageData imageData )
+	private SourceAndConverter readSourceAndConverter( String sourceName, String log, ImageSource imageSource )
 	{
 		SourceAndConverter sourceAndConverter;
-		ImageDataFormat imageDataFormat = getImageDataFormat( sourceName, imageData.imageData.keySet() );
+		ImageDataFormat imageDataFormat = getAppropriateImageDataFormat( sourceName, imageSource.imageData.keySet() );
 
-		final String imagePath = getImagePath( imageData, imageDataFormat );
+		final String imagePath = getImagePath( imageSource, imageDataFormat );
 		if( log != null )
 			IJ.log( log + imagePath );
 
@@ -453,7 +453,7 @@ public class MoBIE
 		return sourceAndConverter;
 	}
 
-	private ImageDataFormat getImageDataFormat( String sourceName, Set< ImageDataFormat > sourceDataFormats )
+	private ImageDataFormat getAppropriateImageDataFormat( String sourceName, Set< ImageDataFormat > sourceDataFormats )
 	{
 		for ( ImageDataFormat sourceDataFormat : sourceDataFormats )
 		{
@@ -509,12 +509,12 @@ public class MoBIE
         return dataset.views;
     }
 
-    private String getRelativeTableLocation( SegmentationData source )
+    private String getRelativeTableLocation( SegmentationSource source )
     {
         return source.tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
     }
 
-    public String getTableDirectory( SegmentationData source )
+    public String getTableDirectory( SegmentationSource source )
     {
         return getTableDirectory( getRelativeTableLocation( source ) );
     }
@@ -525,7 +525,7 @@ public class MoBIE
     }
 
 
-	public String getTablePath( SegmentationData source, String table )
+	public String getTablePath( SegmentationSource source, String table )
 	{
 		return getTablePath( getRelativeTableLocation( source ), table );
 	}
@@ -552,7 +552,7 @@ public class MoBIE
 	// TODO: probably we should move this functionality SegmentationDisplay!
 	public List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName, String log )
 	{
-		final SegmentationData tableSource = ( SegmentationData ) getData( sourceName );
+		final SegmentationSource tableSource = ( SegmentationSource ) getData( sourceName );
 		final String tablePath = getTablePath( tableSource, tableName );
 		if ( log != null )
 			IJ.log( log + tablePath );
@@ -590,7 +590,7 @@ public class MoBIE
 
 	public Map< String, List< String > > loadColumns( String tableName, String sourceName )
 	{
-		Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( SegmentationData ) getData( sourceName ), tableName ) );
+		Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( SegmentationSource ) getData( sourceName ), tableName ) );
 		return columns;
 	}
 
@@ -650,7 +650,7 @@ public class MoBIE
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 	}
 
-    public synchronized String getImagePath( ImageData source, ImageDataFormat imageDataFormat) {
+    public synchronized String getImagePath( ImageSource source, ImageDataFormat imageDataFormat) {
 
         switch (imageDataFormat) {
             case BdvN5:
@@ -685,16 +685,16 @@ public class MoBIE
 		{
 			final Data data = getData( name );
 
-			if ( data instanceof ImageData )
+			if ( data instanceof ImageSource )
 			{
-				ImageData imageData = (ImageData) data;
-				ImageDataFormat imageDataFormat = getImageDataFormat( name, imageData.imageData.keySet() );
-				final String imagePath = getImagePath( imageData, imageDataFormat );
+				ImageSource imageSource = ( ImageSource ) data;
+				ImageDataFormat imageDataFormat = getAppropriateImageDataFormat( name, imageSource.imageData.keySet() );
+				final String imagePath = getImagePath( imageSource, imageDataFormat );
 				final SpimDataImage< ? > image = new SpimDataImage<>( imageDataFormat, imagePath, 0, name );
 
-				if ( data.getClass() == SegmentationData.class )
+				if ( data.getClass() == SegmentationSource.class )
 				{
-					final SegmentationData segmentationData = ( SegmentationData ) data;
+					final SegmentationSource segmentationData = ( SegmentationSource ) data;
 					if ( segmentationData.tableData != null )
 					{
 						// Create image where pixel values
@@ -727,7 +727,7 @@ public class MoBIE
 		return images;
 	}
 
-	private Set< String > getColumnPaths( SegmentationData segmentationData )
+	private Set< String > getColumnPaths( SegmentationSource segmentationData )
 	{
 		final String tableDirectory = getTableDirectory( segmentationData );
 		String[] fileNames = IOHelper.getFileNames( tableDirectory );

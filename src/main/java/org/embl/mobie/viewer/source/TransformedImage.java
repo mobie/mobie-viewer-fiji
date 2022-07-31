@@ -1,15 +1,16 @@
 package org.embl.mobie.viewer.source;
 
+import org.embl.mobie.viewer.transform.image.ImageTransformation;
 import org.embl.mobie.viewer.transform.image.Transformation;
 
-public class TransformedImage< T > implements Image< T >
+public class TransformedImage< A, B > implements Image< B >
 {
-	private final Image< T > image;
+	private final Image< A > image;
 	private final Transformation transformation;
 
-	private Image< T > transformedImage;
+	private Image< B > transformedImage;
 
-	public TransformedImage( Image< T > image, Transformation transformation )
+	public TransformedImage( Image< A > image, ImageTransformation< A, B > transformation )
 	{
 		this.image = image;
 		this.transformation = transformation;
@@ -24,7 +25,7 @@ public class TransformedImage< T > implements Image< T >
 	}
 
 	@Override
-	public SourcePair< T > getSourcePair()
+	public SourcePair< B > getSourcePair()
 	{
 		return transformedImage.getSourcePair();
 	}
@@ -40,7 +41,7 @@ public class TransformedImage< T > implements Image< T >
 		return transformation;
 	}
 
-	public Image< T > getWrappedImage()
+	public Image< A > getWrappedImage()
 	{
 		return image;
 	}

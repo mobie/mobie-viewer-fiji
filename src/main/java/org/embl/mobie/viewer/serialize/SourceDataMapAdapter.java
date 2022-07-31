@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.viewer.serialize;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -36,36 +35,24 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import com.google.gson.reflect.TypeToken;
-import org.embl.mobie.viewer.display.SegmentationDisplay;
-import org.embl.mobie.viewer.transform.TransformedGridImageTransformation;
-import org.embl.mobie.viewer.transform.image.AffineTransformation;
-import org.embl.mobie.viewer.transform.image.CropTransformation;
-import org.embl.mobie.viewer.transform.image.MergedGridTransformation;
-import org.embl.mobie.viewer.transform.image.TimepointsTransformation;
-import org.embl.mobie.viewer.transform.image.Transformation;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-// TODO: use this instead?
-//   https://stackoverflow.com/questions/5952595/serializing-list-of-interfaces-gson
 public class SourceDataMapAdapter implements JsonSerializer< Map< String, Data > >, JsonDeserializer< Map< String, Data > >
 {
 	private static Map<String, Class> nameToClass = new TreeMap<>();
 	private static Map<String, String> classToName = new TreeMap<>();
 
 	static {
-		nameToClass.put("image", ImageData.class);
-		classToName.put( ImageData.class.getName(), "image");
-		nameToClass.put("segmentation", SegmentationData.class);
-		classToName.put( SegmentationData.class.getName(), "segmentation");
-		nameToClass.put("imageAnnotation", ImageAnnotationData.class);
-		classToName.put( ImageAnnotationData.class.getName(), "imageAnnotation");
+		nameToClass.put("image", ImageSource.class);
+		classToName.put(ImageSource.class.getName(), "image");
+		nameToClass.put("segmentation", SegmentationSource.class);
+		classToName.put(SegmentationSource.class.getName(), "segmentation");
+		nameToClass.put("imageAnnotation", ImageAnnotationSource.class);
+		classToName.put(ImageAnnotationSource.class.getName(), "imageAnnotation");
 	}
 
 	@Override
@@ -75,15 +62,16 @@ public class SourceDataMapAdapter implements JsonSerializer< Map< String, Data >
 		final JsonObject jo = json.getAsJsonObject();
 		for ( Map.Entry<String, JsonElement> entry : jo.entrySet() )
 		{
-			map.put( entry.getKey(), (Data) JsonHelper.createObjectFromJsonObject( context, entry.getValue(), nameToClass ) );
+			final Data data = ( Data ) JsonHelper.createObjectFromJsonValue( context, entry.getValue(), nameToClass );
+			map.put( entry.getKey(), data );
 		}
-
 		return map;
 	}
 
 	@Override
 	public JsonElement serialize( Map< String, Data > sources, Type type, JsonSerializationContext context ) {
 		// TODO
-		return null;
+		throw new UnsupportedOperationException("Serialization of Map< String, Data > is not yet implemented.");
+		// return null;
 	}
 }

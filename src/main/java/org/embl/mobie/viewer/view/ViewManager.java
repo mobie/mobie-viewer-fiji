@@ -65,6 +65,7 @@ import org.embl.mobie.viewer.transform.AnnotatedSegmentTransformer;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.TransformHelper;
+import org.embl.mobie.viewer.transform.image.ImageTransformation;
 import org.embl.mobie.viewer.transform.image.Transformation;
 import org.embl.mobie.viewer.transform.TransformedAnnData;
 import org.embl.mobie.viewer.transform.image.AffineTransformation;
@@ -295,20 +296,23 @@ public class ViewManager
 			{
 				currentTransformers.add( transformation );
 
-				for ( String name : images.keySet() )
+				if ( transformation instanceof ImageTransformation )
 				{
-					if ( transformation.getTargetImages().contains( name ) )
+					final ImageTransformation imageTransformation = ( ImageTransformation ) transformation;
+					for ( String name : images.keySet() )
 					{
-						final Image image = images.get( name );
-						if ( AnnotatedLabelImage.class.isAssignableFrom( image.getClass() ) )
+						if ( imageTransformation.getTargetImages().contains( name ) )
 						{
-							final AnnotatedLabelImage transformedImage = transform( transformation, ( AnnotatedLabelImage ) image );
-							images.put( transformedImage.getName(), transformedImage );
-						}
-						else
-						{
-							final TransformedImage transformedImage = new TransformedImage( image, transformation );
-							images.put( transformedImage.getName(), transformedImage );
+							final Image image = images.get( name );
+							if ( AnnotatedLabelImage.class.isAssignableFrom( image.getClass() ) )
+							{
+								final AnnotatedLabelImage transformedImage = transform( imageTransformation, ( AnnotatedLabelImage ) image );
+								images.put( transformedImage.getName(), transformedImage );
+							} else
+							{
+								final TransformedImage transformedImage = new TransformedImage( image, imageTransformation );
+								images.put( transformedImage.getName(), transformedImage );
+							}
 						}
 					}
 				}
@@ -321,14 +325,14 @@ public class ViewManager
 		moBIE.addImages( images );
 	}
 
-	private AnnotatedLabelImage< ? extends AnnotatedSegment > transform( Transformation transformation, AnnotatedLabelImage< ? extends AnnotatedSegment > annotatedLabelImage )
+	private AnnotatedLabelImage< ? extends AnnotatedSegment > transform( ImageTransformation transformation, AnnotatedLabelImage< ? extends AnnotatedSegment > annotatedLabelImage )
 	{
-		final TransformedImage< ? extends IntegerType< ? > > transformedLabelMask = new TransformedImage( annotatedLabelImage.getLabelImage(), transformation );
+		final TransformedImage transformedLabelImage = new TransformedImage( annotatedLabelImage.getLabelImage(), transformation );
 		final AnnData< ? extends AnnotatedSegment > annData = annotatedLabelImage.getAnnData();
 		final AnnotatedSegmentTransformer segmentTransformer = new AnnotatedSegmentTransformer( transformation );
 		final TransformedAnnData transformedAnnData = new TransformedAnnData( annData, segmentTransformer );
 
-		final AnnotatedLabelImage< ? extends AnnotatedSegment > transformedAnnotatedLabelImage = new AnnotatedLabelImage( transformedLabelMask, transformedAnnData );
+		final AnnotatedLabelImage< ? extends AnnotatedSegment > transformedAnnotatedLabelImage = new AnnotatedLabelImage( transformedLabelImage, transformedAnnData );
 
 		return transformedAnnotatedLabelImage;
 	}

@@ -34,8 +34,9 @@ import de.embl.cba.tables.TableUIs;
 import ij.IJ;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MultiThreading;
+import org.embl.mobie.viewer.serialize.Data;
 import org.embl.mobie.viewer.serialize.Dataset;
-import org.embl.mobie.viewer.serialize.ImageData;
+import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.view.View;
 import mpicbg.spim.data.sequence.VoxelDimensions;
@@ -352,8 +353,10 @@ public class GeneSearch
 			GeneSearchUtils.prosprSourceNames = new ArrayList<>();
 			for ( String sourceName : dataset.sources.keySet() )
 			{
-				final ImageData imageData = dataset.sources.get( sourceName ).get();
-				final String relativePath = imageData.imageData.get( imageDataFormat ).relativePath;
+				final Data data = dataset.sources.get( sourceName );
+				if ( ! ( data instanceof ImageSource ) ) continue;
+				final ImageSource imageSource = ( ImageSource ) data;
+				final String relativePath = imageSource.imageData.get( imageDataFormat ).relativePath;
 
 				if ( relativePath.contains( PROSPR_UI_SELECTION_GROUP ) )
 				{

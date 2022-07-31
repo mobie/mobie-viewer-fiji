@@ -33,7 +33,6 @@ import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIESettings;
-import org.embl.mobie.viewer.source.SourceSupplier;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.view.View;
 import org.everit.json.schema.Schema;
@@ -80,14 +79,12 @@ class DatasetJsonParserTest {
         dataset = new Dataset();
         dataset.sources = new HashMap<>();
 
-        ImageData imageSource = new ImageData();
+        ImageSource imageSource = new ImageSource();
         StorageLocation storageLocation = new StorageLocation();
         storageLocation.relativePath = "an/example/path";
         imageSource.imageData = new HashMap<>();
         imageSource.imageData.put( ImageDataFormat.BdvN5, storageLocation);
-        SourceSupplier sourceSupplier = new SourceSupplier( imageSource );
-
-        dataset.sources.put("testSource", sourceSupplier );
+        dataset.sources.put("testSource", imageSource );
 
     }
 

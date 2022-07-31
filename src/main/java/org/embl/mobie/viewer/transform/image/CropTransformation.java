@@ -45,8 +45,6 @@ public class CropTransformation< T > extends AbstractImageTransformation< T, T >
 {
 	protected double[] min;
 	protected double[] max;
-	protected List< String > sources;
-	protected List< String > sourceNamesAfterTransform;
 	protected boolean centerAtOrigin = false;
 
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )

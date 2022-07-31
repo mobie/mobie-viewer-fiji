@@ -33,7 +33,7 @@ import org.embl.mobie.io.ImageDataFormat;
 
 import java.util.Map;
 
-public class ImageData implements Data
+public class ImageSource implements Data
 {
 	public Map< ImageDataFormat, StorageLocation > imageData;
 }

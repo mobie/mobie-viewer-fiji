@@ -73,13 +73,16 @@ public class JsonHelper
 		return deserialize;
 	}
 
+	// TODO:
+	//   Unable to invoke no-args constructor for interface org.embl.mobie.viewer.serialize.Data. Registering an InstanceCreator with Gson for this type may fix this problem.
+	//   https://www.tutorialspoint.com/custom-instance-creator-using-gson-in-java
 	public static Gson buildGson( boolean prettyPrinting )
 	{
 		GsonBuilder gb = new GsonBuilder();
-		gb.registerTypeAdapter( new TypeToken<List< Transformation >>(){}.getType(), new SourceTransformerListAdapter());
-		gb.registerTypeAdapter( new TypeToken<List< Display >>(){}.getType(), new SourceDisplayListAdapter());
+		gb.registerTypeAdapter( new TypeToken<List<Transformation>>(){}.getType(), new SourceTransformerListAdapter());
+		gb.registerTypeAdapter( new TypeToken<List<Display>>(){}.getType(), new SourceDisplayListAdapter());
 		gb.registerTypeAdapter( new TypeToken< ViewerTransform >(){}.getType(), new ViewerTransformAdapter());
-		//gb.registerTypeAdapter( new TypeToken< MobieBdvSupplier >(){}.getType(), new MobieBdvSupplierAdapter());
+		gb.registerTypeAdapter( new TypeToken<Map<String,Data>>(){}.getType(), new SourceDataMapAdapter());
 		gb.disableHtmlEscaping();
 
 		if ( prettyPrinting ) {

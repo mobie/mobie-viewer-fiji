@@ -28,12 +28,12 @@
  */
 package org.embl.mobie.viewer.create;
 
+import org.embl.mobie.viewer.serialize.Data;
 import org.embl.mobie.viewer.serialize.Project;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
-import org.embl.mobie.viewer.serialize.ImageData;
+import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
-import org.embl.mobie.viewer.source.SourceSupplier;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.sequence.VoxelDimensions;
@@ -232,13 +232,13 @@ public class ProjectCreator {
         for ( String datasetName: project.getDatasets() ) {
             Dataset dataset = getDataset( datasetName );
             if ( dataset != null && dataset.sources.size() > 0 ) {
-                for ( SourceSupplier sourceSupplier: dataset.sources.values() ) {
-                    ImageData imageData = sourceSupplier.get();
+                for ( Data data: dataset.sources.values() ) {
+                    ImageSource imageSource = ( ImageSource ) data;
                     // open one of the local images
-                    for (ImageDataFormat format : imageData.imageData.keySet()) {
+                    for (ImageDataFormat format : imageSource.imageData.keySet()) {
                         if (!format.isRemote()) {
                             String imagePath = IOHelper.combinePath( projectLocation.getAbsolutePath(), datasetName,
-                                    imageData.imageData.get(format).relativePath);
+                                    imageSource.imageData.get(format).relativePath);
                             SpimData spimData = (SpimData) new SpimDataOpener().openSpimData( imagePath, format );
                             VoxelDimensions voxelDimensions = spimData.getSequenceDescription().
                                     getViewSetupsOrdered().get(0).getVoxelSize();
