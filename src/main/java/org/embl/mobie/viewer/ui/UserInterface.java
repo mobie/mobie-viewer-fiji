@@ -30,7 +30,7 @@ package org.embl.mobie.viewer.ui;
 
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.display.ImageDisplay;
-import org.embl.mobie.viewer.display.RegionDisplay;
+import org.embl.mobie.viewer.display.ImageAnnotationDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.Display;
 import org.embl.mobie.viewer.view.View;
@@ -157,9 +157,9 @@ public class UserInterface
 		{
 			return userInterfaceHelper.createSegmentationDisplaySettingsPanel( ( SegmentationDisplay ) display );
 		}
-		else if ( display instanceof RegionDisplay )
+		else if ( display instanceof ImageAnnotationDisplay )
 		{
-			return userInterfaceHelper.createRegionDisplaySettingsPanel( ( RegionDisplay ) display );
+			return userInterfaceHelper.createRegionDisplaySettingsPanel( ( ImageAnnotationDisplay ) display );
 		}
 		else
 		{

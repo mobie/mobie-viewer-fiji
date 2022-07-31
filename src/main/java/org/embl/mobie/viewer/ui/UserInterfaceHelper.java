@@ -45,7 +45,7 @@ import org.embl.mobie.viewer.color.OpacityHelper;
 import org.embl.mobie.viewer.color.opacity.OpacityAdjuster;
 import org.embl.mobie.viewer.display.AbstractDisplay;
 import org.embl.mobie.viewer.display.ImageDisplay;
-import org.embl.mobie.viewer.display.RegionDisplay;
+import org.embl.mobie.viewer.display.ImageAnnotationDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.Display;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
@@ -233,7 +233,7 @@ public class UserInterfaceHelper
 		frame.setVisible( true );
 	}
 
-	public JPanel createRegionDisplaySettingsPanel( RegionDisplay display )
+	public JPanel createRegionDisplaySettingsPanel( ImageAnnotationDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.nameToSourceAndConverter.values() );

@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class RegionDisplay< AR extends ImageAnnotation > extends AnnotationDisplay< AR >
+public class ImageAnnotationDisplay< AR extends ImageAnnotation > extends AnnotationDisplay< AR >
 {
 	// Serialization
 
@@ -55,7 +55,6 @@ public class RegionDisplay< AR extends ImageAnnotation > extends AnnotationDispl
 
 	// Runtime
 
-
 	@Override
 	public Set< String > selectedAnnotationIds()
 	{
@@ -69,29 +68,20 @@ public class RegionDisplay< AR extends ImageAnnotation > extends AnnotationDispl
 	}
 
 	@Override
-	public void createAnnData()
-	{
-
-	}
-
-	public String getTableDataFolder( TableDataFormat tableDataFormat )
-	{
-		return tableData.get( tableDataFormat ).relativePath;
-	}
-
-	@Override
 	public List< String > getSources()
 	{
+		// there is only one source that can be displayed,
+		// namely the AnnotatedLabelImage that was
 		final ArrayList< String > sources = new ArrayList<>();
 		sources.add( getName() );
 		return sources;
 	}
 
 	// Needed for Gson
-	public RegionDisplay() {}
+	public ImageAnnotationDisplay() {}
 
 	// Needed for Gson
-	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedRegionIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
+	public ImageAnnotationDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedRegionIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -108,18 +98,18 @@ public class RegionDisplay< AR extends ImageAnnotation > extends AnnotationDispl
 	}
 
 	// Create a serializable copy
-	public RegionDisplay( RegionDisplay< ? extends Annotation > regionDisplay )
+	public ImageAnnotationDisplay( ImageAnnotationDisplay< ? extends Annotation > imageAnnotationDisplay )
 	{
 		// set properties common to all AnnotationDisplays
 		//
-		setAnnotationDisplayProperties( regionDisplay );
+		setAnnotationDisplayProperties( imageAnnotationDisplay );
 
 		// set properties specific to RegionDisplay
 		//
 		this.sources = new HashMap<>();
-		this.sources.putAll( regionDisplay.sources );
+		this.sources.putAll( imageAnnotationDisplay.sources );
 
 		this.tableData = new HashMap<>();
-		this.tableData.putAll( regionDisplay.tableData );
+		this.tableData.putAll( imageAnnotationDisplay.tableData );
 	}
 }

@@ -50,7 +50,7 @@ import org.embl.mobie.viewer.display.AbstractDisplay;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.display.Display;
 import org.embl.mobie.viewer.display.ImageDisplay;
-import org.embl.mobie.viewer.display.RegionDisplay;
+import org.embl.mobie.viewer.display.ImageAnnotationDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
@@ -202,9 +202,9 @@ public class ViewManager
 				currentDisplay = new SegmentationDisplay( segmentationDisplay );
 				addManualTransforms( viewSourceTransforms, ( Map ) segmentationDisplay.nameToSourceAndConverter );
 			}
-			else if ( display instanceof RegionDisplay )
+			else if ( display instanceof ImageAnnotationDisplay )
 			{
-				currentDisplay = new RegionDisplay( ( RegionDisplay ) display );
+				currentDisplay = new ImageAnnotationDisplay( ( ImageAnnotationDisplay ) display );
 			}
 
 			if ( currentDisplay != null )
@@ -341,7 +341,7 @@ public class ViewManager
 		if ( display instanceof ImageDisplay )
 		{
 			for ( String name : display.getSources() )
-				display.addImage( (Image) moBIE.getImage( name ) );
+				display.addImage( ( Image ) ImageStore.images.get( name ) );
 			showImageDisplay( ( ImageDisplay ) display );
 		}
 		else if ( display instanceof AnnotationDisplay )
@@ -359,7 +359,7 @@ public class ViewManager
 
 			// add all images that are shown by this display
 			for ( String name : display.getSources() )
-				annotationDisplay.addImage( (AnnotatedImage) moBIE.getImage( name ) );
+				annotationDisplay.addImage( ( AnnotatedImage ) ImageStore.images.get( name ) );
 
 			// now that all images are added create an
 			// annData object for the display,

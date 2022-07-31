@@ -38,10 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-// Note that currently the only addition to an AnnotationDisplay is the
-// configuration of the segment volume rendering.
 public class SegmentationDisplay< AS extends SegmentAnnotation > extends AnnotationDisplay< AS >
 {
 	// Serialization
@@ -60,13 +57,6 @@ public class SegmentationDisplay< AS extends SegmentAnnotation > extends Annotat
 	}
 
 	public Double[] getResolution3dView(){ return resolution3dView; }
-
-    @Override
-	public void createAnnData()
-	{
-		final Set< AnnData< AS > > annDataSet = getImages().stream().map( image -> ( AnnotatedImage< AS > ) image ).map( image -> image.getAnnData() ).collect( Collectors.toSet() );
-		annData = new ConcatenatedAnnData( annDataSet );
-	}
 
 	@Override
 	public Set< String > selectedAnnotationIds()

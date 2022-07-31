@@ -13,10 +13,6 @@ public class AnnotatedLabelImage< A extends Annotation > implements AnnotatedIma
 	protected AnnData< A > annData;
 	protected SourcePair< AnnotationType< A > > sourcePair;
 
-	public AnnotatedLabelImage()
-	{
-	}
-
 	public AnnotatedLabelImage( Image< ? extends IntegerType< ? > > labelImage, AnnData< A > annData )
 	{
 		this.labelImage = labelImage;

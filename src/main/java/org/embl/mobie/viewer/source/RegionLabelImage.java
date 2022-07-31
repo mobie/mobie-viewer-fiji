@@ -28,65 +28,64 @@
  */
 package org.embl.mobie.viewer.source;
 
-import bdv.tools.transformation.TransformedSource;
 import bdv.util.RealRandomAccessibleIntervalSource;
-import bdv.viewer.SourceAndConverter;
+import bdv.viewer.Source;
+import net.imglib2.Interval;
+import net.imglib2.RealInterval;
+import net.imglib2.RealLocalizable;
+import net.imglib2.Volatile;
+import net.imglib2.position.FunctionRealRandomAccessible;
+import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
-import org.embl.mobie.viewer.annotation.ImageAnnotation;
-import org.embl.mobie.viewer.color.AnnotationConverter;
-import net.imglib2.Interval;
-import net.imglib2.RealLocalizable;
-import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.viewer.annotation.ImageAnnotation;
 
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
-public class RegionLabelImage< IA extends ImageAnnotation > implements Image< IntegerType >
+public class RegionLabelImage< IA extends ImageAnnotation > implements Image< UnsignedIntType >
 {
+	private final String name;
 	private final Set< IA > imageAnnotations;
+	private RealInterval realInterval;
+	private Source< UnsignedIntType > source;
+	private Source< ? extends Volatile< UnsignedIntType > > volatileSource;
 
-	public RegionLabelImage( Set< IA > imageAnnotations )
+	public RegionLabelImage( String name, Set< IA > imageAnnotations )
 	{
+		this.name = name;
 		this.imageAnnotations = imageAnnotations;
-		//setUnionMask( regions );
+		setImageMask();
 		createImage();
 	}
 
-//	public void setUnionMask( List< T > tableRows )
-//	{
-//		size = tableRows.size();
-//
-//		for ( T tableRow : tableRows )
-//		{
-//			final RealMaskRealInterval mask = tableRow.mask();
-//
-//			if ( unionInterval == null )
-//			{
-//				//unionMask = mask;
-//				unionInterval = mask;
-//			}
-//			else
-//			{
-//
-//				if ( Intervals.equals(  mask, unionInterval ) )
-//				{
-//					continue;
-//				}
-//				else
-//				{
-//					// TODO: Below hangs
-//					//unionMask = unionMask.or( mask );
-//					unionInterval = Intervals.union( unionInterval, mask );
-//				}
-//			}
-//		}
-//
-//		// TODO: this is a work around because the above hangs
-//		unionMask = GeomMasks.closedBox( unionInterval.minAsDoubleArray(), unionInterval.maxAsDoubleArray() );
-//	}
+	private void setImageMask()
+	{
+		for ( IA imageAnnotation : imageAnnotations )
+		{
+			final RealMaskRealInterval mask = imageAnnotation.mask();
+
+			if ( realInterval == null )
+			{
+				realInterval = mask;
+			}
+			else
+			{
+				if ( Intervals.equals(  mask, realInterval ) )
+				{
+					continue;
+				}
+				else
+				{
+					// TODO: Below hangs (see issue in imglib2-roi)
+					//unionMask = unionMask.or( mask );
+					realInterval = Intervals.union( realInterval, mask );
+				}
+			}
+		}
+	}
 
 	private void createImage()
 	{
@@ -100,30 +99,30 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< In
 					return;
 				}
 			}
-
 			value.set( new UnsignedIntType() );
 		};
 
-
 		final ArrayList< Integer > timePoints = configureTimePoints();
-
-		final FunctionRealRandomAccessible< AnnotationType< T > > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, AnnotationType::new );
-		final Interval interval = Intervals.smallestContainingInterval( unionMask );
-		final RealRandomAccessibleIntervalSource source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new AnnotationType(), name );
+		final Interval interval = Intervals.smallestContainingInterval( realInterval );
+		final FunctionRealRandomAccessible< UnsignedIntType > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, UnsignedIntType::new );
+		source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new UnsignedIntType(), name );
+		// TODO create volatile source
 	}
 
 	private ArrayList< Integer > configureTimePoints()
 	{
-		// TODO: make this configurable in constructor or base it on the tableRows which have: tableRows.get( 0 ).timePoint()
+		// TODO: make this configurable in constructor
+		//  or base it on the tableRows which have:
+		//  tableRows.get( 0 ).timePoint()
 		final ArrayList< Integer > timepoints = new ArrayList<>();
 		timepoints.add( 0 );
 		return timepoints;
 	}
 
 	@Override
-	public SourcePair< IntegerType > getSourcePair()
+	public SourcePair< UnsignedIntType > getSourcePair()
 	{
-		return null;
+		return new DefaultSourcePair<>( source, volatileSource );
 	}
 
 	public String getName()

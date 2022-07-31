@@ -36,8 +36,9 @@ import de.embl.cba.tables.github.GitHubUtils;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
+import net.imglib2.type.numeric.integer.UnsignedIntType;
 import org.embl.mobie.viewer.display.Display;
-import org.embl.mobie.viewer.display.RegionDisplay;
+import org.embl.mobie.viewer.display.ImageAnnotationDisplay;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.Data;
 import org.embl.mobie.viewer.serialize.ImageAnnotationSource;
@@ -53,6 +54,8 @@ import org.embl.mobie.viewer.source.RegionLabelImage;
 import org.embl.mobie.viewer.source.SpimDataImage;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
+import org.embl.mobie.viewer.table.saw.TableSawImageAnnotation;
 import org.embl.mobie.viewer.table.saw.TableSawImageAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawSegmentAnnotationCreator;
 import org.embl.mobie.viewer.table.TableDataFormat;
@@ -301,11 +304,12 @@ public class MoBIE
 			for ( Display< ? > sourceDisplay : view.getSourceDisplays() )
 			{
 				// https://github.com/mobie/mobie-viewer-fiji/issues/818
-				if ( sourceDisplay instanceof RegionDisplay )
+				if ( sourceDisplay instanceof ImageAnnotationDisplay )
 				{
 					final ImageAnnotationSource imageAnnotationSource = new ImageAnnotationSource();
-					imageAnnotationSource.tableData = ( ( RegionDisplay<?> ) sourceDisplay ).tableData;
-					imageAnnotationSource.sources = ( ( RegionDisplay<?> ) sourceDisplay ).sources;
+					imageAnnotationSource.name = sourceDisplay.getName();
+					imageAnnotationSource.tableData = ( ( ImageAnnotationDisplay<?> ) sourceDisplay ).tableData;
+					imageAnnotationSource.sources = ( ( ImageAnnotationDisplay<?> ) sourceDisplay ).sources;
 					dataset.sources.put( sourceDisplay.getName(), imageAnnotationSource );
 				}
 			}
@@ -699,45 +703,51 @@ public class MoBIE
 				if ( data.getClass() == SegmentationSource.class )
 				{
 					final SegmentationSource segmentationData = ( SegmentationSource ) data;
+
 					if ( segmentationData.tableData != null )
 					{
-						// Create image where pixel values
-						// are the segment annotations and create
-						// annData for the annotations.
 						final Set< String > columnPaths = getTablePaths( segmentationData.tableData );
-						final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
+						final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findAny().get();
 
 						final TableSawSegmentAnnotationCreator annotationCreator = new TableSawSegmentAnnotationCreator( image.getName() );
 						final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
 						tableModel.setColumnPaths( columnPaths );
 						final DefaultAnnData< TableSawSegmentAnnotation > segmentsAnnData = new DefaultAnnData<>( tableModel );
 						final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
+
+						// label image representing annotated segments
 						images.put( name, annotatedLabelImage );
-					} else
+					}
+					else
 					{
-						// Label mask without annotation.
-						// Create appropriate selection
-						// and coloring model for the label
-						// mask during display.
+						// label image representing segments
+						// without annotation
 						images.put( name, image );
 					}
-				} else
+				}
+				else
 				{
-					// Intensity image.
+					// intensity image
 					images.put( name, image );
 				}
 			}
 			else if ( data instanceof ImageAnnotationSource )
 			{
-				final Map< TableDataFormat, StorageLocation > tableData = ( ( ImageAnnotationSource ) data ).tableData;
-				final Map< String, List< String > > regionIdToImageNames = ( ( ImageAnnotationSource ) data ).sources;
-
+				final ImageAnnotationSource imageAnnotationSource = ( ImageAnnotationSource ) data;
+				final Map< TableDataFormat, StorageLocation > tableData = imageAnnotationSource.tableData;
+				final Map< String, List< String > > regionIdToImageNames = imageAnnotationSource.sources;
 				final Set< String > columnPaths = getTablePaths( tableData );
-				final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findFirst().get();
-				final TableSawImageAnnotationCreator annotationCreator = new TableSawImageAnnotationCreator( regionIdToImageNames );
+				final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findAny().get();
+				final TableSawAnnotationCreator< TableSawImageAnnotation > annotationCreator = new TableSawImageAnnotationCreator( regionIdToImageNames );
 				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
 				final Set rows = tableModel.rows();
-				new RegionLabelImage( rows )
+				final Image< UnsignedIntType > labelImage = new RegionLabelImage( imageAnnotationSource.name, rows );
+				final DefaultAnnData< TableSawImageAnnotation > annData = new DefaultAnnData<>( tableModel );
+				final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( labelImage, annData );
+
+				// label image representing
+				// image annotations
+				images.put( name, annotatedLabelImage );
 			}
 		}
 	}

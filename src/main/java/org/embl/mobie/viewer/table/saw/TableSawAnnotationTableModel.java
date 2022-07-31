@@ -33,7 +33,6 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	private HashMap< A, Integer > annotationToRowIndex = new HashMap<>();;
 	private HashMap< Integer, A > rowIndexToAnnotation = new HashMap<>();;
 	private Table table;
-	private boolean isDataLoaded = false;
 
 	public TableSawAnnotationTableModel(
 			TableSawAnnotationCreator< A > annotationCreator,
@@ -82,17 +81,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 			}
 		}
 
-		isDataLoaded = true;
 		return table;
-
-		// load table
-//		annotationToRowIndex.put( annotation, rowIndex );
-//		rowIndexToAnnotation.put( rowIndex, annotation );
-//
-		// think about the representation of missing values
-		// e.g. should we use None or "" for a missing String?
-		// return table;
-
 	}
 
 	@Override
@@ -192,6 +181,6 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	@Override
 	public boolean isDataLoaded()
 	{
-		return isDataLoaded;
+		return table != null;
 	}
 }

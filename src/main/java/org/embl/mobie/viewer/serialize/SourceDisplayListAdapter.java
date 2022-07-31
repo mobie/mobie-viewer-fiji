@@ -37,7 +37,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import org.embl.mobie.viewer.display.ImageDisplay;
-import org.embl.mobie.viewer.display.RegionDisplay;
+import org.embl.mobie.viewer.display.ImageAnnotationDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.Display;
 import org.embl.mobie.viewer.transform.image.Transformation;
@@ -59,8 +59,8 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< Display >
 		classToName.put( ImageDisplay.class.getName(), "imageDisplay");
 		nameToClass.put("segmentationDisplay", SegmentationDisplay.class);
 		classToName.put( SegmentationDisplay.class.getName(), "segmentationDisplay");
-		nameToClass.put("regionDisplay", RegionDisplay.class);
-		classToName.put( RegionDisplay.class.getName(), "regionDisplay");
+		nameToClass.put("regionDisplay", ImageAnnotationDisplay.class);
+		classToName.put( ImageAnnotationDisplay.class.getName(), "regionDisplay");
 	}
 
 	@Override
@@ -88,8 +88,8 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< Display >
 				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, ImageDisplay > >() {}.getType() ) );
 			} else if ( display instanceof SegmentationDisplay ) {
 				ja.add( context.serialize( nameToSourceDisplay , new TypeToken< Map< String, SegmentationDisplay > >() {}.getType() ) );
-			} else if ( display instanceof RegionDisplay ) {
-				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, RegionDisplay > >() {}.getType() ) );
+			} else if ( display instanceof ImageAnnotationDisplay ) {
+				ja.add( context.serialize( nameToSourceDisplay, new TypeToken< Map< String, ImageAnnotationDisplay > >() {}.getType() ) );
 			} else
 			{
 				throw new UnsupportedOperationException( "Could not serialise SourceDisplay of type: " + display.getClass().toString() );

@@ -47,4 +47,8 @@ public class ImageAnnotationSource implements Data
 	// table with each row corresponding to one
 	// annotationId
 	public Map< TableDataFormat, StorageLocation > tableData;
+
+	// name of the label image that will be created
+	// to represent the annotations
+	public String name;
 }
