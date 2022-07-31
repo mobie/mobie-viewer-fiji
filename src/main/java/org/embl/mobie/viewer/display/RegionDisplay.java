@@ -43,12 +43,19 @@ import java.util.Set;
 public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay< AR >
 {
 	// Serialization
-	protected Map< String, List< String > > sources; // annotationId to sources
-	protected Set< String > selectedRegionIds;
+
+	// annotationId to image sources
+	// one annotationId can annotate several images
+	protected Map< String, List< String > > sources;
+
+	// table with each row corresponding to one
+	// annotationId
 	protected Map< TableDataFormat, StorageLocation > tableData;
 
+	protected Set< String > selectedRegionIds;
+
 	// Runtime
-	public transient RegionsAdapter tableRowsAdapter;
+
 
 	@Override
 	public Set< String > selectedAnnotationIds()
@@ -60,6 +67,12 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDispl
 	public void setSelectedAnnotationIds( Set< String > selectedAnnotationIds )
 	{
 		this.selectedRegionIds = selectedAnnotationIds;
+	}
+
+	@Override
+	public void createAnnData()
+	{
+
 	}
 
 	public String getTableDataFolder( TableDataFormat tableDataFormat )

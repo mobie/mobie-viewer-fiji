@@ -29,19 +29,23 @@
 package org.embl.mobie.viewer.display;
 
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
+import org.embl.mobie.viewer.source.AnnotatedImage;
+import org.embl.mobie.viewer.table.AnnData;
+import org.embl.mobie.viewer.table.ConcatenatedAnnData;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 // Note that currently the only addition to an AnnotationDisplay is the
 // configuration of the segment volume rendering.
 public class SegmentationDisplay< AS extends AnnotatedSegment > extends AnnotationDisplay< AS >
 {
 	// Serialization
-	protected List< String > sources; // label masks
+	protected List< String > sources; // label mask images
 	protected Set< String > selectedSegmentIds;
 	protected boolean showSelectedSegmentsIn3d = false;
 	protected Double[] resolution3dView;
@@ -56,6 +60,13 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 	}
 
 	public Double[] getResolution3dView(){ return resolution3dView; }
+
+    @Override
+	public void createAnnData()
+	{
+		final Set< AnnData< AS > > annDataSet = getImages().stream().map( image -> ( AnnotatedImage< AS > ) image ).map( image -> image.getAnnData() ).collect( Collectors.toSet() );
+		annData = new ConcatenatedAnnData( annDataSet );
+	}
 
 	@Override
 	public Set< String > selectedAnnotationIds()
@@ -97,7 +108,6 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 	public SegmentationDisplay( SegmentationDisplay< ? extends AnnotatedSegment > segmentationDisplay )
 	{
 		// set properties common to all AnnotationDisplays
-		//
 		setAnnotationDisplayProperties( segmentationDisplay );
 
 		// set properties specific to SegmentationDisplay

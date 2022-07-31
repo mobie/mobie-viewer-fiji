@@ -29,7 +29,7 @@
 package org.embl.mobie.viewer.display;
 
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.annotation.AnnotationProvider;
+import org.embl.mobie.viewer.annotation.AnnotationAdapter;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.color.AbstractAnnotationColoringModel;
@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 
 /**
  * This class holds all the information that is
- * needed to both view it and serialise it.
+ * needed to both view it and serialise the display.
  *
  * Note: This could still be compatible with Spots visualisation
  *
@@ -73,7 +73,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	protected Double[] valueLimits;
 	protected boolean showScatterPlot = false;
 	protected String[] scatterPlotAxes = new String[]{ ColumnNames.ANCHOR_X, ColumnNames.ANCHOR_Y };
-	protected List< String > tables; // tables to display
+	protected List< String > tables; // column chunks to display
 	protected boolean showTable = true;
 	protected boolean showAsBoundaries = false;
 	protected float boundaryThickness = 1.0F;
@@ -85,11 +85,11 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// Runtime
 	public transient SelectionModel< A > selectionModel;
 	public transient MoBIEColoringModel< A > coloringModel;
-	public transient AnnotationProvider< A > annotationProvider;
+	public transient AnnotationAdapter< A > annotationAdapter;
 	public transient TableView< A > tableView;
 	public transient ScatterPlotView< A > scatterPlotView;
 	public transient AnnotationSliceView< A > sliceView;
-	private transient AnnData< A > annData;
+	protected transient AnnData< A > annData;
 
 	// Methods
 	public abstract Set< String > selectedAnnotationIds();
@@ -212,17 +212,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		}
 	}
 
-	public Set< AnnotatedImage< A > > getAnnotatedImages()
-	{
-		final Set< AnnotatedImage< A > > annotatedImages = getImages().stream().map( image -> ( AnnotatedImage< A > ) image ).collect( Collectors.toSet() );
-		return annotatedImages;
-	}
-
-	public void initAnnData()
-	{
-		final Set< AnnData< A > > annDataSet = getAnnotatedImages().stream().map( image -> image.getAnnData() ).collect( Collectors.toSet() );
-		annData = new ConcatenatedAnnData( annDataSet );
-	}
+	public abstract void createAnnData();
 
 	public AnnData< A > getAnnData()
 	{

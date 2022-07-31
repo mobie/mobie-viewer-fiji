@@ -31,7 +31,7 @@ package org.embl.mobie.viewer.source;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.annotation.AnnotationProvider;
+import org.embl.mobie.viewer.annotation.AnnotationAdapter;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.converter.Converters;
@@ -39,12 +39,12 @@ import net.imglib2.type.numeric.IntegerType;
 
 public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotation > extends AbstractSourceWrapper< T, AnnotationType< A > >
 {
-    private final AnnotationProvider< A > annotationProvider;
+    private final AnnotationAdapter< A > annotationAdapter;
 
-    public AnnotatedLabelSource( final Source< T > labelSource, AnnotationProvider< A > annotationProvider )
+    public AnnotatedLabelSource( final Source< T > labelSource, AnnotationAdapter< A > annotationAdapter )
     {
         super( labelSource );
-        this.annotationProvider = annotationProvider;
+        this.annotationAdapter = annotationAdapter;
     }
 
     @Override
@@ -58,7 +58,7 @@ public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotat
     {
         return Converters.convert( source.getSource( t, level ), ( input, output ) -> {
             set( input, t, output );
-        }, new AnnotationType( annotationProvider.createVariable() ) );
+        }, new AnnotationType( annotationAdapter.createVariable() ) );
     }
 
     @Override
@@ -74,7 +74,7 @@ public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotat
 
     private void set( T input, int t, AnnotationType< A > output  )
     {
-        final A annotation = annotationProvider.getAnnotation( t, input.getInteger() );
+        final A annotation = annotationAdapter.getAnnotation( t, input.getInteger() );
         final AnnotationType< A > annotationType = new AnnotationType( annotation );
         output.set( annotationType );
     }
@@ -82,6 +82,6 @@ public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotat
     @Override
     public AnnotationType< A > getType()
     {
-        return new AnnotationType( annotationProvider.createVariable() );
+        return new AnnotationType( annotationAdapter.createVariable() );
     }
 }

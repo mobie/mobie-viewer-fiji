@@ -31,7 +31,7 @@ package org.embl.mobie.viewer.source;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.annotation.AnnotationProvider;
+import org.embl.mobie.viewer.annotation.AnnotationAdapter;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
@@ -41,9 +41,9 @@ import net.imglib2.type.numeric.IntegerType;
 // MAYBE: This does not need to know that this is a Segment?!
 public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends Volatile< T >, A extends Annotation > extends AbstractSourceWrapper< V, VolatileAnnotationType< A > >
 {
-    private final AnnotationProvider< A > annotationMapper;
+    private final AnnotationAdapter< A > annotationMapper;
 
-    public VolatileAnnotatedLabelSource( final Source< V > source, AnnotationProvider< A > annotationMapper )
+    public VolatileAnnotatedLabelSource( final Source< V > source, AnnotationAdapter< A > annotationMapper )
     {
         super( source );
         this.annotationMapper = annotationMapper;

@@ -177,7 +177,7 @@ public class ViewManager
         }
     }
 
-	public View createCurrentView( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform )
+	public View createViewFromCurrentState( String uiSelectionGroup, boolean isExclusive, boolean includeViewerTransform )
 	{
 		List< Display > viewDisplays = new ArrayList<>();
 		List< Transformation > viewSourceTransforms = new ArrayList<>();
@@ -283,7 +283,7 @@ public class ViewManager
 		// (some others may only be available via a transformation)
 		final List< String > rawImageNames = imageNames.stream().filter( s -> ( moBIE.getDataset().sources.containsKey( s ) ) ).collect( Collectors.toList() );
 
-		// init images
+		// init raw images
 		final HashMap< String, Image< ? > > images = moBIE.initImages( rawImageNames );
 
 		// transform images
@@ -315,10 +315,9 @@ public class ViewManager
 			}
 		}
 
-
 		// register all available (transformed) sources in MoBIE
-		// this is where the source and segmentation displays will
-		// get the images from
+		// this is where the displays will
+		// fetch the images from
 		moBIE.addImages( images );
 	}
 
@@ -361,6 +360,12 @@ public class ViewManager
 			for ( String name : display.getSources() )
 				annotationDisplay.addImage( (AnnotatedImage) moBIE.getImage( name ) );
 
+			// now that all images are added create an
+			// annData object for the display,
+			// potentially combining the annData from
+			// all images that are displayed.
+			annotationDisplay.createAnnData();
+
 			// configure selection model
 			//
 			annotationDisplay.selectionModel = new MoBIESelectionModel<>();
@@ -369,7 +374,7 @@ public class ViewManager
 			//
 			if ( annotationDisplay.selectedAnnotationIds() != null )
 			{
-				final Set< A > annotations = annotationDisplay.annotationProvider.getAnnotations( annotationDisplay.selectedAnnotationIds() );
+				final Set< A > annotations = annotationDisplay.annotationAdapter.getAnnotations( annotationDisplay.selectedAnnotationIds() );
 				annotationDisplay.selectionModel.setSelected( annotations, true );
 			}
 
@@ -420,7 +425,6 @@ public class ViewManager
 			// show in slice viewer
 			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.sliceView = new AnnotationSliceView<>( moBIE, annotationDisplay );
-			annotationDisplay.initAnnData();
 			initTableView( annotationDisplay );
 			initScatterPlotView( annotationDisplay );
 			if ( annotationDisplay instanceof SegmentationDisplay )

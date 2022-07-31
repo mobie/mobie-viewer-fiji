@@ -30,19 +30,20 @@ package org.embl.mobie.viewer.annotation;
 
 import org.embl.mobie.viewer.table.AnnData;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public class AnnotationProvider< A extends Annotation >
+public class AnnotationAdapter< A extends Annotation >
 {
 	private final AnnData< A > annData;
 	private Map< String, A > timePointAndLabelToAnnotation;
 	private Map< String, A > annotationIdToAnnotation;
 
-	public AnnotationProvider( AnnData< A > annData )
+	public AnnotationAdapter( AnnData< A > annData )
 	{
 		this.annData = annData;
 	}
@@ -73,8 +74,8 @@ public class AnnotationProvider< A extends Annotation >
 
 	private synchronized void initMaps()
 	{
-		timePointAndLabelToAnnotation = new ConcurrentHashMap<>();
-		annotationIdToAnnotation = new ConcurrentHashMap<>();
+		timePointAndLabelToAnnotation = new HashMap<>();
+		annotationIdToAnnotation = new HashMap<>();
 		final Iterator< A > iterator = annData.getTable().rows().iterator();
 		while( iterator.hasNext() )
 		{
@@ -86,7 +87,7 @@ public class AnnotationProvider< A extends Annotation >
 
 	private String getKey( int timePoint, int label )
 	{
-		return timePoint + "--" + label;
+		return timePoint + "_" + label;
 	}
 
 	public Set< A > getAnnotations( Set< String > annotationIds )

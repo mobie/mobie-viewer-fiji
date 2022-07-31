@@ -34,6 +34,7 @@ import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
+import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.RegionTableRow;
@@ -55,7 +56,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class RegionLabelImageCreator< AR extends AnnotatedRegion >
+public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< IntegerType >
 {
 	private final MoBIEColoringModel< AR > coloringModel;
 	private double[] contrastLimits;
@@ -65,7 +66,7 @@ public class RegionLabelImageCreator< AR extends AnnotatedRegion >
 	private RealInterval unionInterval;
 	private int size;
 
-	public RegionLabelImageCreator(
+	public RegionLabelImage(
 			List< T > tableRows,
 			MoBIEColoringModel< T > coloringModel,
 			String name )
@@ -156,6 +157,12 @@ public class RegionLabelImageCreator< AR extends AnnotatedRegion >
 		final ArrayList< Integer > timepoints = new ArrayList<>();
 		timepoints.add( 0 );
 		return timepoints;
+	}
+
+	@Override
+	public SourcePair< IntegerType > getSourcePair()
+	{
+		return null;
 	}
 
 	public String getName()
