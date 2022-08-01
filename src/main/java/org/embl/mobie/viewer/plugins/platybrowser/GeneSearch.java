@@ -100,7 +100,7 @@ public class GeneSearch
 		//  Since the Prospr sources are not transformed, this does not matter (yet)...
 		if ( prosprSources == null )
 		{
-
+			prosprSources = new HashMap<>();
 			moBIE.initImages( moBIE.getImageSources( prosprSourceNames ) );
 			for ( String prosprSourceName : prosprSourceNames )
 			{
