@@ -35,6 +35,7 @@ import net.imglib2.RealInterval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.Volatile;
 import net.imglib2.position.FunctionRealRandomAccessible;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
@@ -105,18 +106,16 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( realInterval );
 		final FunctionRealRandomAccessible< UnsignedIntType > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, UnsignedIntType::new );
-		source = new RealRandomAccessibleIntervalSource( randomAccessible, interval, new UnsignedIntType(), name );
+		source = new RealRandomAccessibleIntervalTimelapseSource<>( randomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, false, timePoints );
+
 		// TODO create volatile source
 	}
 
 	private ArrayList< Integer > configureTimePoints()
 	{
-		// TODO: make this configurable in constructor
-		//  or base it on the tableRows which have:
-		//  tableRows.get( 0 ).timePoint()
-		final ArrayList< Integer > timepoints = new ArrayList<>();
-		timepoints.add( 0 );
-		return timepoints;
+		final ArrayList< Integer > timePoints = new ArrayList<>();
+		timePoints.add( 0 );
+		return timePoints;
 	}
 
 	@Override
