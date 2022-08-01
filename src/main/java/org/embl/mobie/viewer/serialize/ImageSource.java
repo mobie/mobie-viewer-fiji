@@ -35,5 +35,32 @@ import java.util.Map;
 
 public class ImageSource implements Data
 {
+	// Serialization
 	public Map< ImageDataFormat, StorageLocation > imageData;
+
+	// Runtime
+	private String name;
+	private boolean openLazy;
+
+	@Override
+	public String getName()
+	{
+		return name;
+	}
+
+	@Override
+	public void setName( String name )
+	{
+		this.name = name;
+	}
+
+	public void openLazy( boolean openLazy )
+	{
+		this.openLazy = openLazy;
+	}
+
+	public boolean openLazy()
+	{
+		return openLazy;
+	}
 }

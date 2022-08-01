@@ -33,8 +33,10 @@ import org.embl.mobie.viewer.transform.image.Transformation;
 import org.embl.mobie.viewer.transform.ViewerTransform;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class View
@@ -63,15 +65,17 @@ public class View
 		this.isExclusive = isExclusive;
 	}
 
-	public Set< String > getImageNames( )
+	// map of image source name and the
+	// initiator of opening this image
+	public Map< String, Object > getImages()
 	{
-		final Set< String > sources = new HashSet<>();
+		final Map< String, Object > sources = new HashMap<>();
 
 		for ( Display< ? > display : getSourceDisplays() )
 		{
 			for ( String source : display.getSources() )
 			{
-				sources.add( source );
+				sources.put( source, display );
 			}
 		}
 
@@ -80,7 +84,7 @@ public class View
 			final List< String > sourceTransformerSources = imageTransformation.getTargetImages();
 			for ( String source : sourceTransformerSources )
 			{
-				sources.add( source );
+				sources.put( source, imageTransformation );
 			}
 		}
 

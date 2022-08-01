@@ -29,17 +29,16 @@
 package org.embl.mobie.viewer;
 
 import bdv.img.n5.N5ImageLoader;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
-import net.imglib2.type.numeric.integer.UnsignedIntType;
 import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
 import org.embl.mobie.viewer.serialize.Data;
-import org.embl.mobie.viewer.serialize.ImageAnnotationSource;
 import org.embl.mobie.viewer.serialize.Project;
 import org.embl.mobie.viewer.serialize.SegmentationSource;
 import org.embl.mobie.viewer.serialize.Dataset;
@@ -47,14 +46,9 @@ import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.source.AnnotatedLabelImage;
-import org.embl.mobie.viewer.source.Image;
-import org.embl.mobie.viewer.source.RegionLabelImage;
 import org.embl.mobie.viewer.source.SpimDataImage;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
-import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
-import org.embl.mobie.viewer.table.saw.TableSawImageAnnotation;
-import org.embl.mobie.viewer.table.saw.TableSawImageAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawSegmentAnnotationCreator;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableHelper;
@@ -75,7 +69,6 @@ import org.embl.mobie.io.util.S3Utils;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import sc.fiji.bdvpg.sourceandconverter.importer.SourceAndConverterFromSpimDataCreator;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
@@ -87,12 +80,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 public class MoBIE
 {
@@ -112,7 +105,6 @@ public class MoBIE
 	private String imageRoot;
 	private String tableRoot;
 	private HashMap< String, ImgLoader > sourceNameToImgLoader;
-	private Map< String, Image< ? > > images;
 	private ArrayList< String > projectCommands = new ArrayList<>();;
 	public static int minLogTimeMillis = 100;
 	public static boolean initiallyShowSourceNames = false;
@@ -279,9 +271,10 @@ public class MoBIE
 	{
 		IJ.log("Opening dataset: " + datasetName );
 		sourceNameToImgLoader = new HashMap<>();
-		images = new ConcurrentHashMap< String, Image< ? > >();
 		setDatasetName( datasetName );
 		dataset = new DatasetJsonParser().parseDataset( getDatasetPath( "dataset.json" ) );
+		for ( Map.Entry< String, Data> entry : dataset.sources.entrySet() )
+			entry.getValue().setName( entry.getKey() );
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D );
 		final View view = getSelectedView();
@@ -398,48 +391,9 @@ public class MoBIE
 		}
 	}
 
-	private SourceAndConverter readSourceAndConverter( String sourceName, String log, ImageSource imageSource )
+	private ImageDataFormat getAppropriateImageDataFormat( ImageSource imageSource )
 	{
-		SourceAndConverter sourceAndConverter;
-		ImageDataFormat imageDataFormat = getAppropriateImageDataFormat( sourceName, imageSource.imageData.keySet() );
-
-		final String imagePath = getImagePath( imageSource, imageDataFormat );
-		if( log != null )
-			IJ.log( log + imagePath );
-
-
-		try
-		{
-			final long l = System.currentTimeMillis();
-			SpimData spimData = tryOpenSpimData( imagePath, imageDataFormat );
-			System.out.println("init setups: " + ( System.currentTimeMillis() - l ));
-			sourceNameToImgLoader.put( sourceName, spimData.getSequenceDescription().getImgLoader() );
-
-			final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
-			sourceAndConverter = creator.getSetupIdToSourceAndConverter().values().iterator().next();
-
-			// Initiate caches now such that the sources
-			// are more interactive initially within BDV
-			// TODO: it seems that with the optimisations in mobie-io
-			//   https://github.com/mobie/mobie-io/pull/100
-			//   this is not necessary anymore (takes only 1 ms) => remove?!
-            final long l2 = System.currentTimeMillis();
-			final int levels = sourceAndConverter.getSpimSource().getNumMipmapLevels();
-			for ( int level = 0; level < levels; level++ )
-				sourceAndConverter.getSpimSource().getSource( 0, level );
-			System.out.println("init cache loaders: " + ( System.currentTimeMillis() - l2 ));
-		}
-		catch ( Exception e )
-		{
-			System.err.println( "Error or interruption opening: " + imagePath );
-			throw e;
-		}
-		return sourceAndConverter;
-	}
-
-	private ImageDataFormat getAppropriateImageDataFormat( String sourceName, Set< ImageDataFormat > sourceDataFormats )
-	{
-		for ( ImageDataFormat sourceDataFormat : sourceDataFormats )
+		for ( ImageDataFormat sourceDataFormat : imageSource.imageData.keySet() )
 		{
 			if ( settings.values.getImageDataFormats().contains( sourceDataFormat ) )
 			{
@@ -447,8 +401,8 @@ public class MoBIE
 			}
 		}
 
-		System.err.println("Error opening: " + sourceName );
-		for ( ImageDataFormat dataFormat : sourceDataFormats )
+		System.err.println("Error opening: " + imageSource.getName() );
+		for ( ImageDataFormat dataFormat : imageSource.imageData.keySet() )
 			System.err.println("Source supports: " + dataFormat);
 		for ( ImageDataFormat dataFormat : settings.values.getImageDataFormats() )
 			System.err.println("Project settings support: " + dataFormat);
@@ -629,7 +583,6 @@ public class MoBIE
 		}
 
 		sourceNameToImgLoader.remove( sourceName );
-		images.remove( sourceName );
 		SourceAndConverterServices.getSourceAndConverterService().remove( sourceAndConverter );
 	}
 
@@ -651,59 +604,78 @@ public class MoBIE
         }
     }
 
-	public void addImages( HashMap< String, Image< ? > > images )
-	{
-		this.images.putAll( images );
-	}
-
 	public ArrayList< String > getProjectCommands()
 	{
 		return projectCommands;
 	}
 
-	public void initImages( Collection< String > imageSources )
+	public void initImages( List< ImageSource > imageSources )
 	{
-		// TODO: make it optional to already open all of them concurrently.
-		//   This should then also go into the JSON spec.
-		final Map< String, Image< ? > > images = ImageStore.images;
-		for ( String name : imageSources )
+		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
+		AtomicInteger sourceIndex = new AtomicInteger(0);
+		final int numImages = imageSources.size();
+		AtomicInteger sourceLoggingModulo = new AtomicInteger(1);
+		AtomicLong lastLogMillis = new AtomicLong( System.currentTimeMillis() );
+		final long startTime = System.currentTimeMillis();
+		for ( ImageSource imageSource : imageSources )
 		{
-			ImageSource imageSource = ( ImageSource ) getData( name );
-			ImageDataFormat imageDataFormat = getAppropriateImageDataFormat( name, imageSource.imageData.keySet() );
-			final String imagePath = getImagePath( imageSource, imageDataFormat );
-			final SpimDataImage< ? > image = new SpimDataImage<>( imageDataFormat, imagePath, 0, name );
+			futures.add(
+					MultiThreading.ioExecutorService.submit( () -> {
+								String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
+								initImage( imageSource, log );
+							}
+					) );
+		}
 
-			if ( imageSource.getClass() == SegmentationSource.class )
+		MultiThreading.waitUntilFinished( futures );
+		IJ.log( "Opened " + imageSources.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + MultiThreading.getNumIoThreads() + " thread(s).");
+	}
+
+	private void initImage( ImageSource imageSource, String log )
+	{
+		ImageDataFormat imageDataFormat = getAppropriateImageDataFormat( imageSource );
+		final String imagePath = getImagePath( imageSource, imageDataFormat );
+		final SpimDataImage< ? > image = new SpimDataImage( imageDataFormat, imagePath, 0, imageSource.getName() );
+		if ( ! imageSource.openLazy() )
+		{
+			// force initialization
+			final Source< ? > source = image.getSourcePair().getSource();
+			source.getSource( 0, 0 );
+		}
+
+		if ( imageSource.getClass() == SegmentationSource.class )
+		{
+			final SegmentationSource segmentationData = ( SegmentationSource ) imageSource;
+
+			if ( segmentationData.tableData != null )
 			{
-				final SegmentationSource segmentationData = ( SegmentationSource ) imageSource;
+				final Set< String > columnPaths = getTablePaths( segmentationData.tableData );
+				final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findAny().get();
 
-				if ( segmentationData.tableData != null )
-				{
-					final Set< String > columnPaths = getTablePaths( segmentationData.tableData );
-					final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findAny().get();
+				final TableSawSegmentAnnotationCreator annotationCreator = new TableSawSegmentAnnotationCreator( image.getName() );
+				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
+				tableModel.setColumnPaths( columnPaths );
+				final DefaultAnnData< TableSawSegmentAnnotation > segmentsAnnData = new DefaultAnnData<>( tableModel );
+				final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
 
-					final TableSawSegmentAnnotationCreator annotationCreator = new TableSawSegmentAnnotationCreator( image.getName() );
-					final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
-					tableModel.setColumnPaths( columnPaths );
-					final DefaultAnnData< TableSawSegmentAnnotation > segmentsAnnData = new DefaultAnnData<>( tableModel );
-					final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
-
-					// label image representing annotated segments
-					images.put( name, annotatedLabelImage );
-				}
-				else
-				{
-					// label image representing segments
-					// without annotation
-					images.put( name, image );
-				}
+				// label image representing annotated segments
+				ImageStore.images.put( annotatedLabelImage.getName(), annotatedLabelImage );
 			}
 			else
 			{
-				// intensity image
-				images.put( name, image );
+				// label image representing segments
+				// without annotation
+				ImageStore.images.put( image.getName(), image );
 			}
 		}
+		else
+		{
+			// intensity image
+			ImageStore.images.put( image.getName(), image );
+		}
+
+		if ( log != null )
+			IJ.log( log );
 	}
 
 	public Set< String > getTablePaths( Map< TableDataFormat, StorageLocation > tableData )
@@ -715,5 +687,11 @@ public class MoBIE
 		for ( String fileName : fileNames )
 			columnPaths.add( IOHelper.combinePath( tableDirectory, fileName ) );
 		return columnPaths;
+	}
+
+	public List< ImageSource > getImageSources( Set< String > imageNames )
+	{
+		final List< ImageSource > imageSources = imageNames.stream().filter( name -> ( getDataset().sources.containsKey( name ) ) ).map( s -> getDataset().sources.get( s ) ).map( data -> (ImageSource) data ).collect( Collectors.toList() );
+		return imageSources;
 	}
 }

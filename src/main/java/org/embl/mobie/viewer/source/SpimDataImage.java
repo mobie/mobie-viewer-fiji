@@ -30,7 +30,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	@Override
 	public SourcePair< T > getSourcePair()
 	{
-		if( sp ==null ) open();
+		if( sp == null ) open();
 		return sp;
 	}
 

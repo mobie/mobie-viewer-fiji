@@ -62,6 +62,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
@@ -76,7 +77,7 @@ public class GeneSearch
 	private final double[] micrometerPosition;
 	private final MoBIE moBIE;
 	private Map< String, Double > localExpression;
-	private Collection< String > prosprSourceNames;
+	private Set< String > prosprSourceNames;
 	private static HashMap< String, Image< ? > > prosprSources;
 
 	public GeneSearch( double micrometerRadius,
@@ -99,7 +100,8 @@ public class GeneSearch
 		//  Since the Prospr sources are not transformed, this does not matter (yet)...
 		if ( prosprSources == null )
 		{
-			moBIE.initImages( prosprSourceNames );
+
+			moBIE.initImages( moBIE.getImageSources( prosprSourceNames ) );
 			for ( String prosprSourceName : prosprSourceNames )
 			{
 				prosprSources.put( prosprSourceName, ImageStore.images.get( prosprSourceName ) );
@@ -113,7 +115,7 @@ public class GeneSearch
 		GeneSearchUtils.logGeneExpression( micrometerPosition, micrometerRadius, geneExpressionLevels );
 	}
 
-	private Collection< String> fetchProsprSourceNames()
+	private Set< String> fetchProsprSourceNames()
 	{
 		final Map< String, Map< String, View > > groupingsToViews = moBIE.getUserInterface().getGroupingsToViews();
 		return groupingsToViews.get( PROSPR_UI_SELECTION_GROUP ).keySet();

@@ -55,6 +55,7 @@ import org.embl.mobie.viewer.display.ImageAnnotationDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
+import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.source.AnnotatedImage;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.Image;
@@ -76,6 +77,7 @@ import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.TransformHelper;
 import org.embl.mobie.viewer.transform.image.ImageTransformation;
+import org.embl.mobie.viewer.transform.image.MergedGridTransformation;
 import org.embl.mobie.viewer.transform.image.Transformation;
 import org.embl.mobie.viewer.transform.TransformedAnnData;
 import org.embl.mobie.viewer.transform.image.AffineTransformation;
@@ -285,13 +287,22 @@ public class ViewManager
 	{
 		// fetch names of all sources that are
 		// either to be shown or to be transformed
-		final Set< String > imageNames = view.getImageNames();
-		if ( imageNames.size() == 0 ) return;
+		final Map< String, Object > imageToDisplay = view.getImages();
+		if ( imageToDisplay.size() == 0 ) return;
 
 		// instantiate images that can be directly opened
 		// some others may be created later, by a display or transformation
-		final List< String > imageSourceNames = imageNames.stream().filter( s -> ( moBIE.getDataset().sources.containsKey( s ) ) ).collect( Collectors.toList() );
-		moBIE.initImages( imageSourceNames );
+		final List< ImageSource > imageSources = moBIE.getImageSources( imageToDisplay.keySet() );
+
+		for ( ImageSource imageSource : imageSources )
+		{
+			if ( imageToDisplay.get( imageSource.getName() ) instanceof MergedGridTransformation )
+				imageSource.openLazy( true );
+			else
+				imageSource.openLazy( false );
+		}
+
+		moBIE.initImages( imageSources );
 
 		final Map< String, Image< ? > > images = ImageStore.images;
 

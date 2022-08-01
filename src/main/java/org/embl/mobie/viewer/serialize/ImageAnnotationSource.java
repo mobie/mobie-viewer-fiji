@@ -51,4 +51,16 @@ public class ImageAnnotationSource implements Data
 	// name of the label image that will be created
 	// to represent the annotations
 	public String name;
+
+	@Override
+	public String getName()
+	{
+		return name;
+	}
+
+	@Override
+	public void setName( String name )
+	{
+		this.name = name;
+	}
 }
