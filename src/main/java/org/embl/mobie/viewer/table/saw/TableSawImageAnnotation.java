@@ -25,7 +25,7 @@ public class TableSawImageAnnotation implements ImageAnnotation
 		this.imageNames = imageNames;
 
 		// ImageAnnotation properties
-		this.regionId = row.getString( ColumnNames.REGION_ID );
+		this.regionId = row.getObject( ColumnNames.REGION_ID ).toString();
 		this.label = regionId.hashCode();
 		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? this.row.getInt( ColumnNames.TIMEPOINT ) : 0;
 	}

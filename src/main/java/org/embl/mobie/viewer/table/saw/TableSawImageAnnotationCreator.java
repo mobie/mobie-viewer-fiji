@@ -19,7 +19,7 @@ public class TableSawImageAnnotationCreator implements TableSawAnnotationCreator
 	@Override
 	public TableSawImageAnnotation create( Row row )
 	{
-		final String regionId = row.getString( ColumnNames.REGION_ID );
+		final String regionId = row.getObject( ColumnNames.REGION_ID ).toString();
 		return new TableSawImageAnnotation( row, regionIdToImageNames.get( regionId )  );
 	}
 }

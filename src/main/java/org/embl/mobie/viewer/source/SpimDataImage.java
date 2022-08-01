@@ -2,6 +2,7 @@ package org.embl.mobie.viewer.source;
 
 import bdv.SpimSource;
 import bdv.VolatileSpimSource;
+import ij.IJ;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Volatile;
@@ -42,10 +43,12 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 	private void open()
 	{
+		final long start = System.currentTimeMillis();
 		final AbstractSpimData spimData = tryOpenSpimData( path, imageDataFormat );
 		final SpimSource< T > s = new SpimSource<>( spimData, setupId, name );
 		final VolatileSpimSource< ? extends Volatile< T > > vs = new VolatileSpimSource<>( spimData, setupId, name );
 		sp = new DefaultSourcePair( s, vs );
+		IJ.log( "Opened image " + getName() + " in " + ( System.currentTimeMillis() - start ) + " ms." );
 	}
 
 	public static AbstractSpimData tryOpenSpimData( String path, ImageDataFormat imageDataFormat )

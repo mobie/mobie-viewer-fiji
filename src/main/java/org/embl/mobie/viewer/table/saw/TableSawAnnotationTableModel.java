@@ -14,7 +14,6 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,7 +44,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	}
 
 	// https://jtablesaw.github.io/tablesaw/userguide/tables.html
-	private Table getTable()
+	private synchronized Table table()
 	{
 		// TODO: MUST implement column merging
 		if ( table == null )
@@ -76,41 +75,52 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 		return table;
 	}
 
+	private HashMap< A, Integer > annotationToRowIndex()
+	{
+		table(); // ensure data is loaded
+		return annotationToRowIndex;
+	}
+
+	private HashMap< Integer, A > rowIndexToAnnotation()
+	{
+		table();
+		return rowIndexToAnnotation;
+	}
+
 	@Override
 	public List< String > columnNames()
 	{
-		return getTable().columnNames();
+		return table().columnNames();
 	}
 
 	@Override
 	public List< String > numericColumnNames()
 	{
-		return getTable().numericColumns().stream().map( c -> c.name() ).collect( Collectors.toList() );
+		return table().numericColumns().stream().map( c -> c.name() ).collect( Collectors.toList() );
 	}
 
 	@Override
 	public Class< ? > columnClass( String columnName )
 	{
-		return TableSawColumnTypes.typeToClass.get( getTable().column( columnName ).type() );
+		return TableSawColumnTypes.typeToClass.get( table().column( columnName ).type() );
 	}
 
 	@Override
 	public int numAnnotations()
 	{
-		return getTable().rowCount();
+		return table().rowCount();
 	}
 
 	@Override
 	public int rowIndexOf( A annotation )
 	{
-		return annotationToRowIndex.get( annotation );
+		return annotationToRowIndex().get( annotation );
 	}
 
 	@Override
 	public A annotation( int rowIndex )
 	{
-		getTable(); // ensures that the data is loaded
-		return rowIndexToAnnotation.get( rowIndex );
+		return rowIndexToAnnotation().get( rowIndex );
 	}
 
 	@Override
@@ -151,18 +161,18 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	@Override
 	public Set< A > annotations()
 	{
-		return annotationToRowIndex.keySet();
+		return annotationToRowIndex().keySet();
 	}
 
 	@Override
 	public void addStringColumn( String columnName )
 	{
-		if ( ! getTable().containsColumn( columnName ) )
+		if ( ! table().containsColumn( columnName ) )
 		{
-			final String[] strings = new String[ getTable().rowCount() ];
+			final String[] strings = new String[ table().rowCount() ];
 			Arrays.fill( strings, DefaultValues.NONE );
 			final StringColumn stringColumn = StringColumn.create( columnName, strings );
-			getTable().addColumns( stringColumn );
+			table().addColumns( stringColumn );
 		}
 		else
 		{
