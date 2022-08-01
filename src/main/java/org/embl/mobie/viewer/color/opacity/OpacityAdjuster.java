@@ -12,6 +12,7 @@ public interface OpacityAdjuster
 	void setOpacity( double opacity );
 
 	double getOpacity();
+
 	default void adjustOpacity( ARGBType color, double opacity )
 	{
 		final int value = color.get();

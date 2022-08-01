@@ -32,11 +32,14 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.SynchronizedViewerState;
+import net.imglib2.converter.Converter;
+import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.viewer.color.AnnotationConverter;
 import org.embl.mobie.viewer.color.ColoringListener;
 import org.embl.mobie.viewer.color.VolatileAnnotationConverter;
+import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
@@ -86,9 +89,9 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 	{
 		// create non-volatile sac
 		//
-		final Source< ? extends  AnnotationType< ? > > source = image.getSourcePair().getSource();
+		final Source< AnnotationType< A > > source = image.getSourcePair().getSource();
 		final BoundarySource boundarySource = new BoundarySource( source );
-		final AnnotationConverter< ? > annotationConverter = new AnnotationConverter<>( display.coloringModel );
+		final Converter< AnnotationType< A >, ARGBType > annotationConverter = new AnnotationConverter<>( display.coloringModel );
 
 		// create volatile sac
 		//

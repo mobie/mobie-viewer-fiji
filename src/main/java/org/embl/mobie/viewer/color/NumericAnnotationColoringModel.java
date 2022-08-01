@@ -55,7 +55,6 @@ public class NumericAnnotationColoringModel< A extends Annotation > extends Abst
 	{
 		final Float value = ( (Number) annotation.getValue( columnName ) ).floatValue();
 		setColorLinearly( value, output );
-		adjustOpacity( output, opacity );
 	}
 	
 	public double getMin()

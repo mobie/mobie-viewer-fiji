@@ -33,7 +33,7 @@ import org.embl.mobie.viewer.select.Listeners;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 
-public interface ColoringModel< T > extends Converter< T, ARGBType >, OpacityAdjuster
+public interface ColoringModel< T > extends Converter< T, ARGBType >
 {
 	/**
 	 * Get the list of color listeners. Add a {@link ColoringListener} to

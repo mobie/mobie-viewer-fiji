@@ -46,7 +46,7 @@ import org.embl.mobie.viewer.bdv.view.SliceViewer;
 import org.embl.mobie.viewer.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.color.ColoringModels;
-import org.embl.mobie.viewer.color.MoBIEColoringModel;
+import org.embl.mobie.viewer.color.MobieColoringModel;
 import org.embl.mobie.viewer.color.NumericAnnotationColoringModel;
 import org.embl.mobie.viewer.color.lut.ColumnARGBLut;
 import org.embl.mobie.viewer.color.lut.LUTs;
@@ -329,7 +329,8 @@ public class ViewManager
 							{
 								final AnnotatedLabelImage transformedImage = transform( imageTransformation, ( AnnotatedLabelImage ) image );
 								images.put( transformedImage.getName(), transformedImage );
-							} else
+							}
+							else
 							{
 								final TransformedImage transformedImage = new TransformedImage( image, imageTransformation );
 								images.put( transformedImage.getName(), transformedImage );
@@ -439,8 +440,6 @@ public class ViewManager
 								lut,
 								LUTs.TRANSPARENT );
 
-				coloringModel.setOpacity( annotationDisplay.getOpacity() );
-
 				if ( LUTs.getLut( lut ) instanceof ColumnARGBLut )
 				{
 					// note that this currently forces loading of the table(s)
@@ -460,7 +459,7 @@ public class ViewManager
 				}
 
 				coloringModel.setRandomSeed( annotationDisplay.getRandomColorSeed() );
-				annotationDisplay.coloringModel = new MoBIEColoringModel( coloringModel, annotationDisplay.selectionModel );
+				annotationDisplay.coloringModel = new MobieColoringModel( coloringModel, annotationDisplay.selectionModel );
 			}
 
 	else if ( LUTs.isNumeric( lut ) )
@@ -473,9 +472,7 @@ public class ViewManager
 						 true
 							);
 
-				coloringModel.setOpacity( annotationDisplay.getOpacity() );
-
-				annotationDisplay.coloringModel = new MoBIEColoringModel( coloringModel, annotationDisplay.selectionModel );
+				annotationDisplay.coloringModel = new MobieColoringModel( coloringModel, annotationDisplay.selectionModel );
 			}
 			else
 			{

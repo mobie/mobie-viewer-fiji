@@ -68,8 +68,6 @@ public class CategoricalAnnotationColoringModel< A extends Annotation > extends 
 			convertStringToARGB( input.getValue( columnName ).toString(), output );
 		else
 			convertStringToARGB( input.toString(), output );
-
-		adjustOpacity( output, opacity );
 	}
 
 	public void convertStringToARGB( String value, ARGBType output )

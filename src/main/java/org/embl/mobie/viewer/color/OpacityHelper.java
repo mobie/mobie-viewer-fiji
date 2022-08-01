@@ -29,8 +29,10 @@
 package org.embl.mobie.viewer.color;
 
 import bdv.viewer.SourceAndConverter;
+import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.color.opacity.OpacityAdjuster;
 import org.embl.mobie.viewer.display.AbstractDisplay;
 
 import static net.imglib2.type.numeric.ARGBType.alpha;
@@ -66,18 +68,19 @@ public abstract class OpacityHelper
 
 	public static void setOpacity( SourceAndConverter< ? > sourceAndConverter, double opacity )
 	{
-		if ( sourceAndConverter.getConverter() instanceof MoBIEColoringModelWrapper )
+		final Converter< ?, ARGBType > converter = sourceAndConverter.getConverter();
+
+		if ( converter instanceof OpacityAdjuster )
 		{
-			final MoBIEColoringModel coloringModel = ( ( MoBIEColoringModelWrapper ) sourceAndConverter.getConverter() ).getMoBIEColoringModel();
-			coloringModel.setOpacity( opacity );
+			( ( OpacityAdjuster ) converter ).setOpacity( opacity );
 		}
-		else if ( sourceAndConverter.getConverter() instanceof ColorConverter )
+		else if ( converter instanceof ColorConverter )
 		{
 			adjustOpacity( sourceAndConverter, opacity );
 		}
 		else
 		{
-			throw new UnsupportedOperationException("Cannot adjust opacity of converter: " + sourceAndConverter.getConverter().getClass().getName() );
+			throw new UnsupportedOperationException("Cannot adjust opacity of converter: " + converter.getClass().getName() );
 		}
 	}
 }

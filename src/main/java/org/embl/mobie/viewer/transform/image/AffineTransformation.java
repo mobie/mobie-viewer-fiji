@@ -30,6 +30,7 @@ package org.embl.mobie.viewer.transform.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
+import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.source.DefaultImage;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.SourcePair;

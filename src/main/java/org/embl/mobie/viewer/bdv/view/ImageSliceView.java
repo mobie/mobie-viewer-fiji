@@ -33,7 +33,10 @@ import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
+import net.imglib2.converter.Converter;
+import net.imglib2.display.ColorConverter;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
 import org.embl.mobie.viewer.display.ImageDisplay;
 import org.embl.mobie.viewer.source.Image;
 import net.imglib2.display.RealARGBColorConverter;
@@ -48,7 +51,7 @@ import java.util.Map;
 
 import static de.embl.cba.bdv.utils.converters.RandomARGBConverter.goldenRatio;
 
-public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceView
+public class ImageSliceView< T extends NumericType< T > & RealType< T > > extends AbstractSliceView
 {
 	static { net.imagej.patcher.LegacyInjector.preinit(); }
 
@@ -83,20 +86,20 @@ public class ImageSliceView< T extends NumericType< T > > extends AbstractSliceV
 		}
 	}
 
-	private SourceAndConverter createSac( Image< ? > image )
+	private SourceAndConverter createSac( Image< T > image )
 	{
-		final RealARGBColorConverter converter = createConverterToARGB( ( RealType ) image.getSourcePair().getSource().getType() );
-		//final RealARGBColorConverter volatileConverter = createConverterToARGB( ( RealType ) image.getSourcePair().getVolatileSource().getType() );
-		final SourceAndConverter volatileSac = new SourceAndConverter<>( image.getSourcePair().getVolatileSource(), converter );
-		final SourceAndConverter combinedSac = new SourceAndConverter<>( image.getSourcePair().getSource(), converter, volatileSac );
+		final Converter< T, ARGBType > converter = createConverterToARGB( image.getSourcePair().getSource().getType() );
+		final SourceAndConverter volatileSac = new SourceAndConverter( image.getSourcePair().getVolatileSource(), converter );
+		final SourceAndConverter combinedSac = new SourceAndConverter( image.getSourcePair().getSource(), converter, volatileSac );
 		return combinedSac;
 	}
 
-	public static < T extends RealType< T >> RealARGBColorConverter< T > createConverterToARGB( final T t )
+	private Converter< T, ARGBType > createConverterToARGB( final T t )
 	{
 		final double typeMin = Math.max( 0, Math.min( t.getMinValue(), 65535 ) );
 		final double typeMax = Math.max( 0, Math.min( t.getMaxValue(), 65535 ) );
-		return RealARGBColorConverter.create( t, typeMin, typeMax );
+		final RealARGBColorConverter< T > converter = RealARGBColorConverter.create( t, typeMin, typeMax );
+		return new AdjustableOpacityColorConverter( converter );
 	}
 
 	private void adaptContrastLimits( SourceAndConverter< ? > sourceAndConverter )

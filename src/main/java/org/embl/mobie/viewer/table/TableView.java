@@ -38,7 +38,7 @@ import org.embl.mobie.viewer.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.color.ColoringListener;
 import org.embl.mobie.viewer.color.ColoringModel;
-import org.embl.mobie.viewer.color.MoBIEColoringModel;
+import org.embl.mobie.viewer.color.MobieColoringModel;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotDialog;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
@@ -68,7 +68,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private final AnnotationTableModel< A > tableModel;
 	private final SelectionModel< A > selectionModel;
-	private final MoBIEColoringModel< A > coloringModel;
+	private final MobieColoringModel< A > coloringModel;
 	private final String tableName;
 	private JTable jTable;
 	private int recentlySelectedRowInView;

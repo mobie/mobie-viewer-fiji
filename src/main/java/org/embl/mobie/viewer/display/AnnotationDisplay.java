@@ -35,7 +35,7 @@ import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.color.AbstractAnnotationColoringModel;
 import org.embl.mobie.viewer.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.viewer.color.ColoringModel;
-import org.embl.mobie.viewer.color.MoBIEColoringModel;
+import org.embl.mobie.viewer.color.MobieColoringModel;
 import org.embl.mobie.viewer.color.NumericAnnotationColoringModel;
 import org.embl.mobie.viewer.color.lut.LUTs;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
@@ -48,7 +48,6 @@ import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.ConcatenatedAnnData;
-import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.TableView;
 import net.imglib2.util.ValuePair;
 
@@ -85,7 +84,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 
 	// Runtime
 	public transient SelectionModel< A > selectionModel;
-	public transient MoBIEColoringModel< A > coloringModel;
+	public transient MobieColoringModel< A > coloringModel;
 	public transient AnnotationAdapter< A > annotationAdapter;
 	public transient TableView< A > tableView;
 	public transient ScatterPlotView< A > scatterPlotView;

@@ -28,21 +28,24 @@
  */
 package org.embl.mobie.viewer.color;
 
+import de.embl.cba.tables.color.ColoringLuts;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.color.lut.LUTs;
+import org.embl.mobie.viewer.color.opacity.OpacityAdjuster;
 
-public abstract class AbstractAnnotationConverter< T, A > implements Converter< A, ARGBType >, MoBIEColoringModelWrapper
+public abstract class AbstractAnnotationConverter< T, A > implements Converter< A, ARGBType >, OpacityAdjuster, MobieColoringModelWrapper
 {
-	private final MoBIEColoringModel< T > coloringModel;
+	private final MobieColoringModel< T > coloringModel;
 	private double opacity = 1.0;
 
-	public AbstractAnnotationConverter( MoBIEColoringModel< T > coloringModel )
+	public AbstractAnnotationConverter( MobieColoringModel< T > coloringModel )
 	{
 		this.coloringModel = coloringModel;
 	}
 
 	@Override
-	public MoBIEColoringModel getMoBIEColoringModel()
+	public MobieColoringModel getMoBIEColoringModel()
 	{
 		return coloringModel;
 	}
@@ -51,15 +54,24 @@ public abstract class AbstractAnnotationConverter< T, A > implements Converter< 
 	{
 		if ( input == null )
 		{
-			// no annotation => background color (black)
-			color.set( 0 );
+			// no annotation => transparent
+			color.set( LUTs.TRANSPARENT );
 			return;
 		}
 
-		// set color
 		coloringModel.convert( input, color );
 
-		// opacity adjustment
-		// happens in the coloringModel
+		adjustOpacity( color, opacity );
 	}
+
+	public void setOpacity( double opacity )
+	{
+		this.opacity = opacity;
+	}
+
+	public double getOpacity()
+	{
+		return opacity;
+	}
+
 }

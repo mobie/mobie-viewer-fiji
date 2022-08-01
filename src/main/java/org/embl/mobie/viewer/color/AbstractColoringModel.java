@@ -38,8 +38,6 @@ public abstract class AbstractColoringModel< T > implements ColoringModel< T >
 	protected final Listeners.SynchronizedList< ColoringListener > listeners
 			= new Listeners.SynchronizedList< ColoringListener >(  );
 
-	protected double opacity = 1.0;
-
 	@Override
 	public Listeners< ColoringListener > listeners()
 	{
@@ -53,15 +51,4 @@ public abstract class AbstractColoringModel< T > implements ColoringModel< T >
 			SwingUtilities.invokeLater( () -> listener.coloringChanged() );
 		}
 	}
-
-	public void setOpacity( double opacity )
-	{
-		this.opacity = opacity;
-	}
-
-	public double getOpacity()
-	{
-		return opacity;
-	}
-
 }

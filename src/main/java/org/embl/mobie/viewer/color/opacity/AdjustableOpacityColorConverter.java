@@ -33,22 +33,23 @@ import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 
-public class AdjustableOpacityColorConverter implements OpacityAdjuster, ColorConverter, Converter< RealType, ARGBType >
+public class AdjustableOpacityColorConverter< T extends RealType< T > > implements OpacityAdjuster, ColorConverter, Converter< T, ARGBType >
 {
-	private final Converter< RealType, ARGBType > converter;
+	private final Converter< T, ARGBType > converter;
 	private double opacity = 1.0;
+	private int background = 0;
 
-	public AdjustableOpacityColorConverter( Converter< RealType, ARGBType > converter )
+	public AdjustableOpacityColorConverter( Converter< T, ARGBType > converter )
 	{
 		this.converter = converter;
 	}
 
 	@Override
-	public void convert( RealType realType, ARGBType color )
+	public void convert( T realType, ARGBType color )
 	{
-		if ( realType.getRealDouble() == 0 )
+		if ( realType.getRealDouble() == background )
 		{
-			// For the Accumulate projector to know where the source ends
+			// For the accumulate projector to know where the source ends
 			color.set( new ARGBType( ARGBType.rgba( 0, 0, 0, 0 ) ) );
 		}
 		else
