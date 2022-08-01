@@ -675,7 +675,7 @@ public class MoBIE
 		}
 
 		if ( log != null )
-			IJ.log( log );
+			IJ.log( log + image.getName() );
 	}
 
 	public Set< String > getTablePaths( Map< TableDataFormat, StorageLocation > tableData )
