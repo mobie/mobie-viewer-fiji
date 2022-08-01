@@ -5,6 +5,7 @@ import bdv.VolatileSpimSource;
 import ij.IJ;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
+import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
@@ -38,6 +39,12 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	public String getName()
 	{
 		return name;
+	}
+
+	@Override
+	public RealInterval getBounds()
+	{
+		return SourceHelper.estimateBounds( getSourcePair().getSource() );
 	}
 
 	private void open()

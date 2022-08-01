@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer.source;
 
 import bdv.viewer.Source;
+import net.imglib2.RealInterval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
@@ -36,20 +37,16 @@ import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.Type;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 
 public class BoundarySource< T extends Type< T > > extends AbstractBoundarySource< T >
 {
-    public BoundarySource( final Source< T > source )
+    public BoundarySource( final Source< T > source, @Nullable RealInterval bounds )
     {
-       super( source, null, null );
-    }
-
-    public BoundarySource( final Source< T > source, RealMaskRealInterval bounds, Collection< Integer > timePoints )
-    {
-        super( source, bounds, timePoints );
+       super( source, bounds );
     }
 
     protected RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )

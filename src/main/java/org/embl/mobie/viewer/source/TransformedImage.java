@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.source;
 
+import net.imglib2.RealInterval;
 import org.embl.mobie.viewer.transform.image.ImageTransformation;
 import org.embl.mobie.viewer.transform.image.Transformation;
 
@@ -32,6 +33,12 @@ public class TransformedImage< A, B > implements Image< B >
 	public String getName()
 	{
 		return transformation.getTransformedName( image );
+	}
+
+	@Override
+	public RealInterval getBounds()
+	{
+		return getTransformedImage().getBounds();
 	}
 
 	public Transformation getTransformation()

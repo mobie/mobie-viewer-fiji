@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.viewer.source;
 
-import bdv.util.RealRandomAccessibleIntervalSource;
 import bdv.viewer.Source;
 import net.imglib2.Interval;
 import net.imglib2.RealInterval;
@@ -50,7 +49,7 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 {
 	private final String name;
 	private final Set< IA > imageAnnotations;
-	private RealInterval realInterval;
+	private RealInterval imageBounds;
 	private Source< UnsignedIntType > source;
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 
@@ -68,13 +67,13 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 		{
 			final RealMaskRealInterval mask = imageAnnotation.mask();
 
-			if ( realInterval == null )
+			if ( imageBounds == null )
 			{
-				realInterval = mask;
+				imageBounds = mask;
 			}
 			else
 			{
-				if ( Intervals.equals(  mask, realInterval ) )
+				if ( Intervals.equals(  mask, imageBounds ) )
 				{
 					continue;
 				}
@@ -82,7 +81,7 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 				{
 					// TODO: Below hangs (see issue in imglib2-roi)
 					//unionMask = unionMask.or( mask );
-					realInterval = Intervals.union( realInterval, mask );
+					imageBounds = Intervals.union( imageBounds, mask );
 				}
 			}
 		}
@@ -104,7 +103,7 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 		};
 
 		final ArrayList< Integer > timePoints = configureTimePoints();
-		final Interval interval = Intervals.smallestContainingInterval( realInterval );
+		final Interval interval = Intervals.smallestContainingInterval( imageBounds );
 		final FunctionRealRandomAccessible< UnsignedIntType > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, UnsignedIntType::new );
 		source = new RealRandomAccessibleIntervalTimelapseSource<>( randomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, false, timePoints );
 
@@ -127,5 +126,11 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 	public String getName()
 	{
 		return name;
+	}
+
+	@Override
+	public RealInterval getBounds()
+	{
+		return imageBounds;
 	}
 }

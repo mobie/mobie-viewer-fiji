@@ -229,4 +229,11 @@ public abstract class SourceHelper
 		final RealMaskRealInterval mask = GeomMasks.closedBox( min, max ).transform( sourceTransform.inverse() );
 		return mask;
 	}
+
+	public static FinalRealInterval estimateBounds( Source< ? > source )
+	{
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+		source.getSourceTransform( 0, 0, affineTransform3D);
+		return affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
+	}
 }

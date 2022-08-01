@@ -1,12 +1,12 @@
 package org.embl.mobie.viewer.source;
 
+import net.imglib2.RealInterval;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.annotation.AnnotationAdapter;
 import org.embl.mobie.viewer.table.AnnData;
 import net.imglib2.Volatile;
 import net.imglib2.type.numeric.IntegerType;
 
-// TODO: Maybe I can use the same for the region image?!
 public class AnnotatedLabelImage< A extends Annotation > implements AnnotatedImage< A >
 {
 	protected Image< ? extends IntegerType< ? > > labelImage;
@@ -44,6 +44,12 @@ public class AnnotatedLabelImage< A extends Annotation > implements AnnotatedIma
 	public String getName()
 	{
 		return labelImage.getName();
+	}
+
+	@Override
+	public RealInterval getBounds()
+	{
+		return labelImage.getBounds();
 	}
 
 	public Image< ? extends IntegerType< ? > > getLabelImage()

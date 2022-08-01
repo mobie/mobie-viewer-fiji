@@ -33,13 +33,13 @@ import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.roi.RealMaskRealInterval;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 
 public abstract class AbstractBoundarySource< T > implements Source< T >, SourceWrapper< T >
 {
@@ -47,17 +47,17 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     protected boolean showAsBoundaries;
     protected float boundaryWidth;
     protected ArrayList< Integer > boundaryDimensions;
-    protected final RealMaskRealInterval bounds;
-    private final Collection< Integer > timePoints;
+    protected RealInterval bounds;
 
-    public AbstractBoundarySource( final Source< T > source, RealMaskRealInterval bounds, Collection< Integer > timePoints )
+    public AbstractBoundarySource( final Source< T > source, @Nullable RealInterval bounds )
     {
         this.source = source;
         this.bounds = bounds;
-        this.timePoints = timePoints;
+        this.boundaryDimensions = boundaryDimensions();
     }
 
-    public void showAsBoundary( boolean showAsBoundaries, float boundaryWidth ) {
+    public void showAsBoundary( boolean showAsBoundaries, float boundaryWidth )
+    {
         this.showAsBoundaries = showAsBoundaries;
         this.boundaryWidth = boundaryWidth;
         this.boundaryDimensions = boundaryDimensions();
@@ -76,10 +76,7 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     @Override
     public boolean isPresent( final int t )
     {
-        if ( timePoints != null )
-            return timePoints.contains( t );
-        else
-            return source.isPresent(t);
+        return source.isPresent(t);
     }
 
     @Override
@@ -96,12 +93,11 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
         if ( showAsBoundaries  )
         {
             // Ultimately we need the boundaries in pixel units, because
-            // we have to check the voxel values in the rra, which is in voxel units.
+            // we have to check the voxel values in the rra, which is in pixel units.
             // However, it feels like we could stay longer in physical units here to
-            // make this less confusing...
+            // make this less confusing.
             final float[] boundarySizePixelUnits = getBoundarySize( t, level );
             return createBoundaryImage( rra, boundaryDimensions, boundarySizePixelUnits );
-
         }
         else
         {
@@ -121,8 +117,8 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
             // requested boundary width
             for ( int d = 0; d < 3; d++ )
             {
-                final double sourceBound = Math.abs( bounds.realMax( d ) - bounds.realMin( d ) );
-                if ( sourceBound > 3 * boundaryWidth )
+                final double sourceWidth = Math.abs( bounds.realMax( d ) - bounds.realMin( d ) );
+                if ( sourceWidth > 3 * boundaryWidth )
                     dimensions.add( d );
             }
         }
@@ -146,7 +142,7 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     protected float[] getBoundarySize( int t, int level )
     {
         final float[] boundaries = new float[ 3 ];
-        Arrays.fill( boundaries, (float) boundaryWidth );
+        Arrays.fill( boundaries, boundaryWidth );
         final AffineTransform3D sourceTransform = new AffineTransform3D();
         getSourceTransform( t, level, sourceTransform );
         for ( int d = 0; d < 3; d++ )
@@ -191,4 +187,5 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     {
         return boundaryWidth;
     }
+
 }

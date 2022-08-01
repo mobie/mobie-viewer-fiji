@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer.source;
 
 import bdv.viewer.Source;
+import net.imglib2.RealInterval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealRandomAccess;
 import net.imglib2.RealRandomAccessible;
@@ -36,14 +37,15 @@ import net.imglib2.Volatile;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.type.Type;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.function.BiConsumer;
 
 public class VolatileBoundarySource< T extends Type< T >, V extends Volatile< T > & Type< V > > extends AbstractBoundarySource< V >
 {
-    public VolatileBoundarySource( final Source< V > source )
+    public VolatileBoundarySource( final Source< V > source, @Nullable RealInterval bounds )
     {
-        super( source, null, null );
+        super( source, bounds );
     }
 
     @Override
@@ -87,7 +89,9 @@ public class VolatileBoundarySource< T extends Type< T >, V extends Volatile< T 
 
                     if ( ! access.get().valueEquals( input )  )
                     {
-                        // input is a boundary pixel
+                        // a pixel around the input
+                        // has a different value,
+                        // thus the input is a boundary pixel,
                         // thus it keeps its value
                         output.set( input );
                         return;

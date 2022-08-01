@@ -30,6 +30,7 @@ package org.embl.mobie.viewer.command;
 
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
+import ij.IJ;
 import org.embl.mobie.viewer.color.CategoricalAnnotationColoringModel;
 import org.embl.mobie.viewer.color.ColoringModel;
 import org.embl.mobie.viewer.color.MobieColoringModel;
@@ -60,7 +61,7 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	@Parameter( label = "Show labels as boundaries" )
 	public boolean showAsBoundary;
 
-	@Parameter( label = "Boundary thickness", style = "format:#.00" )
+	@Parameter( label = "Boundary thickness", callback = "logBoundaryThickness", style = "format:#.00" )
 	public float boundaryThickness = 1.0F;
 
 	@Parameter( label = "Selected labels coloring", choices = { SEGMENT_COLOR, SELECTION_COLOR } )
@@ -143,5 +144,11 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 			if ( volatileBoundarySource != null )
 				volatileBoundarySource.showAsBoundary( showAsBoundary, boundaryThickness );
 		}
+	}
+
+	private void logBoundaryThickness()
+	{
+		final String unit = sourceAndConverters[ 0 ].getSpimSource().getVoxelDimensions().unit();
+		IJ.log("Thickness: " + boundaryThickness + " " + unit );
 	}
 }

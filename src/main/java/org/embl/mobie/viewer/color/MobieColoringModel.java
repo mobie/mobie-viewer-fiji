@@ -36,6 +36,11 @@ import static net.imglib2.type.numeric.ARGBType.blue;
 import static net.imglib2.type.numeric.ARGBType.green;
 import static net.imglib2.type.numeric.ARGBType.red;
 
+
+// Note that the opacities are not applied to the coloring model
+// but only on the level of the converters that are needed
+// for rendering in BDV; this makes sense because in the table and
+// scatter-plot we don't want opacity.
 public class MobieColoringModel< T > extends AbstractColoringModel< T >
 {
 	private ColoringModel< T > coloringModel;
