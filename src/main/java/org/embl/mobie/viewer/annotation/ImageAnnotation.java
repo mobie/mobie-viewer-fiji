@@ -20,7 +20,7 @@ public interface ImageAnnotation extends Region, Annotation
 		RealMaskRealInterval union = null;
 		for ( Image< ? > image : images )
 		{
-			final Source< ? > source = image.getSourcePair().getVolatileSource();
+			final Source< ? > source = image.getSourcePair().getSource();
 			final RealMaskRealInterval mask = SourceHelper.getMask( source, t );
 
 			if ( union == null )

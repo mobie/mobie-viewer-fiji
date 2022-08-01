@@ -28,11 +28,10 @@
  */
 package org.embl.mobie.viewer.color.lut;
 
-import de.embl.cba.bdv.utils.lut.ARGBLut;
-import de.embl.cba.tables.color.ColoringLuts;
-
 public class ColumnARGBLut implements ARGBLut
 {
+	private String name = LUTs.ARGB_COLUMN;
+
 	@Override
 	public int getARGB( double x )
 	{
@@ -42,12 +41,12 @@ public class ColumnARGBLut implements ARGBLut
 	@Override
 	public String getName()
 	{
-		return ColoringLuts.ARGB_COLUMN;
+		return name;
 	}
 
 	@Override
 	public void setName( String name )
 	{
-
+		this.name = name;
 	}
 }

@@ -26,8 +26,15 @@ public class AnnotatedLabelImage< A extends Annotation > implements AnnotatedIma
 		{
 			AnnotationAdapter< A > annotationAdapter = new AnnotationAdapter( annData );
 			final AnnotatedLabelSource< ?, A > source = new AnnotatedLabelSource( getLabelImage().getSourcePair().getSource(), annotationAdapter );
-			final VolatileAnnotatedLabelSource< ?, ? extends Volatile< ? >, A > volatileSource = new VolatileAnnotatedLabelSource( getLabelImage().getSourcePair().getVolatileSource(), annotationAdapter );
-			sourcePair = new DefaultSourcePair<>( source, volatileSource );
+			if (  getLabelImage().getSourcePair().getVolatileSource() != null )
+			{
+				final VolatileAnnotatedLabelSource< ?, ? extends Volatile< ? >, A > volatileSource = new VolatileAnnotatedLabelSource( getLabelImage().getSourcePair().getVolatileSource(), annotationAdapter );
+				sourcePair = new DefaultSourcePair<>( source, volatileSource );
+			}
+			else
+			{
+				sourcePair = new DefaultSourcePair<>( source, null );
+			}
 		}
 
 		return sourcePair;

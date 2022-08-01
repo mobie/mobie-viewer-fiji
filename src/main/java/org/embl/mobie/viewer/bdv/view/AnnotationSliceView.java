@@ -69,21 +69,8 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 
 		for ( Image< AnnotationType< A > > image : display.getImages() )
 		{
-			// create volatile sac
-			//
-			final Source< ? extends Volatile< ? extends AnnotationType< ? > > > volatileSource = image.getSourcePair().getVolatileSource();
-			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSource );
-			final VolatileAnnotationConverter volatileAnnotationConverter = new VolatileAnnotationConverter( display.coloringModel );
-			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
 
-			// create non-volatile sac
-			//
-			final Source< ? extends  AnnotationType< ? > > source = image.getSourcePair().getSource();
-			final BoundarySource boundarySource = new BoundarySource( source );
-			final AnnotationConverter< ? > annotationConverter = new AnnotationConverter<>( display.coloringModel );
-
-			// combine volatile and non-volatile sac
-			final SourceAndConverter sourceAndConverter = new SourceAndConverter( boundarySource, annotationConverter, volatileSourceAndConverter );
+			SourceAndConverter sourceAndConverter = createSourceAndConverter( display, image );
 
 			show( sourceAndConverter );
 
@@ -93,6 +80,32 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 				SourceAndConverterServices.getSourceAndConverterService().setMetadata( sourceAndConverter, SegmentsVolumeViewer.class.getName(), ((SegmentationDisplay) display ).segmentsVolumeViewer );
 			}
 		}
+	}
+
+	private SourceAndConverter createSourceAndConverter( AnnotationDisplay< A > display, Image< AnnotationType< A > > image )
+	{
+		// create non-volatile sac
+		//
+		final Source< ? extends  AnnotationType< ? > > source = image.getSourcePair().getSource();
+		final BoundarySource boundarySource = new BoundarySource( source );
+		final AnnotationConverter< ? > annotationConverter = new AnnotationConverter<>( display.coloringModel );
+
+		// create volatile sac
+		//
+		if ( image.getSourcePair().getVolatileSource() != null )
+		{
+			final Source< ? extends Volatile< ? extends AnnotationType< ? > > > volatileSource = image.getSourcePair().getVolatileSource();
+			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSource );
+			final VolatileAnnotationConverter volatileAnnotationConverter = new VolatileAnnotationConverter( display.coloringModel );
+			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
+
+			// combine non-volatile and volatile sac
+			//
+			return new SourceAndConverter( boundarySource, annotationConverter, volatileSourceAndConverter );
+		}
+
+		// only non-volatile sac
+		return new SourceAndConverter( boundarySource, annotationConverter );
 	}
 
 	private void show( SourceAndConverter< ? > sourceAndConverter )

@@ -94,4 +94,15 @@ public abstract class ColorHelper
 		if ( color == null ) return null;
 		else return getARGBType( color );
 	}
+
+	// Decode MoBIE serialization of argb values
+	public static ARGBType getArgbType( String argbString )
+	{
+		String[] splitArgbString = argbString.split("-");
+		int[] argbValues = new int[4];
+		for (int j = 0; j < splitArgbString.length; j++)
+			argbValues[j] = Integer.parseInt(splitArgbString[j]);
+		final ARGBType argbType = new ARGBType( ARGBType.rgba( argbValues[ 1 ], argbValues[ 2 ], argbValues[ 3 ], argbValues[ 0 ] ) );
+		return argbType;
+	}
 }

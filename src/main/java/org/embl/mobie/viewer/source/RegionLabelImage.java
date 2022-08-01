@@ -51,7 +51,7 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 	private final Set< IA > imageAnnotations;
 	private RealInterval realInterval;
 	private Source< UnsignedIntType > source;
-	private Source< ? extends Volatile< UnsignedIntType > > volatileSource;
+	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 
 	public RegionLabelImage( String name, Set< IA > imageAnnotations )
 	{

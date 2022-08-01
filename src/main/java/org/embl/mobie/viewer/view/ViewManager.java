@@ -33,7 +33,9 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
+import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotation.SegmentAnnotation;
@@ -42,6 +44,7 @@ import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
 import org.embl.mobie.viewer.bdv.view.SliceViewer;
 import org.embl.mobie.viewer.color.CategoricalAnnotationColoringModel;
+import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.color.ColoringModels;
 import org.embl.mobie.viewer.color.MoBIEColoringModel;
 import org.embl.mobie.viewer.color.NumericAnnotationColoringModel;
@@ -88,7 +91,6 @@ import org.embl.mobie.viewer.volume.ImageVolumeViewer;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 import org.embl.mobie.viewer.volume.UniverseManager;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.apache.commons.lang.ArrayUtils;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -441,16 +443,27 @@ public class ViewManager
 
 				if ( LUTs.getLut( lut ) instanceof ColumnARGBLut )
 				{
-					// MUST
-					//  Where to get the table column from?
-					throw new UnsupportedOperationException("LUTs encoded in Table columns is not yet supported.");
-					// ColoringModels.setColorsFromColumn( columnName, coloringModel );
+					// note that this currently forces loading of the table(s)
+					// for big data this may need some improvement
+					final AnnotationTableModel< A > table = annotationDisplay.getAnnData().getTable();
+					for ( A annotation : table.annotations() )
+					{
+						String argbString = annotation.getValue( annotationDisplay.getColoringColumnName() ).toString();
+
+						if ( argbString.equals("") )
+							continue;
+
+						final ARGBType argbType = ColorHelper.getArgbType( argbString );
+
+						coloringModel.assignColor( argbString, argbType.get() );
+					}
 				}
 
 				coloringModel.setRandomSeed( annotationDisplay.getRandomColorSeed() );
 				annotationDisplay.coloringModel = new MoBIEColoringModel( coloringModel, annotationDisplay.selectionModel );
 			}
-			else if ( LUTs.isNumeric( lut ) )
+
+	else if ( LUTs.isNumeric( lut ) )
 			{
 				NumericAnnotationColoringModel< Annotation > coloringModel
 						= ColoringModels.createNumericModel(

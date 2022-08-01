@@ -80,6 +80,10 @@ public class LUTs
 		{
 			lut = new GlasbeyARGBLut();
 		}
+		else if ( lutName.contains( ARGB_COLUMN ) )
+		{
+			lut = new ColumnARGBLut();
+		}
 		else
 		{
 			throw new UnsupportedOperationException( "LUT " + lutName + " is not supported." );
