@@ -663,6 +663,8 @@ public class MoBIE
 
 	public void initImages( Collection< String > imageSources )
 	{
+		// TODO: make it optional to already open all of them concurrently.
+		//   This should then also go into the JSON spec.
 		final Map< String, Image< ? > > images = ImageStore.images;
 		for ( String name : imageSources )
 		{

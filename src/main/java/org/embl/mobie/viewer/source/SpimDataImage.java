@@ -27,7 +27,6 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		this.name = name;
 	}
 
-
 	@Override
 	public SourcePair< T > getSourcePair()
 	{
