@@ -42,12 +42,12 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 	private void open()
 	{
-		final long start = System.currentTimeMillis();
+		//final long start = System.currentTimeMillis();
 		final AbstractSpimData spimData = tryOpenSpimData( path, imageDataFormat );
 		final SpimSource< T > s = new SpimSource<>( spimData, setupId, name );
 		final VolatileSpimSource< ? extends Volatile< T > > vs = new VolatileSpimSource<>( spimData, setupId, name );
 		sp = new DefaultSourcePair( s, vs );
-		IJ.log( "Opened image " + getName() + " in " + ( System.currentTimeMillis() - start ) + " ms." );
+		//IJ.log( "Opened image " + getName() + " in " + ( System.currentTimeMillis() - start ) + " ms." );
 	}
 
 	public static AbstractSpimData tryOpenSpimData( String path, ImageDataFormat imageDataFormat )

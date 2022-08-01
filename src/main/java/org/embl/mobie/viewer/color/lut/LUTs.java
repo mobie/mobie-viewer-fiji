@@ -85,7 +85,7 @@ public class LUTs
 			throw new UnsupportedOperationException( "LUT " + lutName + " is not supported." );
 		}
 
-		lut.setName( lutName ); // (encode zeroTransparent)
+		lut.setName( lutName ); // (keep zeroTransparent encoding)
 
 		return lut;
 	}
