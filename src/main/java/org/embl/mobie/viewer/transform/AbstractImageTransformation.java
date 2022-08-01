@@ -43,7 +43,8 @@ public abstract class AbstractImageTransformation< A, B > implements ImageTransf
 	protected List< String > sourceNamesAfterTransform;
 
 	// TODO: for stitching this does not apply
-	protected String getTransformedName( Image< A > image )
+	@Override
+	public String getTransformedName( Image< A > image )
 	{
 		if ( sourceNamesAfterTransform != null )
 		{

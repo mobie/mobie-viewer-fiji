@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class AnnotationAdapter< A extends Annotation >
@@ -53,7 +52,7 @@ public class AnnotationAdapter< A extends Annotation >
 		// MAY
 		//  is this OK?
 		//  or do we need to create a copy of that?
-		return annData.getTable().row( 0 );
+		return annData.getTable().annotation( 0 );
 	}
 
 	public A getAnnotation( String id )
@@ -76,7 +75,7 @@ public class AnnotationAdapter< A extends Annotation >
 	{
 		timePointAndLabelToAnnotation = new HashMap<>();
 		annotationIdToAnnotation = new HashMap<>();
-		final Iterator< A > iterator = annData.getTable().rows().iterator();
+		final Iterator< A > iterator = annData.getTable().annotations().iterator();
 		while( iterator.hasNext() )
 		{
 			A annotation = iterator.next();

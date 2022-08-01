@@ -46,7 +46,7 @@ public class AffineTransformation< T > extends AbstractImageTransformation< T, T
 	protected double[] parameters;
 
 	// Runtime
-	private transient AffineTransform3D affineTransform3D = new AffineTransform3D();
+	private transient AffineTransform3D affineTransform3D;
 
 	public AffineTransformation( String name, double[] parameters, List< String > sources ) {
 		this( name, parameters, sources, null );
@@ -58,7 +58,6 @@ public class AffineTransformation< T > extends AbstractImageTransformation< T, T
 		this.parameters = parameters;
 		this.sources = sources;
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
-
 	}
 
 	public AffineTransformation( TransformedSource< ? > transformedSource )
@@ -74,14 +73,15 @@ public class AffineTransformation< T > extends AbstractImageTransformation< T, T
 	@Override
 	public Image< T > apply( Image< T > image )
 	{
+		affineTransform3D = new AffineTransform3D();
 		affineTransform3D.set( parameters );
 
 		final SourcePair< T > sourcePair = image.getSourcePair();
 		final Source< T > source = sourcePair.getSource();
 		final Source< ? extends Volatile< T > > volatileSource = sourcePair.getVolatileSource();
-		final String transformedImageName = getTransformedName( image );
+		final String transformedName = getTransformedName( image );
 
-		final TransformedSource transformedSource = new TransformedSource( source, transformedImageName );
+		final TransformedSource transformedSource = new TransformedSource( source, transformedName );
 		transformedSource.setFixedTransform( affineTransform3D );
 		final TransformedSource volatileTransformedSource = new TransformedSource( volatileSource, transformedSource );
 

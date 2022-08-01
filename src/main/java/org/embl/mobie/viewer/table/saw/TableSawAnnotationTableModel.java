@@ -47,34 +47,26 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	// https://jtablesaw.github.io/tablesaw/userguide/tables.html
 	private Table getTable()
 	{
+		// TODO: MUST implement column merging
 		if ( table == null )
 		{
 			for ( String columnPath : loadedColumnPaths() )
 			{
 				try
 				{
-					final InputStream inputStream = IOHelper.getInputStream( columnPath );
+					final String tableContent = IOHelper.read( columnPath );
 					// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
-					CsvReadOptions.Builder builder = CsvReadOptions.builder( inputStream ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" );
-					final Table table = Table.read().usingOptions( builder );
-					if ( this.table == null )
+					CsvReadOptions.Builder builder = CsvReadOptions.builderFromString( tableContent ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" );
+					this.table = Table.read().usingOptions( builder );
+					final int rowCount = table.rowCount();
+					for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 					{
-						this.table = table;
-						final int rowCount = table.rowCount();
-						for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
-						{
-							final A annotation = annotationCreator.create( table.row( rowIndex ) );
-							annotationToRowIndex.put( annotation, rowIndex );
-							rowIndexToAnnotation.put( rowIndex, annotation );
-						}
+						final A annotation = annotationCreator.create( table.row( rowIndex ) );
+						annotationToRowIndex.put( annotation, rowIndex );
+						rowIndexToAnnotation.put( rowIndex, annotation );
 					}
-					else
-					{
-						throw new UnsupportedOperationException("Merging additional columns is not yet supported.");
-						// TODO: merging of columns
-						// https://www.javadoc.io/doc/tech.tablesaw/tablesaw-core/0.34.1/tech/tablesaw/joining/DataFrameJoiner.html
-					}
-				} catch ( IOException e )
+				}
+				catch ( IOException e )
 				{
 					throw new RuntimeException( e );
 				}
@@ -103,19 +95,19 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	}
 
 	@Override
-	public int numRows()
+	public int numAnnotations()
 	{
 		return getTable().rowCount();
 	}
 
 	@Override
-	public int indexOf( A annotation )
+	public int rowIndexOf( A annotation )
 	{
 		return annotationToRowIndex.get( annotation );
 	}
 
 	@Override
-	public A row( int rowIndex )
+	public A annotation( int rowIndex )
 	{
 		getTable(); // ensures that the data is loaded
 		return rowIndexToAnnotation.get( rowIndex );
@@ -157,7 +149,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	}
 
 	@Override
-	public Set< A > rows()
+	public Set< A > annotations()
 	{
 		return annotationToRowIndex.keySet();
 	}

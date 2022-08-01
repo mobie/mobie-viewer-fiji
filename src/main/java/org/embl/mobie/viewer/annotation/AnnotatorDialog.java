@@ -83,7 +83,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 		this.tableModel = tableModel;
 		this.selectionModel = selectionModel;
 		this.rowSorter = rowSorter;
-		this.currentlySelectedRow = tableModel.row( rowSorter.convertRowIndexToModel( 0 ) );
+		this.currentlySelectedRow = tableModel.annotation( rowSorter.convertRowIndexToModel( 0 ) );
 		setUIFieldNames( tableModel );
 		selectionModel.listeners().add( this );
 
@@ -95,7 +95,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 
 		this.coloringModel = columnNameToColoringModel.get( annotationColumnName );
 
-		annotations = tableModel.rows();
+		annotations = tableModel.annotations();
 		this.panel = new JPanel();
 	}
 
@@ -107,7 +107,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 	private void setUIFieldNames( AnnotationTableModel< A > tableModel )
 	{
 		// TODO: rather implement getType() for tableModel?
-		if ( tableModel.row( 0 ) instanceof SegmentAnnotation )
+		if ( tableModel.annotation( 0 ) instanceof SegmentAnnotation )
 		{
 			objectName = "segment";
 		}
@@ -289,8 +289,8 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 		next.addActionListener( e ->
 		{
 			// rowIndex in currently visible table
-			int rowIndex = rowSorter.convertRowIndexToView( tableModel.indexOf( currentlySelectedRow ) );
-			final int numRows = tableModel.numRows();
+			int rowIndex = rowSorter.convertRowIndexToView( tableModel.rowIndexOf( currentlySelectedRow ) );
+			final int numRows = tableModel.numAnnotations();
 			if ( rowIndex < numRows - 1 )
 			{
 				A row = null;
@@ -298,7 +298,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 				{
 					while ( rowIndex < numRows - 1 )
 					{
-						row = tableModel.row( rowSorter.convertRowIndexToModel( ++rowIndex ) );
+						row = tableModel.annotation( rowSorter.convertRowIndexToModel( ++rowIndex ) );
 						if ( isNoneOrNan( row ) )
 						{
 							row = null;
@@ -318,7 +318,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 
 				} else
 				{
-					row = tableModel.row( rowSorter.convertRowIndexToModel( ++rowIndex ) );
+					row = tableModel.annotation( rowSorter.convertRowIndexToModel( ++rowIndex ) );
 				}
 				selectRow( row );
 			} else
@@ -353,7 +353,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 		previous.addActionListener( e ->
 		{
 			// row index in sorted "units"
-			int rowIndex = rowSorter.convertRowIndexToView( tableModel.indexOf( currentlySelectedRow ) );
+			int rowIndex = rowSorter.convertRowIndexToView( tableModel.rowIndexOf( currentlySelectedRow ) );
 			if ( rowIndex > 0 )
 			{
 				A row = null;
@@ -361,7 +361,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 				{
 					while ( rowIndex > 0 )
 					{
-						row = tableModel.row( rowSorter.convertRowIndexToModel( --rowIndex ) );
+						row = tableModel.annotation( rowSorter.convertRowIndexToModel( --rowIndex ) );
 						if ( isNoneOrNan( row ) )
 						{
 							row = null;
@@ -381,7 +381,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 				}
 				else
 				{
-					row = tableModel.row( rowSorter.convertRowIndexToModel( --rowIndex ) );
+					row = tableModel.annotation( rowSorter.convertRowIndexToModel( --rowIndex ) );
 					selectRow( row );
 				}
 			}

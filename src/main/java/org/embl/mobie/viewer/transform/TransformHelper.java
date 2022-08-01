@@ -65,7 +65,6 @@ public class TransformHelper
 		return union;
 	}
 
-
 	public static SourceAndConverter< ? > centerAtOrigin( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final AffineTransform3D translate = new AffineTransform3D();

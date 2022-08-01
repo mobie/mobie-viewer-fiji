@@ -33,6 +33,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import net.imglib2.type.numeric.integer.UnsignedIntType;
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotation.SegmentAnnotation;
@@ -58,10 +59,18 @@ import org.embl.mobie.viewer.source.AnnotatedImage;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.AnnotatedLabelImage;
+import org.embl.mobie.viewer.source.RegionLabelImage;
+import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.source.TransformedImage;
 import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
+import org.embl.mobie.viewer.table.DefaultAnnData;
+import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableView;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
+import org.embl.mobie.viewer.table.saw.TableSawImageAnnotation;
+import org.embl.mobie.viewer.table.saw.TableSawImageAnnotationCreator;
 import org.embl.mobie.viewer.transform.AnnotatedSegmentTransformer;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
@@ -279,14 +288,11 @@ public class ViewManager
 		final Set< String > imageNames = view.getImageNames();
 		if ( imageNames.size() == 0 ) return;
 
-		// determine sources that can be directly opened
-		// (some others may only be available via a transformation)
-		final List< String > sourceNames = imageNames.stream().filter( s -> ( moBIE.getDataset().sources.containsKey( s ) ) ).collect( Collectors.toList() );
+		// instantiate images that can be directly opened
+		// some others may be created later, by a display or transformation
+		final List< String > imageSourceNames = imageNames.stream().filter( s -> ( moBIE.getDataset().sources.containsKey( s ) ) ).collect( Collectors.toList() );
+		moBIE.initImages( imageSourceNames );
 
-		// init images
-		// note that currently all sources will
-		// result in an image.
-		moBIE.initImages( sourceNames );
 		final Map< String, Image< ? > > images = ImageStore.images;
 
 		// transform images
@@ -320,6 +326,35 @@ public class ViewManager
 				}
 			}
 		}
+
+		// instantiate images that are created by a display
+		//
+		for ( Display< ? > sourceDisplay : view.getSourceDisplays() )
+		{
+			// https://github.com/mobie/mobie-viewer-fiji/issues/818
+			if ( sourceDisplay instanceof ImageAnnotationDisplay )
+			{
+				final ImageAnnotationDisplay< ? > imageAnnotationDisplay = ( ImageAnnotationDisplay< ? > ) sourceDisplay;
+				final Map< TableDataFormat, StorageLocation > tableData = imageAnnotationDisplay.tableData;
+				// note that the imageNames that are referred to here must exist in this view
+				// thus we do this *after* the above transformations, which may create new
+				// images that could be referred to.
+				final Map< String, List< String > > regionIdToImageNames = imageAnnotationDisplay.sources;
+				final Set< String > columnPaths = moBIE.getTablePaths( tableData );
+				final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findAny().get();
+				final TableSawAnnotationCreator< TableSawImageAnnotation > annotationCreator = new TableSawImageAnnotationCreator( regionIdToImageNames );
+				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
+				final Set annotations = tableModel.annotations();
+				final Image< UnsignedIntType > labelImage = new RegionLabelImage( imageAnnotationDisplay.getName(), annotations );
+				final DefaultAnnData< TableSawImageAnnotation > annData = new DefaultAnnData<>( tableModel );
+				final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( labelImage, annData );
+
+				// label image representing
+				// image annotations
+				ImageStore.images.put( annotatedLabelImage.getName(), annotatedLabelImage );
+			}
+		}
+
 	}
 
 	private AnnotatedLabelImage< ? extends SegmentAnnotation > transform( ImageTransformation transformation, AnnotatedLabelImage< ? extends SegmentAnnotation > annotatedLabelImage )

@@ -18,7 +18,7 @@ public class SwingTableModel implements TableModel
 	@Override
 	public int getRowCount()
 	{
-		return tableModel.numRows();
+		return tableModel.numAnnotations();
 	}
 
 	@Override
@@ -49,7 +49,7 @@ public class SwingTableModel implements TableModel
 	@Override
 	public Object getValueAt( int rowIndex, int columnIndex )
 	{
-		return tableModel.row( rowIndex ).getValue( getColumnName( columnIndex ) );
+		return tableModel.annotation( rowIndex ).getValue( getColumnName( columnIndex ) );
 	}
 
 	@Override

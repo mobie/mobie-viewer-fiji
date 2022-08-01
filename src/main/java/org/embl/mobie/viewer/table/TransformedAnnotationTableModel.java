@@ -46,23 +46,23 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	}
 
 	@Override
-	public int numRows()
+	public int numAnnotations()
 	{
-		return annotationTableModel.numRows();
+		return annotationTableModel.numAnnotations();
 	}
 
 	@Override
-	public int indexOf( TA annotation )
+	public int rowIndexOf( TA annotation )
 	{
 		return 0;
 	}
 
 	@Override
-	public TA row( int rowIndex )
+	public TA annotation( int rowIndex )
 	{
 		if ( ! indexToRow.containsKey( rowIndex ) )
 		{
-			final TA row = transformer.transform( annotationTableModel.row( rowIndex ) );
+			final TA row = transformer.transform( annotationTableModel.annotation( rowIndex ) );
 			rowToIndex.put( row, rowIndex );
 			indexToRow.put( rowIndex, row );
 		}
@@ -101,7 +101,7 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	}
 
 	@Override
-	public Set< TA > rows()
+	public Set< TA > annotations()
 	{
 		return rowToIndex.keySet();
 	}

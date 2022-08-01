@@ -39,7 +39,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 
 			if ( tableModel.isDataLoaded() )
 			{
-				final Set< A > rows = tableModel.rows();
+				final Set< A > rows = tableModel.annotations();
 				for ( A row : rows )
 				{
 					annotationToRowIndex.put( row, numRows );
@@ -70,19 +70,19 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	}
 
 	@Override
-	public int numRows()
+	public int numAnnotations()
 	{
 		return numRows;
 	}
 
 	@Override
-	public int indexOf( A annotation )
+	public int rowIndexOf( A annotation )
 	{
 		return getAnnotationToRowIndex().get( annotation );
 	}
 
 	@Override
-	public A row( int rowIndex )
+	public A annotation( int rowIndex )
 	{
 		// We do not update the tables here,
 		// because one should only ask for
@@ -128,7 +128,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	}
 
 	@Override
-	public Set< A > rows()
+	public Set< A > annotations()
 	{
 		return getAnnotationToRowIndex().keySet();
 	}

@@ -192,11 +192,11 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 	{
 		if ( tableModel.columnNames().contains( ColumnNames.TIMEPOINT ) )
 		{
-			return tableModel.rows().stream().filter( a -> (int) a.getValue( ColumnNames.TIMEPOINT ) == currentTimePoint ).collect( Collectors.toList() );
+			return tableModel.annotations().stream().filter( a -> (int) a.getValue( ColumnNames.TIMEPOINT ) == currentTimePoint ).collect( Collectors.toList() );
 		}
 		else
 		{
-			return tableModel.rows();
+			return tableModel.annotations();
 		}
 	}
 

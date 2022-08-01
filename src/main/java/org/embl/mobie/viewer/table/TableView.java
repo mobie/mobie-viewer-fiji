@@ -277,7 +277,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		final JMenuItem menuItem = new JMenuItem( "Select All" );
 		menuItem.addActionListener( e ->
 				SwingUtilities.invokeLater( () ->
-						selectionModel.setSelected( tableModel.rows(), true ) ) );
+						selectionModel.setSelected( tableModel.annotations(), true ) ) );
 		return menuItem;
 	}
 
@@ -370,7 +370,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		ArrayList< A > selectedTableRows = new ArrayList<>();
 		ArrayList< A > notSelectedTableRows = new ArrayList<>();
-		final Set< A > rows = tableModel.rows();
+		final Set< A > rows = tableModel.annotations();
 		for( A row: rows ) {
 			boolean valuesMatch;
 
@@ -409,7 +409,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		ArrayList< A > selectedTableRows = new ArrayList<>();
 		ArrayList< A > notSelectedTableRows = new ArrayList<>();
-		final Set< A > rows = tableModel.rows();
+		final Set< A > rows = tableModel.annotations();
 		for( A row: rows ) {
 
 			boolean criteriaMet;
@@ -519,7 +519,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 				final int rowIndex = jTable.convertRowIndexToModel( recentlySelectedRowInView );
 
-				final A object = tableModel.row( rowIndex );
+				final A object = tableModel.annotation( rowIndex );
 
 				selectionMode = controlKeyPressed ? TableRowSelectionMode.ToggleSelectionAndFocusIfSelected : TableRowSelectionMode.FocusOnly;
 
@@ -544,7 +544,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	private synchronized void moveToSelectedTableRow( A selection )
 	{
-		final int rowInView = jTable.convertRowIndexToView( tableModel.indexOf( selection ) );
+		final int rowInView = jTable.convertRowIndexToView( tableModel.rowIndexOf( selection ) );
 
 		if ( rowInView == recentlySelectedRowInView ) return;
 
@@ -578,9 +578,9 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		Logger.info( " "  );
 		Logger.info( "Value, R, G, B"  );
 
-		for ( int rowIndex = 0; rowIndex < tableModel.numRows(); rowIndex++ )
+		for ( int rowIndex = 0; rowIndex < tableModel.numAnnotations(); rowIndex++ )
 		{
-			final A annotation = tableModel.row( rowIndex );
+			final A annotation = tableModel.annotation( rowIndex );
 			final String value = annotation.getValue( coloringColumnName ).toString();
 			final ARGBType argbType = new ARGBType();
 			coloringModel.convert( annotation, argbType );
@@ -766,7 +766,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		final int row = jTable.convertRowIndexToModel( rowIndexInView );
 
 		final ARGBType argbType = new ARGBType();
-		final A tableRow = tableModel.row( row );
+		final A tableRow = tableModel.annotation( row );
 		coloringModel.convert( tableRow, argbType );
 
 		if ( ARGBType.alpha( argbType.get() ) == 0 )

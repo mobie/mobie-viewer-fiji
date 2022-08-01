@@ -75,9 +75,8 @@ public class TableSawImageAnnotation implements ImageAnnotation
 	public RealMaskRealInterval mask()
 	{
 		if ( realMaskRealInterval == null )
-		{
 			realMaskRealInterval = getUnionMask( imageNames, timePoint() );
-		}
+
 		return realMaskRealInterval;
 	}
 
