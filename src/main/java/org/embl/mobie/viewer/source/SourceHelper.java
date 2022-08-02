@@ -33,15 +33,13 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.ResampledSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.transform.RealIntervalProvider;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
-import net.imglib2.util.Intervals;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -136,10 +134,10 @@ public abstract class SourceHelper
 				fetchRootSources( gridSource.getSpimSource(), rootSources );
 			}
 		}
-		else if (  source instanceof FunctionGridSource )
+		else if ( source instanceof StitchedImage )
 		{
-			final FunctionGridSource< ? > functionGridSource = ( FunctionGridSource ) source;
-			final List< ? extends Source< ? > > gridSources = functionGridSource.getGridSources();
+			final StitchedImage< ?, ? > stitchedImage = ( StitchedImage ) source;
+			final List< ? extends Source< ? > > gridSources = stitchedImage.getImages();
 			for ( Source< ? > gridSource : gridSources )
 			{
 				fetchRootSources( gridSource, rootSources );
@@ -157,51 +155,16 @@ public abstract class SourceHelper
 		}
 	}
 
-	public static Source< ? > fetchRootSource( Source< ? > source )
-	{
-		final Set< Source< ? > > rootSources = new HashSet<>();
-		fetchRootSources( source, rootSources );
-		return rootSources.iterator().next();
-	}
-
-	public static RealMaskRealInterval getUnionMask( List< ? extends Source< ? > > sources, int t )
-	{
-		RealMaskRealInterval union = null;
-
-		for ( Source< ? > source : sources )
-		{
-			final RealMaskRealInterval mask = SourceHelper.getMask( source, t );
-
-			if ( union == null )
-			{
-				union = mask;
-			}
-			else
-			{
-				if ( Intervals.equals( mask, union ) )
-				{
-					continue;
-				}
-				else
-				{
-					union = union.or( mask );
-				}
-			}
-		}
-
-		return union;
-	}
-
 	public static RealMaskRealInterval getMask( Source< ? > source, int t )
 	{
 		// fetch the extent of the source in voxel space
 		final double[] min = new double[ 3 ];
 		final double[] max = new double[ 3 ];
 
-		final RealIntervalProvider realIntervalProvider = SourceHelper.unwrapSource( source, RealIntervalProvider.class );
-		if ( realIntervalProvider != null )
+		final RealBounded realBounded = SourceHelper.unwrapSource( source, RealBounded.class );
+		if ( realBounded != null )
 		{
-			final FinalRealInterval realInterval = realIntervalProvider.getRealInterval( t );
+			final RealInterval realInterval = realBounded.getBounds( t );
 			realInterval.realMin( min );
 			realInterval.realMax( max );
 		}

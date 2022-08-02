@@ -117,7 +117,7 @@ public class TransformHelper
 		for ( List< String > sourceNames : sourceNamesList )
 		{
 			final List< SourceAndConverter< ? > > sourceAndConverters = sourceNames.stream().map( name -> sourceNameToSourceAndConverter.get( name ) ).collect( Collectors.toList() );
-			final double[] realDimensions = computeSourceUnionRealDimensions( sourceAndConverters, TransformedGridImageTransformation.RELATIVE_CELL_MARGIN, 0 );
+			final double[] realDimensions = computeSourceUnionRealDimensions( sourceAndConverters, TransformedGridTransformation.RELATIVE_CELL_MARGIN, 0 );
 			for ( int d = 0; d < 2; d++ )
 				maximalDimensions[ d ] = realDimensions[ d ] > maximalDimensions[ d ] ? realDimensions[ d ] : maximalDimensions[ d ];
 		}

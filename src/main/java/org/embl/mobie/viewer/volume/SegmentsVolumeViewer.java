@@ -36,7 +36,7 @@ import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij3d.Content;
 import ij3d.Image3DUniverse;
 import ij3d.UniverseListener;
-import org.embl.mobie.viewer.VisibilityListener;
+import org.embl.mobie.viewer.display.VisibilityListener;
 import org.embl.mobie.viewer.annotation.Segment;
 import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.color.ColoringListener;

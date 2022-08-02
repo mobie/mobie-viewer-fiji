@@ -30,11 +30,11 @@ package org.embl.mobie.viewer.transform;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
-import org.embl.mobie.viewer.source.Image;
-import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.viewer.transform.image.StitchingTransformation;
 import org.embl.mobie.viewer.transform.image.Transformation;
 
 import java.util.ArrayList;
@@ -42,8 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
-// TODO: should this implement ImageTransformation?
-public class TransformedGridImageTransformation< T > implements Transformation
+public abstract class AbstractGridTransformation< T > implements StitchingTransformation< T >
 {
 	// Serialization
 	protected List< List< String > > nestedSources;
@@ -53,6 +52,9 @@ public class TransformedGridImageTransformation< T > implements Transformation
 
 	// Static
 	public static final double RELATIVE_CELL_MARGIN = 0.1;
+
+	// Runtime
+	protected int numPositions;
 
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
@@ -131,9 +133,8 @@ public class TransformedGridImageTransformation< T > implements Transformation
 		}
 	}
 
-	private void autoSetPositions()
+	protected void autoSetPositions()
 	{
-		final int numPositions = nestedSources.size();
 		final int numX = ( int ) Math.ceil( Math.sqrt( numPositions ) );
 		positions = new ArrayList<>();
 		int xPositionIndex = 0;

@@ -29,25 +29,26 @@
 package org.embl.mobie.viewer.source;
 
 import bdv.util.Affine3DHelpers;
-import bdv.util.DefaultInterpolators;
-import bdv.viewer.Interpolation;
+import bdv.util.RandomAccessibleIntervalMipmapSource;
+import bdv.util.VolatileRandomAccessibleIntervalMipmapSource;
+import bdv.util.volatiles.VolatileTypeMatcher;
 import bdv.viewer.Source;
-import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.transform.RealIntervalProvider;
-import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealRandomAccessible;
+import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
+import org.embl.mobie.viewer.MoBIEHelper;
+import org.embl.mobie.viewer.MultiThreading;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,69 +58,142 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
-public class FunctionGridSource< N extends NumericType< N > > implements Source< N >, RealIntervalProvider
+public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > & NumericType< V > > implements Image< N >
 {
 	private final N type;
 	private final Source< N > referenceSource;
-	private final String mergedGridSourceName;
-	private final List< RandomAccessibleInterval< N > > stitchedRAIs;
-	private final DefaultInterpolators< N > interpolators;
-	private final List< Source< N > > gridSources;
+	private final String name;
+	private final List< Image< N > > images;
 	private final List< int[] > positions;
 	private final double relativeCellMargin;
 	private int[][] cellDimensions;
 	private double[] cellRealDimensions;
-	private FinalRealInterval realInterval;
+	private FinalRealInterval imageBounds;
 	private int numMipmapLevels;
+	private double[][] downSamplingFactors;
+	private DefaultSourcePair< N > sourcePair;
+	private V volatileType;
 
-	public FunctionGridSource( List< Source< N > > gridSources, List< int[] > positions, String mergedGridSourceName, double relativeCellMargin )
+	public StitchedImage( List< Image< N > > images, List< int[] > positions, String imageName, double relativeCellMargin )
 	{
-		this.gridSources = gridSources;
+		this.images = images;
 		this.positions = positions;
 		this.relativeCellMargin = relativeCellMargin;
-		this.interpolators = new DefaultInterpolators();
-		this.referenceSource = gridSources.get( 0 );
-		this.mergedGridSourceName = mergedGridSourceName;
+		this.referenceSource = images.iterator().next().getSourcePair().getSource();
+		this.name = imageName;
 		this.type = referenceSource.getType();
+		this.volatileType = ( V ) VolatileTypeMatcher.getVolatileTypeForType( ( NativeType ) type );
+		this.numMipmapLevels = referenceSource.getNumMipmapLevels();
 
 		setCellAndSourceDimensions();
-		stitchedRAIs = stitchRAIs();
+		createSourcePair();
 	}
 
-	public List< Source< N > > getGridSources()
+	public List< Source< N > > getImages()
 	{
-		return gridSources;
+		// TODO
+		return null;
 	}
 
 	private void setCellAndSourceDimensions()
 	{
-		numMipmapLevels = referenceSource.getNumMipmapLevels();
 		setCellDimensions();
 		setCellRealDimensions( cellDimensions[ 0 ] );
 		setMask( positions, cellDimensions[ 0 ] );
 	}
 
-	private List< RandomAccessibleInterval< N > > stitchRAIs()
+	private void createSourcePair()
 	{
-		final List< RandomAccessibleInterval< N >> mergedRAIs = new ArrayList<>();
-		final RandomAccessSupplier< N >[][] randomAccessGrid = randomAccessGrid();
+		// non-volatile
+		//
+		final RandomAccessSupplier[][] randomAccessGrid = randomAccessGrid( false );
 
+		final List< RandomAccessibleInterval< N > > mipmapRAIs = createStitchedRAIs( randomAccessGrid );
+
+		final RandomAccessibleIntervalMipmapSource< N > source = new RandomAccessibleIntervalMipmapSource<>(
+				mipmapRAIs.toArray( new RandomAccessibleInterval[ 0 ] ),
+				type,
+				downSamplingFactors, // TODO: correct??
+				referenceSource.getVoxelDimensions(),
+				name );
+
+
+		// volatile
+		//
+		final RandomAccessSupplier[][] volatileGrid = randomAccessGrid( true );
+
+		final List< RandomAccessibleInterval< V > > volatileMipmapRAIs = createVolatileStitchedRAIs( volatileGrid );
+
+		final RandomAccessibleIntervalMipmapSource< V > volatileSource = new RandomAccessibleIntervalMipmapSource<>(
+				volatileMipmapRAIs.toArray( new RandomAccessibleInterval[ 0 ] ),
+				volatileType,
+				downSamplingFactors, // TODO: correct??
+				referenceSource.getVoxelDimensions(),
+				name );
+
+
+		sourcePair = new DefaultSourcePair<>( source, volatileSource );
+	}
+
+	private List< RandomAccessibleInterval< V > > createVolatileStitchedRAIs( RandomAccessSupplier< V >[][] randomAccessGrid )
+	{
+		final List< RandomAccessibleInterval< V >> stitchedRAIs = new ArrayList<>();
+		for ( int l = 0; l < numMipmapLevels; l++ )
+		{
+			final int[] cellDimension = cellDimensions[ l ];
+			final int level = l;
+			BiConsumer< Localizable, V > biConsumer = ( location, value ) ->
+			{
+				int x = location.getIntPosition( 0 );
+				int y = location.getIntPosition( 1 );
+				final int xCellIndex = x / cellDimension[ 0 ];
+				final int yCellIndex = y / cellDimension[ 1 ];
+				// TODO: move this into the function computeTranslation
+				x = x - xCellIndex * cellDimension [ 0 ];
+				y = y - yCellIndex * cellDimension [ 1 ];
+
+				final RandomAccessSupplier< V > randomAccessSupplier = randomAccessGrid[ xCellIndex ][ yCellIndex ];
+
+				if ( randomAccessSupplier == null )
+					return; // grid position is empty
+
+				final Status status = randomAccessSupplier.status( level );
+				if ( status.equals( Status.Open ) )
+				{
+					final V numericType = randomAccessSupplier.get( level, x, y, location.getIntPosition( 2 ) );
+					value.set( numericType );
+					value.setValid( true );
+				}
+				else if ( status.equals( Status.Opening ) )
+				{
+					value.setValid( false );
+				}
+				else if ( status.equals( Status.Closed ) )
+				{
+					value.setValid( false );
+					new Thread( () -> randomAccessSupplier.open( level ) ).start();
+				}
+			};
+
+			final FunctionRandomAccessible< V > randomAccessible = new FunctionRandomAccessible( 3, biConsumer, () -> volatileType.createVariable() );
+			final long[] dimensions = getDimensions( positions, cellDimension );
+			final IntervalView< V > rai = Views.interval( randomAccessible, new FinalInterval( dimensions ) );
+			stitchedRAIs.add( rai );
+		}
+
+		return stitchedRAIs;
+	}
+
+
+	private List< RandomAccessibleInterval< N > > createStitchedRAIs( RandomAccessSupplier< N >[][] randomAccessGrid )
+	{
+		final List< RandomAccessibleInterval< N >> stitchedRAIs = new ArrayList<>();
 		for ( int l = 0; l < numMipmapLevels; l++ )
 		{
 			final int[] cellDimension = cellDimensions[ l ];
 			final int level = l;
 			BiConsumer< Localizable, N > biConsumer = ( location, value ) ->
 			{
-				// TODO:
-				//  Remove as many as possible if statements,
-				//  Probably the easiest would be if all the sources were
-				//  VolatileLazySpimSource
-				//  Although for clicking on the labels we probably also need LazySpimSource. One could create a specific biconsumer of Volatile and non-Volatile
-				//  or have a final variable determine the if statements such that the
-				//  Or create a dedicated VolatileFunctionGridSource (probably the cleanest solution) and put all common functionality into AbstractFunctionGridSource.
-				//  compiler can remove the if statements.
-				//  1. create class that can return the already translated
-				//  sources (or load them if they don't exist yet).
 				int x = location.getIntPosition( 0 );
 				int y = location.getIntPosition( 1 );
 				final int xCellIndex = x / cellDimension[ 0 ];
@@ -131,33 +205,19 @@ public class FunctionGridSource< N extends NumericType< N > > implements Source<
 				final RandomAccessSupplier< N > randomAccessSupplier = randomAccessGrid[ xCellIndex ][ yCellIndex ];
 
 				if ( randomAccessSupplier == null )
+				{
 					return; // grid position is empty
+				}
 
-				final RandomAccessibleStatus randomAccessibleStatus = randomAccessSupplier.status( level );
-				if ( randomAccessibleStatus.equals( RandomAccessibleStatus.Open ) )
-				{
-					final N numericType = randomAccessSupplier.get( level, x, y, location.getIntPosition( 2 ) );
-					value.set( numericType ); // which may be volatile!
-				}
-				else if ( randomAccessibleStatus.equals( RandomAccessibleStatus.Opening ) )
-				{
-					// TODO: this will crash for non-volatile access.
-					( ( Volatile<?> ) value ).setValid( false );
-				}
-				else if ( randomAccessibleStatus.equals( RandomAccessibleStatus.Closed ) )
-				{
-					(( Volatile<?> ) value ).setValid( false );
-					new Thread( () -> randomAccessSupplier.open( level ) ).start();
-				}
+				value.set( randomAccessSupplier.get( level, x, y, location.getIntPosition( 2 ) ) );
 			};
 
 			final FunctionRandomAccessible< N > randomAccessible = new FunctionRandomAccessible( 3, biConsumer, () -> type.createVariable() );
 			final long[] dimensions = getDimensions( positions, cellDimension );
 			final IntervalView< N > rai = Views.interval( randomAccessible, new FinalInterval( dimensions ) );
-			mergedRAIs.add( rai );
+			stitchedRAIs.add( rai );
 		}
-
-		return mergedRAIs;
+		return stitchedRAIs;
 	}
 
 	private void setCellRealDimensions( int[] cellDimension )
@@ -173,7 +233,7 @@ public class FunctionGridSource< N extends NumericType< N > > implements Source<
 
 	public FinalRealInterval getRealMask()
 	{
-		return realInterval;
+		return imageBounds;
 	}
 
 	public double[] getCellRealDimensions()
@@ -201,7 +261,7 @@ public class FunctionGridSource< N extends NumericType< N > > implements Source<
 						);
 		}
 
-		double[][] downSamplingFactors = new double[ numMipmapLevels ][ numDimensions ];
+		downSamplingFactors = new double[ numMipmapLevels ][ numDimensions ];
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
 				downSamplingFactors[ level ][ d ] = voxelSizes[ level ][ d ] / voxelSizes[ level - 1 ][ d ];
@@ -236,7 +296,7 @@ public class FunctionGridSource< N extends NumericType< N > > implements Source<
 			}
 	}
 
-	private RandomAccessSupplier< N >[][] randomAccessGrid( )
+	private RandomAccessSupplier[][] randomAccessGrid( boolean asVolatile )
 	{
 		int[] maxPos = getMaxPositions();
 
@@ -246,11 +306,18 @@ public class FunctionGridSource< N extends NumericType< N > > implements Source<
 			final int[] position = positions.get( positionIndex );
 			for ( int level = 0; level < numMipmapLevels; level++ )
 			{
-				final RandomAccessSupplier< N > randomAccessSupplier = new RandomAccessSupplier( gridSources.get( positionIndex ) );
-				randomAccesses[ position[ 0 ] ][ position[ 1 ] ] = randomAccessSupplier;
+				if ( asVolatile )
+				{
+					final RandomAccessSupplier< V > randomAccessSupplier = new RandomAccessSupplier( images.get( positionIndex ).getSourcePair().getVolatileSource() );
+					randomAccesses[ position[ 0 ] ][ position[ 1 ] ] = randomAccessSupplier;
+				}
+				else
+				{
+					final RandomAccessSupplier< N > randomAccessSupplier = new RandomAccessSupplier( images.get( positionIndex ).getSourcePair().getSource() );
+					randomAccesses[ position[ 0 ] ][ position[ 1 ] ] = randomAccessSupplier;
+				}
 			}
 		}
-
 		return randomAccesses;
 	}
 
@@ -307,7 +374,7 @@ public class FunctionGridSource< N extends NumericType< N > > implements Source<
 			max[ d ] = ( maxPos[ d ] + 1 ) * cellDimensions[ d ] * scale;
 		}
 
-		realInterval = new FinalRealInterval( min, max );
+		imageBounds = new FinalRealInterval( min, max );
 	}
 
 	private static long[] computeTranslation( int[] cellDimensions, long[] dataDimensions )
@@ -327,78 +394,24 @@ public class FunctionGridSource< N extends NumericType< N > > implements Source<
 	}
 
 	@Override
-	public boolean isPresent( int t )
+	public SourcePair< N > getSourcePair()
 	{
-		return referenceSource.isPresent( t );
-	}
-
-	@Override
-	public RandomAccessibleInterval< N > getSource( int t, int level )
-	{
-		if ( t != 0 )
-		{
-			throw new UnsupportedOperationException( "Multiple time points not yet implemented for merged grid source."); // TODO
-		}
-		return stitchedRAIs.get( level );
-	}
-
-	@Override
-	public boolean doBoundingBoxCulling()
-	{
-		return referenceSource.doBoundingBoxCulling();
-	}
-
-	@Override
-	public RealRandomAccessible< N > getInterpolatedSource( int t, int level, Interpolation method )
-	{
-		if ( type instanceof NumericType )
-		{
-			return Views.interpolate( Views.extendZero( getSource( t, level ) ), interpolators.get( method ) );
-		}
-		else
-		{
-			// TODO: don't extend with zero but with the default variable.
-			return Views.interpolate( Views.extendZero( getSource( t, level ) ), interpolators.get( Interpolation.NEARESTNEIGHBOR ) );
-		}
-	}
-
-	@Override
-	public void getSourceTransform( int t, int level, AffineTransform3D affineTransform3D )
-	{
-		referenceSource.getSourceTransform( t, level, affineTransform3D );
-	}
-
-	@Override
-	public N getType()
-	{
-		return type;
+		return null;
 	}
 
 	@Override
 	public String getName()
 	{
-		return mergedGridSourceName;
+		return name;
 	}
 
 	@Override
-	public VoxelDimensions getVoxelDimensions()
+	public RealInterval getBounds( int t )
 	{
-		return referenceSource.getVoxelDimensions();
+		return imageBounds;
 	}
 
-	@Override
-	public int getNumMipmapLevels()
-	{
-		return referenceSource.getNumMipmapLevels();
-	}
-
-	@Override
-	public FinalRealInterval getRealInterval( int t )
-	{
-		return realInterval;
-	}
-
-	enum RandomAccessibleStatus
+	enum Status
 	{
 		Closed,
 		Opening,
@@ -410,7 +423,7 @@ public class FunctionGridSource< N extends NumericType< N > > implements Source<
 		private final Source< T > source;
 		private Map< Integer, RandomAccess< T > > levelToRandomAccess;
 		private Map< Integer, RandomAccessible< T > > levelToRandomAccessible;
-		private Map< Integer, FunctionGridSource.RandomAccessibleStatus > levelToStatus;
+		private Map< Integer, Status > levelToStatus;
 
 		public RandomAccessSupplier( Source< T > source )
 		{
@@ -419,7 +432,7 @@ public class FunctionGridSource< N extends NumericType< N > > implements Source<
 			levelToRandomAccessible = new ConcurrentHashMap<>();
 			levelToStatus = new ConcurrentHashMap<>();
 			for ( int level = 0; level < numMipmapLevels; level++ )
-				levelToStatus.put( level, RandomAccessibleStatus.Closed );
+				levelToStatus.put( level, Status.Closed );
 		}
 
 		public T get( int level, int x, int y, int z )
@@ -431,7 +444,7 @@ public class FunctionGridSource< N extends NumericType< N > > implements Source<
 			return value;
 		}
 
-		public FunctionGridSource.RandomAccessibleStatus status( int level )
+		public Status status( int level )
 		{
 			return levelToStatus.get( level );
 		}
@@ -441,7 +454,7 @@ public class FunctionGridSource< N extends NumericType< N > > implements Source<
 			if ( levelToRandomAccess.get( level ) != null )
 				return;
 
-			levelToStatus.put( level, FunctionGridSource.RandomAccessibleStatus.Opening );
+			levelToStatus.put( level, Status.Opening );
 
 			// TODO: t
 			final long l = System.currentTimeMillis();
@@ -453,7 +466,7 @@ public class FunctionGridSource< N extends NumericType< N > > implements Source<
 			levelToRandomAccessible.put( level, translate );
 			levelToRandomAccess.put( level, translate.randomAccess() );
 
-			levelToStatus.put( level, FunctionGridSource.RandomAccessibleStatus.Open );
+			levelToStatus.put( level, Status.Open );
 		}
 	}
 }

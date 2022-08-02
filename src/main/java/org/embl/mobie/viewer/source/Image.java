@@ -1,10 +1,8 @@
 package org.embl.mobie.viewer.source;
 
-import net.imglib2.RealInterval;
 
-public interface Image< T >
+public interface Image< T > extends RealBounded
 {
 	SourcePair< T > getSourcePair();
 	String getName();
-	RealInterval getBounds(); // maybe make a mask
 }

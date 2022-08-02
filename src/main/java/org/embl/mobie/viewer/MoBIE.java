@@ -31,41 +31,39 @@ package org.embl.mobie.viewer;
 import bdv.img.n5.N5ImageLoader;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.tables.TableColumns;
 import de.embl.cba.tables.TableRows;
 import de.embl.cba.tables.tablerow.TableRow;
 import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
-import org.embl.mobie.io.github.GitHubUtils;
-import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
-import org.embl.mobie.viewer.serialize.Data;
-import org.embl.mobie.viewer.serialize.Project;
-import org.embl.mobie.viewer.serialize.SegmentationSource;
-import org.embl.mobie.viewer.serialize.Dataset;
-import org.embl.mobie.viewer.serialize.DatasetJsonParser;
-import org.embl.mobie.viewer.serialize.ImageSource;
-import org.embl.mobie.viewer.serialize.ProjectJsonParser;
-import org.embl.mobie.viewer.source.AnnotatedLabelImage;
-import org.embl.mobie.viewer.source.SpimDataImage;
-import org.embl.mobie.viewer.source.StorageLocation;
-import org.embl.mobie.viewer.table.DefaultAnnData;
-import org.embl.mobie.viewer.table.saw.TableSawSegmentAnnotationCreator;
-import org.embl.mobie.viewer.table.TableDataFormat;
-import org.embl.mobie.viewer.table.TableHelper;
-import org.embl.mobie.viewer.table.saw.TableSawSegmentAnnotation;
-import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
-import org.embl.mobie.viewer.ui.UserInterface;
-import org.embl.mobie.viewer.ui.WindowArrangementHelper;
-import org.embl.mobie.viewer.view.View;
-import org.embl.mobie.viewer.view.ViewManager;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.sequence.ImgLoader;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.io.github.GitHubUtils;
 import org.embl.mobie.io.ome.zarr.loaders.N5OMEZarrImageLoader;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.io.util.S3Utils;
+import org.embl.mobie.viewer.plugins.platybrowser.GeneSearchCommand;
+import org.embl.mobie.viewer.serialize.Data;
+import org.embl.mobie.viewer.serialize.Dataset;
+import org.embl.mobie.viewer.serialize.DatasetJsonParser;
+import org.embl.mobie.viewer.serialize.ImageSource;
+import org.embl.mobie.viewer.serialize.Project;
+import org.embl.mobie.viewer.serialize.ProjectJsonParser;
+import org.embl.mobie.viewer.serialize.SegmentationSource;
+import org.embl.mobie.viewer.source.AnnotatedLabelImage;
+import org.embl.mobie.viewer.source.SpimDataImage;
+import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.table.DefaultAnnData;
+import org.embl.mobie.viewer.table.TableDataFormat;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
+import org.embl.mobie.viewer.table.saw.TableSawSegmentAnnotation;
+import org.embl.mobie.viewer.table.saw.TableSawSegmentAnnotationCreator;
+import org.embl.mobie.viewer.ui.UserInterface;
+import org.embl.mobie.viewer.ui.WindowArrangementHelper;
+import org.embl.mobie.viewer.view.View;
+import org.embl.mobie.viewer.view.ViewManager;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
@@ -378,19 +376,6 @@ public class MoBIE
 		return dataset.sources.get( sourceName );
 	}
 
-	private List< TableRowImageSegment > tryOpenDefaultSegmentsTable( String sourceName )
-	{
-		try
-		{
-			return moBIE.loadImageSegmentsTable( sourceName, "default.tsv", "Open table: " );
-
-		} catch ( Exception e )
-		{
-			// default table does not exist
-			return null;
-		}
-	}
-
 	private ImageDataFormat getAppropriateImageDataFormat( ImageSource imageSource )
 	{
 		for ( ImageDataFormat sourceDataFormat : imageSource.imageData.keySet() )
@@ -486,84 +471,8 @@ public class MoBIE
 		return location;
 	}
 
-	// TODO: probably we should move this functionality SegmentationDisplay!
-	public List< TableRowImageSegment > loadImageSegmentsTable( String sourceName, String tableName, String log )
-	{
-		final SegmentationSource tableSource = ( SegmentationSource ) getData( sourceName );
-		final String tablePath = getTablePath( tableSource, tableName );
-		if ( log != null )
-			IJ.log( log + tablePath );
-		final CsvReadOptions csvReadOptions = CsvReadOptions.builder( IOHelper.getReader( tablePath ) ).separator( '\t' ).build();
-		final Table table = Table.read().usingOptions( csvReadOptions );
-		final List< TableRowImageSegment > segments = MoBIEHelper.readImageSegmentsFromTableFile( tablePath, sourceName );
-		return segments;
-	}
-
-	private List< Map< String, List< String > > > loadSegmentationTables( Collection< String > sources, String tableName )
-	{
-		final List< Map< String, List< String > > > tables = new CopyOnWriteArrayList<>();
-
-		final long start = System.currentTimeMillis();
-		final ExecutorService executorService = MultiThreading.ioExecutorService;
-		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
-		for ( String sourceName : sources )
-		{
-			futures.add(
-				executorService.submit( () -> {
-					Map< String, List< String > > columns = loadColumns( tableName, sourceName );
-					tables.add( columns );
-				} )
-			);
-		}
-		MultiThreading.waitUntilFinished( futures );
-
-		final long durationMillis = System.currentTimeMillis() - start;
-
-		if ( durationMillis > minLogTimeMillis )
-			IJ.log( "Read " + sources.size() + " table(s) in " + durationMillis + " ms, using up to " + MultiThreading.getNumIoThreads() + " thread(s).");
-
-		return tables;
-	}
-
-	public Map< String, List< String > > loadColumns( String tableName, String sourceName )
-	{
-		Map< String, List< String > > columns = TableHelper.loadTableAndAddImageIdColumn( sourceName, getTablePath( ( SegmentationSource ) getData( sourceName ), tableName ) );
-		return columns;
-	}
-
-	private void appendSegmentsTableColumns( List< ? extends TableRow > tableRows, Map< String, List< String > > additionalTable )
-	{
-		// prepare
-		final Map< String, List< String > > columnsForMerging = TableHelper.createColumnsForMerging( tableRows, additionalTable );
-
-		// append
-		for ( Map.Entry< String, List< String > > column : columnsForMerging.entrySet() )
-		{
-			TableRows.addColumn( tableRows, column.getKey(), column.getValue() );
-		}
-	}
-
 	@Deprecated
-	public void appendSegmentTableColumns( List< ? extends TableRow > tableRows, Collection< String > imageSourceNames, List< String > relativeTablePaths )
-	{
-		for ( String table : relativeTablePaths )
-		{
-			// load
-			final List< Map< String, List< String > > > additionalTables = loadSegmentationTables( imageSourceNames, table );
-
-			// concatenate
-			Map< String, List< String > > concatenatedTable = TableColumns.concatenate( additionalTables );
-
-			// merge
-			appendSegmentsTableColumns( tableRows, concatenatedTable );
-		}
-	}
-
-	public String getTableRoot()
-	{
-		return tableRoot;
-	}
-
+	// delegate to BDV-PL
 	public void closeSourceAndConverter( SourceAndConverter< ? > sourceAndConverter, boolean closeImgLoader )
 	{
 		SourceAndConverterServices.getBdvDisplayService().removeFromAllBdvs( sourceAndConverter );

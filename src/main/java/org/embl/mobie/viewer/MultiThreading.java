@@ -69,7 +69,8 @@ public class MultiThreading
 			try
 			{
 				future.get();
-			} catch ( InterruptedException e )
+			}
+			catch ( InterruptedException e )
 			{
 				break; // loading has been interrupted
 			}

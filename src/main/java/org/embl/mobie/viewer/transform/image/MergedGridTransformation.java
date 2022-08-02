@@ -32,16 +32,14 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.VolatileSource;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import ij.IJ;
-import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MultiThreading;
-import org.embl.mobie.viewer.source.FunctionGridSource;
+import org.embl.mobie.viewer.source.StitchedImage;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.MergedGridSource;
 import org.embl.mobie.viewer.source.SourceHelper;
-import org.embl.mobie.viewer.transform.TransformedGridImageTransformation;
+import org.embl.mobie.viewer.transform.AbstractGridTransformation;
+import org.embl.mobie.viewer.transform.TransformedGridTransformation;
 import net.imglib2.RealInterval;
-import net.imglib2.Volatile;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
@@ -51,225 +49,36 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-public class MergedGridTransformation< T extends NumericType< T > > implements StitchingTransformation< T >
+public class MergedGridTransformation< T extends NumericType< T > > extends AbstractGridTransformation< T >
 {
 	// Serialization
 	protected List< String > sources;
 	protected String mergedGridSourceName;
-	protected List< int[] > positions;
 	protected boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
-	protected boolean encodeSource = false; // true for the first time label images are encoded // TODO: (make issue: why does the user have to worry about this? We could always encode if the images are SACAndTable).
+	protected boolean encodeSource = false; // true for the first time label images are encoded // TODO: (we can remove this now).
 
 	// Runtime
-	private transient MergedGridSource< ? > mergedGridSource;
-	private transient double[] translationRealOffset;
-	private transient Set< SourceAndConverter > transformedSourceAndConverters;
-
-	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
-	{
-		if ( centerAtOrigin == true )
-		{
-			// https://github.com/mobie/mobie-viewer-fiji/issues/685
-			IJ.log( "[WARNING]: centerAtOrigin = true, is currently not properly working for the merged grid; will thus try with centerAtOrigin = false. See here: https://github.com/mobie/mobie-viewer-fiji/issues/685" );
-			centerAtOrigin = false;
-		}
-
-		final long startTime = System.currentTimeMillis();
-
-		final List< SourceAndConverter< ? > > gridSources = getGridSources( sourceNameToSourceAndConverter );
-
-		if ( positions == null )
-			positions = createPositions( gridSources.size() );
-
-		SourceAndConverter< ? > mergedSourceAndConverter = createMergedSourceAndConverter( gridSources, gridSources.get( 0 ).asVolatile().getConverter(), gridSources.get( 0 ).getConverter() );
-
-		SourceAndConverter< ? > functionSourceAndConverter = createFunctionGridSourceAndConverter( (List) gridSources, (Converter) gridSources.get( 0 ).asVolatile().getConverter(), (Converter) gridSources.get( 0 ).getConverter() );
-
-		sourceNameToSourceAndConverter.put( functionSourceAndConverter.getSpimSource().getName(), functionSourceAndConverter );
-
-		// Transform (i.e. adapt the positions) all contained sources,
-		// because several parts of the code refer to them and their
-		// positions.
-		transformedSourceAndConverters = ConcurrentHashMap.newKeySet();
-		transformContainedSources( sourceNameToSourceAndConverter, gridSources );
-		mergedGridSource.setContainedSourceAndConverters( transformedSourceAndConverters );
-
-		final long duration = System.currentTimeMillis() - startTime;
-		if ( duration > MoBIE.minLogTimeMillis )
-			IJ.log("Merged " + sources.size() + " sources into " + mergedGridSourceName + " in " + duration + " ms (centerAtOrigin="+centerAtOrigin+").");
-	}
-
-	private void transformContainedSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< SourceAndConverter< ? > > gridSources )
-	{
-		final ArrayList< SourceAndConverter< ? > > referenceSources = new ArrayList<>();
-		referenceSources.add( gridSources.get( 0 ) );
-
-		final double[] gridCellRealDimensions = mergedGridSource.getCellRealDimensions();
-
-		// account for grid margin
-		translationRealOffset = computeTranslationOffset( gridSources, gridCellRealDimensions );
-
-		final int numSources = gridSources.size();
-		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
-		for ( int positionIndex = 0; positionIndex < numSources; positionIndex++ )
-		{
-			final int finalPositionIndex = positionIndex;
-
-			final ArrayList< String > sourceNamesAtGridPosition = getSourcesAtGridPosition( gridSources, finalPositionIndex );
-
-			futures.add( MultiThreading.executorService.submit( () -> {
-				recursivelyTransformSources( sourceNameToSourceAndConverter, gridCellRealDimensions, finalPositionIndex, sourceNamesAtGridPosition );
-			} ) );
-		}
-		MultiThreading.waitUntilFinished( futures );
-	}
-
-	private double[] computeTranslationOffset( List< SourceAndConverter< ? > > gridSources, double[] gridCellRealDimensions )
-	{
-		final RealInterval dataRealBounds = SourceHelper.getMask( gridSources.get( 0 ).getSpimSource(), 0 );
-
-		final double[] dataRealDimensions = new double[ 3 ];
-		for ( int d = 0; d < 3; d++ )
-			dataRealDimensions[ d ] = ( dataRealBounds.realMax( d ) - dataRealBounds.realMin( d ) );
-
-		final double[] translationOffset = new double[ 2 ];
-		for ( int d = 0; d < 2; d++ )
-			translationOffset[ d ] = 0.5 * ( gridCellRealDimensions[ d ] - dataRealDimensions[ d ] );
-
-		return translationOffset;
-	}
-
-	private void recursivelyTransformSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] gridCellRealDimensions, int finalPositionIndex, ArrayList< String > transformedSourceNames )
-	{
-		// transform the sources
-		final double translationX = gridCellRealDimensions[ 0 ] * positions.get( finalPositionIndex )[ 0 ] + translationRealOffset[ 0 ];
-		final double translationY = gridCellRealDimensions[ 1 ] * positions.get( finalPositionIndex )[ 1 ] + translationRealOffset[ 1 ];
-
-		TransformedGridImageTransformation.translate( sourceNameToSourceAndConverter, transformedSourceNames, null, centerAtOrigin, translationX, translationY );
-		addTransformedSources( sourceNameToSourceAndConverter, transformedSourceNames );
-
-		// if there are any, also transform contained sources
-		final ArrayList< String > containedSourceNames = fetchContainedSourceNames( sourceNameToSourceAndConverter, transformedSourceNames );
-		if ( containedSourceNames.size() > 0 )
-		{
-			recursivelyTransformSources( sourceNameToSourceAndConverter, gridCellRealDimensions, finalPositionIndex, containedSourceNames );
-		}
-	}
-
-	private void addTransformedSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, ArrayList< String > containedSourceNames )
-	{
-		final List< SourceAndConverter< ? > > sourceAndConverters = sourceNameToSourceAndConverter.values().stream().filter( sac -> containedSourceNames.contains( sac.getSpimSource().getName() ) ).collect( Collectors.toList() );
-		transformedSourceAndConverters.addAll( sourceAndConverters );
-	}
-
-	private ArrayList< String > fetchContainedSourceNames( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, ArrayList< String > sourceNames )
-	{
-		final ArrayList< String > containedSourceNames = new ArrayList<>();
-
-		for ( String sourceName : sourceNames )
-		{
-			Source< ? > source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
-
-			if ( source instanceof TransformedSource )
-			{
-				source = ( ( TransformedSource< ? > ) source ).getWrappedSource();
-			}
-
-			if ( source instanceof MergedGridSource )
-			{
-				containedSourceNames.addAll( ( ( MergedGridSource< ? > ) source ).getGridSources().stream().map( sac -> sac.getSpimSource().getName() ).collect( Collectors.toList() ) ) ;
-			}
-		}
-
-		return containedSourceNames;
-	}
-
-	private ArrayList< String > getSourcesAtGridPosition( List< SourceAndConverter< ? > > gridSources, int finalPositionIndex )
-	{
-		final ArrayList< String > sourcesAtGridPosition = new ArrayList<>();
-		sourcesAtGridPosition.add( gridSources.get( finalPositionIndex ).getSpimSource().getName() );
-		return sourcesAtGridPosition;
-	}
+	private transient Image< T > stitchedImage;
 
 	@Override
-	public Image< T > apply( Collection< Image< T > > images )
+	public Image< T > apply( List< Image< T > > images )
 	{
-		// TODO: wrong interface for multiple images as an input?
-		return null;
+		if ( stitchedImage == null )
+		{
+			if ( positions == null )
+				autoSetPositions();
+
+			stitchedImage = new StitchedImage<>( images, positions, mergedGridSourceName, TransformedGridTransformation.RELATIVE_CELL_MARGIN );
+		}
+
+		return stitchedImage;
 	}
 
 	@Override
 	public List< String > getTargetImages()
 	{
 		return sources;
-	}
-
-	private SourceAndConverter< ? > createMergedSourceAndConverter( List< SourceAndConverter< ? > > gridSources, Converter< ?, ARGBType > volatileConverter, Converter< ?, ARGBType > converter )
-	{
-		mergedGridSource = new MergedGridSource( gridSources, positions, mergedGridSourceName, TransformedGridImageTransformation.RELATIVE_CELL_MARGIN, encodeSource );
-
-		final VolatileSource< ?, ? > volatileMergedGridSource = new VolatileSource<>( mergedGridSource, MultiThreading.sharedQueue );
-
-		final SourceAndConverter< ? > volatileSourceAndConverter = new SourceAndConverter( volatileMergedGridSource, volatileConverter );
-
-		final SourceAndConverter< ? > mergedSourceAndConverter = new SourceAndConverter( mergedGridSource, converter, volatileSourceAndConverter );
-
-		return mergedSourceAndConverter;
-	}
-
-	private SourceAndConverter< T > createFunctionGridSourceAndConverter( List< SourceAndConverter< T > > gridSources, Converter< T, ARGBType > volatileConverter, Converter< T, ARGBType > converter )
-	{
-		// non volatile
-		final List< Source< T > > source = gridSources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() );
-
-		final Source< T > gridSource = new FunctionGridSource( source, positions, mergedGridSourceName, TransformedGridImageTransformation.RELATIVE_CELL_MARGIN );
-
-		// volatile
-		final List< ? extends Source< ? extends Volatile< T > > > volatileSources = gridSources.stream().map( sac -> sac.asVolatile().getSpimSource() ).collect( Collectors.toList() );
-
-		// TODO: make volatile version of FunctionGridSource?!
-		final FunctionGridSource volatileGridSource = new FunctionGridSource( volatileSources, positions, mergedGridSourceName, TransformedGridImageTransformation.RELATIVE_CELL_MARGIN );
-
-		// combine non-volatile and volatile
-		final SourceAndConverter volatileGridSourceAndConverter = new SourceAndConverter( volatileGridSource, volatileConverter );
-
-		final SourceAndConverter< T > gridSourceAndConverter = new SourceAndConverter( gridSource, converter, volatileGridSourceAndConverter );
-
-		return gridSourceAndConverter;
-	}
-
-	private List< SourceAndConverter< ? > > getGridSources( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
-	{
-		final List< SourceAndConverter< ? > > gridSources = new ArrayList<>();
-		for ( String sourceName : sources )
-		{
-			gridSources.add( sourceNameToSourceAndConverter.get( sourceName ) );
-		}
-		return gridSources;
-	}
-
-	private static List< int[] > createPositions( int size )
-	{
-		final int numPositions = size;
-		final int numX = ( int ) Math.ceil( Math.sqrt( numPositions ) );
-		List< int[] > positions = new ArrayList<>();
-		int xPositionIndex = 0;
-		int yPositionIndex = 0;
-		for ( int gridIndex = 0; gridIndex < numPositions; gridIndex++ )
-		{
-			if ( xPositionIndex == numX )
-			{
-				xPositionIndex = 0;
-				yPositionIndex++;
-			}
-			positions.add( new int[]{ xPositionIndex, yPositionIndex }  );
-			xPositionIndex++;
-		}
-
-		return positions;
 	}
 }

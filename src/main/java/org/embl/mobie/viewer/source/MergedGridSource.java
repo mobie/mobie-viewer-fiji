@@ -61,7 +61,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-public class MergedGridSource< T extends NativeType< T > & NumericType< T > > implements GridSource, Source< T >, RealIntervalProvider
+public class MergedGridSource< T extends NativeType< T > & NumericType< T > > implements GridSource, Source< T >, RealBounded
 {
 	private final T type;
 	private final Source< T > referenceSource;
@@ -150,7 +150,7 @@ public class MergedGridSource< T extends NativeType< T > & NumericType< T > > im
 	}
 
 	@Override
-	public FinalRealInterval getRealInterval( int t )
+	public FinalRealInterval getBounds( int t )
 	{
 		// TODO: timepoints
 		return realInterval;

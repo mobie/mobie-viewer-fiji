@@ -40,7 +40,7 @@ import de.embl.cba.tables.color.ColorUtils;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.MoBIEInfo;
-import org.embl.mobie.viewer.VisibilityListener;
+import org.embl.mobie.viewer.display.VisibilityListener;
 import org.embl.mobie.viewer.color.OpacityHelper;
 import org.embl.mobie.viewer.color.opacity.OpacityAdjuster;
 import org.embl.mobie.viewer.display.AbstractDisplay;
