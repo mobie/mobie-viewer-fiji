@@ -30,29 +30,32 @@ package org.embl.mobie.viewer.transform;
 
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.Logger;
+import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.source.Image;
 import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.viewer.source.StitchedImage;
 import org.embl.mobie.viewer.transform.image.Transformation;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
-// TODO: should this implement ImageTransformation?
 public class TransformedGridTransformation< T > extends AbstractGridTransformation< T >
 {
 	// Serialization
-	protected List< List< String > > nestedSources;
-	protected List< List< String > > sourceNamesAfterTransform;
-	protected List< int[] > positions;
-	protected boolean centerAtOrigin = true;
+	public List< List< String > > nestedSources;
+	public List< List< String > > sourceNamesAfterTransform;
+	public boolean centerAtOrigin = true;
 
-	// Static
-	public static final double RELATIVE_CELL_MARGIN = 0.1;
+	public List< Image< T > > apply( List< List< Image< T > > > nestedImages )
+	{
+		return null;
+	}
 
 	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
@@ -70,7 +73,7 @@ public class TransformedGridTransformation< T > extends AbstractGridTransformati
 	}
 
 	@Override
-	public List< String > getTargetImages()
+	public List< String > getTargetImageNames()
 	{
 		final ArrayList< String > allSources = new ArrayList<>();
 		for ( List< String > sourcesAtGridPosition : nestedSources )
@@ -131,22 +134,4 @@ public class TransformedGridTransformation< T > extends AbstractGridTransformati
 		}
 	}
 
-	private void autoSetPositions()
-	{
-		final int numPositions = nestedSources.size();
-		final int numX = ( int ) Math.ceil( Math.sqrt( numPositions ) );
-		positions = new ArrayList<>();
-		int xPositionIndex = 0;
-		int yPositionIndex = 0;
-		for ( int gridIndex = 0; gridIndex < numPositions; gridIndex++ )
-		{
-			if ( xPositionIndex == numX )
-			{
-				xPositionIndex = 0;
-				yPositionIndex++;
-			}
-			positions.add( new int[]{ xPositionIndex, yPositionIndex }  );
-			xPositionIndex++;
-		}
-	}
 }

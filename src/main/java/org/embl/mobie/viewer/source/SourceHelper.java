@@ -42,6 +42,7 @@ import net.imglib2.roi.geom.GeomMasks;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class SourceHelper
 {
@@ -137,7 +138,7 @@ public abstract class SourceHelper
 		else if ( source instanceof StitchedImage )
 		{
 			final StitchedImage< ?, ? > stitchedImage = ( StitchedImage ) source;
-			final List< ? extends Source< ? > > gridSources = stitchedImage.getImages();
+			final List< ? extends Source< ? > > gridSources = stitchedImage.getStitchedImages().stream().map( image -> image.getSourcePair().getSource() ).collect( Collectors.toList() );
 			for ( Source< ? > gridSource : gridSources )
 			{
 				fetchRootSources( gridSource, rootSources );

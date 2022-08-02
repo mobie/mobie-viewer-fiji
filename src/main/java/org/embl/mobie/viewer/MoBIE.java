@@ -549,7 +549,11 @@ public class MoBIE
 		{
 			// force initialization
 			final Source< ? > source = image.getSourcePair().getSource();
-			source.getSource( 0, 0 );
+			final int levels = source.getNumMipmapLevels();
+			for ( int level = 0; level < levels; level++ )
+			{
+				source.getSource( 0, level ).randomAccess();
+			}
 		}
 
 		if ( imageSource.getClass() == SegmentationSource.class )

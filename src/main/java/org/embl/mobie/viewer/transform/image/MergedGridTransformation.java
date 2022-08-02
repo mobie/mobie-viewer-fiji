@@ -28,27 +28,15 @@
  */
 package org.embl.mobie.viewer.transform.image;
 
-import bdv.tools.transformation.TransformedSource;
-import bdv.util.VolatileSource;
-import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.MultiThreading;
-import org.embl.mobie.viewer.source.StitchedImage;
+import net.imglib2.type.numeric.NumericType;
+import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.source.Image;
-import org.embl.mobie.viewer.source.MergedGridSource;
-import org.embl.mobie.viewer.source.SourceHelper;
+import org.embl.mobie.viewer.source.StitchedImage;
 import org.embl.mobie.viewer.transform.AbstractGridTransformation;
 import org.embl.mobie.viewer.transform.TransformedGridTransformation;
-import net.imglib2.RealInterval;
-import net.imglib2.converter.Converter;
-import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.NumericType;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class MergedGridTransformation< T extends NumericType< T > > extends AbstractGridTransformation< T >
@@ -62,7 +50,6 @@ public class MergedGridTransformation< T extends NumericType< T > > extends Abst
 	// Runtime
 	private transient Image< T > stitchedImage;
 
-	@Override
 	public Image< T > apply( List< Image< T > > images )
 	{
 		if ( stitchedImage == null )
@@ -71,13 +58,51 @@ public class MergedGridTransformation< T extends NumericType< T > > extends Abst
 				autoSetPositions();
 
 			stitchedImage = new StitchedImage<>( images, positions, mergedGridSourceName, TransformedGridTransformation.RELATIVE_CELL_MARGIN );
+
+			// transform the individual stitched images as well
+			transform( images );
 		}
 
 		return stitchedImage;
 	}
 
+	private void transform( List< Image< T > > images )
+	{
+		final TransformedGridTransformation< T > gridTransformation = new TransformedGridTransformation<>();
+		gridTransformation.positions = positions;
+		final ArrayList< List< Image< T > > > nestedImages = new ArrayList<>();
+		for ( Image< T > image : images )
+		{
+			final ArrayList< Image< T > > imagesAtGridPosition = new ArrayList<>();
+			// TODO: create placeholder image
+			//   or image with a metadata image
+			imagesAtGridPosition.add( image );
+			nestedImages.add( imagesAtGridPosition );
+		}
+
+		// in case of stitched images, also transform the
+		// images contained within the stitched images,
+		// such that all images have consistent positions.
+		for ( List< Image< T > > imagesAtGridPosition : nestedImages )
+		{
+			for ( Image< T > image : imagesAtGridPosition )
+			{
+				if ( image instanceof StitchedImage )
+				{
+					final List< String > stitchedImageNames = ( ( StitchedImage< ?, ? > ) image ).getStitchedImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
+					// TODO: possibly fetch them from a placeholder store
+					imagesAtGridPosition.add( ( Image< T > ) ImageStore.getImages( stitchedImageNames ) );
+				}
+			}
+		}
+
+		final List< Image< T > > transformed = gridTransformation.apply( nestedImages );
+		// TODO, possibly put them into a placeholder store.
+		ImageStore.putImages( transformed );
+	}
+
 	@Override
-	public List< String > getTargetImages()
+	public List< String > getTargetImageNames()
 	{
 		return sources;
 	}

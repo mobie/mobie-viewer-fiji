@@ -28,110 +28,22 @@
  */
 package org.embl.mobie.viewer.transform;
 
-import bdv.viewer.SourceAndConverter;
-import de.embl.cba.tables.Logger;
-import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MultiThreading;
-import org.embl.mobie.viewer.playground.SourceAffineTransformer;
-import org.embl.mobie.viewer.transform.image.StitchingTransformation;
 import org.embl.mobie.viewer.transform.image.Transformation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Future;
 
-public abstract class AbstractGridTransformation< T > implements StitchingTransformation< T >
+public abstract class AbstractGridTransformation< T > implements Transformation
 {
 	// Serialization
-	protected List< List< String > > nestedSources;
-	protected List< List< String > > sourceNamesAfterTransform;
-	protected List< int[] > positions;
-	protected boolean centerAtOrigin = true;
+	public List< int[] > positions;
+	public boolean centerAtOrigin = true;
 
 	// Static
 	public static final double RELATIVE_CELL_MARGIN = 0.1;
 
 	// Runtime
 	protected int numPositions;
-
-	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
-	{
-		final long startTime = System.currentTimeMillis();
-		if ( positions == null )
-			autoSetPositions();
-
-		// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/674
-		final double[] cellRealDimensions = TransformHelper.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, nestedSources );
-
-		transform( sourceNameToSourceAndConverter, cellRealDimensions );
-		final long duration = System.currentTimeMillis() - startTime;
-		if ( duration > MoBIE.minLogTimeMillis )
-			Logger.info("Transformed " + nestedSources.size() + " group(s) with "+ nestedSources.get( 0 ).size() +" source(s) each into a grid in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
-	}
-
-	@Override
-	public List< String > getTargetImages()
-	{
-		final ArrayList< String > allSources = new ArrayList<>();
-		for ( List< String > sourcesAtGridPosition : nestedSources )
-			allSources.addAll( sourcesAtGridPosition );
-		return allSources;
-	}
-
-	private void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, double[] cellRealDimensions )
-	{
-		final int numGridPositions = nestedSources.size();
-
-		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
-		for ( int gridIndex = 0; gridIndex < numGridPositions; gridIndex++ )
-		{
-			int finalGridIndex = gridIndex;
-			futures.add( MultiThreading.executorService.submit( () -> {
-				if ( sourceNamesAfterTransform != null )
-					translate( sourceNameToSourceAndConverter, nestedSources.get( finalGridIndex ), sourceNamesAfterTransform.get( finalGridIndex ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
-				else
-					translate( sourceNameToSourceAndConverter, nestedSources.get( finalGridIndex ), null, centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
-			} ) );
-		}
-		MultiThreading.waitUntilFinished( futures );
-	}
-
-	public static void translate( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, List< String > sourceNames, List< String > sourceNamesAfterTransform, boolean centerAtOrigin, double translationX, double translationY )
-	{
-		for ( String sourceName : sourceNames )
-		{
-			final SourceAndConverter< ? > sourceAndConverter = sourceNameToSourceAndConverter.get( sourceName );
-
-			if ( sourceAndConverter == null )
-			  continue;
-
-			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform3D( translationX, translationY, sourceAndConverter, centerAtOrigin );
-
-			String transformedSourceName = sourceName;
-			if ( sourceNamesAfterTransform != null )
-				transformedSourceName = sourceNamesAfterTransform.get( sourceNames.indexOf( sourceName ) );
-
-//			if ( sourceAndConverter instanceof LazySourceAndConverterAndTables )
-//			{
-//				// TODO: instead of modifying this one in place
-//				//   we should better create a copy
-//				//   maybe it would now even work with actually transforming the lazySpimSource
-//				final LazySourceAndConverterAndTables lazySourceAndConverterAndTables = ( LazySourceAndConverterAndTables ) sourceAndConverter;
-//				lazySourceAndConverterAndTables.setName( transformedSourceName );
-//				final AffineTransform3D transform3D = new AffineTransform3D();
-//				transform3D.preConcatenate( translationTransform ); // set by reference
-//				sourceNameToSourceAndConverter.put( transformedSourceName, lazySourceAndConverterAndTables );
-//			}
-//			else
-//			{
-				final SourceAndConverter transformedSource = new SourceAffineTransformer( translationTransform, transformedSourceName, false ).apply( sourceAndConverter );
-
-				sourceNameToSourceAndConverter.put( transformedSourceName, transformedSource );
-//			}
-		}
-	}
 
 	protected void autoSetPositions()
 	{

@@ -322,7 +322,7 @@ public class ViewManager
 					final ImageTransformation imageTransformation = ( ImageTransformation ) transformation;
 					for ( String name : images.keySet() )
 					{
-						if ( imageTransformation.getTargetImages().contains( name ) )
+						if ( imageTransformation.getTargetImageNames().contains( name ) )
 						{
 							final Image image = images.get( name );
 							if ( AnnotatedLabelImage.class.isAssignableFrom( image.getClass() ) )
@@ -337,6 +337,13 @@ public class ViewManager
 							}
 						}
 					}
+				}
+				else if ( transformation instanceof MergedGridTransformation )
+				{
+					final List< String > targetImageNames = transformation.getTargetImageNames();
+					final List targetImages = ImageStore.getImages( targetImageNames );
+					final Image transformed = ( ( MergedGridTransformation< ? > ) transformation ).apply( targetImages );
+					ImageStore.images.put( transformed.getName(), transformed );
 				}
 			}
 		}
@@ -602,7 +609,7 @@ public class ViewManager
 
 		for ( Transformation imageTransformation : imageTransformersCopy )
 		{
-			if ( ! currentlyDisplayedSources.stream().anyMatch( s -> imageTransformation.getTargetImages().contains( s ) ) )
+			if ( ! currentlyDisplayedSources.stream().anyMatch( s -> imageTransformation.getTargetImageNames().contains( s ) ) )
 				currentTransformers.remove( imageTransformation );
 		}
 	}

@@ -34,10 +34,8 @@ import org.embl.mobie.viewer.transform.ViewerTransform;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class View
 {
@@ -81,7 +79,7 @@ public class View
 
 		for ( Transformation imageTransformation : getTransformations() )
 		{
-			final List< String > sourceTransformerSources = imageTransformation.getTargetImages();
+			final List< String > sourceTransformerSources = imageTransformation.getTargetImageNames();
 			for ( String source : sourceTransformerSources )
 			{
 				sources.put( source, imageTransformation );

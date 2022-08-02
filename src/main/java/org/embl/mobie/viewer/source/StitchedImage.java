@@ -30,7 +30,6 @@ package org.embl.mobie.viewer.source;
 
 import bdv.util.Affine3DHelpers;
 import bdv.util.RandomAccessibleIntervalMipmapSource;
-import bdv.util.VolatileRandomAccessibleIntervalMipmapSource;
 import bdv.util.volatiles.VolatileTypeMatcher;
 import bdv.viewer.Source;
 import net.imglib2.FinalInterval;
@@ -48,7 +47,6 @@ import net.imglib2.type.numeric.NumericType;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.MultiThreading;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -89,10 +87,9 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 		createSourcePair();
 	}
 
-	public List< Source< N > > getImages()
+	public List< Image< N > > getStitchedImages()
 	{
-		// TODO
-		return null;
+		return images;
 	}
 
 	private void setCellAndSourceDimensions()
