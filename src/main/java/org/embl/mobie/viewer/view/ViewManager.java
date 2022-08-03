@@ -400,7 +400,10 @@ public class ViewManager
 					final MergedGridTransformation< ? > mergedGridTransformation = ( MergedGridTransformation< ? > ) transformation;
 					final List< String > targetImageNames = transformation.getTargetImageNames();
 					final List< Image< ? > > targetImages = ImageStore.getImageList( targetImageNames );
+					final long start = System.currentTimeMillis();
+					//IJ.log( "Creating: " + mergedGridTransformation.mergedGridSourceName );
 					final StitchedImage stitchedImage = new StitchedImage<>( (List) targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, TransformHelper.RELATIVE_GRID_CELL_MARGIN, true );
+					//IJ.log( mergedGridTransformation.mergedGridSourceName + ": " + ( System.currentTimeMillis() - start )  );
 					ImageStore.putImage( stitchedImage );
 				}
 				else
@@ -423,7 +426,7 @@ public class ViewManager
 				// thus we do this *after* the above transformations, which may create new
 				// images that could be referred to.
 				final Map< String, List< String > > regionIdToImageNames = imageAnnotationDisplay.sources;
-				final String defaultColumnsPath = IOHelper.combinePath( moBIE.getTableDirectory( tableData ), "default" );
+				final String defaultColumnsPath = IOHelper.combinePath( moBIE.getTableDirectory( tableData ), "default.tsv" );
 				final TableSawAnnotationCreator< TableSawImageAnnotation > annotationCreator = new TableSawImageAnnotationCreator( regionIdToImageNames );
 				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
 				final Set annotations = tableModel.annotations();

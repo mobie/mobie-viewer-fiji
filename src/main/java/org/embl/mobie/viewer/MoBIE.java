@@ -556,7 +556,7 @@ public class MoBIE
 
 			if ( segmentationData.tableData != null )
 			{
-				final String defaultColumnsPath = IOHelper.combinePath( getTableDirectory( segmentationData.tableData ), "default" );
+				final String defaultColumnsPath = IOHelper.combinePath( getTableDirectory( segmentationData.tableData ), "default.tsv" );
 				final TableSawSegmentAnnotationCreator annotationCreator = new TableSawSegmentAnnotationCreator( image.getName() );
 				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
 				final DefaultAnnData< TableSawSegmentAnnotation > segmentsAnnData = new DefaultAnnData<>( tableModel );

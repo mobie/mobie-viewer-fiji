@@ -29,7 +29,6 @@
 package org.embl.mobie.viewer.source;
 
 import bdv.util.Affine3DHelpers;
-import bdv.util.RandomAccessibleIntervalMipmapSource;
 import bdv.util.volatiles.VolatileTypeMatcher;
 import bdv.viewer.Source;
 import net.imglib2.FinalInterval;
@@ -40,10 +39,13 @@ import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
+import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
 import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.Type;
 import net.imglib2.type.numeric.NumericType;
+import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.ImageStore;
@@ -63,7 +65,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > & NumericType< V > > implements Image< N >
+public class StitchedImage< N extends Type< N >, V extends Volatile< N > & Type< V > > implements Image< N >
 {
 	private final N type;
 	private final Source< N > referenceSource;
@@ -78,21 +80,19 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 	private double[][] downSamplingFactors;
 	private DefaultSourcePair< N > sourcePair;
 	private V volatileType;
+	private AffineTransform3D sourceTransform;
 
 	public StitchedImage( List< Image< N > > images, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
 	{
 		this.images = images;
 		this.positions = positions == null ? TransformHelper.createGridPositions( images.size() ) : positions;
 		this.relativeCellMargin = relativeCellMargin;
-		try
-		{
-			this.referenceSource = images.iterator().next().getSourcePair().getSource();
-		} catch ( Exception e )
-		{
-			throw( e );
-		}
-			this.name = imageName;
+		this.referenceSource = images.iterator().next().getSourcePair().getSource();
+		this.name = imageName;
 		this.type = referenceSource.getType();
+		this.sourceTransform = new AffineTransform3D();
+		referenceSource.getSourceTransform( 0, 0, sourceTransform );
+		// TODO: make my own VolatileTypeMatcher including AnnotationType
 		this.volatileType = ( V ) VolatileTypeMatcher.getVolatileTypeForType( ( NativeType ) type );
 		this.numMipmapLevels = referenceSource.getNumMipmapLevels();
 
@@ -166,28 +166,32 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 	{
 		// non-volatile
 		//
-		final RandomAccessSupplier[][] randomAccessGrid = randomAccessGrid( false );
+		final RandomAccessSupplier[][] randomAccessGrid = createRandomAccessGrid( volatileType, false );
 
 		final List< RandomAccessibleInterval< N > > mipmapRAIs = createStitchedRAIs( randomAccessGrid );
 
+		// TODO: Create own one for non-numeric types
 		final RandomAccessibleIntervalMipmapSource< N > source = new RandomAccessibleIntervalMipmapSource<>(
-				mipmapRAIs.toArray( new RandomAccessibleInterval[ 0 ] ),
+				mipmapRAIs,
 				type,
 				downSamplingFactors, // TODO: correct??
 				referenceSource.getVoxelDimensions(),
+				sourceTransform,
 				name );
 
 		// volatile
 		//
-		final RandomAccessSupplier[][] volatileGrid = randomAccessGrid( true );
+		final RandomAccessSupplier[][] volatileGrid = createRandomAccessGrid( type, true );
 
 		final List< RandomAccessibleInterval< V > > volatileMipmapRAIs = createVolatileStitchedRAIs( volatileGrid );
 
+		// TODO: Create own one for non-numeric types
 		final RandomAccessibleIntervalMipmapSource< V > volatileSource = new RandomAccessibleIntervalMipmapSource<>(
-				volatileMipmapRAIs.toArray( new RandomAccessibleInterval[ 0 ] ),
+				volatileMipmapRAIs,
 				volatileType,
 				downSamplingFactors, // TODO: correct??
 				referenceSource.getVoxelDimensions(),
+				sourceTransform,
 				name );
 
 
@@ -304,19 +308,16 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 	{
 		final int numDimensions = referenceSource.getVoxelDimensions().numDimensions();
 
-		final AffineTransform3D at3D = new AffineTransform3D();
-		referenceSource.getSourceTransform( 0, 0, at3D );
-
 		final double[][] voxelSizes = new double[ numMipmapLevels ][ numDimensions ];
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
-			referenceSource.getSourceTransform( 0, level, at3D );
+			referenceSource.getSourceTransform( 0, level, sourceTransform );
 			for ( int d = 0; d < numDimensions; d++ )
 				voxelSizes[ level ][ d ] =
 						Math.sqrt(
-								at3D.get( 0, d ) * at3D.get( 0, d ) +
-										at3D.get( 1, d ) * at3D.get( 1, d ) +
-										at3D.get( 2, d ) * at3D.get( 2, d )
+								sourceTransform.get( 0, d ) * sourceTransform.get( 0, d ) +
+										sourceTransform.get( 1, d ) * sourceTransform.get( 1, d ) +
+										sourceTransform.get( 2, d ) * sourceTransform.get( 2, d )
 						);
 		}
 
@@ -357,26 +358,18 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 			}
 	}
 
-	private RandomAccessSupplier[][] randomAccessGrid( boolean asVolatile )
+	private< T > RandomAccessSupplier< T >[][] createRandomAccessGrid( T type, boolean asVolatile )
 	{
 		int[] maxPos = getMaxPositions();
 
-		final RandomAccessSupplier[][] randomAccesses = new RandomAccessSupplier[ maxPos[ 0 ] + 1 ][ maxPos[ 1 ] + 1 ];
+		final RandomAccessSupplier< T >[][] randomAccesses = new RandomAccessSupplier[ maxPos[ 0 ] + 1 ][ maxPos[ 1 ] + 1 ];
 		for ( int positionIndex = 0; positionIndex < positions.size(); positionIndex++ )
 		{
 			final int[] position = positions.get( positionIndex );
 			for ( int level = 0; level < numMipmapLevels; level++ )
 			{
-				if ( asVolatile )
-				{
-					final RandomAccessSupplier< V > randomAccessSupplier = new RandomAccessSupplier( images.get( positionIndex ).getSourcePair().getVolatileSource() );
-					randomAccesses[ position[ 0 ] ][ position[ 1 ] ] = randomAccessSupplier;
-				}
-				else
-				{
-					final RandomAccessSupplier< N > randomAccessSupplier = new RandomAccessSupplier( images.get( positionIndex ).getSourcePair().getSource() );
-					randomAccesses[ position[ 0 ] ][ position[ 1 ] ] = randomAccessSupplier;
-				}
+				final RandomAccessSupplier< T > randomAccessSupplier = new RandomAccessSupplier( images.get( positionIndex ), type );
+				randomAccesses[ position[ 0 ] ][ position[ 1 ] ] = randomAccessSupplier;
 			}
 		}
 		return randomAccesses;
@@ -479,16 +472,18 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 		Open;
 	}
 
-	class RandomAccessSupplier< T extends NumericType< T > >
+	class RandomAccessSupplier< T extends Type< T > >
 	{
-		private final Source< T > source;
+		private final Image< T > image;
+		private final T type;
 		private Map< Integer, RandomAccess< T > > levelToRandomAccess;
 		private Map< Integer, RandomAccessible< T > > levelToRandomAccessible;
 		private Map< Integer, Status > levelToStatus;
 
-		public RandomAccessSupplier( Source< T > source )
+		public RandomAccessSupplier( Image< T > image, T type )
 		{
-			this.source = source;
+			this.image = image;
+			this.type = type;
 			levelToRandomAccess = new ConcurrentHashMap<>();
 			levelToRandomAccessible = new ConcurrentHashMap<>();
 			levelToStatus = new ConcurrentHashMap<>();
@@ -498,10 +493,7 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 
 		public T get( int level, int x, int y, int z )
 		{
-			final long l = System.currentTimeMillis();
 			final T value = levelToRandomAccessible.get( level ).randomAccess().setPositionAndGet( x, y, z );
-			final long millis = System.currentTimeMillis() - l;
-			//System.out.println( "Value: " + millis ) ;
 			return value;
 		}
 
@@ -512,21 +504,28 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 
 		public synchronized void open( int level )
 		{
+			int t = 0; // TODO
+
 			if ( levelToRandomAccess.get( level ) != null )
 				return;
 
 			levelToStatus.put( level, Status.Opening );
 
-			// TODO: t
 			final long l = System.currentTimeMillis();
-			final RandomAccessibleInterval< T > rai = source.getSource( 0, level );
-			System.out.println( "Grid: Open " + source.getName() + ", level=" + level + ": " + ( System.currentTimeMillis() - l ) + " ms") ;
-			RandomAccessible< T > ra = Views.extendZero( rai );
+			RandomAccessibleInterval< T > rai;
+			if ( type instanceof Volatile )
+				rai = ( RandomAccessibleInterval< T > ) image.getSourcePair().getVolatileSource().getSource( t, level );
+			else
+				rai = ( RandomAccessibleInterval< T > ) image.getSourcePair().getSource().getSource( t, level );
+
+			System.out.println( "Grid: Open " + image.getName() + ", level=" + level + ": " + ( System.currentTimeMillis() - l ) + " ms") ;
+			// TODO: I need my own extension
+			final T outOfBoundsVariable = type.createVariable();
+			RandomAccessible< T > ra = new ExtendedRandomAccessibleInterval<>( rai, new OutOfBoundsConstantValueFactory<>( outOfBoundsVariable ) );
 			final long[] offset = computeTranslation( cellDimensions[ level ], rai.dimensionsAsLongArray() );
 			final RandomAccessible< T > translate = Views.translate( ra, offset );
 			levelToRandomAccessible.put( level, translate );
 			levelToRandomAccess.put( level, translate.randomAccess() );
-
 			levelToStatus.put( level, Status.Open );
 		}
 	}

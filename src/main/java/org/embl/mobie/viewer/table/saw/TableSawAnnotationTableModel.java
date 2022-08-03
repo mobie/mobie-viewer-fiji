@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.table.saw;
 
+import ij.IJ;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 import org.embl.mobie.io.util.IOHelper;
@@ -53,6 +54,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 			{
 				try
 				{
+					IJ.log( "Open table: " + columnPath );
 					final String tableContent = IOHelper.read( columnPath );
 					// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
 					CsvReadOptions.Builder builder = CsvReadOptions.builderFromString( tableContent ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" );
