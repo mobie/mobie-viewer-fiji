@@ -547,13 +547,11 @@ public class MoBIE
 		final SpimDataImage< ? > image = new SpimDataImage( imageDataFormat, imagePath, 0, imageSource.getName() );
 		if ( ! imageSource.openLazy() )
 		{
-			// force initialization
+			// force initialization here to save time later
 			final Source< ? > source = image.getSourcePair().getSource();
 			final int levels = source.getNumMipmapLevels();
 			for ( int level = 0; level < levels; level++ )
-			{
 				source.getSource( 0, level ).randomAccess();
-			}
 		}
 
 		if ( imageSource.getClass() == SegmentationSource.class )
