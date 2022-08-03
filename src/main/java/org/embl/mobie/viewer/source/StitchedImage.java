@@ -84,8 +84,14 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 		this.images = images;
 		this.positions = positions == null ? TransformHelper.createGridPositions( images.size() ) : positions;
 		this.relativeCellMargin = relativeCellMargin;
-		this.referenceSource = images.iterator().next().getSourcePair().getSource();
-		this.name = imageName;
+		try
+		{
+			this.referenceSource = images.iterator().next().getSourcePair().getSource();
+		} catch ( Exception e )
+		{
+			throw( e );
+		}
+			this.name = imageName;
 		this.type = referenceSource.getType();
 		this.volatileType = ( V ) VolatileTypeMatcher.getVolatileTypeForType( ( NativeType ) type );
 		this.numMipmapLevels = referenceSource.getNumMipmapLevels();
@@ -170,7 +176,6 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 				downSamplingFactors, // TODO: correct??
 				referenceSource.getVoxelDimensions(),
 				name );
-
 
 		// volatile
 		//
@@ -316,16 +321,18 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 		}
 
 		downSamplingFactors = new double[ numMipmapLevels ][ numDimensions ];
+		for ( int d = 0; d < numDimensions; d++ )
+			downSamplingFactors[ 0 ][ d ] = 1.0;
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
 				downSamplingFactors[ level ][ d ] = voxelSizes[ level ][ d ] / voxelSizes[ level - 1 ][ d ];
 
-		final double[] downsamplingFactorProducts = new double[ numDimensions ];
-		Arrays.fill( downsamplingFactorProducts, 1.0D );
+		final double[] downSamplingFactorProducts = new double[ numDimensions ];
+		Arrays.fill( downSamplingFactorProducts, 1.0D );
 
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
-				downsamplingFactorProducts[ d ] *= downSamplingFactors[ level ][ d ];
+				downSamplingFactorProducts[ d ] *= downSamplingFactors[ level ][ d ];
 
 		cellDimensions = new int[ numMipmapLevels ][ numDimensions ];
 
@@ -340,7 +347,7 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 		for ( int d = 0; d < 2; d++ )
 		{
 			cellDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeCellMargin );
-			cellDimensions[ 0 ][ d ] = (int) ( downsamplingFactorProducts[ d ] * Math.ceil( cellDimensions[ 0 ][ d ] / downsamplingFactorProducts[ d ] ) );
+			cellDimensions[ 0 ][ d ] = (int) ( downSamplingFactorProducts[ d ] * Math.ceil( cellDimensions[ 0 ][ d ] / downSamplingFactorProducts[ d ] ) );
 		}
 
 		for ( int level = 1; level < numMipmapLevels; level++ )

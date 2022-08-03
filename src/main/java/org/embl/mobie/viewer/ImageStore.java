@@ -40,6 +40,9 @@ public abstract class ImageStore
 
 	public static Image< ? > getImage( String name )
 	{
+		if ( ! currentData.containsKey( name ) )
+			throw new RuntimeException( "Image " + name + " is not part of the current data.");
+
 		return currentData.get( name );
 	}
 

@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer.table.saw;
 
-import net.imglib2.ops.parse.token.Int;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 import org.embl.mobie.io.util.IOHelper;
@@ -74,8 +73,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 					}
 					if ( dropRows.size() > 0 )
 						table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
-				}
-				catch ( IOException e )
+				} catch ( IOException e )
 				{
 					throw new RuntimeException( e );
 				}
@@ -160,7 +158,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	@Override
 	public Pair< Double, Double > computeMinMax( String columnName )
 	{
-		// TODO: cache results?!
+		// one could consider caching the results...
 		final NumericColumn< ? > numericColumn = table.nCol( columnName );
 		final Summarizer summarize = table.summarize( numericColumn, AggregateFunctions.min, AggregateFunctions.max );
 		final Table summary = summarize.apply();

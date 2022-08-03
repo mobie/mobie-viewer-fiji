@@ -302,10 +302,20 @@ public class ViewManager
 
 		for ( ImageSource imageSource : imageSources )
 		{
-			if ( imageToDisplay.get( imageSource.getName() ) instanceof MergedGridTransformation )
-				imageSource.openLazy( true );
-			else
-				imageSource.openLazy( false );
+			final Object imageDisplay = imageToDisplay.get( imageSource.getName() );
+			if ( imageDisplay instanceof MergedGridTransformation )
+			{
+				final List< String > targetImageNames = ( ( MergedGridTransformation< ? > ) imageDisplay ).getTargetImageNames();
+				if ( targetImageNames.indexOf( imageSource.getName() ) != 0)
+				{
+					// The first image should be immediately initialised,
+					// because this is the reference source for the stitching.
+					// The others should be initialised later on-demand.
+					imageSource.openLazy( true );
+				}
+			}
+
+			imageSource.openLazy( false );
 		}
 
 		// make sure that all images are available

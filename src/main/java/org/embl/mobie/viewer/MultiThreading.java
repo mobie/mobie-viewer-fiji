@@ -72,11 +72,11 @@ public class MultiThreading
 			}
 			catch ( InterruptedException e )
 			{
-				break; // loading has been interrupted
+				throw new RuntimeException( e );
 			}
 			catch ( ExecutionException e )
 			{
-				break; // loading has been interrupted
+				throw new RuntimeException( e );
 			}
 		}
 	}
