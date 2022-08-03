@@ -20,6 +20,9 @@ public class TableSawImageAnnotationCreator implements TableSawAnnotationCreator
 	public TableSawImageAnnotation create( Row row )
 	{
 		final String regionId = row.getObject( ColumnNames.REGION_ID ).toString();
+		if ( ! regionIdToImageNames.containsKey( regionId ) )
+			return null; // The regionDisplay may only use some table rows.
+
 		return new TableSawImageAnnotation( row, regionIdToImageNames.get( regionId )  );
 	}
 }

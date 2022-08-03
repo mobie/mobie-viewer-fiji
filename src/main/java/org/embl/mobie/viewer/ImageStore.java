@@ -1,11 +1,10 @@
 package org.embl.mobie.viewer;
 
+import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.source.Image;
-import org.embl.mobie.viewer.transform.image.AffineTransformedImage;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,16 +13,45 @@ import java.util.stream.Collectors;
 
 public abstract class ImageStore
 {
-	private static Map< String, Image< ? > > images = new ConcurrentHashMap<>();
+	// Raw data directly opened from a file system or object store.
+	// Different views may reuse this data.
+	// To make data available to the current view
+	// use the {@code fromRawToCurrent} function.
+	private static Map< String, Image< ? > > rawData = new ConcurrentHashMap<>();
+
+	// Data that is used by the current view.
+	// Contains transformed images as well.
+	private static Map< String, Image< ? > > currentData = new ConcurrentHashMap<>();
+
+	public static void putRawData( Image< ? > image )
+	{
+		rawData.put( image.getName(), image );
+	}
+
+	public static boolean isInitialised( String name )
+	{
+		return rawData.keySet().contains( name );
+	}
+
+	public static Set< Image< ? > > getRawData( Collection< String > names )
+	{
+		return rawData.entrySet().stream().filter( entry -> names.contains( entry.getKey() ) ).map( entry -> entry.getValue() ).collect( Collectors.toSet() );
+	}
 
 	public static Image< ? > getImage( String name )
 	{
-		return images.get( name );
+		return currentData.get( name );
 	}
 
 	public static Set< Image< ? > > getImages( Collection< String > names )
 	{
-		return images.entrySet().stream().filter( entry -> names.contains( entry.getKey() ) ).map( entry -> entry.getValue() ).collect( Collectors.toSet() );
+		try
+		{
+			return currentData.entrySet().stream().filter( entry -> names.contains( entry.getKey() ) ).map( entry -> entry.getValue() ).collect( Collectors.toSet() );
+		} catch ( Exception e )
+		{
+			throw( e );
+		}
 	}
 
 	// Sort images corresponding to the given names.
@@ -37,12 +65,17 @@ public abstract class ImageStore
 
 	public static void putImage( Image< ? > image )
 	{
-		images.put( image.getName(), image );
+		currentData.put( image.getName(), image );
 	}
 
-	public static void putImages( List< ? extends Image< ? > > images )
+	public static void putImages( Collection< ? extends Image< ? > > images )
 	{
 		for ( Image< ? > image : images )
-			ImageStore.images.put( image.getName(), image );
+			ImageStore.currentData.put( image.getName(), image );
+	}
+
+	public static void fromRawToCurrent( List< ImageSource > imageSources )
+	{
+		putImages( getRawData( imageSources.stream().map( s -> s.getName() ).collect( Collectors.toSet()) ) );
 	}
 }

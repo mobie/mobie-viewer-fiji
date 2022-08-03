@@ -528,6 +528,9 @@ public class MoBIE
 		final long startTime = System.currentTimeMillis();
 		for ( ImageSource imageSource : imageSources )
 		{
+			if ( ImageStore.isInitialised( imageSource.getName() ) )
+				continue;
+
 			futures.add(
 					MultiThreading.ioExecutorService.submit( () -> {
 								String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
@@ -537,7 +540,7 @@ public class MoBIE
 		}
 
 		MultiThreading.waitUntilFinished( futures );
-		IJ.log( "Opened " + imageSources.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + MultiThreading.getNumIoThreads() + " thread(s).");
+		IJ.log( "Initialised " + imageSources.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + MultiThreading.getNumIoThreads() + " thread(s).");
 	}
 
 	private void initImage( ImageSource imageSource, String log )
@@ -545,6 +548,7 @@ public class MoBIE
 		ImageDataFormat imageDataFormat = getAppropriateImageDataFormat( imageSource );
 		final String imagePath = getImagePath( imageSource, imageDataFormat );
 		final SpimDataImage< ? > image = new SpimDataImage( imageDataFormat, imagePath, 0, imageSource.getName() );
+
 		if ( ! imageSource.openLazy() )
 		{
 			// force initialization here to save time later
@@ -570,19 +574,19 @@ public class MoBIE
 				final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
 
 				// label image representing annotated segments
-				ImageStore.putImage( annotatedLabelImage );
+				ImageStore.putRawData( annotatedLabelImage );
 			}
 			else
 			{
 				// label image representing segments
 				// without annotation
-				ImageStore.putImage( image );
+				ImageStore.putRawData( image );
 			}
 		}
 		else
 		{
 			// intensity image
-			ImageStore.putImage( image );
+			ImageStore.putRawData( image );
 		}
 
 		if ( log != null )

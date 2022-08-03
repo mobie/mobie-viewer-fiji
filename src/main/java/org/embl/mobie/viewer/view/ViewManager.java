@@ -308,7 +308,9 @@ public class ViewManager
 				imageSource.openLazy( false );
 		}
 
+		// make sure that all images are available
 		moBIE.initImages( imageSources );
+		ImageStore.fromRawToCurrent( imageSources );
 
 		// transform images
 		// this may create new images with new names

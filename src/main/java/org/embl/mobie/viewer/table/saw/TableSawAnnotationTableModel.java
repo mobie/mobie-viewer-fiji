@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.table.saw;
 
+import net.imglib2.ops.parse.token.Int;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 import org.embl.mobie.io.util.IOHelper;
@@ -14,6 +15,7 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -58,12 +60,20 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 					CsvReadOptions.Builder builder = CsvReadOptions.builderFromString( tableContent ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" );
 					this.table = Table.read().usingOptions( builder );
 					final int rowCount = table.rowCount();
+					final ArrayList< Integer > dropRows = new ArrayList<>();
 					for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 					{
 						final A annotation = annotationCreator.create( table.row( rowIndex ) );
+						if ( annotation == null )
+						{
+							dropRows.add( rowIndex );
+							continue;
+						}
 						annotationToRowIndex.put( annotation, rowIndex );
 						rowIndexToAnnotation.put( rowIndex, annotation );
 					}
+					if ( dropRows.size() > 0 )
+						table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
 				}
 				catch ( IOException e )
 				{
