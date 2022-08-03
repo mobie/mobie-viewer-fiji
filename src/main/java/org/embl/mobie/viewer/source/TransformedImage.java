@@ -1,6 +1,8 @@
 package org.embl.mobie.viewer.source;
 
 import net.imglib2.RealInterval;
+import net.imglib2.realtransform.AffineTransform3D;
+import org.embl.mobie.viewer.transform.image.AffineTransformation;
 import org.embl.mobie.viewer.transform.image.ImageTransformation;
 import org.embl.mobie.viewer.transform.image.Transformation;
 
@@ -35,12 +37,6 @@ public class TransformedImage< A, B > implements Image< B >
 		return transformation.getTransformedName( image );
 	}
 
-	@Override
-	public RealInterval getBounds()
-	{
-		return getTransformedImage().getBounds();
-	}
-
 	public Transformation getTransformation()
 	{
 		return transformation;
@@ -49,5 +45,22 @@ public class TransformedImage< A, B > implements Image< B >
 	public Image< A > getWrappedImage()
 	{
 		return image;
+	}
+
+	@Override
+	public RealInterval getBounds( int t )
+	{
+		if ( transformedImage == null && transformation instanceof AffineTransformation )
+		{
+			// Compute the bounds without
+			// creating the transformed image.
+			// This can be advantageous for performance reasons
+			// as it may avoid loading the image data.
+			final RealInterval bounds = image.getBounds( t );
+			final AffineTransform3D affineTransform3D = ( ( AffineTransformation< ? > ) transformation ).getAffineTransform3D();
+			return affineTransform3D.estimateBounds( bounds );
+		}
+
+		return getTransformedImage().getBounds( t );
 	}
 }

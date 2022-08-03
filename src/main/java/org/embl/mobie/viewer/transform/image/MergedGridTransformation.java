@@ -60,6 +60,8 @@ public class MergedGridTransformation< T extends NumericType< T > > extends Abst
 			stitchedImage = new StitchedImage<>( images, positions, mergedGridSourceName, TransformedGridTransformation.RELATIVE_CELL_MARGIN );
 
 			// transform the individual stitched images as well
+			// such that image annotations can find them at the
+			// correct place
 			transform( images );
 		}
 
@@ -68,36 +70,42 @@ public class MergedGridTransformation< T extends NumericType< T > > extends Abst
 
 	private void transform( List< Image< T > > images )
 	{
+		final Image< T > referenceImage = images.get( 0 );
+
 		final TransformedGridTransformation< T > gridTransformation = new TransformedGridTransformation<>();
 		gridTransformation.positions = positions;
 		final ArrayList< List< Image< T > > > nestedImages = new ArrayList<>();
 		for ( Image< T > image : images )
 		{
 			final ArrayList< Image< T > > imagesAtGridPosition = new ArrayList<>();
-			// TODO: create placeholder image
-			//   or image with a metadata image
-			imagesAtGridPosition.add( image );
+
+			if ( image instanceof StitchedImage )
+			{
+				// Transform the images that are contained
+				// in the stitched image.
+				final List< String > stitchedImageNames = ( ( StitchedImage< ?, ? > ) image ).getStitchedImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
+				final List< Image< ? > > stitchedImages = ImageStore.getImages( stitchedImageNames );
+				for ( Image< ? > containedImage : stitchedImages )
+				{
+					if ( containedImage instanceof StitchedImage )
+						throw new UnsupportedOperationException("Nested stitching of MergedGridTransformation is currently not supported.");
+
+					imagesAtGridPosition.add( ( Image< T > ) containedImage );
+				}
+			}
+			else
+			{
+				// Use bounds of reference image.
+				// This avoids loading of the actual image
+				// when another method is asking the transformed
+				// image for its bounds.
+				final BoundedImage boundedImage = new BoundedImage( image, referenceImage.getBounds( 0 ) );
+				imagesAtGridPosition.add( boundedImage );
+			}
 			nestedImages.add( imagesAtGridPosition );
 		}
 
-		// in case of stitched images, also transform the
-		// images contained within the stitched images,
-		// such that all images have consistent positions.
-		for ( List< Image< T > > imagesAtGridPosition : nestedImages )
-		{
-			for ( Image< T > image : imagesAtGridPosition )
-			{
-				if ( image instanceof StitchedImage )
-				{
-					final List< String > stitchedImageNames = ( ( StitchedImage< ?, ? > ) image ).getStitchedImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
-					// TODO: possibly fetch them from a placeholder store
-					imagesAtGridPosition.add( ( Image< T > ) ImageStore.getImages( stitchedImageNames ) );
-				}
-			}
-		}
-
 		final List< Image< T > > transformed = gridTransformation.apply( nestedImages );
-		// TODO, possibly put them into a placeholder store.
 		ImageStore.putImages( transformed );
 	}
 
