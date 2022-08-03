@@ -36,6 +36,7 @@ import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import org.apache.commons.lang.ArrayUtils;
+import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotation.Segment;
@@ -306,16 +307,22 @@ public class ViewManager
 			if ( imageDisplay instanceof MergedGridTransformation )
 			{
 				final List< String > targetImageNames = ( ( MergedGridTransformation< ? > ) imageDisplay ).getTargetImageNames();
-				if ( targetImageNames.indexOf( imageSource.getName() ) != 0)
+				if ( targetImageNames.indexOf( imageSource.getName() ) == 0)
 				{
 					// The first image should be immediately initialised,
 					// because this is the reference source for the stitching.
+					imageSource.preInit( true );
+				}
+				else
+				{
 					// The others should be initialised later on-demand.
-					imageSource.openLazy( true );
+					imageSource.preInit( false );
 				}
 			}
-
-			imageSource.openLazy( false );
+			else
+			{
+				imageSource.preInit( true );
+			}
 		}
 
 		// make sure that all images are available
@@ -416,8 +423,7 @@ public class ViewManager
 				// thus we do this *after* the above transformations, which may create new
 				// images that could be referred to.
 				final Map< String, List< String > > regionIdToImageNames = imageAnnotationDisplay.sources;
-				final Set< String > columnPaths = moBIE.getTablePaths( tableData );
-				final String defaultColumnsPath = columnPaths.stream().filter( p -> p.contains( "default" ) ).findAny().get();
+				final String defaultColumnsPath = IOHelper.combinePath( moBIE.getTableDirectory( tableData ), "default" );
 				final TableSawAnnotationCreator< TableSawImageAnnotation > annotationCreator = new TableSawImageAnnotationCreator( regionIdToImageNames );
 				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
 				final Set annotations = tableModel.annotations();

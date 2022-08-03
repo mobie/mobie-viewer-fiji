@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 public class TableSawAnnotationTableModel< A extends Annotation > implements AnnotationTableModel< A >
 {
 	private final TableSawAnnotationCreator< A > annotationCreator;
-	protected Set< String > availableColumnPaths = new HashSet<>();
+	protected Set< String > availableColumnPaths;
 	protected LinkedHashSet< String > loadedColumnPaths = new LinkedHashSet<>();
 
 	private HashMap< A, Integer > annotationToRowIndex = new HashMap<>();;
@@ -40,7 +40,6 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	)
 	{
 		this.annotationCreator = annotationCreator;
-		availableColumnPaths.add( defaultColumnsPath );
 		loadedColumnPaths.add( defaultColumnsPath );
 	}
 
@@ -146,6 +145,11 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	@Override
 	public Collection< String > columnPaths()
 	{
+		if ( availableColumnPaths == null )
+		{
+			final String parentLocation = IOHelper.getParentLocation( loadedColumnPaths.iterator().next() );
+			availableColumnPaths = Arrays.stream( IOHelper.getFileNames( parentLocation ) ).collect( Collectors.toSet());
+		}
 		return availableColumnPaths;
 	}
 

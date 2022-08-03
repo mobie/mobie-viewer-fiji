@@ -40,7 +40,7 @@ public class ImageSource implements Data
 
 	// Runtime
 	private String name;
-	private boolean openLazy;
+	private boolean preInit;
 
 	@Override
 	public String getName()
@@ -54,13 +54,13 @@ public class ImageSource implements Data
 		this.name = name;
 	}
 
-	public void openLazy( boolean openLazy )
+	public void preInit( boolean preInit )
 	{
-		this.openLazy = openLazy;
+		this.preInit = preInit;
 	}
 
-	public boolean openLazy()
+	public boolean preInit()
 	{
-		return openLazy;
+		return preInit;
 	}
 }
