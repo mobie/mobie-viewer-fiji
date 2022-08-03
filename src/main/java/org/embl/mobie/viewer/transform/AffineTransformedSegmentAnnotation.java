@@ -1,19 +1,19 @@
 package org.embl.mobie.viewer.transform;
 
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.annotation.SegmentAnnotation;
 import org.embl.mobie.viewer.transform.image.AffineTransformation;
 import net.imglib2.RealInterval;
-import org.embl.mobie.viewer.transform.image.Transformation;
 
-public class TransformedSegmentAnnotation implements SegmentAnnotation
+public class AffineTransformedSegmentAnnotation implements SegmentAnnotation
 {
 	private final SegmentAnnotation segmentAnnotation;
-	private final Transformation transformation;
+	private final AffineTransform3D affineTransform3D;
 
-	public TransformedSegmentAnnotation( SegmentAnnotation segmentAnnotation, Transformation transformation )
+	public AffineTransformedSegmentAnnotation( SegmentAnnotation segmentAnnotation, AffineTransform3D affineTransform3D )
 	{
 		this.segmentAnnotation = segmentAnnotation;
-		this.transformation = transformation;
+		this.affineTransform3D = affineTransform3D;
 	}
 
 	@Override
@@ -39,44 +39,21 @@ public class TransformedSegmentAnnotation implements SegmentAnnotation
 	public double[] anchor()
 	{
 		final double[] anchor = segmentAnnotation.anchor();
-
-		if ( transformation instanceof AffineTransformation )
-		{
-			final double[] transformedAnchor = new double[ anchor.length ];
-			( ( AffineTransformation ) transformation ).getAffineTransform3D().apply( anchor, transformedAnchor );
-			return transformedAnchor;
-		}
-		else
-		{
-			return anchor;
-		}
+		final double[] transformedAnchor = new double[ anchor.length ];
+		affineTransform3D.apply( anchor, transformedAnchor );
+		return transformedAnchor;
 	}
 
 	@Override
 	public RealInterval boundingBox()
 	{
-		if ( transformation instanceof AffineTransformation )
-		{
-			return ( ( AffineTransformation ) transformation ).getAffineTransform3D().estimateBounds( segmentAnnotation.boundingBox() );
-		}
-		else
-		{
-			return segmentAnnotation.boundingBox();
-		}
+		return affineTransform3D.estimateBounds( segmentAnnotation.boundingBox() );
 	}
 
 	@Override
 	public void setBoundingBox( RealInterval boundingBox )
 	{
-		if ( transformation instanceof AffineTransformation )
-		{
-			segmentAnnotation.setBoundingBox( ( ( AffineTransformation ) transformation ).getAffineTransform3D().inverse().estimateBounds( segmentAnnotation.boundingBox() ) );
-		}
-		else
-		{
-			segmentAnnotation.setBoundingBox( boundingBox );
-		}
-
+		segmentAnnotation.setBoundingBox( affineTransform3D.inverse().estimateBounds( segmentAnnotation.boundingBox() ) );
 	}
 
 	@Override

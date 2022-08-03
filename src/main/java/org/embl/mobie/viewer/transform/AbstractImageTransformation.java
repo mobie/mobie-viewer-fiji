@@ -44,7 +44,7 @@ public abstract class AbstractImageTransformation< A, B > implements ImageTransf
 
 	// TODO: for stitching this does not apply
 	@Override
-	public String getTransformedName( Image< A > image )
+	public String getTransformedImageName( Image< ? > image )
 	{
 		if ( sourceNamesAfterTransform != null )
 		{

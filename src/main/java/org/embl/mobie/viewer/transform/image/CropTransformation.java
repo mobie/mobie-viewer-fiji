@@ -35,15 +35,12 @@ import net.imglib2.Volatile;
 import org.embl.mobie.viewer.source.DefaultImage;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.transform.AbstractImageTransformation;
-import org.embl.mobie.viewer.transform.TransformHelper;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
 import sc.fiji.bdvpg.sourceandconverter.importer.EmptySourceAndConverterCreator;
-import sc.fiji.bdvpg.sourceandconverter.transform.SourceResampler;
 
 import java.util.List;
-import java.util.Map;
 
 public class CropTransformation< T > extends AbstractImageTransformation< T, T >
 {
@@ -75,7 +72,7 @@ public class CropTransformation< T > extends AbstractImageTransformation< T, T >
 
 		// Resample
 		//
-		String transformedName = getTransformedName( image );
+		String transformedName = getTransformedImageName( image );
 		Source resampledSource =
 				new ResampledSource(
 						source,

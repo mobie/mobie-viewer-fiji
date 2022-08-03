@@ -40,6 +40,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.Scale3D;
 import net.imglib2.util.Intervals;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -48,6 +49,8 @@ import java.util.stream.Collectors;
 
 public class TransformHelper
 {
+	public static final double RELATIVE_GRID_CELL_MARGIN = 0.1;
+
 	public static RealInterval createMask( List< ? extends Source< ? > > sources, int t )
 	{
 		RealInterval union = null;
@@ -117,7 +120,7 @@ public class TransformHelper
 		for ( List< String > sourceNames : sourceNamesList )
 		{
 			final List< SourceAndConverter< ? > > sourceAndConverters = sourceNames.stream().map( name -> sourceNameToSourceAndConverter.get( name ) ).collect( Collectors.toList() );
-			final double[] realDimensions = computeSourceUnionRealDimensions( sourceAndConverters, TransformedGridTransformation.RELATIVE_CELL_MARGIN, 0 );
+			final double[] realDimensions = computeSourceUnionRealDimensions( sourceAndConverters, RELATIVE_GRID_CELL_MARGIN, 0 );
 			for ( int d = 0; d < 2; d++ )
 				maximalDimensions[ d ] = realDimensions[ d ] > maximalDimensions[ d ] ? realDimensions[ d ] : maximalDimensions[ d ];
 		}
@@ -217,5 +220,24 @@ public class TransformHelper
 		final String replace = view.toString().replace( "3d-affine: (", "" ).replace( ")", "" );
 		final String collect = Arrays.stream( replace.split( "," ) ).map( x -> "n" + x.trim() ).collect( Collectors.joining( "," ) );
 		return collect;
+	}
+
+	public static ArrayList< int[] > createGridPositions( int numPositions )
+	{
+		final int numX = ( int ) Math.ceil( Math.sqrt( numPositions ) );
+		ArrayList< int[] > positions = new ArrayList<>();
+		int xPositionIndex = 0;
+		int yPositionIndex = 0;
+		for ( int gridIndex = 0; gridIndex < numPositions; gridIndex++ )
+		{
+			if ( xPositionIndex == numX )
+			{
+				xPositionIndex = 0;
+				yPositionIndex++;
+			}
+			positions.add( new int[]{ xPositionIndex, yPositionIndex }  );
+			xPositionIndex++;
+		}
+		return positions;
 	}
 }

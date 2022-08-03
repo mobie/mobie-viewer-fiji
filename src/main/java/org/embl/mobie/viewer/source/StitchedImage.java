@@ -46,8 +46,13 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
+import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIEHelper;
+import org.embl.mobie.viewer.transform.TransformHelper;
+import org.embl.mobie.viewer.transform.TransformedGridTransformation;
+import org.embl.mobie.viewer.transform.image.InitialisedBoundsImage;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,6 +60,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > & NumericType< V > > implements Image< N >
 {
@@ -72,10 +78,10 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 	private DefaultSourcePair< N > sourcePair;
 	private V volatileType;
 
-	public StitchedImage( List< Image< N > > images, List< int[] > positions, String imageName, double relativeCellMargin )
+	public StitchedImage( List< Image< N > > images, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
 	{
 		this.images = images;
-		this.positions = positions;
+		this.positions = positions == null ? TransformHelper.createGridPositions( images.size() ) : positions;
 		this.relativeCellMargin = relativeCellMargin;
 		this.referenceSource = images.iterator().next().getSourcePair().getSource();
 		this.name = imageName;
@@ -85,7 +91,56 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 
 		setCellAndSourceDimensions();
 		createSourcePair();
+
+		if ( transformImages )
+			transform( images );
 	}
+
+	// Transform all the images that are stitched to be
+	// at the same location as they appear in the stitched image.
+	// This is currently needed for image annotation displays
+	// in order to know the location of the annotated images.
+	private void transform( List< Image< N > > images )
+	{
+		final Image< N > referenceImage = images.get( 0 );
+
+		final TransformedGridTransformation< N > gridTransformation = new TransformedGridTransformation<>();
+		gridTransformation.positions = positions;
+		final ArrayList< List< Image< N > > > nestedImages = new ArrayList<>();
+		for ( Image< N > image : images )
+		{
+			final ArrayList< Image< N > > imagesAtGridPosition = new ArrayList<>();
+
+			if ( image instanceof StitchedImage )
+			{
+				// Transform the images that are contained
+				// in the stitched image.
+				final List< String > stitchedImageNames = ( ( StitchedImage< ?, ? > ) image ).getStitchedImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
+				final List< Image< ? > > stitchedImages = ImageStore.getImages( stitchedImageNames );
+				for ( Image< ? > containedImage : stitchedImages )
+				{
+					if ( containedImage instanceof StitchedImage )
+						throw new UnsupportedOperationException("Nested stitching of MergedGridTransformation is currently not supported.");
+
+					imagesAtGridPosition.add( ( Image< N > ) containedImage );
+				}
+			}
+			else
+			{
+				// Use bounds of reference image.
+				// This avoids loading of the actual image
+				// when another method is asking the transformed
+				// image for its bounds.
+				final InitialisedBoundsImage initialisedBoundsImage = new InitialisedBoundsImage( image, referenceImage.getBounds( 0 ) );
+				imagesAtGridPosition.add( initialisedBoundsImage );
+			}
+			nestedImages.add( imagesAtGridPosition );
+		}
+
+		final List< Image< N > > transformed = gridTransformation.apply( nestedImages );
+		ImageStore.putImages( transformed );
+	}
+
 
 	public List< Image< N > > getStitchedImages()
 	{

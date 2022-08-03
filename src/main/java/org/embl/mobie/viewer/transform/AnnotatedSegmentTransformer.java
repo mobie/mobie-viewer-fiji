@@ -3,7 +3,7 @@ package org.embl.mobie.viewer.transform;
 import org.embl.mobie.viewer.annotation.SegmentAnnotation;
 import org.embl.mobie.viewer.transform.image.Transformation;
 
-public class AnnotatedSegmentTransformer implements AnnotationTransformer< SegmentAnnotation, TransformedSegmentAnnotation >
+public class AnnotatedSegmentTransformer implements AnnotationTransformer< SegmentAnnotation, AffineTransformedSegmentAnnotation >
 {
 	private Transformation transformation;
 
@@ -13,8 +13,8 @@ public class AnnotatedSegmentTransformer implements AnnotationTransformer< Segme
 	}
 
 	@Override
-	public TransformedSegmentAnnotation transform( SegmentAnnotation segmentAnnotation )
+	public AffineTransformedSegmentAnnotation transform( SegmentAnnotation segmentAnnotation )
 	{
-		return new TransformedSegmentAnnotation( segmentAnnotation, transformation );
+		return new AffineTransformedSegmentAnnotation( segmentAnnotation, transformation );
 	}
 }

@@ -34,7 +34,7 @@ public class TransformedImage< A, B > implements Image< B >
 	@Override
 	public String getName()
 	{
-		return transformation.getTransformedName( image );
+		return transformation.getTransformedImageName( image );
 	}
 
 	public Transformation getTransformation()

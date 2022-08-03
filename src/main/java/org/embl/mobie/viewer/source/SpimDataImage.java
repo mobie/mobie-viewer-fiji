@@ -42,7 +42,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	}
 
 	@Override
-	public RealInterval getBounds()
+	public RealInterval getBounds( int t )
 	{
 		return SourceHelper.estimateBounds( getSourcePair().getSource() );
 	}

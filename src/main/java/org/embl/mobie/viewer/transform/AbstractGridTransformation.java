@@ -30,7 +30,6 @@ package org.embl.mobie.viewer.transform;
 
 import org.embl.mobie.viewer.transform.image.Transformation;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractGridTransformation< T > implements Transformation
@@ -39,27 +38,4 @@ public abstract class AbstractGridTransformation< T > implements Transformation
 	public List< int[] > positions;
 	public boolean centerAtOrigin = true;
 
-	// Static
-	public static final double RELATIVE_CELL_MARGIN = 0.1;
-
-	// Runtime
-	protected int numPositions;
-
-	protected void autoSetPositions()
-	{
-		final int numX = ( int ) Math.ceil( Math.sqrt( numPositions ) );
-		positions = new ArrayList<>();
-		int xPositionIndex = 0;
-		int yPositionIndex = 0;
-		for ( int gridIndex = 0; gridIndex < numPositions; gridIndex++ )
-		{
-			if ( xPositionIndex == numX )
-			{
-				xPositionIndex = 0;
-				yPositionIndex++;
-			}
-			positions.add( new int[]{ xPositionIndex, yPositionIndex }  );
-			xPositionIndex++;
-		}
-	}
 }

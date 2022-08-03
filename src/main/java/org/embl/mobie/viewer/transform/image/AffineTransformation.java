@@ -30,7 +30,6 @@ package org.embl.mobie.viewer.transform.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
-import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.source.DefaultImage;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.SourcePair;
@@ -46,9 +45,6 @@ public class AffineTransformation< T > extends AbstractImageTransformation< T, T
 	// Serialisation
 	protected double[] parameters;
 
-	// Runtime
-	private transient AffineTransform3D affineTransform3D;
-
 	public AffineTransformation( String name, double[] parameters, List< String > sources ) {
 		this( name, parameters, sources, null );
 	}
@@ -61,34 +57,6 @@ public class AffineTransformation< T > extends AbstractImageTransformation< T, T
 		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
 	}
 
-	public AffineTransformation( TransformedSource< ? > transformedSource )
-	{
-		AffineTransform3D fixedTransform = new AffineTransform3D();
-		transformedSource.getFixedTransform( fixedTransform );
-		name = "manualTransform";
-		parameters = fixedTransform.getRowPackedCopy();
-		sources	= Arrays.asList( transformedSource.getWrappedSource().getName() );
-		sourceNamesAfterTransform =	Arrays.asList( transformedSource.getName() );
-	}
-
-	@Override
-	public Image< T > apply( Image< T > image )
-	{
-		affineTransform3D = new AffineTransform3D();
-		affineTransform3D.set( parameters );
-
-		final SourcePair< T > sourcePair = image.getSourcePair();
-		final Source< T > source = sourcePair.getSource();
-		final Source< ? extends Volatile< T > > volatileSource = sourcePair.getVolatileSource();
-		final String transformedName = getTransformedName( image );
-
-		final TransformedSource transformedSource = new TransformedSource( source, transformedName );
-		transformedSource.setFixedTransform( affineTransform3D );
-		final TransformedSource volatileTransformedSource = new TransformedSource( volatileSource, transformedSource );
-
-		return new DefaultImage<>( transformedSource, volatileTransformedSource, name );
-	}
-
 	@Override
 	public List< String > getTargetImageNames()
 	{
@@ -97,6 +65,8 @@ public class AffineTransformation< T > extends AbstractImageTransformation< T, T
 
 	public AffineTransform3D getAffineTransform3D()
 	{
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+		affineTransform3D.set( parameters );
 		return affineTransform3D;
 	}
 }

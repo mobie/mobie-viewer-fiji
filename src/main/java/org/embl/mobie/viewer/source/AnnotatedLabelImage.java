@@ -47,9 +47,9 @@ public class AnnotatedLabelImage< A extends Annotation > implements AnnotatedIma
 	}
 
 	@Override
-	public RealInterval getBounds()
+	public RealInterval getBounds( int t )
 	{
-		return labelImage.getBounds();
+		return labelImage.getBounds( t );
 	}
 
 	public Image< ? extends IntegerType< ? > > getLabelImage()

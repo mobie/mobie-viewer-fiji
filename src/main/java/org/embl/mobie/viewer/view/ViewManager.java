@@ -38,6 +38,7 @@ import net.imglib2.type.numeric.integer.UnsignedIntType;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.annotation.Segment;
 import org.embl.mobie.viewer.annotation.SegmentAnnotation;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
@@ -64,6 +65,7 @@ import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.AnnotatedLabelImage;
 import org.embl.mobie.viewer.source.RegionLabelImage;
+import org.embl.mobie.viewer.source.StitchedImage;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.source.TransformedImage;
 import org.embl.mobie.viewer.table.AnnData;
@@ -75,10 +77,13 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawImageAnnotation;
 import org.embl.mobie.viewer.table.saw.TableSawImageAnnotationCreator;
+import org.embl.mobie.viewer.transform.AnnotatedSegmentAffineTransformer;
 import org.embl.mobie.viewer.transform.AnnotatedSegmentTransformer;
+import org.embl.mobie.viewer.transform.AnnotationTransformer;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.TransformHelper;
+import org.embl.mobie.viewer.transform.image.AffineTransformedImage;
 import org.embl.mobie.viewer.transform.image.ImageTransformation;
 import org.embl.mobie.viewer.transform.image.MergedGridTransformation;
 import org.embl.mobie.viewer.transform.image.Transformation;
@@ -306,10 +311,11 @@ public class ViewManager
 
 		moBIE.initImages( imageSources );
 
-		final Map< String, Image< ? > > images = ImageStore.images;
-
 		// transform images
 		// this may create new images with new names
+
+		// TODO Make this an image transformer class
+
 		final List< Transformation > transformations = view.getTransformations();
 		if ( transformations != null )
 		{
@@ -317,41 +323,56 @@ public class ViewManager
 			{
 				currentTransformers.add( transformation );
 
-				if ( transformation instanceof ImageTransformation )
+				if ( transformation instanceof AffineTransformation )
 				{
-					final ImageTransformation imageTransformation = ( ImageTransformation ) transformation;
-					for ( String name : images.keySet() )
+					final AffineTransform3D affineTransform3D = ( ( AffineTransformation< ? > ) transformation ).getAffineTransform3D();
+					final List< Image< ? > > images = ImageStore.getImages( transformation.getTargetImageNames() );
+					for ( Image< ? > image : images )
 					{
-						// TODO:
-						//   - it is probably better to have an explicit AffineTransformedImage
-						//     which would then internally check whether it also needs to transform the
-						//     associated AnnData.
-						//   - This has the advantage that the AffineTransformedImage can try to
-						//     be as lazy as possible for that transformation.
-						//     Otherwise we will have transformation instanceOf calls all over the place.
+						final String transformedImageName = ( ( AffineTransformation< ? > ) transformation ).getTransformedImageName( image );
 
-						if ( imageTransformation.getTargetImageNames().contains( name ) )
+						if ( image instanceof AnnotatedLabelImage )
 						{
-							final Image image = images.get( name );
-							if ( AnnotatedLabelImage.class.isAssignableFrom( image.getClass() ) )
+							// Transform label image
+							final AnnotatedLabelImage annotatedLabelImage = ( AnnotatedLabelImage ) image;
+							final AffineTransformedImage< ? > transformedLabelImage = new AffineTransformedImage( image, transformedImageName, affineTransform3D );
+
+							// Transform annotations
+							TransformedAnnData transformedAnnData;
+							final Object annotation = annotatedLabelImage.getAnnData().getTable().annotations().iterator().next();
+							if ( annotation instanceof Segment )
 							{
-								final AnnotatedLabelImage transformedImage = transform( imageTransformation, ( AnnotatedLabelImage ) image );
-								images.put( transformedImage.getName(), transformedImage );
+								final AnnData< ? extends SegmentAnnotation > annData = annotatedLabelImage.getAnnData();
+								final AnnotationTransformer annotationTransformer = new AnnotatedSegmentAffineTransformer( affineTransform3D );
+								transformedAnnData = new TransformedAnnData( annData, annotationTransformer );
 							}
 							else
 							{
-								final TransformedImage transformedImage = new TransformedImage( image, imageTransformation );
-								images.put( transformedImage.getName(), transformedImage );
+								throw new UnsupportedOperationException("Transformation of " + annotation.getClass().getName() + " is currently not supported");
 							}
+
+							final AnnotatedLabelImage< ? extends SegmentAnnotation > transformedAnnotatedLabelImage = new AnnotatedLabelImage( transformedLabelImage, transformedAnnData );
+
+							ImageStore.putImage( transformedAnnotatedLabelImage );
+						}
+						else
+						{
+							final AffineTransformedImage< ? > affineTransformedImage = new AffineTransformedImage( image, transformedImageName, affineTransform3D );
+							ImageStore.putImage( affineTransformedImage );
 						}
 					}
 				}
 				else if ( transformation instanceof MergedGridTransformation )
 				{
+					final MergedGridTransformation< ? > mergedGridTransformation = ( MergedGridTransformation< ? > ) transformation;
 					final List< String > targetImageNames = transformation.getTargetImageNames();
 					final List targetImages = ImageStore.getImages( targetImageNames );
-					final Image transformed = ( ( MergedGridTransformation< ? > ) transformation ).apply( targetImages );
-					ImageStore.images.put( transformed.getName(), transformed );
+					final StitchedImage stitchedImage = new StitchedImage<>( targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, TransformHelper.RELATIVE_GRID_CELL_MARGIN, true );
+					ImageStore.putImage( stitchedImage );
+				}
+				else
+				{
+					throw new UnsupportedOperationException( "Transformations of type " + transformation.getClass().getName() + " are not yet implemented.");
 				}
 			}
 		}
@@ -380,7 +401,7 @@ public class ViewManager
 
 				// label image representing
 				// image annotations
-				ImageStore.images.put( annotatedLabelImage.getName(), annotatedLabelImage );
+				ImageStore.putImage( annotatedLabelImage );
 			}
 		}
 
@@ -405,7 +426,7 @@ public class ViewManager
 		if ( display instanceof ImageDisplay )
 		{
 			for ( String name : display.getSources() )
-				display.addImage( ( Image ) ImageStore.images.get( name ) );
+				display.addImage( ( Image ) ImageStore.getImage( name ) );
 			showImageDisplay( ( ImageDisplay ) display );
 		}
 		else if ( display instanceof AnnotationDisplay )
@@ -423,7 +444,7 @@ public class ViewManager
 
 			// add all images that are shown by this display
 			for ( String name : display.getSources() )
-				annotationDisplay.addImage( ( AnnotatedImage ) ImageStore.images.get( name ) );
+				annotationDisplay.addImage( ( AnnotatedImage ) ImageStore.getImage( name ) );
 
 			// now that all images are added create an
 			// annData object for the display,
@@ -476,8 +497,7 @@ public class ViewManager
 				coloringModel.setRandomSeed( annotationDisplay.getRandomColorSeed() );
 				annotationDisplay.coloringModel = new MobieColoringModel( coloringModel, annotationDisplay.selectionModel );
 			}
-
-	else if ( LUTs.isNumeric( lut ) )
+			else if ( LUTs.isNumeric( lut ) )
 			{
 				NumericAnnotationColoringModel< Annotation > coloringModel
 						= ColoringModels.createNumericModel(
@@ -495,6 +515,7 @@ public class ViewManager
 			}
 
 			// show in slice viewer
+			//
 			annotationDisplay.sliceViewer = sliceViewer;
 			annotationDisplay.sliceView = new AnnotationSliceView<>( moBIE, annotationDisplay );
 			initTableView( annotationDisplay );

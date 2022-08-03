@@ -42,74 +42,9 @@ import java.util.stream.Collectors;
 public class MergedGridTransformation< T extends NumericType< T > > extends AbstractGridTransformation< T >
 {
 	// Serialization
-	protected List< String > sources;
-	protected String mergedGridSourceName;
-	protected boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
-	protected boolean encodeSource = false; // true for the first time label images are encoded // TODO: (we can remove this now).
-
-	// Runtime
-	private transient Image< T > stitchedImage;
-
-	// TODO: remove this and put all of it into StitchedImage
-	public Image< T > apply( List< Image< T > > images )
-	{
-		if ( stitchedImage == null )
-		{
-			if ( positions == null )
-				autoSetPositions();
-
-			// TODO: add boolean to constructor: transformStitchedImages
-			stitchedImage = new StitchedImage<>( images, positions, mergedGridSourceName, TransformedGridTransformation.RELATIVE_CELL_MARGIN );
-
-			// transform the individual stitched images as well
-			// such that image annotations can find them at the
-			// correct place
-			transform( images );
-		}
-
-		return stitchedImage;
-	}
-
-	private void transform( List< Image< T > > images )
-	{
-		final Image< T > referenceImage = images.get( 0 );
-
-		final TransformedGridTransformation< T > gridTransformation = new TransformedGridTransformation<>();
-		gridTransformation.positions = positions;
-		final ArrayList< List< Image< T > > > nestedImages = new ArrayList<>();
-		for ( Image< T > image : images )
-		{
-			final ArrayList< Image< T > > imagesAtGridPosition = new ArrayList<>();
-
-			if ( image instanceof StitchedImage )
-			{
-				// Transform the images that are contained
-				// in the stitched image.
-				final List< String > stitchedImageNames = ( ( StitchedImage< ?, ? > ) image ).getStitchedImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
-				final List< Image< ? > > stitchedImages = ImageStore.getImages( stitchedImageNames );
-				for ( Image< ? > containedImage : stitchedImages )
-				{
-					if ( containedImage instanceof StitchedImage )
-						throw new UnsupportedOperationException("Nested stitching of MergedGridTransformation is currently not supported.");
-
-					imagesAtGridPosition.add( ( Image< T > ) containedImage );
-				}
-			}
-			else
-			{
-				// Use bounds of reference image.
-				// This avoids loading of the actual image
-				// when another method is asking the transformed
-				// image for its bounds.
-				final InitialisedBoundsImage initialisedBoundsImage = new InitialisedBoundsImage( image, referenceImage.getBounds( 0 ) );
-				imagesAtGridPosition.add( initialisedBoundsImage );
-			}
-			nestedImages.add( imagesAtGridPosition );
-		}
-
-		final List< Image< T > > transformed = gridTransformation.apply( nestedImages );
-		ImageStore.putImages( transformed );
-	}
+	public List< String > sources;
+	public String mergedGridSourceName;
+	public boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
 
 	@Override
 	public List< String > getTargetImageNames()
