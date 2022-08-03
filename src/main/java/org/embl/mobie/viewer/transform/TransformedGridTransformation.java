@@ -48,26 +48,6 @@ public class TransformedGridTransformation< T > extends AbstractGridTransformati
 	public List< List< String > > sourceNamesAfterTransform;
 	public boolean centerAtOrigin = true;
 
-	public List< Image< T > > apply( List< List< Image< T > > > nestedImages )
-	{
-		return null;
-	}
-
-	public void transform( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
-	{
-		final long startTime = System.currentTimeMillis();
-		if ( positions == null )
-			TransformHelper.createGridPositions( numPositions );
-
-		// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/674
-		final double[] cellRealDimensions = TransformHelper.getMaximalSourceUnionRealDimensions( sourceNameToSourceAndConverter, nestedSources );
-
-		transform( sourceNameToSourceAndConverter, cellRealDimensions );
-		final long duration = System.currentTimeMillis() - startTime;
-		if ( duration > MoBIE.minLogTimeMillis )
-			Logger.info("Transformed " + nestedSources.size() + " group(s) with "+ nestedSources.get( 0 ).size() +" source(s) each into a grid in " + duration + "ms (centerAtOrigin="+centerAtOrigin+").");
-	}
-
 	@Override
 	public List< String > getTargetImageNames()
 	{

@@ -58,6 +58,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -116,7 +117,7 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 				// Transform the images that are contained
 				// in the stitched image.
 				final List< String > stitchedImageNames = ( ( StitchedImage< ?, ? > ) image ).getStitchedImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
-				final List< Image< ? > > stitchedImages = ImageStore.getImages( stitchedImageNames );
+				final Set< Image< ? > > stitchedImages = ImageStore.getImages( stitchedImageNames );
 				for ( Image< ? > containedImage : stitchedImages )
 				{
 					if ( containedImage instanceof StitchedImage )
@@ -137,8 +138,9 @@ public class StitchedImage< N extends NumericType< N >, V extends Volatile< N > 
 			nestedImages.add( imagesAtGridPosition );
 		}
 
-		final List< Image< N > > transformed = gridTransformation.apply( nestedImages );
-		ImageStore.putImages( transformed );
+		// TODO!
+		//final List< Image< N > > transformed = gridTransformation.apply( nestedImages );
+		//ImageStore.putImages( transformed );
 	}
 
 

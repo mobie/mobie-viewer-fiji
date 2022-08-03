@@ -126,15 +126,16 @@ public abstract class SourceHelper
 
 			fetchRootSources( wrappedSource, rootSources );
 		}
-		else if (  source instanceof MergedGridSource )
-		{
-			final MergedGridSource< ? > mergedGridSource = ( MergedGridSource ) source;
-			final List< ? extends SourceAndConverter< ? > > gridSources = mergedGridSource.getGridSources();
-			for ( SourceAndConverter< ? > gridSource : gridSources )
-			{
-				fetchRootSources( gridSource.getSpimSource(), rootSources );
-			}
-		}
+		// TODO: how do do this now? Do we still need it?
+//		else if (  source instanceof MergedGridSource )
+//		{
+//			final MergedGridSource< ? > mergedGridSource = ( MergedGridSource ) source;
+//			final List< ? extends SourceAndConverter< ? > > gridSources = mergedGridSource.getGridSources();
+//			for ( SourceAndConverter< ? > gridSource : gridSources )
+//			{
+//				fetchRootSources( gridSource.getSpimSource(), rootSources );
+//			}
+//		}
 		else if ( source instanceof StitchedImage )
 		{
 			final StitchedImage< ?, ? > stitchedImage = ( StitchedImage ) source;
@@ -196,8 +197,13 @@ public abstract class SourceHelper
 
 	public static FinalRealInterval estimateBounds( Source< ? > source )
 	{
+		return estimateBounds( source, 0 );
+	}
+
+	public static FinalRealInterval estimateBounds( Source< ? > source, int t )
+	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 		source.getSourceTransform( 0, 0, affineTransform3D);
-		return affineTransform3D.estimateBounds( source.getSource( 0, 0 ) );
+		return affineTransform3D.estimateBounds( source.getSource( t, 0 ) );
 	}
 }

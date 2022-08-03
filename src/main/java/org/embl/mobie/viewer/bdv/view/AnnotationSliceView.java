@@ -90,7 +90,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		// create non-volatile sac
 		//
 		final Source< AnnotationType< A > > source = image.getSourcePair().getSource();
-		final BoundarySource boundarySource = new BoundarySource( source, image.getBounds() );
+		final BoundarySource boundarySource = new BoundarySource( source, image.getBounds( 0 ) );
 		final Converter< AnnotationType< A >, ARGBType > annotationConverter = new AnnotationConverter<>( display.coloringModel );
 
 		// create volatile sac
@@ -98,7 +98,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		if ( image.getSourcePair().getVolatileSource() != null )
 		{
 			final Source< ? extends Volatile< ? extends AnnotationType< ? > > > volatileSource = image.getSourcePair().getVolatileSource();
-			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSource, image.getBounds() );
+			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSource, image.getBounds( 0 ) );
 			final VolatileAnnotationConverter volatileAnnotationConverter = new VolatileAnnotationConverter( display.coloringModel );
 			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
 

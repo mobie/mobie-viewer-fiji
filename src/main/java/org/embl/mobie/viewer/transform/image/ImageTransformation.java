@@ -4,5 +4,5 @@ import org.embl.mobie.viewer.source.Image;
 
 public interface ImageTransformation< A, B > extends Transformation
 {
-	String getTransformedImageName( Image< ? > image );
+	String getTransformedImageName( String imageName );
 }

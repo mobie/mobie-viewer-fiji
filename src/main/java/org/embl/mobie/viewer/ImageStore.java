@@ -3,9 +3,12 @@ package org.embl.mobie.viewer;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.transform.image.AffineTransformedImage;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -18,9 +21,18 @@ public abstract class ImageStore
 		return images.get( name );
 	}
 
-	public static List< Image< ? > > getImages( List< String > names )
+	public static Set< Image< ? > > getImages( Collection< String > names )
 	{
-		return images.entrySet().stream().filter( entry -> names.contains( entry.getKey() ) ).map( entry -> entry.getValue() ).collect( Collectors.toList() );
+		return images.entrySet().stream().filter( entry -> names.contains( entry.getKey() ) ).map( entry -> entry.getValue() ).collect( Collectors.toSet() );
+	}
+
+	// Sort images corresponding to the given names.
+	public static List< Image< ? > > getImageList( List< String > names )
+	{
+		final ArrayList< Image< ? > > images = new ArrayList<>();
+		for ( String name : names )
+			images.add( getImage( name ) );
+		return images;
 	}
 
 	public static void putImage( Image< ? > image )

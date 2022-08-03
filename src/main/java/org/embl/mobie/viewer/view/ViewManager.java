@@ -62,12 +62,12 @@ import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.source.AnnotatedImage;
 import org.embl.mobie.viewer.source.BoundarySource;
+import org.embl.mobie.viewer.source.CroppedImage;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.AnnotatedLabelImage;
 import org.embl.mobie.viewer.source.RegionLabelImage;
 import org.embl.mobie.viewer.source.StitchedImage;
 import org.embl.mobie.viewer.source.StorageLocation;
-import org.embl.mobie.viewer.source.TransformedImage;
 import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.table.DefaultAnnData;
@@ -78,13 +78,12 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawImageAnnotation;
 import org.embl.mobie.viewer.table.saw.TableSawImageAnnotationCreator;
 import org.embl.mobie.viewer.transform.AnnotatedSegmentAffineTransformer;
-import org.embl.mobie.viewer.transform.AnnotatedSegmentTransformer;
 import org.embl.mobie.viewer.transform.AnnotationTransformer;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.TransformHelper;
 import org.embl.mobie.viewer.transform.image.AffineTransformedImage;
-import org.embl.mobie.viewer.transform.image.ImageTransformation;
+import org.embl.mobie.viewer.transform.image.CropTransformation;
 import org.embl.mobie.viewer.transform.image.MergedGridTransformation;
 import org.embl.mobie.viewer.transform.image.Transformation;
 import org.embl.mobie.viewer.transform.TransformedAnnData;
@@ -326,10 +325,10 @@ public class ViewManager
 				if ( transformation instanceof AffineTransformation )
 				{
 					final AffineTransform3D affineTransform3D = ( ( AffineTransformation< ? > ) transformation ).getAffineTransform3D();
-					final List< Image< ? > > images = ImageStore.getImages( transformation.getTargetImageNames() );
+					final Set< Image< ? > > images = ImageStore.getImages( transformation.getTargetImageNames() );
 					for ( Image< ? > image : images )
 					{
-						final String transformedImageName = ( ( AffineTransformation< ? > ) transformation ).getTransformedImageName( image );
+						final String transformedImageName = ( ( AffineTransformation< ? > ) transformation ).getTransformedImageName( image.getName() );
 
 						if ( image instanceof AnnotatedLabelImage )
 						{
@@ -362,12 +361,27 @@ public class ViewManager
 						}
 					}
 				}
+				else if ( transformation instanceof CropTransformation )
+				{
+					final CropTransformation< ? > cropTransformation = ( CropTransformation< ? > ) transformation;
+					final List< String > targetImageNames = transformation.getTargetImageNames();
+					for ( String imageName : targetImageNames )
+					{
+						final CroppedImage< ? > croppedImage = new CroppedImage<>(
+								ImageStore.getImage( imageName ),
+								cropTransformation.getTransformedImageName( imageName ),
+								cropTransformation.min,
+								cropTransformation.max,
+								cropTransformation.centerAtOrigin );
+						ImageStore.putImage( croppedImage );
+					}
+				}
 				else if ( transformation instanceof MergedGridTransformation )
 				{
 					final MergedGridTransformation< ? > mergedGridTransformation = ( MergedGridTransformation< ? > ) transformation;
 					final List< String > targetImageNames = transformation.getTargetImageNames();
-					final List targetImages = ImageStore.getImages( targetImageNames );
-					final StitchedImage stitchedImage = new StitchedImage<>( targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, TransformHelper.RELATIVE_GRID_CELL_MARGIN, true );
+					final List< Image< ? > > targetImages = ImageStore.getImageList( targetImageNames );
+					final StitchedImage stitchedImage = new StitchedImage<>( (List) targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, TransformHelper.RELATIVE_GRID_CELL_MARGIN, true );
 					ImageStore.putImage( stitchedImage );
 				}
 				else
@@ -407,18 +421,6 @@ public class ViewManager
 
 	}
 
-	private AnnotatedLabelImage< ? extends SegmentAnnotation > transform( ImageTransformation transformation, AnnotatedLabelImage< ? extends SegmentAnnotation > annotatedLabelImage )
-	{
-		final TransformedImage transformedLabelImage = new TransformedImage( annotatedLabelImage.getLabelImage(), transformation );
-		final AnnData< ? extends SegmentAnnotation > annData = annotatedLabelImage.getAnnData();
-		final AnnotatedSegmentTransformer segmentTransformer = new AnnotatedSegmentTransformer( transformation );
-		final TransformedAnnData transformedAnnData = new TransformedAnnData( annData, segmentTransformer );
-
-		final AnnotatedLabelImage< ? extends SegmentAnnotation > transformedAnnotatedLabelImage = new AnnotatedLabelImage( transformedLabelImage, transformedAnnData );
-
-		return transformedAnnotatedLabelImage;
-	}
-
 	public synchronized < A extends Annotation > void show( Display< ? > display )
 	{
 		if ( currentDisplays.contains( display ) ) return;
@@ -443,6 +445,7 @@ public class ViewManager
 			final AnnotationDisplay< A > annotationDisplay = ( AnnotationDisplay ) display;
 
 			// add all images that are shown by this display
+			// TODO: why do we need this?
 			for ( String name : display.getSources() )
 				annotationDisplay.addImage( ( AnnotatedImage ) ImageStore.getImage( name ) );
 

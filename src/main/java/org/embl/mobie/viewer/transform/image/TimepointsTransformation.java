@@ -104,7 +104,7 @@ public class TimepointsTransformation< T > extends AbstractImageTransformation< 
 		}
 	}
 
-	@Override
+	//@Override
 	public Image< T > apply( Image< T > image )
 	{
 		// TODO

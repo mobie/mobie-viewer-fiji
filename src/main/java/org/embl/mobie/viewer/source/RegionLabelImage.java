@@ -129,7 +129,7 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 	}
 
 	@Override
-	public RealInterval getBounds()
+	public RealInterval getBounds( int t )
 	{
 		return imageBounds;
 	}

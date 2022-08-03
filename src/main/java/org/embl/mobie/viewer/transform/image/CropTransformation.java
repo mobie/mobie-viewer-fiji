@@ -28,108 +28,20 @@
  */
 package org.embl.mobie.viewer.transform.image;
 
-import bdv.util.ResampledSource;
-import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
-import net.imglib2.Volatile;
-import org.embl.mobie.viewer.source.DefaultImage;
-import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.transform.AbstractImageTransformation;
-import mpicbg.spim.data.sequence.FinalVoxelDimensions;
-import mpicbg.spim.data.sequence.VoxelDimensions;
-import net.imglib2.FinalRealInterval;
-import sc.fiji.bdvpg.sourceandconverter.importer.EmptySourceAndConverterCreator;
 
 import java.util.List;
 
 public class CropTransformation< T > extends AbstractImageTransformation< T, T >
 {
-	protected double[] min;
-	protected double[] max;
-	protected boolean centerAtOrigin = false;
-
-	@Override
-	public Image< T > apply( Image< T > image )
-	{
-		final Source< T > source = image.getSourcePair().getSource();
-		final Source< ? extends Volatile< T > > volatileSource = image.getSourcePair().getVolatileSource();
-
-		// determine number of voxels for resampling
-		// the current method may over-sample quite a bit
-		final double smallestVoxelSize = getSmallestVoxelSize( source );
-		// slightly enlarge the crop
-		// important to deal with quasi 2D images or crops
-		final double[] minMinusVoxelSize = new double[ 3 ];
-		final double[] maxPlusVoxelSize = new double[ 3 ];
-		for ( int d = 0; d < 3; d++ )
-		{
-			minMinusVoxelSize[ d ] = min[ d ] - smallestVoxelSize;
-			maxPlusVoxelSize[ d ] = max[ d ] + smallestVoxelSize;
-		}
-		final FinalVoxelDimensions croppedSourceVoxelDimensions = new FinalVoxelDimensions( source.getVoxelDimensions().unit(), smallestVoxelSize, smallestVoxelSize, smallestVoxelSize );
-		int[] numVoxels = getNumVoxels( smallestVoxelSize, maxPlusVoxelSize, minMinusVoxelSize );
-		SourceAndConverter< ? > cropModel = new EmptySourceAndConverterCreator("Model", new FinalRealInterval( minMinusVoxelSize, maxPlusVoxelSize ), numVoxels[ 0 ], numVoxels[ 1 ], numVoxels[ 2 ], croppedSourceVoxelDimensions ).get();
-
-		// Resample
-		//
-		String transformedName = getTransformedImageName( image );
-		Source resampledSource =
-				new ResampledSource(
-						source,
-						cropModel.getSpimSource(),
-						transformedName,
-						false,
-						false,
-						false,
-						0);
-
-
-		Source volatileResampledSource =
-				new ResampledSource(
-						volatileSource,
-						cropModel.getSpimSource(),
-						transformedName,
-						false,
-						false,
-						false,
-						0);
-
-		if ( centerAtOrigin )
-		{
-			// TODO
-			throw new UnsupportedOperationException("Cannot yet apply centerAtOrigin");
-			//croppedSourceAndConverter = TransformHelper.centerAtOrigin( croppedSourceAndConverter );
-		}
-
-		return new DefaultImage<>( resampledSource, volatileResampledSource, transformedName );
-	}
+	// Serialisation
+	public double[] min;
+	public double[] max;
+	public boolean centerAtOrigin = false;
 
 	@Override
 	public List< String > getTargetImageNames()
 	{
 		return sources;
-	}
-
-	private int[] getNumVoxels( double smallestVoxelSize, double[] max, double[] min )
-	{
-		int[] numVoxels = new int[ 3 ];
-		for ( int d = 0; d < 3; d++ )
-			numVoxels[ d ] = Math.max ( (int) Math.ceil( ( max[ d ] - min[ d ] ) / smallestVoxelSize ), 1 );
-
-		return numVoxels;
-	}
-
-	private static double getSmallestVoxelSize( Source< ? > source )
-	{
-		final VoxelDimensions voxelDimensions = source.getVoxelDimensions();
-		double smallestVoxelSize = Double.MAX_VALUE;
-		for ( int d = 0; d < 3; d++ )
-		{
-			if ( voxelDimensions.dimension( d ) < smallestVoxelSize )
-			{
-				smallestVoxelSize = voxelDimensions.dimension( d );
-			}
-		}
-		return smallestVoxelSize;
 	}
 }

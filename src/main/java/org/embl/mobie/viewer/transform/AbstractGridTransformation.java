@@ -36,6 +36,4 @@ public abstract class AbstractGridTransformation< T > implements Transformation
 {
 	// Serialization
 	public List< int[] > positions;
-	public boolean centerAtOrigin = true;
-
 }

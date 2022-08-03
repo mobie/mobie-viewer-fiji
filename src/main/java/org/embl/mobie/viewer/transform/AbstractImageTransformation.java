@@ -31,7 +31,6 @@ package org.embl.mobie.viewer.transform;
 
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.transform.image.ImageTransformation;
-import org.embl.mobie.viewer.transform.image.Transformation;
 
 import java.util.List;
 
@@ -44,15 +43,15 @@ public abstract class AbstractImageTransformation< A, B > implements ImageTransf
 
 	// TODO: for stitching this does not apply
 	@Override
-	public String getTransformedImageName( Image< ? > image )
+	public String getTransformedImageName( String imageName )
 	{
 		if ( sourceNamesAfterTransform != null )
 		{
-			return sourceNamesAfterTransform.get( sources.indexOf( image.getName() ) );
+			return sourceNamesAfterTransform.get( sources.indexOf( imageName ) );
 		}
 		else
 		{
-			return image.getName();
+			return imageName;
 		}
 	}
 }

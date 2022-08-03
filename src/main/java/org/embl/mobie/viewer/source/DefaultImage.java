@@ -30,7 +30,7 @@ public class DefaultImage< T > implements Image< T >
 	}
 
 	@Override
-	public RealInterval getBounds()
+	public RealInterval getBounds( int t )
 	{
 		return SourceHelper.estimateBounds( source );
 	}

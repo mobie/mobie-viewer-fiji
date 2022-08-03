@@ -572,19 +572,19 @@ public class MoBIE
 				final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
 
 				// label image representing annotated segments
-				ImageStore.images.put( annotatedLabelImage.getName(), annotatedLabelImage );
+				ImageStore.putImage( annotatedLabelImage );
 			}
 			else
 			{
 				// label image representing segments
 				// without annotation
-				ImageStore.images.put( image.getName(), image );
+				ImageStore.putImage( image );
 			}
 		}
 		else
 		{
 			// intensity image
-			ImageStore.images.put( image.getName(), image );
+			ImageStore.putImage( image );
 		}
 
 		if ( log != null )

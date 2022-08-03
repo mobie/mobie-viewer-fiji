@@ -15,8 +15,7 @@ public interface ImageAnnotation extends Region, Annotation
 {
 	default RealMaskRealInterval getUnionMask( List< String > imageNames, int t )
 	{
-		final Set< ? extends Image< ? > > images = imageNames.stream().map( name -> ImageStore.images.get( name ) ).collect( Collectors.toSet() );
-
+		final Set< Image< ? > > images = ImageStore.getImages( imageNames );
 		RealMaskRealInterval union = null;
 		for ( Image< ? > image : images )
 		{

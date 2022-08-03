@@ -33,9 +33,6 @@ import bdv.util.DefaultInterpolators;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.SourceNameEncoder;
-import org.embl.mobie.viewer.transform.RealIntervalProvider;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
 import net.imglib2.FinalRealInterval;
@@ -52,6 +49,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.view.Views;
+import org.embl.mobie.viewer.MoBIEHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
