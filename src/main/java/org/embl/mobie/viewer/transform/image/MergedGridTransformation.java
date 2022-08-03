@@ -50,6 +50,7 @@ public class MergedGridTransformation< T extends NumericType< T > > extends Abst
 	// Runtime
 	private transient Image< T > stitchedImage;
 
+	// TODO: remove this and put all of it into StitchedImage
 	public Image< T > apply( List< Image< T > > images )
 	{
 		if ( stitchedImage == null )
@@ -57,6 +58,7 @@ public class MergedGridTransformation< T extends NumericType< T > > extends Abst
 			if ( positions == null )
 				autoSetPositions();
 
+			// TODO: add boolean to constructor: transformStitchedImages
 			stitchedImage = new StitchedImage<>( images, positions, mergedGridSourceName, TransformedGridTransformation.RELATIVE_CELL_MARGIN );
 
 			// transform the individual stitched images as well
@@ -99,8 +101,8 @@ public class MergedGridTransformation< T extends NumericType< T > > extends Abst
 				// This avoids loading of the actual image
 				// when another method is asking the transformed
 				// image for its bounds.
-				final BoundedImage boundedImage = new BoundedImage( image, referenceImage.getBounds( 0 ) );
-				imagesAtGridPosition.add( boundedImage );
+				final InitialisedBoundsImage initialisedBoundsImage = new InitialisedBoundsImage( image, referenceImage.getBounds( 0 ) );
+				imagesAtGridPosition.add( initialisedBoundsImage );
 			}
 			nestedImages.add( imagesAtGridPosition );
 		}

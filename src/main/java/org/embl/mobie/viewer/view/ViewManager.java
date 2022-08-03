@@ -322,6 +322,14 @@ public class ViewManager
 					final ImageTransformation imageTransformation = ( ImageTransformation ) transformation;
 					for ( String name : images.keySet() )
 					{
+						// TODO:
+						//   - it is probably better to have an explicit AffineTransformedImage
+						//     which would then internally check whether it also needs to transform the
+						//     associated AnnData.
+						//   - This has the advantage that the AffineTransformedImage can try to
+						//     be as lazy as possible for that transformation.
+						//     Otherwise we will have transformation instanceOf calls all over the place.
+
 						if ( imageTransformation.getTargetImageNames().contains( name ) )
 						{
 							final Image image = images.get( name );
