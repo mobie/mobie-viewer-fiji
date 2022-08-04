@@ -6,16 +6,13 @@ public class AnnotationType< T > implements Type< AnnotationType< T > >
 {
 	protected T annotation;
 
-	// TODO: remove this constructor once
-	//   we have an implementation for "background annotation"
-	//   currently null means this is background (no annotation)
 	public AnnotationType()
 	{
+		this.annotation = null; // == background
 	}
 
 	public AnnotationType( T annotation )
 	{
-		// TODO: assert that this is not null (s.a.)
 		this.annotation = annotation;
 	}
 
@@ -50,7 +47,7 @@ public class AnnotationType< T > implements Type< AnnotationType< T > >
 		/*
 		currently null is the background annotation
 		thus null == null should return true
-		TODO: probably it is safer to implement a dedicate
+		TODO: maybe better to implement a dedicate
 		 background object for each "annotation" (s.a.).
 		 */
 		if ( annotation == null )

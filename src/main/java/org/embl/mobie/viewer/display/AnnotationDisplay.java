@@ -46,8 +46,8 @@ import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.table.AnnData;
+import org.embl.mobie.viewer.table.AnnDataHelper;
 import org.embl.mobie.viewer.table.ColumnNames;
-import org.embl.mobie.viewer.table.ConcatenatedAnnData;
 import org.embl.mobie.viewer.table.TableView;
 import net.imglib2.util.ValuePair;
 
@@ -221,11 +221,9 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// one may overwrite this method
 	public void createAnnData()
 	{
-		final Set< AnnData< A > > annDataSet = getImages().stream().map( image -> ( AnnotatedImage< A > ) image ).map( image -> image.getAnnData() ).collect( Collectors.toSet() );
+		final List< AnnotatedImage< A > > annotatedImages = getImages().stream().map( image -> ( AnnotatedImage< A > ) image ).collect( Collectors.toList() );
 
-		if ( annDataSet.size() == 1 )
-			annData = annDataSet.iterator().next();
-		else
-			annData = new ConcatenatedAnnData( annDataSet );
+		annData = AnnDataHelper.getConcatenatedAnnData( annotatedImages );
 	}
+
 }

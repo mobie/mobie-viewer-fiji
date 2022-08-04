@@ -15,6 +15,10 @@ import net.imglib2.type.Type;
 // Note: This must be a type (as in right now implementing Type< VolatileAnnotationType< T > > ) otherwise it cannot be a pixel in a Source
 public class VolatileAnnotationType< T > extends Volatile< AnnotationType< T > > implements Type< VolatileAnnotationType< T > >
 {
+	public VolatileAnnotationType( )
+	{
+		super( new AnnotationType<>( null ), false );
+	}
 
 	public VolatileAnnotationType( T annotation, boolean valid )
 	{

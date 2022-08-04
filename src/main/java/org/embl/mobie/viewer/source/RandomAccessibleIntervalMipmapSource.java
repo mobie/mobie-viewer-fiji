@@ -7,8 +7,6 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
-import net.imglib2.interpolation.Interpolant;
-import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolator;
 import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory;
 import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
 import net.imglib2.realtransform.AffineTransform3D;

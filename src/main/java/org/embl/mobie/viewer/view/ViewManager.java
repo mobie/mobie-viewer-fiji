@@ -62,6 +62,7 @@ import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.source.AnnotatedImage;
+import org.embl.mobie.viewer.source.AnnotatedStitchedImage;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.CroppedImage;
 import org.embl.mobie.viewer.source.Image;
@@ -400,11 +401,20 @@ public class ViewManager
 					final MergedGridTransformation< ? > mergedGridTransformation = ( MergedGridTransformation< ? > ) transformation;
 					final List< String > targetImageNames = transformation.getTargetImageNames();
 					final List< Image< ? > > targetImages = ImageStore.getImageList( targetImageNames );
-					final long start = System.currentTimeMillis();
-					//IJ.log( "Creating: " + mergedGridTransformation.mergedGridSourceName );
-					final StitchedImage stitchedImage = new StitchedImage<>( (List) targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, TransformHelper.RELATIVE_GRID_CELL_MARGIN, true );
-					//IJ.log( mergedGridTransformation.mergedGridSourceName + ": " + ( System.currentTimeMillis() - start )  );
-					ImageStore.putImage( stitchedImage );
+
+					if ( targetImages.get( 0 ) instanceof AnnotatedLabelImage )
+					{
+						final AnnotatedStitchedImage annotatedStitchedImage = new AnnotatedStitchedImage( ( List ) targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, TransformHelper.RELATIVE_GRID_CELL_MARGIN, true );
+						ImageStore.putImage( annotatedStitchedImage );
+					}
+					else
+					{
+						//final long start = System.currentTimeMillis();
+						//IJ.log( "Creating: " + mergedGridTransformation.mergedGridSourceName );
+						final StitchedImage stitchedImage = new StitchedImage<>( ( List ) targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, TransformHelper.RELATIVE_GRID_CELL_MARGIN, true );
+						//IJ.log( mergedGridTransformation.mergedGridSourceName + ": " + ( System.currentTimeMillis() - start )  );
+						ImageStore.putImage( stitchedImage );
+					}
 				}
 				else
 				{
@@ -465,12 +475,13 @@ public class ViewManager
 
 			final AnnotationDisplay< A > annotationDisplay = ( AnnotationDisplay ) display;
 
-			// add all images that are shown by this display
-			// TODO: why do we need this?
+			// Add all images that are shown by this display.
+			// This is needed for the annotationDisplay to create the annData,
+			// combining the annData from all the annotated images.
 			for ( String name : display.getSources() )
 				annotationDisplay.addImage( ( AnnotatedImage ) ImageStore.getImage( name ) );
 
-			// now that all images are added create an
+			// Now that all images are added create an
 			// annData object for the display,
 			// potentially combining the annData from
 			// all images that are displayed.
