@@ -1,8 +1,8 @@
 package org.embl.mobie.viewer.source;
 
-import net.imglib2.RealInterval;
+import net.imglib2.roi.RealMaskRealInterval;
 
 public interface RealBounded
 {
-	RealInterval getBounds( int t );
+	RealMaskRealInterval getBounds( int t );
 }

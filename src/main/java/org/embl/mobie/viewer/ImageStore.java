@@ -58,7 +58,7 @@ public abstract class ImageStore
 	}
 
 	// Sort images corresponding to the given names.
-	public static List< Image< ? > > getImageList( List< String > names )
+	public static List< ? extends Image< ? > > getImageList( List< String > names )
 	{
 		final ArrayList< Image< ? > > images = new ArrayList<>();
 		for ( String name : names )

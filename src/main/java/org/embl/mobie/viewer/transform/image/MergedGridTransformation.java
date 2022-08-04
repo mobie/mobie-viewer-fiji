@@ -29,15 +29,9 @@
 package org.embl.mobie.viewer.transform.image;
 
 import net.imglib2.type.numeric.NumericType;
-import org.embl.mobie.viewer.ImageStore;
-import org.embl.mobie.viewer.source.Image;
-import org.embl.mobie.viewer.source.StitchedImage;
 import org.embl.mobie.viewer.transform.AbstractGridTransformation;
-import org.embl.mobie.viewer.transform.TransformedGridTransformation;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class MergedGridTransformation< T extends NumericType< T > > extends AbstractGridTransformation< T >
 {

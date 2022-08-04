@@ -34,6 +34,7 @@ import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
+import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.SourceHelper;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -80,6 +81,18 @@ public class TransformHelper
 		return sourceAndConverter;
 	}
 
+	public static double[] getCenter( Image< ? > image, int t )
+	{
+		final RealInterval bounds = image.getBounds( t );
+		final double[] center = bounds.minAsDoubleArray();
+		final double[] max = bounds.maxAsDoubleArray();
+		for ( int d = 0; d < max.length; d++ )
+		{
+			center[ d ] = ( center[ d ] + max[ d ] ) / 2;
+		}
+		return center;
+	}
+
 	public static double[] getCenter( SourceAndConverter< ? > sourceAndConverter )
 	{
 		final RealInterval bounds = SourceHelper.getMask( sourceAndConverter.getSpimSource(), 0 );
@@ -92,7 +105,20 @@ public class TransformHelper
 		return center;
 	}
 
-	public static AffineTransform3D createTranslationTransform3D( double translationX, double translationY, SourceAndConverter< ? > sourceAndConverter, boolean centerAtOrigin )
+	public static AffineTransform3D create2dTranslationTransform( double translationX, double translationY, Image< ? > image, boolean centerAtOrigin )
+	{
+		AffineTransform3D translationTransform = new AffineTransform3D();
+		if ( centerAtOrigin )
+		{
+			final double[] center = getCenter( image, 0 );
+			translationTransform.translate( center );
+			translationTransform = translationTransform.inverse();
+		}
+		translationTransform.translate( translationX, translationY, 0 );
+		return translationTransform;
+	}
+
+	public static AffineTransform3D create2dTranslationTransform( double translationX, double translationY, SourceAndConverter< ? > sourceAndConverter, boolean centerAtOrigin )
 	{
 		AffineTransform3D translationTransform = new AffineTransform3D();
 		if ( centerAtOrigin )

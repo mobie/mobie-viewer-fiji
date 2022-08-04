@@ -7,6 +7,7 @@ import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
+import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
@@ -42,9 +43,9 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	}
 
 	@Override
-	public RealInterval getBounds( int t )
+	public RealMaskRealInterval getBounds( int t )
 	{
-		return SourceHelper.estimateBounds( getSourcePair().getSource() );
+		return SourceHelper.estimateMask( getSourcePair().getSource(), t );
 	}
 
 	private void open()

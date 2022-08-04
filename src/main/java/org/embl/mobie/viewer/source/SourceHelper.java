@@ -195,6 +195,12 @@ public abstract class SourceHelper
 		return mask;
 	}
 
+	public static RealMaskRealInterval estimateMask( Source< ? > source, int t )
+	{
+		final FinalRealInterval realInterval = estimateBounds( source, t );
+		return GeomMasks.closedBox( realInterval.minAsDoubleArray(), realInterval.maxAsDoubleArray());
+	}
+
 	public static FinalRealInterval estimateBounds( Source< ? > source )
 	{
 		return estimateBounds( source, 0 );

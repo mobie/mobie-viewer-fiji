@@ -400,11 +400,11 @@ public class ViewManager
 				{
 					final MergedGridTransformation< ? > mergedGridTransformation = ( MergedGridTransformation< ? > ) transformation;
 					final List< String > targetImageNames = transformation.getTargetImageNames();
-					final List< Image< ? > > targetImages = ImageStore.getImageList( targetImageNames );
+					final List< ? extends Image< ? > > targetImages = ImageStore.getImageList( targetImageNames );
 
 					if ( targetImages.get( 0 ) instanceof AnnotatedLabelImage )
 					{
-						final AnnotatedStitchedImage annotatedStitchedImage = new AnnotatedStitchedImage( ( List ) targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, TransformHelper.RELATIVE_GRID_CELL_MARGIN, true );
+						final AnnotatedStitchedImage annotatedStitchedImage = new AnnotatedStitchedImage( targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, TransformHelper.RELATIVE_GRID_CELL_MARGIN, true );
 						ImageStore.putImage( annotatedStitchedImage );
 					}
 					else
@@ -479,7 +479,10 @@ public class ViewManager
 			// This is needed for the annotationDisplay to create the annData,
 			// combining the annData from all the annotated images.
 			for ( String name : display.getSources() )
-				annotationDisplay.addImage( ( AnnotatedImage ) ImageStore.getImage( name ) );
+			{
+				final Image< ? > image = ImageStore.getImage( name );
+				annotationDisplay.addImage( ( AnnotatedImage ) image );
+			}
 
 			// Now that all images are added create an
 			// annData object for the display,

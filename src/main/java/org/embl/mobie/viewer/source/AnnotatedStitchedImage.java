@@ -40,10 +40,9 @@ public class AnnotatedStitchedImage< A extends Annotation > extends StitchedImag
 {
 	private AnnData< A > annData;
 
-	public AnnotatedStitchedImage( List< AnnotatedImage< A > > annotatedImages, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
+	public AnnotatedStitchedImage( List< ? extends AnnotatedImage< A > > annotatedImages, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
 	{
-		super( annotatedImages.stream().map( image -> ( Image< AnnotationType< A > > ) image ).collect( Collectors.toList() ), positions, imageName, relativeCellMargin, transformImages );
-
+		super( annotatedImages, positions, imageName, relativeCellMargin, transformImages );
 		annData = AnnDataHelper.getConcatenatedAnnData( annotatedImages );
 	}
 

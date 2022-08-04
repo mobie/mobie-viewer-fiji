@@ -28,16 +28,8 @@
  */
 package org.embl.mobie.viewer.transform.image;
 
-import bdv.tools.transformation.TransformedSource;
-import bdv.viewer.Source;
-import org.embl.mobie.viewer.source.DefaultImage;
-import org.embl.mobie.viewer.source.Image;
-import org.embl.mobie.viewer.source.SourcePair;
-import org.embl.mobie.viewer.transform.AbstractImageTransformation;
-import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class AffineTransformation< T > extends AbstractImageTransformation< T, T >

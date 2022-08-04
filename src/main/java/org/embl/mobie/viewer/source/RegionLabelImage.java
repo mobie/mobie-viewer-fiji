@@ -30,7 +30,6 @@ package org.embl.mobie.viewer.source;
 
 import bdv.viewer.Source;
 import net.imglib2.Interval;
-import net.imglib2.RealInterval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.Volatile;
 import net.imglib2.position.FunctionRealRandomAccessible;
@@ -49,7 +48,7 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 {
 	private final String name;
 	private final Set< IA > imageAnnotations;
-	private RealInterval imageBounds;
+	private RealMaskRealInterval imageMask;
 	private Source< UnsignedIntType > source;
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 
@@ -67,21 +66,22 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 		{
 			final RealMaskRealInterval mask = imageAnnotation.mask();
 
-			if ( imageBounds == null )
+			if ( imageMask == null )
 			{
-				imageBounds = mask;
+				imageMask = mask;
 			}
 			else
 			{
-				if ( Intervals.equals(  mask, imageBounds ) )
+				if ( Intervals.equals(  mask, imageMask ) )
 				{
 					continue;
 				}
 				else
 				{
 					// TODO: Below hangs (see issue in imglib2-roi)
-					//unionMask = unionMask.or( mask );
-					imageBounds = Intervals.union( imageBounds, mask );
+					imageMask = imageMask.or( mask );
+					int a = 1;
+					//imageMask = Intervals.union( imageMask, mask );
 				}
 			}
 		}
@@ -103,7 +103,7 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 		};
 
 		final ArrayList< Integer > timePoints = configureTimePoints();
-		final Interval interval = Intervals.smallestContainingInterval( imageBounds );
+		final Interval interval = Intervals.smallestContainingInterval( imageMask );
 		final FunctionRealRandomAccessible< UnsignedIntType > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, UnsignedIntType::new );
 		source = new RealRandomAccessibleIntervalTimelapseSource<>( randomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, false, timePoints );
 
@@ -129,8 +129,8 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 	}
 
 	@Override
-	public RealInterval getBounds( int t )
+	public RealMaskRealInterval getBounds( int t )
 	{
-		return imageBounds;
+		return imageMask;
 	}
 }

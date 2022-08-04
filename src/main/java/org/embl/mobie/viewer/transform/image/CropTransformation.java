@@ -28,8 +28,6 @@
  */
 package org.embl.mobie.viewer.transform.image;
 
-import org.embl.mobie.viewer.transform.AbstractImageTransformation;
-
 import java.util.List;
 
 public class CropTransformation< T > extends AbstractImageTransformation< T, T >

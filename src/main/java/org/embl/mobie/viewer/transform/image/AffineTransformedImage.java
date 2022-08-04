@@ -33,6 +33,7 @@ import bdv.viewer.Source;
 import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.source.DefaultImage;
 import org.embl.mobie.viewer.source.DefaultSourcePair;
 import org.embl.mobie.viewer.source.Image;
@@ -87,11 +88,10 @@ public class AffineTransformedImage< T > implements Image< T >
 	}
 
 	@Override
-	public RealInterval getBounds( int t )
+	public RealMaskRealInterval getBounds( int t )
 	{
 		// TODO: this would change if the input image
 		//   changed its location. Is this desired?
-		final RealInterval bounds = image.getBounds( t );
-		return affineTransform3D.estimateBounds( bounds );
+		return image.getBounds( t ).transform( affineTransform3D );
 	}
 }

@@ -1,8 +1,12 @@
 package org.embl.mobie.viewer.source;
 
 import bdv.viewer.Source;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
+import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.geom.GeomMasks;
+import net.imglib2.roi.geom.GeomMaths;
 
 public class DefaultImage< T > implements Image< T >
 {
@@ -30,8 +34,8 @@ public class DefaultImage< T > implements Image< T >
 	}
 
 	@Override
-	public RealInterval getBounds( int t )
+	public RealMaskRealInterval getBounds( int t )
 	{
-		return SourceHelper.estimateBounds( source );
+		return SourceHelper.estimateMask( source, t );
 	}
 }

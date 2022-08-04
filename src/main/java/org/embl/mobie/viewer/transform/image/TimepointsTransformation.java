@@ -31,7 +31,6 @@ package org.embl.mobie.viewer.transform.image;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.TransformedTimepointSource;
-import org.embl.mobie.viewer.transform.AbstractImageTransformation;
 import net.imglib2.Volatile;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;
 

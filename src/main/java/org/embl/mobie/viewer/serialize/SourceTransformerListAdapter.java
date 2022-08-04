@@ -41,7 +41,7 @@ import org.embl.mobie.viewer.transform.image.CropTransformation;
 import org.embl.mobie.viewer.transform.image.MergedGridTransformation;
 import org.embl.mobie.viewer.transform.image.Transformation;
 import org.embl.mobie.viewer.transform.image.TimepointsTransformation;
-import org.embl.mobie.viewer.transform.TransformedGridTransformation;
+import org.embl.mobie.viewer.transform.image.TransformedGridTransformation;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;

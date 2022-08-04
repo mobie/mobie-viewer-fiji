@@ -31,16 +31,16 @@ package org.embl.mobie.viewer.source;
 import bdv.util.Affine3DHelpers;
 import bdv.viewer.Source;
 import net.imglib2.FinalInterval;
-import net.imglib2.FinalRealInterval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
 import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.Type;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
@@ -48,7 +48,7 @@ import net.imglib2.view.Views;
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.transform.TransformHelper;
-import org.embl.mobie.viewer.transform.TransformedGridTransformation;
+import org.embl.mobie.viewer.transform.image.TransformedGridTransformation;
 import org.embl.mobie.viewer.transform.image.InitialisedBoundsImage;
 
 import javax.annotation.Nullable;
@@ -67,19 +67,19 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	protected final T type;
 	protected final Source< T > referenceSource;
 	protected final String name;
-	protected final List< Image< T > > images;
+	protected final List< ? extends Image< T > > images;
 	protected final List< int[] > positions;
 	protected final double relativeCellMargin;
 	protected int[][] cellDimensions;
 	protected double[] cellRealDimensions;
-	protected FinalRealInterval imageBounds;
+	protected RealMaskRealInterval imageBounds;
 	protected int numMipmapLevels;
 	protected double[][] downSamplingFactors;
 	protected DefaultSourcePair< T > sourcePair;
 	protected V volatileType;
 	protected AffineTransform3D sourceTransform;
 
-	public StitchedImage( List< Image< T > > images, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
+	public StitchedImage( List< ? extends Image< T > > images, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
 	{
 		this.images = images;
 		this.positions = positions == null ? TransformHelper.createGridPositions( images.size() ) : positions;
@@ -110,16 +110,14 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	// at the same location as they appear in the stitched image.
 	// This is currently needed for image annotation displays
 	// in order to know the location of the annotated images.
-	protected void transform( List< Image< T > > images )
+	protected void transform( List< ? extends Image< ? > > images )
 	{
-		final Image< T > referenceImage = images.get( 0 );
+		final Image< ? > referenceImage = images.get( 0 );
 
-		final TransformedGridTransformation< T > gridTransformation = new TransformedGridTransformation<>();
-		gridTransformation.positions = positions;
-		final ArrayList< List< Image< T > > > nestedImages = new ArrayList<>();
-		for ( Image< T > image : images )
+		final List< List< ? extends Image< ? > > > nestedImages = new ArrayList<>();
+		for ( Image< ? > image : images )
 		{
-			final ArrayList< Image< T > > imagesAtGridPosition = new ArrayList<>();
+			final List< Image< ? > > imagesAtGridPosition = new ArrayList<>();
 
 			if ( image instanceof StitchedImage )
 			{
@@ -132,7 +130,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 					if ( containedImage instanceof StitchedImage )
 						throw new UnsupportedOperationException("Nested stitching of MergedGridTransformation is currently not supported.");
 
-					imagesAtGridPosition.add( ( Image< T > ) containedImage );
+					imagesAtGridPosition.add( containedImage );
 				}
 			}
 			else
@@ -147,13 +145,17 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			nestedImages.add( imagesAtGridPosition );
 		}
 
-		// TODO!
-		//final List< Image< N > > transformed = gridTransformation.apply( nestedImages );
-		//ImageStore.putImages( transformed );
+		// Shift the individual images to the same positions as in the
+		// stitched image.
+		// {@code gridTransformation.apply()} currently also
+		// immediately registers the images in the ImageStore.
+		final TransformedGridTransformation gridTransformation = new TransformedGridTransformation();
+		gridTransformation.positions = positions;
+		gridTransformation.apply( nestedImages, cellRealDimensions );
 	}
 
 
-	public List< Image< T > > getTileImages()
+	public List< ? extends Image< T > > getTileImages()
 	{
 		return images;
 	}
@@ -297,16 +299,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		}
 	}
 
-	public FinalRealInterval getRealMask()
-	{
-		return imageBounds;
-	}
-
-	public double[] getCellRealDimensions()
-	{
-		return cellRealDimensions;
-	}
-
 	protected void setCellDimensions( )
 	{
 		final int numDimensions = referenceSource.getVoxelDimensions().numDimensions();
@@ -431,7 +423,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			max[ d ] = ( maxPos[ d ] + 1 ) * cellDimensions[ d ] * scale;
 		}
 
-		imageBounds = new FinalRealInterval( min, max );
+		imageBounds = GeomMasks.closedBox( min, max );
 	}
 
 	protected static long[] computeTranslation( int[] cellDimensions, long[] dataDimensions )
@@ -463,7 +455,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	}
 
 	@Override
-	public RealInterval getBounds( int t )
+	public RealMaskRealInterval getBounds( int t )
 	{
 		return imageBounds;
 	}

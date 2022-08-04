@@ -32,7 +32,7 @@ import org.embl.mobie.viewer.transform.image.Transformation;
 
 import java.util.List;
 
-public abstract class AbstractGridTransformation< T > implements Transformation
+public abstract class AbstractGridTransformation implements Transformation
 {
 	// Serialization
 	public List< int[] > positions;

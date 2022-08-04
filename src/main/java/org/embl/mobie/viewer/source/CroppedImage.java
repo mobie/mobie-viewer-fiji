@@ -34,14 +34,10 @@ import bdv.viewer.SourceAndConverter;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
-import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
-import org.embl.mobie.viewer.source.DefaultImage;
-import org.embl.mobie.viewer.source.Image;
-import org.embl.mobie.viewer.transform.AbstractImageTransformation;
+import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.geom.GeomMasks;
 import sc.fiji.bdvpg.sourceandconverter.importer.EmptySourceAndConverterCreator;
-
-import java.util.List;
 
 public class CroppedImage< T > implements Image< T >
 {
@@ -154,8 +150,8 @@ public class CroppedImage< T > implements Image< T >
 	}
 
 	@Override
-	public RealInterval getBounds( int t )
+	public RealMaskRealInterval getBounds( int t )
 	{
-		return new FinalRealInterval( min, max );
+		return GeomMasks.closedBox( min, max );
 	}
 }
