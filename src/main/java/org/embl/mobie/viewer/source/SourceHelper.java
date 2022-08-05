@@ -163,10 +163,10 @@ public abstract class SourceHelper
 		final double[] min = new double[ 3 ];
 		final double[] max = new double[ 3 ];
 
-		final RealBounded realBounded = SourceHelper.unwrapSource( source, RealBounded.class );
-		if ( realBounded != null )
+		final Masked masked = SourceHelper.unwrapSource( source, Masked.class );
+		if ( masked != null )
 		{
-			final RealInterval realInterval = realBounded.getBounds( t );
+			final RealInterval realInterval = masked.getMask();
 			realInterval.realMin( min );
 			realInterval.realMax( max );
 		}

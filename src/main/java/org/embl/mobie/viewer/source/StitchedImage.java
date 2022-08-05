@@ -72,7 +72,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	protected final double relativeCellMargin;
 	protected int[][] cellDimensions;
 	protected double[] cellRealDimensions;
-	protected RealMaskRealInterval imageBounds;
+	protected RealMaskRealInterval mask;
 	protected int numMipmapLevels;
 	protected double[][] downSamplingFactors;
 	protected DefaultSourcePair< T > sourcePair;
@@ -139,7 +139,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				// This avoids loading of the actual image
 				// when another method is asking the transformed
 				// image for its bounds.
-				final InitialisedBoundsImage initialisedBoundsImage = new InitialisedBoundsImage( image, referenceImage.getBounds( 0 ) );
+				final InitialisedBoundsImage initialisedBoundsImage = new InitialisedBoundsImage( image, referenceImage.getMask() );
 				imagesAtGridPosition.add( initialisedBoundsImage );
 			}
 			nestedImages.add( imagesAtGridPosition );
@@ -423,7 +423,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			max[ d ] = ( maxPos[ d ] + 1 ) * cellDimensions[ d ] * scale;
 		}
 
-		imageBounds = GeomMasks.closedBox( min, max );
+		mask = GeomMasks.closedBox( min, max );
 	}
 
 	protected static long[] computeTranslation( int[] cellDimensions, long[] dataDimensions )
@@ -455,9 +455,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	}
 
 	@Override
-	public RealMaskRealInterval getBounds( int t )
+	public RealMaskRealInterval getMask()
 	{
-		return imageBounds;
+		return mask;
 	}
 
 	enum Status // for the RandomAccessSupplier

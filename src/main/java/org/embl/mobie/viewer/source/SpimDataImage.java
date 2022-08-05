@@ -43,9 +43,9 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	}
 
 	@Override
-	public RealMaskRealInterval getBounds( int t )
+	public RealMaskRealInterval getMask( )
 	{
-		return SourceHelper.estimateMask( getSourcePair().getSource(), t );
+		return SourceHelper.estimateMask( getSourcePair().getSource(), 0 );
 	}
 
 	private void open()

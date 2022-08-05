@@ -15,46 +15,4 @@ import java.util.stream.Collectors;
 
 public interface ImageAnnotation extends Region, Annotation
 {
-	default RealMaskRealInterval getUnionMask( List< String > imageNames, int t )
-	{
-		final Set< Image< ? > > images = ImageStore.getImages( imageNames );
-
-		// use below code once https://github.com/imglib/imglib2-roi/pull/63 is merged
-//		RealMaskRealInterval union = null;
-//		for ( Image< ? > image : images )
-//		{
-//			final RealMaskRealInterval mask = image.getBounds( t );
-//
-//			if ( union == null )
-//			{
-//				union = mask;
-//			}
-//			else
-//			{
-//				if ( Intervals.equals( mask, union ) )
-//					continue;
-//				union = union.or( mask );
-//			}
-//		}
-//		return union;
-
-		RealInterval union = null;
-		for ( Image< ? > image : images )
-		{
-			final RealInterval mask =  image.getBounds( t );
-
-			if ( union == null )
-			{
-				union = mask;
-			}
-			else
-			{
-				if ( Intervals.equals( mask, union ) )
-					continue;
-				union = Intervals.union( mask, union );
-			}
-		}
-
-		return GeomMasks.closedBox( union.minAsDoubleArray(), union.maxAsDoubleArray() );
-	}
 }

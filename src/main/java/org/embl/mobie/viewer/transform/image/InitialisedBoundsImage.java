@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer.transform.image;
 
-import net.imglib2.RealInterval;
 import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.SourcePair;
@@ -8,12 +7,12 @@ import org.embl.mobie.viewer.source.SourcePair;
 public class InitialisedBoundsImage< T > implements Image< T >
 {
 	private final Image< T > image;
-	private final RealMaskRealInterval bounds;
+	private final RealMaskRealInterval mask;
 
-	public InitialisedBoundsImage( Image< T > image, RealMaskRealInterval bounds )
+	public InitialisedBoundsImage( Image< T > image, RealMaskRealInterval mask )
 	{
 		this.image = image;
-		this.bounds = bounds;
+		this.mask = mask;
 	}
 
 	@Override
@@ -29,8 +28,8 @@ public class InitialisedBoundsImage< T > implements Image< T >
 	}
 
 	@Override
-	public RealMaskRealInterval getBounds( int t )
+	public RealMaskRealInterval getMask( )
 	{
-		return bounds;
+		return mask;
 	}
 }

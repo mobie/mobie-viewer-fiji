@@ -61,7 +61,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 					this.table = Table.read().usingOptions( builder );
 					final int rowCount = table.rowCount();
 					final ArrayList< Integer > dropRows = new ArrayList<>();
-					for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
+					for ( int rowIndex = 0, consecutiveRowIndex = 0; rowIndex < rowCount; rowIndex++ )
 					{
 						final A annotation = annotationCreator.create( table.row( rowIndex ) );
 						if ( annotation == null )
@@ -69,8 +69,9 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 							dropRows.add( rowIndex );
 							continue;
 						}
-						annotationToRowIndex.put( annotation, rowIndex );
-						rowIndexToAnnotation.put( rowIndex, annotation );
+						annotationToRowIndex.put( annotation, consecutiveRowIndex );
+						rowIndexToAnnotation.put( consecutiveRowIndex, annotation );
+						consecutiveRowIndex++;
 					}
 					if ( dropRows.size() > 0 )
 						table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );

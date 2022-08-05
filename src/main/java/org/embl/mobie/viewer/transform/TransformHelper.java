@@ -32,9 +32,12 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
+import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
 import org.embl.mobie.viewer.source.Image;
+import org.embl.mobie.viewer.source.Masked;
 import org.embl.mobie.viewer.source.SourceHelper;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -83,7 +86,7 @@ public class TransformHelper
 
 	public static double[] getCenter( Image< ? > image, int t )
 	{
-		final RealInterval bounds = image.getBounds( t );
+		final RealInterval bounds = image.getMask();
 		final double[] center = bounds.minAsDoubleArray();
 		final double[] max = bounds.maxAsDoubleArray();
 		for ( int d = 0; d < max.length; d++ )
@@ -265,5 +268,47 @@ public class TransformHelper
 			xPositionIndex++;
 		}
 		return positions;
+	}
+
+
+	public static RealMaskRealInterval getUnionMask( Collection< ? extends Masked > masks, int t )
+	{
+		// use below code once https://github.com/imglib/imglib2-roi/pull/63 is merged
+//		RealMaskRealInterval union = null;
+//		for ( Image< ? > image : images )
+//		{
+//			final RealMaskRealInterval mask = image.getBounds( t );
+//
+//			if ( union == null )
+//			{
+//				union = mask;
+//			}
+//			else
+//			{
+//				if ( Intervals.equals( mask, union ) )
+//					continue;
+//				union = union.or( mask );
+//			}
+//		}
+//		return union;
+
+		RealInterval union = null;
+		for ( Masked masked : masks )
+		{
+			final RealInterval mask =  masked.getMask();
+
+			if ( union == null )
+			{
+				union = mask;
+			}
+			else
+			{
+				if ( Intervals.equals( mask, union ) )
+					continue;
+				union = Intervals.union( mask, union );
+			}
+		}
+
+		return GeomMasks.closedBox( union.minAsDoubleArray(), union.maxAsDoubleArray() );
 	}
 }

@@ -39,7 +39,6 @@ import org.embl.mobie.viewer.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.viewer.color.AnnotationConverter;
 import org.embl.mobie.viewer.color.ColoringListener;
 import org.embl.mobie.viewer.color.VolatileAnnotationConverter;
-import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
@@ -90,7 +89,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		// create non-volatile sac
 		//
 		final Source< AnnotationType< A > > source = image.getSourcePair().getSource();
-		final BoundarySource boundarySource = new BoundarySource( source, image.getBounds( 0 ) );
+		final BoundarySource boundarySource = new BoundarySource( source, image.getMask() );
 		final Converter< AnnotationType< A >, ARGBType > annotationConverter = new AnnotationConverter<>( display.coloringModel );
 
 		// create volatile sac
@@ -98,7 +97,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		if ( image.getSourcePair().getVolatileSource() != null )
 		{
 			final Source< ? extends Volatile< ? extends AnnotationType< ? > > > volatileSource = image.getSourcePair().getVolatileSource();
-			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSource, image.getBounds( 0 ) );
+			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSource, image.getMask() );
 			final VolatileAnnotationConverter volatileAnnotationConverter = new VolatileAnnotationConverter( display.coloringModel );
 			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
 

@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer.source;
 
-import net.imglib2.RealInterval;
 import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.annotation.AnnotationAdapter;
@@ -48,9 +47,9 @@ public class AnnotatedLabelImage< A extends Annotation > implements AnnotatedIma
 	}
 
 	@Override
-	public RealMaskRealInterval getBounds( int t )
+	public RealMaskRealInterval getMask()
 	{
-		return labelImage.getBounds( t );
+		return labelImage.getMask();
 	}
 
 	public Image< ? extends IntegerType< ? > > getLabelImage()

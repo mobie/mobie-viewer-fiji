@@ -30,16 +30,12 @@ package org.embl.mobie.viewer.transform.image;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.Source;
-import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.viewer.source.DefaultImage;
 import org.embl.mobie.viewer.source.DefaultSourcePair;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.SourcePair;
-
-import java.util.List;
 
 public class AffineTransformedImage< T > implements Image< T >
 {
@@ -88,10 +84,10 @@ public class AffineTransformedImage< T > implements Image< T >
 	}
 
 	@Override
-	public RealMaskRealInterval getBounds( int t )
+	public RealMaskRealInterval getMask( )
 	{
 		// TODO: this would change if the input image
 		//   changed its location. Is this desired?
-		return image.getBounds( t ).transform( affineTransform3D );
+		return image.getMask().transform( affineTransform3D );
 	}
 }

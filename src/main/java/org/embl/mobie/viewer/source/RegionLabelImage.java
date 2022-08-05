@@ -39,6 +39,7 @@ import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.annotation.ImageAnnotation;
+import org.embl.mobie.viewer.transform.TransformHelper;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -48,7 +49,7 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 {
 	private final String name;
 	private final Set< IA > imageAnnotations;
-	private RealMaskRealInterval imageMask;
+	private RealMaskRealInterval mask;
 	private Source< UnsignedIntType > source;
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 
@@ -62,29 +63,7 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 
 	private void setImageMask()
 	{
-		for ( IA imageAnnotation : imageAnnotations )
-		{
-			final RealMaskRealInterval mask = imageAnnotation.mask();
-
-			if ( imageMask == null )
-			{
-				imageMask = mask;
-			}
-			else
-			{
-				if ( Intervals.equals(  mask, imageMask ) )
-				{
-					continue;
-				}
-				else
-				{
-					// TODO: Below hangs (see issue in imglib2-roi)
-					imageMask = imageMask.or( mask );
-					int a = 1;
-					//imageMask = Intervals.union( imageMask, mask );
-				}
-			}
-		}
+		mask = TransformHelper.getUnionMask( imageAnnotations, 0 );
 	}
 
 	private void createImage()
@@ -93,7 +72,7 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 		{
 			for ( IA imageAnnotation : imageAnnotations )
 			{
-				if ( imageAnnotation.mask().test( location ) )
+				if ( imageAnnotation.getMask().test( location ) )
 				{
 					value.setInteger( imageAnnotation.label() );
 					return;
@@ -103,7 +82,7 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 		};
 
 		final ArrayList< Integer > timePoints = configureTimePoints();
-		final Interval interval = Intervals.smallestContainingInterval( imageMask );
+		final Interval interval = Intervals.smallestContainingInterval( mask );
 		final FunctionRealRandomAccessible< UnsignedIntType > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, UnsignedIntType::new );
 		source = new RealRandomAccessibleIntervalTimelapseSource<>( randomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, false, timePoints );
 
@@ -129,8 +108,8 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 	}
 
 	@Override
-	public RealMaskRealInterval getBounds( int t )
+	public RealMaskRealInterval getMask( )
 	{
-		return imageMask;
+		return mask;
 	}
 }

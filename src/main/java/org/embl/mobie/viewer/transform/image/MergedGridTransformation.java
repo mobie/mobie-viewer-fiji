@@ -28,12 +28,11 @@
  */
 package org.embl.mobie.viewer.transform.image;
 
-import net.imglib2.type.numeric.NumericType;
 import org.embl.mobie.viewer.transform.AbstractGridTransformation;
 
 import java.util.List;
 
-public class MergedGridTransformation< T extends NumericType< T > > extends AbstractGridTransformation< T >
+public class MergedGridTransformation extends AbstractGridTransformation
 {
 	// Serialization
 	public List< String > sources;

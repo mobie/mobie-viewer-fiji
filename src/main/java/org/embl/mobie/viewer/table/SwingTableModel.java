@@ -49,7 +49,16 @@ public class SwingTableModel implements TableModel
 	@Override
 	public Object getValueAt( int rowIndex, int columnIndex )
 	{
-		return tableModel.annotation( rowIndex ).getValue( getColumnName( columnIndex ) );
+		try
+		{
+			final String columnName = getColumnName( columnIndex );
+			final Annotation annotation = tableModel.annotation( rowIndex );
+			return annotation.getValue( columnName );
+		}
+		catch ( Exception e )
+		{
+			throw( e );
+		}
 	}
 
 	@Override

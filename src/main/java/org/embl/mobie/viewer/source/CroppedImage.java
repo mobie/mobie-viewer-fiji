@@ -150,7 +150,7 @@ public class CroppedImage< T > implements Image< T >
 	}
 
 	@Override
-	public RealMaskRealInterval getBounds( int t )
+	public RealMaskRealInterval getMask()
 	{
 		return GeomMasks.closedBox( min, max );
 	}

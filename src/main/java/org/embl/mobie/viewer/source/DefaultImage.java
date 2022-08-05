@@ -34,8 +34,8 @@ public class DefaultImage< T > implements Image< T >
 	}
 
 	@Override
-	public RealMaskRealInterval getBounds( int t )
+	public RealMaskRealInterval getMask()
 	{
-		return SourceHelper.estimateMask( source, t );
+		return SourceHelper.estimateMask( source, 0 );
 	}
 }

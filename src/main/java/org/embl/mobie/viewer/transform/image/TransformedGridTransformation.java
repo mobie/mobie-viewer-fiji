@@ -37,9 +37,11 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.transform.AbstractGridTransformation;
 import org.embl.mobie.viewer.transform.TransformHelper;
 
+import java.lang.reflect.Executable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public class TransformedGridTransformation extends AbstractGridTransformation
 {
@@ -57,11 +59,6 @@ public class TransformedGridTransformation extends AbstractGridTransformation
 		return allSources;
 	}
 
-	public List< List< String > > getTransformedNames()
-	{
-		return transformedNames == null ? nestedSources : transformedNames;
-	}
-
 	public void apply( List< List< ? extends Image< ? > > > nestedImages, double[] cellRealDimensions )
 	{
 		final int numGridPositions = nestedImages.size();
@@ -71,7 +68,20 @@ public class TransformedGridTransformation extends AbstractGridTransformation
 		{
 			int finalGridIndex = gridIndex;
 			futures.add( MultiThreading.executorService.submit( () -> {
-				translate( nestedImages.get( finalGridIndex ), getTransformedNames().get( finalGridIndex ), centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
+				try
+				{
+					final List< ? extends Image< ? > > images = nestedImages.get( finalGridIndex );
+					// default: keep same names...
+					List< String > transformedImageNames = images.stream().map( image -> image.getName() ).collect( Collectors.toList() );
+					// ...or give new name if provided.
+					if ( transformedNames != null )
+						transformedImageNames = transformedNames.get( finalGridIndex );
+					translate( images,transformedImageNames, centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
+				}
+				catch ( Exception e )
+				{
+					throw ( e );
+				}
 			} ) );
 		}
 		MultiThreading.waitUntilFinished( futures );

@@ -58,7 +58,7 @@ public class DefaultRegionTableRow extends AbstractTableRow implements RegionTab
 	}
 
 	@Override
-	public RealMaskRealInterval mask()
+	public RealMaskRealInterval getMask()
 	{
 		return mask;
 	}

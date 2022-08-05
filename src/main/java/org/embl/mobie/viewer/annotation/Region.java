@@ -27,11 +27,9 @@
  * #L%
  */
 package org.embl.mobie.viewer.annotation;
+import org.embl.mobie.viewer.source.Masked;
 
-import net.imglib2.roi.RealMaskRealInterval;
-
-public interface Region extends Location
+public interface Region extends Location, Masked
 {
-	RealMaskRealInterval mask();
 	String regionId();
 }

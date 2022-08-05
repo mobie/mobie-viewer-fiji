@@ -307,16 +307,17 @@ public class ViewManager
 			final Object imageDisplay = imageToDisplay.get( imageSource.getName() );
 			if ( imageDisplay instanceof MergedGridTransformation )
 			{
-				final List< String > targetImageNames = ( ( MergedGridTransformation< ? > ) imageDisplay ).getTargetImageNames();
+				final List< String > targetImageNames = ( ( MergedGridTransformation ) imageDisplay ).getTargetImageNames();
 				if ( targetImageNames.indexOf( imageSource.getName() ) == 0)
 				{
 					// The first image should be immediately initialised,
-					// because this is the reference source for the stitching.
+					// because this is needed as the reference source
+					// for the stitching (aka MergedGridTransformation).
 					imageSource.preInit( true );
 				}
 				else
 				{
-					// The others should be initialised later on-demand.
+					// The others image should be initialised later on-demand.
 					imageSource.preInit( false );
 				}
 			}
@@ -398,11 +399,11 @@ public class ViewManager
 				}
 				else if ( transformation instanceof MergedGridTransformation )
 				{
-					final MergedGridTransformation< ? > mergedGridTransformation = ( MergedGridTransformation< ? > ) transformation;
+					final MergedGridTransformation mergedGridTransformation = ( MergedGridTransformation ) transformation;
 					final List< String > targetImageNames = transformation.getTargetImageNames();
 					final List< ? extends Image< ? > > targetImages = ImageStore.getImageList( targetImageNames );
 
-					if ( targetImages.get( 0 ) instanceof AnnotatedLabelImage )
+					if ( targetImages.get( 0 ) instanceof AnnotatedImage )
 					{
 						final AnnotatedStitchedImage annotatedStitchedImage = new AnnotatedStitchedImage( targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, TransformHelper.RELATIVE_GRID_CELL_MARGIN, true );
 						ImageStore.putImage( annotatedStitchedImage );
@@ -449,7 +450,6 @@ public class ViewManager
 				ImageStore.putImage( annotatedLabelImage );
 			}
 		}
-
 	}
 
 	public synchronized < A extends Annotation > void show( Display< ? > display )

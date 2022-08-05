@@ -2,8 +2,10 @@ package org.embl.mobie.viewer.table.saw;
 
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.annotation.ImageAnnotation;
 import org.embl.mobie.viewer.table.ColumnNames;
+import org.embl.mobie.viewer.transform.TransformHelper;
 import tech.tablesaw.api.Row;
 
 import java.util.List;
@@ -11,7 +13,7 @@ import java.util.List;
 public class TableSawImageAnnotation implements ImageAnnotation
 {
 	private Row row;
-	private final List< String > imageNames;
+	private final List< String > annotatedImageNames;
 	private RealMaskRealInterval realMaskRealInterval;
 	private String regionId;
 	private int label;
@@ -19,10 +21,10 @@ public class TableSawImageAnnotation implements ImageAnnotation
 
 	public TableSawImageAnnotation(
 			Row row,
-			List< String > imageNames )
+			List< String > annotatedImageNames )
 	{
 		this.row = row;
-		this.imageNames = imageNames;
+		this.annotatedImageNames = annotatedImageNames;
 
 		// ImageAnnotation properties
 		this.regionId = row.getObject( ColumnNames.REGION_ID ).toString();
@@ -72,10 +74,10 @@ public class TableSawImageAnnotation implements ImageAnnotation
 	}
 
 	@Override
-	public RealMaskRealInterval mask()
+	public RealMaskRealInterval getMask()
 	{
 		if ( realMaskRealInterval == null )
-			realMaskRealInterval = getUnionMask( imageNames, timePoint() );
+			realMaskRealInterval = TransformHelper.getUnionMask( ImageStore.getImages( annotatedImageNames ), timePoint() );
 
 		return realMaskRealInterval;
 	}
