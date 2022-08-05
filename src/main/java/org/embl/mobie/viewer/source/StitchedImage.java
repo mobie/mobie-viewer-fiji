@@ -42,14 +42,13 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.Type;
-import net.imglib2.type.numeric.NumericType;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.transform.TransformHelper;
-import org.embl.mobie.viewer.transform.image.TransformedGridTransformation;
+import org.embl.mobie.viewer.transform.image.ImageGridTransformer;
 import org.embl.mobie.viewer.transform.image.InitialisedMetadataImage;
 
 import javax.annotation.Nullable;
@@ -147,14 +146,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			nestedImages.add( imagesAtGridPosition );
 		}
 
-		// Shift the individual images to the same positions as in the
-		// stitched image.
-		// {@code gridTransformation.apply()} currently also
-		// immediately registers the images in the ImageStore.
-		final TransformedGridTransformation gridTransformation = new TransformedGridTransformation();
-		gridTransformation.positions = positions;
-		gridTransformation.centerAtOrigin = false;
-		gridTransformation.apply( nestedImages, cellRealDimensions );
+		new ImageGridTransformer().transform( nestedImages, null, positions, cellRealDimensions, false );
 	}
 
 
