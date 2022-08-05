@@ -31,7 +31,7 @@ package org.embl.mobie.viewer.display;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.bdv.view.SliceViewer;
-import org.embl.mobie.viewer.source.Image;
+import org.embl.mobie.viewer.image.Image;
 
 import java.util.HashMap;
 import java.util.HashSet;

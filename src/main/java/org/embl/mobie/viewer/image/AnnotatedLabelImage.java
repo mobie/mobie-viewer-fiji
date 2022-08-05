@@ -1,8 +1,14 @@
-package org.embl.mobie.viewer.source;
+package org.embl.mobie.viewer.image;
 
 import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.annotation.AnnotationAdapter;
+import org.embl.mobie.viewer.source.AnnotatedImage;
+import org.embl.mobie.viewer.source.AnnotatedLabelSource;
+import org.embl.mobie.viewer.source.AnnotationType;
+import org.embl.mobie.viewer.source.DefaultSourcePair;
+import org.embl.mobie.viewer.source.SourcePair;
+import org.embl.mobie.viewer.source.VolatileAnnotatedLabelSource;
 import org.embl.mobie.viewer.table.AnnData;
 import net.imglib2.Volatile;
 import net.imglib2.type.numeric.IntegerType;

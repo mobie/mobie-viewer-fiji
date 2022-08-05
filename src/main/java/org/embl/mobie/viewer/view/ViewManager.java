@@ -62,13 +62,13 @@ import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.source.AnnotatedImage;
-import org.embl.mobie.viewer.source.AnnotatedStitchedImage;
+import org.embl.mobie.viewer.image.AnnotatedStitchedImage;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.CroppedImage;
-import org.embl.mobie.viewer.source.Image;
-import org.embl.mobie.viewer.source.AnnotatedLabelImage;
-import org.embl.mobie.viewer.source.RegionLabelImage;
-import org.embl.mobie.viewer.source.StitchedImage;
+import org.embl.mobie.viewer.image.Image;
+import org.embl.mobie.viewer.image.AnnotatedLabelImage;
+import org.embl.mobie.viewer.image.RegionLabelImage;
+import org.embl.mobie.viewer.image.StitchedImage;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
@@ -79,6 +79,7 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawImageAnnotation;
 import org.embl.mobie.viewer.table.saw.TableSawImageAnnotationCreator;
+import org.embl.mobie.viewer.transform.AbstractGridTransformation;
 import org.embl.mobie.viewer.transform.AnnotatedSegmentAffineTransformer;
 import org.embl.mobie.viewer.transform.AnnotationTransformer;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
@@ -405,14 +406,14 @@ public class ViewManager
 
 					if ( targetImages.get( 0 ) instanceof AnnotatedImage )
 					{
-						final AnnotatedStitchedImage annotatedStitchedImage = new AnnotatedStitchedImage( targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, TransformHelper.RELATIVE_GRID_CELL_MARGIN, true );
+						final AnnotatedStitchedImage annotatedStitchedImage = new AnnotatedStitchedImage( targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
 						ImageStore.putImage( annotatedStitchedImage );
 					}
 					else
 					{
 						//final long start = System.currentTimeMillis();
 						//IJ.log( "Creating: " + mergedGridTransformation.mergedGridSourceName );
-						final StitchedImage stitchedImage = new StitchedImage<>( ( List ) targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, TransformHelper.RELATIVE_GRID_CELL_MARGIN, true );
+						final StitchedImage stitchedImage = new StitchedImage<>( ( List ) targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
 						//IJ.log( mergedGridTransformation.mergedGridSourceName + ": " + ( System.currentTimeMillis() - start )  );
 						ImageStore.putImage( stitchedImage );
 					}

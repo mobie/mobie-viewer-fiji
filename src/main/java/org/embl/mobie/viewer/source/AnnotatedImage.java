@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.source;
 
+import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.annotation.Annotation;
 

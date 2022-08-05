@@ -44,7 +44,7 @@ import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.BoundarySource;
-import org.embl.mobie.viewer.source.Image;
+import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.source.VolatileBoundarySource;
 import org.embl.mobie.viewer.annotation.Annotation;

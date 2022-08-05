@@ -1,17 +1,19 @@
-package org.embl.mobie.viewer.source;
+package org.embl.mobie.viewer.image;
 
 import bdv.SpimSource;
 import bdv.VolatileSpimSource;
-import ij.IJ;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
-import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
+import org.embl.mobie.viewer.image.Image;
+import org.embl.mobie.viewer.source.DefaultSourcePair;
+import org.embl.mobie.viewer.source.SourceHelper;
+import org.embl.mobie.viewer.source.SourcePair;
 
 public class SpimDataImage< T extends NumericType< T > & RealType< T > > implements Image< T >
 {

@@ -1,7 +1,7 @@
 package org.embl.mobie.viewer.transform.image;
 
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.viewer.source.Image;
+import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.source.SourcePair;
 
 public class InitialisedMetadataImage< T > implements Image< T >

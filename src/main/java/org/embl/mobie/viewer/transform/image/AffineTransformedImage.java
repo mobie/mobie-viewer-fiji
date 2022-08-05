@@ -34,7 +34,7 @@ import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.source.DefaultSourcePair;
-import org.embl.mobie.viewer.source.Image;
+import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.source.SourcePair;
 
 public class AffineTransformedImage< T > implements Image< T >

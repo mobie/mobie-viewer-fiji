@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.source;
+package org.embl.mobie.viewer.image;
 
 import bdv.viewer.Source;
 import net.imglib2.Interval;
@@ -39,6 +39,10 @@ import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.annotation.ImageAnnotation;
+import org.embl.mobie.viewer.image.Image;
+import org.embl.mobie.viewer.source.DefaultSourcePair;
+import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
+import org.embl.mobie.viewer.source.SourcePair;
 import org.embl.mobie.viewer.transform.TransformHelper;
 
 import java.util.ArrayList;

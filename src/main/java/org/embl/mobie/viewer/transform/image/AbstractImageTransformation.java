@@ -29,9 +29,6 @@
 package org.embl.mobie.viewer.transform.image;
 
 
-import org.embl.mobie.viewer.source.Image;
-import org.embl.mobie.viewer.transform.image.ImageTransformation;
-
 import java.util.List;
 
 public abstract class AbstractImageTransformation< A, B > implements ImageTransformation< A, B >

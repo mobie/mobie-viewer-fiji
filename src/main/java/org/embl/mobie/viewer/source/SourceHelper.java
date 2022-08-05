@@ -39,6 +39,7 @@ import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
+import org.embl.mobie.viewer.image.StitchedImage;
 
 import java.util.List;
 import java.util.Set;

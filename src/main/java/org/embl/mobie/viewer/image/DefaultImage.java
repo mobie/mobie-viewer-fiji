@@ -1,12 +1,11 @@
-package org.embl.mobie.viewer.source;
+package org.embl.mobie.viewer.image;
 
 import bdv.viewer.Source;
-import net.imglib2.FinalRealInterval;
-import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.roi.geom.GeomMasks;
-import net.imglib2.roi.geom.GeomMaths;
+import org.embl.mobie.viewer.source.DefaultSourcePair;
+import org.embl.mobie.viewer.source.SourceHelper;
+import org.embl.mobie.viewer.source.SourcePair;
 
 public class DefaultImage< T > implements Image< T >
 {

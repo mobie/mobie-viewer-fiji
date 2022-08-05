@@ -36,7 +36,7 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.embl.mobie.viewer.playground.SourceAffineTransformer;
-import org.embl.mobie.viewer.source.Image;
+import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.source.Masked;
 import org.embl.mobie.viewer.source.SourceHelper;
 import net.imglib2.RealInterval;
@@ -53,7 +53,6 @@ import java.util.stream.Collectors;
 
 public class TransformHelper
 {
-	public static final double RELATIVE_GRID_CELL_MARGIN = 0.0; //0.1;
 
 	public static RealInterval createMask( List< ? extends Source< ? > > sources, int t )
 	{
@@ -108,7 +107,7 @@ public class TransformHelper
 		return center;
 	}
 
-	public static AffineTransform3D create2dTranslationTransform( double translationX, double translationY, Image< ? > image, boolean centerAtOrigin )
+	public static AffineTransform3D createTranslationTransform( double translationX, double translationY, Image< ? > image, boolean centerAtOrigin )
 	{
 		AffineTransform3D translationTransform = new AffineTransform3D();
 		if ( centerAtOrigin )
@@ -121,7 +120,7 @@ public class TransformHelper
 		return translationTransform;
 	}
 
-	public static AffineTransform3D create2dTranslationTransform( double translationX, double translationY, SourceAndConverter< ? > sourceAndConverter, boolean centerAtOrigin )
+	public static AffineTransform3D createTranslationTransform( double translationX, double translationY, SourceAndConverter< ? > sourceAndConverter, boolean centerAtOrigin )
 	{
 		AffineTransform3D translationTransform = new AffineTransform3D();
 		if ( centerAtOrigin )
@@ -149,7 +148,7 @@ public class TransformHelper
 		for ( List< String > sourceNames : sourceNamesList )
 		{
 			final List< SourceAndConverter< ? > > sourceAndConverters = sourceNames.stream().map( name -> sourceNameToSourceAndConverter.get( name ) ).collect( Collectors.toList() );
-			final double[] realDimensions = computeSourceUnionRealDimensions( sourceAndConverters, RELATIVE_GRID_CELL_MARGIN, 0 );
+			final double[] realDimensions = computeSourceUnionRealDimensions( sourceAndConverters, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, 0 );
 			for ( int d = 0; d < 2; d++ )
 				maximalDimensions[ d ] = realDimensions[ d ] > maximalDimensions[ d ] ? realDimensions[ d ] : maximalDimensions[ d ];
 		}

@@ -26,15 +26,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.source;
+package org.embl.mobie.viewer.image;
 
 import bdv.util.Affine3DHelpers;
 import bdv.viewer.Source;
+import bdv.viewer.overlay.ScaleBarOverlayRenderer;
 import net.imglib2.FinalInterval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
 import net.imglib2.position.FunctionRandomAccessible;
@@ -47,6 +49,10 @@ import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIEHelper;
+import org.embl.mobie.viewer.source.DefaultSourcePair;
+import org.embl.mobie.viewer.source.MoBIEVolatileTypeMatcher;
+import org.embl.mobie.viewer.source.RandomAccessibleIntervalMipmapSource;
+import org.embl.mobie.viewer.source.SourcePair;
 import org.embl.mobie.viewer.transform.TransformHelper;
 import org.embl.mobie.viewer.transform.image.ImageGridTransformer;
 import org.embl.mobie.viewer.transform.image.InitialisedMetadataImage;
@@ -104,7 +110,24 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		createSourcePair();
 
 		if ( transformImageTiles )
+		{
 			transform( images );
+		}
+	}
+
+	private double[] computeTileMarginOffset( Image< ? > image, double[] tileRealDimensions )
+	{
+		final RealInterval realInterval = image.getMask();
+
+		final double[] imageRealDimensions = new double[ 3 ];
+		for ( int d = 0; d < 3; d++ )
+			imageRealDimensions[ d ] = ( realInterval.realMax( d ) - realInterval.realMin( d ) );
+
+		final double[] translationOffset = new double[ 2 ];
+		for ( int d = 0; d < 2; d++ )
+			translationOffset[ d ] = 0.5 * ( tileRealDimensions[ d ] - imageRealDimensions[ d ] );
+
+		return translationOffset;
 	}
 
 	// Transform all the images that are stitched to be
@@ -114,18 +137,40 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	protected void transform( List< ? extends Image< ? > > images )
 	{
 		final Image< ? > referenceImage = images.get( 0 );
+		final double[] offset = computeTileMarginOffset( referenceImage, cellRealDimensions );
 
 		final List< List< ? extends Image< ? > > > nestedImages = new ArrayList<>();
 		for ( Image< ? > image : images )
 		{
 			final List< Image< ? > > imagesAtGridPosition = new ArrayList<>();
 
+			// Only the image at the first grid position
+			// (the reference image) may have been loaded.
+			// Avoid loading of the other images by providing the metadata
+			// of the reference image (note that for a StitchedImage all images
+			// are required to have the same metadata).
+			if ( image == referenceImage )
+			{
+				imagesAtGridPosition.add( referenceImage );
+			}
+			else
+			{
+				// The reason for doing this is not the translation,
+				// but the fact that a RegionLabelImage may be build to
+				// annotate those images and that would trigger loading of the
+				// data.
+				final InitialisedMetadataImage initialisedMetadataImage = new InitialisedMetadataImage( image, referenceImage.getMask() );
+				imagesAtGridPosition.add( initialisedMetadataImage );
+			}
+
 			if ( image instanceof StitchedImage )
 			{
-				// Transform the images that are contained
+				// Also transform the image tiles that are contained
 				// in the stitched image.
-				final List< String > stitchedImageNames = ( ( StitchedImage< ?, ? > ) image ).getTileImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
-				final Set< Image< ? > > stitchedImages = ImageStore.getImages( stitchedImageNames );
+				// Here, we don't need to use InitialisedMetadataImage again,
+				// because those tiles are already InitialisedMetadataImages.
+				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getTileImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
+				final Set< Image< ? > > stitchedImages = ImageStore.getImages( tileNames );
 				for ( Image< ? > containedImage : stitchedImages )
 				{
 					if ( containedImage instanceof StitchedImage )
@@ -134,19 +179,11 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 					imagesAtGridPosition.add( containedImage );
 				}
 			}
-			else
-			{
-				// Use bounds of reference image.
-				// This avoids loading of the actual image
-				// when another method is asking the transformed
-				// image for its bounds.
-				final InitialisedMetadataImage initialisedMetadataImage = new InitialisedMetadataImage( image, referenceImage.getMask() );
-				imagesAtGridPosition.add( initialisedMetadataImage );
-			}
+
 			nestedImages.add( imagesAtGridPosition );
 		}
 
-		new ImageGridTransformer().transform( nestedImages, null, positions, cellRealDimensions, false );
+		new ImageGridTransformer().transform( nestedImages, null, positions, cellRealDimensions, false, offset );
 	}
 
 
@@ -170,7 +207,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		final List< RandomAccessibleInterval< T > > mipmapRAIs = createStitchedRAIs( randomAccessGrid );
 
-		// TODO: Create own one for non-numeric types
 		final RandomAccessibleIntervalMipmapSource< T > source = new RandomAccessibleIntervalMipmapSource<>(
 				mipmapRAIs,
 				type,
@@ -185,7 +221,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		final List< RandomAccessibleInterval< V > > volatileMipmapRAIs = createVolatileStitchedRAIs( volatileGrid );
 
-		// TODO: Create own one for non-numeric types
 		final RandomAccessibleIntervalMipmapSource< V > volatileSource = new RandomAccessibleIntervalMipmapSource<>(
 				volatileMipmapRAIs,
 				volatileType,
@@ -306,8 +341,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			referenceSource.getSourceTransform( 0, level, affineTransform3D );
 			for ( int d = 0; d < numDimensions; d++ )
 				voxelSizes[ level ][ d ] =
-						Math.sqrt(
-								affineTransform3D.get( 0, d ) * affineTransform3D.get( 0, d ) + 									affineTransform3D.get( 1, d ) * affineTransform3D.get( 1, d ) +	    							affineTransform3D.get( 2, d ) * affineTransform3D.get( 2, d )
+					Math.sqrt(
+						affineTransform3D.get( 0, d ) * affineTransform3D.get( 0, d ) +
+						affineTransform3D.get( 1, d ) * affineTransform3D.get( 1, d ) +	    				affineTransform3D.get( 2, d ) * affineTransform3D.get( 2, d )
 						);
 		}
 
@@ -350,9 +386,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
-			{
 				cellDimensions[ level ][ d ] = (int) ( cellDimensions[ level - 1 ][ d ] / downSamplingFactors[ level ][ d ] );
-			}
 	}
 
 	protected< T extends Type< T > > RandomAccessSupplier< T >[][] createRandomAccessGrid( T type )
@@ -434,6 +468,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		for ( int d = 0; d < 2; d++ )
 		{
 			// position of the cell + offset for margin
+			// TODO: the rounding error may contribute to the
+			//   slight misalignment of the resolution levels
+			//   we could compensate for this error when building the Source
 			translation[ d ] = (long) ( ( cellDimensions[ d ] - dataDimensions[ d ] ) / 2.0 );
 		}
 		return translation;
@@ -515,7 +552,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			else
 				rai = image.getSourcePair().getSource().getSource( t, level );
 
-			System.out.println( "Grid: Open " + image.getName() + ", level=" + level + ": " + ( System.currentTimeMillis() - l ) + " ms") ;
+			//System.out.println( "Grid: Open " + image.getName() + ", level=" + level + ": " + ( System.currentTimeMillis() - l ) + " ms") ;
 			final T outOfBoundsVariable = type.createVariable();
 			RandomAccessible< T > ra = new ExtendedRandomAccessibleInterval<>( rai, new OutOfBoundsConstantValueFactory<>( outOfBoundsVariable ) );
 			// shift the RAI to create a margin

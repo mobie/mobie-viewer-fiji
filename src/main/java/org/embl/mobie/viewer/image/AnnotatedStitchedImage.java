@@ -26,17 +26,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.source;
+package org.embl.mobie.viewer.image;
 
 import org.embl.mobie.viewer.annotation.Annotation;
+import org.embl.mobie.viewer.source.AnnotatedImage;
+import org.embl.mobie.viewer.source.AnnotationType;
+import org.embl.mobie.viewer.source.VolatileAnnotationType;
 import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.table.AnnDataHelper;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class AnnotatedStitchedImage< A extends Annotation > extends StitchedImage< AnnotationType< A >, VolatileAnnotationType< A >  > implements AnnotatedImage< A >
+public class AnnotatedStitchedImage< A extends Annotation > extends StitchedImage< AnnotationType< A >, VolatileAnnotationType< A > > implements AnnotatedImage< A >
 {
 	private AnnData< A > annData;
 

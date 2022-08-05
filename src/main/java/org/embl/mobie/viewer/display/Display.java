@@ -29,7 +29,7 @@
 package org.embl.mobie.viewer.display;
 
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
-import org.embl.mobie.viewer.source.Image;
+import org.embl.mobie.viewer.image.Image;
 
 import java.util.List;
 import java.util.Set;

@@ -38,7 +38,7 @@ import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.serialize.Data;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.ImageSource;
-import org.embl.mobie.viewer.source.Image;
+import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.view.View;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;

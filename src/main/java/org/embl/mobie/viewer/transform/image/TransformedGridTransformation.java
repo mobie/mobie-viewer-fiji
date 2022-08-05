@@ -28,16 +28,13 @@
  */
 package org.embl.mobie.viewer.transform.image;
 
-import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MultiThreading;
-import org.embl.mobie.viewer.playground.SourceAffineTransformer;
-import org.embl.mobie.viewer.source.Image;
+import org.embl.mobie.viewer.image.Image;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.transform.AbstractGridTransformation;
 import org.embl.mobie.viewer.transform.TransformHelper;
 
-import java.lang.reflect.Executable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -98,7 +95,7 @@ public class TransformedGridTransformation extends AbstractGridTransformation
 	{
 		for ( Image< ? > image : images )
 		{
-			AffineTransform3D translationTransform = TransformHelper.create2dTranslationTransform( translationX, translationY, image, centerAtOrigin );
+			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform( translationX, translationY, image, centerAtOrigin );
 			final AffineTransformedImage< ? > transformedImage = new AffineTransformedImage<>( image, transformedNames.get( images.indexOf( image ) ), translationTransform );
 			ImageStore.putImage( transformedImage );
 		}
