@@ -226,7 +226,11 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				final RandomAccessSupplier< V > randomAccessSupplier = randomAccessGrid[ xCellIndex ][ yCellIndex ];
 
 				if ( randomAccessSupplier == null )
+				{
+					value.set( volatileType );
+					value.setValid( true );
 					return; // grid position is empty
+				}
 
 				final Status status = randomAccessSupplier.status( level );
 				if ( status.equals( Status.Open ) )
@@ -277,6 +281,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 				if ( randomAccessSupplier == null )
 				{
+					value.set( type );
 					return; // grid position is empty
 				}
 
