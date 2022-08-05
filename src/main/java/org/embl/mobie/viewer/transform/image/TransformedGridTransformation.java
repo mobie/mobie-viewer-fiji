@@ -63,6 +63,10 @@ public class TransformedGridTransformation extends AbstractGridTransformation
 	{
 		final int numGridPositions = nestedImages.size();
 
+		if ( nestedImages.size() < 9 )
+		{
+			int a = 1;
+		}
 		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
 		for ( int gridIndex = 0; gridIndex < numGridPositions; gridIndex++ )
 		{
@@ -71,12 +75,15 @@ public class TransformedGridTransformation extends AbstractGridTransformation
 				try
 				{
 					final List< ? extends Image< ? > > images = nestedImages.get( finalGridIndex );
-					// default: keep same names...
+					final double translationX = cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ];
+					final double translationY = cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ];
+					// keep same names...
 					List< String > transformedImageNames = images.stream().map( image -> image.getName() ).collect( Collectors.toList() );
-					// ...or give new name if provided.
+					// ...or give new names if provided.
 					if ( transformedNames != null )
 						transformedImageNames = transformedNames.get( finalGridIndex );
-					translate( images,transformedImageNames, centerAtOrigin, cellRealDimensions[ 0 ] * positions.get( finalGridIndex )[ 0 ], cellRealDimensions[ 1 ] * positions.get( finalGridIndex )[ 1 ] );
+
+					translate( images, transformedImageNames, centerAtOrigin, translationX, translationY );
 				}
 				catch ( Exception e )
 				{

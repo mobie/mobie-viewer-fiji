@@ -4,12 +4,14 @@ import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.source.Image;
 import org.embl.mobie.viewer.source.SourcePair;
 
-public class InitialisedBoundsImage< T > implements Image< T >
+public class InitialisedMetadataImage< T > implements Image< T >
 {
 	private final Image< T > image;
 	private final RealMaskRealInterval mask;
 
-	public InitialisedBoundsImage( Image< T > image, RealMaskRealInterval mask )
+	// Currently, only the mask is given, we could provide more
+	// metadata if needed.
+	public InitialisedMetadataImage( Image< T > image, RealMaskRealInterval mask )
 	{
 		this.image = image;
 		this.mask = mask;

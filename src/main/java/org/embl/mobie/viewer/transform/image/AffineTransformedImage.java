@@ -44,8 +44,8 @@ public class AffineTransformedImage< T > implements Image< T >
 	private final String transformedImageName;
 	private DefaultSourcePair sourcePair;
 
-	public AffineTransformedImage( Image< T > image, String transformedImageName, AffineTransform3D affineTransform3D ) {
-
+	public AffineTransformedImage( Image< T > image, String transformedImageName, AffineTransform3D affineTransform3D )
+	{
 		this.image = image;
 		this.transformedImageName = transformedImageName;
 		this.affineTransform3D = affineTransform3D;
@@ -86,8 +86,12 @@ public class AffineTransformedImage< T > implements Image< T >
 	@Override
 	public RealMaskRealInterval getMask( )
 	{
-		// TODO: this would change if the input image
-		//   changed its location. Is this desired?
-		return image.getMask().transform( affineTransform3D );
+		final RealMaskRealInterval mask = image.getMask();
+		final double[] min = mask.minAsDoubleArray();
+		final double[] max = mask.maxAsDoubleArray();
+		final RealMaskRealInterval realMaskRealInterval = mask.transform( affineTransform3D.inverse() );
+		final double[] min1 = realMaskRealInterval.minAsDoubleArray();
+		final double[] max1 = realMaskRealInterval.maxAsDoubleArray();
+		return realMaskRealInterval;
 	}
 }

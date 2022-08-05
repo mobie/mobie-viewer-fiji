@@ -42,6 +42,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.Type;
+import net.imglib2.type.numeric.NumericType;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
@@ -49,7 +50,7 @@ import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.transform.TransformHelper;
 import org.embl.mobie.viewer.transform.image.TransformedGridTransformation;
-import org.embl.mobie.viewer.transform.image.InitialisedBoundsImage;
+import org.embl.mobie.viewer.transform.image.InitialisedMetadataImage;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -78,8 +79,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	protected DefaultSourcePair< T > sourcePair;
 	protected V volatileType;
 	protected AffineTransform3D sourceTransform;
+	protected double[][] mipmapScales;
 
-	public StitchedImage( List< ? extends Image< T > > images, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
+	public StitchedImage( List< ? extends Image< T > > images, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImageTiles )
 	{
 		this.images = images;
 		this.positions = positions == null ? TransformHelper.createGridPositions( images.size() ) : positions;
@@ -92,7 +94,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			throw ( e );
 		}
 		this.name = imageName;
-		this.type = referenceSource.getType();
+		this.type = referenceSource.getType().createVariable();
 		this.sourceTransform = new AffineTransform3D();
 		referenceSource.getSourceTransform( 0, 0, sourceTransform );
 		// TODO: make my own VolatileTypeMatcher including AnnotationType
@@ -102,7 +104,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		setCellAndSourceDimensions();
 		createSourcePair();
 
-		if ( transformImages )
+		if ( transformImageTiles )
 			transform( images );
 	}
 
@@ -139,8 +141,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				// This avoids loading of the actual image
 				// when another method is asking the transformed
 				// image for its bounds.
-				final InitialisedBoundsImage initialisedBoundsImage = new InitialisedBoundsImage( image, referenceImage.getMask() );
-				imagesAtGridPosition.add( initialisedBoundsImage );
+				final InitialisedMetadataImage initialisedMetadataImage = new InitialisedMetadataImage( image, referenceImage.getMask() );
+				imagesAtGridPosition.add( initialisedMetadataImage );
 			}
 			nestedImages.add( imagesAtGridPosition );
 		}
@@ -151,6 +153,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		// immediately registers the images in the ImageStore.
 		final TransformedGridTransformation gridTransformation = new TransformedGridTransformation();
 		gridTransformation.positions = positions;
+		gridTransformation.centerAtOrigin = false;
 		gridTransformation.apply( nestedImages, cellRealDimensions );
 	}
 
@@ -179,7 +182,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		final RandomAccessibleIntervalMipmapSource< T > source = new RandomAccessibleIntervalMipmapSource<>(
 				mipmapRAIs,
 				type,
-				downSamplingFactors, // TODO: correct??
+				mipmapScales,
 				referenceSource.getVoxelDimensions(),
 				sourceTransform,
 				name );
@@ -194,7 +197,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		final RandomAccessibleIntervalMipmapSource< V > volatileSource = new RandomAccessibleIntervalMipmapSource<>(
 				volatileMipmapRAIs,
 				volatileType,
-				downSamplingFactors, // TODO: correct??
+				mipmapScales,
 				referenceSource.getVoxelDimensions(),
 				sourceTransform,
 				name );
@@ -288,15 +291,11 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		return stitchedRAIs;
 	}
 
-	protected void setCellRealDimensions( int[] cellDimension )
+	protected void setCellRealDimensions( int[] cellDimensions )
 	{
-		final AffineTransform3D referenceTransform = new AffineTransform3D();
-		referenceSource.getSourceTransform( 0, 0, referenceTransform );
 		cellRealDimensions = new double[ 3 ];
 		for ( int d = 0; d < 2; d++ )
-		{
-			cellRealDimensions[ d ] = cellDimension[ d ] * Affine3DHelpers.extractScale( referenceTransform, d );
-		}
+			cellRealDimensions[ d ] = cellDimensions[ d ] * Affine3DHelpers.extractScale( sourceTransform, d );
 	}
 
 	protected void setCellDimensions( )
@@ -306,22 +305,28 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		final double[][] voxelSizes = new double[ numMipmapLevels ][ numDimensions ];
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
-			referenceSource.getSourceTransform( 0, level, sourceTransform );
+			final AffineTransform3D affineTransform3D = new AffineTransform3D();
+			referenceSource.getSourceTransform( 0, level, affineTransform3D );
 			for ( int d = 0; d < numDimensions; d++ )
 				voxelSizes[ level ][ d ] =
 						Math.sqrt(
-								sourceTransform.get( 0, d ) * sourceTransform.get( 0, d ) +
-										sourceTransform.get( 1, d ) * sourceTransform.get( 1, d ) +
-										sourceTransform.get( 2, d ) * sourceTransform.get( 2, d )
+								affineTransform3D.get( 0, d ) * affineTransform3D.get( 0, d ) + 									affineTransform3D.get( 1, d ) * affineTransform3D.get( 1, d ) +	    							affineTransform3D.get( 2, d ) * affineTransform3D.get( 2, d )
 						);
 		}
 
 		downSamplingFactors = new double[ numMipmapLevels ][ numDimensions ];
+		mipmapScales = new double[ numMipmapLevels ][ numDimensions ];
 		for ( int d = 0; d < numDimensions; d++ )
+		{
 			downSamplingFactors[ 0 ][ d ] = 1.0;
+			mipmapScales[ 0 ][ d ] = 1.0 / downSamplingFactors[ 0 ][ d ];
+		}
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
+			{
 				downSamplingFactors[ level ][ d ] = voxelSizes[ level ][ d ] / voxelSizes[ level - 1 ][ d ];
+				mipmapScales[ level ][ d ] = voxelSizes[ level ][ d ] / voxelSizes[ 0 ][ d ];
+			}
 
 		final double[] downSamplingFactorProducts = new double[ numDimensions ];
 		Arrays.fill( downSamplingFactorProducts, 1.0D );
@@ -511,12 +516,12 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			if ( type instanceof Volatile )
 				rai = ( RandomAccessibleInterval< T > ) image.getSourcePair().getVolatileSource().getSource( t, level );
 			else
-				rai = ( RandomAccessibleInterval< T > ) image.getSourcePair().getSource().getSource( t, level );
+				rai = image.getSourcePair().getSource().getSource( t, level );
 
 			System.out.println( "Grid: Open " + image.getName() + ", level=" + level + ": " + ( System.currentTimeMillis() - l ) + " ms") ;
-			// TODO: I need my own extension
 			final T outOfBoundsVariable = type.createVariable();
 			RandomAccessible< T > ra = new ExtendedRandomAccessibleInterval<>( rai, new OutOfBoundsConstantValueFactory<>( outOfBoundsVariable ) );
+			// shift the RAI to create a margin
 			final long[] offset = computeTranslation( cellDimensions[ level ], rai.dimensionsAsLongArray() );
 			final RandomAccessible< T > translate = Views.translate( ra, offset );
 			levelToRandomAccessible.put( level, translate );

@@ -209,7 +209,11 @@ public abstract class SourceHelper
 	public static FinalRealInterval estimateBounds( Source< ? > source, int t )
 	{
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
-		source.getSourceTransform( 0, 0, affineTransform3D);
-		return affineTransform3D.estimateBounds( source.getSource( t, 0 ) );
+		source.getSourceTransform( 0, 0, affineTransform3D );
+		final RandomAccessibleInterval< ? > rai = source.getSource( t, 0 );
+		final double[] min = rai.minAsDoubleArray();
+		final double[] max = rai.maxAsDoubleArray();
+		final FinalRealInterval bounds = affineTransform3D.estimateBounds( rai );
+		return bounds;
 	}
 }

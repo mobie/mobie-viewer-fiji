@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 
 public class TransformHelper
 {
-	public static final double RELATIVE_GRID_CELL_MARGIN = 0.1;
+	public static final double RELATIVE_GRID_CELL_MARGIN = 0.0; //0.1;
 
 	public static RealInterval createMask( List< ? extends Source< ? > > sources, int t )
 	{
@@ -295,7 +295,9 @@ public class TransformHelper
 		RealInterval union = null;
 		for ( Masked masked : masks )
 		{
-			final RealInterval mask =  masked.getMask();
+			final RealInterval mask = masked.getMask();
+			final double[] min = mask.minAsDoubleArray();
+			final double[] max = mask.maxAsDoubleArray();
 
 			if ( union == null )
 			{
@@ -309,6 +311,8 @@ public class TransformHelper
 			}
 		}
 
-		return GeomMasks.closedBox( union.minAsDoubleArray(), union.maxAsDoubleArray() );
+		final double[] min = union.minAsDoubleArray();
+		final double[] max = union.maxAsDoubleArray();
+		return GeomMasks.closedBox( min, max );
 	}
 }

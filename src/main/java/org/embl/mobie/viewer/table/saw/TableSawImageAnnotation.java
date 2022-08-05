@@ -13,7 +13,7 @@ import java.util.List;
 public class TableSawImageAnnotation implements ImageAnnotation
 {
 	private Row row;
-	private final List< String > annotatedImageNames;
+	private final List< String > imageNames;
 	private RealMaskRealInterval realMaskRealInterval;
 	private String regionId;
 	private int label;
@@ -21,10 +21,10 @@ public class TableSawImageAnnotation implements ImageAnnotation
 
 	public TableSawImageAnnotation(
 			Row row,
-			List< String > annotatedImageNames )
+			List< String > imageNames )
 	{
 		this.row = row;
-		this.annotatedImageNames = annotatedImageNames;
+		this.imageNames = imageNames;
 
 		// ImageAnnotation properties
 		this.regionId = row.getObject( ColumnNames.REGION_ID ).toString();
@@ -47,8 +47,8 @@ public class TableSawImageAnnotation implements ImageAnnotation
 	@Override
 	public double[] anchor()
 	{
-		final double[] min = Intervals.minAsDoubleArray( realMaskRealInterval );
-		final double[] max = Intervals.maxAsDoubleArray( realMaskRealInterval );
+		final double[] min = Intervals.minAsDoubleArray( getMask() );
+		final double[] max = Intervals.maxAsDoubleArray( getMask() );
 		final double[] center = new double[ min.length ];
 		for ( int d = 0; d < min.length; d++ )
 			center[ d ] = ( max[ d ] + min[ d ] ) / 2.0;
@@ -77,7 +77,7 @@ public class TableSawImageAnnotation implements ImageAnnotation
 	public RealMaskRealInterval getMask()
 	{
 		if ( realMaskRealInterval == null )
-			realMaskRealInterval = TransformHelper.getUnionMask( ImageStore.getImages( annotatedImageNames ), timePoint() );
+			realMaskRealInterval = TransformHelper.getUnionMask( ImageStore.getImages( imageNames ), timePoint() );
 
 		return realMaskRealInterval;
 	}
