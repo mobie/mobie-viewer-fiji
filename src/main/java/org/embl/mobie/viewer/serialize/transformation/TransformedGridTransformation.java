@@ -26,14 +26,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.transform.image;
+package org.embl.mobie.viewer.serialize.transformation;
 
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MultiThreading;
 import org.embl.mobie.viewer.image.Image;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.transform.AbstractGridTransformation;
 import org.embl.mobie.viewer.transform.TransformHelper;
+import org.embl.mobie.viewer.transform.image.AffineTransformedImage;
 
 import java.util.ArrayList;
 import java.util.List;

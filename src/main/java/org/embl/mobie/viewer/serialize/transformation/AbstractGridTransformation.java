@@ -26,22 +26,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.transform.image;
-
-import org.embl.mobie.viewer.transform.AbstractGridTransformation;
+package org.embl.mobie.viewer.serialize.transformation;
 
 import java.util.List;
 
-public class MergedGridTransformation extends AbstractGridTransformation
+public abstract class AbstractGridTransformation implements Transformation
 {
 	// Serialization
-	public List< String > sources;
-	public String mergedGridSourceName;
-	public boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
+	public List< int[] > positions;
 
-	@Override
-	public List< String > getTargetImageNames()
-	{
-		return sources;
-	}
+	// Final
+	public static final double RELATIVE_GRID_CELL_MARGIN = 0.1;
+
 }

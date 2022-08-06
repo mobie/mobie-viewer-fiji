@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.transform.image;
+package org.embl.mobie.viewer.serialize.transformation;
 
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.image.Image;

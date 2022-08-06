@@ -56,22 +56,22 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 {
 	final private int n = 2;
 
-	private ArrayList< RealPoint > dataPoints;
-	private ArrayList< A > dataPointTableRows;
-	private Map< A, RealPoint > tableRowToRealPoint;
+	private ArrayList< RealPoint > realPoints;
+	private ArrayList< A > annotations;
+	private Map< A, RealPoint > annotationToRealPoint;
 	double[] min = new double[ n ];
 	double[] max = new double[ n ];
 	private HashMap< String, Double > string2num;
 
-	public AnnotationKDTreeSupplier( Collection< A > tableRows, String[] columns, double[] scaleFactors )
+	public AnnotationKDTreeSupplier( Collection< A > annotations, String[] columns, double[] scaleFactors )
 	{
 		Arrays.fill( min, Double.MAX_VALUE );
 		Arrays.fill( max, - Double.MAX_VALUE );
 
-		initialiseDataPoints( tableRows, columns, scaleFactors );
+		initialiseDataPoints( annotations, columns, scaleFactors );
 
-		tableRowToRealPoint = IntStream.range( 0, dataPoints.size() ).boxed()
-				.collect( Collectors.toMap( i -> dataPointTableRows.get( i ), i -> dataPoints.get( i )));
+		annotationToRealPoint = IntStream.range( 0, realPoints.size() ).boxed()
+				.collect( Collectors.toMap( i -> this.annotations.get( i ), i -> realPoints.get( i )));
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 	@Override
 	public KDTree< A > get()
 	{
-		final KDTree< A > kdTree = new KDTree<>( new ArrayList<>( dataPointTableRows ), new ArrayList<>( dataPoints ) );
+		final KDTree< A > kdTree = new KDTree<>( new ArrayList<>( annotations ), new ArrayList<>( realPoints ) );
 
 		return kdTree;
 	}
@@ -100,8 +100,8 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 	private void initialiseDataPoints( Collection< A > annotations, String[] columns, double[] scaleFactors )
 	{
 		string2num = new HashMap<>(); // in case we need to plot categorical columns
-		dataPoints = new ArrayList<>();
-		dataPointTableRows = new ArrayList<>( );
+		realPoints = new ArrayList<>();
+		this.annotations = new ArrayList<>( );
 
 		Double[] xy = new Double[ 2 ];
 		boolean isValidDataPoint;
@@ -148,12 +148,12 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 
 			if ( isValidDataPoint )
 			{
-				dataPoints.add( new RealPoint( xy[ 0 ], xy[ 1 ] ) );
-				dataPointTableRows.add( annotation );
+				realPoints.add( new RealPoint( xy[ 0 ], xy[ 1 ] ) );
+				this.annotations.add( annotation );
 			}
 		}
 
-		if ( dataPoints.size() == 0 )
+		if ( realPoints.size() == 0 )
 			throw new UnsupportedOperationException( "Cannot create scatter plot, because there is no valid data point." );
 	}
 
@@ -167,8 +167,8 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 		return max;
 	}
 
-	public Map< A, RealPoint > getTableRowToRealPoint()
+	public Map< A, RealPoint > getAnnotationToRealPoint()
 	{
-		return tableRowToRealPoint;
+		return annotationToRealPoint;
 	}
 }

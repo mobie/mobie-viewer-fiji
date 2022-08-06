@@ -2,7 +2,6 @@ package org.embl.mobie.viewer.transform;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.annotation.SegmentAnnotation;
-import org.embl.mobie.viewer.transform.image.AffineTransformation;
 import net.imglib2.RealInterval;
 
 public class AffineTransformedSegmentAnnotation implements SegmentAnnotation

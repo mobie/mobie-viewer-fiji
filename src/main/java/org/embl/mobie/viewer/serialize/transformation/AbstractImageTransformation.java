@@ -26,15 +26,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.transform.image;
+package org.embl.mobie.viewer.serialize.transformation;
+
 
 import java.util.List;
 
-public interface Transformation
+public abstract class AbstractImageTransformation< A, B > implements ImageTransformation< A, B >
 {
-	/**
-	 * @return a list of the names of all images
-	 * that should be transformed using this transformer.
-	 */
-	List< String > getTargetImageNames(); // TODO it feels a bit weird that this is here...
+	// Serialisation
+	protected String name;
+	protected List< String > sources;
+	protected List< String > sourceNamesAfterTransform;
+
+	// TODO: for stitching this does not apply
+	@Override
+	public String getTransformedImageName( String imageName )
+	{
+		if ( sourceNamesAfterTransform != null )
+		{
+			return sourceNamesAfterTransform.get( sources.indexOf( imageName ) );
+		}
+		else
+		{
+			return imageName;
+		}
+	}
 }

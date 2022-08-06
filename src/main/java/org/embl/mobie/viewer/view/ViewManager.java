@@ -79,18 +79,18 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawImageAnnotation;
 import org.embl.mobie.viewer.table.saw.TableSawImageAnnotationCreator;
-import org.embl.mobie.viewer.transform.AbstractGridTransformation;
+import org.embl.mobie.viewer.serialize.transformation.AbstractGridTransformation;
 import org.embl.mobie.viewer.transform.AnnotatedSegmentAffineTransformer;
 import org.embl.mobie.viewer.transform.AnnotationTransformer;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.TransformHelper;
 import org.embl.mobie.viewer.transform.image.AffineTransformedImage;
-import org.embl.mobie.viewer.transform.image.CropTransformation;
-import org.embl.mobie.viewer.transform.image.MergedGridTransformation;
-import org.embl.mobie.viewer.transform.image.Transformation;
+import org.embl.mobie.viewer.serialize.transformation.CropTransformation;
+import org.embl.mobie.viewer.serialize.transformation.MergedGridTransformation;
+import org.embl.mobie.viewer.serialize.transformation.Transformation;
 import org.embl.mobie.viewer.transform.TransformedAnnData;
-import org.embl.mobie.viewer.transform.image.AffineTransformation;
+import org.embl.mobie.viewer.serialize.transformation.AffineTransformation;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.save.ViewSaver;
@@ -560,7 +560,7 @@ public class ViewManager
 			initTableView( annotationDisplay );
 			initScatterPlotView( annotationDisplay );
 			if ( annotationDisplay instanceof SegmentationDisplay )
-				initSegmentationVolumeViewer( ( SegmentationDisplay ) annotationDisplay );
+				initSegmentVolumeViewer( ( SegmentationDisplay ) annotationDisplay );
 		}
 
 		userInterface.addSourceDisplay( display );
@@ -623,12 +623,12 @@ public class ViewManager
 		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numViewedTables - 1 ) * shift ) );
 	}
 
-	private void initSegmentationVolumeViewer( SegmentationDisplay display )
+	private void initSegmentVolumeViewer( SegmentationDisplay< ? extends SegmentAnnotation > display )
 	{
-		display.segmentsVolumeViewer = new SegmentsVolumeViewer( display.selectionModel, display.coloringModel, display.nameToSourceAndConverter.values(), universeManager );
+		display.segmentsVolumeViewer = new SegmentsVolumeViewer( display.selectionModel, display.coloringModel, display.getImages(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();
 		if ( resolution3dView != null ) {
-			display.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive(display.getResolution3dView()) );
+			display.segmentsVolumeViewer.setVoxelSpacing( ArrayUtils.toPrimitive( display.getResolution3dView() ) );
 		}
 		display.segmentsVolumeViewer.showSegments( display.showSelectedSegmentsIn3d(), true );
 		display.coloringModel.listeners().add( display.segmentsVolumeViewer );

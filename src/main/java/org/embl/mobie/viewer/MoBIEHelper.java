@@ -28,33 +28,23 @@
  */
 package org.embl.mobie.viewer;
 
-import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.Tables;
-import de.embl.cba.tables.imagesegment.SegmentProperty;
-import de.embl.cba.tables.imagesegment.SegmentUtils;
-import de.embl.cba.tables.tablerow.TableRowImageSegment;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import loci.plugins.in.ImagePlusReader;
 import loci.plugins.in.ImportProcess;
 import loci.plugins.in.ImporterOptions;
-import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.io.util.IOHelper;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MAX_Z;
-import static de.embl.cba.tables.imagesegment.SegmentUtils.BB_MIN_Z;
 import static org.embl.mobie.viewer.ui.SwingHelper.selectionDialog;
 
 public abstract class MoBIEHelper
@@ -269,83 +259,7 @@ public abstract class MoBIEHelper
 		IJ.log( text );
 	}
 
-	public static List< TableRowImageSegment > readImageSegmentsFromTableFile(
-			String tablePath,
-			String imageId )
-	{
-		tablePath = resolvePath( tablePath );
-
-		Map< String, List< String > > columns = TableColumns.stringColumnsFromTableFile( tablePath );
-
-		TableColumns.addLabelImageIdColumn(
-				columns,
-				ColumnNames.LABEL_IMAGE_ID,
-				imageId );
-
-		final Map< SegmentProperty, List< String > > segmentPropertyToColumn
-				= createSegmentPropertyToColumn( columns );
-
-		final List< TableRowImageSegment > segments
-				= SegmentUtils.tableRowImageSegmentsFromColumns(
-						columns, segmentPropertyToColumn, false );
-
-		return segments;
-	}
-
-	// TODO: Move to IOHelper
-	public static String resolvePath( String path )
-	{
-		if ( path.startsWith( "http" ) ) {
-			path = IOHelper.resolveURL( URI.create( path ) );
-		} else {
-			path = IOHelper.resolvePath( path );
-		}
-		return path;
-	}
-
-	public static Map< SegmentProperty, List< String > > createSegmentPropertyToColumn(
-			Map< String, List< String > > columns )
-	{
-		final HashMap< SegmentProperty, List< String > > segmentPropertyToColumn
-				= new HashMap<>();
-
-		segmentPropertyToColumn.put(
-				SegmentProperty.LabelImage,
-				columns.get( ColumnNames.LABEL_IMAGE_ID ));
-
-		segmentPropertyToColumn.put(
-				SegmentProperty.ObjectLabel,
-				columns.get( ColumnNames.LABEL_ID ) );
-
-		segmentPropertyToColumn.put(
-				SegmentProperty.X,
-				columns.get( ColumnNames.ANCHOR_X ) );
-
-		segmentPropertyToColumn.put(
-				SegmentProperty.Y,
-				columns.get( ColumnNames.ANCHOR_Y ) );
-
-		if ( columns.containsKey( ColumnNames.ANCHOR_Z ) )
-			segmentPropertyToColumn.put(
-					SegmentProperty.Z,
-					columns.get( ColumnNames.ANCHOR_Z ) );
-
-		segmentPropertyToColumn.put(
-				SegmentProperty.T,
-				columns.get( ColumnNames.TIMEPOINT ) );
-
-		SegmentUtils.putDefaultBoundingBoxMapping( segmentPropertyToColumn, columns );
-
-		if ( ! columns.containsKey( BB_MIN_Z )  )
-			segmentPropertyToColumn.remove( SegmentProperty.BoundingBoxZMin );
-
-		if ( ! columns.containsKey( BB_MAX_Z ) )
-			segmentPropertyToColumn.remove( SegmentProperty.BoundingBoxZMax );
-
-		return segmentPropertyToColumn;
-	}
-
-	// TODO: Make a proper implementation in IOHelper in mobie-io
+	// TODO: Proper implementation in IOHelper in mobie-io
 	public static String getFileName( String path )
 	{
 		if ( path.startsWith( "http" ) )
@@ -358,17 +272,4 @@ public abstract class MoBIEHelper
 			return new File( path ).getName();
 		}
 	}
-
-	public static void toDoubleStrings( List< String > values )
-	{
-		if ( ! Tables.isNumeric( values.get( 0 ) ) )
-			return;
-
-		final int size = values.size();
-		for ( int i = 0; i < size; i++ )
-		{
-			values.set( i, String.valueOf( Double.parseDouble( values.get( i ) ) ) );
-		}
-	}
-
 }

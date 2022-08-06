@@ -26,20 +26,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.transform.image;
+package org.embl.mobie.viewer.serialize.transformation;
 
 import java.util.List;
 
-public class CropTransformation< T > extends AbstractImageTransformation< T, T >
+public interface Transformation
 {
-	// Serialisation
-	public double[] min;
-	public double[] max;
-	public boolean centerAtOrigin = false;
-
-	@Override
-	public List< String > getTargetImageNames()
-	{
-		return sources;
-	}
+	/**
+	 * @return a list of the names of all images
+	 * that should be transformed using this transformer.
+	 */
+	List< String > getTargetImageNames(); // TODO it feels a bit weird that this is here...
 }

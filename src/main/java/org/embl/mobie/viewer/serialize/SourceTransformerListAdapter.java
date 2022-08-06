@@ -36,12 +36,12 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
-import org.embl.mobie.viewer.transform.image.AffineTransformation;
-import org.embl.mobie.viewer.transform.image.CropTransformation;
-import org.embl.mobie.viewer.transform.image.MergedGridTransformation;
-import org.embl.mobie.viewer.transform.image.Transformation;
-import org.embl.mobie.viewer.transform.image.TimepointsTransformation;
-import org.embl.mobie.viewer.transform.image.TransformedGridTransformation;
+import org.embl.mobie.viewer.serialize.transformation.AffineTransformation;
+import org.embl.mobie.viewer.serialize.transformation.CropTransformation;
+import org.embl.mobie.viewer.serialize.transformation.MergedGridTransformation;
+import org.embl.mobie.viewer.serialize.transformation.TimepointsTransformation;
+import org.embl.mobie.viewer.serialize.transformation.Transformation;
+import org.embl.mobie.viewer.serialize.transformation.TransformedGridTransformation;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;

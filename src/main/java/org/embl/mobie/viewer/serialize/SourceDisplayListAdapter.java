@@ -40,7 +40,7 @@ import org.embl.mobie.viewer.display.ImageDisplay;
 import org.embl.mobie.viewer.display.ImageAnnotationDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.Display;
-import org.embl.mobie.viewer.transform.image.Transformation;
+import org.embl.mobie.viewer.serialize.transformation.Transformation;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;

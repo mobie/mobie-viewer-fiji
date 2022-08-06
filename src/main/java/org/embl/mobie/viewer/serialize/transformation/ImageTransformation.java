@@ -1,4 +1,4 @@
-package org.embl.mobie.viewer.transform.image;
+package org.embl.mobie.viewer.serialize.transformation;
 
 public interface ImageTransformation< A, B > extends Transformation
 {

@@ -72,13 +72,13 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	private final String tableName;
 	private JTable jTable;
 	private int recentlySelectedRowInView;
-	private TableRowSelectionMode selectionMode = TableRowSelectionMode.FocusOnly;
+	private RowSelectionMode selectionMode = RowSelectionMode.FocusOnly;
 	private JFrame frame;
 
 	// Keyboard
 	private boolean controlKeyPressed;
 
-	private enum TableRowSelectionMode
+	private enum RowSelectionMode
 	{
 		None,
 		FocusOnly,
@@ -101,7 +101,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 		configureJTable();
 		installSelectionModelNotification();
-		configureTableRowColoring();
+		configureRowColoring();
 	}
 
 	public void close()
@@ -337,11 +337,12 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		});
 	}
 
-	private void selectRows( List< A > selectedTableRows, List< A > notSelectedTableRows ) {
-		selectionModel.setSelected( selectedTableRows, true );
-		selectionModel.setSelected( notSelectedTableRows, false );
+	private void selectRows( List< A > selectedRows, List< A > notSelectedRows ) {
+		selectionModel.setSelected( selectedRows, true );
+		selectionModel.setSelected( notSelectedRows, false );
 	}
 
+	// TODO: use the TableModel for this (i.e. TableSaw)
 	private void selectEqualTo()
 	{
 		// works for categorical and numeric columns
@@ -368,8 +369,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			}
 		}
 
-		ArrayList< A > selectedTableRows = new ArrayList<>();
-		ArrayList< A > notSelectedTableRows = new ArrayList<>();
+		ArrayList< A > selectedRows = new ArrayList<>();
+		ArrayList< A > notSelectedRows = new ArrayList<>();
 		final Set< A > rows = tableModel.annotations();
 		for( A row: rows ) {
 			boolean valuesMatch;
@@ -382,14 +383,14 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			}
 
 			if ( valuesMatch ) {
-				selectedTableRows.add( row );
+				selectedRows.add( row );
 			} else {
-				notSelectedTableRows.add( row );
+				notSelectedRows.add( row );
 			}
 		}
 
-		if ( selectedTableRows.size() > 0 ) {
-			selectRows( selectedTableRows, notSelectedTableRows );
+		if ( selectedRows.size() > 0 ) {
+			selectRows( selectedRows, notSelectedRows );
 		} else {
 			Logger.error( value + " does not exist in column " + columnName + ", please choose another value." );
 		}
@@ -407,8 +408,8 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		final String columnName = gd.getNextChoice();
 		final double value = gd.getNextNumber();
 
-		ArrayList< A > selectedTableRows = new ArrayList<>();
-		ArrayList< A > notSelectedTableRows = new ArrayList<>();
+		ArrayList< A > selectedRows = new ArrayList<>();
+		ArrayList< A > notSelectedRows = new ArrayList<>();
 		final Set< A > rows = tableModel.annotations();
 		for( A row: rows ) {
 
@@ -420,14 +421,14 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 			}
 
 			if ( criteriaMet ) {
-				selectedTableRows.add(row);
+				selectedRows.add(row);
 			} else {
-				notSelectedTableRows.add(row);
+				notSelectedRows.add(row);
 			}
 		}
 
-		if ( selectedTableRows.size() > 0 ) {
-			selectRows( selectedTableRows, notSelectedTableRows );
+		if ( selectedRows.size() > 0 ) {
+			selectRows( selectedRows, notSelectedRows );
 		} else {
 			if ( greaterThan ) {
 				Logger.error("No values greater than " + value + " in column " + columnName + ", please choose another value.");
@@ -505,7 +506,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		jTable.getSelectionModel().addListSelectionListener( e ->
 			SwingUtilities.invokeLater( () ->
 			{
-				if ( selectionMode.equals( TableRowSelectionMode.None ) ) return;
+				if ( selectionMode.equals( RowSelectionMode.None ) ) return;
 
 				if ( e.getValueIsAdjusting() ) return;
 
@@ -521,13 +522,13 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 				final A object = tableModel.annotation( rowIndex );
 
-				selectionMode = controlKeyPressed ? TableRowSelectionMode.ToggleSelectionAndFocusIfSelected : TableRowSelectionMode.FocusOnly;
+				selectionMode = controlKeyPressed ? RowSelectionMode.ToggleSelectionAndFocusIfSelected : RowSelectionMode.FocusOnly;
 
-				if ( selectionMode.equals( TableRowSelectionMode.FocusOnly ) )
+				if ( selectionMode.equals( RowSelectionMode.FocusOnly ) )
 				{
 					selectionModel.focus( object, this );
 				}
-				else if ( selectionMode.equals( TableRowSelectionMode.ToggleSelectionAndFocusIfSelected ) )
+				else if ( selectionMode.equals( RowSelectionMode.ToggleSelectionAndFocusIfSelected ) )
 				{
 					selectionModel.toggle( object );
 					if ( selectionModel.isSelected( object ) )
@@ -542,7 +543,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		recentlySelectedRowInView = r;
 	}
 
-	private synchronized void moveToSelectedTableRow( A selection )
+	private synchronized void moveToSelectedRow( A selection )
 	{
 		final int rowInView = jTable.convertRowIndexToView( tableModel.rowIndexOf( selection ) );
 
@@ -643,7 +644,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 	@Override
 	public synchronized void focusEvent( A selection, Object initiator )
 	{
-		SwingUtilities.invokeLater( () -> moveToSelectedTableRow( selection ) );
+		SwingUtilities.invokeLater( () -> moveToSelectedRow( selection ) );
 	}
 
 	@Override
@@ -652,7 +653,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		SwingUtilities.invokeLater( () -> repaintTable() );
 	}
 
-	private void configureTableRowColoring()
+	private void configureRowColoring()
 	{
 		jTable.setDefaultRenderer( Double.class, new DefaultTableCellRenderer()
 		{

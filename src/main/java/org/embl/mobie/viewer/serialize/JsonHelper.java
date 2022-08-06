@@ -35,7 +35,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import org.embl.mobie.viewer.display.Display;
-import org.embl.mobie.viewer.transform.image.Transformation;
+import org.embl.mobie.viewer.serialize.transformation.Transformation;
 import org.embl.mobie.viewer.transform.ViewerTransform;
 
 import java.util.List;
@@ -79,7 +79,7 @@ public class JsonHelper
 	public static Gson buildGson( boolean prettyPrinting )
 	{
 		GsonBuilder gb = new GsonBuilder();
-		gb.registerTypeAdapter( new TypeToken<List<Transformation>>(){}.getType(), new SourceTransformerListAdapter());
+		gb.registerTypeAdapter( new TypeToken<List< Transformation >>(){}.getType(), new SourceTransformerListAdapter());
 		gb.registerTypeAdapter( new TypeToken<List<Display>>(){}.getType(), new SourceDisplayListAdapter());
 		gb.registerTypeAdapter( new TypeToken< ViewerTransform >(){}.getType(), new ViewerTransformAdapter());
 		gb.registerTypeAdapter( new TypeToken<Map<String,Data>>(){}.getType(), new SourceDataMapAdapter());

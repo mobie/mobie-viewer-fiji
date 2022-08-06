@@ -26,10 +26,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.annotation;
+package org.embl.mobie.viewer.serialize.transformation;
 
-import de.embl.cba.tables.tablerow.TableRow;
+import net.imglib2.realtransform.AffineTransform3D;
 
-public interface RegionTableRow extends Region, TableRow
+import java.util.List;
+
+public class AffineTransformation< T > extends AbstractImageTransformation< T, T >
 {
+	// Serialisation
+	protected double[] parameters;
+
+	public AffineTransformation( String name, double[] parameters, List< String > sources ) {
+		this( name, parameters, sources, null );
+	}
+
+	public AffineTransformation( String name, double[] parameters, List< String > sources, List< String > sourceNamesAfterTransform )
+	{
+		this.name = name;
+		this.parameters = parameters;
+		this.sources = sources;
+		this.sourceNamesAfterTransform = sourceNamesAfterTransform;
+	}
+
+	@Override
+	public List< String > getTargetImageNames()
+	{
+		return sources;
+	}
+
+	public AffineTransform3D getAffineTransform3D()
+	{
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+		affineTransform3D.set( parameters );
+		return affineTransform3D;
+	}
 }
