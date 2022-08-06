@@ -30,7 +30,6 @@ package org.embl.mobie.viewer.image;
 
 import bdv.util.Affine3DHelpers;
 import bdv.viewer.Source;
-import bdv.viewer.overlay.ScaleBarOverlayRenderer;
 import net.imglib2.FinalInterval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccess;
@@ -76,8 +75,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	protected final List< ? extends Image< T > > images;
 	protected final List< int[] > positions;
 	protected final double relativeCellMargin;
-	protected int[][] cellDimensions;
-	protected double[] cellRealDimensions;
+	protected int[][] tileDimensions;
+	protected double[] tileRealDimensions;
 	protected RealMaskRealInterval mask;
 	protected int numMipmapLevels;
 	protected double[][] downSamplingFactors;
@@ -85,19 +84,15 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	protected V volatileType;
 	protected AffineTransform3D sourceTransform;
 	protected double[][] mipmapScales;
+	private long[] minPos;
+	private long[] maxPos;
 
 	public StitchedImage( List< ? extends Image< T > > images, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImageTiles )
 	{
 		this.images = images;
 		this.positions = positions == null ? TransformHelper.createGridPositions( images.size() ) : positions;
 		this.relativeCellMargin = relativeCellMargin;
-		try
-		{
-			this.referenceSource = images.iterator().next().getSourcePair().getSource();
-		} catch ( Exception e )
-		{
-			throw ( e );
-		}
+		this.referenceSource = images.iterator().next().getSourcePair().getSource();
 		this.name = imageName;
 		this.type = referenceSource.getType().createVariable();
 		this.sourceTransform = new AffineTransform3D();
@@ -106,13 +101,14 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		this.volatileType = ( V ) MoBIEVolatileTypeMatcher.getVolatileTypeForType( type );
 		this.numMipmapLevels = referenceSource.getNumMipmapLevels();
 
-		setCellAndSourceDimensions();
+		setMinMaxPos( positions );
+		setTileDimensions();
+		setTileRealDimensions( tileDimensions[ 0 ] );
+		setRealMask( tileRealDimensions );
 		createSourcePair();
 
 		if ( transformImageTiles )
-		{
 			transform( images );
-		}
 	}
 
 	private double[] computeTileMarginOffset( Image< ? > image, double[] tileRealDimensions )
@@ -137,7 +133,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	protected void transform( List< ? extends Image< ? > > images )
 	{
 		final Image< ? > referenceImage = images.get( 0 );
-		final double[] offset = computeTileMarginOffset( referenceImage, cellRealDimensions );
+		final double[] offset = computeTileMarginOffset( referenceImage, tileRealDimensions );
 
 		final List< List< ? extends Image< ? > > > nestedImages = new ArrayList<>();
 		for ( Image< ? > image : images )
@@ -183,20 +179,13 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			nestedImages.add( imagesAtGridPosition );
 		}
 
-		new ImageGridTransformer().transform( nestedImages, null, positions, cellRealDimensions, false, offset );
+		new ImageGridTransformer().transform( nestedImages, null, positions, tileRealDimensions, false, offset );
 	}
 
 
 	public List< ? extends Image< T > > getTileImages()
 	{
 		return images;
-	}
-
-	protected void setCellAndSourceDimensions()
-	{
-		setCellDimensions();
-		setCellRealDimensions( cellDimensions[ 0 ] );
-		setMask( positions, cellDimensions[ 0 ] );
 	}
 
 	protected void createSourcePair()
@@ -238,7 +227,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		final List< RandomAccessibleInterval< V >> stitchedRAIs = new ArrayList<>();
 		for ( int l = 0; l < numMipmapLevels; l++ )
 		{
-			final int[] cellDimension = cellDimensions[ l ];
+			final int[] cellDimension = tileDimensions[ l ];
 			final int level = l;
 			BiConsumer< Localizable, V > biConsumer = ( location, value ) ->
 			{
@@ -278,21 +267,20 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			};
 
 			final FunctionRandomAccessible< V > randomAccessible = new FunctionRandomAccessible( 3, biConsumer, () -> volatileType.createVariable() );
-			final long[] dimensions = getDimensions( positions, cellDimension );
-			final IntervalView< V > rai = Views.interval( randomAccessible, new FinalInterval( dimensions ) );
+			//final long[] dimensions = getDimensions( positions, cellDimension );
+			final IntervalView< V > rai = Views.interval( randomAccessible, getInterval( level ) );
 			stitchedRAIs.add( rai );
 		}
 
 		return stitchedRAIs;
 	}
 
-
 	protected List< RandomAccessibleInterval< T > > createStitchedRAIs( RandomAccessSupplier< T >[][] randomAccessGrid )
 	{
 		final List< RandomAccessibleInterval< T >> stitchedRAIs = new ArrayList<>();
 		for ( int l = 0; l < numMipmapLevels; l++ )
 		{
-			final int[] cellDimension = cellDimensions[ l ];
+			final int[] cellDimension = tileDimensions[ l ];
 			final int level = l;
 			BiConsumer< Localizable, T > biConsumer = ( location, value ) ->
 			{
@@ -317,20 +305,24 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 			final FunctionRandomAccessible< T > randomAccessible = new FunctionRandomAccessible( 3, biConsumer, () -> type.createVariable() );
 			final long[] dimensions = getDimensions( positions, cellDimension );
+
+
 			final IntervalView< T > rai = Views.interval( randomAccessible, new FinalInterval( dimensions ) );
+
 			stitchedRAIs.add( rai );
 		}
+
 		return stitchedRAIs;
 	}
 
-	protected void setCellRealDimensions( int[] cellDimensions )
+	protected void setTileRealDimensions( int[] cellDimensions )
 	{
-		cellRealDimensions = new double[ 3 ];
+		tileRealDimensions = new double[ 3 ];
 		for ( int d = 0; d < 2; d++ )
-			cellRealDimensions[ d ] = cellDimensions[ d ] * Affine3DHelpers.extractScale( sourceTransform, d );
+			tileRealDimensions[ d ] = cellDimensions[ d ] * Affine3DHelpers.extractScale( sourceTransform, d );
 	}
 
-	protected void setCellDimensions( )
+	protected void setTileDimensions( )
 	{
 		final int numDimensions = referenceSource.getVoxelDimensions().numDimensions();
 
@@ -368,7 +360,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			for ( int d = 0; d < numDimensions; d++ )
 				downSamplingFactorProducts[ d ] *= downSamplingFactors[ level ][ d ];
 
-		cellDimensions = new int[ numMipmapLevels ][ numDimensions ];
+		tileDimensions = new int[ numMipmapLevels ][ numDimensions ];
 
 		// Adapt the cell dimensions such that they are divisible
 		// by all relative changes of the resolutions between the different levels.
@@ -377,16 +369,16 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		// positions.
 		final RandomAccessibleInterval< T > source = referenceSource.getSource( 0, 0 );
 		final long[] referenceSourceDimensions = source.dimensionsAsLongArray();
-		cellDimensions[ 0 ] = MoBIEHelper.asInts( referenceSourceDimensions );
+		tileDimensions[ 0 ] = MoBIEHelper.asInts( referenceSourceDimensions );
 		for ( int d = 0; d < 2; d++ )
 		{
-			cellDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeCellMargin );
-			cellDimensions[ 0 ][ d ] = (int) ( downSamplingFactorProducts[ d ] * Math.ceil( cellDimensions[ 0 ][ d ] / downSamplingFactorProducts[ d ] ) );
+			tileDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeCellMargin );
+			tileDimensions[ 0 ][ d ] = (int) ( downSamplingFactorProducts[ d ] * Math.ceil( tileDimensions[ 0 ][ d ] / downSamplingFactorProducts[ d ] ) );
 		}
 
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
-				cellDimensions[ level ][ d ] = (int) ( cellDimensions[ level - 1 ][ d ] / downSamplingFactors[ level ][ d ] );
+				tileDimensions[ level ][ d ] = (int) ( tileDimensions[ level - 1 ][ d ] / downSamplingFactors[ level ][ d ] );
 	}
 
 	protected< T extends Type< T > > RandomAccessSupplier< T >[][] createRandomAccessGrid( T type )
@@ -419,6 +411,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		return maxPos;
 	}
 
+	@Deprecated
 	protected static long[] getDimensions( List< int[] > positions, int[] cellDimensions )
 	{
 		long[] dimensions = new long[ 3 ];
@@ -435,31 +428,42 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		return dimensions;
 	}
 
-	protected void setMask( List< int[] > positions, int[] cellDimensions )
+	protected FinalInterval getInterval( int level )
 	{
-		final long[] minPos = new long[ 3 ];
-		final long[] maxPos = new long[ 3 ];
+		final long[] min = new long[ 3 ];
+		final long[] max = new long[ 3 ];
+		for ( int d = 0; d < 2; d++ )
+		{
+			min[ d ] = minPos[ d ] * tileDimensions[ level ][ d ];
+			max[ d ] = maxPos[ d ] * tileDimensions[ level ][ d ];
+		}
+		return new FinalInterval( min, max );
+	}
+
+	protected void setRealMask( double[] tileRealDimensions )
+	{
+		final double[] min = new double[ 3 ];
+		final double[] max = new double[ 3 ];
+
+		for ( int d = 0; d < 2; d++ )
+		{
+			min[ d ] = minPos[ d ] * tileRealDimensions[ d ];
+			max[ d ] = ( maxPos[ d ] + 1 ) * tileRealDimensions[ d ];
+		}
+
+		mask = GeomMasks.closedBox( min, max );
+	}
+
+	private void setMinMaxPos( List< int[] > positions )
+	{
+		minPos = new long[ 3 ];
+		maxPos = new long[ 3 ];
 		for ( int d = 0; d < 2; d++ )
 		{
 			final int finalD = d;
 			minPos[ d ] = positions.stream().mapToInt( pos -> pos[ finalD ] ).min().orElseThrow( NoSuchElementException::new );
 			maxPos[ d ] = positions.stream().mapToInt( pos -> pos[ finalD ] ).max().orElseThrow( NoSuchElementException::new );
 		}
-
-		final double[] min = new double[ 3 ];
-		final double[] max = new double[ 3 ];
-
-		final AffineTransform3D referenceTransform = new AffineTransform3D();
-		referenceSource.getSourceTransform( 0, 0, referenceTransform );
-
-		for ( int d = 0; d < 2; d++ )
-		{
-			final double scale = Affine3DHelpers.extractScale( referenceTransform, d );
-			min[ d ] = minPos[ d ] * cellDimensions[ d ] * scale;
-			max[ d ] = ( maxPos[ d ] + 1 ) * cellDimensions[ d ] * scale;
-		}
-
-		mask = GeomMasks.closedBox( min, max );
 	}
 
 	protected static long[] computeTranslation( int[] cellDimensions, long[] dataDimensions )
@@ -476,9 +480,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		return translation;
 	}
 
-	protected int[][] getCellDimensions()
+	protected int[][] getTileDimensions()
 	{
-		return cellDimensions;
+		return tileDimensions;
 	}
 
 	@Override
@@ -556,7 +560,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			final T outOfBoundsVariable = type.createVariable();
 			RandomAccessible< T > ra = new ExtendedRandomAccessibleInterval<>( rai, new OutOfBoundsConstantValueFactory<>( outOfBoundsVariable ) );
 			// shift the RAI to create a margin
-			final long[] offset = computeTranslation( cellDimensions[ level ], rai.dimensionsAsLongArray() );
+			final long[] offset = computeTranslation( tileDimensions[ level ], rai.dimensionsAsLongArray() );
 			final RandomAccessible< T > translate = Views.translate( ra, offset );
 			levelToRandomAccessible.put( level, translate );
 			levelToRandomAccess.put( level, translate.randomAccess() );
