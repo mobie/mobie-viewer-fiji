@@ -32,6 +32,8 @@ import bdv.viewer.Source;
 import net.imglib2.Interval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.Volatile;
+import net.imglib2.cache.img.CachedCellImg;
+import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
@@ -39,7 +41,6 @@ import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.annotation.ImageAnnotation;
-import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.source.DefaultSourcePair;
 import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.viewer.source.SourcePair;
@@ -49,7 +50,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
-public class RegionLabelImage< IA extends ImageAnnotation > implements Image< UnsignedIntType >
+public class ImageAnnotationLabelImage< IA extends ImageAnnotation > implements Image< UnsignedIntType >
 {
 	private final String name;
 	private final Set< IA > imageAnnotations;
@@ -57,23 +58,33 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 	private Source< UnsignedIntType > source;
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 
-	public RegionLabelImage( String name, Set< IA > imageAnnotations )
+	public ImageAnnotationLabelImage( String name, Set< IA > imageAnnotations )
 	{
 		this.name = name;
 		this.imageAnnotations = imageAnnotations;
-		setImageMask();
+		setMask();
 		createImage();
 	}
 
-	private void setImageMask()
+	private void setMask()
 	{
 		mask = TransformHelper.getUnionMask( imageAnnotations, 0 );
 	}
 
 	private void createImage()
 	{
+
+		//  TODO MAYBE
+		//    Typically the image annotations of the next location is the
+		//    same as the previous one. One could thus create a stateful class
+		//    which remembers the recent imageAnnotation
+		//    and first tests there whether this is again the correct one.
 		BiConsumer< RealLocalizable, IntegerType > biConsumer = ( location, value ) ->
 		{
+			// TODO MUST
+			//    there is a lof of background, which is expensive as one
+			//    needs to traverse the whole loop => implement a background mask
+			//    that is tested first.
 			for ( IA imageAnnotation : imageAnnotations )
 			{
 				if ( imageAnnotation.getMask().test( location ) )
@@ -82,15 +93,22 @@ public class RegionLabelImage< IA extends ImageAnnotation > implements Image< Un
 					return;
 				}
 			}
+
+			// else: background (see above)
 			value.set( new UnsignedIntType() );
 		};
 
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( mask );
 		final FunctionRealRandomAccessible< UnsignedIntType > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, UnsignedIntType::new );
-		source = new RealRandomAccessibleIntervalTimelapseSource<>( randomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, false, timePoints );
+		source = new RealRandomAccessibleIntervalTimelapseSource<>( randomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, true, timePoints );
 
-		// TODO create volatile source
+		// TODO MAYBE
+		//   create volatile source by means of a CachedCellImg?!
+		//   this not so nice thing is that then I need to decide
+		//   on some specific sampling.
+		//   Currently I can simply create the annotations in real
+		//   space, based on the (real)mask of the images.
 	}
 
 	private ArrayList< Integer > configureTimePoints()

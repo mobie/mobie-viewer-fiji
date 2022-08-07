@@ -23,7 +23,7 @@ public class RealRandomAccessibleIntervalTimelapseSource< T extends Type< T > > 
 			final AffineTransform3D sourceTransform,
 			final String name,
 			final boolean doBoundingBoxIntersectionCheck,
-			ArrayList< Integer > timePoints )
+			final ArrayList< Integer > timePoints )
 	{
 		super( accessible, type, name, new DefaultVoxelDimensions( -1 ), doBoundingBoxIntersectionCheck );
 		this.interval = interval;

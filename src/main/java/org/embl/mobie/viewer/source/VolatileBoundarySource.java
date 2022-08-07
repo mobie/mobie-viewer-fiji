@@ -36,20 +36,20 @@ import net.imglib2.RealRandomAccessible;
 import net.imglib2.Volatile;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.type.Type;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.function.BiConsumer;
 
 public class VolatileBoundarySource< T extends Type< T >, V extends Volatile< T > & Type< V > > extends AbstractBoundarySource< V >
 {
-    public VolatileBoundarySource( final Source< V > source, @Nullable RealInterval bounds )
+    public VolatileBoundarySource( Source< V > source, boolean showAsBoundaries, float boundaryWidth, @Nullable RealInterval bounds )
     {
-        super( source, bounds );
+        super( source, showAsBoundaries, boundaryWidth, bounds );
     }
 
     @Override
-    protected RealRandomAccessible< V > createBoundaryImage( RealRandomAccessible< V > rra, ArrayList< Integer > boundaryDimensions, float[] boundaryWidth )
+    protected RealRandomAccessible< V > createBoundaryImage( RealRandomAccessible< V > rra, ArrayList< Integer > boundaryDimensions, float[] pixelUnitsBoundaryWidth )
     {
         BiConsumer< RealLocalizable, V > boundaries = ( l, output ) ->
         {
@@ -76,7 +76,7 @@ public class VolatileBoundarySource< T extends Type< T >, V extends Volatile< T 
             {
                 for ( int signum = -1; signum <= +1; signum +=2  ) // back and forth
                 {
-                    access.move( signum * boundaryWidth[ d ], d );
+                    access.move( signum * pixelUnitsBoundaryWidth[ d ], d );
 
                     if ( ! access.get().isValid() )
                     {
@@ -97,7 +97,7 @@ public class VolatileBoundarySource< T extends Type< T >, V extends Volatile< T 
                         return;
                     }
 
-                    access.move( - signum * boundaryWidth[ d ], d ); // move back to center
+                    access.move( - signum * pixelUnitsBoundaryWidth[ d ], d ); // move back to center
                 }
             }
         };

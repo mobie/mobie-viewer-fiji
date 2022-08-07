@@ -67,7 +67,7 @@ import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.CroppedImage;
 import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
-import org.embl.mobie.viewer.image.RegionLabelImage;
+import org.embl.mobie.viewer.image.ImageAnnotationLabelImage;
 import org.embl.mobie.viewer.image.StitchedImage;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.AnnData;
@@ -442,7 +442,7 @@ public class ViewManager
 				final TableSawAnnotationCreator< TableSawImageAnnotation > annotationCreator = new TableSawImageAnnotationCreator( regionIdToImageNames );
 				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
 				final Set annotations = tableModel.annotations();
-				final Image< UnsignedIntType > labelImage = new RegionLabelImage( imageAnnotationDisplay.getName(), annotations );
+				final Image< UnsignedIntType > labelImage = new ImageAnnotationLabelImage( imageAnnotationDisplay.getName(), annotations );
 				final DefaultAnnData< TableSawImageAnnotation > annData = new DefaultAnnData<>( tableModel );
 				final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( labelImage, annData );
 

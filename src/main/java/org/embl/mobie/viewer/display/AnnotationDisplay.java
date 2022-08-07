@@ -204,7 +204,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 
 		final BoundarySource boundarySource = SourceHelper.unwrapSource( sourceAndConverter.getSpimSource(), BoundarySource.class );
 		this.showAsBoundaries = boundarySource.isShowAsBoundaries();
-		this.boundaryThickness = boundarySource.getBoundaryWidth();
+		this.boundaryThickness = boundarySource.getCalibratedBoundaryWidth();
 
 		final Set< ? extends Annotation > selectedAnnotations = annotationDisplay.selectionModel.getSelected();
 		if (selectedAnnotations != null) {

@@ -45,13 +45,15 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
 {
     protected final Source< T > source;
     protected boolean showAsBoundaries;
-    protected float boundaryWidth;
+    protected float calibratedBoundaryWidth;
     protected ArrayList< Integer > boundaryDimensions;
     protected RealInterval bounds;
 
-    public AbstractBoundarySource( final Source< T > source, @Nullable RealInterval bounds )
+    public AbstractBoundarySource( final Source< T > source, boolean showAsBoundaries, float calibratedBoundaryWidth, @Nullable RealInterval bounds )
     {
         this.source = source;
+        this.showAsBoundaries = showAsBoundaries;
+        this.calibratedBoundaryWidth = calibratedBoundaryWidth;
         this.bounds = bounds;
         this.boundaryDimensions = boundaryDimensions();
     }
@@ -59,7 +61,7 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     public void showAsBoundary( boolean showAsBoundaries, float boundaryWidth )
     {
         this.showAsBoundaries = showAsBoundaries;
-        this.boundaryWidth = boundaryWidth;
+        this.calibratedBoundaryWidth = boundaryWidth;
         this.boundaryDimensions = boundaryDimensions();
     }
 
@@ -92,12 +94,13 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
 
         if ( showAsBoundaries  )
         {
-            // Ultimately we need the boundaries in pixel units, because
-            // we have to check the voxel values in the rra, which is in pixel units.
-            // However, it feels like we could stay longer in physical units here to
-            // make this less confusing.
-            final float[] boundarySizePixelUnits = getBoundarySize( t, level );
-            return createBoundaryImage( rra, boundaryDimensions, boundarySizePixelUnits );
+            // Ultimately we need the boundaries in pixel units,
+            // because we have to check the voxel values in the rra,
+            // which is in pixel units.
+            // However, it feels like we could stay longer
+            // in physical units here to make this less confusing.
+            final float[] pixelBoundaryWidth = pixelBoundaryWidth( t, level );
+            return createBoundaryImage( rra, boundaryDimensions, pixelBoundaryWidth );
         }
         else
         {
@@ -105,7 +108,14 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
         }
     }
 
-    protected abstract RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth );
+    // Note that it can make sense to specify the boundary width
+    // as floats (even though typically sources are
+    // associated to some pixel grid).
+    // For example, if the underlying source is a RealRandomAccessibleSource,
+    // the values could be directly created in real space without
+    // any backing of a voxel grid. This is in fact the case for the
+    // ImageAnnotationLabelImage, which is one use-case of the BoundarySource.
+    protected abstract RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] pixelUnitsBoundaryWidth );
 
     protected ArrayList< Integer > boundaryDimensions()
     {
@@ -118,7 +128,7 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
             for ( int d = 0; d < 3; d++ )
             {
                 final double sourceWidth = Math.abs( bounds.realMax( d ) - bounds.realMin( d ) );
-                if ( sourceWidth > 3 * boundaryWidth )
+                if ( sourceWidth > 3 * calibratedBoundaryWidth )
                     dimensions.add( d );
             }
         }
@@ -139,10 +149,10 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
         return dimensions;
     }
 
-    protected float[] getBoundarySize( int t, int level )
+    protected float[] pixelBoundaryWidth( int t, int level )
     {
         final float[] boundaries = new float[ 3 ];
-        Arrays.fill( boundaries, boundaryWidth );
+        Arrays.fill( boundaries, calibratedBoundaryWidth );
         final AffineTransform3D sourceTransform = new AffineTransform3D();
         getSourceTransform( t, level, sourceTransform );
         for ( int d = 0; d < 3; d++ )
@@ -183,9 +193,9 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
         return showAsBoundaries;
     }
 
-    public float getBoundaryWidth()
+    public float getCalibratedBoundaryWidth()
     {
-        return boundaryWidth;
+        return calibratedBoundaryWidth;
     }
 
 }

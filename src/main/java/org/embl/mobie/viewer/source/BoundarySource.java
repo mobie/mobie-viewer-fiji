@@ -36,20 +36,21 @@ import net.imglib2.RealRandomAccessible;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.Type;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 
 public class BoundarySource< T extends Type< T > > extends AbstractBoundarySource< T >
 {
-    public BoundarySource( final Source< T > source, @Nullable RealInterval bounds )
+
+    public BoundarySource( Source< T > source, boolean showAsBoundaries, @Nullable float boundaryWidth, @Nullable RealInterval bounds )
     {
-       super( source, bounds );
+        super( source, showAsBoundaries, boundaryWidth, bounds );
     }
 
-    protected RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] boundaryWidth )
+    protected RealRandomAccessible< T > createBoundaryImage( RealRandomAccessible< T > rra, ArrayList< Integer > dimensions, float[] pixelUnitsBoundaryWidth )
     {
         BiConsumer< RealLocalizable, T > biConsumer = ( l, output ) ->
         {
@@ -69,7 +70,7 @@ public class BoundarySource< T extends Type< T > > extends AbstractBoundarySourc
             {
                 for ( int signum = -1; signum <= +1; signum+=2 ) // forth and back
                 {
-                    access.move( signum * boundaryWidth[ d ], d );
+                    access.move( signum * pixelUnitsBoundaryWidth[ d ], d );
                     if ( ! access.get().valueEquals( input )  )
                     {
                         // input is a boundary pixel
@@ -78,7 +79,7 @@ public class BoundarySource< T extends Type< T > > extends AbstractBoundarySourc
                         return;
                     }
                     // move back to center
-                    access.move( - signum * boundaryWidth[ d ], d );
+                    access.move( - signum * pixelUnitsBoundaryWidth[ d ], d );
                 }
             }
         };
