@@ -47,8 +47,11 @@ import org.embl.mobie.viewer.source.SourcePair;
 import org.embl.mobie.viewer.transform.TransformHelper;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class ImageAnnotationLabelImage< IA extends ImageAnnotation > implements Image< UnsignedIntType >
 {
@@ -73,42 +76,79 @@ public class ImageAnnotationLabelImage< IA extends ImageAnnotation > implements 
 
 	private void createImage()
 	{
-
-		//  TODO MAYBE
-		//    Typically the image annotations of the next location is the
-		//    same as the previous one. One could thus create a stateful class
-		//    which remembers the recent imageAnnotation
-		//    and first tests there whether this is again the correct one.
-		BiConsumer< RealLocalizable, IntegerType > biConsumer = ( location, value ) ->
-		{
-			// TODO MUST
-			//    there is a lof of background, which is expensive as one
-			//    needs to traverse the whole loop => implement a background mask
-			//    that is tested first.
-			for ( IA imageAnnotation : imageAnnotations )
-			{
-				if ( imageAnnotation.getMask().test( location ) )
-				{
-					value.setInteger( imageAnnotation.label() );
-					return;
-				}
-			}
-
-			// else: background (see above)
-			value.set( new UnsignedIntType() );
-		};
-
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( mask );
-		final FunctionRealRandomAccessible< UnsignedIntType > randomAccessible = new FunctionRealRandomAccessible( 3, biConsumer, UnsignedIntType::new );
+		final FunctionRealRandomAccessible< UnsignedIntType > randomAccessible = new FunctionRealRandomAccessible( 3, new BioConsumerSupplier(), UnsignedIntType::new );
 		source = new RealRandomAccessibleIntervalTimelapseSource<>( randomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, true, timePoints );
 
 		// TODO MAYBE
-		//   create volatile source by means of a CachedCellImg?!
-		//   this not so nice thing is that then I need to decide
+		//   Create volatile source by means of a CachedCellImg?!
+		//   However this not so nice thing is that then I need to decide
 		//   on some specific sampling.
 		//   Currently I can simply create the annotations in real
 		//   space, based on the (real)mask of the images.
+	}
+
+	class BioConsumerSupplier implements Supplier< BiConsumer< RealLocalizable, UnsignedIntType > >
+	{
+		@Override
+		public BiConsumer< RealLocalizable, UnsignedIntType > get()
+		{
+			BiConsumer< RealLocalizable, UnsignedIntType > biConsumer = new RealLocalizableUnsignedIntTypeBiConsumer( imageAnnotations.iterator().next() );
+
+			return biConsumer;
+		}
+
+		private class RealLocalizableUnsignedIntTypeBiConsumer implements BiConsumer< RealLocalizable, UnsignedIntType >
+		{
+			private IA recentAnnotation;
+
+			public RealLocalizableUnsignedIntTypeBiConsumer( IA recentAnnotation )
+			{
+				this.recentAnnotation = recentAnnotation;
+			}
+
+			@Override
+			public void accept( RealLocalizable location, UnsignedIntType value )
+			{
+				// TODO MUST
+				//    There is a lof of background, which is expensive as one
+				//    needs to traverse the whole loop => implement a background mask
+				//    that is tested first.
+				//    This needs however: https://github.com/imglib/imglib2-roi/pull/63
+				//    Also this only makes sense if one can cache the mask such that it
+				//    it does not need to traverse (thus maybe not possible)?
+				//    Alternative: Is there some data structure that would allow to
+				//    first look for image annotations that are close to the point?
+				//    Maybe the idea with the most recent one is
+				//    still the best (see above)?
+
+				// It is likely that the next asked location
+				// is within the same mask, thus we test that one first
+				// to safe some computations.
+				if ( recentAnnotation.getMask().test( location ) )
+				{
+					value.setInteger( recentAnnotation.label() );
+					return;
+				}
+
+				for ( IA imageAnnotation : imageAnnotations )
+				{
+					if ( imageAnnotation == recentAnnotation )
+						continue;
+
+					if ( imageAnnotation.getMask().test( location ) )
+					{
+						recentAnnotation = imageAnnotation;
+						value.setInteger( imageAnnotation.label() );
+						return;
+					}
+				}
+
+				// background
+				value.setInteger( 0 );
+			}
+		}
 	}
 
 	private ArrayList< Integer > configureTimePoints()

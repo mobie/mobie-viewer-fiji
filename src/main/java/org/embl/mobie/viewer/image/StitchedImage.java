@@ -101,7 +101,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		this.volatileType = ( V ) MoBIEVolatileTypeMatcher.getVolatileTypeForType( type );
 		this.numMipmapLevels = referenceSource.getNumMipmapLevels();
 
-		setMinMaxPos( positions );
+		setMinMaxPos();
 		setTileDimensions();
 		setTileRealDimensions( tileDimensions[ 0 ] );
 		setRealMask( tileRealDimensions );
@@ -454,7 +454,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		mask = GeomMasks.closedBox( min, max );
 	}
 
-	private void setMinMaxPos( List< int[] > positions )
+	private void setMinMaxPos()
 	{
 		minPos = new long[ 3 ];
 		maxPos = new long[ 3 ];
