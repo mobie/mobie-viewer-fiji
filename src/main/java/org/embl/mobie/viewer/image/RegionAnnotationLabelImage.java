@@ -32,52 +32,42 @@ import bdv.viewer.Source;
 import net.imglib2.Interval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.Volatile;
-import net.imglib2.cache.img.CachedCellImg;
-import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
-import org.embl.mobie.viewer.annotation.ImageAnnotation;
+import org.embl.mobie.viewer.annotation.RegionAnnotation;
 import org.embl.mobie.viewer.source.DefaultSourcePair;
 import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.viewer.source.SourcePair;
 import org.embl.mobie.viewer.transform.TransformHelper;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
-public class ImageAnnotationLabelImage< IA extends ImageAnnotation > implements Image< UnsignedIntType >
+public class RegionAnnotationLabelImage< RA extends RegionAnnotation > implements Image< UnsignedIntType >
 {
 	private final String name;
-	private final Set< IA > imageAnnotations;
-	private RealMaskRealInterval mask;
+	private final Set< RA > regionAnnotations;
 	private Source< UnsignedIntType > source;
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 
-	public ImageAnnotationLabelImage( String name, Set< IA > imageAnnotations )
+	public RegionAnnotationLabelImage( String name, Set< RA > regionAnnotations )
 	{
 		this.name = name;
-		this.imageAnnotations = imageAnnotations;
-		setMask();
-		createImage();
+		this.regionAnnotations = regionAnnotations;
+		createLabelImage();
 	}
 
-	private void setMask()
-	{
-		mask = TransformHelper.getUnionMask( imageAnnotations, 0 );
-	}
-
-	private void createImage()
+	private void createLabelImage()
 	{
 		final ArrayList< Integer > timePoints = configureTimePoints();
-		final Interval interval = Intervals.smallestContainingInterval( mask );
+		final Interval interval = Intervals.smallestContainingInterval( getMask() );
 		final FunctionRealRandomAccessible< UnsignedIntType > randomAccessible = new FunctionRealRandomAccessible( 3, new BioConsumerSupplier(), UnsignedIntType::new );
 		source = new RealRandomAccessibleIntervalTimelapseSource<>( randomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, true, timePoints );
 
@@ -94,18 +84,26 @@ public class ImageAnnotationLabelImage< IA extends ImageAnnotation > implements 
 		@Override
 		public BiConsumer< RealLocalizable, UnsignedIntType > get()
 		{
-			BiConsumer< RealLocalizable, UnsignedIntType > biConsumer = new RealLocalizableUnsignedIntTypeBiConsumer( imageAnnotations.iterator().next() );
+			BiConsumer< RealLocalizable, UnsignedIntType > biConsumer = new RealLocalizableUnsignedIntTypeBiConsumer( regionAnnotations.iterator().next() );
 
 			return biConsumer;
 		}
 
 		private class RealLocalizableUnsignedIntTypeBiConsumer implements BiConsumer< RealLocalizable, UnsignedIntType >
 		{
-			private IA recentAnnotation;
+			private RealMaskRealInterval recentMask;
+			private HashMap< RealMaskRealInterval, Integer > maskToLabel;
 
-			public RealLocalizableUnsignedIntTypeBiConsumer( IA recentAnnotation )
+			public RealLocalizableUnsignedIntTypeBiConsumer( RA recentMask )
 			{
-				this.recentAnnotation = recentAnnotation;
+				maskToLabel = new HashMap<>();
+				for ( RA regionAnnotation : regionAnnotations )
+				{
+					final RealMaskRealInterval mask = regionAnnotation.getMask();
+					// TODO: here, it would be nice to burn in the mask
+					maskToLabel.put( mask, regionAnnotation.label() );
+				}
+				this.recentMask = maskToLabel.keySet().iterator().next();
 			}
 
 			@Override
@@ -126,21 +124,23 @@ public class ImageAnnotationLabelImage< IA extends ImageAnnotation > implements 
 				// It is likely that the next asked location
 				// is within the same mask, thus we test that one first
 				// to safe some computations.
-				if ( recentAnnotation.getMask().test( location ) )
+				if ( recentMask.test( location ) )
 				{
-					value.setInteger( recentAnnotation.label() );
+					value.setInteger( maskToLabel.get( recentMask) );
 					return;
 				}
 
-				for ( IA imageAnnotation : imageAnnotations )
+				for ( Map.Entry< RealMaskRealInterval, Integer > entry : maskToLabel.entrySet() )
 				{
-					if ( imageAnnotation == recentAnnotation )
+					final RealMaskRealInterval mask = entry.getKey();
+
+					if ( mask == recentMask )
 						continue;
 
-					if ( imageAnnotation.getMask().test( location ) )
+					if ( mask.test( location ) )
 					{
-						recentAnnotation = imageAnnotation;
-						value.setInteger( imageAnnotation.label() );
+						recentMask = mask;
+						value.setInteger( entry.getValue() );
 						return;
 					}
 				}
@@ -172,6 +172,6 @@ public class ImageAnnotationLabelImage< IA extends ImageAnnotation > implements 
 	@Override
 	public RealMaskRealInterval getMask( )
 	{
-		return mask;
+		return TransformHelper.getUnionMask( regionAnnotations, 0 );
 	}
 }

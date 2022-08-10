@@ -94,11 +94,17 @@ public class RandomAccessibleIntervalMipmapSource< T extends Type< T > > impleme
 	@Override
 	public RealRandomAccessible< T > getInterpolatedSource( int t, int level, Interpolation method )
 	{
-		final T outOfBoundsVariable = type.createVariable();
-		final RandomAccessible ra = new ExtendedRandomAccessibleInterval<>( getSource( t, level ), new OutOfBoundsConstantValueFactory<>( outOfBoundsVariable ) );
 		if ( type instanceof NumericType )
-			return ( RealRandomAccessible<T> ) Views.interpolate( ra, interpolators.get( method ) );
-		return Views.interpolate( ra, new NearestNeighborInterpolatorFactory<>() );
+		{
+			final RandomAccessible ra = Views.extendZero( (RandomAccessibleInterval ) getSource( t, level ) );
+			return ( RealRandomAccessible< T > ) Views.interpolate( ra, interpolators.get( method ) );
+		}
+		else
+		{
+			final T outOfBoundsVariable = type.createVariable();
+			final RandomAccessible ra = new ExtendedRandomAccessibleInterval<>( getSource( t, level ), new OutOfBoundsConstantValueFactory<>( outOfBoundsVariable ) );
+			return Views.interpolate( ra, new NearestNeighborInterpolatorFactory<>() );
+		}
 	}
 
 	@Override
