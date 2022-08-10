@@ -41,7 +41,7 @@ public class OpenRemoteCovidIF
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/covid-if-project", MoBIESettings.settings().view( "default" ) );
+		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/covid-if-project", MoBIESettings.settings().gitProjectBranch( "test-views" ).view( "single_well" ) ); //"single_well_nuclei"
 		// .view( "merge-grid-no-tables" ) "single_well"
 	}
 }

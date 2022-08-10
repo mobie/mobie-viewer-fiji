@@ -267,6 +267,9 @@ public class MoBIE
 			entry.getValue().setName( entry.getKey() );
 		userInterface = new UserInterface( this );
 		viewManager = new ViewManager( this, userInterface, dataset.is2D );
+		for ( String s : getViews().keySet() )
+			System.out.println( s );
+
 		final View view = getSelectedView();
 		view.setName( settings.values.getView() );
 		IJ.log( "Opening view: " + view.getName() );
