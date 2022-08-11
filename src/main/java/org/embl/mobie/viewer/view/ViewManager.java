@@ -411,10 +411,7 @@ public class ViewManager
 					}
 					else
 					{
-						//final long start = System.currentTimeMillis();
-						//IJ.log( "Creating: " + mergedGridTransformation.mergedGridSourceName );
 						final StitchedImage stitchedImage = new StitchedImage<>( ( List ) targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
-						//IJ.log( mergedGridTransformation.mergedGridSourceName + ": " + ( System.currentTimeMillis() - start )  );
 						ImageStore.putImage( stitchedImage );
 					}
 				}

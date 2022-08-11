@@ -30,6 +30,7 @@ package org.embl.mobie.viewer.image;
 
 import bdv.util.Affine3DHelpers;
 import bdv.viewer.Source;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccess;
@@ -37,15 +38,12 @@ import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.Volatile;
-import net.imglib2.outofbounds.OutOfBoundsConstantValue;
 import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
 import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import net.imglib2.type.Type;
-import net.imglib2.type.numeric.NumericType;
-import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
@@ -68,7 +66,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -76,7 +73,6 @@ import java.util.stream.Collectors;
 public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type< V > > implements Image< T >
 {
 	protected final T type;
-	protected final Source< T > referenceSource;
 	protected final String name;
 	protected final List< ? extends Image< T > > images;
 	protected final List< int[] > positions;
@@ -88,29 +84,50 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	protected double[][] downSamplingFactors;
 	protected DefaultSourcePair< T > sourcePair;
 	protected V volatileType;
-	protected AffineTransform3D sourceTransform;
 	protected double[][] mipmapScales;
 	private long[] minPos;
 	private long[] maxPos;
+	private int numDimensions;
+	private VoxelDimensions voxelDimensions;
+	private HashMap< Integer, AffineTransform3D > levelToSourceTransform;
+	private HashMap< Integer, long[] > levelToSourceDimensions;
+	private HashMap< Integer, double[] > levelToTileMarginVoxelTranslation;
 
 	public StitchedImage( List< ? extends Image< T > > images, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImageTiles )
 	{
+		// Init reference image metadata
+		// (if we knew all that information we would not need to load
+		//  the reference image and thus safe time during initialization)
+		//
+		final Image< T > referenceImage = images.iterator().next();
+		Source< T > referenceSource = referenceImage.getSourcePair().getSource();
+		this.type = referenceSource.getType().createVariable();
+		this.volatileType = ( V ) MoBIEVolatileTypeMatcher.getVolatileTypeForType( type );
+		this.numMipmapLevels = referenceSource.getNumMipmapLevels();
+		this.numDimensions = referenceSource.getVoxelDimensions().numDimensions();
+		this.voxelDimensions = referenceSource.getVoxelDimensions();
+		this.levelToSourceTransform = new HashMap<>();
+		this.levelToSourceDimensions = new HashMap<>();
+
+		for ( int level = 0; level < numMipmapLevels; level++ )
+		{
+			final AffineTransform3D affineTransform3D = new AffineTransform3D();
+			referenceSource.getSourceTransform( 0, level, affineTransform3D );
+			levelToSourceTransform.put( level, affineTransform3D );
+			levelToSourceDimensions.put( level,  referenceSource.getSource( 0 ,level ).dimensionsAsLongArray() );
+		}
+
 		this.images = images;
 		this.positions = positions == null ? TransformHelper.createGridPositions( images.size() ) : positions;
 		this.relativeCellMargin = relativeCellMargin;
-		this.referenceSource = images.iterator().next().getSourcePair().getSource();
 		this.name = imageName;
-		this.type = referenceSource.getType().createVariable();
-		this.sourceTransform = new AffineTransform3D();
-		referenceSource.getSourceTransform( 0, 0, sourceTransform );
 		// TODO: make my own VolatileTypeMatcher including AnnotationType
-		this.volatileType = ( V ) MoBIEVolatileTypeMatcher.getVolatileTypeForType( type );
-		this.numMipmapLevels = referenceSource.getNumMipmapLevels();
 
 		setMinMaxPos();
-		configureDownSamplingAndTileDimensions();
+		configureMipmapAndTileDimensions();
 		setTileRealDimensions( tileDimensions[ 0 ] );
 		setRealMask( tileRealDimensions );
+
 		createSourcePair();
 
 		if ( transformImageTiles )
@@ -196,6 +213,26 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 	protected void createSourcePair()
 	{
+		final AffineTransform3D[] mipmapTransforms = new AffineTransform3D[ mipmapScales.length ];
+		for ( int level = 0; level < mipmapScales.length; ++level )
+		{
+			final AffineTransform3D mipmapTransform = new AffineTransform3D();
+			final double[] offsets = Arrays.stream( levelToTileMarginVoxelTranslation.get( level ) ).map( d -> d - ( long ) d ).toArray();
+			final double[] translations = new double[ 3 ];
+			for ( int d = 0; d < 3; d++ )
+			{
+				// TODO there still is some jumping between the pyramids, not sure why!
+				translations[ d ] = 0.5 * ( mipmapScales[ level ][ d ] - 1 ) + offsets[ d ];
+			}
+
+			mipmapTransform.set(
+					mipmapScales[ level ][ 0 ], 0, 0, translations[ 0 ],
+					0, mipmapScales[ level ][ 1 ], 0, translations[ 1 ],
+					0, 0, mipmapScales[ level ][ 2 ], translations[ 2 ] );
+			mipmapTransform.preConcatenate( levelToSourceTransform.get( 0 ) );
+			mipmapTransforms[ level ] = mipmapTransform;
+		}
+
 		final RandomAccessSupplier randomAccessSupplier = new RandomAccessSupplier();
 
 		// non-volatile
@@ -205,10 +242,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		final RandomAccessibleIntervalMipmapSource< T > source = new RandomAccessibleIntervalMipmapSource<>(
 				mipmapRAIs,
 				type,
-				mipmapScales,
-				referenceSource.getVoxelDimensions(),
-				sourceTransform,
-				name );
+				voxelDimensions,
+				name,
+				mipmapTransforms );
 
 		// volatile
 		//
@@ -217,11 +253,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		final RandomAccessibleIntervalMipmapSource< V > volatileSource = new RandomAccessibleIntervalMipmapSource<>(
 				volatileMipMapRAIs,
 				volatileType,
-				mipmapScales,
-				referenceSource.getVoxelDimensions(),
-				sourceTransform,
-				name );
-
+				voxelDimensions,
+				name,
+				mipmapTransforms );
 
 		sourcePair = new DefaultSourcePair<>( source, volatileSource );
 	}
@@ -374,18 +408,15 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	{
 		tileRealDimensions = new double[ 3 ];
 		for ( int d = 0; d < 2; d++ )
-			tileRealDimensions[ d ] = cellDimensions[ d ] * Affine3DHelpers.extractScale( sourceTransform, d );
+			tileRealDimensions[ d ] = cellDimensions[ d ] * Affine3DHelpers.extractScale( levelToSourceTransform.get( 0 ), d );
 	}
 
-	protected void configureDownSamplingAndTileDimensions( )
+	protected void configureMipmapAndTileDimensions( )
 	{
-		final int numDimensions = referenceSource.getVoxelDimensions().numDimensions();
-
 		final double[][] voxelSizes = new double[ numMipmapLevels ][ numDimensions ];
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
-			final AffineTransform3D affineTransform3D = new AffineTransform3D();
-			referenceSource.getSourceTransform( 0, level, affineTransform3D );
+			final AffineTransform3D affineTransform3D = levelToSourceTransform.get( level );
 			for ( int d = 0; d < numDimensions; d++ )
 				voxelSizes[ level ][ d ] =
 					Math.sqrt(
@@ -401,6 +432,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			downSamplingFactors[ 0 ][ d ] = 1.0;
 			mipmapScales[ 0 ][ d ] = 1.0 / downSamplingFactors[ 0 ][ d ];
 		}
+
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
 			{
@@ -422,11 +454,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		// If we don't do this there are jumps of the images when zooming in and out;
 		// i.e. the different resolution levels are rendered at slightly offset
 		// positions.
-		// TODO MUST
-		//  shouldn't we adapt the downsampling factors and mipmaps accordingly??
-		final RandomAccessibleInterval< T > source = referenceSource.getSource( 0, 0 );
-		final long[] referenceSourceDimensions = source.dimensionsAsLongArray();
-		tileDimensions[ 0 ] = MoBIEHelper.asInts( referenceSourceDimensions );
+		tileDimensions[ 0 ] = MoBIEHelper.asInts( levelToSourceDimensions.get( 0 ) );
 		for ( int d = 0; d < 2; d++ )
 		{
 			tileDimensions[ 0 ][ d ] *= ( 1 + 2.0 * relativeCellMargin );
@@ -436,6 +464,13 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		for ( int level = 1; level < numMipmapLevels; level++ )
 			for ( int d = 0; d < numDimensions; d++ )
 				tileDimensions[ level ][ d ] = (int) ( tileDimensions[ level - 1 ][ d ] / downSamplingFactors[ level ][ d ] );
+
+		this.levelToTileMarginVoxelTranslation = new HashMap<>();
+		for ( int level = 0; level < numMipmapLevels; level++ )
+		{
+			final double[] tileMarginTranslation = computeTileMarginTranslation( tileDimensions[ level ], levelToSourceDimensions.get( level ) );
+			levelToTileMarginVoxelTranslation.put( level, tileMarginTranslation );
+		}
 	}
 
 	protected FinalInterval getInterval( int level )
@@ -480,17 +515,11 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		}
 	}
 
-	protected static long[] computeTranslation( int[] cellDimensions, long[] dataDimensions )
+	protected static double[] computeTileMarginTranslation( int[] tileDimensions, long[] dataDimensions )
 	{
-		final long[] translation = new long[ 3 ];
+		final double[] translation = new double[ 3 ];
 		for ( int d = 0; d < 2; d++ )
-		{
-			// position of the cell + offset for margin
-			// TODO: The rounding error may contribute to the
-			//   slight misalignment of the resolution levels.
-			//   We should compensate for this error when building the Source.
-			translation[ d ] = (long) ( ( cellDimensions[ d ] - dataDimensions[ d ] ) / 2.0 );
-		}
+			translation[ d ] = ( tileDimensions[ d ] - dataDimensions[ d ] ) / 2.0;
 		return translation;
 	}
 
@@ -594,9 +623,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 			// shift to create a margin
 			//
-			final long[] offset = computeTranslation( tileDimensions[ level ], rai.dimensionsAsLongArray() );
-			final RandomAccessible< T > translateRa = Views.translate( randomAccessible, offset );
-			final RandomAccessible< V > translateVRa = Views.translate( vRandomAccessible, offset );
+			final long[] translation = Arrays.stream( levelToTileMarginVoxelTranslation.get( level ) ).mapToLong( d -> ( long ) d ).toArray();
+			final RandomAccessible< T > translateRa = Views.translate( randomAccessible, translation );
+			final RandomAccessible< V > translateVRa = Views.translate( vRandomAccessible, translation );
 
 			// register
 			//

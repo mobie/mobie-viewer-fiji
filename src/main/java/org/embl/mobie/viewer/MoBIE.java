@@ -542,7 +542,7 @@ public class MoBIE
 	{
 		ImageDataFormat imageDataFormat = getAppropriateImageDataFormat( imageSource );
 		final String imagePath = getImagePath( imageSource, imageDataFormat );
-		final SpimDataImage< ? > image = new SpimDataImage( imageDataFormat, imagePath, 0, imageSource.getName() );
+		final SpimDataImage< ? > image = new SpimDataImage( imageDataFormat, imagePath, 0, imageSource.getName(), MultiThreading.sharedQueue );
 
 		if ( imageSource.preInit() )
 		{

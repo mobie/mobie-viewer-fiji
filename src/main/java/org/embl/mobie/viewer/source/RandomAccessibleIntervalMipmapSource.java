@@ -29,27 +29,16 @@ public class RandomAccessibleIntervalMipmapSource< T extends Type< T > > impleme
 	public RandomAccessibleIntervalMipmapSource(
 			final List< RandomAccessibleInterval< T > > imgs,
 			final T type,
-			final double[][] mipmapScales,
 			final VoxelDimensions voxelDimensions,
-			final AffineTransform3D sourceTransform,
-			final String name )
+			final String name,
+			AffineTransform3D[] mipmapTransforms )
 	{
 		this.type = type;
 		this.name = name;
-		assert imgs.size() == mipmapScales.length : "Number of mipmaps and scale factors do not match.";
+		assert imgs.size() == mipmapTransforms.length : "Number of mipmaps and scale factors do not match.";
 
 		this.mipmapSources = imgs;
-		this.mipmapTransforms = new AffineTransform3D[ mipmapScales.length ];
-		for ( int s = 0; s < mipmapScales.length; ++s )
-		{
-			final AffineTransform3D mipmapTransform = new AffineTransform3D();
-			mipmapTransform.set(
-					mipmapScales[ s ][ 0 ], 0, 0, 0.5 * ( mipmapScales[ s ][ 0 ] - 1 ),
-					0, mipmapScales[ s ][ 1 ], 0, 0.5 * ( mipmapScales[ s ][ 1 ] - 1 ),
-					0, 0, mipmapScales[ s ][ 2 ], 0.5 * ( mipmapScales[ s ][ 2 ] - 1 ) );
-			mipmapTransform.preConcatenate(sourceTransform);
-			mipmapTransforms[ s ] = mipmapTransform;
-		}
+		this.mipmapTransforms = mipmapTransforms;
 		interpolators = new DefaultInterpolators<>();
 		this.voxelDimensions = voxelDimensions;
 	}
