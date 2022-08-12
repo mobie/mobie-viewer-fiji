@@ -37,7 +37,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public class MultiThreading
+public class ThreadHelper
 {
 	private static int N_IO_THREADS = 16;
 	private static final int N_THREADS = Runtime.getRuntime().availableProcessors() - 1;

@@ -1,7 +1,7 @@
 package org.embl.mobie.viewer.table;
 
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.source.AnnotatedImage;
+import org.embl.mobie.viewer.image.AnnotatedImage;
 
 import java.util.List;
 import java.util.Set;

@@ -11,8 +11,6 @@ import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import org.embl.mobie.io.ImageDataFormat;
 import org.embl.mobie.io.SpimDataOpener;
-import org.embl.mobie.viewer.image.Image;
-import org.embl.mobie.viewer.source.DefaultSourcePair;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.source.SourcePair;
 

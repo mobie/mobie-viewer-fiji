@@ -38,7 +38,6 @@ import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.annotation.RegionAnnotation;
-import org.embl.mobie.viewer.source.DefaultSourcePair;
 import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.viewer.source.SourcePair;
 import org.embl.mobie.viewer.transform.TransformHelper;

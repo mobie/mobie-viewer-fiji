@@ -49,7 +49,7 @@ import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIEHelper;
-import org.embl.mobie.viewer.source.DefaultSourcePair;
+import org.embl.mobie.viewer.ThreadHelper;
 import org.embl.mobie.viewer.source.MoBIEVolatileTypeMatcher;
 import org.embl.mobie.viewer.source.RandomAccessibleIntervalMipmapSource;
 import org.embl.mobie.viewer.source.SourcePair;
@@ -321,7 +321,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 				if ( ! randomAccessSupplier.exists( level, xTileIndex, yTileIndex ) )
 				{
-					volatileOutput.set( background );
+					volatileOutput.set( background.copy() );
+					volatileOutput.setValid( true );
 					return;
 				};
 
@@ -337,6 +338,14 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 						final RandomAccess< V > randomAccess = tileToRandomAccess.get( tileKey );
 						final V volatileType = randomAccess.setPositionAndGet( x, y, z );
 						volatileOutput.set( volatileType );
+						if ( ! volatileOutput.isValid() && images.size() > 3 )
+						{
+							int a = 1;
+						}
+						if ( ! volatileOutput.isValid() && images.size() < 3 )
+						{
+							int a = 1;
+						}
 					}
 					catch ( Exception e )
 					{
@@ -350,7 +359,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				final Status status = randomAccessSupplier.status( level, xTileIndex, yTileIndex );
 				if ( status.equals( Status.Closed ) )
 				{
-					new Thread( () -> randomAccessSupplier.open( level, xTileIndex, yTileIndex ) ).start();
+					ThreadHelper.ioExecutorService.submit( () -> randomAccessSupplier.open( level, xTileIndex, yTileIndex ) );
 				}
 				else if ( status.equals( Status.Open ) )
 				{
@@ -626,6 +635,13 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			final long[] translation = Arrays.stream( levelToTileMarginVoxelTranslation.get( level ) ).mapToLong( d -> ( long ) d ).toArray();
 			final RandomAccessible< T > translateRa = Views.translate( randomAccessible, translation );
 			final RandomAccessible< V > translateVRa = Views.translate( vRandomAccessible, translation );
+
+			// Make sure the random access is really ready to go
+			// (i.e. all metadata are fetched).
+			// This is important to avoid any blocking in BDV.
+			//
+			translateRa.randomAccess().get();
+			translateVRa.randomAccess().get();
 
 			// register
 			//

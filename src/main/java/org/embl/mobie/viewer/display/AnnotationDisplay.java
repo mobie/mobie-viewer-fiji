@@ -40,7 +40,7 @@ import org.embl.mobie.viewer.color.NumericAnnotationColoringModel;
 import org.embl.mobie.viewer.color.lut.LUTs;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.SelectionModel;
-import org.embl.mobie.viewer.source.AnnotatedImage;
+import org.embl.mobie.viewer.image.AnnotatedImage;
 import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.SourceHelper;

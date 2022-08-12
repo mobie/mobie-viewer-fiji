@@ -61,7 +61,7 @@ import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.serialize.ImageSource;
-import org.embl.mobie.viewer.source.AnnotatedImage;
+import org.embl.mobie.viewer.image.AnnotatedImage;
 import org.embl.mobie.viewer.image.AnnotatedStitchedImage;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.CroppedImage;

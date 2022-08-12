@@ -29,7 +29,7 @@
 package org.embl.mobie.viewer.serialize.transformation;
 
 import org.embl.mobie.viewer.ImageStore;
-import org.embl.mobie.viewer.MultiThreading;
+import org.embl.mobie.viewer.ThreadHelper;
 import org.embl.mobie.viewer.image.Image;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.transform.TransformHelper;
@@ -64,11 +64,11 @@ public class TransformedGridTransformation extends AbstractGridTransformation
 		{
 			int a = 1;
 		}
-		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
+		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 		for ( int gridIndex = 0; gridIndex < numGridPositions; gridIndex++ )
 		{
 			int finalGridIndex = gridIndex;
-			futures.add( MultiThreading.executorService.submit( () -> {
+			futures.add( ThreadHelper.executorService.submit( () -> {
 				try
 				{
 					final List< ? extends Image< ? > > images = nestedImages.get( finalGridIndex );
@@ -88,7 +88,7 @@ public class TransformedGridTransformation extends AbstractGridTransformation
 				}
 			} ) );
 		}
-		MultiThreading.waitUntilFinished( futures );
+		ThreadHelper.waitUntilFinished( futures );
 	}
 
 	public static void translate( List< ? extends Image< ? > > images, List< String > transformedNames, boolean centerAtOrigin, double translationX, double translationY )

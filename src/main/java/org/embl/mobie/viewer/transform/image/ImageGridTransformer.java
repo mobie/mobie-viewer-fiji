@@ -30,7 +30,7 @@ package org.embl.mobie.viewer.transform.image;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.ImageStore;
-import org.embl.mobie.viewer.MultiThreading;
+import org.embl.mobie.viewer.ThreadHelper;
 import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.transform.TransformHelper;
 
@@ -52,12 +52,12 @@ public class ImageGridTransformer
 	{
 		// assuming that all images have the same size...
 
-		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
+		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 		final int numGridPositions = nestedImages.size();
 		for ( int gridIndex = 0; gridIndex < numGridPositions; gridIndex++ )
 		{
 			int finalGridIndex = gridIndex;
-			futures.add( MultiThreading.executorService.submit( () -> {
+			futures.add( ThreadHelper.executorService.submit( () -> {
 				try
 				{
 					final List< ? extends Image< ? > > images = nestedImages.get( finalGridIndex );
@@ -78,7 +78,7 @@ public class ImageGridTransformer
 				}
 			} ) );
 		}
-		MultiThreading.waitUntilFinished( futures );
+		ThreadHelper.waitUntilFinished( futures );
 	}
 
 	private void translate( List< ? extends Image< ? > > images, List< String > transformedNames, boolean centerAtOrigin, double translationX, double translationY )

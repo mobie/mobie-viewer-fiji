@@ -29,9 +29,6 @@
 package org.embl.mobie.viewer.display;
 
 import org.embl.mobie.viewer.annotation.SegmentAnnotation;
-import org.embl.mobie.viewer.source.AnnotatedImage;
-import org.embl.mobie.viewer.table.AnnData;
-import org.embl.mobie.viewer.table.ConcatenatedAnnData;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 
 import java.util.ArrayList;

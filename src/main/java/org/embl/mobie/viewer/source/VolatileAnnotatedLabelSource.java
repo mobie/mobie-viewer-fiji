@@ -76,9 +76,8 @@ public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends
             return;
         }
 
-        final A annotation = annotationMapper.getAnnotation( t, input.get().getInteger() );
-        final VolatileAnnotationType< A > volatileAnnotationType = new VolatileAnnotationType( annotation, true );
-        output.set( volatileAnnotationType );
+        output.get().setAnnotation( annotationMapper.getAnnotation( t, input.get().getInteger() ) );
+        output.setValid( true );
     }
 
     @Override

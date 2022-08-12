@@ -34,7 +34,7 @@ import de.embl.cba.tables.TableUIs;
 import ij.IJ;
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.MultiThreading;
+import org.embl.mobie.viewer.ThreadHelper;
 import org.embl.mobie.viewer.serialize.Data;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.ImageSource;
@@ -131,15 +131,15 @@ public class GeneSearch
 		localExpression = new ConcurrentHashMap<>();
 
 		IJ.log( "# Gene search" );
-		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
+		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 		for ( String gene : images.keySet() )
 		{
 			futures.add(
-				MultiThreading.executorService.submit( () -> {
+				ThreadHelper.executorService.submit( () -> {
 					searchGene( images.get( gene ) );
 			}));
 		}
-		MultiThreading.waitUntilFinished( futures );
+		ThreadHelper.waitUntilFinished( futures );
 
 		return localExpression;
 	}

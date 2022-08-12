@@ -3,10 +3,8 @@ package org.embl.mobie.viewer.image;
 import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.annotation.AnnotationAdapter;
-import org.embl.mobie.viewer.source.AnnotatedImage;
 import org.embl.mobie.viewer.source.AnnotatedLabelSource;
 import org.embl.mobie.viewer.source.AnnotationType;
-import org.embl.mobie.viewer.source.DefaultSourcePair;
 import org.embl.mobie.viewer.source.SourcePair;
 import org.embl.mobie.viewer.source.VolatileAnnotatedLabelSource;
 import org.embl.mobie.viewer.table.AnnData;
@@ -30,6 +28,7 @@ public class AnnotatedLabelImage< A extends Annotation > implements AnnotatedIma
 	{
 		if ( sourcePair == null )
 		{
+			// non-volatile source
 			AnnotationAdapter< A > annotationAdapter = new AnnotationAdapter( annData );
 			final AnnotatedLabelSource< ?, A > source = new AnnotatedLabelSource( getLabelImage().getSourcePair().getSource(), annotationAdapter );
 
@@ -39,6 +38,7 @@ public class AnnotatedLabelImage< A extends Annotation > implements AnnotatedIma
 			}
 			else
 			{
+				// volatile source
 				final VolatileAnnotatedLabelSource< ?, ? extends Volatile< ? >, A > volatileSource = new VolatileAnnotatedLabelSource( getLabelImage().getSourcePair().getVolatileSource(), annotationAdapter );
 				sourcePair = new DefaultSourcePair<>( source, volatileSource );
 			}

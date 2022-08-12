@@ -29,7 +29,6 @@
 package org.embl.mobie.viewer.image;
 
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.source.AnnotatedImage;
 import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.VolatileAnnotationType;
 import org.embl.mobie.viewer.table.AnnData;

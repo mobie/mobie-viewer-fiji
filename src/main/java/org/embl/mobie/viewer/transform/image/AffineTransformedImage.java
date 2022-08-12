@@ -33,7 +33,7 @@ import bdv.viewer.Source;
 import net.imglib2.Volatile;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
-import org.embl.mobie.viewer.source.DefaultSourcePair;
+import org.embl.mobie.viewer.image.DefaultSourcePair;
 import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.source.SourcePair;
 

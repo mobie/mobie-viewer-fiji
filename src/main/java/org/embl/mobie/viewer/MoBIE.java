@@ -352,7 +352,7 @@ public class MoBIE
 		{
 			IJ.log( "Closing MoBIE..." );
 			IJ.log( "Closing I/O threads..." );
-			MultiThreading.resetIOThreads();
+			ThreadHelper.resetIOThreads();
 			viewManager.close();
 			IJ.log( "MoBIE closed." );
 			IJ.log( "Closing MoBIE may have lead to errors due to processes that are interrupted." );
@@ -401,7 +401,7 @@ public class MoBIE
 			}
 			else
 			{
-				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, MultiThreading.sharedQueue );
+				return ( SpimData ) new SpimDataOpener().openSpimData( imagePath, imageDataFormat, ThreadHelper.sharedQueue );
 			}
 		}
 		catch ( SpimDataException e )
@@ -515,7 +515,7 @@ public class MoBIE
 
 	public void initImages( List< ImageSource > imageSources )
 	{
-		final ArrayList< Future< ? > > futures = MultiThreading.getFutures();
+		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 		AtomicInteger sourceIndex = new AtomicInteger(0);
 		final int numImages = imageSources.size();
 		AtomicInteger sourceLoggingModulo = new AtomicInteger(1);
@@ -527,22 +527,22 @@ public class MoBIE
 				continue;
 
 			futures.add(
-					MultiThreading.ioExecutorService.submit( () -> {
+					ThreadHelper.ioExecutorService.submit( () -> {
 								String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
 								initImage( imageSource, log );
 							}
 					) );
 		}
 
-		MultiThreading.waitUntilFinished( futures );
-		IJ.log( "Initialised " + imageSources.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + MultiThreading.getNumIoThreads() + " thread(s).");
+		ThreadHelper.waitUntilFinished( futures );
+		IJ.log( "Initialised " + imageSources.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumIoThreads() + " thread(s).");
 	}
 
 	private void initImage( ImageSource imageSource, String log )
 	{
 		ImageDataFormat imageDataFormat = getAppropriateImageDataFormat( imageSource );
 		final String imagePath = getImagePath( imageSource, imageDataFormat );
-		final SpimDataImage< ? > image = new SpimDataImage( imageDataFormat, imagePath, 0, imageSource.getName(), MultiThreading.sharedQueue );
+		final SpimDataImage< ? > image = new SpimDataImage( imageDataFormat, imagePath, 0, imageSource.getName(), ThreadHelper.sharedQueue );
 
 		if ( imageSource.preInit() )
 		{

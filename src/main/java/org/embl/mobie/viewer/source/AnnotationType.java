@@ -62,4 +62,9 @@ public class AnnotationType< T > implements Type< AnnotationType< T > >
 			return annotation.equals( annotationType.getAnnotation() );
 		}
 	}
+
+	public void setAnnotation( T annotation )
+	{
+		this.annotation = annotation;
+	}
 }

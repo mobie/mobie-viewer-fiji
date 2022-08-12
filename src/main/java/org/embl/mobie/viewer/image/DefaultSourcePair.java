@@ -1,7 +1,8 @@
-package org.embl.mobie.viewer.source;
+package org.embl.mobie.viewer.image;
 
 import bdv.viewer.Source;
 import net.imglib2.Volatile;
+import org.embl.mobie.viewer.source.SourcePair;
 
 public class DefaultSourcePair< T > implements SourcePair< T >
 {

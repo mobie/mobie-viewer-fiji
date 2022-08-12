@@ -37,6 +37,7 @@ import net.imglib2.FinalRealInterval;
 import net.imglib2.Volatile;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
+import org.embl.mobie.viewer.image.DefaultSourcePair;
 import org.embl.mobie.viewer.image.Image;
 import sc.fiji.bdvpg.sourceandconverter.importer.EmptySourceAndConverterCreator;
 

@@ -44,7 +44,7 @@ import org.embl.mobie.viewer.plot.ScatterPlotDialog;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.select.SelectionModel;
-import org.embl.mobie.viewer.source.AnnotatedImage;
+import org.embl.mobie.viewer.image.AnnotatedImage;
 import org.embl.mobie.viewer.ui.ColumnColoringModelDialog;
 import net.imglib2.type.numeric.ARGBType;
 
