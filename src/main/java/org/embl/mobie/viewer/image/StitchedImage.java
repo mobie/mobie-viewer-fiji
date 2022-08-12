@@ -233,11 +233,11 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			mipmapTransforms[ level ] = mipmapTransform;
 		}
 
-		final RandomAccessSupplier randomAccessSupplier = new RandomAccessSupplier();
+		final RandomAccessibleSupplier randomAccessibleSupplier = new RandomAccessibleSupplier();
 
 		// non-volatile
 		//
-		final List< RandomAccessibleInterval< T > > mipmapRAIs = createStitchedRAIs( randomAccessSupplier );
+		final List< RandomAccessibleInterval< T > > mipmapRAIs = createStitchedRAIs( randomAccessibleSupplier );
 
 		final RandomAccessibleIntervalMipmapSource< T > source = new RandomAccessibleIntervalMipmapSource<>(
 				mipmapRAIs,
@@ -248,7 +248,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// volatile
 		//
-		final List< RandomAccessibleInterval< V > > volatileMipMapRAIs = createVolatileStitchedRAIs( randomAccessSupplier );
+		final List< RandomAccessibleInterval< V > > volatileMipMapRAIs = createVolatileStitchedRAIs( randomAccessibleSupplier );
 
 		final RandomAccessibleIntervalMipmapSource< V > volatileSource = new RandomAccessibleIntervalMipmapSource<>(
 				volatileMipMapRAIs,
@@ -260,7 +260,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		sourcePair = new DefaultSourcePair<>( source, volatileSource );
 	}
 
-	protected List< RandomAccessibleInterval< V > > createVolatileStitchedRAIs( RandomAccessSupplier randomAccessSupplier )
+	protected List< RandomAccessibleInterval< V > > createVolatileStitchedRAIs( RandomAccessibleSupplier randomAccessibleSupplier )
 	{
 		final List< RandomAccessibleInterval< V >> stitchedMipMapRAIs = new ArrayList<>();
 
@@ -268,7 +268,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		{
 			final V background = volatileType.createVariable();
 			background.setValid( true );
-			final FunctionRandomAccessible< V > randomAccessible = new FunctionRandomAccessible( 3, new VolatileBiConsumerSupplier( randomAccessSupplier, level, background ), () -> volatileType.createVariable() );
+			final FunctionRandomAccessible< V > randomAccessible = new FunctionRandomAccessible( 3, new VolatileBiConsumerSupplier( randomAccessibleSupplier, level, background ), () -> volatileType.createVariable() );
 			final IntervalView< V > rai = Views.interval( randomAccessible, getInterval( level ) );
 			stitchedMipMapRAIs.add( rai );
 		}
@@ -278,14 +278,14 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 	class VolatileBiConsumerSupplier implements Supplier< BiConsumer< Localizable, V > >
 	{
-		private final RandomAccessSupplier randomAccessSupplier;
+		private final RandomAccessibleSupplier randomAccessibleSupplier;
 		private final int level;
 		private int[] tileDimension;
 		private final V background;
 
-		public VolatileBiConsumerSupplier( RandomAccessSupplier randomAccessSupplier, int level, V background )
+		public VolatileBiConsumerSupplier( RandomAccessibleSupplier randomAccessibleSupplier, int level, V background )
 		{
-			this.randomAccessSupplier = randomAccessSupplier;
+			this.randomAccessibleSupplier = randomAccessibleSupplier;
 			this.level = level;
 			this.tileDimension = tileDimensions[ level ];
 			this.background = background;
@@ -303,12 +303,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		class VolatileBiConsumerImplementation implements BiConsumer< Localizable, V >
 		{
-			// reuse tile random accesses
-			private HashMap< String, RandomAccess< V > > tileToRandomAccess;
-
 			public VolatileBiConsumerImplementation()
 			{
-				tileToRandomAccess = new HashMap<>();
 			}
 
 			@Override
@@ -319,59 +315,36 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				final int xTileIndex = x / tileDimension[ 0 ];
 				final int yTileIndex = y / tileDimension[ 1 ];
 
-				if ( ! randomAccessSupplier.exists( level, xTileIndex, yTileIndex ) )
+				if ( ! randomAccessibleSupplier.exists( level, xTileIndex, yTileIndex ) )
 				{
 					volatileOutput.set( background.copy() );
 					volatileOutput.setValid( true );
 					return;
-				};
-
-				final String tileKey = xTileIndex + "-" + yTileIndex;
-
-				if ( tileToRandomAccess.containsKey( tileKey ) )
-				{
-					try
-					{
-						x = x - xTileIndex * tileDimension[ 0 ];
-						y = y - yTileIndex * tileDimension[ 1 ];
-						final int z = localizable.getIntPosition( 2 );
-						final RandomAccess< V > randomAccess = tileToRandomAccess.get( tileKey );
-						final V volatileType = randomAccess.setPositionAndGet( x, y, z );
-						volatileOutput.set( volatileType );
-						if ( ! volatileOutput.isValid() && images.size() > 3 )
-						{
-							int a = 1;
-						}
-						if ( ! volatileOutput.isValid() && images.size() < 3 )
-						{
-							int a = 1;
-						}
-					}
-					catch ( Exception e )
-					{
-						throw e;
-					}
-					return;
 				}
 
-				// Random access not yet available
-				//
-				final Status status = randomAccessSupplier.status( level, xTileIndex, yTileIndex );
+				final Status status = randomAccessibleSupplier.status( level, xTileIndex, yTileIndex );
 				if ( status.equals( Status.Closed ) )
 				{
-					ThreadHelper.ioExecutorService.submit( () -> randomAccessSupplier.open( level, xTileIndex, yTileIndex ) );
+					ThreadHelper.ioExecutorService.submit( () -> randomAccessibleSupplier.open( level, xTileIndex, yTileIndex ) );
+					volatileOutput.setValid( false );
+				}
+				else if ( status.equals( Status.Opening ) )
+				{
+					volatileOutput.setValid( false );
 				}
 				else if ( status.equals( Status.Open ) )
 				{
-					tileToRandomAccess.put( tileKey, randomAccessSupplier.getVolatileRandomAccess( level, xTileIndex, yTileIndex ) );
+					x = x - xTileIndex * tileDimension[ 0 ];
+					y = y - yTileIndex * tileDimension[ 1 ];
+					final int z = localizable.getIntPosition( 2 );
+					final V volatileType = randomAccessibleSupplier.getVolatileRandomAccessible( level, xTileIndex, yTileIndex ).getAt( x, y, z );
+					volatileOutput.set( volatileType );
 				}
-
-				volatileOutput.setValid( false );
 			}
 		}
 	}
 
-	protected List< RandomAccessibleInterval< T > > createStitchedRAIs( RandomAccessSupplier randomAccessSupplier )
+	protected List< RandomAccessibleInterval< T > > createStitchedRAIs( RandomAccessibleSupplier randomAccessibleSupplier )
 	{
 		final List< RandomAccessibleInterval< T >> stitchedRAIs = new ArrayList<>();
 		for ( int l = 0; l < numMipmapLevels; l++ )
@@ -387,7 +360,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				x = x - xTileIndex * cellDimension [ 0 ];
 				y = y - yTileIndex * cellDimension [ 1 ];
 
-				if( ! randomAccessSupplier.exists( level, xTileIndex, yTileIndex  ) )
+				if( ! randomAccessibleSupplier.exists( level, xTileIndex, yTileIndex  ) )
 				{
 					// background
 					value.set( type.createVariable() );
@@ -399,8 +372,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				// TODO MUST For rendering screenshots it will be more
 				//  efficient to implement this in the same way as for the
 				//  volatile version (see below).
-				randomAccessSupplier.open( level, xTileIndex, yTileIndex );
-				final T t = randomAccessSupplier.getRandomAccess( level, xTileIndex, yTileIndex ).setPositionAndGet( x, y, location.getIntPosition( 2 ) );
+				randomAccessibleSupplier.open( level, xTileIndex, yTileIndex );
+				final T t = randomAccessibleSupplier.getRandomAccessible( level, xTileIndex, yTileIndex ).randomAccess().setPositionAndGet( x, y, location.getIntPosition( 2 ) );
 				value.set( t );
 			};
 
@@ -557,14 +530,14 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		Open;
 	}
 
-	class RandomAccessSupplier
+	class RandomAccessibleSupplier
 	{
 		protected Map< String, RandomAccessible< T > > keyToRandomAccessible;
 		protected Map< String, RandomAccessible< V > > keyToVolatileRandomAccessible;
 		protected Map< String, Status > keyToStatus;
 		protected Map< String, Image< T > > keyToImage;
 
-		public RandomAccessSupplier( )
+		public RandomAccessibleSupplier( )
 		{
 			keyToRandomAccessible = new ConcurrentHashMap<>();
 			keyToVolatileRandomAccessible = new ConcurrentHashMap<>();
@@ -581,14 +554,14 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			}
 		}
 
-		public RandomAccess< T > getRandomAccess( int level, int xTileIndex, int yTileIndex )
+		public RandomAccessible< T > getRandomAccessible( int level, int xTileIndex, int yTileIndex )
 		{
-			return keyToRandomAccessible.get( getKey( level, xTileIndex, yTileIndex ) ).randomAccess();
+			return keyToRandomAccessible.get( getKey( level, xTileIndex, yTileIndex ) );
 		}
 
-		public RandomAccess< V > getVolatileRandomAccess( int level, int xTileIndex, int yTileIndex )
+		public RandomAccessible< V > getVolatileRandomAccessible( int level, int xTileIndex, int yTileIndex )
 		{
-			return keyToVolatileRandomAccessible.get( getKey( level, xTileIndex, yTileIndex ) ).randomAccess();
+			return keyToVolatileRandomAccessible.get( getKey( level, xTileIndex, yTileIndex ) );
 		}
 
 		private String getKey( int level, long x, long y )
