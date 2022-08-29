@@ -337,6 +337,14 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 					x = x - xTileIndex * tileDimension[ 0 ];
 					y = y - yTileIndex * tileDimension[ 1 ];
 					final int z = localizable.getIntPosition( 2 );
+					// Instead of calling getAt(... )
+					// I tried caching the random accesses
+					// but got some weird bug
+					// I removed this to keep it simpler.
+					// This logic could be added back, if needed.
+					// For this it would be good to know if that actually does
+					// yield a performance improvement; something to be to
+					// discussed with @tpietzsch
 					final V volatileType = randomAccessibleSupplier.getVolatileRandomAccessible( level, xTileIndex, yTileIndex ).getAt( x, y, z );
 					volatileOutput.set( volatileType );
 				}
