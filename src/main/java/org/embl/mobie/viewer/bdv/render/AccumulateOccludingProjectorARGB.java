@@ -53,10 +53,10 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 			final List< SourceAndConverter< ? > > sources,
 			final List< ? extends RandomAccessible< ? extends ARGBType > > sourceScreenImages,
 			final RandomAccessibleInterval< ARGBType > target,
-			final int numThreads,
+			final int numThreads, // TODO
 			final ExecutorService executorService )
 	{
-		super( sourceProjectors, sourceScreenImages, target, numThreads, executorService );
+		super( sourceProjectors, sourceScreenImages, target );
 		blendingModes = getBlendingModes( sources );
 		initOcclusions( blendingModes );
 	}

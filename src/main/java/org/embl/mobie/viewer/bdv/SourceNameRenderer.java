@@ -60,7 +60,7 @@ public class SourceNameRenderer extends BdvOverlay implements TransformListener<
 	public SourceNameRenderer( BdvHandle bdvHandle, boolean isActive )
 	{
 		this.bdvHandle = bdvHandle;
-		bdvHandle.getViewerPanel().addTransformListener( this );
+		bdvHandle.getViewerPanel().transformListeners().add( this );
 		setActive( isActive );
 	}
 

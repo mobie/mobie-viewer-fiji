@@ -70,7 +70,7 @@ public class OMEZarrViewer
 
         final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 
-        final Collection< SourceAndConverter > sourceAndConverters = creator.getSetupIdToSourceAndConverter().values();
+        final Collection< SourceAndConverter< ? > > sourceAndConverters = creator.getSetupIdToSourceAndConverter().values();
 
         // TODO: numTimePoints
         // TODO: is2D
@@ -89,7 +89,7 @@ public class OMEZarrViewer
         installContextMenu( bdvHandle );
     }
 
-    private void showSacs( Collection< SourceAndConverter > sourceAndConverters )
+    private void showSacs( Collection< SourceAndConverter< ? > > sourceAndConverters )
     {
         for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
         {

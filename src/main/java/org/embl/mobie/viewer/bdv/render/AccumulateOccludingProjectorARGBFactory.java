@@ -49,16 +49,18 @@ public class AccumulateOccludingProjectorARGBFactory implements AccumulateProjec
 			List<SourceAndConverter< ? >> sources,
 			List< ? extends RandomAccessible< ? extends ARGBType > > sourceScreenImages,
 			RandomAccessibleInterval< ARGBType > targetScreenImage,
-			int numThreads,
-			ExecutorService executorService )
+			int numThreads, // TODO: Is not used
+			ExecutorService executorService // TODO: Is not used
+	 )
 	{
 		return new AccumulateOccludingProjectorARGB(
 						sourceProjectors,
 						sources,
 						sourceScreenImages,
 						targetScreenImage,
-						numThreads,
-						executorService );
+						numThreads, // TODO: Is not used
+						executorService // TODO: Is not used
+				);
 	}
 
 

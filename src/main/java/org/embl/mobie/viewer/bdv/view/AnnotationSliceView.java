@@ -59,7 +59,7 @@ public abstract class AnnotationSliceView< T extends TableRow > extends Abstract
 	{
 		configureLabelRendering( sourceAndConverter );
 		display.sliceViewer.show( sourceAndConverter, display );
-		getSliceViewer().getBdvHandle().getViewerPanel().addTimePointListener( ( TimePointListener ) sourceAndConverter.getConverter() );
+		getSliceViewer().getBdvHandle().getViewerPanel().timePointListeners().add( ( TimePointListener ) sourceAndConverter.getConverter() );
 	}
 
 	private void configureLabelRendering( SourceAndConverter< ? > sourceAndConverter )

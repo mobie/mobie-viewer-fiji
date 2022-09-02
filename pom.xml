@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>31.1.0</version>
+		<version>32.0.0</version>
 	</parent>
 
 	<groupId>org.embl.mobie</groupId>
@@ -83,10 +83,9 @@
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<enforcer.skip>true</enforcer.skip>
 
-        <bigdataviewer-playground.version>0.4.5</bigdataviewer-playground.version>
+        <bigdataviewer-playground.version>0.6.0</bigdataviewer-playground.version>
 		<imagej-utils.version>0.6.8</imagej-utils.version>
 		<mobie-io.version>1.2.12-SNAPSHOT</mobie-io.version>
-		<bigdataviewer-core.version>10.2.1</bigdataviewer-core.version>
 
 		<!-- Version 1.6.0-scijava-3-SNAPSHOT of j3dcore addresses a minor issue
 		https://github.com/fiji/3D_Viewer/issues/26
@@ -137,7 +136,6 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
-			<version>${bigdataviewer-core.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
@@ -146,7 +144,6 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>spim_data</artifactId>
-			<version>${spim_data.version}</version>
 		</dependency>
         <dependency>
             <groupId>org.embl.mobie</groupId>

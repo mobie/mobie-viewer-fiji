@@ -118,7 +118,7 @@ public class ViewManager
 		display.scatterPlotViewer = new ScatterPlotViewer( display.tableRows, display.selectionModel, display.selectionColoringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
 		display.selectionModel.listeners().add( display.scatterPlotViewer );
 		display.selectionColoringModel.listeners().add( display.scatterPlotViewer );
-		display.sliceViewer.getBdvHandle().getViewerPanel().addTimePointListener( display.scatterPlotViewer );
+		display.sliceViewer.getBdvHandle().getViewerPanel().timePointListeners().add( display.scatterPlotViewer );
 
 		if ( display.showScatterPlot() )
 		{
