@@ -63,7 +63,7 @@ public class View
 		this.isExclusive = isExclusive;
 	}
 
-	// map of image source name and the
+	// map of image source name to the
 	// initiator of opening this image
 	public Map< String, Object > getImages()
 	{

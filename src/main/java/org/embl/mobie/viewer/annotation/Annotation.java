@@ -6,7 +6,7 @@ public interface Annotation extends Location
 	String id();
 
 	// integer label for representing the annotation as a
-	// region in one time point of label image
+	// region in one time point of a label image
 	int label();
 
 	// for retrieving features (measurements)

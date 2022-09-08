@@ -3,14 +3,14 @@ package org.embl.mobie.viewer.table.saw;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.ImageStore;
-import org.embl.mobie.viewer.annotation.RegionAnnotation;
+import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.transform.TransformHelper;
 import tech.tablesaw.api.Row;
 
 import java.util.List;
 
-public class TableSawRegionAnnotation implements RegionAnnotation
+public class TableSawAnnotatedRegion implements AnnotatedRegion
 {
 	private Row row;
 	private final List< String > imageNames;
@@ -19,7 +19,7 @@ public class TableSawRegionAnnotation implements RegionAnnotation
 	private int label;
 	private final int timePoint;
 
-	public TableSawRegionAnnotation(
+	public TableSawAnnotatedRegion(
 			Row row,
 			List< String > imageNames )
 	{

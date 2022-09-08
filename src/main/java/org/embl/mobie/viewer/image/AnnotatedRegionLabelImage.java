@@ -37,7 +37,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
-import org.embl.mobie.viewer.annotation.RegionAnnotation;
+import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.viewer.source.SourcePair;
 import org.embl.mobie.viewer.transform.TransformHelper;
@@ -49,17 +49,17 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public class RegionAnnotationLabelImage< RA extends RegionAnnotation > implements Image< UnsignedIntType >
+public class AnnotatedRegionLabelImage< AR extends AnnotatedRegion > implements Image< UnsignedIntType >
 {
 	private final String name;
-	private final Set< RA > regionAnnotations;
+	private final Set< AR > annotatedRegions;
 	private Source< UnsignedIntType > source;
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 
-	public RegionAnnotationLabelImage( String name, Set< RA > regionAnnotations )
+	public AnnotatedRegionLabelImage( String name, Set< AR > annotatedRegions )
 	{
 		this.name = name;
-		this.regionAnnotations = regionAnnotations;
+		this.annotatedRegions = annotatedRegions;
 		createLabelImage();
 	}
 
@@ -67,8 +67,8 @@ public class RegionAnnotationLabelImage< RA extends RegionAnnotation > implement
 	{
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
-		final FunctionRealRandomAccessible< UnsignedIntType > randomAccessible = new FunctionRealRandomAccessible( 3, new BioConsumerSupplier(), UnsignedIntType::new );
-		source = new RealRandomAccessibleIntervalTimelapseSource<>( randomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, true, timePoints );
+		final FunctionRealRandomAccessible< UnsignedIntType > realRandomAccessible = new FunctionRealRandomAccessible( 3, new BioConsumerSupplier(), UnsignedIntType::new );
+		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, true, timePoints );
 
 		// TODO MAYBE
 		//   Create volatile source by means of a CachedCellImg?!
@@ -83,7 +83,7 @@ public class RegionAnnotationLabelImage< RA extends RegionAnnotation > implement
 		@Override
 		public BiConsumer< RealLocalizable, UnsignedIntType > get()
 		{
-			BiConsumer< RealLocalizable, UnsignedIntType > biConsumer = new RealLocalizableUnsignedIntTypeBiConsumer( regionAnnotations.iterator().next() );
+			BiConsumer< RealLocalizable, UnsignedIntType > biConsumer = new RealLocalizableUnsignedIntTypeBiConsumer( annotatedRegions.iterator().next() );
 
 			return biConsumer;
 		}
@@ -93,10 +93,10 @@ public class RegionAnnotationLabelImage< RA extends RegionAnnotation > implement
 			private RealMaskRealInterval recentMask;
 			private HashMap< RealMaskRealInterval, Integer > maskToLabel;
 
-			public RealLocalizableUnsignedIntTypeBiConsumer( RA recentMask )
+			public RealLocalizableUnsignedIntTypeBiConsumer( AR recentMask )
 			{
 				maskToLabel = new HashMap<>();
-				for ( RA regionAnnotation : regionAnnotations )
+				for ( AR regionAnnotation : annotatedRegions )
 				{
 					final RealMaskRealInterval mask = regionAnnotation.getMask();
 					// TODO: here, it would be nice to burn in the mask
@@ -171,6 +171,6 @@ public class RegionAnnotationLabelImage< RA extends RegionAnnotation > implement
 	@Override
 	public RealMaskRealInterval getMask( )
 	{
-		return TransformHelper.getUnionMask( regionAnnotations, 0 );
+		return TransformHelper.getUnionMask( annotatedRegions, 0 );
 	}
 }

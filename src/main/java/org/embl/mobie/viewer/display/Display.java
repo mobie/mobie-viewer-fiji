@@ -34,16 +34,30 @@ import org.embl.mobie.viewer.image.Image;
 import java.util.List;
 import java.util.Set;
 
+
+/**
+ * A display is a collection of images
+ * with shared display settings.
+ *
+ * Currently, everything that we display in MoBIE
+ * is a display. This implies that it must be
+ * modelled as an Image, which essentially is a Source.
+ * This is in line with BDV, which internally also
+ * models everything as a Source.
+ *
+ * Practically, for adding a Display to BDV,
+ * all images, using the display settings, will be
+ * converted to SourceAndConverters.
+ *
+ * @param <T> the data type of the images
+ */
 public interface Display< T >
 {
+	String getName();
 	List< String > getSources();
 	BlendingMode getBlendingMode();
-	String getName();
 	double getOpacity();
 	boolean isVisible();
-
-	// MUST: Does that make sense? Then all images would
-	// need to have the same data type
 	Set< Image< T > > getImages();
 	void addImage( Image< T > image );
 }

@@ -79,6 +79,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		Closest,
 		WithinRadius;
 	}
+
 	private PointSelectionModes pointSelectionMode = PointSelectionModes.Closest;
 	private double selectionRadius = 1.0;
 
@@ -183,9 +184,9 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 
 		Supplier< BiConsumer< RealPoint, ARGBType > > biConsumerSupplier = new RealPointARGBTypeBiConsumerSupplier( kdTree, coloringModel, dotSizeScaleFactor * ( min[ 0 ] - max[ 0 ] ) / 100.0, ARGBType.rgba( 100,  100, 100, 255 ) );
 
-		FunctionRealRandomAccessible< ARGBType > randomAccessible = new FunctionRealRandomAccessible( 2, biConsumerSupplier, ARGBType::new );
+		FunctionRealRandomAccessible< ARGBType > realRandomAccessible = new FunctionRealRandomAccessible( 2, biConsumerSupplier, ARGBType::new );
 
-		showInBdv( randomAccessible, FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 ), selectedColumns );
+		showInBdv( realRandomAccessible, FinalInterval.createMinMax( ( long ) min[ 0 ], ( long ) min[ 1 ], 0, ( long ) Math.ceil( max[ 0 ] ), ( long ) Math.ceil( max[ 1 ] ), 0 ), selectedColumns );
 	}
 
 	private Collection< A > getAnnotationsForCurrentTimePoint( )
@@ -350,7 +351,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		return neighbors;
 	}
 
-	private void showInBdv( FunctionRealRandomAccessible< ARGBType > randomAccessible, FinalInterval interval, String[] selectedColumns )
+	private void showInBdv( FunctionRealRandomAccessible< ARGBType > realRandomAccessible, FinalInterval interval, String[] selectedColumns )
 	{
 		Prefs.showMultibox( false );
 		Prefs.showScaleBar( true ); // This clashes with the main BDV...
@@ -358,7 +359,7 @@ public class ScatterPlotView< A extends Annotation > implements SelectionListene
 		final BdvOptions bdvOptions = BdvOptions.options().is2D().frameTitle( "Scatter plot" ).addTo( bdvHandle );
 
 		scatterPlotSource = BdvFunctions.show(
-				randomAccessible,
+				realRandomAccessible,
 				interval,
 				createPlotName( selectedColumns ),
 				bdvOptions );

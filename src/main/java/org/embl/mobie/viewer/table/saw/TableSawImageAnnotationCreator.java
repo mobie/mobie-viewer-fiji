@@ -6,7 +6,7 @@ import tech.tablesaw.api.Row;
 import java.util.List;
 import java.util.Map;
 
-public class TableSawImageAnnotationCreator implements TableSawAnnotationCreator< TableSawRegionAnnotation >
+public class TableSawImageAnnotationCreator implements TableSawAnnotationCreator< TableSawAnnotatedRegion >
 {
 	private final Map< String, List< String > > regionIdToImageNames;
 
@@ -16,12 +16,12 @@ public class TableSawImageAnnotationCreator implements TableSawAnnotationCreator
 	}
 
 	@Override
-	public TableSawRegionAnnotation create( Row row )
+	public TableSawAnnotatedRegion create( Row row )
 	{
 		final String regionId = row.getObject( ColumnNames.REGION_ID ).toString();
 		if ( ! regionIdToImageNames.containsKey( regionId ) )
 			return null; // The regionDisplay may only use some table rows.
 
-		return new TableSawRegionAnnotation( row, regionIdToImageNames.get( regionId )  );
+		return new TableSawAnnotatedRegion( row, regionIdToImageNames.get( regionId )  );
 	}
 }

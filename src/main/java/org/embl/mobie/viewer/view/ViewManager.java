@@ -67,7 +67,7 @@ import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.CroppedImage;
 import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
-import org.embl.mobie.viewer.image.RegionAnnotationLabelImage;
+import org.embl.mobie.viewer.image.AnnotatedRegionLabelImage;
 import org.embl.mobie.viewer.image.StitchedImage;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.AnnData;
@@ -77,7 +77,7 @@ import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableView;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
-import org.embl.mobie.viewer.table.saw.TableSawRegionAnnotation;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.viewer.table.saw.TableSawImageAnnotationCreator;
 import org.embl.mobie.viewer.serialize.transformation.AbstractGridTransformation;
 import org.embl.mobie.viewer.transform.AnnotatedSegmentAffineTransformer;
@@ -436,11 +436,11 @@ public class ViewManager
 				// images that could be referred to.
 				final Map< String, List< String > > regionIdToImageNames = imageAnnotationDisplay.sources;
 				final String defaultColumnsPath = IOHelper.combinePath( moBIE.getTableDirectory( tableData ), "default.tsv" );
-				final TableSawAnnotationCreator< TableSawRegionAnnotation > annotationCreator = new TableSawImageAnnotationCreator( regionIdToImageNames );
+				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawImageAnnotationCreator( regionIdToImageNames );
 				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
 				final Set annotations = tableModel.annotations();
-				final Image< UnsignedIntType > labelImage = new RegionAnnotationLabelImage( imageAnnotationDisplay.getName(), annotations );
-				final DefaultAnnData< TableSawRegionAnnotation > annData = new DefaultAnnData<>( tableModel );
+				final Image< UnsignedIntType > labelImage = new AnnotatedRegionLabelImage( imageAnnotationDisplay.getName(), annotations );
+				final DefaultAnnData< TableSawAnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
 				final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( labelImage, annData );
 
 				// label image representing
