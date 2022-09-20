@@ -33,7 +33,6 @@ import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
 import net.imglib2.Localizable;
-import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealInterval;
@@ -93,45 +92,57 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private HashMap< Integer, long[] > levelToSourceDimensions;
 	private HashMap< Integer, double[] > levelToTileMarginVoxelTranslation;
 
-	public StitchedImage( List< ? extends Image< T > > images, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImageTiles )
+	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeCellMargin, boolean transformImageTiles )
 	{
-		// Init reference image metadata
-		// (if we knew all that information we would not need to load
-		//  the reference image and thus safe time during initialization)
+		// Init reference image metadata.
+		// If we knew all that information we would not need to load
+		// the reference image and thus safe time during initialization.
 		//
-		final Image< T > referenceImage = images.iterator().next();
-		Source< T > referenceSource = referenceImage.getSourcePair().getSource();
-		this.type = referenceSource.getType().createVariable();
+		//metadataImage = images.get( 0 );
+		Source< T > metadataSource = metadataImage.getSourcePair().getSource();
+		this.type = metadataSource.getType().createVariable();
 		this.volatileType = ( V ) MoBIEVolatileTypeMatcher.getVolatileTypeForType( type );
-		this.numMipmapLevels = referenceSource.getNumMipmapLevels();
-		this.numDimensions = referenceSource.getVoxelDimensions().numDimensions();
-		this.voxelDimensions = referenceSource.getVoxelDimensions();
+		this.numMipmapLevels = metadataSource.getNumMipmapLevels();
+		this.numDimensions = metadataSource.getVoxelDimensions().numDimensions();
+		this.voxelDimensions = metadataSource.getVoxelDimensions();
 		this.levelToSourceTransform = new HashMap<>();
 		this.levelToSourceDimensions = new HashMap<>();
 
 		for ( int level = 0; level < numMipmapLevels; level++ )
 		{
 			final AffineTransform3D affineTransform3D = new AffineTransform3D();
-			referenceSource.getSourceTransform( 0, level, affineTransform3D );
-			levelToSourceTransform.put( level, affineTransform3D );
-			levelToSourceDimensions.put( level,  referenceSource.getSource( 0 ,level ).dimensionsAsLongArray() );
+			metadataSource.getSourceTransform( 0, level, affineTransform3D );
+			final AffineTransform3D copy = affineTransform3D.copy();
+			final long[] dimensions = metadataSource.getSource( 0, level ).dimensionsAsLongArray();
+			if ( level == 0 )
+			{
+				System.out.println( "StitchedImage: " + name );
+				System.out.println( "MetadataImage: " + metadataSource.getName() );
+				System.out.println( "MetadataImage transform: " + copy );
+				System.out.println( "MetadataImage dimensions: " + Arrays.toString( dimensions ) );
+			}
+			levelToSourceTransform.put( level, copy );
+			levelToSourceDimensions.put( level, dimensions );
 		}
 
 		this.images = images;
 		this.positions = positions == null ? TransformHelper.createGridPositions( images.size() ) : positions;
 		this.relativeCellMargin = relativeCellMargin;
-		this.name = imageName;
+		this.name = name;
 		// TODO: make my own VolatileTypeMatcher including AnnotationType
 
 		setMinMaxPos();
 		configureMipmapAndTileDimensions();
 		setTileRealDimensions( tileDimensions[ 0 ] );
 		setRealMask( tileRealDimensions );
+		System.out.println( "Name: " + name );
+		System.out.println( "Min pos: " + Arrays.toString( minPos ) );
+		System.out.println( "Tile dimensions: " + Arrays.toString( tileRealDimensions ) );
 
 		createSourcePair();
 
 		if ( transformImageTiles )
-			transform( images );
+			transform( images, metadataImage );
 	}
 
 	private double[] computeTileMarginOffset( Image< ? > image, double[] tileRealDimensions )
@@ -153,24 +164,26 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	// at the same location as they appear in the stitched image.
 	// This is currently needed for image annotation displays
 	// in order to know the location of the annotated images.
-	protected void transform( List< ? extends Image< ? > > images )
+	protected void transform( List< ? extends Image< ? > > images, Image< ? > metadataImage )
 	{
-		final Image< ? > referenceImage = images.get( 0 );
-		final double[] offset = computeTileMarginOffset( referenceImage, tileRealDimensions );
+		final double[] offset = computeTileMarginOffset( metadataImage, tileRealDimensions );
 
 		final List< List< ? extends Image< ? > > > nestedImages = new ArrayList<>();
+		final List< List< String > > nestedImageNames = new ArrayList<>();
+
 		for ( Image< ? > image : images )
 		{
 			final List< Image< ? > > imagesAtGridPosition = new ArrayList<>();
+			final List< String > imagesNamesAtGridPosition = new ArrayList<>();
 
-			// Only the image at the first grid position
-			// (the reference image) may have been loaded.
+			// Only the metadataImage may have been loaded.
 			// Avoid loading of the other images by providing the metadata
 			// of the reference image (note that for a StitchedImage all images
 			// are required to have the same metadata).
-			if ( image == referenceImage )
+			if ( image == metadataImage )
 			{
-				imagesAtGridPosition.add( referenceImage );
+				imagesAtGridPosition.add( metadataImage );
+
 			}
 			else
 			{
@@ -178,9 +191,11 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				// but the fact that a RegionLabelImage may be build to
 				// annotate those images and that would trigger loading of the
 				// data.
-				final InitialisedMetadataImage initialisedMetadataImage = new InitialisedMetadataImage( image, referenceImage.getMask() );
+				final InitialisedMetadataImage initialisedMetadataImage = new InitialisedMetadataImage( image, metadataImage.getMask() );
 				imagesAtGridPosition.add( initialisedMetadataImage );
 			}
+
+			imagesNamesAtGridPosition.add( image.getName() + "_" + name );
 
 			if ( image instanceof StitchedImage )
 			{
@@ -196,13 +211,15 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 						throw new UnsupportedOperationException("Nested stitching of MergedGridTransformation is currently not supported.");
 
 					imagesAtGridPosition.add( containedImage );
+					imagesNamesAtGridPosition.add( containedImage.getName() + "_" + name );
 				}
 			}
 
 			nestedImages.add( imagesAtGridPosition );
+			nestedImageNames.add( imagesNamesAtGridPosition );
 		}
 
-		new ImageGridTransformer().transform( nestedImages, null, positions, tileRealDimensions, false, offset );
+		new ImageGridTransformer().transform( nestedImages, nestedImageNames, positions, tileRealDimensions, false, offset );
 	}
 
 
@@ -293,7 +310,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		@Override
 		// This essentially returns a randomAccess.
-		// Now, since this is a stitched image, it needs
+		// As this is a stitched image, it needs
 		// to stitch the random accesses of the tiles.
 		// Thus, it internally needs to hold onto several random accesses.
 		public synchronized BiConsumer< Localizable, V > get()

@@ -84,6 +84,7 @@ public class View
 			{
 				sources.put( source, imageTransformation );
 			}
+
 		}
 
 		return sources;

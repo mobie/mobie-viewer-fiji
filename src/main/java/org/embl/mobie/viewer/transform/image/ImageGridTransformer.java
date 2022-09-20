@@ -65,11 +65,7 @@ public class ImageGridTransformer
 					for ( int d = 0; d < 2; d++ )
 						translation[ d ] = tileRealDimensions[ d ] * positions.get( finalGridIndex )[ d ] + offset[ d ];
 
-					List< String > transformedImageNames =
-						transformedNames != null ?
-							transformedNames.get( finalGridIndex ) :
-							images.stream().map( image -> image.getName() ).collect( Collectors.toList() );
-
+					List< String > transformedImageNames = transformedNames == null ? images.stream().map( image -> image.getName() ).collect( Collectors.toList() ) : transformedNames.get( finalGridIndex );
 					translate( images, transformedImageNames, centerAtOrigin, translation[ 0 ], translation[ 1 ] );
 				}
 				catch ( Exception e )

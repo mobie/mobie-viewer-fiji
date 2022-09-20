@@ -249,7 +249,7 @@ public class MoBIE
 				modulo.set( modulo.get() / 2 );
 			}
 			lastLogMillis.set( currentTimeMillis );
-			return "Opening (" + index.get() + "/" + numTotal + "): ";
+			return "Initialising (" + index.get() + "/" + numTotal + "): ";
 		}
 		else
 		{

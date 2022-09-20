@@ -308,18 +308,21 @@ public class ViewManager
 			final Object imageDisplay = imageToDisplay.get( imageSource.getName() );
 			if ( imageDisplay instanceof MergedGridTransformation )
 			{
-				final List< String > targetImageNames = ( ( MergedGridTransformation ) imageDisplay ).getTargetImageNames();
-				if ( targetImageNames.indexOf( imageSource.getName() ) == 0)
+				final MergedGridTransformation mergedGridTransformation = ( MergedGridTransformation ) imageDisplay;
+				if ( mergedGridTransformation.metadataSource != null )
 				{
-					// The first image should be immediately initialised,
-					// because this is needed as the reference source
-					// for the stitching (aka MergedGridTransformation).
-					imageSource.preInit( true );
+					if ( imageSource.getName().equals( mergedGridTransformation.metadataSource ) )
+						imageSource.preInit( true );
+					else
+						imageSource.preInit( false );
 				}
-				else
+				else // no metadata source specified, use the first in the grid as metadata source
 				{
-					// The others image should be initialised later on-demand.
-					imageSource.preInit( false );
+					final String firstImageInGrid = mergedGridTransformation.getTargetImageNames().get( 0 );
+					if ( imageSource.getName().equals( firstImageInGrid ) )
+						imageSource.preInit( true );
+					else
+						imageSource.preInit( false );
 				}
 			}
 			else
@@ -404,14 +407,37 @@ public class ViewManager
 					final List< String > targetImageNames = transformation.getTargetImageNames();
 					final List< ? extends Image< ? > > targetImages = ImageStore.getImageList( targetImageNames );
 
+					// Fetch the metadataImage as raw as possible.
+					// Because we don't want a modified version of it.
+					// FIXME: This is not clean, because sometimes
+					//  one actually may want the modified version...
+					Image< ? > metadataImage;
+					final String metadataSource = mergedGridTransformation.metadataSource;
+					if ( metadataSource == null )
+					{
+						metadataImage = targetImages.get( 0 );
+					}
+					else
+					{
+//						if ( ImageStore.getRawData( metadataSource ) != null )
+//						{
+//							metadataImage = ImageStore.getRawData( metadataSource );
+//						}
+//						else
+						{
+							metadataImage = ImageStore.getImage( metadataSource );
+						}
+					}
+					//ImageStore.putRawData( metadataImage );
+
 					if ( targetImages.get( 0 ) instanceof AnnotatedImage )
 					{
-						final AnnotatedStitchedImage annotatedStitchedImage = new AnnotatedStitchedImage( targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
+						final AnnotatedStitchedImage annotatedStitchedImage = new AnnotatedStitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
 						ImageStore.putImage( annotatedStitchedImage );
 					}
 					else
 					{
-						final StitchedImage stitchedImage = new StitchedImage<>( ( List ) targetImages, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
+						final StitchedImage stitchedImage = new StitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
 						ImageStore.putImage( stitchedImage );
 					}
 				}
@@ -431,9 +457,11 @@ public class ViewManager
 			{
 				final ImageAnnotationDisplay< ? > imageAnnotationDisplay = ( ImageAnnotationDisplay< ? > ) sourceDisplay;
 				final Map< TableDataFormat, StorageLocation > tableData = imageAnnotationDisplay.tableData;
-				// note that the imageNames that are referred to here must exist in this view
-				// thus we do this *after* the above transformations, which may create new
-				// images that could be referred to.
+				// note that the imageNames that are referred
+				// to here must exist in this view
+				// thus we do this *after* the above transformations,
+				// which may create new images
+				// that could be referred to.
 				final Map< String, List< String > > regionIdToImageNames = imageAnnotationDisplay.sources;
 				final String defaultColumnsPath = IOHelper.combinePath( moBIE.getTableDirectory( tableData ), "default.tsv" );
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawImageAnnotationCreator( regionIdToImageNames );

@@ -38,6 +38,11 @@ public abstract class ImageStore
 		return rawData.entrySet().stream().filter( entry -> names.contains( entry.getKey() ) ).map( entry -> entry.getValue() ).collect( Collectors.toSet() );
 	}
 
+	public static Image< ? > getRawData( String name )
+	{
+		return rawData.get( name );
+	}
+
 	public static Image< ? > getImage( String name )
 	{
 		if ( ! currentData.containsKey( name ) )

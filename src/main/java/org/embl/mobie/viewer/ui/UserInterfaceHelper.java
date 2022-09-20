@@ -34,7 +34,6 @@ import bdv.util.BdvHandle;
 import bdv.util.BoundedValueDouble;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-import de.embl.cba.bdv.utils.BrightnessUpdateListener;
 import de.embl.cba.tables.SwingUtils;
 import de.embl.cba.tables.color.ColorUtils;
 import org.embl.mobie.viewer.MoBIE;
@@ -126,7 +125,7 @@ public class UserInterfaceHelper
 		return panel;
 	}
 
-	public static void showBrightnessDialog(
+	public static void showContrastLimitsDialog(
 			String name,
 			List< ConverterSetup > converterSetups )
 	{
@@ -154,19 +153,23 @@ public class UserInterfaceHelper
 						rangeMax,
 						currentContrastLimitsMax );
 
-
 		double spinnerStepSize = absCurrentRange / 100.0;
 
 		JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout( panel, BoxLayout.PAGE_AXIS ) );
 		final SliderPanelDouble minSlider =
 				new SliderPanelDouble( "Min", min, spinnerStepSize );
-		minSlider.setNumColummns( 7 );
+		minSlider.setNumColummns( 10 );
+
+		// FIXME: adapt the number of decimal places to the
+		//  current range
+		minSlider.setDecimalFormat( "#####.####" );
 		//minSlider.setDecimalFormat( "####E0" );
 
 		final SliderPanelDouble maxSlider =
 				new SliderPanelDouble( "Max", max, spinnerStepSize );
-		maxSlider.setNumColummns( 7 );
+		maxSlider.setNumColummns( 10 );
+		maxSlider.setDecimalFormat( "#####.####" );
 		//maxSlider.setDecimalFormat( "####E0" );
 
 		final BrightnessUpdateListener brightnessUpdateListener = new BrightnessUpdateListener( min, max, minSlider, maxSlider, converterSetups );
@@ -809,7 +812,7 @@ public class UserInterfaceHelper
 				converterSetups.add( SourceAndConverterServices.getSourceAndConverterService().getConverterSetup( sourceAndConverter ) );
 			}
 
-			UserInterfaceHelper.showBrightnessDialog(
+			UserInterfaceHelper.showContrastLimitsDialog(
 					imageDisplay.getName(),
 					converterSetups );
 		} );

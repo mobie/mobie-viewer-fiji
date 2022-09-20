@@ -83,7 +83,7 @@ public class AnnotatedRegionLabelImage< AR extends AnnotatedRegion > implements 
 		@Override
 		public BiConsumer< RealLocalizable, UnsignedIntType > get()
 		{
-			BiConsumer< RealLocalizable, UnsignedIntType > biConsumer = new RealLocalizableUnsignedIntTypeBiConsumer( annotatedRegions.iterator().next() );
+			BiConsumer< RealLocalizable, UnsignedIntType > biConsumer = new RealLocalizableUnsignedIntTypeBiConsumer();
 
 			return biConsumer;
 		}
@@ -93,7 +93,7 @@ public class AnnotatedRegionLabelImage< AR extends AnnotatedRegion > implements 
 			private RealMaskRealInterval recentMask;
 			private HashMap< RealMaskRealInterval, Integer > maskToLabel;
 
-			public RealLocalizableUnsignedIntTypeBiConsumer( AR recentMask )
+			public RealLocalizableUnsignedIntTypeBiConsumer()
 			{
 				maskToLabel = new HashMap<>();
 				for ( AR regionAnnotation : annotatedRegions )

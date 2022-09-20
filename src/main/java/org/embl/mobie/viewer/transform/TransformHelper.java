@@ -117,6 +117,8 @@ public class TransformHelper
 			translationTransform.translate( center );
 			translationTransform = translationTransform.inverse();
 		}
+		// System.out.println( "Image: " + image.getName() );
+		// System.out.println( "Translation: " + translationX + ", " + translationY );
 		translationTransform.translate( translationX, translationY, 0 );
 		return translationTransform;
 	}

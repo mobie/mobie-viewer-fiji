@@ -35,6 +35,7 @@ public class MergedGridTransformation extends AbstractGridTransformation
 	// Serialization
 	public List< String > sources;
 	public String mergedGridSourceName;
+	public String metadataSource;
 	public boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
 
 	@Override
