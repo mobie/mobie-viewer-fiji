@@ -61,6 +61,9 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< Display >
 		classToName.put( SegmentationDisplay.class.getName(), "segmentationDisplay");
 		nameToClass.put("regionDisplay", ImageAnnotationDisplay.class);
 		classToName.put( ImageAnnotationDisplay.class.getName(), "regionDisplay");
+		nameToClass.put("regionDisplay", ImageAnnotationDisplay.class);
+		classToName.put( ImageAnnotationDisplay.class.getName(), "regionDisplay");
+
 	}
 
 	@Override

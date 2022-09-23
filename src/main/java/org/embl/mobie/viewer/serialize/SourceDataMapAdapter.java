@@ -53,6 +53,8 @@ public class SourceDataMapAdapter implements JsonSerializer< Map< String, Data >
 		classToName.put(SegmentationSource.class.getName(), "segmentation");
 		nameToClass.put("imageAnnotation", ImageAnnotationSource.class);
 		classToName.put(ImageAnnotationSource.class.getName(), "imageAnnotation");
+		nameToClass.put("spots", ImageAnnotationSource.class);
+		classToName.put(ImageAnnotationSource.class.getName(), "imageAnnotation");
 	}
 
 	@Override
