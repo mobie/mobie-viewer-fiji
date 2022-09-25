@@ -1,7 +1,8 @@
 package org.embl.mobie.viewer.annotation;
 
-public interface Location
+import net.imglib2.RealLocalizable;
+
+public interface Location extends RealLocalizable
 {
 	int timePoint();
-	double[] anchor();
 }

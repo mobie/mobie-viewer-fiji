@@ -39,8 +39,10 @@ import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIE;
+import org.embl.mobie.viewer.annotation.AnnotatedRegion;
+import org.embl.mobie.viewer.annotation.AnnotatedSpot;
 import org.embl.mobie.viewer.annotation.Segment;
-import org.embl.mobie.viewer.annotation.SegmentAnnotation;
+import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
 import org.embl.mobie.viewer.bdv.view.ImageSliceView;
@@ -77,12 +79,13 @@ import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableView;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpot;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegion;
-import org.embl.mobie.viewer.table.saw.TableSawImageAnnotationCreator;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegionCreator;
 import org.embl.mobie.viewer.serialize.transformation.AbstractGridTransformation;
-import org.embl.mobie.viewer.table.saw.TableSawSpotAnnotationCreator;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpotCreator;
 import org.embl.mobie.viewer.transform.AnnotatedSegmentAffineTransformer;
 import org.embl.mobie.viewer.transform.AnnotationTransformer;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
@@ -270,7 +273,7 @@ public class ViewManager
 		initImages( view );
 
 		// display the data
-		final List< Display > displays = view.getSourceDisplays();
+		final List< Display > displays = view.getDisplays();
 		for ( Display display : displays )
 			show( display );
 
@@ -369,7 +372,7 @@ public class ViewManager
 							final Object annotation = annotatedLabelImage.getAnnData().getTable().annotations().iterator().next();
 							if ( annotation instanceof Segment )
 							{
-								final AnnData< ? extends SegmentAnnotation > annData = annotatedLabelImage.getAnnData();
+								final AnnData< ? extends AnnotatedSegment > annData = annotatedLabelImage.getAnnData();
 								final AnnotationTransformer annotationTransformer = new AnnotatedSegmentAffineTransformer( affineTransform3D );
 								transformedAnnData = new TransformedAnnData( annData, annotationTransformer );
 							}
@@ -378,7 +381,7 @@ public class ViewManager
 								throw new UnsupportedOperationException("Transformation of " + annotation.getClass().getName() + " is currently not supported");
 							}
 
-							final AnnotatedLabelImage< ? extends SegmentAnnotation > transformedAnnotatedLabelImage = new AnnotatedLabelImage( transformedLabelImage, transformedAnnData );
+							final AnnotatedLabelImage< ? extends AnnotatedSegment > transformedAnnotatedLabelImage = new AnnotatedLabelImage( transformedLabelImage, transformedAnnData );
 
 							ImageStore.putImage( transformedAnnotatedLabelImage );
 						}
@@ -445,12 +448,12 @@ public class ViewManager
 
 		// instantiate images that are created by a display
 		//
-		for ( Display< ? > sourceDisplay : view.getSourceDisplays() )
+		for ( Display< ? > display : view.getDisplays() )
 		{
 			// https://github.com/mobie/mobie-viewer-fiji/issues/818
-			if ( sourceDisplay instanceof RegionDisplay )
+			if ( display instanceof RegionDisplay )
 			{
-				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) sourceDisplay;
+				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
 				final Map< TableDataFormat, StorageLocation > tableData = regionDisplay.tableData;
 				// note that the imageNames that are referred
 				// to here must exist in this view
@@ -459,34 +462,32 @@ public class ViewManager
 				// that could be referred to.
 				final Map< String, List< String > > regionIdToImageNames = regionDisplay.sources;
 				final String defaultColumnsPath = IOHelper.combinePath( moBIE.getTableDirectory( tableData ), "default.tsv" );
-				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawImageAnnotationCreator( regionIdToImageNames );
-				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
-				final Set annotations = tableModel.annotations();
-				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotations );
-				final DefaultAnnData< TableSawAnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
-				final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( labelImage, annData );
+				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( regionIdToImageNames );
+				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
+				final Set< AnnotatedRegion > annotatedRegions = tableModel.annotations();
+				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotatedRegions );
+				final DefaultAnnData< AnnotatedRegion > regionAnnData = new DefaultAnnData<>( tableModel );
+				final AnnotatedLabelImage regionImage = new AnnotatedLabelImage( labelImage, regionAnnData );
 
-				// label image representing
-				// image annotations
-				ImageStore.putImage( annotatedLabelImage );
+				ImageStore.putImage( regionImage );
 			}
 
-			if ( sourceDisplay instanceof SpotDisplay )
+			if ( display instanceof SpotDisplay )
 			{
-				final SpotDisplay< ? > spotDisplay = ( SpotDisplay< ? > ) sourceDisplay;
+				final SpotDisplay< ? > spotDisplay = ( SpotDisplay< ? > ) display;
 				final Map< TableDataFormat, StorageLocation > tableData = spotDisplay.tableData;
 
 				final String defaultColumnsPath = IOHelper.combinePath( moBIE.getTableDirectory( tableData ), "default.tsv" );
-				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawSpotAnnotationCreator( regionIdToImageNames );
-				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
-				final Set annotations = tableModel.annotations();
-				final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDisplay.getName(), annotations );
-				final DefaultAnnData< TableSawAnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
-				final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( labelImage, annData );
+				final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator();
+				final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
+				final Set< AnnotatedSpot > annotatedSpots = tableModel.annotations();
+				final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDisplay.getName(), annotatedSpots );
+				final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
+				final AnnotatedLabelImage spotsImage = new AnnotatedLabelImage( labelImage, spotAnnData );
 
 				// label image representing
 				// image annotations
-				ImageStore.putImage( annotatedLabelImage );
+				ImageStore.putImage( spotsImage );
 			}
 		}
 	}
@@ -661,7 +662,7 @@ public class ViewManager
 		SwingUtilities.invokeLater( () -> WindowArrangementHelper.bottomAlignWindow( reference, table, ( numViewedTables - 1 ) * shift ) );
 	}
 
-	private void initSegmentVolumeViewer( SegmentationDisplay< ? extends SegmentAnnotation > display )
+	private void initSegmentVolumeViewer( SegmentationDisplay< ? extends AnnotatedSegment > display )
 	{
 		display.segmentsVolumeViewer = new SegmentsVolumeViewer( display.selectionModel, display.coloringModel, display.getImages(), universeManager );
 		Double[] resolution3dView = display.getResolution3dView();

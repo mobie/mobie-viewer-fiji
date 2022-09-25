@@ -223,7 +223,7 @@ public class MeshCreator< S extends Segment >
 		floodFill.run( voxelCoordinate );
 		final RandomAccessibleInterval mask = floodFill.getCroppedRegionMask();
 
-		final int numDimensions = segment.anchor().length;
+		final int numDimensions = segment.positionAsDoubleArray().length;
 		final double[] min = new double[ numDimensions ];
 		final double[] max = new double[ numDimensions ];
 		for ( int d = 0; d < numDimensions; d++ )
@@ -239,7 +239,7 @@ public class MeshCreator< S extends Segment >
 			S segment,
 			double[] calibration )
 	{
-		final double[] anchor = segment.anchor();
+		final double[] anchor = segment.positionAsDoubleArray();
 		final long[] voxelCoordinate = new long[ anchor.length ];
 		for ( int d = 0; d < anchor.length; d++ )
 			voxelCoordinate[ d ] = ( long ) ( anchor[ d ] / calibration[ d ] );

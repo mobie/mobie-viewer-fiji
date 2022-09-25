@@ -1,6 +1,6 @@
 package org.embl.mobie.viewer.table.saw;
 
-import org.embl.mobie.viewer.annotation.SegmentAnnotation;
+import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import org.embl.mobie.viewer.table.ColumnNames;
@@ -8,7 +8,7 @@ import tech.tablesaw.api.Row;
 
 import javax.annotation.Nullable;
 
-public class TableSawSegmentAnnotation implements SegmentAnnotation
+public class TableSawAnnotatedSegment implements AnnotatedSegment
 {
 	private Row row;
 	private final int numSegmentDimensions;
@@ -18,7 +18,7 @@ public class TableSawSegmentAnnotation implements SegmentAnnotation
 	private float[] mesh;
 	private String imageId;
 
-	public TableSawSegmentAnnotation(
+	public TableSawAnnotatedSegment(
 			Row row,
 			@Nullable String imageId  // may be present in table
 	)
@@ -85,13 +85,19 @@ public class TableSawSegmentAnnotation implements SegmentAnnotation
 	}
 
 	@Override
-	public double[] anchor()
+	public double[] positionAsDoubleArray()
 	{
 		return new double[]{
 				row.getDouble( ColumnNames.ANCHOR_X ),
 				row.getDouble( ColumnNames.ANCHOR_Y ),
 				row.getDouble( ColumnNames.ANCHOR_Z )
 		};
+	}
+
+	@Override
+	public double getDoublePosition( int d )
+	{
+		return positionAsDoubleArray()[ d ];
 	}
 
 	@Override
@@ -136,4 +142,9 @@ public class TableSawSegmentAnnotation implements SegmentAnnotation
 		row.setText( columnName, value );
 	}
 
+	@Override
+	public int numDimensions()
+	{
+		return positionAsDoubleArray().length;
+	}
 }

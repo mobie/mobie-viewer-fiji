@@ -26,7 +26,7 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 		this.row = row;
 		this.imageNames = imageNames;
 
-		// ImageAnnotation properties
+		// fetch region properties from table row
 		this.regionId = row.getObject( ColumnNames.REGION_ID ).toString();
 		this.label = regionId.hashCode();
 		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? this.row.getInt( ColumnNames.TIMEPOINT ) : 0;
@@ -45,7 +45,7 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	}
 
 	@Override
-	public double[] anchor()
+	public double[] positionAsDoubleArray()
 	{
 		final double[] min = Intervals.minAsDoubleArray( getMask() );
 		final double[] max = Intervals.maxAsDoubleArray( getMask() );

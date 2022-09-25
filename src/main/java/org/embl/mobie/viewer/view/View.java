@@ -40,7 +40,7 @@ import java.util.Map;
 public class View
 {
 	private String uiSelectionGroup;
-	private List< Display > sourceDisplays;
+	private List< Display > displays;
 	private List< Transformation > sourceTransforms;
 	private ViewerTransform viewerTransform;
 	private boolean isExclusive = false;
@@ -49,7 +49,7 @@ public class View
 	public View( String uiSelectionGroup, List< Display > displays,
 				 List< Transformation > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
-		this.sourceDisplays = displays;
+		this.displays = displays;
 		this.sourceTransforms = sourceTransforms;
 		this.viewerTransform = viewerTransform;
 		this.isExclusive = isExclusive;
@@ -58,7 +58,7 @@ public class View
 	public View( String uiSelectionGroup, List< Display > displays,
 				 List< Transformation > sourceTransforms, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
-		this.sourceDisplays = displays;
+		this.displays = displays;
 		this.sourceTransforms = sourceTransforms;
 		this.isExclusive = isExclusive;
 	}
@@ -69,7 +69,7 @@ public class View
 	{
 		final Map< String, Object > sources = new HashMap<>();
 
-		for ( Display< ? > display : getSourceDisplays() )
+		for ( Display< ? > display : getDisplays() )
 		{
 			for ( String source : display.getSources() )
 			{
@@ -103,12 +103,12 @@ public class View
 			return sourceTransforms;
 	}
 
-	public List< Display > getSourceDisplays()
+	public List< Display > getDisplays()
 	{
-		if ( sourceDisplays == null )
+		if ( displays == null )
 			return new ArrayList<>();
 		else
-			return sourceDisplays;
+			return displays;
 	}
 
 	public String getUiSelectionGroup()

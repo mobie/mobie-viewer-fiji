@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.spots;
+package org.embl.mobie.viewer.plot;
 
 import net.imglib2.RealInterval;
 import net.imglib2.RealPoint;

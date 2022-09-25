@@ -43,4 +43,8 @@ public class ColumnNames
 	public static final String BB_MAX_Y = "bb_max_y";
 	public static final String BB_MAX_Z = "bb_max_z";
 	public static final String REGION_ID = "region_id";
+	public static final String SPOT_X = "x";
+	public static final String SPOT_Y = "y";
+	public static final String SPOT_Z = "z";
+	public static final String SPOT_ID = "spot_id";
 }

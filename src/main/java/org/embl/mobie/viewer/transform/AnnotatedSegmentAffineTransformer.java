@@ -1,9 +1,9 @@
 package org.embl.mobie.viewer.transform;
 
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.annotation.SegmentAnnotation;
+import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 
-public class AnnotatedSegmentAffineTransformer implements AnnotationTransformer< SegmentAnnotation, AffineTransformedSegmentAnnotation >
+public class AnnotatedSegmentAffineTransformer implements AnnotationTransformer< AnnotatedSegment, AffineTransformedAnnotatedSegment >
 {
 	private AffineTransform3D transformation;
 
@@ -13,8 +13,8 @@ public class AnnotatedSegmentAffineTransformer implements AnnotationTransformer<
 	}
 
 	@Override
-	public AffineTransformedSegmentAnnotation transform( SegmentAnnotation segmentAnnotation )
+	public AffineTransformedAnnotatedSegment transform( AnnotatedSegment annotatedSegment )
 	{
-		return new AffineTransformedSegmentAnnotation( segmentAnnotation, transformation );
+		return new AffineTransformedAnnotatedSegment( annotatedSegment, transformation );
 	}
 }

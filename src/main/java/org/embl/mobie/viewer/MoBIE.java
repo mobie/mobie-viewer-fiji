@@ -55,7 +55,7 @@ import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
-import org.embl.mobie.viewer.table.saw.TableSawSegmentAnnotation;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegment;
 import org.embl.mobie.viewer.table.saw.TableSawSegmentAnnotationCreator;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
@@ -562,7 +562,7 @@ public class MoBIE
 				final String defaultColumnsPath = IOHelper.combinePath( getTableDirectory( segmentationData.tableData ), "default.tsv" );
 				final TableSawSegmentAnnotationCreator annotationCreator = new TableSawSegmentAnnotationCreator( image.getName() );
 				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
-				final DefaultAnnData< TableSawSegmentAnnotation > segmentsAnnData = new DefaultAnnData<>( tableModel );
+				final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
 				final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
 
 				// label image representing annotated segments

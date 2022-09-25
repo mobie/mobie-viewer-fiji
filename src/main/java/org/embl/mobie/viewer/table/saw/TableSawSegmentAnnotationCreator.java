@@ -4,7 +4,7 @@ import tech.tablesaw.api.Row;
 
 import javax.annotation.Nullable;
 
-public class TableSawSegmentAnnotationCreator implements TableSawAnnotationCreator< TableSawSegmentAnnotation >
+public class TableSawSegmentAnnotationCreator implements TableSawAnnotationCreator< TableSawAnnotatedSegment >
 {
 	@Nullable
 	private final String imageId;
@@ -15,8 +15,8 @@ public class TableSawSegmentAnnotationCreator implements TableSawAnnotationCreat
 	}
 
 	@Override
-	public TableSawSegmentAnnotation create( Row row )
+	public TableSawAnnotatedSegment create( Row row )
 	{
-		return new TableSawSegmentAnnotation( row, imageId );
+		return new TableSawAnnotatedSegment( row, imageId );
 	}
 }

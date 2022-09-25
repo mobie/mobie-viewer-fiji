@@ -28,9 +28,7 @@
  */
 package org.embl.mobie.viewer.annotation;
 
-import org.embl.mobie.viewer.source.Masked;
-
-public interface Region extends Location, Masked
+public interface Spot extends Location
 {
-	String regionId();
+	String spotId();
 }

@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.spots;
+package org.embl.mobie.viewer.plot;
 
 import de.embl.cba.tables.Outlier;
 import de.embl.cba.tables.Utils;
@@ -70,8 +70,7 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 
 		initialiseDataPoints( annotations, columns, scaleFactors );
 
-		annotationToRealPoint = IntStream.range( 0, realPoints.size() ).boxed()
-				.collect( Collectors.toMap( i -> this.annotations.get( i ), i -> realPoints.get( i )));
+		annotationToRealPoint = IntStream.range( 0, realPoints.size() ).boxed().collect( Collectors.toMap( i -> this.annotations.get( i ), i -> realPoints.get( i ) ) );
 	}
 
 	/**

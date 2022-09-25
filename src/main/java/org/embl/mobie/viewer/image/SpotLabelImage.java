@@ -29,6 +29,8 @@
 package org.embl.mobie.viewer.image;
 
 import bdv.viewer.Source;
+import de.embl.cba.tables.Outlier;
+import de.embl.cba.tables.Utils;
 import net.imglib2.Interval;
 import net.imglib2.KDTree;
 import net.imglib2.RealLocalizable;
@@ -37,61 +39,58 @@ import net.imglib2.Sampler;
 import net.imglib2.Volatile;
 import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.neighborsearch.RadiusNeighborSearchOnKDTree;
-import net.imglib2.ops.parse.token.Real;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
-import net.imglib2.roi.geom.real.WritableBox;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
-import org.embl.mobie.viewer.annotation.AnnotatedRegion;
+import org.embl.mobie.viewer.annotation.AnnotatedSpot;
 import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.viewer.source.SourcePair;
-import org.embl.mobie.viewer.spots.AnnotationKDTreeSupplier;
-import org.embl.mobie.viewer.transform.TransformHelper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-public class SpotLabelImage< AR extends AnnotatedRegion > implements Image< UnsignedIntType >
+public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< UnsignedIntType >
 {
 	private final String name;
-	private final Set< AR > annotatedRegions;
+	private final Set< AS > annotatedSpots;
 	private Source< UnsignedIntType > source;
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
-	private KDTree< AR > kdTree;
+	private KDTree< AS > kdTree;
 	private RealMaskRealInterval mask;
 
-	public SpotLabelImage( String name, Set< AR > annotatedRegions )
+	public SpotLabelImage( String name, Set< AS > annotatedSpots )
 	{
 		this.name = name;
-		this.annotatedRegions = annotatedRegions;
+		this.annotatedSpots = annotatedSpots;
 		createLabelImage();
 	}
 
 	private void createLabelImage()
 	{
-		final String[] columns = { "x", "y" };
-		final double[] axisScales = { 1, 1 };
-		final AnnotationKDTreeSupplier< AR > kdTreeSupplier = new AnnotationKDTreeSupplier<>( annotatedRegions, columns, axisScales );
-		kdTree = kdTreeSupplier.get();
-		double[] min = kdTreeSupplier.getMin();
-		double[] max = kdTreeSupplier.getMax();
-		mask = GeomMasks.closedBox( min, max );
-		final Map< AR, RealPoint > annotationToRealPoint = kdTreeSupplier.getAnnotationToRealPoint();
+		kdTree = new KDTree( new ArrayList<>( annotatedSpots ), new ArrayList<>( annotatedSpots ) );
+		mask = GeomMasks.closedBox( kdTree.minAsDoubleArray(), kdTree.maxAsDoubleArray() );
 
 		// TODO: use those for something?
-		final NearestNeighborSearchOnKDTree< AR > nearestNeighborSearchOnKDTree = new NearestNeighborSearchOnKDTree<>( kdTree );
-		final RadiusNeighborSearchOnKDTree< AR > radiusNeighborSearchOnKDTree = new RadiusNeighborSearchOnKDTree<>( kdTree );
+		final NearestNeighborSearchOnKDTree< AS > nearestNeighborSearchOnKDTree = new NearestNeighborSearchOnKDTree<>( kdTree );
+		final RadiusNeighborSearchOnKDTree< AS > radiusNeighborSearchOnKDTree = new RadiusNeighborSearchOnKDTree<>( kdTree );
 
 		// TODO: code duplication with RegionLabelImage
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
+
+
 		final FunctionRealRandomAccessible< UnsignedIntType > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToLabelSupplier(), UnsignedIntType::new );
 		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, true, timePoints );
 
@@ -107,7 +106,7 @@ public class SpotLabelImage< AR extends AnnotatedRegion > implements Image< Unsi
 
 		private class LocationToLabel implements BiConsumer< RealLocalizable, UnsignedIntType >
 		{
-			private RadiusNeighborSearchOnKDTree< AR > search;
+			private RadiusNeighborSearchOnKDTree< AS > search;
 			private double radius;
 
 			public LocationToLabel()
@@ -122,8 +121,8 @@ public class SpotLabelImage< AR extends AnnotatedRegion > implements Image< Unsi
 				search.search( location, radius, true );
 				if ( search.numNeighbors() > 0 )
 				{
-					final Sampler< AR > sampler = search.getSampler( 0 );
-					final AR annotatedRegion = sampler.get();
+					final Sampler< AS > sampler = search.getSampler( 0 );
+					final AS annotatedRegion = sampler.get();
 					value.setInteger( annotatedRegion.label() );
 				}
 				else
@@ -134,6 +133,8 @@ public class SpotLabelImage< AR extends AnnotatedRegion > implements Image< Unsi
 			}
 		}
 	}
+
+
 
 	private ArrayList< Integer > configureTimePoints()
 	{
@@ -158,4 +159,5 @@ public class SpotLabelImage< AR extends AnnotatedRegion > implements Image< Unsi
 	{
 		return mask;
 	}
+
 }
