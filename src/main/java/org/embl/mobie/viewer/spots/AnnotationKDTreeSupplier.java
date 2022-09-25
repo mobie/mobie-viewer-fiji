@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.plot;
+package org.embl.mobie.viewer.spots;
 
 import de.embl.cba.tables.Outlier;
 import de.embl.cba.tables.Utils;
@@ -103,6 +103,7 @@ public class AnnotationKDTreeSupplier< A extends Annotation > implements Supplie
 		realPoints = new ArrayList<>();
 		this.annotations = new ArrayList<>( );
 
+		// TODO: make dimensionality a variable
 		Double[] xy = new Double[ 2 ];
 		boolean isValidDataPoint;
 

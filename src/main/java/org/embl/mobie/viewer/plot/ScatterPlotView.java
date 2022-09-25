@@ -40,6 +40,8 @@ import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.color.ColoringListener;
 import org.embl.mobie.viewer.color.ColoringModel;
 import org.embl.mobie.viewer.playground.BdvPopupMenus;
+import org.embl.mobie.viewer.spots.AnnotationKDTreeSupplier;
+import org.embl.mobie.viewer.spots.RealPointARGBTypeBiConsumerSupplier;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.display.VisibilityListener;

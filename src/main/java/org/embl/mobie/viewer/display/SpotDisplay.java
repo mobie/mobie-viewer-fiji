@@ -30,6 +30,8 @@ package org.embl.mobie.viewer.display;
 
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.Annotation;
+import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.table.TableDataFormat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,7 +44,9 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 	// Serialization
 
 	// table with each row corresponding to one spot
+	public Map< TableDataFormat, StorageLocation > tableData;
 	public Set< String > selectedSpotIds;
+
 
 	// Runtime
 
@@ -53,9 +57,9 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 	}
 
 	@Override
-	public void setSelectedAnnotationIds( Set< String > selectedAnnotationIds )
+	public void setSelectedAnnotationIds( Set< String > selectedSpotIds )
 	{
-		this.selectedSpotIds = selectedAnnotationIds;
+		this.selectedSpotIds = selectedSpotIds;
 	}
 
 	@Override
@@ -91,7 +95,10 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 	public SpotDisplay( SpotDisplay< ? extends Annotation > spotDisplay )
 	{
 		// set properties common to all AnnotationDisplays
-		//
+
 		setAnnotationDisplayProperties( spotDisplay );
+
+		// set properties specific to SpotDisplay
+
 	}
 }

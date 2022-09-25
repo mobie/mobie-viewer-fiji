@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.plot;
+package org.embl.mobie.viewer.spots;
 
 import org.embl.mobie.viewer.color.ColoringModel;
 import net.imglib2.KDTree;

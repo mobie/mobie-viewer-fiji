@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.plot;
+package org.embl.mobie.viewer.spots;
 
 import net.imglib2.KDTree;
 import net.imglib2.RealInterval;

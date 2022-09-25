@@ -49,14 +49,14 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public class AnnotatedRegionLabelImage< AR extends AnnotatedRegion > implements Image< UnsignedIntType >
+public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< UnsignedIntType >
 {
 	private final String name;
 	private final Set< AR > annotatedRegions;
 	private Source< UnsignedIntType > source;
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 
-	public AnnotatedRegionLabelImage( String name, Set< AR > annotatedRegions )
+	public RegionLabelImage( String name, Set< AR > annotatedRegions )
 	{
 		this.name = name;
 		this.annotatedRegions = annotatedRegions;
@@ -67,7 +67,7 @@ public class AnnotatedRegionLabelImage< AR extends AnnotatedRegion > implements 
 	{
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
-		final FunctionRealRandomAccessible< UnsignedIntType > realRandomAccessible = new FunctionRealRandomAccessible( 3, new BioConsumerSupplier(), UnsignedIntType::new );
+		final FunctionRealRandomAccessible< UnsignedIntType > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToLabelSupplier(), UnsignedIntType::new );
 		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, true, timePoints );
 
 		// TODO MAYBE
@@ -78,22 +78,20 @@ public class AnnotatedRegionLabelImage< AR extends AnnotatedRegion > implements 
 		//   space, based on the (real)mask of the images.
 	}
 
-	class BioConsumerSupplier implements Supplier< BiConsumer< RealLocalizable, UnsignedIntType > >
+	class LocationToLabelSupplier implements Supplier< BiConsumer< RealLocalizable, UnsignedIntType > >
 	{
 		@Override
 		public BiConsumer< RealLocalizable, UnsignedIntType > get()
 		{
-			BiConsumer< RealLocalizable, UnsignedIntType > biConsumer = new RealLocalizableUnsignedIntTypeBiConsumer();
-
-			return biConsumer;
+			return new LocationToLabel();
 		}
 
-		private class RealLocalizableUnsignedIntTypeBiConsumer implements BiConsumer< RealLocalizable, UnsignedIntType >
+		private class LocationToLabel implements BiConsumer< RealLocalizable, UnsignedIntType >
 		{
 			private RealMaskRealInterval recentMask;
 			private HashMap< RealMaskRealInterval, Integer > maskToLabel;
 
-			public RealLocalizableUnsignedIntTypeBiConsumer()
+			public LocationToLabel()
 			{
 				maskToLabel = new HashMap<>();
 				for ( AR regionAnnotation : annotatedRegions )

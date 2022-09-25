@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ImageAnnotationDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay< AR >
+public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay< AR >
 {
 	// Serialization
 
@@ -78,10 +78,10 @@ public class ImageAnnotationDisplay< AR extends AnnotatedRegion > extends Annota
 	}
 
 	// Needed for Gson
-	public ImageAnnotationDisplay() {}
+	public RegionDisplay() {}
 
 	// Needed for Gson
-	public ImageAnnotationDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedRegionIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
+	public RegionDisplay( String name, double opacity, Map< String, List< String > > sources, String lut, String colorByColumn, Double[] valueLimits, Set< String > selectedRegionIds, boolean showScatterPlot, String[] scatterPlotAxes, List< String > tables, boolean showAsBoundaries, float boundaryThickness  )
 	{
 		this.name = name;
 		this.opacity = opacity;
@@ -98,18 +98,18 @@ public class ImageAnnotationDisplay< AR extends AnnotatedRegion > extends Annota
 	}
 
 	// Create a serializable copy
-	public ImageAnnotationDisplay( ImageAnnotationDisplay< ? extends Annotation > imageAnnotationDisplay )
+	public RegionDisplay( RegionDisplay< ? extends Annotation > regionDisplay )
 	{
 		// set properties common to all AnnotationDisplays
 		//
-		setAnnotationDisplayProperties( imageAnnotationDisplay );
+		setAnnotationDisplayProperties( regionDisplay );
 
 		// set properties specific to RegionDisplay
 		//
 		this.sources = new HashMap<>();
-		this.sources.putAll( imageAnnotationDisplay.sources );
+		this.sources.putAll( regionDisplay.sources );
 
 		this.tableData = new HashMap<>();
-		this.tableData.putAll( imageAnnotationDisplay.tableData );
+		this.tableData.putAll( regionDisplay.tableData );
 	}
 }

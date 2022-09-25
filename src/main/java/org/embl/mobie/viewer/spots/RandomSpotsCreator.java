@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.plot;
+package org.embl.mobie.viewer.spots;
 
 import net.imglib2.RealInterval;
 import net.imglib2.RealPoint;
@@ -35,7 +35,8 @@ import net.imglib2.type.numeric.NumericType;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class RandomPointsCreator < T extends NumericType< T > >
+// For testing
+public class RandomSpotsCreator< T extends NumericType< T > >
 {
 	private final T fixedValue;
 	private int n;
@@ -43,7 +44,7 @@ public class RandomPointsCreator < T extends NumericType< T > >
 	private ArrayList< RealPoint > randomPointList;
 	private ArrayList< T > fixedValueList;
 
-	public RandomPointsCreator( T fixedValue, int n, RealInterval interval )
+	public RandomSpotsCreator( T fixedValue, int n, RealInterval interval )
 	{
 		this.fixedValue = fixedValue;
 		this.n = n;

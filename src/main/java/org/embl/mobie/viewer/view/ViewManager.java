@@ -56,8 +56,10 @@ import org.embl.mobie.viewer.display.AbstractDisplay;
 import org.embl.mobie.viewer.display.AnnotationDisplay;
 import org.embl.mobie.viewer.display.Display;
 import org.embl.mobie.viewer.display.ImageDisplay;
-import org.embl.mobie.viewer.display.ImageAnnotationDisplay;
+import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
+import org.embl.mobie.viewer.display.SpotDisplay;
+import org.embl.mobie.viewer.image.SpotLabelImage;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.serialize.ImageSource;
@@ -67,7 +69,7 @@ import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.CroppedImage;
 import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
-import org.embl.mobie.viewer.image.AnnotatedRegionLabelImage;
+import org.embl.mobie.viewer.image.RegionLabelImage;
 import org.embl.mobie.viewer.image.StitchedImage;
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.AnnData;
@@ -80,6 +82,7 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.viewer.table.saw.TableSawImageAnnotationCreator;
 import org.embl.mobie.viewer.serialize.transformation.AbstractGridTransformation;
+import org.embl.mobie.viewer.table.saw.TableSawSpotAnnotationCreator;
 import org.embl.mobie.viewer.transform.AnnotatedSegmentAffineTransformer;
 import org.embl.mobie.viewer.transform.AnnotationTransformer;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
@@ -222,9 +225,9 @@ public class ViewManager
 				currentDisplay = new SegmentationDisplay( segmentationDisplay );
 				addManualTransforms( viewSourceTransforms, ( Map ) segmentationDisplay.nameToSourceAndConverter );
 			}
-			else if ( display instanceof ImageAnnotationDisplay )
+			else if ( display instanceof RegionDisplay )
 			{
-				currentDisplay = new ImageAnnotationDisplay( ( ImageAnnotationDisplay ) display );
+				currentDisplay = new RegionDisplay( ( RegionDisplay ) display );
 			}
 
 			if ( currentDisplay != null )
@@ -407,10 +410,8 @@ public class ViewManager
 					final List< String > targetImageNames = transformation.getTargetImageNames();
 					final List< ? extends Image< ? > > targetImages = ImageStore.getImageList( targetImageNames );
 
-					// Fetch the metadataImage as raw as possible.
-					// Because we don't want a modified version of it.
-					// FIXME: This is not clean, because sometimes
-					//  one actually may want the modified version...
+					// Get the image that contains the metadata for
+					// the image grid
 					Image< ? > metadataImage;
 					final String metadataSource = mergedGridTransformation.metadataSource;
 					if ( metadataSource == null )
@@ -419,17 +420,11 @@ public class ViewManager
 					}
 					else
 					{
-//						if ( ImageStore.getRawData( metadataSource ) != null )
-//						{
-//							metadataImage = ImageStore.getRawData( metadataSource );
-//						}
-//						else
-						{
-							metadataImage = ImageStore.getImage( metadataSource );
-						}
+						metadataImage = ImageStore.getImage( metadataSource );
 					}
-					//ImageStore.putRawData( metadataImage );
 
+					// Create the stitched grid image
+					//
 					if ( targetImages.get( 0 ) instanceof AnnotatedImage )
 					{
 						final AnnotatedStitchedImage annotatedStitchedImage = new AnnotatedStitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
@@ -453,21 +448,39 @@ public class ViewManager
 		for ( Display< ? > sourceDisplay : view.getSourceDisplays() )
 		{
 			// https://github.com/mobie/mobie-viewer-fiji/issues/818
-			if ( sourceDisplay instanceof ImageAnnotationDisplay )
+			if ( sourceDisplay instanceof RegionDisplay )
 			{
-				final ImageAnnotationDisplay< ? > imageAnnotationDisplay = ( ImageAnnotationDisplay< ? > ) sourceDisplay;
-				final Map< TableDataFormat, StorageLocation > tableData = imageAnnotationDisplay.tableData;
+				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) sourceDisplay;
+				final Map< TableDataFormat, StorageLocation > tableData = regionDisplay.tableData;
 				// note that the imageNames that are referred
 				// to here must exist in this view
 				// thus we do this *after* the above transformations,
 				// which may create new images
 				// that could be referred to.
-				final Map< String, List< String > > regionIdToImageNames = imageAnnotationDisplay.sources;
+				final Map< String, List< String > > regionIdToImageNames = regionDisplay.sources;
 				final String defaultColumnsPath = IOHelper.combinePath( moBIE.getTableDirectory( tableData ), "default.tsv" );
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawImageAnnotationCreator( regionIdToImageNames );
 				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
 				final Set annotations = tableModel.annotations();
-				final Image< UnsignedIntType > labelImage = new AnnotatedRegionLabelImage( imageAnnotationDisplay.getName(), annotations );
+				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotations );
+				final DefaultAnnData< TableSawAnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
+				final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( labelImage, annData );
+
+				// label image representing
+				// image annotations
+				ImageStore.putImage( annotatedLabelImage );
+			}
+
+			if ( sourceDisplay instanceof SpotDisplay )
+			{
+				final SpotDisplay< ? > spotDisplay = ( SpotDisplay< ? > ) sourceDisplay;
+				final Map< TableDataFormat, StorageLocation > tableData = spotDisplay.tableData;
+
+				final String defaultColumnsPath = IOHelper.combinePath( moBIE.getTableDirectory( tableData ), "default.tsv" );
+				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawSpotAnnotationCreator( regionIdToImageNames );
+				final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
+				final Set annotations = tableModel.annotations();
+				final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDisplay.getName(), annotations );
 				final DefaultAnnData< TableSawAnnotatedRegion > annData = new DefaultAnnData<>( tableModel );
 				final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( labelImage, annData );
 
