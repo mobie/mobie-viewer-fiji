@@ -40,25 +40,25 @@ import java.util.Map;
 public class View
 {
 	private String uiSelectionGroup;
-	private List< Display > displays;
+	private List< Display > sourceDisplays;
 	private List< Transformation > sourceTransforms;
 	private ViewerTransform viewerTransform;
 	private boolean isExclusive = false;
 	private String name;
 
-	public View( String uiSelectionGroup, List< Display > displays,
+	public View( String uiSelectionGroup, List< Display > sourceDisplays,
 				 List< Transformation > sourceTransforms, ViewerTransform viewerTransform, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
-		this.displays = displays;
+		this.sourceDisplays = sourceDisplays;
 		this.sourceTransforms = sourceTransforms;
 		this.viewerTransform = viewerTransform;
 		this.isExclusive = isExclusive;
 	}
 
-	public View( String uiSelectionGroup, List< Display > displays,
+	public View( String uiSelectionGroup, List< Display > sourceDisplays,
 				 List< Transformation > sourceTransforms, boolean isExclusive ) {
 		this.uiSelectionGroup = uiSelectionGroup;
-		this.displays = displays;
+		this.sourceDisplays = sourceDisplays;
 		this.sourceTransforms = sourceTransforms;
 		this.isExclusive = isExclusive;
 	}
@@ -69,7 +69,7 @@ public class View
 	{
 		final Map< String, Object > sources = new HashMap<>();
 
-		for ( Display< ? > display : getDisplays() )
+		for ( Display< ? > display : getSourceDisplays() )
 		{
 			for ( String source : display.getSources() )
 			{
@@ -103,12 +103,12 @@ public class View
 			return sourceTransforms;
 	}
 
-	public List< Display > getDisplays()
+	public List< Display > getSourceDisplays()
 	{
-		if ( displays == null )
+		if ( sourceDisplays == null )
 			return new ArrayList<>();
 		else
-			return displays;
+			return sourceDisplays;
 	}
 
 	public String getUiSelectionGroup()

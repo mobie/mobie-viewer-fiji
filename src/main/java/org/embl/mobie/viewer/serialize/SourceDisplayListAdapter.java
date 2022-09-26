@@ -40,6 +40,7 @@ import org.embl.mobie.viewer.display.ImageDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.Display;
+import org.embl.mobie.viewer.display.SpotDisplay;
 import org.embl.mobie.viewer.serialize.transformation.Transformation;
 
 import java.lang.reflect.Type;
@@ -61,9 +62,8 @@ public class SourceDisplayListAdapter implements JsonSerializer< List< Display >
 		classToName.put( SegmentationDisplay.class.getName(), "segmentationDisplay");
 		nameToClass.put("regionDisplay", RegionDisplay.class);
 		classToName.put( RegionDisplay.class.getName(), "regionDisplay");
-		nameToClass.put("regionDisplay", RegionDisplay.class);
-		classToName.put( RegionDisplay.class.getName(), "regionDisplay");
-
+		nameToClass.put("spotDisplay", SpotDisplay.class);
+		classToName.put( SpotDisplay.class.getName(), "spotDisplay");
 	}
 
 	@Override

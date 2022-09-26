@@ -56,6 +56,12 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	}
 
 	@Override
+	public double getDoublePosition( int d )
+	{
+		return positionAsDoubleArray()[ d ];
+	}
+
+	@Override
 	public String id()
 	{
 		return regionId;
@@ -86,5 +92,11 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	public String regionId ( )
 	{
 		return regionId;
+	}
+
+	@Override
+	public int numDimensions()
+	{
+		return positionAsDoubleArray().length;
 	}
 }

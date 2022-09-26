@@ -18,12 +18,24 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 
 		// fetch spot properties from table row
 		this.spotId = null; // FIXME
-		position = new double[]{
-				(double) row.getObject( ColumnNames.SPOT_X ),
-				(double) row.getObject( ColumnNames.SPOT_Y ),
-				(double) row.getObject( ColumnNames.SPOT_Y ) };
+
 		this.label = (int) row.getObject( ColumnNames.SPOT_ID );
-		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? this.row.getInt( ColumnNames.TIMEPOINT ) : 0;
+
+		if ( row.columnNames().contains( ColumnNames.SPOT_Z ) )
+		{
+			this.position = new double[]{
+					(double) row.getObject( ColumnNames.SPOT_X ),
+					(double) row.getObject( ColumnNames.SPOT_Y ),
+					(double) row.getObject( ColumnNames.SPOT_Z ) };
+		}
+		else // 2D
+		{
+			this.position = new double[]{
+					(double) row.getObject( ColumnNames.SPOT_X ),
+					(double) row.getObject( ColumnNames.SPOT_Y ) };
+		}
+
+		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
 	}
 
 	@Override

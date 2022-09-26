@@ -29,12 +29,9 @@
 package org.embl.mobie.viewer.image;
 
 import bdv.viewer.Source;
-import de.embl.cba.tables.Outlier;
-import de.embl.cba.tables.Utils;
 import net.imglib2.Interval;
 import net.imglib2.KDTree;
 import net.imglib2.RealLocalizable;
-import net.imglib2.RealPoint;
 import net.imglib2.Sampler;
 import net.imglib2.Volatile;
 import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
@@ -50,16 +47,9 @@ import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.viewer.source.SourcePair;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< UnsignedIntType >
 {
@@ -69,11 +59,13 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 	private Source< ? extends Volatile< UnsignedIntType > > volatileSource = null;
 	private KDTree< AS > kdTree;
 	private RealMaskRealInterval mask;
+	private double radius;
 
-	public SpotLabelImage( String name, Set< AS > annotatedSpots )
+	public SpotLabelImage( String name, Set< AS > annotatedSpots, double radius )
 	{
 		this.name = name;
 		this.annotatedSpots = annotatedSpots;
+		this.radius = radius;
 		createLabelImage();
 	}
 
@@ -98,6 +90,10 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 
 	class LocationToLabelSupplier implements Supplier< BiConsumer< RealLocalizable, UnsignedIntType > >
 	{
+		public LocationToLabelSupplier()
+		{
+		}
+
 		@Override
 		public BiConsumer< RealLocalizable, UnsignedIntType > get()
 		{
@@ -107,12 +103,10 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 		private class LocationToLabel implements BiConsumer< RealLocalizable, UnsignedIntType >
 		{
 			private RadiusNeighborSearchOnKDTree< AS > search;
-			private double radius;
 
-			public LocationToLabel()
+			public LocationToLabel( )
 			{
 				search = new RadiusNeighborSearchOnKDTree<>( kdTree );
-				radius = 1.0;
 			}
 
 			@Override

@@ -273,7 +273,7 @@ public class ViewManager
 		initImages( view );
 
 		// display the data
-		final List< Display > displays = view.getDisplays();
+		final List< Display > displays = view.getSourceDisplays();
 		for ( Display display : displays )
 			show( display );
 
@@ -448,7 +448,7 @@ public class ViewManager
 
 		// instantiate images that are created by a display
 		//
-		for ( Display< ? > display : view.getDisplays() )
+		for ( Display< ? > display : view.getSourceDisplays() )
 		{
 			// https://github.com/mobie/mobie-viewer-fiji/issues/818
 			if ( display instanceof RegionDisplay )
@@ -481,7 +481,7 @@ public class ViewManager
 				final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator();
 				final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
 				final Set< AnnotatedSpot > annotatedSpots = tableModel.annotations();
-				final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDisplay.getName(), annotatedSpots );
+				final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDisplay.getName(), annotatedSpots, spotDisplay.spotRadius );
 				final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
 				final AnnotatedLabelImage spotsImage = new AnnotatedLabelImage( labelImage, spotAnnData );
 

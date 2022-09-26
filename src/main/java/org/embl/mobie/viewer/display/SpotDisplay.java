@@ -45,8 +45,10 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 
 	// table with each row corresponding to one spot
 	public Map< TableDataFormat, StorageLocation > tableData;
+
 	public Set< String > selectedSpotIds;
 
+	public double spotRadius = 1.0D;
 
 	// Runtime
 
