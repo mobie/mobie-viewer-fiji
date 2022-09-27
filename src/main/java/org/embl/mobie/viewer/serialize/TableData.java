@@ -9,5 +9,5 @@ public class TableData
 {
 	public String defaultTable;
 
-	public Map< TableDataFormat, StorageLocation > dataStores;
+	public Map< TableDataFormat, StorageLocation > dataStore;
 }

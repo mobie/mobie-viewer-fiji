@@ -7,12 +7,17 @@ import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.transform.TransformHelper;
 import tech.tablesaw.api.Row;
+import tech.tablesaw.api.Table;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public class TableSawAnnotatedRegion implements AnnotatedRegion
 {
-	private Row row;
+	private static final String[] idColumns = new String[]{ ColumnNames.REGION_ID };
+	private final Supplier< Table > tableSupplier;
+	private final int rowIndex;
+
 	private final List< String > imageNames;
 	private RealMaskRealInterval realMaskRealInterval;
 	private String regionId;
@@ -20,16 +25,19 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	private final int timePoint;
 
 	public TableSawAnnotatedRegion(
-			Row row,
+			Supplier< Table > tableSupplier,
+			int rowIndex,
 			List< String > imageNames )
 	{
-		this.row = row;
+		this.tableSupplier = tableSupplier;
+		this.rowIndex = rowIndex;
 		this.imageNames = imageNames;
 
+		final Row row = tableSupplier.get().row( rowIndex );
 		// fetch region properties from table row
 		this.regionId = row.getObject( ColumnNames.REGION_ID ).toString();
 		this.label = regionId.hashCode();
-		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? this.row.getInt( ColumnNames.TIMEPOINT ) : 0;
+		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
 	}
 
 	@Override
@@ -70,13 +78,19 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	@Override
 	public Object getValue( String feature )
 	{
-		return row.getObject( feature );
+		return tableSupplier.get().row( rowIndex ).getObject( feature );
 	}
 
 	@Override
 	public void setString( String columnName, String value )
 	{
-		row.setText( columnName, value );
+		tableSupplier.get().row( rowIndex ).setText( columnName, value );
+	}
+
+	@Override
+	public String[] idColumns()
+	{
+		return idColumns;
 	}
 
 	@Override

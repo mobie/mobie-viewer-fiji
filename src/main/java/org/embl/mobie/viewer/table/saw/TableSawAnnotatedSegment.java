@@ -5,32 +5,50 @@ import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import org.embl.mobie.viewer.table.ColumnNames;
 import tech.tablesaw.api.Row;
+import tech.tablesaw.api.Table;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
 public class TableSawAnnotatedSegment implements AnnotatedSegment
 {
-	private Row row;
+	private static final String[] idColumns = new String[]{ ColumnNames.LABEL_ID, ColumnNames.TIMEPOINT };
+
 	private final int numSegmentDimensions;
 	private final int timePoint;
 	private final int labelId;
+	private final double[] position;
+	private final Supplier< Table > tableSupplier;
+	private final int rowIndex;
 	private RealInterval boundingBox;
 	private float[] mesh;
 	private String imageId;
 
 	public TableSawAnnotatedSegment(
-			Row row,
-			@Nullable String imageId  // may be present in table
-	)
+			Supplier< Table > tableSupplier,
+			int rowIndex,
+			@Nullable String imageId  )
+
 	{
-		this.row = row;
+		this.tableSupplier = tableSupplier;
+		this.rowIndex = rowIndex;
+		Row row = tableSupplier.get().row( rowIndex );
 
 		// segment properties
-		this.numSegmentDimensions = this.row.columnNames().contains( ColumnNames.ANCHOR_Z ) ? 3 : 2;
-		this.imageId = row.columnNames().contains( ColumnNames.LABEL_IMAGE_ID ) ? this.row.getString( ColumnNames.LABEL_IMAGE_ID ) : imageId;
-		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? this.row.getInt( ColumnNames.TIMEPOINT ) : 0;
-		this.labelId = this.row.getInt( ColumnNames.LABEL_ID );
-		initBoundingBox( this.row, numSegmentDimensions );
+		this.numSegmentDimensions = row.columnNames().contains( ColumnNames.ANCHOR_Z ) ? 3 : 2;
+		this.imageId = row.columnNames().contains( ColumnNames.LABEL_IMAGE_ID ) ? row.getString( ColumnNames.LABEL_IMAGE_ID ) : imageId;
+		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
+		this.labelId = row.getInt( ColumnNames.LABEL_ID );
+
+		initBoundingBox( row, numSegmentDimensions );
+
+		this.position = new double[]{
+				row.getDouble( ColumnNames.ANCHOR_X ),
+				row.getDouble( ColumnNames.ANCHOR_Y ),
+				row.getDouble( ColumnNames.ANCHOR_Z )
+		};
 	}
 
 	private void initBoundingBox( Row row, int numSegmentDimensions )
@@ -87,11 +105,7 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public double[] positionAsDoubleArray()
 	{
-		return new double[]{
-				row.getDouble( ColumnNames.ANCHOR_X ),
-				row.getDouble( ColumnNames.ANCHOR_Y ),
-				row.getDouble( ColumnNames.ANCHOR_Z )
-		};
+		return position;
 	}
 
 	@Override
@@ -133,13 +147,19 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public Object getValue( String feature )
 	{
-		return row.getObject( feature );
+		return tableSupplier.get().row( rowIndex ).getObject( feature );
 	}
 
 	@Override
 	public void setString( String columnName, String value )
 	{
-		row.setText( columnName, value );
+		tableSupplier.get().row( rowIndex ).setText( columnName, value );
+	}
+
+	@Override
+	public String[] idColumns()
+	{
+		return idColumns;
 	}
 
 	@Override

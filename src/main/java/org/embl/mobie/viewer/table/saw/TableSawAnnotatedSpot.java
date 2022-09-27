@@ -3,18 +3,26 @@ package org.embl.mobie.viewer.table.saw;
 import org.embl.mobie.viewer.annotation.AnnotatedSpot;
 import org.embl.mobie.viewer.table.ColumnNames;
 import tech.tablesaw.api.Row;
+import tech.tablesaw.api.Table;
+
+import java.util.function.Supplier;
 
 public class TableSawAnnotatedSpot implements AnnotatedSpot
 {
-	private Row row;
+	private static final String[] idColumns = new String[]{ ColumnNames.SPOT_ID };
+	private final Supplier< Table > tableSupplier;
+	private final int rowIndex;
+
 	private String spotId;
 	private int label;
 	private final int timePoint;
 	private double[] position;
 
-	public TableSawAnnotatedSpot( Row row )
+	public TableSawAnnotatedSpot( Supplier< Table > tableSupplier, int rowIndex )
 	{
-		this.row = row;
+		this.tableSupplier = tableSupplier;
+		this.rowIndex = rowIndex;
+		final Row row = tableSupplier.get().row( rowIndex );
 
 		// fetch spot properties from table row
 		this.spotId = null; // FIXME
@@ -71,13 +79,19 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 	@Override
 	public Object getValue( String feature )
 	{
-		return row.getObject( feature );
+		return tableSupplier.get().row( rowIndex ).getObject( feature );
 	}
 
 	@Override
 	public void setString( String columnName, String value )
 	{
-		row.setText( columnName, value );
+		tableSupplier.get().row( rowIndex ).setText( columnName, value );
+	}
+
+	@Override
+	public String[] idColumns()
+	{
+		return idColumns;
 	}
 
 	@Override

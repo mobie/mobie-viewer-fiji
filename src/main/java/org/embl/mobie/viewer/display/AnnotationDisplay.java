@@ -121,7 +121,8 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		return scatterPlotAxes;
 	}
 
-	public List< String > getDisplayedColumnChunks()
+	// table = chunk of columns
+	public List< String > getTables()
 	{
 		return tables;
 	}

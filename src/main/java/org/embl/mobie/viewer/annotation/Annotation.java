@@ -15,4 +15,7 @@ public interface Annotation extends Location
 
 	// For adding manual annotations
 	void setString( String columnName, String value );
+
+	// for merging tables
+	String[] idColumns();
 }

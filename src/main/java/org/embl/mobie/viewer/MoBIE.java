@@ -64,7 +64,7 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpotCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegment;
-import org.embl.mobie.viewer.table.saw.TableSawSegmentAnnotationCreator;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegmentCreator;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.View;
@@ -435,14 +435,15 @@ public class MoBIE
         return dataset.views;
     }
 
-    private String getRelativeTableLocation( Map< TableDataFormat, StorageLocation > tableData )
+    private String getRelativeTablePath( Map< TableDataFormat, StorageLocation > tableData )
     {
         return tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
     }
 
     public String getTableDirectory( Map< TableDataFormat, StorageLocation > tableData )
     {
-        return getTableDirectory( getRelativeTableLocation( tableData ) );
+		final String relativeTablePath = getRelativeTablePath( tableData );
+		return getTableDirectory( relativeTablePath );
     }
 
     public String getTableDirectory( String relativeTableLocation )
@@ -560,9 +561,8 @@ public class MoBIE
 
 				if ( segmentationDataSource.tableData != null )
 				{
-					final String defaultColumnsPath = IOHelper.combinePath( getTableDirectory( segmentationDataSource.tableData ), "default.tsv" );
-					final TableSawSegmentAnnotationCreator annotationCreator = new TableSawSegmentAnnotationCreator( image.getName() );
-					final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
+					final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( image.getName() );
+					final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, getTableDirectory( segmentationDataSource.tableData ), "default.tsv"  );
 					final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
 					final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
 
@@ -584,9 +584,8 @@ public class MoBIE
 		if ( dataSource instanceof SpotDataSource )
 		{
 			final SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
-			final String defaultColumnsPath = IOHelper.combinePath( moBIE.getTableDirectory( spotDataSource.tableData.dataStores ), spotDataSource.tableData.defaultTable );
 			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator();
-			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
+			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( annotationCreator, moBIE.getTableDirectory( spotDataSource.tableData.dataStore ), spotDataSource.tableData.defaultTable );
 			final Set< AnnotatedSpot > annotatedSpots = tableModel.annotations();
 			final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDataSource.getName(), annotatedSpots, 1.0 );
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );

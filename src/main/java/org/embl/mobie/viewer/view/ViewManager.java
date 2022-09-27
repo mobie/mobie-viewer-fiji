@@ -58,7 +58,6 @@ import org.embl.mobie.viewer.display.Display;
 import org.embl.mobie.viewer.display.ImageDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
-import org.embl.mobie.viewer.display.SpotDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.serialize.DataSource;
@@ -460,9 +459,8 @@ public class ViewManager
 				// which may create new images
 				// that could be referred to.
 				final Map< String, List< String > > regionIdToImageNames = regionDisplay.sources;
-				final String defaultColumnsPath = IOHelper.combinePath( moBIE.getTableDirectory( tableData ), "default.tsv" );
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( regionIdToImageNames );
-				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
+				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( annotationCreator, moBIE.getTableDirectory( tableData ), "default.tsv"  );
 				final Set< AnnotatedRegion > annotatedRegions = tableModel.annotations();
 				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotatedRegions );
 				final DefaultAnnData< AnnotatedRegion > regionAnnData = new DefaultAnnData<>( tableModel );
@@ -470,14 +468,6 @@ public class ViewManager
 
 				ImageStore.putImage( regionImage );
 			}
-
-			if ( display instanceof SpotDisplay )
-			{
-				// TODO: The spot source must come from somewhere!
-				final SpotDisplay< ? > spotDisplay = ( SpotDisplay< ? > ) display;
-				final List< String > spotSources = spotDisplay.getSources();
-
-							}
 		}
 	}
 
@@ -513,11 +503,21 @@ public class ViewManager
 				annotationDisplay.addImage( ( AnnotatedImage ) image );
 			}
 
-			// Now that all images are added create an
-			// annData object for the display,
+			// Now that all images are added to the display,
+			// create an annData object,
 			// potentially combining the annData from
-			// all images that are displayed.
+			// several images.
 			annotationDisplay.createAnnData();
+
+			// Load additional tables (to be merged)
+			final List< String > tables = annotationDisplay.getTables();
+			if ( tables != null )
+				for ( String table : tables )
+				{
+					final AnnotationTableModel< A > tableModel = annotationDisplay.getAnnData().getTable();
+					final String dataStore = tableModel.dataStore();
+					tableModel.requestColumns( IOHelper.combinePath( dataStore, table ) );
+				}
 
 			// configure selection model
 			//

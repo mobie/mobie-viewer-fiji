@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.annotation;
 
+
 public interface AnnotatedSegment extends Segment, Annotation
 {
 	static String createId( String imageId, int timePoint, int labelId )

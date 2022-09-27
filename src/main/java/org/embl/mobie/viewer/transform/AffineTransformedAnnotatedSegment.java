@@ -94,6 +94,12 @@ public class AffineTransformedAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
+	public String[] idColumns()
+	{
+		return annotatedSegment.idColumns();
+	}
+
+	@Override
 	public int numDimensions()
 	{
 		return positionAsDoubleArray().length;

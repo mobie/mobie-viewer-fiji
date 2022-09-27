@@ -92,25 +92,25 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	}
 
 	@Override
-	public void loadColumns( String columnsPath )
+	public void requestColumns( String columnsPath )
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
 		{
-			tableModel.loadColumns( columnsPath );
+			tableModel.requestColumns( columnsPath );
 		}
 	}
 
 	@Override
-	public void setColumnPaths( Set< String > availableColumnPaths )
+	public void setAvailableColumnPaths( Set< String > availableColumnPaths )
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
 		{
-			tableModel.setColumnPaths( availableColumnPaths );
+			tableModel.setAvailableColumnPaths( availableColumnPaths );
 		}
 	}
 
 	@Override
-	public Collection< String > columnPaths()
+	public Collection< String > availableColumnPaths()
 	{
 		return null;
 	}
@@ -145,5 +145,11 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 		// note that here this does not mean that
 		// all data is loaded...
 		return referenceTable.isDataLoaded();
+	}
+
+	@Override
+	public String dataStore()
+	{
+		return referenceTable.dataStore();
 	}
 }
