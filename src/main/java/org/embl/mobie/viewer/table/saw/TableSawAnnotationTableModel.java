@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer.table.saw;
 
-import ij.IJ;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 import org.embl.mobie.io.util.IOHelper;
@@ -76,8 +75,8 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 						final A annotation = annotationCreator.create( () -> table, rowIndex );
 						if ( annotation == null )
 						{
-							// This can happen for a region table, where
-							// only a subset of rows is used.
+							// This can happen, e.g., for a region table,
+							// where only a subset of the rows is used.
 							dropRows.add( rowIndex );
 							continue;
 						}
@@ -105,7 +104,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 
 	private HashMap< A, Integer > annotationToRowIndex()
 	{
-		table(); // ensure data is loaded
+		table();
 		return annotationToRowIndex;
 	}
 
