@@ -43,10 +43,9 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 {
 	// Serialization
 
-	// table with each row corresponding to one spot
-	public Map< TableDataFormat, StorageLocation > tableData;
+	private List< String > sources;
 
-	public Set< String > selectedSpotIds;
+	private Set< String > selectedSpotIds;
 
 	public double spotRadius = 1.0D;
 
@@ -67,10 +66,6 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 	@Override
 	public List< String > getSources()
 	{
-		// there is only one source that can be displayed,
-		// namely the SpotLabelImage that represents the spots
-		final ArrayList< String > sources = new ArrayList<>();
-		sources.add( getName() );
 		return sources;
 	}
 

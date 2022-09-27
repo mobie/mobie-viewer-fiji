@@ -29,32 +29,13 @@
 package org.embl.mobie.viewer.serialize;
 
 import org.embl.mobie.viewer.source.StorageLocation;
-import org.embl.mobie.viewer.table.TableDataFormat;
+import org.embl.mobie.io.ImageDataFormat;
 
-import java.util.List;
 import java.util.Map;
 
-
-public class SpotSource implements Data
+public class ImageDataSource extends AbstractDataSource
 {
 	// Serialization
+	public Map< ImageDataFormat, StorageLocation > imageData;
 
-	// table with each row corresponding to one spot
-	public Map< TableDataFormat, StorageLocation > tableData;
-
-	// name of the image that will be created
-	// to represent the spots
-	public String name;
-
-	@Override
-	public String getName()
-	{
-		return name;
-	}
-
-	@Override
-	public void setName( String name )
-	{
-		this.name = name;
-	}
 }

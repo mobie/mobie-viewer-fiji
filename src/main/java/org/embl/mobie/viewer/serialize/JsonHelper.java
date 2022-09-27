@@ -82,7 +82,7 @@ public class JsonHelper
 		gb.registerTypeAdapter( new TypeToken<List< Transformation >>(){}.getType(), new SourceTransformerListAdapter());
 		gb.registerTypeAdapter( new TypeToken<List<Display>>(){}.getType(), new SourceDisplayListAdapter());
 		gb.registerTypeAdapter( new TypeToken< ViewerTransform >(){}.getType(), new ViewerTransformAdapter());
-		gb.registerTypeAdapter( new TypeToken<Map<String,Data>>(){}.getType(), new SourceDataMapAdapter());
+		gb.registerTypeAdapter( new TypeToken<Map<String, DataSource >>(){}.getType(), new DataSourceMapAdapter());
 		gb.disableHtmlEscaping();
 
 		if ( prettyPrinting ) {

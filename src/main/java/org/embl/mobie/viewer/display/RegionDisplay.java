@@ -43,12 +43,12 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDispl
 {
 	// Serialization
 
-	// annotationId to image sources
-	// one annotationId can annotate several images
+	// regionId to image sources
+	// one regionId can annotate several images
 	public Map< String, List< String > > sources;
 
 	// table with each row corresponding to one
-	// annotationId
+	// regionId
 	public Map< TableDataFormat, StorageLocation > tableData;
 
 	public Set< String > selectedRegionIds;

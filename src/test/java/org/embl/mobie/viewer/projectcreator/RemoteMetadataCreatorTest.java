@@ -37,7 +37,7 @@ import org.embl.mobie.viewer.create.RemoteMetadataCreator;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.serialize.ImageSource;
+import org.embl.mobie.viewer.serialize.ImageDataSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -97,7 +97,7 @@ class RemoteMetadataCreatorTest {
 
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
         assertTrue( dataset.sources.containsKey(imageName) );
-        assertTrue( (( ImageSource ) dataset.sources.get(imageName)).imageData.containsKey(remoteFormat) );
+        assertTrue( (( ImageDataSource ) dataset.sources.get(imageName)).imageData.containsKey(remoteFormat) );
         if ( imageDataFormat.hasXml() ) {
             String remoteXmlPath = IOHelper.combinePath( projectCreator.getProjectLocation().getAbsolutePath(),
                     datasetName, "images", ProjectCreatorHelper.imageFormatToFolderName( remoteFormat ), imageName + ".xml" );

@@ -30,7 +30,7 @@ package org.embl.mobie.viewer.create;
 
 import ij.IJ;
 import org.embl.mobie.viewer.serialize.Dataset;
-import org.embl.mobie.viewer.serialize.ImageSource;
+import org.embl.mobie.viewer.serialize.ImageDataSource;
 import org.embl.mobie.viewer.source.StorageLocation;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
@@ -88,7 +88,7 @@ public class RemoteMetadataCreator {
     }
 
     private void deleteRemoteMetadataForImage( String datasetName, String imageName ) throws IOException {
-        ImageSource imageSource = ( ImageSource ) projectCreator.getDataset( datasetName ).sources.get( imageName );
+        ImageDataSource imageSource = ( ImageDataSource ) projectCreator.getDataset( datasetName ).sources.get( imageName );
         if ( imageSource.imageData.containsKey( remoteImageDataFormat ) ) {
 
             if ( remoteImageDataFormat.hasXml() ) {
@@ -163,7 +163,7 @@ public class RemoteMetadataCreator {
     }
 
     private void addRemoteMetadataForImage( String datasetName, String imageName ) throws SpimDataException, IOException {
-        ImageSource imageSource = ( ImageSource ) projectCreator.getDataset( datasetName ).sources.get( imageName );
+        ImageDataSource imageSource = ( ImageDataSource ) projectCreator.getDataset( datasetName ).sources.get( imageName );
         if ( !imageSource.imageData.containsKey( localImageDataFormat ) ) {
             IJ.log( "No images of format " + localImageDataFormat + " for " + imageName +
                     " in dataset:" + datasetName + ". Skipping this image." );

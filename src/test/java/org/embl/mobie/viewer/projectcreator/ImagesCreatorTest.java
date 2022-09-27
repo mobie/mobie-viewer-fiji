@@ -43,8 +43,8 @@ import org.embl.mobie.viewer.create.ProjectCreator;
 import org.embl.mobie.viewer.create.ProjectCreatorHelper;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
-import org.embl.mobie.viewer.serialize.ImageSource;
-import org.embl.mobie.viewer.serialize.SegmentationSource;
+import org.embl.mobie.viewer.serialize.ImageDataSource;
+import org.embl.mobie.viewer.serialize.SegmentationDataSource;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.janelia.saalfeldlab.n5.Compression;
 import org.janelia.saalfeldlab.n5.GzipCompression;
@@ -102,7 +102,7 @@ class ImagesCreatorTest {
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
         assertTrue( dataset.sources.containsKey(imageName) );
         assertTrue( dataset.views.containsKey(imageName) );
-        assertTrue( (( ImageSource )dataset.sources.get(imageName)).imageData.containsKey(imageDataFormat) );
+        assertTrue( (( ImageDataSource )dataset.sources.get(imageName)).imageData.containsKey(imageDataFormat) );
     }
 
     void assertionsForN5( boolean onlyXmls ) throws SpimDataException {
@@ -157,7 +157,7 @@ class ImagesCreatorTest {
         assertTrue( new File(tablePath).exists() );
 
         Dataset dataset = new DatasetJsonParser().parseDataset(datasetJsonPath);
-        SegmentationSource segmentationData = (( SegmentationSource ) dataset.sources.get(imageName));
+        SegmentationDataSource segmentationData = (( SegmentationDataSource ) dataset.sources.get(imageName));
         assertTrue( segmentationData.tableData.containsKey(TableDataFormat.TabDelimitedFile) );
     }
 

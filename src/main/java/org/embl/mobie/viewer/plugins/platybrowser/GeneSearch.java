@@ -28,16 +28,15 @@
  */
 package org.embl.mobie.viewer.plugins.platybrowser;
 
-import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.TableUIs;
 import ij.IJ;
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.ThreadHelper;
-import org.embl.mobie.viewer.serialize.Data;
+import org.embl.mobie.viewer.serialize.DataSource;
 import org.embl.mobie.viewer.serialize.Dataset;
-import org.embl.mobie.viewer.serialize.ImageSource;
+import org.embl.mobie.viewer.serialize.ImageDataSource;
 import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.view.View;
 import mpicbg.spim.data.sequence.VoxelDimensions;
@@ -101,7 +100,7 @@ public class GeneSearch
 		if ( prosprSources == null )
 		{
 			prosprSources = new HashMap<>();
-			moBIE.initImages( moBIE.getImageSources( prosprSourceNames ) );
+			moBIE.initDataSources( moBIE.getSources( prosprSourceNames ) );
 			for ( String prosprSourceName : prosprSourceNames )
 				prosprSources.put( prosprSourceName, ImageStore.getImage( prosprSourceName ) );
 		}
@@ -146,7 +145,7 @@ public class GeneSearch
 
 	private void searchGene( Image< ? > image )
 	{
-		final Source< ? > source = image.getSourcePair().getSource();
+		final bdv.viewer.Source source = image.getSourcePair().getSource();
 
 		final RandomAccessibleInterval< ? > rai = source.getSource( 0, 0 );
 
@@ -358,9 +357,9 @@ public class GeneSearch
 			GeneSearchUtils.prosprSourceNames = new ArrayList<>();
 			for ( String sourceName : dataset.sources.keySet() )
 			{
-				final Data data = dataset.sources.get( sourceName );
-				if ( ! ( data instanceof ImageSource ) ) continue;
-				final ImageSource imageSource = ( ImageSource ) data;
+				final DataSource dataSource = dataset.sources.get( sourceName );
+				if ( ! ( dataSource instanceof ImageDataSource ) ) continue;
+				final ImageDataSource imageSource = ( ImageDataSource ) dataSource;
 				final String relativePath = imageSource.imageData.get( imageDataFormat ).relativePath;
 
 				if ( relativePath.contains( PROSPR_UI_SELECTION_GROUP ) )

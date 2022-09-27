@@ -33,6 +33,7 @@ import org.embl.mobie.viewer.display.ImageDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.Display;
+import org.embl.mobie.viewer.display.SpotDisplay;
 import org.embl.mobie.viewer.view.View;
 
 import javax.swing.*;
@@ -160,6 +161,10 @@ public class UserInterface
 		else if ( display instanceof RegionDisplay )
 		{
 			return userInterfaceHelper.createRegionDisplaySettingsPanel( ( RegionDisplay ) display );
+		}
+		else if ( display instanceof SpotDisplay )
+		{
+			return userInterfaceHelper.createSpotDisplaySettingsPanel( ( SpotDisplay ) display );
 		}
 		else
 		{

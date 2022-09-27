@@ -65,7 +65,7 @@ public class View
 
 	// map of image source name to the
 	// initiator of opening this image
-	public Map< String, Object > getImages()
+	public Map< String, Object > getSources()
 	{
 		final Map< String, Object > sources = new HashMap<>();
 
@@ -84,7 +84,6 @@ public class View
 			{
 				sources.put( source, imageTransformation );
 			}
-
 		}
 
 		return sources;

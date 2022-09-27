@@ -33,7 +33,9 @@ import org.embl.mobie.viewer.table.TableDataFormat;
 
 import java.util.Map;
 
-public class SegmentationSource extends ImageSource
+public class SegmentationDataSource extends ImageDataSource
 {
+	// Serialisation
+
 	public Map< TableDataFormat, StorageLocation > tableData;
 }

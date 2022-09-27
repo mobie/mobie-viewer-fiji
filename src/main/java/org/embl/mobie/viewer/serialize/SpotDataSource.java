@@ -29,38 +29,15 @@
 package org.embl.mobie.viewer.serialize;
 
 import org.embl.mobie.viewer.source.StorageLocation;
-import org.embl.mobie.io.ImageDataFormat;
+import org.embl.mobie.viewer.table.TableDataFormat;
 
 import java.util.Map;
 
-public class ImageSource implements Data
+
+public class SpotDataSource extends AbstractDataSource
 {
 	// Serialization
-	public Map< ImageDataFormat, StorageLocation > imageData;
 
-	// Runtime
-	private String name;
-	private boolean preInit;
-
-	@Override
-	public String getName()
-	{
-		return name;
-	}
-
-	@Override
-	public void setName( String name )
-	{
-		this.name = name;
-	}
-
-	public void preInit( boolean preInit )
-	{
-		this.preInit = preInit;
-	}
-
-	public boolean preInit()
-	{
-		return preInit;
-	}
+	public TableData tableData;
+	//public Map< TableDataFormat, StorageLocation > tableData;
 }

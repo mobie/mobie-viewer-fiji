@@ -24,9 +24,9 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 		if ( row.columnNames().contains( ColumnNames.SPOT_Z ) )
 		{
 			this.position = new double[]{
-					(double) row.getObject( ColumnNames.SPOT_X ),
-					(double) row.getObject( ColumnNames.SPOT_Y ),
-					(double) row.getObject( ColumnNames.SPOT_Z ) };
+					Double.parseDouble( row.getObject( ColumnNames.SPOT_X ).toString() ),
+					Double.parseDouble( row.getObject( ColumnNames.SPOT_Y ).toString() ),
+					Double.parseDouble( row.getObject( ColumnNames.SPOT_Z ).toString() )};
 		}
 		else // 2D
 		{

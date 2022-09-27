@@ -1,7 +1,7 @@
 package org.embl.mobie.viewer;
 
-import org.embl.mobie.viewer.serialize.ImageSource;
 import org.embl.mobie.viewer.image.Image;
+import org.embl.mobie.viewer.serialize.DataSource;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,34 +13,34 @@ import java.util.stream.Collectors;
 
 public abstract class ImageStore
 {
-	// Raw data directly opened from a file system or object store.
-	// Different views may reuse this data.
-	// To make data available to the current view
+	// Images data directly opened from a file system or object store.
+	// Different views may reuse these images.
+	// To make images available to the current view
 	// use the {@code fromRawToCurrent} function.
-	private static Map< String, Image< ? > > rawData = new ConcurrentHashMap<>();
+	private static Map< String, Image< ? > > rawImages = new ConcurrentHashMap<>();
 
 	// Data that is used by the current view.
-	// Contains transformed images as well.
+	// Contains transformed data as well.
 	private static Map< String, Image< ? > > currentData = new ConcurrentHashMap<>();
 
-	public static void putRawData( Image< ? > image )
+	public static void putRawImage( Image< ? > image )
 	{
-		rawData.put( image.getName(), image );
+		rawImages.put( image.getName(), image );
 	}
 
-	public static boolean isInitialised( String name )
+	public static boolean contains( String name )
 	{
-		return rawData.keySet().contains( name );
+		return rawImages.keySet().contains( name );
 	}
 
-	public static Set< Image< ? > > getRawData( Collection< String > names )
+	public static Set< Image< ? > > getRawImage( Collection< String > names )
 	{
-		return rawData.entrySet().stream().filter( entry -> names.contains( entry.getKey() ) ).map( entry -> entry.getValue() ).collect( Collectors.toSet() );
+		return rawImages.entrySet().stream().filter( entry -> names.contains( entry.getKey() ) ).map( entry -> entry.getValue() ).collect( Collectors.toSet() );
 	}
 
-	public static Image< ? > getRawData( String name )
+	public static Image< ? > getRawImage( String name )
 	{
-		return rawData.get( name );
+		return rawImages.get( name );
 	}
 
 	public static Image< ? > getImage( String name )
@@ -82,8 +82,9 @@ public abstract class ImageStore
 			ImageStore.currentData.put( image.getName(), image );
 	}
 
-	public static void fromRawToCurrent( List< ImageSource > imageSources )
+	// TODO: Why do we need this?
+	public static void registerAsCurrent( List< DataSource > dataSources )
 	{
-		putImages( getRawData( imageSources.stream().map( s -> s.getName() ).collect( Collectors.toSet()) ) );
+		putImages( getRawImage( dataSources.stream().map( s -> s.getName() ).collect( Collectors.toSet()) ) );
 	}
 }

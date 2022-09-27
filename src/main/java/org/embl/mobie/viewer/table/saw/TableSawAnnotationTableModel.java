@@ -47,7 +47,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	// https://jtablesaw.github.io/tablesaw/userguide/tables.html
 	private synchronized Table table()
 	{
-		// TODO: MUST implement column merging
+		// FIXME implement column merging
 		if ( table == null )
 		{
 			for ( String columnPath : loadedColumnPaths() )

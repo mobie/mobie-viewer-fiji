@@ -28,11 +28,11 @@
  */
 package org.embl.mobie.viewer.create;
 
-import org.embl.mobie.viewer.serialize.Data;
+import org.embl.mobie.viewer.serialize.DataSource;
 import org.embl.mobie.viewer.serialize.Project;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
-import org.embl.mobie.viewer.serialize.ImageSource;
+import org.embl.mobie.viewer.serialize.ImageDataSource;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.SpimDataException;
@@ -232,8 +232,8 @@ public class ProjectCreator {
         for ( String datasetName: project.getDatasets() ) {
             Dataset dataset = getDataset( datasetName );
             if ( dataset != null && dataset.sources.size() > 0 ) {
-                for ( Data data: dataset.sources.values() ) {
-                    ImageSource imageSource = ( ImageSource ) data;
+                for ( DataSource dataSource : dataset.sources.values() ) {
+                    ImageDataSource imageSource = ( ImageDataSource ) dataSource;
                     // open one of the local images
                     for (ImageDataFormat format : imageSource.imageData.keySet()) {
                         if (!format.isRemote()) {

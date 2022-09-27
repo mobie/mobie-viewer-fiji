@@ -79,7 +79,7 @@ class DatasetJsonParserTest {
         dataset = new Dataset();
         dataset.sources = new HashMap<>();
 
-        ImageSource imageSource = new ImageSource();
+        ImageDataSource imageSource = new ImageDataSource();
         StorageLocation storageLocation = new StorageLocation();
         storageLocation.relativePath = "an/example/path";
         imageSource.imageData = new HashMap<>();

@@ -30,13 +30,14 @@ package org.embl.mobie.viewer.serialize;
 
 import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.TableDataFormat;
+import script.imglib.math.Abs;
 
 import java.util.List;
 import java.util.Map;
 
 
 // TODO: https://github.com/mobie/mobie-viewer-fiji/issues/818
-public class ImageAnnotationSource implements Data
+public class RegionDataSource extends AbstractDataSource
 {
 	// Serialization
 
@@ -48,9 +49,6 @@ public class ImageAnnotationSource implements Data
 	// annotationId
 	public Map< TableDataFormat, StorageLocation > tableData;
 
-	// name of the label image that will be created
-	// to represent the annotations
-	public String name;
 
 	@Override
 	public String getName()

@@ -30,7 +30,6 @@ package org.embl.mobie.viewer.view;
 
 import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
-import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
 import net.imglib2.type.numeric.ARGBType;
@@ -40,7 +39,6 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.ImageStore;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
-import org.embl.mobie.viewer.annotation.AnnotatedSpot;
 import org.embl.mobie.viewer.annotation.Segment;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.Annotation;
@@ -61,10 +59,9 @@ import org.embl.mobie.viewer.display.ImageDisplay;
 import org.embl.mobie.viewer.display.RegionDisplay;
 import org.embl.mobie.viewer.display.SegmentationDisplay;
 import org.embl.mobie.viewer.display.SpotDisplay;
-import org.embl.mobie.viewer.image.SpotLabelImage;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
-import org.embl.mobie.viewer.serialize.ImageSource;
+import org.embl.mobie.viewer.serialize.DataSource;
 import org.embl.mobie.viewer.image.AnnotatedImage;
 import org.embl.mobie.viewer.image.AnnotatedStitchedImage;
 import org.embl.mobie.viewer.source.BoundarySource;
@@ -79,13 +76,11 @@ import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableView;
-import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpot;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegionCreator;
 import org.embl.mobie.viewer.serialize.transformation.AbstractGridTransformation;
-import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpotCreator;
 import org.embl.mobie.viewer.transform.AnnotatedSegmentAffineTransformer;
 import org.embl.mobie.viewer.transform.AnnotationTransformer;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
@@ -186,7 +181,7 @@ public class ViewManager
 	private void addManualTransforms( List< Transformation > viewSourceTransforms, Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter )
 	{
         for ( String sourceName: sourceNameToSourceAndConverter.keySet() ) {
-            Source< ? > source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
+            bdv.viewer.Source source = sourceNameToSourceAndConverter.get( sourceName ).getSpimSource();
 
             if ( source instanceof BoundarySource ) {
                 source = (( BoundarySource ) source).getWrappedSource();
@@ -302,44 +297,48 @@ public class ViewManager
 	{
 		// fetch names of all sources that are
 		// either to be shown or to be transformed
-		final Map< String, Object > imageToDisplay = view.getImages();
-		if ( imageToDisplay.size() == 0 ) return;
+		final Map< String, Object > sourceToTransformOrDisplay = view.getSources();
+		if ( sourceToTransformOrDisplay.size() == 0 ) return;
 
-		// instantiate images that can be directly opened
-		// some others may be created later, by a display or transformation
-		final List< ImageSource > imageSources = moBIE.getImageSources( imageToDisplay.keySet() );
+		// instantiate source that can be directly opened
+		// ( other source may be created later,
+		// by a display or transformation )
+		final List< DataSource > dataSources = moBIE.getSources( sourceToTransformOrDisplay.keySet() );
 
-		for ( ImageSource imageSource : imageSources )
+		for ( DataSource dataSource : dataSources )
 		{
-			final Object imageDisplay = imageToDisplay.get( imageSource.getName() );
-			if ( imageDisplay instanceof MergedGridTransformation )
+			final Object transformOrDisplay = sourceToTransformOrDisplay.get( dataSource.getName() );
+			if ( transformOrDisplay instanceof MergedGridTransformation )
 			{
-				final MergedGridTransformation mergedGridTransformation = ( MergedGridTransformation ) imageDisplay;
+				final MergedGridTransformation mergedGridTransformation = ( MergedGridTransformation ) transformOrDisplay;
 				if ( mergedGridTransformation.metadataSource != null )
 				{
-					if ( imageSource.getName().equals( mergedGridTransformation.metadataSource ) )
-						imageSource.preInit( true );
+					if ( dataSource.getName().equals( mergedGridTransformation.metadataSource ) )
+						dataSource.preInit( true );
 					else
-						imageSource.preInit( false );
+						dataSource.preInit( false );
 				}
 				else // no metadata source specified, use the first in the grid as metadata source
 				{
 					final String firstImageInGrid = mergedGridTransformation.getTargetImageNames().get( 0 );
-					if ( imageSource.getName().equals( firstImageInGrid ) )
-						imageSource.preInit( true );
+					if ( dataSource.getName().equals( firstImageInGrid ) )
+						dataSource.preInit( true );
 					else
-						imageSource.preInit( false );
+						dataSource.preInit( false );
 				}
 			}
 			else
 			{
-				imageSource.preInit( true );
+				dataSource.preInit( true );
 			}
 		}
 
-		// make sure that all images are available
-		moBIE.initImages( imageSources );
-		ImageStore.fromRawToCurrent( imageSources );
+		// At the moment, we model all data as an Image,
+		// which are created here from the respective data source.
+		// They are also added to the image store.
+		moBIE.initDataSources( dataSources );
+
+		ImageStore.registerAsCurrent( dataSources );
 
 		// transform images
 		// this may create new images with new names
@@ -474,21 +473,11 @@ public class ViewManager
 
 			if ( display instanceof SpotDisplay )
 			{
+				// TODO: The spot source must come from somewhere!
 				final SpotDisplay< ? > spotDisplay = ( SpotDisplay< ? > ) display;
-				final Map< TableDataFormat, StorageLocation > tableData = spotDisplay.tableData;
+				final List< String > spotSources = spotDisplay.getSources();
 
-				final String defaultColumnsPath = IOHelper.combinePath( moBIE.getTableDirectory( tableData ), "default.tsv" );
-				final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator();
-				final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( annotationCreator, defaultColumnsPath );
-				final Set< AnnotatedSpot > annotatedSpots = tableModel.annotations();
-				final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDisplay.getName(), annotatedSpots, spotDisplay.spotRadius );
-				final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
-				final AnnotatedLabelImage spotsImage = new AnnotatedLabelImage( labelImage, spotAnnData );
-
-				// label image representing
-				// image annotations
-				ImageStore.putImage( spotsImage );
-			}
+							}
 		}
 	}
 

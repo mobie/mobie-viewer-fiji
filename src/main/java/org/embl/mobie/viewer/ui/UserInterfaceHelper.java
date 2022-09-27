@@ -39,6 +39,7 @@ import de.embl.cba.tables.color.ColorUtils;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.MoBIEInfo;
+import org.embl.mobie.viewer.display.SpotDisplay;
 import org.embl.mobie.viewer.display.VisibilityListener;
 import org.embl.mobie.viewer.color.OpacityHelper;
 import org.embl.mobie.viewer.color.opacity.OpacityAdjuster;
@@ -237,6 +238,27 @@ public class UserInterfaceHelper
 	}
 
 	public JPanel createRegionDisplaySettingsPanel( RegionDisplay display )
+	{
+		JPanel panel = createDisplayPanel( display.getName() );
+		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.nameToSourceAndConverter.values() );
+
+		// Buttons
+		panel.add( space() );
+		panel.add( createFocusButton( display, display.sliceViewer.getBdvHandle(), sourceAndConverters.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ) ) );
+		panel.add( createOpacityButton( sourceAndConverters, display.getName(), display.sliceViewer.getBdvHandle() ) );
+		panel.add( createButtonPlaceholder() ); // color
+		panel.add( createButtonPlaceholder() ); // brightness
+		panel.add( createRemoveButton( display ) );
+		// Checkboxes
+		panel.add( space() );
+		panel.add( createSliceViewerVisibilityCheckbox( display.isVisible(), sourceAndConverters ) );
+		panel.add( createCheckboxPlaceholder() );
+		panel.add( createWindowVisibilityCheckbox( display.showTable(), display.tableView.getWindow() ) );
+		panel.add( createScatterPlotViewerVisibilityCheckbox( display.scatterPlotView, display.showScatterPlot() ) );
+		return panel;
+	}
+
+	public JPanel createSpotDisplaySettingsPanel( SpotDisplay display )
 	{
 		JPanel panel = createDisplayPanel( display.getName() );
 		List< SourceAndConverter< ? > > sourceAndConverters = new ArrayList<>( display.nameToSourceAndConverter.values() );

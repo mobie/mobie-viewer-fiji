@@ -41,37 +41,38 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class SourceDataMapAdapter implements JsonSerializer< Map< String, Data > >, JsonDeserializer< Map< String, Data > >
+public class DataSourceMapAdapter implements JsonSerializer< Map< String, DataSource > >, JsonDeserializer< Map< String, DataSource > >
 {
 	private static Map<String, Class> nameToClass = new TreeMap<>();
 	private static Map<String, String> classToName = new TreeMap<>();
 
 	static {
-		nameToClass.put("image", ImageSource.class);
-		classToName.put(ImageSource.class.getName(), "image");
-		nameToClass.put("segmentation", SegmentationSource.class);
-		classToName.put(SegmentationSource.class.getName(), "segmentation");
-		nameToClass.put("imageAnnotation", ImageAnnotationSource.class);
-		classToName.put(ImageAnnotationSource.class.getName(), "imageAnnotation");
-		nameToClass.put("spots", ImageAnnotationSource.class);
-		classToName.put(ImageAnnotationSource.class.getName(), "imageAnnotation");
+		nameToClass.put("image", ImageDataSource.class);
+		classToName.put( ImageDataSource.class.getName(), "image");
+		nameToClass.put("segmentation", SegmentationDataSource.class);
+		classToName.put( SegmentationDataSource.class.getName(), "segmentation");
+		nameToClass.put("imageAnnotation", RegionDataSource.class); // FIXME: should this be here at all?
+		classToName.put( RegionDataSource.class.getName(), "imageAnnotation"); // FIXME: should this be here at all?
+		nameToClass.put("spots", SpotDataSource.class);
+		classToName.put( SpotDataSource.class.getName(), "spots");
 	}
 
 	@Override
-	public Map< String, Data > deserialize( JsonElement json, Type typeOfT, JsonDeserializationContext context ) throws JsonParseException
+	public Map< String, DataSource > deserialize( JsonElement json, Type typeOfT, JsonDeserializationContext context ) throws JsonParseException
 	{
-		final HashMap< String, Data > map = new HashMap<>();
+		final HashMap< String, DataSource > map = new HashMap<>();
 		final JsonObject jo = json.getAsJsonObject();
 		for ( Map.Entry<String, JsonElement> entry : jo.entrySet() )
 		{
-			final Data data = ( Data ) JsonHelper.createObjectFromJsonValue( context, entry.getValue(), nameToClass );
-			map.put( entry.getKey(), data );
+			final DataSource dataSource = ( DataSource ) JsonHelper.createObjectFromJsonValue( context, entry.getValue(), nameToClass );
+			dataSource.setName( entry.getKey() );
+			map.put( entry.getKey(), dataSource );
 		}
 		return map;
 	}
 
 	@Override
-	public JsonElement serialize( Map< String, Data > sources, Type type, JsonSerializationContext context ) {
+	public JsonElement serialize( Map< String, DataSource > sources, Type type, JsonSerializationContext context ) {
 		// TODO
 		throw new UnsupportedOperationException("Serialization of Map< String, Data > is not yet implemented.");
 		// return null;
