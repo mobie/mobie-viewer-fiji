@@ -710,7 +710,8 @@ public class TableViewer< T extends TableRow > implements SelectionListener< T >
 			{
 				final Object[] values = TableColumns.asTypedArray( columns.get( columnName ) );
 				addColumn( columnName, values );
-			} catch ( UnsupportedDataTypeException e )
+			}
+			catch ( Exception e )
 			{
 				Logger.error( "Could not add column " + columnName + ", because the" +
 						" data type could not be determined.");

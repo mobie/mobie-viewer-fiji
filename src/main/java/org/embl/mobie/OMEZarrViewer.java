@@ -61,7 +61,7 @@ public class OMEZarrViewer
     private SourceAndConverterService sacService;
     private SourceAndConverterBdvDisplayService sacDisplayService;
 
-    public OMEZarrViewer( SpimData spimData)
+    public OMEZarrViewer( SpimData spimData )
     {
         this.spimData = spimData;
     }
