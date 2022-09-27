@@ -110,7 +110,7 @@ class DatasetJsonParserTest {
         }
     }
 
-    @Test
+    //@Test
     public void savePlatyView() throws IOException
     {
         final ImageJ imageJ = new ImageJ();
