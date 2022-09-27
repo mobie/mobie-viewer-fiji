@@ -71,7 +71,7 @@ public class OMEZarrViewer
 
         BdvFunctions.show( spimData );
 
-
+        // FIXME: number of time points is not working with the below code
 //        final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
 //
 //        final Collection< SourceAndConverter > sourceAndConverters = creator.getSetupIdToSourceAndConverter().values();
