@@ -83,7 +83,7 @@
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<enforcer.skip>true</enforcer.skip>
 
-        <bigdataviewer-playground.version>0.6.0</bigdataviewer-playground.version>
+		<bigdataviewer-playground.version>0.6.0</bigdataviewer-playground.version>
 		<imagej-utils.version>0.6.9</imagej-utils.version>
 		<mobie-io.version>2.0.7</mobie-io.version>
 
