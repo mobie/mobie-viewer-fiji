@@ -35,7 +35,6 @@ import java.util.List;
 public class Project
 {
 	private List< String > datasets;
-	private List< ImageDataFormat > imageDataFormats;
 	private String defaultDataset;
 	private String specVersion;
 
@@ -59,13 +58,4 @@ public class Project
 	public void setDefaultDataset( String defaultDataset ) { this.defaultDataset = defaultDataset; }
 
 	public void setSpecVersion( String specVersion ) { this.specVersion = specVersion; }
-
-	public void setImageDataFormats( List< ImageDataFormat > imageDataFormats) {
-		this.imageDataFormats = imageDataFormats;
-	}
-
-	public List< ImageDataFormat > getImageDataFormats()
-	{
-		return imageDataFormats;
-	}
 }

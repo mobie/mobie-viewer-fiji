@@ -28,12 +28,9 @@
  */
 package org.embl.mobie.viewer.create;
 
-import org.embl.mobie.viewer.serialize.Project;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
-import org.embl.mobie.io.ImageDataFormat;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ProjectJsonCreator {
@@ -41,27 +38,6 @@ public class ProjectJsonCreator {
 
     public ProjectJsonCreator( ProjectCreator projectCreator ) {
         this.projectCreator = projectCreator;
-    }
-
-    public void addImageDataFormat( ImageDataFormat imageDataFormat ) {
-        Project project = projectCreator.getProject();
-        if ( project.getImageDataFormats() == null ) {
-            project.setImageDataFormats( new ArrayList<>() );
-        }
-
-        List< ImageDataFormat > imageDataFormats = project.getImageDataFormats();
-        if ( !imageDataFormats.contains( imageDataFormat ) ) {
-            imageDataFormats.add( imageDataFormat );
-            writeProjectJson();
-        }
-    }
-
-    public void removeImageDataFormat( ImageDataFormat imageDataFormat ) {
-        List<ImageDataFormat> imageDataFormats = projectCreator.getProject().getImageDataFormats();
-        if ( imageDataFormats.contains( imageDataFormat ) ) {
-            imageDataFormats.remove( imageDataFormat );
-            writeProjectJson();
-        }
     }
 
     public void addDataset( String datasetName ) {

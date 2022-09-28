@@ -83,8 +83,6 @@ public class RemoteMetadataCreator {
                 projectCreator.getDatasetJsonCreator().writeDatasetJson( datasetName, dataset );
             }
         }
-
-        projectCreator.getProjectJsonCreator().removeImageDataFormat( remoteImageDataFormat );
     }
 
     private void deleteRemoteMetadataForImage( String datasetName, String imageName ) throws IOException {
@@ -224,9 +222,6 @@ public class RemoteMetadataCreator {
                 addRemoteMetadataForDataset( datasetName );
             }
         }
-
-        IJ.log( "Adding metadata to project json." );
-        projectCreator.getProjectJsonCreator().addImageDataFormat( remoteImageDataFormat );
         IJ.log( "Done." );
     }
 

@@ -58,7 +58,9 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.embl.mobie.viewer.create.ProjectCreatorHelper.getVoxelSizeString;
 import static org.embl.mobie.viewer.create.ProjectCreatorHelper.isImageValid;
@@ -338,42 +340,17 @@ public class ProjectsCreatorPanel extends JFrame {
         }
     }
 
-    private void remoteMetadataSettingsDialog() {
-        List<String> datasets = projectsCreator.getProject().getDatasets();
-        List< ImageDataFormat > imageDataFormats = projectsCreator.getProject().getImageDataFormats();
-        if ( datasets == null || datasets.size() == 0 ) {
+    private void remoteMetadataSettingsDialog()
+    {
+        List <String > datasets = projectsCreator.getProject().getDatasets();
+        if ( datasets == null || datasets.size() == 0 )
+        {
             IJ.log( "Remote metadata aborted - there are no datasets in your project!" );
-            return;
-        } else if ( imageDataFormats == null || imageDataFormats.size() == 0 ) {
-            IJ.log( "Remote metadata aborted - there are no images in your project!" );
             return;
         }
 
         final GenericDialog gd = new GenericDialog( "Remote metadata settings..." );
-
-        // Find out which image types are currently in project, to give options for remote
-        List<ImageDataFormat> remoteFormats = new ArrayList<>();
-        if ( imageDataFormats.contains( ImageDataFormat.BdvN5 ) ) {
-            remoteFormats.add( ImageDataFormat.BdvN5S3 );
-        }
-
-        if ( imageDataFormats.contains(ImageDataFormat.BdvOmeZarr) ) {
-            remoteFormats.add( ImageDataFormat.BdvOmeZarrS3 );
-        }
-
-        if ( imageDataFormats.contains(ImageDataFormat.OmeZarr) ) {
-            remoteFormats.add( ImageDataFormat.OmeZarrS3 );
-        }
-
-        if ( remoteFormats.size() == 0 ) {
-            IJ.log( "Remote metadata aborted - no images of correct format in project." );
-            return;
-        }
-
-        String[] formats = new String[remoteFormats.size()];
-        for (int i = 0; i< formats.length; i++) {
-            formats[i] = remoteFormats.get(i).toString();
-        }
+        String[] formats= Arrays.stream( ImageDataFormat.values() ).filter( v -> v.isRemote() ).map( v -> v.toString() ).collect( Collectors.toList() ).toArray( new String[0] );
         gd.addChoice("Image format:", formats, formats[0]);
         gd.addStringField("Signing Region", "", 20);
         gd.addStringField("Service endpoint", "https://...", 20);
@@ -388,8 +365,7 @@ public class ProjectsCreatorPanel extends JFrame {
             String bucketName = gd.getNextString();
 
             if ( continueDialog(format) ) {
-                projectsCreator.getRemoteMetadataCreator().createRemoteMetadata(
-                        signingRegion, serviceEndpoint, bucketName, format );
+                projectsCreator.getRemoteMetadataCreator().createRemoteMetadata( signingRegion, serviceEndpoint, bucketName, format );
             }
         }
     }

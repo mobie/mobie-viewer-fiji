@@ -95,7 +95,6 @@ public class ProjectCreator {
         } else {
             this.project = new Project();
             project.setDatasets( new ArrayList<>() );
-            project.setImageDataFormats( new ArrayList<>() );
             project.setSpecVersion( "0.2.0" );
         }
 

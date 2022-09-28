@@ -88,7 +88,6 @@ public class DatasetJsonCreator {
         }
 
         writeDatasetJson( datasetName, dataset );
-        projectCreator.getProjectJsonCreator().addImageDataFormat( imageDataFormat );
     }
 
     public void addSegmentation(String imageName, String datasetName, String uiSelectionGroup,
@@ -108,7 +107,6 @@ public class DatasetJsonCreator {
         }
 
         writeDatasetJson( datasetName, dataset );
-        projectCreator.getProjectJsonCreator().addImageDataFormat( imageDataFormat );
     }
 
     public void makeDataset2D( String datasetName, boolean is2D ) {
