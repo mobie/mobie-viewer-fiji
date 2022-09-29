@@ -2,8 +2,10 @@ package org.embl.mobie.viewer.annotation;
 
 public interface Annotation extends Location
 {
-	// UUID for serialisation of selected annotations
-	String id();
+	String uuid();
+
+	// Data source
+	String dataSource();
 
 	// Integer label for representing the annotation as a
 	// region in one time point of a label image

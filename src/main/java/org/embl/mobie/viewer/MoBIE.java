@@ -542,8 +542,8 @@ public class MoBIE
 
 				if ( segmentationDataSource.tableData != null )
 				{
-					final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator( image.getName() );
-					final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( annotationCreator, getTableDirectory( segmentationDataSource.tableData ), "default.tsv"  );
+					final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator();
+					final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableDirectory( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV  );
 					final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
 					final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
 
@@ -566,7 +566,7 @@ public class MoBIE
 		{
 			final SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
 			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator();
-			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( annotationCreator, moBIE.getTableDirectory( spotDataSource.tableData.dataStore ), spotDataSource.tableData.defaultTable );
+			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableDirectory( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV );
 			final Set< AnnotatedSpot > annotatedSpots = tableModel.annotations();
 			final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDataSource.getName(), annotatedSpots, 1.0 );
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );

@@ -41,12 +41,12 @@ import net.imglib2.type.numeric.IntegerType;
 // MAYBE: This does not need to know that this is a Segment?!
 public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends Volatile< T >, A extends Annotation > extends AbstractSourceWrapper< V, VolatileAnnotationType< A > >
 {
-    private final AnnotationAdapter< A > annotationMapper;
+    private final AnnotationAdapter< A > annotationAdapter;
 
-    public VolatileAnnotatedLabelSource( final Source< V > source, AnnotationAdapter< A > annotationMapper )
+    public VolatileAnnotatedLabelSource( final Source< V > source, AnnotationAdapter< A > annotationAdapter )
     {
         super( source );
-        this.annotationMapper = annotationMapper;
+        this.annotationAdapter = annotationAdapter;
     }
 
     @Override
@@ -76,7 +76,7 @@ public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends
             return;
         }
 
-        output.get().setAnnotation( annotationMapper.getAnnotation( t, input.get().getInteger() ) );
+        output.get().setAnnotation( annotationAdapter.getAnnotation( getName(), t, input.get().getInteger() ) );
         output.setValid( true );
     }
 
@@ -88,6 +88,6 @@ public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends
 
     private VolatileAnnotationType< A > createVariable()
     {
-        return new VolatileAnnotationType( annotationMapper.createVariable(), true );
+        return new VolatileAnnotationType( annotationAdapter.createVariable(), true );
     }
 }

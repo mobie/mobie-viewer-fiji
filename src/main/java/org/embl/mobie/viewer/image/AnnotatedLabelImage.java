@@ -28,8 +28,9 @@ public class AnnotatedLabelImage< A extends Annotation > implements AnnotatedIma
 	{
 		if ( sourcePair == null )
 		{
-			// non-volatile source
 			AnnotationAdapter< A > annotationAdapter = new AnnotationAdapter( annData );
+
+			// non-volatile source
 			final AnnotatedLabelSource< ?, A > source = new AnnotatedLabelSource( getLabelImage().getSourcePair().getSource(), annotationAdapter );
 
 			if ( getLabelImage().getSourcePair().getVolatileSource() == null )

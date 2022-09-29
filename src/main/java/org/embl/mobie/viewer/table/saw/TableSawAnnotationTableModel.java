@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 public class TableSawAnnotationTableModel< A extends Annotation > implements AnnotationTableModel< A >
 {
+	private final String dataSourceName;
 	private final TableSawAnnotationCreator< A > annotationCreator;
 	private final String dataStore;
 	protected Set< String > availableColumnPaths;
@@ -36,14 +37,16 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	private Table table;
 
 	public TableSawAnnotationTableModel(
+			String dataSourceName,
 			TableSawAnnotationCreator< A > annotationCreator,
 			String dataStore,
-			String defaultColumn
+			String defaultColumns
 	)
 	{
+		this.dataSourceName = dataSourceName;
 		this.annotationCreator = annotationCreator;
 		this.dataStore = dataStore;
-		requestedColumnPaths.add( IOHelper.combinePath( dataStore, defaultColumn ) );
+		requestedColumnPaths.add( IOHelper.combinePath( dataStore, defaultColumns ) );
 	}
 
 	// https://jtablesaw.github.io/tablesaw/userguide/tables.html
@@ -67,7 +70,8 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 
 				if ( table == null )
 				{
-					this.table = rows;
+					table = rows;
+					table.setName( dataSourceName );
 					final int rowCount = table.rowCount();
 					final ArrayList< Integer > dropRows = new ArrayList<>();
 					for ( int rowIndex = 0, consecutiveRowIndex = 0; rowIndex < rowCount; rowIndex++ )

@@ -23,6 +23,7 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	private String regionId;
 	private int label;
 	private final int timePoint;
+	private String sourceName;
 
 	public TableSawAnnotatedRegion(
 			Supplier< Table > tableSupplier,
@@ -35,9 +36,11 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 
 		final Row row = tableSupplier.get().row( rowIndex );
 		// fetch region properties from table row
+
 		this.regionId = row.getObject( ColumnNames.REGION_ID ).toString();
 		this.label = regionId.hashCode();
 		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
+		this.sourceName = tableSupplier.get().name();
 	}
 
 	@Override
@@ -70,9 +73,15 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	}
 
 	@Override
-	public String id()
+	public String uuid()
 	{
-		return regionId;
+		return "" + timePoint + ";" + regionId;
+	}
+
+	@Override
+	public String dataSource()
+	{
+		return sourceName;
 	}
 
 	@Override
@@ -103,7 +112,7 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	}
 
 	@Override
-	public String regionId ( )
+	public String regionId()
 	{
 		return regionId;
 	}

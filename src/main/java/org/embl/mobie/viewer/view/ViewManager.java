@@ -460,7 +460,7 @@ public class ViewManager
 				// that could be referred to.
 				final Map< String, List< String > > regionIdToImageNames = regionDisplay.sources;
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( regionIdToImageNames );
-				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( annotationCreator, moBIE.getTableDirectory( tableData ), "default.tsv"  );
+				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableDirectory( tableData ), "default.tsv"  );
 				final Set< AnnotatedRegion > annotatedRegions = tableModel.annotations();
 				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotatedRegions );
 				final DefaultAnnData< AnnotatedRegion > regionAnnData = new DefaultAnnData<>( tableModel );
@@ -525,9 +525,10 @@ public class ViewManager
 
 			// set selected segments
 			//
-			if ( annotationDisplay.selectedAnnotationIds() != null )
+			final Set< String > selectedAnnotationIds = annotationDisplay.selectedAnnotationIds();
+			if ( selectedAnnotationIds != null )
 			{
-				final Set< A > annotations = annotationDisplay.annotationAdapter.getAnnotations( annotationDisplay.selectedAnnotationIds() );
+				final Set< A > annotations = annotationDisplay.annotationAdapter().getAnnotations( selectedAnnotationIds );
 				annotationDisplay.selectionModel.setSelected( annotations, true );
 			}
 

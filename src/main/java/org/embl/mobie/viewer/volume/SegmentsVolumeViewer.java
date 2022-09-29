@@ -229,11 +229,6 @@ public class SegmentsVolumeViewer< S extends Segment > implements ColoringListen
 		contentToSegment.remove( content );
 	}
 
-	private String getSegmentIdentifier( S segment )
-	{
-		return segment.label() + "-" + segment.timePoint();
-	}
-
 	public synchronized void showSegments( boolean showSegments, boolean autoAdjustView )
 	{
 		if ( showSegments && universe == null )

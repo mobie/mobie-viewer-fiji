@@ -30,5 +30,4 @@ package org.embl.mobie.viewer.annotation;
 
 public interface Spot extends Location
 {
-	String spotId();
 }

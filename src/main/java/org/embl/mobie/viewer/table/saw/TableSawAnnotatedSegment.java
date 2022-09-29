@@ -7,9 +7,6 @@ import org.embl.mobie.viewer.table.ColumnNames;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Supplier;
 
 public class TableSawAnnotatedSegment implements AnnotatedSegment
@@ -24,21 +21,21 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	private final int rowIndex;
 	private RealInterval boundingBox;
 	private float[] mesh;
-	private String imageId;
+	private String sourceName;
+	private String uuid;
 
 	public TableSawAnnotatedSegment(
 			Supplier< Table > tableSupplier,
-			int rowIndex,
-			@Nullable String imageId  )
-
+			int rowIndex )
 	{
 		this.tableSupplier = tableSupplier;
 		this.rowIndex = rowIndex;
-		Row row = tableSupplier.get().row( rowIndex );
+		final Table rows = tableSupplier.get();
+		Row row = rows.row( rowIndex );
 
 		// segment properties
 		this.numSegmentDimensions = row.columnNames().contains( ColumnNames.ANCHOR_Z ) ? 3 : 2;
-		this.imageId = row.columnNames().contains( ColumnNames.LABEL_IMAGE_ID ) ? row.getString( ColumnNames.LABEL_IMAGE_ID ) : imageId;
+		this.sourceName = row.columnNames().contains( ColumnNames.LABEL_IMAGE_ID ) ? row.getString( ColumnNames.LABEL_IMAGE_ID ) : rows.name();
 		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
 		this.labelId = row.getInt( ColumnNames.LABEL_ID );
 
@@ -49,6 +46,8 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 				row.getDouble( ColumnNames.ANCHOR_Y ),
 				row.getDouble( ColumnNames.ANCHOR_Z )
 		};
+
+		this.uuid = ""+ sourceName +";"+timePoint+";"+labelId;
 	}
 
 	private void initBoundingBox( Row row, int numSegmentDimensions )
@@ -87,7 +86,7 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public String imageId()
 	{
-		return imageId;
+		return dataSource();
 	}
 
 	@Override
@@ -117,13 +116,13 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public RealInterval boundingBox()
 	{
-		return null;
+		return boundingBox;
 	}
 
 	@Override
 	public void setBoundingBox( RealInterval boundingBox )
 	{
-
+		this.boundingBox = boundingBox;
 	}
 
 	@Override
@@ -139,9 +138,15 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public String id()
+	public String uuid()
 	{
-		return null; // MUST
+		return uuid;
+	}
+
+	@Override
+	public String dataSource()
+	{
+		return sourceName;
 	}
 
 	@Override

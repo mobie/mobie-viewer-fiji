@@ -76,9 +76,15 @@ public class AffineTransformedAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public String id()
+	public String uuid()
 	{
-		return annotatedSegment.id();
+		return annotatedSegment.uuid();
+	}
+
+	@Override
+	public String dataSource()
+	{
+		return annotatedSegment.dataSource();
 	}
 
 	@Override

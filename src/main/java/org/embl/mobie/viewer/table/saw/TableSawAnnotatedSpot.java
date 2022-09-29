@@ -13,7 +13,7 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 	private final Supplier< Table > tableSupplier;
 	private final int rowIndex;
 
-	private String spotId;
+	private String id;
 	private int label;
 	private final int timePoint;
 	private double[] position;
@@ -22,10 +22,9 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 	{
 		this.tableSupplier = tableSupplier;
 		this.rowIndex = rowIndex;
-		final Row row = tableSupplier.get().row( rowIndex );
 
-		// fetch spot properties from table row
-		this.spotId = null; // FIXME
+		final Table rows = tableSupplier.get();
+		final Row row = rows.row( rowIndex );
 
 		this.label = (int) row.getObject( ColumnNames.SPOT_ID );
 
@@ -44,6 +43,8 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 		}
 
 		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
+
+		this.id = createUUID( rows.name(), timePoint, label );
 	}
 
 	@Override
@@ -71,9 +72,9 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 	}
 
 	@Override
-	public String id()
+	public String uuid()
 	{
-		return spotId;
+		return id;
 	}
 
 	@Override
@@ -92,12 +93,6 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 	public String[] idColumns()
 	{
 		return idColumns;
-	}
-
-	@Override
-	public String spotId ( )
-	{
-		return spotId;
 	}
 
 	@Override

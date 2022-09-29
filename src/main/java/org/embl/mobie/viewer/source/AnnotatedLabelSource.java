@@ -74,7 +74,7 @@ public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotat
 
     private void set( T input, int t, AnnotationType< A > output  )
     {
-        final A annotation = annotationAdapter.getAnnotation( t, input.getInteger() );
+        final A annotation = annotationAdapter.getAnnotation( getName(), t, input.getInteger() );
         output.setAnnotation( annotation );
     }
 

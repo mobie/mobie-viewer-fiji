@@ -412,7 +412,7 @@ public class AnnotatorDialog< A extends Annotation > extends JFrame implements S
 		final String annotationId = selectAnnotationTextField.getText();
 		for ( A annotation : annotations )
 		{
-			if ( annotationId.equals( annotation.id() ) )
+			if ( annotationId.equals( annotation.uuid() ) )
 			{
 				return annotation;
 			}

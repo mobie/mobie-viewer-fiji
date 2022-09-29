@@ -35,6 +35,8 @@ public enum TableDataFormat
 	@SerializedName( "tsv" )
 	TabDelimitedFile;
 
+	public static final String DEFAULT_TSV = "default.tsv";
+
 	@Override
 	public String toString()
 	{
@@ -42,6 +44,17 @@ public enum TableDataFormat
 		{
 			case TabDelimitedFile:
 				return "tsv";
+			default:
+				throw new UnsupportedOperationException( "Unknown table file format: " + this );
+		}
+	}
+
+	public String getDefaultTable()
+	{
+		switch ( this )
+		{
+			case TabDelimitedFile:
+				return DEFAULT_TSV;
 			default:
 				throw new UnsupportedOperationException( "Unknown table file format: " + this );
 		}

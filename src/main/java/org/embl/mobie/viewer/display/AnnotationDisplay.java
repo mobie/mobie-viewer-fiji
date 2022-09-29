@@ -85,7 +85,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// Runtime
 	public transient SelectionModel< A > selectionModel;
 	public transient MobieColoringModel< A > coloringModel;
-	public transient AnnotationAdapter< A > annotationAdapter;
+	private transient AnnotationAdapter< A > annotationAdapter;
 	public transient TableView< A > tableView;
 	public transient ScatterPlotView< A > scatterPlotView;
 	public transient AnnotationSliceView< A > sliceView;
@@ -209,7 +209,7 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 
 		final Set< ? extends Annotation > selectedAnnotations = annotationDisplay.selectionModel.getSelected();
 		if (selectedAnnotations != null) {
-			setSelectedAnnotationIds( selectedAnnotations.stream().map( a -> a.id() ).collect( Collectors.toSet() ) );
+			setSelectedAnnotationIds( selectedAnnotations.stream().map( a -> a.uuid() ).collect( Collectors.toSet() ) );
 		}
 	}
 
@@ -225,6 +225,12 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 		final List< AnnotatedImage< A > > annotatedImages = getImages().stream().map( image -> ( AnnotatedImage< A > ) image ).collect( Collectors.toList() );
 
 		annData = AnnDataHelper.getConcatenatedAnnData( annotatedImages );
+
+		annotationAdapter = new AnnotationAdapter<>( annData );
 	}
 
+	public AnnotationAdapter< A > annotationAdapter()
+	{
+		return annotationAdapter;
+	}
 }

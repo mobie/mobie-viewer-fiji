@@ -39,8 +39,8 @@ import java.util.stream.Collectors;
 public class AnnotationAdapter< A extends Annotation >
 {
 	private final AnnData< A > annData;
-	private Map< String, A > timePointAndLabelToAnnotation;
-	private Map< String, A > annotationIdToAnnotation;
+	private Map< String, A > uuidToAnnotation;
+	private Map< String, A > itlToAnnotation; // source, timepoint, label
 
 	public AnnotationAdapter( AnnData< A > annData )
 	{
@@ -55,38 +55,43 @@ public class AnnotationAdapter< A extends Annotation >
 		return annData.getTable().annotation( 0 );
 	}
 
-	public A getAnnotation( String id )
+	// UUID for deserialisation of selected segments
+	// https://github.com/mobie/mobie-viewer-fiji/issues/827
+	public A getAnnotation( String uuid )
 	{
-		if ( annotationIdToAnnotation == null )
+		if ( uuidToAnnotation == null )
 			initMaps();
 
-		return annotationIdToAnnotation.get( id );
+		return uuidToAnnotation.get( uuid );
 	}
 
-	public A getAnnotation( int timePoint, int label )
+	// This is for mapping from within an
+	// {@code AnnotatedLabelSource}
+	// to the corresponding annotation.
+	public A getAnnotation( String source, int timePoint, int label )
 	{
-		if ( timePointAndLabelToAnnotation == null )
+		if ( itlToAnnotation == null )
 			initMaps();
-
-		return timePointAndLabelToAnnotation.get( getKey( timePoint, label ));
+		final String itl = stlKey( source, timePoint, label );
+		return itlToAnnotation.get( itl );
 	}
 
 	private synchronized void initMaps()
 	{
-		timePointAndLabelToAnnotation = new HashMap<>();
-		annotationIdToAnnotation = new HashMap<>();
+		uuidToAnnotation = new HashMap<>();
+		itlToAnnotation = new HashMap<>();
 		final Iterator< A > iterator = annData.getTable().annotations().iterator();
 		while( iterator.hasNext() )
 		{
 			A annotation = iterator.next();
-			timePointAndLabelToAnnotation.put( getKey( annotation.timePoint(), annotation.label() ), annotation );
-			annotationIdToAnnotation.put( annotation.id(), annotation );
+			uuidToAnnotation.put( annotation.uuid(), annotation );
+			itlToAnnotation.put( stlKey( annotation.dataSource(), annotation.timePoint(), annotation.label() ), annotation );
 		}
 	}
 
-	private String getKey( int timePoint, int label )
+	private String stlKey( String source, int timePoint, int label )
 	{
-		return timePoint + "_" + label;
+		return source + ";" + timePoint + ";" + label;
 	}
 
 	public Set< A > getAnnotations( Set< String > annotationIds )
