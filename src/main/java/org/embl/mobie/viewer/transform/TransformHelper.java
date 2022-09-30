@@ -136,6 +136,7 @@ public class TransformHelper
 		return translationTransform;
 	}
 
+	@Deprecated
 	public static double[] computeSourceUnionRealDimensions( List< SourceAndConverter< ? > > sources, double relativeMargin, int t )
 	{
 		RealInterval bounds = createMask( sources.stream().map( sac -> sac.getSpimSource() ).collect( Collectors.toList() ), t );
@@ -145,6 +146,7 @@ public class TransformHelper
 		return realDimensions;
 	}
 
+	@Deprecated
 	public static double[] getMaximalSourceUnionRealDimensions( Map< String, SourceAndConverter< ? > > sourceNameToSourceAndConverter, Collection< List< String > > sourceNamesList )
 	{
 		double[] maximalDimensions = new double[ 2 ];
@@ -316,5 +318,16 @@ public class TransformHelper
 		final double[] min = union.minAsDoubleArray();
 		final double[] max = union.maxAsDoubleArray();
 		return GeomMasks.closedBox( min, max );
+	}
+
+	public static double[] getRealDimensions( RealMaskRealInterval unionMask )
+	{
+		final int numDimensions = unionMask.numDimensions();
+		final double[] realDimensions = new double[ numDimensions ];
+		final double[] min = unionMask.minAsDoubleArray();
+		final double[] max = unionMask.maxAsDoubleArray();
+		for ( int d = 0; d < numDimensions; d++ )
+			realDimensions[ d ] = max[ d ] - min [ d ];
+		return realDimensions;
 	}
 }

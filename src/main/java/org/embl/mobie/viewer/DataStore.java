@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public abstract class ImageStore
+public abstract class DataStore
 {
 	// Images data directly opened from a file system or object store.
 	// Different views may reuse these images.
@@ -80,7 +80,7 @@ public abstract class ImageStore
 	public static void putImages( Collection< ? extends Image< ? > > images )
 	{
 		for ( Image< ? > image : images )
-			ImageStore.currentData.put( image.getName(), image );
+			DataStore.currentData.put( image.getName(), image );
 	}
 
 	// TODO: Why do we need this?

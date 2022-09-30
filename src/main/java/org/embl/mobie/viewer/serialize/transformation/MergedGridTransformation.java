@@ -39,7 +39,7 @@ public class MergedGridTransformation extends AbstractGridTransformation
 	public boolean centerAtOrigin = false; // TODO: should actually be true, but: https://github.com/mobie/mobie-viewer-fiji/issues/685#issuecomment-1108179599
 
 	@Override
-	public List< String > getTargetImageNames()
+	public List< String > targetImageNames()
 	{
 		return sources;
 	}

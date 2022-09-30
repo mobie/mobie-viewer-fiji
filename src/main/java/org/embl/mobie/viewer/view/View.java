@@ -79,7 +79,7 @@ public class View
 
 		for ( Transformation imageTransformation : getTransformations() )
 		{
-			final List< String > sourceTransformerSources = imageTransformation.getTargetImageNames();
+			final List< String > sourceTransformerSources = imageTransformation.targetImageNames();
 			for ( String source : sourceTransformerSources )
 			{
 				sources.put( source, imageTransformation );

@@ -28,7 +28,7 @@
  */
 package org.embl.mobie.viewer.serialize.transformation;
 
-import org.embl.mobie.viewer.ImageStore;
+import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.ThreadHelper;
 import org.embl.mobie.viewer.image.Image;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -48,7 +48,7 @@ public class GridTransformation extends AbstractGridTransformation
 	public boolean centerAtOrigin = true;
 
 	@Override
-	public List< String > getTargetImageNames()
+	public List< String > targetImageNames()
 	{
 		final ArrayList< String > allSources = new ArrayList<>();
 		for ( List< String > sourcesAtGridPosition : nestedSources )
@@ -99,7 +99,7 @@ public class GridTransformation extends AbstractGridTransformation
 		{
 			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform( translationX, translationY, image, centerAtOrigin );
 			final AffineTransformedImage< ? > transformedImage = new AffineTransformedImage<>( image, transformedNames.get( images.indexOf( image ) ), translationTransform );
-			ImageStore.putImage( transformedImage );
+			DataStore.putImage( transformedImage );
 		}
 	}
 }

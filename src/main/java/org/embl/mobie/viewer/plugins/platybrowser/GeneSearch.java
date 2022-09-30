@@ -31,7 +31,7 @@ package org.embl.mobie.viewer.plugins.platybrowser;
 import bdv.viewer.SourceAndConverter;
 import de.embl.cba.tables.TableUIs;
 import ij.IJ;
-import org.embl.mobie.viewer.ImageStore;
+import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.ThreadHelper;
 import org.embl.mobie.viewer.serialize.DataSource;
@@ -102,7 +102,7 @@ public class GeneSearch
 			prosprSources = new HashMap<>();
 			moBIE.initDataSources( moBIE.getSources( prosprSourceNames ) );
 			for ( String prosprSourceName : prosprSourceNames )
-				prosprSources.put( prosprSourceName, ImageStore.getImage( prosprSourceName ) );
+				prosprSources.put( prosprSourceName, DataStore.getImage( prosprSourceName ) );
 		}
 
 		final Map< String, Double > geneExpressionLevels = runSearchAndGetLocalExpression( prosprSources );

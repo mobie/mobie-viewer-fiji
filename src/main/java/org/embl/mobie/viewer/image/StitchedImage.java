@@ -46,7 +46,7 @@ import net.imglib2.type.Type;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import org.embl.mobie.viewer.ImageStore;
+import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.MoBIEHelper;
 import org.embl.mobie.viewer.ThreadHelper;
 import org.embl.mobie.viewer.source.MoBIEVolatileTypeMatcher;
@@ -204,7 +204,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				// Here, we don't need to use InitialisedMetadataImage again,
 				// because those tiles are already InitialisedMetadataImages.
 				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getTileImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
-				final Set< Image< ? > > stitchedImages = ImageStore.getImageSet( tileNames );
+				final Set< Image< ? > > stitchedImages = DataStore.getImageSet( tileNames );
 				for ( Image< ? > containedImage : stitchedImages )
 				{
 					if ( containedImage instanceof StitchedImage )

@@ -29,7 +29,7 @@
 package org.embl.mobie.viewer.transform.image;
 
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.ImageStore;
+import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.ThreadHelper;
 import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.transform.TransformHelper;
@@ -46,9 +46,14 @@ public class GridTransformer
 	{
 	}
 
-	// This currently also registers the transformed images with
+	// TODO: This currently also registers the transformed images with
 	// the ImageStore. It would be cleaner to return the transformed images.
-	public void transform( List< List< ? extends Image< ? > > > nestedImages, @Nullable List< List< String > > nestedTransformedNames, List< int[] > positions, double[] tileRealDimensions, boolean centerAtOrigin, double[] offset )
+	//
+	//
+	// double[] tileRealDimensions: including the margin
+	// double[] offset: shift within the tile (== margin) ? FIXME
+
+	public void transform( List< List< ? extends Image< ? > > > nestedImages, @Nullable List< List< String > > nestedTransformedNames,  List< int[] > positions, double[] tileRealDimensions, boolean centerAtOrigin, double[] offset )
 	{
 		// assuming that all images have the same size...
 
@@ -83,7 +88,7 @@ public class GridTransformer
 		{
 			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform( translationX, translationY, image, centerAtOrigin );
 			final AffineTransformedImage< ? > transformedImage = new AffineTransformedImage<>( image, transformedNames.get( images.indexOf( image ) ), translationTransform );
-			ImageStore.putImage( transformedImage );
+			DataStore.putImage( transformedImage );
 		}
 	}
 

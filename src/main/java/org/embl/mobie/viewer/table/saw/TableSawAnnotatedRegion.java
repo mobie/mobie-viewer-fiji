@@ -2,7 +2,7 @@ package org.embl.mobie.viewer.table.saw;
 
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
-import org.embl.mobie.viewer.ImageStore;
+import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.transform.TransformHelper;
@@ -108,7 +108,7 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	public RealMaskRealInterval getMask()
 	{
 		if ( realMaskRealInterval == null )
-			realMaskRealInterval = TransformHelper.getUnionMask( ImageStore.getImageSet( imageNames ), timePoint() );
+			realMaskRealInterval = TransformHelper.getUnionMask( DataStore.getImageSet( imageNames ), timePoint() );
 
 		return realMaskRealInterval;
 	}

@@ -503,7 +503,7 @@ public class MoBIE
 		final long startTime = System.currentTimeMillis();
 		for ( DataSource dataSource : dataSources )
 		{
-			if ( ImageStore.contains( dataSource.getName() ) )
+			if ( DataStore.contains( dataSource.getName() ) )
 				continue;
 
 			futures.add(
@@ -548,17 +548,17 @@ public class MoBIE
 					final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
 
 					// label image representing annotated segments
-					ImageStore.putRawImage( annotatedLabelImage );
+					DataStore.putRawImage( annotatedLabelImage );
 				} else
 				{
 					// label image representing segments
 					// without annotation
-					ImageStore.putRawImage( image );
+					DataStore.putRawImage( image );
 				}
 			} else
 			{
 				// intensity image
-				ImageStore.putRawImage( image );
+				DataStore.putRawImage( image );
 			}
 		}
 
@@ -571,7 +571,7 @@ public class MoBIE
 			final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDataSource.getName(), annotatedSpots, 1.0 );
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
 			final AnnotatedLabelImage spotsImage = new AnnotatedLabelImage( labelImage, spotAnnData );
-			ImageStore.putImage( spotsImage );
+			DataStore.putImage( spotsImage );
 		}
 
 		if ( log != null )

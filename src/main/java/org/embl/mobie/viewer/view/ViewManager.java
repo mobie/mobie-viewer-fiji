@@ -32,11 +32,12 @@ import bdv.tools.transformation.TransformedSource;
 import bdv.util.BdvHandle;
 import bdv.viewer.SourceAndConverter;
 import ij.IJ;
+import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import org.apache.commons.lang.ArrayUtils;
 import org.embl.mobie.io.util.IOHelper;
-import org.embl.mobie.viewer.ImageStore;
+import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.Segment;
@@ -321,7 +322,7 @@ public class ViewManager
 				}
 				else // no metadata source specified, use the first in the grid as metadata source
 				{
-					final String firstImageInGrid = mergedGridTransformation.getTargetImageNames().get( 0 );
+					final String firstImageInGrid = mergedGridTransformation.targetImageNames().get( 0 );
 					if ( dataSource.getName().equals( firstImageInGrid ) )
 						dataSource.preInit( true );
 					else
@@ -339,7 +340,7 @@ public class ViewManager
 		// They are also added to the image store.
 		moBIE.initDataSources( dataSources );
 
-		ImageStore.registerAsCurrent( dataSources );
+		DataStore.registerAsCurrent( dataSources );
 
 		// transform images
 		// this may create new images with new names
@@ -356,7 +357,7 @@ public class ViewManager
 				if ( transformation instanceof AffineTransformation )
 				{
 					final AffineTransform3D affineTransform3D = ( ( AffineTransformation< ? > ) transformation ).getAffineTransform3D();
-					final Set< Image< ? > > images = ImageStore.getImageSet( transformation.getTargetImageNames() );
+					final Set< Image< ? > > images = DataStore.getImageSet( transformation.targetImageNames() );
 					for ( Image< ? > image : images )
 					{
 						final String transformedImageName = ( ( AffineTransformation< ? > ) transformation ).getTransformedImageName( image.getName() );
@@ -383,35 +384,35 @@ public class ViewManager
 
 							final AnnotatedLabelImage< ? extends AnnotatedSegment > transformedAnnotatedLabelImage = new AnnotatedLabelImage( transformedLabelImage, transformedAnnData );
 
-							ImageStore.putImage( transformedAnnotatedLabelImage );
+							DataStore.putImage( transformedAnnotatedLabelImage );
 						}
 						else
 						{
 							final AffineTransformedImage< ? > affineTransformedImage = new AffineTransformedImage( image, transformedImageName, affineTransform3D );
-							ImageStore.putImage( affineTransformedImage );
+							DataStore.putImage( affineTransformedImage );
 						}
 					}
 				}
 				else if ( transformation instanceof CropTransformation )
 				{
 					final CropTransformation< ? > cropTransformation = ( CropTransformation< ? > ) transformation;
-					final List< String > targetImageNames = transformation.getTargetImageNames();
+					final List< String > targetImageNames = transformation.targetImageNames();
 					for ( String imageName : targetImageNames )
 					{
 						final CroppedImage< ? > croppedImage = new CroppedImage<>(
-								ImageStore.getImage( imageName ),
+								DataStore.getImage( imageName ),
 								cropTransformation.getTransformedImageName( imageName ),
 								cropTransformation.min,
 								cropTransformation.max,
 								cropTransformation.centerAtOrigin );
-						ImageStore.putImage( croppedImage );
+						DataStore.putImage( croppedImage );
 					}
 				}
 				else if ( transformation instanceof MergedGridTransformation )
 				{
 					final MergedGridTransformation mergedGridTransformation = ( MergedGridTransformation ) transformation;
-					final List< String > targetImageNames = transformation.getTargetImageNames();
-					final List< ? extends Image< ? > > targetImages = ImageStore.getImageList( targetImageNames );
+					final List< String > targetImageNames = transformation.targetImageNames();
+					final List< ? extends Image< ? > > targetImages = DataStore.getImageList( targetImageNames );
 
 					// Get the image that contains the metadata for
 					// the image grid
@@ -423,7 +424,7 @@ public class ViewManager
 					}
 					else
 					{
-						metadataImage = ImageStore.getImage( metadataSource );
+						metadataImage = DataStore.getImage( metadataSource );
 					}
 
 					// Create the stitched grid image
@@ -431,21 +432,50 @@ public class ViewManager
 					if ( targetImages.get( 0 ) instanceof AnnotatedImage )
 					{
 						final AnnotatedStitchedImage annotatedStitchedImage = new AnnotatedStitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
-						ImageStore.putImage( annotatedStitchedImage );
-					}
-					else if ( transformation instanceof GridTransformation )
-					{
-						final GridTransformation gridTransformation = ( GridTransformation ) transformation;
-
-						new GridTransformer().transform( nestedImages, nestedImageNames, positions, tileRealDimensions, false, offset );
-						// FIXME
-						throw new UnsupportedOperationException( "Transformations of type " + transformation.getClass().getName() + " are not yet implemented.");
+						DataStore.putImage( annotatedStitchedImage );
 					}
 					else
 					{
 						final StitchedImage stitchedImage = new StitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
-						ImageStore.putImage( stitchedImage );
+						DataStore.putImage( stitchedImage );
 					}
+				}
+				else if ( transformation instanceof GridTransformation )
+				{
+					final GridTransformation gridTransformation = ( GridTransformation ) transformation;
+
+					final List< List< String > > nestedSources = gridTransformation.nestedSources;
+					final List< List< ? extends Image< ? > > > nestedImages = new ArrayList<>();
+					for ( List< String > sources : nestedSources )
+					{
+						final List< ? extends Image< ? > > images = DataStore.getImageList( sources );
+						nestedImages.add( images );
+					}
+
+					// The size of the tile of the grid is the size of the
+					// largest union mask of the images at
+					// the grid positions.
+					double[] tileRealDimensions = new double[ 2 ];
+					for ( List< ? extends Image< ? > > images : nestedImages )
+					{
+						final RealMaskRealInterval unionMask = TransformHelper.getUnionMask( images, 0 );
+						final double[] realDimensions = TransformHelper.getRealDimensions( unionMask );
+						for ( int d = 0; d < 2; d++ )
+							tileRealDimensions[ d ] = realDimensions[ d ] > tileRealDimensions[ d ] ? realDimensions[ d ] : tileRealDimensions[ d ];
+					}
+
+					// Add a margin
+					for ( int d = 0; d < 2; d++ )
+						tileRealDimensions[ d ] = tileRealDimensions[ d ] * ( 1.0 + 2 * GridTransformation.RELATIVE_GRID_CELL_MARGIN );
+
+					// Compute the corresponding offset of where to place
+					// the images within the tile
+					final double[] offset = new double[ 2 ];
+					for ( int d = 0; d < 2; d++ )
+						offset[ d ] = tileRealDimensions[ d ] * GridTransformation.RELATIVE_GRID_CELL_MARGIN;
+
+					final List< int[] > gridPositions = gridTransformation.positions == null ? TransformHelper.createGridPositions( nestedSources.size() ) : gridTransformation.positions;
+					new GridTransformer().transform( nestedImages, gridTransformation.transformedNames, gridPositions, tileRealDimensions, false, offset );
 				}
 				else
 				{
@@ -476,7 +506,7 @@ public class ViewManager
 				final DefaultAnnData< AnnotatedRegion > regionAnnData = new DefaultAnnData<>( tableModel );
 				final AnnotatedLabelImage regionImage = new AnnotatedLabelImage( labelImage, regionAnnData );
 
-				ImageStore.putImage( regionImage );
+				DataStore.putImage( regionImage );
 			}
 		}
 	}
@@ -488,7 +518,7 @@ public class ViewManager
 		if ( display instanceof ImageDisplay )
 		{
 			for ( String name : display.getSources() )
-				display.addImage( ( Image ) ImageStore.getImage( name ) );
+				display.addImage( ( Image ) DataStore.getImage( name ) );
 			showImageDisplay( ( ImageDisplay ) display );
 		}
 		else if ( display instanceof AnnotationDisplay )
@@ -509,7 +539,7 @@ public class ViewManager
 			// combining the annData from all the annotated images.
 			for ( String name : display.getSources() )
 			{
-				final Image< ? > image = ImageStore.getImage( name );
+				final Image< ? > image = DataStore.getImage( name );
 				annotationDisplay.addImage( ( AnnotatedImage ) image );
 			}
 
@@ -716,7 +746,7 @@ public class ViewManager
 
 		for ( Transformation imageTransformation : imageTransformersCopy )
 		{
-			if ( ! currentlyDisplayedSources.stream().anyMatch( s -> imageTransformation.getTargetImageNames().contains( s ) ) )
+			if ( ! currentlyDisplayedSources.stream().anyMatch( s -> imageTransformation.targetImageNames().contains( s ) ) )
 				currentTransformers.remove( imageTransformation );
 		}
 	}
