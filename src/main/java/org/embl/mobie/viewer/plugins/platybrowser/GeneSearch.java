@@ -102,7 +102,7 @@ public class GeneSearch
 			prosprSources = new HashMap<>();
 			moBIE.initDataSources( moBIE.getSources( prosprSourceNames ) );
 			for ( String prosprSourceName : prosprSourceNames )
-				prosprSources.put( prosprSourceName, DataStore.getImage( prosprSourceName ) );
+				prosprSources.put( prosprSourceName, DataStore.getCurrentImage( prosprSourceName ) );
 		}
 
 		final Map< String, Double > geneExpressionLevels = runSearchAndGetLocalExpression( prosprSources );

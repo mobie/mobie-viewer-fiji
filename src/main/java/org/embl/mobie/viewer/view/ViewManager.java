@@ -64,6 +64,7 @@ import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.serialize.DataSource;
 import org.embl.mobie.viewer.image.AnnotatedImage;
 import org.embl.mobie.viewer.image.AnnotatedStitchedImage;
+import org.embl.mobie.viewer.serialize.RegionTableDataSource;
 import org.embl.mobie.viewer.serialize.transformation.GridTransformation;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.CroppedImage;
@@ -71,7 +72,6 @@ import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.RegionLabelImage;
 import org.embl.mobie.viewer.image.StitchedImage;
-import org.embl.mobie.viewer.source.StorageLocation;
 import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.table.DefaultAnnData;
@@ -400,7 +400,7 @@ public class ViewManager
 					for ( String imageName : targetImageNames )
 					{
 						final CroppedImage< ? > croppedImage = new CroppedImage<>(
-								DataStore.getImage( imageName ),
+								DataStore.getCurrentImage( imageName ),
 								cropTransformation.getTransformedImageName( imageName ),
 								cropTransformation.min,
 								cropTransformation.max,
@@ -424,7 +424,7 @@ public class ViewManager
 					}
 					else
 					{
-						metadataImage = DataStore.getImage( metadataSource );
+						metadataImage = DataStore.getCurrentImage( metadataSource );
 					}
 
 					// Create the stitched grid image
@@ -464,7 +464,7 @@ public class ViewManager
 							tileRealDimensions[ d ] = realDimensions[ d ] > tileRealDimensions[ d ] ? realDimensions[ d ] : tileRealDimensions[ d ];
 					}
 
-					// Add a margin
+					// Add a margin to the tiles
 					for ( int d = 0; d < 2; d++ )
 						tileRealDimensions[ d ] = tileRealDimensions[ d ] * ( 1.0 + 2 * GridTransformation.RELATIVE_GRID_CELL_MARGIN );
 
@@ -475,6 +475,7 @@ public class ViewManager
 						offset[ d ] = tileRealDimensions[ d ] * GridTransformation.RELATIVE_GRID_CELL_MARGIN;
 
 					final List< int[] > gridPositions = gridTransformation.positions == null ? TransformHelper.createGridPositions( nestedSources.size() ) : gridTransformation.positions;
+
 					new GridTransformer().transform( nestedImages, gridTransformation.transformedNames, gridPositions, tileRealDimensions, false, offset );
 				}
 				else
@@ -492,15 +493,17 @@ public class ViewManager
 			if ( display instanceof RegionDisplay )
 			{
 				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
-				final Map< TableDataFormat, StorageLocation > tableData = regionDisplay.tableData;
-				// note that the imageNames that are referred
-				// to here must exist in this view
-				// thus we do this *after* the above transformations,
+				final RegionTableDataSource regionTableDataSource = ( RegionTableDataSource  ) DataStore.getRawData( regionDisplay.tableSource );
+				// Note that the imageNames that are referred
+				// to here must exist in this view.
+				// Thus the {@code RegionDisplay} must be build
+				// *after* the above transformations,
 				// which may create new images
-				// that could be referred to.
+				// that could be referred to here.
+
 				final Map< String, List< String > > regionIdToImageNames = regionDisplay.sources;
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( regionIdToImageNames );
-				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableDirectory( tableData ), "default.tsv"  );
+				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableDirectory( regionTableDataSource.tableData ), TableDataFormat.DEFAULT_TSV );
 				final Set< AnnotatedRegion > annotatedRegions = tableModel.annotations();
 				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotatedRegions );
 				final DefaultAnnData< AnnotatedRegion > regionAnnData = new DefaultAnnData<>( tableModel );
@@ -518,7 +521,7 @@ public class ViewManager
 		if ( display instanceof ImageDisplay )
 		{
 			for ( String name : display.getSources() )
-				display.addImage( ( Image ) DataStore.getImage( name ) );
+				display.addImage( ( Image ) DataStore.getCurrentImage( name ) );
 			showImageDisplay( ( ImageDisplay ) display );
 		}
 		else if ( display instanceof AnnotationDisplay )
@@ -539,7 +542,7 @@ public class ViewManager
 			// combining the annData from all the annotated images.
 			for ( String name : display.getSources() )
 			{
-				final Image< ? > image = DataStore.getImage( name );
+				final Image< ? > image = DataStore.getCurrentImage( name );
 				annotationDisplay.addImage( ( AnnotatedImage ) image );
 			}
 

@@ -47,9 +47,8 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDispl
 	// one regionId can annotate several images
 	public Map< String, List< String > > sources;
 
-	// table with each row corresponding to one
-	// regionId
-	public Map< TableDataFormat, StorageLocation > tableData;
+	// table data
+	public String tableSource;
 
 	public Set< String > selectedRegionIds;
 
@@ -108,8 +107,6 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDispl
 		//
 		this.sources = new HashMap<>();
 		this.sources.putAll( regionDisplay.sources );
-
-		this.tableData = new HashMap<>();
-		this.tableData.putAll( regionDisplay.tableData );
+		this.tableSource = regionDisplay.tableSource;
 	}
 }

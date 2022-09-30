@@ -21,7 +21,20 @@ public abstract class DataStore
 
 	// Data that is used by the current view.
 	// Contains transformed data as well.
-	private static Map< String, Image< ? > > currentData = new ConcurrentHashMap<>();
+	private static Map< String, Image< ? > > currentImageData = new ConcurrentHashMap<>();
+
+	// Other data types that are not necessarily images
+	private static Map< String, DataSource > rawData = new ConcurrentHashMap<>();
+
+	public static void putData( DataSource dataSource )
+	{
+		rawData.put( dataSource.getName(), dataSource );
+	}
+
+	public static DataSource getRawData( String name )
+	{
+		return rawData.get( name );
+	}
 
 	public static void putRawImage( Image< ? > image )
 	{
@@ -43,12 +56,12 @@ public abstract class DataStore
 		return rawImages.get( name );
 	}
 
-	public static Image< ? > getImage( String name )
+	public static Image< ? > getCurrentImage( String name )
 	{
-		if ( ! currentData.containsKey( name ) )
+		if ( ! currentImageData.containsKey( name ) )
 			throw new RuntimeException( "Image " + name + " is not part of the current data.");
 
-		return currentData.get( name );
+		return currentImageData.get( name );
 	}
 
 	// Unsorted Set.
@@ -56,7 +69,7 @@ public abstract class DataStore
 	{
 		try
 		{
-			return currentData.entrySet().stream().filter( entry -> names.contains( entry.getKey() ) ).map( entry -> entry.getValue() ).collect( Collectors.toSet() );
+			return currentImageData.entrySet().stream().filter( entry -> names.contains( entry.getKey() ) ).map( entry -> entry.getValue() ).collect( Collectors.toSet() );
 		} catch ( Exception e )
 		{
 			throw( e );
@@ -68,19 +81,19 @@ public abstract class DataStore
 	{
 		final ArrayList< Image< ? > > images = new ArrayList<>();
 		for ( String name : names )
-			images.add( getImage( name ) );
+			images.add( getCurrentImage( name ) );
 		return images;
 	}
 
 	public static void putImage( Image< ? > image )
 	{
-		currentData.put( image.getName(), image );
+		currentImageData.put( image.getName(), image );
 	}
 
 	public static void putImages( Collection< ? extends Image< ? > > images )
 	{
 		for ( Image< ? > image : images )
-			DataStore.currentData.put( image.getName(), image );
+			DataStore.currentImageData.put( image.getName(), image );
 	}
 
 	// TODO: Why do we need this?

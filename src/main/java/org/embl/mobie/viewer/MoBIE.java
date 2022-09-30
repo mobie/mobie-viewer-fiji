@@ -52,6 +52,7 @@ import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ImageDataSource;
 import org.embl.mobie.viewer.serialize.Project;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
+import org.embl.mobie.viewer.serialize.RegionTableDataSource;
 import org.embl.mobie.viewer.serialize.SegmentationDataSource;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.SpimDataImage;
@@ -572,6 +573,12 @@ public class MoBIE
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
 			final AnnotatedLabelImage spotsImage = new AnnotatedLabelImage( labelImage, spotAnnData );
 			DataStore.putImage( spotsImage );
+		}
+
+		if ( dataSource instanceof RegionTableDataSource  )
+		{
+			final RegionTableDataSource regionTableDataSource = ( RegionTableDataSource ) dataSource;
+			DataStore.putData( regionTableDataSource );
 		}
 
 		if ( log != null )
