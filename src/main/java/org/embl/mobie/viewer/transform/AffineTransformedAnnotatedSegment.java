@@ -82,9 +82,9 @@ public class AffineTransformedAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public String dataSource()
+	public String source()
 	{
-		return annotatedSegment.dataSource();
+		return annotatedSegment.source();
 	}
 
 	@Override

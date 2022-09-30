@@ -21,7 +21,7 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	private final int rowIndex;
 	private RealInterval boundingBox;
 	private float[] mesh;
-	private String sourceName;
+	private String source;
 	private String uuid;
 
 	public TableSawAnnotatedSegment(
@@ -33,21 +33,17 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 		final Table rows = tableSupplier.get();
 		Row row = rows.row( rowIndex );
 
-		// segment properties
 		this.numSegmentDimensions = row.columnNames().contains( ColumnNames.ANCHOR_Z ) ? 3 : 2;
-		this.sourceName = row.columnNames().contains( ColumnNames.LABEL_IMAGE_ID ) ? row.getString( ColumnNames.LABEL_IMAGE_ID ) : rows.name();
+		this.source = row.columnNames().contains( ColumnNames.LABEL_IMAGE_ID ) ? row.getString( ColumnNames.LABEL_IMAGE_ID ) : rows.name();
 		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
 		this.labelId = row.getInt( ColumnNames.LABEL_ID );
-
 		initBoundingBox( row, numSegmentDimensions );
-
 		this.position = new double[]{
 				row.getDouble( ColumnNames.ANCHOR_X ),
 				row.getDouble( ColumnNames.ANCHOR_Y ),
 				row.getDouble( ColumnNames.ANCHOR_Z )
 		};
-
-		this.uuid = ""+ sourceName +";"+timePoint+";"+labelId;
+		this.uuid = source + ";" + timePoint + ";" + labelId;
 	}
 
 	private void initBoundingBox( Row row, int numSegmentDimensions )
@@ -86,7 +82,7 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public String imageId()
 	{
-		return dataSource();
+		return source();
 	}
 
 	@Override
@@ -144,9 +140,9 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	}
 
 	@Override
-	public String dataSource()
+	public String source()
 	{
-		return sourceName;
+		return source;
 	}
 
 	@Override

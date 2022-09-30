@@ -13,10 +13,11 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 	private final Supplier< Table > tableSupplier;
 	private final int rowIndex;
 
-	private String id;
+	private String uuid;
 	private int label;
 	private final int timePoint;
 	private double[] position;
+	private String source;
 
 	public TableSawAnnotatedSpot( Supplier< Table > tableSupplier, int rowIndex )
 	{
@@ -43,8 +44,8 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 		}
 
 		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
-
-		this.id = createUUID( rows.name(), timePoint, label );
+		this.source = tableSupplier.get().name();
+		this.uuid = source + ";" + timePoint + ";" + label;
 	}
 
 	@Override
@@ -74,7 +75,13 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 	@Override
 	public String uuid()
 	{
-		return id;
+		return uuid;
+	}
+
+	@Override
+	public String source()
+	{
+		return null;
 	}
 
 	@Override

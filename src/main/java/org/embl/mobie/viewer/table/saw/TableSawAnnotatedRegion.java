@@ -19,11 +19,12 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	private final int rowIndex;
 
 	private final List< String > imageNames;
+	private final String uuid;
 	private RealMaskRealInterval realMaskRealInterval;
 	private String regionId;
 	private int label;
 	private final int timePoint;
-	private String sourceName;
+	private String source;
 
 	public TableSawAnnotatedRegion(
 			Supplier< Table > tableSupplier,
@@ -38,9 +39,10 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 		// fetch region properties from table row
 
 		this.regionId = row.getObject( ColumnNames.REGION_ID ).toString();
-		this.label = regionId.hashCode();
+		this.label = rowIndex; //regionId.hashCode();
 		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
-		this.sourceName = tableSupplier.get().name();
+		this.source = tableSupplier.get().name();
+		this.uuid = timePoint + ";" + regionId;
 	}
 
 	@Override
@@ -75,13 +77,13 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	@Override
 	public String uuid()
 	{
-		return "" + timePoint + ";" + regionId;
+		return uuid;
 	}
 
 	@Override
-	public String dataSource()
+	public String source()
 	{
-		return sourceName;
+		return source;
 	}
 
 	@Override
@@ -106,7 +108,7 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	public RealMaskRealInterval getMask()
 	{
 		if ( realMaskRealInterval == null )
-			realMaskRealInterval = TransformHelper.getUnionMask( ImageStore.getImages( imageNames ), timePoint() );
+			realMaskRealInterval = TransformHelper.getUnionMask( ImageStore.getImageSet( imageNames ), timePoint() );
 
 		return realMaskRealInterval;
 	}

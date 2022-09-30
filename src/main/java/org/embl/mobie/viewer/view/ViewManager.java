@@ -63,6 +63,7 @@ import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.serialize.DataSource;
 import org.embl.mobie.viewer.image.AnnotatedImage;
 import org.embl.mobie.viewer.image.AnnotatedStitchedImage;
+import org.embl.mobie.viewer.serialize.transformation.GridTransformation;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.CroppedImage;
 import org.embl.mobie.viewer.image.Image;
@@ -91,6 +92,7 @@ import org.embl.mobie.viewer.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.viewer.serialize.transformation.Transformation;
 import org.embl.mobie.viewer.transform.TransformedAnnData;
 import org.embl.mobie.viewer.serialize.transformation.AffineTransformation;
+import org.embl.mobie.viewer.transform.image.GridTransformer;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.save.ViewSaver;
@@ -354,7 +356,7 @@ public class ViewManager
 				if ( transformation instanceof AffineTransformation )
 				{
 					final AffineTransform3D affineTransform3D = ( ( AffineTransformation< ? > ) transformation ).getAffineTransform3D();
-					final Set< Image< ? > > images = ImageStore.getImages( transformation.getTargetImageNames() );
+					final Set< Image< ? > > images = ImageStore.getImageSet( transformation.getTargetImageNames() );
 					for ( Image< ? > image : images )
 					{
 						final String transformedImageName = ( ( AffineTransformation< ? > ) transformation ).getTransformedImageName( image.getName() );
@@ -430,6 +432,14 @@ public class ViewManager
 					{
 						final AnnotatedStitchedImage annotatedStitchedImage = new AnnotatedStitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
 						ImageStore.putImage( annotatedStitchedImage );
+					}
+					else if ( transformation instanceof GridTransformation )
+					{
+						final GridTransformation gridTransformation = ( GridTransformation ) transformation;
+
+						new GridTransformer().transform( nestedImages, nestedImageNames, positions, tileRealDimensions, false, offset );
+						// FIXME
+						throw new UnsupportedOperationException( "Transformations of type " + transformation.getClass().getName() + " are not yet implemented.");
 					}
 					else
 					{

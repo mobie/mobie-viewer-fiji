@@ -51,7 +51,8 @@ public abstract class ImageStore
 		return currentData.get( name );
 	}
 
-	public static Set< Image< ? > > getImages( Collection< String > names )
+	// Unsorted Set.
+	public static Set< Image< ? > > getImageSet( Collection< String > names )
 	{
 		try
 		{
@@ -62,7 +63,7 @@ public abstract class ImageStore
 		}
 	}
 
-	// Sort images corresponding to the given names.
+	// Sorted List, corresponding to the given names.
 	public static List< ? extends Image< ? > > getImageList( List< String > names )
 	{
 		final ArrayList< Image< ? > > images = new ArrayList<>();

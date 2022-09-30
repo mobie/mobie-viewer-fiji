@@ -40,15 +40,15 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-public class ImageGridTransformer
+public class GridTransformer
 {
-	public ImageGridTransformer()
+	public GridTransformer()
 	{
 	}
 
 	// This currently also registers the transformed images with
 	// the ImageStore. It would be cleaner to return the transformed images.
-	public void transform( List< List< ? extends Image< ? > > > nestedImages, @Nullable List< List< String > > transformedNames, List< int[] > positions, double[] tileRealDimensions, boolean centerAtOrigin, double[] offset )
+	public void transform( List< List< ? extends Image< ? > > > nestedImages, @Nullable List< List< String > > nestedTransformedNames, List< int[] > positions, double[] tileRealDimensions, boolean centerAtOrigin, double[] offset )
 	{
 		// assuming that all images have the same size...
 
@@ -65,7 +65,7 @@ public class ImageGridTransformer
 					for ( int d = 0; d < 2; d++ )
 						translation[ d ] = tileRealDimensions[ d ] * positions.get( finalGridIndex )[ d ] + offset[ d ];
 
-					List< String > transformedImageNames = transformedNames == null ? images.stream().map( image -> image.getName() ).collect( Collectors.toList() ) : transformedNames.get( finalGridIndex );
+					List< String > transformedImageNames = nestedTransformedNames == null ? images.stream().map( image -> image.getName() ).collect( Collectors.toList() ) : nestedTransformedNames.get( finalGridIndex );
 					translate( images, transformedImageNames, centerAtOrigin, translation[ 0 ], translation[ 1 ] );
 				}
 				catch ( Exception e )

@@ -37,28 +37,16 @@ import java.util.Map;
 
 
 // TODO: https://github.com/mobie/mobie-viewer-fiji/issues/818
-public class RegionDataSource extends AbstractDataSource
+public class RegionTableDataSource extends AbstractDataSource
 {
 	// Serialization
 
-	// annotationId to image sources
-	// one annotationId can annotate several images
-	public Map< String, List< String > > sources;
-
 	// table with each row corresponding to one
-	// annotationId
+	// regionId, annotating one or multiple images
 	public Map< TableDataFormat, StorageLocation > tableData;
 
+	// annotationId to image sources
+	// one annotationId can annotate several images
+	public transient Map< String, List< String > > sources;
 
-	@Override
-	public String getName()
-	{
-		return name;
-	}
-
-	@Override
-	public void setName( String name )
-	{
-		this.name = name;
-	}
 }

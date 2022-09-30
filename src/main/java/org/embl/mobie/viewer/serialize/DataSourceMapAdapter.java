@@ -51,8 +51,8 @@ public class DataSourceMapAdapter implements JsonSerializer< Map< String, DataSo
 		classToName.put( ImageDataSource.class.getName(), "image");
 		nameToClass.put("segmentation", SegmentationDataSource.class);
 		classToName.put( SegmentationDataSource.class.getName(), "segmentation");
-		nameToClass.put("imageAnnotation", RegionDataSource.class); // FIXME: should this be here at all?
-		classToName.put( RegionDataSource.class.getName(), "imageAnnotation"); // FIXME: should this be here at all?
+		nameToClass.put("regionTable", RegionTableDataSource.class);
+		classToName.put( RegionTableDataSource.class.getName(), "regionTable");
 		nameToClass.put("spots", SpotDataSource.class);
 		classToName.put( SpotDataSource.class.getName(), "spots");
 	}

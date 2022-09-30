@@ -41,7 +41,7 @@ public class OpenRemotePlankton
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 		try {
-			new MoBIE("https://github.com/mobie/plankton-fibsem-project", MoBIESettings.settings().dataset( "micromonas" ) );
+			new MoBIE("https://github.com/mobie/plankton-fibsem-project", MoBIESettings.settings().gitProjectBranch( "mobie3" ).dataset( "micromonas" ).view( "all-cells" ) );
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

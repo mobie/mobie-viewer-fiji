@@ -41,7 +41,7 @@ import org.embl.mobie.viewer.serialize.transformation.CropTransformation;
 import org.embl.mobie.viewer.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.viewer.serialize.transformation.TimepointsTransformation;
 import org.embl.mobie.viewer.serialize.transformation.Transformation;
-import org.embl.mobie.viewer.serialize.transformation.TransformedGridTransformation;
+import org.embl.mobie.viewer.serialize.transformation.GridTransformation;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -58,8 +58,8 @@ public class SourceTransformerListAdapter implements JsonSerializer< List< Trans
 	static {
 		nameToClass.put("mergedGrid", MergedGridTransformation.class);
 		classToName.put( MergedGridTransformation.class.getName(), "mergedGrid");
-		nameToClass.put("transformedGrid", TransformedGridTransformation.class);
-		classToName.put( TransformedGridTransformation.class.getName(), "transformedGrid");
+		nameToClass.put("transformedGrid", GridTransformation.class);
+		classToName.put( GridTransformation.class.getName(), "transformedGrid");
 		nameToClass.put("affine", AffineTransformation.class);
 		classToName.put( AffineTransformation.class.getName(), "affine");
 		nameToClass.put("timepoints", TimepointsTransformation.class);
@@ -89,8 +89,8 @@ public class SourceTransformerListAdapter implements JsonSerializer< List< Trans
 			Map< String, Transformation > nameToTransformer = new HashMap<>();
 			nameToTransformer.put( classToName.get( imageTransformation.getClass().getName() ), imageTransformation );
 
-			if ( imageTransformation instanceof TransformedGridTransformation ) {
-				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, TransformedGridTransformation > >() {}.getType() ) );
+			if ( imageTransformation instanceof GridTransformation ) {
+				ja.add( context.serialize( nameToTransformer, new TypeToken< Map< String, GridTransformation > >() {}.getType() ) );
 			} else if ( imageTransformation instanceof AffineTransformation ) {
 				ja.add( context.serialize( nameToTransformer , new TypeToken< Map< String, AffineTransformation > >() {}.getType() ) );
 			} else if ( imageTransformation instanceof CropTransformation ) {

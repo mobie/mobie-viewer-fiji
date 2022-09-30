@@ -85,7 +85,7 @@ public class AnnotationAdapter< A extends Annotation >
 		{
 			A annotation = iterator.next();
 			uuidToAnnotation.put( annotation.uuid(), annotation );
-			itlToAnnotation.put( stlKey( annotation.dataSource(), annotation.timePoint(), annotation.label() ), annotation );
+			itlToAnnotation.put( stlKey( annotation.source(), annotation.timePoint(), annotation.label() ), annotation );
 		}
 	}
 

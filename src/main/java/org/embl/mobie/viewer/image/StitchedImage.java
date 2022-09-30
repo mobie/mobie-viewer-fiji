@@ -53,7 +53,7 @@ import org.embl.mobie.viewer.source.MoBIEVolatileTypeMatcher;
 import org.embl.mobie.viewer.source.RandomAccessibleIntervalMipmapSource;
 import org.embl.mobie.viewer.source.SourcePair;
 import org.embl.mobie.viewer.transform.TransformHelper;
-import org.embl.mobie.viewer.transform.image.ImageGridTransformer;
+import org.embl.mobie.viewer.transform.image.GridTransformer;
 import org.embl.mobie.viewer.transform.image.InitialisedMetadataImage;
 
 import javax.annotation.Nullable;
@@ -160,16 +160,16 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		return translationOffset;
 	}
 
-	// Transform all the images that are stitched to be
-	// at the same location as they appear in the stitched image.
-	// This is currently needed for image annotation displays
-	// in order to know the location of the annotated images.
+	// Transform all the individual images that are stitched
+	// such that they appear at the same location as in the stitched image.
+	// This is currently needed for a {@code RegionDisplay}
+	// to know the location of the annotated images.
 	protected void transform( List< ? extends Image< ? > > images, Image< ? > metadataImage )
 	{
 		final double[] offset = computeTileMarginOffset( metadataImage, tileRealDimensions );
 
 		final List< List< ? extends Image< ? > > > nestedImages = new ArrayList<>();
-		final List< List< String > > nestedImageNames = new ArrayList<>();
+		final List< List< String > > nestedTransformedNames = new ArrayList<>();
 
 		for ( Image< ? > image : images )
 		{
@@ -204,7 +204,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				// Here, we don't need to use InitialisedMetadataImage again,
 				// because those tiles are already InitialisedMetadataImages.
 				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getTileImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
-				final Set< Image< ? > > stitchedImages = ImageStore.getImages( tileNames );
+				final Set< Image< ? > > stitchedImages = ImageStore.getImageSet( tileNames );
 				for ( Image< ? > containedImage : stitchedImages )
 				{
 					if ( containedImage instanceof StitchedImage )
@@ -216,10 +216,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			}
 
 			nestedImages.add( imagesAtGridPosition );
-			nestedImageNames.add( imagesNamesAtGridPosition );
+			nestedTransformedNames.add( imagesNamesAtGridPosition );
 		}
 
-		new ImageGridTransformer().transform( nestedImages, nestedImageNames, positions, tileRealDimensions, false, offset );
+		new GridTransformer().transform( nestedImages, nestedTransformedNames, positions, tileRealDimensions, false, offset );
 	}
 
 

@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-public class TransformedGridTransformation extends AbstractGridTransformation
+public class GridTransformation extends AbstractGridTransformation
 {
 	// Serialization
 	public List< List< String > > nestedSources;
@@ -56,6 +56,7 @@ public class TransformedGridTransformation extends AbstractGridTransformation
 		return allSources;
 	}
 
+	@Deprecated // Use GridTransformer
 	public void apply( List< List< ? extends Image< ? > > > nestedImages, double[] cellRealDimensions )
 	{
 		final int numGridPositions = nestedImages.size();
@@ -91,6 +92,7 @@ public class TransformedGridTransformation extends AbstractGridTransformation
 		ThreadHelper.waitUntilFinished( futures );
 	}
 
+	@Deprecated // Use GridTransformer
 	public static void translate( List< ? extends Image< ? > > images, List< String > transformedNames, boolean centerAtOrigin, double translationX, double translationY )
 	{
 		for ( Image< ? > image : images )
