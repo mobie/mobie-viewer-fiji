@@ -33,7 +33,6 @@ import net.imglib2.converter.Converter;
 import net.imglib2.display.ColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.color.opacity.OpacityAdjuster;
-import org.embl.mobie.viewer.display.AbstractDisplay;
 
 import static net.imglib2.type.numeric.ARGBType.alpha;
 import static net.imglib2.type.numeric.ARGBType.blue;

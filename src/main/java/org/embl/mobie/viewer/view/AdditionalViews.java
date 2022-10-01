@@ -28,6 +28,8 @@
  */
 package org.embl.mobie.viewer.view;
 
+import org.embl.mobie.viewer.serialize.View;
+
 import java.util.Map;
 
 public class AdditionalViews {

@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.display;
+package org.embl.mobie.viewer.serialize.display;
 
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
@@ -79,7 +79,7 @@ public class ImageDisplay< T extends NumericType< T > > extends AbstractDisplay<
 	}
 
 	@Override
-	public List< String > getSources()
+	public List< String > getImageSources()
 	{
 		return sources;
 	}

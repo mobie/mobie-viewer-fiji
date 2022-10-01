@@ -34,7 +34,7 @@ import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.view.AdditionalViews;
-import org.embl.mobie.viewer.view.View;
+import org.embl.mobie.viewer.serialize.View;
 import mpicbg.spim.data.SpimData;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.generic.sequence.BasicImgLoader;

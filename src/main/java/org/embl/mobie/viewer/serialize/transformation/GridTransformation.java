@@ -99,7 +99,7 @@ public class GridTransformation extends AbstractGridTransformation
 		{
 			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform( translationX, translationY, image, centerAtOrigin );
 			final AffineTransformedImage< ? > transformedImage = new AffineTransformedImage<>( image, transformedNames.get( images.indexOf( image ) ), translationTransform );
-			DataStore.putImage( transformedImage );
+			DataStore.putViewImage( transformedImage );
 		}
 	}
 }

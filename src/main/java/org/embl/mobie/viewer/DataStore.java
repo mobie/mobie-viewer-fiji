@@ -21,18 +21,21 @@ public abstract class DataStore
 
 	// Data that is used by the current view.
 	// Contains transformed data as well.
-	private static Map< String, Image< ? > > currentImageData = new ConcurrentHashMap<>();
+	private static Map< String, Image< ? > > viewImages = new ConcurrentHashMap<>();
 
 	// Other data types that are not necessarily images
 	private static Map< String, DataSource > rawData = new ConcurrentHashMap<>();
 
-	public static void putData( DataSource dataSource )
+	public static void putRawData( DataSource dataSource )
 	{
 		rawData.put( dataSource.getName(), dataSource );
 	}
 
 	public static DataSource getRawData( String name )
 	{
+		if ( ! rawData.containsKey( name ) )
+			throw new RuntimeException( "The data " + name + " has not been loaded.");
+
 		return rawData.get( name );
 	}
 
@@ -56,20 +59,20 @@ public abstract class DataStore
 		return rawImages.get( name );
 	}
 
-	public static Image< ? > getCurrentImage( String name )
+	public static Image< ? > getViewImage( String name )
 	{
-		if ( ! currentImageData.containsKey( name ) )
+		if ( ! viewImages.containsKey( name ) )
 			throw new RuntimeException( "Image " + name + " is not part of the current data.");
 
-		return currentImageData.get( name );
+		return viewImages.get( name );
 	}
 
 	// Unsorted Set.
-	public static Set< Image< ? > > getImageSet( Collection< String > names )
+	public static Set< Image< ? > > getViewImageSet( Collection< String > names )
 	{
 		try
 		{
-			return currentImageData.entrySet().stream().filter( entry -> names.contains( entry.getKey() ) ).map( entry -> entry.getValue() ).collect( Collectors.toSet() );
+			return viewImages.entrySet().stream().filter( entry -> names.contains( entry.getKey() ) ).map( entry -> entry.getValue() ).collect( Collectors.toSet() );
 		} catch ( Exception e )
 		{
 			throw( e );
@@ -77,28 +80,28 @@ public abstract class DataStore
 	}
 
 	// Sorted List, corresponding to the given names.
-	public static List< ? extends Image< ? > > getImageList( List< String > names )
+	public static List< ? extends Image< ? > > getViewImageList( List< String > names )
 	{
 		final ArrayList< Image< ? > > images = new ArrayList<>();
 		for ( String name : names )
-			images.add( getCurrentImage( name ) );
+			images.add( getViewImage( name ) );
 		return images;
 	}
 
-	public static void putImage( Image< ? > image )
+	public static void putViewImage( Image< ? > image )
 	{
-		currentImageData.put( image.getName(), image );
+		viewImages.put( image.getName(), image );
 	}
 
-	public static void putImages( Collection< ? extends Image< ? > > images )
+	public static void putViewImages( Collection< ? extends Image< ? > > images )
 	{
 		for ( Image< ? > image : images )
-			DataStore.currentImageData.put( image.getName(), image );
+			DataStore.viewImages.put( image.getName(), image );
 	}
 
 	// TODO: Why do we need this?
-	public static void registerAsCurrent( List< DataSource > dataSources )
+	public static void registerAsViewData( List< DataSource > dataSources )
 	{
-		putImages( getRawImage( dataSources.stream().map( s -> s.getName() ).collect( Collectors.toSet()) ) );
+		putViewImages( getRawImage( dataSources.stream().map( s -> s.getName() ).collect( Collectors.toSet()) ) );
 	}
 }

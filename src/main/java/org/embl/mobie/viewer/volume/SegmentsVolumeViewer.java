@@ -29,14 +29,13 @@
 package org.embl.mobie.viewer.volume;
 
 import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
 import customnode.CustomTriangleMesh;
 import de.embl.cba.tables.ij3d.AnimatedViewAdjuster;
 import ij3d.Content;
 import ij3d.Image3DUniverse;
 import ij3d.ImageWindow3D;
 import ij3d.UniverseListener;
-import org.embl.mobie.viewer.display.VisibilityListener;
+import org.embl.mobie.viewer.serialize.display.VisibilityListener;
 import org.embl.mobie.viewer.annotation.Segment;
 import org.embl.mobie.viewer.color.ColorHelper;
 import org.embl.mobie.viewer.color.ColoringListener;

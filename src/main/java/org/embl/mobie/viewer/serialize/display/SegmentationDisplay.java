@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.display;
+package org.embl.mobie.viewer.serialize.display;
 
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
@@ -48,7 +48,7 @@ public class SegmentationDisplay< AS extends AnnotatedSegment > extends Annotati
 	// TODO: below is almost not needed
 	public transient SegmentsVolumeViewer< AS > segmentsVolumeViewer;
 
-	public List< String > getSources()
+	public List< String > getImageSources()
 	{
 		return Collections.unmodifiableList( sources );
 	}

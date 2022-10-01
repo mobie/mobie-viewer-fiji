@@ -32,7 +32,7 @@ import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.bdv.GlobalMousePositionProvider;
-import org.embl.mobie.viewer.display.AnnotationDisplay;
+import org.embl.mobie.viewer.serialize.display.AnnotationDisplay;
 import org.embl.mobie.viewer.source.AnnotationType;
 import net.imglib2.RealPoint;
 import sc.fiji.bdvpg.sourceandconverter.SourceAndConverterHelper;

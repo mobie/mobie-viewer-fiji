@@ -29,12 +29,12 @@
 package org.embl.mobie.viewer.ui;
 
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.display.ImageDisplay;
-import org.embl.mobie.viewer.display.RegionDisplay;
-import org.embl.mobie.viewer.display.SegmentationDisplay;
-import org.embl.mobie.viewer.display.Display;
-import org.embl.mobie.viewer.display.SpotDisplay;
-import org.embl.mobie.viewer.view.View;
+import org.embl.mobie.viewer.serialize.display.ImageDisplay;
+import org.embl.mobie.viewer.serialize.display.RegionDisplay;
+import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
+import org.embl.mobie.viewer.serialize.display.Display;
+import org.embl.mobie.viewer.serialize.display.SpotDisplay;
+import org.embl.mobie.viewer.serialize.View;
 
 import javax.swing.*;
 import java.awt.*;

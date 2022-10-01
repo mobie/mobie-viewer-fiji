@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.display;
+package org.embl.mobie.viewer.serialize.display;
 
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.annotation.AnnotationAdapter;

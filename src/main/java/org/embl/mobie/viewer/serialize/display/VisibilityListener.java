@@ -26,62 +26,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.display;
+package org.embl.mobie.viewer.serialize.display;
 
-import bdv.viewer.SourceAndConverter;
-import org.embl.mobie.viewer.bdv.render.BlendingMode;
-import org.embl.mobie.viewer.bdv.view.SliceViewer;
-import org.embl.mobie.viewer.image.Image;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-public abstract class AbstractDisplay< T > implements Display< T >
+public interface VisibilityListener
 {
-	// Serialization
-	protected String name;
-	protected double opacity = 1.0;
-	protected boolean visible = true;
-	protected BlendingMode blendingMode;
-
-	// Runtime
-	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter = new HashMap<>();
-	private transient Set< Image< T > > images = new HashSet<>();
-	public transient SliceViewer sliceViewer;
-
-	@Override
-	public String getName()
-	{
-		return name;
-	}
-
-	@Override
-	public double getOpacity()
-	{
-		return opacity;
-	}
-
-	@Override
-	public boolean isVisible() { return visible; }
-
-	@Override
-	public BlendingMode getBlendingMode()
-	{
-		return BlendingMode.Sum;
-	}
-
-	@Override
-	public Set< Image< T > > getImages()
-	{
-		return images;
-	}
-
-	@Override
-	public void addImage( Image< T > image )
-	{
-		images.add( image );
-	}
-
+	void visibility( boolean isVisible );
 }

@@ -52,12 +52,13 @@ import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.serialize.ImageDataSource;
 import org.embl.mobie.viewer.serialize.Project;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
-import org.embl.mobie.viewer.serialize.RegionTableDataSource;
+import org.embl.mobie.viewer.serialize.RegionDataSource;
 import org.embl.mobie.viewer.serialize.SegmentationDataSource;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.SpimDataImage;
 import org.embl.mobie.viewer.serialize.SpotDataSource;
 import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpot;
@@ -66,13 +67,16 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotationCreator;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegment;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSegmentCreator;
+import org.embl.mobie.viewer.table.saw.TableSawHelper;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
-import org.embl.mobie.viewer.view.View;
+import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.viewer.view.ViewManager;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import tech.tablesaw.api.Row;
+import tech.tablesaw.api.Table;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -422,13 +426,13 @@ public class MoBIE
         return tableData.get( TableDataFormat.TabDelimitedFile ).relativePath;
     }
 
-    public String getTableDirectory( Map< TableDataFormat, StorageLocation > tableData )
+    public String getTableStore( Map< TableDataFormat, StorageLocation > tableData )
     {
 		final String relativeTablePath = getRelativeTablePath( tableData );
-		return getTableDirectory( relativeTablePath );
+		return getTableStore( relativeTablePath );
     }
 
-    public String getTableDirectory( String relativeTableLocation )
+    public String getTableStore( String relativeTableLocation )
     {
         return IOHelper.combinePath( tableRoot, datasetName, relativeTableLocation );
     }
@@ -499,9 +503,11 @@ public class MoBIE
 		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 		AtomicInteger sourceIndex = new AtomicInteger(0);
 		final int numImages = dataSources.size();
+
 		AtomicInteger sourceLoggingModulo = new AtomicInteger(1);
 		AtomicLong lastLogMillis = new AtomicLong( System.currentTimeMillis() );
 		final long startTime = System.currentTimeMillis();
+
 		for ( DataSource dataSource : dataSources )
 		{
 			if ( DataStore.contains( dataSource.getName() ) )
@@ -544,7 +550,7 @@ public class MoBIE
 				if ( segmentationDataSource.tableData != null )
 				{
 					final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator();
-					final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableDirectory( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV  );
+					final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV  );
 					final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
 					final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
 
@@ -567,18 +573,40 @@ public class MoBIE
 		{
 			final SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
 			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator();
-			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableDirectory( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV );
+			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV );
 			final Set< AnnotatedSpot > annotatedSpots = tableModel.annotations();
 			final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDataSource.getName(), annotatedSpots, 1.0 );
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
 			final AnnotatedLabelImage spotsImage = new AnnotatedLabelImage( labelImage, spotAnnData );
-			DataStore.putImage( spotsImage );
+
+			// Spots image, built from spots table
+			DataStore.putRawImage( spotsImage );
 		}
 
-		if ( dataSource instanceof RegionTableDataSource  )
+		if ( dataSource instanceof RegionDataSource )
 		{
-			final RegionTableDataSource regionTableDataSource = ( RegionTableDataSource ) dataSource;
-			DataStore.putData( regionTableDataSource );
+			// Region images cannot be fully initialised
+			// here because the region annotations can refer
+			// to images that are created later by means of a
+			// transformation.
+			// However, we can already load the region table here.
+
+			final RegionDataSource regionDataSource = ( RegionDataSource ) dataSource;
+			final Set< String > regionIDs = regionDataSource.sources.keySet();
+			Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( regionDataSource.tableData ), TableDataFormat.DEFAULT_TSV ) );
+
+			// Only keep the subset of rows that are actually needed.
+			final ArrayList< Integer > dropRows = new ArrayList<>();
+			final int rowCount = table.rowCount();
+			for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
+			{
+				final String regionId = table.row( rowIndex ).getObject( ColumnNames.REGION_ID ).toString();
+				if ( ! regionIDs.contains( regionId ) )
+					dropRows.add( rowIndex );
+			}
+			table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
+			regionDataSource.table = table;
+			DataStore.putRawData( regionDataSource );
 		}
 
 		if ( log != null )
@@ -587,7 +615,7 @@ public class MoBIE
 
 	public Set< String > getTablePaths( Map< TableDataFormat, StorageLocation > tableData )
 	{
-		final String tableDirectory = getTableDirectory( tableData );
+		final String tableDirectory = getTableStore( tableData );
 		String[] fileNames = IOHelper.getFileNames( tableDirectory );
 		//"https://raw.githubusercontent.com/mobie/clem-example-project/main/data/hela/tables/em-detail"
 		final Set< String > columnPaths = new HashSet<>();
@@ -596,9 +624,9 @@ public class MoBIE
 		return columnPaths;
 	}
 
-	public List< DataSource > getSources( Set< String > imageNames )
+	public List< DataSource > getDataSources( Set< String > dataName )
 	{
-		final List< DataSource > dataSources = imageNames.stream().filter( name -> ( getDataset().sources.containsKey( name ) ) ).map( s -> getDataset().sources.get( s ) ).collect( Collectors.toList() );
+		final List< DataSource > dataSources = dataName.stream().filter( name -> ( getDataset().sources.containsKey( name ) ) ).map( s -> getDataset().sources.get( s ) ).collect( Collectors.toList() );
 		return dataSources;
 	}
 }

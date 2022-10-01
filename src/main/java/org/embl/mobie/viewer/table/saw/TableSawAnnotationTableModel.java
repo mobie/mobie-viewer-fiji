@@ -11,7 +11,6 @@ import tech.tablesaw.aggregate.Summarizer;
 import tech.tablesaw.api.NumericColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
-import tech.tablesaw.io.csv.CsvReadOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,7 +48,18 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 		requestedColumnPaths.add( IOHelper.combinePath( dataStore, defaultColumns ) );
 	}
 
+	// Use this constructor if the default table is loaded already
+	public TableSawAnnotationTableModel( String name, TableSawAnnotationCreator< A > annotationCreator, String tableStore, String defaultColumns, Table defaultTable )
+	{
+		this( name, annotationCreator, tableStore, defaultColumns );
+		initTable( defaultTable );
+		loadedColumnPaths.add( requestedColumnPaths.iterator().next() );
+	}
+
 	// https://jtablesaw.github.io/tablesaw/userguide/tables.html
+
+	// ensure that the default and
+	// all optional additional tables are loaded
 	private synchronized Table table()
 	{
 		for ( String columnPath : requestedColumnPaths )
@@ -59,51 +69,33 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 
 			loadedColumnPaths.add( columnPath );
 
-			try
-			{
-				//IJ.log( "Open table: " + columnPath );
-				System.out.println( columnPath );
-				final String tableContent = IOHelper.read( columnPath );
-				// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
-				CsvReadOptions.Builder builder = CsvReadOptions.builderFromString( tableContent ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" );
-				final Table rows = Table.read().usingOptions( builder );
+			final Table rows = TableSawHelper.readTable( columnPath );
 
-				if ( table == null )
-				{
-					table = rows;
-					table.setName( dataSourceName );
-					final int rowCount = table.rowCount();
-					final ArrayList< Integer > dropRows = new ArrayList<>();
-					for ( int rowIndex = 0, consecutiveRowIndex = 0; rowIndex < rowCount; rowIndex++ )
-					{
-						final A annotation = annotationCreator.create( () -> table, rowIndex );
-						if ( annotation == null )
-						{
-							// This can happen, e.g., for a region table,
-							// where only a subset of the rows is used.
-							dropRows.add( rowIndex );
-							continue;
-						}
-						annotationToRowIndex.put( annotation, consecutiveRowIndex );
-						rowIndexToAnnotation.put( consecutiveRowIndex, annotation );
-						consecutiveRowIndex++;
-					}
-					if ( dropRows.size() > 0 )
-						table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
-				}
-				else
-				{
-					System.out.println( rows.columnNames() );
-					table = table.joinOn( annotation( 0 ).idColumns()  ).inner( rows );
-				}
-			}
-			catch ( IOException e )
+			if ( table == null ) // init table
 			{
-				throw new RuntimeException( e );
+				initTable( rows );
+			}
+			else // join additional table
+			{
+				final String[] mergeByColumnNames = annotation( 0 ).idColumns();
+				table = table.joinOn( mergeByColumnNames ).inner( rows );
 			}
 		}
 
 		return table;
+	}
+
+	private void initTable( Table rows )
+	{
+		table = rows;
+		table.setName( dataSourceName );
+		final int rowCount = table.rowCount();
+		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
+		{
+			final A annotation = annotationCreator.create( () -> table, rowIndex );
+			annotationToRowIndex.put( annotation, rowIndex );
+			rowIndexToAnnotation.put( rowIndex, annotation );
+		}
 	}
 
 	private HashMap< A, Integer > annotationToRowIndex()

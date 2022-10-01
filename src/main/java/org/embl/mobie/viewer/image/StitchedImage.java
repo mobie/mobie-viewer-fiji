@@ -204,7 +204,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				// Here, we don't need to use InitialisedMetadataImage again,
 				// because those tiles are already InitialisedMetadataImages.
 				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getTileImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
-				final Set< Image< ? > > stitchedImages = DataStore.getImageSet( tileNames );
+				final Set< Image< ? > > stitchedImages = DataStore.getViewImageSet( tileNames );
 				for ( Image< ? > containedImage : stitchedImages )
 				{
 					if ( containedImage instanceof StitchedImage )

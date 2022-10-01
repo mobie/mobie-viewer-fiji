@@ -36,7 +36,7 @@ import ij.IJ;
 import net.imglib2.converter.Converter;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.color.opacity.AdjustableOpacityColorConverter;
-import org.embl.mobie.viewer.display.ImageDisplay;
+import org.embl.mobie.viewer.serialize.display.ImageDisplay;
 import org.embl.mobie.viewer.image.Image;
 import net.imglib2.display.RealARGBColorConverter;
 import net.imglib2.type.numeric.ARGBType;

@@ -26,12 +26,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.display;
+package org.embl.mobie.viewer.serialize.display;
 
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.source.StorageLocation;
-import org.embl.mobie.viewer.table.TableDataFormat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,9 +65,9 @@ public class RegionDisplay< AR extends AnnotatedRegion > extends AnnotationDispl
 	}
 
 	@Override
-	public List< String > getSources()
+	public List< String > getImageSources()
 	{
-		// there is only one source that can be displayed,
+		// there is only one image source that can be displayed,
 		// namely the AnnotatedLabelImage that was
 		final ArrayList< String > sources = new ArrayList<>();
 		sources.add( getName() );

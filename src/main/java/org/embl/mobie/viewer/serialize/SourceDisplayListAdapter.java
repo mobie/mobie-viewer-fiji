@@ -36,11 +36,11 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
-import org.embl.mobie.viewer.display.ImageDisplay;
-import org.embl.mobie.viewer.display.RegionDisplay;
-import org.embl.mobie.viewer.display.SegmentationDisplay;
-import org.embl.mobie.viewer.display.Display;
-import org.embl.mobie.viewer.display.SpotDisplay;
+import org.embl.mobie.viewer.serialize.display.ImageDisplay;
+import org.embl.mobie.viewer.serialize.display.RegionDisplay;
+import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
+import org.embl.mobie.viewer.serialize.display.Display;
+import org.embl.mobie.viewer.serialize.display.SpotDisplay;
 import org.embl.mobie.viewer.serialize.transformation.Transformation;
 
 import java.lang.reflect.Type;

@@ -46,7 +46,7 @@ import org.embl.mobie.viewer.command.ManualRegistrationCommand;
 import org.embl.mobie.viewer.command.ScreenShotMakerCommand;
 import org.embl.mobie.viewer.command.ShowRasterImagesCommand;
 import org.embl.mobie.viewer.command.SourceAndConverterBlendingModeChangerCommand;
-import org.embl.mobie.viewer.display.AbstractDisplay;
+import org.embl.mobie.viewer.serialize.display.AbstractDisplay;
 import org.embl.mobie.viewer.annotation.SliceViewAnnotationSelector;
 import org.embl.mobie.viewer.source.SourceHelper;
 import org.scijava.ui.behaviour.ClickBehaviour;

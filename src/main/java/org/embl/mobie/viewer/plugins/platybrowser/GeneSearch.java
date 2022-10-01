@@ -38,7 +38,7 @@ import org.embl.mobie.viewer.serialize.DataSource;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.ImageDataSource;
 import org.embl.mobie.viewer.image.Image;
-import org.embl.mobie.viewer.view.View;
+import org.embl.mobie.viewer.serialize.View;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
@@ -100,9 +100,9 @@ public class GeneSearch
 		if ( prosprSources == null )
 		{
 			prosprSources = new HashMap<>();
-			moBIE.initDataSources( moBIE.getSources( prosprSourceNames ) );
+			moBIE.initDataSources( moBIE.getDataSources( prosprSourceNames ) );
 			for ( String prosprSourceName : prosprSourceNames )
-				prosprSources.put( prosprSourceName, DataStore.getCurrentImage( prosprSourceName ) );
+				prosprSources.put( prosprSourceName, DataStore.getViewImage( prosprSourceName ) );
 		}
 
 		final Map< String, Double > geneExpressionLevels = runSearchAndGetLocalExpression( prosprSources );

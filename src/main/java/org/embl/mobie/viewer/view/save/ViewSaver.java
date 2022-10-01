@@ -39,7 +39,7 @@ import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.ui.UserInterfaceHelper;
 import org.embl.mobie.viewer.view.AdditionalViews;
-import org.embl.mobie.viewer.view.View;
+import org.embl.mobie.viewer.serialize.View;
 import org.apache.commons.io.FilenameUtils;
 import org.embl.mobie.io.github.GitHubUtils;
 

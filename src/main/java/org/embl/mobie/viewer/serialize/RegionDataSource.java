@@ -26,9 +26,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.display;
+package org.embl.mobie.viewer.serialize;
 
-public interface VisibilityListener
+import org.embl.mobie.viewer.source.StorageLocation;
+import org.embl.mobie.viewer.table.TableDataFormat;
+import script.imglib.math.Abs;
+import tech.tablesaw.api.Table;
+
+import java.util.List;
+import java.util.Map;
+
+
+// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/818
+public class RegionDataSource extends AbstractDataSource
 {
-	void visibility( boolean isVisible );
+	// Serialization
+
+	// table with each row corresponding to one
+	// regionId, annotating one or multiple images
+	public Map< TableDataFormat, StorageLocation > tableData;
+
+	// annotationId to image sources
+	// one annotationId can annotate several images
+	public Map< String, List< String > > sources;
+
+	// Runtime
+	public Table table;
+
 }

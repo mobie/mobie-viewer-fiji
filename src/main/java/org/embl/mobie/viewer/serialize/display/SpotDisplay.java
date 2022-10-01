@@ -26,15 +26,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.display;
+package org.embl.mobie.viewer.serialize.display;
 
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.Annotation;
-import org.embl.mobie.viewer.source.StorageLocation;
-import org.embl.mobie.viewer.table.TableDataFormat;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,7 +60,7 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 	}
 
 	@Override
-	public List< String > getSources()
+	public List< String > getImageSources()
 	{
 		return sources;
 	}

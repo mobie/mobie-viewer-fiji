@@ -34,7 +34,7 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import org.embl.mobie.viewer.display.Display;
+import org.embl.mobie.viewer.serialize.display.Display;
 import org.embl.mobie.viewer.serialize.transformation.Transformation;
 import org.embl.mobie.viewer.transform.ViewerTransform;
 

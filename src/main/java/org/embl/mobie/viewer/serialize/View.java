@@ -26,9 +26,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.view;
+package org.embl.mobie.viewer.serialize;
 
-import org.embl.mobie.viewer.display.Display;
+import org.embl.mobie.viewer.serialize.display.Display;
+import org.embl.mobie.viewer.serialize.display.RegionDisplay;
+import org.embl.mobie.viewer.serialize.display.SpotDisplay;
 import org.embl.mobie.viewer.serialize.transformation.Transformation;
 import org.embl.mobie.viewer.transform.ViewerTransform;
 
@@ -39,6 +41,8 @@ import java.util.Map;
 
 public class View
 {
+	// Serialisation (do not change names of fields!)
+	//
 	private String uiSelectionGroup;
 	private List< Display > sourceDisplays;
 	private List< Transformation > sourceTransforms;
@@ -63,18 +67,34 @@ public class View
 		this.isExclusive = isExclusive;
 	}
 
-	// map of image source name to the
-	// initiator of opening this image
+	// map of data source name to the
+	// object that requested opening
+	// of this data in this view
 	public Map< String, Object > getSources()
 	{
 		final Map< String, Object > sources = new HashMap<>();
 
-		for ( Display< ? > display : getSourceDisplays() )
+		for ( Display< ? > display : getDisplays() )
 		{
-			for ( String source : display.getSources() )
+			for ( String source : display.getImageSources() )
 			{
 				sources.put( source, display );
 			}
+
+			if ( display instanceof RegionDisplay )
+			{
+				// FIXME:
+				// https://github.com/mobie/mobie.github.io/issues/88
+				sources.put( ( ( RegionDisplay ) display ).tableSource, display );
+			}
+
+			if ( display instanceof SpotDisplay )
+			{
+				// FIXME:
+				// https://github.com/mobie/mobie.github.io/issues/88
+				//sources.put( ( ( RegionDisplay ) display ).tableSource, display );
+			}
+
 		}
 
 		for ( Transformation imageTransformation : getTransformations() )
@@ -102,7 +122,7 @@ public class View
 			return sourceTransforms;
 	}
 
-	public List< Display > getSourceDisplays()
+	public List< Display > getDisplays()
 	{
 		if ( sourceDisplays == null )
 			return new ArrayList<>();

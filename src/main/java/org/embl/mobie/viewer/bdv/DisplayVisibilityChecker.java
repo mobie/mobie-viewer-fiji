@@ -29,7 +29,7 @@
 package org.embl.mobie.viewer.bdv;
 
 import bdv.util.BdvHandle;
-import org.embl.mobie.viewer.display.Display;
+import org.embl.mobie.viewer.serialize.display.Display;
 import net.imglib2.FinalRealInterval;
 import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 

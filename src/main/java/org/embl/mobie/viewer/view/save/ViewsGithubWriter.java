@@ -37,7 +37,7 @@ import org.embl.mobie.viewer.serialize.AdditionalViewsJsonParser;
 import org.embl.mobie.viewer.serialize.Dataset;
 import org.embl.mobie.viewer.serialize.DatasetJsonParser;
 import org.embl.mobie.viewer.view.AdditionalViews;
-import org.embl.mobie.viewer.view.View;
+import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.io.github.GitHubContentGetter;
 import org.embl.mobie.io.github.GitHubFileCommitter;
 import org.embl.mobie.io.github.GitLocation;

@@ -30,7 +30,7 @@ package org.embl.mobie.viewer.bdv.view;
 
 import bdv.viewer.SourceAndConverter;
 import org.embl.mobie.viewer.MoBIE;
-import org.embl.mobie.viewer.display.AbstractDisplay;
+import org.embl.mobie.viewer.serialize.display.AbstractDisplay;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
 import java.util.HashMap;

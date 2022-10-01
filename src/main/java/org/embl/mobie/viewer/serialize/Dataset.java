@@ -30,7 +30,6 @@ package org.embl.mobie.viewer.serialize;
 
 import org.embl.mobie.viewer.transform.PositionViewerTransform;
 import org.embl.mobie.viewer.transform.ViewerTransform;
-import org.embl.mobie.viewer.view.View;
 
 import java.util.Map;
 

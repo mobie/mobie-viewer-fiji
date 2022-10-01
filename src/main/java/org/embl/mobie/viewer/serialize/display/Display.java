@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.display;
+package org.embl.mobie.viewer.serialize.display;
 
 import org.embl.mobie.viewer.bdv.render.BlendingMode;
 import org.embl.mobie.viewer.image.Image;
@@ -54,7 +54,7 @@ import java.util.Set;
 public interface Display< T >
 {
 	String getName();
-	List< String > getSources();
+	List< String > getImageSources();
 	BlendingMode getBlendingMode();
 	double getOpacity();
 	boolean isVisible();

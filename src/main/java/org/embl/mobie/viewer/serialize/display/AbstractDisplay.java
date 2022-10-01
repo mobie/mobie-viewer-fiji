@@ -26,27 +26,62 @@
  * POSSIBILITY OF SUCH DAMAGE.
  * #L%
  */
-package org.embl.mobie.viewer.serialize;
+package org.embl.mobie.viewer.serialize.display;
 
-import org.embl.mobie.viewer.source.StorageLocation;
-import org.embl.mobie.viewer.table.TableDataFormat;
-import script.imglib.math.Abs;
+import bdv.viewer.SourceAndConverter;
+import org.embl.mobie.viewer.bdv.render.BlendingMode;
+import org.embl.mobie.viewer.bdv.view.SliceViewer;
+import org.embl.mobie.viewer.image.Image;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
-
-// TODO: https://github.com/mobie/mobie-viewer-fiji/issues/818
-public class RegionTableDataSource extends AbstractDataSource
+public abstract class AbstractDisplay< T > implements Display< T >
 {
 	// Serialization
+	protected String name;
+	protected double opacity = 1.0;
+	protected boolean visible = true;
+	protected BlendingMode blendingMode;
 
-	// table with each row corresponding to one
-	// regionId, annotating one or multiple images
-	public Map< TableDataFormat, StorageLocation > tableData;
+	// Runtime
+	public transient Map< String, SourceAndConverter< T > > nameToSourceAndConverter = new HashMap<>();
+	private transient Set< Image< T > > images = new HashSet<>();
+	public transient SliceViewer sliceViewer;
 
-	// annotationId to image sources
-	// one annotationId can annotate several images
-	public transient Map< String, List< String > > sources;
+	@Override
+	public String getName()
+	{
+		return name;
+	}
+
+	@Override
+	public double getOpacity()
+	{
+		return opacity;
+	}
+
+	@Override
+	public boolean isVisible() { return visible; }
+
+	@Override
+	public BlendingMode getBlendingMode()
+	{
+		return BlendingMode.Sum;
+	}
+
+	@Override
+	public Set< Image< T > > getImages()
+	{
+		return images;
+	}
+
+	@Override
+	public void addImage( Image< T > image )
+	{
+		images.add( image );
+	}
 
 }

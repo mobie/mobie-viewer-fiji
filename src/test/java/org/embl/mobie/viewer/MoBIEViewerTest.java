@@ -28,21 +28,7 @@
  */
 package org.embl.mobie.viewer;
 
-import bdv.viewer.SourceAndConverter;
-import net.imagej.ImageJ;
-import net.imagej.patcher.LegacyInjector;
-import org.embl.mobie.viewer.display.AnnotationDisplay;
-import org.embl.mobie.viewer.display.SegmentationDisplay;
-import org.embl.mobie.viewer.source.BoundarySource;
-import org.embl.mobie.viewer.source.SourceHelper;
-import org.embl.mobie.viewer.view.View;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
 public class MoBIEViewerTest
 {

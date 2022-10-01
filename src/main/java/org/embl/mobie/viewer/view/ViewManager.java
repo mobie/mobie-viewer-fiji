@@ -40,7 +40,6 @@ import org.embl.mobie.io.util.IOHelper;
 import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
-import org.embl.mobie.viewer.annotation.Segment;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.bdv.view.AnnotationSliceView;
@@ -53,18 +52,19 @@ import org.embl.mobie.viewer.color.MobieColoringModel;
 import org.embl.mobie.viewer.color.NumericAnnotationColoringModel;
 import org.embl.mobie.viewer.color.lut.ColumnARGBLut;
 import org.embl.mobie.viewer.color.lut.LUTs;
-import org.embl.mobie.viewer.display.AbstractDisplay;
-import org.embl.mobie.viewer.display.AnnotationDisplay;
-import org.embl.mobie.viewer.display.Display;
-import org.embl.mobie.viewer.display.ImageDisplay;
-import org.embl.mobie.viewer.display.RegionDisplay;
-import org.embl.mobie.viewer.display.SegmentationDisplay;
+import org.embl.mobie.viewer.serialize.display.AbstractDisplay;
+import org.embl.mobie.viewer.serialize.display.AnnotationDisplay;
+import org.embl.mobie.viewer.serialize.display.Display;
+import org.embl.mobie.viewer.serialize.display.ImageDisplay;
+import org.embl.mobie.viewer.serialize.display.RegionDisplay;
+import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.serialize.DataSource;
 import org.embl.mobie.viewer.image.AnnotatedImage;
 import org.embl.mobie.viewer.image.AnnotatedStitchedImage;
-import org.embl.mobie.viewer.serialize.RegionTableDataSource;
+import org.embl.mobie.viewer.serialize.RegionDataSource;
+import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.viewer.serialize.transformation.GridTransformation;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.CroppedImage;
@@ -72,7 +72,6 @@ import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.RegionLabelImage;
 import org.embl.mobie.viewer.image.StitchedImage;
-import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.TableDataFormat;
@@ -82,16 +81,13 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegionCreator;
 import org.embl.mobie.viewer.serialize.transformation.AbstractGridTransformation;
-import org.embl.mobie.viewer.transform.AnnotatedSegmentAffineTransformer;
-import org.embl.mobie.viewer.transform.AnnotationTransformer;
+import org.embl.mobie.viewer.transform.ImageTransformer;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.TransformHelper;
-import org.embl.mobie.viewer.transform.image.AffineTransformedImage;
 import org.embl.mobie.viewer.serialize.transformation.CropTransformation;
 import org.embl.mobie.viewer.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.viewer.serialize.transformation.Transformation;
-import org.embl.mobie.viewer.transform.TransformedAnnData;
 import org.embl.mobie.viewer.serialize.transformation.AffineTransformation;
 import org.embl.mobie.viewer.transform.image.GridTransformer;
 import org.embl.mobie.viewer.ui.UserInterface;
@@ -267,10 +263,10 @@ public class ViewManager
 		}
 
 		// init and transform
-		initImages( view );
+		initData( view );
 
 		// display the data
-		final List< Display > displays = view.getSourceDisplays();
+		final List< Display > displays = view.getDisplays();
 		for ( Display display : displays )
 			show( display );
 
@@ -295,17 +291,17 @@ public class ViewManager
 	}
 
 	// initialize and transform
-	public void initImages( View view )
+	public void initData( View view )
 	{
-		// fetch names of all sources that are
+		// fetch names of all data sources that are
 		// either to be shown or to be transformed
 		final Map< String, Object > sourceToTransformOrDisplay = view.getSources();
 		if ( sourceToTransformOrDisplay.size() == 0 ) return;
 
 		// instantiate source that can be directly opened
-		// ( other source may be created later,
+		// ( other sources may be created later,
 		// by a display or transformation )
-		final List< DataSource > dataSources = moBIE.getSources( sourceToTransformOrDisplay.keySet() );
+		final List< DataSource > dataSources = moBIE.getDataSources( sourceToTransformOrDisplay.keySet() );
 
 		for ( DataSource dataSource : dataSources )
 		{
@@ -335,17 +331,14 @@ public class ViewManager
 			}
 		}
 
-		// At the moment, we model all data as an Image,
-		// which are created here from the respective data source.
-		// They are also added to the image store.
 		moBIE.initDataSources( dataSources );
 
-		DataStore.registerAsCurrent( dataSources );
+		DataStore.registerAsViewData( dataSources );
 
 		// transform images
 		// this may create new images with new names
 
-		// TODO Make this an image transformer class
+		// TODO Factor this out int an image transformer class
 
 		final List< Transformation > transformations = view.getTransformations();
 		if ( transformations != null )
@@ -356,41 +349,17 @@ public class ViewManager
 
 				if ( transformation instanceof AffineTransformation )
 				{
-					final AffineTransform3D affineTransform3D = ( ( AffineTransformation< ? > ) transformation ).getAffineTransform3D();
-					final Set< Image< ? > > images = DataStore.getImageSet( transformation.targetImageNames() );
+					final AffineTransformation< ? > affineTransformation = ( AffineTransformation< ? > ) transformation;
+
+					final Set< Image< ? > > images = DataStore.getViewImageSet( transformation.targetImageNames() );
+
 					for ( Image< ? > image : images )
 					{
-						final String transformedImageName = ( ( AffineTransformation< ? > ) transformation ).getTransformedImageName( image.getName() );
-
-						if ( image instanceof AnnotatedLabelImage )
-						{
-							// Transform label image
-							final AnnotatedLabelImage annotatedLabelImage = ( AnnotatedLabelImage ) image;
-							final AffineTransformedImage< ? > transformedLabelImage = new AffineTransformedImage( image, transformedImageName, affineTransform3D );
-
-							// Transform annotations
-							TransformedAnnData transformedAnnData;
-							final Object annotation = annotatedLabelImage.getAnnData().getTable().annotations().iterator().next();
-							if ( annotation instanceof Segment )
-							{
-								final AnnData< ? extends AnnotatedSegment > annData = annotatedLabelImage.getAnnData();
-								final AnnotationTransformer annotationTransformer = new AnnotatedSegmentAffineTransformer( affineTransform3D );
-								transformedAnnData = new TransformedAnnData( annData, annotationTransformer );
-							}
-							else
-							{
-								throw new UnsupportedOperationException("Transformation of " + annotation.getClass().getName() + " is currently not supported");
-							}
-
-							final AnnotatedLabelImage< ? extends AnnotatedSegment > transformedAnnotatedLabelImage = new AnnotatedLabelImage( transformedLabelImage, transformedAnnData );
-
-							DataStore.putImage( transformedAnnotatedLabelImage );
-						}
-						else
-						{
-							final AffineTransformedImage< ? > affineTransformedImage = new AffineTransformedImage( image, transformedImageName, affineTransform3D );
-							DataStore.putImage( affineTransformedImage );
-						}
+						final Image< ? > transformedImage =
+							new ImageTransformer( image ).getTransformedImage(
+									affineTransformation.getAffineTransform3D(),
+									affineTransformation.getTransformedImageName( image.getName() ) );
+						DataStore.putViewImage( transformedImage );
 					}
 				}
 				else if ( transformation instanceof CropTransformation )
@@ -400,19 +369,19 @@ public class ViewManager
 					for ( String imageName : targetImageNames )
 					{
 						final CroppedImage< ? > croppedImage = new CroppedImage<>(
-								DataStore.getCurrentImage( imageName ),
+								DataStore.getViewImage( imageName ),
 								cropTransformation.getTransformedImageName( imageName ),
 								cropTransformation.min,
 								cropTransformation.max,
 								cropTransformation.centerAtOrigin );
-						DataStore.putImage( croppedImage );
+						DataStore.putViewImage( croppedImage );
 					}
 				}
 				else if ( transformation instanceof MergedGridTransformation )
 				{
 					final MergedGridTransformation mergedGridTransformation = ( MergedGridTransformation ) transformation;
 					final List< String > targetImageNames = transformation.targetImageNames();
-					final List< ? extends Image< ? > > targetImages = DataStore.getImageList( targetImageNames );
+					final List< ? extends Image< ? > > targetImages = DataStore.getViewImageList( targetImageNames );
 
 					// Get the image that contains the metadata for
 					// the image grid
@@ -424,7 +393,7 @@ public class ViewManager
 					}
 					else
 					{
-						metadataImage = DataStore.getCurrentImage( metadataSource );
+						metadataImage = DataStore.getViewImage( metadataSource );
 					}
 
 					// Create the stitched grid image
@@ -432,12 +401,12 @@ public class ViewManager
 					if ( targetImages.get( 0 ) instanceof AnnotatedImage )
 					{
 						final AnnotatedStitchedImage annotatedStitchedImage = new AnnotatedStitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
-						DataStore.putImage( annotatedStitchedImage );
+						DataStore.putViewImage( annotatedStitchedImage );
 					}
 					else
 					{
 						final StitchedImage stitchedImage = new StitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
-						DataStore.putImage( stitchedImage );
+						DataStore.putViewImage( stitchedImage );
 					}
 				}
 				else if ( transformation instanceof GridTransformation )
@@ -448,7 +417,7 @@ public class ViewManager
 					final List< List< ? extends Image< ? > > > nestedImages = new ArrayList<>();
 					for ( List< String > sources : nestedSources )
 					{
-						final List< ? extends Image< ? > > images = DataStore.getImageList( sources );
+						final List< ? extends Image< ? > > images = DataStore.getViewImageList( sources );
 						nestedImages.add( images );
 					}
 
@@ -476,7 +445,7 @@ public class ViewManager
 
 					final List< int[] > gridPositions = gridTransformation.positions == null ? TransformHelper.createGridPositions( nestedSources.size() ) : gridTransformation.positions;
 
-					new GridTransformer().transform( nestedImages, gridTransformation.transformedNames, gridPositions, tileRealDimensions, false, offset );
+					new GridTransformer().transform( nestedImages, gridTransformation.transformedNames, gridPositions, tileRealDimensions, gridTransformation.centerAtOrigin, offset );
 				}
 				else
 				{
@@ -485,15 +454,13 @@ public class ViewManager
 			}
 		}
 
-		// instantiate images that are created by a display
-		//
-		for ( Display< ? > display : view.getSourceDisplays() )
+		// Instantiate images that are created by
+		// RegionDisplay
+		for ( Display< ? > display : view.getDisplays() )
 		{
 			// https://github.com/mobie/mobie-viewer-fiji/issues/818
 			if ( display instanceof RegionDisplay )
 			{
-				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
-				final RegionTableDataSource regionTableDataSource = ( RegionTableDataSource  ) DataStore.getRawData( regionDisplay.tableSource );
 				// Note that the imageNames that are referred
 				// to here must exist in this view.
 				// Thus the {@code RegionDisplay} must be build
@@ -501,15 +468,21 @@ public class ViewManager
 				// which may create new images
 				// that could be referred to here.
 
+				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
+
+				final RegionDataSource regionDataSource = ( RegionDataSource ) DataStore.getRawData( regionDisplay.tableSource );
 				final Map< String, List< String > > regionIdToImageNames = regionDisplay.sources;
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( regionIdToImageNames );
-				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableDirectory( regionTableDataSource.tableData ), TableDataFormat.DEFAULT_TSV );
+
+				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableStore( regionDataSource.tableData ), TableDataFormat.DEFAULT_TSV, regionDataSource.table );
+
+
 				final Set< AnnotatedRegion > annotatedRegions = tableModel.annotations();
 				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotatedRegions );
 				final DefaultAnnData< AnnotatedRegion > regionAnnData = new DefaultAnnData<>( tableModel );
 				final AnnotatedLabelImage regionImage = new AnnotatedLabelImage( labelImage, regionAnnData );
 
-				DataStore.putImage( regionImage );
+				DataStore.putViewImage( regionImage );
 			}
 		}
 	}
@@ -520,8 +493,8 @@ public class ViewManager
 
 		if ( display instanceof ImageDisplay )
 		{
-			for ( String name : display.getSources() )
-				display.addImage( ( Image ) DataStore.getCurrentImage( name ) );
+			for ( String name : display.getImageSources() )
+				display.addImage( ( Image ) DataStore.getViewImage( name ) );
 			showImageDisplay( ( ImageDisplay ) display );
 		}
 		else if ( display instanceof AnnotationDisplay )
@@ -537,12 +510,12 @@ public class ViewManager
 
 			final AnnotationDisplay< A > annotationDisplay = ( AnnotationDisplay ) display;
 
-			// Add all images that are shown by this display.
+			// Register all images that are shown by this display.
 			// This is needed for the annotationDisplay to create the annData,
 			// combining the annData from all the annotated images.
-			for ( String name : display.getSources() )
+			for ( String name : display.getImageSources() )
 			{
-				final Image< ? > image = DataStore.getCurrentImage( name );
+				final Image< ? > image = DataStore.getViewImage( name );
 				annotationDisplay.addImage( ( AnnotatedImage ) image );
 			}
 
@@ -745,7 +718,7 @@ public class ViewManager
 
 		Set<String> currentlyDisplayedSources = new HashSet<>();
 		for ( Display display: currentDisplays )
-			currentlyDisplayedSources.addAll( display.getSources() );
+			currentlyDisplayedSources.addAll( display.getImageSources() );
 
 		for ( Transformation imageTransformation : imageTransformersCopy )
 		{

@@ -36,10 +36,10 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 		this.imageNames = imageNames;
 
 		final Row row = tableSupplier.get().row( rowIndex );
-		// fetch region properties from table row
 
 		this.regionId = row.getObject( ColumnNames.REGION_ID ).toString();
-		this.label = rowIndex; //regionId.hashCode();
+		// 0 is the background label, thus we add 1
+		this.label = 1 + rowIndex; //regionId.hashCode();
 		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;
 		this.source = tableSupplier.get().name();
 		this.uuid = timePoint + ";" + regionId;
@@ -108,7 +108,7 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	public RealMaskRealInterval getMask()
 	{
 		if ( realMaskRealInterval == null )
-			realMaskRealInterval = TransformHelper.getUnionMask( DataStore.getImageSet( imageNames ), timePoint() );
+			realMaskRealInterval = TransformHelper.getUnionMask( DataStore.getViewImageSet( imageNames ), timePoint() );
 
 		return realMaskRealInterval;
 	}
