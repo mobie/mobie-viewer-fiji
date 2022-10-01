@@ -103,7 +103,9 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public Set< TA > annotations()
 	{
-		return rowToIndex.keySet();
+		// FIXME This must trigger initialisation of rowToIndex
+		throw new RuntimeException( "FIXME: transformed annotation table model" );
+		//return rowToIndex.keySet();
 	}
 
 	@Override

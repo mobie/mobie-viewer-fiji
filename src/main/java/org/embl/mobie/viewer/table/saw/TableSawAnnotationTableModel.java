@@ -98,7 +98,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 		}
 	}
 
-	private HashMap< A, Integer > annotationToRowIndex()
+	private synchronized HashMap< A, Integer > annotationToRowIndex()
 	{
 		table();
 		return annotationToRowIndex;

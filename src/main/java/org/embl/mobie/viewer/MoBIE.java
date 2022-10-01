@@ -592,19 +592,7 @@ public class MoBIE
 			// However, we can already load the region table here.
 
 			final RegionDataSource regionDataSource = ( RegionDataSource ) dataSource;
-			final Set< String > regionIDs = regionDataSource.sources.keySet();
 			Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( regionDataSource.tableData ), TableDataFormat.DEFAULT_TSV ) );
-
-			// Only keep the subset of rows that are actually needed.
-			final ArrayList< Integer > dropRows = new ArrayList<>();
-			final int rowCount = table.rowCount();
-			for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
-			{
-				final String regionId = table.row( rowIndex ).getObject( ColumnNames.REGION_ID ).toString();
-				if ( ! regionIDs.contains( regionId ) )
-					dropRows.add( rowIndex );
-			}
-			table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
 			regionDataSource.table = table;
 			DataStore.putRawData( regionDataSource );
 		}

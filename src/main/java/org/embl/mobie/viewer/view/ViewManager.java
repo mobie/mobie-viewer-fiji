@@ -73,6 +73,7 @@ import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.RegionLabelImage;
 import org.embl.mobie.viewer.image.StitchedImage;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
+import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.TableView;
@@ -100,6 +101,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformAdjuster;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
+import tech.tablesaw.api.Table;
 
 import javax.swing.*;
 import java.awt.*;
@@ -109,6 +111,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class ViewManager
@@ -445,7 +448,8 @@ public class ViewManager
 
 					final List< int[] > gridPositions = gridTransformation.positions == null ? TransformHelper.createGridPositions( nestedSources.size() ) : gridTransformation.positions;
 
-					new GridTransformer().transform( nestedImages, gridTransformation.transformedNames, gridPositions, tileRealDimensions, gridTransformation.centerAtOrigin, offset );
+					final List< ? extends Image< ? > > transformedImages = new GridTransformer().getTransformedImages( nestedImages, gridTransformation.transformedNames, gridPositions, tileRealDimensions, gridTransformation.centerAtOrigin, offset );
+					DataStore.putViewImages( transformedImages );
 				}
 				else
 				{
@@ -469,13 +473,28 @@ public class ViewManager
 				// that could be referred to here.
 
 				final RegionDisplay< ? > regionDisplay = ( RegionDisplay< ? > ) display;
-
 				final RegionDataSource regionDataSource = ( RegionDataSource ) DataStore.getRawData( regionDisplay.tableSource );
+
+				// Table has been loaded already during
+				// initialisation of that data source
+				Table table = regionDataSource.table;
+
+				// Only keep the subset of rows that are actually needed.
 				final Map< String, List< String > > regionIdToImageNames = regionDisplay.sources;
+				final Set< String > regionIDs = regionIdToImageNames.keySet();
+				final ArrayList< Integer > dropRows = new ArrayList<>();
+				final int rowCount = table.rowCount();
+				for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
+				{
+					final String regionId = table.row( rowIndex ).getObject( ColumnNames.REGION_ID ).toString();
+					if ( ! regionIDs.contains( regionId ) )
+						dropRows.add( rowIndex );
+				}
+				table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
+
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( regionIdToImageNames );
 
-				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableStore( regionDataSource.tableData ), TableDataFormat.DEFAULT_TSV, regionDataSource.table );
-
+				final TableSawAnnotationTableModel< AnnotatedRegion > tableModel = new TableSawAnnotationTableModel( display.getName(), annotationCreator, moBIE.getTableStore( regionDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table );
 
 				final Set< AnnotatedRegion > annotatedRegions = tableModel.annotations();
 				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotatedRegions );

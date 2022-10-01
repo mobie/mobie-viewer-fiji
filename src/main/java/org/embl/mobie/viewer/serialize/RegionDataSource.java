@@ -46,9 +46,6 @@ public class RegionDataSource extends AbstractDataSource
 	// regionId, annotating one or multiple images
 	public Map< TableDataFormat, StorageLocation > tableData;
 
-	// annotationId to image sources
-	// one annotationId can annotate several images
-	public Map< String, List< String > > sources;
 
 	// Runtime
 	public Table table;

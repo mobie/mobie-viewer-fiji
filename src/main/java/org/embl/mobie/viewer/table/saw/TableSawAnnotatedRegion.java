@@ -110,6 +110,7 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 		if ( realMaskRealInterval == null )
 			realMaskRealInterval = TransformHelper.getUnionMask( DataStore.getViewImageSet( imageNames ), timePoint() );
 
+		//System.out.println( regionId + ": " + realMaskRealInterval.toString() );
 		return realMaskRealInterval;
 	}
 

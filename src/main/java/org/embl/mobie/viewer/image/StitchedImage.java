@@ -73,7 +73,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 {
 	protected final T type;
 	protected final String name;
-	protected final List< ? extends Image< T > > images;
+	protected List< ? extends Image< T > > images;
+	protected List< ? extends Image< ? > > translatedImages;
 	protected final List< int[] > positions;
 	protected final double relativeCellMargin;
 	protected int[][] tileDimensions;
@@ -177,20 +178,17 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			final List< String > imagesNamesAtGridPosition = new ArrayList<>();
 
 			// Only the metadataImage may have been loaded.
-			// Avoid loading of the other images by providing the metadata
-			// of the reference image (note that for a StitchedImage all images
-			// are required to have the same metadata).
+			// Avoid premature loading of the other images
+			// by providing the metadata
+			// of the reference image.
+			// Note that for a StitchedImage all images
+			// are required to have the same metadata.
 			if ( image == metadataImage )
 			{
 				imagesAtGridPosition.add( metadataImage );
-
 			}
 			else
 			{
-				// The reason for doing this is not the translation,
-				// but the fact that a RegionLabelImage may be build to
-				// annotate those images and that would trigger loading of the
-				// data.
 				final InitialisedMetadataImage initialisedMetadataImage = new InitialisedMetadataImage( image, metadataImage.getMask() );
 				imagesAtGridPosition.add( initialisedMetadataImage );
 			}
@@ -201,8 +199,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			{
 				// Also transform the image tiles that are contained
 				// in the stitched image.
-				// Here, we don't need to use InitialisedMetadataImage again,
-				// because those tiles are already InitialisedMetadataImages.
+				// Here, we don't need to use metadataImage,
+				// because the images of those tiles
+				// are already initialised.
 				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getTileImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
 				final Set< Image< ? > > stitchedImages = DataStore.getViewImageSet( tileNames );
 				for ( Image< ? > containedImage : stitchedImages )
@@ -219,13 +218,20 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			nestedTransformedNames.add( imagesNamesAtGridPosition );
 		}
 
-		new GridTransformer().transform( nestedImages, nestedTransformedNames, positions, tileRealDimensions, false, offset );
+		// Translate the images and
+		// make the transformed images the
+		// tile images; this is important
+		// such that {@code getTileImages()} returns
+		// the correctly positioned images.
+		this.translatedImages = new GridTransformer().getTransformedImages( nestedImages, nestedTransformedNames, positions, tileRealDimensions, false, offset );
+
+		// Register globally
+		DataStore.putViewImages( translatedImages );
 	}
 
-
-	public List< ? extends Image< T > > getTileImages()
+	public List< ? extends Image< ? > > getTileImages()
 	{
-		return images;
+		return translatedImages;
 	}
 
 	protected void createSourcePair()

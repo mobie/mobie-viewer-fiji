@@ -29,7 +29,6 @@
 package org.embl.mobie.viewer.transform.image;
 
 import net.imglib2.realtransform.AffineTransform3D;
-import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.ThreadHelper;
 import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.transform.ImageTransformer;
@@ -38,6 +37,7 @@ import org.embl.mobie.viewer.transform.TransformHelper;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
@@ -47,10 +47,10 @@ public class GridTransformer
 	{
 	}
 
-	// TODO: This currently also registers the transformed images with
-	// the ImageStore. It would be cleaner to return the transformed images.
-	public void transform( List< List< ? extends Image< ? > > > nestedImages, @Nullable List< List< String > > nestedTransformedNames, List< int[] > positions, double[] tileRealDimensions, boolean centerAtOrigin, double[] withinTileOffset )
+	public List< ? extends Image< ? > > getTransformedImages( List< List< ? extends Image< ? > > > nestedImages, @Nullable List< List< String > > nestedTransformedNames, List< int[] > positions, double[] tileRealDimensions, boolean centerAtOrigin, double[] withinTileOffset )
 	{
+		final CopyOnWriteArrayList< ? extends Image< ? > > transformedImages = new CopyOnWriteArrayList<>();
+
 		final ArrayList< Future< ? > > futures = ThreadHelper.getFutures();
 		final int numGridPositions = nestedImages.size();
 		for ( int gridIndex = 0; gridIndex < numGridPositions; gridIndex++ )
@@ -65,7 +65,8 @@ public class GridTransformer
 						translation[ d ] = tileRealDimensions[ d ] * positions.get( finalGridIndex )[ d ] + withinTileOffset[ d ];
 
 					List< String > transformedImageNames = nestedTransformedNames == null ? images.stream().map( image -> image.getName() ).collect( Collectors.toList() ) : nestedTransformedNames.get( finalGridIndex );
-					translate( images, transformedImageNames, centerAtOrigin, translation[ 0 ], translation[ 1 ] );
+					final List< ? extends Image< ? > > translatedImages = translate( images, transformedImageNames, centerAtOrigin, translation[ 0 ], translation[ 1 ] );
+					transformedImages.addAll( ( List ) translatedImages );
 				}
 				catch ( Exception e )
 				{
@@ -74,10 +75,13 @@ public class GridTransformer
 			} ) );
 		}
 		ThreadHelper.waitUntilFinished( futures );
+
+		return transformedImages;
 	}
 
-	private void translate( List< ? extends Image< ? > > images, List< String > transformedNames, boolean centerAtOrigin, double translationX, double translationY )
+	private ArrayList< Image< ? > > translate( List< ? extends Image< ? > > images, List< String > transformedNames, boolean centerAtOrigin, double translationX, double translationY )
 	{
+		final ArrayList< Image< ? > > translatedImages = new ArrayList<>();
 		for ( Image< ? > image : images )
 		{
 			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform( translationX, translationY, image, centerAtOrigin );
@@ -86,8 +90,8 @@ public class GridTransformer
 					new ImageTransformer( image ).getTransformedImage(
 							translationTransform,
 							transformedNames.get( images.indexOf( image ) ) );
-
-			DataStore.putViewImage( transformedImage );
+			translatedImages.add( transformedImage );
 		}
+		return translatedImages;
 	}
 }

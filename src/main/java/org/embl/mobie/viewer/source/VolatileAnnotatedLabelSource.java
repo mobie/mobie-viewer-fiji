@@ -76,7 +76,12 @@ public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends
             return;
         }
 
-        output.get().setAnnotation( annotationAdapter.getAnnotation( getName(), t, input.get().getInteger() ) );
+        final A annotation = annotationAdapter.getAnnotation( getName(), t, input.get().getInteger() );
+        if ( annotation == null )
+        {
+            throw new RuntimeException();
+        }
+        output.get().setAnnotation( annotation );
         output.setValid( true );
     }
 
