@@ -34,14 +34,13 @@ import org.embl.mobie.viewer.MoBIESettings;
 
 import java.io.IOException;
 
-public class OpenRemoteCovidIF
+public class OpenRemoteSponge
 {
 	public static void main( String[] args ) throws IOException
 	{
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/covid-if-project", MoBIESettings.settings().gitProjectBranch( "mobie3" ).view( "default" ) ); //"single_well_nuclei" "full_grid" "single_well_with_nucleus_segmentation"
-		// .view( "merge-grid-no-tables" ) "default" "single_well" "test-views" "metadata-source"
+		final MoBIE moBIE = new MoBIE( "https://github.com/mobie/sponge-fibsem-project", MoBIESettings.settings().gitProjectBranch( "mobie3" ).view( "fibsem-cell" ) );
 	}
 }

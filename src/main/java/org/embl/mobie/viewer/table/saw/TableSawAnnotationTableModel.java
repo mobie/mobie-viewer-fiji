@@ -49,7 +49,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 		requestedColumnPaths.add( IOHelper.combinePath( dataStore, defaultColumns ) );
 	}
 
-	// Use this constructor if the default table is loaded already
+	// Use this constructor if the default table is available already
 	public TableSawAnnotationTableModel( String name, TableSawAnnotationCreator< A > annotationCreator, String tableStore, String defaultColumns, Table defaultTable )
 	{
 		this( name, annotationCreator, tableStore, defaultColumns );
@@ -68,7 +68,9 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 
 			loadedColumnPaths.add( columnPath );
 
-			IJ.log( "Opening table for " + dataSourceName + "..." );
+			// Calling IJ.log inside here hangs for some reason,
+			// maybe to do with the {@code synchronized} of this function.
+			// IJ.log( "Opening table for " + dataSourceName + "..." );
 			System.out.println( "TableModel: " + dataSourceName + ": Opening table:\n" + columnPath );
 			final Table rows = TableSawHelper.readTable( columnPath );
 

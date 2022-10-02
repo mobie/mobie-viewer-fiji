@@ -547,6 +547,14 @@ public class MoBIE
 
 				if ( segmentationDataSource.tableData != null )
 				{
+					if ( dataSource.preInit() )
+					{
+						// FIXME: Load tables here!
+					}
+					else
+					{
+
+					}
 					final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator();
 					final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV  );
 					final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
@@ -554,13 +562,15 @@ public class MoBIE
 
 					// label image representing annotated segments
 					DataStore.putRawImage( annotatedLabelImage );
-				} else
+				}
+				else
 				{
 					// label image representing segments
 					// without annotation
 					DataStore.putRawImage( image );
 				}
-			} else
+			}
+			else
 			{
 				// intensity image
 				DataStore.putRawImage( image );
