@@ -39,10 +39,10 @@ import org.embl.mobie.viewer.source.SourcePair;
 
 public class AffineTransformedImage< T > implements Image< T >
 {
-	private final AffineTransform3D affineTransform3D;
-	private final Image< T > image;
-	private final String transformedImageName;
-	private DefaultSourcePair sourcePair;
+	protected final AffineTransform3D affineTransform3D;
+	protected final Image< T > image;
+	protected final String transformedImageName;
+	protected DefaultSourcePair sourcePair;
 
 	public AffineTransformedImage( Image< T > image, String transformedImageName, AffineTransform3D affineTransform3D )
 	{
@@ -71,7 +71,7 @@ public class AffineTransformedImage< T > implements Image< T >
 	}
 
 	@Override
-	public SourcePair< T > getSourcePair()
+	public synchronized SourcePair< T > getSourcePair()
 	{
 		createSourcePair();
 		return sourcePair;

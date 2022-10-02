@@ -28,20 +28,22 @@ public class AnnotatedLabelImage< A extends Annotation > implements AnnotatedIma
 	{
 		if ( sourcePair == null )
 		{
+			final SourcePair< ? extends IntegerType< ? > > sourcePair = labelImage.getSourcePair();
+
 			AnnotationAdapter< A > annotationAdapter = new AnnotationAdapter( annData );
 
 			// non-volatile source
-			final AnnotatedLabelSource< ?, A > source = new AnnotatedLabelSource( getLabelImage().getSourcePair().getSource(), annotationAdapter );
+			final AnnotatedLabelSource< ?, A > source = new AnnotatedLabelSource( sourcePair.getSource(), annotationAdapter );
 
-			if ( getLabelImage().getSourcePair().getVolatileSource() == null )
+			if ( sourcePair.getVolatileSource() == null )
 			{
-				sourcePair = new DefaultSourcePair<>( source, null );
+				this.sourcePair = new DefaultSourcePair<>( source, null );
 			}
 			else
 			{
 				// volatile source
 				final VolatileAnnotatedLabelSource< ?, ? extends Volatile< ? >, A > volatileSource = new VolatileAnnotatedLabelSource( getLabelImage().getSourcePair().getVolatileSource(), annotationAdapter );
-				sourcePair = new DefaultSourcePair<>( source, volatileSource );
+				this.sourcePair = new DefaultSourcePair<>( source, volatileSource );
 			}
 		}
 
@@ -60,14 +62,14 @@ public class AnnotatedLabelImage< A extends Annotation > implements AnnotatedIma
 		return labelImage.getMask();
 	}
 
-	public Image< ? extends IntegerType< ? > > getLabelImage()
-	{
-		return labelImage;
-	}
-
 	@Override
 	public AnnData< A > getAnnData()
 	{
 		return annData;
+	}
+
+	public Image< ? extends IntegerType< ? > > getLabelImage()
+	{
+		return labelImage;
 	}
 }

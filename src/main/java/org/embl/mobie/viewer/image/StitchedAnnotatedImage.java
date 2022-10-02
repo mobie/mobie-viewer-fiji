@@ -37,11 +37,11 @@ import org.embl.mobie.viewer.table.AnnDataHelper;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class AnnotatedStitchedImage< A extends Annotation > extends StitchedImage< AnnotationType< A >, VolatileAnnotationType< A > > implements AnnotatedImage< A >
+public class StitchedAnnotatedImage< A extends Annotation > extends StitchedImage< AnnotationType< A >, VolatileAnnotationType< A > > implements AnnotatedImage< A >
 {
 	private AnnData< A > annData;
 
-	public AnnotatedStitchedImage( List< ? extends AnnotatedImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage,  @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
+	public StitchedAnnotatedImage( List< ? extends AnnotatedImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
 	{
 		super( annotatedImages, metadataImage, positions, imageName, relativeCellMargin, transformImages );
 		final List< ? extends Image< ? > > tileImages = getTileImages();

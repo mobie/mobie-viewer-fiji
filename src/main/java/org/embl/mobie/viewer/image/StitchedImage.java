@@ -189,6 +189,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			}
 			else
 			{
+				// FIXME: This can mask that the image is an AnnotatedImage
+				//  and then the ImageTransformer will not notice.
 				final InitialisedMetadataImage initialisedMetadataImage = new InitialisedMetadataImage( image, metadataImage.getMask() );
 				imagesAtGridPosition.add( initialisedMetadataImage );
 			}

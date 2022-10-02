@@ -58,7 +58,6 @@ import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.image.SpimDataImage;
 import org.embl.mobie.viewer.serialize.SpotDataSource;
 import org.embl.mobie.viewer.source.StorageLocation;
-import org.embl.mobie.viewer.table.ColumnNames;
 import org.embl.mobie.viewer.table.DefaultAnnData;
 import org.embl.mobie.viewer.table.TableDataFormat;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedSpot;
@@ -75,7 +74,6 @@ import org.embl.mobie.viewer.view.ViewManager;
 import sc.fiji.bdvpg.PlaygroundPrefs;
 import sc.fiji.bdvpg.scijava.services.SourceAndConverterService;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
-import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
 import java.io.IOException;

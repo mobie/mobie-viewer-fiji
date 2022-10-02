@@ -62,7 +62,7 @@ import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.serialize.DataSource;
 import org.embl.mobie.viewer.image.AnnotatedImage;
-import org.embl.mobie.viewer.image.AnnotatedStitchedImage;
+import org.embl.mobie.viewer.image.StitchedAnnotatedImage;
 import org.embl.mobie.viewer.serialize.RegionDataSource;
 import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.viewer.serialize.transformation.GridTransformation;
@@ -111,7 +111,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class ViewManager
@@ -403,7 +402,7 @@ public class ViewManager
 					//
 					if ( targetImages.get( 0 ) instanceof AnnotatedImage )
 					{
-						final AnnotatedStitchedImage annotatedStitchedImage = new AnnotatedStitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
+						final StitchedAnnotatedImage annotatedStitchedImage = new StitchedAnnotatedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
 						DataStore.putViewImage( annotatedStitchedImage );
 					}
 					else
