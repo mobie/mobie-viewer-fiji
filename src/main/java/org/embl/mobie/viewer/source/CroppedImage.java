@@ -49,6 +49,7 @@ public class CroppedImage< T > implements Image< T >
 	private final boolean centerAtOrigin;
 	private Image< T > image;
 	private DefaultSourcePair sourcePair;
+	private RealMaskRealInterval mask;
 
 	public CroppedImage( Image< T > image, String croppedImageName, double[] min, double[] max, boolean centerAtOrigin )
 	{
@@ -154,6 +155,15 @@ public class CroppedImage< T > implements Image< T >
 	@Override
 	public RealMaskRealInterval getMask()
 	{
-		return GeomMasks.closedBox( min, max );
+		if ( mask == null )
+			return GeomMasks.closedBox( min, max );
+
+		return mask;
+	}
+
+	@Override
+	public void setMask( RealMaskRealInterval mask )
+	{
+		this.mask = mask;
 	}
 }

@@ -29,6 +29,7 @@
 package org.embl.mobie.viewer.transform.image;
 
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.annotation.Segment;
@@ -57,7 +58,7 @@ public class AffineTransformedAnnotatedImage< A extends Annotation > extends Aff
 		{
 			final AnnData< A > annData = annotatedImage.getAnnData();
 			// TODO: This will cause loading of the data, is this an issue?
-			final A annotation = annData.getTable().annotation( 0 );
+			final A annotation = annData.getTable().annotations().iterator().next();
 			if ( annotation instanceof Segment )
 			{
 				final AnnData< ? extends AnnotatedSegment > segmentAnnData = ( AnnData< ? extends AnnotatedSegment > ) annotatedImage.getAnnData();

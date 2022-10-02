@@ -44,8 +44,8 @@ public class StitchedAnnotatedImage< A extends Annotation > extends StitchedImag
 	public StitchedAnnotatedImage( List< ? extends AnnotatedImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
 	{
 		super( annotatedImages, metadataImage, positions, imageName, relativeCellMargin, transformImages );
-		final List< ? extends Image< ? > > tileImages = getTileImages();
-		annData = AnnDataHelper.getConcatenatedAnnData( annotatedImages );
+		final List< ? extends AnnotatedImage< A > > annotatedTransformedImages = ( List ) getTranslatedImages();
+		annData = AnnDataHelper.getConcatenatedAnnData( annotatedTransformedImages );
 	}
 
 	@Override

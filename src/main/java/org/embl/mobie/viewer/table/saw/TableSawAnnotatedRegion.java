@@ -115,6 +115,12 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	}
 
 	@Override
+	public void setMask( RealMaskRealInterval mask )
+	{
+
+	}
+
+	@Override
 	public String regionId()
 	{
 		return regionId;

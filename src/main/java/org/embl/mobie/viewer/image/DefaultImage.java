@@ -11,6 +11,7 @@ public class DefaultImage< T > implements Image< T >
 	private final Source< T > source;
 	private final Source< ? extends Volatile< T > > volatileSource;
 	private final String name;
+	private RealMaskRealInterval mask;
 
 	public DefaultImage( Source< T > source, Source< ? extends Volatile< T > > volatileSource, String name )
 	{
@@ -34,6 +35,15 @@ public class DefaultImage< T > implements Image< T >
 	@Override
 	public RealMaskRealInterval getMask()
 	{
-		return SourceHelper.estimateMask( source, 0 );
+		if ( mask == null )
+			return SourceHelper.estimateMask( source, 0 );
+
+		return mask;
+	}
+
+	@Override
+	public void setMask( RealMaskRealInterval mask )
+	{
+		this.mask = mask;
 	}
 }

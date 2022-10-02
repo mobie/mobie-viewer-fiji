@@ -8,7 +8,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class TransformedAnnotationTableModel< A extends Annotation, TA extends A > implements AnnotationTableModel< TA >
@@ -16,15 +18,13 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	private final AnnotationTableModel< A > tableModel;
 	private final AnnotationTransformer< A, TA > transformer;
 
-	private HashMap< TA, Integer > rowToIndex;
-	private HashMap< Integer, TA > indexToRow;
+	private Map< TA, Integer > annotationToIndex;
+	private Map< Integer, TA > indexToAnnotation;
 
 	public TransformedAnnotationTableModel( AnnotationTableModel< A > tableModel, AnnotationTransformer< A, TA > transformer )
 	{
 		this.tableModel = tableModel;
 		this.transformer = transformer;
-		this.rowToIndex = new HashMap<>();
-		this.indexToRow = new HashMap<>();
 	}
 
 	@Override
@@ -54,20 +54,15 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public int rowIndexOf( TA annotation )
 	{
-		return 0;
+		update();
+		return annotationToIndex.get( annotation );
 	}
 
 	@Override
 	public TA annotation( int rowIndex )
 	{
-		if ( ! indexToRow.containsKey( rowIndex ) )
-		{
-			final TA row = transformer.transform( tableModel.annotation( rowIndex ) );
-			rowToIndex.put( row, rowIndex );
-			indexToRow.put( rowIndex, row );
-		}
-
-		return indexToRow.get( rowIndex );
+		update();
+		return indexToAnnotation.get( rowIndex );
 	}
 
 	@Override
@@ -97,21 +92,39 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	@Override
 	public Pair< Double, Double > computeMinMax( String columnName )
 	{
+		// FIXME
 		return null;
 	}
 
 	@Override
 	public Set< TA > annotations()
 	{
-		// FIXME This must trigger initialisation of rowToIndex
-		throw new RuntimeException( "FIXME: transformed annotation table model" );
-		//return rowToIndex.keySet();
+		update();
+		return annotationToIndex.keySet();
+	}
+
+	private synchronized void update()
+	{
+		if ( annotationToIndex == null )
+		{
+			annotationToIndex = new ConcurrentHashMap<>();
+			indexToAnnotation = new ConcurrentHashMap<>();
+
+			final int numAnnotations = tableModel.numAnnotations();
+			for ( int rowIndex = 0; rowIndex < numAnnotations; rowIndex++ )
+			{
+				final TA transformedAnnotation = transformer.transform( tableModel.annotation( rowIndex ) );
+				annotationToIndex.put( transformedAnnotation, rowIndex );
+				indexToAnnotation.put( rowIndex, transformedAnnotation );
+			}
+		}
 	}
 
 	@Override
 	public void addStringColumn( String columnName )
 	{
-
+		// FIXME
+		throw new RuntimeException();
 	}
 
 	@Override

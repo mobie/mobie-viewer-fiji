@@ -43,6 +43,7 @@ public class AffineTransformedImage< T > implements Image< T >
 	protected final Image< T > image;
 	protected final String transformedImageName;
 	protected DefaultSourcePair sourcePair;
+	private RealMaskRealInterval transformedMask;
 
 	public AffineTransformedImage( Image< T > image, String transformedImageName, AffineTransform3D affineTransform3D )
 	{
@@ -86,12 +87,20 @@ public class AffineTransformedImage< T > implements Image< T >
 	@Override
 	public RealMaskRealInterval getMask( )
 	{
-		final RealMaskRealInterval mask = image.getMask();
-//		final double[] min = mask.minAsDoubleArray();
-//		final double[] max = mask.maxAsDoubleArray();
-		final RealMaskRealInterval realMaskRealInterval = mask.transform( affineTransform3D.inverse() );
-//		final double[] min1 = realMaskRealInterval.minAsDoubleArray();
-//		final double[] max1 = realMaskRealInterval.maxAsDoubleArray();
-		return realMaskRealInterval;
+		if ( transformedMask == null )
+		{
+			// Note: this assumes that the mask of the
+			//  wrapped image does not change.
+			final RealMaskRealInterval mask = image.getMask();
+			transformedMask = mask.transform( affineTransform3D.inverse() );
+		}
+
+		return transformedMask;
+	}
+
+	@Override
+	public void setMask( RealMaskRealInterval mask )
+	{
+		this.transformedMask = mask;
 	}
 }

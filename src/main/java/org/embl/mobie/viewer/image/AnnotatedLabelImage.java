@@ -16,6 +16,7 @@ public class AnnotatedLabelImage< A extends Annotation > implements AnnotatedIma
 	protected Image< ? extends IntegerType< ? > > labelImage;
 	protected AnnData< A > annData;
 	protected SourcePair< AnnotationType< A > > sourcePair;
+	private RealMaskRealInterval mask;
 
 	public AnnotatedLabelImage( Image< ? extends IntegerType< ? > > labelImage, AnnData< A > annData )
 	{
@@ -59,7 +60,16 @@ public class AnnotatedLabelImage< A extends Annotation > implements AnnotatedIma
 	@Override
 	public RealMaskRealInterval getMask()
 	{
-		return labelImage.getMask();
+		if ( mask == null )
+			return labelImage.getMask();
+
+		return mask;
+	}
+
+	@Override
+	public void setMask( RealMaskRealInterval mask )
+	{
+		this.mask = mask;
 	}
 
 	@Override

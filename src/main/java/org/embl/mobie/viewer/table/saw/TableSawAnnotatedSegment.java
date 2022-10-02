@@ -14,7 +14,6 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 {
 	private static final String[] idColumns = new String[]{ ColumnNames.LABEL_ID, ColumnNames.TIMEPOINT };
 
-	private final int numSegmentDimensions;
 	private final int timePoint;
 	private final int labelId;
 	private final double[] position;
@@ -36,7 +35,7 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 
 		final List< String > columnNames = row.columnNames();
 
-		this.numSegmentDimensions = columnNames.contains( ColumnNames.ANCHOR_Z ) ? 3 : 2;
+		final boolean is3D = columnNames.contains( ColumnNames.ANCHOR_Z );
 
 		this.source = columnNames.contains( ColumnNames.LABEL_IMAGE_ID ) ? row.getString( ColumnNames.LABEL_IMAGE_ID ) : rows.name();
 
@@ -44,59 +43,33 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 
 		this.labelId = row.getInt( ColumnNames.LABEL_ID );
 
-		initBoundingBox( row, numSegmentDimensions );
+		initBoundingBox( row, is3D );
 
-		if ( numSegmentDimensions == 3 )
-		{
-			this.position = new double[]{
-					row.getDouble( ColumnNames.ANCHOR_X ),
-					row.getDouble( ColumnNames.ANCHOR_Y ),
-					row.getDouble( ColumnNames.ANCHOR_Z )
-			};
-		}
-		else
-		{
-			this.position = new double[]{
-					row.getDouble( ColumnNames.ANCHOR_X ),
-					row.getDouble( ColumnNames.ANCHOR_Y )
-			};
-		}
+		this.position = new double[]{
+				row.getDouble( ColumnNames.ANCHOR_X ),
+				row.getDouble( ColumnNames.ANCHOR_Y ),
+				is3D ? row.getDouble( ColumnNames.ANCHOR_Z ) : 0
+		};
 
 		this.uuid = source + ";" + timePoint + ";" + labelId;
 	}
 
-	private void initBoundingBox( Row row, int numSegmentDimensions )
+	private void initBoundingBox( Row row, boolean is3D )
 	{
 		final boolean rowContainsBoundingBox = row.columnNames().contains( ColumnNames.BB_MIN_X );
 
 		if ( ! rowContainsBoundingBox ) return;
 
-		if ( numSegmentDimensions == 2 )
-		{
-			final double[] min = {
-					row.getDouble( ColumnNames.BB_MIN_X ),
-					row.getDouble( ColumnNames.BB_MIN_Y )
-			};
-			final double[] max = {
-					row.getDouble( ColumnNames.BB_MAX_X ),
-					row.getDouble( ColumnNames.BB_MAX_Y )
-			};
-			boundingBox = new FinalRealInterval( min, max );
-			return;
-		}
-
-		// numSegmentDimensions == 3
-		//
 		final double[] min = {
 				row.getDouble( ColumnNames.BB_MIN_X ),
 				row.getDouble( ColumnNames.BB_MIN_Y ),
-				row.getDouble( ColumnNames.BB_MIN_Z )
-		};
+				is3D ? row.getDouble( ColumnNames.BB_MIN_Z ) : 0
+			};
 
 		final double[] max = {
 				row.getDouble( ColumnNames.BB_MAX_X ),
 				row.getDouble( ColumnNames.BB_MAX_Y ),
-				row.getDouble( ColumnNames.BB_MAX_Z )
+				is3D ? row.getDouble( ColumnNames.BB_MAX_Z ) : 0
 		};
 
 		boundingBox = new FinalRealInterval( min, max );

@@ -54,7 +54,6 @@ import org.embl.mobie.viewer.source.RandomAccessibleIntervalMipmapSource;
 import org.embl.mobie.viewer.source.SourcePair;
 import org.embl.mobie.viewer.transform.TransformHelper;
 import org.embl.mobie.viewer.transform.image.GridTransformer;
-import org.embl.mobie.viewer.transform.image.InitialisedMetadataImage;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -180,21 +179,14 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			// Only the metadataImage may have been loaded.
 			// Avoid premature loading of the other images
 			// by providing the metadata
-			// of the reference image.
+			// of the metadataImage.
 			// Note that for a StitchedImage all images
 			// are required to have the same metadata.
-			if ( image == metadataImage )
-			{
-				imagesAtGridPosition.add( metadataImage );
-			}
-			else
-			{
-				// FIXME: This can mask that the image is an AnnotatedImage
-				//  and then the ImageTransformer will not notice.
-				final InitialisedMetadataImage initialisedMetadataImage = new InitialisedMetadataImage( image, metadataImage.getMask() );
-				imagesAtGridPosition.add( initialisedMetadataImage );
-			}
+			// Right now the only metadata
+			// that is needed is the mask.
+			image.setMask( metadataImage.getMask() );
 
+			imagesAtGridPosition.add( image );
 			imagesNamesAtGridPosition.add( image.getName() + "_" + name );
 
 			if ( image instanceof StitchedImage )
@@ -204,7 +196,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				// Here, we don't need to use metadataImage,
 				// because the images of those tiles
 				// are already initialised.
-				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getTileImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
+				final List< String > tileNames = ( ( StitchedImage< ?, ? > ) image ).getTranslatedImages().stream().map( i -> i.getName() ).collect( Collectors.toList() );
 				final Set< Image< ? > > stitchedImages = DataStore.getViewImageSet( tileNames );
 				for ( Image< ? > containedImage : stitchedImages )
 				{
@@ -233,7 +225,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		DataStore.putViewImages( translatedImages );
 	}
 
-	public List< ? extends Image< ? > > getTileImages()
+	public List< ? extends Image< ? > > getTranslatedImages()
 	{
 		return translatedImages;
 	}
@@ -556,6 +548,12 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	public RealMaskRealInterval getMask()
 	{
 		return mask;
+	}
+
+	@Override
+	public void setMask( RealMaskRealInterval mask )
+	{
+		this.mask = mask;
 	}
 
 	enum Status // for RandomAccessSupplier

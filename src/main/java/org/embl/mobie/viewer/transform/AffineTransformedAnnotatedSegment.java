@@ -37,10 +37,12 @@ public class AffineTransformedAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public double[] positionAsDoubleArray()
 	{
-		final double[] anchor = annotatedSegment.positionAsDoubleArray();
-		final double[] transformedAnchor = new double[ anchor.length ];
-		affineTransform3D.apply( anchor, transformedAnchor );
-		return transformedAnchor;
+		// TODO: cache this?! this would assume the that wrapped
+		//   segment is not changing its position.
+		final double[] position = annotatedSegment.positionAsDoubleArray();
+		final double[] transformedPosition = new double[ 3 ];
+		affineTransform3D.apply( position, transformedPosition );
+		return transformedPosition;
 	}
 
 	@Override
@@ -64,14 +66,14 @@ public class AffineTransformedAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public float[] mesh()
 	{
-		// TODO transform
+		// FIXME transform
 		return annotatedSegment.mesh();
 	}
 
 	@Override
 	public void setMesh( float[] mesh )
 	{
-		// TODO inverse transform
+		// FIXME inverse transform
 		annotatedSegment.setMesh( mesh );
 	}
 

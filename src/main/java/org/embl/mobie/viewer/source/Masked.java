@@ -11,4 +11,6 @@ public interface Masked
 	//    where I create the SAC I could wrap the sources into a
 	//    MaskAwareSource.
 	RealMaskRealInterval getMask();
+
+	void setMask( RealMaskRealInterval mask );
 }

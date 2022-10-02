@@ -70,7 +70,7 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 		for ( AR annotatedRegion : annotatedRegions )
 		{
 			final TableSawAnnotatedRegion tableSawAnnotatedRegion = ( TableSawAnnotatedRegion ) annotatedRegion;
-			System.out.println("RegionLabelImage: " + name + ": " + annotatedRegion.regionId() + "\nimages = " + Arrays.toString( tableSawAnnotatedRegion.getRegionImageNames().toArray( new String[ 0 ] ) ) + "\n" + Arrays.toString( annotatedRegion.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( annotatedRegion.getMask().maxAsDoubleArray() ) );
+			System.out.println("RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedRegion.getRegionImageNames().toArray( new String[ 0 ] ) ) + "\n" + Arrays.toString( annotatedRegion.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( annotatedRegion.getMask().maxAsDoubleArray() ) );
 		}
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
@@ -178,4 +178,11 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 	{
 		return TransformHelper.getUnionMask( annotatedRegions, 0 );
 	}
+
+	@Override
+	public void setMask( RealMaskRealInterval mask )
+	{
+		// TODO
+	}
+
 }

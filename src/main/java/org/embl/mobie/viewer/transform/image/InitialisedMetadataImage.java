@@ -4,6 +4,7 @@ import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.source.SourcePair;
 
+@Deprecated
 public class InitialisedMetadataImage< T > implements Image< T >
 {
 	private final Image< T > image;
@@ -11,6 +12,7 @@ public class InitialisedMetadataImage< T > implements Image< T >
 
 	// Currently, only the mask is given,
 	// we could provide more metadata if needed.
+	// FIXME: Maybe a setMask for the Image in general?
 	public InitialisedMetadataImage( Image< T > image, RealMaskRealInterval mask )
 	{
 		this.image = image;
@@ -33,5 +35,11 @@ public class InitialisedMetadataImage< T > implements Image< T >
 	public RealMaskRealInterval getMask( )
 	{
 		return mask;
+	}
+
+	@Override
+	public void setMask( RealMaskRealInterval mask )
+	{
+
 	}
 }

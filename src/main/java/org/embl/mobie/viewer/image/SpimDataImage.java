@@ -25,6 +25,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private String name;
 	@Nullable
 	private final SharedQueue sharedQueue;
+	private RealMaskRealInterval mask;
 
 	public SpimDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue )
 	{
@@ -51,7 +52,16 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	@Override
 	public RealMaskRealInterval getMask( )
 	{
-		return SourceHelper.estimateMask( getSourcePair().getSource(), 0 );
+		if ( mask == null )
+			return SourceHelper.estimateMask( getSourcePair().getSource(), 0 );
+
+		return mask;
+	}
+
+	@Override
+	public void setMask( RealMaskRealInterval mask )
+	{
+		this.mask = mask;
 	}
 
 	private void open()

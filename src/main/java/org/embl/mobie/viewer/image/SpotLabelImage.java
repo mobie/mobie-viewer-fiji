@@ -66,6 +66,7 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 		this.name = name;
 		this.annotatedSpots = annotatedSpots;
 		this.radius = radius;
+		// FIXME bounding box from JSON
 		createLabelImage();
 	}
 
@@ -93,7 +94,6 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
 		final FunctionRealRandomAccessible< UnsignedIntType > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToLabelSupplier(), UnsignedIntType::new );
 		source = new RealRandomAccessibleIntervalTimelapseSource<>( realRandomAccessible, interval, new UnsignedIntType(), new AffineTransform3D(), name, true, timePoints );
-
 	}
 
 	class LocationToLabelSupplier implements Supplier< BiConsumer< RealLocalizable, UnsignedIntType > >
@@ -157,8 +157,14 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 	}
 
 	@Override
-	public RealMaskRealInterval getMask( )
+	public RealMaskRealInterval getMask()
 	{
 		return mask;
+	}
+
+	@Override
+	public void setMask( RealMaskRealInterval mask )
+	{
+		this.mask = mask;
 	}
 }
