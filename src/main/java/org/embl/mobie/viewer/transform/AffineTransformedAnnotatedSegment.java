@@ -4,12 +4,12 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import net.imglib2.RealInterval;
 
-public class AffineTransformedAnnotatedSegment implements AnnotatedSegment
+public class AffineTransformedAnnotatedSegment< AS extends AnnotatedSegment > implements AnnotatedSegment
 {
-	private final AnnotatedSegment annotatedSegment;
+	private final AS annotatedSegment;
 	private final AffineTransform3D affineTransform3D;
 
-	public AffineTransformedAnnotatedSegment( AnnotatedSegment annotatedSegment, AffineTransform3D affineTransform3D )
+	public AffineTransformedAnnotatedSegment( AS annotatedSegment, AffineTransform3D affineTransform3D )
 	{
 		this.annotatedSegment = annotatedSegment;
 		this.affineTransform3D = affineTransform3D;

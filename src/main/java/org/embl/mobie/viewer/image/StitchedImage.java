@@ -287,7 +287,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		{
 			final V background = volatileType.createVariable();
 			background.setValid( true );
-			final FunctionRandomAccessible< V > randomAccessible = new FunctionRandomAccessible( 3, new VolatileBiConsumerSupplier( randomAccessibleSupplier, level, background ), () -> volatileType.createVariable() );
+			final FunctionRandomAccessible< V > randomAccessible = new FunctionRandomAccessible( 3, new StitchedLocationToValueSupplier( randomAccessibleSupplier, level, background ), () -> volatileType.createVariable() );
 			final IntervalView< V > rai = Views.interval( randomAccessible, getInterval( level ) );
 			stitchedMipMapRAIs.add( rai );
 		}
@@ -295,14 +295,14 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		return stitchedMipMapRAIs;
 	}
 
-	class VolatileBiConsumerSupplier implements Supplier< BiConsumer< Localizable, V > >
+	class StitchedLocationToValueSupplier implements Supplier< BiConsumer< Localizable, V > >
 	{
 		private final RandomAccessibleSupplier randomAccessibleSupplier;
 		private final int level;
 		private int[] tileDimension;
 		private final V background;
 
-		public VolatileBiConsumerSupplier( RandomAccessibleSupplier randomAccessibleSupplier, int level, V background )
+		public StitchedLocationToValueSupplier( RandomAccessibleSupplier randomAccessibleSupplier, int level, V background )
 		{
 			this.randomAccessibleSupplier = randomAccessibleSupplier;
 			this.level = level;
@@ -317,12 +317,12 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		// Thus, it internally needs to hold onto several random accesses.
 		public synchronized BiConsumer< Localizable, V > get()
 		{
-			return new VolatileBiConsumerImplementation();
+			return new StitchedLocationToValue();
 		}
 
-		class VolatileBiConsumerImplementation implements BiConsumer< Localizable, V >
+		class StitchedLocationToValue implements BiConsumer< Localizable, V >
 		{
-			public VolatileBiConsumerImplementation()
+			public StitchedLocationToValue()
 			{
 			}
 
@@ -633,7 +633,9 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			// Extend bounds to be able to
 			// accommodate grid margin
 			//
-			RandomAccessible< T > randomAccessible = new ExtendedRandomAccessibleInterval( rai, new OutOfBoundsConstantValueFactory<>( type.createVariable() ) );
+			final T outOfBoundsVariable = type.createVariable();
+			RandomAccessible< T > randomAccessible = new ExtendedRandomAccessibleInterval( rai, new OutOfBoundsConstantValueFactory<>( outOfBoundsVariable ) );
+
 			RandomAccessible< V > vRandomAccessible = new ExtendedRandomAccessibleInterval( vRai, new OutOfBoundsConstantValueFactory<>( volatileType.createVariable() ) );
 
 			// shift to create a margin

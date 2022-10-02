@@ -37,6 +37,7 @@ import org.embl.mobie.viewer.image.AnnotatedImage;
 import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.transform.AnnotatedSegmentAffineTransformer;
+import org.embl.mobie.viewer.transform.AnnotationAffineTransformer;
 import org.embl.mobie.viewer.transform.AnnotationTransformer;
 import org.embl.mobie.viewer.transform.TransformedAnnData;
 
@@ -57,18 +58,24 @@ public class AffineTransformedAnnotatedImage< A extends Annotation > extends Aff
 		if ( transformedAnnData == null )
 		{
 			final AnnData< A > annData = annotatedImage.getAnnData();
-			// TODO: This will cause loading of the data, is this an issue?
-			final A annotation = annData.getTable().annotations().iterator().next();
-			if ( annotation instanceof Segment )
-			{
-				final AnnData< ? extends AnnotatedSegment > segmentAnnData = ( AnnData< ? extends AnnotatedSegment > ) annotatedImage.getAnnData();
-				final AnnotationTransformer annotationTransformer = new AnnotatedSegmentAffineTransformer( affineTransform3D );
-				transformedAnnData = new TransformedAnnData( segmentAnnData, annotationTransformer );
-			}
-			else
-			{
-				throw new UnsupportedOperationException( "Transformation of " + annotation.getClass().getName() + " is currently not supported" );
-			}
+
+			final AnnotationAffineTransformer affineTransformer = new AnnotationAffineTransformer( affineTransform3D );
+			transformedAnnData = new TransformedAnnData( annData, affineTransformer );
+
+			// TODO: This will cause loading of the data.
+			//   This is an an issue.
+//			final A annotation = annData.getTable().annotations().iterator().next();
+//			if ( annotation instanceof Segment )
+//			{
+//				final AnnData< ? extends AnnotatedSegment > segmentAnnData = ( AnnData< ? extends AnnotatedSegment > ) annotatedImage.getAnnData();
+//				final AnnotationTransformer annotationTransformer = new AnnotatedSegmentAffineTransformer( affineTransform3D );
+//
+//				transformedAnnData = new TransformedAnnData( segmentAnnData, annotationTransformer );
+//			}
+//			else
+//			{
+//				throw new UnsupportedOperationException( "Transformation of " + annotation.getClass().getName() + " is currently not supported" );
+//			}
 		}
 
 		return transformedAnnData;

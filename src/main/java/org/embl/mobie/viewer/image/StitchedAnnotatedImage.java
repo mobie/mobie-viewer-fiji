@@ -44,13 +44,14 @@ public class StitchedAnnotatedImage< A extends Annotation > extends StitchedImag
 	public StitchedAnnotatedImage( List< ? extends AnnotatedImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
 	{
 		super( annotatedImages, metadataImage, positions, imageName, relativeCellMargin, transformImages );
-		final List< ? extends AnnotatedImage< A > > annotatedTransformedImages = ( List ) getTranslatedImages();
-		annData = AnnDataHelper.getConcatenatedAnnData( annotatedTransformedImages );
 	}
 
 	@Override
 	public AnnData< A > getAnnData()
 	{
+		if ( annData == null )
+			annData = AnnDataHelper.getConcatenatedAnnData( ( List ) getTranslatedImages() );
+
 		return annData;
 	}
 }

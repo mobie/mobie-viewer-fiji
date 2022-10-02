@@ -22,6 +22,7 @@ public class TransformedAnnData< A extends Annotation, TA extends Annotation > i
 	{
 		if ( tableModel == null )
 			tableModel = new TransformedAnnotationTableModel( annData.getTable(), annotationTransformer );
+
 		return tableModel;
 	}
 }

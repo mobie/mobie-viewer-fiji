@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.table.saw;
 
+import ij.IJ;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 import org.embl.mobie.io.util.IOHelper;
@@ -67,6 +68,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 
 			loadedColumnPaths.add( columnPath );
 
+			IJ.log( "Opening table for " + dataSourceName + "..." );
 			System.out.println( "TableModel: " + dataSourceName + ": Opening table:\n" + columnPath );
 			final Table rows = TableSawHelper.readTable( columnPath );
 
