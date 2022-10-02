@@ -490,7 +490,9 @@ public class ViewManager
 					if ( ! regionIDs.contains( regionId ) )
 						dropRows.add( rowIndex );
 				}
-				table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
+
+				if ( dropRows.size() > 0 )
+					table = table.dropRows( dropRows.stream().mapToInt( i -> i ).toArray() );
 
 				final TableSawAnnotationCreator< TableSawAnnotatedRegion > annotationCreator = new TableSawAnnotatedRegionCreator( regionIdToImageNames );
 

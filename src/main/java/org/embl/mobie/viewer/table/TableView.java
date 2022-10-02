@@ -93,7 +93,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 		//   Note that I need that already outside the Table for a potential coloring model
 		//   which reads its argb values from a table column.
 		final AnnotatedImage< A > annotatedImage = ( AnnotatedImage< A > ) display.getImages().iterator().next();
-		this.tableModel =  annotatedImage.getAnnData().getTable();
+		this.tableModel = annotatedImage.getAnnData().getTable();
 		this.coloringModel = display.coloringModel;
 		this.selectionModel = display.selectionModel;
 		this.tableName = display.getName();

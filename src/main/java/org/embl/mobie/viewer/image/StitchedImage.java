@@ -225,6 +225,8 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		// the correctly positioned images.
 		this.translatedImages = new GridTransformer().getTransformedImages( nestedImages, nestedTransformedNames, positions, tileRealDimensions, false, offset );
 
+		System.out.println("Stitched Image: " + name + ": contained translated images:\n" + Arrays.toString( translatedImages.stream().map( i -> i.getName() ).toArray() ) );
+
 		// Register globally
 		DataStore.putViewImages( translatedImages );
 	}

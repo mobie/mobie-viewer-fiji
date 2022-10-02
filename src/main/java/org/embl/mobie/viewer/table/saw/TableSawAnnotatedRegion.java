@@ -125,4 +125,9 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	{
 		return positionAsDoubleArray().length;
 	}
+
+	public List< String > getRegionImageNames()
+	{
+		return imageNames;
+	}
 }

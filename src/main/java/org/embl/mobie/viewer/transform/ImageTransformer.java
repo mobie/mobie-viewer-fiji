@@ -8,8 +8,6 @@ import org.embl.mobie.viewer.image.Image;
 import org.embl.mobie.viewer.table.AnnData;
 import org.embl.mobie.viewer.transform.image.AffineTransformedImage;
 
-import java.util.Set;
-
 public class ImageTransformer
 {
 	private final Image< ? > image;
@@ -51,6 +49,7 @@ public class ImageTransformer
 			}
 
 			final AnnotatedLabelImage< ? extends AnnotatedSegment > transformedAnnotatedLabelImage = new AnnotatedLabelImage( transformedLabelImage, transformedAnnData );
+
 			return transformedAnnotatedLabelImage;
 		}
 		else

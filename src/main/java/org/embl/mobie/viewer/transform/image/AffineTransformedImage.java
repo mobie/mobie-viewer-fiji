@@ -87,11 +87,11 @@ public class AffineTransformedImage< T > implements Image< T >
 	public RealMaskRealInterval getMask( )
 	{
 		final RealMaskRealInterval mask = image.getMask();
-		final double[] min = mask.minAsDoubleArray();
-		final double[] max = mask.maxAsDoubleArray();
+//		final double[] min = mask.minAsDoubleArray();
+//		final double[] max = mask.maxAsDoubleArray();
 		final RealMaskRealInterval realMaskRealInterval = mask.transform( affineTransform3D.inverse() );
-		final double[] min1 = realMaskRealInterval.minAsDoubleArray();
-		final double[] max1 = realMaskRealInterval.maxAsDoubleArray();
+//		final double[] min1 = realMaskRealInterval.minAsDoubleArray();
+//		final double[] max1 = realMaskRealInterval.maxAsDoubleArray();
 		return realMaskRealInterval;
 	}
 }

@@ -82,6 +82,7 @@ public class GridTransformer
 	private ArrayList< Image< ? > > translate( List< ? extends Image< ? > > images, List< String > transformedNames, boolean centerAtOrigin, double translationX, double translationY )
 	{
 		final ArrayList< Image< ? > > translatedImages = new ArrayList<>();
+
 		for ( Image< ? > image : images )
 		{
 			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform( translationX, translationY, image, centerAtOrigin );
@@ -90,8 +91,10 @@ public class GridTransformer
 					new ImageTransformer( image ).getTransformedImage(
 							translationTransform,
 							transformedNames.get( images.indexOf( image ) ) );
+
 			translatedImages.add( transformedImage );
 		}
+
 		return translatedImages;
 	}
 }

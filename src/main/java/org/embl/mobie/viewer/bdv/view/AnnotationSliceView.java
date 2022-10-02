@@ -72,7 +72,6 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 
 		for ( Image< AnnotationType< A > > image : display.getImages() )
 		{
-
 			SourceAndConverter sourceAndConverter = createSourceAndConverter( display, image );
 
 			show( sourceAndConverter );

@@ -9,8 +9,8 @@ public class InitialisedMetadataImage< T > implements Image< T >
 	private final Image< T > image;
 	private final RealMaskRealInterval mask;
 
-	// Currently, only the mask is given, we could provide more
-	// metadata if needed.
+	// Currently, only the mask is given,
+	// we could provide more metadata if needed.
 	public InitialisedMetadataImage( Image< T > image, RealMaskRealInterval mask )
 	{
 		this.image = image;

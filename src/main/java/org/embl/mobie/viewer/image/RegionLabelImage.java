@@ -40,9 +40,11 @@ import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.viewer.source.SourcePair;
+import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.viewer.transform.TransformHelper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -65,6 +67,11 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 
 	private void createLabelImage()
 	{
+		for ( AR annotatedRegion : annotatedRegions )
+		{
+			final TableSawAnnotatedRegion tableSawAnnotatedRegion = ( TableSawAnnotatedRegion ) annotatedRegion;
+			System.out.println("RegionLabelImage: " + name + ": " + annotatedRegion.regionId() + "\nimages = " + Arrays.toString( tableSawAnnotatedRegion.getRegionImageNames().toArray( new String[ 0 ] ) ) + "\n" + Arrays.toString( annotatedRegion.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( annotatedRegion.getMask().maxAsDoubleArray() ) );
+		}
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
 		final FunctionRealRandomAccessible< UnsignedIntType > realRandomAccessible = new FunctionRealRandomAccessible( 3, new LocationToLabelSupplier(), UnsignedIntType::new );
