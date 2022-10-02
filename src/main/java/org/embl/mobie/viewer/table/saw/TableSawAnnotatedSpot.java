@@ -81,7 +81,7 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 	@Override
 	public String source()
 	{
-		return null;
+		return source;
 	}
 
 	@Override

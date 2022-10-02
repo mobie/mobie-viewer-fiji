@@ -71,14 +71,15 @@ public abstract class AbstractBoundarySource< T > implements Source< T >, Source
     }
 
     @Override
-    public synchronized void getSourceTransform(final int t, final int level, final AffineTransform3D transform) {
-        source.getSourceTransform(t, level, transform);
+    public synchronized void getSourceTransform( final int t, final int level, final AffineTransform3D transform )
+    {
+        source.getSourceTransform( t, level, transform );
     }
 
     @Override
     public boolean isPresent( final int t )
     {
-        return source.isPresent(t);
+        return source.isPresent( t );
     }
 
     @Override

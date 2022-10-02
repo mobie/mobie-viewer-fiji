@@ -27,11 +27,11 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 
 	private HashMap< A, Integer > getAnnotationToRowIndex()
 	{
-		updateTables();
+		update();
 		return annotationToRowIndex;
 	}
 
-	private synchronized void updateTables()
+	private synchronized void update()
 	{
 		for ( AnnotationTableModel< A > tableModel : tableModels )
 		{
@@ -72,6 +72,7 @@ public class ConcatenatedAnnotationTableModel< A extends Annotation > implements
 	@Override
 	public int numAnnotations()
 	{
+		update();
 		return numRows;
 	}
 

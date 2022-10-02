@@ -76,14 +76,6 @@ public class AnnotatedLabelSource< T extends IntegerType< T >, A extends Annotat
     {
         final int label = input.getInteger();
 
-        if ( label == 0 )
-        {
-            // 0 is the background label
-            // null is the background annotation
-            output.setAnnotation( null );
-            return;
-        }
-
         final A annotation = annotationAdapter.getAnnotation( getName(), t, label );
         output.setAnnotation( annotation );
     }

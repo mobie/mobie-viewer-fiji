@@ -30,19 +30,19 @@ package org.embl.mobie.viewer.annotation;
 
 import org.embl.mobie.viewer.table.AnnData;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class AnnotationAdapter< A extends Annotation >
 {
+	private final AtomicBoolean throwError = new AtomicBoolean( true );
 	private final AnnData< A > annData;
 	private Map< String, A > uuidToAnnotation;
-	private Map< String, A > itlToAnnotation; // source, timepoint, label
+	private Map< String, A > stlToAnnotation; // source, timepoint, label
 
 	public AnnotationAdapter( AnnData< A > annData )
 	{
@@ -67,30 +67,51 @@ public class AnnotationAdapter< A extends Annotation >
 		return uuidToAnnotation.get( uuid );
 	}
 
-	// This is for mapping from within an
+	// This is for mapping for voxels within an
 	// {@code AnnotatedLabelSource}
 	// to the corresponding annotation.
 	public synchronized A getAnnotation( String source, int timePoint, int label )
 	{
-		// FIXME: This makes rendering in BDV effectively single threaded!
+		if ( label == 0 )
+		{
+			// 0 is the background label
+			// null is the background annotation
+			return null ;
+		}
+
+		// FIXME: The fact the the method is synchronized makes
+		//   rendering in BDV effectively single threaded!
 		//   Once itlToAnnotation is initialised this does not need to
 		//   be synchronised anymore.
-		if ( itlToAnnotation == null )
+		if ( stlToAnnotation == null )
 			initMaps();
 		final String itl = stlKey( source, timePoint, label );
-		return itlToAnnotation.get( itl );
+		final A annotation = stlToAnnotation.get( itl );
+
+		if ( annotation == null )
+		{
+			if ( throwError.get() )
+			{
+				System.err.println( "AnnotationAdapter: Missing annotation: " + source+ "; time point = " + timePoint + "; label = " + label + "\nSuppressing further errors of that kind." );
+				System.err.println( "AnnotationAdapter: Suppressing further errors of that kind.");
+			}
+
+			throwError.set( false ); // Not to crash the system by too many Serr prints
+		}
+
+		return annotation;
 	}
 
 	private void initMaps()
 	{
 		uuidToAnnotation = new ConcurrentHashMap<>();
-		itlToAnnotation = new ConcurrentHashMap<>();
+		stlToAnnotation = new ConcurrentHashMap<>();
 		final Iterator< A > iterator = annData.getTable().annotations().iterator();
 		while( iterator.hasNext() )
 		{
 			A annotation = iterator.next();
 			uuidToAnnotation.put( annotation.uuid(), annotation );
-			itlToAnnotation.put( stlKey( annotation.source(), annotation.timePoint(), annotation.label() ), annotation );
+			stlToAnnotation.put( stlKey( annotation.source(), annotation.timePoint(), annotation.label() ), annotation );
 		}
 	}
 

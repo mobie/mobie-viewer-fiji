@@ -12,14 +12,14 @@ import tech.tablesaw.api.NumericColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class TableSawAnnotationTableModel< A extends Annotation > implements AnnotationTableModel< A >
@@ -31,8 +31,8 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	protected LinkedHashSet< String > requestedColumnPaths = new LinkedHashSet<>();
 	protected LinkedHashSet< String > loadedColumnPaths = new LinkedHashSet<>();
 
-	private HashMap< A, Integer > annotationToRowIndex = new HashMap<>();;
-	private HashMap< Integer, A > rowIndexToAnnotation = new HashMap<>();;
+	private Map< A, Integer > annotationToRowIndex = new ConcurrentHashMap<>();;
+	private Map< Integer, A > rowIndexToAnnotation = new ConcurrentHashMap<>();;
 	private Table table;
 
 	public TableSawAnnotationTableModel(
@@ -58,9 +58,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 
 	// https://jtablesaw.github.io/tablesaw/userguide/tables.html
 
-	// ensure that the default and
-	// all optional additional tables are loaded
-	private synchronized Table table()
+	private synchronized void update()
 	{
 		for ( String columnPath : requestedColumnPaths )
 		{
@@ -69,6 +67,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 
 			loadedColumnPaths.add( columnPath );
 
+			System.out.println( "TableModel: " + dataSourceName + ": Opening table:\n" + columnPath );
 			final Table rows = TableSawHelper.readTable( columnPath );
 
 			if ( table == null ) // init table
@@ -81,8 +80,6 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 				table = table.joinOn( mergeByColumnNames ).inner( rows );
 			}
 		}
-
-		return table;
 	}
 
 	private void initTable( Table rows )
@@ -98,52 +95,62 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 		}
 	}
 
-	private synchronized HashMap< A, Integer > annotationToRowIndex()
+	private Map< A, Integer > annotationToRowIndex()
 	{
-		table();
+		update();
 		return annotationToRowIndex;
 	}
 
-	private HashMap< Integer, A > rowIndexToAnnotation()
+	private Map< Integer, A > rowIndexToAnnotation()
 	{
-		table();
+		update();
 		return rowIndexToAnnotation;
 	}
 
 	@Override
 	public List< String > columnNames()
 	{
-		return table().columnNames();
+		update();
+		return table.columnNames();
 	}
 
 	@Override
 	public List< String > numericColumnNames()
 	{
-		return table().numericColumns().stream().map( c -> c.name() ).collect( Collectors.toList() );
+		update();
+		return table.numericColumns().stream().map( c -> c.name() ).collect( Collectors.toList() );
 	}
 
 	@Override
 	public Class< ? > columnClass( String columnName )
 	{
-		return TableSawColumnTypes.typeToClass.get( table().column( columnName ).type() );
+		update();
+		return TableSawColumnTypes.typeToClass.get( table.column( columnName ).type() );
 	}
 
 	@Override
 	public int numAnnotations()
 	{
-		return table().rowCount();
+		update();
+		final int rowCount = table.rowCount();
+		return rowCount;
 	}
 
 	@Override
-	public int rowIndexOf( A annotation )
+	public synchronized int rowIndexOf( A annotation )
 	{
 		return annotationToRowIndex().get( annotation );
 	}
 
 	@Override
-	public A annotation( int rowIndex )
+	public synchronized A annotation( int rowIndex )
 	{
-		return rowIndexToAnnotation().get( rowIndex );
+		final A annotation = rowIndexToAnnotation().get( rowIndex );
+		if ( annotation == null )
+		{
+			int a = 1; // FIXME: Serr
+		}
+		return annotation;
 	}
 
 	@Override
@@ -187,7 +194,7 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	}
 
 	@Override
-	public Set< A > annotations()
+	public synchronized Set< A > annotations()
 	{
 		return annotationToRowIndex().keySet();
 	}
@@ -195,12 +202,14 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	@Override
 	public void addStringColumn( String columnName )
 	{
-		if ( ! table().containsColumn( columnName ) )
+		update();
+
+		if ( ! table.containsColumn( columnName ) )
 		{
-			final String[] strings = new String[ table().rowCount() ];
+			final String[] strings = new String[ table.rowCount() ];
 			Arrays.fill( strings, DefaultValues.NONE );
 			final StringColumn stringColumn = StringColumn.create( columnName, strings );
-			table().addColumns( stringColumn );
+			table.addColumns( stringColumn );
 		}
 		else
 		{

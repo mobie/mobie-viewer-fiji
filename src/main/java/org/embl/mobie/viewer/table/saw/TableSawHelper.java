@@ -12,9 +12,6 @@ public class TableSawHelper
 	{
 		try
 		{
-			// FIXME: IJ.log hangs sometimes if the Strings are too long
-			// https://forum.image.sc/t/controlling-the-imagej-console-window/1334/4
-			System.out.println( columnPath );
 			final String tableContent = IOHelper.read( columnPath );
 			// https://jtablesaw.github.io/tablesaw/userguide/importing_data.html
 			CsvReadOptions.Builder builder = CsvReadOptions.builderFromString( tableContent ).separator( '\t' ).missingValueIndicator( "na", "none", "nan" );

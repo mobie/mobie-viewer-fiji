@@ -43,8 +43,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 // MAYBE: This does not need to know that this is a Segment?!
 public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends Volatile< T >, A extends Annotation > extends AbstractSourceWrapper< V, VolatileAnnotationType< A > >
 {
-    private final AtomicBoolean throwError = new AtomicBoolean( true );
-
     private final AnnotationAdapter< A > annotationAdapter;
 
     public VolatileAnnotatedLabelSource( final Source< V > source, AnnotationAdapter< A > annotationAdapter )
@@ -82,28 +80,7 @@ public class VolatileAnnotatedLabelSource< T extends IntegerType< T >, V extends
 
         final int label = input.get().getInteger();
 
-        if ( label == 0 )
-        {
-            // 0 is the background label
-            // null is the background annotation
-            output.get().setAnnotation( null );
-            output.setValid( true );
-            return;
-        }
-
         final A annotation = annotationAdapter.getAnnotation( getName(), t, label );
-        if ( annotation == null )
-        {
-            if ( throwError.get() )
-            {
-                // Note: this Exception is swallowed by BDV
-                // This only serves to put a breakpoint for debugging.
-                System.err.println( "Could not find annotation: " + getName() + "; time point = " + t + "; label = " + label );
-                System.err.println( "Suppressing further errors of that kind.");
-            }
-
-            throwError.set( false ); // Not to crash the system by too many serr prints
-        }
         output.get().setAnnotation( annotation );
         output.setValid( true );
     }

@@ -45,6 +45,43 @@ import static de.embl.cba.tables.Utils.getVoxelSpacings;
  */
 public class BdvPlaygroundHelper
 {
+	public static AffineTransform3D getViewerTransformWithNewCenter( BdvHandle bdvHandle, double[] position )
+	{
+		if ( position.length == 2 )
+		{
+			position = new double[]{
+					position[ 0 ],
+					position[ 1 ],
+					0
+			};
+		}
+
+		final AffineTransform3D currentViewerTransform = new AffineTransform3D();
+		bdvHandle.getViewerPanel().state().getViewerTransform( currentViewerTransform );
+
+		AffineTransform3D adaptedViewerTransform = currentViewerTransform.copy();
+
+		// ViewerTransform notes:
+		// - applyInverse: coordinates in viewer => coordinates in image
+		// - apply: coordinates in image => coordinates in viewer
+
+		final double[] targetPositionInViewerInPixels = new double[ 3 ];
+		currentViewerTransform.apply( position, targetPositionInViewerInPixels );
+
+		for ( int d = 0; d < 3; d++ )
+		{
+			targetPositionInViewerInPixels[ d ] *= -1;
+		}
+
+		adaptedViewerTransform.translate( targetPositionInViewerInPixels );
+
+		final double[] windowCentreInViewerInPixels = getWindowCentreInPixelUnits( bdvHandle.getViewerPanel() );
+
+		adaptedViewerTransform.translate( windowCentreInViewerInPixels );
+
+		return adaptedViewerTransform;
+	}
+
 	public static double[] getWindowCentreInPixelUnits( ViewerPanel viewerPanel )
 	{
 		final double[] windowCentreInPixelUnits = new double[ 3 ];
