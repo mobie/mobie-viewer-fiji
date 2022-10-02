@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
 public class AnnotationAdapter< A extends Annotation >
@@ -68,18 +70,21 @@ public class AnnotationAdapter< A extends Annotation >
 	// This is for mapping from within an
 	// {@code AnnotatedLabelSource}
 	// to the corresponding annotation.
-	public A getAnnotation( String source, int timePoint, int label )
+	public synchronized A getAnnotation( String source, int timePoint, int label )
 	{
+		// FIXME: This makes rendering in BDV effectively single threaded!
+		//   Once itlToAnnotation is initialised this does not need to
+		//   be synchronised anymore.
 		if ( itlToAnnotation == null )
 			initMaps();
 		final String itl = stlKey( source, timePoint, label );
 		return itlToAnnotation.get( itl );
 	}
 
-	private synchronized void initMaps()
+	private void initMaps()
 	{
-		uuidToAnnotation = new HashMap<>();
-		itlToAnnotation = new HashMap<>();
+		uuidToAnnotation = new ConcurrentHashMap<>();
+		itlToAnnotation = new ConcurrentHashMap<>();
 		final Iterator< A > iterator = annData.getTable().annotations().iterator();
 		while( iterator.hasNext() )
 		{
