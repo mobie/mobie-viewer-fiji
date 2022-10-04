@@ -47,6 +47,7 @@ public class OpenMoBIEProjectCommand implements Command
 	public void run()
 	{
 		MoBIESettings options = MoBIESettings.settings();
+		//options.gitProjectBranch( "mobie3" ); // <----
 
 		try
 		{
