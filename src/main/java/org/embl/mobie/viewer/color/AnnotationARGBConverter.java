@@ -31,9 +31,9 @@ package org.embl.mobie.viewer.color;
 import org.embl.mobie.viewer.source.AnnotationType;
 import net.imglib2.type.numeric.ARGBType;
 
-public class AnnotationConverter< T > extends AbstractAnnotationConverter< T, AnnotationType< T > >
+public class AnnotationARGBConverter< T > extends AbstractAnnotationARGBConverter< T, AnnotationType< T > >
 {
-	public AnnotationConverter( MobieColoringModel< T > coloringModel )
+	public AnnotationARGBConverter( MobieColoringModel< T > coloringModel )
 	{
 		super( coloringModel );
 	}

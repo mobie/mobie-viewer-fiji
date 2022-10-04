@@ -62,15 +62,15 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 	BdvHandle bdvHandle;
 
 	@Parameter(label = "Fixed Source(s)")
-	SourceAndConverter[] fixedSources;
+	SourceAndConverter< ? >[] fixedSources;
 
 	@Parameter(label = "Moving Source(s)")
-	SourceAndConverter[] movingSources;
+	SourceAndConverter< ? >[] movingSources;
 
 	private BigWarp bigWarp;
 	private Map< SourceAndConverter< ? >, AffineTransform3D > sacToOriginalFixedTransform;
-	private List< SourceAndConverter > movingSacs;
-	private List< SourceAndConverter > fixedSacs;
+	private List< SourceAndConverter< ? > > movingSacs;
+	private List< SourceAndConverter< ? > > fixedSacs;
 
 	private ISourceAndConverterService sacService;
 	private SourceAndConverterBdvDisplayService bdvDisplayService;
@@ -138,10 +138,10 @@ public class BigWarpRegistrationCommand implements BdvPlaygroundActionCommand, T
 		bdvHandle.getViewerPanel().requestRepaint();
 	}
 
-	private void storeOriginalTransforms( List< SourceAndConverter > movingSacs )
+	private void storeOriginalTransforms( List< SourceAndConverter< ? > > movingSacs )
 	{
 		sacToOriginalFixedTransform = new HashMap<>();
-		for ( SourceAndConverter movingSac : movingSacs )
+		for ( SourceAndConverter< ? > movingSac : movingSacs )
 		{
 			final AffineTransform3D fixedTransform = new AffineTransform3D();
 			( ( TransformedSource ) movingSac.getSpimSource()).getFixedTransform( fixedTransform );

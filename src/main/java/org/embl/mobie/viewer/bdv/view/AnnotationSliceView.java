@@ -36,9 +36,9 @@ import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
 import org.embl.mobie.viewer.MoBIE;
 import org.embl.mobie.viewer.annotation.SliceViewAnnotationSelector;
-import org.embl.mobie.viewer.color.AnnotationConverter;
+import org.embl.mobie.viewer.color.AnnotationARGBConverter;
 import org.embl.mobie.viewer.color.ColoringListener;
-import org.embl.mobie.viewer.color.VolatileAnnotationConverter;
+import org.embl.mobie.viewer.color.VolatileAnnotationARGBConverter;
 import org.embl.mobie.viewer.playground.BdvPlaygroundHelper;
 import org.embl.mobie.viewer.serialize.display.AnnotationDisplay;
 import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
@@ -52,7 +52,6 @@ import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.volume.SegmentsVolumeViewer;
 import net.imglib2.Volatile;
-import sc.fiji.bdvpg.bdv.BdvHandleHelper;
 import sc.fiji.bdvpg.bdv.navigate.ViewerTransformChanger;
 import sc.fiji.bdvpg.services.SourceAndConverterServices;
 
@@ -91,7 +90,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		System.out.println( "AnnotationSliceView: Creating SAC for " + image.getName() );
 		final Source< AnnotationType< A > > source = image.getSourcePair().getSource();
 		final BoundarySource boundarySource = new BoundarySource( source, false, 0.0F, image.getMask() );
-		final Converter< AnnotationType< A >, ARGBType > annotationConverter = new AnnotationConverter<>( display.coloringModel );
+		final Converter< AnnotationType< A >, ARGBType > annotationConverter = new AnnotationARGBConverter<>( display.coloringModel );
 
 		// create volatile sac
 		//
@@ -100,7 +99,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 			System.out.println( "AnnotationSliceView: Creating volatile SAC for " + image.getName() );
 			final Source< ? extends Volatile< ? extends AnnotationType< ? > > > volatileSource = image.getSourcePair().getVolatileSource();
 			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSource, false, 1.0F, image.getMask() );
-			final VolatileAnnotationConverter volatileAnnotationConverter = new VolatileAnnotationConverter( display.coloringModel );
+			final VolatileAnnotationARGBConverter volatileAnnotationConverter = new VolatileAnnotationARGBConverter( display.coloringModel );
 			SourceAndConverter volatileSourceAndConverter = new SourceAndConverter( volatileBoundarySource, volatileAnnotationConverter );
 
 			// combine non-volatile and volatile sac

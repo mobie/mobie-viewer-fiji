@@ -28,22 +28,52 @@
  */
 package org.embl.mobie.viewer.color;
 
-import org.embl.mobie.viewer.source.VolatileAnnotationType;
+import de.embl.cba.tables.color.ColoringLuts;
+import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
+import org.embl.mobie.viewer.color.lut.LUTs;
+import org.embl.mobie.viewer.color.opacity.OpacityAdjuster;
 
-public class VolatileAnnotationConverter< T > extends AbstractAnnotationConverter< T, VolatileAnnotationType< T > >
+public abstract class AbstractAnnotationARGBConverter< T, A > implements Converter< A, ARGBType >, OpacityAdjuster, MobieColoringModelWrapper
 {
-	public VolatileAnnotationConverter( MobieColoringModel< T > coloringModel )
+	private final MobieColoringModel< T > coloringModel;
+	private double opacity = 1.0;
+
+	public AbstractAnnotationARGBConverter( MobieColoringModel< T > coloringModel )
 	{
-		super( coloringModel );
+		this.coloringModel = coloringModel;
 	}
 
 	@Override
-	public void convert( VolatileAnnotationType< T > input, ARGBType output )
+	public MobieColoringModel getMoBIEColoringModel()
 	{
-		if ( ! input.isValid()  )
-			return;
-
-		setColor( input.getAnnotation(), output );
+		return coloringModel;
 	}
+
+	protected void setColor( T input, ARGBType color )
+	{
+		if ( input == null )
+		{
+			// no annotation => transparent
+			color.set( LUTs.TRANSPARENT );
+			return;
+		}
+
+		// This includes selection model opacity
+		coloringModel.convert( input, color );
+
+		// Opacity for rendering in BDV
+		adjustOpacity( color, opacity );
+	}
+
+	public void setOpacity( double opacity )
+	{
+		this.opacity = opacity;
+	}
+
+	public double getOpacity()
+	{
+		return opacity;
+	}
+
 }
