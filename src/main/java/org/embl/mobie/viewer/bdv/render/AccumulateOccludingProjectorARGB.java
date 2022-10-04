@@ -44,8 +44,7 @@ import java.util.concurrent.ExecutorService;
 
 public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBType, ARGBType >
 {
-	private static BlendingMode[] blendingModes;
-	private static ArrayList< Boolean > isOccluding;
+	private ArrayList< Boolean > isOccluding;
 
 	public AccumulateOccludingProjectorARGB(
 			final List< VolatileProjector > sourceProjectors,
@@ -56,42 +55,19 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 			final ExecutorService executorService )
 	{
 		super( sourceProjectors, sourceScreenImages, target );
-		blendingModes = getBlendingModes( sources );
-		initOcclusions( blendingModes );
+		isOccluding = getOcclusions( sources );
 	}
 
-	public static ArrayList< Boolean > getOcclusions( List< SourceAndConverter< ? > > sacs )
+	private static ArrayList< Boolean > getOccluding( BlendingMode[] blendingModes )
 	{
-		final BlendingMode[] blendingModes = getBlendingModes( sacs );
-		initOcclusions( blendingModes );
-		return isOccluding;
-	}
-
-	public static BlendingMode[] getBlendingModes( List< SourceAndConverter< ? > > sources )
-	{
-		final ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
-
-		final BlendingMode[] blendingModes = new BlendingMode[ sources.size() ];
-		for ( int sourceIndex = 0; sourceIndex < sources.size(); sourceIndex++ )
-		{
-			final SourceAndConverter< ? > sourceAndConverter = sources.get( sourceIndex );
-			final BlendingMode blendingMode = ( BlendingMode ) sacService.getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
-			if ( blendingMode != null )
-				blendingModes[ sourceIndex ] = blendingMode;
-			else
-				blendingModes[ sourceIndex ] = BlendingMode.Sum;
-		}
-		return blendingModes;
-	}
-
-	private static void initOcclusions( BlendingMode[] blendingModes )
-	{
-		isOccluding = new ArrayList();
+		final ArrayList< Boolean > isOccluding = new ArrayList<>();
 
 		for ( int sourceIndex = 0; sourceIndex < blendingModes.length; sourceIndex++ )
 		{
 			isOccluding.add( BlendingMode.isOccluding( blendingModes[ sourceIndex ] ) );
 		}
+
+		return isOccluding;
 	}
 
 	@Override
@@ -119,11 +95,18 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 			final int g = ARGBType.green( argb );
 			final int b = ARGBType.blue( argb );
 
-			if ( isOccluding.get( sourceIndex ) )
+			try
 			{
-				rAccu *= (1 - alpha);
-				gAccu *= (1 - alpha);
-				bAccu *= (1 - alpha);
+				if ( isOccluding.get( sourceIndex ) )
+				{
+					rAccu *= ( 1 - alpha );
+					gAccu *= ( 1 - alpha );
+					bAccu *= ( 1 - alpha );
+				}
+			}
+			catch ( Exception e )
+			{
+				throw new RuntimeException();
 			}
 
 			rAccu += r * alpha;
@@ -151,5 +134,29 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 			argbs[ sourceIndex ] = accesses[ sourceIndex ].get().get();
 		}
 		return argbs;
+	}
+
+	public static ArrayList< Boolean > getOcclusions( List< SourceAndConverter< ? > > sacs )
+	{
+		final BlendingMode[] blendingModes = getBlendingModes( sacs );
+		final ArrayList< Boolean > occluding = getOccluding( blendingModes );
+		return occluding;
+	}
+
+	public static BlendingMode[] getBlendingModes( List< SourceAndConverter< ? > > sources )
+	{
+		final ISourceAndConverterService sacService = SourceAndConverterServices.getSourceAndConverterService();
+
+		final BlendingMode[] blendingModes = new BlendingMode[ sources.size() ];
+		for ( int sourceIndex = 0; sourceIndex < sources.size(); sourceIndex++ )
+		{
+			final SourceAndConverter< ? > sourceAndConverter = sources.get( sourceIndex );
+			final BlendingMode blendingMode = ( BlendingMode ) sacService.getMetadata( sourceAndConverter, BlendingMode.BLENDING_MODE );
+			if ( blendingMode != null )
+				blendingModes[ sourceIndex ] = blendingMode;
+			else
+				blendingModes[ sourceIndex ] = BlendingMode.Sum;
+		}
+		return blendingModes;
 	}
 }
