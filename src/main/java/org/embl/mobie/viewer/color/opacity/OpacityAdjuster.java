@@ -17,6 +17,7 @@ public interface OpacityAdjuster
 	{
 		final int value = color.get();
 		final int alpha = alpha( value );
-		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha * opacity ) );
+		final double adjustedAlpha = alpha * opacity;
+		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), adjustedAlpha ) );
 	}
 }

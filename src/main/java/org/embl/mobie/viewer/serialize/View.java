@@ -83,18 +83,22 @@ public class View
 
 			if ( display instanceof RegionDisplay )
 			{
-				// FIXME:
-				// https://github.com/mobie/mobie.github.io/issues/88
-				sources.put( ( ( RegionDisplay ) display ).tableSource, display );
+				// TODO:
+				//   https://github.com/mobie/mobie.github.io/issues/88
+				final RegionDisplay regionDisplay = ( RegionDisplay ) display;
+				sources.put( regionDisplay.tableSource, display );
 			}
 
 			if ( display instanceof SpotDisplay )
 			{
-				// FIXME:
-				// https://github.com/mobie/mobie.github.io/issues/88
-				//sources.put( ( ( RegionDisplay ) display ).tableSource, display );
+				// TODO:
+				//   https://github.com/mobie/mobie.github.io/issues/88
+				final SpotDisplay< ? > spotDisplay = ( SpotDisplay< ? > ) display;
+				for ( String source : spotDisplay.sources )
+				{
+					sources.put( source, display );
+				}
 			}
-
 		}
 
 		for ( Transformation imageTransformation : getTransformations() )

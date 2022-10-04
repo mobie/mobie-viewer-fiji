@@ -39,7 +39,7 @@ public class SpotDisplay< AR extends AnnotatedRegion > extends AnnotationDisplay
 {
 	// Serialization
 
-	private List< String > sources;
+	public List< String > sources;
 
 	private Set< String > selectedSpotIds;
 

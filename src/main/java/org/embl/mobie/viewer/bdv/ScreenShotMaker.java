@@ -341,7 +341,7 @@ public class ScreenShotMaker
         final Cursor< ARGBType > argbCursor = Views.iterable( argbTarget ).localizingCursor();
         final int numVisibleSources = argbSources.size();
         Cursor< ARGBType >[] cursors = getCursors( argbSources, numVisibleSources );
-        final ArrayList< ArrayList< Integer > > occlusions = AccumulateOccludingProjectorARGB.getOcclusions( sacs );
+        final ArrayList< Boolean > occlusions = AccumulateOccludingProjectorARGB.getOcclusions( sacs );
 
         while ( argbCursor.hasNext() )
         {

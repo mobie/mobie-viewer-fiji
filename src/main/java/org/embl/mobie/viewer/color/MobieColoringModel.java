@@ -81,7 +81,8 @@ public class MobieColoringModel< T > extends AbstractColoringModel< T >
 	private void applyOpacity( ARGBType color, double opacity )
 	{
 		final int value = color.get();
-		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha( value ) * opacity ) );
+		final double alpha = alpha( value ) * opacity;
+		color.set( ARGBType.rgba( red( value ), green( value ), blue( value ), alpha ) );
 	}
 
 	public void setSelectionColor( ARGBType selectionColor )

@@ -87,7 +87,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 	{
 		// create non-volatile sac
 		//
-		System.out.println( "AnnotationSliceView: Creating SAC for " + image.getName() );
+		//System.out.println( "AnnotationSliceView: Creating SAC for " + image.getName() );
 		final Source< AnnotationType< A > > source = image.getSourcePair().getSource();
 		final BoundarySource boundarySource = new BoundarySource( source, false, 0.0F, image.getMask() );
 		final Converter< AnnotationType< A >, ARGBType > annotationConverter = new AnnotationARGBConverter<>( display.coloringModel );
@@ -96,7 +96,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		//
 		if ( image.getSourcePair().getVolatileSource() != null )
 		{
-			System.out.println( "AnnotationSliceView: Creating volatile SAC for " + image.getName() );
+			//System.out.println( "AnnotationSliceView: Creating volatile SAC for " + image.getName() );
 			final Source< ? extends Volatile< ? extends AnnotationType< ? > > > volatileSource = image.getSourcePair().getVolatileSource();
 			final VolatileBoundarySource volatileBoundarySource = new VolatileBoundarySource( volatileSource, false, 1.0F, image.getMask() );
 			final VolatileAnnotationARGBConverter volatileAnnotationConverter = new VolatileAnnotationARGBConverter( display.coloringModel );
@@ -126,7 +126,7 @@ public class AnnotationSliceView< A extends Annotation > extends AbstractSliceVi
 		if ( sourceAndConverter.asVolatile() != null )
 		{
 			final VolatileBoundarySource volatileBoundarySource = SourceHelper.unwrapSource( sourceAndConverter.asVolatile().getSpimSource(), VolatileBoundarySource.class );
-			System.out.println( "AnnotationSliceView: Boundary rendering for volatile " + sourceAndConverter.getSpimSource().getName() + "; showAsBoundaries = " + showAsBoundaries + "; boundaryThickness = " + boundaryThickness );
+			//System.out.println( "AnnotationSliceView: Boundary rendering for volatile " + sourceAndConverter.getSpimSource().getName() + "; showAsBoundaries = " + showAsBoundaries + "; boundaryThickness = " + boundaryThickness );
 			volatileBoundarySource.showAsBoundary( showAsBoundaries, boundaryThickness );
 		}
 	}

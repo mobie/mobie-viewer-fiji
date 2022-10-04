@@ -45,7 +45,6 @@ import java.util.concurrent.ExecutorService;
 public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBType, ARGBType >
 {
 	private static BlendingMode[] blendingModes;
-	private static ArrayList< ArrayList< Integer > > isOccludedBy;
 	private static ArrayList< Boolean > isOccluding;
 
 	public AccumulateOccludingProjectorARGB(
@@ -53,19 +52,19 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 			final List< SourceAndConverter< ? > > sources,
 			final List< ? extends RandomAccessible< ? extends ARGBType > > sourceScreenImages,
 			final RandomAccessibleInterval< ARGBType > target,
-			final int numThreads,
+			final int numThreads, // TODO
 			final ExecutorService executorService )
 	{
-		super( sourceProjectors, sourceScreenImages, target, numThreads, executorService );
+		super( sourceProjectors, sourceScreenImages, target );
 		blendingModes = getBlendingModes( sources );
 		initOcclusions( blendingModes );
 	}
 
-	public static ArrayList< ArrayList< Integer > > getOcclusions( List< SourceAndConverter< ? > > sacs )
+	public static ArrayList< Boolean > getOcclusions( List< SourceAndConverter< ? > > sacs )
 	{
 		final BlendingMode[] blendingModes = getBlendingModes( sacs );
 		initOcclusions( blendingModes );
-		return isOccludedBy;
+		return isOccluding;
 	}
 
 	public static BlendingMode[] getBlendingModes( List< SourceAndConverter< ? > > sources )
@@ -100,11 +99,11 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 			final Cursor< ? extends ARGBType >[] accesses,
 			final ARGBType target )
 	{
-		final int argbIndex = getArgbIndex( accesses, isOccludedBy );
+		final int argbIndex = getArgbIndex( accesses, isOccluding );
 		target.set( argbIndex );
 	}
 
-	public static int getArgbIndex( Cursor< ? extends ARGBType >[] accesses, ArrayList< ArrayList< Integer > > occludedBy )
+	public static int getArgbIndex( Cursor< ? extends ARGBType >[] accesses, ArrayList< Boolean > isOccluding )
 	{
 		int aAccu = 0, rAccu = 0, gAccu = 0, bAccu = 0;
 
@@ -142,25 +141,6 @@ public class AccumulateOccludingProjectorARGB extends AccumulateProjector< ARGBT
 			bAccu = 255;
 
 		return ARGBType.rgba( rAccu, gAccu, bAccu, aAccu );
-	}
-
-	private static int occludingAlpha( int[] argbs, ArrayList< Integer > occludingSourceIndices )
-	{
-		// TODO: maybe we have to multiply the (1-alpha) of all the occluding
-		//   sources?! Rather than just return the first one, which
-		//   seems weird anyway?
-
-		for ( Integer occludingSourceIndex : occludingSourceIndices )
-		{
-			final int alpha = ARGBType.alpha( argbs[ occludingSourceIndex ] );
-
-			if ( alpha > 0 )
-			{
-				return alpha;
-			}
-		}
-
-		return 0;
 	}
 
 	private static int[] getARGBs( Cursor< ? extends ARGBType >[] accesses )

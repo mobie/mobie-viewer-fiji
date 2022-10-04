@@ -520,7 +520,7 @@ public class MoBIE
 		}
 
 		ThreadHelper.waitUntilFinished( futures );
-		IJ.log( "Initialised " + dataSources.size() + " image(s) in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumIoThreads() + " thread(s).");
+		IJ.log( "Initialised " + dataSources.size() + " data sources in " + (System.currentTimeMillis() - startTime) + " ms, using up to " + ThreadHelper.getNumIoThreads() + " thread(s).");
 	}
 
 	private void initDataSource( DataSource dataSource, String log )
@@ -547,16 +547,22 @@ public class MoBIE
 
 				if ( segmentationDataSource.tableData != null )
 				{
+					final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator();
+
+					TableSawAnnotationTableModel tableModel;
 					if ( dataSource.preInit() )
 					{
-						// FIXME: Load tables here!
+						// load table already now
+						Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV ) );
+						tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table  );
 					}
 					else
 					{
-
+						// don't load the table yet
+						// (for lazy-loading in a stitched or grid image)
+						tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV  );
 					}
-					final TableSawAnnotatedSegmentCreator annotationCreator = new TableSawAnnotatedSegmentCreator();
-					final TableSawAnnotationTableModel tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, getTableStore( segmentationDataSource.tableData ), TableDataFormat.DEFAULT_TSV  );
+
 					final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
 					final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
 
@@ -580,8 +586,9 @@ public class MoBIE
 		if ( dataSource instanceof SpotDataSource )
 		{
 			final SpotDataSource spotDataSource = ( SpotDataSource ) dataSource;
+			Table table = TableSawHelper.readTable( IOHelper.combinePath( moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV ) );
 			final TableSawAnnotationCreator< TableSawAnnotatedSpot > annotationCreator = new TableSawAnnotatedSpotCreator();
-			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV );
+			final TableSawAnnotationTableModel< AnnotatedSpot > tableModel = new TableSawAnnotationTableModel( dataSource.getName(), annotationCreator, moBIE.getTableStore( spotDataSource.tableData ), TableDataFormat.DEFAULT_TSV, table );
 			final Set< AnnotatedSpot > annotatedSpots = tableModel.annotations();
 			final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDataSource.getName(), annotatedSpots, 1.0 );
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );

@@ -41,13 +41,23 @@ import static net.imglib2.type.numeric.ARGBType.red;
 
 public abstract class OpacityHelper
 {
-	private static void adjustOpacity( SourceAndConverter< ? > sourceAndConverter, double opacity )
+	private static void adjustColorConverterOpacity( SourceAndConverter< ? > sourceAndConverter, double opacity )
 	{
 		adjustOpacity( ( ColorConverter ) sourceAndConverter.getConverter(), opacity );
 
 		if ( sourceAndConverter.asVolatile() != null )
 		{
 			adjustOpacity( ( ColorConverter ) sourceAndConverter.asVolatile().getConverter(), opacity );
+		}
+	}
+
+	private static void adjustOpacityAdjusterOpacity( SourceAndConverter< ? > sourceAndConverter, double opacity )
+	{
+		( ( OpacityAdjuster ) sourceAndConverter.getConverter() ).setOpacity( opacity );
+
+		if ( sourceAndConverter.asVolatile() != null )
+		{
+			( ( OpacityAdjuster ) sourceAndConverter.asVolatile().getConverter() ).setOpacity( opacity );
 		}
 	}
 
@@ -71,11 +81,11 @@ public abstract class OpacityHelper
 
 		if ( converter instanceof OpacityAdjuster )
 		{
-			( ( OpacityAdjuster ) converter ).setOpacity( opacity );
+			adjustOpacityAdjusterOpacity( sourceAndConverter, opacity );
 		}
 		else if ( converter instanceof ColorConverter )
 		{
-			adjustOpacity( sourceAndConverter, opacity );
+			adjustColorConverterOpacity( sourceAndConverter, opacity );
 		}
 		else
 		{
