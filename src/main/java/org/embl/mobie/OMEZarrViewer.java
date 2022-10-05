@@ -28,6 +28,7 @@
  */
 package org.embl.mobie;
 
+import bdv.util.BdvFunctions;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOptions;
 import bdv.util.Prefs;
@@ -68,25 +69,27 @@ public class OMEZarrViewer
 
     public void show() {
 
-        final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
+        BdvFunctions.show( spimData );
 
-        final Collection< SourceAndConverter< ? > > sourceAndConverters = creator.getSetupIdToSourceAndConverter().values();
-
-        // TODO: numTimePoints
-        // TODO: is2D
-        // SourceAndConverterHelper.getMaxTimepoint(  )
-
-        Prefs.showScaleBar( true );
-        Prefs.showMultibox( true );
-        Prefs.scaleBarColor( ARGBType.rgba( 255, 255, 255, 255 ) );
-        PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
-        bdvHandle = SliceViewer.createBdv( false, "OME-Zarr - BigDataViewer" );
-        sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
-        sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
-
-        showSacs( sourceAndConverters );
-        new ViewerTransformAdjuster( bdvHandle, sourceAndConverters.iterator().next() ).run();
-        installContextMenu( bdvHandle );
+//        final SourceAndConverterFromSpimDataCreator creator = new SourceAndConverterFromSpimDataCreator( spimData );
+//
+//        final Collection< SourceAndConverter< ? > > sourceAndConverters = creator.getSetupIdToSourceAndConverter().values();
+//
+//        // TODO: numTimePoints
+//        // TODO: is2D
+//        // SourceAndConverterHelper.getMaxTimepoint(  )
+//
+//        Prefs.showScaleBar( true );
+//        Prefs.showMultibox( true );
+//        Prefs.scaleBarColor( ARGBType.rgba( 255, 255, 255, 255 ) );
+//        PlaygroundPrefs.setSourceAndConverterUIVisibility( false );
+//        bdvHandle = SliceViewer.createBdv( false, "OME-Zarr - BigDataViewer" );
+//        sacService = ( SourceAndConverterService ) SourceAndConverterServices.getSourceAndConverterService();
+//        sacDisplayService = SourceAndConverterServices.getBdvDisplayService();
+//
+//        showSacs( sourceAndConverters );
+//        new ViewerTransformAdjuster( bdvHandle, sourceAndConverters.iterator().next() ).run();
+//        installContextMenu( bdvHandle );
     }
 
     private void showSacs( Collection< SourceAndConverter< ? > > sourceAndConverters )
