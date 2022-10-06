@@ -27,20 +27,20 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 		final Table rows = tableSupplier.get();
 		final Row row = rows.row( rowIndex );
 
-		this.label = (int) row.getObject( ColumnNames.SPOT_ID );
+		this.label = row.getInt( ColumnNames.SPOT_ID );
 
 		if ( row.columnNames().contains( ColumnNames.SPOT_Z ) )
 		{
 			this.position = new double[]{
-					Double.parseDouble( row.getObject( ColumnNames.SPOT_X ).toString() ),
-					Double.parseDouble( row.getObject( ColumnNames.SPOT_Y ).toString() ),
-					Double.parseDouble( row.getObject( ColumnNames.SPOT_Z ).toString() )};
+					row.getNumber( ColumnNames.SPOT_X ),
+					row.getNumber( ColumnNames.SPOT_Y ),
+					row.getNumber( ColumnNames.SPOT_Z )};
 		}
 		else // 2D
 		{
 			this.position = new double[]{
-					(double) row.getObject( ColumnNames.SPOT_X ),
-					(double) row.getObject( ColumnNames.SPOT_Y ) };
+					row.getNumber( ColumnNames.SPOT_X ),
+					row.getNumber( ColumnNames.SPOT_Y ) };
 		}
 
 		this.timePoint = row.columnNames().contains( ColumnNames.TIMEPOINT ) ? row.getInt( ColumnNames.TIMEPOINT ) : 0;

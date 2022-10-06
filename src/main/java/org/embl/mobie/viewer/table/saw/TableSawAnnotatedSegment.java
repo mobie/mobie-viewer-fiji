@@ -46,9 +46,9 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 		initBoundingBox( row, is3D );
 
 		this.position = new double[]{
-				row.getDouble( ColumnNames.ANCHOR_X ),
-				row.getDouble( ColumnNames.ANCHOR_Y ),
-				is3D ? row.getDouble( ColumnNames.ANCHOR_Z ) : 0
+				row.getNumber( ColumnNames.ANCHOR_X ),
+				row.getNumber( ColumnNames.ANCHOR_Y ),
+				is3D ? row.getNumber( ColumnNames.ANCHOR_Z ) : 0
 		};
 
 		this.uuid = source + ";" + timePoint + ";" + labelId;
@@ -61,15 +61,15 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 		if ( ! rowContainsBoundingBox ) return;
 
 		final double[] min = {
-				row.getDouble( ColumnNames.BB_MIN_X ),
-				row.getDouble( ColumnNames.BB_MIN_Y ),
-				is3D ? row.getDouble( ColumnNames.BB_MIN_Z ) : 0
+				row.getNumber( ColumnNames.BB_MIN_X ),
+				row.getNumber( ColumnNames.BB_MIN_Y ),
+				is3D ? row.getNumber( ColumnNames.BB_MIN_Z ) : 0
 			};
 
 		final double[] max = {
-				row.getDouble( ColumnNames.BB_MAX_X ),
-				row.getDouble( ColumnNames.BB_MAX_Y ),
-				is3D ? row.getDouble( ColumnNames.BB_MAX_Z ) : 0
+				row.getNumber( ColumnNames.BB_MAX_X ),
+				row.getNumber( ColumnNames.BB_MAX_Y ),
+				is3D ? row.getNumber( ColumnNames.BB_MAX_Z ) : 0
 		};
 
 		boundingBox = new FinalRealInterval( min, max );
