@@ -162,7 +162,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 	// Transform all the individual images that are stitched
 	// such that they appear at the same location as in the stitched image.
-	// This is currently needed for a {@code RegionDisplay}
+	// This is needed for a {@code RegionDisplay}
 	// to know the location of the annotated images.
 	protected void transform( List< ? extends Image< ? > > images, Image< ? > metadataImage )
 	{
@@ -221,7 +221,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		System.out.println("Stitched Image: " + name + ": contained translated images:\n" + Arrays.toString( translatedImages.stream().map( i -> i.getName() ).toArray() ) );
 
-		// Register globally
+		// Register globally for region annotations
 		DataStore.putViewImages( translatedImages );
 	}
 
@@ -240,7 +240,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			final double[] translations = new double[ 3 ];
 			for ( int d = 0; d < 3; d++ )
 			{
-				// TODO there still is some jumping between the pyramids, not sure why!
+				// FIXME there still is some jumping between the pyramids, not sure why!
 				translations[ d ] = 0.5 * ( mipmapScales[ level ][ d ] - 1 ) + offsets[ d ];
 			}
 
@@ -256,10 +256,10 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 
 		// non-volatile
 		//
-		final List< RandomAccessibleInterval< T > > mipmapRAIs = createStitchedRAIs( randomAccessibleSupplier );
+		final List< RandomAccessibleInterval< T > > mipMapRAIs = createStitchedRAIs( randomAccessibleSupplier );
 
 		final RandomAccessibleIntervalMipmapSource< T > source = new RandomAccessibleIntervalMipmapSource<>(
-				mipmapRAIs,
+				mipMapRAIs,
 				type,
 				voxelDimensions,
 				name,
@@ -396,7 +396,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 				// this is not very efficient, but right now this mainly
 				// is needed to fetch single pixel values when
 				// a user clicks on an image
-				// TODO MUST For rendering screenshots it will be more
+				// FIXME For rendering screenshots it will be more
 				//  efficient to implement this in the same way as for the
 				//  volatile version (see below).
 				randomAccessibleSupplier.open( level, xTileIndex, yTileIndex );

@@ -1,6 +1,5 @@
 package org.embl.mobie.viewer.table.saw;
 
-import ij.IJ;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 import org.embl.mobie.io.util.IOHelper;
@@ -15,7 +14,6 @@ import tech.tablesaw.api.Table;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -91,11 +89,14 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 		table = rows;
 		table.setName( dataSourceName );
 		final int rowCount = table.rowCount();
+		// table.reorderColumns(  ) TODO MAYBE move the source in front
+		table.addColumns( StringColumn.create( "source", rowCount ) );
 		for ( int rowIndex = 0; rowIndex < rowCount; rowIndex++ )
 		{
 			final A annotation = annotationCreator.create( () -> table, rowIndex );
 			annotationToRowIndex.put( annotation, rowIndex );
 			rowIndexToAnnotation.put( rowIndex, annotation );
+			table.row( rowIndex ).setText( "source", dataSourceName );
 		}
 	}
 

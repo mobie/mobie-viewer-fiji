@@ -40,7 +40,7 @@ import org.embl.mobie.viewer.color.NumericAnnotationColoringModel;
 import org.embl.mobie.viewer.color.lut.LUTs;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.SelectionModel;
-import org.embl.mobie.viewer.image.AnnotatedImage;
+import org.embl.mobie.viewer.image.AnnotatedLabelImage;
 import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.SourceHelper;
@@ -222,9 +222,9 @@ public abstract class AnnotationDisplay< A extends Annotation > extends Abstract
 	// one may overwrite this method
 	public void createAnnData()
 	{
-		final List< AnnotatedImage< A > > annotatedImages = getImages().stream().map( image -> ( AnnotatedImage< A > ) image ).collect( Collectors.toList() );
+		final List< AnnotatedLabelImage< A > > annotatedLabelImages = getImages().stream().map( image -> ( AnnotatedLabelImage< A > ) image ).collect( Collectors.toList() );
 
-		annData = AnnDataHelper.getConcatenatedAnnData( annotatedImages );
+		annData = AnnDataHelper.getConcatenatedAnnData( annotatedLabelImages );
 
 		annotationAdapter = new AnnotationAdapter<>( annData );
 	}

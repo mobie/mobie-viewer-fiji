@@ -54,7 +54,7 @@ import org.embl.mobie.viewer.serialize.Project;
 import org.embl.mobie.viewer.serialize.ProjectJsonParser;
 import org.embl.mobie.viewer.serialize.RegionDataSource;
 import org.embl.mobie.viewer.serialize.SegmentationDataSource;
-import org.embl.mobie.viewer.image.AnnotatedLabelImage;
+import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.SpimDataImage;
 import org.embl.mobie.viewer.serialize.SpotDataSource;
 import org.embl.mobie.viewer.source.StorageLocation;
@@ -564,7 +564,7 @@ public class MoBIE
 					}
 
 					final DefaultAnnData< TableSawAnnotatedSegment > segmentsAnnData = new DefaultAnnData<>( tableModel );
-					final AnnotatedLabelImage annotatedLabelImage = new AnnotatedLabelImage( image, segmentsAnnData );
+					final DefaultAnnotatedLabelImage annotatedLabelImage = new DefaultAnnotatedLabelImage( image, segmentsAnnData );
 
 					// label image representing annotated segments
 					DataStore.putRawImage( annotatedLabelImage );
@@ -592,7 +592,7 @@ public class MoBIE
 			final Set< AnnotatedSpot > annotatedSpots = tableModel.annotations();
 			final Image< UnsignedIntType > labelImage = new SpotLabelImage<>( spotDataSource.getName(), annotatedSpots, 1.0 );
 			final DefaultAnnData< AnnotatedSpot > spotAnnData = new DefaultAnnData<>( tableModel );
-			final AnnotatedLabelImage spotsImage = new AnnotatedLabelImage( labelImage, spotAnnData );
+			final DefaultAnnotatedLabelImage spotsImage = new DefaultAnnotatedLabelImage( labelImage, spotAnnData );
 
 			// Spots image, built from spots table
 			DataStore.putRawImage( spotsImage );

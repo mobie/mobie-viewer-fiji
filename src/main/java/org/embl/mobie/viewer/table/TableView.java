@@ -44,7 +44,6 @@ import org.embl.mobie.viewer.plot.ScatterPlotDialog;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.SelectionListener;
 import org.embl.mobie.viewer.select.SelectionModel;
-import org.embl.mobie.viewer.image.AnnotatedImage;
 import org.embl.mobie.viewer.ui.ColumnColoringModelDialog;
 import net.imglib2.type.numeric.ARGBType;
 
@@ -87,13 +86,7 @@ public class TableView< A extends Annotation > implements SelectionListener< A >
 
 	public TableView( AnnotationDisplay< A > display )
 	{
-		// TODO: implement for multiple images
-		//   probably needs an AnnotationTableModel constructed
-		//   from multiple tables
-		//   Note that I need that already outside the Table for a potential coloring model
-		//   which reads its argb values from a table column.
-		final AnnotatedImage< A > annotatedImage = ( AnnotatedImage< A > ) display.getImages().iterator().next();
-		this.tableModel = annotatedImage.getAnnData().getTable();
+		this.tableModel = display.getAnnData().getTable();
 		this.coloringModel = display.coloringModel;
 		this.selectionModel = display.selectionModel;
 		this.tableName = display.getName();

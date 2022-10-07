@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.viewer.image;
 
+import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.source.AnnotationType;
 import org.embl.mobie.viewer.source.VolatileAnnotationType;
@@ -37,12 +38,15 @@ import org.embl.mobie.viewer.table.AnnDataHelper;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class StitchedAnnotatedImage< A extends Annotation > extends StitchedImage< AnnotationType< A >, VolatileAnnotationType< A > > implements AnnotatedImage< A >
+public class StitchedAnnotatedLabelImage< A extends Annotation > extends StitchedImage< AnnotationType< A >, VolatileAnnotationType< A > > implements AnnotatedLabelImage< A >
 {
 	private AnnData< A > annData;
 
-	public StitchedAnnotatedImage( List< ? extends AnnotatedImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
+	public StitchedAnnotatedLabelImage( List< ? extends AnnotatedLabelImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
 	{
+		// FIXME
+		//   One could just stitch the label mask images
+		//   and then transform
 		super( annotatedImages, metadataImage, positions, imageName, relativeCellMargin, transformImages );
 	}
 
@@ -53,5 +57,12 @@ public class StitchedAnnotatedImage< A extends Annotation > extends StitchedImag
 			annData = AnnDataHelper.getConcatenatedAnnData( ( List ) getTranslatedImages() );
 
 		return annData;
+	}
+
+	@Override
+	public Image< ? extends IntegerType< ? > > getLabelImage()
+	{
+		// FIXME
+		return null;
 	}
 }

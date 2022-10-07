@@ -61,15 +61,15 @@ import org.embl.mobie.viewer.serialize.display.SegmentationDisplay;
 import org.embl.mobie.viewer.plot.ScatterPlotView;
 import org.embl.mobie.viewer.select.MoBIESelectionModel;
 import org.embl.mobie.viewer.serialize.DataSource;
-import org.embl.mobie.viewer.image.AnnotatedImage;
-import org.embl.mobie.viewer.image.StitchedAnnotatedImage;
+import org.embl.mobie.viewer.image.AnnotatedLabelImage;
+import org.embl.mobie.viewer.image.StitchedAnnotatedLabelImage;
 import org.embl.mobie.viewer.serialize.RegionDataSource;
 import org.embl.mobie.viewer.serialize.View;
 import org.embl.mobie.viewer.serialize.transformation.GridTransformation;
 import org.embl.mobie.viewer.source.BoundarySource;
 import org.embl.mobie.viewer.source.CroppedImage;
 import org.embl.mobie.viewer.image.Image;
-import org.embl.mobie.viewer.image.AnnotatedLabelImage;
+import org.embl.mobie.viewer.image.DefaultAnnotatedLabelImage;
 import org.embl.mobie.viewer.image.RegionLabelImage;
 import org.embl.mobie.viewer.image.StitchedImage;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
@@ -148,8 +148,8 @@ public class ViewManager
 		//   from multiple tables
 		//   Note that the same code is needed for the TableView,
 		//   thus maybe this needs to happen within annotationDisplay?
-		final AnnotatedImage annotatedImage = ( AnnotatedImage ) display.getImages().iterator().next();
-		final AnnotationTableModel annotationTableModel = annotatedImage.getAnnData().getTable();
+		final AnnotatedLabelImage annotatedLabelImage = ( AnnotatedLabelImage ) display.getImages().iterator().next();
+		final AnnotationTableModel annotationTableModel = annotatedLabelImage.getAnnData().getTable();
 
 		String[] scatterPlotAxes = display.getScatterPlotAxes();
 		display.scatterPlotView = new ScatterPlotView( annotationTableModel, display.selectionModel, display.coloringModel, scatterPlotAxes, new double[]{1.0, 1.0}, 0.5 );
@@ -358,7 +358,8 @@ public class ViewManager
 					for ( Image< ? > image : images )
 					{
 						final Image< ? > transformedImage =
-							new ImageTransformer( image ).getTransformedImage(
+							ImageTransformer.transform(
+									image,
 									affineTransformation.getAffineTransform3D(),
 									affineTransformation.getTransformedImageName( image.getName() ) );
 						DataStore.putViewImage( transformedImage );
@@ -400,13 +401,20 @@ public class ViewManager
 
 					// Create the stitched grid image
 					//
-					if ( targetImages.get( 0 ) instanceof AnnotatedImage )
+					if ( targetImages.get( 0 ) instanceof AnnotatedLabelImage )
 					{
-						final StitchedAnnotatedImage annotatedStitchedImage = new StitchedAnnotatedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
+						final StitchedAnnotatedLabelImage annotatedStitchedImage = new StitchedAnnotatedLabelImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
 						DataStore.putViewImage( annotatedStitchedImage );
 					}
 					else
 					{
+						// FIXME maybe one first transforms all the individual
+						//   images and then creates a StitchedImage from those.
+						//   This would partly solve the issue of the annotated
+						//   label images not changing their annotations properly.
+						//   Issue is how to change the Annotations of the pixel
+						//   values of a StitchedImage
+						//   (which happens during the nesting)?
 						final StitchedImage stitchedImage = new StitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
 						DataStore.putViewImage( stitchedImage );
 					}
@@ -500,7 +508,7 @@ public class ViewManager
 				final Set< AnnotatedRegion > annotatedRegions = tableModel.annotations();
 				final Image< UnsignedIntType > labelImage = new RegionLabelImage( regionDisplay.getName(), annotatedRegions );
 				final DefaultAnnData< AnnotatedRegion > regionAnnData = new DefaultAnnData<>( tableModel );
-				final AnnotatedLabelImage regionImage = new AnnotatedLabelImage( labelImage, regionAnnData );
+				final DefaultAnnotatedLabelImage regionImage = new DefaultAnnotatedLabelImage( labelImage, regionAnnData );
 
 				DataStore.putViewImage( regionImage );
 			}
@@ -536,7 +544,7 @@ public class ViewManager
 			for ( String name : display.getImageSources() )
 			{
 				final Image< ? > image = DataStore.getViewImage( name );
-				annotationDisplay.addImage( ( AnnotatedImage ) image );
+				annotationDisplay.addImage( ( AnnotatedLabelImage ) image );
 			}
 
 			// Now that all images are added to the display,

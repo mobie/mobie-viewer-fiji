@@ -87,10 +87,7 @@ public class GridTransformer
 		{
 			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform( translationX, translationY, image, centerAtOrigin );
 
-			final Image< ? > transformedImage =
-					new ImageTransformer( image ).getTransformedImage(
-							translationTransform,
-							transformedNames.get( images.indexOf( image ) ) );
+			final Image< ? > transformedImage = ImageTransformer.transform( image, translationTransform, transformedNames.get( images.indexOf( image ) ) );
 
 			translatedImages.add( transformedImage );
 		}
