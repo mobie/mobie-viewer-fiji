@@ -330,4 +330,9 @@ public class TransformHelper
 			realDimensions[ d ] = max[ d ] - min [ d ];
 		return realDimensions;
 	}
+
+	public static String maskToString( RealMaskRealInterval mask )
+	{
+		return Arrays.toString( mask.minAsDoubleArray() ) + " - " + Arrays.toString( mask.maxAsDoubleArray() );
+	}
 }
