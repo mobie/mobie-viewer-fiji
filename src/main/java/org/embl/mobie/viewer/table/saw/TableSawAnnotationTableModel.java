@@ -4,6 +4,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 import org.embl.mobie.io.util.IOHelper;
+import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.table.AnnotationTableModel;
 import org.embl.mobie.viewer.table.DefaultValues;
@@ -92,6 +93,10 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 			updateTransforms = false;
 			for ( A annotation : annotationToRowIndex.keySet() )
 			{
+				if ( annotation instanceof AnnotatedRegion )
+				{
+					int a = 1;
+				}
 				annotation.transform( affineTransform3D );
 			}
 		}

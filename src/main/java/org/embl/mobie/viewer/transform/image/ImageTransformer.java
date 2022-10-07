@@ -32,14 +32,6 @@ public class ImageTransformer
 		if ( transformedImageName == null )
 		{
 			// in place transformation
-
-			if ( image instanceof AnnotatedLabelImage )
-			{
-				( ( AnnotatedLabelImage<?> ) image ).getLabelImage().transform( affineTransform3D );
-				( ( AnnotatedLabelImage<?> ) image ).getAnnData().getTable().transform( affineTransform3D );
-				return image;
-			}
-
 			image.transform( affineTransform3D );
 			return image;
 		}
@@ -88,8 +80,10 @@ public class ImageTransformer
 					for ( int d = 0; d < 2; d++ )
 						translation[ d ] = tileRealDimensions[ d ] * positions.get( finalGridIndex )[ d ] + withinTileOffset[ d ];
 
-					List< String > transformedImageNames = nestedTransformedNames == null ? images.stream().map( image -> image.getName() ).collect( Collectors.toList() ) : nestedTransformedNames.get( finalGridIndex );
+					List< String > transformedImageNames = nestedTransformedNames == null ? null : nestedTransformedNames.get( finalGridIndex );
+
 					final List< ? extends Image< ? > > translatedImages = translate( images, transformedImageNames, centerAtOrigin, translation[ 0 ], translation[ 1 ] );
+
 					transformedImages.addAll( ( List ) translatedImages );
 				}
 				catch ( Exception e )
@@ -103,7 +97,7 @@ public class ImageTransformer
 		return transformedImages;
 	}
 
-	public static ArrayList< Image< ? > > translate( List< ? extends Image< ? > > images, List< String > transformedNames, boolean centerAtOrigin, double translationX, double translationY )
+	public static ArrayList< Image< ? > > translate( List< ? extends Image< ? > > images, @Nullable List< String > transformedNames, boolean centerAtOrigin, double translationX, double translationY )
 	{
 		final ArrayList< Image< ? > > translatedImages = new ArrayList<>();
 
@@ -111,7 +105,9 @@ public class ImageTransformer
 		{
 			AffineTransform3D translationTransform = TransformHelper.createTranslationTransform( translationX, translationY, image, centerAtOrigin );
 
-			final Image< ? > transformedImage = transform( image, translationTransform, transformedNames.get( images.indexOf( image ) ) );
+			String transformedName = transformedNames == null ? null : transformedNames.get( images.indexOf( image ) );
+
+			final Image< ? > transformedImage = transform( image, translationTransform, transformedName );
 
 			translatedImages.add( transformedImage );
 		}

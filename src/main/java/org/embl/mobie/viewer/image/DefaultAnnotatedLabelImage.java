@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.image;
 
+import bdv.tools.transformation.TransformedSource;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.annotation.Annotation;
@@ -61,22 +62,22 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		throw new RuntimeException();
+		// TODO: it is not so clear to me whether to actually transform the
+		//   labelImage or only the annotatedLabelImage (in the open() function).
+		labelImage.transform( affineTransform3D );
+		annData.getTable().transform( affineTransform3D );
 	}
 
 	@Override
 	public RealMaskRealInterval getMask()
 	{
-		if ( mask == null )
-			return labelImage.getMask();
-
-		return mask;
+		return labelImage.getMask();
 	}
 
 	@Override
 	public void setMask( RealMaskRealInterval mask )
 	{
-		this.mask = mask;
+		labelImage.setMask( mask );
 	}
 
 	@Override

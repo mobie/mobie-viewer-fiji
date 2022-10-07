@@ -37,6 +37,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.util.Intervals;
+import org.embl.mobie.viewer.DataStore;
 import org.embl.mobie.viewer.annotation.AnnotatedRegion;
 import org.embl.mobie.viewer.source.RealRandomAccessibleIntervalTimelapseSource;
 import org.embl.mobie.viewer.source.SourcePair;
@@ -46,6 +47,7 @@ import org.embl.mobie.viewer.transform.TransformHelper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -71,6 +73,12 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 		{
 			final TableSawAnnotatedRegion tableSawAnnotatedRegion = ( TableSawAnnotatedRegion ) annotatedRegion;
 			System.out.println("RegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images = " + Arrays.toString( tableSawAnnotatedRegion.getRegionImageNames().toArray( new String[ 0 ] ) ) + "\n" + Arrays.toString( annotatedRegion.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( annotatedRegion.getMask().maxAsDoubleArray() ) );
+			final List< String > regionImageNames = tableSawAnnotatedRegion.getRegionImageNames();
+			for ( String regionImageName : regionImageNames )
+			{
+				final Image< ? > viewImage = DataStore.getViewImage( regionImageName );
+				System.out.println( viewImage.getName() + ": " + Arrays.toString( viewImage.getMask().minAsDoubleArray() ) + " - " + Arrays.toString( viewImage.getMask().maxAsDoubleArray() ) );
+			}
 		}
 		final ArrayList< Integer > timePoints = configureTimePoints();
 		final Interval interval = Intervals.smallestContainingInterval( getMask() );
@@ -176,6 +184,9 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
+		// TODO
+		//   Not sure this actually makes sense, because the regions
+		//   are the entities that should be transformed.
 		throw new RuntimeException();
 	}
 

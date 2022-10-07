@@ -62,13 +62,13 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	}
 
 	@Override
-	public double[] positionAsDoubleArray()
+	public synchronized double[] positionAsDoubleArray()
 	{
 		if ( position == null )
 		{
 			final double[] min = Intervals.minAsDoubleArray( getMask() );
 			final double[] max = Intervals.maxAsDoubleArray( getMask() );
-			final double[] position = new double[ min.length ];
+			position = new double[ min.length ];
 			for ( int d = 0; d < min.length; d++ )
 				position[ d ] = ( max[ d ] + min[ d ] ) / 2.0;
 			affineTransform3D.apply( position, position );
@@ -129,7 +129,6 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 			realMaskRealInterval = TransformHelper.getUnionMask( DataStore.getViewImageSet( imageNames ), timePoint() );
 		}
 
-		//System.out.println( regionId + ": " + realMaskRealInterval.toString() );
 		return realMaskRealInterval;
 	}
 

@@ -29,6 +29,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	private final SharedQueue sharedQueue;
 	private RealMaskRealInterval mask;
 	private AffineTransform3D affineTransform3D;
+	private TransformedSource transformedSource;
 
 	public SpimDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue )
 	{
@@ -56,19 +57,29 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	@Override
 	public void transform( AffineTransform3D affineTransform3D )
 	{
-		this.affineTransform3D = affineTransform3D;
+		this.affineTransform3D.preConcatenate( affineTransform3D );
+
+		if ( transformedSource != null )
+			transformedSource.setFixedTransform( this.affineTransform3D );
+
+		if ( mask != null )
+			updateMask();
 	}
 
 	@Override
 	public RealMaskRealInterval getMask( )
 	{
 		if ( mask == null )
-		{
-			mask = SourceHelper.estimateMask( getSourcePair().getSource(), 0 );
-			mask = mask.transform( affineTransform3D.inverse() );
-		}
+			updateMask();
 
 		return mask;
+	}
+
+	private void updateMask()
+	{
+		// Note: don't apply the transformation here, because this is
+		//  contained in the sources
+		mask = SourceHelper.estimateMask( getSourcePair().getSource(), 0 );
 	}
 
 	@Override
@@ -82,7 +93,8 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		final AbstractSpimData spimData = tryOpenSpimData( path, imageDataFormat, sharedQueue );
 
 		final SpimSource< T > s = new SpimSource<>( spimData, setupId, name );
-		final TransformedSource transformedSource = new TransformedSource( s, s.getName() );
+		transformedSource = new TransformedSource( s );
+		transformedSource.setFixedTransform( affineTransform3D );
 
 		final VolatileSpimSource< ? extends Volatile< T > > vs = new VolatileSpimSource<>( spimData, setupId, name );
 		final TransformedSource volatileTransformedSource = new TransformedSource( vs, transformedSource );
