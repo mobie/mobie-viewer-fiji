@@ -2,10 +2,12 @@ package org.embl.mobie.viewer.image;
 
 import bdv.SpimSource;
 import bdv.VolatileSpimSource;
-import bdv.util.volatiles.SharedQueue;
+import bdv.tools.transformation.TransformedSource;
+import bdv.cache.SharedQueue;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.AbstractSpimData;
 import net.imglib2.Volatile;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
@@ -26,6 +28,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	@Nullable
 	private final SharedQueue sharedQueue;
 	private RealMaskRealInterval mask;
+	private AffineTransform3D affineTransform3D;
 
 	public SpimDataImage( ImageDataFormat imageDataFormat, String path, int setupId, String name, @Nullable SharedQueue sharedQueue )
 	{
@@ -34,6 +37,7 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 		this.setupId = setupId;
 		this.name = name;
 		this.sharedQueue = sharedQueue;
+		this.affineTransform3D = new AffineTransform3D();
 	}
 
 	@Override
@@ -50,10 +54,19 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 	}
 
 	@Override
+	public void transform( AffineTransform3D affineTransform3D )
+	{
+		this.affineTransform3D = affineTransform3D;
+	}
+
+	@Override
 	public RealMaskRealInterval getMask( )
 	{
 		if ( mask == null )
-			return SourceHelper.estimateMask( getSourcePair().getSource(), 0 );
+		{
+			mask = SourceHelper.estimateMask( getSourcePair().getSource(), 0 );
+			mask = mask.transform( affineTransform3D.inverse() );
+		}
 
 		return mask;
 	}
@@ -66,12 +79,15 @@ public class SpimDataImage< T extends NumericType< T > & RealType< T > > impleme
 
 	private void open()
 	{
-		//final long start = System.currentTimeMillis();
 		final AbstractSpimData spimData = tryOpenSpimData( path, imageDataFormat, sharedQueue );
+
 		final SpimSource< T > s = new SpimSource<>( spimData, setupId, name );
+		final TransformedSource transformedSource = new TransformedSource( s, s.getName() );
+
 		final VolatileSpimSource< ? extends Volatile< T > > vs = new VolatileSpimSource<>( spimData, setupId, name );
-		sp = new DefaultSourcePair( s, vs );
-		//IJ.log( "Opened image " + getName() + " in " + ( System.currentTimeMillis() - start ) + " ms." );
+		final TransformedSource volatileTransformedSource = new TransformedSource( vs, transformedSource );
+
+		sp = new DefaultSourcePair( transformedSource, volatileTransformedSource );
 	}
 
 	public static AbstractSpimData tryOpenSpimData( String path, ImageDataFormat imageDataFormat, SharedQueue sharedQueue )

@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.table;
 
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.transform.AnnotationTransformer;
 import net.imglib2.util.Pair;
@@ -137,5 +138,11 @@ public class TransformedAnnotationTableModel< A extends Annotation, TA extends A
 	public String dataStore()
 	{
 		return tableModel.dataStore();
+	}
+
+	@Override
+	public void transform( AffineTransform3D affineTransform3D )
+	{
+		throw new RuntimeException();
 	}
 }

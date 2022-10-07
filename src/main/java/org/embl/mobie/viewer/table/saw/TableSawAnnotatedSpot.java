@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.table.saw;
 
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.annotation.AnnotatedSpot;
 import org.embl.mobie.viewer.table.ColumnNames;
 import tech.tablesaw.api.Row;
@@ -18,11 +19,13 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 	private final int timePoint;
 	private double[] position;
 	private String source;
+	private AffineTransform3D affineTransform3D;
 
 	public TableSawAnnotatedSpot( Supplier< Table > tableSupplier, int rowIndex )
 	{
 		this.tableSupplier = tableSupplier;
 		this.rowIndex = rowIndex;
+		this.affineTransform3D = new AffineTransform3D();
 
 		final Table rows = tableSupplier.get();
 		final Row row = rows.row( rowIndex );
@@ -100,6 +103,14 @@ public class TableSawAnnotatedSpot implements AnnotatedSpot
 	public String[] idColumns()
 	{
 		return idColumns;
+	}
+
+	@Override
+	public void transform( AffineTransform3D affineTransform3D )
+	{
+		this.affineTransform3D = affineTransform3D;
+
+		affineTransform3D.apply( position, position );
 	}
 
 	@Override

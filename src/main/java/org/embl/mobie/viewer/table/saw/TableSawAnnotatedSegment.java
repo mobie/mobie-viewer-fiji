@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.table.saw;
 
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.annotation.AnnotatedSegment;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
@@ -23,6 +24,7 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	private float[] mesh;
 	private String source;
 	private String uuid;
+	private AffineTransform3D affineTransform3D;
 
 	public TableSawAnnotatedSegment(
 			Supplier< Table > tableSupplier,
@@ -32,6 +34,7 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 		this.rowIndex = rowIndex;
 		final Table rows = tableSupplier.get();
 		Row row = rows.row( rowIndex );
+		affineTransform3D = new AffineTransform3D();
 
 		final List< String > columnNames = row.columnNames();
 
@@ -102,7 +105,7 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	@Override
 	public double getDoublePosition( int d )
 	{
-		return positionAsDoubleArray()[ d ];
+		return position[ d ];
 	}
 
 	@Override
@@ -157,6 +160,17 @@ public class TableSawAnnotatedSegment implements AnnotatedSegment
 	public String[] idColumns()
 	{
 		return idColumns;
+	}
+
+	@Override
+	public void transform( AffineTransform3D affineTransform3D )
+	{
+		this.affineTransform3D = affineTransform3D;
+
+		// update fields
+		affineTransform3D.apply( position, position );
+		boundingBox = affineTransform3D.estimateBounds( boundingBox );
+		// FIXME mesh is missing
 	}
 
 	@Override

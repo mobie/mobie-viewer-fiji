@@ -28,6 +28,7 @@
  */
 package org.embl.mobie.viewer.image;
 
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.IntegerType;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.source.AnnotationType;
@@ -42,12 +43,12 @@ public class StitchedAnnotatedLabelImage< A extends Annotation > extends Stitche
 {
 	private AnnData< A > annData;
 
-	public StitchedAnnotatedLabelImage( List< ? extends AnnotatedLabelImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage, @Nullable List< int[] > positions, String imageName, double relativeCellMargin, boolean transformImages )
+	public StitchedAnnotatedLabelImage( List< ? extends AnnotatedLabelImage< A > > annotatedImages, Image< AnnotationType< A > > metadataImage, @Nullable List< int[] > positions, String imageName, double relativeCellMargin )
 	{
 		// FIXME
 		//   One could just stitch the label mask images
 		//   and then transform
-		super( annotatedImages, metadataImage, positions, imageName, relativeCellMargin, transformImages );
+		super( annotatedImages, metadataImage, positions, imageName, relativeCellMargin );
 	}
 
 	@Override
@@ -63,6 +64,13 @@ public class StitchedAnnotatedLabelImage< A extends Annotation > extends Stitche
 	public Image< ? extends IntegerType< ? > > getLabelImage()
 	{
 		// FIXME
-		return null;
+		throw new RuntimeException();
+	}
+
+	@Override
+	public void transform( AffineTransform3D affineTransform3D )
+	{
+		// FIXME
+		throw new RuntimeException();
 	}
 }

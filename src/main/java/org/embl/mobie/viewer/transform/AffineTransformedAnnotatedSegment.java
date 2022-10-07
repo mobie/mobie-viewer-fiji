@@ -60,7 +60,10 @@ public class AffineTransformedAnnotatedSegment< AS extends AnnotatedSegment > im
 	@Override
 	public void setBoundingBox( RealInterval boundingBox )
 	{
-		annotatedSegment.setBoundingBox( affineTransform3D.inverse().estimateBounds( annotatedSegment.boundingBox() ) );
+		// FIXME: this should probably just set the bounding box!
+		throw new RuntimeException();
+
+		//annotatedSegment.setBoundingBox( affineTransform3D.inverse().estimateBounds( annotatedSegment.boundingBox() ) );
 	}
 
 	@Override
@@ -73,7 +76,12 @@ public class AffineTransformedAnnotatedSegment< AS extends AnnotatedSegment > im
 	@Override
 	public void setMesh( float[] mesh )
 	{
-		// FIXME inverse transform
+		// FIXME
+		//   store the mesh locally, don't
+		//
+		//
+		//   modify the annotatedSegment!
+
 		annotatedSegment.setMesh( mesh );
 	}
 
@@ -105,6 +113,12 @@ public class AffineTransformedAnnotatedSegment< AS extends AnnotatedSegment > im
 	public String[] idColumns()
 	{
 		return annotatedSegment.idColumns();
+	}
+
+	@Override
+	public void transform( AffineTransform3D affineTransform3D )
+	{
+		this.affineTransform3D.preConcatenate( affineTransform3D );
 	}
 
 	@Override

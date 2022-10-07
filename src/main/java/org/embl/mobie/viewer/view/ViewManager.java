@@ -82,7 +82,7 @@ import org.embl.mobie.viewer.table.saw.TableSawAnnotationTableModel;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegion;
 import org.embl.mobie.viewer.table.saw.TableSawAnnotatedRegionCreator;
 import org.embl.mobie.viewer.serialize.transformation.AbstractGridTransformation;
-import org.embl.mobie.viewer.transform.ImageTransformer;
+import org.embl.mobie.viewer.transform.image.ImageTransformer;
 import org.embl.mobie.viewer.transform.NormalizedAffineViewerTransform;
 import org.embl.mobie.viewer.transform.SliceViewLocationChanger;
 import org.embl.mobie.viewer.transform.TransformHelper;
@@ -90,7 +90,6 @@ import org.embl.mobie.viewer.serialize.transformation.CropTransformation;
 import org.embl.mobie.viewer.serialize.transformation.MergedGridTransformation;
 import org.embl.mobie.viewer.serialize.transformation.Transformation;
 import org.embl.mobie.viewer.serialize.transformation.AffineTransformation;
-import org.embl.mobie.viewer.transform.image.GridTransformer;
 import org.embl.mobie.viewer.ui.UserInterface;
 import org.embl.mobie.viewer.ui.WindowArrangementHelper;
 import org.embl.mobie.viewer.view.save.ViewSaver;
@@ -403,7 +402,7 @@ public class ViewManager
 					//
 					if ( targetImages.get( 0 ) instanceof AnnotatedLabelImage )
 					{
-						final StitchedAnnotatedLabelImage annotatedStitchedImage = new StitchedAnnotatedLabelImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
+						final StitchedAnnotatedLabelImage annotatedStitchedImage = new StitchedAnnotatedLabelImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN );
 						DataStore.putViewImage( annotatedStitchedImage );
 					}
 					else
@@ -415,7 +414,7 @@ public class ViewManager
 						//   Issue is how to change the Annotations of the pixel
 						//   values of a StitchedImage
 						//   (which happens during the nesting)?
-						final StitchedImage stitchedImage = new StitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN, true );
+						final StitchedImage stitchedImage = new StitchedImage( targetImages, metadataImage, mergedGridTransformation.positions, mergedGridTransformation.mergedGridSourceName, AbstractGridTransformation.RELATIVE_GRID_CELL_MARGIN );
 						DataStore.putViewImage( stitchedImage );
 					}
 				}
@@ -455,7 +454,7 @@ public class ViewManager
 
 					final List< int[] > gridPositions = gridTransformation.positions == null ? TransformHelper.createGridPositions( nestedSources.size() ) : gridTransformation.positions;
 
-					final List< ? extends Image< ? > > transformedImages = new GridTransformer().getTransformedImages( nestedImages, gridTransformation.transformedNames, gridPositions, tileRealDimensions, gridTransformation.centerAtOrigin, offset );
+					final List< ? extends Image< ? > > transformedImages = ImageTransformer.gridTransform( nestedImages, gridTransformation.transformedNames, gridPositions, tileRealDimensions, gridTransformation.centerAtOrigin, offset );
 					DataStore.putViewImages( transformedImages );
 				}
 				else

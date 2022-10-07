@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.table.saw;
 
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 import org.embl.mobie.io.util.IOHelper;
@@ -33,6 +34,8 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	private Map< A, Integer > annotationToRowIndex = new ConcurrentHashMap<>();;
 	private Map< Integer, A > rowIndexToAnnotation = new ConcurrentHashMap<>();;
 	private Table table;
+	private AffineTransform3D affineTransform3D;
+	private boolean updateTransforms = false;
 
 	public TableSawAnnotationTableModel(
 			String dataSourceName,
@@ -44,7 +47,8 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 		this.dataSourceName = dataSourceName;
 		this.annotationCreator = annotationCreator;
 		this.dataStore = dataStore;
-		requestedColumnPaths.add( IOHelper.combinePath( dataStore, defaultColumns ) );
+		this.requestedColumnPaths.add( IOHelper.combinePath( dataStore, defaultColumns ) );
+		this.affineTransform3D = new AffineTransform3D();
 	}
 
 	// Use this constructor if the default table is available already
@@ -80,6 +84,15 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 			{
 				final String[] mergeByColumnNames = annotation( 0 ).idColumns();
 				table = table.joinOn( mergeByColumnNames ).inner( rows );
+			}
+		}
+
+		if ( updateTransforms )
+		{
+			updateTransforms = false;
+			for ( A annotation : annotationToRowIndex.keySet() )
+			{
+				annotation.transform( affineTransform3D );
 			}
 		}
 	}
@@ -232,5 +245,12 @@ public class TableSawAnnotationTableModel< A extends Annotation > implements Ann
 	public String dataStore()
 	{
 		return dataStore;
+	}
+
+	@Override
+	public synchronized void transform( AffineTransform3D affineTransform3D )
+	{
+		this.updateTransforms = true;
+		this.affineTransform3D = affineTransform3D;
 	}
 }

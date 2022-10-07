@@ -157,6 +157,12 @@ public class SpotLabelImage< AS extends AnnotatedSpot > implements Image< Unsign
 	}
 
 	@Override
+	public void transform( AffineTransform3D affineTransform3D )
+	{
+		throw new RuntimeException();
+	}
+
+	@Override
 	public RealMaskRealInterval getMask()
 	{
 		return mask;

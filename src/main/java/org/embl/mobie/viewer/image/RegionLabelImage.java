@@ -174,6 +174,12 @@ public class RegionLabelImage< AR extends AnnotatedRegion > implements Image< Un
 	}
 
 	@Override
+	public void transform( AffineTransform3D affineTransform3D )
+	{
+		throw new RuntimeException();
+	}
+
+	@Override
 	public RealMaskRealInterval getMask( )
 	{
 		return TransformHelper.getUnionMask( annotatedRegions, 0 );

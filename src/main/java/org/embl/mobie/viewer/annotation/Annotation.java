@@ -1,5 +1,7 @@
 package org.embl.mobie.viewer.annotation;
 
+import net.imglib2.realtransform.AffineTransform3D;
+
 public interface Annotation extends Location
 {
 	String uuid();
@@ -18,6 +20,14 @@ public interface Annotation extends Location
 	// For adding manual annotations
 	void setString( String columnName, String value );
 
-	// for merging tables
+	// For merging tables.
 	String[] idColumns();
+
+	// Transform the spatial coordinates of this annotation.
+	// Note that there are also methods to transform annotations,
+	// which create a copy of the annotation;
+	// e.g. {@code AffineTransformedAnnotatedSegment};
+	// use those methods if you need both the transformed and
+	// untransformed annotations.
+	void transform( AffineTransform3D affineTransform3D );
 }

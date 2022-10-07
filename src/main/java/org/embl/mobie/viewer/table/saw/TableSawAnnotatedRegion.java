@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.table.saw;
 
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.util.Intervals;
 import org.embl.mobie.viewer.DataStore;
@@ -24,7 +25,9 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	private String regionId;
 	private int label;
 	private final int timePoint;
+	private double[] position;
 	private String source;
+	private AffineTransform3D affineTransform3D;
 
 	public TableSawAnnotatedRegion(
 			Supplier< Table > tableSupplier,
@@ -34,6 +37,7 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 		this.tableSupplier = tableSupplier;
 		this.rowIndex = rowIndex;
 		this.imageNames = imageNames;
+		this.affineTransform3D = new AffineTransform3D();
 
 		final Row row = tableSupplier.get().row( rowIndex );
 
@@ -60,12 +64,17 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	@Override
 	public double[] positionAsDoubleArray()
 	{
-		final double[] min = Intervals.minAsDoubleArray( getMask() );
-		final double[] max = Intervals.maxAsDoubleArray( getMask() );
-		final double[] center = new double[ min.length ];
-		for ( int d = 0; d < min.length; d++ )
-			center[ d ] = ( max[ d ] + min[ d ] ) / 2.0;
-		return center;
+		if ( position == null )
+		{
+			final double[] min = Intervals.minAsDoubleArray( getMask() );
+			final double[] max = Intervals.maxAsDoubleArray( getMask() );
+			final double[] position = new double[ min.length ];
+			for ( int d = 0; d < min.length; d++ )
+				position[ d ] = ( max[ d ] + min[ d ] ) / 2.0;
+			affineTransform3D.apply( position, position );
+		}
+
+		return position;
 	}
 
 	@Override
@@ -105,10 +114,20 @@ public class TableSawAnnotatedRegion implements AnnotatedRegion
 	}
 
 	@Override
+	public void transform( AffineTransform3D affineTransform3D )
+	{
+		this.affineTransform3D.preConcatenate( affineTransform3D );
+		this.affineTransform3D.apply( position, position );
+		realMaskRealInterval = realMaskRealInterval.transform( this.affineTransform3D );
+	}
+
+	@Override
 	public RealMaskRealInterval getMask()
 	{
 		if ( realMaskRealInterval == null )
+		{
 			realMaskRealInterval = TransformHelper.getUnionMask( DataStore.getViewImageSet( imageNames ), timePoint() );
+		}
 
 		//System.out.println( regionId + ": " + realMaskRealInterval.toString() );
 		return realMaskRealInterval;

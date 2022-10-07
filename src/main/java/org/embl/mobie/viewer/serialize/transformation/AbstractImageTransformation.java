@@ -38,7 +38,7 @@ public abstract class AbstractImageTransformation< A, B > implements ImageTransf
 	protected List< String > sources;
 	protected List< String > sourceNamesAfterTransform;
 
-	// TODO: for stitching this does not apply
+	// FIXME: for stitching this does not apply
 	@Override
 	public String getTransformedImageName( String imageName )
 	{
@@ -48,7 +48,7 @@ public abstract class AbstractImageTransformation< A, B > implements ImageTransf
 		}
 		else
 		{
-			return imageName;
+			return null;
 		}
 	}
 }

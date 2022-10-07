@@ -85,6 +85,12 @@ public class AffineTransformedImage< T > implements Image< T >
 	}
 
 	@Override
+	public void transform( AffineTransform3D affineTransform3D )
+	{
+		throw new RuntimeException();
+	}
+
+	@Override
 	public RealMaskRealInterval getMask( )
 	{
 		if ( transformedMask == null )

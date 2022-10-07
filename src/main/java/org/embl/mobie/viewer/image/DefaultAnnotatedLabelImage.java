@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.image;
 
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import org.embl.mobie.viewer.annotation.Annotation;
 import org.embl.mobie.viewer.annotation.AnnotationAdapter;
@@ -55,6 +56,12 @@ public class DefaultAnnotatedLabelImage< A extends Annotation > implements Annot
 	public String getName()
 	{
 		return labelImage.getName();
+	}
+
+	@Override
+	public void transform( AffineTransform3D affineTransform3D )
+	{
+		throw new RuntimeException();
 	}
 
 	@Override

@@ -52,8 +52,8 @@ import org.embl.mobie.viewer.ThreadHelper;
 import org.embl.mobie.viewer.source.MoBIEVolatileTypeMatcher;
 import org.embl.mobie.viewer.source.RandomAccessibleIntervalMipmapSource;
 import org.embl.mobie.viewer.source.SourcePair;
+import org.embl.mobie.viewer.transform.image.ImageTransformer;
 import org.embl.mobie.viewer.transform.TransformHelper;
-import org.embl.mobie.viewer.transform.image.GridTransformer;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -73,7 +73,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	protected final T type;
 	protected final String name;
 	protected List< ? extends Image< T > > images;
-	protected List< ? extends Image< ? > > translatedImages;
 	protected final List< int[] > positions;
 	protected final double relativeCellMargin;
 	protected int[][] tileDimensions;
@@ -92,14 +91,20 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	private HashMap< Integer, long[] > levelToSourceDimensions;
 	private HashMap< Integer, double[] > levelToTileMarginVoxelTranslation;
 
-	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeCellMargin, boolean transformImageTiles )
+	public StitchedImage( List< ? extends Image< T > > images, Image< T > metadataImage, @Nullable List< int[] > positions, String name, double relativeCellMargin )
 	{
+
 		// Init reference image metadata.
 		// If we knew all that information we would not need to load
 		// the reference image and thus safe time during initialization.
 		//
 		//metadataImage = images.get( 0 );
 		Source< T > metadataSource = metadataImage.getSourcePair().getSource();
+		// FIXME: This is a problem,
+		//   because for annotated images the type will change
+		//   if the image is transformed
+		//   It feels too complicated to transform the annotated images here.
+		//   First transformed metadata source such that the type
 		this.type = metadataSource.getType().createVariable();
 		this.volatileType = ( V ) MoBIEVolatileTypeMatcher.getVolatileTypeForType( type );
 		this.numMipmapLevels = metadataSource.getNumMipmapLevels();
@@ -114,6 +119,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			metadataSource.getSourceTransform( 0, level, affineTransform3D );
 			final AffineTransform3D copy = affineTransform3D.copy();
 			final long[] dimensions = metadataSource.getSource( 0, level ).dimensionsAsLongArray();
+			// remove translation from source transforms
 			if ( level == 0 )
 			{
 				System.out.println( "StitchedImage: " + name );
@@ -125,7 +131,12 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 			levelToSourceDimensions.put( level, dimensions );
 		}
 
-		this.images = images;
+		// Transform the individual images that make up the tiles.
+		this.images = ( List< ? extends Image< T > > ) transform( images, metadataImage );
+
+		// Register the transformed images globally for region annotations
+		DataStore.putViewImages( images );
+
 		this.positions = positions == null ? TransformHelper.createGridPositions( images.size() ) : positions;
 		this.relativeCellMargin = relativeCellMargin;
 		this.name = name;
@@ -140,9 +151,6 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		System.out.println( "Tile dimensions: " + Arrays.toString( tileRealDimensions ) );
 
 		createSourcePair();
-
-		if ( transformImageTiles )
-			transform( images, metadataImage );
 	}
 
 	private double[] computeTileMarginOffset( Image< ? > image, double[] tileRealDimensions )
@@ -164,7 +172,7 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	// such that they appear at the same location as in the stitched image.
 	// This is needed for a {@code RegionDisplay}
 	// to know the location of the annotated images.
-	protected void transform( List< ? extends Image< ? > > images, Image< ? > metadataImage )
+	protected List< ? extends Image< ? > > transform( List< ? extends Image< ? > > images, Image< ? > metadataImage )
 	{
 		final double[] offset = computeTileMarginOffset( metadataImage, tileRealDimensions );
 
@@ -217,17 +225,14 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 		// tile images; this is important
 		// such that {@code getTileImages()} returns
 		// the correctly positioned images.
-		this.translatedImages = new GridTransformer().getTransformedImages( nestedImages, nestedTransformedNames, positions, tileRealDimensions, false, offset );
+		List< ? extends Image< ? > > translatedImages = ImageTransformer.gridTransform( nestedImages, nestedTransformedNames, positions, tileRealDimensions, false, offset );
 
-		System.out.println("Stitched Image: " + name + ": contained translated images:\n" + Arrays.toString( translatedImages.stream().map( i -> i.getName() ).toArray() ) );
-
-		// Register globally for region annotations
-		DataStore.putViewImages( translatedImages );
+		return translatedImages;
 	}
 
 	public List< ? extends Image< ? > > getTranslatedImages()
 	{
-		return translatedImages;
+		return images;
 	}
 
 	protected void createSourcePair()
@@ -542,6 +547,12 @@ public class StitchedImage< T extends Type< T >, V extends Volatile< T > & Type<
 	public String getName()
 	{
 		return name;
+	}
+
+	@Override
+	public void transform( AffineTransform3D affineTransform3D )
+	{
+
 	}
 
 	@Override

@@ -35,6 +35,7 @@ import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.Volatile;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.RealMaskRealInterval;
 import net.imglib2.roi.geom.GeomMasks;
 import org.embl.mobie.viewer.image.DefaultSourcePair;
@@ -150,6 +151,13 @@ public class CroppedImage< T > implements Image< T >
 	public String getName()
 	{
 		return croppedImageName;
+	}
+
+	@Override
+	public void transform( AffineTransform3D affineTransform3D )
+	{
+		// FIXME
+		throw new RuntimeException();
 	}
 
 	@Override

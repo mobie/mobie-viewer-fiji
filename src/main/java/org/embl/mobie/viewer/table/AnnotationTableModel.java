@@ -1,5 +1,6 @@
 package org.embl.mobie.viewer.table;
 
+import net.imglib2.realtransform.AffineTransform3D;
 import org.embl.mobie.viewer.annotation.Annotation;
 import net.imglib2.util.Pair;
 
@@ -26,4 +27,5 @@ public interface AnnotationTableModel< A extends Annotation >
 	void addStringColumn( String columnName );
 	boolean isDataLoaded();
 	String dataStore();
+	void transform( AffineTransform3D affineTransform3D );
 }
