@@ -512,8 +512,10 @@ public class MoBIE
 				continue;
 
 			futures.add(
-					ThreadHelper.ioExecutorService.submit( () -> {
+					ThreadHelper.ioExecutorService.submit( () ->
+							{
 								String log = getLog( sourceIndex, numImages, sourceLoggingModulo, lastLogMillis );
+
 								initDataSource( dataSource, log );
 							}
 					) );
@@ -529,8 +531,14 @@ public class MoBIE
 		{
 			ImageDataSource imageSource = ( ImageDataSource ) dataSource;
 			ImageDataFormat imageDataFormat = getAppropriateImageDataFormat( imageSource );
+			final Integer channel = imageSource.imageData.get( imageDataFormat ).channel;
 			final String imagePath = getImagePath( imageSource, imageDataFormat );
-			final SpimDataImage< ? > image = new SpimDataImage( imageDataFormat, imagePath, 0, dataSource.getName(), ThreadHelper.sharedQueue );
+
+			// TODO
+			//   Maybe somehow re-use the same SpimData object that is used for
+			//   different channels? See code in current develop branch.
+			//   https://github.com/mobie/mobie-viewer-fiji/blob/3999de27187b06f07e2bc35c6efb4f455859c25a/src/main/java/org/embl/mobie/viewer/MoBIE.java#L517
+			final SpimDataImage< ? > image = new SpimDataImage( imageDataFormat, imagePath, channel, dataSource.getName(), ThreadHelper.sharedQueue );
 
 			if ( dataSource.preInit() )
 			{

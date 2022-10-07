@@ -33,4 +33,5 @@ public class StorageLocation
 	public String relativePath;
 	public String s3Address;
 	public String signingRegion;
+	public Integer channel = 0;
 }
