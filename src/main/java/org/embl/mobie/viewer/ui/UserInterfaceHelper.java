@@ -434,6 +434,7 @@ public class UserInterfaceHelper
 		button.addActionListener( e ->
 		{
 			final SourceAndConverter[] sacArray = sourceAndConverters.toArray( new SourceAndConverter[ 0 ] );
+
 			MoBIE.getCommandService().run( ConfigureLabelRenderingCommand.class, true, "sourceAndConverters", sacArray );
 		} );
 		return button;

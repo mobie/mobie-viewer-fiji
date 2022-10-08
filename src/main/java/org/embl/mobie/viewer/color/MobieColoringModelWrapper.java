@@ -28,7 +28,6 @@
  */
 package org.embl.mobie.viewer.color;
 
-// TODO: do we need this interface?
 public interface MobieColoringModelWrapper
 {
 	MobieColoringModel getMoBIEColoringModel();

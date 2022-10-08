@@ -40,13 +40,16 @@ import org.embl.mobie.viewer.source.SourceHelper;
 import org.embl.mobie.viewer.source.VolatileBoundarySource;
 import net.imglib2.converter.Converter;
 import net.imglib2.type.numeric.ARGBType;
+import org.scijava.Initializable;
+import org.scijava.command.DynamicCommand;
+import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.util.ColorRGB;
 import sc.fiji.bdvpg.scijava.command.BdvPlaygroundActionCommand;
 
 @Plugin(type = BdvPlaygroundActionCommand.class, menuPath = CommandConstants.CONTEXT_MENU_ITEMS_ROOT + "Display>Configure Label Rendering")
-public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionCommand
+public class ConfigureLabelRenderingCommand extends DynamicCommand implements BdvPlaygroundActionCommand, Initializable
 {
 	public static final String SEGMENT_COLOR = "Keep current color";
 	public static final String SELECTION_COLOR = "Use below selection color";
@@ -72,10 +75,40 @@ public class ConfigureLabelRenderingCommand implements BdvPlaygroundActionComman
 	@Parameter( label = "Opacity of non-selected labels" )
 	public double opacity = 0.15;
 
-	@Parameter( label = "Random label color seed [ Ctrl L ]" )
-	public int randomColorSeed = 42;
+	// persist = false is needed for the {@code initialise} method to work
+	@Parameter( label = "Random label color seed [ Ctrl L ]", persist = false )
+	public Integer randomColorSeed = 42;
 
 	private ARGBType selectionARGB;
+
+	@Override
+	public void initialize()
+	{
+		initRandomColorSeedItem();
+	}
+
+	private void initRandomColorSeedItem()
+	{
+		final MutableModuleItem< Integer > randomColorSeedItem = getInfo().getMutableInput("randomColorSeed", Integer.class );
+
+		for ( SourceAndConverter sourceAndConverter : sourceAndConverters )
+		{
+			final Converter converter = sourceAndConverter.getConverter();
+
+			if ( converter instanceof MobieColoringModelWrapper )
+			{
+				final ColoringModel coloringModel = ( ( MobieColoringModelWrapper ) converter ).getMoBIEColoringModel().getWrappedColoringModel();
+
+				if ( coloringModel instanceof CategoricalAnnotationColoringModel )
+				{
+					final CategoricalAnnotationColoringModel< ? > categoricalAnnotationColoringModel = ( CategoricalAnnotationColoringModel< ? > ) coloringModel;
+					final int randomSeed = categoricalAnnotationColoringModel.getRandomSeed();
+					randomColorSeedItem.setValue( this, randomSeed );
+					return;
+				}
+			}
+		}
+	}
 
 	@Override
 	public void run()
