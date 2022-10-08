@@ -32,6 +32,7 @@ public class ImageTransformer
 		if ( transformedImageName == null )
 		{
 			// in place transformation
+			//System.out.println("Transform " + image.getName() + ": " + affineTransform3D.toString() );
 			image.transform( affineTransform3D );
 			return image;
 		}
